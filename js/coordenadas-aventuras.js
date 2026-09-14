@@ -170,7 +170,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-13",
         mapa_numero: 13,
         coordenadas: { lat: Number('39.467580'), lng: Number('-0.375150') },
-        nombre: "Case estilo árabe",
+        nombre: "Casa estilo árabe",
         imagen: "imagenes/imagenes-aventuras/Casa_arabe.jpg"
     },
     {
@@ -304,7 +304,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 2, //De mapa número 1 a sin núemero en el mapa (Calle Muro de Santa Ana)
         mapa_numero: "1→-",
-        nombre: "Plaza de la crída → Calle Muro de Santa Ana",
+        nombre: "Plaza de la Crída → Calle Muro de Santa Ana",
         inicio: { lat: Number('39.479590'), lng: Number('-0.375830') },
         waypoints: [
             { lat: Number('39.479390'), lng: Number('-0.375200') },
@@ -447,7 +447,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 11, // mapa número 5
         mapa_numero: 5,
-        nombre: "Capilla exterior catedral",
+        nombre: "Capilla exterior Catedral",
         coordenadas: { lat: Number('39.476030'), lng: Number('-0.374760') },
         imagen: "imagenes/imagenes-aventuras/capilla_exterior_catedral.jpg",
     },
@@ -458,7 +458,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 12, // mapa número 5
         mapa_numero: 5,
-        nombre: "Capilla exterior catedral",
+        nombre: "Capilla exterior Catedral",
         coordenadas: { lat: Number('39.476040'), lng: Number('-0.374820') },
         imagen: "imagenes/imagenes-aventuras/capilla_exterior_catedral.jpg",
     },
@@ -495,7 +495,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 6, // De Casa del punt de gantxo a mapa número 6
         mapa_numero: "-→6",
-        nombre: "Plaza de la Almoína → Plaza Decimo Junio Bruto (Museo Arqueológico de la Almoína)",
+        nombre: "Plaza de la Almoína → Plaza Décimo Junio Bruto (Museo Arqueológico de la Almoína)",
         inicio: { lat: Number('39.476050'), lng: Number('-0.374270') },
         waypoints: [
             { lat: Number('39.476110'), lng: Number('-0.374220') },
@@ -512,7 +512,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 15, // mapa número 6
         mapa_numero: 6,
-        nombre: "Museo arqueológico La Almoína",
+        nombre: "Museo Arqueológico La Almoína",
         coordenadas: { lat: Number('39.476240'), lng: Number('-0.374250') },
         imagen: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_almoina_2.jpg"
@@ -524,7 +524,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 16, // mapa número 6
         mapa_numero: 6,
-        nombre: "Museo arqueológico La Almoína",
+        nombre: "Museo Arqueológico La Almoína",
         coordenadas: { lat: Number('39.476240'),  lng: Number('-0.374290') },
         imagen: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
     },
@@ -547,7 +547,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 7, // De mapa número 6 a mapa número 8
         mapa_numero: "6→8",
-        nombre: "Museo arqueológico La Almoína → Palacio Arzobispal",
+        nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal",
         inicio: { lat: Number('39.476220'), lng: Number('-0.374280') },
         waypoints: [
             { lat: Number('39.475970'), lng: Number('-0.374330') },
@@ -732,7 +732,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 12, // De mapa número 12 a mapa número 13
         mapa_numero: "12→13",
-        nombre: "Plaza de Toros → Casa estilo Árabe",
+        nombre: "Plaza de Toros → Casa estilo árabe",
         inicio: { lat: Number('39.467140'), lng: Number('-0.375930') },
         waypoints: [
             { lat: Number('39.467140'), lng: Number('-0.374980') },
@@ -749,7 +749,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 25, // mapa número 13
         mapa_numero: 13,
-        nombre: "Casa estilo Árabe",
+        nombre: "Casa estilo árabe",
         coordenadas: { lat: Number('39.467520'), lng: Number('-0.375110') },
         imagen: "imagenes/imagenes-aventuras/Casa_arabe.jpg",
     },
@@ -760,7 +760,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 13, // De mapa número 13 a mapa número 14
         mapa_numero: "13→14",
-        nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)",
+        nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)",
         inicio: { lat: Number('39.467520'), lng: Number('-0.375110') },
         waypoints: [
             { lat: Number('39.468390'), lng: Number('-0.375280') },
@@ -1243,7 +1243,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-6",
         mapa_numero: 6,
         coordenadas: { lat: Number('39.476070'), lng: Number('-0.379160') },
-        nombre: "Parroquia de San Nicolás (Puerta gótica)",
+        nombre: "Parroquia de San Nicolás (Puerta Gótica)",
         imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
     },
     {
@@ -2741,7 +2741,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 8, // De mapa número 12 a mapa número 11
         mapa_numero: "12→11",
-        nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)",
+        nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)",
         inicio: { lat: Number('39.468920'), lng: Number('-0.362880') },
         waypoints:
         [
@@ -2760,7 +2760,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 13, // mapa número 11
         mapa_numero: 11,
-        nombre: "Puente de la Mar (Parte Superior)",
+        nombre: "Puente de la Mar (parte superior)",
         coordenadas: { lat: Number('39.470010'), lng: Number('-0.364770') },
         imagen: "imagenes/imagenes-aventuras/pont_de_la_mar_top.jpg",
     },
@@ -3521,7 +3521,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 37, // mapa número 33
         mapa_numero: "33",
-        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo",
         coordenadas:  { lat: Number('39.475986'), lng: Number('-0.374472') },
         imagen: "imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg",
     },
@@ -4924,7 +4924,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 31, // mapa número v2/v3
         mapa_numero: "v2/v3",
-        nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio",
         coordenadas: { lat: Number('39.478239'), lng: Number('-0.367925') },
         imagen: "imagenes/imagenes-aventuras/viveros_maqueta_palacio.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_restos_palacio.jpg",
@@ -4937,7 +4937,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 22, // De mapa número v3 a mapa número v5
         mapa_numero: "v3→v5",
-        nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
         inicio: { lat: Number('39.478239'), lng: Number('-0.367925') },
          waypoints: [
             { lat: Number('39.478744'), lng: Number('-0.367728') },
@@ -5035,7 +5035,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 25, // De mapa número v7-v8 a mapa número v11
         mapa_numero: "v7-v8→v11",
-        nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos",
         inicio: { lat: Number('39.479455'), lng: Number('-0.368610') },
          waypoints: [
             { lat: Number('39.478955'), lng: Number('-0.368506') },
@@ -5054,7 +5054,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 35, // mapa número v11
         mapa_numero: "v11",
-        nombre: "Estanque de los patos",
+        nombre: "Estanque de los Patos",
         coordenadas: { lat: Number('39.478899'), lng: Number('-0.369452') },
         imagen: "imagenes/imagenes-aventuras/viveros_patos.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
@@ -5065,7 +5065,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 26, // De mapa número v11 a mapa número v12
         mapa_numero: "v11→v12",
-        nombre: "Estanque de los patos → Portón del Convento de San Julián",
+        nombre: "Estanque de los Patos → Portón del Convento de San Julián",
         inicio: { lat: Number('39.478899'), lng: Number('-0.369452') },
          waypoints: [
             { lat: Number('39.478727'), lng: Number('-0.369513') },
@@ -5097,7 +5097,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 27, // De mapa número 25 a mapa número 26
         mapa_numero: "25→26",
-        nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real",
+        nombre: "Entrada Jardines del Real (Viveros) → Puente del Real",
         inicio: { lat: Number('39.477480'), lng: Number('-0.368360') },
          waypoints: [
             { lat: Number('39.477386'), lng: Number('-0.368269') },
@@ -5319,7 +5319,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-18",
         mapa_numero: 18,
         coordenadas: { lat: Number('39.478245'), lng: Number('-0.383135') },
-        nombre: "Museo de Prehistória de Valencia",
+        nombre: "Museo de Prehistoria de Valencia",
         imagen: "",
     },
     {
@@ -6481,7 +6481,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-7",
         mapa_numero: 7,
         coordenadas: { lat: Number('39.475982'), lng: Number('-0.375222')},
-        nombre: "Catedral de valencia",
+        nombre: "Catedral de Valencia",
         imagen: "imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg"
     },
     {
@@ -6489,7 +6489,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-8",
         mapa_numero: 8,
         coordenadas: { lat: Number('39.475201'), lng: Number('-0.375554')},
-        nombre: "Catedral de valencia",
+        nombre: "Catedral de Valencia",
         imagen: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg"
     },
     {
@@ -7019,7 +7019,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 22, // mapa número 15
         mapa_numero: 15,
-        nombre: "Mercado central",
+        nombre: "Mercado Central",
         coordenadas: { lat: Number('39.473770'), lng: Number('-0.378320') },
         imagen: "imagenes/imagenes-aventuras/mercado_central.jpg",
     },
@@ -7624,7 +7624,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-47",
         mapa_numero: 47,
         coordenadas: { lat: Number('39.47607'), lng: Number('-0.37916') },
-        nombre: "Parroquia de San Nicolás (Puerta gótica)",
+        nombre: "Parroquia de San Nicolás (Puerta Gótica)",
         imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
     },
     {
@@ -7712,7 +7712,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-58",
         mapa_numero: 58,
         coordenadas: { lat: Number('39.478245'), lng: Number('-0.383135') },
-        nombre: "Museo de Prehistória de Valencia",
+        nombre: "Museo de Prehistoria de Valencia",
         imagen: "imagenes/imagenes-aventuras/museo_prehistoria.jpg",
     },
     {
@@ -9138,7 +9138,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 36, // mapa número 32
         mapa_numero: 32,
-        nombre: "Mercado central",
+        nombre: "Mercado Central",
         coordenadas: { lat: Number('39.473770'), lng: Number('-0.378320') },
         imagen: "imagenes/imagenes-aventuras/mercado_central.jpg",
     },
@@ -10046,7 +10046,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 51, // De mapa número 51 a mapa número 52
         mapa_numero: "51→52",
-        nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española",
         inicio: { lat: Number('39.478030'), lng: Number('-0.377910') },
         waypoints:
         [
@@ -10283,7 +10283,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 57, // De mapa número 57 a mapa número 58, 59
         mapa_numero: "57→58/59",
-        nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología",
         inicio: { lat: Number('39.480022'), lng: Number('-0.382899') },
          waypoints: [
             { lat: Number('39.480023'), lng: Number('-0.383164') },
@@ -11319,7 +11319,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 121, // mapa número v2/v3
         mapa_numero: "v2/v3",
-        nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio",
         coordenadas: { lat: Number('39.478239'), lng: Number('-0.367925') },
         imagen: "imagenes/imagenes-aventuras/viveros_maqueta_palacio.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_restos_palacio.jpg",
@@ -11332,7 +11332,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 81, // De mapa número v3 a mapa número v5
         mapa_numero: "v3→v5",
-        nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
         inicio: { lat: Number('39.478239'), lng: Number('-0.367925') },
          waypoints: [
             { lat: Number('39.478744'), lng: Number('-0.367728') },
@@ -11430,7 +11430,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 84, // De mapa número v7-v8 a mapa número v11
         mapa_numero: "v7-v8→v11",
-        nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos",
         inicio: { lat: Number('39.479455'), lng: Number('-0.368610') },
          waypoints: [
             { lat: Number('39.478955'), lng: Number('-0.368506') },
@@ -11449,7 +11449,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 125, // mapa número v11
         mapa_numero: "v11",
-        nombre: "Estanque de los patos",
+        nombre: "Estanque de los Patos",
         coordenadas: { lat: Number('39.478899'), lng: Number('-0.369452') },
         imagen: "imagenes/imagenes-aventuras/viveros_patos.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
@@ -11460,7 +11460,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 85, // De mapa número v11 a mapa número v12
         mapa_numero: "v11→v12",
-        nombre: "Estanque de los patos → Portón del Convento de San Julián",
+        nombre: "Estanque de los Patos → Portón del Convento de San Julián",
         inicio: { lat: Number('39.478899'), lng: Number('-0.369452') },
          waypoints: [
             { lat: Number('39.478727'), lng: Number('-0.369513') },
@@ -11492,7 +11492,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 86, // De mapa número 77 a mapa número 78
         mapa_numero: "77→78",
-        nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real",
+        nombre: "Entrada Jardines del Real (Viveros) → Puente del Real",
         inicio: { lat: Number('39.477480'), lng: Number('-0.368360') },
          waypoints: [
             { lat: Number('39.477386'), lng: Number('-0.368269') },

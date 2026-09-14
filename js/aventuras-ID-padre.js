@@ -21,7 +21,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-es", audio_id: "audio-Av1-P-1-es", reto_id: "R4-Av1-es" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-es", audio_id: "audio-Av1-TR-2-es" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-es", audio_id: "audio-Av1-TR-2-es" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-es", audio_id: "audio-Av1-P-2-es", reto_id: "R5-Av1-es" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -41,9 +41,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-es", audio_id: "audio-Av1-P-7-es", reto_id: "R10-Av1-es" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-es", audio_id: "audio-Av1-P-8-es", reto_id: "R11-Av1-es" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-es", audio_id: "audio-Av1-P-8-es", reto_id: "R11-Av1-es" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-es", audio_id: "audio-Av1-P-9-es", reto_id: "R12-Av1-es" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-es", audio_id: "audio-Av1-P-9-es", reto_id: "R12-Av1-es" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-es", audio_id: "audio-Av1-P-10-es" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -51,13 +51,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-es", audio_id: "audio-Av1-TR-6-es" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-es", audio_id: "audio-Av1-P-12-es", reto_id: "R14-Av1-es" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-es", audio_id: "audio-Av1-P-12-es", reto_id: "R14-Av1-es" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-es", audio_id: "audio-Av1-P-13-es", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-es", audio_id: "audio-Av1-P-13-es", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-es", audio_id: "audio-Av1-P-14-es", reto_id: "R16-Av1-es" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-es", audio_id: "audio-Av1-TR-7-es" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-es", audio_id: "audio-Av1-TR-7-es" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-es", audio_id: "audio-Av1-P-15-es", reto_id: "R17-Av1-es" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -81,11 +81,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-es", audio_id: "audio-Av1-P-21-es", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-es", audio_id: "audio-Av1-TR-12-es" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-es", audio_id: "audio-Av1-TR-12-es" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-es", audio_id: "audio-Av1-P-22-es", reto_id: "R21-Av1-es" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-es", audio_id: "audio-Av1-P-22-es", reto_id: "R21-Av1-es" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-es", audio_id: "audio-Av1-TR-13-es" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-es", audio_id: "audio-Av1-TR-13-es" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-es", audio_id: "audio-Av1-P-23-es", reto_id: "R22-Av1-es" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -161,7 +161,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-en", audio_id: "audio-Av1-P-1-en", reto_id: "R4-Av1-en" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-en", audio_id: "audio-Av1-TR-2-en" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-en", audio_id: "audio-Av1-TR-2-en" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-en", audio_id: "audio-Av1-P-2-en", reto_id: "R5-Av1-en" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -181,9 +181,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-en", audio_id: "audio-Av1-P-7-en", reto_id: "R10-Av1-en" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-en", audio_id: "audio-Av1-P-8-en", reto_id: "R11-Av1-en" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-en", audio_id: "audio-Av1-P-8-en", reto_id: "R11-Av1-en" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-en", audio_id: "audio-Av1-P-9-en", reto_id: "R12-Av1-en" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-en", audio_id: "audio-Av1-P-9-en", reto_id: "R12-Av1-en" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-en", audio_id: "audio-Av1-P-10-en" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -191,13 +191,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-en", audio_id: "audio-Av1-TR-6-en" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-en", audio_id: "audio-Av1-P-12-en", reto_id: "R14-Av1-en" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-en", audio_id: "audio-Av1-P-12-en", reto_id: "R14-Av1-en" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-en", audio_id: "audio-Av1-P-13-en", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-en", audio_id: "audio-Av1-P-13-en", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-en", audio_id: "audio-Av1-P-14-en", reto_id: "R16-Av1-en" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-en", audio_id: "audio-Av1-TR-7-en" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-en", audio_id: "audio-Av1-TR-7-en" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-en", audio_id: "audio-Av1-P-15-en", reto_id: "R17-Av1-en" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -221,11 +221,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-en", audio_id: "audio-Av1-P-21-en", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-en", audio_id: "audio-Av1-TR-12-en" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-en", audio_id: "audio-Av1-TR-12-en" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-en", audio_id: "audio-Av1-P-22-en", reto_id: "R21-Av1-en" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-en", audio_id: "audio-Av1-P-22-en", reto_id: "R21-Av1-en" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-en", audio_id: "audio-Av1-TR-13-en" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-en", audio_id: "audio-Av1-TR-13-en" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-en", audio_id: "audio-Av1-P-23-en", reto_id: "R22-Av1-en" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -301,7 +301,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-fr", audio_id: "audio-Av1-P-1-fr", reto_id: "R4-Av1-fr" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-fr", audio_id: "audio-Av1-TR-2-fr" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-fr", audio_id: "audio-Av1-TR-2-fr" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-fr", audio_id: "audio-Av1-P-2-fr", reto_id: "R5-Av1-fr" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -321,9 +321,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-fr", audio_id: "audio-Av1-P-7-fr", reto_id: "R10-Av1-fr" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-fr", audio_id: "audio-Av1-P-8-fr", reto_id: "R11-Av1-fr" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-fr", audio_id: "audio-Av1-P-8-fr", reto_id: "R11-Av1-fr" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-fr", audio_id: "audio-Av1-P-9-fr", reto_id: "R12-Av1-fr" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-fr", audio_id: "audio-Av1-P-9-fr", reto_id: "R12-Av1-fr" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-fr", audio_id: "audio-Av1-P-10-fr" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -331,13 +331,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-fr", audio_id: "audio-Av1-TR-6-fr" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-fr", audio_id: "audio-Av1-P-12-fr", reto_id: "R14-Av1-fr" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-fr", audio_id: "audio-Av1-P-12-fr", reto_id: "R14-Av1-fr" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-fr", audio_id: "audio-Av1-P-13-fr", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-fr", audio_id: "audio-Av1-P-13-fr", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-fr", audio_id: "audio-Av1-P-14-fr", reto_id: "R16-Av1-fr" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-fr", audio_id: "audio-Av1-TR-7-fr" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-fr", audio_id: "audio-Av1-TR-7-fr" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-fr", audio_id: "audio-Av1-P-15-fr", reto_id: "R17-Av1-fr" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -361,11 +361,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-fr", audio_id: "audio-Av1-P-21-fr", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-fr", audio_id: "audio-Av1-TR-12-fr" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-fr", audio_id: "audio-Av1-TR-12-fr" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-fr", audio_id: "audio-Av1-P-22-fr", reto_id: "R21-Av1-fr" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-fr", audio_id: "audio-Av1-P-22-fr", reto_id: "R21-Av1-fr" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-fr", audio_id: "audio-Av1-TR-13-fr" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-fr", audio_id: "audio-Av1-TR-13-fr" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-fr", audio_id: "audio-Av1-P-23-fr", reto_id: "R22-Av1-fr" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -441,7 +441,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-it", audio_id: "audio-Av1-P-1-it", reto_id: "R4-Av1-it" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-it", audio_id: "audio-Av1-TR-2-it" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-it", audio_id: "audio-Av1-TR-2-it" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-it", audio_id: "audio-Av1-P-2-it", reto_id: "R5-Av1-it" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -461,9 +461,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-it", audio_id: "audio-Av1-P-7-it", reto_id: "R10-Av1-it" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-it", audio_id: "audio-Av1-P-8-it", reto_id: "R11-Av1-it" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-it", audio_id: "audio-Av1-P-8-it", reto_id: "R11-Av1-it" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-it", audio_id: "audio-Av1-P-9-it", reto_id: "R12-Av1-it" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-it", audio_id: "audio-Av1-P-9-it", reto_id: "R12-Av1-it" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-it", audio_id: "audio-Av1-P-10-it" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -471,13 +471,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-it", audio_id: "audio-Av1-TR-6-it" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-it", audio_id: "audio-Av1-P-12-it", reto_id: "R14-Av1-it" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-it", audio_id: "audio-Av1-P-12-it", reto_id: "R14-Av1-it" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-it", audio_id: "audio-Av1-P-13-it", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-it", audio_id: "audio-Av1-P-13-it", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-it", audio_id: "audio-Av1-P-14-it", reto_id: "R16-Av1-it" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-it", audio_id: "audio-Av1-TR-7-it" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-it", audio_id: "audio-Av1-TR-7-it" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-it", audio_id: "audio-Av1-P-15-it", reto_id: "R17-Av1-it" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -501,11 +501,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-it", audio_id: "audio-Av1-P-21-it", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-it", audio_id: "audio-Av1-TR-12-it" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-it", audio_id: "audio-Av1-TR-12-it" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-it", audio_id: "audio-Av1-P-22-it", reto_id: "R21-Av1-it" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-it", audio_id: "audio-Av1-P-22-it", reto_id: "R21-Av1-it" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-it", audio_id: "audio-Av1-TR-13-it" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-it", audio_id: "audio-Av1-TR-13-it" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-it", audio_id: "audio-Av1-P-23-it", reto_id: "R22-Av1-it" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -581,7 +581,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-nl", audio_id: "audio-Av1-P-1-nl", reto_id: "R4-Av1-nl" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-nl", audio_id: "audio-Av1-TR-2-nl" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-nl", audio_id: "audio-Av1-TR-2-nl" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-nl", audio_id: "audio-Av1-P-2-nl", reto_id: "R5-Av1-nl" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -601,9 +601,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-nl", audio_id: "audio-Av1-P-7-nl", reto_id: "R10-Av1-nl" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-nl", audio_id: "audio-Av1-P-8-nl", reto_id: "R11-Av1-nl" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-nl", audio_id: "audio-Av1-P-8-nl", reto_id: "R11-Av1-nl" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-nl", audio_id: "audio-Av1-P-9-nl", reto_id: "R12-Av1-nl" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-nl", audio_id: "audio-Av1-P-9-nl", reto_id: "R12-Av1-nl" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-nl", audio_id: "audio-Av1-P-10-nl" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -611,13 +611,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-nl", audio_id: "audio-Av1-TR-6-nl" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-nl", audio_id: "audio-Av1-P-12-nl", reto_id: "R14-Av1-nl" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-nl", audio_id: "audio-Av1-P-12-nl", reto_id: "R14-Av1-nl" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-nl", audio_id: "audio-Av1-P-13-nl", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-nl", audio_id: "audio-Av1-P-13-nl", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-nl", audio_id: "audio-Av1-P-14-nl", reto_id: "R16-Av1-nl" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-nl", audio_id: "audio-Av1-TR-7-nl" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-nl", audio_id: "audio-Av1-TR-7-nl" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-nl", audio_id: "audio-Av1-P-15-nl", reto_id: "R17-Av1-nl" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -641,11 +641,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-nl", audio_id: "audio-Av1-P-21-nl", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-nl", audio_id: "audio-Av1-TR-12-nl" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-nl", audio_id: "audio-Av1-TR-12-nl" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-nl", audio_id: "audio-Av1-P-22-nl", reto_id: "R21-Av1-nl" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-nl", audio_id: "audio-Av1-P-22-nl", reto_id: "R21-Av1-nl" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-nl", audio_id: "audio-Av1-TR-13-nl" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-nl", audio_id: "audio-Av1-TR-13-nl" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-nl", audio_id: "audio-Av1-P-23-nl", reto_id: "R22-Av1-nl" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -721,7 +721,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-ja", audio_id: "audio-Av1-P-1-ja", reto_id: "R4-Av1-ja" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-ja", audio_id: "audio-Av1-TR-2-ja" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-ja", audio_id: "audio-Av1-TR-2-ja" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-ja", audio_id: "audio-Av1-P-2-ja", reto_id: "R5-Av1-ja" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -741,9 +741,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-ja", audio_id: "audio-Av1-P-7-ja", reto_id: "R10-Av1-ja" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-ja", audio_id: "audio-Av1-P-8-ja", reto_id: "R11-Av1-ja" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-ja", audio_id: "audio-Av1-P-8-ja", reto_id: "R11-Av1-ja" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-ja", audio_id: "audio-Av1-P-9-ja", reto_id: "R12-Av1-ja" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-ja", audio_id: "audio-Av1-P-9-ja", reto_id: "R12-Av1-ja" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-ja", audio_id: "audio-Av1-P-10-ja" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -751,13 +751,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-ja", audio_id: "audio-Av1-TR-6-ja" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-ja", audio_id: "audio-Av1-P-12-ja", reto_id: "R14-Av1-ja" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-ja", audio_id: "audio-Av1-P-12-ja", reto_id: "R14-Av1-ja" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-ja", audio_id: "audio-Av1-P-13-ja", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-ja", audio_id: "audio-Av1-P-13-ja", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-ja", audio_id: "audio-Av1-P-14-ja", reto_id: "R16-Av1-ja" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-ja", audio_id: "audio-Av1-TR-7-ja" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-ja", audio_id: "audio-Av1-TR-7-ja" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-ja", audio_id: "audio-Av1-P-15-ja", reto_id: "R17-Av1-ja" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -781,11 +781,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-ja", audio_id: "audio-Av1-P-21-ja", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-ja", audio_id: "audio-Av1-TR-12-ja" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-ja", audio_id: "audio-Av1-TR-12-ja" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-ja", audio_id: "audio-Av1-P-22-ja", reto_id: "R21-Av1-ja" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-ja", audio_id: "audio-Av1-P-22-ja", reto_id: "R21-Av1-ja" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-ja", audio_id: "audio-Av1-TR-13-ja" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-ja", audio_id: "audio-Av1-TR-13-ja" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-ja", audio_id: "audio-Av1-P-23-ja", reto_id: "R22-Av1-ja" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -861,7 +861,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-de", audio_id: "audio-Av1-P-1-de", reto_id: "R4-Av1-de" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-de", audio_id: "audio-Av1-TR-2-de" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-de", audio_id: "audio-Av1-TR-2-de" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-de", audio_id: "audio-Av1-P-2-de", reto_id: "R5-Av1-de" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -881,9 +881,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-de", audio_id: "audio-Av1-P-7-de", reto_id: "R10-Av1-de" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-de", audio_id: "audio-Av1-P-8-de", reto_id: "R11-Av1-de" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-de", audio_id: "audio-Av1-P-8-de", reto_id: "R11-Av1-de" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-de", audio_id: "audio-Av1-P-9-de", reto_id: "R12-Av1-de" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-de", audio_id: "audio-Av1-P-9-de", reto_id: "R12-Av1-de" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-de", audio_id: "audio-Av1-P-10-de" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -891,13 +891,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-de", audio_id: "audio-Av1-TR-6-de" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-de", audio_id: "audio-Av1-P-12-de", reto_id: "R14-Av1-de" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-de", audio_id: "audio-Av1-P-12-de", reto_id: "R14-Av1-de" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-de", audio_id: "audio-Av1-P-13-de", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-de", audio_id: "audio-Av1-P-13-de", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-de", audio_id: "audio-Av1-P-14-de", reto_id: "R16-Av1-de" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-de", audio_id: "audio-Av1-TR-7-de" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-de", audio_id: "audio-Av1-TR-7-de" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-de", audio_id: "audio-Av1-P-15-de", reto_id: "R17-Av1-de" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -921,11 +921,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-de", audio_id: "audio-Av1-P-21-de", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-de", audio_id: "audio-Av1-TR-12-de" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-de", audio_id: "audio-Av1-TR-12-de" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-de", audio_id: "audio-Av1-P-22-de", reto_id: "R21-Av1-de" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-de", audio_id: "audio-Av1-P-22-de", reto_id: "R21-Av1-de" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-de", audio_id: "audio-Av1-TR-13-de" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-de", audio_id: "audio-Av1-TR-13-de" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-de", audio_id: "audio-Av1-P-23-de", reto_id: "R22-Av1-de" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -1001,7 +1001,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-zh", audio_id: "audio-Av1-P-1-zh", reto_id: "R4-Av1-zh" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-zh", audio_id: "audio-Av1-TR-2-zh" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-zh", audio_id: "audio-Av1-TR-2-zh" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-zh", audio_id: "audio-Av1-P-2-zh", reto_id: "R5-Av1-zh" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -1021,9 +1021,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-zh", audio_id: "audio-Av1-P-7-zh", reto_id: "R10-Av1-zh" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-zh", audio_id: "audio-Av1-P-8-zh", reto_id: "R11-Av1-zh" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-zh", audio_id: "audio-Av1-P-8-zh", reto_id: "R11-Av1-zh" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-zh", audio_id: "audio-Av1-P-9-zh", reto_id: "R12-Av1-zh" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-zh", audio_id: "audio-Av1-P-9-zh", reto_id: "R12-Av1-zh" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-zh", audio_id: "audio-Av1-P-10-zh" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -1031,13 +1031,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-zh", audio_id: "audio-Av1-TR-6-zh" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-zh", audio_id: "audio-Av1-P-12-zh", reto_id: "R14-Av1-zh" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-zh", audio_id: "audio-Av1-P-12-zh", reto_id: "R14-Av1-zh" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-zh", audio_id: "audio-Av1-P-13-zh", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-zh", audio_id: "audio-Av1-P-13-zh", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-zh", audio_id: "audio-Av1-P-14-zh", reto_id: "R16-Av1-zh" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-zh", audio_id: "audio-Av1-TR-7-zh" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-zh", audio_id: "audio-Av1-TR-7-zh" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-zh", audio_id: "audio-Av1-P-15-zh", reto_id: "R17-Av1-zh" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -1061,11 +1061,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-zh", audio_id: "audio-Av1-P-21-zh", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-zh", audio_id: "audio-Av1-TR-12-zh" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-zh", audio_id: "audio-Av1-TR-12-zh" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-zh", audio_id: "audio-Av1-P-22-zh", reto_id: "R21-Av1-zh" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-zh", audio_id: "audio-Av1-P-22-zh", reto_id: "R21-Av1-zh" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-zh", audio_id: "audio-Av1-TR-13-zh" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-zh", audio_id: "audio-Av1-TR-13-zh" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-zh", audio_id: "audio-Av1-P-23-zh", reto_id: "R22-Av1-zh" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -1141,7 +1141,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-pl", audio_id: "audio-Av1-P-1-pl", reto_id: "R4-Av1-pl" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-pl", audio_id: "audio-Av1-TR-2-pl" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-pl", audio_id: "audio-Av1-TR-2-pl" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-pl", audio_id: "audio-Av1-P-2-pl", reto_id: "R5-Av1-pl" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -1161,9 +1161,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-pl", audio_id: "audio-Av1-P-7-pl", reto_id: "R10-Av1-pl" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-pl", audio_id: "audio-Av1-P-8-pl", reto_id: "R11-Av1-pl" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-pl", audio_id: "audio-Av1-P-8-pl", reto_id: "R11-Av1-pl" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-pl", audio_id: "audio-Av1-P-9-pl", reto_id: "R12-Av1-pl" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-pl", audio_id: "audio-Av1-P-9-pl", reto_id: "R12-Av1-pl" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-pl", audio_id: "audio-Av1-P-10-pl" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -1171,13 +1171,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-pl", audio_id: "audio-Av1-TR-6-pl" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-pl", audio_id: "audio-Av1-P-12-pl", reto_id: "R14-Av1-pl" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-pl", audio_id: "audio-Av1-P-12-pl", reto_id: "R14-Av1-pl" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-pl", audio_id: "audio-Av1-P-13-pl", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-pl", audio_id: "audio-Av1-P-13-pl", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-pl", audio_id: "audio-Av1-P-14-pl", reto_id: "R16-Av1-pl" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-pl", audio_id: "audio-Av1-TR-7-pl" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-pl", audio_id: "audio-Av1-TR-7-pl" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-pl", audio_id: "audio-Av1-P-15-pl", reto_id: "R17-Av1-pl" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -1201,11 +1201,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-pl", audio_id: "audio-Av1-P-21-pl", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-pl", audio_id: "audio-Av1-TR-12-pl" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-pl", audio_id: "audio-Av1-TR-12-pl" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-pl", audio_id: "audio-Av1-P-22-pl", reto_id: "R21-Av1-pl" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-pl", audio_id: "audio-Av1-P-22-pl", reto_id: "R21-Av1-pl" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-pl", audio_id: "audio-Av1-TR-13-pl" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-pl", audio_id: "audio-Av1-TR-13-pl" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-pl", audio_id: "audio-Av1-P-23-pl", reto_id: "R22-Av1-pl" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -1281,7 +1281,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-pt", audio_id: "audio-Av1-P-1-pt", reto_id: "R4-Av1-pt" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-pt", audio_id: "audio-Av1-TR-2-pt" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-pt", audio_id: "audio-Av1-TR-2-pt" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-pt", audio_id: "audio-Av1-P-2-pt", reto_id: "R5-Av1-pt" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -1301,9 +1301,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-pt", audio_id: "audio-Av1-P-7-pt", reto_id: "R10-Av1-pt" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-pt", audio_id: "audio-Av1-P-8-pt", reto_id: "R11-Av1-pt" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-pt", audio_id: "audio-Av1-P-8-pt", reto_id: "R11-Av1-pt" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-pt", audio_id: "audio-Av1-P-9-pt", reto_id: "R12-Av1-pt" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-pt", audio_id: "audio-Av1-P-9-pt", reto_id: "R12-Av1-pt" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-pt", audio_id: "audio-Av1-P-10-pt" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -1311,13 +1311,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-pt", audio_id: "audio-Av1-TR-6-pt" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-pt", audio_id: "audio-Av1-P-12-pt", reto_id: "R14-Av1-pt" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-pt", audio_id: "audio-Av1-P-12-pt", reto_id: "R14-Av1-pt" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-pt", audio_id: "audio-Av1-P-13-pt", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-pt", audio_id: "audio-Av1-P-13-pt", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-pt", audio_id: "audio-Av1-P-14-pt", reto_id: "R16-Av1-pt" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-pt", audio_id: "audio-Av1-TR-7-pt" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-pt", audio_id: "audio-Av1-TR-7-pt" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-pt", audio_id: "audio-Av1-P-15-pt", reto_id: "R17-Av1-pt" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -1341,11 +1341,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-pt", audio_id: "audio-Av1-P-21-pt", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-pt", audio_id: "audio-Av1-TR-12-pt" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-pt", audio_id: "audio-Av1-TR-12-pt" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-pt", audio_id: "audio-Av1-P-22-pt", reto_id: "R21-Av1-pt" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-pt", audio_id: "audio-Av1-P-22-pt", reto_id: "R21-Av1-pt" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-pt", audio_id: "audio-Av1-TR-13-pt" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-pt", audio_id: "audio-Av1-TR-13-pt" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-pt", audio_id: "audio-Av1-P-23-pt", reto_id: "R22-Av1-pt" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -1421,7 +1421,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-ru", audio_id: "audio-Av1-P-1-ru", reto_id: "R4-Av1-ru" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-ru", audio_id: "audio-Av1-TR-2-ru" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-ru", audio_id: "audio-Av1-TR-2-ru" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-ru", audio_id: "audio-Av1-P-2-ru", reto_id: "R5-Av1-ru" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -1441,9 +1441,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-ru", audio_id: "audio-Av1-P-7-ru", reto_id: "R10-Av1-ru" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-ru", audio_id: "audio-Av1-P-8-ru", reto_id: "R11-Av1-ru" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-ru", audio_id: "audio-Av1-P-8-ru", reto_id: "R11-Av1-ru" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-ru", audio_id: "audio-Av1-P-9-ru", reto_id: "R12-Av1-ru" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-ru", audio_id: "audio-Av1-P-9-ru", reto_id: "R12-Av1-ru" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-ru", audio_id: "audio-Av1-P-10-ru" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -1451,13 +1451,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-ru", audio_id: "audio-Av1-TR-6-ru" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-ru", audio_id: "audio-Av1-P-12-ru", reto_id: "R14-Av1-ru" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-ru", audio_id: "audio-Av1-P-12-ru", reto_id: "R14-Av1-ru" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-ru", audio_id: "audio-Av1-P-13-ru", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-ru", audio_id: "audio-Av1-P-13-ru", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-ru", audio_id: "audio-Av1-P-14-ru", reto_id: "R16-Av1-ru" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-ru", audio_id: "audio-Av1-TR-7-ru" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-ru", audio_id: "audio-Av1-TR-7-ru" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-ru", audio_id: "audio-Av1-P-15-ru", reto_id: "R17-Av1-ru" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -1481,11 +1481,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-ru", audio_id: "audio-Av1-P-21-ru", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-ru", audio_id: "audio-Av1-TR-12-ru" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-ru", audio_id: "audio-Av1-TR-12-ru" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-ru", audio_id: "audio-Av1-P-22-ru", reto_id: "R21-Av1-ru" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-ru", audio_id: "audio-Av1-P-22-ru", reto_id: "R21-Av1-ru" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-ru", audio_id: "audio-Av1-TR-13-ru" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-ru", audio_id: "audio-Av1-TR-13-ru" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-ru", audio_id: "audio-Av1-P-23-ru", reto_id: "R22-Av1-ru" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -1561,7 +1561,7 @@ export const DATOS_PADRE = {
         // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4)
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída (Puente de Serranos)", parada_id: "Av1-P-1", numero_mapa: 1, texto_id: "txt-Av1-P1-uk", audio_id: "audio-Av1-P-1-uk", reto_id: "R4-Av1-uk" },
         // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana
-        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-uk", audio_id: "audio-Av1-TR-2-uk" },
+        { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Calle Muro de Santa Ana", tramo_id: "Av1-TR-2", numero_mapa: "1→-", texto_id: "txt-Av1-TR2-uk", audio_id: "audio-Av1-TR-2-uk" },
         // Parada 2: Calle Muro de Santa Ana (Reto 5)
         { padreid: "padre-P2", tipo: "parada", nombre: "Calle Muro de Santa Ana", parada_id: "Av1-P-2", numero_mapa: null, texto_id: "txt-Av1-P2-uk", audio_id: "audio-Av1-P-2-uk", reto_id: "R5-Av1-uk" },
         // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia
@@ -1581,9 +1581,9 @@ export const DATOS_PADRE = {
         // Parada 7: Panel cerámico muro Catedral (Reto 10)
         { padreid: "padre-P7", tipo: "parada", nombre: "Panel cerámico muro Catedral", parada_id: "Av1-P-7", numero_mapa: 5, texto_id: "txt-Av1-P7-uk", audio_id: "audio-Av1-P-7-uk", reto_id: "R10-Av1-uk" },
         // Parada 8: Capilla exterior catedral (Reto 11)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-uk", audio_id: "audio-Av1-P-8-uk", reto_id: "R11-Av1-uk" },
+        { padreid: "padre-P8", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-8", numero_mapa: 5, texto_id: "txt-Av1-P8-uk", audio_id: "audio-Av1-P-8-uk", reto_id: "R11-Av1-uk" },
         // Parada 9: Capilla exterior catedral (Reto 12)
-        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-uk", audio_id: "audio-Av1-P-9-uk", reto_id: "R12-Av1-uk" },
+        { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-uk", audio_id: "audio-Av1-P-9-uk", reto_id: "R12-Av1-uk" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
         { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-uk", audio_id: "audio-Av1-P-10-uk" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
@@ -1591,13 +1591,13 @@ export const DATOS_PADRE = {
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR6", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico", tramo_id: "Av1-TR-6", numero_mapa: "-→6", texto_id: "txt-Av1-TR6-uk", audio_id: "audio-Av1-TR-6-uk" },
         // Parada 12: Museo arqueológico La Almoína (Reto 14)
-        { padreid: "padre-P12", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-uk", audio_id: "audio-Av1-P-12-uk", reto_id: "R14-Av1-uk" },
+        { padreid: "padre-P12", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-12", numero_mapa: 6, texto_id: "txt-Av1-P12-uk", audio_id: "audio-Av1-P-12-uk", reto_id: "R14-Av1-uk" },
         // Parada 13: Museo arqueológico La Almoína (Reto 15 Puzzle PZ-02)
-        { padreid: "padre-P13", tipo: "parada", nombre: "Museo arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-uk", audio_id: "audio-Av1-P-13-uk", reto_id: "PZ-02" },
+        { padreid: "padre-P13", tipo: "parada", nombre: "Museo Arqueológico La Almoína", parada_id: "Av1-P-13", numero_mapa: 6, texto_id: "txt-Av1-P13-uk", audio_id: "audio-Av1-P-13-uk", reto_id: "PZ-02" },
         // Parada 14: Vista de la Catedral, Cimborrio (Reto 16)
         { padreid: "padre-P14", tipo: "parada", nombre: "Vista de la Catedral, Cimborrio", parada_id: "Av1-P-14", numero_mapa: 5, texto_id: "txt-Av1-P14-uk", audio_id: "audio-Av1-P-14-uk", reto_id: "R16-Av1-uk" },
         // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-uk", audio_id: "audio-Av1-TR-7-uk" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Museo Arqueológico La Almoína → Palacio Arzobispal", tramo_id: "Av1-TR-7", numero_mapa: "6→8", texto_id: "txt-Av1-TR7-uk", audio_id: "audio-Av1-TR-7-uk" },
         // Parada 15: Palacio Arzobispal y Puerta Románica (Reto 17)
         { padreid: "padre-P15", tipo: "parada", nombre: "Palacio Arzobispal y Puerta Románica de la Catedral", parada_id: "Av1-P-15", numero_mapa: 8, texto_id: "txt-Av1-P15-uk", audio_id: "audio-Av1-P-15-uk", reto_id: "R17-Av1-uk" },
         // Parada 16: Puerta Románica de la Catedral (sin reto)
@@ -1621,11 +1621,11 @@ export const DATOS_PADRE = {
         // Parada 21: Plaza de Toros (Reto 20 Puzzle PZ-03)
         { padreid: "padre-P21", tipo: "parada", nombre: "Plaza de Toros", parada_id: "Av1-P-21", numero_mapa: 12, texto_id: "txt-Av1-P21-uk", audio_id: "audio-Av1-P-21-uk", reto_id: "PZ-03" },
         // Tramo 12: Plaza de Toros → Casa estilo Árabe
-        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo Árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-uk", audio_id: "audio-Av1-TR-12-uk" },
+        { padreid: "padre-TR12", tipo: "tramo", nombre: "Plaza de Toros → Casa estilo árabe", tramo_id: "Av1-TR-12", numero_mapa: "12→13", texto_id: "txt-Av1-TR12-uk", audio_id: "audio-Av1-TR-12-uk" },
         // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto 21)
-        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo Árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-uk", audio_id: "audio-Av1-P-22-uk", reto_id: "R21-Av1-uk" },
+        { padreid: "padre-P22", tipo: "parada", nombre: "Casa estilo árabe", parada_id: "Av1-P-22", numero_mapa: 13, texto_id: "txt-Av1-P22-uk", audio_id: "audio-Av1-P-22-uk", reto_id: "R21-Av1-uk" },
         // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)
-        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo Árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-uk", audio_id: "audio-Av1-TR-13-uk" },
+        { padreid: "padre-TR13", tipo: "tramo", nombre: "Casa estilo árabe → Palacio de Comunicaciones (Correos)", tramo_id: "Av1-TR-13", numero_mapa: "13→14", texto_id: "txt-Av1-TR13-uk", audio_id: "audio-Av1-TR-13-uk" },
         // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22)
         { padreid: "padre-P23", tipo: "parada", nombre: "Palacio de Comunicaciones: Correos", parada_id: "Av1-P-23", numero_mapa: 14, texto_id: "txt-Av1-P23-uk", audio_id: "audio-Av1-P-23-uk", reto_id: "R22-Av1-uk" },
         // Parada 24: Edificio Suay - La Equitativa (Reto 23)
@@ -3054,11 +3054,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-es", audio_id: "audio-Av3-P-9-es" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-es", audio_id: "audio-Av3-TR-8-es" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-es", audio_id: "audio-Av3-TR-8-es" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-es", audio_id: "audio-Av3-P-10-es", reto_id: "R9-Av3-es" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-es", audio_id: "audio-Av3-P-10-es", reto_id: "R9-Av3-es" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-es", audio_id: "audio-Av3-TR-9-es" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-es", audio_id: "audio-Av3-TR-9-es" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-es", audio_id: "audio-Av3-P-11-es", reto_id: "R10-Av3-es" },
         // Tramo 10: Palau de la música → Gulliver
@@ -3140,7 +3140,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-es", audio_id: "audio-Av3-P-33-es" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-es", audio_id: "audio-Av3-P-34-es", reto_id: "R23-Av3-es" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-es", audio_id: "audio-Av3-P-34-es", reto_id: "R23-Av3-es" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-es", audio_id: "audio-Av3-TR-27-es" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -3202,11 +3202,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-en", audio_id: "audio-Av3-P-9-en" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-en", audio_id: "audio-Av3-TR-8-en" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-en", audio_id: "audio-Av3-TR-8-en" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-en", audio_id: "audio-Av3-P-10-en", reto_id: "R9-Av3-en" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-en", audio_id: "audio-Av3-P-10-en", reto_id: "R9-Av3-en" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-en", audio_id: "audio-Av3-TR-9-en" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-en", audio_id: "audio-Av3-TR-9-en" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-en", audio_id: "audio-Av3-P-11-en", reto_id: "R10-Av3-en" },
         // Tramo 10: Palau de la música → Gulliver
@@ -3288,7 +3288,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-en", audio_id: "audio-Av3-P-33-en" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-en", audio_id: "audio-Av3-P-34-en", reto_id: "R23-Av3-en" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-en", audio_id: "audio-Av3-P-34-en", reto_id: "R23-Av3-en" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-en", audio_id: "audio-Av3-TR-27-en" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -3350,11 +3350,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-fr", audio_id: "audio-Av3-P-9-fr" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-fr", audio_id: "audio-Av3-TR-8-fr" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-fr", audio_id: "audio-Av3-TR-8-fr" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-fr", audio_id: "audio-Av3-P-10-fr", reto_id: "R9-Av3-fr" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-fr", audio_id: "audio-Av3-P-10-fr", reto_id: "R9-Av3-fr" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-fr", audio_id: "audio-Av3-TR-9-fr" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-fr", audio_id: "audio-Av3-TR-9-fr" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-fr", audio_id: "audio-Av3-P-11-fr", reto_id: "R10-Av3-fr" },
         // Tramo 10: Palau de la música → Gulliver
@@ -3436,7 +3436,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-fr", audio_id: "audio-Av3-P-33-fr" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-fr", audio_id: "audio-Av3-P-34-fr", reto_id: "R23-Av3-fr" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-fr", audio_id: "audio-Av3-P-34-fr", reto_id: "R23-Av3-fr" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-fr", audio_id: "audio-Av3-TR-27-fr" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -3498,11 +3498,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-it", audio_id: "audio-Av3-P-9-it" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-it", audio_id: "audio-Av3-TR-8-it" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-it", audio_id: "audio-Av3-TR-8-it" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-it", audio_id: "audio-Av3-P-10-it", reto_id: "R9-Av3-it" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-it", audio_id: "audio-Av3-P-10-it", reto_id: "R9-Av3-it" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-it", audio_id: "audio-Av3-TR-9-it" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-it", audio_id: "audio-Av3-TR-9-it" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-it", audio_id: "audio-Av3-P-11-it", reto_id: "R10-Av3-it" },
         // Tramo 10: Palau de la música → Gulliver
@@ -3584,7 +3584,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-it", audio_id: "audio-Av3-P-33-it" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-it", audio_id: "audio-Av3-P-34-it", reto_id: "R23-Av3-it" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-it", audio_id: "audio-Av3-P-34-it", reto_id: "R23-Av3-it" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-it", audio_id: "audio-Av3-TR-27-it" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -3646,11 +3646,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-nl", audio_id: "audio-Av3-P-9-nl" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-nl", audio_id: "audio-Av3-TR-8-nl" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-nl", audio_id: "audio-Av3-TR-8-nl" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-nl", audio_id: "audio-Av3-P-10-nl", reto_id: "R9-Av3-nl" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-nl", audio_id: "audio-Av3-P-10-nl", reto_id: "R9-Av3-nl" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-nl", audio_id: "audio-Av3-TR-9-nl" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-nl", audio_id: "audio-Av3-TR-9-nl" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-nl", audio_id: "audio-Av3-P-11-nl", reto_id: "R10-Av3-nl" },
         // Tramo 10: Palau de la música → Gulliver
@@ -3732,7 +3732,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-nl", audio_id: "audio-Av3-P-33-nl" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-nl", audio_id: "audio-Av3-P-34-nl", reto_id: "R23-Av3-nl" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-nl", audio_id: "audio-Av3-P-34-nl", reto_id: "R23-Av3-nl" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-nl", audio_id: "audio-Av3-TR-27-nl" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -3794,11 +3794,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-ja", audio_id: "audio-Av3-P-9-ja" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-ja", audio_id: "audio-Av3-TR-8-ja" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-ja", audio_id: "audio-Av3-TR-8-ja" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-ja", audio_id: "audio-Av3-P-10-ja", reto_id: "R9-Av3-ja" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-ja", audio_id: "audio-Av3-P-10-ja", reto_id: "R9-Av3-ja" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-ja", audio_id: "audio-Av3-TR-9-ja" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-ja", audio_id: "audio-Av3-TR-9-ja" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-ja", audio_id: "audio-Av3-P-11-ja", reto_id: "R10-Av3-ja" },
         // Tramo 10: Palau de la música → Gulliver
@@ -3880,7 +3880,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-ja", audio_id: "audio-Av3-P-33-ja" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-ja", audio_id: "audio-Av3-P-34-ja", reto_id: "R23-Av3-ja" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-ja", audio_id: "audio-Av3-P-34-ja", reto_id: "R23-Av3-ja" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-ja", audio_id: "audio-Av3-TR-27-ja" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -3942,11 +3942,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-de", audio_id: "audio-Av3-P-9-de" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-de", audio_id: "audio-Av3-TR-8-de" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-de", audio_id: "audio-Av3-TR-8-de" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-de", audio_id: "audio-Av3-P-10-de", reto_id: "R9-Av3-de" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-de", audio_id: "audio-Av3-P-10-de", reto_id: "R9-Av3-de" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-de", audio_id: "audio-Av3-TR-9-de" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-de", audio_id: "audio-Av3-TR-9-de" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-de", audio_id: "audio-Av3-P-11-de", reto_id: "R10-Av3-de" },
         // Tramo 10: Palau de la música → Gulliver
@@ -4028,7 +4028,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-de", audio_id: "audio-Av3-P-33-de" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-de", audio_id: "audio-Av3-P-34-de", reto_id: "R23-Av3-de" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-de", audio_id: "audio-Av3-P-34-de", reto_id: "R23-Av3-de" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-de", audio_id: "audio-Av3-TR-27-de" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -4090,11 +4090,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-zh", audio_id: "audio-Av3-P-9-zh" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-zh", audio_id: "audio-Av3-TR-8-zh" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-zh", audio_id: "audio-Av3-TR-8-zh" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-zh", audio_id: "audio-Av3-P-10-zh", reto_id: "R9-Av3-zh" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-zh", audio_id: "audio-Av3-P-10-zh", reto_id: "R9-Av3-zh" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-zh", audio_id: "audio-Av3-TR-9-zh" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-zh", audio_id: "audio-Av3-TR-9-zh" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-zh", audio_id: "audio-Av3-P-11-zh", reto_id: "R10-Av3-zh" },
         // Tramo 10: Palau de la música → Gulliver
@@ -4176,7 +4176,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-zh", audio_id: "audio-Av3-P-33-zh" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-zh", audio_id: "audio-Av3-P-34-zh", reto_id: "R23-Av3-zh" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-zh", audio_id: "audio-Av3-P-34-zh", reto_id: "R23-Av3-zh" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-zh", audio_id: "audio-Av3-TR-27-zh" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -4238,11 +4238,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-pl", audio_id: "audio-Av3-P-9-pl" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-pl", audio_id: "audio-Av3-TR-8-pl" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-pl", audio_id: "audio-Av3-TR-8-pl" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-pl", audio_id: "audio-Av3-P-10-pl", reto_id: "R9-Av3-pl" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-pl", audio_id: "audio-Av3-P-10-pl", reto_id: "R9-Av3-pl" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-pl", audio_id: "audio-Av3-TR-9-pl" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-pl", audio_id: "audio-Av3-TR-9-pl" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-pl", audio_id: "audio-Av3-P-11-pl", reto_id: "R10-Av3-pl" },
         // Tramo 10: Palau de la música → Gulliver
@@ -4324,7 +4324,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-pl", audio_id: "audio-Av3-P-33-pl" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-pl", audio_id: "audio-Av3-P-34-pl", reto_id: "R23-Av3-pl" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-pl", audio_id: "audio-Av3-P-34-pl", reto_id: "R23-Av3-pl" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-pl", audio_id: "audio-Av3-TR-27-pl" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -4386,11 +4386,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-pt", audio_id: "audio-Av3-P-9-pt" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-pt", audio_id: "audio-Av3-TR-8-pt" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-pt", audio_id: "audio-Av3-TR-8-pt" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-pt", audio_id: "audio-Av3-P-10-pt", reto_id: "R9-Av3-pt" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-pt", audio_id: "audio-Av3-P-10-pt", reto_id: "R9-Av3-pt" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-pt", audio_id: "audio-Av3-TR-9-pt" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-pt", audio_id: "audio-Av3-TR-9-pt" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-pt", audio_id: "audio-Av3-P-11-pt", reto_id: "R10-Av3-pt" },
         // Tramo 10: Palau de la música → Gulliver
@@ -4472,7 +4472,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-pt", audio_id: "audio-Av3-P-33-pt" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-pt", audio_id: "audio-Av3-P-34-pt", reto_id: "R23-Av3-pt" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-pt", audio_id: "audio-Av3-P-34-pt", reto_id: "R23-Av3-pt" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-pt", audio_id: "audio-Av3-TR-27-pt" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -4534,11 +4534,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-ru", audio_id: "audio-Av3-P-9-ru" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-ru", audio_id: "audio-Av3-TR-8-ru" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-ru", audio_id: "audio-Av3-TR-8-ru" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-ru", audio_id: "audio-Av3-P-10-ru", reto_id: "R9-Av3-ru" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-ru", audio_id: "audio-Av3-P-10-ru", reto_id: "R9-Av3-ru" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-ru", audio_id: "audio-Av3-TR-9-ru" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-ru", audio_id: "audio-Av3-TR-9-ru" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-ru", audio_id: "audio-Av3-P-11-ru", reto_id: "R10-Av3-ru" },
         // Tramo 10: Palau de la música → Gulliver
@@ -4620,7 +4620,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-ru", audio_id: "audio-Av3-P-33-ru" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-ru", audio_id: "audio-Av3-P-34-ru", reto_id: "R23-Av3-ru" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-ru", audio_id: "audio-Av3-P-34-ru", reto_id: "R23-Av3-ru" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-ru", audio_id: "audio-Av3-TR-27-ru" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -4682,11 +4682,11 @@ export const DATOS_PADRE = {
         // Parada 9: Puente de Aragón 2
         { padreid: "padre-P9", tipo: "parada", nombre: "Puente de Aragón 2", parada_id: "Av3-P-9", numero_mapa: 12, texto_id: "txt-Av3-P9-uk", audio_id: "audio-Av3-P-9-uk" },
         // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-uk", audio_id: "audio-Av3-TR-8-uk" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Puente de Aragón (parte superior) → Puente de la Mar (parte superior)", tramo_id: "Av3-TR-8", numero_mapa: "12→11", texto_id: "txt-Av3-TR8-uk", audio_id: "audio-Av3-TR-8-uk" },
         // Parada 10: Puente de la Mar (Parte Superior) (Reto 9)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (Parte Superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-uk", audio_id: "audio-Av3-P-10-uk", reto_id: "R9-Av3-uk" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Puente de la Mar (parte superior)", parada_id: "Av3-P-10", numero_mapa: 11, texto_id: "txt-Av3-P10-uk", audio_id: "audio-Av3-P-10-uk", reto_id: "R9-Av3-uk" },
         // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música
-        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (Parte Superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-uk", audio_id: "audio-Av3-TR-9-uk" },
+        { padreid: "padre-TR9", tipo: "tramo", nombre: "Puente de la Mar (parte superior) → Palau de la música", tramo_id: "Av3-TR-9", numero_mapa: "11→13", texto_id: "txt-Av3-TR9-uk", audio_id: "audio-Av3-TR-9-uk" },
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-uk", audio_id: "audio-Av3-P-11-uk", reto_id: "R10-Av3-uk" },
         // Tramo 10: Palau de la música → Gulliver
@@ -4768,7 +4768,7 @@ export const DATOS_PADRE = {
         // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia
         { padreid: "padre-P33", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia", parada_id: "Av3-P-33", numero_mapa: "33/34", texto_id: "txt-Av3-P33-uk", audio_id: "audio-Av3-P-33-uk" },
         // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23)
-        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-uk", audio_id: "audio-Av3-P-34-uk", reto_id: "R23-Av3-uk" },
+        { padreid: "padre-P34", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo", parada_id: "Av3-P-34", numero_mapa: "33", texto_id: "txt-Av3-P34-uk", audio_id: "audio-Av3-P-34-uk", reto_id: "R23-Av3-uk" },
         // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", tramo_id: "Av3-TR-27", numero_mapa: "33→33", texto_id: "txt-Av3-TR27-uk", audio_id: "audio-Av3-TR-27-uk" },
         // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24)
@@ -4843,18 +4843,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-es", audio_id: "audio-Av4-TR-20-es" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-es", audio_id: "audio-Av4-P-27-es" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-es", audio_id: "audio-Av4-TR-21-es" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-es", audio_id: "audio-Av4-P-28-es" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-es", audio_id: "audio-Av4-TR-22-es" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-es", audio_id: "audio-Av4-P-28-es" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-es", audio_id: "audio-Av4-TR-22-es" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-es", audio_id: "audio-Av4-TR-23-es" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-es", audio_id: "audio-Av4-P-29-es", reto_id: "R19-Av4-es" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-es", audio_id: "audio-Av4-TR-24-es" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-es", audio_id: "audio-Av4-P-30-es" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-es", audio_id: "audio-Av4-P-31-es" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-es", audio_id: "audio-Av4-TR-25-es" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-es", audio_id: "audio-Av4-P-32-es", reto_id: "R20-Av4-es" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-es", audio_id: "audio-Av4-TR-26-es" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-es", audio_id: "audio-Av4-TR-25-es" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-es", audio_id: "audio-Av4-P-32-es", reto_id: "R20-Av4-es" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-es", audio_id: "audio-Av4-TR-26-es" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-es", audio_id: "audio-Av4-P-33-es" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-es", audio_id: "audio-Av4-TR-27-es" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-es", audio_id: "audio-Av4-TR-27-es" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-es", audio_id: "audio-Av4-P-34-es" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-es", audio_id: "audio-Av4-TR-28-es" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-es", audio_id: "audio-Av4-P-35-es", reto_id: "PZ-05" },
@@ -4914,18 +4914,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-en", audio_id: "audio-Av4-TR-20-en" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-en", audio_id: "audio-Av4-P-27-en" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-en", audio_id: "audio-Av4-TR-21-en" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-en", audio_id: "audio-Av4-P-28-en" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-en", audio_id: "audio-Av4-TR-22-en" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-en", audio_id: "audio-Av4-P-28-en" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-en", audio_id: "audio-Av4-TR-22-en" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-en", audio_id: "audio-Av4-TR-23-en" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-en", audio_id: "audio-Av4-P-29-en", reto_id: "R19-Av4-en" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-en", audio_id: "audio-Av4-TR-24-en" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-en", audio_id: "audio-Av4-P-30-en" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-en", audio_id: "audio-Av4-P-31-en" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-en", audio_id: "audio-Av4-TR-25-en" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-en", audio_id: "audio-Av4-P-32-en", reto_id: "R20-Av4-en" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-en", audio_id: "audio-Av4-TR-26-en" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-en", audio_id: "audio-Av4-TR-25-en" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-en", audio_id: "audio-Av4-P-32-en", reto_id: "R20-Av4-en" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-en", audio_id: "audio-Av4-TR-26-en" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-en", audio_id: "audio-Av4-P-33-en" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-en", audio_id: "audio-Av4-TR-27-en" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-en", audio_id: "audio-Av4-TR-27-en" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-en", audio_id: "audio-Av4-P-34-en" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-en", audio_id: "audio-Av4-TR-28-en" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-en", audio_id: "audio-Av4-P-35-en", reto_id: "PZ-05" },
@@ -4985,18 +4985,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-fr", audio_id: "audio-Av4-TR-20-fr" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-fr", audio_id: "audio-Av4-P-27-fr" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-fr", audio_id: "audio-Av4-TR-21-fr" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-fr", audio_id: "audio-Av4-P-28-fr" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-fr", audio_id: "audio-Av4-TR-22-fr" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-fr", audio_id: "audio-Av4-P-28-fr" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-fr", audio_id: "audio-Av4-TR-22-fr" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-fr", audio_id: "audio-Av4-TR-23-fr" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-fr", audio_id: "audio-Av4-P-29-fr", reto_id: "R19-Av4-fr" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-fr", audio_id: "audio-Av4-TR-24-fr" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-fr", audio_id: "audio-Av4-P-30-fr" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-fr", audio_id: "audio-Av4-P-31-fr" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-fr", audio_id: "audio-Av4-TR-25-fr" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-fr", audio_id: "audio-Av4-P-32-fr", reto_id: "R20-Av4-fr" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-fr", audio_id: "audio-Av4-TR-26-fr" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-fr", audio_id: "audio-Av4-TR-25-fr" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-fr", audio_id: "audio-Av4-P-32-fr", reto_id: "R20-Av4-fr" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-fr", audio_id: "audio-Av4-TR-26-fr" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-fr", audio_id: "audio-Av4-P-33-fr" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-fr", audio_id: "audio-Av4-TR-27-fr" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-fr", audio_id: "audio-Av4-TR-27-fr" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-fr", audio_id: "audio-Av4-P-34-fr" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-fr", audio_id: "audio-Av4-TR-28-fr" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-fr", audio_id: "audio-Av4-P-35-fr", reto_id: "PZ-05" },
@@ -5056,18 +5056,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-it", audio_id: "audio-Av4-TR-20-it" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-it", audio_id: "audio-Av4-P-27-it" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-it", audio_id: "audio-Av4-TR-21-it" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-it", audio_id: "audio-Av4-P-28-it" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-it", audio_id: "audio-Av4-TR-22-it" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-it", audio_id: "audio-Av4-P-28-it" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-it", audio_id: "audio-Av4-TR-22-it" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-it", audio_id: "audio-Av4-TR-23-it" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-it", audio_id: "audio-Av4-P-29-it", reto_id: "R19-Av4-it" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-it", audio_id: "audio-Av4-TR-24-it" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-it", audio_id: "audio-Av4-P-30-it" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-it", audio_id: "audio-Av4-P-31-it" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-it", audio_id: "audio-Av4-TR-25-it" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-it", audio_id: "audio-Av4-P-32-it", reto_id: "R20-Av4-it" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-it", audio_id: "audio-Av4-TR-26-it" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-it", audio_id: "audio-Av4-TR-25-it" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-it", audio_id: "audio-Av4-P-32-it", reto_id: "R20-Av4-it" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-it", audio_id: "audio-Av4-TR-26-it" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-it", audio_id: "audio-Av4-P-33-it" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-it", audio_id: "audio-Av4-TR-27-it" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-it", audio_id: "audio-Av4-TR-27-it" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-it", audio_id: "audio-Av4-P-34-it" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-it", audio_id: "audio-Av4-TR-28-it" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-it", audio_id: "audio-Av4-P-35-it", reto_id: "PZ-05" },
@@ -5127,18 +5127,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-nl", audio_id: "audio-Av4-TR-20-nl" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-nl", audio_id: "audio-Av4-P-27-nl" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-nl", audio_id: "audio-Av4-TR-21-nl" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-nl", audio_id: "audio-Av4-P-28-nl" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-nl", audio_id: "audio-Av4-TR-22-nl" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-nl", audio_id: "audio-Av4-P-28-nl" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-nl", audio_id: "audio-Av4-TR-22-nl" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-nl", audio_id: "audio-Av4-TR-23-nl" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-nl", audio_id: "audio-Av4-P-29-nl", reto_id: "R19-Av4-nl" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-nl", audio_id: "audio-Av4-TR-24-nl" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-nl", audio_id: "audio-Av4-P-30-nl" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-nl", audio_id: "audio-Av4-P-31-nl" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-nl", audio_id: "audio-Av4-TR-25-nl" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-nl", audio_id: "audio-Av4-P-32-nl", reto_id: "R20-Av4-nl" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-nl", audio_id: "audio-Av4-TR-26-nl" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-nl", audio_id: "audio-Av4-TR-25-nl" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-nl", audio_id: "audio-Av4-P-32-nl", reto_id: "R20-Av4-nl" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-nl", audio_id: "audio-Av4-TR-26-nl" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-nl", audio_id: "audio-Av4-P-33-nl" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-nl", audio_id: "audio-Av4-TR-27-nl" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-nl", audio_id: "audio-Av4-TR-27-nl" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-nl", audio_id: "audio-Av4-P-34-nl" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-nl", audio_id: "audio-Av4-TR-28-nl" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-nl", audio_id: "audio-Av4-P-35-nl", reto_id: "PZ-05" },
@@ -5198,18 +5198,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-ja", audio_id: "audio-Av4-TR-20-ja" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-ja", audio_id: "audio-Av4-P-27-ja" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-ja", audio_id: "audio-Av4-TR-21-ja" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-ja", audio_id: "audio-Av4-P-28-ja" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-ja", audio_id: "audio-Av4-TR-22-ja" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-ja", audio_id: "audio-Av4-P-28-ja" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-ja", audio_id: "audio-Av4-TR-22-ja" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-ja", audio_id: "audio-Av4-TR-23-ja" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-ja", audio_id: "audio-Av4-P-29-ja", reto_id: "R19-Av4-ja" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-ja", audio_id: "audio-Av4-TR-24-ja" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-ja", audio_id: "audio-Av4-P-30-ja" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-ja", audio_id: "audio-Av4-P-31-ja" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-ja", audio_id: "audio-Av4-TR-25-ja" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-ja", audio_id: "audio-Av4-P-32-ja", reto_id: "R20-Av4-ja" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-ja", audio_id: "audio-Av4-TR-26-ja" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-ja", audio_id: "audio-Av4-TR-25-ja" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-ja", audio_id: "audio-Av4-P-32-ja", reto_id: "R20-Av4-ja" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-ja", audio_id: "audio-Av4-TR-26-ja" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-ja", audio_id: "audio-Av4-P-33-ja" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-ja", audio_id: "audio-Av4-TR-27-ja" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-ja", audio_id: "audio-Av4-TR-27-ja" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-ja", audio_id: "audio-Av4-P-34-ja" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-ja", audio_id: "audio-Av4-TR-28-ja" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-ja", audio_id: "audio-Av4-P-35-ja", reto_id: "PZ-05" },
@@ -5269,18 +5269,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-de", audio_id: "audio-Av4-TR-20-de" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-de", audio_id: "audio-Av4-P-27-de" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-de", audio_id: "audio-Av4-TR-21-de" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-de", audio_id: "audio-Av4-P-28-de" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-de", audio_id: "audio-Av4-TR-22-de" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-de", audio_id: "audio-Av4-P-28-de" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-de", audio_id: "audio-Av4-TR-22-de" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-de", audio_id: "audio-Av4-TR-23-de" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-de", audio_id: "audio-Av4-P-29-de", reto_id: "R19-Av4-de" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-de", audio_id: "audio-Av4-TR-24-de" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-de", audio_id: "audio-Av4-P-30-de" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-de", audio_id: "audio-Av4-P-31-de" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-de", audio_id: "audio-Av4-TR-25-de" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-de", audio_id: "audio-Av4-P-32-de", reto_id: "R20-Av4-de" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-de", audio_id: "audio-Av4-TR-26-de" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-de", audio_id: "audio-Av4-TR-25-de" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-de", audio_id: "audio-Av4-P-32-de", reto_id: "R20-Av4-de" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-de", audio_id: "audio-Av4-TR-26-de" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-de", audio_id: "audio-Av4-P-33-de" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-de", audio_id: "audio-Av4-TR-27-de" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-de", audio_id: "audio-Av4-TR-27-de" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-de", audio_id: "audio-Av4-P-34-de" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-de", audio_id: "audio-Av4-TR-28-de" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-de", audio_id: "audio-Av4-P-35-de", reto_id: "PZ-05" },
@@ -5340,18 +5340,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-zh", audio_id: "audio-Av4-TR-20-zh" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-zh", audio_id: "audio-Av4-P-27-zh" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-zh", audio_id: "audio-Av4-TR-21-zh" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-zh", audio_id: "audio-Av4-P-28-zh" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-zh", audio_id: "audio-Av4-TR-22-zh" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-zh", audio_id: "audio-Av4-P-28-zh" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-zh", audio_id: "audio-Av4-TR-22-zh" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-zh", audio_id: "audio-Av4-TR-23-zh" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-zh", audio_id: "audio-Av4-P-29-zh", reto_id: "R19-Av4-zh" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-zh", audio_id: "audio-Av4-TR-24-zh" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-zh", audio_id: "audio-Av4-P-30-zh" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-zh", audio_id: "audio-Av4-P-31-zh" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-zh", audio_id: "audio-Av4-TR-25-zh" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-zh", audio_id: "audio-Av4-P-32-zh", reto_id: "R20-Av4-zh" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-zh", audio_id: "audio-Av4-TR-26-zh" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-zh", audio_id: "audio-Av4-TR-25-zh" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-zh", audio_id: "audio-Av4-P-32-zh", reto_id: "R20-Av4-zh" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-zh", audio_id: "audio-Av4-TR-26-zh" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-zh", audio_id: "audio-Av4-P-33-zh" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-zh", audio_id: "audio-Av4-TR-27-zh" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-zh", audio_id: "audio-Av4-TR-27-zh" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-zh", audio_id: "audio-Av4-P-34-zh" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-zh", audio_id: "audio-Av4-TR-28-zh" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-zh", audio_id: "audio-Av4-P-35-zh", reto_id: "PZ-05" },
@@ -5411,18 +5411,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-pl", audio_id: "audio-Av4-TR-20-pl" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-pl", audio_id: "audio-Av4-P-27-pl" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-pl", audio_id: "audio-Av4-TR-21-pl" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-pl", audio_id: "audio-Av4-P-28-pl" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-pl", audio_id: "audio-Av4-TR-22-pl" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-pl", audio_id: "audio-Av4-P-28-pl" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-pl", audio_id: "audio-Av4-TR-22-pl" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-pl", audio_id: "audio-Av4-TR-23-pl" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-pl", audio_id: "audio-Av4-P-29-pl", reto_id: "R19-Av4-pl" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-pl", audio_id: "audio-Av4-TR-24-pl" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-pl", audio_id: "audio-Av4-P-30-pl" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-pl", audio_id: "audio-Av4-P-31-pl" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-pl", audio_id: "audio-Av4-TR-25-pl" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-pl", audio_id: "audio-Av4-P-32-pl", reto_id: "R20-Av4-pl" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-pl", audio_id: "audio-Av4-TR-26-pl" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-pl", audio_id: "audio-Av4-TR-25-pl" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-pl", audio_id: "audio-Av4-P-32-pl", reto_id: "R20-Av4-pl" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-pl", audio_id: "audio-Av4-TR-26-pl" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-pl", audio_id: "audio-Av4-P-33-pl" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-pl", audio_id: "audio-Av4-TR-27-pl" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-pl", audio_id: "audio-Av4-TR-27-pl" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-pl", audio_id: "audio-Av4-P-34-pl" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-pl", audio_id: "audio-Av4-TR-28-pl" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-pl", audio_id: "audio-Av4-P-35-pl", reto_id: "PZ-05" },
@@ -5482,18 +5482,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-pt", audio_id: "audio-Av4-TR-20-pt" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-pt", audio_id: "audio-Av4-P-27-pt" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-pt", audio_id: "audio-Av4-TR-21-pt" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-pt", audio_id: "audio-Av4-P-28-pt" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-pt", audio_id: "audio-Av4-TR-22-pt" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-pt", audio_id: "audio-Av4-P-28-pt" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-pt", audio_id: "audio-Av4-TR-22-pt" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-pt", audio_id: "audio-Av4-TR-23-pt" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-pt", audio_id: "audio-Av4-P-29-pt", reto_id: "R19-Av4-pt" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-pt", audio_id: "audio-Av4-TR-24-pt" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-pt", audio_id: "audio-Av4-P-30-pt" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-pt", audio_id: "audio-Av4-P-31-pt" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-pt", audio_id: "audio-Av4-TR-25-pt" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-pt", audio_id: "audio-Av4-P-32-pt", reto_id: "R20-Av4-pt" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-pt", audio_id: "audio-Av4-TR-26-pt" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-pt", audio_id: "audio-Av4-TR-25-pt" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-pt", audio_id: "audio-Av4-P-32-pt", reto_id: "R20-Av4-pt" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-pt", audio_id: "audio-Av4-TR-26-pt" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-pt", audio_id: "audio-Av4-P-33-pt" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-pt", audio_id: "audio-Av4-TR-27-pt" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-pt", audio_id: "audio-Av4-TR-27-pt" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-pt", audio_id: "audio-Av4-P-34-pt" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-pt", audio_id: "audio-Av4-TR-28-pt" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-pt", audio_id: "audio-Av4-P-35-pt", reto_id: "PZ-05" },
@@ -5553,18 +5553,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-ru", audio_id: "audio-Av4-TR-20-ru" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-ru", audio_id: "audio-Av4-P-27-ru" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-ru", audio_id: "audio-Av4-TR-21-ru" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-ru", audio_id: "audio-Av4-P-28-ru" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-ru", audio_id: "audio-Av4-TR-22-ru" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-ru", audio_id: "audio-Av4-P-28-ru" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-ru", audio_id: "audio-Av4-TR-22-ru" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-ru", audio_id: "audio-Av4-TR-23-ru" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-ru", audio_id: "audio-Av4-P-29-ru", reto_id: "R19-Av4-ru" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-ru", audio_id: "audio-Av4-TR-24-ru" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-ru", audio_id: "audio-Av4-P-30-ru" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-ru", audio_id: "audio-Av4-P-31-ru" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-ru", audio_id: "audio-Av4-TR-25-ru" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-ru", audio_id: "audio-Av4-P-32-ru", reto_id: "R20-Av4-ru" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-ru", audio_id: "audio-Av4-TR-26-ru" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-ru", audio_id: "audio-Av4-TR-25-ru" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-ru", audio_id: "audio-Av4-P-32-ru", reto_id: "R20-Av4-ru" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-ru", audio_id: "audio-Av4-TR-26-ru" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-ru", audio_id: "audio-Av4-P-33-ru" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-ru", audio_id: "audio-Av4-TR-27-ru" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-ru", audio_id: "audio-Av4-TR-27-ru" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-ru", audio_id: "audio-Av4-P-34-ru" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-ru", audio_id: "audio-Av4-TR-28-ru" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-ru", audio_id: "audio-Av4-P-35-ru", reto_id: "PZ-05" },
@@ -5624,18 +5624,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-uk", audio_id: "audio-Av4-TR-20-uk" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-uk", audio_id: "audio-Av4-P-27-uk" },
         { padreid: "padre-TR21", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av4-TR-21", numero_mapa: "25→v1", texto_id: "txt-Av4-TR21-uk", audio_id: "audio-Av4-TR-21-uk" },
-        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-uk", audio_id: "audio-Av4-P-28-uk" },
-        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-uk", audio_id: "audio-Av4-TR-22-uk" },
+        { padreid: "padre-P28", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av4-P-28", numero_mapa: "v2/v3", texto_id: "txt-Av4-P28-uk", audio_id: "audio-Av4-P-28-uk" },
+        { padreid: "padre-TR22", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av4-TR-22", numero_mapa: "v3→v5", texto_id: "txt-Av4-TR22-uk", audio_id: "audio-Av4-TR-22-uk" },
         { padreid: "padre-TR23", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av4-TR-23", numero_mapa: "v5→v8", texto_id: "txt-Av4-TR23-uk", audio_id: "audio-Av4-TR-23-uk" },
         { padreid: "padre-P29", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av4-P-29", numero_mapa: "v8", texto_id: "txt-Av4-P29-uk", audio_id: "audio-Av4-P-29-uk", reto_id: "R19-Av4-uk" },
         { padreid: "padre-TR24", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av4-TR-24", numero_mapa: "v8→v10", texto_id: "txt-Av4-TR24-uk", audio_id: "audio-Av4-TR-24-uk" },
         { padreid: "padre-P30", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av4-P-30", numero_mapa: "v10", texto_id: "txt-Av4-P30-uk", audio_id: "audio-Av4-P-30-uk" },
         { padreid: "padre-P31", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av4-P-31", numero_mapa: "v7-v8", texto_id: "txt-Av4-P31-uk", audio_id: "audio-Av4-P-31-uk" },
-        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-uk", audio_id: "audio-Av4-TR-25-uk" },
-        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-uk", audio_id: "audio-Av4-P-32-uk", reto_id: "R20-Av4-uk" },
-        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-uk", audio_id: "audio-Av4-TR-26-uk" },
+        { padreid: "padre-TR25", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av4-TR-25", numero_mapa: "v7-v8→v11", texto_id: "txt-Av4-TR25-uk", audio_id: "audio-Av4-TR-25-uk" },
+        { padreid: "padre-P32", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av4-P-32", numero_mapa: "v11", texto_id: "txt-Av4-P32-uk", audio_id: "audio-Av4-P-32-uk", reto_id: "R20-Av4-uk" },
+        { padreid: "padre-TR26", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av4-TR-26", numero_mapa: "v11→v12", texto_id: "txt-Av4-TR26-uk", audio_id: "audio-Av4-TR-26-uk" },
         { padreid: "padre-P33", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av4-P-33", numero_mapa: "v12", texto_id: "txt-Av4-P33-uk", audio_id: "audio-Av4-P-33-uk" },
-        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-uk", audio_id: "audio-Av4-TR-27-uk" },
+        { padreid: "padre-TR27", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av4-TR-27", numero_mapa: "25→26", texto_id: "txt-Av4-TR27-uk", audio_id: "audio-Av4-TR-27-uk" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Puente del Real", parada_id: "Av4-P-34", numero_mapa: 26, texto_id: "txt-Av4-P34-uk", audio_id: "audio-Av4-P-34-uk" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Puente del Real → Torres de Serranos", tramo_id: "Av4-TR-28", numero_mapa: "26→1", texto_id: "txt-Av4-TR28-uk", audio_id: "audio-Av4-TR-28-uk" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Torres de Serranos Final", parada_id: "Av4-P-35", numero_mapa: 1, texto_id: "txt-Av4-P35-uk", audio_id: "audio-Av4-P-35-uk", reto_id: "PZ-05" },
@@ -6528,7 +6528,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-es", audio_id: "audio-AvFallas-TR-11-es" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-es", audio_id: "audio-AvFallas-P-19-es", reto_id: "R15-AvFallas-es" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-es", audio_id: "audio-AvFallas-P-19-es", reto_id: "R15-AvFallas-es" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-es", audio_id: "audio-AvFallas-TR-12-es" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -6628,7 +6628,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-en", audio_id: "audio-AvFallas-TR-11-en" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-en", audio_id: "audio-AvFallas-P-19-en", reto_id: "R15-AvFallas-en" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-en", audio_id: "audio-AvFallas-P-19-en", reto_id: "R15-AvFallas-en" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-en", audio_id: "audio-AvFallas-TR-12-en" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -6728,7 +6728,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-fr", audio_id: "audio-AvFallas-TR-11-fr" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-fr", audio_id: "audio-AvFallas-P-19-fr", reto_id: "R15-AvFallas-fr" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-fr", audio_id: "audio-AvFallas-P-19-fr", reto_id: "R15-AvFallas-fr" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-fr", audio_id: "audio-AvFallas-TR-12-fr" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -6828,7 +6828,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-it", audio_id: "audio-AvFallas-TR-11-it" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-it", audio_id: "audio-AvFallas-P-19-it", reto_id: "R15-AvFallas-it" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-it", audio_id: "audio-AvFallas-P-19-it", reto_id: "R15-AvFallas-it" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-it", audio_id: "audio-AvFallas-TR-12-it" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -6928,7 +6928,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-nl", audio_id: "audio-AvFallas-TR-11-nl" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-nl", audio_id: "audio-AvFallas-P-19-nl", reto_id: "R15-AvFallas-nl" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-nl", audio_id: "audio-AvFallas-P-19-nl", reto_id: "R15-AvFallas-nl" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-nl", audio_id: "audio-AvFallas-TR-12-nl" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -7028,7 +7028,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-ja", audio_id: "audio-AvFallas-TR-11-ja" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-ja", audio_id: "audio-AvFallas-P-19-ja", reto_id: "R15-AvFallas-ja" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-ja", audio_id: "audio-AvFallas-P-19-ja", reto_id: "R15-AvFallas-ja" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-ja", audio_id: "audio-AvFallas-TR-12-ja" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -7128,7 +7128,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-de", audio_id: "audio-AvFallas-TR-11-de" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-de", audio_id: "audio-AvFallas-P-19-de", reto_id: "R15-AvFallas-de" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-de", audio_id: "audio-AvFallas-P-19-de", reto_id: "R15-AvFallas-de" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-de", audio_id: "audio-AvFallas-TR-12-de" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -7228,7 +7228,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-zh", audio_id: "audio-AvFallas-TR-11-zh" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-zh", audio_id: "audio-AvFallas-P-19-zh", reto_id: "R15-AvFallas-zh" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-zh", audio_id: "audio-AvFallas-P-19-zh", reto_id: "R15-AvFallas-zh" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-zh", audio_id: "audio-AvFallas-TR-12-zh" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -7328,7 +7328,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-pl", audio_id: "audio-AvFallas-TR-11-pl" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-pl", audio_id: "audio-AvFallas-P-19-pl", reto_id: "R15-AvFallas-pl" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-pl", audio_id: "audio-AvFallas-P-19-pl", reto_id: "R15-AvFallas-pl" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-pl", audio_id: "audio-AvFallas-TR-12-pl" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -7428,7 +7428,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-pt", audio_id: "audio-AvFallas-TR-11-pt" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-pt", audio_id: "audio-AvFallas-P-19-pt", reto_id: "R15-AvFallas-pt" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-pt", audio_id: "audio-AvFallas-P-19-pt", reto_id: "R15-AvFallas-pt" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-pt", audio_id: "audio-AvFallas-TR-12-pt" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -7528,7 +7528,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-ru", audio_id: "audio-AvFallas-TR-11-ru" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-ru", audio_id: "audio-AvFallas-P-19-ru", reto_id: "R15-AvFallas-ru" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-ru", audio_id: "audio-AvFallas-P-19-ru", reto_id: "R15-AvFallas-ru" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-ru", audio_id: "audio-AvFallas-TR-12-ru" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -7628,7 +7628,7 @@ export const DATOS_PADRE = {
         // AvFallas-TR-11
         {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-uk", audio_id: "audio-AvFallas-TR-11-uk" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
-        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-uk", audio_id: "audio-AvFallas-P-19-uk", reto_id: "R15-AvFallas-uk" },
+        {padreid: "padre-P19", tipo: "parada", nombre: "Mercado Central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-uk", audio_id: "audio-AvFallas-P-19-uk", reto_id: "R15-AvFallas-uk" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
         {padreid: "padre-TR12", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado", tramo_id: "AvFallas-TR-12", numero_mapa: "15→16", texto_id: "txt-AvFallas-TR12-uk", audio_id: "audio-AvFallas-TR-12-uk" },
         // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
@@ -7732,7 +7732,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-es", audio_id: "audio-Av34km-TR-27-es" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-es", audio_id: "audio-Av34km-P-32-es" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-es", audio_id: "audio-Av34km-TR-28-es" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-es", audio_id: "audio-Av34km-P-33-es", reto_id: "R27-Av34km-es" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-es", audio_id: "audio-Av34km-P-33-es", reto_id: "R27-Av34km-es" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-es", audio_id: "audio-Av34km-TR-29-es" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-es", audio_id: "audio-Av34km-P-34-es", reto_id: "R28-Av34km-es" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-es", audio_id: "audio-Av34km-P-35-es", reto_id: "R29-Av34km-es" },
@@ -7799,7 +7799,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-es", audio_id: "audio-Av34km-P-76-es" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-es", audio_id: "audio-Av34km-TR-50-es" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-es", audio_id: "audio-Av34km-P-77-es", reto_id: "R61-Av34km-es" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-es", audio_id: "audio-Av34km-TR-51-es" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-es", audio_id: "audio-Av34km-TR-51-es" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-es", audio_id: "audio-Av34km-P-78-es" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-es", audio_id: "audio-Av34km-TR-52-es" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-es", audio_id: "audio-Av34km-P-79-es", reto_id: "PZ-18" },
@@ -7817,7 +7817,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-es", audio_id: "audio-Av34km-TR-56-es" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-es", audio_id: "audio-Av34km-P-88-es" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-es", audio_id: "audio-Av34km-P-89-es" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-es", audio_id: "audio-Av34km-TR-57-es" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-es", audio_id: "audio-Av34km-TR-57-es" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-es", audio_id: "audio-Av34km-P-90-es" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-es", audio_id: "audio-Av34km-TR-58-es" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-es", audio_id: "audio-Av34km-P-91-es", reto_id: "R70-Av34km-es" },
@@ -7869,18 +7869,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-es", audio_id: "audio-Av34km-TR-79-es" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-es", audio_id: "audio-Av34km-P-117-es" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-es", audio_id: "audio-Av34km-TR-80-es" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-es", audio_id: "audio-Av34km-P-118-es" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-es", audio_id: "audio-Av34km-TR-81-es" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-es", audio_id: "audio-Av34km-P-118-es" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-es", audio_id: "audio-Av34km-TR-81-es" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-es", audio_id: "audio-Av34km-TR-82-es" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-es", audio_id: "audio-Av34km-P-119-es", reto_id: "R85-Av34km-es" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-es", audio_id: "audio-Av34km-TR-83-es" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-es", audio_id: "audio-Av34km-P-120-es" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-es", audio_id: "audio-Av34km-P-121-es" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-es", audio_id: "audio-Av34km-TR-84-es" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-es", audio_id: "audio-Av34km-P-122-es", reto_id: "R86-Av34km-es" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-es", audio_id: "audio-Av34km-TR-85-es" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-es", audio_id: "audio-Av34km-TR-84-es" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-es", audio_id: "audio-Av34km-P-122-es", reto_id: "R86-Av34km-es" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-es", audio_id: "audio-Av34km-TR-85-es" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-es", audio_id: "audio-Av34km-P-123-es" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-es", audio_id: "audio-Av34km-TR-86-es" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-es", audio_id: "audio-Av34km-TR-86-es" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-es", audio_id: "audio-Av34km-P-124-es" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-es", audio_id: "audio-Av34km-TR-87-es" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-es", audio_id: "audio-Av34km-P-125-es" },
@@ -7978,7 +7978,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-en", audio_id: "audio-Av34km-TR-27-en" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-en", audio_id: "audio-Av34km-P-32-en" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-en", audio_id: "audio-Av34km-TR-28-en" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-en", audio_id: "audio-Av34km-P-33-en", reto_id: "R27-Av34km-en" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-en", audio_id: "audio-Av34km-P-33-en", reto_id: "R27-Av34km-en" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-en", audio_id: "audio-Av34km-TR-29-en" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-en", audio_id: "audio-Av34km-P-34-en", reto_id: "R28-Av34km-en" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-en", audio_id: "audio-Av34km-P-35-en", reto_id: "R29-Av34km-en" },
@@ -8045,7 +8045,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-en", audio_id: "audio-Av34km-P-76-en" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-en", audio_id: "audio-Av34km-TR-50-en" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-en", audio_id: "audio-Av34km-P-77-en", reto_id: "R61-Av34km-en" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-en", audio_id: "audio-Av34km-TR-51-en" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-en", audio_id: "audio-Av34km-TR-51-en" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-en", audio_id: "audio-Av34km-P-78-en" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-en", audio_id: "audio-Av34km-TR-52-en" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-en", audio_id: "audio-Av34km-P-79-en", reto_id: "PZ-18" },
@@ -8063,7 +8063,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-en", audio_id: "audio-Av34km-TR-56-en" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-en", audio_id: "audio-Av34km-P-88-en" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-en", audio_id: "audio-Av34km-P-89-en" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-en", audio_id: "audio-Av34km-TR-57-en" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-en", audio_id: "audio-Av34km-TR-57-en" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-en", audio_id: "audio-Av34km-P-90-en" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-en", audio_id: "audio-Av34km-TR-58-en" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-en", audio_id: "audio-Av34km-P-91-en", reto_id: "R70-Av34km-en" },
@@ -8115,18 +8115,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-en", audio_id: "audio-Av34km-TR-79-en" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-en", audio_id: "audio-Av34km-P-117-en" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-en", audio_id: "audio-Av34km-TR-80-en" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-en", audio_id: "audio-Av34km-P-118-en" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-en", audio_id: "audio-Av34km-TR-81-en" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-en", audio_id: "audio-Av34km-P-118-en" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-en", audio_id: "audio-Av34km-TR-81-en" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-en", audio_id: "audio-Av34km-TR-82-en" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-en", audio_id: "audio-Av34km-P-119-en", reto_id: "R85-Av34km-en" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-en", audio_id: "audio-Av34km-TR-83-en" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-en", audio_id: "audio-Av34km-P-120-en" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-en", audio_id: "audio-Av34km-P-121-en" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-en", audio_id: "audio-Av34km-TR-84-en" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-en", audio_id: "audio-Av34km-P-122-en", reto_id: "R86-Av34km-en" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-en", audio_id: "audio-Av34km-TR-85-en" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-en", audio_id: "audio-Av34km-TR-84-en" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-en", audio_id: "audio-Av34km-P-122-en", reto_id: "R86-Av34km-en" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-en", audio_id: "audio-Av34km-TR-85-en" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-en", audio_id: "audio-Av34km-P-123-en" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-en", audio_id: "audio-Av34km-TR-86-en" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-en", audio_id: "audio-Av34km-TR-86-en" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-en", audio_id: "audio-Av34km-P-124-en" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-en", audio_id: "audio-Av34km-TR-87-en" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-en", audio_id: "audio-Av34km-P-125-en" },
@@ -8224,7 +8224,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-fr", audio_id: "audio-Av34km-TR-27-fr" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-fr", audio_id: "audio-Av34km-P-32-fr" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-fr", audio_id: "audio-Av34km-TR-28-fr" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-fr", audio_id: "audio-Av34km-P-33-fr", reto_id: "R27-Av34km-fr" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-fr", audio_id: "audio-Av34km-P-33-fr", reto_id: "R27-Av34km-fr" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-fr", audio_id: "audio-Av34km-TR-29-fr" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-fr", audio_id: "audio-Av34km-P-34-fr", reto_id: "R28-Av34km-fr" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-fr", audio_id: "audio-Av34km-P-35-fr", reto_id: "R29-Av34km-fr" },
@@ -8291,7 +8291,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-fr", audio_id: "audio-Av34km-P-76-fr" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-fr", audio_id: "audio-Av34km-TR-50-fr" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-fr", audio_id: "audio-Av34km-P-77-fr", reto_id: "R61-Av34km-fr" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-fr", audio_id: "audio-Av34km-TR-51-fr" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-fr", audio_id: "audio-Av34km-TR-51-fr" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-fr", audio_id: "audio-Av34km-P-78-fr" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-fr", audio_id: "audio-Av34km-TR-52-fr" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-fr", audio_id: "audio-Av34km-P-79-fr", reto_id: "PZ-18" },
@@ -8309,7 +8309,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-fr", audio_id: "audio-Av34km-TR-56-fr" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-fr", audio_id: "audio-Av34km-P-88-fr" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-fr", audio_id: "audio-Av34km-P-89-fr" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-fr", audio_id: "audio-Av34km-TR-57-fr" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-fr", audio_id: "audio-Av34km-TR-57-fr" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-fr", audio_id: "audio-Av34km-P-90-fr" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-fr", audio_id: "audio-Av34km-TR-58-fr" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-fr", audio_id: "audio-Av34km-P-91-fr", reto_id: "R70-Av34km-fr" },
@@ -8361,18 +8361,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-fr", audio_id: "audio-Av34km-TR-79-fr" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-fr", audio_id: "audio-Av34km-P-117-fr" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-fr", audio_id: "audio-Av34km-TR-80-fr" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-fr", audio_id: "audio-Av34km-P-118-fr" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-fr", audio_id: "audio-Av34km-TR-81-fr" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-fr", audio_id: "audio-Av34km-P-118-fr" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-fr", audio_id: "audio-Av34km-TR-81-fr" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-fr", audio_id: "audio-Av34km-TR-82-fr" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-fr", audio_id: "audio-Av34km-P-119-fr", reto_id: "R85-Av34km-fr" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-fr", audio_id: "audio-Av34km-TR-83-fr" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-fr", audio_id: "audio-Av34km-P-120-fr" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-fr", audio_id: "audio-Av34km-P-121-fr" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-fr", audio_id: "audio-Av34km-TR-84-fr" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-fr", audio_id: "audio-Av34km-P-122-fr", reto_id: "R86-Av34km-fr" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-fr", audio_id: "audio-Av34km-TR-85-fr" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-fr", audio_id: "audio-Av34km-TR-84-fr" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-fr", audio_id: "audio-Av34km-P-122-fr", reto_id: "R86-Av34km-fr" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-fr", audio_id: "audio-Av34km-TR-85-fr" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-fr", audio_id: "audio-Av34km-P-123-fr" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-fr", audio_id: "audio-Av34km-TR-86-fr" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-fr", audio_id: "audio-Av34km-TR-86-fr" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-fr", audio_id: "audio-Av34km-P-124-fr" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-fr", audio_id: "audio-Av34km-TR-87-fr" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-fr", audio_id: "audio-Av34km-P-125-fr" },
@@ -8470,7 +8470,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-it", audio_id: "audio-Av34km-TR-27-it" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-it", audio_id: "audio-Av34km-P-32-it" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-it", audio_id: "audio-Av34km-TR-28-it" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-it", audio_id: "audio-Av34km-P-33-it", reto_id: "R27-Av34km-it" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-it", audio_id: "audio-Av34km-P-33-it", reto_id: "R27-Av34km-it" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-it", audio_id: "audio-Av34km-TR-29-it" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-it", audio_id: "audio-Av34km-P-34-it", reto_id: "R28-Av34km-it" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-it", audio_id: "audio-Av34km-P-35-it", reto_id: "R29-Av34km-it" },
@@ -8537,7 +8537,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-it", audio_id: "audio-Av34km-P-76-it" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-it", audio_id: "audio-Av34km-TR-50-it" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-it", audio_id: "audio-Av34km-P-77-it", reto_id: "R61-Av34km-it" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-it", audio_id: "audio-Av34km-TR-51-it" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-it", audio_id: "audio-Av34km-TR-51-it" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-it", audio_id: "audio-Av34km-P-78-it" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-it", audio_id: "audio-Av34km-TR-52-it" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-it", audio_id: "audio-Av34km-P-79-it", reto_id: "PZ-18" },
@@ -8555,7 +8555,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-it", audio_id: "audio-Av34km-TR-56-it" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-it", audio_id: "audio-Av34km-P-88-it" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-it", audio_id: "audio-Av34km-P-89-it" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-it", audio_id: "audio-Av34km-TR-57-it" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-it", audio_id: "audio-Av34km-TR-57-it" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-it", audio_id: "audio-Av34km-P-90-it" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-it", audio_id: "audio-Av34km-TR-58-it" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-it", audio_id: "audio-Av34km-P-91-it", reto_id: "R70-Av34km-it" },
@@ -8607,18 +8607,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-it", audio_id: "audio-Av34km-TR-79-it" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-it", audio_id: "audio-Av34km-P-117-it" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-it", audio_id: "audio-Av34km-TR-80-it" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-it", audio_id: "audio-Av34km-P-118-it" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-it", audio_id: "audio-Av34km-TR-81-it" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-it", audio_id: "audio-Av34km-P-118-it" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-it", audio_id: "audio-Av34km-TR-81-it" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-it", audio_id: "audio-Av34km-TR-82-it" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-it", audio_id: "audio-Av34km-P-119-it", reto_id: "R85-Av34km-it" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-it", audio_id: "audio-Av34km-TR-83-it" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-it", audio_id: "audio-Av34km-P-120-it" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-it", audio_id: "audio-Av34km-P-121-it" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-it", audio_id: "audio-Av34km-TR-84-it" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-it", audio_id: "audio-Av34km-P-122-it", reto_id: "R86-Av34km-it" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-it", audio_id: "audio-Av34km-TR-85-it" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-it", audio_id: "audio-Av34km-TR-84-it" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-it", audio_id: "audio-Av34km-P-122-it", reto_id: "R86-Av34km-it" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-it", audio_id: "audio-Av34km-TR-85-it" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-it", audio_id: "audio-Av34km-P-123-it" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-it", audio_id: "audio-Av34km-TR-86-it" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-it", audio_id: "audio-Av34km-TR-86-it" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-it", audio_id: "audio-Av34km-P-124-it" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-it", audio_id: "audio-Av34km-TR-87-it" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-it", audio_id: "audio-Av34km-P-125-it" },
@@ -8716,7 +8716,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-nl", audio_id: "audio-Av34km-TR-27-nl" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-nl", audio_id: "audio-Av34km-P-32-nl" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-nl", audio_id: "audio-Av34km-TR-28-nl" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-nl", audio_id: "audio-Av34km-P-33-nl", reto_id: "R27-Av34km-nl" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-nl", audio_id: "audio-Av34km-P-33-nl", reto_id: "R27-Av34km-nl" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-nl", audio_id: "audio-Av34km-TR-29-nl" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-nl", audio_id: "audio-Av34km-P-34-nl", reto_id: "R28-Av34km-nl" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-nl", audio_id: "audio-Av34km-P-35-nl", reto_id: "R29-Av34km-nl" },
@@ -8783,7 +8783,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-nl", audio_id: "audio-Av34km-P-76-nl" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-nl", audio_id: "audio-Av34km-TR-50-nl" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-nl", audio_id: "audio-Av34km-P-77-nl", reto_id: "R61-Av34km-nl" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-nl", audio_id: "audio-Av34km-TR-51-nl" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-nl", audio_id: "audio-Av34km-TR-51-nl" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-nl", audio_id: "audio-Av34km-P-78-nl" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-nl", audio_id: "audio-Av34km-TR-52-nl" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-nl", audio_id: "audio-Av34km-P-79-nl", reto_id: "PZ-18" },
@@ -8801,7 +8801,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-nl", audio_id: "audio-Av34km-TR-56-nl" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-nl", audio_id: "audio-Av34km-P-88-nl" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-nl", audio_id: "audio-Av34km-P-89-nl" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-nl", audio_id: "audio-Av34km-TR-57-nl" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-nl", audio_id: "audio-Av34km-TR-57-nl" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-nl", audio_id: "audio-Av34km-P-90-nl" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-nl", audio_id: "audio-Av34km-TR-58-nl" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-nl", audio_id: "audio-Av34km-P-91-nl", reto_id: "R70-Av34km-nl" },
@@ -8853,18 +8853,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-nl", audio_id: "audio-Av34km-TR-79-nl" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-nl", audio_id: "audio-Av34km-P-117-nl" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-nl", audio_id: "audio-Av34km-TR-80-nl" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-nl", audio_id: "audio-Av34km-P-118-nl" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-nl", audio_id: "audio-Av34km-TR-81-nl" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-nl", audio_id: "audio-Av34km-P-118-nl" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-nl", audio_id: "audio-Av34km-TR-81-nl" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-nl", audio_id: "audio-Av34km-TR-82-nl" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-nl", audio_id: "audio-Av34km-P-119-nl", reto_id: "R85-Av34km-nl" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-nl", audio_id: "audio-Av34km-TR-83-nl" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-nl", audio_id: "audio-Av34km-P-120-nl" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-nl", audio_id: "audio-Av34km-P-121-nl" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-nl", audio_id: "audio-Av34km-TR-84-nl" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-nl", audio_id: "audio-Av34km-P-122-nl", reto_id: "R86-Av34km-nl" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-nl", audio_id: "audio-Av34km-TR-85-nl" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-nl", audio_id: "audio-Av34km-TR-84-nl" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-nl", audio_id: "audio-Av34km-P-122-nl", reto_id: "R86-Av34km-nl" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-nl", audio_id: "audio-Av34km-TR-85-nl" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-nl", audio_id: "audio-Av34km-P-123-nl" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-nl", audio_id: "audio-Av34km-TR-86-nl" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-nl", audio_id: "audio-Av34km-TR-86-nl" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-nl", audio_id: "audio-Av34km-P-124-nl" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-nl", audio_id: "audio-Av34km-TR-87-nl" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-nl", audio_id: "audio-Av34km-P-125-nl" },
@@ -8962,7 +8962,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-ja", audio_id: "audio-Av34km-TR-27-ja" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-ja", audio_id: "audio-Av34km-P-32-ja" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-ja", audio_id: "audio-Av34km-TR-28-ja" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-ja", audio_id: "audio-Av34km-P-33-ja", reto_id: "R27-Av34km-ja" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-ja", audio_id: "audio-Av34km-P-33-ja", reto_id: "R27-Av34km-ja" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-ja", audio_id: "audio-Av34km-TR-29-ja" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-ja", audio_id: "audio-Av34km-P-34-ja", reto_id: "R28-Av34km-ja" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-ja", audio_id: "audio-Av34km-P-35-ja", reto_id: "R29-Av34km-ja" },
@@ -9029,7 +9029,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-ja", audio_id: "audio-Av34km-P-76-ja" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-ja", audio_id: "audio-Av34km-TR-50-ja" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-ja", audio_id: "audio-Av34km-P-77-ja", reto_id: "R61-Av34km-ja" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-ja", audio_id: "audio-Av34km-TR-51-ja" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-ja", audio_id: "audio-Av34km-TR-51-ja" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-ja", audio_id: "audio-Av34km-P-78-ja" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-ja", audio_id: "audio-Av34km-TR-52-ja" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-ja", audio_id: "audio-Av34km-P-79-ja", reto_id: "PZ-18" },
@@ -9047,7 +9047,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-ja", audio_id: "audio-Av34km-TR-56-ja" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-ja", audio_id: "audio-Av34km-P-88-ja" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-ja", audio_id: "audio-Av34km-P-89-ja" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-ja", audio_id: "audio-Av34km-TR-57-ja" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-ja", audio_id: "audio-Av34km-TR-57-ja" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-ja", audio_id: "audio-Av34km-P-90-ja" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-ja", audio_id: "audio-Av34km-TR-58-ja" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-ja", audio_id: "audio-Av34km-P-91-ja", reto_id: "R70-Av34km-ja" },
@@ -9099,18 +9099,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-ja", audio_id: "audio-Av34km-TR-79-ja" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-ja", audio_id: "audio-Av34km-P-117-ja" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-ja", audio_id: "audio-Av34km-TR-80-ja" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-ja", audio_id: "audio-Av34km-P-118-ja" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-ja", audio_id: "audio-Av34km-TR-81-ja" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-ja", audio_id: "audio-Av34km-P-118-ja" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-ja", audio_id: "audio-Av34km-TR-81-ja" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-ja", audio_id: "audio-Av34km-TR-82-ja" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-ja", audio_id: "audio-Av34km-P-119-ja", reto_id: "R85-Av34km-ja" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-ja", audio_id: "audio-Av34km-TR-83-ja" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-ja", audio_id: "audio-Av34km-P-120-ja" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-ja", audio_id: "audio-Av34km-P-121-ja" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-ja", audio_id: "audio-Av34km-TR-84-ja" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-ja", audio_id: "audio-Av34km-P-122-ja", reto_id: "R86-Av34km-ja" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-ja", audio_id: "audio-Av34km-TR-85-ja" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-ja", audio_id: "audio-Av34km-TR-84-ja" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-ja", audio_id: "audio-Av34km-P-122-ja", reto_id: "R86-Av34km-ja" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-ja", audio_id: "audio-Av34km-TR-85-ja" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-ja", audio_id: "audio-Av34km-P-123-ja" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-ja", audio_id: "audio-Av34km-TR-86-ja" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-ja", audio_id: "audio-Av34km-TR-86-ja" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-ja", audio_id: "audio-Av34km-P-124-ja" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-ja", audio_id: "audio-Av34km-TR-87-ja" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-ja", audio_id: "audio-Av34km-P-125-ja" },
@@ -9208,7 +9208,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-de", audio_id: "audio-Av34km-TR-27-de" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-de", audio_id: "audio-Av34km-P-32-de" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-de", audio_id: "audio-Av34km-TR-28-de" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-de", audio_id: "audio-Av34km-P-33-de", reto_id: "R27-Av34km-de" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-de", audio_id: "audio-Av34km-P-33-de", reto_id: "R27-Av34km-de" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-de", audio_id: "audio-Av34km-TR-29-de" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-de", audio_id: "audio-Av34km-P-34-de", reto_id: "R28-Av34km-de" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-de", audio_id: "audio-Av34km-P-35-de", reto_id: "R29-Av34km-de" },
@@ -9275,7 +9275,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-de", audio_id: "audio-Av34km-P-76-de" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-de", audio_id: "audio-Av34km-TR-50-de" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-de", audio_id: "audio-Av34km-P-77-de", reto_id: "R61-Av34km-de" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-de", audio_id: "audio-Av34km-TR-51-de" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-de", audio_id: "audio-Av34km-TR-51-de" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-de", audio_id: "audio-Av34km-P-78-de" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-de", audio_id: "audio-Av34km-TR-52-de" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-de", audio_id: "audio-Av34km-P-79-de", reto_id: "PZ-18" },
@@ -9293,7 +9293,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-de", audio_id: "audio-Av34km-TR-56-de" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-de", audio_id: "audio-Av34km-P-88-de" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-de", audio_id: "audio-Av34km-P-89-de" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-de", audio_id: "audio-Av34km-TR-57-de" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-de", audio_id: "audio-Av34km-TR-57-de" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-de", audio_id: "audio-Av34km-P-90-de" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-de", audio_id: "audio-Av34km-TR-58-de" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-de", audio_id: "audio-Av34km-P-91-de", reto_id: "R70-Av34km-de" },
@@ -9345,18 +9345,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-de", audio_id: "audio-Av34km-TR-79-de" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-de", audio_id: "audio-Av34km-P-117-de" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-de", audio_id: "audio-Av34km-TR-80-de" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-de", audio_id: "audio-Av34km-P-118-de" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-de", audio_id: "audio-Av34km-TR-81-de" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-de", audio_id: "audio-Av34km-P-118-de" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-de", audio_id: "audio-Av34km-TR-81-de" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-de", audio_id: "audio-Av34km-TR-82-de" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-de", audio_id: "audio-Av34km-P-119-de", reto_id: "R85-Av34km-de" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-de", audio_id: "audio-Av34km-TR-83-de" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-de", audio_id: "audio-Av34km-P-120-de" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-de", audio_id: "audio-Av34km-P-121-de" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-de", audio_id: "audio-Av34km-TR-84-de" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-de", audio_id: "audio-Av34km-P-122-de", reto_id: "R86-Av34km-de" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-de", audio_id: "audio-Av34km-TR-85-de" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-de", audio_id: "audio-Av34km-TR-84-de" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-de", audio_id: "audio-Av34km-P-122-de", reto_id: "R86-Av34km-de" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-de", audio_id: "audio-Av34km-TR-85-de" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-de", audio_id: "audio-Av34km-P-123-de" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-de", audio_id: "audio-Av34km-TR-86-de" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-de", audio_id: "audio-Av34km-TR-86-de" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-de", audio_id: "audio-Av34km-P-124-de" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-de", audio_id: "audio-Av34km-TR-87-de" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-de", audio_id: "audio-Av34km-P-125-de" },
@@ -9454,7 +9454,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-zh", audio_id: "audio-Av34km-TR-27-zh" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-zh", audio_id: "audio-Av34km-P-32-zh" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-zh", audio_id: "audio-Av34km-TR-28-zh" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-zh", audio_id: "audio-Av34km-P-33-zh", reto_id: "R27-Av34km-zh" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-zh", audio_id: "audio-Av34km-P-33-zh", reto_id: "R27-Av34km-zh" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-zh", audio_id: "audio-Av34km-TR-29-zh" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-zh", audio_id: "audio-Av34km-P-34-zh", reto_id: "R28-Av34km-zh" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-zh", audio_id: "audio-Av34km-P-35-zh", reto_id: "R29-Av34km-zh" },
@@ -9521,7 +9521,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-zh", audio_id: "audio-Av34km-P-76-zh" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-zh", audio_id: "audio-Av34km-TR-50-zh" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-zh", audio_id: "audio-Av34km-P-77-zh", reto_id: "R61-Av34km-zh" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-zh", audio_id: "audio-Av34km-TR-51-zh" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-zh", audio_id: "audio-Av34km-TR-51-zh" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-zh", audio_id: "audio-Av34km-P-78-zh" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-zh", audio_id: "audio-Av34km-TR-52-zh" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-zh", audio_id: "audio-Av34km-P-79-zh", reto_id: "PZ-18" },
@@ -9539,7 +9539,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-zh", audio_id: "audio-Av34km-TR-56-zh" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-zh", audio_id: "audio-Av34km-P-88-zh" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-zh", audio_id: "audio-Av34km-P-89-zh" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-zh", audio_id: "audio-Av34km-TR-57-zh" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-zh", audio_id: "audio-Av34km-TR-57-zh" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-zh", audio_id: "audio-Av34km-P-90-zh" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-zh", audio_id: "audio-Av34km-TR-58-zh" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-zh", audio_id: "audio-Av34km-P-91-zh", reto_id: "R70-Av34km-zh" },
@@ -9591,18 +9591,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-zh", audio_id: "audio-Av34km-TR-79-zh" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-zh", audio_id: "audio-Av34km-P-117-zh" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-zh", audio_id: "audio-Av34km-TR-80-zh" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-zh", audio_id: "audio-Av34km-P-118-zh" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-zh", audio_id: "audio-Av34km-TR-81-zh" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-zh", audio_id: "audio-Av34km-P-118-zh" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-zh", audio_id: "audio-Av34km-TR-81-zh" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-zh", audio_id: "audio-Av34km-TR-82-zh" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-zh", audio_id: "audio-Av34km-P-119-zh", reto_id: "R85-Av34km-zh" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-zh", audio_id: "audio-Av34km-TR-83-zh" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-zh", audio_id: "audio-Av34km-P-120-zh" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-zh", audio_id: "audio-Av34km-P-121-zh" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-zh", audio_id: "audio-Av34km-TR-84-zh" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-zh", audio_id: "audio-Av34km-P-122-zh", reto_id: "R86-Av34km-zh" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-zh", audio_id: "audio-Av34km-TR-85-zh" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-zh", audio_id: "audio-Av34km-TR-84-zh" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-zh", audio_id: "audio-Av34km-P-122-zh", reto_id: "R86-Av34km-zh" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-zh", audio_id: "audio-Av34km-TR-85-zh" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-zh", audio_id: "audio-Av34km-P-123-zh" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-zh", audio_id: "audio-Av34km-TR-86-zh" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-zh", audio_id: "audio-Av34km-TR-86-zh" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-zh", audio_id: "audio-Av34km-P-124-zh" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-zh", audio_id: "audio-Av34km-TR-87-zh" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-zh", audio_id: "audio-Av34km-P-125-zh" },
@@ -9700,7 +9700,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-pl", audio_id: "audio-Av34km-TR-27-pl" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-pl", audio_id: "audio-Av34km-P-32-pl" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-pl", audio_id: "audio-Av34km-TR-28-pl" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-pl", audio_id: "audio-Av34km-P-33-pl", reto_id: "R27-Av34km-pl" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-pl", audio_id: "audio-Av34km-P-33-pl", reto_id: "R27-Av34km-pl" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-pl", audio_id: "audio-Av34km-TR-29-pl" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-pl", audio_id: "audio-Av34km-P-34-pl", reto_id: "R28-Av34km-pl" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-pl", audio_id: "audio-Av34km-P-35-pl", reto_id: "R29-Av34km-pl" },
@@ -9767,7 +9767,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-pl", audio_id: "audio-Av34km-P-76-pl" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-pl", audio_id: "audio-Av34km-TR-50-pl" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-pl", audio_id: "audio-Av34km-P-77-pl", reto_id: "R61-Av34km-pl" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-pl", audio_id: "audio-Av34km-TR-51-pl" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-pl", audio_id: "audio-Av34km-TR-51-pl" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-pl", audio_id: "audio-Av34km-P-78-pl" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-pl", audio_id: "audio-Av34km-TR-52-pl" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-pl", audio_id: "audio-Av34km-P-79-pl", reto_id: "PZ-18" },
@@ -9785,7 +9785,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-pl", audio_id: "audio-Av34km-TR-56-pl" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-pl", audio_id: "audio-Av34km-P-88-pl" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-pl", audio_id: "audio-Av34km-P-89-pl" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-pl", audio_id: "audio-Av34km-TR-57-pl" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-pl", audio_id: "audio-Av34km-TR-57-pl" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-pl", audio_id: "audio-Av34km-P-90-pl" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-pl", audio_id: "audio-Av34km-TR-58-pl" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-pl", audio_id: "audio-Av34km-P-91-pl", reto_id: "R70-Av34km-pl" },
@@ -9837,18 +9837,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-pl", audio_id: "audio-Av34km-TR-79-pl" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-pl", audio_id: "audio-Av34km-P-117-pl" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-pl", audio_id: "audio-Av34km-TR-80-pl" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-pl", audio_id: "audio-Av34km-P-118-pl" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-pl", audio_id: "audio-Av34km-TR-81-pl" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-pl", audio_id: "audio-Av34km-P-118-pl" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-pl", audio_id: "audio-Av34km-TR-81-pl" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-pl", audio_id: "audio-Av34km-TR-82-pl" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-pl", audio_id: "audio-Av34km-P-119-pl", reto_id: "R85-Av34km-pl" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-pl", audio_id: "audio-Av34km-TR-83-pl" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-pl", audio_id: "audio-Av34km-P-120-pl" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-pl", audio_id: "audio-Av34km-P-121-pl" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-pl", audio_id: "audio-Av34km-TR-84-pl" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-pl", audio_id: "audio-Av34km-P-122-pl", reto_id: "R86-Av34km-pl" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-pl", audio_id: "audio-Av34km-TR-85-pl" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-pl", audio_id: "audio-Av34km-TR-84-pl" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-pl", audio_id: "audio-Av34km-P-122-pl", reto_id: "R86-Av34km-pl" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-pl", audio_id: "audio-Av34km-TR-85-pl" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-pl", audio_id: "audio-Av34km-P-123-pl" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-pl", audio_id: "audio-Av34km-TR-86-pl" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-pl", audio_id: "audio-Av34km-TR-86-pl" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-pl", audio_id: "audio-Av34km-P-124-pl" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-pl", audio_id: "audio-Av34km-TR-87-pl" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-pl", audio_id: "audio-Av34km-P-125-pl" },
@@ -9946,7 +9946,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-pt", audio_id: "audio-Av34km-TR-27-pt" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-pt", audio_id: "audio-Av34km-P-32-pt" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-pt", audio_id: "audio-Av34km-TR-28-pt" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-pt", audio_id: "audio-Av34km-P-33-pt", reto_id: "R27-Av34km-pt" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-pt", audio_id: "audio-Av34km-P-33-pt", reto_id: "R27-Av34km-pt" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-pt", audio_id: "audio-Av34km-TR-29-pt" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-pt", audio_id: "audio-Av34km-P-34-pt", reto_id: "R28-Av34km-pt" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-pt", audio_id: "audio-Av34km-P-35-pt", reto_id: "R29-Av34km-pt" },
@@ -10013,7 +10013,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-pt", audio_id: "audio-Av34km-P-76-pt" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-pt", audio_id: "audio-Av34km-TR-50-pt" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-pt", audio_id: "audio-Av34km-P-77-pt", reto_id: "R61-Av34km-pt" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-pt", audio_id: "audio-Av34km-TR-51-pt" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-pt", audio_id: "audio-Av34km-TR-51-pt" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-pt", audio_id: "audio-Av34km-P-78-pt" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-pt", audio_id: "audio-Av34km-TR-52-pt" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-pt", audio_id: "audio-Av34km-P-79-pt", reto_id: "PZ-18" },
@@ -10031,7 +10031,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-pt", audio_id: "audio-Av34km-TR-56-pt" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-pt", audio_id: "audio-Av34km-P-88-pt" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-pt", audio_id: "audio-Av34km-P-89-pt" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-pt", audio_id: "audio-Av34km-TR-57-pt" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-pt", audio_id: "audio-Av34km-TR-57-pt" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-pt", audio_id: "audio-Av34km-P-90-pt" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-pt", audio_id: "audio-Av34km-TR-58-pt" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-pt", audio_id: "audio-Av34km-P-91-pt", reto_id: "R70-Av34km-pt" },
@@ -10083,18 +10083,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-pt", audio_id: "audio-Av34km-TR-79-pt" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-pt", audio_id: "audio-Av34km-P-117-pt" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-pt", audio_id: "audio-Av34km-TR-80-pt" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-pt", audio_id: "audio-Av34km-P-118-pt" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-pt", audio_id: "audio-Av34km-TR-81-pt" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-pt", audio_id: "audio-Av34km-P-118-pt" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-pt", audio_id: "audio-Av34km-TR-81-pt" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-pt", audio_id: "audio-Av34km-TR-82-pt" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-pt", audio_id: "audio-Av34km-P-119-pt", reto_id: "R85-Av34km-pt" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-pt", audio_id: "audio-Av34km-TR-83-pt" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-pt", audio_id: "audio-Av34km-P-120-pt" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-pt", audio_id: "audio-Av34km-P-121-pt" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-pt", audio_id: "audio-Av34km-TR-84-pt" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-pt", audio_id: "audio-Av34km-P-122-pt", reto_id: "R86-Av34km-pt" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-pt", audio_id: "audio-Av34km-TR-85-pt" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-pt", audio_id: "audio-Av34km-TR-84-pt" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-pt", audio_id: "audio-Av34km-P-122-pt", reto_id: "R86-Av34km-pt" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-pt", audio_id: "audio-Av34km-TR-85-pt" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-pt", audio_id: "audio-Av34km-P-123-pt" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-pt", audio_id: "audio-Av34km-TR-86-pt" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-pt", audio_id: "audio-Av34km-TR-86-pt" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-pt", audio_id: "audio-Av34km-P-124-pt" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-pt", audio_id: "audio-Av34km-TR-87-pt" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-pt", audio_id: "audio-Av34km-P-125-pt" },
@@ -10192,7 +10192,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-ru", audio_id: "audio-Av34km-TR-27-ru" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-ru", audio_id: "audio-Av34km-P-32-ru" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-ru", audio_id: "audio-Av34km-TR-28-ru" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-ru", audio_id: "audio-Av34km-P-33-ru", reto_id: "R27-Av34km-ru" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-ru", audio_id: "audio-Av34km-P-33-ru", reto_id: "R27-Av34km-ru" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-ru", audio_id: "audio-Av34km-TR-29-ru" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-ru", audio_id: "audio-Av34km-P-34-ru", reto_id: "R28-Av34km-ru" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-ru", audio_id: "audio-Av34km-P-35-ru", reto_id: "R29-Av34km-ru" },
@@ -10259,7 +10259,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-ru", audio_id: "audio-Av34km-P-76-ru" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-ru", audio_id: "audio-Av34km-TR-50-ru" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-ru", audio_id: "audio-Av34km-P-77-ru", reto_id: "R61-Av34km-ru" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-ru", audio_id: "audio-Av34km-TR-51-ru" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-ru", audio_id: "audio-Av34km-TR-51-ru" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-ru", audio_id: "audio-Av34km-P-78-ru" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-ru", audio_id: "audio-Av34km-TR-52-ru" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-ru", audio_id: "audio-Av34km-P-79-ru", reto_id: "PZ-18" },
@@ -10277,7 +10277,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-ru", audio_id: "audio-Av34km-TR-56-ru" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-ru", audio_id: "audio-Av34km-P-88-ru" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-ru", audio_id: "audio-Av34km-P-89-ru" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-ru", audio_id: "audio-Av34km-TR-57-ru" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-ru", audio_id: "audio-Av34km-TR-57-ru" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-ru", audio_id: "audio-Av34km-P-90-ru" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-ru", audio_id: "audio-Av34km-TR-58-ru" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-ru", audio_id: "audio-Av34km-P-91-ru", reto_id: "R70-Av34km-ru" },
@@ -10329,18 +10329,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-ru", audio_id: "audio-Av34km-TR-79-ru" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-ru", audio_id: "audio-Av34km-P-117-ru" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-ru", audio_id: "audio-Av34km-TR-80-ru" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-ru", audio_id: "audio-Av34km-P-118-ru" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-ru", audio_id: "audio-Av34km-TR-81-ru" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-ru", audio_id: "audio-Av34km-P-118-ru" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-ru", audio_id: "audio-Av34km-TR-81-ru" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-ru", audio_id: "audio-Av34km-TR-82-ru" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-ru", audio_id: "audio-Av34km-P-119-ru", reto_id: "R85-Av34km-ru" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-ru", audio_id: "audio-Av34km-TR-83-ru" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-ru", audio_id: "audio-Av34km-P-120-ru" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-ru", audio_id: "audio-Av34km-P-121-ru" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-ru", audio_id: "audio-Av34km-TR-84-ru" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-ru", audio_id: "audio-Av34km-P-122-ru", reto_id: "R86-Av34km-ru" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-ru", audio_id: "audio-Av34km-TR-85-ru" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-ru", audio_id: "audio-Av34km-TR-84-ru" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-ru", audio_id: "audio-Av34km-P-122-ru", reto_id: "R86-Av34km-ru" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-ru", audio_id: "audio-Av34km-TR-85-ru" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-ru", audio_id: "audio-Av34km-P-123-ru" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-ru", audio_id: "audio-Av34km-TR-86-ru" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-ru", audio_id: "audio-Av34km-TR-86-ru" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-ru", audio_id: "audio-Av34km-P-124-ru" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-ru", audio_id: "audio-Av34km-TR-87-ru" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-ru", audio_id: "audio-Av34km-P-125-ru" },
@@ -10438,7 +10438,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR27", tipo: "tramo", nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", tramo_id: "Av34km-TR-27", numero_mapa: "30→31", texto_id: "txt-Av34km-TR27-uk", audio_id: "audio-Av34km-TR-27-uk" },
         { padreid: "padre-P32", tipo: "parada", nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)", parada_id: "Av34km-P-32", numero_mapa: 31, texto_id: "txt-Av34km-P32-uk", audio_id: "audio-Av34km-P-32-uk" },
         { padreid: "padre-TR28", tipo: "tramo", nombre: "Palacio del Marqués → Mercado Central", tramo_id: "Av34km-TR-28", numero_mapa: "31→32", texto_id: "txt-Av34km-TR28-uk", audio_id: "audio-Av34km-TR-28-uk" },
-        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-uk", audio_id: "audio-Av34km-P-33-uk", reto_id: "R27-Av34km-uk" },
+        { padreid: "padre-P33", tipo: "parada", nombre: "Mercado Central", parada_id: "Av34km-P-33", numero_mapa: 32, texto_id: "txt-Av34km-P33-uk", audio_id: "audio-Av34km-P-33-uk", reto_id: "R27-Av34km-uk" },
         { padreid: "padre-TR29", tipo: "tramo", nombre: "Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)", tramo_id: "Av34km-TR-29", numero_mapa: "32→33", texto_id: "txt-Av34km-TR29-uk", audio_id: "audio-Av34km-TR-29-uk" },
         { padreid: "padre-P34", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-34", numero_mapa: 33, texto_id: "txt-Av34km-P34-uk", audio_id: "audio-Av34km-P-34-uk", reto_id: "R28-Av34km-uk" },
         { padreid: "padre-P35", tipo: "parada", nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)", parada_id: "Av34km-P-35", numero_mapa: 33, texto_id: "txt-Av34km-P35-uk", audio_id: "audio-Av34km-P-35-uk", reto_id: "R29-Av34km-uk" },
@@ -10505,7 +10505,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P76", tipo: "parada", nombre: "Portal de la Valldigna", parada_id: "Av34km-P-76", numero_mapa: 50, texto_id: "txt-Av34km-P76-uk", audio_id: "audio-Av34km-P-76-uk" },
         { padreid: "padre-TR50", tipo: "tramo", nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)", tramo_id: "Av34km-TR-50", numero_mapa: "50→51", texto_id: "txt-Av34km-TR50-uk", audio_id: "audio-Av34km-TR-50-uk" },
         { padreid: "padre-P77", tipo: "parada", nombre: "Torre del Ángel (Torre árabe)", parada_id: "Av34km-P-77", numero_mapa: 51, texto_id: "txt-Av34km-P77-uk", audio_id: "audio-Av34km-P-77-uk", reto_id: "R61-Av34km-uk" },
-        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-uk", audio_id: "audio-Av34km-TR-51-uk" },
+        { padreid: "padre-TR51", tipo: "tramo", nombre: "Torre del Ángel (Torre árabe) → Refugio de la Guerra Civil Española", tramo_id: "Av34km-TR-51", numero_mapa: "51→52", texto_id: "txt-Av34km-TR51-uk", audio_id: "audio-Av34km-TR-51-uk" },
         { padreid: "padre-P78", tipo: "parada", nombre: "Refugio Guerra Civil", parada_id: "Av34km-P-78", numero_mapa: 52, texto_id: "txt-Av34km-P78-uk", audio_id: "audio-Av34km-P-78-uk" },
         { padreid: "padre-TR52", tipo: "tramo", nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av34km-TR-52", numero_mapa: "52→53", texto_id: "txt-Av34km-TR52-uk", audio_id: "audio-Av34km-TR-52-uk" },
         { padreid: "padre-P79", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av34km-P-79", numero_mapa: 53, texto_id: "txt-Av34km-P79-uk", audio_id: "audio-Av34km-P-79-uk", reto_id: "PZ-18" },
@@ -10523,7 +10523,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR56", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av34km-TR-56", numero_mapa: "56→57", texto_id: "txt-Av34km-TR56-uk", audio_id: "audio-Av34km-TR-56-uk" },
         { padreid: "padre-P88", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-88", numero_mapa: 57, texto_id: "txt-Av34km-P88-uk", audio_id: "audio-Av34km-P-88-uk" },
         { padreid: "padre-P89", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM)", parada_id: "Av34km-P-89", numero_mapa: 57, texto_id: "txt-Av34km-P89-uk", audio_id: "audio-Av34km-P-89-uk" },
-        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-uk", audio_id: "audio-Av34km-TR-57-uk" },
+        { padreid: "padre-TR57", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de Prehistoria y Etnología", tramo_id: "Av34km-TR-57", numero_mapa: "57→58/59", texto_id: "txt-Av34km-TR57-uk", audio_id: "audio-Av34km-TR-57-uk" },
         { padreid: "padre-P90", tipo: "parada", nombre: "Museo de Prehistoria y Etnología", parada_id: "Av34km-P-90", numero_mapa: "58/59", texto_id: "txt-Av34km-P90-uk", audio_id: "audio-Av34km-P-90-uk" },
         { padreid: "padre-TR58", tipo: "tramo", nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa", tramo_id: "Av34km-TR-58", numero_mapa: "58/59→60", texto_id: "txt-Av34km-TR58-uk", audio_id: "audio-Av34km-TR-58-uk" },
         { padreid: "padre-P91", tipo: "parada", nombre: "Iglesia de la Milagrosa", parada_id: "Av34km-P-91", numero_mapa: 60, texto_id: "txt-Av34km-P91-uk", audio_id: "audio-Av34km-P-91-uk", reto_id: "R70-Av34km-uk" },
@@ -10575,18 +10575,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR79", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av34km-TR-79", numero_mapa: "76→77", texto_id: "txt-Av34km-TR79-uk", audio_id: "audio-Av34km-TR-79-uk" },
         { padreid: "padre-P117", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av34km-P-117", numero_mapa: 77, texto_id: "txt-Av34km-P117-uk", audio_id: "audio-Av34km-P-117-uk" },
         { padreid: "padre-TR80", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Paseo de las Palmeras", tramo_id: "Av34km-TR-80", numero_mapa: "77→v1", texto_id: "txt-Av34km-TR80-uk", audio_id: "audio-Av34km-TR-80-uk" },
-        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-uk", audio_id: "audio-Av34km-P-118-uk" },
-        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-uk", audio_id: "audio-Av34km-TR-81-uk" },
+        { padreid: "padre-P118", tipo: "parada", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio", parada_id: "Av34km-P-118", numero_mapa: "v2/v3", texto_id: "txt-Av34km-P118-uk", audio_id: "audio-Av34km-P-118-uk" },
+        { padreid: "padre-TR81", tipo: "tramo", nombre: "Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial", tramo_id: "Av34km-TR-81", numero_mapa: "v3→v5", texto_id: "txt-Av34km-TR81-uk", audio_id: "audio-Av34km-TR-81-uk" },
         { padreid: "padre-TR82", tipo: "tramo", nombre: "Circuito urbano de educación vial → Museo de Ciencias Naturales", tramo_id: "Av34km-TR-82", numero_mapa: "v5→v8", texto_id: "txt-Av34km-TR82-uk", audio_id: "audio-Av34km-TR-82-uk" },
         { padreid: "padre-P119", tipo: "parada", nombre: "Museo de Ciencias Naturales", parada_id: "Av34km-P-119", numero_mapa: "v8", texto_id: "txt-Av34km-P119-uk", audio_id: "audio-Av34km-P-119-uk", reto_id: "R85-Av34km-uk" },
         { padreid: "padre-TR83", tipo: "tramo", nombre: "Museo de Ciencias Naturales → Jardín de la Rosaleda", tramo_id: "Av34km-TR-83", numero_mapa: "v8→v10", texto_id: "txt-Av34km-TR83-uk", audio_id: "audio-Av34km-TR-83-uk" },
         { padreid: "padre-P120", tipo: "parada", nombre: "Jardín de la Rosaleda", parada_id: "Av34km-P-120", numero_mapa: "v10", texto_id: "txt-Av34km-P120-uk", audio_id: "audio-Av34km-P-120-uk" },
         { padreid: "padre-P121", tipo: "parada", nombre: "Jardines del Real (Viveros) 2", parada_id: "Av34km-P-121", numero_mapa: "v7-v8", texto_id: "txt-Av34km-P121-uk", audio_id: "audio-Av34km-P-121-uk" },
-        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-uk", audio_id: "audio-Av34km-TR-84-uk" },
-        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-uk", audio_id: "audio-Av34km-P-122-uk", reto_id: "R86-Av34km-uk" },
-        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-uk", audio_id: "audio-Av34km-TR-85-uk" },
+        { padreid: "padre-TR84", tipo: "tramo", nombre: "Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos", tramo_id: "Av34km-TR-84", numero_mapa: "v7-v8→v11", texto_id: "txt-Av34km-TR84-uk", audio_id: "audio-Av34km-TR-84-uk" },
+        { padreid: "padre-P122", tipo: "parada", nombre: "Estanque de los Patos", parada_id: "Av34km-P-122", numero_mapa: "v11", texto_id: "txt-Av34km-P122-uk", audio_id: "audio-Av34km-P-122-uk", reto_id: "R86-Av34km-uk" },
+        { padreid: "padre-TR85", tipo: "tramo", nombre: "Estanque de los Patos → Portón del Convento de San Julián", tramo_id: "Av34km-TR-85", numero_mapa: "v11→v12", texto_id: "txt-Av34km-TR85-uk", audio_id: "audio-Av34km-TR-85-uk" },
         { padreid: "padre-P123", tipo: "parada", nombre: "Portón del Convento de San Julián", parada_id: "Av34km-P-123", numero_mapa: "v12", texto_id: "txt-Av34km-P123-uk", audio_id: "audio-Av34km-P-123-uk" },
-        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardínes del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-uk", audio_id: "audio-Av34km-TR-86-uk" },
+        { padreid: "padre-TR86", tipo: "tramo", nombre: "Entrada Jardines del Real (Viveros) → Puente del Real", tramo_id: "Av34km-TR-86", numero_mapa: "77→78", texto_id: "txt-Av34km-TR86-uk", audio_id: "audio-Av34km-TR-86-uk" },
         { padreid: "padre-P124", tipo: "parada", nombre: "Puente del Real", parada_id: "Av34km-P-124", numero_mapa: 78, texto_id: "txt-Av34km-P124-uk", audio_id: "audio-Av34km-P-124-uk" },
         { padreid: "padre-TR87", tipo: "tramo", nombre: "Puente del Real → Jardín de la Glorieta", tramo_id: "Av34km-TR-87", numero_mapa: "78→79", texto_id: "txt-Av34km-TR87-uk", audio_id: "audio-Av34km-TR-87-uk" },
         { padreid: "padre-P125", tipo: "parada", nombre: "Jardín de la Glorieta", parada_id: "Av34km-P-125", numero_mapa: 79, texto_id: "txt-Av34km-P125-uk", audio_id: "audio-Av34km-P-125-uk" },
