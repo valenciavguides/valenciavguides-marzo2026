@@ -938,7 +938,18 @@ function actualizarEstadoBotones() {
     // pedir el mapa no tiene coste, no hay motivo para esperar. Gana a
     // _actualizarBotonUbicacion salvo que haya un reto activo o estemos en CASA, que
     // siguen teniendo prioridad (mismo criterio que ya tenía este botón antes de la gracia).
-    if (!retoActivo && modo === 'aventura' && estadoComponente.ayudaFueraDeRangoActiva) {
+    if (estadoComponente.btnAvanzarCompletadoPorPadre) {
+        // Entre el rescate y el botón de avanzar, hijo2 sigue teniendo como actual el
+        // elemento que el usuario acaba de dejar atrás. La ubicación le dibujaría la ruta de
+        // vuelta a la valla de la que acaba de salir, que es lo contrario de ayudarle.
+        //
+        // El flag también se pone al completar un elemento andando, así que la ubicación
+        // queda apagada también en ese hueco. Es lo correcto por el mismo motivo: quien ya ha
+        // completado el punto no necesita que le guien hasta donde está parado, necesita
+        // pulsar avanzar. En cuanto pulsa, el elemento cambia y el botón vuelve a su vida
+        // normal.
+        desactivarBoton(elementosDOM.btnUbicacion);
+    } else if (!retoActivo && modo === 'aventura' && estadoComponente.ayudaFueraDeRangoActiva) {
         activarBoton(elementosDOM.btnUbicacion);
     } else {
         _actualizarBotonUbicacion(elementosDOM, modo, retoActivo);
