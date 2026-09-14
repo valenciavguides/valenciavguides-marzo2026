@@ -230,10 +230,15 @@ cadena es *truthy*: un `if (!x) return` no la corta.
 Alguien ya se topó con esto y lo rodeó. Convertirlo a `null` de verdad puede romper esa
 guarda, así que no es un arreglo de buscar y reemplazar.
 
-### El 5.º rescate: la causa es otra
+### El 5.º rescate: resuelto al cambiar el mecanismo
 
-El rescate exige que el progreso haya avanzado `PROGRESO_MINIMO_ENTRE_SALTOS` (0,2) desde
-el anterior, y `progresoEnUltimoSkip` arranca en `0`. Los cinco se disparan, entonces, en:
+> **Cerrado.** Lo que sigue describe la puerta de progreso del rescate automático, que ya no
+> existe: el rescate lo pide el usuario y no tiene puerta ninguna (§25.19 de la guía). Se
+> conserva el análisis porque explica por qué un tope y una escala que no llega a 1 no se
+> pueden elegir por separado — la misma aritmética que dejó el 5.º rescate inalcanzable.
+
+El rescate exigía que el progreso hubiera avanzado `PROGRESO_MINIMO_ENTRE_SALTOS` (0,2) desde
+el anterior, y `progresoEnUltimoSkip` arrancaba en `0`. Los cinco se disparaban, entonces, en:
 
 ```text
 1.º  progreso ≥ 0,2

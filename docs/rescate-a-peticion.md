@@ -263,8 +263,17 @@ primer resumen de implementación.
     exige `!retoActivo`. Con un reto abierto, tras el rescate quedan **los dos botones
     apagados**: el usuario paga y se queda con menos que antes. El rescate debe **cerrar el
     reto y limpiar el flag**, no solo darlo por resuelto en la ficha.
-14. **El pulso de valoración vive en `z-index: 1900000`**, por encima de todo, y salta al
-    33 %, al 66 % y al final.
+14. **El pulso de valoración vive en `z-index: 1900000`** y salta al 33 % y al 66 % del
+    progreso, contando solo paradas reales.
+
+    **Corrección:** *no* está por encima de todo. Está deliberadamente **por debajo** del
+    techo de `2000000` que declaran `.ventana-temporizador-padre` y
+    `.ventana-listado-paradas-padre` ("máximo, por encima de todo"), y el comentario de
+    `.pulso-valoracion-padre` explica por qué: si el usuario tiene una de esas dos ventanas
+    abierta cuando se cruza el umbral, el pulso se esconde detrás en vez de interrumpirla, y
+    se pierde ese aviso puntual. Así que el conflicto **ya estaba resuelto** en el proyecto y
+    con una regla escrita. La pantalla de decisión usa ese mismo techo de `2000000` —no una
+    capa nueva— y el pulso se queda detrás solo, sin tocarlo.
 
 ### Alcance
 
@@ -349,6 +358,43 @@ primer resumen de implementación.
     con `_vv_beforeHijoReload()` para que guarde estado. Si ocurre con el chat abierto, el
     asistente vuelve a su estado inicial bajo los pies del usuario. Los carteles sobreviven
     —los pinta el padre— pero hay que decidir qué pasa con el flujo a medias.
+
+### Los dos que aparecieron al implementar
+
+24. **El botón del asistente se pintaba siempre, sin mirar el estado.** Pero §3 solo tiene
+    texto aprobado para *agotados* y para el camino positivo. Quedaban cuatro motivos
+    mudos —`no-aventura`, `sin-elemento`, `es-inicio` y `ya-llegado`— en los que pulsarlo no
+    podía hacer nada, que es justo el botón mudo que este mecanismo viene a evitar.
+
+    **Decisión: se esconde el botón.** Con una excepción que no es capricho: con los
+    rescates **agotados sí se pinta**, porque saber que se han acabado es información real
+    y es lo único que hace llegar al usuario el cartel de §3.7. Escondiéndolo también ahí,
+    ese texto no lo leería nadie nunca.
+
+    Y resulta que el hueco 18 se resuelve con el mismo cambio: el número de rescates y la
+    decisión de pintar el botón salen los dos de la misma consulta, que viaja dentro de
+    `construirEstadoChat()` — sin tipo de mensaje nuevo y sin viaje extra. El estado se
+    refresca **cada vez que se abre el asistente**, que es el momento más fresco posible.
+
+25. **El hueco 23 y el texto §3.6 se contradicen.** El hueco 23 manda descontar el rescate
+    cuando el elemento **avanza de verdad**, no al pulsar Sí. Pero §3.6 dice "Ha utilizado
+    **{usadas} de {total}**" y se muestra justo al conceder, cuando ese contador todavía no
+    ha subido: la pantalla le diría "ha utilizado 2 de 12" a quien acaba de gastar el
+    tercero.
+
+    **Decisión: la pantalla enseña la cuenta de después, y el descuento sigue difiriéndose.**
+    El usuario acaba de gastarlo y el texto tiene que decirle la verdad de lo que ha hecho,
+    no el valor interno de un contador. El desfase solo puede caer a su favor: o avanza y la
+    cuenta cuadra, o algo se rompe y recupera el rescate.
+
+---
+
+## 4b. Lo que queda por decidir
+
+**El texto del asistente apunta a un botón que puede no estar.** §3.2 dice "pulse el botón
+de aquí abajo" en los doce idiomas. Cuando el botón se esconde (hueco 24), la respuesta
+sigue visible —y hace bien, porque explica qué son los rescates— pero esa frase señala algo
+que no está. Hay que reescribirla o quitarla en los doce, y es una decisión de texto.
 
 ---
 
@@ -525,3 +571,53 @@ anterior y reinicia el reloj.
 
 Un usuario real **nunca pasa por CASA** durante su aventura: hijo5 ni siquiera se carga
 fuera de dev, y en producción se entra directo en AVENTURA.
+
+---
+
+## 10. Estado: implementado
+
+El mecanismo está completo y en el código. La referencia viva es **§25.19 de la
+GUIA-COMPLETA**; este documento se queda como el registro de cómo se llegó hasta ahí — los
+veinticinco huecos, las decisiones y por qué.
+
+### Los huecos, uno a uno
+
+| # | Qué era | Dónde se resolvió |
+|---|---|---|
+| 1, 2 | hijo6 nunca mandó una acción de usuario, y su envío era crudo | `CHAT.RESCATE_SOLICITADO` con acuse; handler que **devuelve** |
+| 3 | Sin guard contra la doble pulsación | El handler ignora la petición si ya hay pantalla abierta |
+| 4 | El elemento podía cambiar entre el cartel y el Sí | `_concederRescate()` exige el mismo id prometido |
+| 5 | Ningún cartel sabía abrir el asistente | El botón del recordatorio pulsa `#btn-chat-soporte` |
+| 6, 7 | La ficha no se persistía ni se creaba al activar | `ensurePending()` en `_hdl_NAVEGACION_CAMBIO_PARADA`: al reabrir, el elemento se activa otra vez y el reloj arranca |
+| 8 | El barrido no miraba si el elemento estaba completo | Mira el elemento actual y sale si `llegada === true` |
+| 9 | El recordatorio educado no salía nunca | Este **se impone**: llama a `_ocultarCualquierCartel()` |
+| 10, 11, 12 | La confirmación como cartel: destruible, autocerrable, sin significado | `#decision-rescate` fuera de la lista, sin autocierre, solo botones |
+| 13 | `retoActivo` dejaba los dos botones apagados tras pagar | `_hdl_RETO_OCULTAR()` antes de conceder |
+| 14 | **Era falso**: el pulso no está por encima de todo | Está en 1900000, bajo el techo de 2000000 que la pantalla usa |
+| 15 | El inicio entraba en el rescate | `motivo: 'es-inicio'` |
+| 16 | El contador se miraba tarde | Se mira al recibir la petición |
+| 17 | hijo6 puede recargarse debajo | Las pantallas las pinta el padre y sobreviven |
+| 18 | El `{total}` del asistente no lo rellenaba nadie | Viaja en `construirEstadoChat()`, con el mismo cambio que el hueco 24 |
+| 19 | Alejarse 5 km pierde el rescate concedido | Aceptado y escrito: a esa distancia no está bloqueado, se ha ido |
+| 20 | El tiempo podía agotarse mientras decidía | Se comprueban los dos modales antes de conceder |
+| 21 | Los botones podían quedar fuera de pantalla | Alto máximo, scroll interno y safe area |
+| 22 | Un fin de audio tardío resucitaba una ficha | Guard `esDelElementoActual` |
+| 23 | El gasto y su efecto no eran atómicos | `_cobrarRescateSiProcede()` al avanzar de verdad |
+| 24 | El botón se pintaba siempre | Se esconde salvo que sirva — y con los rescates agotados **sí** se pinta |
+| 25 | El hueco 23 y el texto §3.6 se contradecían | La pantalla enseña la cuenta de después; el desfase solo cae a favor del usuario |
+
+### Lo que se retiró
+
+El disparo automático entero: la puerta del 18 %, `progresoEnUltimoSkip`,
+`_rescateTramoPendiente`, `_mostrarCartelRescateTramo` y `TRADUCCIONES_RESCATE_TRAMO`. El
+barrido de 60 s no se borra — cambia de oficio y pasa a recordar.
+
+Con él se fueron `42-ttl-tramo-saltos-seguridad.spec.js` y `66-rescate-tramo-ruidoso.spec.js`,
+que probaban comportamiento que ya no existe. Sus dos afirmaciones aún válidas se conservan
+dentro del spec 73: **RR-6** hereda TTL-5 (fuera de AVENTURA no pasa nada) y **RR-7** hereda
+RT-3 (los topes son por aventura y nunca `undefined`).
+
+### Lo que sigue abierto
+
+**El texto §3.2 apunta a un botón que puede no estar** — ver §4b. Es lo único que queda, y
+es una decisión de texto.
