@@ -1270,7 +1270,7 @@ Vive en un `<script>` clásico propio de `codigo-padre.html` (no un `type="modul
 - **Badges de posición** (`_galeriaRenderizarBadges`) — su lógica depende de `tipo`: para una **parada** (o una galería de una sola imagen) solo muestra el número de mapa (`mapa_numero`) si existe, sin emoji. Para un **tramo** con varias imágenes, la primera lleva 📌 (inicio) y la última 🎯 (fin), cada una con su propio número de mapa — `mapa_numero` de un tramo viene como cadena `"1→2"`, y el badge parte esa cadena por `→` para mostrar solo el número que corresponde a esa imagen concreta (inicio: `partes[0]`; fin: `partes[1]`).
 - **Texto de parada** (`textoParada = {title, content}`, opcional) — se muestra en un panel bajo la imagen. El título pasa por `_galeriaEscaparHTML()` (equivalente a `textContent`, sin HTML). El contenido pasa por `_galeriaSanitizarHTML()` — permite un conjunto reducido de etiquetas (`p, br, strong, b, em, i, u, h1-h4, span, ul, ol, li, img, mark`) y solo el atributo `style` en general más `src`/`alt` en `img`; cualquier otra etiqueta se desenvuelve conservando su contenido (no se borra el texto de dentro). Las imágenes inline solo se permiten si `src` empieza por `imagenes/` — cualquier otra ruta se elimina y se sustituye por `alt="[imagen no permitida]"`.
 - **Si `textoParada` sigue sin contenido tras el reintento de `_handleMostrarImagen()`** (§10.21, "HTTP / fetch — capa de datos"): en vez de dejar el panel vacío y sin explicación, `_handleMostrarImagen()` construye un `textoParada` sintético — `{title:'', content:'<p style="...">📖 [mensaje traducido]</p>'}` — con `MSG_TEXTO_PARADA_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas, `globalThis.idiomaSeleccionado`). Sobrevive `_galeriaSanitizarHTML()` sin problema (`p`/`style` están permitidos) y se renderiza exactamente igual que un texto real, solo que con el aviso en vez del contenido de la parada — mismo patrón visual (icono + texto atenuado) que `_mostrarOverlaySinImagenes()`/`_mostrarVideoSinUrl()` para imagen/vídeo.
-- **`objectFit`/`fullHeight`** (`opciones`, ambos opcionales) — el mapa vintage (§14, "Mapa vintage (botón H2 y En-busca-del-tesoro)") es el único caso que pasa `objectFit:'fill'`, para que la imagen cubra el 100% sin recortar ni dejar barras.
+- **`objectFit`/`fullHeight`** (`opciones`, ambos opcionales) — los pasan **los dos mapas**, el vintage y el completo (§14, "Mapa vintage (botón H2 y En-busca-del-tesoro)"): `objectFit:'fill'` estira la imagen hasta llenar el hueco sin recortar, y `fullHeight:true` marca el contenedor como mapa para que ocupe la pantalla entera. Las fotos de parada no pasan ninguno de los dos y se quedan en su ventana con marco.
 
 **Botón de cierre protegido contra doble disparo táctil:** `_galeriaProtegerBoton(overlay)` añade `stopPropagation()` en `touchstart`/`pointerdown` del botón `×` — sin esto, en pantallas táctiles el mismo toque puede disparar tanto el evento táctil como el de puntero synthetic y ejecutar el cierre dos veces.
 
@@ -4853,7 +4853,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f24163235f27'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a6416300c283'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7196,11 +7196,23 @@ Se eligió la posición superior para evitar solapamiento con la barra de audio 
 
 La galería que muestra imágenes de cada parada en el overlay de `codigo-padre.html` usa un layout de columna flexible:
 
-- **Contenedor overlay (`.media-contenedor`):** `width: min(95vw, 95vmin)` — en portrait mobile da el 95 % del ancho; en PC `vmin = vh` evita tamaños desproporcionados. Altura `calc(95vh - safe-area-top - safe-area-bottom)`.
+- **Contenedor overlay (`.media-contenedor`):** `width: min(99vw, 99vmin)`, altura `calc(95vh - safe-area-top - safe-area-bottom)`. En portrait da casi todo el ancho; en PC `vmin = vh` evita tamaños desproporcionados. **Seis variantes de `@media` repiten ese mismo `min(99vw, 99vmin)`** para distintos breakpoints.
+
+- **Los mapas se salen de ese contenedor** (`.mapa-a-pantalla-completa`, se añade cuando `fullHeight` es `true`): `100dvw × 100dvh`, sin borde, sin esquinas redondeadas y sin sombra.
+
+  **Qué arregla, y por qué no era el `object-fit`.** `vmin` es el lado **corto** de la pantalla. En vertical da igual — el lado corto es el ancho —, pero **al girar el móvil el contenedor se quedaba con el ancho del lado corto** y sobraba media pantalla a cada lado: en un móvil de 400×800 apaisado, medía 396 px de los 800 disponibles. Esas eran las franjas negras que se veían al girar el móvil sobre un mapa horizontal, y venían del contenedor, no de cómo se escalaba la imagen.
+
+  La regla gana a las seis variantes de `@media` **por especificidad** (un id y dos clases), no por ir después: las media queries no suman especificidad. Sin `!important`.
+
+  Al quitar el marco, el aspa quedaba pegada al borde — donde viven la muesca y la barra de estado —, así que se aparta con `var(--gap-superior)`.
+
+- **El overlay de `En-busca-del-tesoro.html` tenía el mismo problema con sus propios estilos en línea** (`min(95vw, 92vmin)`) y se arregló igual: el recuadro interior pasa a `width:100%; height:100%` del overlay. **Al 100 % del overlay y no a `100dvh`** a propósito: ese overlay ya reserva la muesca y la barra inferior con su propio `padding`, y saltarselo metería el mapa debajo de ellas.
 - **Área de imagen:** `flex: 0 0 65%; height: 65%` — ocupa exactamente el 65 % de la ventana flotante.
 - **Imagen dentro:** `width: 100%; height: 100%; object-fit: fill` — la imagen **se estira para llenar el wrapper exacto** sin recorte ni desbordamiento (acepta distorsión). Este es el valor por defecto para todas las imágenes de parada.
 - **Texto de parada (`.texto-parada-overlay`):** `flex: 1; min-height: 0; overflow-y: auto` — ocupa **todo el espacio restante** después de la imagen. Si el contenido es corto no hay hueco en blanco debajo; si es largo aparece scroll.
-- **Mapa vintage (botón H2 y En-busca-del-tesoro):** `mostrarImagenOverlay` acepta `opciones.objectFit`. El controlador `MOSTRAR_MAPA_VINTAGE` pasa `{ objectFit: 'fill' }` y fuerza el wrapper a `100%` de altura (sin texto debajo), de modo que el mapa cubre toda la ventana flotante.
+- **Los dos mapas (botón H2, botón de mapa completo y En-busca-del-tesoro):** `mostrarImagenOverlay` acepta `opciones.objectFit` y `opciones.fullHeight`. Los controladores `MOSTRAR_MAPA_VINTAGE` y `MOSTRAR_MAPA_COMPLETO` pasan `{ objectFit: 'fill', fullHeight: true }`, así que el mapa **cubre la pantalla entera**, sin marco ni franjas, en vertical y en apaisado.
+
+- **El título del overlay se ve en pantalla** y va además como texto alternativo de la imagen. Las dos ramas de `MOSTRAR_MAPA_COMPLETO` —imagen e iframe, según la extensión de la url— comparten un único `tituloMapa` para que el usuario no lea un título distinto según el formato del fichero.
 
 #### Imágenes de mapas vintage (`imagenes/imagenes-mapas-vintage/`)
 
@@ -8006,7 +8018,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-f24163235f27'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-a6416300c283'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8727,7 +8739,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-f24163235f27';
+const CACHE_VERSION = 'v-a6416300c283';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12067,7 +12079,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-f24163235f27';
+const CACHE_VERSION = 'v-a6416300c283';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

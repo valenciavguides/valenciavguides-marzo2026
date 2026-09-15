@@ -1302,6 +1302,39 @@
             }
         }
 
+        /* ── Mapas a pantalla completa ─────────────────────────────────────────────
+           Un mapa se mira para orientarse, y ahí cualquier borde es superficie
+           desperdiciada. Las fotos de monumentos siguen en su ventana con marco: esto
+           solo se aplica a lo que se abre con `fullHeight`, que son los dos mapas.
+
+           QUÉ ARREGLA. `.media-contenedor` mide `width: min(99vw, 99vmin)`, y `vmin` es el
+           lado CORTO de la pantalla. En vertical da igual — el lado corto es el ancho —,
+           pero **al girar el móvil el recuadro se queda con el ancho del lado corto** y
+           sobra media pantalla a cada lado: esas son las franjas negras. En un móvil de
+           400×800 apaisado, el recuadro medía 396 px de los 800 disponibles.
+
+           POR QUÉ GANA sin `!important`: tiene un id y dos clases, más especificidad que
+           las SEIS variantes de `@media` que repiten ese mismo `min(99vw, 99vmin)`. Las
+           media queries no suman especificidad, así que no hace falta ir detrás de ellas. */
+        #imagen-overlay .media-contenedor.mapa-a-pantalla-completa {
+            width: 100vw;
+            width: 100dvw;
+            height: 100vh;
+            height: 100dvh;
+            max-width: none;
+            max-height: none;
+            min-height: 0;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        /* Sin marco, el aspa se pega al borde — y ahí viven la muesca y la barra de estado. */
+        #imagen-overlay .media-contenedor.mapa-a-pantalla-completa .btn-cerrar-overlay {
+            top: var(--gap-superior);
+            right: 0.5rem;
+        }
+
         /* ── Botón chat soporte (hijo6) ── */
         #btn-chat-soporte {
             pointer-events: auto;
@@ -1765,7 +1798,7 @@
             overlay.id = 'imagen-overlay';
             overlay.className = 'media-overlay';
             overlay.innerHTML = `
-                <div class="media-contenedor imagen-contenedor">
+                <div class="media-contenedor imagen-contenedor${fullHeight ? ' mapa-a-pantalla-completa' : ''}">
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar imagen"><span class="icono-x-cerrar">✗</span></button>
                     <div class="galeria-imagen-wrapper" id="galeria-wrapper">
                         <img id="galeria-img" alt="${_galeriaEscaparHTML(titulo || 'Imagen de la parada')}">
@@ -12109,10 +12142,16 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Determinar si es imagen o iframe según la extensión
                 const esImagen = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
 
+                // El título SE VE en pantalla y va también como texto alternativo de la
+                // imagen. Las dos ramas enseñan el MISMO mapa completo, así que dicen lo
+                // mismo: la de imagen ponía "Mapa vintage" por copia y pega del otro
+                // handler, y la de iframe solo "Mapa" — el usuario leía un título distinto
+                // según la extensión del fichero.
+                const tituloMapa = `Mapa completo — ${aventura || 'Aventura'}`;
                 if (esImagen) {
-                    globalThis.mostrarImagenOverlay(url, `Mapa vintage — ${aventura || 'Aventura'}`, null, null, { objectFit: 'fill', fullHeight: true });
+                    globalThis.mostrarImagenOverlay(url, tituloMapa, null, null, { objectFit: 'fill', fullHeight: true });
                 } else {
-                    globalThis.mostrarIframeOverlay(url, `Mapa — ${aventura || 'Aventura'}`);
+                    globalThis.mostrarIframeOverlay(url, tituloMapa);
                 }
 
                 return { exito: true, url, aventura };
