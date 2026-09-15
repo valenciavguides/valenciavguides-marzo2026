@@ -2415,7 +2415,9 @@
       } else {
         _log.info('[SELECCION] Reto R2: respuesta negativa → reinicio a P1');
         if (globalThis.parent && globalThis.parent !== globalThis) {
-          globalThis.parent.postMessage({ tipo: 'SELECCION.REINICIAR' }, globalThis.location.origin);
+          // `origen` es obligatorio: el bus del padre descarta en silencio todo mensaje que no
+          // lo trae, y sin él _hdl_SELECCION_REINICIAR no llegaba a ejecutarse (spec 74).
+          globalThis.parent.postMessage({ tipo: 'SELECCION.REINICIAR', origen: 'seleccion' }, globalThis.location.origin);
         }
         setTimeout(() => {
           reiniciarSeleccion();
