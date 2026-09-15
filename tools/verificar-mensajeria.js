@@ -59,7 +59,7 @@ function cargarTiposMensaje() {
     src = src.replace(/^export\s+(const|function|async function)/gm, '$1');
     src += '\nmodule.exports.TIPOS_MENSAJE = TIPOS_MENSAJE;';
     const mod = { exports: {} };
-    new Function('module', 'exports', 'require', src)(mod, mod.exports, require); // eslint-disable-line no-new-func
+    new Function('module', 'exports', 'require', src)(mod, mod.exports, require);
     return mod.exports.TIPOS_MENSAJE;
 }
 

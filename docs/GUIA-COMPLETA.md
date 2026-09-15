@@ -7691,6 +7691,35 @@ Los ficheros `.test.js` en `tests/` prueban el **backend Express** (API, servici
 | `dataService.test.js` | Carga y búsqueda de datos JSON |
 | `coverage-extra.test.js` | Casos de cobertura adicionales sobre los servicios anteriores |
 
+**Lo que les falta, además de Jest.** Nueve de los diez empiezan con las mismas dos líneas:
+
+```js
+const request = require('supertest');
+const { app } = require('../server');
+```
+
+- **`supertest` no está instalado** ni aparece en `package.json`.
+- **`../server` apunta a la raíz del repositorio**, donde no hay ningún `server.js`. El
+  backend irá en `backend/server.js` (§16), así que esa ruta también hay que corregirla.
+- `middleware.test.js` y `errors.test.js` piden `middleware/validation` y `utils/ApiError`
+  vía `path.join(backendDir, …)`; `backend/` sigue vacío.
+
+**Y hay un punto ciego del linter que conviene conocer.** `import/no-unresolved` trae su
+opción **`commonjs` apagada de fábrica**: examina los `import` pero **ignora todos los
+`require()`**. Como estos diez ficheros usan `require`, sus rutas rotas nunca se han
+comprobado — verificado poniendo la configuración tal como estaba antes de tocarla: un
+`require()` a un fichero inexistente tampoco saltaba. No es que dejara de avisar, es que esa
+comprobación **nunca estuvo encendida**.
+
+Sumado a que ningún script del `package.json` los ejecuta, estos diez ficheros viven en un
+doble silencio: ni se corren ni se analizan.
+
+**Se deja apagada a propósito.** El día que exista el backend se enciende `commonjs: true` en
+el bloque de `tests/**/*.js` de `eslint.config.js`, y la regla pasa a ser la lista exacta de
+qué le falta a cada test para poder correr — hoy serían 19 avisos. Mientras tanto, dejarla
+encendida solo serviría para que `npx eslint .` nunca dé cero, y esa señal dejaría de valer.
+Pasos completos en `docs/plan-produccion-infraestructura.md` §3.9.
+
 ### 18.2 Tests HTML manuales (navegador)
 
 Ficheros `.html` en `tests/` que se abren directamente en el navegador. Son necesarios porque la comunicación padre-hijo mediante iframes **no se puede simular en Jest** — requieren un entorno de navegador real.

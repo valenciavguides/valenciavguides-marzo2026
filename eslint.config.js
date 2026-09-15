@@ -239,12 +239,79 @@ module.exports = [
     },
   },
 
+  // ── tests/ — dos reglas que aquí no describen ningún defecto ──────────────────
+  //
+  // NO-CONSOLE. La regla existe porque el código de la app debe pasar por el logger
+  // centralizado, que respeta CONFIG.DEBUG.NIVEL_LOG. En un test esa razón no aplica por
+  // tres motivos distintos, los tres comprobados uno a uno:
+  //
+  //   1. Varios tests ESPÍAN la consola para comprobar el logger: sustituyen console.warn
+  //      por un recolector y verifican qué se emitió (59-nivel-de-log, 62-log-seleccion,
+  //      67-flecha-una-sola-fuente). Sin console no hay nada que espiar.
+  //   2. Otros la usan para avisar de que un test quedó INDETERMINADO, que es información
+  //      que el desarrollador necesita ver (05-queues-draining, 06-race-conditions).
+  //   3. Los scripts sueltos IMPRIMEN su informe por consola: esa es toda su salida
+  //      (run-master-test.js, test_datos_solicitar_paradas_combinados.js,
+  //      07-performance-baseline).
+  //
+  // Ninguno es depuración olvidada. Se comprobó leyendo los 80 casos, no por el nombre del
+  // método — clasificarlos por si eran log/info/debug daba una respuesta equivocada.
+  //
+  // IMPORT/NO-UNRESOLVED. Los tests hacen `await import('/js/funciones-mapa.js')` DENTRO de
+  // page.evaluate(), o sea en el navegador, donde `/js/…` resuelve desde la raíz del
+  // servidor y `./js/…` desde la URL de la página. Las dos formas funcionan; ninguna existe
+  // como ruta de disco, que es lo único que ESLint sabe mirar. El código es correcto y lo
+  // demuestra que esos tests pasan.
+  //
+  // Se ignoran SOLO esas dos formas (`/js/…` y `./js/…`). Un `require('../../js/x.js')`
+  // de verdad roto se sigue detectando, porque no casa con el patrón.
+  {
+    files: ["tests/**/*.js"],
+    rules: {
+      "no-console": "off",
+      "import/no-unresolved": ["error", { ignore: ["^\\.?/js/"] }],
+    },
+  },
+
+  // Las páginas de prueba manuales (tests/test_*.html) son herramientas de desarrollo que
+  // se abren a mano en el navegador. Tres reglas no describen ningún defecto aquí:
+  //
+  //   no-console  — enseñan su resultado por consola, igual que los scripts sueltos, y no
+  //                 tienen — ni deben tener — el logger de la app cargado.
+  //
+  //   no-undef    — el plugin de HTML analiza CADA bloque <script> por separado, así que
+  //                 una función definida en un bloque y llamada en otro sale como "no
+  //                 definida". Comprobado: `addResult` está declarado en el mismo fichero,
+  //                 solo que en el primero de sus dos bloques. Los 19 casos eran de esto.
+  //
+  //   no-unused-vars — estas páginas cablean sus funciones desde atributos `onclick="..."`
+  //                 del HTML, que ESLint no lee: `clearLog`, `testAccesoDirecto` y compañía
+  //                 salían como "nunca usadas" teniéndolas en un botón al lado.
+  //
+  // LO QUE SE PIERDE, y se acepta a sabiendas: de los 38 avisos de `no-unused-vars`, 21
+  // eran ese falso positivo del `onclick`, pero **17 sí eran reales** — 14 variables y 3
+  // argumentos sin usar. Son páginas de desarrollo que no viajan a la PWA, así que se
+  // prefiere no tener ruido a cazar esos 17.
+  {
+    files: ["tests/**/*.html"],
+    rules: {
+      "no-console": "off",
+      "no-undef": "off",
+      "no-unused-vars": "off",
+    },
+  },
+
   // ── Ignorar carpetas generadas ────────────────────────────────────────────
   {
     ignores: [
       "node_modules/**",
       "backend/coverage/**",
       "tests/e2e/playwright-report.json",
+      // El informe HTML que genera Playwright en cada tanda: JavaScript minificado de
+      // terceros, con su propio estilo. Analizarlo no dice nada del proyecto y ahogaba el
+      // resto: 542 de los 636 avisos salían de este único fichero. `.gitignore` ya lo
+      // excluye (línea 32), así que ni siquiera está en el repositorio.
+      "tests/e2e/report/**",
     ],
   },
 ];
