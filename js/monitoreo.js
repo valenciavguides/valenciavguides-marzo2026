@@ -6,7 +6,6 @@
  * del sistema de mensajería y componentes.
  */
 
-import { TIPOS_MENSAJE } from './constants.js';
 import logger from './logger.js';
 import { CONFIG } from './config.js';
 
@@ -17,7 +16,6 @@ import { CONFIG } from './config.js';
 const estadoMonitoreo = {
     inicializado: false,
     intervaloMetricas: null,
-    intervaloHeartbeat: null,
     metricas: {
         mensajesEnviados: 0,
         mensajesRecibidos: 0,
@@ -65,25 +63,20 @@ export async function inicializarMonitoreo(opciones = {}) {
     }
     
     const {
-        intervaloMetricas = CONFIG.MONITOREO?.INTERVALO_METRICAS || 30000,
-        habilitarHeartbeat = true,
-        intervaloHeartbeat = CONFIG.HIJOS?.INTERVALO_HEARTBEAT || 5000
+        intervaloMetricas = CONFIG.MONITOREO?.INTERVALO_METRICAS || 30000
     } = opciones;
-    
+
     logger.info('[monitoreo] Inicializando sistema de monitoreo');
-    
+
     // Iniciar recolección de métricas
     estadoMonitoreo.intervaloMetricas = setInterval(() => {
         recolectarMetricas();
     }, intervaloMetricas);
-    
-    // Iniciar heartbeat si está habilitado
-    if (habilitarHeartbeat) {
-        estadoMonitoreo.intervaloHeartbeat = setInterval(() => {
-            enviarHeartbeat();
-        }, intervaloHeartbeat);
-    }
-    
+
+    // Sin latido propio: el heartbeat a los hijos es del bus (js/mensajeria.js), el único
+    // que cuenta fallos, recupera hijos colgados y se pausa en CASA. Aquí había un segundo
+    // latido que no se paraba nunca y anulaba esa pausa (spec 78).
+
     // Registrar listeners de errores globales
     if (globalThis.window !== undefined) {
         globalThis.addEventListener('error', manejarErrorGlobal);
@@ -240,29 +233,6 @@ function generarAlerta(tipo, mensaje) {
     }
     
     logger.warn(`[monitoreo] Alerta: ${tipo} - ${mensaje}`);
-}
-
-/**
- * Envía heartbeat a componentes
- */
-function enviarHeartbeat() {
-    if (globalThis.window !== undefined && typeof globalThis.mensajeria?.enviarMensaje === 'function') {
-        try {
-            // Usar el formato correcto con objeto completo incluyendo tipo
-            const tipoHeartbeat = TIPOS_MENSAJE?.SISTEMA?.HEARTBEAT || 'SISTEMA.HEARTBEAT';
-            globalThis.mensajeria.enviarMensaje({
-                tipo: tipoHeartbeat,
-                origen: 'monitoreo',
-                destino: 'broadcast',
-                datos: {
-                    timestamp: Date.now(),
-                    fuente: 'monitoreo'
-                }
-            });
-        } catch (e) {
-            logger.debug('[monitoreo] Error enviando heartbeat:', e?.message);
-        }
-    }
 }
 
 /**

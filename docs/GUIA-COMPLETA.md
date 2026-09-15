@@ -497,7 +497,7 @@ Solo activo en **MODO AVENTURA**. Detecta hijos colgados o desconectados.
 
 **Configuración** (`js/config.js`):
 
-- Intervalo: **5000 ms** (5 segundos) — `HEARTBEAT.INTERVALO_HEARTBEAT`
+- Intervalo: **5000 ms** (5 segundos) — valor por defecto de `iniciarHeartbeat()` en `js/mensajeria.js`; `js/app.js` lo arranca sin pasar intervalo
 - Máximo de fallos consecutivos antes de marcar como desconectado: **3** — `HEARTBEAT.MAX_HEARTBEATS_FALLIDOS`
 - `AUTO_RECONECTAR: true` → recarga el iframe automáticamente
 
@@ -1591,7 +1591,7 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 >
 > **Del registro no se borra nunca.** `_hijosRegistrados` solo tiene `.set()`: no hay `.delete()` ni `.clear()` en ninguna parte. Una vez que un componente completa su handshake, se queda en el ciclo del latido para el resto de la sesión — también `seleccion`, que el padre oculta al activarse la aventura pero cuyo JS sigue vivo y sigue contestando. Es inofensivo porque **ningún iframe se retira nunca del DOM**: si alguno se retirara, su entrada quedaría huérfana y acumularía fallos hasta provocar una recarga inútil. Medido sobre la app cargada con `seleccion` ya oculta: 40 latidos seguidos, los seis contadores de fallo en 0, cero desconectados y cero recargas de iframe.
 >
-> Cadencia y castigo: cada `CONFIG.HEARTBEAT.INTERVALO_HEARTBEAT` = 5 s en MODO AVENTURA; si uno no responde `MAX_HEARTBEATS_FALLIDOS` = 3 veces seguidas, `marcarHijoDesconectado()` lo anota y, con `AUTO_RECONECTAR: true` (el valor por defecto), `intentarReconectarHijo()` recarga su iframe.
+> Cadencia y castigo: cada 5 s en MODO AVENTURA (valor por defecto de `iniciarHeartbeat()`); si uno no responde 3 veces seguidas, `marcarHijoDesconectado()` lo anota e `intentarReconectarHijo()` recarga su iframe. Esos 3 fallos y la reconexión automática son los valores por defecto del código: `js/mensajeria.js` los busca en `globalThis.Config.HEARTBEAT`, que no existe, y las claves de `CONFIG.HIJOS` en `js/config.js` no las lee nadie. Es el **único** latido periódico: se pausa en CASA.
 >
 > **"Crítico" significa otra cosa y no hay que confundirlo con esto:** los tres hijos críticos (`hijo2`, `hijo3`, `hijo4`) son los que bloquean `_esperarHijosCargados` y disparan `_hijoListo_onTodosListos`. Recibir heartbeat y ser crítico son propiedades independientes.
 
@@ -4853,7 +4853,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a6416300c283'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-75274fecba17'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4974,7 +4974,6 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 | Handler en padre | Inline L6165 — también maneja HEARTBEAT entrante de hijos: responde con `HEARTBEAT_RESPONSE { estado:'activo', modo, hijosActivos }` y resetea `heartbeatsFallidos` en `estadoHijos` |
 | Emitido raw en visibilitychange | Script 3 de `codigo-padre.html` (bloque `<script type="module">` de reconexión de iframes) — al restaurar visibilidad de la peña, padre recorre todos los iframes con atributo `name` y les envía `{ tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT, razon:'visibilitychange' }` vía `contentWindow.postMessage` directo (fuera del bus, por diseño, ver §10.18). El tipo se escribe con la constante `TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT` (importada en ese mismo bloque como alias de `TIPOS_MENSAJE`), nunca con el literal `'SISTEMA.HEARTBEAT'`. |
 | hijo5 en visibilitychange | `boton-casa-hijo5.html:1527` — además del handler normal, hijo5 envía proactivamente `SISTEMA.HEARTBEAT_RESPONSE` al padre cuando la pestaña vuelve a ser visible (`razon:'visibilitychange'`), sin esperar un HEARTBEAT entrante |
-| Emitido por monitoreo.js | `js/monitoreo.js` L82-84 — tercer emisor: `setInterval(() => enviarHeartbeat(), intervaloHeartbeat)` (default 5000 ms) envía `{ tipo: SISTEMA.HEARTBEAT, origen:'monitoreo', destino:'broadcast', datos:{ timestamp, fuente:'monitoreo' } }` vía bus. Completamente independiente del ciclo del padre. |
 
 **SISTEMA.HEARTBEAT_START / HEARTBEAT_PAUSE** (padre → hijo)
 
@@ -8047,7 +8046,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-a6416300c283'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-75274fecba17'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8203,7 +8202,7 @@ proyecto/
 │   ├── mensajeria.js                 ← Sistema postMessage padre↔hijos
 │   ├── controladores-padre.js        ← Handlers de mensajes del padre
 │   ├── funciones-mapa.js             ← Lógica del mapa de aventura — MapLibre GL (rutas, marcadores, GPS visual)
-│   ├── monitoreo.js                  ← Heartbeat y métricas de hijos
+│   ├── monitoreo.js                  ← Métricas y alertas (sin latido propio)
 │   │
 │   ├── ── CONFIGURACIÓN ──
 │   ├── config.js                     ← Parámetros globales (GPS, timeouts, umbrales)
@@ -8768,7 +8767,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-a6416300c283';
+const CACHE_VERSION = 'v-75274fecba17';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10304,7 +10303,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 | Confirmación de llegada por ventana deslizante | 2 de las últimas 4 lecturas dentro de radio | `estadoMapa._llegadaVentana` en funciones-mapa.js / `estadoComponente._llegadaVentana` en hijo2 — sustituye a un filtro de precisión (ver §25.5) |
 | `RADIO_EXTENDIDO` / `RADIO_PROXIMIDAD` / `DISTANCIA_MINIMA` | — | `config.js` — **no leídas por el runtime** (constantes muertas). `PRECISION_MINIMA` no forma parte de este grupo: sí se lee, ver fila de arriba. |
 | Frecuencia actualización GPS | 7 s | `INTERVALO_ACTUALIZACION` en `config.js` |
-| Frecuencia heartbeat | 5 s | `INTERVALO_HEARTBEAT` en `config.js` |
+| Frecuencia heartbeat | 5 s | valor por defecto de `iniciarHeartbeat()` en `js/mensajeria.js` |
 | Timeout GPS | 30 s | `TIMEOUT` en `config.js` |
 | Timeout watchPosition | 35 s, con `enableHighAccuracy: true` | `activarGPS()` en `codigo-padre.html`. El camino de reintento (`_gpsDoRetryWatch()`) reabre el watch con otras opciones: `enableHighAccuracy: false` y timeout `CONFIG.GPS.TIMEOUT × 2^(intento-1)` con techo de 60 s — es decir, tras un fallo de GPS la precisión que llega es peor, lo que sube el umbral de ruido del acumulador de distancia recorrida |
 | Habilitación de ubicación en las 4 franjas (rango real-50m / 50-150m / 150-2.000m / >2.000m) | Inmediata en las 4, sin esperar la gracia | `verificarDistanciaYActualizarBotones` en `coordenadas-hijo2.html` |
@@ -11227,7 +11226,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hijo específico | En respuesta a `HIJO_LISTO` | Confirmar que el padre tomó nota de que el hijo está listo |
 | `SISTEMA.CAMBIO_MODO` | Todos los hijos | Cuando el usuario cambia de modo (CASA/AVENTURA — los únicos dos que existen, `MODOS.CASA`/`MODOS.AVENTURA` en `js/constants.js`) | Iniciar el protocolo de cambio de modo; los hijos deben adaptar su interfaz |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | **Todos los hijos** (broadcast) | Cuando el último hijo confirma `CAMBIO_MODO_EFECTUADO` | Cerrar la 4.ª fase del protocolo de modo en todos los hijos simultáneamente |
-| `SISTEMA.HEARTBEAT` | Todos los hijos | Cada `INTERVALO_HEARTBEAT=5000ms` en modo AVENTURA | Verificar que todos los hijos siguen vivos y respondiendo |
+| `SISTEMA.HEARTBEAT` | Todos los hijos | Cada 5 s en modo AVENTURA (valor por defecto de `iniciarHeartbeat()`); en CASA, ninguno | Verificar que todos los hijos siguen vivos y respondiendo |
 | `SISTEMA.HEARTBEAT_PAUSE` | Todos los hijos | Al cambiar a modo CASA | Pausar el heartbeat en los hijos; en CASA el heartbeat no debe correr |
 | `SISTEMA.HEARTBEAT_START` | Todos los hijos | Al cambiar a modo AVENTURA | Reanudar el heartbeat tras una pausa; el hijo reactiva sus comprobaciones |
 | `NAVEGACION.CAMBIO_PARADA` (broadcast) | Hijo 2 (con coords) | Al cambiar de parada (manual o GPS) | Actualizar el mapa con la nueva parada activa |
@@ -12108,7 +12107,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-a6416300c283';
+const CACHE_VERSION = 'v-75274fecba17';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13931,7 +13930,7 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje 
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | En-busca-del-tesoro.html, chat-hijo6.html, extrainfo-hijo1.html | js/app.js |
 | `SISTEMA.CONFIRMACION` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | En-busca-del-tesoro.html, boton-casa-hijo5.html |
 | `SISTEMA.ERROR` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, js/funciones-mapa.js, js/utils.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html |
-| `SISTEMA.HEARTBEAT` | boton-casa-hijo5.html, codigo-padre.html, js/mensajeria.js, js/monitoreo.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
+| `SISTEMA.HEARTBEAT` | boton-casa-hijo5.html, codigo-padre.html, js/mensajeria.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `SISTEMA.HEARTBEAT_ESTADO` | codigo-padre.html | codigo-padre.html |
 | `SISTEMA.HEARTBEAT_PAUSE` | codigo-padre.html | audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
 | `SISTEMA.HEARTBEAT_RESPONSE` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |

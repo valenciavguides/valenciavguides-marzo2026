@@ -159,10 +159,7 @@ export const CONFIG = {
     HIJOS: {
         /** Tiempo de espera para inicialización (ms) */
         TIMEOUT_INIT: 10000,
-        
-        /** Intervalo de heartbeat (ms) */
-        INTERVALO_HEARTBEAT: 5000,
-        
+
         /** Número de heartbeats fallidos para considerar desconexión */
         MAX_HEARTBEATS_FALLIDOS: 3,
         
