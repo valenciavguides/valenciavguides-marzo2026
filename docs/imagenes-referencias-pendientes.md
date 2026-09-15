@@ -99,9 +99,13 @@ en la referencia:
 **Dos extensiones conviviendo**: las fotos subidas el 2026-09-14 son `.jpeg` y el resto
 `.jpg`. Da igual cuál, pero la referencia tiene que decir exactamente la del fichero.
 
-**Erratas dentro del nombre**: además del `Amudín` sin ele, hay `santo_domimgo_pano.jpg.jpg`
-(*domimgo*) y `cripta_san_vicemte_martir_2.jpg` (*vicemte*). Se pueden dejar así mientras la
-referencia las copie tal cual.
+**Erratas dentro del nombre**: además del `Amudín` sin ele, queda
+`santo_domimgo_pano.jpg.jpg` (*domimgo*). Se pueden dejar así mientras la referencia las
+copie tal cual.
+
+`cripta_san_vicemte_martir_2.jpg` (*vicemte*) **ya está corregida** a
+`cripta_san_vicente_martir_2.jpg`. No hubo que tocar ninguna referencia: ese fichero aún no
+lo usaba nadie, era solo una candidata para la número 86.
 
 ## El mapa de Aventura 34 km
 
