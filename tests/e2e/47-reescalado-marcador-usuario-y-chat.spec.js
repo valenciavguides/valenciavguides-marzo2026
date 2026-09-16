@@ -12,7 +12,7 @@
  * sí crece — de ahí que la flecha parezca encoger dentro de su propio círculo.
  *
  * CH — El iframe del chat (hijo6-chat) queda registrado en la mensajería al abrirlo.
- * `_enviarDesdePadre` (js/mensajeria.js) resuelve el destino contra `iframesRegistrados`;
+ * `enviarMensaje` (js/mensajeria.js) resuelve el destino contra `iframesRegistrados`;
  * un iframe ausente de ese Map no es alcanzable desde el padre y todo mensaje dirigido a
  * él se descarta con un `logger.warn`, sin error. Es lo que dejaba sin entregar el
  * SISTEMA.PADRE_DATOS que lleva el idioma, con el FAQ construyéndose siempre en español
@@ -401,7 +401,7 @@ test.describe('CH — El chat es alcanzable desde el padre', () => {
       null, { timeout: 10000 }
     );
 
-    // enviarMensaje resuelve false cuando _enviarDesdePadre no encuentra el iframe destino.
+    // enviarMensaje resuelve false cuando no encuentra el iframe destino entre los registrados.
     const entregado = await page.evaluate(async () => globalThis.mensajeria.enviarMensaje({
       tipo: globalThis.TIPOS_MENSAJE.SISTEMA.HEARTBEAT,
       origen: 'padre',

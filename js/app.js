@@ -1145,8 +1145,7 @@ globalThis.addEventListener('load', () => {
 // Controladores NAVEGACIóN en funciones-mapa.js
 
 // Quien avisa de que un hijo esta listo es SISTEMA.HIJO_PREPARADO; su handler vive en
-// codigo-padre.html y de ahi sale la llamada a mensajeria.registrarHijo() (~L7485).
-// En este fichero no hay ningun handler de inicializacion.
+// codigo-padre.html. En este fichero no hay ningun handler de inicializacion.
 
 // Logica para la perdida de conexion
 /**

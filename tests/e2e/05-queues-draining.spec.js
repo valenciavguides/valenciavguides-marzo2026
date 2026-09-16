@@ -125,23 +125,17 @@ test.describe('Drenaje de colas tras FASE 1', () => {
 
   // ── Estado del mapa de mensajería ─────────────────────────────────────
 
-  test('globalThis.mensajeria está configurada como tipo "padre"', async ({ page }) => {
-    const tipo = await page.evaluate(() => {
-      // El tipo se puede obtener directamente o via el flag de estado del padre
-      if (globalThis.mensajeria && typeof globalThis.mensajeria.getTipo === 'function') {
-        return globalThis.mensajeria.getTipo();
-      }
-      // Alternativa: comprobamos que el estado del padre en state-manager
-      // refleja que el padre está inicializado
-      const sm = globalThis.__vv_stateManager;
-      if (sm && typeof sm.getEstadoPadre === 'function') {
-        const estado = sm.getEstadoPadre();
-        return estado ? 'padre' : null;
-      }
-      return null;
-    });
-    // El tipo debe ser 'padre' o el estado del padre debe ser válido
-    // (si getTipo no está expuesto, el test pasa si el estado es coherente)
-    expect(tipo === 'padre' || tipo === null).toBe(true);
+  // El papel no se declara, se deduce: un frame es hijo si tiene ventana encima, y padre de los
+  // iframes que registre. Por eso aquí no se pregunta "de qué tipo eres", que era una pregunta que
+  // el bus respondía con undefined y dejaba la comprobación sin poder fallar nunca.
+  test('el bus del padre está inicializado, se identifica y es el frame de arriba', async ({ page }) => {
+    const estado = await page.evaluate(() => ({
+      inicializado: globalThis.mensajeria?.estaInicializado?.() === true,
+      id: globalThis.mensajeria?.getComponenteId?.() || null,
+      esRaiz: globalThis.parent === globalThis,
+    }));
+    expect(estado.inicializado, 'la mensajería del padre tiene que estar inicializada').toBe(true);
+    expect(estado.id, 'y tiene que identificarse: el bus descarta todo mensaje sin origen').toBeTruthy();
+    expect(estado.esRaiz, 'el padre es el frame de arriba: no tiene a quién mandar hacia arriba').toBe(true);
   });
 });

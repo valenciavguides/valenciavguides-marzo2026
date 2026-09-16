@@ -101,7 +101,8 @@ function calcularToleranciaGPS(elemento) {
     //
     // Aquí había 50 m fijos desde el commit inicial del proyecto. Mientras el sensor de este
     // módulo estuvo muerto —se autoenviaba LLEGADA_DETECTADA a resolverIdPadre(), un destino
-    // que _enviarDesdePadre() nunca encuentra, así que el mensaje se descartaba en silencio—
+    // que enviarMensaje() nunca encuentra entre los iframes registrados, así que el mensaje se
+    // descartaba en silencio—
     // quien decidía la llegada a una parada era hijo2, con su radio de 15 m. Al revivirlo
     // (6b219a3) empezó a disparar de verdad y, como 50 > 15, pasó a ganar siempre: el radio
     // efectivo de una parada cambió de 15 a 50 m sin que nadie tocara ningún umbral. Cuatro
@@ -2065,15 +2066,12 @@ async function enviarConsultaCoordenadas(paradaId, padreId) {
         datos: {
             paradaId,
             padreId,
-            // Literal, no globalThis.mensajeria.getHijoTipo('hijo2'): el handler en
-            // coordenadas-hijo2.html exige tipoConsulta === 'COORDENADAS' exacto. Antes este
-            // valor salía de _hijosRegistrados (poblado cuando hijo2 se autodeclara con
-            // tipo:'COORDENADAS' en su propio HIJO_PREPARADO) — dos sitios sin relación
-            // declarada entre sí, en archivos distintos, que solo coincidían porque hijo2 elige
-            // ese mismo string por su cuenta. Cambiar cualquiera de los dos sin tocar el otro
-            // rompía en silencio esta consulta de respaldo (se usa solo cuando la caché local
-            // del padre no tiene la parada). getHijoTipo() no tiene ningún otro consumidor en
-            // el proyecto — no aporta nada usarlo aquí frente al literal directo.
+            // Literal a propósito: el handler en coordenadas-hijo2.html exige
+            // tipoConsulta === 'COORDENADAS' exacto. Sacarlo de lo que hijo2 declara de sí mismo
+            // en su HIJO_PREPARADO serían dos sitios sin relación declarada entre sí, en archivos
+            // distintos, que solo coinciden porque hijo2 elige ese mismo string por su cuenta:
+            // cambiar uno sin tocar el otro rompe en silencio esta consulta de respaldo, que se
+            // usa solo cuando la caché local del padre no tiene la parada.
             tipoConsulta: 'COORDENADAS'
         }
     });
@@ -3336,7 +3334,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                 };
                 // Este envío ocurre DENTRO del propio padre (funciones-mapa.js no vive en
                 // un iframe) — enviarMensaje({destino: resolverIdPadre()}) se autodirige al
-                // ID del propio padre, que _enviarDesdePadre() (mensajeria.js) busca en
+                // ID del propio padre, que enviarMensaje() (mensajeria.js) busca en
                 // iframesRegistrados y nunca encuentra (ese mapa solo contiene iframes hijo),
                 // así que el mensaje se descartaba en silencio en todas las llamadas. Llamar
                 // al handler directamente vía el wrapper expuesto en globalThis (mismo patrón

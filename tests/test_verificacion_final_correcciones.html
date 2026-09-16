@@ -210,14 +210,8 @@
 
             if (globalThis.mensajeria) {
                 flujo.push('✅ Mensajería: Inicializada');
-                if (typeof globalThis.mensajeria.getEstado === 'function') {
-                    try {
-                        const estado = globalThis.mensajeria.getEstado();
-                        flujo.push(`   📌 Estado: ${JSON.stringify(estado, null, 2)}`);
-                    } catch (e) {
-                        flujo.push('   📌 Estado: Error obteniendo estado');
-                    }
-                }
+                flujo.push(`   📌 Componente: ${globalThis.mensajeria.getComponenteId?.() || 'sin id'}`);
+                flujo.push(`   📌 Inicializada: ${globalThis.mensajeria.estaInicializado?.() === true}`);
             } else {
                 flujo.push('❌ Mensajería: No disponible');
             }

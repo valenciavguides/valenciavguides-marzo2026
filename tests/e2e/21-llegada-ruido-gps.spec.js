@@ -35,7 +35,7 @@
  * De camino se encontró y arregló un segundo bug, independiente: el sensor "redundante"
  * de funciones-mapa.js (pensado como respaldo del de hijo2) se autoenviaba
  * NAVEGACION.LLEGADA_DETECTADA con destino: resolverIdPadre() — el ID del propio padre.
- * _enviarDesdePadre() (mensajeria.js) busca ese destino en iframesRegistrados, que nunca
+ * enviarMensaje() (mensajeria.js) busca ese destino en iframesRegistrados, que nunca
  * contiene al padre mismo, así que el mensaje se descartaba en silencio en TODAS las
  * llamadas (código muerto desde que se escribió). Ahora usa
  * globalThis.__triggerLlegadaDetectadaInterno(), que llama al handler del padre
