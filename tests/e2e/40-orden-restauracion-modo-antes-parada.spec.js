@@ -74,13 +74,36 @@ test.describe('OR — Orden modo/parada en la restauración de sesión', () => {
     }, { p0: P0 });
     expect(modoEnElMomento).toBe('casa');
 
-    await page.evaluate(() => { globalThis.estadoPadre.gps = globalThis.estadoPadre.gps || {}; globalThis.estadoPadre.gps.proximidadReal = true; });
+    // Se SOSTIENE `proximidadReal`, no basta con ponerlo una vez: la app lo recalcula sola
+    // (`sincronizarEstadoGPSConPadre()`, js/funciones-mapa.js, copia encima el valor de
+    // `estadoMapa`, que sin GPS real es `false`). Aquí importa más que en OR-2: este test
+    // afirma que el cartel NO aparece, y su razón de ser es que la causa sea el modo CASA. Si
+    // la proximidad se pusiera a false por el camino, el test pasaría igual con el bug del
+    // orden puesto — verde por el motivo equivocado, que es no valer nada.
+    await page.evaluate(() => {
+      globalThis.estadoPadre.gps = globalThis.estadoPadre.gps || {};
+      globalThis.estadoPadre.gps.proximidadReal = true;
+      globalThis.__e2e_sostenProximidad = setInterval(() => {
+        if (globalThis.estadoPadre?.gps) globalThis.estadoPadre.gps.proximidadReal = true;
+      }, 100);
+    });
     await page.waitForTimeout(11000);
+    const proximidadAlFinal = await page.evaluate(() => {
+      clearInterval(globalThis.__e2e_sostenProximidad);
+      return globalThis.estadoPadre?.gps?.proximidadReal;
+    });
+    expect(proximidadAlFinal, 'la precondición tiene que seguir en pie: si no, el cartel falta por falta de proximidad, no por el modo').toBe(true);
     const cartel = await page.evaluate(() => !!document.getElementById('cartel-recordatorio-audio'));
     expect(cartel, 'con el modo todavía en casa cuando se procesa la parada, el recordatorio no debe arrancar solo').toBe(false);
   });
 
   test('OR-2. Con el modo ya en AVENTURA antes del CAMBIO_PARADA, el recordatorio de audio SÍ arranca solo — el orden correcto que aplica ejecutarRestauracionAventura() tras el arreglo', async ({ page }) => {
+    const trazas = [];
+    page.on('console', (m) => {
+      const t = m.text();
+      if (/recordatorio|RECORDATORIO|proximidadReal|CAMBIO_PARADA|mensajeria\]/i.test(t)) trazas.push(t.slice(0, 170));
+    });
+
     const modoEnElMomento = await page.evaluate(async ({ p0 }) => {
       globalThis.estado.modo = { actual: 'aventura', anterior: 'casa' };
       await globalThis.__triggerCambioParadaInterno({ paradaId: p0.id });
@@ -88,7 +111,16 @@ test.describe('OR — Orden modo/parada en la restauración de sesión', () => {
     }, { p0: P0 });
     expect(modoEnElMomento).toBe('aventura');
 
-    await page.evaluate(() => { globalThis.estadoPadre.gps = globalThis.estadoPadre.gps || {}; globalThis.estadoPadre.gps.proximidadReal = true; });
+    // Mismo motivo que en OR-1: `proximidadReal` lo recalcula la app y hay que sostenerlo.
+    // Aquí el síntoma es el contrario — el cartel no llega y el test falla sin que nada esté
+    // roto. Medido antes de esto: 3 fallos en 32 ejecuciones, con `proximidad: false` al final.
+    await page.evaluate(() => {
+      globalThis.estadoPadre.gps = globalThis.estadoPadre.gps || {};
+      globalThis.estadoPadre.gps.proximidadReal = true;
+      globalThis.__e2e_sostenProximidad = setInterval(() => {
+        if (globalThis.estadoPadre?.gps) globalThis.estadoPadre.gps.proximidadReal = true;
+      }, 100);
+    });
     // Se espera AL CARTEL, no a un tiempo. Antes eran 11 s fijos para un aviso que aparece
     // a los 10: un segundo de margen, que la máquina cargada se come — cayendo solo en
     // tandas completas (EJE 23). El margen amplio de aquí no oculta nada: si el cartel no
@@ -97,6 +129,20 @@ test.describe('OR — Orden modo/parada en la restauración de sesión', () => {
       () => !!document.getElementById('cartel-recordatorio-audio'),
       null, { timeout: 30000 }
     ).then(() => true).catch(() => false);
-    expect(cartel, 'con el modo ya en aventura cuando se procesa la parada, el recordatorio debe arrancar solo').toBe(true);
+    await page.evaluate(() => { clearInterval(globalThis.__e2e_sostenProximidad); });
+
+    const estadoFinal = await page.evaluate(() => ({
+      modo: globalThis.estado?.modo?.actual,
+      parada: globalThis.estado?.paradaActual ?? null,
+      elemento: globalThis.estado?.elementoActual?.parada_id ?? null,
+      proximidad: globalThis.estadoPadre?.gps?.proximidadReal,
+      hayTimer: typeof globalThis._detenerRecordatorioAudio === 'function',
+    }));
+    expect(
+      cartel,
+      'con el modo ya en aventura cuando se procesa la parada, el recordatorio debe arrancar solo'
+      + `\n  estado al final: ${JSON.stringify(estadoFinal)}`
+      + `\n  trazas (${trazas.length}): ${JSON.stringify(trazas.slice(-10), null, 1)}`,
+    ).toBe(true);
   });
 });

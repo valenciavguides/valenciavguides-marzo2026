@@ -119,13 +119,43 @@ test.describe('SE — El padre reacciona a SISTEMA.ERROR de audio_control', () =
 
   test('SE-1. SISTEMA.ERROR con codigo AUDIO_CONTROL_FALLIDO marca el audio como no disponible', async ({ page }) => {
     const AUDIO = 'audio-prueba-se1';
+
+    // Diagnóstico para un fallo intermitente que solo aparece en la tanda de los 4 navegadores,
+    // siempre en iphone12 (2 de 3 tandas). Descartado por medición: el handler SÍ está registrado
+    // en este punto, y no hay ningún SISTEMA.ERROR previo ocupando la fila de ese tipo. En
+    // solitario tarda 52 ms; cuando falla, agota los 8 s. Estas sondas hacen que la PRÓXIMA
+    // aparición se explique sola en vez de obligar a reproducirla.
+    const logsPadre = [];
+    page.on('console', (m) => {
+      const t = m.text();
+      if (/SISTEMA\.ERROR|AUDIO_CONTROL_FALLIDO|mensajeria\]/.test(t)) logsPadre.push(t.slice(0, 160));
+    });
+
     await prepararAudioActivo(page, AUDIO);
+
+    const antes = await page.evaluate(async () => ({
+      audioActivo: typeof globalThis.obtenerAudioIdActivoPadre === 'function'
+        ? globalThis.obtenerAudioIdActivoPadre() : '(no expuesta)',
+      elementoActual: globalThis.estado?.elementoActual?.audio_id ?? null,
+      handlers: (await globalThis.__vv_stateManager?.getControladoresPorTipo?.('SISTEMA.ERROR'))?.length ?? '(sin API)',
+    }));
+
     await enviarSistemaError(page, 'AUDIO_CONTROL_FALLIDO');
     await page.waitForFunction((id) => globalThis.estado?._audioFalloId === id, AUDIO, { timeout: 8000 }).catch(() => {});
-    const falloId = await page.evaluate(() => globalThis.estado?._audioFalloId ?? null);
+
+    const despues = await page.evaluate(() => ({
+      falloId: globalThis.estado?._audioFalloId ?? null,
+      elementoActual: globalThis.estado?.elementoActual?.audio_id ?? null,
+      audioActivo: typeof globalThis.obtenerAudioIdActivoPadre === 'function'
+        ? globalThis.obtenerAudioIdActivoPadre() : '(no expuesta)',
+    }));
+
     expect(
-      falloId,
+      despues.falloId,
       'el código de audio debe marcar el audio activo como no disponible — es lo que habilita el botón de saltar'
+      + `\n  ANTES de enviar:  ${JSON.stringify(antes)}`
+      + `\n  DESPUÉS:          ${JSON.stringify(despues)}`
+      + `\n  logs del padre:   ${logsPadre.length ? JSON.stringify(logsPadre.slice(-6), null, 1) : '(ninguno)'}`,
     ).toBe(AUDIO);
   });
 

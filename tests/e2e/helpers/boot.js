@@ -174,6 +174,33 @@ async function gotoAndWaitForFase1(page) {
       globalThis.__e2e_bootTimedOut = true;
     });
   }
+
+  // Y esperar a que Script 2 haya registrado sus controladores.
+  //
+  // FASE 1 solo garantiza la mensajería, que monta Script 1. Los handlers del padre —audio,
+  // paradas, retos, SISTEMA.ERROR— los registra Script 2 DESPUÉS, y `marcarScript2Listo()` se
+  // llama justo al terminar ese registro (codigo-padre.html), así que es la señal fiable.
+  //
+  // Sin esta espera, un test que actúe nada más volver de aquí puede mandarle un mensaje al
+  // padre cuando todavía no hay nadie escuchando: el bus avisa y lo descarta, y el test falla
+  // sin motivo aparente. La ventana es de milisegundos en una máquina ociosa y se abre cuando
+  // va cargada — por eso salía solo en tandas completas, en el navegador más lento y cambiando
+  // de spec entre tanda y tanda. Medido con el diagnóstico de 28/SE-1: `handlers: 0` en el
+  // instante del envío.
+  //
+  // No aborta si expira: se deja que la aserción del propio test reporte lo que encuentre, con
+  // su mensaje, igual que la espera de FASE 1 de arriba.
+  try {
+    await page.waitForFunction(
+      async () => (await globalThis.__vv_stateManager?.getScript2Listo?.()) === true,
+      null,
+      { timeout: BOOT_TIMEOUT },
+    );
+  } catch (_script2Error) {
+    await page.evaluate(() => {
+      globalThis.__e2e_script2TimedOut = true;
+    });
+  }
 }
 
 /**
