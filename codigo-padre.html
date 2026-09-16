@@ -8292,6 +8292,19 @@
                     await _handleMostrarImagen({ urlImagen, nombre, mensajeError, textoParada, paradaActual, imagenes, tipo, mapa_numero, logPrefix });
                 } else if (accion === 'reproducir-video') {
                     _handleReproducirVideo(urlVideo, nombre, mensajeError, logPrefix);
+                } else if (accion === 'audio_control') {
+                    // hijo1 pide pausar el audio al abrir una página informativa, para que el
+                    // usuario lo retome él. hijo1 no puede pedírselo a hijo3 directamente —
+                    // un hijo solo escribe a su padre—, así que el reenvío lo hace el padre,
+                    // que es quien tiene a hijo3 registrado.
+                    const { comando, contexto } = mensaje.datos || {};
+                    (globalThis.logger || console).info(`${logPrefix} Reenviando audio_control '${comando}' a hijo3 (contexto: ${contexto || 'sin contexto'})`);
+                    await enviarMensaje_S1({
+                        destino: 'hijo3',
+                        tipo: TIPOS_MENSAJE_S1.UI.ACCION_USUARIO,
+                        origen: getPadreId(),
+                        datos: { accion: 'audio_control', comando, contexto, reenviadoDe: mensaje.origen }
+                    });
                 } else {
                     (globalThis.logger || console).debug(`${logPrefix} Acción no manejada: ${accion}`);
                 }
