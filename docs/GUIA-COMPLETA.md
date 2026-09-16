@@ -4873,7 +4873,9 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 | `padre` | **El bus** (`js/mensajeria.js`) |
 | `hijo1` | **El bus** |
 | `hijo5` | **El bus** |
-| `hijo2`, `hijo3`, `hijo4`, `hijo6`, `seleccion` | Copia propia de los envoltorios (`messagingAdapter`, `safeRegistrar`, un `enviarMensaje` que hace `parent.postMessage` a pelo) |
+| `seleccion` | **El bus** |
+| `hijo2`, `hijo3`, `hijo4` | Copia propia de los envoltorios (`messagingAdapter`, `safeRegistrar`, un `enviarMensaje` que hace `parent.postMessage` a pelo) |
+| `hijo6` | Ni bus ni `messagingAdapter`: su propio `registrarControladorSeguro` y 4 `parent.postMessage` a pelo |
 
 La diferencia importa para depurar: un frame **sin** bus no descarta fuentes no autorizadas, no ordena por tipo, no tiene el acuse con motivo, y —lo más visible— la captura de errores de `js/utils.js` no llega a ninguna parte, porque envía por `globalThis.mensajeria`, que allí no existe.
 
@@ -4894,7 +4896,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-1152513a7a40'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0940a30e58ac'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5923,7 +5925,9 @@ diciendo qué hijo se queda con el modo anterior — es un fallo real de ese hij
 
 **Quién envía NACK**: los cinco hijos (hijo1, hijo2, hijo3, hijo4 y hijo5) y la pantalla de selección. hijo6 no participa en el protocolo de modo.
 
-**Los hijos no aparcan el cambio de modo.** Hubo un tiempo en que cuatro de ellos lo guardaban además en un `pendingCambioModo` propio y lo aplicaban por su cuenta al estar listos — hijo2 al recibir los datos del padre, hijo3 y hijo5 al mostrarse su UI, hijo4 al sincronizar el modo. Con el reenvío del padre funcionando a la vez, **el cambio se aplicaba dos veces**: medido, los cuatro acusaban la aplicación por duplicado, y hijo5 —que la aplicaba mandándose un mensaje a sí mismo— reentraba al handler entero y duplicaba también sus peticiones de datos. Un solo camino: el padre recuerda, el hijo rechaza y espera.
+**Los hijos no aparcan el cambio de modo.** El hijo que recibe un `CAMBIO_MODO` fuera de secuencia lo rechaza con NACK y no se lo guarda: quien lo recuerda y lo reenvía es el padre. Un solo camino — el padre recuerda, el hijo rechaza y espera.
+
+La razón de que tenga que ser uno solo: si el hijo lo aparcase además por su cuenta, los dos caminos entregarían el mismo cambio y el hijo lo aplicaría **dos veces**. En hijo5, que lo aplicaría mandándose un mensaje a sí mismo, la segunda aplicación reentra al handler entero y duplica también sus peticiones de datos.
 
 Lo cubre `tests/e2e/84-cambio-modo-se-aplica-una-vez.spec.js`, un caso por hijo.
 
@@ -8119,7 +8123,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-1152513a7a40'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-0940a30e58ac'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8840,7 +8844,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-1152513a7a40';
+const CACHE_VERSION = 'v-0940a30e58ac';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9049,7 +9053,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | **Heartbeat** | Ping periódico del padre a los hijos (`SISTEMA.HEARTBEAT`) para verificar que siguen activos; los hijos responden con `SISTEMA.HEARTBEAT_RESPONSE` |
 | **ACK** | Confirmación de que un mensaje fue recibido correctamente |
 | **registrarControladorSeguro** | Función que registra un handler de `postMessage` con gestión de errores y soporte de cleanup. Punto de entrada estándar para todos los iframes |
-| **messagingAdapter** | Copia propia de la mensajería que llevan los hijos **todavía sin migrar** (hijo2, hijo3, hijo4 y la pantalla de selección). Mantiene un `_listenerRegistry` para soltar sus handlers en `pagehide`. Los hijos migrados a `js/mensajeria.js` (hijo1, hijo5) no lo tienen: el bus pone un solo listener y lo gestiona él |
+| **messagingAdapter** | Copia propia de la mensajería que llevan los hijos **todavía sin migrar** (hijo2, hijo3 y hijo4). Mantiene un `_listenerRegistry` para soltar sus handlers en `pagehide`. Los frames que hablan por `js/mensajeria.js` (hijo1, hijo5 y la pantalla de selección) no lo tienen: el bus pone un solo listener y lo gestiona él. hijo6 tampoco lo tiene, pero por otro motivo: no usa ninguno de los dos caminos |
 
 ### Mapa y GPS
 
@@ -12021,12 +12025,12 @@ El padre no tiene un barrido periódico de controladores. No hace falta: cada do
 
 | Archivo | pagehide | CAMBIO_MODO |
 |---------|----------|-------------|
-| `extrainfo-hijo1.html` | — **ya no usa `messagingAdapter`**: habla por `js/mensajeria.js` | ✗ no tiene |
+| `extrainfo-hijo1.html` | — sin registry que limpiar: habla por `js/mensajeria.js` | ✗ no tiene |
 | `coordenadas-hijo2.html` | ✓ limpia registry | ✗ no tiene |
 | `audio-hijo3.html` | ✓ limpia registry | ✗ no tiene |
 | `retos-hijo4.html` | ✓ limpia registry | ✗ no tiene |
-| `boton-casa-hijo5.html` | — **ya no usa `messagingAdapter`**: habla por `js/mensajeria.js` | ✗ no tiene |
-| `En-busca-del-tesoro.html` | ✓ limpia registry (mismo patrón: `messagingAdapter._listenerRegistry` propio, ver `registrarControladorCentral()`) | ✗ no tiene |
+| `boton-casa-hijo5.html` | — sin registry que limpiar: habla por `js/mensajeria.js` | ✗ no tiene |
+| `En-busca-del-tesoro.html` | — sin registry que limpiar: habla por `js/mensajeria.js` | ✗ no tiene |
 | `chat-hijo6.html` | — (no usa messagingAdapter) | — |
 | `codigo-padre.html` | — no usa el patrón `messagingAdapter._listenerRegistry` (eso es exclusivo de hijos; el padre registra controladores vía `js/mensajeria.js`). Sí tiene su propio `pagehide` activo (`_limpiarPagehide`, registrado con `addEventListener`), pero limpia iframes/referencias globales, no un listener registry | — |
 
@@ -12181,7 +12185,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-1152513a7a40';
+const CACHE_VERSION = 'v-0940a30e58ac';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
