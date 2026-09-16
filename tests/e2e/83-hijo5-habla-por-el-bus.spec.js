@@ -19,8 +19,11 @@
  *   H5-4  El auto-mensaje funciona. hijo5 se manda a si mismo un SISTEMA.CAMBIO_MODO para
  *         aplicar un cambio pendiente; `enviarMensaje` no puede entregarselo (uno no esta entre
  *         sus propios iframes registrados), y para eso existe `despacharLocal`.
+ *   H5-5  Camino real de F2: un error lanzado dentro de hijo5 llega al padre por la captura
+ *         automatica de utils.js. Que hijo5 importe utils.js hace DEDUCIR que la captura esta
+ *         instalada; esto lo comprueba.
  *
- * ROJO ANTES QUE VERDE: mientras hijo5 no cargue el bus, H5-2, H5-3 y H5-4 fallan.
+ * ROJO ANTES QUE VERDE: mientras hijo5 no cargue el bus, H5-2, H5-3, H5-4 y H5-5 fallan.
  */
 'use strict';
 
@@ -171,5 +174,27 @@ test.describe('H5 — hijo5 habla por el bus', () => {
           + 'verdad: eso se ve porque hijo5 acusa ESE modo al padre, no otro',
       })
       .toContain('aventura');
+  });
+
+  test('H5-5. Camino real: un error lanzado en hijo5 llega al padre', async ({ page }) => {
+    test.setTimeout(60_000);
+    const avisos = [];
+    page.on('console', (m) => { if (/nunca estuvo disponible/i.test(m.text())) avisos.push(m.text()); });
+    await escucharErrores(page, 'escenario-H5-5');
+
+    await frameHijo5(page).evaluate(() => {
+      setTimeout(() => { throw new Error('escenario-H5-5'); }, 0);
+    });
+
+    // La captura de utils.js reintenta 10 s antes de rendirse: 13 s cubre su plazo entero.
+    await page.waitForTimeout(13_000);
+    const r = await page.evaluate(() => globalThis.__errHijo5);
+    expect(
+      r.length,
+      'el error de hijo5 tiene que llegar al padre como SISTEMA.ERROR ERROR_NO_CONTROLADO'
+      + (avisos.length ? ` — el hijo se rindio: "${avisos[0].slice(0, 120)}"` : ''),
+    ).toBeGreaterThan(0);
+    expect(r[0].codigo).toBe('ERROR_NO_CONTROLADO');
+    expect(r[0].origen, 'y decir de quien viene, que lo pone el bus').toBe(ID);
   });
 });

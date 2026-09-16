@@ -15476,7 +15476,21 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         }
     }
 
-    function _limpiarPagehide() {
+    function _limpiarPagehide(evento) {
+        // `pagehide` cubre dos viajes muy distintos y hay que separarlos: la pagina se cierra de
+        // verdad, o el navegador la CONGELA en su cache de atras y puede devolverla viva. El
+        // navegador lo dice en `event.persisted`.
+        //
+        // Sin esta condicion, volver atras revivia la app sin un solo iframe y con los registros
+        // de handlers vacios — una cascara. El escenario real: terminar la aventura, llegar a la
+        // despedida y pulsar atras.
+        //
+        // No hace falta parar nada al congelar: el navegador suspende por su cuenta temporizadores
+        // e intervalos mientras la pagina esta en esa cache, y los reanuda al devolverla.
+        if (evento?.persisted === true) {
+            (globalThis.logger || console).info('[codigo-padre] pagehide con persisted: la pagina se guarda en la cache de atras, NO se limpia nada');
+            return;
+        }
         (globalThis.logger || console).info(`[codigo-padre] Limpiando recursos en pagehide`);
         document.querySelectorAll('iframe').forEach(iframe => { iframe.src = 'about:blank'; iframe.remove(); });
         if (globalThis.modoActual) globalThis.modoActual = undefined;
