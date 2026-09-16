@@ -1873,12 +1873,7 @@ try {
                 }
             }, 3000);
 
-            // Si teníamos un cambio de modo pendiente, aplicarlo ahora
-            try {
-                // El cambio de modo fuera de secuencia NO se aparca aqui: se rechaza con NACK y es el padre quien lo recuerda y lo reenvia (pendingModeChanges, js/app.js). Aparcarlo ademas aqui lo aplicaba dos veces.
-            } catch (err) {
-                logger.error(`${logPrefix} Error aplicando cambio de modo pendiente:`, err);
-            }
+            // El cambio de modo fuera de secuencia NO se aparca aqui: se rechaza con NACK y es el padre quien lo recuerda y lo reenvia (pendingModeChanges, js/app.js). Aparcarlo ademas aqui lo aplicaba dos veces.
 
             // Mostrar UI ahora que el padre confirmó
             try { _uiConfirmado = true; mostrarUI(); } catch (e) { logger.warn('[hijo2] Error mostrando UI:', e && e.message); }

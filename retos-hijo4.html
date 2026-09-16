@@ -1516,12 +1516,7 @@
                     logger.info(`[hijo4] Intervalo de reintento limpiado tras recibir PADRE_CONFIRMA_HIJO_LISTO`);
                 }
 
-                // Aplicar modo pendiente si estaba encolado
-                try {
-                    // El cambio de modo fuera de secuencia NO se aparca aqui: se rechaza con NACK y es el padre quien lo recuerda y lo reenvia (pendingModeChanges, js/app.js). Aparcarlo ademas aqui lo aplicaba dos veces.
-                } catch (err) {
-                    logger.error('[hijo4] Error aplicando modo pendiente:', err);
-                }
+                // El cambio de modo fuera de secuencia NO se aparca aqui: se rechaza con NACK y es el padre quien lo recuerda y lo reenvia (pendingModeChanges, js/app.js). Aparcarlo ademas aqui lo aplicaba dos veces.
 
                 // 🔥 NUEVO: Procesar modo inicial si viene en datos
                 const { modoInicial } = mensaje.datos || {};

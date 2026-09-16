@@ -38,14 +38,27 @@ const { test, expect } = require('@playwright/test');
  * atiende el postMessage sintético de estos tests: si la clave existe, el mensaje ya no
  * puede caer en el vacío. Está definido igual en hijo2, hijo3 y hijo4.
  *
+ * ⚠️ ESTA ESPERA MUERE CON LA MIGRACIÓN AL BUS. Un frame que habla por `js/mensajeria.js`
+ * no tiene `messagingAdapter`: el bus pone un solo listener y lleva él el registro. Este
+ * fichero abre hijo4 y hijo3, así que el día que cualquiera de los dos se migre esta
+ * condición pasa a ser imposible y `waitForFunction` agota sus 10 s. Hay que sustituirla
+ * **en el mismo commit que migre ese hijo**, no después.
+ *
+ * Y no hay sustituto directo: `globalThis.mensajeria` NO expone hoy ninguna consulta del
+ * tipo "¿tienes handler para X?" (mirado en `exponerAPIGlobal()`; solo hay
+ * `estaInicializado`, `getComponenteId` y `getIframesRegistrados`). El mapa de manejadores
+ * es interno y `obtenerMapaManejadores()` lo saca de tres sitios distintos según el frame
+ * —state-manager, `__vv_getManejadores` o `__vv_manejadoresLocales`—, así que adivinarlo
+ * desde el test es frágil. Lo correcto al migrar es añadir esa consulta al bus.
+ *
  * MEDIDO, y conviene no equivocarse con esto: la condición **ya se cumple en
  * domcontentloaded** en los dos motores (12-18 ms, que es solo el sondeo). Los
  * <script type="module"> son diferidos y se ejecutan ANTES de domcontentloaded, así que la
  * carrera que describía el comentario anterior —"el postMessage puede llegar antes de que
  * el handler exista"— nunca ocurrió. Este cambio hace la espera explícita y ahorra 2,8 s
- * por ejecución; **no** arregla la caída intermitente de MD-2/MD-3 en tandas completas,
- * cuya causa sigue sin identificar (sospecha a comprobar: el `timeout: 5000` del
- * expect.poll se queda corto con la máquina cargada, no que el mensaje se pierda).
+ * por ejecución; lo que **no** arregla es la caída intermitente de MD-2/MD-3 en tandas
+ * completas. Esa tiene causa propia, medida, y su arreglo es otro: ver
+ * `proveerMensajeriaStub()` más abajo.
  *
  * (Tampoco sirve `__CONTROLADOR_REGISTRADOS`: se marca ANTES de que termine el registro real.)
  */

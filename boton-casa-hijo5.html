@@ -305,7 +305,7 @@
     }
     </style>
     <script type="module">
-    import { retryUntilAvailable, resolverIdsParada } from './js/utils.js';
+    import { resolverIdsParada } from './js/utils.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
     // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
@@ -336,12 +336,11 @@
     // a un sitio y este frame se presenta como otro, y ninguno de los dos se entera.
     await bus.inicializarMensajeria({ id: 'hijo5' });
 
-    const { enviarMensaje, despacharLocal } = bus;
+    const { enviarMensaje } = bus;
 
     // El bus rechaza por sí mismo, y en voz alta, un segundo handler para el mismo tipo, así que
     // sobra la capa de deduplicación que había aquí.
     const registrarControladorSeguro = bus.registrarControlador;
-    globalThis.registrarControladorSeguro = registrarControladorSeguro;
     // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
     // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
 
@@ -922,18 +921,19 @@
                 if (validErr) return;
 
                 const { modo } = mensaje.datos;
-                const destinoEntendido = 'padre';
                 const tipoEntendido = TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO;
                 const origenEntendido = CONFIG_HIJO?.IFRAME_ID;
 
-                if (!destinoEntendido || !tipoEntendido || !origenEntendido) {
-                    const debugInfo = { destino: destinoEntendido, tipo: tipoEntendido, origen: origenEntendido, TIPOS_MENSAJE_exists: TIPOS_MENSAJE !== undefined, CONFIG_HIJO_exists: CONFIG_HIJO !== undefined };
+                // El destino ya no entra en el guard: es el literal 'padre'. Estaba ahí porque
+                // salía de `mensaje.origen`, que podía venir vacío.
+                if (!tipoEntendido || !origenEntendido) {
+                    const debugInfo = { tipo: tipoEntendido, origen: origenEntendido, TIPOS_MENSAJE_exists: TIPOS_MENSAJE !== undefined, CONFIG_HIJO_exists: CONFIG_HIJO !== undefined };
                     logger.error('[hijo5][CAMBIO_MODO] 🔴 DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
                     logger.error(`${logPrefix} ❌ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
                     throw new Error('Campos undefined en CAMBIO_MODO_ENTENDIDO');
                 }
 
-                await enviarMensaje({ destino: destinoEntendido, tipo: tipoEntendido, origen: origenEntendido, datos: { modo, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id } });
+                await enviarMensaje({ destino: 'padre', tipo: tipoEntendido, origen: origenEntendido, datos: { modo, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id } });
 
                 logger.info(`${logPrefix} Cambiando modo a: ${modo}`);
                 const modoAnterior = estado.modo;

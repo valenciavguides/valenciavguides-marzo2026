@@ -1421,23 +1421,19 @@
                     logger.info(`[hijo3] Intervalo de reintento limpiado tras recibir PADRE_CONFIRMA_HIJO_LISTO`);
                 }
 
-                // Aplicar cambio de modo encolado si existía
+                // El cambio de modo fuera de secuencia NO se aparca aqui: se rechaza con NACK y es el padre quien lo recuerda y lo reenvia (pendingModeChanges, js/app.js). Aparcarlo ademas aqui lo aplicaba dos veces.
+
+                // Mostrar UI ahora que el padre confirmó
                 try {
-                    // El cambio de modo fuera de secuencia NO se aparca aqui: se rechaza con NACK y es el padre quien lo recuerda y lo reenvia (pendingModeChanges, js/app.js). Aparcarlo ademas aqui lo aplicaba dos veces.
-                    // Mostrar UI ahora que el padre confirmó
-                    try {
-                        _uiConfirmado = true;
-                        mostrarUI();
-                    } catch (e) {
-                        logger.debug(`${logPrefix} No se pudo forzar mostrarUI`, e && e.message);
-                    }
-                    try {
-                        enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch((err) => logger.debug(`${logPrefix} Confirmacion UI_VISIBLE no enviada`, err && err.message));
-                    } catch (e) {
-                        logger.debug(`${logPrefix} Error armando confirmacion UI_VISIBLE`, e && e.message);
-                    }
-                } catch (err) {
-                    logger.error(`${logPrefix} Error aplicando modo pendiente:`, err);
+                    _uiConfirmado = true;
+                    mostrarUI();
+                } catch (e) {
+                    logger.debug(`${logPrefix} No se pudo forzar mostrarUI`, e && e.message);
+                }
+                try {
+                    enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch((err) => logger.debug(`${logPrefix} Confirmacion UI_VISIBLE no enviada`, err && err.message));
+                } catch (e) {
+                    logger.debug(`${logPrefix} Error armando confirmacion UI_VISIBLE`, e && e.message);
                 }
 
                 // 🔥 NUEVO: Procesar modo inicial si viene en datos

@@ -71,12 +71,6 @@ const iframesRegistrados = new Map();
  */
 const confirmacionesPendientes = new Map();
 
-/**
- * Flag para marcar script2 como listo
- * @type {boolean}
- */
-let script2Listo = false;
-
 /** Guard síncrono para evitar doble inicio de heartbeat */
 let _heartbeatIniciando = false;
 
@@ -863,10 +857,12 @@ export function migrarManejadoresTempranos() {
 }
 
 /**
- * Marca script2 como listo y sincroniza con el state-manager centralizado
+ * Marca script2 como listo en el state-manager centralizado.
+ *
+ * El dato vive SOLO ahí: el bus no guarda copia propia. Tenerla era una segunda verdad que
+ * nadie leía — quien consulta esto (`getScript2Listo`) lo hace contra el state-manager.
  */
 export function marcarScript2Listo() {
-    script2Listo = true;
     logger.info('[mensajeria] Script2 marcado como listo');
     const sm = obtenerStateManager();
     if (sm && typeof sm.setScript2Listo === 'function') {
