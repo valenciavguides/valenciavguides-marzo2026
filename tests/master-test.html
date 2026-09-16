@@ -764,12 +764,11 @@
                 type: 'browser',
                 category: 'Specific'
             },
-            {
-                name: 'hijo3: Audio',
-                file: 'test_hijo3_audio.html',
-                type: 'browser',
-                category: 'Specific'
-            },
+            // 'hijo3: Audio' (test_hijo3_audio.html) se borró: llevaba dentro una copia
+            // simulada de hijo3 y comprobaba la copia, nunca el fichero real, así que salía
+            // verde pasara lo que pasara. Lo que de verdad protegía —que la UI no se muestre
+            // antes de que el padre confirme— lo cubre ahora
+            // tests/e2e/86-hijo3-no-se-muestra-antes-de-tiempo.spec.js, contra el hijo3 real.
             {
                 name: 'hijo4: Reto Visibility',
                 file: 'test_hijo4_reto_visibility.html',
