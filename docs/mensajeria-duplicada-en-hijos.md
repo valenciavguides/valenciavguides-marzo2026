@@ -32,18 +32,24 @@ no.**
 F1 → F5 → diseño del bus → migración (Parte V). F2 se arregla dentro de la migración; F3 y F4,
 cuando toque. **F1 y F5 están arreglados** (sin commitear).
 
-### Pendientes de diseño
+### Decisiones de diseño (tomadas)
 
-1. Un solo nombre para el padre (§8).
-2. Qué es un `ACK`, o si sobra (§12).
-3. Hacia dónde va un mensaje "a todos" que sale de un hijo con nietos (§16.3).
-4. Adónde van los errores de los nietos (§16.4).
-5. Qué hacer con el latido a pelo de volver a la pestaña, ahora que el de `monitoreo.js` ya no
-   está (§13).
-6. Cómo se comporta el bus en un hijo abierto como página suelta, sin padre (§16.5).
-7. Un solo mecanismo de acuse, y separar los dos significados de `SISTEMA.CONFIRMACION` (§3.7).
-8. Qué hijos vigila el heartbeat y cuáles se recuperan si se cuelgan (§8).
-9. Qué se hace con la cuarta capa de mensajería de `utils.js` (§5.1).
+El detalle de cómo se traducen al bus está en la Parte VI.
+
+1. **Un solo nombre para el padre: `'padre'`.** Si hace falta saber de dónde viene algo, va en
+   `datos` (§8).
+2. **Fuera el `ACK`.** Ningún hijo cambia nada al recibirlo (§12).
+3. **"A todos" = a los iframes directos de quien lo manda.** Nunca sube ni llega a los nietos.
+   Hoy ningún hijo lo usa (§9.4).
+4. **Los errores de un nieto llegan al padre**, pasando por su contenedor (§16.4).
+5. **El latido de volver a la pestaña lo hace el bus**, y respeta la pausa de CASA (§13).
+6. **Un hijo sin padre no envía, no espera y lo avisa una vez en el log** (§16.5).
+7. **Un solo acuse: el del bus.** Fuera los avisos informativos disfrazados de confirmación y
+   `DATOS.CARGADOS_RECIBIDO` (§3.7).
+8. **Se vigilan todos los iframes registrados; solo se recargan los que saben recuperarse**
+   (hijo1 a hijo4). Selección no guarda su pantalla: recargarla devolvería al usuario al
+   principio (§8).
+9. **Fuera la capa `get*` de `utils.js`** (§5.1).
 
 ---
 
@@ -795,11 +801,271 @@ del padre, que borra los iframes, sigue ahí y no depende de este plan.
 
 ---
 
-## Parte VI — Hallazgos colaterales
+## Parte VI — Diseño del bus
+
+Traducción de todas las decisiones a comportamiento concreto, verificada contra el código antes
+de construir. **Nada de esto está implementado.**
+
+## 21. Las reglas
+
+### 21.1. Identidad y papeles
+
+- Cada frame arranca el bus con su nombre: `'padre'` arriba; el `IFRAME_ID` en los hijos;
+  `'puzzle'`, `'video-intro'` y `'mapa-completo'` en los nietos.
+- El bus deduce solo sus papeles: **tiene padre** si `window.parent !== window`; **tiene hijos**
+  cuando registra iframes. Un mismo frame puede tener los dos (hijo4, selección, hijo6).
+- **El bus pone el `origen`** de todo lo que envía. Quien llama deja de pasarlo.
+- **Tiene que estar arrancado antes del primer envío** del frame (§7.4).
+
+### 21.2. Enviar
+
+`enviarMensaje({ tipo, destino, datos })` → `Promise<boolean>`, nunca lanza:
+
+| `destino` | Adónde va |
+|---|---|
+| `'padre'` | a la ventana de arriba del propio frame |
+| nombre de un iframe registrado | a ese iframe |
+| `'broadcast'` | a todos los iframes registrados **del propio frame**; nunca sube |
+| cualquier otra cosa | no se envía: `false` y aviso en el log |
+
+- Solo viajan `tipo`, `datos`, `destino`, `origen`, `id` y `timestamp`: todo dato va en `datos`.
+- **Hijo sin padre y sin iframes** (despedida, specs que abren hijos sueltos): `false` al
+  instante y un único aviso en el log.
+- Solo mismo origen. **Sin soporte de `file://`**: los módulos ES no cargan ahí (lo documenta el
+  spec 18), así que ese soporte es código muerto en el bus, hijo6 y el vídeo.
+
+`enviarMensajeConConfirmacion({ tipo, destino, datos, timeout })` → `Promise`:
+
+- **Resuelve** con lo que devolvió el handler (también `undefined`).
+- **Rechaza** con un error que dice por qué: `'fallo-handler'` (el handler se rompió),
+  `'sin-respuesta'` (plazo agotado) o `'no-enviado'`.
+- Plazo por defecto: `ajustarTimeoutPorConexion(5000)`, el que ya usan los hijos.
+
+`despacharLocal(mensaje)`: entrega un mensaje a los handlers **del propio frame** por la misma
+fila que los que llegan. Sustituye los tres caminos que hoy lo resuelven mal:
+`enviarMensajeCentral` (`app.js`, primera parada), los auto-mensajes de heartbeat del Script 4
+y el `destino: 'self'` de hijo5.
+
+### 21.3. Recibir
+
+- **Un solo listener** por frame.
+- Acepta un mensaje si viene del **mismo origen** y su fuente es **la ventana de arriba, un
+  iframe registrado o el propio frame**. Los propios se aceptan porque 17 specs simulan así
+  mensajes (§17). Lo demás se descarta.
+- **Sin `origen` o sin `tipo`:** se descarta con aviso en el log, uno por tipo. Hoy es silencioso,
+  y así se escondió F1.
+- **Un handler por tipo.** Registrar un tipo dos veces es un **error ruidoso** y se queda el
+  primero. Los comentarios del padre, `app.js` y `funciones-mapa.js` documentan carreras por
+  "gana el primero" que hubo que esquivar a mano; hoy no hay ningún tipo registrado dos veces.
+- En fila por tipo, como ya hace el bus en el padre.
+
+### 21.4. Contestar a un mensaje con acuse
+
+| Qué pasa | Qué contesta el bus |
+|---|---|
+| El handler devuelve algo (también `undefined`) | `SISTEMA.CONFIRMACION { idOriginal, datos }` |
+| El handler lanza | `SISTEMA.CONFIRMACION { idOriginal, error: { mensaje } }`, con el error **en la raíz**: el emisor rechaza con `'fallo-handler'` |
+| No hay handler | nada, y aviso en el log |
+
+- El texto del error se construye sin suponer que hay objeto de error, y la fila no puede
+  romperse por un fallo dentro del propio `catch` (§16.7, condición 4).
+- Un `{ exito: false, error }` **devuelto** por el handler es un resultado, no un fallo: resuelve
+  (§16.7, condición 2).
+
+### 21.5. Iframes
+
+- `registrarIframe(id, elemento, { recuperable })` **antes** de asignar `src`.
+- `desregistrarIframe(id)`, nuevo: el puzzle se crea y se destruye en cada reto, y el mapa cambia
+  de página en cada apertura.
+- Consulta pública: `tieneControlador(tipo)` y `listarControladores()`, para diagnóstico y para
+  los specs 07 y 20, que hoy consultan el registro del state-manager.
+
+### 21.6. Latido (solo en el padre)
+
+- Vigila **todos los iframes registrados**, no una lista a mano.
+- Tras 3 fallos: si el iframe es `recuperable` (hijo1 a hijo4), se recarga y se restaura; si no,
+  aviso en el log.
+- Al volver a la pestaña: `adelantarLatido()`. Si el latido está en pausa (CASA), no hace nada.
+- Se pausa en CASA, como ya hace.
+
+### 21.7. Errores
+
+- El reporte de `utils.js` funciona solo en cuanto el frame tiene bus (F2).
+- Un `SISTEMA.ERROR` que llega **de un iframe propio** se pasa tal cual hacia arriba, con el
+  nombre del nieto dentro. Es genérico en el bus: ningún contenedor escribe código para ello.
+
+## 22. Prueba de escritorio: los flujos reales contra el bus nuevo
+
+| # | Flujo | Qué pasa con el bus nuevo | Hueco y cómo se cubre |
+|---|---|---|---|
+| 1 | Arranque del padre | state-manager → bus `'padre'` → registros. El bus guarda sus handlers; el state-manager deja de hacerlo | `_logDebugHijoListo` (L~8425) consulta `getControladoresPorTipo`: pasa a `listarControladores` |
+| 2 | Registros del padre en sus 5 scripts | Registran directo en el bus. Las dos colas de espera existían porque la función de registro podía no existir todavía; el bus la publica al importarse | Verificar en cada script que espera a `globalThis.mensajeria` antes de registrar (el Script 2 ya lo hace) |
+| 3 | Selección al arrancar | Se registra antes de su `src` (L~8440). Su bus arranca antes de `_enviarHijoPreparado` | Los 6 envíos de su script clásico usan `globalThis.mensajeria` y van en acciones del usuario: verificar uno a uno al migrarla |
+| 4 | Handshake | `HIJO_PREPARADO` → `PADRE_DATOS` → `HIJO_LISTO`. Fuera el `ACK` de L~7530 | Ningún hijo depende de él: sus banderas de "padre listo" las pone una espera propia |
+| 5 | P14: carga de hijos | Registro antes de `src` (ya se hace); cada hijo arranca su bus | — |
+| 6 | Cambio de modo | `CAMBIO_MODO` a todos los registrados; "entendido" y "efectuado" vuelven a `app.js`. Fuera sus dos `ACK` | — |
+| 7 | Primera parada al activar la aventura | `despacharLocal` en vez de `enviarMensajeCentral`: la misma fila que un `CAMBIO_PARADA` entrante | Resuelve la posible ejecución en paralelo (§6). Sin tipos duplicados, un handler por tipo es equivalente a "todos los que encajan" |
+| 8 | Audio con acuse y reintentos | hijo3 devuelve objeto en sus dos salidas. Si su handler llegara a lanzar, el emisor rechaza con `'fallo-handler'` | `_enviarAudioRequestConReintento` no reintenta ese error: desbloquea directamente (§16.7, condición 3) |
+| 9 | Rescate (hijo6 → padre) | Acuse del bus; plazo ajustado por conexión | — |
+| 10 | Coordenadas (padre → hijo2) | Resuelve con `datos` | — |
+| 11 | Pausa al abrir página informativa (F3) | hijo1 solo avisa `UI.NAVEGACION_EXTERNA`; el handler del padre pausa a hijo3 | Fuera el mensaje hijo1 → hijo3 y la confirmación "a mano" de hijo3 |
+| 12 | Cerrar el asistente | Solo `CHAT.CERRAR` por el bus; su escucha suelta pasa a handler | Fuera la llamada directa al padre y el ocultado tocando su HTML |
+| 13 | hijo2 lee `parent.aventuraSeleccionada` | Debe usar el dato que ya le da el padre | Verificar al migrar hijo2 por qué existe ese respaldo |
+| 14 | Puzzle en hijo4 | hijo4 registra `puzzleIframe` antes de su `src` y lo desregistra al quitarlo; el puzzle envía a `'padre'` (su contenedor) | Fuera el formato de texto antiguo y sus aserciones del spec 61 |
+| 15 | Vídeo en selección y en hijo6 | Su script clásico usa `globalThis.mensajeria` en el clic | El vídeo importa el bus en su bloque módulo |
+| 16 | Mapa completo | El padre lo registra al abrir y lo desregistra al cerrar; los datos van en `datos` | Fuera `solicitar-ruta`/`ruta-completa` y la escucha suelta del padre |
+| 17 | Rotación y modo dev | Pasan a handlers del bus; `value` entra en `datos` | **`DEV_MODE_TOGGLE` deja de aceptarse de cualquier frame**: solo de uno registrado |
+| 18 | `VV:PARADAS:READY` de hijo5 | hijo5 carga en P14, con el bus del padre ya listo: pasa a handler | Fuera la escucha previa a los módulos |
+| 19 | Heartbeat | Llamadas directas a iniciar/pausar; `recuperable` en el registro | Fuera los auto-mensajes `HEARTBEAT_START/PAUSE` del Script 4, los que se mandan a los hijos y sus handlers (solo loguean). Revisar las herramientas de diagnóstico que los usan (`consultarHeartbeat`, `_testHeartbeatPauseResume`) |
+| 20 | Salir de la página (hijos) | El bus no quita su listener: se acaba lo de quedarse sordos | La parte del padre (F4) se decide aparte |
+| 21 | Errores (F2) | Llegan al padre; los de nietos, pasando por el contenedor | Spec 58: fuera su bus inventado, pasa a un hijo real |
+| 22 | Despedida | Selección sin padre: el bus no envía ni espera | — |
+
+## 23. Lo que se borra
+
+Sin dejar nada muerto:
+
+- Las 24 copias de los envoltorios en los 7 frames, con sus adaptadores, sus respaldos mudos,
+  `safeRegistrar`, `__CONTROLADOR_REGISTRADOS` y sus limpiezas en `pagehide`.
+- En el padre: `registrarControladorSeguro` y sus dos colas, `registrarControladorScript2Seguro`,
+  `desregistrarControladorSeguro`, `enviarMensajePadre` y su reescritura del origen, los alias de
+  envío (quedan un nombre de envío y uno de registro), las escuchas sueltas de §9.1, el latido a
+  pelo de volver a la pestaña y el handler muerto de `SISTEMA.HEARTBEAT`.
+- En el bus: la rama de rechazo muerta, la confirmación con `null` sin handler, el formato
+  posicional, `colaMensajes`, `script2Listo`, `limpiar`, `registrarHijo`, `getHijoTipo`, `CONFIG`,
+  la rama `__vv_getManejadores`, `migrarManejadoresTempranos` y el soporte de origen `'null'`.
+- En el state-manager: el registro de handlers y `enviarMensajeCentral`.
+- `js/app.js`: su copia muerta de `enviarMensajeConConfirmacion` y su envoltorio de envío.
+- `js/utils.js`: `getEnviarMensaje`, `getRegistrarControlador` y `getEnviarMensajeConConfirmacion`.
+- Mensajes: `SISTEMA.ACK`, las `SISTEMA.CONFIRMACION` informativas, `DATOS.CARGADOS_RECIBIDO`,
+  `HEARTBEAT_START/PAUSE`, `solicitar-ruta`/`ruta-completa` y el formato de texto del puzzle.
+- Las constantes que queden sin uso al final, comprobadas una a una.
+
+## 24. Tests, en rojo antes de construir
+
+**Contrato del bus**, con una página de pruebas que monte padre, hijo y nieto usando el bus real:
+
+1. Envío arriba, abajo y "a todos" (que no sube ni llega a nietos).
+2. Fuente no autorizada: descartada. Propio frame: aceptado.
+3. Mensaje sin `origen`: descartado y avisado.
+4. Acuse: resuelve con valor y con `undefined`; rechaza con `'fallo-handler'`,
+   `'sin-respuesta'` y `'no-enviado'`; un `{ exito: false }` devuelto resuelve.
+5. Sin handler: no contesta y avisa.
+6. Registrar un tipo dos veces: error ruidoso y se queda el primero.
+7. Hijo sin padre: `false` al instante, sin esperar.
+8. `desregistrarIframe`: deja de recibir y de enviarle.
+9. La fila de un tipo sobrevive a un fallo sin objeto de error.
+10. `despacharLocal` pasa por la misma fila.
+11. Un error de un nieto llega al padre con su nombre.
+12. Latido: vigila todos, recarga solo los recuperables y respeta la pausa al volver a la pestaña.
+
+**Escritos y en rojo:** el **spec 79** monta el arnés (padre → hijo → nieto con el bus real, más
+un iframe sin registrar y dos mudos) y cubre los 12 puntos en 15 casos: su control pasa y los
+otros 14 fallan, igual en los cuatro navegadores. Más 75 (F2), 76 (F3) y 77 (F4).
+**A reescribir:** 69 (regla de confirmación), 07 y 20 (registro), 58 (bus real), 61 (formato
+antiguo), 26/31/38 (sus stubs sobran) y 03, 06, 08, 09 y 10 (tripas del padre).
+
+---
+
+## 25. Lo construido, y en qué se apartó del diseño
+
+El bus está construido y commiteado (`d7efb72`), con el padre usándolo. Los siete hijos **todavía
+no están migrados**: siguen con su copia de los envoltorios. Suite completa tras construirlo:
+1664 verdes y 16 rojos, que son los cuatro ficheros esperados (58, 75, 76, 77) en los cuatro
+navegadores.
+
+### 25.1. La fila tenía una segunda forma de morir, y no estaba en el diseño
+
+El diseño protegía la fila de un handler que **falla** (§21.3). No la protegía de uno que **no
+termina nunca**, y el efecto es idéntico: ese tipo de mensaje deja de procesarse para siempre, en
+silencio, mientras todo lo demás sigue funcionando. Un `try/catch` no salva de un cuelgue.
+
+Comprobado con una prueba desechable antes de afirmarlo: con un handler que devuelve una promesa
+que nunca resuelve, el segundo mensaje de ese tipo no se procesa jamás (1 de 2).
+
+**Añadido:** constante `PLAZO_MAX_HANDLER` (20 s). Pasado ese plazo la fila avanza sin él y se
+registra un `logger.error` con el tipo y el id del mensaje; el handler no se corta. Los 20 s están
+muy por encima de cualquier handler legítimo: el propio bus rechaza a los 5 s una petición con
+acuse sin contestar. Lo cubre **BC-14**, validado en rojo.
+
+**El aviso es la red, no la solución.** Se auditaron los **55 handlers** del proyecto buscando
+esperas sin acotar. Solo dos esperan algo de la lista de riesgo (`_hdl_NAVEGACION_GPS_ACTIVAR` y
+`_hdl_SELECCION_P14_MOSTRADA`, los dos a `activarGPS`), y `activarGPS` está acotado en todos sus
+caminos: `getCurrentPosition` lleva plazo, el bucle de intentos está topado en 3 y
+`permissions.query` responde al momento. Los diálogos que esperan al usuario (rescate,
+reanudación) **nunca se esperan desde un handler** — el de rescate los lanza sin `await` y devuelve
+al momento. `retryUntilAvailable` se rinde tras N intentos. Del cerrojo del state-manager, 23 de
+sus 24 usos pasan funciones síncronas y el único asíncrono recibe un actualizador síncrono.
+Límite de esa auditoría: mira los `await` directos del cuerpo de cada handler, no toda la cadena
+de llamadas — que es justo lo que cubre la red.
+
+### 25.2. La marca `recuperable` estaba a medias
+
+El diseño decía "vigilar todos los registrados y recargar solo los recuperables". Se construyó la
+puerta y **no pasaba nadie**: ninguna de las cinco llamadas a `registrarIframe` pasaba la marca, así
+que el bus dejó de recargar a todo el mundo. Antes (`AUTO_RECONECTAR: true`) se recargaba cualquier
+hijo que fallara tres latidos.
+
+**BC-12b seguía verde** porque su arnés pasa la marca a mano. Un test que pasa con y sin el fallo no
+vale: hizo falta el **spec 80**, contra la aplicación real, para verlo.
+
+**Añadido al diseño:** un punto único de registro, `globalThis.registrarIframeHijo(id, elemento)`,
+con la lista `HIJOS_RECUPERABLES` al lado. Los cinco cargadores pasan por ahí.
+
+Y al tirar de ese hilo salieron dos fallos viejos que habrían hecho la recarga de hijo1
+contraproducente — se recargaría y perdería el temporizador:
+
+1. `_vv_afterHijoListo` comparaba `hijoId === 'hijo1'`, pero el iframe se llama `hijo1-opciones`:
+   esa rama no se cumplió nunca, y su `destino` tampoco existía en la mensajería.
+2. El tiempo restante solo se apuntaba dentro del bloque que pinta la ventana del temporizador, y
+   esa ventana solo se crea si el usuario la abre. Ahora sale de `estado.tiempoRestante`, que se
+   actualiza siempre; `_snapshotRecuperacion` pierde ese campo, que era una segunda copia.
+
+### 25.3. Un hallazgo propio que resultó falso
+
+Se reportó que un handler roto dejaba una promesa rechazada sin dueño, que
+`instalarReporteErroresAlPadre` convertiría en un segundo aviso al padre. **Es falso**: el `.catch`
+con el que la fila guarda su eslabón ya marca la original como atendida. Lo demostró la propia
+prueba, que pasaba con y sin el "arreglo" — el arreglo sobraba y se retiró. El test se queda
+(**BC-13**) porque sí se pone rojo si alguien toca el `.catch` de la fila: vigila la otra
+consecuencia de esa misma línea.
+
+### 25.4. Tests del contrato: 15 → 17
+
+A los 15 del spec 79 se suman **BC-13** (un handler roto no deja promesa suelta) y **BC-14** (un
+handler colgado no para su tipo). Fuera del contrato, el **spec 80** (RC-1/2/3) comprueba contra la
+aplicación real lo que el arnés no puede: que la PWA marca de verdad a los cuatro recuperables y que
+la restauración de hijo1 le llega a hijo1.
+
+### 25.5. Código muerto retirado
+
+`mensajeria?.registrarHijo?.()` del padre (no-op silenciosa por el `?.`),
+`desregistrarControladorSeguro` entero (definido y expuesto, jamás llamado, y por dentro invocaba
+dos cosas inexistentes), el bloque `CONFIG.HIJOS` completo (§Parte VII, punto 3 — sus cuatro claves
+sin un solo lector) y todas las menciones en comentarios a `_enviarDesdePadre`, `getHijoTipo`,
+`_hijosRegistrados` y `registrarHijo`. Barrido final de la superficie del bus (23 nombres: objeto
+`globalThis.mensajeria` + exports + alias `_S1` del padre): **cero código vivo llamando a algo que
+el bus no tiene**.
+
+### 25.6. Abierto
+
+- **Spec 28 (SE-1) falló una vez en iPhone 12** y no se ha podido reproducir: el proyecto iPhone 12
+  entero pasa, y en solitario 3 de 3. Descartado por mecanismo que sea de estos cambios (ese test
+  solo arranca el padre hasta FASE 1, así que el latido no corre y hijo3 no puede recargarse).
+  Queda como fragilidad conocida, sin explicar.
+- **Espacios al final** ya existentes en `js/mensajeria.js` y `js/utils.js` (7 líneas con código,
+  64 en blanco). No se tocan; la regla `no-trailing-spaces` no está configurada.
+
+---
+
+## Parte VII — Hallazgos colaterales
 
 Salieron tirando del hilo. No son de la mensajería y no se han tocado.
 
-1. **El linter no revisa `js/`.** El bloque `js/**/*.js` de `eslint.config.js` activa tres
+1. **El linter mira `js/` pero casi sin reglas.** Cuidado con resumirlo como "no cubre `js/`":
+   `npm run lint` es `eslint "js/**/*.js" "*.html"` y solo ignora `js/vendor/`, `js/server.js` y
+   `js/suppress-warnings.js`, así que los ficheros sí entran. Lo que pasa es que el bloque
+   `js/**/*.js` de `eslint.config.js` activa tres
    reglas; ESLint 9 no trae las recomendadas de serie, así que `no-unused-vars`, `no-undef` y
    `no-redeclare` solo aplican a los HTML. Activando `no-unused-vars` salen 9 avisos reales fuera
    de `js/vendor/`: `js/app.js` (la copia muerta, `CONFIG`, dos argumentos), `js/config.js`
