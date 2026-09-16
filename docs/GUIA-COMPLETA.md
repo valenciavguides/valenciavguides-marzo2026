@@ -154,7 +154,7 @@ modo: {
 **Condiciones de estado en MODO CASA**:
 
 - **GPS**: `watchPosition` puede estar activo pero las validaciones de distancia están desactivadas. Los overlays de "fuera de rango" y "siguiente parada" están ocultos.
-- **Heartbeat**: detenido. El padre pausa el suyo con una llamada directa a `pausarHeartbeat()` — no puede mandárselo por mensaje, porque su propio id no está en `iframesRegistrados` y `_enviarDesdePadre()` lo descartaría — y envía `SISTEMA.HEARTBEAT_PAUSE` a los hijos críticos.
+- **Heartbeat**: detenido. El padre pausa el suyo con una llamada directa a `pausarHeartbeat()` — no puede mandárselo por mensaje, porque su propio id no está en `iframesRegistrados` y `enviarMensaje()` lo descartaría — y envía `SISTEMA.HEARTBEAT_PAUSE` a los hijos críticos.
 - **Retos**: habilitados o deshabilitados por posición. Padre envía `RETO.ESTADO_CASA` a hijo4 con `{ tipo: 'parada', habilitado: true }` (parada → habilitado) o `{ tipo: 'tramo', habilitado: false }` (tramo → deshabilitado).
 - **Navegación**: manual. El usuario selecciona paradas desde hijo5.
 - **Audio**: reproducción bajo demanda, no automática.
@@ -495,16 +495,19 @@ Los dos caminos de `LLEGADA_DETECTADA` (funciones-mapa y hijo2) son sensores red
 
 Solo activo en **MODO AVENTURA**. Detecta hijos colgados o desconectados.
 
-**Configuración** (`js/config.js`):
+**Configuración** (`js/mensajeria.js`):
 
-- Intervalo: **5000 ms** (5 segundos) — valor por defecto de `iniciarHeartbeat()` en `js/mensajeria.js`; `js/app.js` lo arranca sin pasar intervalo
-- Máximo de fallos consecutivos antes de marcar como desconectado: **3** — `HEARTBEAT.MAX_HEARTBEATS_FALLIDOS`
-- `AUTO_RECONECTAR: true` → recarga el iframe automáticamente
+- Intervalo: **5000 ms** (5 segundos) — valor por defecto de `iniciarHeartbeat()`; `js/app.js` lo arranca sin pasar intervalo
+- Máximo de latidos seguidos sin respuesta antes de dar a un iframe por caído: **3** — constante `MAX_LATIDOS_SIN_RESPUESTA`
+
+**A quién vigila:** a **todos los iframes registrados** (`iframesRegistrados`), sin lista fija ni categorías. Registrar un iframe es lo que lo hace alcanzable desde el padre y, por lo mismo, lo que lo pone bajo vigilancia: son la misma cosa, no dos registros que haya que mantener sincronizados.
+
+**A quién recarga:** solo a los marcados `recuperable` al registrarse. Recargar a ciegas un frame que no sabe retomar lo que estaba haciendo le hace perder el sitio al usuario, que es peor que el cuelgue. Ver §2.7a.
 
 **Algoritmo real del contador de fallos** (`enviarHeartbeatAHijos()`/`procesarHeartbeatResponse()`, `js/mensajeria.js`) — no es "esperar el timeout y entonces contar un fallo", es incrementar de forma optimista en el envío y resetear por completo en cualquier respuesta:
 
-1. En cada tick del `setInterval` de 5s, por cada hijo crítico: se envía `SISTEMA.HEARTBEAT` y, en la misma operación atómica (`sm.atomicUpdateHeartbeat`, evita condición de carrera con la respuesta llegando en paralelo), se incrementa `heartbeatsFallidos[hijoId]` en 1 — el envío en sí ya cuenta como "posible fallo" antes de saber si habrá respuesta.
-2. Si el contador alcanza `MAX_HEARTBEATS_FALLIDOS` (3) tras el incremento, se llama `marcarHijoDesconectado(hijoId, autoReconectar)` inmediatamente, en ese mismo tick.
+1. En cada tick del `setInterval` de 5s, por cada iframe registrado: se envía `SISTEMA.HEARTBEAT` y, en la misma operación atómica (`sm.atomicUpdateHeartbeat`, evita condición de carrera con la respuesta llegando en paralelo), se incrementa `heartbeatsFallidos[hijoId]` en 1 — el envío en sí ya cuenta como "posible fallo" antes de saber si habrá respuesta.
+2. Si el contador alcanza `MAX_LATIDOS_SIN_RESPUESTA` (3) tras el incremento, se llama `marcarHijoDesconectado(hijoId)` inmediatamente, en ese mismo tick.
 3. Si llega `SISTEMA.HEARTBEAT_RESPONSE` del hijo (`procesarHeartbeatResponse()`) — para cualquier heartbeat previo, no solo el último — el contador de ese hijo se pone a **0** de golpe (no se decrementa) y `ultimoHeartbeat[hijoId]` se actualiza. Si el hijo estaba en `hijosDesconectados`, se quita del set; si era `hijo2`, además se reenvían los mensajes GPS pendientes (`reenviarMensajesGPSAPendientes`).
 
 Efecto neto: 3 ticks seguidos (15s) sin ninguna respuesta marcan al hijo como desconectado — una sola respuesta en cualquier punto de esa ventana reinicia la cuenta desde cero.
@@ -523,7 +526,7 @@ Efecto neto: 3 ticks seguidos (15s) sin ninguna respuesta marcan al hijo como de
 ```mermaid
 sequenceDiagram
     participant P as Padre (setInterval 5s)
-    participant H as Hijo crítico
+    participant H as Iframe registrado
 
     loop Cada 5 segundos (solo en MODO AVENTURA)
         P->>H: SISTEMA.HEARTBEAT { timestamp }
@@ -536,11 +539,37 @@ sequenceDiagram
                 Note over P: Esperar siguiente tick
             else fallos >= 3
                 P->>P: Marcar hijo como desconectado
-                P->>H: Recargar iframe (AUTO_RECONECTAR)
+                alt Marcado recuperable
+                    P->>H: Recargar iframe y restaurar su estado
+                else No recuperable
+                    Note over P: Solo aviso — no se recarga
+                end
             end
         end
     end
 ```
+
+---
+
+### 2.7a. Qué se recarga y qué no
+
+El bus recarga **solo** los iframes registrados con `{ recuperable: true }`. El criterio no es una opinión: son exactamente los cuatro cuyo estado el padre sabe devolver tras la recarga, en `_vv_afterHijoListo()` (`codigo-padre.html`).
+
+| Iframe | ¿Recuperable? | Qué se le devuelve tras recargar |
+|--------|---------------|----------------------------------|
+| `hijo1-opciones` | Sí | `AVENTURA.INICIADA` con el tiempo restante (`estado.tiempoRestante`) |
+| `hijo2` | Sí | `NAVEGACION.CAMBIO_PARADA` con `parada_id` = la parada actual |
+| `hijo3` | Sí | `AUDIO.REPRODUCIR_REQUEST` con el audio que sonaba |
+| `hijo4` | Sí | `RETO.MOSTRAR` con el reto que estaba a la vista |
+| `seleccion` | No | — |
+| `hijo5` | No | — |
+| `hijo6-chat` | No | — (recargarlo perdería la conversación) |
+
+**Un solo punto de registro.** Los cinco cargadores de iframes del padre llaman a `globalThis.registrarIframeHijo(id, elemento)` (Script 1 de `codigo-padre.html`), que es quien consulta `HIJOS_RECUPERABLES` y pasa la marca a `registrarIframe()`. Ningún cargador decide por su cuenta.
+
+**Qué pasa si se añade un iframe a `HIJOS_RECUPERABLES` sin darle su rama en `_vv_afterHijoListo()`:** se recargaría y el usuario se quedaría en blanco. El test RC-2 (`tests/e2e/80-recuperacion-hijos-caidos.spec.js`) exige que el conjunto marcado sea exactamente el de la tabla, ni uno de más.
+
+**Antes de recargar**, `intentarReconectarHijo()` llama a `globalThis._vv_beforeHijoReload(hijoId)`, que toma la foto del estado; la restauración ocurre después, cuando el hijo recargado vuelve a mandar su `HIJO_LISTO`.
 
 ---
 
@@ -594,7 +623,7 @@ sequenceDiagram
 | hijo5 | `SISTEMA.CAMBIO_MODO` + `SISTEMA.HEARTBEAT_START` | `SISTEMA.CAMBIO_MODO` + `SISTEMA.HEARTBEAT_PAUSE` |
 | hijo6 | `SISTEMA.CAMBIO_MODO` | `SISTEMA.CAMBIO_MODO` |
 
-> El heartbeat es dinámico: `enviarHeartbeatAHijos()` en `mensajeria.js` usa `_hijosRegistrados` (Map poblado por cada `HIJO_PREPARADO`). Todos los hijos — incluidos hijo1, hijo6 y la pantalla de selección — reciben el pulso una vez registrados. `HEARTBEAT_START`/`PAUSE` se envían desde `codigo-padre.html` a hijo2/3/4/5 explícitamente (estos son los hijos con estado heartbeat en modo aventura).
+> El heartbeat es dinámico: `enviarHeartbeatAHijos()` en `mensajeria.js` recorre `iframesRegistrados`, el mismo Map por el que el padre resuelve a quién escribe. Todos los hijos — incluidos hijo1, hijo6 y la pantalla de selección — reciben el pulso desde que su cargador los registra. `HEARTBEAT_START`/`PAUSE` se envían desde `codigo-padre.html` a hijo2/3/4/5 explícitamente (estos son los hijos con estado heartbeat en modo aventura).
 
 ---
 
@@ -1585,13 +1614,13 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 | Hijo 5 | `hijo5` | `boton-casa-hijo5.html` | No | `SELECCION.P14_MOSTRADA` → `cargarHijoCasa()`, que **lo registra en la mensajería antes de las dos ramas** y luego espera `HIJO_LISTO` (si ya está cargado, solo espera) | **Solo desarrollo — no aparece en la PWA final.** Herramienta de prueba para simular el modo CASA desde escritorio. Contiene el botón GPS (🛰️) que envía `SISTEMA.CAMBIO_MODO` al padre para alternar entre modos CASA y AVENTURA. Visible solo cuando el modo DEV está activo (`globalThis._devModeActivo = true`, ver §24); permanece oculto (`display:none`) en todo momento normal. |
 | Hijo 6 | `hijo6-chat` | `chat-hijo6.html` | No | **Lazy** — `src=""` en HTML; se asigna al primer click en `#btn-chat-soporte` | Asistente de soporte FAQ en acordeón. Accesible desde un botón flotante propio del padre. |
 
-> **Quién recibe heartbeat: todo el que haya completado `HIJO_PREPARADO`, no una lista fija.** `enviarHeartbeatAHijos()` (`js/mensajeria.js`) resuelve sus destinos así: `_hijosRegistrados.size > 0 ? [..._hijosRegistrados.keys()] : ['hijo2','hijo3','hijo4','hijo5']`. Ese `Map` lo puebla `registrarHijo(mensaje.origen, tipo)`, llamada desde `_hdl_SISTEMA_HIJO_PREPARADO` (`codigo-padre.html`) — y **los siete componentes envían `HIJO_PREPARADO`**, también `seleccion`, `hijo1-opciones` y `hijo6-chat`. El literal de cuatro es solo la reserva para el hueco en que aún no se ha registrado nadie.
+> **Quién recibe heartbeat: todo iframe registrado, no una lista fija.** `enviarHeartbeatAHijos()` (`js/mensajeria.js`) recorre `[...iframesRegistrados.keys()]`, sin lista de reserva ni categorías. Ese `Map` lo puebla `registrarIframe()`, que los cargadores del padre llaman **antes de asignar el `src`** a través del punto único `globalThis.registrarIframeHijo()`. Estar registrado es a la vez lo que hace a un iframe alcanzable desde el padre y lo que lo pone bajo vigilancia: no son dos listas que haya que mantener a la par. Entran los siete, también `seleccion`, `hijo1-opciones` y `hijo6-chat`, cada uno cuando su cargador lo registra (`hijo5` al elegir aventura, el chat al abrirlo).
 >
 > Medido tras cargar los iframes: el registro contiene `seleccion` (SELECCION), `hijo1-opciones` (EXTRAINFO), `hijo2` (COORDENADAS), `hijo3` (AUDIO), `hijo4` (RETO) y `hijo5` (CASA) — y `hijo6-chat` en cuanto se abre el chat, que se carga en diferido. Los seis aparecen tanto en `heartbeatsFallidos` como en `ultimoHeartbeat`, es decir: reciben el latido **y lo contestan**. Los siete tienen su controlador de `SISTEMA.HEARTBEAT` y responden `SISTEMA.HEARTBEAT_RESPONSE`, así que ninguno acumula fallos por no estar previsto.
 >
-> **Del registro no se borra nunca.** `_hijosRegistrados` solo tiene `.set()`: no hay `.delete()` ni `.clear()` en ninguna parte. Una vez que un componente completa su handshake, se queda en el ciclo del latido para el resto de la sesión — también `seleccion`, que el padre oculta al activarse la aventura pero cuyo JS sigue vivo y sigue contestando. Es inofensivo porque **ningún iframe se retira nunca del DOM**: si alguno se retirara, su entrada quedaría huérfana y acumularía fallos hasta provocar una recarga inútil. Medido sobre la app cargada con `seleccion` ya oculta: 40 latidos seguidos, los seis contadores de fallo en 0, cero desconectados y cero recargas de iframe.
+> **De los iframes fijos no se da de baja a nadie.** `desregistrarIframe(id)` existe y lo usan los nietos que van y vienen (el puzzle se crea y se destruye en cada reto, el mapa completo cambia de página en cada apertura), pero ninguno de los siete iframes del padre se retira: una vez registrado, se queda en el ciclo del latido para el resto de la sesión — también `seleccion`, que el padre oculta al activarse la aventura pero cuyo JS sigue vivo y sigue contestando. Es inofensivo porque **ningún iframe se retira nunca del DOM**: si alguno se retirara, su entrada quedaría huérfana y acumularía fallos hasta provocar una recarga inútil. Medido sobre la app cargada con `seleccion` ya oculta: 40 latidos seguidos, los seis contadores de fallo en 0, cero desconectados y cero recargas de iframe.
 >
-> Cadencia y castigo: cada 5 s en MODO AVENTURA (valor por defecto de `iniciarHeartbeat()`); si uno no responde 3 veces seguidas, `marcarHijoDesconectado()` lo anota e `intentarReconectarHijo()` recarga su iframe. Esos 3 fallos y la reconexión automática son los valores por defecto del código: `js/mensajeria.js` los busca en `globalThis.Config.HEARTBEAT`, que no existe, y las claves de `CONFIG.HIJOS` en `js/config.js` no las lee nadie. Es el **único** latido periódico: se pausa en CASA.
+> Cadencia y castigo: cada 5 s en MODO AVENTURA (valor por defecto de `iniciarHeartbeat()`); si uno no responde 3 veces seguidas (`MAX_LATIDOS_SIN_RESPUESTA`, constante de `js/mensajeria.js`), `marcarHijoDesconectado()` lo anota y, **solo si está marcado `recuperable`**, `intentarReconectarHijo()` recarga su iframe; si no lo está, queda el aviso y nada más (§2.7a). Es el **único** latido periódico: se pausa en CASA.
 >
 > **"Crítico" significa otra cosa y no hay que confundirlo con esto:** los tres hijos críticos (`hijo2`, `hijo3`, `hijo4`) son los que bloquean `_esperarHijosCargados` y disparan `_hijoListo_onTodosListos`. Recibir heartbeat y ser crítico son propiedades independientes.
 
@@ -3213,7 +3242,7 @@ if (!chatCargado) {
 
 > **Los cuatro cargadores de iframes registran su iframe, sin excepción.** `_cargarSingleIframe()`, `_cargarUnIframeHijo()`, `_cargarSoloIframeActivacion()` y `cargarHijoCasa()` llaman a `registrarIframe_S1(id, elemento)` **antes** de asignar el `src`. Cualquier cargador nuevo debe hacer lo mismo: es el requisito, no un detalle.
 
-> **El registro en la mensajería es obligatorio, no decorativo.** `_enviarDesdePadre()` (`js/mensajeria.js`) resuelve todo destino padre→hijo buscándolo en el Map `iframesRegistrados`; un iframe que no esté ahí **no es alcanzable desde el padre** y cualquier mensaje dirigido a él se descarta devolviendo `false`, con un único `logger.warn("Iframe no encontrado o sin contentWindow: …")` como rastro. El sentido contrario (hijo→padre) nunca depende de este Map: es un `postMessage` directo a `window.parent`, así que un hijo sin registrar sí consigue entregar su `HIJO_PREPARADO` — y ese es justo el modo de fallo confuso, porque el handshake parece arrancar bien y solo la respuesta se pierde.
+> **El registro en la mensajería es obligatorio, no decorativo.** `enviarMensaje()` (`js/mensajeria.js`) resuelve todo destino padre→hijo buscándolo en el Map `iframesRegistrados`; un iframe que no esté ahí **no es alcanzable desde el padre** y cualquier mensaje dirigido a él se descarta devolviendo `false`, con un único `logger.warn("Iframe no encontrado o sin contentWindow: …")` como rastro. El sentido contrario (hijo→padre) nunca depende de este Map: es un `postMessage` directo a `window.parent`, así que un hijo sin registrar sí consigue entregar su `HIJO_PREPARADO` — y ese es justo el modo de fallo confuso, porque el handshake parece arrancar bien y solo la respuesta se pierde.
 >
 > El mismo fallo apareció dos veces en cargadores distintos. En `hijo6-chat` se manifestaba como un chat siempre en español. En **hijo5** la cadena era: `PADRE_DATOS` descartado → hijo5 nunca envía su `HIJO_LISTO` (lo emite desde dentro de ese handler) → `_esperarHijoListo()` agota su timeout y el `catch` de `cargarHijoCasa()` se lo traga → hijo5 no entra en `hijosInicializados`, así que el cambio de modo llegaba a 5 hijos en vez de 6 → sin `PADRE_CONFIRMA_HIJO_LISTO`, su `mostrarUI()` hace `return` y su propio `document.body` se queda en `display:none`. **El iframe estaba visible y vacío.** Estuvo tapado mucho tiempo porque la rama fallback de `AVENTURA_ACTIVADA` usa `_cargarSoloIframeActivacion()`, que sí registra, y esa rama se disparaba prácticamente siempre mientras `_iframesPreCargadosP14` dependía del GPS. Al corregir aquello desapareció el parche accidental y el fallo real quedó a la vista. Para `hijo6-chat` la consecuencia concreta es doble: no le llega el `SISTEMA.PADRE_DATOS` que transporta el idioma (§6, "única excepción"), con lo que el FAQ se construye con el `'es'` por defecto sea cual sea `idiomaSeleccionado`; y al no completar `HIJO_LISTO` nunca entra en `hijosInicializados`, lo que deja también sin efecto la vía de refresco `CHAT.ESTADO_PADRE` de las aperturas siguientes (que se condiciona precisamente a esa comprobación). Por eso el registro se hace **antes** de asignar `src`, en el mismo punto y con el mismo criterio que los tres cargadores de iframes del padre (`_cargarSingleIframe()`, `_cargarUnIframeHijo()`, `_cargarSoloIframeActivacion()`). Cubierto por `tests/e2e/47-reescalado-marcador-usuario-y-chat.spec.js` (grupo CH).
 
@@ -3575,12 +3604,13 @@ La comunicación entre `codigo-padre.html` y todos sus iframes usa la API nativa
 | `enviarMensaje({ tipo, datos?, destino?, origen? })` | Envío estándar — solo acepta formato objeto, sin formato posicional (ver nota más abajo). Si `destino` es un ID de iframe, lo busca; si se omite, hace broadcast a todos los registrados. Devuelve `Promise<boolean>` — `false` si `tipo` falta, nunca lanza de forma síncrona |
 | `enviarMensajeConConfirmacion(tipoOrMensaje, datos?, opciones?)` | Envío con espera de `SISTEMA.ACK`; a diferencia de `enviarMensaje`, sigue aceptando formato dual — objeto `({tipo, datos, destino, ...})` o posicional `(tipo, datos, opciones)` — implementación independiente, no delega en `enviarMensaje`; timeout configurable; añade campo `id` al mensaje para rastrear la confirmación |
 | `registrarControlador(tipo, handler, opciones={})` | Registra un handler para un tipo de mensaje entrante; delega al state-manager si está disponible, o cae en `__vv_manejadoresLocales` |
-| `registrarIframe(id, elemento)` | Registra un iframe por su ID para que `enviarMensaje` lo resuelva |
-| `iniciarHeartbeat(intervalo=5000)` | Inicia el latido: envía `SISTEMA.HEARTBEAT` cada `intervalo` ms a los hijos de `_hijosRegistrados` — todos los que hayan completado `HIJO_PREPARADO`, no solo los críticos (§5) — o a `['hijo2','hijo3','hijo4','hijo5']` mientras ese registro siga vacío. El estado (intervalId, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados`) vive en el state-manager. Tras `CONFIG.HEARTBEAT.MAX_HEARTBEATS_FALLIDOS` (3) fallos consecutivos sin `HEARTBEAT_RESPONSE`, `marcarHijoDesconectado()` lo apunta en `hijosDesconectados`, pone su contador a 0 para no repetir la recarga mientras esta ocurre, y `intentarReconectarHijo()` avisa a `globalThis._vv_beforeHijoReload(hijoId)` para que el padre tome un snapshot del estado antes de recargar el iframe por self-assign (`iframe.elemento.src = iframe.elemento.src`) |
+| `registrarIframe(id, elemento, opciones={})` | Registra un iframe por su ID para que `enviarMensaje` lo resuelva y el latido lo vigile. `opciones.recuperable === true` es lo único que autoriza al bus a recargarlo cuando deje de contestar (§2.7a). No guarda el `contentWindow`: lo lee del elemento en cada envío, porque recargar un iframe lo sustituye |
+| `desregistrarIframe(id)` | Da de baja un iframe: deja de recibírsele y sus mensajes dejan de aceptarse. Para los que van y vienen (el puzzle de cada reto, el mapa completo) |
+| `despacharLocal(mensaje)` | Entrega un mensaje a los handlers de **este mismo frame**, por la misma fila que los que llegan de fuera. Es la única forma correcta de que un frame se mande algo a sí mismo: `enviarMensaje` no puede, porque uno no está entre sus propios iframes registrados |
+| `adelantarLatido()` | Fuerza un latido inmediato (al volver a la pestaña) **respetando la pausa**: si el latido está parado en CASA, no hace nada |
+| `iniciarHeartbeat(intervalo=5000)` | Inicia el latido: envía `SISTEMA.HEARTBEAT` cada `intervalo` ms a **todos los iframes registrados**, sin lista fija ni reserva. El estado (intervalId, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados`) vive en el state-manager. Tras `MAX_LATIDOS_SIN_RESPUESTA` (3) latidos consecutivos sin `HEARTBEAT_RESPONSE`, `marcarHijoDesconectado()` lo apunta en `hijosDesconectados` y pone su contador a 0 para no repetir la recarga mientras esta ocurre; **solo si el iframe está marcado `recuperable`**, `intentarReconectarHijo()` avisa a `globalThis._vv_beforeHijoReload(hijoId)` para que el padre tome un snapshot del estado y recarga el iframe por self-assign (`iframe.elemento.src = iframe.elemento.src`). Si no lo está, queda el aviso en el log y nada más |
 | `pausarHeartbeat()` | Pausa el latido via state-manager (`sm.updateHeartbeat({ activo:false, intervalo:null })`); libera el `setInterval` |
 | `procesarHeartbeatResponse(mensaje)` | Resetea `heartbeatsFallidos` a 0 para el hijo que responde; si estaba marcado como desconectado, lo elimina de `hijosDesconectados` y reenvía mensajes GPS pendientes (`sm.getGpsPendientes()` → `NAVEGACION.ACTUALIZAR_ESTADO`) |
-| `registrarHijo(id, tipo = 'DESCONOCIDO')` | Añade el hijo al `Map` `_hijosRegistrados`, de donde `iniciarHeartbeat()` saca a quién vigilar. La llama `_hdl_SISTEMA_HIJO_PREPARADO` (`codigo-padre.html`) con `mensaje.origen` y el `tipo` que declara el hijo, así que a partir de su handshake ese componente entra en el ciclo del latido (ver §5) |
-| `getHijoTipo(id)` | Devuelve el `tipo` que el hijo declaró en `HIJO_PREPARADO` (`'COORDENADAS'`, `'AUDIO'`, `'RETO'`…), o `null` si aún no se ha registrado. Funciona, pero **ningún fichero del proyecto lo consume**: está en la API pública del módulo sin lectores |
 
 **Los hijos** envían siempre con `window.parent.postMessage(mensaje, location.origin)`.
 **El padre** envía con `iframe.contentWindow.postMessage(mensaje, location.origin)` para destinos concretos — siempre con `destino: 'hijoX'` explícito (ver §10.18).
@@ -3620,7 +3650,7 @@ sequenceDiagram
         H->>P: SISTEMA.HEARTBEAT_RESPONSE { timestamp, componente, estado }
         P->>SM: heartbeatsFallidos[hijoId] = 0
         P->>SM: ultimoHeartbeat[hijoId] = Date.now()
-    else Hijo no responde (fallo × MAX_HEARTBEATS_FALLIDOS = 3)
+    else Hijo no responde (fallo × MAX_LATIDOS_SIN_RESPUESTA = 3)
         Note over P: heartbeatsFallidos[hijoId] >= 3
         P->>SM: hijosDesconectados.add(hijoId)
         Note over P: intentarReconectarHijo(hijoId)
@@ -3671,7 +3701,7 @@ sequenceDiagram
 
 **Campos declarados por cada hijo en `HIJO_PREPARADO`** (`datos.tipo` + `datos.capacidades[]`):
 
-El campo `tipo` es la clave del **registro dinámico de hijos** (`_hijosRegistrados` en `mensajeria.js`). El padre lo extrae en `_hdl_SISTEMA_HIJO_PREPARADO` y llama `globalThis.mensajeria.registrarHijo(id, tipo, capacidades)`. A partir de ese momento, `enviarHeartbeatAHijos()` incluye ese hijo en el ciclo de heartbeat automáticamente — no requiere cambios en `mensajeria.js` para añadir nuevos hijos.
+El campo `tipo` es **informativo**: el padre lo registra en el log de `_hdl_SISTEMA_HIJO_PREPARADO` y nada más. Quién entra en el ciclo del latido no depende de lo que el hijo declare de sí mismo, sino de estar en `iframesRegistrados` — y ahí lo mete su cargador antes incluso de que el iframe empiece a cargar. Añadir un hijo nuevo no requiere cambios en `mensajeria.js`: basta con que su cargador lo registre.
 
 | Hijo | `tipo` | `capacidades[]` |
 |------|--------|-----------------|
@@ -3846,7 +3876,7 @@ sequenceDiagram
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Acuse de recibo de que el modo fue aplicado globalmente |
 | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html (sub-iframe activo de P4, ver §35) | Recibido por un listener genérico de `message` en `En-busca-del-tesoro.html`, que llama `mostrar(5)` directamente. No reenvía al padre. |
 
-> La pantalla de selección no recibe `CAMBIO_PARADA`. Sí recibe `SISTEMA.HEARTBEAT` desde el momento en que su `HIJO_PREPARADO` la añade al registro dinámico `_hijosRegistrados` de `mensajeria.js` — el handler de heartbeat de la pantalla responde correctamente.
+> La pantalla de selección no recibe `CAMBIO_PARADA`. Sí recibe `SISTEMA.HEARTBEAT` desde el momento en que su cargador la añade a `iframesRegistrados` — el handler de heartbeat de la pantalla responde correctamente. No está marcada `recuperable`: si dejara de contestar, el bus avisa pero no la recarga (§2.7a).
 
 ---
 
@@ -3878,7 +3908,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 | **padre →** | `UI.CLOSE_MENUS` | `{ except }` | Colapsa el menú si `except !== 'mas-opciones'` |
 | **padre →** | `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados |
 
-> hijo1 recibe `SISTEMA.HEARTBEAT` desde el momento en que su `HIJO_PREPARADO` lo registra en `_hijosRegistrados` de `mensajeria.js` (tiene el handler y responde). No recibe `HEARTBEAT_START`/`HEARTBEAT_PAUSE` (esos se envían explícitamente a hijo2/3/4/5 desde `codigo-padre.html`), ni `DATOS.CARGAR_*`, ni participa en el flujo de paradas.
+> hijo1 recibe `SISTEMA.HEARTBEAT` desde el momento en que su cargador lo registra en `iframesRegistrados` (tiene el handler y responde). Está marcado `recuperable`: si deja de contestar tres latidos, el bus recarga su iframe y el padre le devuelve el tiempo restante (§2.7a). No recibe `HEARTBEAT_START`/`HEARTBEAT_PAUSE` (esos se envían explícitamente a hijo2/3/4/5 desde `codigo-padre.html`), ni `DATOS.CARGAR_*`, ni participa en el flujo de paradas.
 >
 > **ID real del iframe**: `hijo1-opciones` (no `hijo1`). Todos los mensajes dirigidos a este hijo usan `destino:'hijo1-opciones'`.
 
@@ -4094,7 +4124,7 @@ Panel FAQ de solo lectura. Se carga de forma **lazy** — su `src` es vacío has
 | **→ padre** | `CHAT.CERRAR` | `{ }` | Usuario pulsa el botón de cerrar |
 | **padre →** | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Handshake init — idioma llega vía `CHAT.ESTADO_PADRE` |
 | **padre →** | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Handshake OK |
-| **padre →** | `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | hijo6 recibe el pulso `SISTEMA.HEARTBEAT` cuando está cargado (queda registrado en `_hijosRegistrados` via su `HIJO_PREPARADO`). `HEARTBEAT_START`/`PAUSE` se envían explícitamente desde `codigo-padre.html` a hijo2/3/4/5; hijo6 puede recibirlos si está cargado al cambiar de modo |
+| **padre →** | `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | hijo6 recibe el pulso `SISTEMA.HEARTBEAT` cuando está cargado (su cargador lo registra en `iframesRegistrados` al abrir el chat; no está marcado `recuperable`, ver §2.7a). `HEARTBEAT_START`/`PAUSE` se envían explícitamente desde `codigo-padre.html` a hijo2/3/4/5; hijo6 puede recibirlos si está cargado al cambiar de modo |
 | **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo }` | Handler presente pero sin acción (no-op) |
 | **padre →** | `CHAT.ESTADO_PADRE` | `{ idioma, ...estadoPadre }` | Si cambió el idioma, reconstruye el acordeón; el resto de campos (parada, aventura) solo queda disponible como contexto del buzón de sugerencias |
 
@@ -4626,9 +4656,9 @@ El heartbeat solo está activo en modo AVENTURA. Se gestiona en `_gestionarHeart
 | Modo → AVENTURA | `_activarHeartbeatAventura`: llama `globalThis.mensajeria.iniciarHeartbeat(intervalo)` directamente; envía `HEARTBEAT_START` a cada hijo crítico; llama `ensureDefaultParada()`; y llama `globalThis._iniciarTemporizadorAventura()` (expuesta por Script 2) para (re)iniciar el temporizador de hijo1 — ver §7.2 |
 | Modo → CASA | `_transicionarAModoCasa`: si `globalThis._devModeActivo` es `false` (modo DEV, ver §24), limpia `localStorage` de progreso (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`); llama `globalThis.mensajeria.pausarHeartbeat()` directamente; luego envía `HEARTBEAT_PAUSE` a los hijos |
 
-El intervalo se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s, ajustado por calidad de conexión. El pulso se envía a todos los hijos en `_hijosRegistrados` (Map dinámico de `mensajeria.js`, poblado conforme cada hijo envía `HIJO_PREPARADO`). Fallback: si el Map está vacío todavía, se usa `['hijo2', 'hijo3', 'hijo4', 'hijo5']`. `HEARTBEAT_START`/`PAUSE` se envían explícitamente a hijo2/3/4/5 desde `codigo-padre.html`.
+El intervalo se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s, ajustado por calidad de conexión. El pulso se envía a todos los iframes de `iframesRegistrados` (Map dinámico de `mensajeria.js`, poblado conforme cada hijo envía `HIJO_PREPARADO`). Fallback: si el Map está vacío todavía, se usa `['hijo2', 'hijo3', 'hijo4', 'hijo5']`. `HEARTBEAT_START`/`PAUSE` se envían explícitamente a hijo2/3/4/5 desde `codigo-padre.html`.
 
-**Por qué la llamada directa (no self-message):** `enviarMensaje` con `destino: CONFIG_PADRE.ID` falla silenciosamente porque padre no está en `iframesRegistrados` — `_enviarDesdePadre` busca el ID en el Map de iframes registrados, no lo encuentra y retorna `false` con un warning. El `else` fallback nunca se ejecuta porque `enviarMensaje_S1` siempre está disponible. La solución correcta es llamar `globalThis.mensajeria.iniciarHeartbeat()` / `globalThis.mensajeria.pausarHeartbeat()` directamente. Ver §32.3.
+**Por qué la llamada directa (no self-message):** `enviarMensaje` con `destino: CONFIG_PADRE.ID` falla silenciosamente porque padre no está en `iframesRegistrados` — `enviarMensaje` busca el ID en el Map de iframes registrados, no lo encuentra y retorna `false` con un warning. El `else` fallback nunca se ejecuta porque `enviarMensaje_S1` siempre está disponible. La solución correcta es llamar `globalThis.mensajeria.iniciarHeartbeat()` / `globalThis.mensajeria.pausarHeartbeat()` directamente. Ver §32.3.
 
 Los hijos (hijo3, hijo4, hijo5) sí tienen handlers para `HEARTBEAT_START` y `HEARTBEAT_PAUSE` que actualizan su flag `globalThis.__HEARTBEAT_ACTIVO`. Esos mensajes se envían correctamente desde padre a los iframes hijos vía `_enviarHeartbeatStartAHijo`.
 
@@ -4838,7 +4868,7 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 
 **Reglas fundamentales del bus:**
 
-- Padre → hijos: `_enviarDesdePadre` usa `iframesRegistrados.get(destino).contentWindow.postMessage`
+- Padre → hijos: `enviarMensaje` usa `iframesRegistrados.get(destino)`, lee el `contentWindow` del elemento en ese momento y le hace `postMessage`
 - Hijos → padre: `ventanaPadre.postMessage` (sube al window padre)
 - Auto-envío (padre → padre): **NO funciona** via postMessage — `manejarMensajeEntrante` descarta `origen === componenteId`. Se usa `globalThis.__triggerCambioParadaInterno` como puente directo cross-scope.
 - `registrarControladorSeguro`: primer-registro-gana. Registros duplicados son silenciados.
@@ -5611,7 +5641,29 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 - **Dónde**: `js/mensajeria.js`, función `manejarMensajeEntrante` → `_encolarEjecucionHandler` (usa el `Map` module-scope `_colaPorTipo`).
 - Cada `message` event del navegador es una tarea independiente del event loop. Sin esto, dos mensajes del **mismo tipo** que llegan con pocos milisegundos de diferencia (típico con `NAVEGACION.CAMBIO_PARADA` durante lecturas GPS seguidas) se procesaban en paralelo, sin garantía de terminar en el orden en que llegaron — la causa real de que actualizaciones de mapa se perdieran en carreras silenciosas.
-- Cada tipo de mensaje se encadena detrás de la ejecución anterior del **mismo tipo**; tipos distintos siguen siendo completamente concurrentes entre sí (un `CAMBIO_PARADA` lento no bloquea un `HEARTBEAT`). Un handler que falla no rompe la cola — el error se loguea y confirma, y el siguiente mensaje del mismo tipo se procesa igual.
+- Cada tipo de mensaje se encadena detrás de la ejecución anterior del **mismo tipo**; tipos distintos siguen siendo completamente concurrentes entre sí (un `CAMBIO_PARADA` lento no bloquea un `HEARTBEAT`).
+- La fila es **por tipo y por frame**: cada frame tiene su propio `_colaPorTipo`. Eso es justo lo que hace tan difícil de diagnosticar que una se rompa — solo ese tipo de mensaje deja de procesarse, en silencio, mientras todo lo demás sigue funcionando con normalidad. Por eso tiene dos protecciones, y cada una cubre una forma distinta de romperla:
+
+| Cómo se rompería | Protección | Test |
+|------------------|-----------|------|
+| Un handler **falla** (y el fallo llega hasta el eslabón guardado, dejándolo rechazado para siempre) | El eslabón que se guarda en el `Map` lleva `.catch()`: siempre resuelve, pase lo que pase con la ejecución | BC-9 |
+| Un handler **no termina nunca** (se queda esperando algo que no llega; un `try/catch` no protege de esto) | Pasada la constante `PLAZO_MAX_HANDLER` (20 s), la fila avanza sin él y se registra un `logger.error` con el tipo y el id del mensaje. El handler no se corta: sigue por su cuenta | BC-14 |
+
+- Los 20 s no son lentitud tolerable: el propio bus rechaza a los 5 s una petición con acuse sin contestar, así que un handler que espere una respuesta ya está acotado ahí. Llegar al plazo significa que algo no va a llegar nunca, y es un fallo del handler — el aviso es la red, no la solución. Ningún handler del proyecto espera hoy nada sin acotar.
+- Un handler que falla, además de no romper la fila, se registra en el log y se le contesta a quien envió con el error en la raíz del mensaje (§10.6a), y no deja ninguna promesa rechazada suelta que `instalarReporteErroresAlPadre` convertiría en un segundo aviso al padre por el mismo fallo (BC-13).
+
+#### 10.6a El acuse dice "alguien lo procesó", no "salió bien"
+
+- **Dónde**: `js/mensajeria.js`, `_ejecutarYContestar()` (contesta) y `manejarConfirmacion()` (recibe).
+- Un mensaje con `requiereConfirmacion` se contesta **siempre que un handler lo haya procesado**, aunque ese handler devuelva `undefined` o se rompa. Lo que no se contesta es lo que nadie procesó: si no hay handler para ese tipo, se registra un `logger.warn` y **no se contesta**, para que quien envió agote su plazo y pueda reintentar — es lo que salva al audio cuando hijo3 todavía no ha terminado de cargar.
+- Cuando el handler **se rompe**, la respuesta lleva el fallo **en la raíz del mensaje** (`{ error: { mensaje } }`), nunca dentro de `datos`. Es deliberado: hijo3 devuelve a propósito `{ exito: false, error }` como **resultado** válido en algunos casos, y confundir ambos haría que un resultado legítimo pareciera una avería.
+- Quien envió recibe siempre un `Error` con un campo `.motivo` que dice qué pasó, para poder decidir sin analizar el texto:
+
+| `motivo` | Qué ocurrió | Qué suele tocar hacer |
+|----------|-------------|-----------------------|
+| `no-enviado` | El destino no está entre los iframes registrados; el mensaje no llegó a salir | Revisar el registro del iframe (§2.7a) — reintentar no arregla nada |
+| `sin-respuesta` | Nadie contestó dentro del plazo (5000 ms por defecto) | Reintentar: normalmente el destinatario aún no está listo |
+| `fallo-handler` | Alguien lo recibió y su handler se rompió | **No reintentar**: el mensaje llegó, lo que falla es el otro lado |
 
 #### `manejarCambiarParada` (funciones-mapa.js) encola, no descarta
 
@@ -5648,7 +5700,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 #### Patrón: `enviarMensajePadre({destino: padreId})` no funciona
 
-`_enviarDesdePadre(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está en ese mapa — el mensaje se descarta sin error. Las tres funciones afectadas usan en cambio `__triggerCambioParadaInterno` o `funcionesMapa.setMapView`:
+`enviarMensaje(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está en ese mapa — el mensaje se descarta sin error. Las tres funciones afectadas usan en cambio `__triggerCambioParadaInterno` o `funcionesMapa.setMapView`:
 
 | Función | Ubicación | Implementación actual |
 | ------- | --------- | --------------------- |
@@ -6036,7 +6088,7 @@ La clase va dentro del texto — `Error no capturado:` o `Promesa rechazada sin 
 
 **Reglas:**
 
-1. **Solo dentro de un iframe.** Con `globalThis.parent === globalThis.window` no se instala y la función devuelve `false`. Un `enviarMensaje` del padre a sí mismo no encuentra su id en `iframesRegistrados` y `_enviarDesdePadre()` lo descarta.
+1. **Solo dentro de un iframe.** Con `globalThis.parent === globalThis.window` no se instala y la función devuelve `false`. Un `enviarMensaje` del padre a sí mismo no encuentra su id en `iframesRegistrados` y se descarta; para eso está `despacharLocal()`.
 2. **Una vez por firma.** La firma es `clase|texto|fichero|línea`; cada firma se envía una sola vez por sesión.
 3. **Tope de 20 firmas distintas.** Superado el tope, los errores solo se registran en la consola del hijo, y un último `SISTEMA.ERROR` lo anuncia con el texto `Tope de 20 errores distintos alcanzado; los siguientes solo se registran en la consola del hijo`.
 4. **Cola de arranque.** Sin `globalThis.mensajeria`, el mensaje entra en una cola de 10 como máximo que `retryUntilAvailable()` vacía en cuanto el bus existe — 40 intentos cada 250 ms. Agotados, la cola sale por `console.error` indicando cuántos errores no llegaron.
@@ -9604,7 +9656,7 @@ En su lugar, la fiabilidad se resuelve donde de verdad importa: en la confirmaci
 
 **Por qué una ventana y no "2 lecturas seguidas":** exigir que las dos lecturas confirmatorias sean estrictamente consecutivas falla en la calle real. El ruido de GPS urbano no es un error aislado que se corrige solo — la distancia calculada puede oscilar de forma sostenida alrededor de un umbral fijo, lectura tras lectura, mientras el usuario está físicamente parado en el mismo sitio. Bastaba con que **una** lectura de cada dos cayera justo fuera del radio para que el contador de "seguidas" se reiniciara antes de llegar a 2 — y con ese patrón, la llegada podía no confirmarse nunca, por mucho tiempo que el usuario esperase parado en la diana Está medido, con datos reales y un hijo2 cargado como iframe real: 20 lecturas alternando 15 m y 25 m alrededor de un radio de 20 m no confirman jamás la llegada si se exigen dos seguidas. La ventana de 4 conserva exactamente la misma protección contra una lectura ruidosa aislada (1 de 4 sigue sin ser suficiente) sin depender de que el azar alinee dos lecturas buenas justo una detrás de la otra.
 
-> **Sensor redundante de `funciones-mapa.js`: notifica por llamada directa, no por el bus.** El segundo sensor (el de `procesarPosicionGPSParaAventura()`, respaldo del de hijo2) vive dentro del propio padre, no en un iframe, y por eso **no puede** usar `enviarMensaje({ destino: resolverIdPadre(), ... })`: `resolverIdPadre()` devuelve el ID del propio padre y `_enviarDesdePadre()` (`js/mensajeria.js`) busca ese destino en `iframesRegistrados`, que nunca contiene al padre mismo — el envío se descartaría en silencio en todas y cada una de las llamadas, sin ningún error visible, porque `enviarMensaje()` se llama en fire-and-forget y nadie comprueba el resultado. Usa `globalThis.__triggerLlegadaDetectadaInterno(datos)`, expuesto junto al registro de `NAVEGACION.LLEGADA_DETECTADA` en `codigo-padre.html`, que invoca el handler del padre directamente — mismo patrón que `__triggerCambioParadaInterno` para `CAMBIO_PARADA` en reanudación de sesión (§9.10). Es un caso concreto de la regla general de §32.3 ("el padre no puede enviarse mensajes a sí mismo vía `enviarMensaje`") — ver esa sección para el patrón completo y por qué `_enviarDesdePadre()` nunca puede resolver el propio ID del padre.
+> **Sensor redundante de `funciones-mapa.js`: notifica por llamada directa, no por el bus.** El segundo sensor (el de `procesarPosicionGPSParaAventura()`, respaldo del de hijo2) vive dentro del propio padre, no en un iframe, y por eso **no puede** usar `enviarMensaje({ destino: resolverIdPadre(), ... })`: `resolverIdPadre()` devuelve el ID del propio padre y `enviarMensaje()` (`js/mensajeria.js`) busca ese destino en `iframesRegistrados`, que nunca contiene al padre mismo — el envío se descartaría en silencio en todas y cada una de las llamadas, sin ningún error visible, porque `enviarMensaje()` se llama en fire-and-forget y nadie comprueba el resultado. Usa `globalThis.__triggerLlegadaDetectadaInterno(datos)`, expuesto junto al registro de `NAVEGACION.LLEGADA_DETECTADA` en `codigo-padre.html`, que invoca el handler del padre directamente — mismo patrón que `__triggerCambioParadaInterno` para `CAMBIO_PARADA` en reanudación de sesión (§9.10). Es un caso concreto de la regla general de §32.3 ("el padre no puede enviarse mensajes a sí mismo vía `enviarMensaje`") — ver esa sección para el patrón completo y por qué `enviarMensaje()` nunca puede resolver el propio ID del padre.
 
 Mientras el usuario está **dentro de los 15 metros** de la parada actual (o dentro del rangoMaximo del tramo):
 
@@ -10308,7 +10360,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 | Timeout watchPosition | 35 s, con `enableHighAccuracy: true` | `activarGPS()` en `codigo-padre.html`. El camino de reintento (`_gpsDoRetryWatch()`) reabre el watch con otras opciones: `enableHighAccuracy: false` y timeout `CONFIG.GPS.TIMEOUT × 2^(intento-1)` con techo de 60 s — es decir, tras un fallo de GPS la precisión que llega es peor, lo que sube el umbral de ruido del acumulador de distancia recorrida |
 | Habilitación de ubicación en las 4 franjas (rango real-50m / 50-150m / 150-2.000m / >2.000m) | Inmediata en las 4, sin esperar la gracia | `verificarDistanciaYActualizarBotones` en `coordenadas-hijo2.html` |
 | Gracia antes de restringir vídeo/avanzar/audio/reto (franjas "fuera"/"desviado") | 7 min / 15 min — 0 en "lejos"/"perdido" | `_GRACIA_FUERA_DE_RANGO_MS` en `coordenadas-hijo2.html` |
-| Heartbeats fallidos antes de reconexión | 3 | `MAX_HEARTBEATS_FALLIDOS` en `config.js` |
+| Latidos sin respuesta antes de dar por caído | 3 | `MAX_LATIDOS_SIN_RESPUESTA` en `js/mensajeria.js` |
 | Auto-continuación diálogo reanudación | 30 s | `mostrarDialogoReanudacion` en `codigo-padre.html` |
 | Recordatorio "pulse play" — primer aviso / chequeo / reaparición / autocierre (§25.5c) | 10 s / 2 s / 20 s / 7 s | `RECORDATORIO_AUDIO_PRIMER_AVISO_MS` / `RECORDATORIO_AUDIO_CHEQUEO_MS` / `RECORDATORIO_AUDIO_INTERVALO_MS` en `codigo-padre.html` |
 | Recordatorio "pulse retos" — primer aviso / chequeo / reaparición / autocierre (§25.5d) | 10 s / 2 s / 20 s / 7 s | `RECORDATORIO_RETO_PRIMER_AVISO_MS` / `RECORDATORIO_RETO_CHEQUEO_MS` / `RECORDATORIO_RETO_INTERVALO_MS` en `codigo-padre.html` |
@@ -10788,12 +10840,13 @@ Todo el tráfico entre padre e hijos pasa por `js/mensajeria.js` usando `window.
     datos:                { paradaId: 'P-5' },
     id:                   'msg-1712456789-ab3f',         // generarIdUnico('msg')
     timestamp:            1712456789123,
-    origen:               'hijo5',
-    tipoOrigen:           'hijo',
+    origen:               'hijo5',                       // lo pone el bus; sin él se descarta
     destino:              'padre',                        // opcional
     requiereConfirmacion: true                            // opcional
 }
 ```
+
+El papel de cada frame **no viaja en el mensaje**: el bus lo deduce (es hijo si tiene ventana encima, y padre de los iframes que registre). Un campo que lo declarase sería un segundo camino que puede contradecir al primero sin que nadie se entere.
 
 #### El árbol de tipos de mensaje (TIPOS_MENSAJE)
 
@@ -10885,7 +10938,7 @@ if (handler) {
 
 #### El heartbeat
 
-Cada 5 segundos el padre envía `SISTEMA.HEARTBEAT` a todos los hijos registrados en `_hijosRegistrados` (`mensajeria.js`). El registro se puebla dinámicamente: cada hijo que envía `HIJO_PREPARADO` con su campo `tipo` queda incluido automáticamente — no se necesita cambio de código para añadir nuevos hijos. Cada hijo responde con `SISTEMA.HEARTBEAT_RESPONSE`. Si un hijo no responde en 3 heartbeats consecutivos (`MAX_HEARTBEATS_FALLIDOS: 3` en `config.js`), el padre registra el fallo en `heartbeatsFallidos` (Map) e intenta reconectar recargando el iframe.
+Cada 5 segundos el padre envía `SISTEMA.HEARTBEAT` a todos los iframes de `iframesRegistrados` (`mensajeria.js`). El registro se puebla al cargar: cada cargador llama a `globalThis.registrarIframeHijo()` antes de asignar el `src` — no se necesita cambio de código en el bus para añadir nuevos hijos. Cada hijo responde con `SISTEMA.HEARTBEAT_RESPONSE`. Si uno no responde en 3 latidos consecutivos (`MAX_LATIDOS_SIN_RESPUESTA` en `js/mensajeria.js`), el padre apunta el fallo en `heartbeatsFallidos` (Map) y, **solo si ese iframe está marcado `recuperable`**, lo recarga y le devuelve su estado (§2.7a).
 
 ---
 
@@ -11169,7 +11222,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.HIJO_LISTO` | Cualquier hijo tras procesar `PADRE_DATOS` | Marca ese hijo como `listo=true` en el mapa interno; cuando todos los hijos esperados están listos, llama `_hijoListo_onTodosListos()` | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | El hijo que envió la señal | Completar la fase de handshake; saber cuándo la app está 100% operativa |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Registra en un `Map` interno que ese hijo recibió y entendió el cambio de modo | (ninguna respuesta directa; el padre espera a `EFECTUADO`) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Registra que el hijo aplicó el modo; cuando todos los hijos confirman, cierra la transición | `SISTEMA.CAMBIO_MODO_APLICADO` | **Broadcast a todos los hijos** | 4.ª y última fase del protocolo; el padre emite broadcast (no solo al emisor) para que todos completen la transición |
-| `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat | Resetea el contador de `heartbeatsFallidos` para ese hijo | (ninguna) | — | Confirmar que el hijo está vivo; si el contador supera `MAX_HEARTBEATS_FALLIDOS=3`, el padre recarga el iframe |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat | Resetea el contador de `heartbeatsFallidos` para ese hijo | (ninguna) | — | Confirmar que el hijo está vivo; si el contador supera `MAX_LATIDOS_SIN_RESPUESTAS_FALLIDOS=3`, el padre recarga el iframe |
 | `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (lista de paradas) — o internamente via `__triggerCambioParadaInterno` (progresión automática / restauración) | Actualiza `estadoActual.paradaActual` en state-manager; calcula el índice; solicita coords a hijo2 (`DATOS.COORDENADAS_PARADAS_REQUEST`); resuelve el `audio_id` de la parada vía `cargarAudios()` (`_solicitarAudioParaParada` → `_resolverAudioData`, protección pasiva por parada, ver §16); fan-out `CAMBIO_PARADA` a todos los hijos | `NAVEGACION.CAMBIO_PARADA` → Hijo 5 (si origen ≠ 'hijo5'), Hijo 2, Hijo 3, Hijo 4; `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` → Hijo 3 (mismo camino en CASA y AVENTURA); `CONTROL.HABILITAR`/`DESHABILITAR` `retosBtn` → Hijo 3 | Hijo 2, Hijo 3, Hijo 4, Hijo 5 (condicional) | Orquestar la transición completa a una nueva parada, incluida la entrega del audio de esa parada — no de la aventura completa |
 | `AUDIO.FIN_REPRODUCCION` | Hijo 3 al terminar el audio | Actualiza los controles de audio del padre y delega en `_procesarFinAudioElemento`, que es quien resuelve `pending.audio` del elemento y decide si habilitar el reto | `RETO.HABILITAR` → Hijo 4 (solo en AVENTURA y solo si la parada tiene retos, vía `_procesarFinAudioElemento`) | Hijo 4 (condicional) | El reto solo se puede intentar después de escuchar el audio de la parada y únicamente si esa parada tiene reto |
 | `RETO.COMPLETADO` | Hijo 4 cuando el usuario resuelve el reto | Actualiza el progreso en state-manager; marca `pending.reto=true`; si llegada + audio (+ reto) ya están todas a `true`, `marcarParadaCompletada()` habilita `btnAvanzar` (nunca envía `CAMBIO_PARADA` directamente, ver §2.2); si es la última parada, dispara el flujo de fin de aventura | (múltiples acciones internas; no hay un único mensaje de respuesta) | — | Avanzar el estado del recorrido tras superar el reto |
@@ -12545,7 +12598,7 @@ sincronizarEstadoModo(modo);
 `iframesRegistrados` en `mensajeria.js` es un Map que solo contiene los iframes hijo registrados. El padre nunca se registra en este Map. Por lo tanto, `enviarMensaje({ destino: CONFIG_PADRE.ID })` siempre falla silenciosamente:
 
 ```text
-_enviarDesdePadre(mensaje, 'padre')
+enviarMensaje(mensaje) con destino 'padre'
   → iframesRegistrados.get('padre')   // undefined
   → logger.warn('[mensajeria] Iframe no encontrado o sin contentWindow: padre')
   → return false
@@ -13086,7 +13139,7 @@ Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
 6. **Call-chain deduplication:** para cada `enviarMensaje(tipo=X)`, sube el call-stack completo hacia el caller y el segundo nivel. Verifica si alguna función ancestora también emite `tipo=X` a destinatarios solapados. Si hay solapamiento, el receptor recibe el mismo mensaje dos veces en una sola acción de usuario; determina si los side effects del handler son idempotentes o dañinos. En `SISTEMA.CAMBIO_MODO`, por ejemplo, `actualizarInterfazModo` lo envía a todos los hijos una única vez — no existe ninguna función `_propagarCambioModoAHijos` ni un segundo envío duplicado (ver §36.15, Flujo F).
 7. **Auto-mensajes (origen === destino):** cuando el padre se envía un mensaje a sí mismo (p.ej. `SISTEMA.HEARTBEAT_START`/`HEARTBEAT_PAUSE`/`HEARTBEAT_ESTADO`), comprueba la existencia del handler con el mismo rigor que un mensaje cruzado entre archivos — no la des por sentada solo porque emisor y receptor "deberían" vivir en el mismo scope. Un auto-mensaje sin handler no lanza ningún error visible: el `postMessage` se dispara, nadie lo procesa, y la ausencia de handler no bloquea el arranque ni aparece en ningún log. Es exactamente el tipo de huérfano que EJE 7 (rutas de error silenciosas) debe cruzar con este eje.
 8. **Descentralización:** cualquier `window.addEventListener('message', ...)` que NO sea el listener central de `mensajeria.js` es una señal de alerta, no un patrón válido más. Localízalo, identifica qué tipos de mensaje procesa y por qué no pasa por `registrarControladorSeguro`/`registrarControlador`. Si no hay una razón documentada (p.ej. necesidad de capturar mensajes antes de que `mensajeria.js` esté listo), repórtalo como ⚠️ y propone migrarlo al canal centralizado.
-9. **Autoenvío del padre con `destino: resolverIdPadre()`:** distinto del punto 7 (que cubre `origen === destino` sin handler) — aquí el problema es de enrutamiento, no de handler ausente. `resolverIdPadre()`/`getPadreId()` (`js/utils.js`) está pensada para que un **hijo** direccione un mensaje hacia el padre; si un módulo que corre dentro del propio padre (p.ej. `funciones-mapa.js`, importado directamente, no cargado en un iframe) la usa como `destino`, el valor resultante es el ID del propio padre. `_enviarDesdePadre()` (`js/mensajeria.js`) resuelve ese `destino` buscándolo en `iframesRegistrados` — un mapa que **por construcción nunca contiene al padre mismo**, solo a sus iframes hijo — así que la búsqueda falla siempre, se loguea `"Iframe no encontrado o sin contentWindow: <id>"` y el mensaje se descarta. Si el envío es fire-and-forget (sin `.catch()` que compruebe el resultado `false`, el patrón más común en el código), esto es indistinguible de "todo va bien" salvo por ese único warning suelto en el log — fácil de no ver en una lectura superficial porque no rompe nada más. Para cada `enviarMensaje({ destino: resolverIdPadre(), ... })` (o `getPadreId()`), confirma primero desde qué contexto corre ese código: si es un módulo que vive dentro del padre (no un HTML de hijo cargado en iframe), es casi con certeza este bug. Ejemplo de este patrón: un módulo que corre dentro del propio padre (como `js/funciones-mapa.js`, importado directamente y no cargado en iframe) usando `destino: resolverIdPadre()` para notificar un evento al padre — el mensaje nunca llega, sin ningún error visible en el resto del flujo.
+9. **Autoenvío del padre con `destino: resolverIdPadre()`:** distinto del punto 7 (que cubre `origen === destino` sin handler) — aquí el problema es de enrutamiento, no de handler ausente. `resolverIdPadre()`/`getPadreId()` (`js/utils.js`) está pensada para que un **hijo** direccione un mensaje hacia el padre; si un módulo que corre dentro del propio padre (p.ej. `funciones-mapa.js`, importado directamente, no cargado en un iframe) la usa como `destino`, el valor resultante es el ID del propio padre. `enviarMensaje()` (`js/mensajeria.js`) resuelve ese `destino` buscándolo en `iframesRegistrados` — un mapa que **por construcción nunca contiene al padre mismo**, solo a sus iframes hijo — así que la búsqueda falla siempre, se loguea `"Iframe no encontrado o sin contentWindow: <id>"` y el mensaje se descarta. Si el envío es fire-and-forget (sin `.catch()` que compruebe el resultado `false`, el patrón más común en el código), esto es indistinguible de "todo va bien" salvo por ese único warning suelto en el log — fácil de no ver en una lectura superficial porque no rompe nada más. Para cada `enviarMensaje({ destino: resolverIdPadre(), ... })` (o `getPadreId()`), confirma primero desde qué contexto corre ese código: si es un módulo que vive dentro del padre (no un HTML de hijo cargado en iframe), es casi con certeza este bug. Ejemplo de este patrón: un módulo que corre dentro del propio padre (como `js/funciones-mapa.js`, importado directamente y no cargado en iframe) usando `destino: resolverIdPadre()` para notificar un evento al padre — el mensaje nunca llega, sin ningún error visible en el resto del flujo.
 
 ---
 
