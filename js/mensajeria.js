@@ -11,15 +11,17 @@ import logger from './logger.js';
 import { generarIdUnico } from './utils.js';
 import { esMovil } from './device-detection.js';
 
-// Importar configuración
-let CONFIG = {};
-try {
-  if (globalThis.Config) {
-    CONFIG = globalThis.Config;
-  }
-} catch (e) {
-  // Config no disponible aún
-}
+/** Latidos seguidos sin respuesta antes de dar a un iframe por caído. */
+const MAX_LATIDOS_SIN_RESPUESTA = 3;
+
+/**
+ * Plazo tras el cual la fila de un tipo avanza aunque su handler siga sin terminar.
+ *
+ * Muy por encima de cualquier handler legítimo: el propio bus rechaza a los 5 s una petición
+ * con acuse sin contestar, así que un handler que espere una respuesta ya está acotado ahí.
+ * Si se llega a estos 20 s, no es lentitud: es que algo no va a llegar nunca.
+ */
+const PLAZO_MAX_HANDLER = 20_000;
 
 // =====================================================
 // ESTADO LOCAL (mínimo, delegamos al state-manager)
@@ -44,38 +46,24 @@ let inicializado = false;
 let componenteId = '';
 
 /**
- * Tipo de componente ('padre' o 'hijo')
- * @type {string}
- */
-let tipoComponente = 'desconocido';
-
-/**
- * Referencia al iframe window para hijos
+ * Ventana de arriba, si este frame la tiene.
+ *
+ * El papel no se declara, se deduce: un frame es hijo si tiene ventana de arriba, y es padre de
+ * los iframes que registre. Los dos papeles conviven — hijo4 es hijo del padre y padre del
+ * puzzle. Declararlo a mano era una fuente de fallos: un frame declarado 'padre' manda al sitio
+ * equivocado y no se entera nadie.
  * @type {Window|null}
  */
 let ventanaPadre = null;
+
+/** El aviso de "este frame no tiene padre" se da una vez, no uno por envío. */
+let avisoSinPadreDado = false;
 
 /**
  * Mapa local de iframes registrados (solo en padre)
  * @type {Map<string, Object>}
  */
 const iframesRegistrados = new Map();
-
-/**
- * Registro dinámico de hijos: id → { tipo }
- * Poblado por registrarHijo() cuando cada hijo envía HIJO_PREPARADO. Sus claves
- * son también la lista de hijos activos que usa el heartbeat (ver iniciarHeartbeat).
- * @type {Map<string, {tipo: string}>}
- */
-const _hijosRegistrados = new Map();
-
-function registrarHijo(id, tipo = 'DESCONOCIDO') {
-    _hijosRegistrados.set(id, { tipo });
-}
-
-function getHijoTipo(id) {
-    return _hijosRegistrados.get(id)?.tipo ?? null;
-}
 
 /**
  * Callbacks pendientes de confirmación
@@ -123,9 +111,8 @@ export async function inicializarMensajeria(opciones = {}) {
         return true;
     }
     
-    const { tipo = 'padre', id = generarIdUnico('comp'), stateManager: sm } = opciones;
-    
-    tipoComponente = tipo;
+    const { id = generarIdUnico('comp'), stateManager: sm } = opciones;
+
     componenteId = id;
     stateManager = sm || (globalThis.window === undefined ? null : globalThis.__vv_stateManager);
     
@@ -142,16 +129,13 @@ export async function inicializarMensajeria(opciones = {}) {
         }
     }
     
-    logger.info(`[mensajeria] Inicializando como ${tipo} con ID: ${id}`);
-    
+    logger.info(`[mensajeria] Inicializando ${id}`);
+
     // Configurar listener de mensajes
     if (globalThis.window !== undefined) {
         globalThis.addEventListener('message', manejarMensajeEntrante); // NOSONAR
 
-        // Si es hijo, guardar referencia al padre
-        if (tipo === 'hijo' && globalThis.parent && globalThis.parent !== globalThis.window) {
-            ventanaPadre = globalThis.parent;
-        }
+        ventanaPadre = (globalThis.parent && globalThis.parent !== globalThis) ? globalThis.parent : null;
     }
     
     inicializado = true;
@@ -175,6 +159,7 @@ function exponerAPIGlobal() {
         registrarControlador,
         enviarMensaje,
         enviarMensajeConConfirmacion,
+        despacharLocal,
         marcarScript2Listo,
         migrarManejadoresTempranos,
 
@@ -183,20 +168,17 @@ function exponerAPIGlobal() {
         preiniciarHeartbeat,
         reanudarHeartbeat,
         pausarHeartbeat,
+        adelantarLatido,
         procesarHeartbeatResponse,
         esperarHijosListos,
 
         // Funciones de consulta
         estaInicializado: () => inicializado,
         getComponenteId: () => componenteId,
-        getTipoComponente: () => tipoComponente,
-
-        // Registro dinámico de hijos
-        registrarHijo,
-        getHijoTipo,
 
         // Funciones de iframe (solo padre)
         registrarIframe,
+        desregistrarIframe,
         getIframesRegistrados: () => new Map(iframesRegistrados),
 
         // Función centralizada (delega a state-manager)
@@ -242,6 +224,14 @@ export async function registrarControlador(tipo, handler, opciones = {}) {
         return false;
     }
     
+    // Dos handlers para el mismo tipo es un fallo, no una opción: uno de los dos no se ejecuta
+    // y nadie se entera. Ya pasó — hay comentarios en el padre, app.js y funciones-mapa.js
+    // esquivando a mano esa "carrera de inserción". Se queda el primero y se dice en voz alta.
+    if (obtenerMapaManejadores().has(tipo)) {
+        logger.error(`[mensajeria] ${componenteId} ya tiene un handler para ${tipo}: se queda el primero y este se ignora`);
+        return false;
+    }
+
     logger.debug(`[mensajeria] Registrando controlador para: ${tipo}`);
     
     // Intentar usar state-manager centralizado (buscar dinámicamente)
@@ -345,7 +335,6 @@ export function enviarMensaje(mensaje) {
         id: resto.id || generarIdUnico('msg'),
         timestamp: resto.timestamp || Date.now(),
         origen: origen || componenteId,
-        tipoOrigen: tipoComponente,
         destino
     };
     if (!String(tipo).includes('HEARTBEAT')) logger.debug(`[mensajeria] Enviando mensaje: ${tipo}`, { destino: destino || 'broadcast' });
@@ -392,7 +381,7 @@ export function enviarMensajeConConfirmacion(tipoOrMensaje, datos, opciones = {}
         // Registrar callback pendiente
         const timeoutId = setTimeout(() => {
             confirmacionesPendientes.delete(idConfirmacion);
-            reject(new Error(`Timeout esperando confirmación para: ${tipo}`));
+            reject(_errorBus('sin-respuesta', `Nadie contestó a ${tipo} en ${timeout} ms`));
         }, timeout);
         
         confirmacionesPendientes.set(idConfirmacion, {
@@ -413,7 +402,7 @@ export function enviarMensajeConConfirmacion(tipoOrMensaje, datos, opciones = {}
             if (!enviado) {
                 clearTimeout(timeoutId);
                 confirmacionesPendientes.delete(idConfirmacion);
-                reject(new Error(`No se pudo enviar mensaje: ${tipo}`));
+                reject(_errorBus('no-enviado', `No se pudo enviar ${tipo} a '${destino}'`));
             }
         });
     });
@@ -431,9 +420,21 @@ function crearMensaje(tipo, datos) {
         datos,
         id: generarIdUnico('msg'),
         timestamp: Date.now(),
-        origen: componenteId,
-        tipoOrigen: tipoComponente
+        origen: componenteId
     };
+}
+
+/**
+ * Error de un envío con acuse. `motivo` dice QUÉ pasó, que es lo que necesita quien envía para
+ * decidir: no es lo mismo "no contestó" (reintentar puede servir) que "se rompió al procesarlo"
+ * (reintentar repite el fallo) o "no se envió" (el destino no existe).
+ * @param {'no-enviado'|'sin-respuesta'|'fallo-handler'} motivo
+ * @param {string} texto
+ */
+function _errorBus(motivo, texto) {
+    const error = new Error(texto);
+    error.motivo = motivo;
+    return error;
 }
 
 /**
@@ -442,29 +443,23 @@ function crearMensaje(tipo, datos) {
  * @param {string|Window} destino - Destino
  * @returns {boolean} True si se envió
  */
-function _enviarDesdePadre(mensaje, destino) {
-    // Destino específico (excluir 'broadcast'/'todos' para que caigan al broadcast)
-    if (typeof destino === 'string' && destino !== 'broadcast' && destino !== 'todos') {
-        const iframeInfo = iframesRegistrados.get(destino);
-        const targetWindow = iframeInfo?.elemento?.contentWindow || iframeInfo?.contentWindow;
-        if (targetWindow) {
-            targetWindow.postMessage(mensaje, globalThis.location.origin);
-            return true;
-        }
-        logger.warn(`[mensajeria] Iframe no encontrado o sin contentWindow: ${destino}`);
-        return false;
-    }
-    // Window específica
-    if (destino && typeof destino.postMessage === 'function') {
-        destino.postMessage(mensaje, globalThis.location.origin);
-        return true;
-    }
-    // Broadcast a todos los iframes
+/**
+ * Avisa UNA vez de que este frame no tiene ventana de arriba. Pasa de verdad: la pantalla de
+ * selección se abre como página suelta en la despedida, y los tests abren hijos sin padre.
+ */
+function _avisarSinPadre() {
+    if (avisoSinPadreDado) return;
+    avisoSinPadreDado = true;
+    logger.warn(`[mensajeria] ${componenteId} está sin padre: lo que se mande hacia arriba no sale de aquí. Este aviso no se repite.`);
+}
+
+/** "A todos" = a los iframes registrados de este frame. Nunca sube ni alcanza a los nietos. */
+function _enviarATodos(mensaje) {
     let enviados = 0;
-    for (const [, iframeInfo] of iframesRegistrados) {
-        const targetWindow = iframeInfo?.elemento?.contentWindow || iframeInfo?.contentWindow;
-        if (targetWindow) {
-            targetWindow.postMessage(mensaje, globalThis.location.origin);
+    for (const [, info] of iframesRegistrados) {
+        const ventana = info?.elemento?.contentWindow;
+        if (ventana) {
+            ventana.postMessage(mensaje, globalThis.location.origin);
             enviados++;
         }
     }
@@ -480,18 +475,27 @@ function enviarMensajeInterno(mensaje, destino) {
     // si ese resto vive en el mismo bloque try (ver p.ej. marcarParadaCompletada en
     // codigo-padre.html, donde cortaba el cartel de transición justo después).
     try {
-        let resultado;
-        if (tipoComponente === 'hijo' && ventanaPadre) {
-            ventanaPadre.postMessage(mensaje, globalThis.location.origin);
-            resultado = true;
-        } else if (tipoComponente === 'padre') {
-            resultado = _enviarDesdePadre(mensaje, destino);
-        } else if (globalThis.window !== undefined) {
-            // Fallback: postMessage genérico
-            globalThis.postMessage(mensaje, globalThis.location.origin);
-            resultado = true;
+        let resultado = false;
+        const aTodos = destino === undefined || destino === null || destino === 'broadcast' || destino === 'todos';
+
+        if (destino === 'padre') {
+            if (ventanaPadre) {
+                ventanaPadre.postMessage(mensaje, globalThis.location.origin);
+                resultado = true;
+            } else {
+                _avisarSinPadre();
+            }
+        } else if (aTodos) {
+            resultado = _enviarATodos(mensaje);
         } else {
-            resultado = false;
+            const info = iframesRegistrados.get(destino);
+            const ventana = info?.elemento?.contentWindow;
+            if (ventana) {
+                ventana.postMessage(mensaje, globalThis.location.origin);
+                resultado = true;
+            } else {
+                logger.warn(`[mensajeria] Destino desconocido desde ${componenteId}: '${destino}' no es la ventana de arriba ni un iframe registrado aquí`);
+            }
         }
         return Promise.resolve(resultado);
     } catch (error) {
@@ -527,26 +531,133 @@ function _encolarEjecucionHandler(mensaje, event, handler) {
     const tipo = mensaje.tipo;
     const colaAnterior = _colaPorTipo.get(tipo) || Promise.resolve();
 
-    const ejecucion = colaAnterior.then(async () => {
-        try {
-            // Pass full message as first arg to match state-manager and handler signatures
-            const resultado = await Promise.resolve(handler(mensaje, event));
+    const ejecucion = colaAnterior.then(() => _ejecutarYContestar(mensaje, event, handler));
 
-            if (mensaje.requiereConfirmacion) {
-                enviarConfirmacion(mensaje, resultado, event.source);
-            }
-        } catch (error) {
-            logger.error(`[mensajeria] Error en handler para ${mensaje.tipo}: ${error.message}`);
+    // La fila NO puede morir. Antes, un fallo dentro del propio catch (leer `.message` de algo
+    // que no es un error) dejaba esta cadena rechazada, y todo mensaje posterior de ese tipo
+    // se quedaba sin procesar para siempre, en silencio. El .catch de aquí corta esa herencia:
+    // el eslabón que se guarda siempre resuelve.
+    const terminada = ejecucion.catch(() => {});
 
-            if (mensaje.requiereConfirmacion) {
-                enviarConfirmacion(mensaje, { error: error.message }, event.source);
-            }
-        }
-        // No relanzar: un handler que falla no debe romper la cola para el siguiente
-        // mensaje del mismo tipo (ya se logueó y confirmó el error arriba).
+    // Y tampoco puede quedarse parada. Un handler que no termina nunca —no que falle, que se
+    // quede a medias esperando algo que no llega— tiene el mismo efecto que matarla, y un
+    // try/catch no protege de eso. Como la fila es por tipo, solo ese tipo deja de procesarse
+    // mientras todo lo demás sigue funcionando: es justo el fallo imposible de diagnosticar.
+    // Pasado el plazo, la fila sigue adelante sin él y se dice en voz alta. El handler no se
+    // corta: sigue por su cuenta, y si acaba terminando, su resultado llega igual.
+    _colaPorTipo.set(tipo, Promise.race([terminada, _plazoDeFila(tipo, mensaje, terminada)]));
+    return ejecucion;
+}
+
+/**
+ * Promesa que resuelve si `terminada` tarda más de `PLAZO_MAX_HANDLER`, gritándolo. Si la
+ * ejecución acaba antes, el temporizador se cancela y esto no dice nada ni deja nada vivo.
+ * @param {string} tipo
+ * @param {Object} mensaje
+ * @param {Promise} terminada
+ * @returns {Promise<void>}
+ */
+function _plazoDeFila(tipo, mensaje, terminada) {
+    return new Promise((resolve) => {
+        const temporizador = setTimeout(() => {
+            logger.error(
+                `[mensajeria] ${componenteId}: el handler de ${tipo} (mensaje ${mensaje.id}) lleva `
+                + `${PLAZO_MAX_HANDLER} ms sin terminar. La fila de ese tipo sigue adelante sin él, `
+                + 'pero esto es un fallo del handler: algo que espera no va a llegar nunca.'
+            );
+            resolve();
+        }, PLAZO_MAX_HANDLER);
+        terminada.finally(() => clearTimeout(temporizador));
     });
+}
 
-    _colaPorTipo.set(tipo, ejecucion);
+/** Texto de un fallo, venga como venga: nadie garantiza que sea un Error. */
+function _textoDeError(error) {
+    if (error instanceof Error && error.message) return error.message;
+    if (typeof error === 'string' && error) return error;
+    try { return JSON.stringify(error) ?? String(error); } catch { return String(error); }
+}
+
+/**
+ * Ejecuta el handler y contesta si el mensaje venía con acuse.
+ *
+ * El acuse dice "alguien lo procesó", no "salió bien": el resultado va dentro. Si el handler
+ * se rompe, se contesta igual, pero con el fallo en la raíz, para que quien envió pueda
+ * distinguirlo de un mensaje perdido y no reintente en balde.
+ */
+async function _ejecutarYContestar(mensaje, event, handler) {
+    const ventana = event?.source;
+    try {
+        const resultado = await Promise.resolve(handler(mensaje, event));
+        if (mensaje.requiereConfirmacion && ventana) {
+            enviarConfirmacion(mensaje, { datos: resultado }, ventana);
+        }
+        return resultado;
+    } catch (error) {
+        const texto = _textoDeError(error);
+        logger.error(`[mensajeria] El handler de ${mensaje.tipo} se rompió: ${texto}`);
+        if (mensaje.requiereConfirmacion && ventana) {
+            enviarConfirmacion(mensaje, { error: { mensaje: texto } }, ventana);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Entrega un mensaje a los handlers de ESTE frame, por la misma fila que los que llegan de
+ * fuera. Es la única forma correcta de que un frame se mande algo a sí mismo: `enviarMensaje`
+ * no puede, porque uno no está entre sus propios iframes registrados.
+ * @param {Object} mensaje
+ * @returns {Promise<*>} lo que devuelva el handler
+ */
+export function despacharLocal(mensaje) {
+    if (!mensaje || !mensaje.tipo) {
+        logger.error('[mensajeria] despacharLocal necesita un mensaje con tipo');
+        return Promise.resolve(undefined);
+    }
+    const completo = {
+        ...mensaje,
+        origen: mensaje.origen || componenteId,
+        id: mensaje.id || generarIdUnico('msg'),
+        timestamp: mensaje.timestamp || Date.now(),
+    };
+    const handler = obtenerMapaManejadores().get(completo.tipo);
+    if (!handler) {
+        logger.warn(`[mensajeria] ${componenteId} se despachó ${completo.tipo} a sí mismo y no tiene handler para ese tipo`);
+        return Promise.resolve(undefined);
+    }
+    return _encolarEjecucionHandler(completo, null, handler);
+}
+
+/** Tipos ya avisados, para no repetir el mismo descarte en cada mensaje. */
+const _avisadosSinOrigen = new Set();
+const _avisadosPorFuente = new Set();
+
+function _avisarDescarte(yaAvisados, tipo, texto) {
+    if (yaAvisados.has(tipo)) return;
+    yaAvisados.add(tipo);
+    logger.warn(texto);
+}
+
+/**
+ * Quién puede hablarle a este frame: su ventana de arriba, los iframes que él mismo ha
+ * registrado, y él mismo. Cualquier otro frame del dominio queda fuera — con el listener
+ * abierto, un frame que no es de la conversación podía activar el modo dev o cerrar el chat.
+ * @param {MessageEvent} event
+ */
+function _fuenteAutorizada(event) {
+    if (!event.source) return false;
+    if (event.source === globalThis) return true;
+    if (ventanaPadre && event.source === ventanaPadre) return true;
+    return _vieneDeIframePropio(event);
+}
+
+/** ¿El mensaje viene de un iframe que este frame ha registrado? */
+function _vieneDeIframePropio(event) {
+    for (const [, info] of iframesRegistrados) {
+        if (info?.elemento?.contentWindow === event.source) return true;
+    }
+    return false;
 }
 
 /**
@@ -554,12 +665,9 @@ function _encolarEjecucionHandler(mensaje, event, handler) {
  * @param {MessageEvent} event - Evento de mensaje
  */
 function manejarMensajeEntrante(event) {
-    // Validar origen: solo aceptar mensajes del mismo origen (mismo dominio/protocolo/puerto)
-    // event.origin es "null" (string) para file:// protocol
-    const origenPermitido = event.origin === globalThis.location.origin 
-        || event.origin === 'null'  // file:// protocol
-        || event.source === globalThis.window; // self-messages
-    if (!origenPermitido) {
+    // Mismo origen y nada más. El protocolo file:// no se contempla: los módulos ES no cargan
+    // ahí, así que la app no puede funcionar así (lo documenta tests/e2e/18).
+    if (event.origin !== globalThis.location.origin) {
         return;
     }
 
@@ -569,8 +677,16 @@ function manejarMensajeEntrante(event) {
     if (!mensaje || typeof mensaje !== 'object' || !mensaje.tipo) {
         return;
     }
+    if (!_fuenteAutorizada(event)) {
+        _avisarDescarte(_avisadosPorFuente, mensaje.tipo,
+            `[mensajeria] ${componenteId} descarta ${mensaje.tipo}: viene de un frame que no es su padre ni un iframe registrado aquí`);
+        return;
+    }
     if (!mensaje.origen) {
-        logger.debug(`[mensajeria] Mensaje descartado: falta campo 'origen' (tipo: ${mensaje.tipo})`);
+        // En silencio, este descarte esconde el fallo entero: un mensaje que sale, no llega y no
+        // deja rastro parece "no me ha llegado nada" (pasó con SELECCION.REINICIAR).
+        _avisarDescarte(_avisadosSinOrigen, mensaje.tipo,
+            `[mensajeria] ${componenteId} descarta ${mensaje.tipo}: el mensaje no dice de quién viene (le falta 'origen')`);
         return;
     }
 
@@ -611,11 +727,28 @@ function manejarMensajeEntrante(event) {
         logger.debug(`[mensajeria] Sin handler para: ${mensaje.tipo} | Disponibles: ${tiposDisponibles}`);
     }
     
+    // Los errores de un frame de abajo suben hasta el padre de todos: es donde se miran. El frame
+    // de en medio no escribe nada para esto — si tuviera que acordarse cada contenedor, el día que
+    // aparezca uno nuevo sus errores se perderían en silencio.
+    if (mensaje.tipo === TIPOS_MENSAJE.SISTEMA.ERROR && ventanaPadre && _vieneDeIframePropio(event)) {
+        enviarMensaje({
+            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
+            destino: 'padre',
+            datos: { ...mensaje.datos, reenviadoDe: mensaje.origen },
+        });
+    }
+
     if (handler) {
+        // Aquí nadie espera el resultado, y no hace falta: el rechazo ya queda atendido por el
+        // `.catch` con el que `_encolarEjecucionHandler` guarda el eslabón de la fila, así que un
+        // handler roto no deja una promesa suelta que `instalarReporteErroresAlPadre` (js/utils.js)
+        // convertiría en un segundo aviso al padre por el mismo fallo. Lo cubre BC-13.
         _encolarEjecucionHandler(mensaje, event, handler);
     } else if (mensaje.requiereConfirmacion) {
-        // Sin handler pero el emisor espera confirmación de recepción — ACK igualmente
-        enviarConfirmacion(mensaje, null, event.source);
+        // Sin handler NO se contesta: nadie ha procesado nada. Contestar aquí le diría al emisor
+        // "entregado" y le quitaría el reintento — que es justo lo que salva al audio cuando
+        // hijo3 aún no ha terminado de cargar.
+        logger.warn(`[mensajeria] ${componenteId} recibió ${mensaje.tipo} con acuse y no tiene handler para ese tipo: no se contesta, y quien lo envió agotará su plazo`);
     }
     // El log de "Sin handler" ya se hizo arriba con la lista de disponibles
 }
@@ -632,7 +765,7 @@ function manejarConfirmacion(mensaje) {
         confirmacionesPendientes.delete(mensaje.idOriginal);
         
         if (mensaje.error) {
-            pendiente.reject(new Error(mensaje.error));
+            pendiente.reject(_errorBus('fallo-handler', mensaje.error.mensaje || `El handler de ${pendiente.tipo} se rompió`));
         } else {
             pendiente.resolve(mensaje.datos);
         }
@@ -640,20 +773,23 @@ function manejarConfirmacion(mensaje) {
 }
 
 /**
- * Envía una confirmación de mensaje
+ * Contesta a un mensaje que pedía acuse.
  * @param {Object} mensajeOriginal - Mensaje original
- * @param {*} resultado - Resultado del procesamiento
+ * @param {{datos?: *, error?: {mensaje: string}}} contenido - Lo que devolvió el handler, o el
+ *   fallo EN LA RAÍZ. Van separados a propósito: un handler puede devolver `{ error: ... }`
+ *   como resultado legítimo (hijo3 lo hace cuando un audio no carga), y eso no es lo mismo que
+ *   romperse.
  * @param {Window} destino - Ventana destino
  */
-function enviarConfirmacion(mensajeOriginal, resultado, destino) {
+function enviarConfirmacion(mensajeOriginal, contenido, destino) {
     const confirmacion = {
         tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
         idOriginal: mensajeOriginal.id,
-        datos: resultado,
         timestamp: Date.now(),
-        origen: componenteId
+        origen: componenteId,
+        ...contenido
     };
-    
+
     if (destino && typeof destino.postMessage === 'function') {
         destino.postMessage(confirmacion, globalThis.location.origin);
     }
@@ -669,21 +805,36 @@ function enviarConfirmacion(mensajeOriginal, resultado, destino) {
  * @param {HTMLIFrameElement} iframe - Elemento iframe
  * @returns {boolean} True si se registró
  */
-export function registrarIframe(id, iframe) {
+export function registrarIframe(id, iframe, opciones = {}) {
     if (!id || !iframe) {
         logger.error('[mensajeria] registrarIframe: id e iframe son requeridos');
         return false;
     }
-    
+
+    // Sin guardar `contentWindow`: la ventana se lee del elemento en cada envío, porque
+    // recargar un iframe la sustituye y la guardada se queda vieja.
     iframesRegistrados.set(id, {
         elemento: iframe,
-        contentWindow: iframe.contentWindow,
+        recuperable: opciones.recuperable === true,
         estado: 'registrado',
         timestamp: Date.now()
     });
-    
-    logger.info(`[mensajeria] Iframe registrado: ${id}`);
+
+    logger.info(`[mensajeria] Iframe registrado: ${id}${opciones.recuperable === true ? ' (recuperable)' : ''}`);
     return true;
+}
+
+/**
+ * Da de baja un iframe: deja de recibir mensajes de este frame y los suyos dejan de aceptarse.
+ * Hace falta porque hay iframes que van y vienen — el puzzle se crea y se destruye en cada reto,
+ * y el mapa completo cambia de página en cada apertura.
+ * @param {string} id
+ * @returns {boolean} true si estaba registrado
+ */
+export function desregistrarIframe(id) {
+    const estaba = iframesRegistrados.delete(id);
+    if (estaba) logger.info(`[mensajeria] Iframe dado de baja: ${id}`);
+    return estaba;
 }
 
 // =====================================================
@@ -812,6 +963,26 @@ export async function esperarHijosListos(timeout = 5000) {
 }
 
 /**
+ * Adelanta un latido, sin esperar al siguiente del reloj: sirve al volver a la pestaña, para
+ * saber cuanto antes si algún frame se ha quedado por el camino.
+ *
+ * Si el latido está en pausa (modo CASA) no hace nada: la pausa es una decisión, y saltársela
+ * fue exactamente el fallo de tener dos latidos.
+ * @returns {boolean} true si se ha pedido el adelanto
+ */
+export function adelantarLatido() {
+    const sm = obtenerStateManager();
+    if (!sm) return false;
+    sm.getHeartbeat()
+        .then((estado) => {
+            if (!estado?.activo || estado?.userPaused) return;
+            return enviarHeartbeatAHijos();
+        })
+        .catch((error) => logger.debug('[mensajeria] No se pudo adelantar el latido:', error?.message));
+    return true;
+}
+
+/**
  * Pausa el heartbeat
  * @returns {Promise<boolean>} True si se pausó correctamente
  */
@@ -849,7 +1020,11 @@ export async function pausarHeartbeat() {
 }
 
 /**
- * Envía heartbeat a los hijos críticos
+ * Manda un latido a cada iframe registrado.
+ *
+ * La lista son los iframes registrados, no una escrita a mano: con una lista fija, un frame que
+ * no estuviera en ella podía colgarse sin que nadie lo notara, y uno que ya no existiera se
+ * seguía vigilando.
  */
 async function enviarHeartbeatAHijos() {
     const sm = obtenerStateManager();
@@ -859,16 +1034,7 @@ async function enviarHeartbeatAHijos() {
         const estado = await sm.getHeartbeat();
         if (!estado?.activo) return;
 
-        // Obtener configuración
-        const maxFallidos = CONFIG?.HEARTBEAT?.MAX_HEARTBEATS_FALLIDOS || 3;
-        const autoReconectar = CONFIG?.HEARTBEAT?.AUTO_RECONECTAR !== false;
-
-        // Obtener hijos críticos del registro dinámico; fallback a lista conocida si aún no hay registros
-        const hijosCriticos = _hijosRegistrados.size > 0
-            ? [..._hijosRegistrados.keys()]
-            : ['hijo2', 'hijo3', 'hijo4', 'hijo5'];
-
-        for (const hijoId of hijosCriticos) {
+        for (const hijoId of [...iframesRegistrados.keys()]) {
             try {
                 enviarMensaje({
                     tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT,
@@ -886,9 +1052,8 @@ async function enviarHeartbeatAHijos() {
                     return { heartbeatsFallidos: nuevosFallidos };
                 });
 
-                // Verificar si excede MAX_HEARTBEATS_FALLIDOS
-                if (nuevosFailidos_count >= maxFallidos) {
-                    await marcarHijoDesconectado(hijoId, autoReconectar);
+                if (nuevosFailidos_count >= MAX_LATIDOS_SIN_RESPUESTA) {
+                    await marcarHijoDesconectado(hijoId);
                 }
             } catch (error) {
                 logger.warn(`[mensajeria] Error enviando heartbeat a ${hijoId}:`, error);
@@ -904,7 +1069,7 @@ async function enviarHeartbeatAHijos() {
  * @param {string} hijoId - ID del hijo
  * @param {boolean} autoReconectar - Si debe intentar reconectar automáticamente
  */
-async function marcarHijoDesconectado(hijoId, autoReconectar = true) {
+async function marcarHijoDesconectado(hijoId) {
     const sm = obtenerStateManager();
     if (!sm) return;
 
@@ -917,11 +1082,14 @@ async function marcarHijoDesconectado(hijoId, autoReconectar = true) {
             nuevosFallidos.set(hijoId, 0);
             return { hijosDesconectados: Array.from(desconectados), heartbeatsFallidos: nuevosFallidos };
         });
-        logger.warn(`[mensajeria] Hijo ${hijoId} marcado como desconectado`);
+        logger.warn(`[mensajeria] ${hijoId} lleva ${MAX_LATIDOS_SIN_RESPUESTA} latidos sin contestar`);
 
-        // Intentar reconectar si AUTO_RECONECTAR está activo
-        if (autoReconectar) {
+        // Solo se recarga lo que sabe retomar lo que estaba haciendo. Recargar a ciegas un frame
+        // que no se restaura le hace perder el sitio al usuario, que es peor que el cuelgue.
+        if (iframesRegistrados.get(hijoId)?.recuperable) {
             await intentarReconectarHijo(hijoId);
+        } else {
+            logger.warn(`[mensajeria] ${hijoId} no se recarga: no está marcado como recuperable`);
         }
     } catch (error) {
         logger.error('[mensajeria] Error marcando hijo como desconectado:', error);

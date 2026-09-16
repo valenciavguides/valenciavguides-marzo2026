@@ -779,8 +779,7 @@ function _mandarErrorAlPadre(mensajeTexto) {
     try {
         enviar({
             tipo: globalThis.TIPOS_MENSAJE?.SISTEMA?.ERROR || 'SISTEMA.ERROR',
-            origen: globalThis.name || 'hijo-desconocido',
-            destino: resolverIdPadre(),
+            destino: 'padre',
             datos: { codigo: 'ERROR_NO_CONTROLADO', mensaje: mensajeTexto }
         });
         return true;

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Arnés del bus — hijo</title>
+</head>
+<body>
+  <script type="module">
+    // Hijo del arnés (tests/e2e/79). Tiene los dos papeles: hijo del padre y padre del nieto.
+    import * as bus from '/js/mensajeria.js';
+
+    await bus.inicializarMensajeria({ id: 'hijo' });
+    globalThis.__arnes = { recibidos: {} };
+
+    const nieto = document.createElement('iframe');
+    nieto.id = 'nieto';
+    nieto.name = 'nieto';
+    bus.registrarIframe('nieto', nieto, { recuperable: false });
+    document.body.appendChild(nieto);
+    nieto.src = 'nieto.html';
+
+    globalThis.__arnesListo = true;
+  </script>
+</body>
+</html>

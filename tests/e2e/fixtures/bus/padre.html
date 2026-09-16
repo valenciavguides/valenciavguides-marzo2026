@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Arnés del bus — padre</title>
+</head>
+<body>
+  <script type="module">
+    // Arnés del contrato del bus (tests/e2e/79). Monta padre → hijo → nieto con el bus real
+    // (js/mensajeria.js) y nada de la app. Carga el state-manager porque el latido guarda ahí
+    // su estado, igual que en codigo-padre.html.
+    import { inicializarStateManager } from '/js/state-manager.js';
+    import * as bus from '/js/mensajeria.js';
+
+    await inicializarStateManager();
+    await bus.inicializarMensajeria({ id: 'padre' });
+
+    globalThis.__arnes = { recibidos: {}, cargas: {} };
+
+    function crearIframe(id, src, opciones) {
+      const el = document.createElement('iframe');
+      el.id = id;
+      el.name = id;
+      globalThis.__arnes.cargas[id] = 0;
+      el.addEventListener('load', () => { globalThis.__arnes.cargas[id] += 1; });
+      // Registrar ANTES de asignar src: es la regla que evita que el hijo hable antes de que
+      // el padre pueda contestarle.
+      if (opciones) bus.registrarIframe(id, el, opciones);
+      document.body.appendChild(el);
+      el.src = src;
+    }
+
+    crearIframe('hijo', 'hijo.html', { recuperable: false });
+    crearIframe('mudo-recuperable', 'mudo.html', { recuperable: true });
+    crearIframe('mudo-fijo', 'mudo.html', { recuperable: false });
+    crearIframe('intruso', 'intruso.html', null); // sin registrar, a propósito
+
+    globalThis.__arnesListo = true;
+  </script>
+</body>
+</html>

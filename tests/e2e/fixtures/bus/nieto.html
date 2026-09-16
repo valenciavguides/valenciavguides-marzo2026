@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Arnés del bus — nieto</title>
+</head>
+<body>
+  <script type="module">
+    // Nieto del arnés (tests/e2e/79). Carga utils.js como los frames reales: instala el reporte
+    // automático de errores, que tiene que llegar al padre pasando por el hijo.
+    import '/js/utils.js';
+    import * as bus from '/js/mensajeria.js';
+
+    await bus.inicializarMensajeria({ id: 'nieto' });
+    globalThis.__arnes = { recibidos: {} };
+    globalThis.__arnesListo = true;
+  </script>
+</body>
+</html>

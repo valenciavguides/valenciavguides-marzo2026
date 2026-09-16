@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Arnés del bus — intruso</title>
+</head>
+<body>
+  <script>
+    // Iframe del mismo origen que el padre NO registra (tests/e2e/79): sus mensajes no deben
+    // llegar a ningún handler, aunque vengan bien formados.
+    globalThis.__arnesListo = true;
+  </script>
+</body>
+</html>
