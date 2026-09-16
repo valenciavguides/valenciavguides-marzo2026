@@ -2442,8 +2442,14 @@
       _log.info('[SELECCION] Estado reiniciado');
     }
 
-    // Puentes para que el módulo de mensajería modifique variables del script regular
+    // Puentes para que el módulo de mensajería modifique variables del script regular.
+    // Hacen falta porque un `let` de este <script> clásico TAPA la propiedad del mismo nombre en
+    // globalThis: `globalThis.x = v` desde el módulo no cambia el `let` de aquí, y las lecturas
+    // sin prefijo de este script siguen viendo el valor viejo. Sin puente, el fallo es mudo — la
+    // variable se queda en su valor inicial y cada consumidor cae en su reserva (`|| 'Aventura1'`,
+    // `|| 'es'`), que carga bien y no da ningún error.
     globalThis._setIdiomaSeleccionado = function(v) { idiomaSeleccionado = v; };
+    globalThis._setAventuraSeleccionada = function(v) { aventuraSeleccionada = v; };
     globalThis._setAventuraIniciando = function(v) { aventuraIniciando = v; };
     globalThis._setTimerProgresoCarga = function(v) { timerProgresoCarga = v; };
     globalThis._resetearFlagsContenido = function() {
@@ -3119,6 +3125,7 @@
             estadoComponente.aventuraSeleccionada = aventura;
             estadoComponente.ultimaInteraccion = Date.now();
             globalThis.aventuraSeleccionada = aventura;
+            globalThis._setAventuraSeleccionada(aventura);
             logger.info(`[SELECCION] Aventura seleccionada: ${aventura}`);
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.AVENTURA_SELECCIONADA,
