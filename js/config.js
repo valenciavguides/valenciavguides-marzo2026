@@ -154,23 +154,6 @@ export const CONFIG = {
     },
     
     /**
-     * Configuración de iframes hijos
-     */
-    HIJOS: {
-        /** Tiempo de espera para inicialización (ms) */
-        TIMEOUT_INIT: 10000,
-
-        /** Número de heartbeats fallidos para considerar desconexión */
-        MAX_HEARTBEATS_FALLIDOS: 3,
-        
-        /** Reintentar conexión automáticamente */
-        AUTO_RECONECTAR: true,
-        
-        /** Intervalo de reconexión (ms) */
-        INTERVALO_RECONEXION: 3000
-    },
-    
-    /**
      * Configuración de monitoreo
      */
     MONITOREO: {

@@ -1684,8 +1684,7 @@
                     } else {
                         chatCargado = true;
                         // Registrar el iframe en la mensajería ANTES de asignarle src, igual que
-                        // hacen los tres cargadores de iframes (_cargarSingleIframe,
-                        // _cargarUnIframeHijo, _cargarSoloIframeActivacion). `_enviarDesdePadre`
+                        // hacen los otros cargadores. `enviarMensaje`
                         // (js/mensajeria.js) resuelve el destino buscándolo en `iframesRegistrados`:
                         // un iframe que no esté ahí no es alcanzable desde el padre, y todo mensaje
                         // dirigido a él se descarta con un simple warn. Sin este registro, el
@@ -1697,7 +1696,7 @@
                         // El sentido hijo→padre nunca dependió de esto: es un postMessage directo
                         // a `window.parent`, por eso el HIJO_PREPARADO sí llegaba.
                         try {
-                            globalThis.mensajeria?.registrarIframe?.('hijo6-chat', iframeChat);
+                            globalThis.registrarIframeHijo('hijo6-chat', iframeChat);
                         } catch (e) { (globalThis.logger || console).warn('[PADRE] No se pudo registrar hijo6-chat en la mensajería', e && e.message); }
                         iframeChat.src = 'chat-hijo6.html';
                         // Estado inicial se transmite vía handshake HIJO_PREPARADO → PADRE_DATOS
@@ -3799,6 +3798,20 @@
             enviarMensajeConConfirmacion: enviarMensajeConConfirmacion_S1,
             registrarIframe: registrarIframe_S1
         } = mensajeriaModule;
+
+        // Quién sabe retomar lo que estaba haciendo tras una recarga: exactamente los cuatro que
+        // `_vv_afterHijoListo` (Script 2) restaura — hijo1 su temporizador, hijo2 su parada,
+        // hijo3 su audio, hijo4 su reto. El bus vigila a todos los registrados pero solo recarga
+        // a los marcados: recargar a ciegas un frame que no sabe restaurarse le hace perder el
+        // sitio al usuario, que es peor que el cuelgue. Añadir a alguien aquí sin darle su rama
+        // en `_vv_afterHijoListo` deja al usuario en blanco tras la recarga.
+        const HIJOS_RECUPERABLES = new Set(['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4']);
+
+        // Único punto de registro de iframes hijo: los cinco cargadores pasan por aquí, para que
+        // la marca se decida en un solo sitio y no en cada llamada.
+        globalThis.registrarIframeHijo = function (id, elemento) {
+            return registrarIframe_S1(id, elemento, { recuperable: HIJOS_RECUPERABLES.has(id) });
+        };
 
         // Verificar que globalThis.mensajeria existe (creado por mensajeria.js)
         if (!globalThis.mensajeria) {
@@ -6168,19 +6181,6 @@
         // Exponer funciones GPS en `window` para garantizar disponibilidad
         // entre distintos bloques <script> que puedan ejecutarse en otro scope.
 
-        /**
-         * NOTA: Se usa globalThis.registrarControladorSeguro directamente.
-         * La antigua función registrarControladorSafe ha sido eliminada
-         * para mantener consistencia de nombres en español.
-         */
-
-        function desregistrarControladorSeguro(tipo, handler) {
-            try {
-                if (globalThis.mensajeria && typeof globalThis.mensajeria.desregistrarControlador === 'function') return globalThis.mensajeria.desregistrarControlador(tipo, handler);
-                if (typeof desregistrarControlador === 'function') return desregistrarControlador(tipo, handler);
-            } catch (e) { (globalThis.logger || console).warn('[PADRE] desregistrarControladorSeguro error', e && e.message); }
-        }
-
         function _resolveCoordWaiter(entry, datos) {
             clearTimeout(entry.timeout);
             try { entry.resolve(datos); } catch (e) { try { entry.reject(e); } catch(_){ (globalThis.logger || console).debug('[VV]:', _?.message); } } // NOSONAR
@@ -6254,7 +6254,6 @@
         try {
             if (globalThis.window !== undefined) {
                 globalThis.activarGPS = activarGPS;
-                globalThis.desregistrarControladorSeguro = desregistrarControladorSeguro;
             }
         } catch (e) {
             (globalThis.logger || console).warn('[PADRE] No fue posible exponer funciones GPS en window:', e && e.message);
@@ -7516,9 +7515,6 @@
                     version
                 });
 
-                // Registrar en el sistema dinámico de mensajería (heartbeat + tipo)
-                globalThis.mensajeria?.registrarHijo?.(hijoId, tipo);
-
                 (globalThis.logger || console).success(`${logPrefix} ✅ ${hijoId} marcado como preparado`);
 
                 // Enviar ACK confirmando que padre recibió la notificación HIJO_PREPARADO
@@ -8436,10 +8432,8 @@
             try {
                 const iframeEl = document.getElementById(iframe.id);
                 if (!iframeEl) throw new Error(`Iframe ${iframe.id} no encontrado en DOM`);
-                if (typeof registrarIframe_S1 === 'function') {
-                    registrarIframe_S1(iframe.id, iframeEl);
-                    (globalThis.logger || console).debug(`${logPrefix} Iframe ${iframe.id} registrado en mensajería`);
-                }
+                globalThis.registrarIframeHijo(iframe.id, iframeEl);
+                (globalThis.logger || console).debug(`${logPrefix} Iframe ${iframe.id} registrado en mensajería`);
                 iframeEl.style.display = iframe.mostrarInicial ? 'block' : 'none';
                 iframeEl.style.visibility = iframe.mostrarInicial ? 'visible' : 'hidden';
                 await _esperarCargaIframe(iframeEl, iframe.id, iframe.src);
@@ -8655,10 +8649,8 @@ if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = ne
         async function _cargarUnIframeHijo(iframe, logPrefix) {
             const iframeEl = document.getElementById(iframe.id);
             if (!iframeEl) throw new Error(`Iframe hijo ${iframe.id} no encontrado en DOM`);
-            if (typeof registrarIframe_S1 === 'function') {
-                registrarIframe_S1(iframe.id, iframeEl);
-                (globalThis.logger || console).debug(`${logPrefix} Iframe hijo ${iframe.id} registrado en mensajería`);
-            }
+            globalThis.registrarIframeHijo(iframe.id, iframeEl);
+            (globalThis.logger || console).debug(`${logPrefix} Iframe hijo ${iframe.id} registrado en mensajería`);
             iframeEl.style.display = 'none';
             iframeEl.style.visibility = 'hidden';
             await _esperarCargaIframe(iframeEl, iframe.id, iframe.src);
@@ -8851,12 +8843,10 @@ await _comprobarReanudacionAventura(logPrefix);
                 const iframeEl = document.getElementById(iframeCasa.id);
                 if (!iframeEl) throw new Error(`Iframe ${iframeCasa.id} no encontrado en DOM`);
 
-                // Registrar en la mensajería ANTES de las dos ramas de abajo, igual que hacen
-                // los otros tres cargadores (_cargarSingleIframe, _cargarUnIframeHijo,
-                // _cargarSoloIframeActivacion). Esta era la única que no lo hacía, y
-                // `_enviarDesdePadre` (js/mensajeria.js) resuelve todo destino padre→hijo
-                // buscándolo en `iframesRegistrados`: un iframe que no esté ahí es inalcanzable
-                // desde el padre y cada mensaje dirigido a él se descarta con un simple warn.
+                // Registrar en la mensajería ANTES de las dos ramas de abajo, igual que hacen los
+                // otros cargadores. `enviarMensaje` (js/mensajeria.js) resuelve todo destino
+                // padre→hijo buscándolo en `iframesRegistrados`: un iframe que no esté ahí es
+                // inalcanzable desde el padre y cada mensaje dirigido a él se descarta con un warn.
                 //
                 // Sin este registro, la cadena era: PADRE_DATOS se descarta → hijo5 nunca envía
                 // su HIJO_LISTO (lo emite desde dentro de ese handler) → _esperarHijoListo()
@@ -8873,12 +8863,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 // _cargarSoloIframeActivacion, que sí registra, y esa rama se disparaba siempre
                 // porque _iframesPreCargadosP14 esperaba al GPS. Al arreglar aquello, el parche
                 // accidental desapareció y hijo5 dejó de aparecer en pantalla.
-                if (typeof registrarIframe_S1 === 'function') {
-                    registrarIframe_S1(iframeCasa.id, iframeEl);
-                    (globalThis.logger || console).debug(`${logPrefix} Iframe ${iframeCasa.id} registrado en mensajería`);
-                } else {
-                    (globalThis.logger || console).warn(`${logPrefix} registrarIframe_S1 no disponible — hijo5 quedará inalcanzable desde el padre`);
-                }
+                globalThis.registrarIframeHijo(iframeCasa.id, iframeEl);
+                (globalThis.logger || console).debug(`${logPrefix} Iframe ${iframeCasa.id} registrado en mensajería`);
 
                 if (iframeEl.src?.includes(iframeCasa.src)) {
                     (globalThis.logger || console).info(`${logPrefix} ✅ hijo5 ya está cargado (se mostrará en AVENTURA_SELECCIONADA)`);
@@ -10168,8 +10154,12 @@ await _comprobarReanudacionAventura(logPrefix);
         // Flujo: intentarReconectarHijo → _vv_beforeHijoReload (snapshot) → reload →
         //        HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO → _vv_afterHijoListo (restaurar)
         // ============================================================
+        // El tiempo restante NO se guarda aquí: vive en `estado.tiempoRestante`, que
+        // `_hdl_AVENTURA_TIEMPO_ACTUALIZADO` actualiza siempre. Tenerlo también aquí obligaba a
+        // apuntarlo dentro del bloque que pinta la ventana del temporizador, así que solo se
+        // capturaba con esa ventana abierta —y solo se crea si el usuario la abre—, dejando a
+        // hijo1 sin temporizador que restaurar en cuanto no la hubiera tocado.
         const _snapshotRecuperacion = {
-            tiempoRestante: undefined, // Última lectura de AVENTURA.TIEMPO_ACTUALIZADO
             audioActual: null,         // { audioId, contexto } del último REPRODUCIR_REQUEST
             retoActual: null           // { retoId, contexto, retosArray } del último RETO.MOSTRAR
         };
@@ -10179,12 +10169,12 @@ await _comprobarReanudacionAventura(logPrefix);
             const modoActual = globalThis.estadoPadre?.modo?.actual;
             _reloadsPendientes[hijoId] = {
                 modo: modoActual,
-                tiempoRestante: _snapshotRecuperacion.tiempoRestante,
+                tiempoRestante: estado?.tiempoRestante,
                 audioActual: _snapshotRecuperacion.audioActual,
                 retoActual: _snapshotRecuperacion.retoActual,
                 paradaActual: globalThis.estadoPadre?.paradaActual
             };
-            logger.warn(`[PADRE][SNAPSHOT] Snapshot tomado para ${hijoId} antes de reload (modo: ${modoActual}, tiempoRestante: ${_snapshotRecuperacion.tiempoRestante})`);
+            logger.warn(`[PADRE][SNAPSHOT] Snapshot tomado para ${hijoId} antes de reload (modo: ${modoActual}, tiempoRestante: ${estado?.tiempoRestante})`);
         };
 
         globalThis._vv_afterHijoListo = async function(hijoId) {
@@ -10194,8 +10184,12 @@ await _comprobarReanudacionAventura(logPrefix);
             if (snap.modo !== 'aventura') return; // Solo restaurar en modo aventura
             logger.info(`[PADRE][SNAPSHOT] Restaurando estado para ${hijoId} tras reload...`);
             try {
-                if (hijoId === 'hijo1' && snap.tiempoRestante !== undefined) {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, origen: getPadreId(), destino: 'hijo1', datos: { tiempoEstimado: snap.tiempoRestante, pausado: false, timestamp: Date.now() } });
+                // 'hijo1-opciones', no 'hijo1': es el id con el que el iframe está registrado en la
+                // mensajería y el que llega en el `origen` de su HIJO_LISTO. Con el nombre corto
+                // esta rama no se cumplía nunca y, aunque se hubiera cumplido, el destino no
+                // existía: la restauración del temporizador no llegaba a ninguna parte.
+                if (hijoId === 'hijo1-opciones' && snap.tiempoRestante !== undefined && snap.tiempoRestante !== null) {
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, origen: getPadreId(), destino: 'hijo1-opciones', datos: { tiempoEstimado: snap.tiempoRestante, pausado: false, timestamp: Date.now() } });
                     logger.info(`[PADRE][SNAPSHOT] ✅ Temporizador restaurado para hijo1: ${snap.tiempoRestante}s`);
                 }
                 if (hijoId === 'hijo2' && snap.paradaActual) {
@@ -12971,7 +12965,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
         // Disparador directo para el sensor de llegada de funciones-mapa.js (cross-scope:
         // funciones-mapa.js no vive en un iframe, así que enviarMensaje({destino:
-        // resolverIdPadre()}) se autodirigía al ID del propio padre — _enviarDesdePadre()
+        // resolverIdPadre()}) se autodirigía al ID del propio padre — enviarMensaje()
         // (mensajeria.js) busca ese destino en iframesRegistrados, que nunca contiene al
         // padre mismo, y lo descartaba en silencio en cada llamada. Mismo patrón que
         // __triggerCambioParadaInterno, arriba.
@@ -13797,9 +13791,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).warn(`${logPrefix} Iframe ${iframeConfig.id} no encontrado en DOM`);
                 return false;
             }
-            if (typeof globalThis.mensajeria?.registrarIframe === 'function') {
-                try { globalThis.mensajeria.registrarIframe(iframeConfig.id, iframeEl); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            }
+            globalThis.registrarIframeHijo(iframeConfig.id, iframeEl);
             return _cargarIframeConTimeout(iframeEl, iframeConfig, logPrefix);
         }
 
@@ -14389,8 +14381,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
                     // Modo aventura: actualizar con datos reales
                     const { tiempoRestante, estado: estadoColor } = mensaje.datos || {};
-                    // Tracking para snapshot de reload
-                    if (tiempoRestante !== undefined) _snapshotRecuperacion.tiempoRestante = tiempoRestante;
 
                     // Actualizar tiempo formateado
                     if (display && tiempoRestante !== undefined) {
