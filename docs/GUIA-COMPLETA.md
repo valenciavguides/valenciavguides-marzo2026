@@ -4866,6 +4866,17 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 | `seleccion` | `En-busca-del-tesoro.html` | Iframe | Selector de aventura/idioma |
 | `funciones-mapa` | `js/funciones-mapa.js` | Módulo en padre | Dibujo de ruta, marcadores (escucha CustomEvent) |
 
+**Quién habla ya por el bus y quién no.** `js/mensajeria.js` está pensado para que lo cargue **todo** frame, con doble papel: hijo de su padre y padre de los iframes que registre. La migración va por partes, y mientras dure conviven los dos mundos sin problema:
+
+| Frame | Mensajería |
+|-------|-----------|
+| `padre` | **El bus** (`js/mensajeria.js`) |
+| `hijo1` | **El bus** |
+| `hijo5` | **El bus** |
+| `hijo2`, `hijo3`, `hijo4`, `hijo6`, `seleccion` | Copia propia de los envoltorios (`messagingAdapter`, `safeRegistrar`, un `enviarMensaje` que hace `parent.postMessage` a pelo) |
+
+La diferencia importa para depurar: un frame **sin** bus no descarta fuentes no autorizadas, no ordena por tipo, no tiene el acuse con motivo, y —lo más visible— la captura de errores de `js/utils.js` no llega a ninguna parte, porque envía por `globalThis.mensajeria`, que allí no existe.
+
 **Reglas fundamentales del bus:**
 
 - Padre → hijos: `enviarMensaje` usa `iframesRegistrados.get(destino)`, lee el `contentWindow` del elemento en ese momento y le hace `postMessage`
@@ -5889,24 +5900,34 @@ hijo4 → guarda _pendienteCompletado {retoId, completado:true}, muestra #btn-pu
 
 `SISTEMA.NACK` es la respuesta de un hijo cuando recibe `CAMBIO_MODO` pero no puede completarlo todavía (por ejemplo, está esperando permiso de geolocalización, o en estado transitorio).
 
+**El padre es el único que recuerda.** El hijo rechaza y se olvida; guardar el cambio también en el hijo hacía que se aplicara dos veces (ver más abajo).
+
 ```text
 padre emite SISTEMA.CAMBIO_MODO (broadcast)
   ↓
-hijo recibe CAMBIO_MODO, no puede procesarlo aún
+hijo recibe CAMBIO_MODO sin `secuenciaCompleta`, no puede procesarlo aún
 hijo → padre   SISTEMA.NACK { esperarPermiso: true, modoSolicitado, tipoOriginal }
   ↓
-app.js L1605 maneja NACK
-  → si datos.esperarPermiso === true: guarda en pendingModeChanges.Map(hijoId, { modo, intentos, nextAttemptAt })
-  → calcula backoff: min(MODE_RETRY_BASE_MS 2000 ms × 2^(intentos-1), MODE_RETRY_MAX_MS 60000 ms) ± jitter del 10%
-  → max reintentos: MODE_RETRY_MAX_INTENTOS
+js/app.js — handler de SISTEMA.NACK
+  → si datos.esperarPermiso === true: guarda en pendingModeChanges.Map(hijoId, { modo, datos, intentos, nextAttemptAt })
+  → backoff: min(MODE_RETRY_BASE_MS 2000 ms × 2^(intentos-1), MODE_RETRY_MAX_MS 60000 ms) ± jitter del 10%
   ↓
-setInterval app.js L1633 (background retry loop)
-  → periódicamente revisa pendingModeChanges
-  → si nextAttemptAt <= Date.now(): reenvía CAMBIO_MODO al hijo específico
-  → elimina entrada si éxito o max reintentos alcanzado
+DOS disparadores reenvían, los dos del padre:
+  · js/app.js — bucle cada 5 s: si nextAttemptAt <= Date.now(), reenvía con `secuenciaCompleta: true`
+  · codigo-padre.html — `_hijoListo_reenviarModoPendiente()`: al llegar el HIJO_LISTO de ese hijo, al momento
+  ↓
+Se borra la entrada al reenviar con éxito.
+Al agotar MODE_RETRY_MAX_INTENTOS (6) se suelta la entrada y se registra un `logger.error`
+diciendo qué hijo se queda con el modo anterior — es un fallo real de ese hijo.
 ```
 
-**Quién envía NACK**: hijo1 L726/743, hijo2 L2005/2023, hijo3 L1490/1508, hijo4 L1495/1513/1594, `En-busca-del-tesoro.html` (seleccion) L2414/2420, `boton-casa-hijo5.html` (dev-only) L696/714, padre L8153/8188 (a otros componentes).
+**Quién envía NACK**: los cinco hijos (hijo1, hijo2, hijo3, hijo4 y hijo5) y la pantalla de selección. hijo6 no participa en el protocolo de modo.
+
+**Los hijos no aparcan el cambio de modo.** Hubo un tiempo en que cuatro de ellos lo guardaban además en un `pendingCambioModo` propio y lo aplicaban por su cuenta al estar listos — hijo2 al recibir los datos del padre, hijo3 y hijo5 al mostrarse su UI, hijo4 al sincronizar el modo. Con el reenvío del padre funcionando a la vez, **el cambio se aplicaba dos veces**: medido, los cuatro acusaban la aplicación por duplicado, y hijo5 —que la aplicaba mandándose un mensaje a sí mismo— reentraba al handler entero y duplicaba también sus peticiones de datos. Un solo camino: el padre recuerda, el hijo rechaza y espera.
+
+Lo cubre `tests/e2e/84-cambio-modo-se-aplica-una-vez.spec.js`, un caso por hijo.
+
+**Por qué rendirse tiene que doler:** al ser este el único camino, agotar los reintentos deja a ese hijo con el modo anterior y sin nadie que lo corrija. Por eso el final de los intentos se registra como error y no como un silencio.
 
 ---
 
@@ -9028,7 +9049,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | **Heartbeat** | Ping periódico del padre a los hijos (`SISTEMA.HEARTBEAT`) para verificar que siguen activos; los hijos responden con `SISTEMA.HEARTBEAT_RESPONSE` |
 | **ACK** | Confirmación de que un mensaje fue recibido correctamente |
 | **registrarControladorSeguro** | Función que registra un handler de `postMessage` con gestión de errores y soporte de cleanup. Punto de entrada estándar para todos los iframes |
-| **messagingAdapter** | Capa de abstracción de mensajería usada por los iframes hijo. Mantiene un `_listenerRegistry` para limpiar los handlers en `CAMBIO_MODO` y `pagehide` |
+| **messagingAdapter** | Copia propia de la mensajería que llevan los hijos **todavía sin migrar** (hijo2, hijo3, hijo4 y la pantalla de selección). Mantiene un `_listenerRegistry` para soltar sus handlers en `pagehide`. Los hijos migrados a `js/mensajeria.js` (hijo1, hijo5) no lo tienen: el bus pone un solo listener y lo gestiona él |
 
 ### Mapa y GPS
 
@@ -12000,11 +12021,11 @@ El padre no tiene un barrido periódico de controladores. No hace falta: cada do
 
 | Archivo | pagehide | CAMBIO_MODO |
 |---------|----------|-------------|
-| `extrainfo-hijo1.html` | ✓ limpia registry | ✗ no tiene |
+| `extrainfo-hijo1.html` | — **ya no usa `messagingAdapter`**: habla por `js/mensajeria.js` | ✗ no tiene |
 | `coordenadas-hijo2.html` | ✓ limpia registry | ✗ no tiene |
 | `audio-hijo3.html` | ✓ limpia registry | ✗ no tiene |
 | `retos-hijo4.html` | ✓ limpia registry | ✗ no tiene |
-| `boton-casa-hijo5.html` | ✓ limpia registry | ✗ no tiene |
+| `boton-casa-hijo5.html` | — **ya no usa `messagingAdapter`**: habla por `js/mensajeria.js` | ✗ no tiene |
 | `En-busca-del-tesoro.html` | ✓ limpia registry (mismo patrón: `messagingAdapter._listenerRegistry` propio, ver `registrarControladorCentral()`) | ✗ no tiene |
 | `chat-hijo6.html` | — (no usa messagingAdapter) | — |
 | `codigo-padre.html` | — no usa el patrón `messagingAdapter._listenerRegistry` (eso es exclusivo de hijos; el padre registra controladores vía `js/mensajeria.js`). Sí tiene su propio `pagehide` activo (`_limpiarPagehide`, registrado con `addEventListener`), pero limpia iframes/referencias globales, no un listener registry | — |
@@ -12831,23 +12852,38 @@ globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.CLOSE_MENUS, _hdl_UI_CLOS
 
 ### 34.2 Pausa de audio al abrir enlace externo
 
-**Archivo:** `extrainfo-hijo1.html`, dentro del handler `onclick` de cada icono de más-opciones
+**Archivos:** `extrainfo-hijo1.html` (handler `onclick` de cada icono de más-opciones), `codigo-padre.html` (`_hdl_UI_ACCION_USUARIO`), `audio-hijo3.html` (handler `UI.ACCION_USUARIO`).
 
-Antes de `globalThis.open(icono.url, '_blank')`, hijo1 envía `UI.ACCION_USUARIO` con `accion: 'audio_control', comando: 'pause'` directamente a `destino: 'hijo3'`. El audio queda pausado y el usuario lo reanuda manualmente cuando vuelve. El envío está en un `try/catch` propio para no bloquear la apertura del enlace si la pausa falla.
+Antes de `globalThis.open(icono.url, '_blank')`, hijo1 pide pausar el audio **al padre**, y el padre se lo reenvía a hijo3. El audio queda pausado y el usuario lo reanuda manualmente cuando vuelve. El envío está en un `try/catch` propio para no bloquear la apertura del enlace si la pausa falla.
+
+**Por qué pasa por el padre y no va directo a hijo3:** un hijo solo escribe a su padre. El bus de hijo1 resuelve `destino` contra **sus** iframes registrados, y hijo3 no es uno de ellos — un `destino: 'hijo3'` desde hijo1 se descarta con un aviso. El padre es el único que tiene a hijo3 registrado (§10.18).
 
 ```js
-try {
-    await enviarMensaje({
-        destino: 'hijo3',
-        tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
-        origen: CONFIG_HIJO.IFRAME_ID,
-        datos: { accion: 'audio_control', comando: 'pause', contexto: 'enlace_externo' }
-    });
-} catch (_pe) { /* no bloquear apertura */ }
-globalThis.open(icono.url, '_blank');
+// hijo1
+await enviarMensaje({
+    destino: 'padre',
+    tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
+    origen: CONFIG_HIJO.IFRAME_ID,
+    datos: { accion: 'audio_control', comando: 'pause', contexto: 'enlace_externo' }
+});
 ```
 
-hijo3 ya tenía el handler `UI.ACCION_USUARIO` que enruta `accion: 'audio_control'` a `_manejarAudioControl('pause', ...)` → `audioPlayer.pause()`. No se necesitó cambio en hijo3.
+```js
+// codigo-padre.html — _hdl_UI_ACCION_USUARIO
+} else if (accion === 'audio_control') {
+    const { comando, contexto } = mensaje.datos || {};
+    await enviarMensaje_S1({
+        destino: 'hijo3',
+        tipo: TIPOS_MENSAJE_S1.UI.ACCION_USUARIO,
+        origen: getPadreId(),
+        datos: { accion: 'audio_control', comando, contexto, reenviadoDe: mensaje.origen }
+    });
+}
+```
+
+hijo3 no necesita nada nuevo: su handler de `UI.ACCION_USUARIO` ya enruta `accion: 'audio_control'` a `_manejarAudioControl('pause', ...)` → `audioPlayer.pause()`. Lo que faltaba era el eslabón del medio — el padre recibía la petición y caía en su rama "acción no manejada".
+
+Lo cubre `tests/e2e/76-pausa-audio-enlace-externo.spec.js`: PA-1 comprueba el espía sobre `pause()`, PA-2 recorre el camino real pulsando el icono en hijo1.
 
 ---
 
@@ -13861,18 +13897,25 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_devCasaMode` | clásico 3 (L1084) | módulo 2 | estado |
 | `_puzzleListener` | clásico 3 (L1575) | módulo 2 | función/objeto |
 | `_resetearFlagsContenido` | clásico 3 (L2390) | módulo 2 | función/objeto |
-| `_setAventuraIniciando` | clásico 3 (L2388) | módulo 2 | función/objeto |
-| `_setIdiomaSeleccionado` | clásico 3 (L2387) | módulo 2 | función/objeto |
-| `_setTimerProgresoCarga` | clásico 3 (L2389) | módulo 2 | función/objeto |
-| `mostrarMapaVintage` | clásico 3 (L2409) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 2 (L3054) | clásico 3 | función/objeto |
+| `_setAventuraIniciando` | clásico 3 | módulo 2 | puente |
+| `_setAventuraSeleccionada` | clásico 3 (L2452) | módulo 2 | **puente** |
+| `_setIdiomaSeleccionado` | clásico 3 (L2451) | módulo 2 | **puente** |
+| `_setTimerProgresoCarga` | clásico 3 | módulo 2 | puente |
+| `mostrarMapaVintage` | clásico 3 | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 2 (L3127) | clásico 3 **solo vía su puente** | estado |
 | `enviarValoracion` | módulo 2 (L2427) | clásico 3 | función/objeto |
-| `idiomaSeleccionado` | módulo 2 (L2982) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 2 (L3050) | clásico 3 | función/objeto |
-| `TEXTOS_VALORACION` | módulo 2 (L2425) | clásico 3 | función/objeto |
-| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 2 (L2424) | clásico 3 | función/objeto |
-| `TRADUCCIONES_DESPEDIDA` | módulo 2 (L2423) | clásico 3 | función/objeto |
-| `TRADUCCIONES_REANUDACION` | módulo 2 (L2426) | clásico 3 | función/objeto |
+| `idiomaSeleccionado` | módulo 2 | clásico 3 **solo vía su puente** | estado |
+| `seleccionarAventura` | módulo 2 (L3123) | clásico 3 | función/objeto |
+| `TEXTOS_VALORACION` | módulo 2 | clásico 3 | función/objeto |
+| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 2 | clásico 3 | función/objeto |
+| `TRADUCCIONES_DESPEDIDA` | módulo 2 | clásico 3 | función/objeto |
+| `TRADUCCIONES_REANUDACION` | módulo 2 | clásico 3 | función/objeto |
+
+**Por qué los `_setX()` existen y no se pueden saltar.** Un `let` declarado en el `<script>` clásico **tapa** la propiedad del mismo nombre en `globalThis`: `globalThis.x = v` desde el módulo no cambia ese `let`, y las lecturas sin prefijo del clásico siguen viendo el valor viejo. Por eso todo estado que el módulo tenga que escribir y el clásico leer necesita su puente.
+
+El fallo, cuando falta un puente, es **mudo**: la variable se queda en su valor inicial y cada consumidor cae en su reserva (`|| 'Aventura1'`, `|| 'es'`), que carga bien y no da ningún error. Faltando el de la aventura, la pantalla de selección mostraba el mapa, el audio, el texto y los retos de la Aventura 1 eligieras la que eligieras, y la activación se llamaba con la aventura vacía. Lo cubre `tests/e2e/82-seleccion-usa-la-aventura-elegida.spec.js`.
+
+**Regla:** si el módulo escribe un estado que el clásico lee sin prefijo, o hay puente o no llega. Nunca basta con `globalThis.x = v`.
 
 </details>
 

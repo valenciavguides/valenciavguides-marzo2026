@@ -1047,14 +1047,79 @@ sin un solo lector) y todas las menciones en comentarios a `_enviarDesdePadre`, 
 `globalThis.mensajeria` + exports + alias `_S1` del padre): **cero código vivo llamando a algo que
 el bus no tiene**.
 
-### 25.6. Abierto
+### 25.6. Migrados hijo1 y hijo5, y lo que enseñaron
 
-- **Spec 28 (SE-1) falló una vez en iPhone 12** y no se ha podido reproducir: el proyecto iPhone 12
-  entero pasa, y en solitario 3 de 3. Descartado por mecanismo que sea de estos cambios (ese test
-  solo arranca el padre hasta FASE 1, así que el latido no corre y hijo3 no puede recargarse).
-  Queda como fragilidad conocida, sin explicar.
+**hijo1** (−181 líneas) y **hijo5** (−163) hablan ya por el bus. Con ellos caen dos fallos vivos:
+
+- **F3 resuelto.** hijo1 pausaba el audio hablándole **directamente a hijo3** — hermano a hermano, que la arquitectura prohíbe, y que no funcionó nunca. Ahora se lo pide al padre y el padre reenvía. Spec 76, que llevaba en rojo desde que se escribió, pasa a verde.
+- **F2 sigue abierto** para los demás: cae al migrar la pantalla de selección, que es la que prueba el spec 75.
+
+Tres lecciones que cuestan caras si se olvidan al migrar los cinco que faltan:
+
+1. **Revisar TODOS los destinos, no una familia.** En hijo1 se convirtieron los `resolverIdPadre()` y se dejaron seis formas distintas sin mirar. En hijo5 había 25 destinos de cinco formas: `resolverIdPadre()`, `mensaje.origen`, `mensaje.origen || 'padre'`, una variable intermedia y un `destino: 'self'`.
+2. **Que un hijo conteste al latido no basta: la respuesta tiene que LLEGAR.** Si se pierde por el camino, el padre lo da por caído a los tres latidos y —si está marcado `recuperable`— le recarga el iframe cada 15 s, en silencio. Ningún spec cubría ese viaje de vuelta; ahora sí (H1-4, H5-3).
+3. **Un test que pasa con el fallo puesto es del arnés, no del código.** Ocurrió tres veces en la misma sesión (BC-13, H5-4 y CM): siempre por una aserción que mide un efecto sin filtrar por *cuál*, y el tráfico legítimo de la app la contamina. Toda aserción sobre mensajes tiene que filtrar por el contenido concreto que espera, no solo por el tipo.
+
+### 25.7. El cambio de modo tenía dos caminos, y los dos funcionaban
+
+Cuando un `CAMBIO_MODO` llega a un hijo antes de que termine su handshake, el hijo responde `NACK { esperarPermiso: true, modoSolicitado }`. A partir de ahí había **dos mecanismos independientes**, cada uno inventado por su lado sin saber del otro:
+
+| | Quién recuerda | Cuándo actúa |
+|---|---|---|
+| **El padre** | `pendingModeChanges` (`js/app.js`) | Bucle cada 5 s con backoff, **y** el `HIJO_LISTO` de ese hijo |
+| **El hijo** | `pendingCambioModo` propio | Cuando *él* se considera listo |
+
+Y había **tres variantes** del lado del hijo para una misma situación: hijo2 lo aplicaba al recibir los datos del padre, hijo3 y hijo5 al mostrarse su UI, hijo4 al sincronizar el modo — y hijo1 **no aparcaba nada**, dependiendo solo del padre. Cuatro frames, tres comportamientos.
+
+**Medido, con la misma receta para los cuatro:** los cuatro lo aplicaban **dos veces**. hijo2/3/4 acusaban `CONFIRMACION {tipo:'inicializacion'}` por su vía local más `ENTENDIDO`+`EFECTUADO` por la del padre. hijo5, que lo aplicaba mandándose un mensaje a sí mismo, reentraba al handler entero: 2 `ENTENDIDO`, 2 `EFECTUADO` y 3 `SOLICITAR_DATOS_PARADAS`.
+
+**Medido también que cada camino funciona solo**: desactivando el del padre, el hijo aplica el modo; desactivando el del hijo, también.
+
+**Resuelto**: sobrevive el del padre —es el director de orquesta, es genérico, y es el único que sirve para hijo1 y hijo6, que no aparcan—. Se retira `pendingCambioModo` de los cuatro. El NACK se queda: es lo que alimenta al padre.
+
+**Antes de retirarlo** se arregló que el padre **se rendía en silencio**: tras 6 intentos hacía `continue` para siempre, sin borrar la entrada ni avisar. Ese orden importaba — al quedar como único camino, rendirse tiene que verse.
+
+Riesgo residual aceptado: si el padre agota sus 6 intentos *y* el hijo se vuelve listo después, ese cambio no se aplica. Antes lo tapaba el aparcado local. Ahora al menos se grita.
+
+Spec 84, un caso por hijo.
+
+### 25.8. Los rojos intermitentes: causa encontrada
+
+Durante estas sesiones aparecían 0-2 rojos por tanda completa, siempre en el navegador más lento y
+**cambiando de spec entre tanda y tanda** (28, luego 40, luego 60). Que se movieran era la pista:
+no era un test roto, era el arranque.
+
+Seis hipótesis, seis refutadas midiendo: el handler no registrado (lo estaba), un `SISTEMA.ERROR`
+previo bloqueando la fila (no había), el servidor degradado (1500 peticiones: 36→14 ms), el coste
+del contrato del acuse (cero mensajes sin handler, cero plazos agotados), `PLAZO_MAX_HANDLER` (los
+30 s eran el timeout del propio test), y el alias `estado` huérfano de Script 2 (margen real de
+9,8 s sobre un tope de 10).
+
+**Lo que lo resolvió fue conseguir reproducirlo en 2 minutos** con `--repeat-each` en vez de seguir
+adivinando con tandas de 45. Con eso, dos causas reales, ambas de la misma familia —**el test actúa
+mientras la app sigue trabajando**—:
+
+1. **`gotoAndWaitForFase1` solo esperaba a FASE 1** (Script 1). Los handlers del padre los registra
+   Script 2 después. Medido con diagnóstico dentro del test: `handlers: 0` en el instante del
+   envío. Arreglado en el arnés esperando a `script2Listo` — protege a todos los specs, incluidos
+   los que falten por escribir.
+2. **`proximidadReal` lo recalcula la app sola** (`sincronizarEstadoGPSConPadre` copia encima el
+   valor de `estadoMapa`, que sin GPS real es `false`). El test lo ponía una vez y se lo pisaban.
+
+Medido: 3 fallos en 32 ejecuciones antes; 0 en 36 después.
+
+De paso, **OR-1 podía pasar por el motivo equivocado**: afirma que el cartel no aparece, y si la
+proximidad se caía pasaba igual con el bug del orden puesto. Ahora comprueba que su precondición
+sigue en pie antes de afirmar nada.
+
+### 25.9. Abierto
+
 - **Espacios al final** ya existentes en `js/mensajeria.js` y `js/utils.js` (7 líneas con código,
   64 en blanco). No se tocan; la regla `no-trailing-spaces` no está configurada.
+- **F2** (spec 75) y **F4** (spec 77) siguen en rojo a propósito. F2 cae al migrar la pantalla de
+  selección y arrastra reescribir el spec 58; F4 necesita una decisión sobre el `pagehide` del padre.
+- **Migración**: van 2 de 7 (hijo1, hijo5). Faltan selección, hijo4, hijo6, hijo3 y hijo2, después
+  los tres nietos, y al final los cabos sueltos del padre.
 
 ---
 
