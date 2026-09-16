@@ -1416,7 +1416,20 @@ const intervaloReintentoModo = setInterval(async () => {
             if (!pending || typeof pending.nextAttemptAt !== 'number') continue;
             if (now < pending.nextAttemptAt) continue; // not yet
 
-            if ((pending.intentos || 0) >= MODE_RETRY_MAX_INTENTOS) continue;
+            if ((pending.intentos || 0) >= MODE_RETRY_MAX_INTENTOS) {
+                // Rendirse EN VOZ ALTA y soltar la entrada. Antes este `continue` dejaba la
+                // entrada dando vueltas para siempre sin volver a intentarlo y sin decir nada:
+                // el modo de ese hijo se quedaba sin aplicar y no había forma de saberlo.
+                // Ahora es el único camino que aplica el modo (los hijos ya no lo aparcan por
+                // su cuenta), así que rendirse tiene que doler y verse.
+                pendingModeChanges.delete(hijoId);
+                logger.error(
+                    `[APP][CAMBIO_MODO][RESEND] Se agotaron los ${MODE_RETRY_MAX_INTENTOS} intentos de `
+                    + `aplicar el modo '${pending.modo}' a ${hijoId}: ese hijo se queda con el modo anterior. `
+                    + 'Es un fallo real de ese hijo — no contesta a un CAMBIO_MODO ni tras seis reenvíos.'
+                );
+                continue;
+            }
 
             logger.info(`[APP][CAMBIO_MODO][RESEND] Intentando reenvío programado a ${hijoId} (intento ${pending.intentos + 1})`);
             try {

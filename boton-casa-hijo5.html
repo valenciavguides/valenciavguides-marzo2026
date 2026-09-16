@@ -305,7 +305,7 @@
     }
     </style>
     <script type="module">
-    import { retryUntilAvailable, resolverIdsParada, resolverIdPadre } from './js/utils.js';
+    import { retryUntilAvailable, resolverIdsParada } from './js/utils.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
     // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
@@ -321,192 +321,27 @@
         throw new Error('Componente debe ejecutarse dentro de un iframe');
     }
 
-    // Fallbacks que esperan a que globalThis.mensajeria esté disponible
-    const enviarMensaje = async (...args) => {
-        // En hijos, usar postMessage directamente al padre
-        if (globalThis.parent && globalThis.parent !== globalThis) {
-            const mensaje = args[0];
-            try {
-                globalThis.parent.postMessage({
-                    tipo: mensaje.tipo,
-                    origen: mensaje.origen || 'hijo5',
-                    destino: mensaje.destino,
-                    datos: mensaje.datos,
-                    timestamp: Date.now()
-                }, globalThis.location.origin);
-                return;
-            } catch (e) {
-                logger.error('[hijo5] Error enviando mensaje via postMessage:', e);
-                throw e;
-            }
-        } else {
-            // Fallback al método anterior si no estamos en iframe
-            return await retryUntilAvailable(
-                () => globalThis.mensajeria.enviarMensaje(...args),
-                () => globalThis.mensajeria && globalThis.mensajeria.enviarMensaje,
-                10, 500, (...a) => logger.error(...a)
-            );
-        }
-    };
+    // ==================== MENSAJERÍA ====================
+    // Este frame habla por el mismo bus que el padre y que todos los demás: un solo camino, con
+    // las mismas garantías en los dos sentidos (orden por tipo, acuse, descarte de fuentes no
+    // autorizadas). Mandar con `parent.postMessage` a pelo desde aquí se salta todas ellas.
+    //
+    // Cargar el bus no es opcional aunque este frame solo enviara: `js/utils.js` instala una
+    // captura de `error` y `unhandledrejection` que avisa al padre a través de
+    // `globalThis.mensajeria`. Sin bus, esos avisos se encolan, se reintentan 10 s y se tiran
+    // (spec 83).
+    const bus = await import('./js/mensajeria.js');
 
-    const registrarControlador = async (tipo, callback) => {
-        // En hijos, los controladores se registran localmente para mensajes del padre
-        if (globalThis.parent && globalThis.parent !== globalThis) {
-            // Registrar listener para mensajes del padre
-            const listener = (event) => {
-                if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
-                    callback(event.data);
-                }
-            };
-            globalThis.addEventListener('message', listener);
-            return () => globalThis.removeEventListener('message', listener);
-        } else {
-            // Fallback al método anterior
-            return await retryUntilAvailable(
-                () => globalThis.mensajeria.registrarControlador(tipo, callback),
-                () => globalThis.mensajeria && globalThis.mensajeria.registrarControlador,
-                10, 500, (...a) => logger.error(...a)
-            );
-        }
-    };
+    // El MISMO id con el que el padre registra este iframe. Si no coinciden, el padre le escribe
+    // a un sitio y este frame se presenta como otro, y ninguno de los dos se entera.
+    await bus.inicializarMensajeria({ id: 'hijo5' });
 
+    const { enviarMensaje, despacharLocal } = bus;
 
-    // ==================== MESSAGING ADAPTER PARA COMUNICACIÓN CON PADRE ====================
-    // Este adapter permite a los hijos registrar controladores centralmente en el state-manager del padre
-    if (globalThis.messagingAdapter === undefined) {
-        globalThis.messagingAdapter = {
-            _listenerRegistry: new Map(),
-
-            registrarControladorCentral: async function(controladorId, handler, opciones = {}) {
-                const iframeId = globalThis.name || CONFIG_HIJO?.IFRAME_ID || 'hijo';
-                const tipo = opciones.tipoMensaje || controladorId;
-
-                if (this._listenerRegistry.has(tipo)) {
-                    logger.warn(`[messagingAdapter] Listener ya registrado para ${tipo}, omitiendo`);
-                    return false;
-                }
-
-                const adapterListener = async function(event) {
-                    if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
-                        try {
-                            const resultado = await handler(event.data);
-
-                            if (event.data.requiereConfirmacion && event.data.id && resultado !== undefined) {
-                                try {
-                                    const confirmacion = {
-                                        tipo: TIPOS_MENSAJE?.SISTEMA?.CONFIRMACION || 'SISTEMA.CONFIRMACION',
-                                        idOriginal: event.data.id,
-                                        origen: iframeId,
-                                        destino: event.data.origen || 'padre',
-                                        timestamp: Date.now(),
-                                        datos: resultado
-                                    };
-                                    if (globalThis.parent && globalThis.parent !== globalThis) {
-                                        globalThis.parent.postMessage(confirmacion, globalThis.location.origin);
-                                        logger.info(`[messagingAdapter] Auto-confirmación enviada para ${event.data.id}`);
-                                    }
-                                } catch (confError) {
-                                    logger.error(`[messagingAdapter] Error enviando confirmación:`, confError);
-                                }
-                            }
-                        } catch (e) {
-                            logger.error(`[messagingAdapter] Error en handler ${tipo}:`, e?.message);
-                        }
-                    }
-                };
-                globalThis.addEventListener('message', adapterListener);
-                this._listenerRegistry.set(tipo, adapterListener);
-
-                logger.info(`[messagingAdapter] Handler registrado para ${tipo} en ${iframeId}`);
-                return true;
-            },
-
-            enviarMensajeCentral: async function(mensaje) {
-                if (globalThis.parent && globalThis.parent !== globalThis) {
-                    globalThis.parent.postMessage(mensaje, globalThis.location.origin);
-                    return { exito: true, metodo: 'postMessage' };
-                }
-                return { exito: false, error: 'No hay padre disponible' };
-            }
-        };
-        logger.info('[HIJO] messagingAdapter creado para comunicación con padre');
-
-        globalThis.addEventListener('pagehide', function() {
-            if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
-                for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
-                    globalThis.removeEventListener('message', listener);
-                }
-                globalThis.messagingAdapter._listenerRegistry.clear();
-            }
-        }, { once: true });
-    }
-
-    // Helper: intenta el registro central (messagingAdapter o mensajeria fallback)
-    async function _tryRegistrarCentral(tipo, handler, opciones) {
-        const iframeId = globalThis.name || CONFIG_HIJO?.IFRAME_ID || 'hijo';
-        const controladorId = `${iframeId}:${tipo}`;
-        if (globalThis.messagingAdapter?.registrarControladorCentral) {
-            try {
-                const res = await globalThis.messagingAdapter.registrarControladorCentral(controladorId, handler, { tipoMensaje: tipo });
-                if (res === true) {
-                    logger.info(`[HIJO] registrarControlador registered centrally: ${controladorId} -> ${tipo}`);
-                    return true;
-                }
-            } catch (e) {
-                logger.warn(`[HIJO] Central registrar failed for ${tipo}: ${e?.message}`);
-            }
-        }
-        if (typeof registrarControlador === 'function') {
-            try {
-                const res = await safeRegistrar(tipo, handler, opciones);
-                logger.info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
-                return res;
-            } catch (err) {
-                logger.warn(`[HIJO] registrarControlador failed for ${tipo}: ${err?.message}`);
-            }
-        }
-        return null;
-    }
-
-    // Wrapper seguro para evitar doble registro de controladores en hijos
-    if (globalThis.registrarControladorSeguro === undefined) {
-        globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
-        globalThis.registrarControladorSeguro = async function(tipo, handler, opciones) {
-            try {
-                logger.info(`[HIJO] registrarControladorSeguro called: ${tipo}`);
-                if (!tipo || typeof handler !== 'function') {
-                    logger.warn(`[HIJO] registrarControladorSeguro parámetros inválidos: tipo=${tipo}`);
-                    return;
-                }
-                if (globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) {
-                    logger.warn(`[HIJO] Controlador ya registrado, omitiendo: ${tipo}`);
-                    return;
-                }
-                globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
-                try {
-                    const res = await _tryRegistrarCentral(tipo, handler, opciones);
-                    if (res !== null) return res;
-                } catch (e) {
-                    logger.warn(`[HIJO] registrarControladorSeguro central attempt error for ${tipo}: ${e?.message}`);
-                }
-                logger.info(`[HIJO] Handler queued for migration: ${tipo} (local queue)`);
-            } catch (e) {
-                logger.error(`[HIJO] Error registrando controlador seguro ${tipo}:`, e?.message);
-            }
-        };
-
-        // Helper: safeRegistrar delegates to registrarControladorSeguro when available
-        if (globalThis.safeRegistrar === undefined) {
-            globalThis.safeRegistrar = async function(tipo, handler, opciones) {
-                try {
-                    if (!tipo || typeof handler !== 'function') return;
-                    if (globalThis.__CONTROLADOR_REGISTRADOS && globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) return;
-                    if (typeof globalThis.registrarControladorSeguro === 'function') return globalThis.registrarControladorSeguro(tipo, handler, opciones);
-                    if (typeof registrarControlador === 'function') return registrarControlador(tipo, handler);
-                } catch (e) { logger.warn('[HIJO] safeRegistrar error', e?.message); }
-            };
-        }
-    }
+    // El bus rechaza por sí mismo, y en voz alta, un segundo handler para el mismo tipo, así que
+    // sobra la capa de deduplicación que había aquí.
+    const registrarControladorSeguro = bus.registrarControlador;
+    globalThis.registrarControladorSeguro = registrarControladorSeguro;
     // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
     // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
 
@@ -559,7 +394,7 @@
                 logger.info(`[hijo5] Click en ${titulo}: idPadre=${idPadre}`);
                 logger.debug(`${clickPrefix} Enviando cambio de parada al padre: ${idPadre}`);
                 await enviarMensaje({
-                    destino: resolverIdPadre(),
+                    destino: 'padre',
                     tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: { paradaId: idPadre, parada_id: idSinPrefijo, padreId: idPadre, padreid: idPadre, timestamp: Date.now(), origen: 'hijo5' }
@@ -569,7 +404,7 @@
                 logger.error(`${clickPrefix} Error al manejar click:`, clickError);
                 try {
                     await enviarMensaje({
-                        destino: resolverIdPadre(),
+                        destino: 'padre',
                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                         origen: CONFIG_HIJO.IFRAME_ID,
                         datos: { error: clickError.message, contexto: 'click-boton-parada', paradaId: idPadre, timestamp: Date.now() }
@@ -695,9 +530,8 @@
     async function _validarCambioModo(mensaje, logPrefix) {
         if (!mensaje.datos?.secuenciaCompleta) {
             logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
-            estado.pendingCambioModo = mensaje.datos || { modo: null };
             await enviarMensaje({
-                destino: mensaje.origen,
+                destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.NACK,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { error: 'Secuencia no completa', esperarPermiso: true, tipoOriginal: mensaje.tipo, modoSolicitado: mensaje.datos?.modo }
@@ -710,13 +544,13 @@
         }
         if (!mensaje.datos || typeof mensaje.datos !== 'object') {
             logger.error(`${logPrefix} Datos inválidos`, mensaje);
-            await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: 'Datos de mensaje inválidos' } });
+            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: 'Datos de mensaje inválidos' } });
             return 'error';
         }
         const { modo } = mensaje.datos;
         if (!modo || (modo !== 'casa' && modo !== 'aventura')) {
             logger.error(`${logPrefix} Modo inválido: ${modo}`);
-            await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.NACK, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: `Modo inválido: ${modo}`, valoresValidos: ['casa', 'aventura'] } });
+            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.NACK, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: `Modo inválido: ${modo}`, valoresValidos: ['casa', 'aventura'] } });
             return 'nack';
         }
         return null;
@@ -836,7 +670,7 @@
             // mostrando un modo que el padre nunca llegó a aplicar.
             logger.info(`${logPrefix} Solicitando cambio de modo al padre: ${estado.modo} → ${modoNuevo}`);
             await enviarMensaje({
-                destino: resolverIdPadre(),
+                destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { modo: modoNuevo, timestamp: Date.now(), origen: 'boton-gps' }
@@ -844,7 +678,7 @@
             logger.info(`${logPrefix} Solicitud de cambio de modo enviada`);
         } catch (error) {
             logger.error(`${logPrefix} Error al manejar click en GPS:`, { message: error.message, stack: error.stack });
-            enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, contexto: 'manejarClickGPS', timestamp: Date.now() } })
+            enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, contexto: 'manejarClickGPS', timestamp: Date.now() } })
                 .catch(e => logger.debug(`${logPrefix} Error notificando al padre:`, e));
         }
     }
@@ -870,7 +704,7 @@
 
             // Enviar solicitud al padre
             await enviarMensaje({
-                destino: resolverIdPadre(),
+                destino: 'padre',
                 tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
@@ -895,7 +729,7 @@
             // Intentar notificar al padre del error
             try {
                 await enviarMensaje({
-                    destino: resolverIdPadre(),
+                    destino: 'padre',
                     tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
@@ -1002,7 +836,7 @@
                 async function enviarHijoListoConReintento() {
                     try {
                         await enviarMensaje({
-                            destino: resolverIdPadre(),
+                            destino: 'padre',
                             tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
                             origen: CONFIG_HIJO.IFRAME_ID,
                             datos: {
@@ -1063,25 +897,14 @@
             } catch (error) {
                 logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);
             }
-            try {
-                if (estado.pendingCambioModo?.modo) {
-                    const modoPendiente = estado.pendingCambioModo.modo;
-                    logger.info(`${logPrefix} Aplicando cambio de modo pendiente: ${modoPendiente}`);
-                    await enviarMensaje({
-                        destino: 'self',
-                        tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        datos: { modo: modoPendiente, secuenciaCompleta: true }
-                    }).catch(() => { estado.modo = modoPendiente; });
-                    delete estado.pendingCambioModo;
-                }
-            } catch (err) {
-                logger.error(`${logPrefix} Error aplicando modo pendiente:`, err);
-            }
+            // El cambio de modo fuera de secuencia NO se aparca aquí: se rechaza con NACK y es el
+            // padre quien lo recuerda y lo reenvía (pendingModeChanges, js/app.js). Aparcarlo
+            // además aquí lo aplicaba dos veces — y por este camino salía caro, porque se
+            // reentraba al handler entero: dos ENTENDIDO, dos EFECTUADO y tres peticiones de datos.
             try {
                 _uiConfirmado = true;
                 mostrarUI();
-                await enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } });
+                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } });
             } catch (e) { logger.debug('[hijo5] mostrarUI/confirmación UI error:', e); }
         });
 
@@ -1099,7 +922,7 @@
                 if (validErr) return;
 
                 const { modo } = mensaje.datos;
-                const destinoEntendido = mensaje.origen;
+                const destinoEntendido = 'padre';
                 const tipoEntendido = TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO;
                 const origenEntendido = CONFIG_HIJO?.IFRAME_ID;
 
@@ -1122,12 +945,12 @@
                     solicitarParadasDelPadre(true).catch(e => logger.warn(`${logPrefix} Error solicitando paradas tras CAMBIO_MODO:`, e));
                 }
 
-                await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO, origen: CONFIG_HIJO?.IFRAME_ID || 'hijo5', datos: { modo, exito: true, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id } });
+                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO, origen: CONFIG_HIJO?.IFRAME_ID || 'hijo5', datos: { modo, exito: true, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id } });
 
             } catch (error) {
                 logger.error(`${logPrefix} Error:`, error);
                 try {
-                    await enviarMensaje({ destino: mensaje.origen || 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, tipo: 'CAMBIO_MODO_FALLIDO' } });
+                    await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, tipo: 'CAMBIO_MODO_FALLIDO' } });
                 } catch (e) {
                     logger.error(`${logPrefix} Error notificando fallo:`, e);
                 }
@@ -1165,7 +988,7 @@
 
                 // Enviar respuesta con timestamp actual
                 await enviarMensaje({
-                    destino: mensaje.origen,
+                    destino: 'padre',
                     tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
@@ -1186,7 +1009,7 @@
                 // Intentar enviar respuesta de error
                 try {
                     await enviarMensaje({
-                        destino: mensaje.origen,
+                        destino: 'padre',
                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                         origen: CONFIG_HIJO.IFRAME_ID,
                         datos: {
@@ -1265,7 +1088,7 @@
                 estado.datosRecibidos = true;
 
                 await enviarMensaje({
-                    destino: resolverIdPadre(),
+                    destino: 'padre',
                     tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     idOriginal: mensaje.id,
@@ -1275,7 +1098,7 @@
             } catch (error) {
                 logger.error(`${logPrefix} Error al procesar respuesta de paradas:`, error);
                 try {
-                    await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, stack: error.stack, contexto: 'NAVEGACION.RESPUESTA_DATOS_PARADAS', mensajeOriginal: mensaje.tipo } });
+                    await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, stack: error.stack, contexto: 'NAVEGACION.RESPUESTA_DATOS_PARADAS', mensajeOriginal: mensaje.tipo } });
                 } catch (notifError) {
                     logger.error(`${logPrefix} Error al notificar error al origen:`, notifError);
                 }
@@ -1419,7 +1242,7 @@
             try {
                 // Responder automáticamente con ACK para mantener bidireccionalidad
                 await enviarMensaje({
-                    destino: resolverIdPadre(),
+                    destino: 'padre',
                     tipo: TIPOS_MENSAJE.SISTEMA.ACK,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: { mensajeOriginalId: mensaje.id }
@@ -1436,7 +1259,7 @@
         // Enviar HIJO_PREPARADO y esperar PADRE_DATOS antes de enviar HIJO_LISTO
         try {
             await enviarMensaje({
-                destino: resolverIdPadre(),
+                destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
@@ -1484,7 +1307,7 @@
         // Intentar notificar al padre del error crítico
             try {
             await enviarMensaje({
-                destino: resolverIdPadre(),
+                destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
@@ -1519,7 +1342,7 @@
 
             // 2. Enviar ping/heartbeat al padre para verificar conexión
             await enviarMensaje({
-                destino: resolverIdPadre(),
+                destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {

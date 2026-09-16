@@ -1875,20 +1875,7 @@ try {
 
             // Si teníamos un cambio de modo pendiente, aplicarlo ahora
             try {
-                if (estadoComponente.pendingCambioModo && estadoComponente.pendingCambioModo.modo) {
-                    const modoPendiente = estadoComponente.pendingCambioModo.modo;
-                    logger.info(`${logPrefix} Aplicando cambio de modo pendiente: ${modoPendiente}`);
-                    estadoComponente.modo = modoPendiente;
-                    actualizarEstadoBotones();
-                    // Notificar confirmación al padre
-                    await enviarMensaje({
-                        destino: mensaje.origen,
-                        tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        datos: { tipo: 'inicializacion', modo: modoPendiente }
-                    });
-                    delete estadoComponente.pendingCambioModo;
-                }
+                // El cambio de modo fuera de secuencia NO se aparca aqui: se rechaza con NACK y es el padre quien lo recuerda y lo reenvia (pendingModeChanges, js/app.js). Aparcarlo ademas aqui lo aplicaba dos veces.
             } catch (err) {
                 logger.error(`${logPrefix} Error aplicando cambio de modo pendiente:`, err);
             }
@@ -1959,7 +1946,6 @@ try {
             // Paso 1: Validar carga secuencial
             if (!mensaje.datos?.secuenciaCompleta) {
                 logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
-                if (estadoComponente) estadoComponente.pendingCambioModo = mensaje.datos || { modo: null };
                 await enviarMensaje({
                     tipo: TIPOS_MENSAJE.SISTEMA.NACK,
                     origen: CONFIG_HIJO.IFRAME_ID,

@@ -1518,18 +1518,7 @@
 
                 // Aplicar modo pendiente si estaba encolado
                 try {
-                    if (estado.pendingCambioModo && estado.pendingCambioModo.modo) {
-                        const modoPendiente = estado.pendingCambioModo.modo;
-                        logger.info(`[hijo4] Aplicando modo pendiente: ${modoPendiente}`);
-                        sincronizarEstadoModo(modoPendiente);
-                        await enviarMensaje({
-                            destino: mensaje.origen,
-                            tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            datos: { tipo: 'inicializacion', modo: modoPendiente }
-                        });
-                        delete estado.pendingCambioModo;
-                    }
+                    // El cambio de modo fuera de secuencia NO se aparca aqui: se rechaza con NACK y es el padre quien lo recuerda y lo reenvia (pendingModeChanges, js/app.js). Aparcarlo ademas aqui lo aplicaba dos veces.
                 } catch (err) {
                     logger.error('[hijo4] Error aplicando modo pendiente:', err);
                 }
@@ -1605,7 +1594,6 @@
                     // Validar carga secuencial
                     if (!mensaje.datos?.secuenciaCompleta) {
                         logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
-                        estado.pendingCambioModo = mensaje.datos || { modo: null };
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.SISTEMA.NACK,
                             origen: CONFIG_HIJO.IFRAME_ID,
