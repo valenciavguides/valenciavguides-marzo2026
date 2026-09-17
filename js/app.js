@@ -44,7 +44,6 @@ mensajeriaReadyPromise.then(() => {
 
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import logger from './logger.js';
-import { CONFIG } from './config.js';
 import { generarIdUnico, resolverIdPadre, canonicalizarModo, retryUntilAvailable } from './utils.js';
 import { promesasPendientes, registrarMetrica as registrarMetricaMonitoreo } from './monitoreo.js';
 import { esMovil } from './device-detection.js';
@@ -62,14 +61,6 @@ const enviarMensaje = (...args) => {
 const registrarControlador = (...args) => {
     if (mensajeriaReady && globalThis.mensajeria) {
         return globalThis.mensajeria.registrarControlador(...args);
-    } else {
-        logger.error('mensajeria not loaded', args);
-        return Promise.reject(new Error('mensajeria not ready'));
-    }
-};
-const enviarMensajeConConfirmacion = (...args) => {
-    if (mensajeriaReady && globalThis.mensajeria) {
-        return globalThis.mensajeria.enviarMensajeConConfirmacion(...args);
     } else {
         logger.error('mensajeria not loaded', args);
         return Promise.reject(new Error('mensajeria not ready'));
@@ -137,7 +128,7 @@ export async function registrarControladoresApp() {
     await mensajeriaReadyPromise; // Esperar a que mensajeria esté lista
     try {
         const migrarManejadoresTempranos = globalThis.mensajeria?.migrarManejadoresTempranos;
-        
+
         if (!migrarManejadoresTempranos) {
              logger.debug('[APP][registrarControladores] migrarManejadoresTempranos no disponible (mensajeria no cargada o versión antigua)');
              return;
@@ -290,7 +281,7 @@ export async function actualizarInterfazModo(estado, modo) {
 async function esperarRespuestas(mapaRespuestas, hijosEsperados, timeoutMs, tipoRespuesta) {
     const inicio = Date.now();
     const intervaloChequeo = 100; // Chequear cada 100ms
-    
+
     while (Date.now() - inicio < timeoutMs) {
         // Verificar si todos respondieron
         const todosRespondieron = hijosEsperados.every(hijo => mapaRespuestas.has(hijo));
@@ -298,11 +289,11 @@ async function esperarRespuestas(mapaRespuestas, hijosEsperados, timeoutMs, tipo
             logger.info(`[esperarRespuestas] Todos los hijos respondieron ${tipoRespuesta} en ${Date.now() - inicio}ms`);
             return;
         }
-        
+
         // Esperar un poco antes del siguiente chequeo
         await new Promise(resolve => setTimeout(resolve, intervaloChequeo));
     }
-    
+
     // Timeout: reportar quiénes no respondieron
     const noRespondieron = hijosEsperados.filter(hijo => !mapaRespuestas.has(hijo));
     logger.warn(`[esperarRespuestas] Timeout esperando ${tipoRespuesta} de: ${noRespondieron.join(', ')}`);
@@ -552,7 +543,7 @@ export async function manejarCambioModo(estado, mensaje) {
     const logPrefix = `[SISTEMA.CAMBIO_MODO][${mensaje?.origen || 'desconocido'}]`;
     const timestamp = Date.now();
     const mensajeId = mensaje?.mensajeId || generarIdUnico();
-    
+
     // 1. Validación inicial del mensaje
     if (!mensaje?.datos) {
         const errorMsg = 'Mensaje de cambio de modo inválido: datos faltantes';
@@ -701,10 +692,10 @@ export async function manejarCambioModo(estado, mensaje) {
                 duracion: `${Date.now() - timestamp}ms`
             });
 
-            return { 
-                exito: true, 
+            return {
+                exito: true,
                 cambiado: true,
-                modoAnterior: modoActual, 
+                modoAnterior: modoActual,
                 modoActual: modoNormalized,
                 timestamp
             };
@@ -749,8 +740,8 @@ export async function manejarCambioModo(estado, mensaje) {
         // Notificar error sin causar bucle
         await _notificarErrorCambioModo(mensaje, errorMsg, error, modo, logPrefix);
 
-        return { 
-            exito: false, 
+        return {
+            exito: false,
             error: errorMsg,
             modoActual: estado.modo?.actual
         };
@@ -1003,7 +994,7 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
         estado.modo.actual = modoAnterior;
         estado.modo.anterior = modoFallido;
     }
-    
+
     // Notificar a los componentes
     await enviarMensaje({
         tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
@@ -1018,10 +1009,10 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
             timestamp: Date.now()
         }
     });
-    
+
     // Actualizar la interfaz
     await actualizarInterfazModo(estado, modoAnterior);
-    
+
     logger.warn(`Modo restaurado a '${modoAnterior}' después de fallo al cambiar a '${modoFallido}'`, {
         motivo
     });
@@ -1108,7 +1099,7 @@ if (globalThis.window !== undefined) {
     globalThis.registrarMetrica = registrarMetrica;
     globalThis.notificarError = notificarError;
     globalThis.obtenerEstadoMonitoreo = obtenerEstadoMonitoreo;
-    
+
     // Evento de inicialización app se registra en el DOMContentLoaded unificado del padre
     // (eliminado listener duplicado - ver codigo-padre.html línea ~1185)
 }
@@ -1199,23 +1190,23 @@ if (globalThis.window !== undefined) {
             if (globalThis.registrarMetrica) delete globalThis.registrarMetrica;
             if (globalThis.notificarError) delete globalThis.notificarError;
             if (globalThis.obtenerEstadoMonitoreo) delete globalThis.obtenerEstadoMonitoreo;
-            
+
             // Limpiar estado global de la aplicación
             if (globalThis.estado) delete globalThis.estado;
-            
+
             // Limpiar promesas pendientes
             promesasPendientes.clear();
-            
+
             // Limpiar estado de coordinación
             estadoCoordinacion.coordinacionesActivas.clear();
-            
+
             // Limpiar arrays globales
             if (globalThis.puntosRuta) delete globalThis.puntosRuta;
             if (globalThis.CoordenadasParadas) delete globalThis.CoordenadasParadas;
-            
+
             // Limpiar estado de hijos
             if (globalThis.estadoHijos) delete globalThis.estadoHijos;
-            
+
             // Limpiar intervalos
             if (globalThis.intervaloReconciliacion) {
                 clearInterval(globalThis.intervaloReconciliacion);
@@ -1223,7 +1214,7 @@ if (globalThis.window !== undefined) {
             }
             clearInterval(intervaloLimpiezaPromesas);
             clearInterval(intervaloReintentoModo);
-            
+
             logger.info('Limpieza agresiva de globales de la aplicación completada');
         } catch (error) {
             // Logging mínimo durante pagehide para evitar errores

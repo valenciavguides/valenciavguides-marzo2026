@@ -52,22 +52,22 @@
     const resultsDiv = document.getElementById('results');
     let resultClass = 'pass';
     let resultMsg = '[PASS] Ningún hijo visible prematuramente';
-    
-    if (anyVisible) { 
-      append('[FAIL] Algún hijo es visible antes del handshake completo'); 
-      document.getElementById('status').textContent='FAIL'; 
+
+    if (anyVisible) {
+      append('[FAIL] Algún hijo es visible antes del handshake completo');
+      document.getElementById('status').textContent='FAIL';
       resultClass = 'fail';
       resultMsg = '[FAIL] Algún hijo visible prematuramente';
-    } else { 
-      append('[PASS] Ningún hijo visible prematuramente'); 
-      document.getElementById('status').textContent='PASS'; 
+    } else {
+      append('[PASS] Ningún hijo visible prematuramente');
+      document.getElementById('status').textContent='PASS';
     }
-    
+
     const div = document.createElement('div');
     div.className = resultClass;
     div.textContent = resultMsg;
     resultsDiv.appendChild(div);
-    
+
     globalThis.TestReporter.report({
       name: 'Integración: UI Visibility Handshake',
       resultsContainer: resultsDiv

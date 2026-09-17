@@ -63,7 +63,7 @@ export async function limpiarDatosAventura(motivo = 'desconocido') {
 
     try {
         logger.info(`${logPrefix} 🗑️ Iniciando limpieza TOTAL del dispositivo. Motivo: ${motivo}`);
-        
+
         // ========================================
         // 1. BORRAR EL localStorage COMPLETO
         // ========================================
@@ -73,7 +73,7 @@ export async function limpiarDatosAventura(motivo = 'desconocido') {
         } catch (e) {
             logger.warn(`${logPrefix} Error limpiando localStorage:`, e);
         }
-        
+
         // ========================================
         // 2. BORRAR EL sessionStorage COMPLETO
         // ========================================
@@ -83,12 +83,12 @@ export async function limpiarDatosAventura(motivo = 'desconocido') {
         } catch (e) {
             logger.warn(`${logPrefix} Error limpiando sessionStorage:`, e);
         }
-        
+
         // ========================================
         // 3. ELIMINAR TODAS LAS CACHÉS DEL SERVICE WORKER
         // ========================================
         await _limpiarCaches(logger, logPrefix);
-        
+
         // ========================================
         // 4. DESREGISTRAR EL SERVICE WORKER (radical pero necesario)
         // ========================================
@@ -103,16 +103,16 @@ export async function limpiarDatosAventura(motivo = 'desconocido') {
                 logger.warn(`${logPrefix} Error desregistrando SW:`, e);
             }
         }
-        
+
         logger.info(`${logPrefix} ✅✅✅ LIMPIEZA TOTAL COMPLETADA`);
         logger.info(`${logPrefix} 📱 Dispositivo completamente limpio. Huella digital = 0 bytes`);
-        
+
         return {
             exito: true,
             motivo,
             timestamp: new Date().toISOString()
         };
-        
+
     } catch (error) {
         logger.error(`${logPrefix} ❌ Error durante limpieza total:`, error);
         return {

@@ -79,7 +79,7 @@
     const resultDiv = document.getElementById('results');
     const div = document.createElement('div');
     div.className = document.getElementById('status').textContent === 'PASS' ? 'pass' : 'fail';
-    div.textContent = document.getElementById('status').textContent === 'PASS' 
+    div.textContent = document.getElementById('status').textContent === 'PASS'
       ? '✅ Handshake test passed'
       : '❌ Handshake test failed';
     resultDiv.appendChild(div);

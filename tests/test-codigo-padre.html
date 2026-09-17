@@ -15,7 +15,7 @@
 </head>
 <body>
     <h1>🧪 Test de codigo-padre.html</h1>
-    
+
     <div class="test-section">
         <h2>Estado de las Correcciones</h2>
         <div id="corrections-status">
@@ -35,7 +35,7 @@
             <li>Los iframes se cargan correctamente</li>
             <li>El sistema de mensajería se inicializa</li>
         </ol>
-        
+
         <button onclick="openTestPage()">🚀 Abrir código-padre.html</button>
     </div>
 
@@ -47,7 +47,7 @@
             <li><code>[INIT] Sistema de mensajería inicializado</code></li>
             <li><code>[INIT] ✅ ¡Sistema inicializado y listo!</code></li>
         </ul>
-        
+
         <p>Si ves errores, anota:</p>
         <ul>
             <li>El mensaje de error exacto</li>
@@ -105,7 +105,7 @@
 
             const statusDiv = document.getElementById('corrections-status');
             statusDiv.innerHTML = '<h3>📁 Verificación de Archivos Críticos:</h3>';
-            
+
             results.forEach(result => {
                 const p = document.createElement('p');
                 p.className = result.exists ? 'success' : 'error';

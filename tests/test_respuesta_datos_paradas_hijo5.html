@@ -28,7 +28,7 @@
     </div>
 
     <div id="results"></div>
-    
+
     <h3>Log:</h3>
     <div id="log"></div>
 
@@ -139,12 +139,12 @@
 
             // Test 2: Enviar RESPUESTA_DATOS_PARADAS a hijo5
             log('Enviando NAVEGACION.RESPUESTA_DATOS_PARADAS...');
-            
+
             let respuestaRecibida = false;
             const messageHandler = (e) => {
                 if (e.data && e.data.tipo) {
                     log(`Respuesta de hijo5: ${e.data.tipo}`);
-                    if (e.data.tipo === TIPOS_MENSAJE.SISTEMA.ACK || 
+                    if (e.data.tipo === TIPOS_MENSAJE.SISTEMA.ACK ||
                         e.data.tipo === TIPOS_MENSAJE.SISTEMA.CONFIRMACION) {
                         respuestaRecibida = true;
                     }
@@ -168,7 +168,7 @@
             await new Promise(r => setTimeout(r, 2000));
             globalThis.removeEventListener('message', messageHandler);
 
-            addResult('Mensaje RESPUESTA_DATOS_PARADAS enviado', true, 
+            addResult('Mensaje RESPUESTA_DATOS_PARADAS enviado', true,
                 `${datosPruebaParadas.length} paradas`);
 
             // Test 3: Verificar almacenamiento en estado
@@ -178,7 +178,7 @@
                     addResult('Datos almacenados en estado.aventuraParadas', true,
                         `${estado.aventuraParadas.length} elementos`);
                 } else {
-                    addResult('estado.aventuraParadas', false, 
+                    addResult('estado.aventuraParadas', false,
                         'No se encontraron datos almacenados');
                 }
             } catch (e) {
@@ -199,39 +199,39 @@
             log('Verificando generación de botones de paradas...');
 
             const hijo5 = document.getElementById('hijo5');
-            
+
             try {
                 const doc = hijo5.contentDocument;
-                
+
                 // Buscar contenedor de botones
-                const contenedor = doc.querySelector('#paradas-container') || 
+                const contenedor = doc.querySelector('#paradas-container') ||
                                    doc.querySelector('.paradas-container') ||
                                    doc.querySelector('[id*="parada"]');
-                
+
                 if (contenedor) {
                     const botones = contenedor.querySelectorAll('button, .parada-tramo-btn');
-                    
+
                     if (botones.length > 0) {
-                        addResult('Botones de paradas generados', true, 
+                        addResult('Botones de paradas generados', true,
                             `${botones.length} botones encontrados`);
-                        
+
                         // Verificar estructura de botones
                         const primerBoton = botones[0];
                         const tieneClaseCorrecta = primerBoton.classList.contains('parada-tramo-btn');
                         addResult('Estructura de botones correcta', tieneClaseCorrecta,
                             tieneClaseCorrecta ? 'clase parada-tramo-btn presente' : 'clase faltante');
                     } else {
-                        addResult('Botones generados', false, 
+                        addResult('Botones generados', false,
                             'Contenedor existe pero sin botones');
                     }
                 } else {
                     // Buscar mensaje de espera
                     const mensajeEspera = doc.body.textContent.includes('Esperando datos');
                     if (mensajeEspera) {
-                        addWarning('Sin datos del padre', 
+                        addWarning('Sin datos del padre',
                             'Mostrando "Esperando datos de la aventura..." (comportamiento correcto si no se enviaron datos)');
                     } else {
-                        addResult('Contenedor de botones', false, 
+                        addResult('Contenedor de botones', false,
                             'No se encontró contenedor de paradas');
                     }
                 }

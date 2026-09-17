@@ -12,7 +12,7 @@ describe('Health API', () => {
                 .get('/api/health')
                 .expect('Content-Type', /json/)
                 .expect(200);
-            
+
             expect(res.body).toHaveProperty('status', 'ok');
             expect(res.body).toHaveProperty('version');
             expect(res.body).toHaveProperty('timestamp');
@@ -24,14 +24,14 @@ describe('Health API', () => {
             expect(res.body.endpoints).toHaveProperty('puzzles');
         });
     });
-    
+
     describe('GET /api/health/ping', () => {
         it('debe retornar pong con timestamp', async () => {
             const res = await request(app)
                 .get('/api/health/ping')
                 .expect('Content-Type', /json/)
                 .expect(200);
-            
+
             expect(res.body).toHaveProperty('pong', true);
             expect(res.body).toHaveProperty('timestamp');
             expect(typeof res.body.timestamp).toBe('number');

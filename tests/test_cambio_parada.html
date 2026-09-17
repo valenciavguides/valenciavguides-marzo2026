@@ -27,7 +27,7 @@
     </div>
 
     <div id="results"></div>
-    
+
     <h3>Log de Mensajes:</h3>
     <div id="log"></div>
 
@@ -35,7 +35,7 @@
         <h3>Iframes de prueba:</h3>
         <p><strong>Padre:</strong></p>
         <iframe id="padre" src="../codigo-padre.html" style="width:100%;height:200px;border:1px solid #ccc;"></iframe>
-        
+
         <p><strong>hijo5 (boton-casa):</strong></p>
         <iframe id="hijo5" src="../boton-casa-hijo5.html" style="width:100%;height:150px;border:1px solid #ccc;"></iframe>
     </div>
@@ -107,9 +107,9 @@
 
             // Simular un clic en un botón de parada en hijo5
             const paradaId = 'padre-P-1';
-            
+
             log(`Enviando CAMBIO_PARADA con paradaId: ${paradaId}`);
-            
+
             // Enviar mensaje desde hijo5 hacia el padre
             hijo5.contentWindow.postMessage({
                 tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
@@ -126,27 +126,27 @@
             await new Promise(r => setTimeout(r, 2000));
 
             // Verificar si el padre recibió y procesó el mensaje
-            const cambioParadaRecibido = mensajesCapturados.find(m => 
+            const cambioParadaRecibido = mensajesCapturados.find(m =>
                 m.tipo === TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA
             );
 
             if (cambioParadaRecibido) {
-                addResult('CAMBIO_PARADA enviado desde hijo5', true, 
+                addResult('CAMBIO_PARADA enviado desde hijo5', true,
                     `paradaId: ${cambioParadaRecibido.datos?.paradaId}`);
             } else {
-                addResult('CAMBIO_PARADA enviado desde hijo5', false, 
+                addResult('CAMBIO_PARADA enviado desde hijo5', false,
                     'No se capturó el mensaje');
             }
 
             // Verificar respuesta CAMBIO_PARADA_CONFIRMADO
-            const confirmacionRecibida = mensajesCapturados.find(m => 
+            const confirmacionRecibida = mensajesCapturados.find(m =>
                 m.tipo === TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO
             );
 
             if (confirmacionRecibida) {
                 addResult('CAMBIO_PARADA_CONFIRMADO recibido', true);
             } else {
-                addResult('CAMBIO_PARADA_CONFIRMADO recibido', false, 
+                addResult('CAMBIO_PARADA_CONFIRMADO recibido', false,
                     'El padre debería confirmar el cambio');
             }
 
@@ -230,7 +230,7 @@
             // Resumen
             const totalMensajes = mensajesCapturados.length;
             log(`\nResumen: ${totalMensajes} mensajes capturados en total`, 'info');
-            
+
             statusDiv.textContent = 'Estado: Test completo finalizado';
 
             // Reportar al master-test

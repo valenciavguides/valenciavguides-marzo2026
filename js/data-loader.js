@@ -1,15 +1,15 @@
 /**
  * Data Loader - Cargador de datos con protección
- * 
+ *
  * En DESARROLLO (DATA_MODE = 'local'):
  *   Importa los datos directamente desde los ficheros JS locales.
  *   Funciona sin backend ni autenticación.
- * 
+ *
  * En PRODUCCIÓN (DATA_MODE = 'api'):
  *   Obtiene los datos desde la API del backend, que requiere token.
  *   Los ficheros JS locales están bloqueados por el servidor estático.
  *   Sin token válido → no hay acceso a coordenadas, textos ni respuestas.
- * 
+ *
  * TRANSICIÓN A PRODUCCIÓN:
  *   1. Cambiar DATA_MODE a 'api'
  *   2. Establecer PROTECT_DATA=true en el servidor estático
@@ -56,14 +56,14 @@ async function fetchFromAPI(endpoint) {
     // Obtener token del TokenManager (definido en js/api-client.js — pendiente de conectar cuando el backend esté desplegado)
     // En modo 'local' esta función nunca se llama; solo activa en modo 'api'
     const token = globalThis.TokenManager ? globalThis.TokenManager.getToken() : null;
-    
+
     const headers = { 'Content-Type': 'application/json' };
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
     const response = await fetch(`${API_BASE}${endpoint}`, { headers });
-    
+
     if (!response.ok) {
         if (response.status === 401) {
             (globalThis.logger || console).warn('[DataLoader] Token inválido o expirado. Se requiere re-activación.');

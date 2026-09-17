@@ -352,7 +352,7 @@
             <h1>🧪 Master Test Suite</h1>
             <p>Valencia VGuides - Sistema de Testing Unificado</p>
             <div class="api-doc" style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto; text-align: left;">
-                <strong>📡 API de Reporte:</strong> Los tests deben llamar a 
+                <strong>📡 API de Reporte:</strong> Los tests deben llamar a
                 <code>globalThis.parent.globalThis.reportTestResult({name, passed, failed, warnings})</code>
                 para reportar sus resultados. Ver <a href="TEST_REPORTING_API.md" target="_blank">TEST_REPORTING_API.md</a>
             </div>
@@ -1167,7 +1167,7 @@
 
                     updateTestStatus(idx, status, time);
                     const emoji = status === 'failed' ? '❌' : (status === 'warning' ? '⚠️' : '✅');
-                    addLog(`${emoji} ${test.name}: ${passed} passed, ${failed} failed, ${warnings} warnings (${time.toFixed(0)}ms)`, 
+                    addLog(`${emoji} ${test.name}: ${passed} passed, ${failed} failed, ${warnings} warnings (${time.toFixed(0)}ms)`,
                            status === 'failed' ? 'error' : (status === 'warning' ? 'warning' : 'success'));
                     results[idx] = { status, time, passed, failed, warnings };
 
@@ -1302,7 +1302,7 @@
             let report = `VALENCIA VGUIDES - COMPREHENSIVE TEST REPORT\n`;
             report += `Generated: ${new Date().toLocaleString()}\n`;
             report += `Master Suite: master-test.html\n\n`;
-            
+
             report += `=== SUMMARY ===\n`;
             report += `Total Tests: ${statuses.length}\n`;
             report += `Passed: ${passed}\n`;
@@ -1310,25 +1310,25 @@
             report += `Warnings: ${warning}\n`;
             report += `Skipped: ${skipped}\n`;
             report += `Success Rate: ${passed > 0 ? ((passed / (passed + failed + warning)) * 100).toFixed(2) : '0'}%\n\n`;
-            
+
             report += `=== DETAILED RESULTS ===\n`;
             TESTS.forEach((test, idx) => {
                 const result = results[idx];
                 if (result) {
-                    const statusSymbol = result.status === 'passed' ? '✅' : 
-                                        (result.status === 'failed' ? '❌' : 
+                    const statusSymbol = result.status === 'passed' ? '✅' :
+                                        (result.status === 'failed' ? '❌' :
                                         (result.status === 'warning' ? '⚠️' : '⏭️'));
-                    
+
                     report += `${statusSymbol} ${test.name.padEnd(50)} - ${result.status.toUpperCase()}`;
-                    
+
                     if (result.time) {
                         report += ` (${result.time.toFixed(0)}ms)`;
                     }
-                    
+
                     if (result.passed !== undefined || result.failed !== undefined) {
                         report += ` [${result.passed || 0}✓ ${result.failed || 0}✗ ${result.warnings || 0}⚠]`;
                     }
-                    
+
                     report += `\n`;
                 }
             });

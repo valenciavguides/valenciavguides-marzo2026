@@ -1,7 +1,7 @@
 /**
  * @fileoverview Sistema de mensajería para ValenciaVGuides
  * @version 2.0.0
- * 
+ *
  * Sistema centralizado de comunicación entre padre e hijos (iframes).
  * Todas las operaciones de registro y envío delegan al state-manager centralizado.
  */
@@ -104,12 +104,12 @@ export async function inicializarMensajeria(opciones = {}) {
         logger.warn('[mensajeria] Ya inicializado, ignorando llamada duplicada');
         return true;
     }
-    
+
     const { id = generarIdUnico('comp'), stateManager: sm } = opciones;
 
     componenteId = id;
     stateManager = sm || (globalThis.window === undefined ? null : globalThis.__vv_stateManager);
-    
+
     // VALIDACIÓN CRÍTICA: Verificar que state-manager esté disponible.
     // En el padre, state-manager.js se inicializa (await) antes de que se llame aquí,
     // por lo que sm siempre se pasa como parámetro y este bloque no se ejecuta.
@@ -122,7 +122,7 @@ export async function inicializarMensajeria(opciones = {}) {
             logger.warn('[mensajeria] ⚠️ state-manager no disponible en init — se usará fallback local. obtenerStateManager() lo buscará dinámicamente en cada operación.');
         }
     }
-    
+
     logger.info(`[mensajeria] Inicializando ${id}`);
 
     // Configurar listener de mensajes
@@ -131,12 +131,12 @@ export async function inicializarMensajeria(opciones = {}) {
 
         ventanaPadre = (globalThis.parent && globalThis.parent !== globalThis) ? globalThis.parent : null;
     }
-    
+
     inicializado = true;
-    
+
     // Exponer API global
     exponerAPIGlobal();
-    
+
     logger.info(`[mensajeria] Inicialización completada`);
     return true;
 }
@@ -146,7 +146,7 @@ export async function inicializarMensajeria(opciones = {}) {
  */
 function exponerAPIGlobal() {
     if (globalThis.window === undefined) return;
-    
+
     globalThis.mensajeria = {
         // Funciones principales
         inicializarMensajeria,
@@ -181,7 +181,7 @@ function exponerAPIGlobal() {
         // Utilidades
         generarIdMensaje: () => generarIdUnico('msg')
     };
-    
+
     // Alias para compatibilidad
     globalThis.__vv_mensajeria = globalThis.mensajeria;
 }
@@ -206,7 +206,7 @@ function obtenerStateManager() {
 /**
  * Registra un controlador para un tipo de mensaje
  * Delega al state-manager si está disponible
- * 
+ *
  * @param {string} tipo - Tipo de mensaje a manejar
  * @param {Function} handler - Función manejadora
  * @param {Object} [opciones] - Opciones adicionales
@@ -217,7 +217,7 @@ export async function registrarControlador(tipo, handler, opciones = {}) {
         logger.error('[mensajeria] registrarControlador: tipo y handler son requeridos');
         return false;
     }
-    
+
     // Dos handlers para el mismo tipo es un fallo, no una opción: uno de los dos no se ejecuta
     // y nadie se entera. Ya pasó — hay comentarios en el padre, app.js y funciones-mapa.js
     // esquivando a mano esa "carrera de inserción". Se queda el primero y se dice en voz alta.
@@ -227,12 +227,12 @@ export async function registrarControlador(tipo, handler, opciones = {}) {
     }
 
     logger.debug(`[mensajeria] Registrando controlador para: ${tipo}`);
-    
+
     // Intentar usar state-manager centralizado (buscar dinámicamente)
     const sm = obtenerStateManager();
     if (sm && typeof sm.registrarManejador === 'function') {
         try {
-            // CRÍTICO: Pasar tipoMensaje en opciones para que state-manager pueda 
+            // CRÍTICO: Pasar tipoMensaje en opciones para que state-manager pueda
             // indexar el handler correctamente y getMapaControladoresSync() lo encuentre
             const opcionesCompletas = {
                 ...opciones,
@@ -245,12 +245,12 @@ export async function registrarControlador(tipo, handler, opciones = {}) {
             logger.error(`[mensajeria] Error delegando a state-manager: ${error.message}`);
         }
     }
-    
+
     // Fallback: usar registro local mediante __vv_getManejadores
     const manejadores = obtenerMapaManejadores();
     manejadores.set(tipo, handler);
     logger.debug(`[mensajeria] Controlador registrado localmente: ${tipo}`);
-    
+
     return true;
 }
 
@@ -278,12 +278,12 @@ function obtenerMapaManejadores() {
     if (sm && typeof sm.getManejadores === 'function') {
         return sm.getManejadores();
     }
-    
+
     // Usar __vv_getManejadores si está definido
     if (globalThis.window !== undefined && typeof globalThis.__vv_getManejadores === 'function') {
         return globalThis.__vv_getManejadores();
     }
-    
+
     // Crear mapa local como último recurso
     if (globalThis.window !== undefined) {
         if (!globalThis.__vv_manejadoresLocales) {
@@ -291,7 +291,7 @@ function obtenerMapaManejadores() {
         }
         return globalThis.__vv_manejadoresLocales;
     }
-    
+
     return new Map();
 }
 
@@ -340,7 +340,7 @@ export function enviarMensaje(mensaje) {
  * Soporta DOS formatos de llamada:
  * 1. enviarMensajeConConfirmacion(tipo, datos, opciones)
  * 2. enviarMensajeConConfirmacion({tipo, datos, destino, ...}) - objeto completo
- * 
+ *
  * @param {string|Object} tipoOrMensaje - Tipo de mensaje o mensaje completo
  * @param {*} [datos] - Datos del mensaje (ignorado si primer arg es objeto)
  * @param {Object} [opciones] - Opciones
@@ -351,7 +351,7 @@ export function enviarMensaje(mensaje) {
 export function enviarMensajeConConfirmacion(tipoOrMensaje, datos, opciones = {}) {
     // Detectar formato de llamada: objeto completo vs argumentos separados
     let tipo, datosReales, destino, timeout;
-    
+
     if (typeof tipoOrMensaje === 'object' && tipoOrMensaje?.tipo) {
         // Formato objeto completo: {tipo, datos, destino, ...}
         tipo = tipoOrMensaje.tipo;
@@ -365,19 +365,19 @@ export function enviarMensajeConConfirmacion(tipoOrMensaje, datos, opciones = {}
         timeout = opciones.timeout || 5000;
         destino = opciones.destino;
     }
-    
+
     return new Promise((resolve, reject) => {
         const mensaje = crearMensaje(tipo, datosReales);
         mensaje.requiereConfirmacion = true;
-        
+
         const idConfirmacion = mensaje.id;
-        
+
         // Registrar callback pendiente
         const timeoutId = setTimeout(() => {
             confirmacionesPendientes.delete(idConfirmacion);
             reject(_errorBus('sin-respuesta', `Nadie contestó a ${tipo} en ${timeout} ms`));
         }, timeout);
-        
+
         confirmacionesPendientes.set(idConfirmacion, {
             resolve,
             reject,
@@ -385,7 +385,7 @@ export function enviarMensajeConConfirmacion(tipoOrMensaje, datos, opciones = {}
             tipo,
             timestamp: Date.now()
         });
-        
+
         // Enviar mensaje — enviarMensajeInterno() devuelve una Promise desde que se
         // corrigió su .catch() roto (ver comentario junto a su definición); hay que
         // esperarla para saber si el envío falló de verdad, si no este chequeo nunca
@@ -704,23 +704,23 @@ function manejarMensajeEntrante(event) {
     } else {
         logger.debug(`[mensajeria] Mensaje recibido: ${mensaje.tipo}`, { origen: mensaje.origen });
     }
-    
+
     // Verificar si es una confirmación
     if (mensaje.tipo === TIPOS_MENSAJE.SISTEMA.CONFIRMACION && mensaje.idOriginal) {
         manejarConfirmacion(mensaje);
         return;
     }
-    
+
     // Buscar handler registrado
     const manejadores = obtenerMapaManejadores();
     const handler = manejadores.get(mensaje.tipo);
-    
+
     // DEBUG: Log disponibles para diagnóstico
     if (!handler) {
         const tiposDisponibles = Array.from(manejadores.keys()).join(', ') || '(ninguno)';
         logger.debug(`[mensajeria] Sin handler para: ${mensaje.tipo} | Disponibles: ${tiposDisponibles}`);
     }
-    
+
     // Los errores de un frame de abajo suben hasta el padre de todos: es donde se miran. El frame
     // de en medio no escribe nada para esto — si tuviera que acordarse cada contenedor, el día que
     // aparezca uno nuevo sus errores se perderían en silencio.
@@ -753,11 +753,11 @@ function manejarMensajeEntrante(event) {
  */
 function manejarConfirmacion(mensaje) {
     const pendiente = confirmacionesPendientes.get(mensaje.idOriginal);
-    
+
     if (pendiente) {
         clearTimeout(pendiente.timeoutId);
         confirmacionesPendientes.delete(mensaje.idOriginal);
-        
+
         if (mensaje.error) {
             pendiente.reject(_errorBus('fallo-handler', mensaje.error.mensaje || `El handler de ${pendiente.tipo} se rompió`));
         } else {
@@ -1204,10 +1204,10 @@ export function limpiar() {
         pendiente.reject(new Error('Mensajería limpiada'));
     }
     confirmacionesPendientes.clear();
-    
+
     // Limpiar cola
     colaMensajes.length = 0;
-    
+
     logger.info('[mensajeria] Recursos limpiados');
 }
 
@@ -1215,7 +1215,7 @@ export function limpiar() {
 if (globalThis.window !== undefined) {
     // Determinar TTL según dispositivo
     const ttlMensajeria = esMovil() ? TTL_LIMPIEZA.MENSAJERIA.MOVIL : TTL_LIMPIEZA.MENSAJERIA.DESKTOP;
-    
+
     setInterval(() => {
         const ahora = Date.now();
 

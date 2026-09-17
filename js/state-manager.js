@@ -471,7 +471,7 @@ export async function enviarMensajeCentral(mensaje) {
  * @returns {Array} - List of controller IDs
  */
 export async function getControladoresRegistrados() {
-  return await mutexes.controladores.runExclusive(() => 
+  return await mutexes.controladores.runExclusive(() =>
     Array.from(state.controladores.keys())
   );
 }
@@ -560,7 +560,7 @@ export function createEstadoPadreProxy() {
 // Initialize the state manager
 export async function inicializarStateManager() {
   (globalThis.logger || console).info('✅ [STATE-MANAGER] Inicializado correctamente');
-  
+
   if (globalThis.window !== undefined) {
     // Objeto API completo del state-manager
     const stateManagerAPI = {
@@ -577,7 +577,7 @@ export async function inicializarStateManager() {
       // Funciones de mensajes
       enviarMensajeCentral,
       limpiarMensajesAntiguos,
-      
+
       // Funciones de estado
       getEstadoPadre,
       setEstadoPadre,
@@ -601,7 +601,7 @@ export async function inicializarStateManager() {
       // Diagnóstico
       diagnosticar: diagnosticarStateManager,
       diagnosticarStateManager,
-      
+
       // Utilidad
       getEstado: () => ({
         controladores: state.controladores.size,
@@ -616,11 +616,11 @@ export async function inicializarStateManager() {
         }
       })
     };
-    
+
     // Exponer en ambos nombres para compatibilidad
     globalThis.__stateManager = stateManagerAPI;
     globalThis.__vv_stateManager = stateManagerAPI; // Nombre esperado por mensajeria.js
-    
+
     (globalThis.logger || console).info('[STATE-MANAGER] API expuesta en globalThis.__stateManager y globalThis.__vv_stateManager');
   }
 
@@ -634,7 +634,7 @@ export async function inicializarStateManager() {
 export async function diagnosticarStateManager() {
   const controladores = await getControladoresRegistrados(); // NOSONAR
   const controladoresPorTipo = new Map();
-  
+
   await mutexes.controladores.runExclusive(() => {
     for (const [id, c] of state.controladores) {
       const tipo = c.opciones?.tipoMensaje || 'sin-tipo';

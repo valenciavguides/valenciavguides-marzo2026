@@ -11,7 +11,7 @@
     <!-- Load modules using script tags that actually execute the module code -->
     <script type="module" src="../js/constants.js"></script>
     <script type="module" src="../js/mensajeria.js"></script>
-    
+
     <script src="test-reporter-utility.js"></script>
     <script type="module">
         // Wait for modules to be fully loaded and executed (with timeout)
@@ -67,7 +67,7 @@
 
             if (globalThis.mensajeria) {
                 message += '✅ globalThis.mensajeria available<br>';
-                
+
                 // Check if mensajeria is properly initialized
                 if (globalThis.mensajeria.enviarMensaje && globalThis.mensajeria.registrarControlador && globalThis.mensajeria.inicializarMensajeria) {
                     message += '✅ mensajeria functions available<br>';

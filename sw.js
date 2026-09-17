@@ -98,7 +98,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell actualiza la versión de caché
 // automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-c8f027153820';
+const CACHE_VERSION = 'v-b664ef33e8be';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
@@ -150,7 +150,7 @@ self.addEventListener('activate', event => {
     caches.keys()
       .then(keys => Promise.all(
         keys
-          .filter(key => 
+          .filter(key =>
             (key.startsWith('vvguides-shell-') && key !== CACHE_NAME) ||
             (key.startsWith('vvguides-media-') && key !== MEDIA_CACHE_NAME)
           )

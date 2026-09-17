@@ -140,7 +140,7 @@
             }, 60);
         })();
         // Force HTTPS redirect for valenciavguides.es
-        if (globalThis.location.protocol !== 'https:' && 
+        if (globalThis.location.protocol !== 'https:' &&
             globalThis.location.hostname === 'valenciavguides.es') {
             globalThis.location.href = 'https://' + globalThis.location.hostname + globalThis.location.pathname + globalThis.location.search + globalThis.location.hash;
         } else {

@@ -28,7 +28,7 @@
     </div>
 
     <div id="results"></div>
-    
+
     <h3>Log:</h3>
     <div id="log"></div>
 
@@ -88,7 +88,7 @@
             log('Iniciando test de HEARTBEAT');
 
             const padre = document.getElementById('padre');
-            
+
             // Esperar carga
             await new Promise(resolve => {
                 if (padre.contentDocument.readyState === 'complete') {
@@ -108,8 +108,8 @@
                     const tieneStart = tipos.SISTEMA.HEARTBEAT_START !== undefined;
                     const tienePause = tipos.SISTEMA.HEARTBEAT_PAUSE !== undefined;
                     const tieneResponse = tipos.SISTEMA.HEARTBEAT_RESPONSE !== undefined;
-                    
-                    addResult('Constantes HEARTBEAT definidas', 
+
+                    addResult('Constantes HEARTBEAT definidas',
                         tieneHeartbeat && tieneStart && tienePause && tieneResponse,
                         `HEARTBEAT: ${tieneHeartbeat}, START: ${tieneStart}, PAUSE: ${tienePause}, RESPONSE: ${tieneResponse}`);
                 }
@@ -133,10 +133,10 @@
 
             // Test 3: Verificar estado del heartbeat
             try {
-                const estadoHeartbeat = padre.contentWindow.heartbeatEstado || 
+                const estadoHeartbeat = padre.contentWindow.heartbeatEstado ||
                                         padre.contentWindow.globalThis.heartbeatEstado;
                 if (estadoHeartbeat) {
-                    addResult('Estado heartbeat accesible', true, 
+                    addResult('Estado heartbeat accesible', true,
                         `Activo: ${estadoHeartbeat.activo || 'N/A'}`);
                 }
             } catch (e) {
@@ -157,7 +157,7 @@
             clearLog();
             log('Enviando HEARTBEAT_START...');
             const padre = document.getElementById('padre');
-            
+
             padre.contentWindow.postMessage({
                 tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_START,
                 origen: 'test-runner',
@@ -166,7 +166,7 @@
                     intervalo: 5000
                 }
             }, '*');
-            
+
             await new Promise(r => setTimeout(r, 1000));
             addResult('HEARTBEAT_START enviado', true);
             log('HEARTBEAT_START enviado - verificar en consola del padre');
@@ -176,14 +176,14 @@
             clearLog();
             log('Enviando HEARTBEAT_PAUSE...');
             const padre = document.getElementById('padre');
-            
+
             padre.contentWindow.postMessage({
                 tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_PAUSE,
                 origen: 'test-runner',
                 destino: 'padre',
                 datos: {}
             }, '*');
-            
+
             await new Promise(r => setTimeout(r, 1000));
             addResult('HEARTBEAT_PAUSE enviado', true);
             log('HEARTBEAT_PAUSE enviado - verificar en consola del padre');

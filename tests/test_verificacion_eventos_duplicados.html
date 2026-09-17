@@ -27,7 +27,7 @@
 </head>
 <body>
     <h1>🔍 Verificación: Eventos Duplicados Eliminados</h1>
-    
+
     <div class="test-section success">
         <h3>✅ Correcciones Aplicadas - Estado Actual del Proyecto</h3>
         <ul>
@@ -86,47 +86,47 @@
     <div class="test-section" id="manual-checklist">
         <h3>✅ Lista de Verificación Manual</h3>
         <p>Marca los elementos verificados:</p>
-        
+
         <div class="check-item">
             <input type="checkbox" id="check1">
             <label for="check1">✅ codigo-padre.html tiene un solo listener DOMContentLoaded</label>
         </div>
-        
+
         <div class="check-item">
             <input type="checkbox" id="check2">
             <label for="check2">✅ js/app.js no tiene listener DOMContentLoaded duplicado</label>
         </div>
-        
+
         <div class="check-item">
             <input type="checkbox" id="check3">
             <label for="check3">✅ No hay mensajeriaReady duplicado en código-padre</label>
         </div>
-        
+
         <div class="check-item">
             <input type="checkbox" id="check4">
             <label for="check4">✅ toggleRotationMessage se ejecuta en listener unificado</label>
         </div>
-        
+
         <div class="check-item">
             <input type="checkbox" id="check5">
             <label for="check5">✅ backdrop handler se registra en listener unificado</label>
         </div>
-        
+
         <div class="check-item">
             <input type="checkbox" id="check6">
             <label for="check6">✅ Eliminados 3 imports duplicados de mensajeria.js</label>
         </div>
-        
+
         <div class="check-item">
             <input type="checkbox" id="check7">
             <label for="check7">✅ Eliminado 1 import duplicado de monitoreo.js</label>
         </div>
-        
+
         <div class="check-item">
             <input type="checkbox" id="check8">
             <label for="check8">🔄 Listeners message en hijos: múltiples pero funcionalmente necesarios</label>
         </div>
-        
+
         <div class="check-item">
             <input type="checkbox" id="check9">
             <label for="check9">⚠️ Heartbeat intervals: protegidos por flag inicializado</label>
@@ -155,13 +155,13 @@
 
         function verificarEventosDuplicados() {
             log('🔍 Verificando eventos duplicados...');
-            
+
             const verificaciones = [];
 
             // 1. Verificar que no hay múltiples DOMContentLoaded globales
             const scripts = document.querySelectorAll('script');
             let domContentLoadedCount = 0;
-            
+
             scripts.forEach(script => {
                 const content = script.textContent || script.innerText;
                 if (content && content.includes("addEventListener('DOMContentLoaded'")) {
@@ -178,7 +178,7 @@
             // 2. Verificar que no hay eventos con nombres similares duplicados
             const eventosSospechosos = [
                 'mensajeriaReady',
-                'app_inicializada', 
+                'app_inicializada',
                 'toggleRotationMessage'
             ];
 
@@ -201,21 +201,21 @@
             }
 
             const resultado = verificaciones.join('\n');
-            mostrarResultados('verification-output', resultado, 
+            mostrarResultados('verification-output', resultado,
                 resultado.includes('❌') ? 'error' : resultado.includes('⚠️') ? 'warning' : 'success');
-            
+
             log('✅ Verificación de eventos duplicados completada');
         }
 
         function buscarPatronesProblematicos() {
             log('🔎 Buscando patrones problemáticos...');
-            
+
             const patrones = [];
             const html = document.documentElement.outerHTML;
 
             // Buscar múltiples addEventListener sin once:true
             const addEventListenerMatches = html.match(/addEventListener\s*\([^)]*\)/g) || [];
-            const sinOnce = addEventListenerMatches.filter(match => 
+            const sinOnce = addEventListenerMatches.filter(match =>
                 !match.includes('once:') && !match.includes('once: true')
             );
 
@@ -238,7 +238,7 @@
             const timeoutMatches = (html.match(/setTimeout\s*\(/g) || []).length;
             const intervalMatches = (html.match(/setInterval\s*\(/g) || []).length;
             const clearMatches = (html.match(/clear(Timeout|Interval)/g) || []).length;
-            
+
             if (timeoutMatches + intervalMatches > clearMatches * 1.5) {
                 patrones.push(`⚠️ Posibles timeouts/intervals sin cleanup: ${timeoutMatches + intervalMatches} creados vs ${clearMatches} limpiados`);
             }
@@ -248,15 +248,15 @@
             }
 
             const resultado = patrones.join('\n');
-            mostrarResultados('verification-output', resultado, 
+            mostrarResultados('verification-output', resultado,
                 resultado.includes('⚠️') ? 'warning' : 'success');
-            
+
             log('✅ Búsqueda de patrones problemáticos completada');
         }
 
         function analizarListeners() {
             log('📋 Analizando listeners DOM actuales...');
-            
+
             const analisis = [];
 
             // Analizar elementos con listeners
@@ -279,7 +279,7 @@
             // Verificar elementos críticos
             const elementosCriticos = ['#mapa', '#backdrop', 'body', '.container'];
             analisis.push('🎯 ELEMENTOS CRÍTICOS:');
-            
+
             elementosCriticos.forEach(selector => {
                 const elemento = document.querySelector(selector);
                 if (elemento) {
@@ -298,7 +298,7 @@
 
             const resultado = analisis.join('\n');
             mostrarResultados('dom-output', resultado, 'info');
-            
+
             log('✅ Análisis de listeners DOM completado');
         }
 
@@ -316,14 +316,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             log('🎯 Test de verificación de eventos duplicados cargado');
             log('📋 Estado: Verificando correcciones aplicadas');
-            
+
             setTimeout(() => {
                 verificarEventosDuplicados();
             }, 1000);
-            
+
             // Pre-marcar elementos verificados
             document.getElementById('check1').checked = true;
-            document.getElementById('check2').checked = true; 
+            document.getElementById('check2').checked = true;
             document.getElementById('check3').checked = true;
             document.getElementById('check4').checked = true;
             document.getElementById('check5').checked = true;

@@ -15,12 +15,12 @@ while ((match = scriptRegex.exec(raw)) !== null) {
   const attrs = match[0].match(/<script([^>]*)>/i)?.[1] || '';
   const isModule = attrs.includes('type="module"');
   const code = match[1];
-  
+
   // Skip validation for modules as they support top-level await and imports
   if (isModule) {
     continue;
   }
-  
+
   // compute line offset
   const before = raw.slice(0, match.index);
   const lineOffset = (before.match(/\n/g) || []).length + 1;

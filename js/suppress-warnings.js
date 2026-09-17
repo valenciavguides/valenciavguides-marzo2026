@@ -1,19 +1,19 @@
 /**
  * @fileoverview Supresión de advertencias innecesarias en consola
  * @version 1.0.0
- * 
+ *
  * Este script debe cargarse lo más temprano posible para
  * filtrar mensajes de advertencia no relevantes de la consola.
  */
 
 (function() {
     'use strict';
-    
+
     // Guardar referencias originales
     const originalWarn = console.warn;
     const originalError = console.error;
     const originalDebug = console.debug;
-    
+
     /**
      * Patrones de advertencias a suprimir
      * @type {Array<RegExp>}
@@ -22,18 +22,18 @@
         // Advertencias de Mapbox que no afectan funcionalidad
         /mapbox-gl/i,
         /This page appears to be missing CSS/i,
-        
+
         // Advertencias de deprecación menores
         /Synchronous XMLHttpRequest/i,
-        
+
         // Advertencias de fuentes
         /downloadable font/i,
         /Font.*failed to decode/i,
-        
+
         // Advertencias de third-party que no controlamos
         /third-party cookie/i,
         /SameSite cookie/i,
-        
+
         // Advertencias de desarrollo
         /DevTools/i,
         /Source map/i,
@@ -48,7 +48,7 @@
         // Mensajes informativos de orientación no críticos
         /SUPPRESS_ROTATION/i
     ];
-    
+
     /**
      * Patrones de errores a suprimir (solo errores conocidos no críticos)
      * @type {Array<RegExp>}
@@ -56,7 +56,7 @@
     const patronesErrorSuprimir = [
         // Errores de recursos que fallan silenciosamente
         /Failed to load resource.*favicon/i,
-        
+
         // Errores de CORS conocidos y manejados
         /CORS.*blocked/i,
 
@@ -90,7 +90,7 @@
             return false;
         }
     })();
-    
+
     /**
      * Verifica si un mensaje debe ser suprimido
      * @param {Array<RegExp>} patrones - Patrones a verificar
@@ -107,10 +107,10 @@
                 return String(arg);
             }
         }).join(' ');
-        
+
         return patrones.some(patron => patron.test(mensaje));
     };
-    
+
     /**
      * Wrapper para console.warn
      */
@@ -119,7 +119,7 @@
             originalWarn.apply(console, args);
         }
     };
-    
+
     /**
      * Wrapper para console.error (solo suprime errores conocidos no críticos)
      */
@@ -144,12 +144,12 @@
             originalDebug.apply(console, args);
         }
     };
-    
+
     // Log de inicialización (usando original para asegurar que se muestre)
     if (globalThis.window !== undefined && globalThis.location.hostname === 'localhost') {
         originalWarn.call(console, '[suppress-warnings] Filtro de advertencias activo');
     }
-    
+
     // Exponer función para restaurar consola original si es necesario
     if (globalThis.window !== undefined) {
         globalThis.__vv_restaurarConsola = function() {

@@ -35,7 +35,7 @@
 
     /* Fuente global Verdana */
     * { font-family: Verdana, sans-serif !important; }
-    
+
     body {
         margin: 0;
         overflow: hidden; /* Evita barras de desplazamiento en el body */
@@ -295,7 +295,7 @@ if ('IntersectionObserver' in globalThis) {
 function resizePieces() {
     const w = puzzleWrapper.clientWidth;
     const h = puzzleWrapper.clientHeight;
-    
+
     // Si el contenedor está oculto (dimensiones 0), no redimensionar para evitar corrupción
     if (w <= 0 || h <= 0) {
         return;
@@ -343,7 +343,7 @@ function init() {
     puzzleEnded = false;
     paused = false;
     pauseBtn.textContent = "⏸️";
-    
+
     // Asegurar que el canvas tenga dimensiones válidas antes de inicializar
     if (canvas.width <= 0 || canvas.height <= 0) {
         // Usar dimensiones por defecto si el contenedor está oculto

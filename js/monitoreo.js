@@ -1,7 +1,7 @@
 /**
  * @fileoverview Sistema de monitoreo para ValenciaVGuides
  * @version 2.0.0
- * 
+ *
  * Proporciona funciones de monitoreo, métricas y diagnóstico
  * del sistema de mensajería y componentes.
  */
@@ -61,7 +61,7 @@ export async function inicializarMonitoreo(opciones = {}) {
         logger.warn('[monitoreo] Ya inicializado');
         return true;
     }
-    
+
     const {
         intervaloMetricas = CONFIG.MONITOREO?.INTERVALO_METRICAS || 30000
     } = opciones;
@@ -82,10 +82,10 @@ export async function inicializarMonitoreo(opciones = {}) {
         globalThis.addEventListener('error', manejarErrorGlobal);
         globalThis.addEventListener('unhandledrejection', manejarPromiseRechazada);
     }
-    
+
     estadoMonitoreo.inicializado = true;
     logger.info('[monitoreo] Sistema de monitoreo iniciado');
-    
+
     return true;
 }
 
@@ -123,14 +123,14 @@ export function registrarMetrica(nombre, valor, tags = {}) {
                 }
                 // Calcular promedio
                 const tiempos = estadoMonitoreo.metricas.tiemposRespuesta;
-                estadoMonitoreo.metricas.tiempoRespuestaPromedio = 
+                estadoMonitoreo.metricas.tiempoRespuestaPromedio =
                     tiempos.reduce((a, b) => a + b, 0) / tiempos.length;
             }
             break;
     }
-    
+
     estadoMonitoreo.metricas.ultimaActividad = Date.now();
-    
+
     logger.debug(`[monitoreo] Métrica registrada: ${nombre}`, { valor, tags });
 }
 
@@ -150,10 +150,10 @@ function recolectarMetricas() {
         },
         componentesActivos: estadoMonitoreo.componentesActivos.size
     };
-    
+
     // Verificar umbrales y generar alertas
     verificarUmbrales(metricas);
-    
+
     logger.debug('[monitoreo] Métricas recolectadas', metricas);
 }
 
@@ -178,9 +178,9 @@ function obtenerUsoMemoria() {
  */
 function obtenerMetricasRendimiento() {
     if (typeof performance === 'undefined') return {};
-    
+
     const navegacion = performance.getEntriesByType('navigation')[0];
-    
+
     return {
         tiempoCarga: navegacion ? Math.round(navegacion.loadEventEnd - navegacion.startTime) : null,
         tiempoDomInteractivo: navegacion ? Math.round(navegacion.domInteractive - navegacion.startTime) : null
@@ -196,19 +196,19 @@ function verificarUmbrales(metricas) {
     if (metricas.memoria && metricas.memoria.usedMB > UMBRALES.MEMORIA_MB) {
         generarAlerta('MEMORIA_ALTA', `Uso de memoria elevado: ${metricas.memoria.usedMB}MB`);
     }
-    
+
     // Verificar tiempo de respuesta
     if (metricas.mensajeria.tiempoRespuestaPromedio > UMBRALES.TIEMPO_RESPUESTA_MS) {
-        generarAlerta('TIEMPO_RESPUESTA_ALTO', 
+        generarAlerta('TIEMPO_RESPUESTA_ALTO',
             `Tiempo de respuesta promedio elevado: ${Math.round(metricas.mensajeria.tiempoRespuestaPromedio)}ms`);
     }
-    
+
     // Verificar errores por minuto
     const erroresUltimoMinuto = historialErrores.filter(
         e => Date.now() - e.timestamp < 60000
     ).length;
     if (erroresUltimoMinuto > UMBRALES.ERRORES_POR_MINUTO) {
-        generarAlerta('ERRORES_FRECUENTES', 
+        generarAlerta('ERRORES_FRECUENTES',
             `${erroresUltimoMinuto} errores en el último minuto`);
     }
 }
@@ -224,14 +224,14 @@ function generarAlerta(tipo, mensaje) {
         mensaje,
         timestamp: Date.now()
     };
-    
+
     estadoMonitoreo.alertas.push(alerta);
-    
+
     // Mantener solo las últimas 50 alertas
     if (estadoMonitoreo.alertas.length > 50) {
         estadoMonitoreo.alertas.shift();
     }
-    
+
     logger.warn(`[monitoreo] Alerta: ${tipo} - ${mensaje}`);
 }
 

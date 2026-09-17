@@ -3,7 +3,7 @@
   "fecha_generacion": "2025-01-08",
   "proyecto": "ValenciaVGuides",
   "version_analisis": "2.0.0",
-  
+
   "flujos_completos": {
     "SISTEMA": {
       "HIJO_PREPARADO": {
@@ -25,7 +25,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "PADRE_DATOS": {
         "descripcion": "El padre envía datos de aventura al hijo según sus capacidades",
         "origen": "padre",
@@ -42,7 +42,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "HIJO_LISTO": {
         "descripcion": "El hijo confirma que está listo para operar",
         "origen": "hijo2|hijo3|hijo4|hijo5",
@@ -59,7 +59,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "PADRE_CONFIRMA_HIJO_LISTO": {
         "descripcion": "El padre confirma recepción de HIJO_LISTO",
         "origen": "padre",
@@ -75,7 +75,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "CAMBIO_MODO": {
         "descripcion": "Protocolo de 4 pasos para cambio de modo casa/aventura",
         "origen": "padre (propagación) | hijo5 (botón)",
@@ -94,7 +94,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "HEARTBEAT": {
         "descripcion": "Pulso de vida para detectar hijos activos",
         "origen": "padre (en modo aventura)",
@@ -112,7 +112,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "PADRE_PIDE_MANEJADORES": {
         "descripcion": "Migración: padre solicita lista de controladores registrados en hijo",
         "origen": "padre",
@@ -129,7 +129,7 @@
         ],
         "estado": "⚠️ PARCIAL - Handler comentado en hijos, fallback via listener genérico"
       },
-      
+
       "APLICACION_INICIALIZADA": {
         "descripcion": "Sistema completamente operativo",
         "origen": "interno/padre",
@@ -146,7 +146,7 @@
         "estado": "✅ COMPLETO"
       }
     },
-    
+
     "NAVEGACION": {
       "CAMBIO_PARADA": {
         "descripcion": "Notificación de cambio de parada activa",
@@ -164,7 +164,7 @@
         ],
         "estado": "⚠️ PARCIAL - No todos los hijos confirman explícitamente"
       },
-      
+
       "GPS.ACTIVAR": {
         "descripcion": "Activación del GPS del dispositivo",
         "origen": "padre | hijo5",
@@ -181,7 +181,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "GPS.DESACTIVAR": {
         "descripcion": "Desactivación del GPS",
         "origen": "padre | hijo5",
@@ -198,7 +198,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "GPS.UBICACION_ACTUALIZADA": {
         "descripcion": "Nueva posición GPS del usuario",
         "origen": "padre (watchPosition callback)",
@@ -214,7 +214,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "SOLICITAR_DATOS_PARADAS": {
         "descripcion": "Hijo solicita datos de paradas al padre",
         "origen": "hijo5",
@@ -232,7 +232,7 @@
         "estado": "✅ COMPLETO"
       }
     },
-    
+
     "DATOS": {
       "CARGAR_COORDENADAS": {
         "descripcion": "Padre envía coordenadas de aventura a hijo2",
@@ -250,7 +250,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "CARGAR_AUDIOS": {
         "descripcion": "Padre envía lista de audios a hijo3",
         "origen": "padre (distribuirDatosAventura)",
@@ -267,7 +267,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "CARGAR_RETOS": {
         "descripcion": "Padre envía lista de retos a hijo4",
         "origen": "padre (distribuirDatosAventura)",
@@ -284,7 +284,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "COORDENADAS_PARADAS_REQUEST": {
         "descripcion": "Solicitud de coordenadas específicas de una parada",
         "origen": "padre (solicitarCoordenadasAHijo2)",
@@ -302,7 +302,7 @@
         "estado": "✅ COMPLETO"
       }
     },
-    
+
     "RETO": {
       "SOLICITAR_RETO": {
         "descripcion": "Usuario solicita mostrar un reto (click en botón)",
@@ -320,7 +320,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "MOSTRAR": {
         "descripcion": "Comando para mostrar un reto en hijo4",
         "origen": "padre",
@@ -337,7 +337,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "COMPLETADO": {
         "descripcion": "Usuario completó el reto correctamente",
         "origen": "hijo4",
@@ -354,7 +354,7 @@
         ],
         "estado": "⚠️ PARCIAL - Handler no explícito en código-padre, delegado a pendingCompleciones"
       },
-      
+
       "OCULTAR": {
         "descripcion": "Ocultar el iframe de retos",
         "origen": "hijo4 (botón Continuar)",
@@ -372,7 +372,7 @@
         "estado": "✅ COMPLETO"
       }
     },
-    
+
     "CONTROL": {
       "HABILITAR": {
         "descripcion": "Habilitar controles/botones específicos",
@@ -390,7 +390,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "DESHABILITAR": {
         "descripcion": "Deshabilitar controles/botones específicos",
         "origen": "padre",
@@ -407,7 +407,7 @@
         "estado": "✅ COMPLETO"
       }
     },
-    
+
     "AUDIO": {
       "REPRODUCIR_REQUEST": {
         "descripcion": "Solicitud para reproducir un audio específico",
@@ -425,7 +425,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "ESTADO_ACTUALIZADO": {
         "descripcion": "Notificación de cambio de estado del audio",
         "origen": "hijo3",
@@ -441,7 +441,7 @@
         ],
         "estado": "✅ COMPLETO"
       },
-      
+
       "FIN_REPRODUCCION": {
         "descripcion": "Audio terminó de reproducirse",
         "origen": "hijo3",
@@ -460,7 +460,7 @@
       }
     }
   },
-  
+
   "problemas_criticos": [
     {
       "id": "PC-001",
@@ -487,7 +487,7 @@
       "solucion_propuesta": "Implementar handler CAMBIO_PARADA en cada hijo que envíe confirmación explícita"
     }
   ],
-  
+
   "problemas_menores": [
     {
       "id": "PM-001",
@@ -514,7 +514,7 @@
       "solucion_propuesta": "Usar nivel logger.debug en lugar de comentar"
     }
   ],
-  
+
   "controladores_huerfanos": [
     {
       "id": "CH-001",
@@ -531,7 +531,7 @@
       "impacto": "El mensaje puede no ser procesado correctamente"
     }
   ],
-  
+
   "mensajes_sin_receptor": [
     {
       "id": "MSR-001",
@@ -548,7 +548,7 @@
       "impacto": "Auto-mensaje puede no tener handler configurado"
     }
   ],
-  
+
   "resumen_estadistico": {
     "total_tipos_mensaje_definidos": 45,
     "total_flujos_completos": 22,
@@ -558,7 +558,7 @@
     "controladores_huerfanos": 2,
     "mensajes_sin_receptor": 2
   },
-  
+
   "recomendaciones_prioritarias": [
     "1. Implementar handler explícito para RETO.COMPLETADO en codigo-padre.html",
     "2. Asegurar que todos los hijos respondan CAMBIO_PARADA_CONFIRMADO",

@@ -44,13 +44,13 @@ export const TTL_LIMPIEZA = {
         MOVIL: 30000,      // 30 segundos (móvil necesita limpieza agresiva)
         DESKTOP: 60000     // 60 segundos (1 minuto)
     },
-    
+
     // Logger: limpieza de historial de logs
     LOGGER: {
         MOVIL: 60000,      // 1 minuto (móvil limpia más frecuentemente, menos memoria)
         DESKTOP: 300000    // 5 minutos (desktop conserva más historial)
     },
-    
+
     // Suppress Warnings: limpieza de mensajes de error
     SUPPRESS: {
         MOVIL: 120000,     // 2 minutos

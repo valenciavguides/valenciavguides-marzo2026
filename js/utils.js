@@ -1,7 +1,7 @@
 /**
  * @fileoverview Utilidades generales para ValenciaVGuides
  * @version 2.0.0
- * 
+ *
  * Funciones de utilidad comunes usadas a lo largo de toda la aplicación.
  */
 
@@ -62,12 +62,12 @@ export const getPadreId = resolverIdPadre;
  */
 export function normalizarParadas(paradas) {
     if (!paradas) return [];
-    
+
     // Si ya es un array, procesarlo
     if (Array.isArray(paradas)) {
         return paradas.map((parada, index) => normalizarParada(parada, index));
     }
-    
+
     // Si es un objeto con propiedades numéricas o IDs
     if (typeof paradas === 'object') {
         return Object.entries(paradas).map(([key, value], index) => {
@@ -75,7 +75,7 @@ export function normalizarParadas(paradas) {
             return normalizarParada(parada, index);
         });
     }
-    
+
     return [];
 }
 
@@ -93,7 +93,7 @@ function normalizarParada(parada, index) {
             nombre: parada
         };
     }
-    
+
     if (typeof parada === 'object' && parada !== null) {
         return {
             id: parada.id || parada.ID || parada.parada_id || `parada_${index}`,
@@ -105,7 +105,7 @@ function normalizarParada(parada, index) {
             ...parada
         };
     }
-    
+
     return {
         id: `parada_${index}`,
         index,
@@ -216,14 +216,14 @@ export function resolverIdsParada(input) {
  * @returns {number} Timeout ajustado
  */
 export function ajustarTimeoutPorConexion(timeoutBase, factor = 1) {
-    const connection = navigator.connection || 
-                       navigator.mozConnection || 
+    const connection = navigator.connection ||
+                       navigator.mozConnection ||
                        navigator.webkitConnection;
-    
+
     if (!connection) {
         return timeoutBase * factor;
     }
-    
+
     // Ajustar según tipo de conexión
     const ajustes = {
         'slow-2g': 4,
@@ -232,7 +232,7 @@ export function ajustarTimeoutPorConexion(timeoutBase, factor = 1) {
         '4g': 1,
         '5g': 0.8
     };
-    
+
     const ajuste = ajustes[connection.effectiveType] || 1;
     return Math.round(timeoutBase * factor * ajuste);
 }
@@ -246,7 +246,7 @@ export function getEnviarMensaje() {
     if (globalThis.mensajeria && typeof globalThis.mensajeria.enviarMensaje === 'function') {
         return globalThis.mensajeria.enviarMensaje;
     }
-    
+
     // Intentar desde parent.mensajeria
     if (globalThis.parent && globalThis.parent !== globalThis.window) {
         try {
@@ -257,7 +257,7 @@ export function getEnviarMensaje() {
             // Cross-origin, ignorar
         }
     }
-    
+
     // Fallback: en cada llamada intenta mensajería (puede estar disponible ya);
     // solo usa postMessage directo como último recurso real.
     return function(tipo, datos, destino) {
@@ -292,7 +292,7 @@ export function getRegistrarControlador() {
     if (globalThis.mensajeria && typeof globalThis.mensajeria.registrarControlador === 'function') {
         return globalThis.mensajeria.registrarControlador;
     }
-    
+
     // Intentar desde parent.mensajeria
     if (globalThis.parent && globalThis.parent !== globalThis.window) {
         try {
@@ -303,7 +303,7 @@ export function getRegistrarControlador() {
             // Cross-origin, ignorar
         }
     }
-    
+
     // Fallback: registrar localmente
     return function(tipo, handler) {
         if (!globalThis.__vv_handlers) {
@@ -322,7 +322,7 @@ export function getEnviarMensajeConConfirmacion() {
     if (globalThis.mensajeria && typeof globalThis.mensajeria.enviarMensajeConConfirmacion === 'function') {
         return globalThis.mensajeria.enviarMensajeConConfirmacion;
     }
-    
+
     if (globalThis.parent && globalThis.parent !== globalThis.window) {
         try {
             if (globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.enviarMensajeConConfirmacion === 'function') {
@@ -332,7 +332,7 @@ export function getEnviarMensajeConConfirmacion() {
             // Cross-origin
         }
     }
-    
+
     // Fallback simple
     return function(tipo, datos, timeout = 5000) {
         return new Promise((resolve, reject) => {
@@ -433,7 +433,7 @@ export function retryUntilAvailable(checkFn, optionsOrReadyFn, maxIntentosArg, i
  */
 export function debounce(fn, espera) {
     let timeoutId;
-    
+
     return function(...args) {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => fn.apply(this, args), espera);
@@ -448,7 +448,7 @@ export function debounce(fn, espera) {
  */
 export function throttle(fn, limite) {
     let ultimaEjecucion = 0;
-    
+
     return function(...args) {
         const ahora = Date.now();
         if (ahora - ultimaEjecucion >= limite) {
@@ -539,15 +539,15 @@ export function deepClone(obj) {
     if (obj === null || typeof obj !== 'object') {
         return obj;
     }
-    
+
     if (obj instanceof Date) {
         return new Date(obj);
     }
-    
+
     if (Array.isArray(obj)) {
         return obj.map(item => deepClone(item));
     }
-    
+
     if (obj instanceof Map) {
         const mapClone = new Map();
         obj.forEach((value, key) => {
@@ -555,7 +555,7 @@ export function deepClone(obj) {
         });
         return mapClone;
     }
-    
+
     if (obj instanceof Set) {
         const setClone = new Set();
         obj.forEach(value => {
@@ -563,7 +563,7 @@ export function deepClone(obj) {
         });
         return setClone;
     }
-    
+
     if (typeof obj === 'object') {
         const clone = {};
         for (const key in obj) {
@@ -573,7 +573,7 @@ export function deepClone(obj) {
         }
         return clone;
     }
-    
+
     return obj;
 }
 
@@ -585,9 +585,9 @@ export function deepClone(obj) {
  */
 export function deepMerge(target, ...sources) {
     if (!sources.length) return target;
-    
+
     const source = sources.shift();
-    
+
     if (isObject(target) && isObject(source)) {
         for (const key in source) {
             if (isObject(source[key])) {
@@ -598,7 +598,7 @@ export function deepMerge(target, ...sources) {
             }
         }
     }
-    
+
     return deepMerge(target, ...sources);
 }
 
@@ -619,11 +619,11 @@ function isObject(item) {
  */
 export function formatearBytes(bytes, decimales = 2) {
     if (bytes === 0) return '0 Bytes';
-    
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(decimales)) + ' ' + sizes[i];
 }
 
@@ -671,14 +671,14 @@ export function truncar(str, maxLength, sufijo = '...') {
 export function getByPath(obj, path, defecto = undefined) {
     const partes = path.split('.');
     let actual = obj;
-    
+
     for (const parte of partes) {
         if (actual === null || actual === undefined) {
             return defecto;
         }
         actual = actual[parte];
     }
-    
+
     return actual === undefined ? defecto : actual;
 }
 
@@ -691,7 +691,7 @@ export function getByPath(obj, path, defecto = undefined) {
 export function setByPath(obj, path, valor) {
     const partes = path.split('.');
     let actual = obj;
-    
+
     for (let i = 0; i < partes.length - 1; i++) {
         const parte = partes[i];
         if (!(parte in actual) || typeof actual[parte] !== 'object') {
@@ -699,7 +699,7 @@ export function setByPath(obj, path, valor) {
         }
         actual = actual[parte];
     }
-    
+
     actual[partes.at(-1)] = valor;
 }
 
@@ -713,19 +713,19 @@ export function sonIguales(a, b) {
     if (a === b) return true;
     if (a == null || b == null) return false;
     if (typeof a !== typeof b) return false;
-    
+
     if (Array.isArray(a) && Array.isArray(b)) {
         if (a.length !== b.length) return false;
         return a.every((item, index) => sonIguales(item, b[index]));
     }
-    
+
     if (typeof a === 'object') {
         const keysA = Object.keys(a);
         const keysB = Object.keys(b);
         if (keysA.length !== keysB.length) return false;
         return keysA.every(key => sonIguales(a[key], b[key]));
     }
-    
+
     return false;
 }
 

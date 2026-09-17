@@ -70,7 +70,7 @@
 
     const resultsDiv = document.getElementById('results');
     const div = document.createElement('div');
-    
+
     if (!errorReported) {
       append('[PASS] No se reportaron errores en iframe tras mensajes malformados');
       document.getElementById('status').textContent='PASS';
@@ -81,7 +81,7 @@
       div.className = 'fail';
       div.textContent = '[FAIL] Error reportado en handlers';
     }
-    
+
     resultsDiv.appendChild(div);
     globalThis.TestReporter.report({
       name: 'Sistema: Message Handlers No Throw',

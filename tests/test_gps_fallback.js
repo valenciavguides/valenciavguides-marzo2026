@@ -62,7 +62,7 @@ globalThis.runTest = async function(){
   } catch (e) {
     append('[test] WARNING: no se pudo sobrescribir navigator.geolocation:', e.message);
     status.textContent = 'SKIP: No se puede sobrescribir navigator.geolocation en este navegador';
-    
+
     const resultsDiv = document.getElementById('results');
     const div = document.createElement('div');
     div.className = 'fail';
@@ -133,7 +133,7 @@ globalThis.runTest = async function(){
 
   const resultsDiv = document.getElementById('results');
   const div = document.createElement('div');
-  
+
   if (passed) {
     append('[TEST PASS] Fallback GPS aplicado correctamente (P-0 o accuracy >=1000)');
     status.textContent = 'PASS';
@@ -145,7 +145,7 @@ globalThis.runTest = async function(){
     div.className = 'fail';
     div.textContent = '[FAIL] GPS fallback no se aplicó';
   }
-  
+
   resultsDiv.appendChild(div);
   globalThis.TestReporter.report({
     name: 'Navegación: GPS Fallback',

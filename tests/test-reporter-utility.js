@@ -24,13 +24,13 @@ globalThis.TestReporter = {
             let passedElements = config.resultsContainer.querySelectorAll('.pass');
             let failedElements = config.resultsContainer.querySelectorAll('.fail');
             let warningElements = config.resultsContainer.querySelectorAll('.warning');
-            
+
             // Si no hay .pass/.fail, buscar .success/.error
             if (passedElements.length === 0 && failedElements.length === 0) {
                 passedElements = config.resultsContainer.querySelectorAll('.success');
                 failedElements = config.resultsContainer.querySelectorAll('.error');
             }
-            
+
             passed = passedElements.length;
             failed = failedElements.length;
             warnings = warningElements.length;

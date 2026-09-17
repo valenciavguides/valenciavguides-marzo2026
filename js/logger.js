@@ -1,7 +1,7 @@
 /**
  * @fileoverview Sistema de logging centralizado para ValenciaVGuides
  * @version 2.0.0
- * 
+ *
  * Proporciona un sistema de logging unificado con niveles configurables,
  * formateo consistente y soporte para diferentes destinos de salida.
  */
@@ -141,11 +141,11 @@ function almacenarEnBuffer(entrada) {
  */
 function log(nivel, mensaje, ...args) {
     if (!debeLoguear(nivel)) return;
-    
+
     const timestamp = formatearTimestamp();
     const prefijo = PREFIJOS[nivel] || '';
     const contexto = contextoActual;
-    
+
     const entrada = {
         timestamp,
         nivel,
@@ -153,12 +153,12 @@ function log(nivel, mensaje, ...args) {
         mensaje,
         args: args.length > 0 ? args : undefined
     };
-    
+
     almacenarEnBuffer(entrada);
-    
+
     // Construir mensaje para consola
     const mensajeFormateado = `${prefijo} [${timestamp}] [${contexto}] ${mensaje}`;
-    
+
     // Método de consola según nivel
     const metodoConsola = {
         [LOG_LEVELS.DEBUG]: 'debug',
@@ -166,7 +166,7 @@ function log(nivel, mensaje, ...args) {
         [LOG_LEVELS.WARN]: 'warn',
         [LOG_LEVELS.ERROR]: 'error'
     }[nivel] || 'log';
-    
+
     // Loguear con o sin estilos
     if (coloresHabilitados && ESTILOS[nivel]) {
         console[metodoConsola](`%c${mensajeFormateado}`, ESTILOS[nivel], ...args);
@@ -187,7 +187,7 @@ const logger = {
     debug(mensaje, ...args) {
         log(LOG_LEVELS.DEBUG, mensaje, ...args);
     },
-    
+
     /**
      * Log de nivel info
      * @param {string} mensaje - Mensaje
@@ -196,7 +196,7 @@ const logger = {
     info(mensaje, ...args) {
         log(LOG_LEVELS.INFO, mensaje, ...args);
     },
-    
+
     /**
      * Log de nivel warn
      * @param {string} mensaje - Mensaje
@@ -205,7 +205,7 @@ const logger = {
     warn(mensaje, ...args) {
         log(LOG_LEVELS.WARN, mensaje, ...args);
     },
-    
+
     /**
      * Log de nivel error
      * @param {string} mensaje - Mensaje
@@ -214,7 +214,7 @@ const logger = {
     error(mensaje, ...args) {
         log(LOG_LEVELS.ERROR, mensaje, ...args);
     },
-    
+
     /**
      * Log de nivel success (usa INFO con formato especial)
      * @param {string} mensaje - Mensaje
@@ -225,7 +225,7 @@ const logger = {
         const mensajeConFormato = `✅ ${mensaje}`;
         log(LOG_LEVELS.INFO, mensajeConFormato, ...args);
     },
-    
+
     /**
      * Establece el nivel mínimo de logging
      * @param {string} nivel - Nuevo nivel
@@ -239,7 +239,7 @@ const logger = {
             this.warn(`Nivel de log inválido: ${nivel}`);
         }
     },
-    
+
     /**
      * Obtiene el nivel actual de logging
      * @returns {string} Nivel actual
@@ -247,7 +247,7 @@ const logger = {
     getNivel() {
         return nivelEfectivo();
     },
-    
+
     /**
      * Establece el contexto para los logs
      * @param {string} contexto - Nuevo contexto
@@ -255,7 +255,7 @@ const logger = {
     setContexto(contexto) {
         contextoActual = contexto || 'GLOBAL';
     },
-    
+
     /**
      * Obtiene el contexto actual
      * @returns {string} Contexto actual
@@ -263,7 +263,7 @@ const logger = {
     getContexto() {
         return contextoActual;
     },
-    
+
     /**
      * Habilita o deshabilita colores en consola
      * @param {boolean} habilitado - Estado de colores
@@ -271,7 +271,7 @@ const logger = {
     setColores(habilitado) {
         coloresHabilitados = Boolean(habilitado);
     },
-    
+
     /**
      * Obtiene los logs almacenados en el buffer
      * @param {number} [cantidad] - Cantidad de logs a obtener (últimos N)
@@ -283,7 +283,7 @@ const logger = {
         }
         return [...bufferLogs];
     },
-    
+
     /**
      * Limpia el buffer de logs
      */
@@ -291,7 +291,7 @@ const logger = {
         bufferLogs.length = 0;
         this.debug('Buffer de logs limpiado');
     },
-    
+
     /**
      * Exporta los logs del buffer en formato JSON
      * @returns {string} Logs en formato JSON
@@ -299,7 +299,7 @@ const logger = {
     exportarJSON() {
         return JSON.stringify(bufferLogs, null, 2);
     },
-    
+
     /**
      * Crea un logger con contexto específico
      * @param {string} contexto - Contexto del logger hijo
@@ -333,7 +333,7 @@ const logger = {
             }
         };
     },
-    
+
     /**
      * Agrupa logs relacionados
      * @param {string} titulo - Título del grupo
@@ -341,14 +341,14 @@ const logger = {
     grupoInicio(titulo) {
         console.group(`📁 ${titulo}`);
     },
-    
+
     /**
      * Finaliza un grupo de logs
      */
     grupoFin() {
         console.groupEnd();
     },
-    
+
     /**
      * Mide el tiempo de ejecución
      * @param {string} etiqueta - Etiqueta del timer
@@ -356,7 +356,7 @@ const logger = {
     tiempoInicio(etiqueta) {
         console.time(`⏱️ ${etiqueta}`);
     },
-    
+
     /**
      * Finaliza medición de tiempo
      * @param {string} etiqueta - Etiqueta del timer
@@ -364,7 +364,7 @@ const logger = {
     tiempoFin(etiqueta) {
         console.timeEnd(`⏱️ ${etiqueta}`);
     },
-    
+
     /**
      * Muestra una tabla en consola
      * @param {Array|Object} datos - Datos a mostrar

@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
   <title>València be Guides</title>
-  
+
   <!-- 🚨 REDIRECCIÓN: Este archivo debe cargarse como iframe desde codigo-padre.html -->
   <script>
     // Detectar si estamos siendo cargados directamente (no como iframe)
@@ -19,7 +19,7 @@
       }
     }
   </script>
-  
+
   <script src="js/proteccion.js"></script>
   <script src="js/suppress-warnings.js"></script>
   <script>
@@ -223,11 +223,11 @@
     .visible { display: flex; }
     .logo-redondo { width: min(55vw, 200px); border-radius: 50%; }
     .logo-alargado { width: min(85vw, 440px); margin-top: 0.9375rem; }
-    .btn { 
+    .btn {
       margin-top: 1.875rem; padding: 0.9375rem 1.5625rem; font-size: 1.25rem; font-weight: bold;
-      background-color: white; color: black; 
-      border-radius: 1.5625rem; cursor: pointer; 
-      border: 0.1875rem solid black; 
+      background-color: white; color: black;
+      border-radius: 1.5625rem; cursor: pointer;
+      border: 0.1875rem solid black;
       transition: all 0.2s ease;
       display: flex; align-items: center; justify-content: center; gap: 0.5rem;
       min-width: 3.75rem; min-height: 3.75rem;
@@ -338,7 +338,7 @@
       margin-top: 0;
     }
     #reto-r1-titulo, #reto-r2-titulo { display: none; }
-    
+
     /* Escalar controles de audio nativos - proporcional al viewport */
     audio {
       width: 100%;
@@ -1119,7 +1119,7 @@
       'AventuraFallas': 'imagenes/imagenes-aventuras/fallas-castillo.png',
       'Aventura34km': 'imagenes/imagenes-aventuras/aventura-34km.png',
     };
-    
+
     // ============================================================
     // FUNCIÓN: VERIFICAR SCROLL EN TÉRMINOS
     // ============================================================
@@ -1132,7 +1132,7 @@
         boton.style.opacity = scrolledToBottom ? '1' : '0.3';
       }
     }
-    
+
     // ============================================================
     // VERIFICAR SI UNA IMAGEN EXISTE (para puzzle)
     // ============================================================
@@ -1144,7 +1144,7 @@
         img.src = url;
       });
     }
-    
+
     // ============================================================
     // FUNCIÓN PRINCIPAL: MOSTRAR PANTALLA
     // ============================================================
@@ -1358,7 +1358,7 @@
       actualizarVisibilidadFreeDemo(id);
       if (_ACCION_PANTALLA[id]) _ACCION_PANTALLA[id]();
     }
-    
+
     // ============================================================
     // P5: CARGAR TÉRMINOS DESDE js/terminos-aventuras.js
     // ============================================================
@@ -1368,10 +1368,10 @@
         // Importar dinámicamente el módulo de términos
         const modulo = await import('./js/terminos-aventuras.js');
         TERMINOS_DATOS = modulo.TERMINOS_AVENTURAS;
-        
+
         const idioma = idiomaSeleccionado || 'es';
         const terminos = TERMINOS_DATOS?.terminos_idiomas?.[idioma];
-        
+
         if (terminos && typeof terminos === 'string' && terminos.trim().length > 0) {
           // El contenido ya es un string HTML
           contenedor.innerHTML = terminos;
@@ -1385,7 +1385,7 @@
         contenedor.innerHTML = '<p>Error cargando términos. Por favor, continúa.</p>';
       }
     }
-    
+
     // ============================================================
     // P11: CARGAR AUDIO INTRO DESDE js/audios-aventuras.js
     // (audio_id dinámico: audio-intro-xx según idioma)
@@ -1470,7 +1470,7 @@
         _log.error('[SELECCION] Error cargando audio:', error);
       }
     }
-    
+
     // ============================================================
     // P8: CARGAR RETO R-1 DESDE js/retos-aventuras.js
     // (reto_id dinámico: R1-AvX-xx según aventura e idioma)
@@ -1525,7 +1525,7 @@
         pregunta.textContent = 'Error cargando reto';
       }
     }
-    
+
     function habilitarBotonRetoR1() {
       const seleccion = document.querySelector('input[name="reto-r1"]:checked');
       const boton = document.getElementById('btn-verificar-reto-r1');
@@ -1541,20 +1541,20 @@
     // ============================================================
     function verificarRetoR1() {
       if (!retoActualR1) return;
-      
+
       const seleccion = document.querySelector('input[name="reto-r1"]:checked');
       const caja = document.getElementById('reto-r1-box');
       const boton = document.getElementById('btn-verificar-reto-r1');
-      
+
       if (!seleccion) return;
-      
+
       const respuestaUsuario = seleccion.value;
       const esCorrecta = retoActualR1.correctas && retoActualR1.correctas.includes(respuestaUsuario);
-      
+
       const opcionDiv = seleccion.closest('.respuesta');
       const tick = opcionDiv.querySelector('.tick');
       const x = opcionDiv.querySelector('.x');
-      
+
       if (esCorrecta) {
         caja.style.borderColor = '#28a745';
         tick.style.display = 'inline';
@@ -1576,7 +1576,7 @@
         }, 2000);
       }
     }
-    
+
     // ============================================================
     // P10: CARGAR PUZZLE DESDE js/puzzles-aventuras.js
     // ============================================================
@@ -1633,14 +1633,14 @@
         btnContinuar.style.display = 'flex';
       }
     }
-    
+
     // ============================================================
     // P10: COMPLETAR PUZZLE Y CONTINUAR
     // ============================================================
     function completarPuzzle() { // eslint-disable-line no-unused-vars -- lo invoca el onclick de #btn-continuar-puzzle
       void mostrar(7);
     }
-    
+
     // ============================================================
     // P10: NOTIFICAR AL PADRE PARA PREPARAR LOS HIJOS
     // Durante el puzzle, el padre tiene tiempo para comunicar
@@ -1661,7 +1661,7 @@
         }, globalThis.location.origin);
       }
     }
-    
+
     // ============================================================
     // P11: VALIDAR CÓDIGO DE ACTIVACIÓN (CON FEEDBACK VISUAL)
     // ============================================================
@@ -1712,7 +1712,7 @@
       btnIniciar.classList.toggle('success', todoValido);
       btnIniciar.classList.toggle('error', formatoValido && !emailValido);
     }
-    
+
     // Pantalla flotante "código o email erróneos" — traducida (TRADUCCIONES_ACCESO_ERRONEO,
     // js/traducciones-ui.js). Se muestra siempre que la activación falla, tanto en local
     // (sin backend, ver _irANormativa) como en producción con un código/email que el
@@ -1806,7 +1806,7 @@
       if (imgEl) imgEl.src = 'imagenes/imagenes-aplicación/' + (EN_BUSCA_IMAGENES[idiomaSeleccionado] || 'en-busca-español.png');
       void mostrar(4);
     }
-    
+
 
     async function cargarAgradecimientosOverlay() {
       const contenedor = document.getElementById('agradecimientos-contenido');
@@ -2142,7 +2142,7 @@
         mostrarAvisoSinAudio(idioma);
       }
     }
-    
+
 
     // ============================================================
     // P8: CARGAR AVENTURAS DINÁMICAMENTE DESDE js/indice-aventuras.js
@@ -2210,7 +2210,7 @@
 
         // Generar botones para cada aventura
         aventurasArray.forEach(a => _crearBotonAventura(a, idioma, contenedor));
-        
+
         // Calcular font-size proporcional al número de botones y altura de pantalla
         const remPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
         const usableH = globalThis.innerHeight - 4.25 * remPx; // 3rem arriba (FREE DEMO) + 1.25rem abajo
@@ -2224,7 +2224,7 @@
         contenedor.innerHTML = '<p style="color:#1a1a1a; text-align:center;">Error cargando aventuras</p>';
       }
     }
-    
+
     // ============================================================
     // P5→P6: MOSTRAR/CERRAR MAPA VINTAGE DE LA AVENTURA
     // ============================================================
@@ -2232,7 +2232,7 @@
       const overlay = document.getElementById('mapa-vintage-overlay');
       const img = document.getElementById('mapa-vintage-img');
       if (!overlay || !img) return;
-      
+
       const aventura = aventuraSeleccionada || 'Aventura1';
       // La ruta sale de la MISMA tabla que usa el botón de mapa vintage dentro de la
       // aventura (js/mapa-vintage-aventuras.js, §22.12). Antes se adivinaba sacando el
@@ -2257,7 +2257,7 @@
         void mostrar(8);
         return;
       }
-      
+
       img.src = rutaMapa;
       overlay.style.display = 'flex';
       // NO va por el bus, a propósito: el padre escucha este tipo con un `addEventListener`
@@ -2441,7 +2441,7 @@
         }, 1500);
       }
     }
-    
+
     // ============================================================
     // REINICIAR ESTADO DE SELECCIÓN (cuando el usuario dice No en R2)
     // ============================================================
@@ -2584,14 +2584,14 @@
     globalThis._uiConfirmado = false;
     let _originalDisplay = '';
 
-    function mostrarUI() { 
-        if (!globalThis._uiConfirmado) { 
-            logger.warn(`${CONFIG_HIJO.IFRAME_ID} mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO`); 
-            return; 
-        } 
-        try { 
-            if (document.body) document.body.style.display = _originalDisplay || 'block'; 
-            logger.info(`${CONFIG_HIJO.IFRAME_ID} UI visible tras PADRE_CONFIRMA_HIJO_LISTO`); 
+    function mostrarUI() {
+        if (!globalThis._uiConfirmado) {
+            logger.warn(`${CONFIG_HIJO.IFRAME_ID} mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO`);
+            return;
+        }
+        try {
+            if (document.body) document.body.style.display = _originalDisplay || 'block';
+            logger.info(`${CONFIG_HIJO.IFRAME_ID} UI visible tras PADRE_CONFIRMA_HIJO_LISTO`);
         } catch { /* document.body.style error ignorado intencionalmente */ }
     }
 
@@ -2907,7 +2907,7 @@
             globalThis._resetearFlagsContenido();
 
             logger.info(`[SELECCION] Idioma seleccionado: ${idioma}`);
-            
+
             // Enviar mensaje al padre
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.IDIOMA_SELECCIONADO,
@@ -2918,16 +2918,16 @@
                     timestamp: Date.now()
                 }
             });
-            
+
             logger.debug(`[SELECCION] Mensaje IDIOMA_SELECCIONADO enviado al padre`);
-            
+
             // Actualizar bandera de confirmación en P3
             const banderaIdioma = document.getElementById('idioma-bandera-confirmacion');
             if (banderaIdioma) {
                 const banderasIdiomas = { 'es': 'bandera_españa.png', 'en': 'bandera_inglesa.png', 'fr': 'bandera_francia.png', 'it': 'bandera_italia.png', 'nl': 'bandera_paises_bajos.png', 'ja': 'bandera_japon.png', 'de': 'bandera_alemania.png', 'zh': 'bandera_china.png', 'pl': 'bandera_polonia.png', 'pt': 'bandera_portugal.png', 'ru': 'bandera_rusia.png', 'uk': 'bandera_ucrania.png' };
                 banderaIdioma.src = `imagenes/imagenes-aplicación/${banderasIdiomas[idioma] || banderasIdiomas['es']}`;
             }
-            
+
             // Navegar a confirmación de idioma
             void mostrar(3);
         } catch (error) {
@@ -3013,11 +3013,11 @@
                 idioma: estadoComponente.idiomaSeleccionado,
                 padreConectado: estadoComponente.padreConectado
             }));
-            
+
             logger.info(`[SELECCION] Iniciando aventura: ${estadoComponente.aventuraSeleccionada} en idioma ${estadoComponente.idiomaSeleccionado}`);
-            
+
             actualizarProgresoCargaAventura(55);
-            
+
             // Enviar mensaje de activación al padre (registra aventura, carga hijos, NO cambia modo)
             const mensajeEnviado = await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA,
@@ -3038,7 +3038,7 @@
             }
             logger.debug('🚀 [SELECCION] Mensaje AVENTURA_ACTIVADA enviado:', mensajeEnviado);
             logger.info(`[SELECCION] Mensaje AVENTURA_ACTIVADA enviado al padre (modo CASA mantenido)`);
-            
+
         } catch (error) {
             logger.error('❌ [SELECCION] Error en iniciarAventura:', error);
             logger.error(`[SELECCION] Error iniciando aventura:`, error);
@@ -3058,7 +3058,7 @@
         try {
             estadoComponente.terminosAceptados = true;
             estadoComponente.ultimaInteraccion = Date.now();
-            
+
             // Enviar mensaje al padre (opcional)
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.TERMINOS_ACEPTADOS,
@@ -3069,7 +3069,7 @@
                     timestamp: Date.now()
                 }
             });
-            
+
             // Navegar a audio intro
             void mostrar(11);
         } catch (error) {

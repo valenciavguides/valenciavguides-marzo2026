@@ -1,10 +1,10 @@
 ﻿/**
  * Módulo que maneja la visualización del mapa y la interacción con las paradas
  * Se comunica con el padre a través del sistema de mensajería
- * 
+ *
  * DEPENDENCIAS CRÍTICAS (deben cargarse ANTES):
  * - constants.js
- * - logger.js  
+ * - logger.js
  * - utils.js
  * - mensajeria.js (OBLIGATORIO - sin esto el módulo no puede comunicarse)
  */
@@ -136,7 +136,7 @@ function calcularToleranciaGPS(elemento) {
             continue;
         }
         const distancia = calcularDistancia(coord1.lat, coord1.lng, coord2.lat, coord2.lng);
-        
+
         if (distancia > distanciaMaxima) {
             distanciaMaxima = distancia;
         }
@@ -200,7 +200,7 @@ function verificarLlegadaADestino(posicionUsuario, elementoActual) {
     );
 
     const llegada = distancia <= tolerancia;
-    
+
     if (llegada) {
         logger.info(`🎯 Llegada detectada a "${elementoActual.id}" (${elementoActual.tipo}): ${Math.ceil(distancia)}m ≤ ${tolerancia}m`);
     } else {
@@ -373,7 +373,6 @@ import { esMovil } from './device-detection.js';
 let marcadoresParadas = new Map();
 let marcadorDestino = null;
 let marcadorParadaActual = null; // Marcador para la parada actualmente visitada
-let marcadorPosicionActual = null; // Marcador para la posición GPS actual del usuario
 let rutasTramos = [];
 let rutasActivas = [];
 let marcadorUsuario = null;
@@ -954,13 +953,13 @@ function registrarListenerZoom() {
         _escalaCacheTerreno.timestamp = 0;
         _escalaCacheIcono.timestamp = 0;
         logger.debug(`[MAPA] Zoom cambiado a ${_mapaInstance.getZoom()}, escala terreno: ${getEscalaTerreno().toFixed(2)}, escala icono: ${getEscalaIcono().toFixed(2)}`);
-        
+
         // Re-escalar polyline de navegación si existe
         if (polylineNavegacion) {
             const peso = getPolylineEscalado();
             polylineNavegacion.setStyle({ weight: peso.navegacion });
         }
-        
+
         // Re-escalar rutasActivas — el único tipo de polyline que se guarda ahí es la línea
         // azul del tramo, creada por dibujarTramo().
         rutasActivas.forEach(polyline => {
@@ -969,7 +968,7 @@ function registrarListenerZoom() {
                 polyline.setStyle({ weight: peso.tramo });
             }
         });
-        
+
         // Re-escalar marcadores emoji (📌🎯) según nuevo zoom y pantalla
         reescalarMarcadoresEmoji();
 
@@ -978,7 +977,7 @@ function registrarListenerZoom() {
         // es la pasada final con el zoom ya asentado.
         reescalarMarcadorUsuario();
     });
-    
+
     logger.debug('[MAPA] Listener de zoom registrado para escalado dinámico');
 }
 
@@ -1102,9 +1101,8 @@ function sincronizarEstadoGPSConPadre() {
         //
         // Copiarlo desde estadoMapa.gpsActivo era escribir una mentira: en el padre ese
         // campo NUNCA llega a true. manejarGPSActivar() delega en globalThis.activarGPS()
-        // y no lo marca (solo lo hace su rama de fallback, cuando activarGPS no existe), y
-        // el unico otro sitio que lo pondria a true —verificarPermisosGeolocalizacion()—
-        // no lo llama nadie. Asi que este espejo pisaba con `false` el `true` legitimo del
+        // y no lo marca (solo lo hace su rama de fallback, cuando activarGPS no existe).
+        // Asi que este espejo pisaba con `false` el `true` legitimo del
         // padre en cada una de sus llamadas, incluida CADA posicion GPS recibida.
         //
         // Consecuencia: el guard de activarGPS() (`est.gps.activo && est.gps.watchId !== null`)
@@ -1274,14 +1272,14 @@ export async function ejecutarOperacionMapa(operacion) {
             reject(new Error('Mapa no inicializado'));
             return;
         }
-        
+
         try {
             const resultado = operacion(_mapaInstance);
             resolve(resultado);
         } catch (error) {
-            logger.error('Error al ejecutar operación en el mapa', { 
-                error: error.message, 
-                stack: error.stack 
+            logger.error('Error al ejecutar operación en el mapa', {
+                error: error.message,
+                stack: error.stack
             });
             reject(error);
         }
@@ -1298,12 +1296,12 @@ export async function invalidarTamañoMapa() {
             logger.warn('No se puede invalidar el tamaño: mapa no inicializado');
             return false;
         }
-        
+
         await ejecutarOperacionMapa(mapa => {
             mapa.resize();
             return true;
         });
-        
+
         logger.debug('Tamaño del mapa invalidado correctamente');
         return true;
     } catch (error) {
@@ -1328,7 +1326,7 @@ export async function setMapView(center, zoom, opciones = {}) {
             logger.warn('No se puede establecer vista: mapa no inicializado');
             return false;
         }
-        
+
             // Normalizar entrada: aceptar [lat, lng] o { lat, lng | lon }
             let coordObj = null;
             if (Array.isArray(center) && center.length >= 2) {
@@ -1378,7 +1376,7 @@ export async function setMapView(center, zoom, opciones = {}) {
                 }
                 return true;
             });
-        
+
         return true;
     } catch (error) {
         logger.error('Error al establecer vista del mapa:', error);
@@ -1394,15 +1392,15 @@ export async function getMapCenter() {
     if (!_mapaInstance) {
         throw new Error('Servicio de mapa no inicializado');
     }
-    
+
     return new Promise((resolve, reject) => {
         try {
             const center = _mapaInstance.getCenter();
             if (!validarCoordenadas({ lat: center.lat, lng: center.lng })) return reject(new Error('Coordenadas del mapa inválidas'));
-            resolve({ 
-                lat: center.lat, 
-                lng: center.lng, 
-                zoom: _mapaInstance.getZoom() 
+            resolve({
+                lat: center.lat,
+                lng: center.lng,
+                zoom: _mapaInstance.getZoom()
             });
         } catch (error) {
             reject(error);
@@ -1872,17 +1870,17 @@ function _procesarSiguienteEnCola() {
 async function manejarCambiarParada(mensaje) {
     const logPrefix = `[NAVEGACION.CAMBIAR_PARADA][${mensaje?.origen || 'desconocido'}]`;
     const mensajeId = mensaje?.mensajeId || generarIdUnico();
-    
+
     try {
         // Extraer IDs antes de loguear para evitar ReferenceError
         const { padreId: padreFromDatos, paradaId: paradaFromDatos } = mensaje.datos || {};
         const resolved = resolverIdsParada(mensaje.datos || {});
         const padreId = padreFromDatos || resolved.padreId;
         const paradaId = paradaFromDatos || resolved.paradaId;
-        
+
         logger.info(`${logPrefix} Procesando cambio de parada`, { mensajeId, datos: mensaje.datos });
         logger.debug(`${logPrefix} resolved IDs:`, { padreId, paradaId });
-        
+
         if (!paradaId && !padreId) {
             throw new Error('ID de parada no especificado (paradaId o padreId)');
         }
@@ -1945,22 +1943,22 @@ async function manejarCambiarParada(mensaje) {
                 tipo: firstElement.tipo
             });
         }
-        
-        const paradaBase = globalThis.AVENTURA_PARADAS?.find(p => 
-            p.padreid === idToMatch || 
-            p.parada_id === idToMatch || 
-            p.tramo_id === idToMatch || 
-            p.id === idToMatch || 
-            p.parada_id === idSinPrefijo || 
+
+        const paradaBase = globalThis.AVENTURA_PARADAS?.find(p =>
+            p.padreid === idToMatch ||
+            p.parada_id === idToMatch ||
+            p.tramo_id === idToMatch ||
+            p.id === idToMatch ||
+            p.parada_id === idSinPrefijo ||
             p.tramo_id === idSinPrefijo ||
             p.id === idSinPrefijo
         );
-        
+
         logger.debug(`${logPrefix} 🔍 Resultado búsqueda: ${paradaBase ? 'ENCONTRADA' : 'NO ENCONTRADA'}`);
         if (paradaBase) {
             logger.debug(`${logPrefix} 🔍 Parada encontrada:`, { id: paradaBase.id, tipo: paradaBase.tipo });
         }
-        
+
         if (!paradaBase) {
             throw new Error(`Parada ${paradaId} (idToMatch=${idToMatch}, idSinPrefijo=${idSinPrefijo}) no encontrada en datos base (AVENTURA_PARADAS tiene ${globalThis.AVENTURA_PARADAS?.length || 0} elementos)`);
         }
@@ -2026,10 +2024,10 @@ async function manejarCambiarParada(mensaje) {
         logger.info(`${logPrefix} Consulta enviada a hijo2, esperando respuesta`);
 
         return { exito: true, estado: 'consultas_enviadas' };
-        
+
     } catch (error) {
         logger.error(`${logPrefix} Error al procesar cambio de parada: ${error.message}`, error);
-        
+
         // Limpiar estado en caso de error
         estadoMapa.consultaParadaPendiente = null;
         estadoMapa.esperandoCoordenadas = false;
@@ -2047,7 +2045,7 @@ async function manejarCambiarParada(mensaje) {
                 tipo: 'ERROR_CAMBIO_PARADA'
             }
         });
-        
+
         return { exito: false, error: error.message };
     }
 }
@@ -2083,22 +2081,22 @@ async function enviarConsultaCoordenadas(paradaId, padreId) {
  */
 async function procesarRespuestaConsulta(tipo, datos) {
     const logPrefix = `[PROCESAR_RESPUESTA][${tipo}]`;
-    
+
     try {
         // Validar que los datos existen
         if (!datos || typeof datos !== 'object') {
             logger.error(`${logPrefix} Datos inválidos o nulos recibidos`, datos);
             return;
         }
-        
+
         const { paradaId } = datos;
-        
+
         // Verificar que hay consulta pendiente
         if (!estadoMapa.consultaParadaPendiente || estadoMapa.consultaParadaPendiente.paradaId !== paradaId) {
             logger.warn(`${logPrefix} Respuesta para parada no pendiente: ${paradaId}`);
             return;
         }
-        
+
         // Almacenar datos según tipo
         if (tipo === 'coordenadas') {
             estadoMapa.datosRecopilados.coordenadas = datos;
@@ -2122,7 +2120,7 @@ async function procesarRespuestaConsulta(tipo, datos) {
             logger.info(`${logPrefix} ✅ Respuesta de coordenadas recibida - llamando a completarCambioParada`);
             await completarCambioParada();
         }
-        
+
     } catch (error) {
         logger.error(`${logPrefix} Error procesando respuesta:`, error);
     }
@@ -2134,7 +2132,7 @@ async function procesarRespuestaConsulta(tipo, datos) {
  */
 async function completarCambioParada() {
     const logPrefix = '[COMPLETAR_CAMBIO_PARADA]';
-    
+
     try {
         const { paradaId, padreId: resolvedPadreId, origen, mensajeId } = estadoMapa.consultaParadaPendiente;
         const { coordenadas, audio, reto } = estadoMapa.datosRecopilados;
@@ -2157,7 +2155,7 @@ async function completarCambioParada() {
         // Permite que el cartel de llegada al inicio (si el nuevo elemento es 'inicio') vuelva
         // a poder dispararse — solo importa para ese caso, pero resetear siempre es inofensivo.
         estadoMapa._cartelLlegadaInicioMostrado = false;
-        
+
         // Actualizar marcador si hay coordenadas
         if (coordenadas?.lat && coordenadas?.lng) {
             logger.info(`${logPrefix} ✅ Coordenadas válidas (${coordenadas.lat}, ${coordenadas.lng}) - iniciando zoom`);
@@ -2338,7 +2336,7 @@ async function completarCambioParada() {
                 estadoMapa.zoomEnCurso = false;
                 logger.info(`${logPrefix} ✅ Zoom PARADA completado`);
             }
-            
+
             logger.info(`${logPrefix} 🎯 Zoom único aplicado para ${paradaId}`);
 
             // El trazado se revela siempre de inmediato al activar el elemento — en los dos
@@ -2358,27 +2356,27 @@ async function completarCambioParada() {
             // procesarPosicionGPSParaAventura(), gateado por llegadaDetectada real (GPS
             // confirmado), igual que el resto de "ha llegado" de la app. Ver ronda 2026-08-17.
         } else {
-            logger.warn(`${logPrefix} ⚠️ NO SE HIZO ZOOM - coordenadas inválidas:`, { 
-                lat: coordenadas?.lat, 
+            logger.warn(`${logPrefix} ⚠️ NO SE HIZO ZOOM - coordenadas inválidas:`, {
+                lat: coordenadas?.lat,
                 lng: coordenadas?.lng,
-                coordenadasCompletas: coordenadas 
+                coordenadasCompletas: coordenadas
             });
         }
-        
+
         if (audio) {
             logger.info(`${logPrefix} Audio disponible: ${audio.url || 'N/A'}`);
         }
         if (reto) {
             logger.info(`${logPrefix} Reto disponible: ${reto.pregunta || 'N/A'}`);
         }
-        
+
         const esTramo = coordenadas?.tipo === 'tramo';
         estadoMapa.tramoActual = esTramo ? paradaId : null;
 
         // Actualizar estado
         estadoMapa.paradaActual = paradaId;
         estadoMapa.timestamp = Date.now();
-        
+
         // Confirmar a hijo5-casa
         enviarMensaje({
             destino: origen,
@@ -2395,7 +2393,7 @@ async function completarCambioParada() {
                     reto: !!reto
                 }
         });
-        
+
         logger.info(`${logPrefix} Cambio de parada completado exitosamente`);
 
     } catch (error) {
@@ -2524,60 +2522,6 @@ export async function diagnosticarGPS() {
     logger.info('[GPS.DIAGNOSTICO]', diagnostico);
     return diagnostico;
 }
-async function verificarPermisosGeolocalizacion() {
-    const logPrefix = '[verificarPermisosGeolocalizacion]';
-
-    try {
-        // Verificar si estamos en HTTPS (requerido para geolocalización en la mayoría de navegadores)
-        if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-            const warningMsg = 'Geolocalización requiere HTTPS. Sirve la aplicación con HTTPS para funcionalidad GPS completa.';
-            logger.warn(`${logPrefix} ${warningMsg}`);
-            
-            // Enviar advertencia al usuario
-            enviarMensaje({
-                tipo: TIPOS_MENSAJE.SISTEMA.ADVERTENCIA,
-                origen: 'funciones-mapa',
-                destino: resolverIdPadre(),
-                datos: {
-                    titulo: 'HTTPS Requerido',
-                    mensaje: warningMsg,
-                    contexto: 'gps_https'
-                }
-            });
-        }
-
-        // Verificar si el navegador soporta la API de permisos
-        if (!navigator.permissions) {
-            logger.warn(`${logPrefix} API de permisos no soportada, asumiendo permisos concedidos`);
-            return true;
-        }
-
-        // Verificar estado de permisos de geolocalización
-        const permiso = await navigator.permissions.query({ name: 'geolocation' });
-
-        logger.info(`${logPrefix} Estado de permisos de geolocalización: ${permiso.state}`);
-
-        switch (permiso.state) {
-            case 'granted':
-                return true;
-            case 'denied':
-                logger.error(`${logPrefix} Permisos de geolocalización denegados por el usuario`);
-                return false;
-            case 'prompt':
-                logger.info(`${logPrefix} Solicitando permisos de geolocalización al usuario...`);
-                // El permiso se solicitará automáticamente cuando se llame a watchPosition/getCurrentPosition
-                return true; // Permitir que watchPosition maneje el prompt
-            default:
-                logger.warn(`${logPrefix} Estado de permisos desconocido: ${permiso.state}`);
-                return true;
-        }
-    } catch (error) {
-        logger.error(`${logPrefix} Error verificando permisos: ${error.message}`, error);
-        // En caso de error, asumir que podemos proceder (para compatibilidad con navegadores antiguos)
-        return true;
-    }
-}
-
 /**
  * Capa adaptadora GPS para contexto iframe.
  * DISEÑO INTENCIONAL — no duplica lógica con activarGPS() en codigo-padre.html.
@@ -2661,16 +2605,16 @@ export async function manejarGPSActivar(mensaje) {
 async function manejarCambioModoMapa(mensaje) {
     const logPrefix = `[SISTEMA.CAMBIO_MODO][${mensaje?.origen || 'desconocido'}]`;
     const mensajeId = mensaje?.mensajeId || generarIdUnico();
-    
+
     try {
         logger.info(`${logPrefix} Procesando cambio de modo`, { mensajeId, datos: mensaje.datos });
-        
+
         if (!mensaje?.datos?.modo) {
             throw new Error('Modo no especificado en el mensaje');
         }
 
         const { modo } = mensaje.datos;
-        
+
         // Validar modo
         if (modo !== MODOS.CASA && modo !== MODOS.AVENTURA) {
             throw new Error(`Modo inválido: ${modo}. Debe ser '${MODOS.CASA}' o '${MODOS.AVENTURA}'`);
@@ -2697,9 +2641,9 @@ async function manejarCambioModoMapa(mensaje) {
         // resetCompleto=true cuando hay cambio real de modo, porque estadoMapa.modo ya
         // fue actualizado arriba y la comparación interna de limpiarPorEstado no lo detectaría
         const limpiado = limpiarPorEstado({ modo, resetCompleto: modoAnterior !== modo });
-        
+
         logger.info(`${logPrefix} DEBUG: Cambio de modo ${modoAnterior} -> ${modo}, limpiado=${limpiado}`);
-        
+
         // Restaurar la vista del mapa al centro/zoom por defecto (CONFIG.MAPA)
         try {
             const defaultCenter = CONFIG?.MAPA?.CENTRO_DEFECTO ?? [39.4699, -0.3763];
@@ -2716,9 +2660,9 @@ async function manejarCambioModoMapa(mensaje) {
         // Por ahora, delegamos a limpiarPorEstado que ya maneja la lógica básica
 
         logger.success(`${logPrefix} Cambio de modo completado exitosamente: ${modo}`);
-        
-        return { 
-            exito: true, 
+
+        return {
+            exito: true,
             modo: modo,
             modoAnterior: modoAnterior,
             limpiado: limpiado,
@@ -2727,7 +2671,7 @@ async function manejarCambioModoMapa(mensaje) {
 
     } catch (error) {
         logger.error(`${logPrefix} Error procesando cambio de modo:`, error);
-        
+
         // Enviar mensaje de error si es posible
         try {
             enviarMensaje({
@@ -2744,7 +2688,7 @@ async function manejarCambioModoMapa(mensaje) {
         } catch (sendError) {
             logger.error(`${logPrefix} Error enviando mensaje de error:`, sendError);
         }
-        
+
         return { exito: false, error: error.message };
     }
 }
@@ -2778,7 +2722,7 @@ export function registrarManejadoresMensajes() {
         if (typeof registrarControlador !== 'function') {
             throw new TypeError('La función registrarControlador no está disponible');
         }
-        
+
         // Controladores de navegación adicionales
         // NOTA: SISTEMA.CAMBIO_MODO lo registra _hdl_SISTEMA_CAMBIO_MODO en codigo-padre.html Script 1
         // (permanente: true). Ese handler llama a globalThis.funcionesMapa.manejarCambioModoMapa()
@@ -2811,13 +2755,13 @@ export function registrarManejadoresMensajes() {
 
         // Controlador para solicitar paradas con proximidad avanzada
         // ...existing code...
-        
+
 
         // Controladores para respuestas de consultas de cambio de parada
         registrarControlador(TIPOS_MENSAJE.NAVEGACION.RESPUESTA_COORDENADAS, async (mensaje) => {
             await procesarRespuestaConsulta('coordenadas', mensaje.datos);
         });
-        
+
         logger.debug('[funciones-mapa] Manejadores de mensajes del mapa registrados correctamente');
         return true;
     } catch (error) {
@@ -3394,13 +3338,13 @@ if (globalThis.window !== undefined) {
             if (globalThis.funcionesMapa) {
                 delete globalThis.funcionesMapa;
             }
-            
+
             // Limpiar instancia del mapa si existe
             if (_mapaInstance) {
                 _mapaInstance.remove();
                 _mapaInstance = null;
             }
-            
+
             // Limpiar arrays y mapas
             marcadoresParadas.clear();
             rutasTramos.length = 0;
@@ -3409,18 +3353,18 @@ if (globalThis.window !== undefined) {
             marcadorDestino = null;
             _mapaOpciones = null;
             arrayParadasLocal.length = 0;
-            
+
             // Limpiar estado del mapa
             Object.keys(estadoMapa).forEach(key => {
                 estadoMapa[key] = null;
             });
-            
+
             // Limpiar listeners de actividad
             if (intervaloLimpiezaAutomatica) {
                 clearInterval(intervaloLimpiezaAutomatica);
                 intervaloLimpiezaAutomatica = null;
             }
-            
+
             logger.info('Limpieza agresiva de globales del mapa completada');
         } catch (error) {
             // Logging mínimo durante pagehide para evitar errores
@@ -3444,17 +3388,17 @@ export function dibujarPolylineNavegacion(opciones = {}) {
     const color = opcionesEstilo.color || opciones.color || 'blue';
     const weight = opcionesEstilo.weight || opciones.weight;
     const waypoints = opciones.waypoints || [];
-    
+
     if (!_mapaInstance) {
         logger.warn('dibujarPolylineNavegacion: Mapa no inicializado');
         return null;
     }
-    
+
     if (!origen || !destino || !origen.lat || !origen.lng || !destino.lat || !destino.lng) {
         logger.warn('dibujarPolylineNavegacion: Origen o destino inválidos');
         return null;
     }
-    
+
     try {
         // Ocultar el trazado persistente (rutasActivas + emojis) explícitamente al mostrar la
         // línea manual — no depender solo de que el bloque de 2 lecturas de
@@ -3505,7 +3449,7 @@ export function dibujarPolylineNavegacion(opciones = {}) {
             _htmlEmojiRuta('🎯', iconos.destino, true),
             { className: 'marcador-destino-navegacion', title: 'Tu destino', zIndex: 500 }
         );
-        
+
         logger.debug(`Polyline de navegación dibujada desde [${origen.lat}, ${origen.lng}] hasta [${destino.lat}, ${destino.lng}] con marcador 🎯`);
         return polylineNavegacion;
     } catch (error) {
@@ -3664,7 +3608,7 @@ export function actualizarMarcadorUsuario(lat, lng, accuracy = 0, modo = 'aventu
         logger.warn('actualizarMarcadorUsuario: Mapa no inicializado');
         return null;
     }
-    
+
     try {
         // ── CRÍTICO: Actualizar estadoMapa.posicionUsuario ──────────────
         // Esta es la ÚNICA ruta viva que recibe posiciones GPS — NAVEGACION.ACTUALIZAR_ESTADO
@@ -3683,7 +3627,7 @@ export function actualizarMarcadorUsuario(lat, lng, accuracy = 0, modo = 'aventu
             marcadorUsuarioGPS.remove();
             marcadorUsuarioGPS = null;
         }
-        
+
         // Una sola plantilla, compartida con el reescalado por zoom — ver
         // _htmlMarcadorUsuario(). El modo se guarda porque el reescalado no recibe
         // ninguna posicion GPS de la que deducirlo.

@@ -60,7 +60,7 @@
             log('Iniciando test DATOS.CARGAR_COORDENADAS...');
 
             const hijo2 = document.getElementById('hijo2');
-            
+
             // Esperar a que hijo2 cargue completamente
             await new Promise(resolve => {
                 if (hijo2.contentDocument.readyState === 'complete') {
@@ -73,24 +73,24 @@
 
             // Datos de prueba
             const coordenadasPrueba = [
-                { 
-                    id: 'P-0', 
-                    tipo: 'inicio', 
-                    nombre: 'Punto Inicio Test', 
+                {
+                    id: 'P-0',
+                    tipo: 'inicio',
+                    nombre: 'Punto Inicio Test',
                     coordenadas: { lat: 39.4699, lng: -0.3763 },
                     padreid: 'padre-P-0'
                 },
-                { 
-                    id: 'P-1', 
-                    tipo: 'parada', 
-                    nombre: 'Parada 1 Test', 
+                {
+                    id: 'P-1',
+                    tipo: 'parada',
+                    nombre: 'Parada 1 Test',
                     coordenadas: { lat: 39.4700, lng: -0.3770 },
                     padreid: 'padre-P-1'
                 },
-                { 
-                    id: 'T-1', 
-                    tipo: 'tramo', 
-                    nombre: 'Tramo 1 Test', 
+                {
+                    id: 'T-1',
+                    tipo: 'tramo',
+                    nombre: 'Tramo 1 Test',
                     coordenadas: { lat: 39.4710, lng: -0.3780 },
                     padreid: 'padre-T-1'
                 }
@@ -131,7 +131,7 @@
             // Esperar respuesta con timeout
             const timeout = 5000;
             const startTime = Date.now();
-            
+
             while (!respuestaRecibida && (Date.now() - startTime) < timeout) {
                 await new Promise(r => setTimeout(r, 100));
             }
@@ -141,7 +141,7 @@
             // Evaluar resultados
             if (respuestaRecibida) {
                 addResult('Mensaje CARGAR_COORDENADAS enviado y respuesta recibida', true);
-                
+
                 addResult('Coordenadas procesadas por hijo2', true,
                     respuestaDatos?.exito !== false
                         ? `Total: ${respuestaDatos?.total || coordenadasPrueba.length}`
