@@ -101,47 +101,12 @@
             }
         };
 
-        function _isValidPreModuleSource(ev) {
-            const origenLocal = globalThis.location.origin;
-            const origenValido = ev.origin === origenLocal || ev.origin === 'null' || origenLocal === 'null';
-            const iframeHijo5 = document.getElementById('hijo5');
-            return origenValido && iframeHijo5 !== null && ev.source === iframeHijo5.contentWindow;
-        }
-
-        function _injectParadasStyle(iframe) {
-            try {
-                const doc = iframe.contentDocument;
-                if (!doc) return;
-                const styleId = 'vv-hijo5-paradas-fix-style';
-                if (!doc.getElementById(styleId)) {
-                    const s = doc.createElement('style');
-                    s.id = styleId;
-                    s.textContent = '\nhtml, body { background: transparent !important; }\n#paradas-window { background: rgba(255,255,255,0.92) !important; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); pointer-events: auto !important; border: 2px solid rgba(0,123,255,0.6) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.18) !important; }\n#lista-paradas { background: transparent !important; pointer-events: auto !important; }\n.parada-tramo-btn { pointer-events: auto !important; }\n';
-                    doc.head && doc.head.appendChild(s);
-                }
-            } catch (e) { (globalThis.logger || console).warn('[PADRE] Error applying hijo5 paradas fallback styles', e); }
-        }
-
-        // DISEÑO INTENCIONAL — listener pre-módulo para estilado de paradas en hijo5.
-        // Se registra aquí, en el script inline inicial, ANTES de que ningún módulo cargue
-        // y ANTES de que se asigne src a cualquier iframe. Por tanto es imposible que hijo5
-        // envíe VV:PARADAS:READY antes de que este listener exista.
-        // La inyección está protegida por try-catch; los fallos son silenciosos
-        // pero inofensivos (el estilo se aplica igualmente en la siguiente interacción).
-        async function _handlePreModuleMessage(ev) {
-            try {
-                const data = ev && ev.data;
-                if (!data || !data.tipo) return;
-                if (!_isValidPreModuleSource(ev)) return;
-                // Valores = TIPOS_MENSAJE.PARADAS.READY (no disponible aún pre-módulos)
-                if (data.tipo === 'VV:PARADAS:READY') {
-                    const iframe = document.getElementById('hijo5');
-                    if (!iframe) return;
-                    _injectParadasStyle(iframe);
-                }
-            } catch (e) { (globalThis.logger || console).debug('[PADRE] Listener pre-modulo ignora error no critico', e && e.message); }
-        }
-        globalThis.addEventListener('message', _handlePreModuleMessage);
+        // El aviso de hijo5 "ya tengo mis botones" (PARADAS.READY) NO se escucha aquí: lo
+        // atiende _hdl_PARADAS_READY, en Script 2, como un handler más del bus. Aquí hubo un
+        // listener suelto pre-módulos por miedo a llegar tarde, pero hijo5 no puede avisar
+        // antes de que el bus exista: su iframe no recibe `src` hasta cargarHijoCasa() —o la
+        // rama de activación—, las dos dentro de módulos, y las dos lo registran en la
+        // mensajería ANTES de asignárselo.
 
         function _handleHijo5IframeLoad(doc) {
             try {
@@ -14604,6 +14569,35 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             `;
         }
 
+        function _injectParadasStyle(iframe) {
+            try {
+                const doc = iframe.contentDocument;
+                if (!doc) return;
+                const styleId = 'vv-hijo5-paradas-fix-style';
+                if (!doc.getElementById(styleId)) {
+                    const s = doc.createElement('style');
+                    s.id = styleId;
+                    s.textContent = '\nhtml, body { background: transparent !important; }\n#paradas-window { background: rgba(255,255,255,0.92) !important; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); pointer-events: auto !important; border: 2px solid rgba(0,123,255,0.6) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.18) !important; }\n#lista-paradas { background: transparent !important; pointer-events: auto !important; }\n.parada-tramo-btn { pointer-events: auto !important; }\n';
+                    doc.head && doc.head.appendChild(s);
+                }
+            } catch (e) { (globalThis.logger || console).warn('[PADRE] Error applying hijo5 paradas fallback styles', e); }
+        }
+
+        /**
+         * hijo5 avisa de que ya ha pintado sus botones de parada. El padre le inyecta
+         * entonces el estilo que hace transparente su ventana; antes de que existan los
+         * botones no habria nada que estilar.
+         *
+         * Llega por el bus, que ya ha comprobado que viene del iframe hijo5 registrado y del
+         * mismo origen — el mismo `contentWindow` que comprobaba la escucha suelta que esto
+         * sustituye, y ademas con el origen exigido, no tolerado.
+         */
+        async function _hdl_PARADAS_READY(_mensaje) {
+            const iframe = document.getElementById('hijo5');
+            if (!iframe) return;
+            _injectParadasStyle(iframe);
+        }
+
         async function _hdl_PARADAS_LISTADO_TOGGLE(_mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[PARADAS.LISTADO_TOGGLE]`;
             try {
@@ -14650,6 +14644,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.TIEMPO_ACTUALIZADO, _hdl_AVENTURA_TIEMPO_ACTUALIZADO, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.TEMPORIZADOR.TOGGLE, _hdl_TEMPORIZADOR_TOGGLE, { permanente: true });
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.PARADAS.READY, _hdl_PARADAS_READY, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE, _hdl_PARADAS_LISTADO_TOGGLE, { permanente: true });
         }

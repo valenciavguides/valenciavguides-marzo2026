@@ -640,11 +640,14 @@
             if (btnActual) btnActual.classList.add('actual');
         }
 
-        try {
-            if (globalThis.parent && globalThis.parent !== globalThis && typeof globalThis.parent.postMessage === 'function') {
-                globalThis.parent.postMessage({ tipo: TIPOS_MENSAJE.PARADAS.READY, origen: 'hijo5', datos: { count: botonesGenerados } }, globalThis.location.origin);
-            }
-        } catch (e) { logger.debug('[hijo5] postMessage PARADAS.READY error:', e); }
+        // El padre estila la ventana de paradas cuando este aviso llega; por eso se manda
+        // al terminar de generarlos, no antes.
+        enviarMensaje({
+            destino: 'padre',
+            tipo: TIPOS_MENSAJE.PARADAS.READY,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            datos: { count: botonesGenerados },
+        }).catch((e) => logger.debug('[hijo5] PARADAS.READY no enviado:', e && e.message));
     }
 
     async function manejarClickGPS() {

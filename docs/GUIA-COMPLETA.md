@@ -3805,7 +3805,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | **TEMPORIZADOR** | `TEMPORIZADOR.TOGGLE` | Hijo1 → Padre | Usuario activa/pausa el temporizador |
 | **CHAT** | `CHAT.CERRAR` | Hijo6 → Padre | Usuario cierra el chat |
 | | `CHAT.ESTADO_PADRE` | Padre → Hijo6 | Idioma (reconstruye el acordeón si cambió) y contexto para el buzón de sugerencias |
-| **PARADAS** | `VV:PARADAS:READY` | Hijo5 → Padre | UI de paradas lista (enviado pre-módulos) |
+| **PARADAS** | `VV:PARADAS:READY` | Hijo5 → Padre | UI de paradas lista — la atiende `_hdl_PARADAS_READY` (Script 2) |
 | | `PARADAS.LISTADO_TOGGLE` | Hijo1 → Padre | Usuario abre/cierra la ventana de listado de paradas |
 | **PUZZLE** | `PUZZLE.COMPLETADO` / `puzzle-state-completed` | Iframe puzzle → Hijo4 | Puzzle resuelto (ambos formatos soportados) |
 | | `PUZZLE.TIMEOUT` / `puzzle-state-timeout` | Iframe puzzle → Hijo4 | Puzzle sin resolver por tiempo |
@@ -4090,7 +4090,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, origen:'hijo5' }` | Usuario pulsa un botón de parada |
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `{ incluirTramos, incluirInicio, incluirMetadatos, ubicacionUsuario }` | Al arrancar o al necesitar actualizar la lista |
 | `SISTEMA.ERROR` | `{ error, contexto, timestamp }` | Notificación de error interno |
-| `PARADAS.READY` | `{ count:botonesGenerados }` | UI de paradas lista (enviado pre-módulos) |
+| `PARADAS.READY` | `{ count:botonesGenerados }` | UI de paradas lista |
 | `SISTEMA.CONFIRMACION` | `{ tipo:'UI_VISIBLE'/'DATOS_RECIBIDOS' }` | ACK de handshake y datos |
 
 #### Mensajes que hijo5 recibe del padre
@@ -4896,7 +4896,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-b664ef33e8be'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-afc80fc493a9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5770,23 +5770,13 @@ hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel d
 
 Algunos mensajes son procesados por listeners raw `window.addEventListener('message')` que se registran **antes** de que los módulos JS carguen. Estos mensajes NO pasan por `mensajeria.js` ni `registrarControladorSeguro`. No tienen garantías de dedup, logging ni routing estándar.
 
-#### PARADAS.READY (hijo5 → padre)
-
-| Campo | Valor |
-|-------|-------|
-| Emitido por | `boton-casa-hijo5.html` — `TIPOS_MENSAJE.PARADAS.READY` = `'VV:PARADAS:READY'`, tras generar todos los botones |
-| Tipo | `'VV:PARADAS:READY'` — hijo5 usa la constante; padre compara string literal en el raw listener pre-módulo |
-| Listener en padre | `_handlePreModuleMessage` (función pre-módulo) |
-| Acción | Padre llama `_injectParadasStyle(iframe)` — inyecta CSS de fondo transparente en hijo5 |
-| Canal | Raw `window.postMessage` a `parent`, no pasa por `mensajeria.js` |
-
 #### NAVEGACION.SUPRIMIR_ROTACION (seleccion → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | `En-busca-del-tesoro.html` L1750 (al entrar pantalla fullscreen) y L1757 (al salir) |
+| Emitido por | `En-busca-del-tesoro.html`, en `mostrarMapaVintage()` al abrir el overlay del mapa vintage y en `cerrarMapaVintage()` al cerrarlo |
 | Tipo | `'NAVEGACION.SUPRIMIR_ROTACION'` o `'SUPPRESS_ROTATION'` (string literal) |
-| Listener en padre | L3262 — listener independiente en el módulo de rotación |
+| Listener en padre | escucha independiente del módulo de rotación, junto a `toggleRotationMessage()` |
 | Acción | Suprime (`value: true`) o restaura (`value: false`) el aviso `#rotation-message` del padre — el overlay que pide al usuario girar el dispositivo. Se suprime mientras el mapa vintage está visible para no bloquear la imagen |
 | Canal | Raw `parent.postMessage` — aunque usa el mismo string que `TIPOS_MENSAJE.NAVEGACION.SUPRIMIR_ROTACION`, el listener no pasa por el bus |
 
@@ -5951,7 +5941,7 @@ codigo-padre.html Script 1 (handler SOLICITAR_DATOS_PARADAS)
 padre → mensaje.origen   NAVEGACION.RESPUESTA_DATOS_PARADAS
   ↓
 hijo5 L1237 genera botones de parada en panel CASA
-hijo5 → padre   PARADAS.READY (pre-module listener)
+hijo5 → padre   PARADAS.READY
 
 También lo envía: funciones-mapa.js L662 (para dibujar ruta). hijo2 **no** envía este mensaje.
 También lo reciben: hijo2 L2409 (almacena en `arrayParadasLocal` para cálculos de proximidad GPS).
@@ -7712,7 +7702,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 
 | Capa | Qué hace | Dónde |
 |------|---------|--------|
-| **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`. Todos los receptores verifican `event.origin` antes de procesar. El bus central (`js/mensajeria.js`) acepta también `event.origin === 'null'` (file:// en local) y `event.source === window` (auto-mensajes). Los listeners raw fuera del bus que validan origin son: `_handlePreModuleMessage` (padre, origin+source hijo5), CHAT.CERRAR (padre:1660), SUPRIMIR_ROTACION (padre:3394), NAVEGACION_PANTALLA (En-busca-del-tesoro.html:2749), `_onPuzzleMessage` (En-busca-del-tesoro.html:1271), listener puzzle (retos-hijo4.html:1188). Los messagingAdapters de todos los hijos validan `event.source === globalThis.parent`. | `js/mensajeria.js`, `codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` |
+| **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`. Todos los receptores verifican `event.origin` antes de procesar. El bus central (`js/mensajeria.js`) exige en `manejarMensajeEntrante` que `event.origin` sea exactamente el propio y nada más —el protocolo `file://` no se contempla, porque los módulos ES no cargan ahí—, y en `_fuenteAutorizada` solo admite como fuente a su padre, a un iframe que él mismo haya registrado, o a sí mismo (auto-mensajes). Las escuchas raw que quedan fuera del bus, y todas validan `event.origin` (se localizan buscando `addEventListener('message'` en cada fichero): en `codigo-padre.html`, la de `CHAT.CERRAR` —dentro del IIFE del botón de chat, junto a `abrirChat()`—, la que filtra `'mapa-completo-solicitar-datos'`, la de `NAVEGACION.SUPRIMIR_ROTACION` —junto a `toggleRotationMessage()`— y la de `SELECCION.DEV_MODE_TOGGLE` —el IIFE que pone `globalThis._devModeActivo`—; en `En-busca-del-tesoro.html`, `_onPuzzleMessage` y la que atiende `NAVEGACION_PANTALLA` y `SELECCION.VIDEO_INTRO_TERMINADO`; y en `retos-hijo4.html`, la del puzzle, que además exige `event.source === puzzleEl.contentWindow`. Los messagingAdapters de hijo2, hijo3 y hijo4 validan `event.source === globalThis.parent`. | `js/mensajeria.js`, `codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` |
 | **confirmListener por ID único** | Cada mensaje con confirmación genera un `idMensaje` único; el listener filtra por `event.data.idOriginal === idMensaje` para evitar resoluciones cruzadas | `js/mensajeria.js` |
 | **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3), `imagenes/imagenes-aventuras/` (fotos), `videos-aventuras/` (vídeos), `backend/` — todos son contenido de pago. **`js/aventuras-ID-padre.js` no está en la lista, y es deliberado**: contiene el itinerario y los ids, no el contenido (ver §2.2). Que se vea el orden de las paradas no compromete nada; lo que hay detrás de cada `texto_id`/`audio_id`/`reto_id` sí está protegido. | `js/server.js` |
 | **Path traversal** | Rechaza cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) | `js/server.js` |
@@ -8123,7 +8113,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-b664ef33e8be'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-afc80fc493a9'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8844,7 +8834,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-b664ef33e8be';
+const CACHE_VERSION = 'v-afc80fc493a9';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12185,7 +12175,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-b664ef33e8be';
+const CACHE_VERSION = 'v-afc80fc493a9';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13997,7 +13987,7 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje 
 | `NAVEGACION.SUPRIMIR_ROTACION` | En-busca-del-tesoro.html | codigo-padre.html |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | coordenadas-hijo2.html | codigo-padre.html |
 | `PARADAS.LISTADO_TOGGLE` | extrainfo-hijo1.html | codigo-padre.html |
-| `PARADAS.READY` | boton-casa-hijo5.html | *(ninguno detectado)* |
+| `PARADAS.READY` | boton-casa-hijo5.html | `_hdl_PARADAS_READY` (codigo-padre.html, Script 2) |
 | `PUZZLE.COMPLETADO` | puzzle.html | *(ninguno detectado)* |
 | `PUZZLE.LEGACY_COMPLETADO` | *(ninguno detectado)* | *(ninguno detectado)* |
 | `PUZZLE.LEGACY_TIMEOUT` | *(ninguno detectado)* | *(ninguno detectado)* |
