@@ -366,10 +366,6 @@
 </div>
 
 <script>
-  function obtenerOrigenPadreSeguro() {
-    return globalThis.location.origin === 'null' ? '*' : globalThis.location.origin;
-  }
-
   function cerrarChatVentana() {
     // 1) Preferred path: parent exposed close API.
     try {
@@ -394,7 +390,7 @@
     // 3) Messaging fallback.
     try {
       var tipoCerrar = (globalThis.constants && globalThis.constants.TIPOS_MENSAJE && globalThis.constants.TIPOS_MENSAJE.CHAT && globalThis.constants.TIPOS_MENSAJE.CHAT.CERRAR) || 'CHAT.CERRAR';
-      globalThis.parent.postMessage({ tipo: tipoCerrar }, obtenerOrigenPadreSeguro());
+      globalThis.parent.postMessage({ tipo: tipoCerrar }, globalThis.location.origin);
     } catch (error_) {
       console.debug('[hijo6] postMessage CHAT.CERRAR falló', error_ && error_.message); // eslint-disable-line no-console -- script clasico pre-modulo: logger.js aun no se ha importado aqui
     }
@@ -802,8 +798,7 @@
   // El vídeo de introducción anidado notifica su fin exactamente igual que en
   // En-busca-del-tesoro.html — aquí solo se usa para cerrar el modal.
   globalThis.addEventListener('message', (evento) => {
-    const origenOk = evento.origin === globalThis.location.origin || evento.origin === 'null';
-    if (!origenOk) return;
+    if (evento.origin !== globalThis.location.origin) return;
     if (evento.data?.tipo === 'SELECCION.VIDEO_INTRO_TERMINADO') cerrarModal();
   });
 

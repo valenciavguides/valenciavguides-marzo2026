@@ -1939,7 +1939,7 @@ async function scene19(){
 /* ── RUN ─────────────────────────────────────── */
 globalThis._continuarVideo = function() {
   try {
-    const _o = globalThis.location.origin === 'null' ? '*' : globalThis.location.origin;
+    const _o = globalThis.location.origin;
     globalThis.parent?.postMessage({ tipo: 'SELECCION.VIDEO_INTRO_TERMINADO', origen: 'video-intro', timestamp: Date.now() }, _o);
   } catch(_e) { /* modo standalone */ }
 };

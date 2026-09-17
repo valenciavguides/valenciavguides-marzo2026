@@ -267,8 +267,7 @@ replace(
         }
     });`,
   `    globalThis.addEventListener('message', function(event) {
-        const origenOk = event.origin === globalThis.location.origin || event.origin === 'null';
-        if (!origenOk) return;
+        if (event.origin !== globalThis.location.origin) return;
         if (event.data?.tipo === 'SELECCION.VIDEO_INTRO_TERMINADO') {
             _log.info('[SELECCION][P4] video-intro terminado → mostrando P5');
             void mostrar(5);

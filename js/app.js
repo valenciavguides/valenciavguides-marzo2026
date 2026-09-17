@@ -397,13 +397,10 @@ async function _activarParadaDefectoAventura() {
                 await globalThis.__vv_stateManager.enviarMensajeCentral(payloadCambioParada);
                 logger.debug(`[APP][CAMBIO_MODO] CAMBIO_PARADA inicial enviado al controlador central para ${padreId}`);
             } else {
-                const targetOrigin = globalThis.location.origin === 'null'
-                    ? '*'
-                    : globalThis.location.origin;
                 globalThis.postMessage({
                     ...payloadCambioParada,
                     origen: 'app-bootstrap'
-                }, targetOrigin);
+                }, globalThis.location.origin);
                 logger.warn(`[APP][CAMBIO_MODO] State manager no disponible; fallback via postMessage para ${padreId}`);
             }
         }
