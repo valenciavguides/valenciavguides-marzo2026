@@ -15,6 +15,7 @@
     "verificar-mensajeria": "node tools/verificar-mensajeria.js",
     "verificar-media": "node tools/verificar-media.js",
     "verificar-docs": "node tools/verificar-docs.js",
+    "verificar-citas": "node tools/verificar-citas-guia.js",
     "verificar-esperas": "node tools/verificar-esperas.js",
     "verificar-totales": "node tools/verificar-totales-indice.js",
     "sync:master-test": "node tools/sync-master-test.js",
