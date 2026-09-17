@@ -13924,7 +13924,7 @@ El fallo, cuando falta un puente, es **mudo**: la variable se queda en su valor 
 | `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L409) | módulo 2 | función/objeto |
 | `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L418) | módulo 2 | función/objeto |
 | `retos-hijo4.html` | `ejecutarValidacion` | clásico 2 (L26) | módulo 1 | función/objeto |
-| `chat-hijo6.html` | `cerrarChatVentana` | clásico 2 (L382) | módulo 1 | función/objeto |
+| `chat-hijo6.html` | `cerrarChatVentana` | clásico 2 | módulo 1 | función/objeto |
 
 </details>
 
