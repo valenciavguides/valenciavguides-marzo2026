@@ -101,9 +101,9 @@ Cada test sigue este patrón:
     <h1>🧪 Test: [NOMBRE]</h1>
     <button onclick="runTest()">Ejecutar Test</button>
     <div id="results"></div>
-    
+
     <iframe id="componente" src="../[archivo].html"></iframe>
-    
+
     <script type="module">
         window.runTest = async function() {
             // 1. Esperar carga del iframe

@@ -425,640 +425,119 @@
     <script>
         // Lista completa de tests
         const TESTS = [
-            // Backend Tests (requieren npm test)
-            {
-                name: 'Backend: Health API',
-                file: 'backend',
-                type: 'jest',
-                category: 'Backend'
-            },
-            {
-                name: 'Backend: Aventuras API',
-                file: 'backend',
-                type: 'jest',
-                category: 'Backend'
-            },
-            {
-                name: 'Backend: Coordenadas API',
-                file: 'backend',
-                type: 'jest',
-                category: 'Backend'
-            },
-            {
-                name: 'Backend: Audios API',
-                file: 'backend',
-                type: 'jest',
-                category: 'Backend'
-            },
-            {
-                name: 'Backend: Retos API',
-                file: 'backend',
-                type: 'jest',
-                category: 'Backend'
-            },
-            {
-                name: 'Backend: Puzzles API',
-                file: 'backend',
-                type: 'jest',
-                category: 'Backend'
-            },
-            {
-                name: 'Backend: Error Handling',
-                file: 'backend',
-                type: 'jest',
-                category: 'Backend'
-            },
-
-            // Frontend Tests - Integración
-            {
-                name: 'Integration: Cambio de Parada',
-                file: 'test_cambio_parada.html',
-                type: 'browser',
-                category: 'Integration'
-            },
-            {
-                name: 'Integration: Flujo Completo Aventura',
-                file: 'test_flujo_completo_aventura.html',
-                type: 'browser',
-                category: 'Integration'
-            },
-            {
-                name: 'Integration: Datos Combinados',
-                file: 'test_datos_solicitar_paradas_combinados.html',
-                type: 'browser',
-                category: 'Integration'
-            },
-            {
-                name: 'Integration: Distribución Datos',
-                file: 'test_integracion_distribuir_datos.html',
-                type: 'browser',
-                category: 'Integration'
-            },
-            {
-                name: 'Integration: Completa',
-                file: 'test_integracion_completa.html',
-                type: 'browser',
-                category: 'Integration'
-            },
-
-            // Frontend Tests - Carga de Datos
-            {
-                name: 'Data: Cargar Coordenadas',
-                file: 'test_cargar_coordenadas.html',
-                type: 'browser',
-                category: 'Data'
-            },
-
-            // Frontend Tests - Comunicación
-            {
-                name: 'Communication: Handshake Hijo',
-                file: 'test_hijo_handshake.html',
-                type: 'browser',
-                category: 'Communication'
-            },
-            {
-                name: 'Communication: Heartbeat',
-                file: 'test_heartbeat.html',
-                type: 'browser',
-                category: 'Communication'
-            },
-            {
-                name: 'Communication: Sincronización Confirmaciones',
-                file: 'test_sincronizacion_confirmaciones.html',
-                type: 'browser',
-                category: 'Communication'
-            },
-
-            // Frontend Tests - GPS
-            {
-                name: 'GPS: Activation Restriction',
-                file: 'test_gps_activation_restriction.html',
-                type: 'browser',
-                category: 'GPS'
-            },
-            {
-                name: 'GPS: Fallback',
-                file: 'test_gps_fallback.html',
-                type: 'browser',
-                category: 'GPS'
-            },
-            {
-                name: 'GPS: Message Validation',
-                file: 'test_gps_message_validation.html',
-                type: 'browser',
-                category: 'GPS'
-            },
-
-            // Frontend Tests - Verificación
-            {
-                name: 'Verification: Carga Secuencial iframes',
-                file: 'test_carga_secuencial_iframes.html',
-                type: 'browser',
-                category: 'Verification'
-            },
-            {
-                name: 'Verification: Controlador Fusionado',
-                file: 'test_controlador_fusionado.html',
-                type: 'browser',
-                category: 'Verification'
-            },
-            {
-                name: 'Verification: Cambio de Modo',
-                file: 'test_cambio_modo.html',
-                type: 'browser',
-                category: 'Verification'
-            },
-            {
-                name: 'Verification: Índice Aventuras',
-                file: 'test_indice_aventuras.html',
-                type: 'browser',
-                category: 'Verification'
-            },
-            {
-                name: 'Verification: Eventos Duplicados',
-                file: 'test_verificacion_eventos_duplicados.html',
-                type: 'browser',
-                category: 'Verification'
-            },
-            {
-                name: 'Verification: Correcciones Inicialización',
-                file: 'test_verificacion_final_correcciones.html',
-                type: 'browser',
-                category: 'Verification'
-            },
-
-            // Frontend Tests - Fixes
-            {
-                name: 'Fix: Audio Files',
-                file: 'test_fix_audio_files.html',
-                type: 'browser',
-                category: 'Fixes'
-            },
-            {
-                name: 'Fix: Coordenadas Paradas',
-                file: 'test_fix_coordenadas_paradas.html',
-                type: 'browser',
-                category: 'Fixes'
-            },
-            {
-                name: 'Fix: enviarMensaje S1',
-                file: 'test_fix_enviarMensaje_S1.html',
-                type: 'browser',
-                category: 'Fixes'
-            },
-            {
-                name: 'Fix: Retos',
-                file: 'test_fix_retos.html',
-                type: 'browser',
-                category: 'Fixes'
-            },
-
-            // Frontend Tests - Específicos
-            {
-                name: 'Specific: Solicitar Reto (hijo4)',
-                file: 'test_solicitar_reto_hijo4.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-            {
-                name: 'Specific: Respuesta Datos Paradas (hijo5)',
-                file: 'test_respuesta_datos_paradas_hijo5.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-            {
-                name: 'Specific: Message Handlers No Throw',
-                file: 'test_message_handlers_no_throw.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-            {
-                name: 'Specific: Phone Detection',
-                file: 'test_phone_detection.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-            {
-                name: 'Specific: UI Visibility Handshake',
-                file: 'test_ui_visibility_handshake.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-
-            // Frontend Tests - Básicos
-            {
-                name: 'Basic: Loading',
-                file: 'test_basic.html',
-                type: 'browser',
-                category: 'Basic'
-            },
-            {
-                name: 'Basic: iframe Basico',
-                file: 'test-iframe-basico.html',
-                type: 'browser',
-                category: 'Basic'
-            },
-            {
-                name: 'Basic: Carga Hijos',
-                file: 'test-carga-hijos.html',
-                type: 'browser',
-                category: 'Basic'
-            },
-            {
-                name: 'Basic: Código Padre',
-                file: 'test-codigo-padre.html',
-                type: 'browser',
-                category: 'Basic'
-            },
-
-            // Frontend Tests - Módulos
-            {
-                name: 'Module: Mensajería Loading',
-                file: 'test_mensajeria.html',
-                type: 'browser',
-                category: 'Module'
-            },
-            {
-                name: 'Module: ejecutarValidacion',
-                file: 'test_ejecutarValidacion.html',
-                type: 'browser',
-                category: 'Module'
-            },
-            {
-                name: 'Module: registrarMetrica',
-                file: 'test_registrarMetrica.html',
-                type: 'browser',
-                category: 'Module'
-            },
-            {
-                name: 'Data: Videos por Aventura',
-                file: 'test_video_aventuras.html',
-                type: 'browser',
-                category: 'Data'
-            },
-            {
-                name: 'Audit: Auditoría Completa',
-                file: 'test_auditoria_completa.html',
-                type: 'browser',
-                category: 'Verification'
-            },
-            {
-                name: 'PWA: SW Update Banner',
-                file: 'test_sw_update_notification.html',
-                type: 'browser',
-                category: 'Verification'
-            },
-            {
-                name: 'DataLoader: cargarTextos con párrafos',
-                file: 'test_cargar_textos.html',
-                type: 'browser',
-                category: 'Verification'
-            },
-
-            // Frontend Tests - Hijos (iframe specifics)
-            {
-                name: 'IDs: AVENTURA_PARADAS Search',
-                file: 'test_aventura_paradas_ids.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-            {
-                name: 'IDs: ID Mismatch Resolution',
-                file: 'test_id_mismatch_resolution.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-            {
-                name: 'IDs: AVENTURA_PARADAS Lazy-Init',
-                file: 'test_aventura_paradas_lazy_init.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-            {
-                name: 'Quality: Trailing Whitespace',
-                file: 'test_trailing_whitespace.html',
-                type: 'browser',
-                category: 'Verification'
-            },
-            {
-                name: 'Module: Constants Sync',
-                file: 'test_constants_sync.html',
-                type: 'browser',
-                category: 'Module'
-            },
-            {
-                name: 'Module: Exports Integrity',
-                file: 'test_module_exports.html',
-                type: 'browser',
-                category: 'Module'
-            },
-            {
-                name: 'Data: Aventuras Integrity',
-                file: 'test_data_integrity.html',
-                type: 'browser',
-                category: 'Data'
-            },
-            {
-                name: 'hijo2: Coordenadas',
-                file: 'test_hijo2_coordenadas.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-            // 'hijo3: Audio' (test_hijo3_audio.html) se borró: llevaba dentro una copia
-            // simulada de hijo3 y comprobaba la copia, nunca el fichero real, así que salía
-            // verde pasara lo que pasara. Lo que de verdad protegía —que la UI no se muestre
-            // antes de que el padre confirme— lo cubre ahora
-            // tests/e2e/86-hijo3-no-se-muestra-antes-de-tiempo.spec.js, contra el hijo3 real.
-            {
-                name: 'hijo4: Reto Visibility',
-                file: 'test_hijo4_reto_visibility.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-            {
-                name: 'hijo5: Navegación',
-                file: 'test_hijo5_navegacion.html',
-                type: 'browser',
-                category: 'Specific'
-            },
-
-            // E2E Tests — Playwright (resultados reales: click "Load E2E Results")
-            {
-                name: 'E2E: FASE 1 Boot Sequence',
-                file: 'e2e/01-fase1-boot.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Global Variables',
-                file: 'e2e/02-global-variables.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Handler Registration',
-                file: 'e2e/03-handler-registration.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: iframe DOM Structure',
-                file: 'e2e/04-iframe-dom.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Queues Draining',
-                file: 'e2e/05-queues-draining.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Race Conditions',
-                file: 'e2e/06-race-conditions.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Performance Baseline',
-                file: 'e2e/07-performance-baseline.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Children Handshake',
-                file: 'e2e/08-children-handshake.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Cambio de Modo',
-                file: 'e2e/09-mode-change.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Controladores Padre',
-                file: 'e2e/10-controladores-padre.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Constants Integrity',
-                file: 'e2e/11-constants-integrity.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Carga por Parada',
-                file: 'e2e/12-carga-por-parada.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: GPS Tramo Fix',
-                file: 'e2e/13-gps-tramo-fix.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Arribo y Progresión',
-                file: 'e2e/15-arribo-y-progresion.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Loading Overlay Oculta UI',
-                file: 'e2e/16-loading-overlay-oculta-ui.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Flecha Brújula Continuidad',
-                file: 'e2e/17-flecha-brujula-continuidad.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Botón Deshabilitado Color',
-                file: 'e2e/18-boton-deshabilitado-color.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Tiempo Restante Reset',
-                file: 'e2e/19-tiempo-restante-reset.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Tramo Inicio y Revelado',
-                file: 'e2e/20-tramo-inicio-y-revelado.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Llegada Ruido GPS',
-                file: 'e2e/21-llegada-ruido-gps.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Carteles Informativos',
-                file: 'e2e/22-carteles-informativos.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Polyline Autoreparación',
-                file: 'e2e/23-polyline-autoreparacion.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Cámara Sigue Usuario',
-                file: 'e2e/24-camara-sigue-usuario.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Brújula Modo',
-                file: 'e2e/25-brujula-modo.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Reto Completado Botón Verde',
-                file: 'e2e/26-reto-completado-boton-verde.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Seguimiento Rumbo',
-                file: 'e2e/27-seguimiento-rumbo.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Audio Control Error',
-                file: 'e2e/28-audio-control-error.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Recordatorio Audio',
-                file: 'e2e/29-recordatorio-audio.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Casa No Fuga Aventura',
-                file: 'e2e/30-casa-no-fuga-aventura.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Sincronizar Modo Ambas Direcciones',
-                file: 'e2e/31-sincronizar-modo-ambas-direcciones.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Llegada Inicio GPS Confirmada',
-                file: 'e2e/32-llegada-inicio-gps-confirmada.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Bienvenida Carteles Solo Aventura',
-                file: 'e2e/33-bienvenida-carteles-solo-aventura.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Recordatorio Reto',
-                file: 'e2e/34-recordatorio-reto.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Guardián Anti-Solape Carteles',
-                file: 'e2e/35-guardian-anti-solape-carteles.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: hijo5 Visible al Volver a Casa',
-                file: 'e2e/36-hijo5-visible-al-volver-casa.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Guard Concurrencia Cambio de Modo',
-                file: 'e2e/37-guard-concurrencia-cambio-modo.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Polyline y Reset Botones Cambio de Modo',
-                file: 'e2e/38-polyline-y-reset-botones-cambio-modo.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Flujo Completo Parada+Reto+Tramo',
-                file: 'e2e/39-flujo-completo-parada-reto-tramo.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Orden Restauración Modo Antes de Parada',
-                file: 'e2e/40-orden-restauracion-modo-antes-parada.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Temporizador de Compra Real y Modo Dev',
-                file: 'e2e/41-temporizador-compra-real-y-devmode.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Rescate — petición de ida y vuelta',
-                file: 'e2e/70-rescate-peticion-ida-y-vuelta.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Rescate — botón del asistente y pantallas',
-                file: 'e2e/71-rescate-boton-y-pantallas.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Rescate — concesión y cobro diferido',
-                file: 'e2e/72-rescate-concesion.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Rescate — reloj del recordatorio',
-                file: 'e2e/73-rescate-reloj-recordatorio.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Saltar Reto/Puzzle Roto',
-                file: 'e2e/43-saltar-reto-puzzle-roto.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            },
-            {
-                name: 'E2E: Botón de Saltar Audio no Disponible',
-                file: 'e2e/44-boton-saltar-audio.spec.js',
-                type: 'playwright',
-                category: 'E2E'
-            }
+            // <<< CATALOGO GENERADO — no editar a mano; lo escribe tools/sync-master-test.js
+            { name: "Carga hijos", file: "test-carga-hijos.html", type: 'browser', category: 'Pagina' },
+            { name: "Codigo padre", file: "test-codigo-padre.html", type: 'browser', category: 'Pagina' },
+            { name: "Auditoria completa", file: "test_auditoria_completa.html", type: 'browser', category: 'Pagina' },
+            { name: "Aventura paradas lazy init", file: "test_aventura_paradas_lazy_init.html", type: 'browser', category: 'Pagina' },
+            { name: "Cambio parada", file: "test_cambio_parada.html", type: 'browser', category: 'Pagina' },
+            { name: "Carga secuencial iframes", file: "test_carga_secuencial_iframes.html", type: 'browser', category: 'Pagina' },
+            { name: "Cargar coordenadas", file: "test_cargar_coordenadas.html", type: 'browser', category: 'Pagina' },
+            { name: "Cargar textos", file: "test_cargar_textos.html", type: 'browser', category: 'Pagina' },
+            { name: "Constants sync", file: "test_constants_sync.html", type: 'browser', category: 'Pagina' },
+            { name: "Controlador fusionado", file: "test_controlador_fusionado.html", type: 'browser', category: 'Pagina' },
+            { name: "Data integrity", file: "test_data_integrity.html", type: 'browser', category: 'Pagina' },
+            { name: "Datos solicitar paradas combinados", file: "test_datos_solicitar_paradas_combinados.html", type: 'browser', category: 'Pagina' },
+            { name: "Flujo completo aventura", file: "test_flujo_completo_aventura.html", type: 'browser', category: 'Pagina' },
+            { name: "Gps activation restriction", file: "test_gps_activation_restriction.html", type: 'browser', category: 'Pagina' },
+            { name: "Gps fallback", file: "test_gps_fallback.html", type: 'browser', category: 'Pagina' },
+            { name: "Gps message validation", file: "test_gps_message_validation.html", type: 'browser', category: 'Pagina' },
+            { name: "Heartbeat", file: "test_heartbeat.html", type: 'browser', category: 'Pagina' },
+            { name: "Hijo handshake", file: "test_hijo_handshake.html", type: 'browser', category: 'Pagina' },
+            { name: "Indice aventuras", file: "test_indice_aventuras.html", type: 'browser', category: 'Pagina' },
+            { name: "Integracion completa", file: "test_integracion_completa.html", type: 'browser', category: 'Pagina' },
+            { name: "Mensajeria", file: "test_mensajeria.html", type: 'browser', category: 'Pagina' },
+            { name: "Message handlers no throw", file: "test_message_handlers_no_throw.html", type: 'browser', category: 'Pagina' },
+            { name: "Module exports", file: "test_module_exports.html", type: 'browser', category: 'Pagina' },
+            { name: "Respuesta datos paradas hijo5", file: "test_respuesta_datos_paradas_hijo5.html", type: 'browser', category: 'Pagina' },
+            { name: "Trailing whitespace", file: "test_trailing_whitespace.html", type: 'browser', category: 'Pagina' },
+            { name: "Ui visibility handshake", file: "test_ui_visibility_handshake.html", type: 'browser', category: 'Pagina' },
+            { name: "Video aventuras", file: "test_video_aventuras.html", type: 'browser', category: 'Pagina' },
+            { name: "E2E: Fase1 boot", file: "e2e/01-fase1-boot.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Global variables", file: "e2e/02-global-variables.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Handler registration", file: "e2e/03-handler-registration.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Iframe dom", file: "e2e/04-iframe-dom.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Queues draining", file: "e2e/05-queues-draining.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Race conditions", file: "e2e/06-race-conditions.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Performance baseline", file: "e2e/07-performance-baseline.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Children handshake", file: "e2e/08-children-handshake.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Mode change", file: "e2e/09-mode-change.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Controladores padre", file: "e2e/10-controladores-padre.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Constants integrity", file: "e2e/11-constants-integrity.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Carga por parada", file: "e2e/12-carga-por-parada.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Gps tramo fix", file: "e2e/13-gps-tramo-fix.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Arribo y progresion", file: "e2e/15-arribo-y-progresion.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Loading overlay oculta ui", file: "e2e/16-loading-overlay-oculta-ui.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Flecha brujula continuidad", file: "e2e/17-flecha-brujula-continuidad.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Boton deshabilitado color", file: "e2e/18-boton-deshabilitado-color.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Tiempo restante reset", file: "e2e/19-tiempo-restante-reset.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Tramo inicio y revelado", file: "e2e/20-tramo-inicio-y-revelado.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Llegada ruido gps", file: "e2e/21-llegada-ruido-gps.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Carteles informativos", file: "e2e/22-carteles-informativos.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Polyline autoreparacion", file: "e2e/23-polyline-autoreparacion.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Camara sigue usuario", file: "e2e/24-camara-sigue-usuario.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Brujula modo", file: "e2e/25-brujula-modo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Reto completado boton verde", file: "e2e/26-reto-completado-boton-verde.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Seguimiento rumbo", file: "e2e/27-seguimiento-rumbo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Audio control error", file: "e2e/28-audio-control-error.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Recordatorio audio", file: "e2e/29-recordatorio-audio.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Casa no fuga aventura", file: "e2e/30-casa-no-fuga-aventura.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Sincronizar modo ambas direcciones", file: "e2e/31-sincronizar-modo-ambas-direcciones.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Llegada inicio gps confirmada", file: "e2e/32-llegada-inicio-gps-confirmada.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Bienvenida carteles solo aventura", file: "e2e/33-bienvenida-carteles-solo-aventura.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Recordatorio reto", file: "e2e/34-recordatorio-reto.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Guardian anti solape carteles", file: "e2e/35-guardian-anti-solape-carteles.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Hijo5 visible al volver casa", file: "e2e/36-hijo5-visible-al-volver-casa.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Guard concurrencia cambio modo", file: "e2e/37-guard-concurrencia-cambio-modo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Polyline y reset botones cambio modo", file: "e2e/38-polyline-y-reset-botones-cambio-modo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Flujo completo parada reto tramo", file: "e2e/39-flujo-completo-parada-reto-tramo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Orden restauracion modo antes parada", file: "e2e/40-orden-restauracion-modo-antes-parada.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Temporizador compra real y devmode", file: "e2e/41-temporizador-compra-real-y-devmode.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Saltar reto puzzle roto", file: "e2e/43-saltar-reto-puzzle-roto.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Boton saltar audio", file: "e2e/44-boton-saltar-audio.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Texto intro fallback idioma", file: "e2e/45-texto-intro-fallback-idioma.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Reanudacion un solo camino", file: "e2e/46-reanudacion-un-solo-camino.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Reescalado marcador usuario y chat", file: "e2e/47-reescalado-marcador-usuario-y-chat.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Precarga video no pisa abierto", file: "e2e/48-precarga-video-no-pisa-abierto.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Escalera espera imagen", file: "e2e/49-escalera-espera-imagen.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Pending iniciado no borra reto", file: "e2e/50-pending-iniciado-no-borra-reto.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Mapa id parada resuelto", file: "e2e/51-mapa-id-parada-resuelto.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Gps no se apaga al cambiar modo", file: "e2e/52-gps-no-se-apaga-al-cambiar-modo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Camara no sigue en casa", file: "e2e/53-camara-no-sigue-en-casa.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Mapa completo datos por mensaje", file: "e2e/54-mapa-completo-datos-por-mensaje.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Mapa vintage resuelto por el padre", file: "e2e/55-mapa-vintage-resuelto-por-el-padre.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Distancia a la ruta", file: "e2e/56-distancia-a-la-ruta.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Llegada tramo recorrido", file: "e2e/57-llegada-tramo-recorrido.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Reporte errores no controlados", file: "e2e/58-reporte-errores-no-controlados.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Nivel de log", file: "e2e/59-nivel-de-log.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Nivel de log alcanza hijos", file: "e2e/60-nivel-de-log-alcanza-hijos.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Puzzle p10 tipos desde constants", file: "e2e/61-puzzle-p10-tipos-desde-constants.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Log seleccion no es mudo", file: "e2e/62-log-seleccion-no-es-mudo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Es id de tramo", file: "e2e/63-es-id-de-tramo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Radio llegada tramo", file: "e2e/64-radio-llegada-tramo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Cartel tramo a parada", file: "e2e/65-cartel-tramo-a-parada.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Flecha una sola fuente", file: "e2e/67-flecha-una-sola-fuente.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Fin audio solo del elemento actual", file: "e2e/68-fin-audio-solo-del-elemento-actual.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Hijo6 auto confirmacion", file: "e2e/69-hijo6-auto-confirmacion.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Rescate peticion ida y vuelta", file: "e2e/70-rescate-peticion-ida-y-vuelta.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Rescate boton y pantallas", file: "e2e/71-rescate-boton-y-pantallas.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Rescate concesion", file: "e2e/72-rescate-concesion.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Rescate reloj recordatorio", file: "e2e/73-rescate-reloj-recordatorio.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Reiniciar seleccion llega al padre", file: "e2e/74-reiniciar-seleccion-llega-al-padre.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Errores hijo llegan al padre", file: "e2e/75-errores-hijo-llegan-al-padre.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Pausa audio enlace externo", file: "e2e/76-pausa-audio-enlace-externo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Volver atras desde despedida", file: "e2e/77-volver-atras-desde-despedida.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Heartbeat callado en casa", file: "e2e/78-heartbeat-callado-en-casa.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Bus contrato", file: "e2e/79-bus-contrato.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Recuperacion hijos caidos", file: "e2e/80-recuperacion-hijos-caidos.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Hijo1 habla por el bus", file: "e2e/81-hijo1-habla-por-el-bus.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Seleccion usa la aventura elegida", file: "e2e/82-seleccion-usa-la-aventura-elegida.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Hijo5 habla por el bus", file: "e2e/83-hijo5-habla-por-el-bus.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Cambio modo se aplica una vez", file: "e2e/84-cambio-modo-se-aplica-una-vez.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Seleccion habla por el bus", file: "e2e/85-seleccion-habla-por-el-bus.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Hijos no se muestran antes de tiempo", file: "e2e/86-hijos-no-se-muestran-antes-de-tiempo.spec.js", type: 'playwright', category: 'E2E' },
+            { name: "E2E: Paradas ready estila hijo5", file: "e2e/87-paradas-ready-estila-hijo5.spec.js", type: 'playwright', category: 'E2E' },
+            // >>> FIN DEL CATALOGO GENERADO
         ];
 
         let results = {};

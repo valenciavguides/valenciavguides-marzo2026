@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Marco vacío para tests</title>
+</head>
+<body>
+  <!--
+    Documento vacío, del mismo origen, que sirve de PADRE a un iframe en los tests.
+
+    Existe por hijo5: es el único hijo que se niega a arrancar fuera de un iframe —lanza
+    "Componente debe ejecutarse dentro de un iframe" y aborta su módulo—, así que su
+    protección de "no enseñes la interfaz hasta que el padre confirme" no se puede observar
+    cargándolo suelto como a los otros cuatro.
+
+    Cargarlo dentro del padre REAL tampoco sirve para eso: el padre le manda su confirmación
+    como parte del arranque normal, y comprobar que estuvo oculto "antes" sería una carrera.
+
+    Aquí el hijo tiene un padre que cumple la guarda y no le manda nada. El test decide
+    cuándo llega la confirmación, y el caso deja de depender del reloj.
+  -->
+  <script>
+    globalThis.__marcoVacio = true;
+  </script>
+</body>
+</html>
