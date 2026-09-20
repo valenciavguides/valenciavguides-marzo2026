@@ -31,6 +31,33 @@ PWA de audioguía con arquitectura iframe + postMessage.
 
 Antes de añadir cualquier función nueva en código padre, comprueba que no existe ya en otro script del mismo archivo.
 
+## Reglas duras (se cumplen aquí, no en la memoria)
+
+Estas reglas ya estaban en la memoria del proyecto y aun así se han incumplido varias veces.
+La memoria solo se lee si alguien decide ir a leerla; este fichero está delante siempre. Por eso
+viven aquí.
+
+1. **Antes de proponer o ejecutar un paso de la migración de mensajería**, citar textualmente el
+   párrafo de `docs/mensajeria-duplicada-en-hijos.md` que lo cubre. Sin cita no hay propuesta. El
+   plan ya está decidido: no se reinventa el orden.
+2. **Antes de escribir en `docs/GUIA-COMPLETA.md`**, leer `feedback_guia_es_manifiesto` y
+   `feedback_guia_detalle` de la memoria. La guía describe lo que existe, en presente: prohibidas
+   las fechas, el "antes/ahora", "se eliminó" y cualquier verbo en pasado sobre el proyecto. El
+   porqué de una decisión va en los comentarios del código. Al cerrar cualquier tanda de ediciones:
+   `grep -n "2026-0[0-9]-[0-9]\{2\}" docs/GUIA-COMPLETA.md`.
+3. **Un inventario que salga de un `grep` por nombre no es un inventario**: devuelve a quien tiene
+   la cosa, nunca a quien le falta. Para "¿quién no lo tiene?" usar `npm run verificar-frames` o
+   enumerar las ausencias a mano, fichero por fichero.
+4. **Parchear con un script escrito en disco**, nunca con `node -e` ni heredoc: se comen las barras
+   invertidas y rompen literales sin que el lint lo vea. El working tree está en CRLF, así que
+   ningún ancla debe cruzar un salto de línea. El script aborta si su ancla no aparece exactamente
+   una vez.
+5. **Mientras corre `npx playwright test`, no lanzar nada más** en el proyecto: ni greps, ni lint,
+   ni otra tanda. Para iterar, el spec tocado en `--project=chromium`; la tanda de los cuatro
+   navegadores (~47 min) solo antes de un commit grande o del push.
+6. **Cuando una lectura estática y una medición en ejecución se contradigan, gana la medición** — y
+   se arregla o se retira el instrumento estático, no se ignora la contradicción.
+
 ## Documentación de autoridad
 
 `docs/GUIA-COMPLETA.md` es la fuente de verdad de la arquitectura. Mantenla actualizada con cada cambio significativo. No usar lenguaje de "diario de cambios" — describir el estado actual, no el historial.
