@@ -2578,22 +2578,10 @@
         hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
     };
 
-    // ============================================================
-    // FUNCIÓN PARA MOSTRAR UI
-    // ============================================================
-    globalThis._uiConfirmado = false;
-    let _originalDisplay = '';
-
-    function mostrarUI() {
-        if (!globalThis._uiConfirmado) {
-            logger.warn(`${CONFIG_HIJO.IFRAME_ID} mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO`);
-            return;
-        }
-        try {
-            if (document.body) document.body.style.display = _originalDisplay || 'block';
-            logger.info(`${CONFIG_HIJO.IFRAME_ID} UI visible tras PADRE_CONFIRMA_HIJO_LISTO`);
-        } catch { /* document.body.style error ignorado intencionalmente */ }
-    }
+    // Los hijos se ocultan al arrancar y no se muestran hasta que el padre confirma. Esta
+    // pantalla NO: es la primera que ve el usuario y tiene que estar visible desde el primer
+    // instante. Por eso aqui no hay ni ocultado ni `mostrarUI()`: sin ocultado previo, mostrar
+    // es devolverle al body el valor que ya tenia.
 
     // ============================================================
     // FUNCIÓN DE INICIALIZACIÓN PRINCIPAL
@@ -2651,9 +2639,6 @@
         try {
             logger.info(`${logPrefix} Iniciando componente...`);
             await _esperarPadre(logPrefix);
-            // NOTA: seleccion es la pantalla inicial - UI visible inmediatamente
-            globalThis._uiConfirmado = true;
-            _originalDisplay = document.body?.style?.display || '';
             registrarControladores();
             estadoComponente.inicializado = true;
             logger.info(`${logPrefix} Componente inicializado correctamente`);
@@ -2744,8 +2729,6 @@
         } catch (e) {
             logger.warn(`${logPrefix} inicializarLogicaSeleccion falló:`, e);
         }
-        globalThis._uiConfirmado = true;
-        mostrarUI();
         enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(() => { /* fire-and-forget: error de confirmación UI ignorado intencionalmente */ });
     }
 
