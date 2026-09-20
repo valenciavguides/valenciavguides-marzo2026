@@ -14,9 +14,11 @@
  *
  *   oculta-body      `display='none'` sobre el body. NO ve un ocultado por CSS, ni por
  *                    una clase, ni hecho desde otro fichero.
- *   antes-del-await  ese ocultado aparece en el fichero antes del primer `await` de
- *                    nivel superior. Es posicion en el texto, no orden de ejecucion:
- *                    un ocultado dentro de una funcion llamada mas tarde cuenta mal.
+ *   (No hay columna para "se oculta antes del load": esa pregunta la contesta el spec 86,
+ *   midiendola dentro de cada frame en un navegador de verdad. Una version estatica aqui
+ *   daba falsos positivos en hijo2/3/4 —contaba como await de nivel superior los que estan
+ *   dentro de una funcion— y contradecia a la medicion buena. Dos respuestas a la misma
+ *   pregunta es el problema, no la solucion.)
  *   bus              importa `js/mensajeria.js` o llama a `inicializarMensajeria`.
  *                    NO distingue usarlo de solo importarlo.
  *   capa-privada     tiene `messagingAdapter` o define su propio
@@ -80,33 +82,14 @@ function contar(texto, re) {
     return (texto.match(re) || []).length;
 }
 
-/** Posicion del primer `await` de nivel superior dentro de un <script type="module">. */
-function posPrimerAwaitDeModulo(t) {
-    const re = /<script[^>]*type\s*=\s*["']module["'][^>]*>/gi;
-    let m;
-    while ((m = re.exec(t)) !== null) {
-        const ini = m.index + m[0].length;
-        const fin = t.indexOf('</script>', ini);
-        const cuerpo = t.slice(ini, fin === -1 ? t.length : fin);
-        // `await` al principio de linea con poca sangria = nivel superior del modulo
-        const aw = cuerpo.search(/\n[ \t]{0,8}(?:const|let|var)?[ \t]*[\w{}\[\], ]*=?[ \t]*await[ \t]/);
-        if (aw !== -1) return ini + aw;
-    }
-    return -1;
-}
-
 function analizar(fichero) {
     const t = fs.readFileSync(path.join(RAIZ, fichero), 'utf8');
 
-    const reOculta = /document\.body\.style\.display\s*=\s*['"]none['"]/;
-    const mOculta = t.match(reOculta);
-    const posOculta = mOculta ? t.indexOf(mOculta[0]) : -1;
-    const posAwait = posPrimerAwaitDeModulo(t);
+    const posOculta = t.search(/document\.body\.style\.display\s*=\s*['"]none['"]/);
 
     return {
         fichero,
         ocultaBody: posOculta !== -1,
-        antesDelAwait: posOculta === -1 ? null : (posAwait === -1 ? true : posOculta < posAwait),
         bus: /js\/mensajeria\.js|inicializarMensajeria/.test(t),
         capaPrivada: /messagingAdapter|registrarControladorSeguro\s*=\s*(?:async\s*)?function/.test(t),
         escuchasCrudas: contar(t, /addEventListener\(\s*['"]message['"]/g),
@@ -130,7 +113,7 @@ function main() {
     const filas = todas.map(analizar);
 
     const anchoN = Math.max(...todas.map((f) => f.length)) + 1;
-    const cabeceras = ['oculta', 'pre-await', 'bus', 'privada', 'escuchas', 'envios', 'reg.ifr', 'ajeno'];
+    const cabeceras = ['oculta', 'bus', 'privada', 'escuchas', 'envios', 'reg.ifr', 'ajeno'];
 
     console.log('');
     console.log('  ' + 'pagina'.padEnd(anchoN) + cabeceras.map((c) => c.padStart(6).padEnd(6)).join(' '));
@@ -140,7 +123,7 @@ function main() {
         const dentroDeIframe = padres.get(f.fichero).length > 0;
         const marca = dentroDeIframe ? ' ' : '*';
         console.log('  ' + (marca + f.fichero).padEnd(anchoN)
-            + [f.ocultaBody, f.antesDelAwait, f.bus, f.capaPrivada,
+            + [f.ocultaBody, f.bus, f.capaPrivada,
                f.escuchasCrudas, f.enviosCrudos, f.registraIframes, f.tocaOtroFrame]
                 .map(celda).join(' '));
     }
@@ -160,12 +143,10 @@ function main() {
     const hijos = filas.filter((f) => f.fichero !== 'codigo-padre.html'
         && (f.enviosCrudos > 0 || f.escuchasCrudas > 0 || f.bus));
     const sinOcultar = hijos.filter((f) => !f.ocultaBody).map((f) => f.fichero);
-    const tardios = hijos.filter((f) => f.antesDelAwait === false).map((f) => f.fichero);
     const privadas = filas.filter((f) => f.capaPrivada).map((f) => f.fichero);
     const ajenos = filas.filter((f) => f.tocaOtroFrame > 0).map((f) => `${f.fichero} (${f.tocaOtroFrame})`);
 
     if (sinOcultar.length) console.log(`  Frames del protocolo que NO ocultan su interfaz: ${sinOcultar.join(', ')}`);
-    if (tardios.length) console.log(`  Ocultan DESPUES de su primer await: ${tardios.join(', ')}`);
     if (privadas.length) console.log(`  Con capa de mensajeria propia: ${privadas.join(', ')}`);
     if (ajenos.length) console.log(`  Tocan otro frame (Opcion A lo prohibe): ${ajenos.join(', ')}`);
     console.log('');
