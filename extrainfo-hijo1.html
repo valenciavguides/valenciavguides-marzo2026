@@ -41,6 +41,17 @@
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
 
+    // Ocultar la interfaz AQUI, antes del primer `await` de este modulo, y no mas abajo.
+    //
+    // Un modulo con await de nivel superior deja saltar el `load` del iframe mientras espera:
+    // si el ocultado va despues del await del bus, la interfaz queda visible todo ese tiempo.
+    // MEDIDO al migrar hijo1 al bus: el ocultado paso de ocurrir antes de `load` a ocurrir
+    // despues (iphone12). Vale para CUALQUIER hijo que se pase al bus: el ocultado va antes.
+    //
+    // Se guarda aqui tambien el display original, porque mostrarUI() lo restaura.
+    const _displayOriginalBody = (document.body && document.body.style && document.body.style.display) || '';
+    if (document.body) document.body.style.display = 'none';
+
     // El MISMO id con el que el padre registra este iframe (`HIJOS_RECUPERABLES` y los cargadores
     // de codigo-padre.html). Si no coinciden, el padre le escribe a un sitio y este frame se
     // presenta como otro, y ninguno de los dos se entera.
@@ -87,15 +98,15 @@
     // FUNCIÓN PARA MOSTRAR UI
     // ============================================================
     globalThis._uiConfirmado = false;
-    let _originalDisplay = '';
 
+    // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque.
     function mostrarUI() {
         if (!globalThis._uiConfirmado) {
             logger.warn(`${CONFIG_HIJO.IFRAME_ID} mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO`);
             return;
         }
         try {
-            if (document.body) document.body.style.display = _originalDisplay || 'block';
+            if (document.body) document.body.style.display = _displayOriginalBody || 'block';
             logger.info(`${CONFIG_HIJO.IFRAME_ID} UI visible tras PADRE_CONFIRMA_HIJO_LISTO`);
         } catch (e) { logger.warn('[hijo1-opciones] mostrarUI error:', e); }
     }
@@ -133,13 +144,9 @@
                 }
             }
 
-            // 2. Inicializar mensajería
-            // Ocultar UI hasta recibir PADRE_CONFIRMA_HIJO_LISTO
+            // 2. La interfaz sigue oculta hasta PADRE_CONFIRMA_HIJO_LISTO. Se oculto al principio
+            //    del modulo, antes del await del bus, y el bus tambien se inicializo alli.
             globalThis._uiConfirmado = false;
-            _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
-            try { if (document.body) document.body.style.display = 'none'; } catch (e) { logger.warn('[hijo1-opciones] Error ocultando body:', e); }
-
-            // No necesitamos inicializarMensajeria aquí, los fallbacks esperan automáticamente
 
             // 3. Registrar controladores
             registrarControladores();

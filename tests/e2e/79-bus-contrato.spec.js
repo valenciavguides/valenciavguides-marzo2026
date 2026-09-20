@@ -118,6 +118,7 @@ test.describe('BC — Contrato del bus único', () => {
     await escuchar(nieto, 'PRUEBA.TODOS');
     expect(await enviar(padre, { tipo: 'PRUEBA.TODOS', destino: 'broadcast', datos: {} })).toBe(true);
     await expect.poll(() => recibidos(hijo, 'PRUEBA.TODOS'), { timeout: 3_000 }).toHaveLength(1);
+    // VENTANA-OBSERVACION: un "a todos" no puede bajar a los nietos
     await page.waitForTimeout(400);
     expect(await recibidos(nieto, 'PRUEBA.TODOS'), '"a todos" llega a los hijos directos, no a los nietos').toEqual([]);
 
@@ -125,6 +126,7 @@ test.describe('BC — Contrato del bus único', () => {
     await escuchar(nieto, 'PRUEBA.TODOS_HIJO');
     expect(await enviar(hijo, { tipo: 'PRUEBA.TODOS_HIJO', destino: 'broadcast', datos: {} })).toBe(true);
     await expect.poll(() => recibidos(nieto, 'PRUEBA.TODOS_HIJO'), { timeout: 3_000 }).toHaveLength(1);
+    // VENTANA-OBSERVACION: un "a todos" de un hijo no puede subir al padre
     await page.waitForTimeout(400);
     expect(await recibidos(padre, 'PRUEBA.TODOS_HIJO'), '"a todos" nunca sube').toEqual([]);
   });
@@ -145,6 +147,7 @@ test.describe('BC — Contrato del bus único', () => {
     ));
 
     await expect.poll(() => recibidos(padre, 'PRUEBA.PROPIO'), { timeout: 3_000 }).toHaveLength(1);
+    // VENTANA-OBSERVACION: un iframe sin registrar no puede llegar a ningun handler
     await page.waitForTimeout(400);
     expect(await recibidos(padre, 'PRUEBA.INTRUSO'), 'un iframe del mismo origen que el padre no registra no llega a ningún handler').toEqual([]);
   });
@@ -158,7 +161,12 @@ test.describe('BC — Contrato del bus único', () => {
       globalThis.location.origin,
     ));
 
-    await page.waitForTimeout(600);
+    // Se espera al AVISO del descarte, que si ocurre: con el se sabe que el bus ya proceso y
+    // tiro el mensaje, sin depender de un tiempo. La comprobacion de que no llego al handler
+    // viene justo despues.
+    await expect
+      .poll(() => avisos(logs, /PRUEBA\.SIN_ORIGEN/).some((l) => /origen/i.test(l.texto)), { timeout: 5_000 })
+      .toBe(true);
     expect(await recibidos(padre, 'PRUEBA.SIN_ORIGEN'), 'no llega al handler').toEqual([]);
     expect(
       avisos(logs, /PRUEBA\.SIN_ORIGEN/).some((l) => /origen/i.test(l.texto)),
@@ -256,6 +264,7 @@ test.describe('BC — Contrato del bus único', () => {
 
     expect(await enviar(padre, { tipo: 'PRUEBA.BAJA', destino: 'hijo', datos: {} }), 'a un iframe dado de baja no se envía').toBe(false);
     await enviar(hijo, { tipo: 'PRUEBA.TRAS_BAJA', destino: 'padre', datos: {} });
+    // VENTANA-OBSERVACION: un iframe dado de baja no recibe ni se le acepta nada
     await page.waitForTimeout(500);
     expect(await recibidos(hijo, 'PRUEBA.BAJA')).toEqual([]);
     expect(await recibidos(padre, 'PRUEBA.TRAS_BAJA'), 'ni se aceptan sus mensajes').toEqual([]);
@@ -337,7 +346,18 @@ test.describe('BC — Contrato del bus único', () => {
     // dispara dos cargas (la página en blanco inicial y la real), sin que nada lo recargue.
     await page.waitForFunction(() => globalThis.__arnes.cargas['mudo-recuperable'] >= 1
       && globalThis.__arnes.cargas['mudo-fijo'] >= 1, null, { timeout: 5_000 });
-    await page.waitForTimeout(500);
+    // Se espera a que las cargas iniciales PAREN, no un tiempo: insertar un iframe dispara dos
+    // (la pagina en blanco y la real) y la cuenta base tiene que tomarse cuando ya no suben.
+    // Que el numero sea 2 no se da por supuesto: se mira que deje de moverse.
+    {
+      let anterior = -1;
+      await expect.poll(async () => {
+        const ahora = await padre.evaluate(() => Object.values(globalThis.__arnes.cargas).reduce((a, b) => a + b, 0));
+        const quieto = ahora === anterior;
+        anterior = ahora;
+        return quieto;
+      }, { timeout: 10_000, intervals: [250] }).toBe(true);
+    }
     const base = await padre.evaluate(() => ({ ...globalThis.__arnes.cargas }));
 
     await padre.evaluate(() => globalThis.mensajeria.iniciarHeartbeat(150));
@@ -360,6 +380,7 @@ test.describe('BC — Contrato del bus único', () => {
     expect(existe, 'adelantarLatido existe').toBe(true);
 
     await padre.evaluate(async () => { await globalThis.mensajeria.pausarHeartbeat(); globalThis.mensajeria.adelantarLatido(); });
+    // VENTANA-OBSERVACION: con el latido en pausa no puede latir
     await page.waitForTimeout(600);
     expect(await hijo.evaluate(() => globalThis.__arnes.latidos), 'en pausa, volver a la pestaña no hace latir').toBe(0);
 
@@ -421,6 +442,7 @@ test.describe('BC — Contrato del bus único', () => {
 
     // Control: el handler tiene que haberse ejecutado, si no el verde de abajo no valdría nada.
     await expect.poll(() => padre.evaluate(() => globalThis.__arnes.ejecutado), { timeout: 3_000 }).toBe(1);
+    // VENTANA-OBSERVACION: no puede quedar una promesa rechazada sin dueno
     await page.waitForTimeout(300); // margen para que el navegador emita el unhandledrejection
 
     expect(

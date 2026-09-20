@@ -100,7 +100,11 @@ test.describe('RE — reporte automático de errores no controlados (hijo → pa
     expect(r.codigos, 'un código más en ese canal').toEqual(['ERROR_NO_CONTROLADO']);
     expect(r.primero.datos.mensaje, 'el texto lleva la ubicación').toBe('Error no capturado: boom uno (hijo1.js:42)');
     expect(r.primero.destino, 'va dirigido al padre').toBeTruthy();
-    expect(r.primero.origen, 'y dice de qué hijo viene').toBeTruthy();
+    // `origen` NO se comprueba aquí, y no por olvido. Este test sustituye `globalThis.mensajeria`
+    // por un stub y mira el objeto que utils.js le entrega, ANTES de que pase por el bus. Y
+    // quien pone `origen` es el bus (`enviarMensaje`: `origen: origen || componenteId`), no
+    // utils.js: por eso aquí vale undefined, y exigirlo era exigir algo de la capa equivocada.
+    // Se comprueba donde ocurre de verdad: el spec 75, EH-2, con el bus real.
     expect(r.total, '29 errores no pueden producir 29 mensajes: el tope está en 20').toBeLessThanOrEqual(22);
     expect(r.avisosDeTope, 'el tope se anuncia una vez — callarse sin avisar lo haría invisible').toBe(1);
   });

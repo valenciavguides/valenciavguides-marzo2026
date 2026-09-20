@@ -61,7 +61,11 @@ test.describe('CM — El cambio de modo aparcado se aplica una sola vez', () => 
         destino: id,
         datos: { modo: 'aventura' },
       }), ID);
-      await page.waitForTimeout(1500);
+      // Se espera a que lo RECHACE de verdad, no un tiempo: el NACK es lo que deja al padre
+      // recordando el cambio para reenviarlo.
+      await expect
+        .poll(() => page.evaluate(() => globalThis.__acks.some((m) => m.tipo === 'SISTEMA.NACK')), { timeout: 10_000 })
+        .toBe(true);
 
       // 2) Su UI se reconfirma: es el instante en que la via local se disparaba.
       await page.evaluate((id) => globalThis.mensajeria.enviarMensaje({
@@ -70,8 +74,18 @@ test.describe('CM — El cambio de modo aparcado se aplica una sola vez', () => 
         datos: { modoInicial: 'casa' },
       }), ID);
 
-      // Margen para el reenvio del padre (backoff base 2 s) y para la via local, si existiera.
-      await page.waitForTimeout(18_000);
+      // Primero, que el reenvio del padre LLEGUE y se aplique: eso si ocurre, y se espera a ello.
+      const aparcadosAplicados = () => page.evaluate(() => globalThis.__acks.filter(
+        (m) => /CAMBIO_MODO_EFECTUADO/.test(m.tipo || '') && m.modo === 'aventura',
+      ).length);
+      await expect.poll(aparcadosAplicados, { timeout: 20_000 }).toBeGreaterThanOrEqual(1);
+
+      // Despues, que NO llegue un segundo. Eso no tiene condicion a la que esperar, asi que se
+      // observa un rato. El rato sale del codigo, no de a ojo: el reenvio sigue un backoff de
+      // 2 s, 4 s, 8 s... con +/-10 % (js/app.js, _computeBackoff), y tras un EFECTUADO el padre
+      // borra la entrada. Si no la borrara, el siguiente reenvio llegaria como mucho a los 4,4 s.
+      // VENTANA-OBSERVACION: un segundo reenvio del padre llegaria en <= 4,4 s; 5 s lo cubre
+      await page.waitForTimeout(5000);
 
       const acks = await page.evaluate(() => globalThis.__acks);
       // Solo los acuses DEL MODO APARCADO ('aventura'). El propio test provoca ademas un cambio

@@ -114,7 +114,11 @@ test.describe('RC — Un hijo caido se recupera', () => {
     test.skip(falta.length > 0, `ganchos de recuperacion no disponibles: ${falta.join(', ')}`);
 
     await page.evaluate(() => globalThis._vv_triggerCambioModo('aventura'));
-    await page.waitForTimeout(1_500);
+    // Se espera a que el modo quede APLICADO, que es la condicion real; el padre lo apunta en
+    // `estadoPadre.modo.actual` —el mismo campo que lee el handler del temporizador—.
+    await expect
+      .poll(() => page.evaluate(() => globalThis.estadoPadre?.modo?.actual), { timeout: 10_000 })
+      .toBe('aventura');
 
     // El tiempo restante se apunta en `estado.tiempoRestante` en cuanto llega el mensaje, sin
     // depender de que la ventana del temporizador este abierta: si dependiera, hijo1 se recargaria

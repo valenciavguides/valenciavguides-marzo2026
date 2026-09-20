@@ -321,6 +321,17 @@
         throw new Error('Componente debe ejecutarse dentro de un iframe');
     }
 
+    // Ocultar la interfaz AQUI, antes del primer `await` de este modulo, y no mas abajo.
+    //
+    // Un modulo con await de nivel superior deja saltar el `load` del iframe mientras espera:
+    // si el ocultado va despues del await del bus, la interfaz queda visible todo ese tiempo.
+    // MEDIDO al migrar hijo5 al bus: el ocultado paso de ocurrir antes de `load` a ocurrir
+    // despues (iphone12). Vale para CUALQUIER hijo que se pase al bus: el ocultado va antes.
+    //
+    // Se guarda aqui tambien el display original, porque mostrarUI() lo restaura.
+    const _displayOriginalBody = (document.body && document.body.style && document.body.style.display) || '';
+    if (document.body) document.body.style.display = 'none';
+
     // ==================== MENSAJERÍA ====================
     // Este frame habla por el mismo bus que el padre y que todos los demás: un solo camino, con
     // las mismas garantías en los dos sentidos (orden por tipo, acuse, descarte de fuentes no
@@ -768,13 +779,12 @@
         // Ocultar UI hasta PADRE_CONFIRMA
         let _uiConfirmado = false;
         let _uiMostrada = false;
-        const _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
-        if (document.body) document.body.style.display = 'none';
+        // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque.
         function mostrarUI() {
             if (!_uiConfirmado) { logger.warn('[hijo5] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
             if (_uiMostrada) return;
             _uiMostrada = true;
-            if (document.body) { document.body.style.display = _originalDisplay || 'block'; logger.info('[hijo5] UI visible tras PADRE_CONFIRMA_HIJO_LISTO'); }
+            if (document.body) { document.body.style.display = _displayOriginalBody || 'block'; logger.info('[hijo5] UI visible tras PADRE_CONFIRMA_HIJO_LISTO'); }
         }
 
         // Sistema de reintentos activos para HIJO_LISTO (solución permanente C2)
@@ -782,8 +792,6 @@
         const MAX_REINTENTOS_HIJO_LISTO = 30; // 30 segundos máximo
         const INTERVALO_REINTENTO = 1000; // 1 segundo
         let _intervaloReintento = null;
-
-        // No necesitamos inicializarMensajeria aquí, los fallbacks esperan automáticamente
 
         // NOTA: HIJO_PREPARADO se envía MÁS ABAJO, DESPUÉS de registrar todos los controladores críticos.
         // Esto garantiza que el padre no envíe PADRE_DATOS antes de que los controladores estén listos.

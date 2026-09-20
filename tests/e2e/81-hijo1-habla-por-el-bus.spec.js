@@ -107,8 +107,12 @@ test.describe('H1 — hijo1 habla por el bus', () => {
       setTimeout(() => { throw new Error('escenario-H1-3'); }, 0);
     });
 
-    // La captura de utils.js reintenta durante 10 s antes de rendirse: 13 s cubre su plazo entero.
-    await page.waitForTimeout(13_000);
+    // Se espera a la LLEGADA, no un tiempo fijo: con el bus cargado el aviso llega enseguida.
+    // Los 13 s son solo el techo, para no dar por perdido uno que tarde: cubren entero el plazo
+    // de la captura, que reintenta 10 s antes de rendirse. El fallo del poll se ignora a
+    // proposito: el expect de abajo es el que informa, con los avisos del hijo tal como esten
+    // en ese momento (el `message` de un poll se evalua al crearlo y saldria vacio).
+    await expect.poll(async () => (await recibidos(page)).length, { timeout: 13_000 }).toBeGreaterThan(0).catch(() => {});
     const r = await recibidos(page);
     expect(
       r.length,

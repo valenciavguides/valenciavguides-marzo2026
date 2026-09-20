@@ -66,20 +66,27 @@ test.describe('HC — En CASA el heartbeat se calla', () => {
 
     // Entrar en CASA por el camino real. Si desde el arranque no pausa, se hace el recorrido
     // completo AVENTURA -> CASA, que es cuando la app lo pausa.
+    // Se espera a la CONDICION —que el latido quede pausado—, no a un tiempo. Los `catch` son a
+    // proposito: que no se cumpla no es un fallo aqui, es lo que decide si hace falta el
+    // recorrido completo AVENTURA -> CASA; el `test.skip` de abajo es quien juzga.
+    const latidoPausado = async () => (await estadoHeartbeat(page))?.userPaused === true;
     await page.evaluate(() => globalThis._vv_triggerCambioModo('casa'));
-    await page.waitForTimeout(1_000);
+    await expect.poll(latidoPausado, { timeout: 4_000 }).toBe(true).catch(() => {});
     let hb = await estadoHeartbeat(page);
     if (!hb || !hb.userPaused) {
       await page.evaluate(() => globalThis._vv_triggerCambioModo('aventura'));
-      await page.waitForTimeout(1_500);
+      await expect
+        .poll(() => page.evaluate(() => globalThis.estadoPadre?.modo?.actual), { timeout: 6_000 })
+        .toBe('aventura').catch(() => {});
       await page.evaluate(() => globalThis._vv_triggerCambioModo('casa'));
-      await page.waitForTimeout(1_500);
+      await expect.poll(latidoPausado, { timeout: 6_000 }).toBe(true).catch(() => {});
       hb = await estadoHeartbeat(page);
     }
     test.skip(!hb || !hb.userPaused || hb.activo,
       `Precondicion no alcanzada: el heartbeat del bus no quedo pausado en CASA (${JSON.stringify(hb)})`);
 
     await escucharLatidos(page);
+    // VENTANA-OBSERVACION: se demuestra que NO llega ningun latido; 12 s cubre dos intervalos
     await page.waitForTimeout(12_000);
     const recibidos = await latidos(page);
     const porOrigen = recibidos.reduce((acc, o) => { acc[o] = (acc[o] || 0) + 1; return acc; }, {});

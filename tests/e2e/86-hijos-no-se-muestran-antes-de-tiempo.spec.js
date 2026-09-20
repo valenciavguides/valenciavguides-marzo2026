@@ -3,165 +3,163 @@
 const { test, expect } = require('@playwright/test');
 
 /**
- * UV — ningun hijo ensena su interfaz hasta que el padre confirma.
+ * UV — ningún hijo enseña su interfaz hasta que el padre confirma.
  *
  * Por cada hijo:
- *   UV-1  al cargar, su body esta oculto
+ *   UV-1  al cargar, su body está oculto
  *   UV-2  PADRE_CONFIRMA_HIJO_LISTO con origen lo muestra
  *   UV-3  el mismo mensaje SIN origen no lo muestra   (los que exigen origen; ver abajo)
  *
- * POR QUE EXISTE ESTE FICHERO
+ * POR QUÉ EXISTE ESTE FICHERO
  *
  * Los cinco hijos se ocultan enteros al arrancar (`document.body.style.display = 'none'`)
  * y su `mostrarUI()` no hace nada mientras `_uiConfirmado` sea false. Sin eso, el usuario
  * ve la interfaz del hijo —su barra, sus botones— antes de que el padre tenga puestos sus
- * controladores, y lo que pulse se va a un padre que todavia no escucha.
+ * controladores, y lo que pulse se va a un padre que todavía no escucha.
  *
- * Esa proteccion no la probaba NADIE. Lo que habia eran cuatro paginas en `tests/`
- * —test_hijo2_coordenadas, test_hijo3_audio, test_hijo4_reto_visibility y
- * test_hijo5_navegacion— que decian comprobarla y llevaban dentro una copia simulada del
- * hijo: sus handlers estaban escritos en el propio fichero de test, ninguna cargaba el HTML
- * real, y por tanto no podian fallar pasara lo que pasara en la aplicacion. Se borraron.
- * Esto las sustituye abriendo los ficheros de verdad.
+ * Esa protección no la probaba NADIE. Lo que había eran páginas en `tests/` que decían
+ * comprobarla y llevaban dentro una copia simulada de cada hijo; no podían fallar pasara lo
+ * que pasara en la aplicación. Esto las sustituye abriendo los ficheros de verdad.
  *
- * MEDIDO, y por eso se prueba el body y no otra cosa: los cinco usan el mismo patron
- * —ocultar el body al arrancar, `mostrarUI()` con guard de `_uiConfirmado`, y el guard se
- * levanta al recibir PADRE_CONFIRMA_HIJO_LISTO—. hijo6 no tiene esta proteccion y por eso
- * no esta aqui.
+ * LOS CINCO VIVEN EN UN MARCO, COMO EN LA APP
  *
- * POR QUE hijo4 NO TIENE CASO UV-3
+ * En la aplicación un hijo SIEMPRE es un iframe. Aquí también: `helpers/marco-vacio.html`
+ * le hace de padre sin mandarle nada, así que el test decide cuándo llega la confirmación.
+ * Antes se cargaban sueltos salvo hijo5 —que se niega a arrancar fuera de un iframe— y eso
+ * eran dos caminos con garantías distintas.
+ *
+ * EL TEST NO EMPUJA HASTA QUE EL HIJO AVISA. MEDIDO, y es la lección de este fichero:
+ *
+ *   `load` del iframe NO significa "listo para recibir". hijo1 y hijo5 hablan por el bus y
+ *   su módulo hace `await bus.inicializarMensajeria(...)`: el `load` salta mientras esperan,
+ *   y sus handlers se registran DESPUÉS. En iphone12, bajo la carga de una tanda larga, la
+ *   confirmación llegaba antes que el handler, se perdía, y UV-2 caía de forma intermitente
+ *   —por el arnés, no por la aplicación—.
+ *
+ *   La señal buena es la del propio protocolo: los cinco hijos mandan `SISTEMA.HIJO_PREPARADO`
+ *   a su padre DESPUÉS de registrar su handler de PADRE_CONFIRMA_HIJO_LISTO (comprobado en
+ *   el código de cada uno: en hijo1 el handler vive dentro de `registrarControladores()`, que
+ *   `init()` llama antes de avisar). El marco escucha ese aviso, y solo entonces se empuja.
+ *
+ * UV-1 SÍ SE MIRA NADA MÁS CARGAR, y es fiable: el ocultado corre en la parte síncrona del
+ * módulo, antes de cualquier `await`, y el `load` no salta hasta que esa parte termina.
+ * MEDIDO con un observador dentro de cada frame, en su propio reloj: los cinco se ocultan
+ * antes de su `load` en chromium y en WebKit. (En hijo1 y hijo5 no era así hasta que su
+ * ocultado se subió por delante del `await` del bus: tras migrarlos, ocurría después.)
+ *
+ * POR QUÉ hijo4 NO TIENE CASO UV-3
  *
  * Los otros cuatro descartan el mensaje si no trae `origen`. hijo4 no: su handler no lleva
  * ese guard, y su `messagingAdapter` tampoco lo comprueba —solo exige
- * `event.source === globalThis.parent`, que es un control fuerte, asi que no queda
- * expuesto—. La diferencia desaparece sola cuando hijo4 hable por el bus, que SI rechaza
- * en voz alta cualquier mensaje sin `origen`. Hasta entonces, aqui queda dicho en vez de
- * escondido en un `skip` silencioso.
+ * `event.source === globalThis.parent`, que es un control fuerte, así que no queda
+ * expuesto—. La diferencia desaparece sola cuando hijo4 hable por el bus, que SÍ rechaza en
+ * voz alta cualquier mensaje sin `origen`. Queda dicho aquí en vez de escondido en un skip.
  *
- * ROJO ANTES QUE VERDE: medido por hijo, rompiendo cada proteccion por separado.
- *
- * SOBRE EL STUB DE MENSAJERIA: cargado como pagina suelta —no dentro de un iframe— el
- * `enviarMensaje` de estos hijos cae a una rama que reintenta 10 x 500 ms sobre
- * `globalThis.mensajeria`, que standalone no existe. Son 5 s por vuelta que no prueban
- * nada y ensucian la tanda. Mismo stub y mismo motivo que en el spec 31.
+ * ROJO ANTES QUE VERDE: medido hijo por hijo, rompiendo el ocultado de cada uno: caen
+ * exactamente sus casos y ninguno más.
  */
 
 const MARCO = 'tests/e2e/helpers/marco-vacio.html';
 
-/**
- * `dentroDeMarco` marca a los hijos que NO pueden cargarse sueltos y necesitan un padre.
- *
- * Solo hijo5. Su módulo arranca comprobando `globalThis.parent !== globalThis` y, si no,
- * lanza "Componente debe ejecutarse dentro de un iframe" y aborta — con lo que su propio
- * ocultado de UI, que viene despues, nunca llega a ejecutarse. MEDIDO: cargado suelto su
- * body se queda visible, no por un fallo de la proteccion sino porque el fichero entero se
- * ha detenido antes. Los otros cuatro no llevan esa guarda y corren sueltos.
- */
 const HIJOS = [
-  { id: 'hijo1', fichero: 'extrainfo-hijo1.html', exigeOrigen: true },
+  { id: 'hijo1-opciones', fichero: 'extrainfo-hijo1.html', exigeOrigen: true },
   { id: 'hijo2', fichero: 'coordenadas-hijo2.html', exigeOrigen: true },
   { id: 'hijo3', fichero: 'audio-hijo3.html', exigeOrigen: true },
   { id: 'hijo4', fichero: 'retos-hijo4.html', exigeOrigen: false },
-  { id: 'hijo5', fichero: 'boton-casa-hijo5.html', exigeOrigen: true, dentroDeMarco: true },
+  { id: 'hijo5', fichero: 'boton-casa-hijo5.html', exigeOrigen: true },
 ];
 
-async function proveerMensajeriaStub(page) {
-  await page.addInitScript(() => {
-    globalThis.mensajeria = globalThis.mensajeria || {
-      enviarMensaje: () => Promise.resolve({ exito: true, metodo: 'stub-e2e' }),
-    };
-  });
-}
-
-/** Abre el hijo y devuelve el contexto donde mirar y desde donde empujar. */
+/**
+ * Mete el hijo en el marco y comprueba que es él. El marco empieza a apuntar los avisos
+ * `HIJO_PREPARADO` ANTES de crear el iframe, para no perder uno que llegue enseguida.
+ */
 async function abrir(page, hijo) {
-  if (!hijo.dentroDeMarco) {
-    await page.goto(hijo.fichero);
-    await page.waitForLoadState('domcontentloaded');
-    return;
-  }
   await page.goto(MARCO);
-  // Ruta ABSOLUTA: el marco vive en /tests/e2e/helpers/, asi que un src relativo buscaria
-  // el hijo ahi dentro y se comeria un 404 en silencio —el iframe cargaria la pagina de
-  // error, cuyo body esta visible, y el test fallaria culpando a la proteccion del hijo.
   await page.evaluate((src) => new Promise((resolve) => {
+    globalThis.__preparado = false;
+    globalThis.addEventListener('message', (ev) => {
+      if (ev.data?.tipo === 'SISTEMA.HIJO_PREPARADO') globalThis.__preparado = true;
+    });
     const el = document.createElement('iframe');
     el.id = 'marco-hijo';
-    el.src = src;
+    // Ruta ABSOLUTA: el marco vive en /tests/e2e/helpers/, y un src relativo buscaría el hijo
+    // ahí dentro y cargaría una página de 404 —cuyo body se ve—, culpando a la protección.
+    el.src = `/${src}`;
     el.addEventListener('load', () => resolve(), { once: true });
     document.body.appendChild(el);
-  }), `/${hijo.fichero}`);
+  }), hijo.fichero);
 
-  // El arnes tiene que delatarse a si mismo. Un 404 tambien carga un documento con body
-  // visible, asi que sin esta comprobacion el fallo del arnes parecia un fallo de la
-  // proteccion del hijo (paso: el src relativo resolvia dentro de helpers/).
+  // El arnés tiene que delatarse a sí mismo: un 404 también carga un documento con body.
   const cargado = await page.evaluate(() => {
     const doc = document.getElementById('marco-hijo')?.contentDocument;
-    return { url: doc?.location?.href || '', titulo: (doc?.body?.innerHTML || '').slice(0, 60) };
+    return { url: doc?.location?.href || '', inicio: (doc?.body?.innerHTML || '').slice(0, 60) };
   });
-  expect(cargado.url, `el marco tenia que cargar ${hijo.fichero}, no ${cargado.url}`).toContain(hijo.fichero);
-  expect(cargado.titulo, 'el marco cargo una pagina de error, no el hijo').not.toContain('404');
+  expect(cargado.url, `el marco tenía que cargar ${hijo.fichero}, no ${cargado.url}`).toContain(hijo.fichero);
+  expect(cargado.inicio, 'el marco cargó una página de error, no el hijo').not.toContain('404');
 }
 
-/**
- * Lo que de verdad ve el usuario: si el body esta oculto, no hay interfaz.
- * Se mira donde vive el hijo — su propio documento, este suelto o dentro del marco.
- */
-function bodyVisible(page, hijo) {
-  if (!hijo.dentroDeMarco) return page.evaluate(() => document.body.style.display !== 'none');
+/** Espera al aviso del hijo: a partir de aquí su handler de confirmación ya existe. */
+async function esperarPreparado(page) {
+  await expect
+    .poll(() => page.evaluate(() => globalThis.__preparado === true), { timeout: 15_000 })
+    .toBe(true);
+}
+
+/** Lo que de verdad ve el usuario, mirado en el documento del propio hijo. */
+function bodyVisible(page) {
   return page.evaluate(() => {
     const doc = document.getElementById('marco-hijo')?.contentDocument;
-    if (!doc || !doc.body) return null; // null != true y != false: delata un fallo de arnes
+    if (!doc || !doc.body) return null; // null delata un fallo de arnés: no se confunde con false
     return doc.body.style.display !== 'none';
   });
 }
 
+/** Manda la confirmación como la mandaría el padre: desde el marco, a la ventana del hijo. */
 async function enviarConfirmacion(page, hijo, { conOrigen }) {
-  await page.evaluate(({ id, conOrigen, enMarco }) => {
+  await page.evaluate(({ id, conOrigen }) => {
     const mensaje = {
       tipo: 'SISTEMA.PADRE_CONFIRMA_HIJO_LISTO',
       destino: id,
       datos: { timestamp: Date.now() },
     };
     if (conOrigen) mensaje.origen = 'padre';
-    const destino = enMarco
-      ? document.getElementById('marco-hijo').contentWindow
-      : globalThis;
-    destino.postMessage(mensaje, globalThis.location.origin);
-  }, { id: hijo.id, conOrigen, enMarco: !!hijo.dentroDeMarco });
+    document.getElementById('marco-hijo').contentWindow.postMessage(mensaje, globalThis.location.origin);
+  }, { id: hijo.id, conOrigen });
 }
 
 for (const hijo of HIJOS) {
-  test.describe(`UV — ${hijo.id} no se muestra antes de tiempo`, () => {
-    test.beforeEach(async ({ page }) => { await proveerMensajeriaStub(page); });
-
-    test(`UV-1. ${hijo.id}: al cargar, su interfaz esta oculta`, async ({ page }) => {
+  test.describe(`UV — ${hijo.fichero} no se muestra antes de tiempo`, () => {
+    test(`UV-1. ${hijo.fichero}: al cargar, su interfaz está oculta`, async ({ page }) => {
       await abrir(page, hijo);
-      expect(await bodyVisible(page, hijo)).toBe(false);
+      expect(await bodyVisible(page)).toBe(false);
     });
 
-    test(`UV-2. ${hijo.id}: PADRE_CONFIRMA_HIJO_LISTO con origen la muestra`, async ({ page }) => {
+    test(`UV-2. ${hijo.fichero}: PADRE_CONFIRMA_HIJO_LISTO con origen la muestra`, async ({ page }) => {
       await abrir(page, hijo);
-      expect(await bodyVisible(page, hijo)).toBe(false);
+      await esperarPreparado(page);
+      expect(await bodyVisible(page), 'antes de confirmar tiene que seguir oculta').toBe(false);
 
       await enviarConfirmacion(page, hijo, { conOrigen: true });
-      await expect.poll(() => bodyVisible(page, hijo), { timeout: 10_000 }).toBe(true);
+      await expect.poll(() => bodyVisible(page), { timeout: 10_000 }).toBe(true);
     });
 
     if (hijo.exigeOrigen) {
-      test(`UV-3. ${hijo.id}: el mismo mensaje SIN origen no la muestra`, async ({ page }) => {
+      test(`UV-3. ${hijo.fichero}: el mismo mensaje SIN origen no la muestra`, async ({ page }) => {
         await abrir(page, hijo);
+        await esperarPreparado(page);
 
         await enviarConfirmacion(page, hijo, { conOrigen: false });
 
-        // Margen generoso a proposito: se trata de demostrar que NO pasa, no de correr.
+        // Se demuestra que algo NO ocurre, así que no hay condición a la que esperar; el
+        // handler ya existe (esperarPreparado) y 1,5 s es holgado.
+        // VENTANA-OBSERVACION: comprobar que un aviso sin origen no muestra la interfaz
         await page.waitForTimeout(1500);
-        expect(await bodyVisible(page, hijo)).toBe(false);
+        expect(await bodyVisible(page), 'un aviso sin origen no puede mostrar la interfaz').toBe(false);
 
-        // Y que el frame sigue vivo: el mensaje bueno posterior si la muestra. Sin esto,
-        // UV-3 pasaria tambien si el hijo se hubiera quedado colgado por otro motivo.
+        // Y que el frame sigue vivo: el mensaje bueno posterior sí la muestra. Sin esto,
+        // UV-3 pasaría también si el hijo se hubiera quedado colgado por otro motivo.
         await enviarConfirmacion(page, hijo, { conOrigen: true });
-        await expect.poll(() => bodyVisible(page, hijo), { timeout: 10_000 }).toBe(true);
+        await expect.poll(() => bodyVisible(page), { timeout: 10_000 }).toBe(true);
       });
     }
   });

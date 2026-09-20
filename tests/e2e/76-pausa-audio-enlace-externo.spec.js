@@ -77,7 +77,9 @@ test.describe('PA — Abrir una pagina informativa pausa el audio', () => {
     await expect.poll(() => frame(page, 'hijo1-opciones').evaluate(() => globalThis.__abierto), { timeout: 5_000 })
       .toContain('gastronomia.html');
 
-    await page.waitForTimeout(2_000);
+    // Se espera a que la pausa LLEGUE a hijo3. El fallo del poll se ignora: el expect de abajo
+    // es el que informa, y ahi el log de "accion no manejada" ya esta recogido.
+    await expect.poll(() => pausas(page), { timeout: 8_000 }).toBeGreaterThan(0).catch(() => {});
     const n = await pausas(page);
     const noManejada = logs.find((t) => /Acción no manejada: audio_control/.test(t));
     expect(

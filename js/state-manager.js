@@ -124,6 +124,24 @@ export async function setScript2Listo(value) {
   await mutexes.script2Listo.runExclusive(() => { state.script2Listo = value; });
 }
 
+/**
+ * Resuelve cuando han terminado todos los registros de controladores encolados HASTA ESTE
+ * MOMENTO.
+ *
+ * Registrar un controlador no es inmediato: `registrarControladorCentral` escribe en el mapa
+ * DENTRO de `mutexes.controladores`, y cada registro espera al anterior. Quien lanza varios
+ * seguidos sin `await` —Script 2 lanza decenas— sale de la llamada con los registros aun en
+ * cola. MEDIDO: al marcar script2Listo justo despues, solo habia 17 de 65 controladores.
+ *
+ * Funciona porque SimpleMutex es FIFO: `runExclusive` fija el nuevo candado de forma
+ * sincrona, antes de su primer await, asi que esta espera se pone en cola DETRAS de todos los
+ * registros ya lanzados y solo resuelve cuando el ultimo de ellos ha terminado. No espera a
+ * registros que se lancen despues de llamarla.
+ */
+export function esperarRegistrosPendientes() {
+  return mutexes.controladores.runExclusive(() => true);
+}
+
 export async function getHeartbeat() {
   return await mutexes.heartbeat.runExclusive(() => _deepCopy(state.heartbeat));
 }
@@ -584,6 +602,7 @@ export async function inicializarStateManager() {
       updateEstadoPadre,
       getScript2Listo,
       setScript2Listo,
+      esperarRegistrosPendientes,
       getHeartbeat,
       setHeartbeat,
       updateHeartbeat,

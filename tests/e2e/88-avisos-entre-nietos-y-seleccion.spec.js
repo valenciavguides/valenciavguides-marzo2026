@@ -115,6 +115,7 @@ test.describe('VI — el aviso de fin de vídeo', () => {
     await abrirSeleccionEnMarco(page);
 
     await avisarDesdeFuera(page, { enMarco: true });
+    // VENTANA-OBSERVACION: se comprueba que un aviso de otro origen NO tiene efecto
     await page.waitForTimeout(1200);
     expect(await pantalla5Visible(page), 'un aviso de otro origen no puede mover la pantalla').toBe(false);
 
@@ -147,6 +148,7 @@ test.describe('VI — el aviso de fin de vídeo', () => {
     expect(await modalHijo6Visible(page)).toBe(true);
 
     await avisarDesdeFuera(page, { enMarco: false });
+    // VENTANA-OBSERVACION: se comprueba que un aviso de otro origen NO tiene efecto
     await page.waitForTimeout(1200);
     expect(await modalHijo6Visible(page), 'un aviso de otro origen no puede cerrar el modal').toBe(true);
 

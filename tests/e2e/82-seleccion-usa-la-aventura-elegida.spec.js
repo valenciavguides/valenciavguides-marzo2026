@@ -67,7 +67,10 @@ test.describe('SA — La selección usa la aventura elegida', () => {
   test('SA-2. El mapa vintage es el de la aventura elegida, no el de la primera', async ({ page }) => {
     const f = seleccion(page);
     await f.evaluate((a) => globalThis.seleccionarAventura(a), ELEGIDA);
-    await page.waitForTimeout(500);
+    // Misma condicion que comprueba SA-1: la aventura elegida ya esta guardada.
+    await expect
+      .poll(() => f.evaluate(() => globalThis.aventuraSeleccionada), { timeout: 5_000 })
+      .toBe(ELEGIDA);
 
     const src = await f.evaluate(async () => {
       await globalThis.mostrarMapaVintage?.();

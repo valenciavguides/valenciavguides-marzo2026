@@ -14653,7 +14653,12 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         function _regCtrl_UI(_TIPOS_MENSAJE) {
         }
 
-        (async function registrarControladoresScript2() {
+        // Se guarda la promesa: el bloque que marca script2Listo, mas abajo, tiene que esperarla.
+        // Esta funcion se suspende en su primer await (_setupRegistrarControladores) y devuelve el
+        // control al instante, asi que sin esperarla el codigo de despues corre ANTES de que se
+        // lance un solo registro. MEDIDO: al marcar, el mapa de controladores del state-manager
+        // tenia 22 de 65, y faltaban los de esta funcion — SISTEMA.ERROR entre ellos. Lo fija el spec 89.
+        const _registroControladoresScript2 = (async function registrarControladoresScript2() {
             await _setupRegistrarControladores();
             const TIPOS_MENSAJE = globalThis.TIPOS_MENSAJE || TIPOS_MENSAJE_S2;
             (globalThis.logger || console).info('[SCRIPT2] 🚀 Registrando controladores adicionales de Script 2...');
@@ -14669,16 +14674,27 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             _regCtrl_UI(TIPOS_MENSAJE);
         })();
 
-        (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} ✅ Controladores Script 2 registrados`);
-
         // ============================================================
-        // ⚡ MARCAR SCRIPT 2 LISTO INMEDIATAMENTE DESPUÉS DE REGISTRAR CONTROLADORES
-        // Esto evita el timeout de 15s en mensajeria.js
+        // MARCAR SCRIPT 2 LISTO CUANDO SUS CONTROLADORES ESTÉN REGISTRADOS
         // ============================================================
+        // Dos esperas, y hacen falta las dos:
+        //
+        //   1. `_registroControladoresScript2`: que se hayan LANZADO los registros. Sin ella este
+        //      bloque corre antes que la funcion de arriba, que se suspende en su primer await.
+        //   2. `esperarRegistrosPendientes`: que hayan TERMINADO. Cada registro escribe en el
+        //      mapa dentro de un mutex del state-manager y espera al anterior; lanzados no es
+        //      registrados.
+        //
+        // MEDIDO sin ellas: al marcar script2Listo habia 22 de 65 controladores, y SISTEMA.ERROR
+        // no estaba. Un mensaje que llegara confiando en la señal no encontraba su handler: es la
+        // causa de los fallos intermitentes de la suite en iphone12, bajo carga.
         (async () => {
             try {
+                await _registroControladoresScript2;
+                await globalThis.__vv_stateManager.esperarRegistrosPendientes();
+                (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} ✅ Controladores Script 2 registrados`);
                 const resultado = await globalThis.mensajeria.marcarScript2Listo();
-                (globalThis.logger || console).info(`[SCRIPT2] ✅ Script 2 marcado como LISTO (inmediato)`, resultado);
+                (globalThis.logger || console).info(`[SCRIPT2] ✅ Script 2 marcado como LISTO (controladores registrados)`, resultado);
             } catch (error) {
                 (globalThis.logger || console).error('[SCRIPT2] Error marcando Script 2 como listo:', error);
             }
@@ -14737,7 +14753,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             }
         }, 25000); // 25 segundos como timeout de emergencia
 
-        // ℹ️ NOTA: marcarScript2Listo() ya se llamó arriba inmediatamente después de registrar controladores
+        // ℹ️ NOTA: marcarScript2Listo() ya se llamó arriba, en cuanto terminaron de registrarse los controladores
         // Aquí solo cancelamos el timeout cuando la UI esté lista
 
         (async () => {
@@ -15733,8 +15749,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
         (globalThis.logger || console).info('🔧 Función de diagnóstico GPS disponible: globalThis.diagnosticarGPS()');
 
-        // ℹ️ NOTA: marcarScript2Listo() se llama inmediatamente después de registrar
-        // controladores (línea ~8345) para evitar el timeout de 15s en mensajeria.js
+        // ℹ️ NOTA: marcarScript2Listo() se llama en Script 2, en cuanto terminan de registrarse
+        // sus controladores (busca "MARCAR SCRIPT 2 LISTO").
     </script>
 
     <!-- ============================================================ -->

@@ -89,7 +89,9 @@ test.describe('RE — "no" en R2 llega al padre', () => {
     await expect.poll(() => logs.some((t) => /respuesta negativa/i.test(t)), { timeout: 5_000 })
       .toBe(true); // precondicion: seleccion tomo de verdad la rama del "no"
 
-    await page.waitForTimeout(2_500);
+    // Se espera a que el handler del padre deje su rastro, que es lo que se va a comprobar.
+    // El fallo del poll se ignora: el expect de abajo informa con los logs completos.
+    await expect.poll(() => logs.some((t) => LOG_HANDLER.test(t)), { timeout: 8_000 }).toBe(true).catch(() => {});
     const banderas = await leerBanderas(page);
     expect(
       logs.some((t) => LOG_HANDLER.test(t)),
