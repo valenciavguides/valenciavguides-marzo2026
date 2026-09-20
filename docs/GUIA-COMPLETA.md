@@ -4967,7 +4967,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 | Emitido por | Padre (en respuesta a HIJO_PREPARADO) |
 | Destino | El hijo que envió HIJO_PREPARADO |
 | Payload | `{ modo, timestamp }` |
-| Handler en hijos | L1859 hijo2, L1199 hijo3, L1325 hijo4, L385 hijo1, L370 hijo6 |
+| Handler en hijos | hijo2, hijo3, hijo4, hijo1, hijo6 |
 | Acción | Hijo almacena datos iniciales, activa UI, envía HIJO_LISTO |
 
 ##### SISTEMA.HIJO_LISTO
@@ -4994,7 +4994,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo1 (`extrainfo-hijo1.html` L354) y seleccion (`En-busca-del-tesoro.html` L2252) si falla su inicialización |
+| Emitido por | hijo1 (`extrainfo-hijo1.html`) y seleccion (`En-busca-del-tesoro.html`) si falla su inicialización |
 | Destino | `padre` |
 | Payload | `{ error, stack, timestamp }` (el padre complementa con `mensaje.origen` para identificar al hijo; el campo `componenteId` que el handler intenta leer de `datos` no lo envían los hijos actuales) |
 | Handler en padre | Inline — log del fallo, marca `hijoEstado.activo = false` y `hijoEstado.fallido = true` en `estado.estadoHijos` |
@@ -5012,7 +5012,7 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 |-------|-------|
 | Emitido por (normal) | Padre (intervalo periódico) → todos (broadcast) |
 | Payload | `{ timestamp, secuencia }` |
-| Handler en hijos | hijo1 L569, hijo2 L2358, hijo3 L1658, hijo4 L1779, **hijo5 L1153**, hijo6 L396 |
+| Handler en hijos | hijo1, hijo2, hijo3, hijo4, **hijo5**, hijo6 |
 | Acción hijo | Responde `SISTEMA.HEARTBEAT_RESPONSE`. Quien lleva la cuenta es el padre: `js/mensajeria.js` actualiza el `Map` `ultimoHeartbeat` del estado al recibir la respuesta |
 | Handler en padre | Inline — también maneja HEARTBEAT entrante de hijos: responde con `HEARTBEAT_RESPONSE { estado:'activo', modo, hijosActivos }` y resetea `heartbeatsFallidos` en `estadoHijos` |
 | Emitido raw en visibilitychange | Script 3 de `codigo-padre.html` (bloque `<script type="module">` de reconexión de iframes) — al restaurar visibilidad de la peña, padre recorre todos los iframes con atributo `name` y les envía `{ tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT, razon:'visibilitychange' }` vía `contentWindow.postMessage` directo (fuera del bus, por diseño, ver §10.18). El tipo se escribe con la constante `TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT` (importada en ese mismo bloque como alias de `TIPOS_MENSAJE`), nunca con el literal `'SISTEMA.HEARTBEAT'`. |
@@ -5024,7 +5024,7 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 |-------|-------|
 | Emitido por | Padre (al activar/pausar aventura) |
 | Destino | `todos` |
-| Handler en hijos | hijo2 L2383/L2396, hijo3 L1669/L1682, hijo4 L1790/L1828, **hijo5 L1205/L1218**, hijo6 L406/L410 |
+| Handler en hijos | hijo2, hijo3, hijo4, **hijo5**, hijo6 |
 | Nota | hijo1 **no tiene handlers** para START/PAUSE — solo HEARTBEAT base |
 
 **SISTEMA.HEARTBEAT_RESPONSE** (hijo → padre)
@@ -5113,7 +5113,7 @@ Cuando el padre tiene aventura e idioma, distribuye los datos a cada hijo.
 | Campo | Valor |
 |-------|-------|
 | Payload | `{ aventura, idioma, coordenadas[], total, timestamp }` |
-| Handler en hijo2 | L2124 |
+| Handler en hijo2 | sí |
 | Acción | Almacena coordenadas, responde DATOS.COORDENADAS_CARGADAS |
 | Respuesta | `DATOS.COORDENADAS_CARGADAS` → padre `_hdl_DATOS_COORDENADAS_CARGADAS` |
 
@@ -5140,7 +5140,7 @@ Cuando el padre tiene aventura e idioma, distribuye los datos a cada hijo.
 | Campo | Valor |
 |-------|-------|
 | Payload | `{ aventura, idioma, textos[], total, timestamp }` |
-| Handler en hijo2 | L2183 |
+| Handler en hijo2 | sí |
 | Acción | hijo2 almacena los textos en `globalThis.__vv_textosAventura` para acceso durante la navegación GPS |
 | Respuesta | `DATOS.TEXTOS_CARGADOS` → padre `_hdl_DATOS_TEXTOS_CARGADOS` |
 
@@ -5170,7 +5170,7 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 
 | Campo | Valor |
 |-------|-------|
-| Handler en padre | `controladores-padre.js` L52 |
+| Handler en padre | `codigo-padre.html`, Script 1 (busca `NAVEGACION.SOLICITAR_DATOS_PARADAS`) |
 | Acción | Lee `globalThis.__vv_DATOS_AVENTURAS`, transforma al formato `{ id:'padre-P-X', parada_id, tipo, nombre, coordenadas }`, responde con RESPUESTA_DATOS_PARADAS |
 | Respuesta | `NAVEGACION.RESPUESTA_DATOS_PARADAS` → al solicitante (hijo5). hijo2 también recibe RESPUESTA_DATOS_PARADAS pero de forma proactiva (sin solicitarla), vía `_hijoListo_enviarDatosHijo2` tras su handshake |
 | Handler en hijo2 | L2409 — almacena paradas normalizadas en `estadoComponente.arrayParadasLocal` para cálculos de proximidad GPS |
@@ -5186,14 +5186,14 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 | Emitido por | Padre (al activar GPS, restaurar sesión, seleccionar aventura) |
 | Destino | `todos` (broadcast) |
 | Payload | `{ modo: 'casa'\|'aventura', aventura, idioma, restaurado?, timestamp }` |
-| Handler en hijos | hijo1 L719, hijo2 L1996, hijo3 L1468, hijo4 L1473, hijo6 L414 — **todos los hijos** ✅ |
+| Handler en hijos | hijo1, hijo2, hijo3, hijo4, hijo6 — **todos los hijos** ✅ |
 | Acción hijo | Actualiza UI para el modo, envía CAMBIO_MODO_ENTENDIDO, luego CAMBIO_MODO_EFECTUADO |
 
 **SISTEMA.CAMBIO_MODO_ENTENDIDO** (hijo → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Handler en padre | `js/app.js` `_registrarHandlersModo()` L98 |
+| Handler en padre | `js/app.js` `_registrarHandlersModo()` |
 | Acción | Registra en `_respuestasEntendidoActual`, envía ACK cosmético |
 
 **SISTEMA.CAMBIO_MODO_EFECTUADO** (hijo → padre)
@@ -5210,7 +5210,7 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 | Campo | Valor |
 |-------|-------|
 | Emitido por | Padre (tras recoger todos los EFECTUADO) |
-| Handler en hijos | hijo2 L2103, hijo3 L1599, hijo4 L1603, hijo1 L802 |
+| Handler en hijos | hijo2, hijo3, hijo4, hijo1 |
 | Acción | Confirmación final — hijos completan transición de modo |
 
 **SISTEMA.ACK** (padre → hijo)
@@ -5219,7 +5219,7 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 |-------|-------|
 | Emitido por | Padre (respuesta cosmética a ENTENDIDO/EFECTUADO) |
 | Payload | `{ mensajeRecibido, modo, timestamp }` |
-| Handler en hijos | hijo1 L617, hijo2 L2554, hijo3 L1885, hijo4 L1840 |
+| Handler en hijos | hijo1, hijo2, hijo3, hijo4 |
 | Acción | Solo logging — el ACK no desbloquea ningún flujo |
 
 ---
@@ -5246,17 +5246,17 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 | Campo | Valor |
 |-------|-------|
 | Payload emitido | `{ paradaId, parada_id, padreId, padreid, indiceProgreso, contexto, timestamp, restaurado? }` |
-| Handler en hijo1 | **Ninguno** — hijo1 no tiene handler de CAMBIO_PARADA (L667 es el handler de CAMBIO_MODO) |
+| Handler en hijo1 | **Ninguno** — hijo1 no tiene handler de CAMBIO_PARADA; el que se le parece es el de CAMBIO_MODO |
 | Handler en hijo2 | — actualiza `idParadaActual`, `tipoParadaActual`; resetea `distanciaAlDestino` y `_llegadaNotificada`; reinicia spin de botones |
-| Handler en hijo3 | L1695 — actualiza UI del reproductor |
-| Handler en hijo4 | L1802 — prepara estado del reto para la parada |
+| Handler en hijo3 | actualiza UI del reproductor |
+| Handler en hijo4 | prepara estado del reto para la parada |
 | Handler en hijo5 | recibe vía `_notificarCambioParadaHijos` |
 
 **NAVEGACION.CAMBIO_PARADA_CONFIRMADO** (hijo → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo3 (tras actualizar reproductor), hijo4 (L1826, tras actualizar estado del reto). hijo2 **no** envía este mensaje. |
+| Emitido por | hijo3 (tras actualizar reproductor), hijo4 (tras actualizar estado del reto). hijo2 **no** envía este mensaje. |
 | Handler en padre | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO` |
 | Acción | Solo logging/diagnóstico — no bloquea ningún flujo |
 
@@ -5265,7 +5265,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 | Campo | Valor |
 |-------|-------|
 | Solicitud | Padre solicita coords actualizadas de la parada activa |
-| Handler en hijo2 | L2480 — responde con `{ coordenadas, paradaId, exito }` |
+| Handler en hijo2 | responde con `{ coordenadas, paradaId, exito }` |
 | Respuesta | `NAVEGACION.RESPUESTA_COORDENADAS` → padre |
 | Handler en padre | **NO EXISTE** ⚠️ — ver issues detectados |
 
@@ -5290,7 +5290,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 |-------|-------|
 | Emitido por | Padre (al activar/desactivar GPS) vía `enviarMensaje_S1({destino:'hijo2',...})` |
 | Payload | `{ activo: bool, permisos: bool, precision: null, error: null }` |
-| Handler | Solo hijo2 L2610 — hijo1/hijo3/hijo4 no tienen handler |
+| Handler | Solo hijo2 — hijo1/hijo3/hijo4 no tienen handler |
 
 **NAVEGACION.GPS.ERROR** (padre → hijo2)
 
@@ -5298,7 +5298,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 |-------|-------|
 | Emitido por | Padre vía `enviarMensaje_S1({destino:'hijo2',...})` |
 | Payload | `{ codigo, mensaje, timestamp }` |
-| Handler | Solo hijo2 L2646 — hijo1/hijo3/hijo4 no tienen handler |
+| Handler | Solo hijo2 — hijo1/hijo3/hijo4 no tienen handler |
 
 **NAVEGACION.GPS.ACTIVAR** (hijo2 → padre)
 
@@ -5333,7 +5333,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emisor real | `js/funciones-mapa.js` (`procesarPosicionGPSParaAventura`) — no padre directamente |
 | Payload | `{ distanciaAlDestino, distanciaAlCamino, toleranciaGPS, idParada, tipoParada, lat, lng, accuracy, ubicacionActiva }` |
-| Handler en hijo2 | L1709 — actualiza distancia, modo, flags de proximidad |
+| Handler en hijo2 | actualiza distancia, modo, flags de proximidad |
 | Handler en funciones-mapa | ninguno — el único receptor es hijo2 directamente vía `enviarMensaje_S1` |
 
 **NAVEGACION.USUARIO_FUERA_RANGO** (hijo2 → padre)
@@ -5379,7 +5379,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido por | Padre vía `_solicitarAudioParaParada` (CAMBIO_PARADA pipeline, mismo camino en CASA y AVENTURA); también `js/controladores-padre.js` como respuesta a un cache-miss (`DATOS.SOLICITAR_AUDIOS`) |
 | Payload | `{ audioId, audioData:{id,title,file}, autoplay: false, contexto: { parada, tipo } }` — `audioData` resuelto vía `cargarAudios()`, protección pasiva por parada (ver §16) |
-| Handler en hijo3 | L1426 |
+| Handler en hijo3 | sí |
 | Acción | Guarda `audioData` en su caché local acotada (máx. 2 ids); carga el audio, NO lo reproduce automáticamente. Muestra controles. |
 
 **AUDIO.ESTADO_ACTUALIZADO** (hijo3 → padre)
@@ -5431,7 +5431,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido por | (1) `_configurarRetoBtn`: cuando la parada tiene reto pero **sin audio** (`razon:'sin_audio'`) — durante CAMBIO_PARADA pipeline. (2) `_procesarFinAudioElemento`: cuando el audio finaliza y había reto pendiente (`razon:'audio_escuchado_1vez'`). En ambos casos también envía `CONTROL.HABILITAR { control:'retosBtn' }` a hijo3 |
 | Payload | `{ paradaId, razon }` |
-| Handler en hijo4 | L1715 |
+| Handler en hijo4 | sí |
 | Acción | Activa el reto de la parada |
 
 **RETO.MOSTRAR** (padre → hijo4)
@@ -5440,14 +5440,14 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido por | Padre en `_hdl_RETO_SOLICITAR`, al avanzar al siguiente reto de una cola, y en `js/controladores-padre.js` como respuesta a un cache-miss (`DATOS.SOLICITAR_RETOS`) |
 | Payload | `{ retoId, retosArray:[retoData] }` — `retoData` resuelto vía `cargarRetos()`, protección pasiva por parada (ver §16) |
-| Handler en hijo4 | L1438 |
+| Handler en hijo4 | sí |
 | Acción | Guarda el reto en su caché local acotada (máx. 2 ids); muestra el panel de reto al usuario |
 
 **RETO.MOSTRADO** (hijo4 → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo4 L1469 — tras `mostrarReto()` completar sin error |
+| Emitido por | hijo4 — tras `mostrarReto()` completar sin error |
 | Payload | `{ retoId }` |
 | Handler en padre | `_hdl_RETO_MOSTRADO` (registrado en `_regCtrl_Reto`) |
 | Acción | Actualiza `estado.retoActual.disponible = true`; responde con `RETO.CONFIRMADO` |
@@ -5458,7 +5458,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido por | Padre en `_hdl_RETO_MOSTRADO` como fase 3 del protocolo RETO |
 | Payload | `{ retoId }` |
-| Handler en hijo4 | L1893 |
+| Handler en hijo4 | sí |
 | Acción | Hijo4 registra la confirmación — logging |
 
 **RETO.OCULTAR** (hijo4 → padre)
@@ -5484,7 +5484,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Payload | `{ tipo:'parada'\|'tramo', habilitado: bool }` |
-| Handler en hijo4 | L1739 |
+| Handler en hijo4 | sí |
 | Acción | En CASA: habilita retos en paradas, deshabilita en tramos |
 
 **RETO.COMPLETADO** (hijo4 → padre)
@@ -5500,7 +5500,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo3 L837 (botón reto en reproductor), hijo4 L853 (botón reto en retos) |
+| Emitido por | hijo3 L837 (botón reto en reproductor), hijo4 (botón reto en retos) |
 | Destino | `padre` |
 | Payload | `{ contexto }` |
 | Handler en padre | `_hdl_RETO_SOLICITAR` — registrado en vía `registrarControladorScript2Seguro` |
@@ -5516,9 +5516,9 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido por | Padre (para habilitar/deshabilitar retosBtn, btnAvanzar, progressBar, etc.) |
 | Payload | `{ control: 'retosBtn'\|'btnAvanzar'\|'progressBar', razon }` |
-| Handler en hijo2 | L1735/L1769 — gestiona btnAvanzar |
-| Handler en hijo3 | L1613/L1638 — gestiona retosBtn y progressBar (thumb de la barra de progreso, §7.4) |
-| Handler en hijo4 | L1767/L1773 |
+| Handler en hijo2 | — gestiona btnAvanzar |
+| Handler en hijo3 | — gestiona retosBtn y progressBar (thumb de la barra de progreso, §7.4) |
+| Handler en hijo4 | |
 
 **UI.ACCION_USUARIO** (hijo2 → padre / hijo3 → padre)
 
@@ -5533,8 +5533,8 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | padre → hijo1 | Padre pide a hijo1 que cierre sus menús |
-| Handler en hijo1 | L501 — cierra panel de opciones |
-| hijo1 → padre | hijo1 notifica al padre que cerró sus menús (L989) |
+| Handler en hijo1 | cierra panel de opciones |
+| hijo1 → padre | hijo1 notifica al padre que cerró sus menús |
 | Handler en padre | **NO EXISTE** — notificación informativa, padre no necesita actuar |
 
 **UI.NAVEGACION_EXTERNA** (hijo1 → padre)
@@ -5554,7 +5554,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Payload | `{ aventuraId, tiempoEstimado, idioma, timestamp }` |
-| Handler en hijo1 | L1451 |
+| Handler en hijo1 | sí |
 | Acción | hijo1 inicia temporizador con `tiempoEstimado` (los demás campos son informativos) |
 
 **AVENTURA.FINALIZADA** (padre → hijo1)
@@ -5608,7 +5608,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido en hijo1 | `toggleListadoParadas()` L1268, tipo L1273 — click en `#icono-listado-paradas` |
+| Emitido en hijo1 | `toggleListadoParadas()` — click en `#icono-listado-paradas` |
 | Payload | `{ timestamp }` |
 | Handler en padre | `_hdl_PARADAS_LISTADO_TOGGLE` |
 | Acción | Crea (la primera vez) o alterna la visibilidad de `#ventana-listado-paradas-padre`; al mostrarla, llama `_construirFilasListadoParadas()` + `_renderizarListadoParadas()` (ver §7.2) |
@@ -5621,7 +5621,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Handler en hijo6 | L704 |
+| Handler en hijo6 | sí |
 | Acción | Hijo6 actualiza `estadoPadre` (usado solo como contexto del buzón de sugerencias — idioma, aventura, parada actual) y, si cambió el idioma, reconstruye el acordeón completo en el nuevo idioma. Las respuestas del FAQ ya no contienen marcadores dinámicos — es un acordeón de preguntas y respuestas estático, sin IA/LLM implicado (ver §7.7 y §27) |
 | Nota | hijo6 no tiene handlers de CAMBIO_PARADA — recibe contexto solo vía ESTADO_PADRE |
 
@@ -5698,7 +5698,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 #### `RETO.SOLICITAR_RETO` — handler en Script 2
 
-- hijo3 L837 y hijo4 envían `RETO.SOLICITAR_RETO` → padre.
+- hijo3 y hijo4 envían `RETO.SOLICITAR_RETO` → padre.
 - Handler `_hdl_RETO_SOLICITAR` en padre, registrado en vía `registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR)`. El handler está en Script 2, separado del resto; una búsqueda limitada a Script 1 no lo encontrará.
 
 #### `DATOS.SOLICITAR_COORDENADAS` en `constants.js`
@@ -5874,7 +5874,7 @@ hijo4 L1188 lo escucha via globalThis.addEventListener('message')
   → verifica event.source === document.getElementById('puzzleIframe')?.contentWindow
   → si COMPLETADO: añade clase 'correct', llama fuegosArtificiales()
   → envía RETO.COMPLETADO al padre via bus
-padre _hdl_RETO_COMPLETADO L8465
+padre _hdl_RETO_COMPLETADO
   → pending.reto = true → intentarCompletarElemento → progresa aventura
 
 Si puzzle.html se agota (PUZZLE.TIMEOUT):
@@ -6040,7 +6040,7 @@ padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId,
 **AVENTURA_ACTIVADA** (padre → broadcast)
 
 ```text
-_hdl_SELECCION_AVENTURA_ACTIVADA L10642 → _broadcastActivacion() L10695 (tras distribuir datos con éxito)
+_hdl_SELECCION_AVENTURA_ACTIVADA → _broadcastActivacion() (tras distribuir datos con éxito)
 padre → todos   SISTEMA.NOTIFICACION { evento:'AVENTURA_ACTIVADA', aventura, idioma, timestamp }
 ```
 
@@ -6067,7 +6067,7 @@ Tres eventos adicionales enviados por `js/app.js` durante el pipeline de `SISTEM
 | Contexto | Emisor | Campo crítico |
 |----------|--------|---------------|
 | ACK de `enviarMensajeConConfirmacion` | hijo2, hijo3 | **`idOriginal: mensajeId`** — resuelve la promesa pendiente |
-| UI_VISIBLE (handshake visual) | hijo1 L459, hijo2 L1952, hijo3 L1316, hijo5 L1069 | `{ tipo:'UI_VISIBLE', timestamp }` |
+| UI_VISIBLE (handshake visual) | hijo1, hijo2, hijo3, hijo5 | `{ tipo:'UI_VISIBLE', timestamp }` |
 | Respuesta a acciones de audio | hijo3 L1842/1863 | `{ accion:'click_ejecutado', exito:true }` |
 
 El campo `idOriginal` es **crítico para `enviarMensajeConConfirmacion`**: mensajeria.js lo usa para correlacionar con la promesa pendiente. Si falta `idOriginal`, la promesa no se resuelve y se cumple el timeout.
@@ -6076,11 +6076,11 @@ El campo `idOriginal` es **crítico para `enviarMensajeConConfirmacion`**: mensa
 
 | Emisor | Contexto | Receptor |
 |--------|----------|----------|
-| hijo5 L568/708/839/891 | Error GPS, cambio modo, datos | padre |
-| hijo2 L2088 | Error en operaciones de navegación/datos | padre |
-| hijo3 L1587 | Error en playback/operaciones audio | padre |
-| hijo1 L474/789/1092/1153 | Error en temporizador/opciones/init | padre |
-| padre L8579/8613/8656/10315 | Error interno (datos, GPS, selección) | destino específico |
+| hijo5/708/839/891 | Error GPS, cambio modo, datos | padre |
+| hijo2 | Error en operaciones de navegación/datos | padre |
+| hijo3 | Error en playback/operaciones audio | padre |
+| hijo1/789/1092/1153 | Error en temporizador/opciones/init | padre |
+| padre/8613/8656/10315 | Error interno (datos, GPS, selección) | destino específico |
 | `js/utils.js` (los seis hijos) | Error no capturado o promesa rechazada sin capturar — captura automática, ver abajo | padre |
 
 #### Errores no controlados de un hijo: captura automática
@@ -6172,7 +6172,7 @@ codigo-padre.html arranca
 
 | Clave | Escritor | Lector | Contenido |
 |-------|---------|--------|-----------|
-| `vvguides_padreId` | `js/utils.js` `getPadreId()` L52 | `js/utils.js` `getPadreId()` L45 | ID único del padre generado una vez por sesión de pestaña (`padre-XXXXXXXX`). Persiste mientras la pestaña esté abierta. |
+| `vvguides_padreId` | `js/utils.js` `getPadreId()` L52 | `js/utils.js` `getPadreId()` | ID único del padre generado una vez por sesión de pestaña (`padre-XXXXXXXX`). Persiste mientras la pestaña esté abierta. |
 | `vbg_session_token` | `js/api-client.js` `TokenManager.setToken()` | `js/api-client.js`, `js/data-loader.js` (en modo API) | JWT de autenticación con el backend. Se incluye como `Authorization: Bearer` en cada petición. Se borra al cerrar sesión o al recibir 401. |
 
 **Limpieza total:** `js/reciclaje-digital.js:54` llama `sessionStorage.clear()` — borra todas las claves de sessionStorage de golpe (no selectivamente). Se invoca desde la pantalla de "reciclaje digital" / reset total de la app.
@@ -6266,7 +6266,7 @@ globales. Los iframes los leen directamente como optimización de arranque
 principal; estos accesos directos son fallbacks de último recurso cuando el
 bus aún no ha transmitido el dato.
 
-**Propiedad expuesta explícitamente por el padre**: `cerrarChatSoporte()` se asigna en `codigo-padre.html:1526` como `globalThis.cerrarChatSoporte = function() {...}` para que hijo6 la pueda llamar directamente. El resto de accesos leen estado pasivo, no llaman funciones del padre.
+**Propiedad expuesta explícitamente por el padre**: `cerrarChatSoporte()` se asigna en `codigo-padre.html` como `globalThis.cerrarChatSoporte = function() {...}` para que hijo6 la pueda llamar directamente. El resto de accesos leen estado pasivo, no llaman funciones del padre.
 
 **Acceso inverso (padre → hijo, contentDocument):** `_injectParadasStyle` inyecta CSS directamente en el documento de hijo5 (`iframe.contentDocument` → inserción de `<style id='vv-hijo5-paradas-fix-style'>`). Es el único caso de manipulación DOM directa entre ventanas en la app.
 
@@ -7786,26 +7786,30 @@ qué le falta a cada test para poder correr — hoy serían 19 avisos. Mientras 
 encendida solo serviría para que `npx eslint .` nunca dé cero, y esa señal dejaría de valer.
 Pasos completos en `docs/plan-produccion-infraestructura.md` §3.9.
 
-### 18.2 Tests HTML manuales (navegador)
+### 18.2 Comprobaciones que no necesitan navegador (tools/)
 
-Ficheros `.html` en `tests/` que se abren directamente en el navegador. Son necesarios porque la comunicación padre-hijo mediante iframes **no se puede simular en Jest** — requieren un entorno de navegador real.
+Lo que se puede comprobar leyendo ficheros se comprueba con un script de `tools/`, no con un
+test de navegador: es más rápido, no depende del reloj y se puede meter en cualquier hook.
 
-Para ejecutarlos: `http://localhost:8080/tests/master-test.html` (panel de orquestación) o abrir el HTML directamente.
+| Comando | Qué vigila |
+|---------|-----------|
+| `npm run lint` | ESLint sobre `js/**/*.js` y los `*.html` de la raíz: logger centralizado, sin variables muertas, sin espacios al final de línea |
+| `npm run verificar-datos` | Integridad de los datos de las 7 aventuras: exportaciones, extensiones de imagen y vídeo, ids repetidos, coordenadas en rango, campos de cada tipo de reto, y que lo que el índice marca disponible exista |
+| `npm run verificar-totales` | Que los totales precalculados del índice cuadren con los datos |
+| `npm run verificar-mensajeria` | Cruza cada tipo de `TIPOS_MENSAJE` con quién lo emite y quién lo escucha, para cazar tipos huérfanos |
+| `npm run verificar-citas` | Que las citas por número de línea de esta guía apunten a donde dicen |
+| `npm run verificar-esperas` | Trinquete contra las esperas ciegas (`waitForTimeout`) nuevas en los specs |
+| `npm run verificar-media` | Tamaño, bitrate y perfil de imágenes, audio y vídeo |
+| `npm run verificar-docs` | Qué secciones de esta guía menciona cada fichero cambiado, para no dar por revisado lo que nadie miró |
+| `npm run sync:master-test` | Regenera el catálogo de `tests/master-test.html` leyéndolo del disco; con `-- --check` sale con código 1 si está desfasado |
 
-**Son 50 ficheros, y `master-test.html` orquesta 46 de ellos.** Los tres que quedan fuera del panel — `test-carga-hijos.html`, `test-codigo-padre.html` y `test-iframe-basico.html`, los únicos con guión en vez de guión bajo — solo se abren a mano. Buena parte del conjunto son arneses de un solo uso, escritos para reproducir un fallo concreto y conservados como red (los `test_fix_*` son literalmente eso). **La tabla siguiente no es el inventario completo: recoge los que siguen siendo útiles como referencia.** La cobertura de regresión real la da la suite E2E de §18.3, que es la que corre sola.
+Ninguno está en el hook de pre-commit: el hook solo recalcula `CACHE_VERSION` (§21.1). Hay que
+lanzarlos a mano.
 
-| Fichero | Qué verifica |
-|---------|-------------|
-| `master-test.html` | Panel de orquestación: lanza y agrega resultados de múltiples tests |
-| `test_hijo_handshake.html` | Protocolo de arranque padre↔hijo (HIJO_PREPARADO / HIJO_LISTO) |
-| `test-iframe-basico.html` | Comunicación postMessage básica entre iframes |
-| `test_cambio_modo.html` | Transición CASA ↔ AVENTURA y limpieza de handlers |
-| `test_cambio_parada.html` | Cambio entre paradas y envío de CAMBIO_PARADA |
-| `test_auditoria_completa.html` | Auditoría global de handlers, race conditions y estado |
-| `test_heartbeat.html` | Mecanismo de ping/pong heartbeat con hijos |
-| `test_carga_secuencial_iframes.html` | Orden de carga FASE 1 → FASE 2 → iframes |
-| `test_sw_update_notification.html` | Banner SW no bloqueante: z-index, guards `previousController`/`_swBannerMostrado`, el botón navega sin limpiar el aviso pendiente antes (T4), traducciones (T11–T13: en→"Update", desconocido→fallback español, de→"Aktualisieren") y la secuencia real de actualización página a página (T14–T19): `controllerchange`→`SW_ACTIVADO` deja aviso pendiente, el arranque siguiente ya en la versión desplegada lo limpia y retira el banner (**T15 es la regresión del banner que se quedaba pegado para siempre** — falla con el criterio anterior), una recarga que no aplicó la versión lo mantiene y re-anuncia, una página obsoleta sigue avisando aunque las versiones coincidan, sin respuesta del SW el aviso no se limpia por suposición, y durante el reciclaje digital (T20) no hay ni banner ni escritura en `localStorage` |
-| `test_cargar_textos.html` | `cargarTextos` retorna entradas con content no vacío; mock de logger sin `.log()` detecta errores silenciosos en el success-path de `cargarMapaParrafos` |
+`tests/master-test.html` es un panel que importa el informe JSON de Playwright y muestra sus
+resultados agregados. Su catálogo lo escribe `tools/sync-master-test.js` entre dos marcas y no
+se edita a mano: una lista escrita a mano que describe un directorio acaba mintiendo.
+
 
 ### 18.3 Tests E2E con Playwright (tests/e2e/)
 
@@ -8043,7 +8047,7 @@ Los dos listeners se limitan a marcar `_paginaObsoleta` y delegar: la decisión 
 1. **Al arrancar** (justo después de registrar los listeners, antes de `register()`): si `vv_sw_update_pendiente` existe, se llama a `_mostrarBannerSW()` de inmediato — cubre el caso de una recarga/navegación real tras cerrar la PWA.
 2. **Al recuperar el foco** (`visibilitychange` → `visible`, en el `.then(registration => ...)` de `register()`, junto al `registration.update()` que ya corría en `hidden`): cubre el caso en el que el proceso de la PWA sobrevive cerrado o en segundo plano sin una recarga real de por medio — ahí no se ejecuta ningún arranque nuevo, así que el punto 1 nunca llegaría a correr. Este mismo punto vuelve a preguntar las dos versiones (`_pedirVersionAlSW()` y `_comprobarVersionRemota()`), porque la PWA puede llevar horas dormida.
 
-Recargar sobre una versión que ya era la última es inofensivo (una recarga de más, sin efecto visible); perder el aviso para siempre no lo es — ante la duda, el banner se vuelve a mostrar. Cubierto por `tests/test_sw_update_notification.html` (suite legacy del master-test, se ejecuta con Playwright vía `node tests/run-master-test.js`): creación del banner y su versión, deduplicación, guards `previousController`/`_swBannerMostrado`, z-index por encima del overlay del mapa, traducciones (en/de/idioma desconocido), que el botón navegue sin limpiar el aviso pendiente, y la secuencia completa de actualización página a página — `controllerchange` → `SW_ACTIVADO` deja el aviso pendiente; el arranque siguiente en la versión desplegada lo limpia y retira el banner; una recarga que no aplicó la versión nueva lo mantiene y re-anuncia; una página obsoleta sigue avisando aunque las versiones coincidan; y sin respuesta del SW el aviso no se limpia por suposición.
+Recargar sobre una versión que ya era la última es inofensivo (una recarga de más, sin efecto visible); perder el aviso para siempre no lo es — ante la duda, el banner se vuelve a mostrar. **Nada de esto tiene cobertura automática.** Ningún spec de `tests/e2e/` toca el service worker: la creación y deduplicación del banner, los guards `previousController`/`_swBannerMostrado`, la persistencia de `vv_sw_update_pendiente` entre sesiones y los dos puntos que la releen se comprueban solo a mano, sobre un despliegue real.
 
 `registration.update()` se llama dos veces: inmediatamente al resolver `register()` (así cada carga de la página fuerza una comprobación explícita, en vez de depender solo del throttle interno del navegador — variable según versión, sin este disparo explícito una sucesión rápida de recargas de prueba podía seguir sirviendo la versión vieja durante horas aunque el servidor ya tuviera una nueva) y en `visibilitychange → hidden` (cada vez que el usuario cambia de app).
 
@@ -10117,7 +10121,7 @@ Antes de tocar nada, `limpiarDatosAventura()` levanta `globalThis.__VV_RECICLAND
 |---|---|---|---|
 | 1 | `AVENTURA.TIEMPO_AGOTADO` (postMessage) | hijo1 → padre, contador llega a 0 en sesión activa | El usuario está jugando ahora mismo y se le acaba el tiempo delante de sus ojos |
 | 2 | `_comprobarReanudacionAventura()` (Script 1) | Arranque en frío, antes de ofrecer el diálogo "¿continuar?" | La sesión guardada ya no está viva: superó su ventana real de compra (60 h / 150 h según aventura, vía `verificarTimeoutAventura()`) o el TTL de respaldo de 7 días — ver §9.10 |
-| 3 | `_restoreCheckTimeout()` (L3989, Script 1), vía `verificarTimeoutAventura()` | Durante la restauración, tras confirmar "Continuar mi aventura" | La duración máxima de la aventura (60h/150h) se superó mientras la app estaba cerrada |
+| 3 | `_restoreCheckTimeout()` (Script 1), vía `verificarTimeoutAventura()` | Durante la restauración, tras confirmar "Continuar mi aventura" | La duración máxima de la aventura (60h/150h) se superó mientras la app estaba cerrada |
 
 Los disparadores 2 y 3 existían antes solo como limpieza silenciosa (`localStorage.removeItem`/`limpiarDatosAventura()` directos, sin ningún aviso) — el usuario simplemente perdía su aventura sin explicación. Ahora los tres muestran el mismo modal y dejan la decisión (y la limpieza real) en manos del usuario, igual que ya ocurría con el disparador 1.
 
@@ -10146,7 +10150,7 @@ Los disparadores 2 y 3 llaman a la misma función directamente (`await globalThi
 | Imagen | Emoji 🎉 | `imagenes/imagenes video intro/caballero_llorando.png` |
 | Título/cuerpo | `TRADUCCIONES_FINALIZACION` (12 idiomas): título de felicitación + nombre de la aventura + pregunta | `TRADUCCIONES_TIEMPO_AGOTADO` (12 idiomas): `titulo` ("¡Tiempo agotado!") + `cuerpo` (mensaje de cierre, sin invitar a "reiniciar") |
 | Botones | `btn_otra` / `btn_terminar` de `TRADUCCIONES_FINALIZACION` | Los mismos textos `btn_otra` / `btn_terminar`, reutilizados de `TRADUCCIONES_FINALIZACION` — no existen claves de botón propias en `TRADUCCIONES_TIEMPO_AGOTADO` |
-| Función creadora | `mostrarModalFinalizacion()` (Script 1, L8069) | Construido inline dentro de `_hdl_AVENTURA_TIEMPO_AGOTADO()` (Script 2) — no es la misma función, es HTML/CSS duplicado a propósito porque vive en otro scope de script |
+| Función creadora | `mostrarModalFinalizacion()` (Script 1) | Construido inline dentro de `_hdl_AVENTURA_TIEMPO_AGOTADO()` (Script 2) — no es la misma función, es HTML/CSS duplicado a propósito porque vive en otro scope de script |
 
 `TRADUCCIONES_FINALIZACION` se importa en Script 2 mediante `await import('./js/traducciones-ui.js')` junto a `TRADUCCIONES_TIEMPO_AGOTADO`, ya que el import estático de Script 1 no es visible en Script 2 (ver regla de scopes separados en `CLAUDE.md`).
 
@@ -10221,7 +10225,7 @@ El flag `activado` garantiza que `accionLimpieza()` se ejecuta como máximo una 
 |---|---|---|---|
 | 1 | `mostrarModalFinalizacion()` — `codigo-padre.html` (Script 1) | `_finalizarYLimpiar('abandono')` | Onclick de `btn-fin-otra-aventura` / `btn-fin-terminar` |
 | 2 | `_hdl_AVENTURA_TIEMPO_AGOTADO()` — `codigo-padre.html` (Script 2) | `_limpiarYRecargarTiempoAgotado('abandono')` | Onclick de `btn-tiempo-agotado-otra` / `btn-tiempo-agotado-terminar` |
-| 3 | `_armarLimpiezaPorAbandonoP17()` — `En-busca-del-tesoro.html` L2415, invocada desde `_checkUrlParams()` L2408 cuando `?despedida=1` | `_ejecutarDespedida()` | Inicio de `_ejecutarDespedida()`, L1497 |
+| 3 | `_armarLimpiezaPorAbandonoP17()` — `En-busca-del-tesoro.html`, invocada desde `_checkUrlParams()` cuando `?despedida=1` | `_ejecutarDespedida()` | Inicio de `_ejecutarDespedida()` |
 
 **Protecciones que cubren estos tres casos borde:**
 
@@ -13552,7 +13556,7 @@ Marcarlas sin motivo derrota la herramienta: la marca es para las cuatro o cinco
 
 Un polling acotado que **solo se pisa fuera de producción** cuesta siempre `maxIntentos × intervalo` completos, porque la condición que espera no va a cumplirse nunca en ese contexto. Si ese coste queda cerca del timeout que el test concede, el resultado lo decide el planificador: verde en solitario, rojo en tanda completa.
 
-El caso vivo del proyecto es `enviarMensaje()` de los hijos (`retos-hijo4.html` ~L429, `coordenadas-hijo2.html` ~L396), que bifurca por `parent !== window`:
+El caso vivo del proyecto es `enviarMensaje()` de los hijos (`retos-hijo4.html`, `coordenadas-hijo2.html` ~L396), que bifurca por `parent !== window`:
 
 | Rama | Cuándo | Coste |
 |---|---|---|

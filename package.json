@@ -18,6 +18,8 @@
     "verificar-citas": "node tools/verificar-citas-guia.js",
     "verificar-esperas": "node tools/verificar-esperas.js",
     "verificar-totales": "node tools/verificar-totales-indice.js",
+    "verificar-datos": "node tools/verificar-datos-aventuras.js",
+    "verificar-frames": "node tools/verificar-frames.js",
     "sync:master-test": "node tools/sync-master-test.js",
     "generar-guiones": "node tools/generar-guiones-aventuras.mjs",
     "generar-tramos-video": "node tools/generar-tramos-para-videos.mjs",

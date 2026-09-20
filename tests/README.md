@@ -1,147 +1,44 @@
-# 🧪 Sistema de Tests - ValenciaVGuides
+# Tests
 
-## Resumen
+## Qué hay aquí
 
-Este directorio contiene la suite completa de tests para el proyecto ValenciaVGuides.
+| Ruta | Qué es | Cómo se ejecuta |
+|------|--------|-----------------|
+| `e2e/*.spec.js` | La suite E2E de Playwright. Es la red principal: abre la aplicación real en cuatro navegadores (chromium, firefox, pixel5, iphone12) | `npm run test:e2e` |
+| `e2e/helpers/` | Arranque común de los specs (`boot.js`), stub de MapLibre y `marco-vacio.html`, un documento del mismo origen que hace de padre cuando un test necesita meter un frame en un iframe | — |
+| `master-test.html` | Panel que importa el informe JSON de Playwright y muestra sus resultados agregados | Abrirlo con el servidor local |
+| `*.test.js` | Tests del backend (API, datos, errores). **Hoy no los ejecuta nada**: no hay jest ni vitest instalados ni script `test` en `package.json` | — |
 
-## 🚀 Cómo Ejecutar los Tests
+Lo que se puede comprobar sin navegador no vive aquí, sino en `tools/`: integridad de datos,
+tipos de mensaje huérfanos, citas de la guía, esperas ciegas, medios. Ver §18.2 de
+`docs/GUIA-COMPLETA.md` para la lista de comandos.
 
-### Opción 1: Test Runner Centralizado (Recomendado)
+## Cómo correr la suite
 
-1. Inicia el servidor local:
-   ```bash
-   node js/server.js
-   ```
-
-2. Abre en el navegador:
-   ```
-   http://localhost:8080/tests/test_runner.html
-   ```
-
-3. Usa los botones para:
-   - **Ejecutar Todos**: Corre todos los tests secuencialmente
-   - **Por categoría**: Ejecuta solo tests de una categoría
-   - **Ver**: Abre un test individual en un modal
-
-### Opción 2: Tests Individuales
-
-Abre directamente cualquier archivo `test_*.html` en el navegador (requiere servidor local).
-
----
-
-## 📋 Categorías de Tests
-
-### 📬 Mensajería y Carga de Datos
-
-| Test | Archivo | Descripción |
-|------|---------|-------------|
-| CARGAR_COORDENADAS | `test_cargar_coordenadas.html` | Verifica que hijo2 reciba y procese coordenadas |
-| Distribuir Datos | `test_integracion_distribuir_datos.html` | Integración de distribución de coordenadas (audios/retos ya no se distribuyen en bulk — protección pasiva por parada) |
-
-### 🔄 Comunicación Padre ↔ Hijos
-
-| Test | Archivo | Descripción |
-|------|---------|-------------|
-| CAMBIO_PARADA | `test_cambio_parada.html` | Flujo completo: hijo5 → padre → hijos |
-| RESPUESTA_DATOS_PARADAS | `test_respuesta_datos_paradas_hijo5.html` | Recepción de paradas en hijo5 |
-| Handshake | `test_hijo_handshake.html` | HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO |
-| SOLICITAR_RETO | `test_solicitar_reto_hijo4.html` | Solicitud y respuesta de retos |
-| SOLICITAR_PARADAS | `test_datos_solicitar_paradas_combinados.html` | Datos combinados de paradas |
-
-### 🗺️ Navegación y GPS
-
-| Test | Archivo | Descripción |
-|------|---------|-------------|
-| GPS Restricción | `test_gps_activation_restriction.html` | GPS.ACTIVAR solo funciona en modo AVENTURA |
-| GPS Fallback | `test_gps_fallback.html` | Fallback a P-0 cuando hay baja precisión |
-| GPS Validación | `test_gps_message_validation.html` | Validación de mensajes GPS |
-| Flujo Completo | `test_flujo_completo_aventura.html` | Ciclo completo: selección → aventura → cambio parada |
-
-### ⚙️ Sistema
-
-| Test | Archivo | Descripción |
-|------|---------|-------------|
-| Cambio Modo | `test_cambio_modo.html` | Cambio entre modo Casa y Aventura |
-| Heartbeat | `test_heartbeat.html` | Sistema de heartbeat padre ↔ hijos |
-| Controlador Fusionado | `test_controlador_fusionado.html` | Test de HIJO_LISTO fusionado |
-| Carga Iframes | `test_carga_secuencial_iframes.html` | Carga secuencial de iframes |
-| Mensajería Base | `test_mensajeria.html` | Carga del módulo de mensajería |
-| Handlers No Throw | `test_message_handlers_no_throw.html` | Handlers toleran mensajes malformados |
-| UI Visibility | `test_ui_visibility_handshake.html` | UI oculta antes del handshake |
-| Índice Aventuras | `test_indice_aventuras.html` | Carga del índice de aventuras |
-| Integración Completa | `test_integracion_completa.html` | Test integral del sistema |
-
----
-
-## 📊 Herramientas de Análisis
-
-| Archivo | Descripción |
-|---------|-------------|
-| `analyze_controllers.js` | Analiza controladores registrados vs constants.js |
-| `analyze_controllers_report.json` | Último reporte del análisis |
-| `verificar_controladores.py` | Verificación en Python de controladores |
-| `flujo_bidireccional_exhaustivo.json` | Documentación del flujo de comunicación |
-
----
-
-## 🔧 Estructura de un Test
-
-Cada test sigue este patrón:
-
-```html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Test: [NOMBRE]</title>
-    <script type="module">
-        import { TIPOS_MENSAJE } from '../js/constants.js';
-    </script>
-</head>
-<body>
-    <h1>🧪 Test: [NOMBRE]</h1>
-    <button onclick="runTest()">Ejecutar Test</button>
-    <div id="results"></div>
-
-    <iframe id="componente" src="../[archivo].html"></iframe>
-
-    <script type="module">
-        window.runTest = async function() {
-            // 1. Esperar carga del iframe
-            // 2. Enviar mensaje de prueba
-            // 3. Verificar respuesta
-            // 4. Mostrar resultados
-        };
-    </script>
-</body>
-</html>
+```bash
+npm run test:e2e              # los cuatro navegadores
+npm run test:e2e:chromium     # solo chromium, para iterar
+npm run test:e2e:report       # abre el informe de la última tanda
 ```
 
----
+Un solo fichero, o repitiéndolo para cazar intermitencias:
 
-## 📝 Notas Importantes
+```bash
+npx playwright test tests/e2e/01-fase1-boot.spec.js --project=chromium
+npx playwright test tests/e2e/01-fase1-boot.spec.js --repeat-each=10
+```
 
-1. **Servidor Local Requerido**: Los tests usan ES modules y iframes, requieren servidor HTTP.
+## Cómo se escribe un spec aquí
 
-2. **Cross-Origin**: Algunos tests pueden fallar en verificaciones internas debido a restricciones de cross-origin, pero el comportamiento principal se puede verificar por mensajes.
-
-3. **Orden de Ejecución**: Para tests de flujo completo, el orden de los pasos importa.
-
-4. **Timeouts**: Los tests tienen timeouts de 5-30 segundos. Si un componente tarda más en cargar, el test puede fallar.
-
-5. **Consola del Navegador**: Siempre revisa la consola del navegador para más detalles del comportamiento interno.
-
----
-
-## 🆕 Tests Creados/Actualizados (Marzo 2026)
-
-- `test_cargar_coordenadas.html` - Nuevo
-- `test_cargar_audios.html` - Nuevo
-- `test_cargar_retos.html` - Nuevo
-- `test_cambio_parada.html` - Nuevo
-- `test_respuesta_datos_paradas_hijo5.html` - Nuevo
-- `test_flujo_completo_aventura.html` - Nuevo
-- `test_heartbeat.html` - Nuevo
-- `test_runner.html` - Nuevo (test runner centralizado)
-- `test_audio_distribution.html` - Actualizado (rutas corregidas)
-- `test_carga_secuencial_iframes.html` - Actualizado (rutas corregidas)
-- `test_controlador_fusionado.html` - Actualizado (rutas corregidas)
+- **Rojo antes que verde.** Un test que pasa con y sin el fallo no vale. Antes de dar uno por
+  bueno se rompe a propósito lo que dice proteger y se comprueba que cae — y que caen sus casos
+  y no los de al lado.
+- **Esperar a una condición, no a un tiempo.** `page.waitForTimeout(n)` funciona en la máquina
+  de quien lo escribe y falla en tandas completas. Se usa `expect.poll` o `waitForFunction`. La
+  única excepción es demostrar que algo NO ocurre: eso se marca con
+  `// VENTANA-OBSERVACION: <motivo>` y lo vigila `npm run verificar-esperas`.
+- **Mirar el efecto, no la función.** Se comprueba lo que ve el usuario (una clase, un
+  `display`, un mensaje que llega), no que se haya llamado a algo.
+- **Que el arnés se delate.** Si el test monta un iframe, comprueba que cargó lo que creía: una
+  página de error también tiene `body`, y sin esa comprobación un 404 parece un fallo del código.
+- **La cabecera explica POR QUÉ existe el fichero**, qué midió quien lo escribió y qué NO cubre.

@@ -25,6 +25,10 @@ module.exports = [
       // (debe ejecutarse antes de que cualquier módulo, incluido logger.js, cargue).
       // console.assert()/console.clear() son operaciones de consola sin equivalente
       // en el logger (no son mensajes de log) — permitidas explícitamente.
+      // Espacios o tabs al final de linea. Se limpiaron 868 en 51 ficheros; esta regla
+      // es lo que impide que vuelvan. Los .md NO se lintan, y eso es a proposito: alli dos
+      // espacios finales son un salto de linea duro.
+      "no-trailing-spaces": "error",
       "no-console": ["error", { allow: ["assert", "clear"] }],
     },
   },
@@ -235,6 +239,10 @@ module.exports = [
       // Mismo criterio que en js/**/*.js — ver comentario en ese bloque.
       // Excepciones puntuales llevan // eslint-disable-line no-console con el motivo
       // (típicamente: script clásico pre-módulo, antes de que logger.js se importe).
+      // Espacios o tabs al final de linea. Se limpiaron 868 en 51 ficheros; esta regla
+      // es lo que impide que vuelvan. Los .md NO se lintan, y eso es a proposito: alli dos
+      // espacios finales son un salto de linea duro.
+      "no-trailing-spaces": "warn",
       "no-console": ["warn", { allow: ["assert", "clear"] }],
     },
   },
@@ -251,8 +259,7 @@ module.exports = [
   //   2. Otros la usan para avisar de que un test quedó INDETERMINADO, que es información
   //      que el desarrollador necesita ver (05-queues-draining, 06-race-conditions).
   //   3. Los scripts sueltos IMPRIMEN su informe por consola: esa es toda su salida
-  //      (run-master-test.js, test_datos_solicitar_paradas_combinados.js,
-  //      07-performance-baseline).
+  //      (07-performance-baseline).
   //
   // Ninguno es depuración olvidada. Se comprobó leyendo los 80 casos, no por el nombre del
   // método — clasificarlos por si eran log/info/debug daba una respuesta equivocada.

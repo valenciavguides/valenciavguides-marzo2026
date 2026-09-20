@@ -208,6 +208,5 @@ server.listen(port, () => {
   console.log(`🚀 Servidor HTTP corriendo en http://localhost:${port}`);
   console.log(`📁 Sirviendo archivos desde: ${process.cwd()}`);
   console.log(`\n🌐 Abre en tu navegador:`);
-  console.log(`   http://localhost:${port}/tests/test-codigo-padre.html`);
   console.log(`   http://localhost:${port}/codigo-padre.html`);
 });

@@ -33,7 +33,7 @@ const MASTER = path.join(RAIZ, 'tests', 'master-test.html');
 const INI = '// <<< CATALOGO GENERADO — no editar a mano; lo escribe tools/sync-master-test.js';
 const FIN = '// >>> FIN DEL CATALOGO GENERADO';
 
-/** Convierte 'test_gps_fallback.html' en 'GPS Fallback'. */
+/** Convierte '89-script2-listo-dice-la-verdad.spec.js' en 'Script2 listo dice la verdad'. */
 function titulo(fichero) {
     return fichero
         .replace(/\.(html|spec\.js)$/, '')
