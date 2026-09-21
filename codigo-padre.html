@@ -11169,21 +11169,6 @@ await _comprobarReanudacionAventura(logPrefix);
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Inicializando controladores del padre...`);
         inicializarControlesAudioPadre();
 
-        // Script 2 puede ejecutarse antes de que Script 1 haya expuesto
-        // registrarControladorSeguro. En ese caso, encolar registros para drenarlos
-        // cuando el init async confirme disponibilidad.
-        if (!Array.isArray(globalThis.__SCRIPT2_CONTROLADORES_PENDIENTES)) {
-            globalThis.__SCRIPT2_CONTROLADORES_PENDIENTES = [];
-        }
-        function registrarControladorScript2Seguro(tipo, handler, opciones) {
-            if (typeof globalThis.registrarControladorSeguro === 'function') {
-                return globalThis.registrarControladorSeguro(tipo, handler, opciones);
-            }
-            globalThis.__SCRIPT2_CONTROLADORES_PENDIENTES.push({ tipo, handler, opciones });
-            (globalThis.logger || console).info(`[SCRIPT2] Controlador encolado por inicialización pendiente: ${tipo}`);
-            return false;
-        }
-
         // Controladores SISTEMA registrados en Script 1: CAMBIO_MODO, ESTADO, HEARTBEAT, APLICACION_INICIALIZADA
 
         function _encontrarParadaEnElementos(elementosIDpadre, paradaId, idSinPrefijo) {
@@ -11399,8 +11384,6 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR);
-
         // ============================================================
         // ADDITIONAL CONTROLLER REGISTRATIONS
         // These use globalThis.registrarControladorSeguro which is defined
@@ -11422,19 +11405,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 await sleep(50);
             }
 
-            // Drenar registros tempranos que llegaron antes de que Script 1
-            // expusiera registrarControladorSeguro.
-            if (Array.isArray(globalThis.__SCRIPT2_CONTROLADORES_PENDIENTES) && globalThis.__SCRIPT2_CONTROLADORES_PENDIENTES.length > 0) {
-                const pendientes = globalThis.__SCRIPT2_CONTROLADORES_PENDIENTES.splice(0);
-                for (const { tipo, handler, opciones } of pendientes) {
-                    try {
-                        globalThis.registrarControladorSeguro(tipo, handler, opciones);
-                    } catch (e) {
-                        (globalThis.logger || console).error(`[SCRIPT2] Error registrando controlador pendiente ${tipo}:`, e);
-                    }
-                }
-                (globalThis.logger || console).info(`[SCRIPT2] ✅ Controladores pendientes registrados: ${pendientes.length}`);
-            }
         }
 
         async function _hdl_RETO_OCULTAR(mensaje) {
@@ -11706,6 +11676,11 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         function _regCtrl_Reto(TIPOS_MENSAJE) {
+        // SOLICITAR_RETO se registraba aparte, a nivel de modulo y con un envoltorio propio
+        // que tenia su propia cola de espera — para este unico tipo. Aqui va con sus
+        // hermanos y por el mismo camino que los otros ~64 controladores de Script 2.
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR, { permanente: true });
+
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.OCULTAR, _hdl_RETO_OCULTAR, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.COMPLETADO, _hdl_RETO_COMPLETADO, { permanente: true });
