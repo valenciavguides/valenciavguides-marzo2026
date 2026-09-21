@@ -1,8 +1,8 @@
 # La mensajería entre frames: mapa completo y plan de unificación
 
 Documento de trabajo. Recoge **todo** lo que hay hoy en la comunicación entre frames de la
-app, los fallos que eso esconde y lo que exige unificarla. **De la unificación no hay nada
-implementado**; de los fallos vivos están arreglados F1 y F5.
+app, los fallos que eso esconde y lo que exige unificarla. **El bus está construido y van tres
+frames migrados de siete**; de los cinco fallos vivos no queda ninguno abierto.
 
 Los números de línea son aproximados: se desplazan con cada edición.
 
@@ -30,7 +30,7 @@ no.**
 ### Orden
 
 F1 → F5 → diseño del bus → migración (Parte V). F2 se arregla dentro de la migración; F3 y F4,
-cuando toque. **F1 y F5 están arreglados** (sin commitear).
+cuando toque. **Los cinco están arreglados y commiteados** (F2 y F3 cayeron al migrar; F4, al separar en el `pagehide` del padre el cierre real del viaje a la caché de atrás).
 
 ### Decisiones de diseño (tomadas)
 
@@ -85,7 +85,7 @@ codigo-padre.html
 ## 2. Las copias de los envoltorios
 
 Cada hijo lleva su propia copia de las funciones de mensajería, en vez de usar el bus.
-Comparadas quitando comentarios y espacios:
+Comparadas quitando comentarios y espacios. **hijo1, hijo5 y selección ya no tienen copia: hablan por el bus, y las filas de abajo describen a los cuatro que faltan (hijo2, hijo3, hijo4, hijo6).**
 
 | Pieza | Copias | Variantes distintas |
 |---|---|---|
@@ -579,9 +579,9 @@ Existen hoy, sin tocar nada. Ninguno está arreglado.
 | # | Qué pasa | Evidencia | Test |
 |---|---|---|---|
 | **F1** ✅ arreglado | **Al responder "no" en el reto R2, el padre no se entera.** Selección manda `SELECCION.REINICIAR` sin `origen` y el bus lo tira: `_hdl_SELECCION_REINICIAR` no se ejecuta nunca. Las banderas `_codigoValidadoP13` e `_iframesPreCargadosP14` siguen en `true` hasta que se vuelve a elegir aventura, donde otro sitio las resetea y lo tapa. Mientras tanto, el aviso de señal GPS puede salir encima de la selección (**sin probar**) | **confirmado en ejecución**: con remitente el handler corre; con el clic real, no | **spec 74**: rojo en los 4 antes del arreglo, verde después |
-| **F2** | **Los errores de los hijos nunca llegan al padre.** `utils.js` instala el reporte en todos los iframes, pero envía por `globalThis.mensajeria`, que ningún hijo tiene. Cada error se encola, se reintenta 10 s y acaba en un aviso de consola del hijo. El comentario dice que usa un canal "que YA existe y funciona" | **confirmado en ejecución**: el error no llega y el hijo escribe "La mensajería nunca estuvo disponible" | **spec 75**, rojo en los 4; el 58 pasa porque inventa un bus falso |
-| **F3** | **La pausa del audio al abrir una página informativa no llega a hijo3** (§10, punto 1) | **confirmado en ejecución**: el padre registra "Acción no manejada: audio_control" | **spec 76**, rojo en los 4 |
-| **F4** | **Volver atrás desde la despedida podría dejar la app vacía** (§14) | **reacción de la app confirmada**: tras `pagehide` + `pageshow` con `persisted`, pasa de 8 iframes a 0. **No medible** si un navegador real guardaría la página: los de Playwright no restauran nunca de esa caché, ni con páginas triviales | **spec 77**, rojo en los 4 |
+| **F2** ✅ arreglado | **Los errores de los hijos nunca llegan al padre.** `utils.js` instala el reporte en todos los iframes, pero envía por `globalThis.mensajeria`, que ningún hijo tiene. Cada error se encola, se reintenta 10 s y acaba en un aviso de consola del hijo. El comentario dice que usa un canal "que YA existe y funciona" | **confirmado en ejecución**: el error no llega y el hijo escribe "La mensajería nunca estuvo disponible" | **spec 75**, rojo en los 4; el 58 pasa porque inventa un bus falso |
+| **F3** ✅ arreglado | **La pausa del audio al abrir una página informativa no llega a hijo3** (§10, punto 1) | **confirmado en ejecución**: el padre registra "Acción no manejada: audio_control" | **spec 76**, rojo en los 4 |
+| **F4** ✅ arreglado | **Volver atrás desde la despedida podría dejar la app vacía** (§14) | **reacción de la app confirmada**: tras `pagehide` + `pageshow` con `persisted`, pasa de 8 iframes a 0. **No medible** si un navegador real guardaría la página: los de Playwright no restauran nunca de esa caché, ni con páginas triviales | **spec 77**, rojo en los 4 |
 | **F5** ✅ arreglado | **En CASA el heartbeat no se calla**: el de `monitoreo.js` sigue cada 5 s aunque el bus pausa el suyo | **confirmado en ejecución**: con el del bus pausado, hijo2 recibe 2 latidos de `monitoreo` en 12 s | **spec 78**: rojo en los 4 antes del arreglo, verde después |
 
 Menores, sin efecto funcional:
@@ -804,7 +804,7 @@ del padre, que borra los iframes, sigue ahí y no depende de este plan.
 ## Parte VI — Diseño del bus
 
 Traducción de todas las decisiones a comportamiento concreto, verificada contra el código antes
-de construir. **Nada de esto está implementado.**
+de construir. **Implementado, salvo dos cosas del §21: `tieneControlador(tipo)` y `listarControladores()` no existen —los specs 07 y 20 siguen preguntándole al state-manager— y el plazo por defecto del acuse es `5000` pelado en vez de `ajustarTimeoutPorConexion(5000)`.**
 
 ## 21. Las reglas
 
@@ -1115,10 +1115,13 @@ sigue en pie antes de afirmar nada.
 ### 25.9. Abierto
 
 - **Espacios al final** ya existentes en `js/mensajeria.js` y `js/utils.js` (7 líneas con código,
-  64 en blanco). No se tocan; la regla `no-trailing-spaces` no está configurada.
-- **F2** (spec 75) y **F4** (spec 77) siguen en rojo a propósito. F2 cae al migrar la pantalla de
-  selección y arrastra reescribir el spec 58; F4 necesita una decisión sobre el `pagehide` del padre.
-- **Migración**: van 2 de 7 (hijo1, hijo5). Faltan selección, hijo4, hijo6, hijo3 y hijo2, después
+  64 en blanco). Limpiados: la regla `no-trailing-spaces` ya está configurada y cubre `js/` y los HTML de la raíz.
+- **F2** (spec 75), **F3** (spec 76) y **F4** (spec 77) están en verde. F2 cayó al migrar la
+  pantalla de selección; F4, al separar en el `pagehide` del padre los dos viajes que ese evento
+  cubre (`event.persisted === true` ahora no limpia nada). El spec 58 ya no usa un bus inventado:
+  su comprobación de `origen` se mudó al 75, al camino real y con el valor exacto — ese campo lo
+  pone el bus, no `utils.js`.
+- **Migración**: van 3 de 7 (hijo1, hijo5, selección). Faltan hijo4, hijo6, hijo3 y hijo2, después
   los tres nietos, y al final los cabos sueltos del padre.
 
 ---
