@@ -641,6 +641,9 @@
     modalContenidoEl.className = 'chat-modal-contenido sin-padding';
     modalContenidoEl.innerHTML = '';
     const iframeVideo = document.createElement('iframe');
+    // Registrar ANTES del `src`: el bus solo acepta mensajes de un iframe registrado.
+    // El modal se crea y se destruye cada vez, asi que se da de baja al cerrarlo.
+    globalThis.mensajeria.registrarIframe('video-intro', iframeVideo);
     iframeVideo.src = 'video-intro.html?lang=' + encodeURIComponent(idioma) + '&replay=1';
     iframeVideo.title = 'Video intro';
     modalContenidoEl.appendChild(iframeVideo);
@@ -659,15 +662,22 @@
 
   function cerrarModal() {
     modalOverlayEl.classList.remove('visible');
+    // De baja antes de vaciar: el iframe del vídeo se va con el HTML, y un registro que
+    // apunta a un elemento que ya no existe se queda ahí para siempre.
+    globalThis.mensajeria.desregistrarIframe('video-intro');
     modalContenidoEl.innerHTML = ''; // detiene el vídeo si estaba reproduciéndose
   }
   modalCerrarEl.addEventListener('click', cerrarModal);
 
-  // El vídeo de introducción anidado notifica su fin exactamente igual que en
+  // El vídeo de introducción anidado avisa de su fin exactamente igual que en
   // En-busca-del-tesoro.html — aquí solo se usa para cerrar el modal.
-  globalThis.addEventListener('message', (evento) => {
-    if (evento.origin !== globalThis.location.origin) return;
-    if (evento.data?.tipo === 'SELECCION.VIDEO_INTRO_TERMINADO') cerrarModal();
+  //
+  // Va por el bus, que solo acepta mensajes de un iframe que este frame haya registrado. La
+  // escucha cruda que había aquí aceptaba ese aviso de CUALQUIER frame del dominio: bastaba
+  // con mandarlo para cerrarle el modal al usuario.
+  registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.VIDEO_INTRO_TERMINADO, async () => {
+    cerrarModal();
+    return true;
   });
 
   function actualizarIdioma(nuevoIdioma) {

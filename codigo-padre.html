@@ -4859,12 +4859,12 @@
                     if (iframeSeleccion) {
                         iframeSeleccion.style.display = 'block';
                         iframeSeleccion.style.visibility = 'visible';
-                        try {
-                            iframeSeleccion.contentWindow.postMessage({
-                                tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA,
-                                datos: { pantalla: 1 }
-                            }, globalThis.location.origin);
-                        } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+                        // Por el bus: a pelo iba sin `origen`, y el bus descarta lo que llega sin remite.
+                        void enviarMensaje_S1({
+                            tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA,
+                            destino: 'seleccion',
+                            datos: { pantalla: 1 },
+                        });
                     }
                     resolve('otra');
                 }
@@ -4966,12 +4966,12 @@
                     if (iframeSeleccion) {
                         iframeSeleccion.style.display = 'block';
                         iframeSeleccion.style.visibility = 'visible';
-                        try {
-                            iframeSeleccion.contentWindow.postMessage(
-                                { tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA, datos: { pantalla: 1 } },
-                                globalThis.location.origin
-                            );
-                        } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+                        // Por el bus: a pelo iba sin `origen`, y el bus descarta lo que llega sin remite.
+                        void enviarMensaje_S1({
+                            tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA,
+                            destino: 'seleccion',
+                            datos: { pantalla: 1 },
+                        });
                     }
                     resolve('otra');
                 }

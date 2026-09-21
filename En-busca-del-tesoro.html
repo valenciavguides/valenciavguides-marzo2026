@@ -2290,6 +2290,9 @@
       if (!container) return;
       if (!container.querySelector('iframe')) {
         const iframe = document.createElement('iframe');
+        // Registrar ANTES del `src`: el bus solo acepta mensajes de un iframe que esta
+        // pantalla haya registrado, y el video avisa al terminar.
+        globalThis.mensajeria.registrarIframe('video-intro', iframe);
         iframe.src = 'video-intro.html?lang=' + encodeURIComponent(idiomaSeleccionado || 'es');
         iframe.style.cssText = 'width:100%;height:100%;border:none;';
         iframe.title = 'Video intro';
@@ -3180,18 +3183,24 @@
         // Aquí se puede agregar lógica adicional que necesite ejecutarse después de la confirmación del padre
     }
 
-    // Escuchar mensaje del padre para navegar a una pantalla específica (ej. tras elegir otra aventura)
-    globalThis.addEventListener('message', function(event) {
-        if (event.origin !== globalThis.location.origin) return;
-        if (event.data?.tipo === 'SELECCION.VIDEO_INTRO_TERMINADO') {
-            _log.info('[SELECCION][P4] video-intro terminado → mostrando P5');
-            void mostrar(5);
-            return;
-        }
-        if (event.data?.tipo === TIPOS_MENSAJE.NAVEGACION_PANTALLA && event.data?.datos?.pantalla) {
-            logger.debug('📋 [SELECCION] NAVEGAR_PANTALLA recibido → pantalla', event.data.datos.pantalla);
-            void mostrar(event.data.datos.pantalla);
-        }
+    // Los dos avisos que mueven esta pantalla, por el bus.
+    //
+    // Aqui habia una escucha cruda que solo miraba el origen del dominio, asi que
+    // cualquier frame podia hacerla saltar a otra pantalla. El bus solo acepta a su
+    // padre (el NAVEGAR_PANTALLA) y a los iframes que esta pantalla registra (el aviso
+    // de fin de video, que llega de su propio video-intro).
+    void registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.VIDEO_INTRO_TERMINADO, async () => {
+        _log.info('[SELECCION][P4] video-intro terminado → mostrando P5');
+        void mostrar(5);
+        return true;
+    });
+
+    void registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION_PANTALLA, async (mensaje) => {
+        const pantalla = mensaje?.datos?.pantalla;
+        if (!pantalla) return false;
+        logger.debug('📋 [SELECCION] NAVEGAR_PANTALLA recibido → pantalla', pantalla);
+        void mostrar(pantalla);
+        return true;
     });
   </script>
 

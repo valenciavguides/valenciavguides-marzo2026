@@ -586,6 +586,8 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/vendor/page-flip.browser.js"></script>
 <script type="module">
+  import * as bus from './js/mensajeria.js';
+  import { TIPOS_MENSAJE } from './js/constants.js';
   import { JAIME_SCENES } from './js/traducciones-ui.js';
   import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
   import logger from './js/logger.js';
@@ -597,6 +599,16 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   // durante la animacion —mucho despues de que este modulo diferido haya terminado—,
   // asi que para entonces `globalThis.logger` ya es el logger real.
   globalThis.logger = logger;
+
+  // Este frame es un NIETO: lo incrusta la pantalla de seleccion (P4) o el asistente
+  // (el modal "ver de nuevo"). Su "padre" a efectos del bus es ese frame, y es a el a
+  // quien avisa de que el video ha terminado. Nada salta por encima de su contenedor.
+  //
+  // El envio vive en el <script> clasico de abajo, que no puede importar: usa
+  // `globalThis.mensajeria` —que el bus publica al cargarse— y este puente para los tipos,
+  // mismo patron que JAIME_SCENES aqui arriba y que el de seleccion y el puzzle.
+  globalThis.TIPOS_MENSAJE = TIPOS_MENSAJE;
+  await bus.inicializarMensajeria({ id: 'video-intro' });
 </script>
 <script>
 'use strict';
@@ -1938,10 +1950,18 @@ async function scene19(){
 
 /* ── RUN ─────────────────────────────────────── */
 globalThis._continuarVideo = function() {
-  try {
-    const _o = globalThis.location.origin;
-    globalThis.parent?.postMessage({ tipo: 'SELECCION.VIDEO_INTRO_TERMINADO', origen: 'video-intro', timestamp: Date.now() }, _o);
-  } catch(_e) { /* modo standalone */ }
+  // Los tipos salen del puente que publica el modulo de arriba: este bloque es un
+  // <script> clasico y no puede importar. Si el puente faltara, el aviso saldria con
+  // `tipo: undefined`, el bus lo descartaria y el usuario se quedaria mirando el video
+  // terminado sin que la pantalla avanzara. Por eso se dice en voz alta.
+  const tipo = globalThis.TIPOS_MENSAJE?.SELECCION?.VIDEO_INTRO_TERMINADO;
+  if (!tipo) {
+    (globalThis.logger || console).error('[video-intro] globalThis.TIPOS_MENSAJE no disponible: el aviso de fin de video no saldra');
+    return;
+  }
+  // `enviarMensaje` no lanza: devuelve false y lo dice en el log si no hay contenedor
+  // a quien avisar. El try/catch que habia aqui no podia saltar.
+  void globalThis.mensajeria?.enviarMensaje?.({ tipo, destino: 'padre' });
 };
 globalThis._replayVideoIntro = function() {
   globalThis.location.reload();
