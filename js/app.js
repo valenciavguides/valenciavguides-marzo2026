@@ -148,10 +148,6 @@ function limpiarPromesasPendientes() {
 // Intervalo separado para limpiar promesas pendientes cada 30s (sincronizado)
 const intervaloLimpiezaPromesas = setInterval(() => {
     limpiarPromesasPendientes();
-    // Limpiar mensajes trackeados en state-manager para evitar consumo RAM ilimitado
-    if (globalThis.__vv_stateManager && typeof globalThis.__vv_stateManager.limpiarMensajesAntiguos === 'function') {
-        globalThis.__vv_stateManager.limpiarMensajesAntiguos(1000);
-    }
 }, 30000);  // Sincronizado con mensajeria.js
 
 // ==================== FUNCIONES AUXILIARES ====================
@@ -361,8 +357,9 @@ async function _activarParadaDefectoAventura() {
             const padreId = paradaDefecto.padreid || `padre-${paradaId}`;
             const payloadCambioParada = {
                 tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                origen: resolverIdPadre(),
-                destino: resolverIdPadre(),
+                // Sin `origen` ni `destino`: lo despacha el propio frame contra sí mismo, así
+                // que el bus pone `origen: 'padre'` —el único nombre del padre— y un destino
+                // no significa nada aquí.
                 datos: {
                     paradaId,
                     parada_id: paradaId,
@@ -375,16 +372,18 @@ async function _activarParadaDefectoAventura() {
 
             logger.info(`[APP][CAMBIO_MODO] Activando flujo principal de CAMBIO_PARADA para ${padreId}`);
 
-            if (globalThis.__vv_stateManager && typeof globalThis.__vv_stateManager.enviarMensajeCentral === 'function') {
-                await globalThis.__vv_stateManager.enviarMensajeCentral(payloadCambioParada);
-                logger.debug(`[APP][CAMBIO_MODO] CAMBIO_PARADA inicial enviado al controlador central para ${padreId}`);
-            } else {
-                globalThis.postMessage({
-                    ...payloadCambioParada,
-                    origen: 'app-bootstrap'
-                }, globalThis.location.origin);
-                logger.warn(`[APP][CAMBIO_MODO] State manager no disponible; fallback via postMessage para ${padreId}`);
-            }
+            // Por `despacharLocal`, que mete este mensaje en la MISMA fila por tipo que un
+            // CAMBIO_PARADA llegado de fuera. Antes iba por `enviarMensajeCentral` del
+            // state-manager, un segundo repartidor con garantías distintas: ejecutaba TODOS los
+            // handlers que encajaran en vez del primero, no pasaba por la fila y no confirmaba.
+            // Dos repartidores para el mismo trabajo, y este era justo el mensaje que podía
+            // coincidir con otro CAMBIO_PARADA entrante.
+            //
+            // Sin rama alternativa: `app.js` se importa DESPUÉS del bus en el arranque del
+            // padre, así que `globalThis.mensajeria` existe siempre aquí. El `postMessage` de
+            // respaldo que había no podía tomarse nunca.
+            await globalThis.mensajeria.despacharLocal(payloadCambioParada);
+            logger.debug(`[APP][CAMBIO_MODO] CAMBIO_PARADA inicial despachado para ${padreId}`);
         }
     } catch (e) {
         logger.warn('[APP][CAMBIO_MODO] Error estableciendo parada por defecto:', e);

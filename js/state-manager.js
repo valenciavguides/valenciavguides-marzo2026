@@ -29,7 +29,6 @@ const mutexes = {
   retosCargados: new SimpleMutex(),
   estadoPadre: new SimpleMutex(),
   controladores: new SimpleMutex(),
-  mensajesEnviados: new SimpleMutex(),
   heartbeat: new SimpleMutex(),
   hijosListosPromises: new SimpleMutex(),
 };
@@ -67,7 +66,6 @@ const state = {
     },
     monitoreo: {
       metricas: {
-        mensajesEnviados: 0,
         mensajesRecibidos: 0,
         errores: 0,
         tiempoRespuestaPromedio: 0,
@@ -101,7 +99,6 @@ const state = {
     hijosQueRecibieronPadreListo: new Set()
   },
   controladores: new Map(),
-  mensajesEnviados: new Set(),
   heartbeat: {
     activo: false,
     intervalo: null,
@@ -274,55 +271,6 @@ export async function updateEstadoPadre(updates) {
 // ==================== CENTRALIZED CONTROLLER AND MESSAGE MANAGEMENT ====================
 
 /**
- * Aserción interna: lanza Error si el mensaje no tiene la estructura mínima requerida.
- * Único validador de mensajes de la app — validacion.js solo exporta validarCoordenadas()
- * (el resto de esa librería, incluido un validarMensaje() con contrato distinto, se
- * retiró en la auditoría de 2026-08-03 por no tener ningún caller real).
- */
-async function _assertMensajeValido(mensaje) {
-  if (!mensaje || typeof mensaje !== 'object') {
-    throw new Error('Mensaje inválido: debe ser un objeto');
-  }
-
-  const requiredFields = ['tipo', 'origen', 'destino'];
-  for (const field of requiredFields) {
-    if (!mensaje[field]) {
-      throw new Error(`Mensaje inválido: falta campo requerido '${field}'`);
-    }
-  }
-
-  if (typeof mensaje.tipo !== 'string' || mensaje.tipo.trim() === '') {
-    throw new Error('Mensaje inválido: tipo debe ser una cadena no vacía');
-  }
-
-  if (typeof mensaje.origen !== 'string' || mensaje.origen.trim() === '') {
-    throw new Error('Mensaje inválido: origen debe ser una cadena no vacía');
-  }
-
-  if (typeof mensaje.destino !== 'string' && mensaje.destino !== 'broadcast') {
-    throw new Error('Mensaje inválido: destino debe ser una cadena o "broadcast"');
-  }
-
-  const posiblesIds = new Set();
-  if (mensaje.mensajeId) posiblesIds.add(mensaje.mensajeId);
-  if (mensaje.id) posiblesIds.add(mensaje.id);
-  if (mensaje.datos?.mensajeId) posiblesIds.add(mensaje.datos.mensajeId);
-  if (mensaje.datos?.id) posiblesIds.add(mensaje.datos.id);
-
-  if (posiblesIds.size > 0) {
-    await mutexes.mensajesEnviados.runExclusive(() => {
-      for (const id of posiblesIds) {
-        if (state.mensajesEnviados.has(id)) {
-          throw new Error(`Mensaje duplicado: ID '${id}' ya enviado`);
-        }
-      }
-    });
-  }
-
-  return true;
-}
-
-/**
  * Registers a controller centrally to prevent duplicates
  * @param {string} controladorId - Unique ID for the controller
  * @param {Function} handler - The handler function
@@ -378,110 +326,6 @@ export async function registrarControladorCentral(controladorId, handler, opcion
 
     return true;
   });
-}
-
-/**
- * Sends a message centrally, validating and tracking it
- * @param {Object} mensaje - The message to send
- * @returns {Promise<Object>} - Result of sending
- */
-async function _enviarAControladores(mensaje, resultados) {
-  // Recopilar handlers dentro del lock (solo lectura, sin await) para evitar deadlock:
-  // si el handler despacha otro mensaje que intenta adquirir este mismo mutex, deadlock.
-  const handlersToRun = await mutexes.controladores.runExclusive(() => {
-    const matching = [];
-    for (const [id, controlador] of state.controladores) {
-      if (!controlador.activo) continue;
-      const { opciones } = controlador;
-      const matchesTipo = !opciones.tipoMensaje || mensaje.tipo === opciones.tipoMensaje;
-      const matchesOrigen = !opciones.origen || mensaje.origen === opciones.origen;
-      const matchesDestino = mensaje.destino === 'broadcast' || mensaje.destino === opciones.destino || !opciones.destino;
-      if (matchesTipo && matchesOrigen && matchesDestino) {
-        matching.push({ id, handler: controlador.handler });
-      }
-    }
-    return matching;
-  });
-
-  // Ejecutar handlers fuera del lock
-  for (const { id, handler } of handlersToRun) {
-    try {
-      const resultado = await handler(mensaje);
-      resultados.push({ controladorId: id, exito: true, resultado });
-    } catch (error) {
-      (globalThis.logger || console).error(`Error en controlador '${id}':`, error);
-      resultados.push({ controladorId: id, exito: false, error: error.message });
-    }
-  }
-}
-
-function _broadcastAIframes(mensaje, resultados) {
-  const origenSeguro = globalThis.location.origin || '*';
-  const iframes = Array.from(document.getElementsByTagName('iframe'));
-  let enviados = 0;
-  for (const iframe of iframes) {
-    try {
-      if (iframe?.contentWindow) { iframe.contentWindow.postMessage(mensaje, origenSeguro); enviados++; }
-    } catch (err) { (globalThis.logger || console).warn('[STATE-MGR] Error enviando broadcast a iframe:', err?.message); }
-  }
-  resultados.push({ metodo: 'broadcast', exito: true, enviados });
-}
-
-function _reenviarAlPadre(mensaje, resultados) {
-  try {
-    if (globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.enviarMensaje === 'function') {
-      globalThis.parent.mensajeria.enviarMensaje(mensaje);
-      resultados.push({ metodo: 'parent_mensajeria', exito: true });
-    } else {
-      globalThis.parent.postMessage(mensaje, globalThis.location.origin);
-      resultados.push({ metodo: 'forwardToParent', exito: true });
-    }
-  } catch (err) {
-    (globalThis.logger || console).warn('[STATE-MGR] Error forward broadcast to parent:', err?.message);
-    resultados.push({ metodo: 'forwardToParent', exito: false, error: err?.message });
-  }
-}
-
-function _enviarBroadcast(mensaje, resultados) {
-  if (globalThis.parent === globalThis.window) {
-    _broadcastAIframes(mensaje, resultados);
-  } else if (globalThis.parent && typeof globalThis.parent.postMessage === 'function') {
-    _reenviarAlPadre(mensaje, resultados);
-  }
-}
-
-async function _enviarFallback(mensaje, resultados) {
-  try {
-    if (mensaje.destino === 'broadcast' && globalThis.window !== undefined) {
-      _enviarBroadcast(mensaje, resultados);
-    } else if (globalThis.postMessage) {
-      try {
-        globalThis.postMessage(mensaje, globalThis.location.origin);
-        resultados.push({ metodo: 'postMessage', exito: true });
-      } catch (error) {
-        (globalThis.logger || console).error('Error enviando mensaje via postMessage:', error);
-        resultados.push({ metodo: 'postMessage', exito: false, error: error.message });
-      }
-    }
-  } catch (error) {
-    (globalThis.logger || console).error('Error en fallback de envio en state-manager:', error);
-    resultados.push({ metodo: 'fallback', exito: false, error: error.message });
-  }
-}
-
-export async function enviarMensajeCentral(mensaje) {
-  if (!mensaje.mensajeId) {
-    mensaje.mensajeId = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-  }
-  await _assertMensajeValido(mensaje); // NOSONAR
-  await mutexes.mensajesEnviados.runExclusive(() => {
-    state.mensajesEnviados.add(mensaje.mensajeId);
-    try { (globalThis.logger || console).debug(`[STATE-MGR] Mensaje registrado: ${mensaje.mensajeId} (tipo=${mensaje.tipo}) totalMensajes=${state.mensajesEnviados.size}`); } catch (_e) {} // NOSONAR
-  });
-  const resultados = [];
-  await _enviarAControladores(mensaje, resultados);
-  if (resultados.length === 0) await _enviarFallback(mensaje, resultados);
-  return { mensajeId: mensaje.mensajeId, resultados, timestamp: Date.now() };
 }
 
 /**
@@ -593,8 +437,6 @@ export async function inicializarStateManager() {
       removerControladorCentral,
 
       // Funciones de mensajes
-      enviarMensajeCentral,
-      limpiarMensajesAntiguos,
 
       // Funciones de estado
       getEstadoPadre,
@@ -624,7 +466,6 @@ export async function inicializarStateManager() {
       // Utilidad
       getEstado: () => ({
         controladores: state.controladores.size,
-        mensajesEnviados: state.mensajesEnviados.size,
         estadoPadre: state.estadoPadre,
         flags: {
           heartbeatPrewarmed: state.heartbeatPrewarmed,
@@ -643,7 +484,6 @@ export async function inicializarStateManager() {
     (globalThis.logger || console).info('[STATE-MANAGER] API expuesta en globalThis.__stateManager y globalThis.__vv_stateManager');
   }
 
-  setInterval(() => limpiarMensajesAntiguos(500), 60000);
 }
 
 /**
@@ -667,7 +507,6 @@ export async function diagnosticarStateManager() {
   const diagnostico = {
     timestamp: new Date().toISOString(),
     totalControladores: controladores.length,
-    totalMensajesTrackeados: state.mensajesEnviados.size,
     controladoresRegistrados: controladores,
     controladoresPorTipo: Object.fromEntries(controladoresPorTipo),
     flags: {
@@ -692,27 +531,3 @@ export async function diagnosticarStateManager() {
   return diagnostico;
 }
 
-/**
- * Limpia mensajes trackeados antiguos para liberar memoria
- * @param {number} maxItems - Máximo de mensajes a mantener
- * @returns {number} - Cantidad de mensajes limpiados
- */
-export async function limpiarMensajesAntiguos(maxItems = 1000) {
-  let limpiados = 0;
-
-  await mutexes.mensajesEnviados.runExclusive(() => {
-    if (state.mensajesEnviados.size > maxItems) {
-      const exceso = state.mensajesEnviados.size - maxItems;
-      const items = Array.from(state.mensajesEnviados);
-      for (let i = 0; i < exceso; i++) {
-        state.mensajesEnviados.delete(items[i]);
-        limpiados++;
-      }
-    }
-  });
-
-  if (limpiados > 0) {
-    (globalThis.logger || console).info(`[STATE-MANAGER] Limpiados ${limpiados} mensajes antiguos`);
-  }
-  return limpiados;
-}
