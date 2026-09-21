@@ -144,6 +144,29 @@ export async function inicializarMensajeria(opciones = {}) {
 /**
  * Expone la API de mensajería en globalThis.mensajeria
  */
+/**
+ * ¿Hay un handler registrado para ese tipo en ESTE frame?
+ *
+ * Existe para que nadie tenga que mirar por dentro. Antes, un test que necesitaba saber si un
+ * hijo ya estaba escuchando preguntaba por `messagingAdapter._listenerRegistry`, la estructura
+ * privada del envoltorio de ese hijo: cuando el envoltorio desaparece, el test se cae sin que
+ * nada de la aplicación se haya roto.
+ * @param {string} tipo
+ * @returns {boolean}
+ */
+export function tieneControlador(tipo) {
+    if (!tipo) return false;
+    return obtenerMapaManejadores().has(tipo);
+}
+
+/**
+ * Los tipos con handler en este frame, para diagnóstico.
+ * @returns {string[]}
+ */
+export function listarControladores() {
+    return [...obtenerMapaManejadores().keys()];
+}
+
 function exponerAPIGlobal() {
     if (globalThis.window === undefined) return;
 
@@ -151,6 +174,8 @@ function exponerAPIGlobal() {
         // Funciones principales
         inicializarMensajeria,
         registrarControlador,
+        tieneControlador,
+        listarControladores,
         enviarMensaje,
         enviarMensajeConConfirmacion,
         despacharLocal,

@@ -40,6 +40,7 @@
  */
 'use strict';
 const { test, expect } = require('@playwright/test');
+const { abrirHijoEnMarco, recibidosPorElMarco, enviarAlHijo } = require('./helpers/boot');
 
 test.describe('PZ — puzzle.html: botón de saltar (⏩)', () => {
   test('PZ-1. Puzzle válido: saltar monta las piezas y avisa al padre', async ({ page }) => {
@@ -99,59 +100,64 @@ test.describe('PZ — puzzle.html: botón de saltar (⏩)', () => {
   });
 });
 
-async function enviarRetoMostrarYEsperar(page, datos, selectorEspera) {
+/**
+ * hijo4 vive dentro del marco, que le hace de padre. Suelto no serviria: desde que habla por
+ * el bus, un hijo sin padre no envia a ninguna parte, asi que RT-1 no podria observar su
+ * envio — y el montaje anterior lo suplia inyectando un `globalThis.mensajeria` de mentira,
+ * o sea comprobando su propio muñeco.
+ */
+async function mostrarReto(page, hijo, datos, selectorEspera) {
   for (let intento = 0; intento < 10; intento++) {
-    await page.evaluate((datos) => {
-      globalThis.postMessage({ tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4', datos }, globalThis.location.origin);
-    }, datos);
+    await enviarAlHijo(page, { tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4', datos });
     try {
-      await page.waitForSelector(selectorEspera, { timeout: 1000 });
+      await hijo.waitForSelector(selectorEspera, { timeout: 1000 });
       return;
     } catch (_e) { /* reintentar */ } // NOSONAR
   }
-  await page.waitForSelector(selectorEspera, { timeout: 5000 });
+  await hijo.waitForSelector(selectorEspera, { timeout: 5000 });
 }
 
 test.describe('RT — retos-hijo4.html: botón de saltar (⏩)', () => {
   test('RT-1. Reto de opción válido: saltar marca la respuesta correcta y habilita el mundo verde', async ({ page }) => {
-    const logs = [];
-    page.on('console', (msg) => logs.push(msg.text()));
-    await page.goto('retos-hijo4.html');
-    await page.waitForLoadState('domcontentloaded');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
 
     const reto = { id: 'test-skip-opcion', tipo: 'opcion', pregunta: '¿Test?', opciones: ['A', 'B', 'C'], correctas: ['B'] };
-    await enviarRetoMostrarYEsperar(page, { retoId: reto.id, retosArray: [reto] }, 'input[name="op"]');
+    await mostrarReto(page, hijo, { retoId: reto.id, retosArray: [reto] }, 'input[name="op"]');
 
-    await page.click('#btnSaltarReto');
+    await hijo.click('#btnSaltarReto');
 
-    await expect(page.locator('input[name="op"][value="B"]')).toBeChecked();
-    await expect(page.locator('#btnNextAfterReto')).toBeEnabled();
+    await expect(hijo.locator('input[name="op"][value="B"]')).toBeChecked();
+    await expect(hijo.locator('#btnNextAfterReto')).toBeEnabled();
 
-    await page.click('#btnNextAfterReto');
-    await expect.poll(() => logs.some(l => l.includes('Confirmación recibida del padre para reto') || l.includes('Enviado sin confirmación')), {
-      timeout: 20000,
-    }).toBe(true);
+    await hijo.click('#btnNextAfterReto');
+
+    // El efecto, no su rastro en el log: el padre recibe la compleción.
+    await expect.poll(async () => {
+      const recibidos = await recibidosPorElMarco(page);
+      return recibidos.some((m) => m.tipo === 'RETO.COMPLETADO');
+    }, { timeout: 20_000 }).toBe(true);
   });
 
   test('RT-2. Reto roto/no encontrado: saltar sigue habilitado y habilita el mundo verde', async ({ page }) => {
     const errores = [];
     page.on('pageerror', (e) => errores.push(e.message));
-    await page.goto('retos-hijo4.html');
-    await page.waitForLoadState('domcontentloaded');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
 
     for (let intento = 0; intento < 10; intento++) {
-      await page.evaluate((datos) => {
-        globalThis.postMessage({ tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4', datos }, globalThis.location.origin);
-      }, { retoId: 'test-skip-roto', retosArray: [] });
-      const texto = await page.locator('#reto').textContent();
+      await enviarAlHijo(page, {
+        tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4',
+        datos: { retoId: 'test-skip-roto', retosArray: [] },
+      });
+      const texto = await hijo.locator('#reto').textContent();
       if (texto && texto.includes('no está disponible')) break;
+      // VENTANA-OBSERVACION: reintento del aviso hasta que la pantalla del reto responde
       await page.waitForTimeout(300);
     }
-    await expect(page.locator('#reto')).toContainText('no está disponible');
-    await expect(page.locator('#btnSaltarReto')).toBeEnabled();
+    await expect(hijo.locator('#reto')).toContainText('no está disponible');
+    await expect(hijo.locator('#btnSaltarReto')).toBeEnabled();
 
-    await page.click('#btnSaltarReto');
-    await expect(page.locator('#btnNextAfterReto')).toBeEnabled();
+    await hijo.click('#btnSaltarReto');
+    await expect(hijo.locator('#btnNextAfterReto')).toBeEnabled();
     expect(errores.length, `no debe haber excepciones no capturadas: ${errores.join(' | ')}`).toBe(0);
   });
 });

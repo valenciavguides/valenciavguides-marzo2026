@@ -21,6 +21,19 @@
   -->
   <script>
     globalThis.__marcoVacio = true;
+
+    // Todo lo que el hijo manda hacia arriba queda apuntado aquí, en orden.
+    //
+    // Es la única forma honesta de comprobar "el hijo intentó enviar X" desde que los hijos
+    // hablan por el bus: un hijo suelto, sin padre, no envía a ninguna parte —el bus lo corta
+    // y lo dice—, así que los tests que lo cargaban como página de primer nivel y le metían un
+    // `globalThis.mensajeria` de mentira estaban mirando su propio muñeco. Aquí hay un padre
+    // de verdad y se mira lo que de verdad le llega.
+    globalThis.__recibidos = [];
+    globalThis.addEventListener('message', (ev) => {
+      if (ev.origin !== globalThis.location.origin) return;
+      if (ev.data && typeof ev.data === 'object' && ev.data.tipo) globalThis.__recibidos.push(ev.data);
+    });
   </script>
 </body>
 </html>

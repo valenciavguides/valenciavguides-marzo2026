@@ -222,10 +222,78 @@ async function getMensajeriaReadySnapshot(page) {
   return snapshot;
 }
 
+const MARCO_VACIO = 'tests/e2e/helpers/marco-vacio.html';
+
+/**
+ * Abre un hijo dentro de `marco-vacio.html`, que le hace de padre sin mandarle nada.
+ *
+ * Un hijo cargado como pagina de primer nivel NO puede enviar: su bus se queda sin padre y
+ * corta el envio en voz alta. Los tests que lo hacian asi tenian que inventarse un
+ * `globalThis.mensajeria`, y entonces comprobaban su propio muñeco en vez de la aplicacion.
+ * Dentro del marco el camino es el de verdad, y lo que el hijo manda queda en
+ * `globalThis.__recibidos` del marco.
+ *
+ * Espera al `SISTEMA.HIJO_PREPARADO` del propio hijo: el `load` del iframe no significa
+ * "listo para recibir", porque su modulo tiene awaits de nivel superior.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} fichero  p.ej. 'retos-hijo4.html'
+ */
+async function abrirHijoEnMarco(page, fichero) {
+  await page.goto(MARCO_VACIO);
+  await page.evaluate((src) => new Promise((resolve) => {
+    const el = document.createElement('iframe');
+    el.id = 'marco-hijo';
+    // Ruta ABSOLUTA: el marco vive en /tests/e2e/helpers/, y una relativa cargaria un 404
+    // —cuyo body tambien existe— culpando al codigo de un fallo del arnes.
+    el.src = `/${src}`;
+    el.addEventListener('load', () => resolve(), { once: true });
+    document.body.appendChild(el);
+  }), fichero);
+
+  const url = await page.evaluate(() =>
+    document.getElementById('marco-hijo')?.contentDocument?.location?.href || '');
+  if (!url.includes(fichero)) {
+    throw new Error(`El marco tenia que cargar ${fichero} y cargo ${url || '(nada)'}`);
+  }
+
+  const marco = page.frames().find((f) => f.url().includes(fichero));
+  if (!marco) throw new Error(`No encuentro el frame de ${fichero}`);
+
+  // `load` no significa "listo para recibir": el modulo del hijo tiene awaits de nivel
+  // superior y sus handlers se registran despues. La señal buena es la del propio protocolo.
+  const hasta = Date.now() + BOOT_TIMEOUT;
+  for (;;) {
+    const listo = await page.evaluate(() =>
+      (globalThis.__recibidos || []).some((m) => m.tipo === 'SISTEMA.HIJO_PREPARADO'));
+    if (listo) break;
+    if (Date.now() > hasta) throw new Error(`${fichero} no mando HIJO_PREPARADO en ${BOOT_TIMEOUT} ms`);
+    await page.waitForTimeout(100); // VENTANA-OBSERVACION: sondeo del aviso del hijo, acotado arriba
+  }
+
+  return marco;
+}
+
+/** Los mensajes que el hijo ha mandado a su padre, en orden. */
+function recibidosPorElMarco(page) {
+  return page.evaluate(() => globalThis.__recibidos || []);
+}
+
+/** Hace llegar al hijo un mensaje, como lo mandaria el padre. */
+function enviarAlHijo(page, mensaje) {
+  return page.evaluate((m) => {
+    document.getElementById('marco-hijo').contentWindow.postMessage(m, globalThis.location.origin);
+  }, mensaje);
+}
+
 module.exports = {
   BOOT_TIMEOUT,
   injectInitSpy,
   stubCDNResources,
   gotoAndWaitForFase1,
   getMensajeriaReadySnapshot,
+  MARCO_VACIO,
+  abrirHijoEnMarco,
+  recibidosPorElMarco,
+  enviarAlHijo,
 };

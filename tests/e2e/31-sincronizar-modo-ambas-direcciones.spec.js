@@ -30,6 +30,7 @@
 'use strict';
 
 const { test, expect } = require('@playwright/test');
+const { abrirHijoEnMarco, enviarAlHijo } = require('./helpers/boot');
 
 /**
  * Espera a que el handler de `tipo` esté registrado, en vez de dormir 400 ms a ciegas.
@@ -112,75 +113,88 @@ async function proveerMensajeriaStub(page) {
 }
 
 test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () => {
-  test.beforeEach(async ({ page }) => { await proveerMensajeriaStub(page); });
+  /**
+   * hijo4 vive dentro del marco, que le hace de padre. Suelto no serviria: desde que habla
+   * por el bus, un hijo sin padre no envia ni recibe por el camino real.
+   *
+   * Y la espera al handler se le pregunta al bus (`tieneControlador`), no a las tripas de
+   * nadie. Antes se miraba `messagingAdapter._listenerRegistry`, la estructura privada del
+   * envoltorio de hijo4: al desaparecer el envoltorio, el test se caia sin que la aplicacion
+   * tuviera nada roto.
+   */
+  async function abrirHijo4(page) {
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    await expect
+      .poll(() => hijo.evaluate(() => globalThis.mensajeria.tieneControlador('SISTEMA.CAMBIO_MODO')), { timeout: 10_000 })
+      .toBe(true);
+    return hijo;
+  }
+
+  const enviarCambioModo = (page, modo) => enviarAlHijo(page, {
+    tipo: 'SISTEMA.CAMBIO_MODO',
+    origen: 'padre',
+    destino: 'hijo4',
+    datos: { modo, secuenciaCompleta: true, timestamp: Date.now() },
+  });
+
+  const enviarLimpiarEstado = (page, datos) => enviarAlHijo(page, {
+    tipo: 'RETO.LIMPIAR_ESTADO',
+    origen: 'padre',
+    destino: 'hijo4',
+    datos,
+  });
+
+  const claseDelBody = (hijo, clase) => hijo.evaluate((c) => document.body.classList.contains(c), clase);
+  const displayDelWrapper = (hijo) => hijo.evaluate(() => document.getElementById('botonRetos-wrapper').style.display);
+
+  async function ponerEnCasa(page, hijo) {
+    await enviarCambioModo(page, 'casa');
+    await expect.poll(() => claseDelBody(hijo, 'modo-casa'), { timeout: 5000 }).toBe(true);
+  }
 
   test('MD-1. CAMBIO_MODO→casa aplica clase modo-casa al body', async ({ page }) => {
-    await page.goto('retos-hijo4.html');
-    await page.waitForLoadState('domcontentloaded');
-    await esperarHandler(page, 'SISTEMA.CAMBIO_MODO');
-    await enviarCambioModo(page, 'hijo4', 'casa');
-    await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-casa')), { timeout: 5000 }).toBe(true);
-    expect(await page.evaluate(() => document.body.classList.contains('modo-aventura'))).toBe(false);
+    const hijo = await abrirHijo4(page);
+    await ponerEnCasa(page, hijo);
+    expect(await claseDelBody(hijo, 'modo-aventura')).toBe(false);
   });
 
   test('MD-2. CAMBIO_MODO→aventura aplica clase modo-aventura al body', async ({ page }) => {
-    await page.goto('retos-hijo4.html');
-    await page.waitForLoadState('domcontentloaded');
-    await esperarHandler(page, 'SISTEMA.CAMBIO_MODO');
-    await enviarCambioModo(page, 'hijo4', 'aventura');
-    await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-aventura')), { timeout: 5000 }).toBe(true);
-    expect(await page.evaluate(() => document.body.classList.contains('modo-casa'))).toBe(false);
+    const hijo = await abrirHijo4(page);
+    await enviarCambioModo(page, 'aventura');
+    await expect.poll(() => claseDelBody(hijo, 'modo-aventura'), { timeout: 5000 }).toBe(true);
+    expect(await claseDelBody(hijo, 'modo-casa')).toBe(false);
   });
 
-  async function enviarLimpiarEstado(page, datos) {
-    await page.evaluate((datos) => {
-      globalThis.postMessage({
-        tipo: 'RETO.LIMPIAR_ESTADO',
-        origen: 'padre',
-        destino: 'hijo4',
-        datos,
-      }, globalThis.location.origin);
-    }, datos);
-  }
-
   test('MD-3. RETO.LIMPIAR_ESTADO con retoSigueActivo:false NO reaparece botonRetos-wrapper en CASA', async ({ page }) => {
-    await page.goto('retos-hijo4.html');
-    await page.waitForLoadState('domcontentloaded');
-    await esperarHandler(page, 'SISTEMA.CAMBIO_MODO');
-    await enviarCambioModo(page, 'hijo4', 'casa');
-    await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-casa')), { timeout: 5000 }).toBe(true);
+    const hijo = await abrirHijo4(page);
+    await ponerEnCasa(page, hijo);
 
-    // Punto de partida conocido: oculto (el HTML estático ya arranca así).
-    expect(await page.evaluate(() => document.getElementById('botonRetos-wrapper').style.display)).toBe('none');
+    // Punto de partida conocido: oculto (el HTML estatico ya arranca asi).
+    expect(await displayDelWrapper(hijo)).toBe('none');
 
     await enviarLimpiarEstado(page, { retoId: 'reto-viejo', retoSigueActivo: false });
+    // VENTANA-OBSERVACION: MD-3 demuestra que el wrapper NO reaparece; no hay condicion que esperar
     await page.waitForTimeout(300);
-    expect(await page.evaluate(() => document.getElementById('botonRetos-wrapper').style.display), 'retoSigueActivo:false debe dejar el wrapper oculto').toBe('none');
+    expect(await displayDelWrapper(hijo), 'retoSigueActivo:false debe dejar el wrapper oculto').toBe('none');
   });
 
   test('MD-4. RETO.LIMPIAR_ESTADO con retoSigueActivo:true SÍ reaparece botonRetos-wrapper en CASA', async ({ page }) => {
-    await page.goto('retos-hijo4.html');
-    await page.waitForLoadState('domcontentloaded');
-    await esperarHandler(page, 'SISTEMA.CAMBIO_MODO');
-    await enviarCambioModo(page, 'hijo4', 'casa');
-    await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-casa')), { timeout: 5000 }).toBe(true);
+    const hijo = await abrirHijo4(page);
+    await ponerEnCasa(page, hijo);
 
     await enviarLimpiarEstado(page, { retoId: 'reto-actual', retoSigueActivo: true });
-    await expect.poll(() => page.evaluate(() => document.getElementById('botonRetos-wrapper').style.display), {
+    await expect.poll(() => displayDelWrapper(hijo), {
       timeout: 5000,
       message: 'retoSigueActivo:true debe volver a mostrar el wrapper',
     }).toBe('');
   });
 
   test('MD-5. RETO.LIMPIAR_ESTADO sin campo retoSigueActivo (compatibilidad) también reaparece el wrapper en CASA', async ({ page }) => {
-    await page.goto('retos-hijo4.html');
-    await page.waitForLoadState('domcontentloaded');
-    await esperarHandler(page, 'SISTEMA.CAMBIO_MODO');
-    await enviarCambioModo(page, 'hijo4', 'casa');
-    await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-casa')), { timeout: 5000 }).toBe(true);
+    const hijo = await abrirHijo4(page);
+    await ponerEnCasa(page, hijo);
 
     await enviarLimpiarEstado(page, { retoId: 'reto-sin-campo' });
-    await expect.poll(() => page.evaluate(() => document.getElementById('botonRetos-wrapper').style.display), {
+    await expect.poll(() => displayDelWrapper(hijo), {
       timeout: 5000,
       message: 'Sin el campo retoSigueActivo, el valor por defecto (!== false) debe mostrar el wrapper — no romper el caso normal',
     }).toBe('');

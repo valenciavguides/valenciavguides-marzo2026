@@ -47,13 +47,10 @@ const { test, expect } = require('@playwright/test');
  * antes de su `load` en chromium y en WebKit. (En hijo1 y hijo5 no era así hasta que su
  * ocultado se subió por delante del `await` del bus: tras migrarlos, ocurría después.)
  *
- * POR QUÉ hijo4 NO TIENE CASO UV-3
+ * LOS CINCO EXIGEN `origen`
  *
- * Los otros cuatro descartan el mensaje si no trae `origen`. hijo4 no: su handler no lleva
- * ese guard, y su `messagingAdapter` tampoco lo comprueba —solo exige
- * `event.source === globalThis.parent`, que es un control fuerte, así que no queda
- * expuesto—. La diferencia desaparece sola cuando hijo4 hable por el bus, que SÍ rechaza en
- * voz alta cualquier mensaje sin `origen`. Queda dicho aquí en vez de escondido en un skip.
+ * El bus descarta en voz alta cualquier mensaje que llegue sin `origen`, así que la
+ * comprobación no depende de que cada hijo se acuerde de escribirla: la hace el camino común.
  *
  * ROJO ANTES QUE VERDE: medido hijo por hijo, rompiendo el ocultado de cada uno: caen
  * exactamente sus casos y ninguno más.
@@ -65,7 +62,7 @@ const HIJOS = [
   { id: 'hijo1-opciones', fichero: 'extrainfo-hijo1.html', exigeOrigen: true },
   { id: 'hijo2', fichero: 'coordenadas-hijo2.html', exigeOrigen: true },
   { id: 'hijo3', fichero: 'audio-hijo3.html', exigeOrigen: true },
-  { id: 'hijo4', fichero: 'retos-hijo4.html', exigeOrigen: false },
+  { id: 'hijo4', fichero: 'retos-hijo4.html', exigeOrigen: true },
   { id: 'hijo5', fichero: 'boton-casa-hijo5.html', exigeOrigen: true },
 ];
 
