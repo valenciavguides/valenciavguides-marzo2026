@@ -238,117 +238,6 @@ export function ajustarTimeoutPorConexion(timeoutBase, factor = 1) {
 }
 
 /**
- * Obtiene la función enviarMensaje del contexto global o padre
- * @returns {Function|null} Función enviarMensaje o null
- */
-export function getEnviarMensaje() {
-    // Primero intentar desde globalThis.mensajeria (hijos)
-    if (globalThis.mensajeria && typeof globalThis.mensajeria.enviarMensaje === 'function') {
-        return globalThis.mensajeria.enviarMensaje;
-    }
-
-    // Intentar desde parent.mensajeria
-    if (globalThis.parent && globalThis.parent !== globalThis.window) {
-        try {
-            if (globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.enviarMensaje === 'function') {
-                return globalThis.parent.mensajeria.enviarMensaje;
-            }
-        } catch {
-            // Cross-origin, ignorar
-        }
-    }
-
-    // Fallback: en cada llamada intenta mensajería (puede estar disponible ya);
-    // solo usa postMessage directo como último recurso real.
-    return function(tipo, datos, destino) {
-        if (globalThis.mensajeria && typeof globalThis.mensajeria.enviarMensaje === 'function') {
-            return globalThis.mensajeria.enviarMensaje({ tipo, datos, destino, origen: globalThis.name || 'utils_fallback' });
-        }
-        try {
-            if (globalThis.parent && globalThis.parent !== globalThis.window &&
-                globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.enviarMensaje === 'function') {
-                return globalThis.parent.mensajeria.enviarMensaje({ tipo, datos, destino, origen: globalThis.name || 'utils_fallback' });
-            }
-        } catch { /* cross-origin */ }
-        const mensaje = {
-            tipo,
-            datos,
-            origen: 'utils_fallback',
-            timestamp: Date.now(),
-            id: generarIdUnico('msg')
-        };
-        if (globalThis.parent && globalThis.parent !== globalThis.window) {
-            globalThis.parent.postMessage(mensaje, globalThis.location.origin);
-        }
-    };
-}
-
-/**
- * Obtiene la función registrarControlador del contexto global o padre
- * @returns {Function|null} Función registrarControlador o null
- */
-export function getRegistrarControlador() {
-    // Primero intentar desde globalThis.mensajeria
-    if (globalThis.mensajeria && typeof globalThis.mensajeria.registrarControlador === 'function') {
-        return globalThis.mensajeria.registrarControlador;
-    }
-
-    // Intentar desde parent.mensajeria
-    if (globalThis.parent && globalThis.parent !== globalThis.window) {
-        try {
-            if (globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.registrarControlador === 'function') {
-                return globalThis.parent.mensajeria.registrarControlador;
-            }
-        } catch {
-            // Cross-origin, ignorar
-        }
-    }
-
-    // Fallback: registrar localmente
-    return function(tipo, handler) {
-        if (!globalThis.__vv_handlers) {
-            globalThis.__vv_handlers = new Map();
-        }
-        globalThis.__vv_handlers.set(tipo, handler);
-        (globalThis.logger || console).info(`[utils] Handler registrado localmente para: ${tipo}`);
-    };
-}
-
-/**
- * Obtiene la función enviarMensajeConConfirmacion
- * @returns {Function|null} Función o null
- */
-export function getEnviarMensajeConConfirmacion() {
-    if (globalThis.mensajeria && typeof globalThis.mensajeria.enviarMensajeConConfirmacion === 'function') {
-        return globalThis.mensajeria.enviarMensajeConConfirmacion;
-    }
-
-    if (globalThis.parent && globalThis.parent !== globalThis.window) {
-        try {
-            if (globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.enviarMensajeConConfirmacion === 'function') {
-                return globalThis.parent.mensajeria.enviarMensajeConConfirmacion;
-            }
-        } catch {
-            // Cross-origin
-        }
-    }
-
-    // Fallback simple
-    return function(tipo, datos, timeout = 5000) {
-        return new Promise((resolve, reject) => {
-            const enviar = getEnviarMensaje();
-            if (enviar) {
-                enviar(tipo, datos);
-                // Sin confirmación real, resolver después de timeout corto
-                setTimeout(() => resolve({ success: true, simulado: true }), 100);
-            } else {
-                reject(new Error('No hay función de envío disponible'));
-            }
-        });
-    };
-}
-
-/**
  * Reintenta una operación hasta que esté disponible
  * @param {Function} checkFn - Función que retorna true cuando está listo
  * @param {Object} [options] - Opciones
@@ -737,8 +626,6 @@ if (globalThis.window !== undefined) {
         normalizarParadas,
         resolverIdsParada,
         ajustarTimeoutPorConexion,
-        getEnviarMensaje,
-        getRegistrarControlador,
         retryUntilAvailable,
         canonicalizarModo
     };
@@ -884,9 +771,6 @@ export default {
     normalizarParadas,
     resolverIdsParada,
     ajustarTimeoutPorConexion,
-    getEnviarMensaje,
-    getRegistrarControlador,
-    getEnviarMensajeConConfirmacion,
     retryUntilAvailable,
     debounce,
     throttle,
