@@ -62,17 +62,25 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
   });
 
   test('MC-3. Con un padre que responde, pinta la ruta y los monumentos', async ({ page }) => {
-    // Padre mínimo: solo implementa el lado del protocolo que nos interesa.
+    // Padre mínimo: solo implementa el lado del protocolo que nos interesa, y lo implementa
+    // como lo hace el padre real — tipos de `constants.js` y las coordenadas dentro de
+    // `datos`. El bus del mapa acepta a su ventana de arriba, así que no hace falta más.
     await page.route('**/__contenedor-mc.html', (route) => route.fulfill({
       contentType: 'text/html',
       body: `<!DOCTYPE html><html><body>
         <iframe id="f" src="/mapa-completo.html?aventura=Aventura1" style="width:100vw;height:100vh;border:0"></iframe>
         <script type="module">
           const m = await import('/js/coordenadas-aventuras.js');
+          const { TIPOS_MENSAJE } = await import('/js/constants.js');
           globalThis.addEventListener('message', (ev) => {
-            if (ev.data?.tipo !== 'mapa-completo-solicitar-datos') return;
-            const c = m.DATOS_AVENTURAS[ev.data.aventura]['coordenadas-hijo2.html'].coordenadas;
-            ev.source.postMessage({ tipo: 'mapa-completo-datos', coordenadas: c }, globalThis.location.origin);
+            if (ev.data?.tipo !== TIPOS_MENSAJE.MAPA_COMPLETO.SOLICITAR_DATOS) return;
+            const c = m.DATOS_AVENTURAS[ev.data.datos.aventura]['coordenadas-hijo2.html'].coordenadas;
+            ev.source.postMessage({
+              tipo: TIPOS_MENSAJE.MAPA_COMPLETO.DATOS,
+              origen: 'padre',
+              destino: 'mapa-completo',
+              datos: { coordenadas: c },
+            }, globalThis.location.origin);
           });
         <\/script></body></html>`,
     }));
@@ -94,7 +102,12 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
     expect(r.polylines, 'y la polyline de la ruta').toBeGreaterThan(0);
   });
 
-  test('MC-4. El padre ignora una petición que no venga del iframe del overlay', async ({ page }) => {
+  test('MC-4. Sin mapa abierto, una petición forjada no saca coordenadas de ningún sitio', async ({ page }) => {
+    // Antes el padre comprobaba a mano que la petición viniera del iframe del overlay. Ya no
+    // hace falta: la respuesta va DIRIGIDA a `mapa-completo`, y ese nombre solo existe en el
+    // bus mientras el overlay está abierto. Sin overlay no hay a quién mandárselas, y quien
+    // forjó la petición no recibe nada — no porque se le reconozca, sino porque la respuesta
+    // nunca fue para él.
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);
@@ -102,16 +115,29 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
     page.on('console', (m) => logs.push(m.text()));
     await gotoAndWaitForFase1(page);
 
-    // Petición forjada desde la propia página: no hay overlay, luego no hay iframe.
-    await page.evaluate(() => {
-      globalThis.postMessage({ tipo: 'mapa-completo-solicitar-datos', aventura: 'Aventura1' }, globalThis.location.origin);
-    });
-    await page.waitForTimeout(600);
+    // Control: sin esto, MC-4 pasaría también si el handler no existiera —y entonces no
+    // estaría comprobando la protección, sino la ausencia del mecanismo entero.
+    await expect
+      .poll(() => page.evaluate(() => globalThis.mensajeria.tieneControlador('MAPA_COMPLETO.SOLICITAR_DATOS')), { timeout: 20_000 })
+      .toBe(true);
 
-    const ignorada = logs.filter((l) => l.includes('no es el iframe del overlay'));
-    expect(ignorada.length, 'debe rechazarla y dejar constancia').toBeGreaterThan(0);
+    const recibidos = await page.evaluate(async () => {
+      const vistos = [];
+      globalThis.addEventListener('message', (ev) => {
+        if (ev.data?.tipo === 'MAPA_COMPLETO.DATOS') vistos.push(ev.data);
+      });
+      globalThis.postMessage({
+        tipo: 'MAPA_COMPLETO.SOLICITAR_DATOS',
+        origen: 'intruso',
+        datos: { aventura: 'Aventura1' },
+      }, globalThis.location.origin);
+      await new Promise((r) => setTimeout(r, 600));
+      return vistos;
+    });
+
+    expect(recibidos, 'la petición forjada no puede recibir coordenadas').toEqual([]);
 
     const entregas = logs.filter((l) => l.includes('[MAPA_COMPLETO] Enviadas'));
-    expect(entregas.length, 'y NO debe entregar coordenadas').toBe(0);
+    expect(entregas.length, 'y el padre no puede dar por enviadas unas coordenadas que no salieron').toBe(0);
   });
 });

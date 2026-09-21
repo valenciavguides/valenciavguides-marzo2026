@@ -2306,7 +2306,13 @@
             let overlay = document.getElementById('iframe-overlay');
             if (overlay) {
                 const iframe = overlay.querySelector('iframe');
-                if (iframe) iframe.src = urlIframe;
+                if (iframe) {
+                    // El overlay se reutiliza y el iframe cambia de pagina en cada apertura:
+                    // hay que volver a registrarlo, porque el bus guarda el elemento y lee su
+                    // ventana en cada envio.
+                    globalThis.mensajeria?.registrarIframe?.('mapa-completo', iframe);
+                    iframe.src = urlIframe;
+                }
             } else {
                 overlay = document.createElement('div');
                 overlay.id = 'iframe-overlay';
@@ -2314,10 +2320,15 @@
                 overlay.innerHTML = `
                     <div class="media-contenedor iframe-contenedor">
                         <button type="button" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
-                        <iframe src="${urlIframe}" frameborder="0" scrolling="no" allowfullscreen style="width:100%; height:100%; display:block; border:0;"></iframe>
+                        <iframe frameborder="0" scrolling="no" allowfullscreen style="width:100%; height:100%; display:block; border:0;"></iframe>
                     </div>
                 `;
                 document.body.appendChild(overlay);
+                // Registrar ANTES de darle `src`: el bus solo acepta mensajes de un iframe
+                // registrado, y el mapa pide sus datos nada mas arrancar. Al reves, su
+                // peticion llegaria de un desconocido y se descartaria.
+                globalThis.mensajeria?.registrarIframe?.('mapa-completo', overlay.querySelector('iframe'));
+                overlay.querySelector('iframe').src = urlIframe;
                 const ibtn = overlay.querySelector('.btn-cerrar-overlay');
                 if (ibtn) {
                     ibtn.addEventListener('click', cerrarIframeOverlay);
@@ -2335,7 +2346,10 @@
                 let _mapaVisibleFallback;
                 const _sendMapaVisible = () => {
                     clearTimeout(_mapaVisibleFallback);
-                    _iframeEl.contentWindow?.postMessage({ tipo: 'mapa-visible' }, globalThis.location.origin);
+                    void globalThis.mensajeria?.enviarMensaje?.({
+                        tipo: globalThis.TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE,
+                        destino: 'mapa-completo',
+                    });
                 };
                 _iframeEl.addEventListener('load', () => requestAnimationFrame(_sendMapaVisible), { once: true });
                 _mapaVisibleFallback = setTimeout(_sendMapaVisible, 1500);
@@ -2346,42 +2360,16 @@
             (globalThis.logger || console).info('Iframe mostrado en overlay:', urlIframe);
         };
 
-        /*
-         * Sirve las coordenadas a mapa-completo.html cuando las pide.
-         *
-         * Esa pagina importaba coordenadas-aventuras.js directamente, asi que abrirla
-         * por URL entregaba la ruta completa de las 7 aventuras sin codigo ni GPS
-         * (medido). Ahora no importa nada: pide, y aqui se le responde. Sin padre no
-         * hay a quien pedir, y el mapa sale vacio — sin necesidad de ningun guard.
-         *
-         * Se responde SOLO al iframe del overlay (event.source), no a cualquiera que
-         * mande el mensaje desde el mismo origen.
-         *
-         * El dia del backend cambia solo esta lectura: los datos vendran con token y
-         * mapa-completo.html no se entera.
-         */
-        globalThis.addEventListener('message', (ev) => {
-            if (ev.origin !== globalThis.location.origin) return;
-            if (ev.data?.tipo !== 'mapa-completo-solicitar-datos') return;
-
-            const iframeOverlay = document.querySelector('#iframe-overlay iframe');
-            if (!iframeOverlay || ev.source !== iframeOverlay.contentWindow) {
-                (globalThis.logger || console).warn('[PADRE][MAPA_COMPLETO] Peticion de datos desde un origen que no es el iframe del overlay — ignorada');
-                return;
-            }
-
-            const av = ev.data.aventura;
-            const coordenadas = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas;
-            if (!Array.isArray(coordenadas) || coordenadas.length === 0) {
-                (globalThis.logger || console).error(`[PADRE][MAPA_COMPLETO] Sin coordenadas para ${av} — el mapa quedara vacio`);
-                return;
-            }
-
-            ev.source.postMessage({ tipo: 'mapa-completo-datos', coordenadas }, globalThis.location.origin);
-            (globalThis.logger || console).info(`[PADRE][MAPA_COMPLETO] Enviadas ${coordenadas.length} coordenadas de ${av}`);
-        });
+        // Las coordenadas del mapa completo se sirven desde Script 2, con
+        // `_hdl_MAPA_COMPLETO_SOLICITAR_DATOS`, como un handler mas del bus. Aqui hubo una
+        // escucha suelta: el bus no existe todavia en este script clasico, pero el mensaje no
+        // llega hasta que el usuario abre el mapa, mucho despues.
 
         globalThis.cerrarIframeOverlay = function() {
+            // De baja en el bus: el iframe se destruye 400 ms despues, y un registro que
+            // apunta a un elemento muerto se queda ahi para siempre (el mapa era el unico
+            // frame que iba y venia sin darse de baja nunca).
+            globalThis.mensajeria?.desregistrarIframe?.('mapa-completo');
             const overlay = document.getElementById('iframe-overlay');
             if (overlay) {
                 overlay.classList.remove('visible');
@@ -14650,7 +14638,48 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE, _hdl_PARADAS_LISTADO_TOGGLE, { permanente: true });
         }
 
-        function _regCtrl_UI(_TIPOS_MENSAJE) {
+        /**
+         * Sirve las coordenadas al mapa completo cuando las pide.
+         *
+         * Esa página importaba `coordenadas-aventuras.js` directamente, así que abrirla por URL
+         * entregaba la ruta completa de las 7 aventuras sin código ni GPS (medido). Ahora no
+         * importa nada: pide, y aquí se le responde. Sin padre no hay a quién pedir, y el mapa
+         * sale vacío — sin necesidad de ningún guard.
+         *
+         * Quién puede pedirlo no se comprueba aquí: el bus solo acepta mensajes de un iframe que
+         * este frame haya registrado, y el mapa se registra al abrir el overlay y se da de baja
+         * al cerrarlo. Antes esto era una escucha suelta que tenía que comprobarlo a mano.
+         *
+         * El día del backend cambia solo esta lectura: los datos vendrán con token y
+         * mapa-completo.html no se entera.
+         */
+        async function _hdl_MAPA_COMPLETO_SOLICITAR_DATOS(mensaje) {
+            const av = mensaje?.datos?.aventura;
+            const coordenadas = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas;
+            if (!Array.isArray(coordenadas) || coordenadas.length === 0) {
+                (globalThis.logger || console).error(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MAPA_COMPLETO] Sin coordenadas para ${av} — el mapa quedara vacio`);
+                return { enviadas: 0 };
+            }
+
+            // El resultado se mira: `enviarMensaje` devuelve false si el destino no está
+            // registrado —el overlay cerrado, por ejemplo— y dar por enviadas unas coordenadas
+            // que no salieron deja un log que miente justo cuando hace falta que no mienta.
+            const salio = await globalThis.mensajeria.enviarMensaje({
+                tipo: TIPOS_MENSAJE_S2.MAPA_COMPLETO.DATOS,
+                destino: 'mapa-completo',
+                datos: { coordenadas },
+            });
+            const prefijo = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MAPA_COMPLETO]`;
+            if (!salio) {
+                (globalThis.logger || console).warn(`${prefijo} Pidieron las coordenadas de ${av}, pero no hay mapa registrado al que mandarlas`);
+                return { enviadas: 0 };
+            }
+            (globalThis.logger || console).info(`${prefijo} Enviadas ${coordenadas.length} coordenadas de ${av}`);
+            return { enviadas: coordenadas.length };
+        }
+
+        function _regCtrl_UI(TIPOS_MENSAJE) {
+            globalThis.registrarControladorSeguro(TIPOS_MENSAJE.MAPA_COMPLETO.SOLICITAR_DATOS, _hdl_MAPA_COMPLETO_SOLICITAR_DATOS, { permanente: true });
         }
 
         // Se guarda la promesa: el bloque que marca script2Listo, mas abajo, tiene que esperarla.

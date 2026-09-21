@@ -211,6 +211,19 @@ export const TIPOS_MENSAJE = {
          */
         RESCATE_SOLICITADO: 'CHAT.RESCATE_SOLICITADO'
     },
+    /**
+     * El mapa completo (`mapa-completo.html`), que el padre abre en un overlay.
+     *
+     * No importa datos: los pide. Abrir su URL a pelo deja el mapa vacío porque no tiene a
+     * quién pedírselos, sin necesidad de ningún guard. El día que los datos vengan del
+     * backend, esa página no se entera: el padre los pedirá con token y le mandará lo mismo.
+     */
+    MAPA_COMPLETO: {
+        SOLICITAR_DATOS: 'MAPA_COMPLETO.SOLICITAR_DATOS',
+        DATOS: 'MAPA_COMPLETO.DATOS',
+        /** El overlay ya está visible: es cuando el mapa puede medirse y encuadrar. */
+        VISIBLE: 'MAPA_COMPLETO.VISIBLE'
+    },
     NAVEGACION_PANTALLA: 'NAVEGAR_PANTALLA'
 };
 

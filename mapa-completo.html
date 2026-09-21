@@ -162,12 +162,23 @@
      * Cuando los datos vengan del backend, esta pagina no se entera: el padre los
      * pedira con token y le mandara lo mismo.
      */
+    import * as bus from './js/mensajeria.js';
+    import { TIPOS_MENSAJE } from './js/constants.js';
+
+    // Este frame habla por el mismo bus que el padre y que los seis hijos. Es hijo directo
+    // del padre —el overlay cuelga de él—, asi que le basta el papel de hijo: ni registra
+    // iframes ni tiene nietos.
+    //
+    // Sin padre no se inicializa: el bus avisaria una vez y todo envio devolveria false. El
+    // mensaje de "abrelo desde la aventura" se pinta abajo, que es lo que el usuario necesita.
+    const tienePadre = globalThis.parent && globalThis.parent !== globalThis;
+    if (tienePadre) await bus.inicializarMensajeria({ id: 'mapa-completo' });
+
     const params   = new URLSearchParams(globalThis.location.search);
     const aventura = params.get('aventura') || 'Aventura1';
 
     const map = L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 21 });
     let _bounds = null;
-    let rutaCompleta = [];          // lo consume el handler `solicitar-ruta`
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -218,14 +229,9 @@
         }
       });
 
-      rutaCompleta = [];
       coordenadas.forEach(entry => {
         if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
-          rutaCompleta.push({ tipo: 'parada', nombre: entry.nombre, lat: entry.coordenadas.lat, lng: entry.coordenadas.lng });
         } else if (entry.tipo === 'tramo') {
-          rutaCompleta.push({ tipo: 'waypoint', lat: entry.inicio.lat, lng: entry.inicio.lng });
-          entry.waypoints.forEach(wp => rutaCompleta.push({ tipo: 'waypoint', lat: wp.lat, lng: wp.lng }));
-          rutaCompleta.push({ tipo: 'waypoint', lat: entry.fin.lat, lng: entry.fin.lng });
         }
       });
 
@@ -251,32 +257,30 @@
     }
 
     // ── Comunicación con el padre ─────────────────────────────────────────
-    globalThis.addEventListener('message', event => {
-      if (event.origin !== globalThis.location.origin) return;
+    //
+    // Aqui habia una escucha cruda que ademas atendia 'solicitar-ruta' devolviendo la ruta
+    // entera al padre. Ese tipo no lo enviaba nadie, en ningun fichero del proyecto: era un
+    // camino muerto que mantenia viva `rutaCompleta` solo para alimentarlo.
+    if (tienePadre) {
+      bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.DATOS, (mensaje) => {
+        pintarRuta(mensaje.datos?.coordenadas);
+        return { pintadas: mensaje.datos?.coordenadas?.length ?? 0 };
+      });
 
-      if (event.data?.tipo === 'mapa-completo-datos') {
-        pintarRuta(event.data.coordenadas);
-        return;
-      }
-
-      if (event.data?.tipo === 'solicitar-ruta') {
-        globalThis.parent.postMessage({
-          tipo: 'ruta-completa',
-          paradas:   rutaCompleta.filter(p => p.tipo === 'parada'),
-          waypoints: rutaCompleta.filter(p => p.tipo === 'waypoint'),
-          ruta:      rutaCompleta
-        }, globalThis.location.origin);
-      }
-
-      if (event.data?.tipo === 'mapa-visible') {
+      // El overlay acaba de hacerse visible: hasta ahora el contenedor no tenia tamaño y
+      // medir era inutil. El segundo intento cubre la animacion de apertura.
+      bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE, () => {
         _reajustarVista();
         setTimeout(_reajustarVista, 300);
-      }
-    });
+        return true;
+      });
 
-    // Pedir los datos. Sin padre no hay a quien pedirselos: el mapa queda vacio.
-    if (globalThis.parent && globalThis.parent !== globalThis) {
-      globalThis.parent.postMessage({ tipo: 'mapa-completo-solicitar-datos', aventura }, globalThis.location.origin);
+      // Pedir los datos. Sin padre no hay a quien pedirselos: el mapa queda vacio.
+      void bus.enviarMensaje({
+        tipo: TIPOS_MENSAJE.MAPA_COMPLETO.SOLICITAR_DATOS,
+        destino: 'padre',
+        datos: { aventura },
+      });
     } else {
       document.getElementById('map').innerHTML =
         `<p style="padding:2rem;font-size:1.25rem;text-align:center;">Este mapa forma parte de la aventura y necesita abrirse desde ella.</p>`;
