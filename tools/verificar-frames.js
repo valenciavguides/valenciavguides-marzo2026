@@ -28,7 +28,9 @@
  *   envios-crudos    cuantos `.postMessage(` hay. NO distingue el del bus de los demas.
  *   registra-iframes llama a `registrarIframe`/`registrarIframeHijo` — el doble papel.
  *   toca-otro-frame  `parent.document`, `parent.<algo>(` o `contentWindow.<algo>`, que
- *                    Opcion A prohibe. NO ve un acceso guardado en una variable antes.
+ *                    Opcion A prohibe. NO ve un acceso guardado en una variable antes, y
+ *                    cuenta de mas lo que aparezca dentro de un comentario — un fichero que
+ *                    EXPLICA por que ya no toca otro frame sigue sumando uno.
  *
  * USO
  *
