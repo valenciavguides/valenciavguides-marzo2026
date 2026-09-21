@@ -2267,18 +2267,38 @@
 
       img.src = rutaMapa;
       overlay.style.display = 'flex';
-      // NO va por el bus, a propósito: el padre escucha este tipo con un `addEventListener`
-      // crudo y lee `event.data.value`, un campo de PRIMER NIVEL. El bus solo deja pasar
-      // tipo/datos/id/timestamp/origen/destino, así que `value` se perdería por el camino y el
-      // aviso de rotación dejaría de suprimirse, sin error.
-      try { globalThis.parent.postMessage({ tipo: 'NAVEGACION.SUPRIMIR_ROTACION', origen: globalThis.name || 'seleccion', value: true }, globalThis.location.origin); } catch { /* cross-origin postMessage: error ignorado intencionalmente */ }
+      _avisarRotacion(true);
       _log.info('[SELECCION] Mapa vintage mostrado:', rutaMapa);
+    }
+
+    /**
+     * Pide al padre que suprima —o devuelva— el aviso de girar el móvil.
+     *
+     * Los mapas vintage de algunas aventuras son horizontales: ahí girar el móvil es justo lo
+     * que hay que hacer, y el aviso estorba. Al cerrarlo se devuelve: una supresión que no se
+     * deshace deja la app sin aviso el resto de la sesión, y eso no se nota hasta mucho después.
+     *
+     * `value` va DENTRO de `datos`: el bus reconstruye el mensaje con
+     * {tipo, datos, id, timestamp, origen, destino} y un campo de primer nivel se perdería por
+     * el camino, sin error.
+     *
+     * Y se manda por `globalThis.mensajeria`, no por el `enviarMensaje` del módulo: estas dos
+     * funciones viven en el <script> CLÁSICO, que no ve los bindings del módulo. Escribirlo
+     * como si los viera daba `ReferenceError` al abrir el mapa, y lo cazó el spec 82.
+     */
+    function _avisarRotacion(suprimir) {
+      const tipo = globalThis.TIPOS_MENSAJE?.NAVEGACION?.SUPRIMIR_ROTACION;
+      if (!tipo || !globalThis.mensajeria?.enviarMensaje) {
+        (globalThis.logger || console).error('[SELECCION] Sin bus o sin tipos: el aviso de rotación no sale');
+        return;
+      }
+      void globalThis.mensajeria.enviarMensaje({ tipo, destino: 'padre', datos: { value: suprimir } });
     }
 
     function cerrarMapaVintage() {
       const overlay = document.getElementById('mapa-vintage-overlay');
       if (overlay) overlay.style.display = 'none';
-      try { globalThis.parent.postMessage({ tipo: 'NAVEGACION.SUPRIMIR_ROTACION', origen: globalThis.name || 'seleccion', value: false }, globalThis.location.origin); } catch { /* cross-origin postMessage: error ignorado intencionalmente */ }
+      _avisarRotacion(false);
       void mostrar(8);
     }
 
@@ -3157,15 +3177,10 @@
                 globalThis._devCasaMode = true;
                 const badge = document.getElementById('_dev-badge');
                 if (badge) badge.style.display = 'block';
-                // NO va por el bus, y aquí el motivo NO es el de SUPRIMIR_ROTACION (este mensaje
-                // no lleva campos de primer nivel): es que el padre lo escucha con un
-                // `addEventListener('message')` crudo dentro de un IIFE de Script 1 que nunca pasó
-                // por el bus. Mientras esa escucha siga suelta, acepta el aviso de cualquier frame
-                // del dominio. Pasarlo al bus es el mismo trabajo que convertir esa escucha en un
-                // handler, y va con los cabos sueltos del padre, no con esta migración.
-                if (globalThis.parent && globalThis.parent !== globalThis) {
-                    globalThis.parent.postMessage({ tipo: 'SELECCION.DEV_MODE_TOGGLE' }, globalThis.location.origin);
-                }
+                // Por el bus, como todo. Iba a pelo y sin `origen` —el bus lo habria tirado—
+                // porque el padre lo escuchaba con una escucha suelta que aceptaba el aviso de
+                // CUALQUIER frame del dominio: bastaba con mandarlo para activar el modo dev.
+                void enviarMensaje({ tipo: TIPOS_MENSAJE.SELECCION.DEV_MODE_TOGGLE, destino: 'padre' });
                 (globalThis.logger || console).warn('[DEV] Modo dev activado en P1 — se saltarán P12 y P13');
             } catch (err) {
                 (globalThis.logger || console).error('[DEV] Error activando modo dev:', err?.message || err);

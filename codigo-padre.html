@@ -1703,10 +1703,9 @@
                     abrirChat();
                 });
 
-                globalThis.addEventListener('message', function(ev) {
-                    if (ev.origin !== globalThis.location.origin) return;
-                    if (ev.data && (ev.data.tipo === (globalThis.TIPOS_MENSAJE?.CHAT?.CERRAR || 'CHAT.CERRAR'))) cerrarChat();
-                });
+                // Cerrar el asistente cuando lo pide: lo atiende `_hdl_CHAT_CERRAR`, en Script 2,
+                // como un handler mas del bus. `cerrarChat` viaja por `globalThis.cerrarChatSoporte`,
+                // que ya se publica justo arriba.
             })();
 
             // 6. #brujula-modo (menú de modo de cámara) ya no tiene un único click-handler
@@ -4212,20 +4211,9 @@
         globalThis.addEventListener('resize', toggleRotationMessage);
 
         // Suprimir aviso de rotación cuando un iframe (ej: mapa vintage) lo solicite
-        globalThis.addEventListener('message', function(event) {
-            if (event.origin !== globalThis.location.origin) return;
-            if (event.data && (event.data.tipo === (globalThis.TIPOS_MENSAJE?.NAVEGACION?.SUPRIMIR_ROTACION || 'NAVEGACION.SUPRIMIR_ROTACION') || event.data.tipo === 'SUPPRESS_ROTATION')) {
-                globalThis.rotationSuppressed = !!event.data.value;
-                const rotMsg = document.getElementById('rotation-message');
-                if (rotMsg) {
-                    if (globalThis.rotationSuppressed) {
-                        rotMsg.classList.remove('show');
-                    } else {
-                        toggleRotationMessage();
-                    }
-                }
-            }
-        });
+        // La supresion del aviso de rotacion la atiende `_hdl_NAVEGACION_SUPRIMIR_ROTACION`,
+        // en Script 2. `toggleRotationMessage` ya esta expuesta en globalThis justo arriba,
+        // por el mismo motivo de siempre: dos scripts para una sola cosa.
 
         // La comprobacion inicial es la llamada de mas arriba, en este mismo modulo. Hubo
         // otra en el DOMContentLoaded temprano (script clasico) que NUNCA llego a
@@ -4237,15 +4225,9 @@
         // Activa/desactiva globalThis._devModeActivo. La visibilidad de hijo5
         // la gestiona exclusivamente display:none/block (z-index CSS !important no se puede
         // sobreescribir desde JS sin !important en el atributo style).
-        ;(function() {
-            globalThis._devModeActivo = globalThis._devModeActivo || false;
-            globalThis.addEventListener('message', function(ev) {
-                if (ev.origin !== globalThis.location.origin) return;
-                if (ev.data?.tipo !== 'SELECCION.DEV_MODE_TOGGLE') return;
-                globalThis._devModeActivo = true;
-                (globalThis.logger || console).warn('[DEV_MODE] 🟢 ACTIVADO');
-            });
-        })();
+        // El modo dev arranca apagado. Lo enciende `_hdl_SELECCION_DEV_MODE_TOGGLE`, en
+        // Script 2 (ver §24 de la guia).
+        globalThis._devModeActivo = globalThis._devModeActivo || false;
         // Exponer disparador de cambio de modo para uso desde Script 2
         // (Script 1 define _hdl_SISTEMA_CAMBIO_MODO; Script 2 lo necesita para AVENTURA_ACTIVADA y Factor 2)
         globalThis._vv_triggerCambioModo = function(modo) {
@@ -14678,8 +14660,53 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             return { enviadas: coordenadas.length };
         }
 
+        /** El asistente pide que se le cierre. Quien cierra es el padre, no él. */
+        async function _hdl_CHAT_CERRAR(_mensaje) {
+            if (typeof globalThis.cerrarChatSoporte !== 'function') {
+                (globalThis.logger || console).error(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[CHAT] Piden cerrar el asistente y cerrarChatSoporte no existe: la ventana se queda abierta`);
+                return false;
+            }
+            globalThis.cerrarChatSoporte();
+            return true;
+        }
+
+        /**
+         * El mapa vintage pide que se le deje ver en apaisado, y que se restaure al cerrarlo.
+         *
+         * `value` llega dentro de `datos`: el bus reconstruye el mensaje y un campo de primer
+         * nivel se perdería por el camino, sin error.
+         *
+         * `toggleRotationMessage` vive en Script 1 y está expuesta en `globalThis` porque hacen
+         * falta dos scripts para una sola cosa (ver CLAUDE.md, scripts separados).
+         */
+        async function _hdl_NAVEGACION_SUPRIMIR_ROTACION(mensaje) {
+            globalThis.rotationSuppressed = !!mensaje?.datos?.value;
+            const rotMsg = document.getElementById('rotation-message');
+            if (rotMsg) {
+                if (globalThis.rotationSuppressed) rotMsg.classList.remove('show');
+                else if (typeof globalThis.toggleRotationMessage === 'function') globalThis.toggleRotationMessage();
+            }
+            return { suprimido: globalThis.rotationSuppressed };
+        }
+
+        /**
+         * Enciende el modo de desarrollo (ver §24 de la guía).
+         *
+         * Solo enciende: no hay ningún mensaje que lo apague, y `_hdl_SISTEMA_CAMBIO_MODO` no lo
+         * toca a propósito. Antes lo atendía una escucha suelta que aceptaba el aviso de
+         * CUALQUIER frame del dominio; ahora solo de un iframe que el padre haya registrado.
+         */
+        async function _hdl_SELECCION_DEV_MODE_TOGGLE(_mensaje) {
+            globalThis._devModeActivo = true;
+            (globalThis.logger || console).warn('[DEV_MODE] 🟢 ACTIVADO');
+            return true;
+        }
+
         function _regCtrl_UI(TIPOS_MENSAJE) {
             globalThis.registrarControladorSeguro(TIPOS_MENSAJE.MAPA_COMPLETO.SOLICITAR_DATOS, _hdl_MAPA_COMPLETO_SOLICITAR_DATOS, { permanente: true });
+            globalThis.registrarControladorSeguro(TIPOS_MENSAJE.CHAT.CERRAR, _hdl_CHAT_CERRAR, { permanente: true });
+            globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.SUPRIMIR_ROTACION, _hdl_NAVEGACION_SUPRIMIR_ROTACION, { permanente: true });
+            globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.DEV_MODE_TOGGLE, _hdl_SELECCION_DEV_MODE_TOGGLE, { permanente: true });
         }
 
         // Se guarda la promesa: el bloque que marca script2Listo, mas abajo, tiene que esperarla.
