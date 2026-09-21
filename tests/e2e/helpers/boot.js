@@ -170,11 +170,13 @@ async function gotoAndWaitForFase1(page) {
     });
   }
 
-  // Y esperar a que Script 2 haya registrado sus controladores.
+  // Y esperar a que el padre haya registrado los controladores con los que arranca.
   //
   // FASE 1 solo garantiza la mensajería, que monta Script 1. Los handlers del padre —audio,
-  // paradas, retos, SISTEMA.ERROR— los registra Script 2 DESPUÉS, y `marcarScript2Listo()` se
-  // llama justo al terminar ese registro (codigo-padre.html), así que es la señal fiable.
+  // paradas, retos, SISTEMA.ERROR— los registran Script 1 y Script 2 DESPUÉS, y
+  // `marcarScript2Listo()` se llama cuando han terminado los de los dos (codigo-padre.html,
+  // "MARCAR SCRIPT 2 LISTO"), así que es la señal fiable. Los tres de heartbeat de Script 4
+  // quedan fuera: ver el spec 89.
   //
   // Sin esta espera, un test que actúe nada más volver de aquí puede mandarle un mensaje al
   // padre cuando todavía no hay nadie escuchando: el bus avisa y lo descarta, y el test falla

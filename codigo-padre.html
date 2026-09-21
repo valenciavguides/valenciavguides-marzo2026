@@ -3719,6 +3719,19 @@
         (globalThis.logger || console).info('%c[PADRE][FASE1] 🚀 INICIANDO FASE 1: Infraestructura...', 'color: #ffff00; font-weight: bold');
         const fase1GlobalInicio = performance.now();
 
+        // Promesa "Script 1 ha terminado de registrar sus controladores". Script 2 la espera antes
+        // de marcar script2Listo (busca "MARCAR SCRIPT 2 LISTO").
+        //
+        // Tiene que crearse AQUÍ, antes del primer `await` de nivel superior: en ese await Script 1
+        // se suspende y Script 2 empieza a ejecutarse, así que creada más abajo Script 2 podría no
+        // encontrarla. Se cumple tras `registrarControladoresDatos()`, el último registro de Script 1.
+        //
+        // MEDIDO sin ella: los tres DATOS.SOLICITAR_* —que se registran detrás del
+        // `await import('./js/controladores-padre.js')`— llegaban después del marcado en 3 de
+        // cada 4 arranques de firefox. Lo fija el spec 89.
+        let _cumplirRegistroScript1;
+        globalThis.__vv_registroScript1 = new Promise((resolve) => { _cumplirRegistroScript1 = resolve; });
+
         // =====================================================
         // PASO 1: Importar e inicializar state-manager PRIMERO
         // Esto es crítico para que mensajeria.js pueda conectarse
@@ -8962,6 +8975,10 @@ await _comprobarReanudacionAventura(logPrefix);
             enviarMensaje: enviarMensaje_S1,
             getPadreId: getPadreId_S1
         });
+        // Último registro de Script 1: a partir de aquí no registra más controladores. Sus
+        // registros ya están en la cola del state-manager (se encolan sin ningún await por medio),
+        // así que quien espere esta promesa y luego `esperarRegistrosPendientes` los encuentra todos.
+        _cumplirRegistroScript1();
 
         // ============================================================
         // MODAL DE FINALIZACIÓN DE AVENTURA
@@ -14643,13 +14660,17 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         })();
 
         // ============================================================
-        // MARCAR SCRIPT 2 LISTO CUANDO SUS CONTROLADORES ESTÉN REGISTRADOS
+        // MARCAR SCRIPT 2 LISTO CUANDO ESTÉN REGISTRADOS LOS CONTROLADORES DE SCRIPT 1 Y SCRIPT 2
         // ============================================================
-        // Dos esperas, y hacen falta las dos:
+        // Tres esperas, y hacen falta las tres:
         //
         //   1. `_registroControladoresScript2`: que se hayan LANZADO los registros. Sin ella este
         //      bloque corre antes que la funcion de arriba, que se suspende en su primer await.
-        //   2. `esperarRegistrosPendientes`: que hayan TERMINADO. Cada registro escribe en el
+        //   2. `__vv_registroScript1`: que Script 1 haya lanzado los SUYOS. Script 1 registra sus
+        //      últimos controladores (DATOS.SOLICITAR_*) detrás de un `await import`, y ese import
+        //      puede resolver después de que Script 2 termine. Tiene que ir antes que la 3: esa
+        //      solo espera a los registros ya lanzados cuando se la llama.
+        //   3. `esperarRegistrosPendientes`: que hayan TERMINADO. Cada registro escribe en el
         //      mapa dentro de un mutex del state-manager y espera al anterior; lanzados no es
         //      registrados.
         //
@@ -14659,8 +14680,9 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         (async () => {
             try {
                 await _registroControladoresScript2;
+                await globalThis.__vv_registroScript1;
                 await globalThis.__vv_stateManager.esperarRegistrosPendientes();
-                (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} ✅ Controladores Script 2 registrados`);
+                (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} ✅ Controladores de Script 1 y Script 2 registrados`);
                 const resultado = await globalThis.mensajeria.marcarScript2Listo();
                 (globalThis.logger || console).info(`[SCRIPT2] ✅ Script 2 marcado como LISTO (controladores registrados)`, resultado);
             } catch (error) {
@@ -15718,7 +15740,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         (globalThis.logger || console).info('🔧 Función de diagnóstico GPS disponible: globalThis.diagnosticarGPS()');
 
         // ℹ️ NOTA: marcarScript2Listo() se llama en Script 2, en cuanto terminan de registrarse
-        // sus controladores (busca "MARCAR SCRIPT 2 LISTO").
+        // los controladores de Script 1 y los suyos (busca "MARCAR SCRIPT 2 LISTO").
     </script>
 
     <!-- ============================================================ -->

@@ -7,11 +7,16 @@ const { injectInitSpy, stubCDNResources } = require('./helpers/boot');
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 /**
- * S2 — cuando script2Listo pasa a true, los controladores de Script 2 ESTÁN registrados.
+ * S2 — cuando script2Listo pasa a true, los controladores de Script 1 y Script 2 ESTÁN registrados.
  *
- *   S2-1  en el instante del marcado ya están todos los que habrá, y ninguno falta
+ *   S2-1  en el instante del marcado ya están todos los del arranque del padre, y ninguno falta
  *   S2-2  SISTEMA.ERROR, en concreto, ya tiene handler
  *   S2-3  se marca una sola vez
+ *   S2-4  el marcado espera a Script 1 aunque su último import tarde
+ *
+ * El nombre `script2Listo` se queda corto: la señal espera también a Script 1, cuyos últimos
+ * controladores (DATOS.SOLICITAR_*) se registran detrás de un `await import`. MEDIDO sin esa
+ * espera: en firefox faltaban esos tres al marcar en 3 de cada 4 arranques.
  *
  * POR QUÉ EXISTE
  *
@@ -36,7 +41,13 @@ const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
  * SISTEMA.ERROR ausente).
  */
 
-async function arrancarEspiandoElMarcado(page) {
+async function arrancarEspiandoElMarcado(page, { retrasarControladoresDatosMs = 0 } = {}) {
+  if (retrasarControladoresDatosMs) {
+    await page.route('**/js/controladores-padre.js', async (route) => {
+      await new Promise((r) => setTimeout(r, retrasarControladoresDatosMs));
+      await route.continue();
+    });
+  }
   await page.addInitScript({ path: MAPLIBRE_STUB });
   await page.addInitScript(() => {
     let api;
@@ -86,8 +97,8 @@ test.describe('S2 — script2Listo dice la verdad', () => {
   /**
    * Los TRES que registra Script 4, y que por tanto llegan después del marcado.
    *
-   * `script2Listo` promete lo que dice su nombre: que están los controladores de Script 2. Los
-   * de Script 4 son otro bloque y corren después. Este caso comparaba contra el total final
+   * `script2Listo` promete que están los controladores de Script 1 y Script 2. Los de Script 4
+   * son otro bloque y corren después. Este caso comparaba contra el total final
    * —Script 2 + Script 4— y pasaba solo cuando Script 4 se adelantaba, que era lo habitual
    * hasta que Script 2 dejó de tener colas de espera y empezó a terminar antes. Estaba
    * pasando por suerte de reloj.
@@ -99,7 +110,7 @@ test.describe('S2 — script2Listo dice la verdad', () => {
    */
   const DE_SCRIPT_4 = ['SISTEMA.HEARTBEAT_START', 'SISTEMA.HEARTBEAT_PAUSE', 'SISTEMA.HEARTBEAT_ESTADO'];
 
-  test('S2-1. Al marcarse, no falta ningún controlador de Script 2', async ({ page }) => {
+  test('S2-1. Al marcarse, no falta ningún controlador de Script 1 ni de Script 2', async ({ page }) => {
     await arrancarEspiandoElMarcado(page);
     const alMarcar = await page.evaluate(() => globalThis.__marcados[0].tipos);
     const finales = await controladoresFinales(page);
@@ -112,9 +123,9 @@ test.describe('S2 — script2Listo dice la verdad', () => {
       expect(finales, `${tipo} tiene que seguir registrándose en Script 4`).toContain(tipo);
     }
 
-    const deScript2 = finales.filter((t) => !DE_SCRIPT_4.includes(t));
-    const faltaban = deScript2.filter((t) => !alMarcar.includes(t));
-    expect(faltaban, `al marcar script2Listo faltaban ${faltaban.length} de ${deScript2.length} controladores de Script 2`).toEqual([]);
+    const deScript1y2 = finales.filter((t) => !DE_SCRIPT_4.includes(t));
+    const faltaban = deScript1y2.filter((t) => !alMarcar.includes(t));
+    expect(faltaban, `al marcar script2Listo faltaban ${faltaban.length} de ${deScript1y2.length} controladores de Script 1 y Script 2`).toEqual([]);
   });
 
   test('S2-2. Al marcarse, SISTEMA.ERROR ya tiene handler', async ({ page }) => {
@@ -127,5 +138,33 @@ test.describe('S2 — script2Listo dice la verdad', () => {
     await arrancarEspiandoElMarcado(page);
     await controladoresFinales(page);
     expect(await page.evaluate(() => globalThis.__marcados.length)).toBe(1);
+  });
+});
+
+/**
+ * S2-4 — el marcado espera a Script 1 aunque su último import tarde.
+ *
+ * Script 1 registra los tres DATOS.SOLICITAR_* detrás de `await import('./js/controladores-padre.js')`.
+ * S2-1 solo lo caza cuando ese import pierde la carrera por sí solo (en firefox, 3 de cada 4
+ * arranques; en chromium casi nunca). Aquí se fuerza: el fichero llega 2 s tarde, y el marcado
+ * tiene que esperarlo igual.
+ *
+ * Sin service worker a propósito: `page.route` no ve lo que sirve un service worker, y en
+ * firefox el retraso no llegaba a aplicarse (medido).
+ *
+ * ROJO ANTES QUE VERDE: medido sin la espera a `__vv_registroScript1`, los tres faltan al
+ * marcar en 4 de 4 arranques, en chromium y en firefox.
+ */
+test.describe('S2-4 — el marcado espera a Script 1 aunque su último import tarde', () => {
+  test.use({ serviceWorkers: 'block' });
+
+  test('S2-4. Con controladores-padre.js retrasado 2 s, al marcarse ya están los DATOS.SOLICITAR_*', async ({ page }) => {
+    await arrancarEspiandoElMarcado(page, { retrasarControladoresDatosMs: 2000 });
+    const alMarcar = await page.evaluate(() => globalThis.__marcados[0].tipos);
+    expect(alMarcar).toEqual(expect.arrayContaining([
+      'DATOS.SOLICITAR_AUDIOS',
+      'DATOS.SOLICITAR_TEXTOS',
+      'DATOS.SOLICITAR_RETOS',
+    ]));
   });
 });
