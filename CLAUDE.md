@@ -48,10 +48,11 @@ viven aquí.
 3. **Un inventario que salga de un `grep` por nombre no es un inventario**: devuelve a quien tiene
    la cosa, nunca a quien le falta. Para "¿quién no lo tiene?" usar `npm run verificar-frames` o
    enumerar las ausencias a mano, fichero por fichero.
-4. **Parchear con un script escrito en disco**, nunca con `node -e` ni heredoc: se comen las barras
-   invertidas y rompen literales sin que el lint lo vea. El working tree está en CRLF, así que
-   ningún ancla debe cruzar un salto de línea. El script aborta si su ancla no aparece exactamente
-   una vez.
+4. **Parchear con un script escrito en disco**, nunca con `node -e`, heredoc, ni `sed -i "…"` entre
+   comillas dobles: el shell se come las barras invertidas y los backticks, y rompe literales y
+   comentarios sin que el lint lo vea. El working tree está en CRLF, así que ningún ancla debe
+   cruzar un salto de línea. El script aborta si su ancla no aparece exactamente una vez. Después
+   de parchear, comprobar que el texto sobrevivió — no basta con que el script diga que aplicó.
 5. **Mientras corre `npx playwright test`, no lanzar nada más** en el proyecto: ni greps, ni lint,
    ni otra tanda. Para iterar, el spec tocado en `--project=chromium`; la tanda de los cuatro
    navegadores (~47 min) solo antes de un commit grande o del push.

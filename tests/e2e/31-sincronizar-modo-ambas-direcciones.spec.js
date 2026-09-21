@@ -1,141 +1,62 @@
 /**
- * 31-sincronizar-modo-ambas-direcciones.spec.js
+ * MD — el cambio de modo se aplica igual en las dos direcciones
  *
- * Verificación de que las funciones locales renombradas en esta sesión
- * (retos-hijo4.html: actualizarInterfazModo → sincronizarEstadoModo;
- * audio-hijo3.html: actualizarInterfazModo → sincronizarSeekPorModo)
- * funcionan igual de bien en las dos direcciones del cambio de modo
- * (CASA→AVENTURA y AVENTURA→CASA), no solo en la dirección que se probó
- * a mano durante el desarrollo. Incluye también el guard `retoSigueActivo`
- * de RETO.LIMPIAR_ESTADO (fix de la misma sesión), específico de CASA.
- *
- * Igual que 26-reto-completado-boton-verde.spec.js, carga los hijos como
- * página de nivel superior (sin padre real) e inyecta los mensajes por
- * postMessage sintético — suficiente para observar el efecto en el DOM
- * propio de cada hijo, sin depender de que el padre exista.
+ * `sincronizarEstadoModo` (hijo4) y `sincronizarSeekPorModo` (hijo3) tienen que funcionar
+ * tanto en CASA→AVENTURA como en AVENTURA→CASA, no solo en la dirección que se probó a mano.
+ * Incluye el guard `retoSigueActivo` de `RETO.LIMPIAR_ESTADO`, que es específico de CASA.
  *
  *   MD-1  hijo4: CAMBIO_MODO→casa aplica clase modo-casa al body
  *   MD-2  hijo4: CAMBIO_MODO→aventura aplica clase modo-aventura al body
- *   MD-3  hijo4: RETO.LIMPIAR_ESTADO con retoSigueActivo:false NO reaparece
- *         botonRetos-wrapper en CASA
- *   MD-4  hijo4: RETO.LIMPIAR_ESTADO con retoSigueActivo:true SÍ reaparece
- *         botonRetos-wrapper en CASA
- *   MD-5  hijo4: RETO.LIMPIAR_ESTADO sin campo retoSigueActivo (compatibilidad
- *         hacia atrás) también reaparece botonRetos-wrapper en CASA
- *   MD-6  hijo3: CAMBIO_MODO→casa aplica clase modo-casa y deja la barra de
- *         progreso arrastrable (CASA fuerza habilitado)
- *   MD-7  hijo3: CAMBIO_MODO→aventura aplica clase modo-aventura y deja la
- *         barra de progreso NO arrastrable si el padre no la ha habilitado
+ *   MD-3  hijo4: RETO.LIMPIAR_ESTADO con retoSigueActivo:false NO reaparece el wrapper
+ *   MD-4  hijo4: RETO.LIMPIAR_ESTADO con retoSigueActivo:true SÍ lo reaparece
+ *   MD-5  hijo4: sin el campo (compatibilidad) también lo reaparece
+ *   MD-6  hijo3: CAMBIO_MODO→casa deja la barra de progreso arrastrable
+ *   MD-7  hijo3: CAMBIO_MODO→aventura la deja no-arrastrable si el padre no la habilitó
+ *
+ * LOS DOS HIJOS VIVEN EN UN MARCO, COMO EN LA APP
+ *
+ * `helpers/marco-vacio.html` les hace de padre. Cargarlos como página de primer nivel dejó de
+ * valer al migrarlos al bus: un frame sin padre no envía ni recibe por el camino real, y el
+ * montaje anterior lo suplía inyectando un `globalThis.mensajeria` de mentira — o sea que
+ * comprobaba su propio muñeco.
+ *
+ * Ese muñeco además tapaba una carrera real, medida en su día: el `enviarMensaje` propio de
+ * cada hijo bifurcaba por `parent !== window` y, suelto, caía en un reintento de 10×500 ms
+ * sobre un objeto que no existía. Eran 5.000 ms exactos, justo el plazo que esperaba el
+ * `expect.poll`: empate resuelto por el planificador, y de ahí que MD-2/MD-3 pasaran sueltos
+ * y cayeran en tandas completas. Dentro del marco esa rama no existe.
+ *
+ * LA ESPERA AL HANDLER SE LE PREGUNTA AL BUS
+ *
+ * `mensajeria.tieneControlador(tipo)`, que es API pública. Antes se miraba
+ * `messagingAdapter._listenerRegistry`, la estructura privada del envoltorio de cada hijo: al
+ * desaparecer el envoltorio, el test se caía sin que la aplicación tuviera nada roto.
  */
 'use strict';
 
 const { test, expect } = require('@playwright/test');
 const { abrirHijoEnMarco, enviarAlHijo } = require('./helpers/boot');
 
-/**
- * Espera a que el handler de `tipo` esté registrado, en vez de dormir 400 ms a ciegas.
- *
- * `messagingAdapter._listenerRegistry` guarda, por tipo, el listener de 'message' que
- * atiende el postMessage sintético de estos tests: si la clave existe, el mensaje ya no
- * puede caer en el vacío. Está definido igual en hijo2, hijo3 y hijo4.
- *
- * ⚠️ ESTA ESPERA MUERE CON LA MIGRACIÓN AL BUS. Un frame que habla por `js/mensajeria.js`
- * no tiene `messagingAdapter`: el bus pone un solo listener y lleva él el registro. Este
- * fichero abre hijo4 y hijo3, así que el día que cualquiera de los dos se migre esta
- * condición pasa a ser imposible y `waitForFunction` agota sus 10 s. Hay que sustituirla
- * **en el mismo commit que migre ese hijo**, no después.
- *
- * Y no hay sustituto directo: `globalThis.mensajeria` NO expone hoy ninguna consulta del
- * tipo "¿tienes handler para X?" (mirado en `exponerAPIGlobal()`; solo hay
- * `estaInicializado`, `getComponenteId` y `getIframesRegistrados`). El mapa de manejadores
- * es interno y `obtenerMapaManejadores()` lo saca de tres sitios distintos según el frame
- * —state-manager, `__vv_getManejadores` o `__vv_manejadoresLocales`—, así que adivinarlo
- * desde el test es frágil. Lo correcto al migrar es añadir esa consulta al bus.
- *
- * MEDIDO, y conviene no equivocarse con esto: la condición **ya se cumple en
- * domcontentloaded** en los dos motores (12-18 ms, que es solo el sondeo). Los
- * <script type="module"> son diferidos y se ejecutan ANTES de domcontentloaded, así que la
- * carrera que describía el comentario anterior —"el postMessage puede llegar antes de que
- * el handler exista"— nunca ocurrió. Este cambio hace la espera explícita y ahorra 2,8 s
- * por ejecución; lo que **no** arregla es la caída intermitente de MD-2/MD-3 en tandas
- * completas. Esa tiene causa propia, medida, y su arreglo es otro: ver
- * `proveerMensajeriaStub()` más abajo.
- *
- * (Tampoco sirve `__CONTROLADOR_REGISTRADOS`: se marca ANTES de que termine el registro real.)
- */
-async function esperarHandler(page, tipo) {
-  await page.waitForFunction(
-    (t) => globalThis.messagingAdapter?._listenerRegistry?.has(t) === true,
-    tipo,
-    { timeout: 10000 }
-  );
+/** Abre el hijo en el marco y espera a que su handler de cambio de modo exista. */
+async function abrirConHandlerDeModo(page, fichero) {
+  const hijo = await abrirHijoEnMarco(page, fichero);
+  await expect
+    .poll(() => hijo.evaluate(() => globalThis.mensajeria.tieneControlador('SISTEMA.CAMBIO_MODO')), { timeout: 10_000 })
+    .toBe(true);
+  return hijo;
 }
 
-async function enviarCambioModo(page, destino, modo) {
-  await page.evaluate(({ destino, modo }) => {
-    globalThis.postMessage({
-      tipo: 'SISTEMA.CAMBIO_MODO',
-      origen: 'padre',
-      destino,
-      datos: { modo, secuenciaCompleta: true, timestamp: Date.now() },
-    }, globalThis.location.origin);
-  }, { destino, modo });
-}
+const enviarCambioModo = (page, destino, modo) => enviarAlHijo(page, {
+  tipo: 'SISTEMA.CAMBIO_MODO',
+  origen: 'padre',
+  destino,
+  datos: { modo, secuenciaCompleta: true, timestamp: Date.now() },
+});
 
-/**
- * Provee el `globalThis.mensajeria` que el hijo espera cuando NO vive en un iframe.
- *
- * CAUSA RAIZ de la caida intermitente de MD-2/MD-3, medida:
- *
- *   `enviarMensaje()` (retos-hijo4.html ~L429) bifurca por `parent !== window`. En
- *   produccion el hijo SIEMPRE es un iframe, asi que toma la rama rapida de postMessage.
- *   Cargado como pagina suelta —que es lo que hacen estos tests— cae al `else`, que hace
- *   `retryUntilAvailable(..., 10, 500)` sobre `globalThis.mensajeria`, y ese objeto no
- *   existe standalone porque el hijo no carga mensajeria.js: agota los 10 intentos.
- *
- *   10 x 500 ms = 5.000 ms EXACTOS. Y el handler de CAMBIO_MODO hace `await` de ese envio
- *   (el CAMBIO_MODO_ENTENDIDO, ~L1676) ANTES de llamar a sincronizarEstadoModo (~L1701),
- *   que es quien pone la clase en el body. El `expect.poll` esperaba 5.000 ms: empate
- *   exacto, resuelto por el planificador. De ahi que pasara suelto y cayera en tandas
- *   completas con la maquina cargada.
- *
- * Con el stub, la rama lenta resuelve al instante: desaparece la carrera y se ahorran ~5 s
- * por caso. No debilita lo que se prueba —estos tests verifican que sincronizarEstadoModo
- * aplica las clases, no la entrega del ENTENDIDO— y de hecho se parece mas a produccion,
- * donde ese envio tampoco bloquea.
- */
-async function proveerMensajeriaStub(page) {
-  await page.addInitScript(() => {
-    globalThis.mensajeria = globalThis.mensajeria || {
-      enviarMensaje: () => Promise.resolve({ exito: true, metodo: 'stub-e2e' }),
-    };
-  });
-}
+const claseDelBody = (hijo, clase) => hijo.evaluate((c) => document.body.classList.contains(c), clase);
 
 test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () => {
-  /**
-   * hijo4 vive dentro del marco, que le hace de padre. Suelto no serviria: desde que habla
-   * por el bus, un hijo sin padre no envia ni recibe por el camino real.
-   *
-   * Y la espera al handler se le pregunta al bus (`tieneControlador`), no a las tripas de
-   * nadie. Antes se miraba `messagingAdapter._listenerRegistry`, la estructura privada del
-   * envoltorio de hijo4: al desaparecer el envoltorio, el test se caia sin que la aplicacion
-   * tuviera nada roto.
-   */
-  async function abrirHijo4(page) {
-    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
-    await expect
-      .poll(() => hijo.evaluate(() => globalThis.mensajeria.tieneControlador('SISTEMA.CAMBIO_MODO')), { timeout: 10_000 })
-      .toBe(true);
-    return hijo;
-  }
-
-  const enviarCambioModo = (page, modo) => enviarAlHijo(page, {
-    tipo: 'SISTEMA.CAMBIO_MODO',
-    origen: 'padre',
-    destino: 'hijo4',
-    datos: { modo, secuenciaCompleta: true, timestamp: Date.now() },
-  });
+  const abrirHijo4 = (page) => abrirConHandlerDeModo(page, 'retos-hijo4.html');
 
   const enviarLimpiarEstado = (page, datos) => enviarAlHijo(page, {
     tipo: 'RETO.LIMPIAR_ESTADO',
@@ -144,11 +65,10 @@ test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () =>
     datos,
   });
 
-  const claseDelBody = (hijo, clase) => hijo.evaluate((c) => document.body.classList.contains(c), clase);
   const displayDelWrapper = (hijo) => hijo.evaluate(() => document.getElementById('botonRetos-wrapper').style.display);
 
   async function ponerEnCasa(page, hijo) {
-    await enviarCambioModo(page, 'casa');
+    await enviarCambioModo(page, 'hijo4', 'casa');
     await expect.poll(() => claseDelBody(hijo, 'modo-casa'), { timeout: 5000 }).toBe(true);
   }
 
@@ -160,7 +80,7 @@ test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () =>
 
   test('MD-2. CAMBIO_MODO→aventura aplica clase modo-aventura al body', async ({ page }) => {
     const hijo = await abrirHijo4(page);
-    await enviarCambioModo(page, 'aventura');
+    await enviarCambioModo(page, 'hijo4', 'aventura');
     await expect.poll(() => claseDelBody(hijo, 'modo-aventura'), { timeout: 5000 }).toBe(true);
     expect(await claseDelBody(hijo, 'modo-casa')).toBe(false);
   });
@@ -169,11 +89,11 @@ test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () =>
     const hijo = await abrirHijo4(page);
     await ponerEnCasa(page, hijo);
 
-    // Punto de partida conocido: oculto (el HTML estatico ya arranca asi).
+    // Punto de partida conocido: oculto (el HTML estático ya arranca así).
     expect(await displayDelWrapper(hijo)).toBe('none');
 
     await enviarLimpiarEstado(page, { retoId: 'reto-viejo', retoSigueActivo: false });
-    // VENTANA-OBSERVACION: MD-3 demuestra que el wrapper NO reaparece; no hay condicion que esperar
+    // VENTANA-OBSERVACION: MD-3 demuestra que el wrapper NO reaparece; no hay condición que esperar
     await page.waitForTimeout(300);
     expect(await displayDelWrapper(hijo), 'retoSigueActivo:false debe dejar el wrapper oculto').toBe('none');
   });
@@ -202,23 +122,27 @@ test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () =>
 });
 
 test.describe('MD — sincronizarSeekPorModo (hijo3) en ambas direcciones', () => {
-  test.beforeEach(async ({ page }) => { await proveerMensajeriaStub(page); });
+  const abrirHijo3 = (page) => abrirConHandlerDeModo(page, 'audio-hijo3.html');
+  const barraDeshabilitada = (hijo) =>
+    hijo.evaluate(() => document.getElementById('progressContainer').classList.contains('deshabilitado'));
 
   test('MD-6. CAMBIO_MODO→casa aplica modo-casa y deja la barra de progreso arrastrable', async ({ page }) => {
-    await page.goto('audio-hijo3.html');
-    await page.waitForLoadState('domcontentloaded');
-    await esperarHandler(page, 'SISTEMA.CAMBIO_MODO');
+    const hijo = await abrirHijo3(page);
     await enviarCambioModo(page, 'hijo3', 'casa');
-    await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-casa')), { timeout: 5000 }).toBe(true);
-    expect(await page.evaluate(() => document.getElementById('progressContainer').classList.contains('deshabilitado')), 'En CASA la barra debe quedar arrastrable aunque el padre no la haya habilitado explícitamente').toBe(false);
+    await expect.poll(() => claseDelBody(hijo, 'modo-casa'), { timeout: 5000 }).toBe(true);
+    expect(
+      await barraDeshabilitada(hijo),
+      'En CASA la barra debe quedar arrastrable aunque el padre no la haya habilitado explícitamente',
+    ).toBe(false);
   });
 
   test('MD-7. CAMBIO_MODO→aventura aplica modo-aventura y deja la barra deshabilitada si el padre no la habilitó', async ({ page }) => {
-    await page.goto('audio-hijo3.html');
-    await page.waitForLoadState('domcontentloaded');
-    await esperarHandler(page, 'SISTEMA.CAMBIO_MODO');
+    const hijo = await abrirHijo3(page);
     await enviarCambioModo(page, 'hijo3', 'aventura');
-    await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-aventura')), { timeout: 5000 }).toBe(true);
-    expect(await page.evaluate(() => document.getElementById('progressContainer').classList.contains('deshabilitado')), 'En AVENTURA sin CONTROL.HABILITAR{control:progressBar} del padre, la barra debe seguir no-arrastrable').toBe(true);
+    await expect.poll(() => claseDelBody(hijo, 'modo-aventura'), { timeout: 5000 }).toBe(true);
+    expect(
+      await barraDeshabilitada(hijo),
+      'En AVENTURA sin CONTROL.HABILITAR{control:progressBar} del padre, la barra debe seguir no-arrastrable',
+    ).toBe(true);
   });
 });
