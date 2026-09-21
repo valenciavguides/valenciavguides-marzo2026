@@ -137,6 +137,7 @@
   </div>
 </div>
 <script type="module">
+import * as bus from './js/mensajeria.js';
 import { TIPOS_MENSAJE } from './js/constants.js';
 import logger from './js/logger.js';
 // Publica el logger en el globalThis de ESTA ventana. Sin esta linea, los
@@ -144,6 +145,11 @@ import logger from './js/logger.js';
 // saltaban el nivel de log. eslint NO los marca —el objeto no es literalmente
 // `console`, va envuelto en el `||`— asi que nada volveria a recordarlo.
 globalThis.logger = logger;
+
+// Este frame es un NIETO: lo incrusta hijo4 (un puzzle por reto) o la pantalla de selección
+// (P10). Su "padre" a efectos del bus es ese frame, no el padre de la aplicación, y es a él a
+// quien avisa. Nada salta por encima de su contenedor.
+await bus.inicializarMensajeria({ id: 'puzzle' });
 
 // Obtener el ID del puzzle de la URL
 const urlParams = new URLSearchParams(globalThis.location.search);
@@ -184,18 +190,13 @@ if (!puzzleConfigValido) {
 // puzzleId (ya resuelto arriba, válido o no) y viva fuera del bloque de abajo.
 let saltarPuzzleResuelto = null; // se rellena más abajo solo si el puzzle carga con éxito
 function notificarPuzzleAlPadre(success) {
-    try {
-        globalThis.parent.postMessage(
-            {
-                tipo: success ? TIPOS_MENSAJE.PUZZLE.COMPLETADO : TIPOS_MENSAJE.PUZZLE.TIMEOUT,
-                origen: 'puzzle',
-                datos: { puzzleId, exito: success, timestamp: Date.now() }
-            },
-            globalThis.location.origin
-        );
-    } catch (e) {
-        (globalThis.logger || console).warn('[puzzle] No se pudo enviar estado al padre:', e && e.message);
-    }
+    // `enviarMensaje` no lanza: devuelve false y lo dice en el log si no hay a quien
+    // mandarselo. El try/catch que habia aqui no podia saltar.
+    void bus.enviarMensaje({
+        tipo: success ? TIPOS_MENSAJE.PUZZLE.COMPLETADO : TIPOS_MENSAJE.PUZZLE.TIMEOUT,
+        destino: 'padre',
+        datos: { puzzleId, exito: success, timestamp: Date.now() },
+    });
 }
 const skipBtn = document.getElementById("skipBtn");
 if (skipBtn) {

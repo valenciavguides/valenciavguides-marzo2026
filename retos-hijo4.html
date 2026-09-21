@@ -794,6 +794,11 @@
             retoDiv.innerHTML = ""; // Limpiar contenido anterior del reto
             retoDiv.setAttribute("tabindex", "0");
             retoDiv.classList.remove('puzzle-active'); // Remover la clase puzzle-active
+            // El puzzle del reto anterior se fue con el HTML de #reto: darlo de baja aquí evita
+            // que el bus guarde un registro apuntando a un elemento que ya no existe. Este es el
+            // punto par de donde se crea (la rama `reto.tipo === "puzzle"`, que es la única que
+            // añade `puzzle-mode`), no cada sitio que vacía #reto.
+            globalThis.mensajeria.desregistrarIframe('puzzle');
             document.body.classList.remove('puzzle-mode');
             if (btnMostrarRespuesta) btnMostrarRespuesta.style.display = '';
 
@@ -858,6 +863,9 @@
                 puzzleIframe.id = "puzzleIframe";
                 // La imagen viaja dentro del reto (el padre la anade al resolverlo), asi
                 // que puzzle.html ya no necesita importar puzzles-aventuras.js.
+                // Registrar ANTES del `src`: el bus solo acepta mensajes de un iframe que este
+                // frame haya registrado, y el puzzle avisa en cuanto el usuario termina.
+                globalThis.mensajeria.registrarIframe('puzzle', puzzleIframe);
                 puzzleIframe.src = reto.imagenPuzzle
                     ? `${reto.src}${reto.src.includes('?') ? '&' : '?'}imagen=${encodeURIComponent(reto.imagenPuzzle)}`
                     : reto.src;
@@ -1135,41 +1143,34 @@
         /* Event Listener: globalThis.message
            Escucha mensajes provenientes del iframe del puzzle para coordinar el avance.
         */
-        globalThis.addEventListener("message", async (event) => {
-            if (event.origin !== globalThis.location.origin) return;
-            // Filtrar: solo mensajes del iframe del puzzle activo (referenciado por su id, no por posición)
-            const puzzleEl = document.getElementById('puzzleIframe');
-            if (!puzzleEl || event.source !== puzzleEl.contentWindow) {
-                return;
-            }
+        /*
+         * El puzzle avisa por el bus, como todo lo demás.
+         *
+         * Aquí había una escucha cruda que filtraba a mano por `event.source`. Eso ya lo hace
+         * el bus: solo acepta mensajes de un iframe que este frame haya registrado, y el puzzle
+         * se registra al crearlo y se da de baja al salir de `puzzle-mode`.
+         *
+         * Y aceptaba además un formato antiguo —el mensaje como cadena pelada, sin objeto—.
+         * Ese formato no lo enviaba NADIE en ningún fichero del proyecto; lo que sí hacía era
+         * dar por completado el puzzle ante una cadena suelta de cualquier frame del dominio.
+         *
+         * En los dos casos, acertar y agotar el tiempo, el reto queda PENDIENTE: el envío real
+         * de RETO.COMPLETADO ocurre al pulsar el botón verde, igual que en verificar(). La
+         * ventana del puzzle sigue en pantalla en este instante y el usuario no ha confirmado
+         * nada todavía.
+         */
+        function _cerrarPuzzleConResultado(acertado) {
+            retoDiv.classList.toggle("correct", acertado);
+            retoDiv.classList.toggle("incorrect", !acertado);
+            if (acertado) fuegosArtificiales(); else vibrar();
+            _pendienteCompletado = { retoId: retoActual.id, completado: true };
+            const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
+            if (btnPuzzleContinuar) btnPuzzleContinuar.style.display = 'flex';
+            return { retoId: retoActual.id, acertado };
+        }
 
-            // Soporte para mensajes tipados (nuevo formato objeto) y legacy (string)
-            const tipoPuzzle = event.data?.tipo;
-            const esCompletado = tipoPuzzle === TIPOS_MENSAJE.PUZZLE.COMPLETADO || event.data === TIPOS_MENSAJE.PUZZLE.LEGACY_COMPLETADO;
-            const esTimeout    = tipoPuzzle === TIPOS_MENSAJE.PUZZLE.TIMEOUT   || event.data === TIPOS_MENSAJE.PUZZLE.LEGACY_TIMEOUT;
-
-            if (esCompletado) {
-                retoDiv.classList.add("correct");
-                retoDiv.classList.remove("incorrect");
-                fuegosArtificiales();
-                // El envío real a RETO.COMPLETADO ocurre al pulsar btn-puzzle-continuar (más
-                // abajo), no aquí — mismo motivo que en verificar(): la ventana del puzzle
-                // sigue abierta en pantalla en este instante, el usuario aún no ha confirmado
-                // nada pulsando el botón verde.
-                _pendienteCompletado = { retoId: retoActual.id, completado: true };
-                // Mostrar botón continuar dentro del puzzle
-                const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
-                if (btnPuzzleContinuar) btnPuzzleContinuar.style.display = 'flex';
-            }
-            else if (esTimeout) {
-                retoDiv.classList.add("incorrect");
-                retoDiv.classList.remove("correct");
-                vibrar();
-                _pendienteCompletado = { retoId: retoActual.id, completado: true };
-                const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
-                if (btnPuzzleContinuar) btnPuzzleContinuar.style.display = 'flex';
-            }
-        });
+        registrarControladorSeguro(TIPOS_MENSAJE.PUZZLE.COMPLETADO, async () => _cerrarPuzzleConResultado(true));
+        registrarControladorSeguro(TIPOS_MENSAJE.PUZZLE.TIMEOUT, async () => _cerrarPuzzleConResultado(false));
 
         /* Función: normalizarModo(modo)
            Acepta string u objeto y devuelve una cadena segura para usos en clases/dataset

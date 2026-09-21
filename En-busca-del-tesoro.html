@@ -1580,31 +1580,24 @@
     // ============================================================
     // P10: CARGAR PUZZLE DESDE js/puzzles-aventuras.js
     // ============================================================
-    function _onPuzzleMessage(event) {
-      if (event.origin !== globalThis.location.origin) return;
-      const msg = event.data;
+    /*
+     * El puzzle de P10 avisa por el bus, como todo lo demás.
+     *
+     * Aquí había una escucha cruda que solo comprobaba el origen del dominio, no que el
+     * mensaje viniera de SU puzzle. Y aceptaba además un formato antiguo —el mensaje como
+     * cadena pelada— que no enviaba nadie en ningún fichero: bastaba con que cualquier frame
+     * del dominio mandara esa cadena para dar el puzzle por superado.
+     *
+     * Ahora el bus solo acepta mensajes de un iframe que esta pantalla haya registrado, y el
+     * puzzle se registra en `cargarPuzzle()` antes de darle su `src`.
+     *
+     * Los dos desenlaces —resuelto y tiempo agotado— enseñan el botón de continuar: la
+     * pantalla no puede quedarse sin salida.
+     */
+    function _mostrarContinuarPuzzle() {
       const btnContinuar = document.getElementById('btn-continuar-puzzle');
-      // Los tipos salen de constants.js, nunca de cadenas escritas aquí: este bloque es un
-      // <script> clásico y no puede importar, así que los lee del puente que publica el
-      // <script type="module"> de abajo (globalThis.TIPOS_MENSAJE).
-      //
-      // El guard no es decorativo. `msg.tipo` es undefined en los mensajes legacy, que son
-      // strings crudos; si TIPOS_MENSAJE.PUZZLE no estuviera, comparar contra sus campos
-      // sería comparar undefined con undefined y CUALQUIER mensaje ajeno daría por
-      // completado el puzzle. Y si falta, hay que enterarse: sin el botón de continuar la
-      // pantalla del puzzle no tiene salida.
-      const P = globalThis.TIPOS_MENSAJE?.PUZZLE;
-      if (!P) {
-        (globalThis.logger || console).error('[SELECCION] globalThis.TIPOS_MENSAJE.PUZZLE no disponible: el puzzle de P10 no podrá completarse');
-        return;
-      }
-      // Dos formatos: el tipado que envía puzzle.html hoy, y el string crudo legacy.
-      const tipoPuzzle = msg?.tipo;
-      const esCompletado = tipoPuzzle === P.COMPLETADO || msg === P.LEGACY_COMPLETADO;
-      const esTimeout    = tipoPuzzle === P.TIMEOUT    || msg === P.LEGACY_TIMEOUT;
-      if (esCompletado || esTimeout) {
-        if (btnContinuar) btnContinuar.style.display = 'flex';
-      }
+      if (btnContinuar) btnContinuar.style.display = 'flex';
+      return true;
     }
 
     async function cargarPuzzle() {
@@ -1617,14 +1610,28 @@
         if (puzzleIntro) {
           const imagenPuzzle = puzzleIntro.imagen || 'fotos-botones/logo-luna.jpg';
           // La imagen se pasa por URL: puzzle.html ya no importa puzzles-aventuras.js.
+          // Registrar ANTES del `src`: el bus solo acepta mensajes de un iframe registrado,
+          // y el puzzle avisa en cuanto el usuario termina.
+          globalThis.mensajeria.registrarIframe('puzzle', iframe);
           iframe.src = `puzzle.html?aventura=INTRO&id=${puzzleIntro.id}&noOverlay=1&imagen=${encodeURIComponent(imagenPuzzle)}`;
           _log.info('[SELECCION] Puzzle cargado:', puzzleIntro.id, imagenPuzzle);
-          if (globalThis._puzzleListener) {
-            globalThis.removeEventListener('message', globalThis._puzzleListener);
-            globalThis._puzzleListener = null;
+          // Los tipos salen del puente `globalThis.TIPOS_MENSAJE` que publica el
+          // <script type="module"> de abajo: este bloque es un <script> clásico y no puede
+          // importar. Si el puente no estuviera, registrar con `undefined` dejaría la pantalla
+          // del puzzle sin botón de continuar y sin salida, así que se dice en voz alta.
+          const P = globalThis.TIPOS_MENSAJE?.PUZZLE;
+          if (!P) {
+            (globalThis.logger || console).error('[SELECCION] globalThis.TIPOS_MENSAJE.PUZZLE no disponible: el puzzle de P10 no podrá completarse');
+            btnContinuar.style.display = 'flex';
+            return;
           }
-          globalThis._puzzleListener = _onPuzzleMessage;
-          globalThis.addEventListener('message', globalThis._puzzleListener);
+          // Los handlers se registran UNA vez: el bus rechaza en voz alta un segundo
+          // handler para el mismo tipo, y a esta pantalla se puede volver.
+          if (!globalThis._puzzleEscuchado) {
+            globalThis._puzzleEscuchado = true;
+            globalThis.mensajeria.registrarControlador(P.COMPLETADO, _mostrarContinuarPuzzle);
+            globalThis.mensajeria.registrarControlador(P.TIMEOUT, _mostrarContinuarPuzzle);
+          }
         } else {
           btnContinuar.style.display = 'flex';
         }

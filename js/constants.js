@@ -194,9 +194,7 @@ export const TIPOS_MENSAJE = {
     },
     PUZZLE: {
         COMPLETADO: 'PUZZLE.COMPLETADO',
-        TIMEOUT: 'PUZZLE.TIMEOUT',
-        LEGACY_COMPLETADO: 'puzzle-state-completed',
-        LEGACY_TIMEOUT: 'puzzle-state-timeout'
+        TIMEOUT: 'PUZZLE.TIMEOUT'
     },
     CHAT: {
         CERRAR: 'CHAT.CERRAR',

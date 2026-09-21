@@ -43,27 +43,38 @@ const { test, expect } = require('@playwright/test');
 const { abrirHijoEnMarco, recibidosPorElMarco, enviarAlHijo } = require('./helpers/boot');
 
 test.describe('PZ — puzzle.html: botón de saltar (⏩)', () => {
+  /**
+   * El puzzle vive DENTRO del marco, que le hace de contenedor.
+   *
+   * Suelto ya no sirve: desde que habla por el bus, un frame sin padre no manda a ninguna
+   * parte —el bus lo corta y lo dice en el log—, asi que "avisa al padre" seria imposible de
+   * observar. Y es lo que pasa en la aplicacion: el puzzle SIEMPRE está incrustado, en hijo4
+   * o en la pantalla de selección.
+   *
+   * No espera `HIJO_PREPARADO`: el puzzle es un nieto y no hace el saludo de los hijos.
+   */
+  const abrirPuzzle = (page, query) =>
+    abrirHijoEnMarco(page, `puzzle.html?${query}`, { esperarPreparado: false });
+
+  const avisosDelPuzzle = async (page) =>
+    (await recibidosPorElMarco(page)).filter((m) => m.origen === 'puzzle');
+
   test('PZ-1. Puzzle válido: saltar monta las piezas y avisa al padre', async ({ page }) => {
-    await page.addInitScript(() => {
-      globalThis.__mensajesRecibidos = [];
-      globalThis.addEventListener('message', (e) => {
-        if (e.data && e.data.origen === 'puzzle') globalThis.__mensajesRecibidos.push(e.data);
-      });
-    });
-    // La imagen va en la URL: puzzle.html ya no importa puzzles-aventuras.js. Quien abre
-    // el puzzle la pone — hijo4 desde reto.imagenPuzzle, o P9 en En-busca-del-tesoro.html
+    // La imagen va en la URL: puzzle.html ya no importa puzzles-aventuras.js. Quien abre el
+    // puzzle la pone — hijo4 desde reto.imagenPuzzle, o P9 en En-busca-del-tesoro.html
     // (§22.12). Aquí se reproduce esa invocación real.
-    await page.goto('/puzzle.html?id=PZ-intro&aventura=Aventura1&imagen=' + encodeURIComponent('imagenes/imagenes-aplicación/logo-luna.png'));
-    await page.waitForTimeout(600);
-    await page.click('#skipBtn');
-    await expect.poll(() => page.evaluate(() => globalThis.__mensajesRecibidos.length)).toBeGreaterThan(0);
+    const imagen = encodeURIComponent('imagenes/imagenes-aplicación/logo-luna.png');
+    const puzzle = await abrirPuzzle(page, `id=PZ-intro&aventura=Aventura1&imagen=${imagen}`);
 
-    const mensajes = await page.evaluate(() => globalThis.__mensajesRecibidos);
-    expect(mensajes[0].tipo).toBe('PUZZLE.COMPLETADO');
-    expect(mensajes[0].datos.exito).toBe(true);
-    expect(mensajes[0].datos.puzzleId).toBe('PZ-intro');
+    await puzzle.click('#skipBtn');
+    await expect.poll(async () => (await avisosDelPuzzle(page)).length).toBeGreaterThan(0);
 
-    const borderColor = await page.locator('#puzzleWrapper').evaluate(el => getComputedStyle(el).borderColor);
+    const [aviso] = await avisosDelPuzzle(page);
+    expect(aviso.tipo).toBe('PUZZLE.COMPLETADO');
+    expect(aviso.datos.exito).toBe(true);
+    expect(aviso.datos.puzzleId).toBe('PZ-intro');
+
+    const borderColor = await puzzle.locator('#puzzleWrapper').evaluate((el) => getComputedStyle(el).borderColor);
     expect(borderColor).toBe('rgb(0, 128, 0)');
   });
 
@@ -79,32 +90,27 @@ test.describe('PZ — puzzle.html: botón de saltar (⏩)', () => {
   test('PZ-2. Puzzle roto/no encontrado: saltar no explota y avisa al padre igualmente', async ({ page }) => {
     const errores = [];
     page.on('pageerror', (e) => errores.push(e.message));
-    await page.addInitScript(() => {
-      globalThis.__mensajesRecibidos = [];
-      globalThis.addEventListener('message', (e) => {
-        if (e.data && e.data.origen === 'puzzle') globalThis.__mensajesRecibidos.push(e.data);
-      });
-    });
-    // Sin parámetro `imagen`: es el caso "puzzle roto" tras el cambio — quien lo abre no
-    // supo resolverlo, así que la página no recibe configuración.
-    await page.goto('/puzzle.html?id=PZ-NO-EXISTE&aventura=Aventura1');
-    await expect(page.locator('#errorMsg')).toBeVisible();
 
-    await page.click('#skipBtn');
-    await expect.poll(() => page.evaluate(() => globalThis.__mensajesRecibidos.length)).toBeGreaterThan(0);
+    // Sin parámetro `imagen`: es el caso "puzzle roto" — quien lo abre no supo resolverlo,
+    // así que la página no recibe configuración.
+    const puzzle = await abrirPuzzle(page, 'id=PZ-NO-EXISTE&aventura=Aventura1');
+    await expect(puzzle.locator('#errorMsg')).toBeVisible();
 
-    const mensajes = await page.evaluate(() => globalThis.__mensajesRecibidos);
-    expect(mensajes[0].tipo).toBe('PUZZLE.COMPLETADO');
-    expect(mensajes[0].datos.puzzleId).toBe('PZ-NO-EXISTE');
+    await puzzle.click('#skipBtn');
+    await expect.poll(async () => (await avisosDelPuzzle(page)).length).toBeGreaterThan(0);
+
+    const [aviso] = await avisosDelPuzzle(page);
+    expect(aviso.tipo).toBe('PUZZLE.COMPLETADO');
+    expect(aviso.datos.puzzleId).toBe('PZ-NO-EXISTE');
     expect(errores.length, `no debe haber excepciones no capturadas: ${errores.join(' | ')}`).toBe(0);
   });
 });
 
 /**
- * hijo4 vive dentro del marco, que le hace de padre. Suelto no serviria: desde que habla por
- * el bus, un hijo sin padre no envia a ninguna parte, asi que RT-1 no podria observar su
- * envio — y el montaje anterior lo suplia inyectando un `globalThis.mensajeria` de mentira,
- * o sea comprobando su propio muñeco.
+ * hijo4 tambien vive dentro del marco, por el mismo motivo que el puzzle: suelto no envia.
+ *
+ * Manda el reto hasta que su pantalla aparece de verdad. El handler se registra dentro de un
+ * callback asincrono, asi que un envio temprano puede caer en el hueco.
  */
 async function mostrarReto(page, hijo, datos, selectorEspera) {
   for (let intento = 0; intento < 10; intento++) {

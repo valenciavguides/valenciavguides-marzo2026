@@ -238,12 +238,19 @@ const MARCO_VACIO = 'tests/e2e/helpers/marco-vacio.html';
  *
  * @param {import('@playwright/test').Page} page
  * @param {string} fichero  p.ej. 'retos-hijo4.html'
+ * @param {{esperarPreparado?: boolean}} [opciones]  `false` para los nietos (puzzle, vídeo),
+ *        que no hacen el saludo de los hijos: no mandan `HIJO_PREPARADO` ni lo tienen que
+ *        mandar, porque no participan del arranque de la aplicación.
  */
-async function abrirHijoEnMarco(page, fichero) {
+async function abrirHijoEnMarco(page, fichero, { esperarPreparado = true } = {}) {
   await page.goto(MARCO_VACIO);
   await page.evaluate((src) => new Promise((resolve) => {
     const el = document.createElement('iframe');
     el.id = 'marco-hijo';
+    // Con el tamaño por defecto de un iframe (300x150) la maquetacion de las paginas que
+    // miden en `em` se desborda y un elemento acaba tapando a otro: el clic se queda sin
+    // llegar y parece un fallo del codigo. En la aplicacion el hijo ocupa su area entera.
+    el.style.cssText = 'width:100vw;height:100vh;border:0;display:block;';
     // Ruta ABSOLUTA: el marco vive en /tests/e2e/helpers/, y una relativa cargaria un 404
     // —cuyo body tambien existe— culpando al codigo de un fallo del arnes.
     el.src = `/${src}`;
@@ -259,6 +266,8 @@ async function abrirHijoEnMarco(page, fichero) {
 
   const marco = page.frames().find((f) => f.url().includes(fichero));
   if (!marco) throw new Error(`No encuentro el frame de ${fichero}`);
+
+  if (!esperarPreparado) return marco;
 
   // `load` no significa "listo para recibir": el modulo del hijo tiene awaits de nivel
   // superior y sus handlers se registran despues. La señal buena es la del propio protocolo.
