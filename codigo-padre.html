@@ -3958,9 +3958,6 @@
             globalThis.dispatchEvent(new CustomEvent('mensajeriaReady'));
 
             // Procesar controladores que estaban en cola esperando la mensajería
-            if (typeof globalThis.procesarControladoresPendientes === 'function') {
-                globalThis.procesarControladoresPendientes();
-            }
         } catch (e) {
             (globalThis.logger || console).warn('[PADRE] No se pudo inicializar mensajería automáticamente:', e && e.message ? e.message : e);
         }
@@ -5334,6 +5331,21 @@
         // llama a globalThis.funcionesMapa.manejarCambioModoMapa() directamente para
         // las operaciones de mapa. funciones-mapa.js NO lo registra como handler.
         if (globalThis.registrarControladorSeguro === undefined) {
+            /**
+             * Registra un controlador del padre. UN solo camino: el del bus.
+             *
+             * Aquí había tres, y dos no podían tomarse nunca. `registrarControlador_S1` se
+             * inicializa en el top-level de este mismo script, ANTES de que se defina esta
+             * función, así que su `typeof === 'function'` es siempre cierto: el segundo camino
+             * —`globalThis.mensajeria.registrarControlador`— llamaba exactamente a la misma
+             * función, y el tercero encolaba en `__CONTROLADORES_PENDIENTES`, una cola que por
+             * tanto estaba SIEMPRE vacía y que `procesarControladoresPendientes()` drenaba a
+             * cero en cada arranque.
+             *
+             * No es cosmético: un segundo camino esconde que el primero está roto, y aquí
+             * además daba la impresión de que el orden de arranque estaba cubierto cuando lo
+             * que lo cubre de verdad es que el import del bus va por delante.
+             */
             globalThis.registrarControladorSeguro = function(tipo, handler, opciones) {
                 try {
                     if (!tipo) return;
@@ -5341,46 +5353,14 @@
                         (globalThis.logger || console).warn(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Controlador ya registrado, omitiendo: ${tipo}`);
                         return;
                     }
-                    // Si registrarControlador_S1 no está disponible, usar mensajeria directa como fallback
-                    if (typeof registrarControlador_S1 === 'function') {
-                        const result = registrarControlador_S1(tipo, handler, opciones);
-                        globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
-                        return result;
-                    } else if (globalThis.mensajeria && globalThis.mensajeria.registrarControlador) {
-                        const result = globalThis.mensajeria.registrarControlador(tipo, handler, opciones);
-                        globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
-                        return result;
-                    } else {
-                        // Como último recurso, guardar en cola para registrar después
-                        // NO añadir al Set aquí: se añade cuando el registro real tenga éxito
-                        if (!globalThis.__CONTROLADORES_PENDIENTES) globalThis.__CONTROLADORES_PENDIENTES = [];
-                        globalThis.__CONTROLADORES_PENDIENTES.push({tipo, handler, opciones});
-                        (globalThis.logger || console).info(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Controlador encolado: ${tipo} (mensajería no disponible)`);
-                        return;
-                    }
+                    const result = registrarControlador_S1(tipo, handler, opciones);
+                    globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
+                    return result;
                 } catch (e) {
                     (globalThis.logger || console).error(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Error registrando controlador seguro ${tipo}:`, e && e.message);
                 }
             };
 
-            // Función para procesar controladores en cola cuando mensajería esté lista
-            globalThis.procesarControladoresPendientes = function() {
-                if (globalThis.__CONTROLADORES_PENDIENTES && globalThis.__CONTROLADORES_PENDIENTES.length > 0) {
-                    const pendientes = globalThis.__CONTROLADORES_PENDIENTES.splice(0);
-                    (globalThis.logger || console).info(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Procesando ${pendientes.length} controladores pendientes`);
-
-                    for (const {tipo, handler, opciones} of pendientes) {
-                        try {
-                            globalThis.registrarControladorSeguro(tipo, handler, opciones);
-                            if (!globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) {
-                                (globalThis.logger || console).error(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Controlador pendiente NO registrado tras reintentar: ${tipo}`);
-                            }
-                        } catch (e) {
-                            (globalThis.logger || console).error(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Error procesando controlador pendiente ${tipo}:`, e && e.message);
-                        }
-                    }
-                }
-            };
         }
 
         // Create local alias for easier access

@@ -3,15 +3,12 @@
  *
  * Valida que el sistema de registro de handlers (DT-2) se comporte correctamente:
  * - Los handlers se registran en state-manager (fuente de verdad), no en el mapa local
- * - La cola __CONTROLADORES_PENDIENTES queda vacía tras el drenaje
  * - El Set __CONTROLADOR_REGISTRADOS contiene entradas (handlers efectivamente registrados)
  *
  * Prerequisito DT-1 Opción B — escenario 1b:
  *   "El test debe afirmar que los tipos críticos están en state-manager.controladores
  *   (no en __vv_manejadoresLocales) al finalizar el arranque."
  *
- * Prerequisito DT-1 — escenario 1g:
- *   "globalThis.__CONTROLADORES_PENDIENTES debe quedar vacío tras procesarControladoresPendientes()"
  */
 'use strict';
 
@@ -29,19 +26,9 @@ test.describe('Registro de handlers — estado tras FASE 1', () => {
     await gotoAndWaitForFase1(page);
   });
 
-  // ── Cola de controladores pendientes ──────────────────────────────────
-
-  test('1g. __CONTROLADORES_PENDIENTES está vacío tras el drenaje', async ({ page }) => {
-    const info = await page.evaluate(() => {
-      const pendientes = globalThis.__CONTROLADORES_PENDIENTES;
-      return {
-        // null/undefined es OK: significa que no hubo handlers encolados
-        isNullOrEmpty: !pendientes || (Array.isArray(pendientes) && pendientes.length === 0),
-        length: Array.isArray(pendientes) ? pendientes.length : 0,
-      };
-    });
-    expect(info.isNullOrEmpty).toBe(true);
-  });
+  // La cola de controladores pendientes ya no existe: la alimentaba una rama del registro
+  // del padre que no podia tomarse nunca. Un caso que comprobaba que estuviera vacia
+  // pasaba igual con el mecanismo entero borrado.
 
   // ── Set de tipos registrados ──────────────────────────────────────────
 

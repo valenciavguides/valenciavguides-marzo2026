@@ -205,7 +205,6 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
       stateManager:                 typeof globalThis.__vv_stateManager,
       mensajeria:                   typeof globalThis.mensajeria,
       registrarControladorSeguro:   typeof globalThis.registrarControladorSeguro,
-      procesarControladoresPendientes: typeof globalThis.procesarControladoresPendientes,
       cargarDatosAventuraDiferidos: typeof globalThis.__cargarDatosAventuraDiferidos,
     }));
 
@@ -225,7 +224,6 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
     expect(snapshot.stateManager).toBe('object');
     expect(snapshot.mensajeria).toBe('object');
     expect(snapshot.registrarControladorSeguro).toBe('function');
-    expect(snapshot.procesarControladoresPendientes).toBe('function');
     expect(snapshot.cargarDatosAventuraDiferidos).toBe('function');
   });
 

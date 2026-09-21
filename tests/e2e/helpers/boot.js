@@ -43,10 +43,6 @@ async function injectInitSpy(page) {
         hasMensajeria: typeof globalThis.mensajeria === 'object' && globalThis.mensajeria !== null,
         // ¿Se había marcado como iniciada?
         mensajeriaIniciada: globalThis.__MENSAJERIA_INICIADA === true,
-        // Cola de controladores pendientes en ese momento
-        pendientesCuenta: Array.isArray(globalThis.__CONTROLADORES_PENDIENTES)
-          ? globalThis.__CONTROLADORES_PENDIENTES.length
-          : 0,
       });
     }, { once: true });
   });
@@ -107,7 +103,6 @@ async function stubCDNResources(page) {
  * Este flag se pone a true justo después de:
  *   1. mensajeria.inicializarMensajeria() completado
  *   2. mensajeriaReady event disparado
- *   3. procesarControladoresPendientes() ejecutado
  *
  * @param {import('@playwright/test').Page} page
  */

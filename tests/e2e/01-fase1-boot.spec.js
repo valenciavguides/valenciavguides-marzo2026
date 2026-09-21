@@ -92,10 +92,9 @@ test.describe('FASE 1 — Secuencia de arranque del padre', () => {
     expect(ok).toBe(true);
   });
 
-  // ── Sin errores críticos de arranque ──────────────────────────────────
-
-  test('procesarControladoresPendientes existe y es una función tras el arranque', async ({ page }) => {
-    const ok = await page.evaluate(() => typeof globalThis.procesarControladoresPendientes === 'function');
-    expect(ok).toBe(true);
-  });
+  // Aquí se comprobaba que existiera `procesarControladoresPendientes`. Esa cola la
+  // alimentaba una rama inalcanzable del registro del padre, asi que drenaba cero en
+  // cada arranque: el caso certificaba maquinaria que no podia dispararse. Lo que de
+  // verdad importa —que al marcarse `script2Listo` estan TODOS los controladores— lo
+  // fija el spec 89.
 });
