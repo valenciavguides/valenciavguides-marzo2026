@@ -1163,7 +1163,12 @@
             retoDiv.classList.toggle("correct", acertado);
             retoDiv.classList.toggle("incorrect", !acertado);
             if (acertado) fuegosArtificiales(); else vibrar();
-            _pendienteCompletado = { retoId: retoActual.id, completado: true };
+            // `correcto`, igual que los retos de opcion, de varias respuestas, de texto libre y el
+            // boton de saltar: es el campo que lee el padre para dar la parada por completada
+            // (`_hdl_RETO_COMPLETADO`). Con otro nombre la parada no se completaba nunca y, como en
+            // modo puzzle no se ve "saltar reto", el usuario se quedaba atascado sin salida.
+            // El tiempo agotado cuenta como reto cumplido, igual que resolverlo. Lo fija el spec 91.
+            _pendienteCompletado = { retoId: retoActual.id, correcto: true };
             const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
             if (btnPuzzleContinuar) btnPuzzleContinuar.style.display = 'flex';
             return { retoId: retoActual.id, acertado };

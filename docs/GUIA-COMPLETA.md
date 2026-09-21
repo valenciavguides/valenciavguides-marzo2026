@@ -2351,7 +2351,7 @@ iframe.src = `puzzle.html?aventura=INTRO&id=${puzzleIntro.id}&noOverlay=1&imagen
 
 `imagen` es el único parámetro que `puzzle.html` necesita además de `id` — `aventura` y `noOverlay` viajan en la URL pero la página no los lee (§13). Esta pantalla ya tenía resuelto el puzzle para comprobar que su imagen existe, así que pasarla cuesta cero y ahorra que `puzzle.html` importe `puzzles-aventuras.js` por su cuenta (§22.12).
 
-El iframe escucha `globalThis.addEventListener('message', _onPuzzleMessage)`, que primero descarta todo lo que no venga de `globalThis.location.origin`. Lo que `puzzle.html` envía hoy es un objeto tipado: `{ tipo: 'PUZZLE.COMPLETADO' }` al resolverlo o al saltarlo, `{ tipo: 'PUZZLE.TIMEOUT' }` al agotarse el tiempo. Con cualquiera de los dos aparece `#btn-continuar-puzzle` — un timeout cuenta como completado forzado. El listener acepta además los dos strings crudos del formato antiguo (`'puzzle-state-completed'` / `'puzzle-state-timeout'`) por compatibilidad, aunque ningún emisor los envíe. Ver detalles completos en §7.8.
+La selección es el contenedor de su puzzle y lo atiende por el bus: `cargarPuzzle()` registra el iframe con el id `'puzzle'` antes de darle `src`, y registra una sola vez (flag `globalThis._puzzleEscuchado`, porque a esta pantalla se puede volver y el bus rechaza un segundo handler del mismo tipo) los handlers de `PUZZLE.COMPLETADO` (al resolverlo o al saltarlo) y `PUZZLE.TIMEOUT` (al agotarse el tiempo), los dos con `_mostrarContinuarPuzzle`. Con cualquiera de los dos aparece `#btn-continuar-puzzle` — un timeout cuenta como completado. Los tipos salen del puente `globalThis.TIPOS_MENSAJE`, porque este bloque es un `<script>` clásico; si el puente faltara, el botón se muestra igualmente y se registra un error en el log, para que la pantalla no se quede sin salida. Ver detalles completos en §7.8.
 
 #### Secuencia completa P1→P17
 
@@ -2878,7 +2878,7 @@ sequenceDiagram
 │  #reto (flex:1; overflow-y:auto)                                         │
 │    → pregunta en texto                                                   │
 │    → opciones según tipo: radio | checkbox | input texto | iframe puzzle │
-│  #btn-puzzle-continuar   (solo visible tras puzzle-state-completed)      │
+│  #btn-puzzle-continuar   (solo visible tras PUZZLE.COMPLETADO/TIMEOUT)   │
 │  #button-container (flex-shrink:0; altura fija)                          │
 │    [🫵 dinámico] [🆘 #btnMostrarRespuesta] [⏩ #btnSaltarReto] [🌍 #btnNextAfterReto] │
 │  #respuestaCorrectaTexto (flex-shrink:0; oculto por defecto → SOS)       │
@@ -2892,7 +2892,7 @@ sequenceDiagram
 | SOS (mostrar respuesta) | `#btnMostrarRespuesta` | Visible, enabled | Siempre disponible | — |
 | Saltar (⏩) | `#btnSaltarReto` | Habilitado | Mientras hay `estado.retoActualId` activo (incluido un reto roto/no encontrado) | Al completarse el reto (real o saltado) — ver §13 |
 | Continuar (🌍) | `#btnNextAfterReto` | `disabled = true`, `opacity: 0.35`, órbita detenida | Cuando el usuario responde correctamente **o pulsa ⏩** (clase `.activo` + `disabled = false`) | Antes de responder/saltar |
-| Puzzle continuar | `#btn-puzzle-continuar` | `display:none` | Al recibir `puzzle-state-completed` del sub-iframe | Se oculta al salir del reto |
+| Puzzle continuar | `#btn-puzzle-continuar` | `display:none` | Al recibir `PUZZLE.COMPLETADO` o `PUZZLE.TIMEOUT` del sub-iframe | Se oculta al salir del reto |
 
 **Comportamiento del SOS (`#btnMostrarRespuesta`)**:
 
@@ -2909,51 +2909,49 @@ click 2: classList.remove('mostrado') // #respuestaCorrectaTexto oculto
 
 | Tipo | HTML generado | Validación | Feedback visual |
 |------|--------------|-----------|-----------------|
-| `opcion` (radio) | `<input type="radio" name="reto-opts">` × N | Solo 1 seleccionable | Borde verde/rojo en el label seleccionado |
-| `opcion-multiple` (checkbox) | `<input type="checkbox">` × N | N seleccionables | Mismo esquema visual |
+| `opcion` (radio) | `<input type="radio" name="op">` × N | Solo 1 seleccionable | Borde verde/rojo en el label seleccionado |
+| `opcion-multiple` (checkbox) | `<input type="checkbox" name="op">` × N — el tipo de casilla lo decide el campo `multiple: true` del reto | N seleccionables | Mismo esquema visual |
 | `texto` | `<input type="text" id="respuestaTexto">` | **Ninguna: siempre correcta** (`esCorrecto = true` en `verificar()`) — pregunta de reflexión libre, ver §13 | Borde del input |
-| `puzzle` | `<iframe id="puzzle-iframe-reto">` (ocupa `100dvh`) | `puzzle-state-completed` recibido | Border verde (via puzzle.html) |
+| `puzzle` | `<iframe id="puzzleIframe">` (en `body.puzzle-mode` ocupa todo el alto disponible: `flex:1; height:100%`) | `PUZZLE.COMPLETADO` o `PUZZLE.TIMEOUT` recibido por el bus: los dos cuentan como reto cumplido | Borde verde al resolverlo, rojo y vibración al agotarse el tiempo |
 
 #### Sub-iframe puzzle.html en modo reto
+
+hijo4 es el contenedor del puzzle: registra el iframe en su bus con el id `'puzzle'` **antes** de darle `src` (el bus solo acepta mensajes de un iframe registrado, y el puzzle avisa en cuanto el usuario termina) y lo da de baja al salir de `puzzle-mode`. El puzzle avisa por el bus con `PUZZLE.COMPLETADO` (resuelto, o saltado con su ⏩) o `PUZZLE.TIMEOUT` (tiempo agotado); hijo4 los atiende con dos handlers que llaman a la misma función:
 
 ```javascript
 // Crea el iframe del puzzle en el reto activo
 const puzzleIframe = document.createElement('iframe');
 puzzleIframe.id = 'puzzleIframe';
-puzzleIframe.src = reto.src;  // 'puzzle.html?id=PZ-reto-3&aventura=...'
+globalThis.mensajeria.registrarIframe('puzzle', puzzleIframe);   // ANTES del src
+puzzleIframe.src = reto.imagenPuzzle
+    ? `${reto.src}${reto.src.includes('?') ? '&' : '?'}imagen=${encodeURIComponent(reto.imagenPuzzle)}`
+    : reto.src;                                                  // 'puzzle.html?id=PZ-01'
 retoDiv.appendChild(puzzleIframe);
 
-// Escucha mensajes del iframe del puzzle (comprueba source para evitar cross-origin)
-globalThis.addEventListener('message', async (event) => {
-    if (event.origin !== globalThis.location.origin) return;
-    const puzzleEl = document.getElementById('puzzleIframe');
-    if (!puzzleEl || event.source !== puzzleEl.contentWindow) return;
-
-    // Soporte doble formato: 'PUZZLE.COMPLETADO' (actual) y 'puzzle-state-completed' (legacy)
-    const tipoPuzzle = event.data?.tipo;
-    const esCompletado = tipoPuzzle === TIPOS_MENSAJE.PUZZLE.COMPLETADO
-                      || event.data === TIPOS_MENSAJE.PUZZLE.LEGACY_COMPLETADO;
-
-    if (esCompletado) {
-        retoDiv.classList.add('correct');
-        fuegosArtificiales();
-        // RETO.COMPLETADO NO se envía aquí — se guarda como pendiente y solo se
-        // confirma al padre cuando el usuario pulsa el botón verde (más abajo):
-        // la ventana del puzzle sigue en pantalla en este instante, sin confirmar nada.
-        _pendienteCompletado = { retoId: retoActual.id, completado: true };
-        const btnContinuar = document.getElementById('btn-puzzle-continuar');
-        if (btnContinuar) btnContinuar.style.display = 'flex';  // 'flex', no 'block'
-    }
-});
+// Resuelto y tiempo agotado terminan igual: el reto cuenta como cumplido.
+function _cerrarPuzzleConResultado(acertado) {
+    retoDiv.classList.toggle('correct', acertado);
+    retoDiv.classList.toggle('incorrect', !acertado);
+    if (acertado) fuegosArtificiales(); else vibrar();
+    // RETO.COMPLETADO NO se envía aquí — se guarda como pendiente y solo se confirma al
+    // padre cuando el usuario pulsa el botón verde: la ventana del puzzle sigue en pantalla.
+    _pendienteCompletado = { retoId: retoActual.id, correcto: true };
+    const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
+    if (btnPuzzleContinuar) btnPuzzleContinuar.style.display = 'flex';  // 'flex', no 'block'
+}
+registrarControladorSeguro(TIPOS_MENSAJE.PUZZLE.COMPLETADO, async () => _cerrarPuzzleConResultado(true));
+registrarControladorSeguro(TIPOS_MENSAJE.PUZZLE.TIMEOUT,    async () => _cerrarPuzzleConResultado(false));
 
 // Click en el botón verde — AQUÍ se envía RETO.COMPLETADO de verdad, con el dato guardado arriba
 btnPuzzleContinuar.addEventListener('click', async () => {
     if (_pendienteCompletado) {
         const datosCompletado = _pendienteCompletado;
         _pendienteCompletado = null;
-        await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.COMPLETADO, datos: datosCompletado });
+        await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.COMPLETADO, origen: CONFIG_HIJO.IFRAME_ID,
+                              destino: 'padre', datos: datosCompletado });
     }
-    enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.OCULTAR, datos: { retoId: retoActual?.id || null } });
+    enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.OCULTAR, origen: CONFIG_HIJO.IFRAME_ID,
+                    destino: 'padre', datos: { retoId: retoActual ? retoActual.id : null } });
 });
 ```
 
@@ -2979,26 +2977,30 @@ btnPuzzleContinuar.addEventListener('click', async () => {
 
 #### Payload de RETO.COMPLETADO (enviado al padre)
 
+Los cuatro tipos de reto (opción, opción múltiple, texto y puzzle) y el botón de saltar cierran con el mismo campo, `correcto: true`, porque es el que lee el padre en `_hdl_RETO_COMPLETADO` para dar la parada por completada:
+
 ```javascript
-// Retos estándar (opcion, opcion-multiple, texto):
+// Retos de opción, opción múltiple, texto, y el botón de saltar (_marcarRetoComoCompletado):
 {
   tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
   datos: {
     retoId: 'R3-Av1-es',   // 'retoId', no 'reto_id'
     correcto: true,
-    progreso: estadoRetos.progreso   // índice de progreso interno
+    progreso: estadoRetos.progreso   // índice de progreso interno de hijo4
   }
 }
 
-// Retos tipo puzzle — payload más simple:
+// Retos de puzzle (_cerrarPuzzleConResultado), resuelto o con el tiempo agotado:
 {
   tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
   datos: {
-    retoId: 'PZ-reto-3',
-    completado: true
+    retoId: 'PZ-01',
+    correcto: true
   }
 }
 ```
+
+El padre no lee `progreso`; por eso el puzzle, que no lleva la cuenta de `estadoRetos`, no lo envía. Cubierto por `tests/e2e/91-puzzle-cierra-la-parada.spec.js`: PC-0 (control, un reto de opción llega con `correcto: true`), PC-1 (puzzle resuelto) y PC-2 (puzzle con el tiempo agotado).
 
 > **Nota**: el payload lleva solo los campos mínimos que el padre necesita para avanzar. Ni el tipo de reto, ni la respuesta que dio el usuario, ni la correcta, ni el tiempo que tardó, ni el número de intentos viajan en él: el padre no usa nada de eso.
 
@@ -3024,7 +3026,7 @@ btnPuzzleContinuar.addEventListener('click', async () => {
 |------|--------|-------------------|
 | `RETO.MOSTRADO` | Tras renderizar correctamente el reto | `{ retoId }` |
 | `RETO.OCULTAR` | Click en `#btnNext`/`#btnNextAfterReto` o en `#btn-puzzle-continuar` — usuario cierra la ventana del reto | `{ retoId }` |
-| `RETO.COMPLETADO` | Usuario envía respuesta | `{ retoId, correcto, progreso }` (puzzle: `{ retoId, completado: true }`) — ver payload completo arriba |
+| `RETO.COMPLETADO` | Usuario pulsa el botón verde tras acertar, saltar o terminar el puzzle | `{ retoId, correcto: true, progreso }` (puzzle: `{ retoId, correcto: true }`) — ver payload completo arriba |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Tras procesar `CAMBIO_PARADA` (no precarga el reto, ver fila `NAVEGACION.CAMBIO_PARADA` arriba) | `{ paradaId }` |
 | `DATOS.SOLICITAR_RETOS { retoId }` | Cache-miss: `mostrarReto()` no encuentra ese `retoId` en la caché local acotada (máx. 2 entradas) | `{ retoId, motivo:'cache_miss', timestamp }` |
 | `RETO.SOLICITAR_RETO` | Click en `#botonRetos` (botón secundario "Iniciar reto") | `{ contexto: 'hijo4-botonRetos' }` |
@@ -3045,10 +3047,10 @@ sequenceDiagram
     alt tipo = 'puzzle'
         H4->>PZ: asigna src puzzle.html?id=...
         Note over PZ: usuario resuelve puzzle
-        PZ-->>H4: PUZZLE.COMPLETADO (o legacy puzzle-state-completed)
+        PZ-->>H4: PUZZLE.COMPLETADO (o PUZZLE.TIMEOUT al agotarse el tiempo)
         H4->>H4: guarda _pendienteCompletado; muestra #btn-puzzle-continuar<br/>(RETO.COMPLETADO todavía NO se envía)
         Note over H4: usuario pulsa el botón verde #btn-puzzle-continuar
-        H4-->>P: RETO.COMPLETADO { retoId, completado:true } (ahora sí, con el dato guardado)
+        H4-->>P: RETO.COMPLETADO { retoId, correcto:true } (en este momento, con el dato guardado)
     else tipo = 'opcion' | 'texto' | 'opcion-multiple'
         Note over H4: usuario elige respuesta + click verificar
     end
@@ -3438,7 +3440,7 @@ pauseBtn.addEventListener('click', () => {
 | `PUZZLE.COMPLETADO` | Todas las piezas colocadas correctamente | `{ tipo: 'PUZZLE.COMPLETADO', origen: 'puzzle', datos: { puzzleId, exito: true, timestamp } }` |
 | `PUZZLE.TIMEOUT` | Timer llega a 0 | `{ tipo: 'PUZZLE.TIMEOUT', origen: 'puzzle', datos: { puzzleId, exito: false, timestamp } }` |
 
-> Nota: los receptores (`En-busca-del-tesoro.html` y `retos-hijo4.html`) también aceptan el formato legacy (`'puzzle-state-completed'`/`'puzzle-state-timeout'`) por compatibilidad con versiones antiguas, pero `puzzle.html` ya solo envía el formato actual.
+> Nota: el puzzle envía por el bus con `destino: 'padre'`, que para un nieto es su contenedor (`retos-hijo4.html` o `En-busca-del-tesoro.html`), nunca la ventana de arriba. Los dos contenedores lo atienden con handlers del bus; el bus solo acepta el mensaje porque el contenedor registró el iframe con el id `'puzzle'` antes de darle `src`.
 >
 > Nota: `PUZZLE.COMPLETADO` con `exito: true` también puede originarse al pulsar `#skipBtn` (ver §13, "Saltar un reto o puzzle roto") — el receptor no distingue el origen, es el mismo mensaje que envía una resolución real. `notificarPuzzleAlPadre(success)` centraliza el envío para ambos casos.
 
@@ -3460,12 +3462,12 @@ sequenceDiagram
     Note over PZ: usuario arrastra piezas...
     alt todas las piezas colocadas
         PZ->>PZ: endPuzzle(true) → runFireworks()
-        PZ-->>PADRE: postMessage { tipo:'PUZZLE.COMPLETADO', origen:'puzzle', datos:{ puzzleId, exito:true } }
+        PZ-->>PADRE: bus { tipo:'PUZZLE.COMPLETADO', origen:'puzzle', destino:'padre', datos:{ puzzleId, exito:true } }
     else timer llega a 0
         PZ->>PZ: endPuzzle(false) → runConfetti()
-        PZ-->>PADRE: postMessage { tipo:'PUZZLE.TIMEOUT', origen:'puzzle', datos:{ puzzleId, exito:false } }
+        PZ-->>PADRE: bus { tipo:'PUZZLE.TIMEOUT', origen:'puzzle', destino:'padre', datos:{ puzzleId, exito:false } }
     end
-    Note over PADRE: acepta también el formato legacy\n('puzzle-state-completed'/'puzzle-state-timeout')\npor compatibilidad — puzzle.html no lo envía
+    Note over PADRE: handler del bus (el iframe esta registrado como 'puzzle')
     Note over PADRE: muestra botón continuar / avanza flujo
 ```
 
@@ -3807,10 +3809,8 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `CHAT.ESTADO_PADRE` | Padre → Hijo6 | Idioma (reconstruye el acordeón si cambió) y contexto para el buzón de sugerencias |
 | **PARADAS** | `VV:PARADAS:READY` | Hijo5 → Padre | UI de paradas lista — la atiende `_hdl_PARADAS_READY` (Script 2) |
 | | `PARADAS.LISTADO_TOGGLE` | Hijo1 → Padre | Usuario abre/cierra la ventana de listado de paradas |
-| **PUZZLE** | `PUZZLE.COMPLETADO` / `puzzle-state-completed` | Iframe puzzle → Hijo4 | Puzzle resuelto (ambos formatos soportados) |
-| | `PUZZLE.TIMEOUT` / `puzzle-state-timeout` | Iframe puzzle → Hijo4 | Puzzle sin resolver por tiempo |
-| | `PUZZLE.LEGACY_COMPLETADO` | Iframe puzzle → Hijo4 | Variante legacy de PUZZLE.COMPLETADO (compatibilidad puzzles antiguos) |
-| | `PUZZLE.LEGACY_TIMEOUT` | Iframe puzzle → Hijo4 | Variante legacy de PUZZLE.TIMEOUT (compatibilidad puzzles antiguos) |
+| **PUZZLE** | `PUZZLE.COMPLETADO` | Iframe puzzle → su contenedor (Hijo4 o Selección) | Puzzle resuelto o saltado con ⏩ |
+| | `PUZZLE.TIMEOUT` | Iframe puzzle → su contenedor (Hijo4 o Selección) | Puzzle sin resolver por tiempo |
 | **MONITOREO** | `MONITOREO.METRICA` | Hijo → Padre | Telemetría interna |
 | **OTROS** | `NAVEGAR_PANTALLA` | Interno | Navegación a una pantalla por ID |
 
@@ -4061,14 +4061,12 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 
 > **Protección pasiva por parada** (ver §16): hijo4 nunca recibe la aventura completa. `RETO.MOSTRAR` trae el reto de una sola parada en cada mensaje, y la caché local descarta el id más antiguo en cuanto llega un tercero.
 
-**Mensajes internos del iframe de puzzle** (hijo4 escucha mensajes del iframe de puzzle embebido en él):
+**Mensajes internos del iframe de puzzle** (hijo4 es el contenedor del puzzle y lo atiende con handlers de su bus; el iframe está registrado con el id `'puzzle'`):
 
 | Origen | Tipo | Payload | Qué hace hijo4 |
 |--------|------|---------|----------------|
-| Iframe puzzle | `PUZZLE.COMPLETADO` / `puzzle-state-completed` | `{ retoId }` | Envía `RETO.COMPLETADO { correcto:true }` al padre |
-| Iframe puzzle | `PUZZLE.TIMEOUT` / `puzzle-state-timeout` | `{ retoId }` | Envía `RETO.COMPLETADO { correcto:false }` al padre |
-| Iframe puzzle | `PUZZLE.LEGACY_COMPLETADO` | — | Variante legacy de mensaje de puzzle completado (compatibilidad con puzzles antiguos) |
-| Iframe puzzle | `PUZZLE.LEGACY_TIMEOUT` | — | Variante legacy de mensaje de timeout (compatibilidad con puzzles antiguos) |
+| Iframe puzzle | `PUZZLE.COMPLETADO` | `{ puzzleId, exito: true, timestamp }` | `_cerrarPuzzleConResultado(true)`: borde verde, fuegos artificiales, guarda `_pendienteCompletado = { retoId, correcto: true }` y muestra `#btn-puzzle-continuar`. `RETO.COMPLETADO` sale al pulsar ese botón |
+| Iframe puzzle | `PUZZLE.TIMEOUT` | `{ puzzleId, exito: false, timestamp }` | `_cerrarPuzzleConResultado(false)`: borde rojo y vibración; guarda el mismo `{ retoId, correcto: true }` — el tiempo agotado cuenta como reto cumplido — y muestra `#btn-puzzle-continuar` |
 
 > `RETO.HABILITAR` y `RETO.ESTADO_CASA` son mutuamente excluyentes por modo: en AVENTURA el panel se activa por fin de audio; en CASA se activa por posición en ruta.
 
@@ -4334,7 +4332,7 @@ El iframe `seleccion` carga `En-busca-del-tesoro.html`. La navegación interna u
 | P14 | Normativa (botón bloqueado hasta final del texto) | `aceptarNormativa()` → `mostrar(15)` | — |
 | P15 | Reto R-2 | `verificarRetoR2()` → SÍ: activa aventura; NO: `reiniciarSeleccion()` → `mostrar(1)` | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` |
 | P16 | Logos (logo redondo + logo alargado) — da paso oficial a la aventura | → `mostrar(17)` | — |
-| P17 | Agradecimientos y fuentes *(solo vía `?despedida=1`, no en flujo normal de onboarding)* | `_ejecutarDespedida()` → `limpiarDatosAventura('completada')` → pausa 2 s → `location.reload()` → P1 | — |
+| P17 | Agradecimientos y fuentes *(solo vía `?despedida=1`, no en flujo normal de onboarding)* | `_ejecutarDespedida()` → `limpiarDatosAventura('completada')` → pausa 2 s → `location.replace('codigo-padre.html')` → P1 | — |
 
 Los totales de cada aventura (paradas, tramos, retos, monumentos, audios) **vienen precalculados en `js/indice-aventuras.js`**, que son 6 KB y ya se cargaba de todos modos. `cargarAventurasDinamicamente()` (P7) solo lo importa y lee `meta.totalParadas`, `totalRetos`, `totalMonumentos`… — no abre ningún fichero de datos. Es deliberado: resolverlos en caliente exigía importar los cuatro grandes (`aventuras-ID-padre` 1,7 MB, `coordenadas` 549 KB, `retos` 925 KB y `audios` 1,7 MB) en la **pantalla de selección**, antes de introducir ningún código, para obtener 35 números enteros. Si el índice se queda sin algún total, la función lo registra con un `error` en consola nombrando la aventura; que los números no se queden obsoletos lo vigila `npm run verificar-totales`, que los recalcula desde la fuente y compara (§21).
 
@@ -4619,7 +4617,7 @@ flowchart TD
     O --> P[_hdl_AVENTURA_ESTADISTICAS_TIEMPO\n→ mostrarModalFinalizacion\nsolo en modo AVENTURA]
     P --> Q{Modal fin de aventura}
     Q -- Otra aventura --> R[_finalizarYLimpiar('otra_aventura')\nlimpiarDatosAventura completo\nlocation.reload → P1]
-    Q -- Terminar --> S[En-busca-del-tesoro.html?despedida=1\nP17 → botón verde → _ejecutarDespedida\n→ limpiarDatosAventura → pausa 2s\n→ location.reload → P1]
+    Q -- Terminar --> S[En-busca-del-tesoro.html?despedida=1\nP17 → botón verde → _ejecutarDespedida\n→ limpiarDatosAventura → pausa 2s\n→ location.replace codigo-padre.html → P1]
 ```
 
 #### Detalles de progresarSiguienteElemento
@@ -4896,7 +4894,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-ad6569395458'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d49a04413588'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5868,21 +5866,27 @@ La superficie pública del módulo es el objeto `globalThis.funcionesMapa`, con 
 Los puzzles son un subtipo de reto con mecánica especial. Usan `puzzle.html` embebido como iframe dentro de hijo4.
 
 ```text
-puzzle.html finaliza
-  → parent.postMessage({ tipo:'PUZZLE.COMPLETADO', ... })  (raw, fuera del bus)
-hijo4 L1188 lo escucha via globalThis.addEventListener('message')
-  → verifica event.source === document.getElementById('puzzleIframe')?.contentWindow
-  → si COMPLETADO: añade clase 'correct', llama fuegosArtificiales()
-  → envía RETO.COMPLETADO al padre via bus
-padre _hdl_RETO_COMPLETADO
-  → pending.reto = true → intentarCompletarElemento → progresa aventura
+hijo4 crea #puzzleIframe y lo registra en su bus como 'puzzle' ANTES de darle src
 
-Si puzzle.html se agota (PUZZLE.TIMEOUT):
-hijo4 → guarda _pendienteCompletado {retoId, completado:true}, muestra #btn-puzzle-continuar
-  → al pulsar el botón, SÍ envía RETO.COMPLETADO al padre (mismo camino diferido que el éxito, ver §7.5)
+puzzle.html termina (resuelto, o saltado con ⏩)
+  → bus: { tipo:'PUZZLE.COMPLETADO', destino:'padre', datos:{ puzzleId, exito:true } }
+    ('padre' es su contenedor, hijo4)
+hijo4, handler PUZZLE.COMPLETADO → _cerrarPuzzleConResultado(true)
+  → clase 'correct', fuegosArtificiales()
+  → guarda _pendienteCompletado = { retoId, correcto: true }, muestra #btn-puzzle-continuar
+
+puzzle.html se agota (PUZZLE.TIMEOUT)
+hijo4, handler PUZZLE.TIMEOUT → _cerrarPuzzleConResultado(false)
+  → clase 'incorrect', vibrar()
+  → guarda el MISMO _pendienteCompletado = { retoId, correcto: true }: cuenta como reto cumplido
+
+el usuario pulsa #btn-puzzle-continuar
+  → RETO.COMPLETADO { retoId, correcto: true } al padre, y después RETO.OCULTAR
+padre _hdl_RETO_COMPLETADO (lee `correcto`)
+  → pending.reto = true → intentarCompletarElemento → progresa aventura
 ```
 
-**Soporte legacy**: `PUZZLE.LEGACY_COMPLETADO = 'puzzle-state-completed'` y `LEGACY_TIMEOUT = 'puzzle-state-timeout'` son strings usados por versiones anteriores de puzzle.html que enviaban el estado como string en lugar de objeto. hijo4 y `En-busca-del-tesoro.html` comprueban ambos formatos.
+En modo puzzle los controles normales del reto, incluido "saltar reto", están ocultos: `#btn-puzzle-continuar` es la única salida del usuario, y por eso resuelto y tiempo agotado completan la parada igual.
 
 **En `En-busca-del-tesoro.html`** (selector): puzzles de intro en la pantalla de selección también usan el mismo mecanismo (L1256). Se usa para desbloquear aventuras mediante puzzle.
 
@@ -6235,7 +6239,7 @@ Los parámetros URL son un canal de comunicación de un solo sentido: el compone
 | `?aventura=` | `puzzle.html` | 139 | URL → `parent.__vv_aventuraActual` → `parent.aventuraSeleccionada` → `'Aventura1'` |
 | `?aventura=` | `mapa-completo.html` | 92 | URL → `'Aventura1'` (default) |
 | `?padreId=` | `js/utils.js` `getPadreId()` | 38 | URL → `sessionStorage('vvguides_padreId')` → UUID nuevo |
-| `?despedida=1` | `En-busca-del-tesoro.html` | — | Activa `modoDespedida`, salta a P17 (agradecimientos), ejecuta `limpiarDatosAventura` + pausa 2 s + `location.reload()` al pulsar botón verde |
+| `?despedida=1` | `En-busca-del-tesoro.html` | — | Activa `modoDespedida`, salta a P17 (agradecimientos), ejecuta `limpiarDatosAventura` + pausa 2 s + `location.replace('codigo-padre.html')` (P1) al pulsar botón verde. No recarga: la misma dirección con `?despedida=1` volvería a mostrar P17 |
 | `?vv_debug=1` | `js/proteccion.js` | 25 | Flag booleano — desactiva bloqueos de seguridad |
 | `?vv_hard_protect=1` | `js/proteccion.js` | 29 | Flag booleano — fuerza protección estricta en local |
 | `?debug=1` | `js/suppress-warnings.js` | 88 | Flag booleano — activa logging verboso en consola |
@@ -7111,7 +7115,7 @@ La lógica del puzzle (cortar la imagen, detectar posición correcta) está en `
 
 El puzzle ocupa el 100 % de la pantalla en dos puntos:
 
-**P9 de `En-busca-del-tesoro.html`** (puzzle introductorio): la pantalla tiene `padding: 0` y `#puzzle-container` tiene `width: 100%; height: 100%`. El botón "Continuar" es un **overlay circular verde** (`position: absolute; bottom: calc(var(--gap-inferior) + 1rem); right: 1rem`) que **empieza oculto** (`display: none`) y **solo aparece** (`display: flex`) cuando el puzzle envía `{ tipo: 'PUZZLE.COMPLETADO' }` o `{ tipo: 'PUZZLE.TIMEOUT' }` — formato tipado (`TIPOS_MENSAJE.PUZZLE.*`). Los receptores también aceptan los strings legacy `puzzle-state-completed` / `puzzle-state-timeout` por compatibilidad retroactiva. Esto evita que el usuario avance antes de intentar el puzzle. Si hay error cargando el puzzle, el botón también aparece para no bloquear el flujo.
+**P9 de `En-busca-del-tesoro.html`** (puzzle introductorio): la pantalla tiene `padding: 0` y `#puzzle-container` tiene `width: 100%; height: 100%`. El botón "Continuar" es un **overlay circular verde** (`position: absolute; bottom: calc(var(--gap-inferior) + 1rem); right: 1rem`) que **empieza oculto** (`display: none`) y **solo aparece** (`display: flex`) cuando el puzzle envía `{ tipo: 'PUZZLE.COMPLETADO' }` o `{ tipo: 'PUZZLE.TIMEOUT' }` — formato tipado (`TIPOS_MENSAJE.PUZZLE.*`), por el bus, que solo lo acepta porque la selección registró el iframe como `'puzzle'`. Esto evita que el usuario avance antes de intentar el puzzle. Si hay error cargando el puzzle, el botón también aparece para no bloquear el flujo.
 
 **`retos-hijo4.html`** (puzzles de aventura): el `body` usa `display: flex; flex-direction: column; min-height: 100vh`. El `#reto` tiene `flex: 1; min-height: 0` y el `#puzzleIframe` dentro también `flex: 1; min-height: 0`. Esta cadena flex hace que el iframe del puzzle ocupe todo el espacio disponible sin alturas fijas. Cuando el puzzle está activo, `body.puzzle-mode` elimina el padding, el borde y el título del cuadro de reto para una experiencia visual completamente limpia.
 
@@ -7143,7 +7147,7 @@ Todos los botones de avance en `retos-hijo4.html` usan la clase `.btn-mundo-verd
 | `#botonRetos` | Antes de mostrar el reto — MODO AVENTURA: tras `RETO.HABILITAR`; MODO CASA: siempre visible en paradas/tramos | Deshabilitado — oculto hasta recibir el mensaje correspondiente |
 | `#btnSaltarReto` | En `#button-container`, entre `#btnMostrarRespuesta` y `#btnNextAfterReto` (orden visual: 🫵, 🆘, ⏩, mundo verde) | Habilitado mientras hay un `estado.retoActualId` activo — ver "Saltar un reto o puzzle roto" más abajo |
 | `#btnNextAfterReto` | Mientras hay reto activo (deshabilitado hasta responder correctamente) | Deshabilitado |
-| `#btn-puzzle-continuar` | Solo cuando `puzzle-state-completed` llega de `puzzle.html` | Oculto |
+| `#btn-puzzle-continuar` | Solo cuando `PUZZLE.COMPLETADO` o `PUZZLE.TIMEOUT` llega de `puzzle.html` | Oculto |
 
 **Botón SOS (`#btnMostrarRespuesta`):** botón rectangular verde pequeño con texto `🆘❓`. Al pulsarlo muestra `#respuestaCorrectaTexto` (panel de respuesta correcta). Al pulsarlo de nuevo lo oculta. El panel tiene `flex-shrink: 0; overflow-y: auto; max-height: 4.5em` para no desbordar la ventana flotante.
 
@@ -8117,7 +8121,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-ad6569395458'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-d49a04413588'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8838,7 +8842,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ad6569395458';
+const CACHE_VERSION = 'v-d49a04413588';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9570,7 +9574,7 @@ Actualmente todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponible
 
 **Pantalla 16 — Logos.** Pantalla con fondo naranja, logo redondo y logo alargado de Valencia VGuides. Un botón `→` da el paso oficial a la aventura avanzando a P17.
 
-**Pantalla 17 — Agradecimientos y Fuentes** *(solo accesible vía `?despedida=1`, no en el flujo normal de onboarding)*. Pantalla con fondo naranja `#ff8c00`. Mientras `cargarAgradecimientosOverlay()` importa el texto desde `js/agradecimientos-aventuras.js`, la caja muestra brevemente un spinner inline. El texto de créditos y fuentes (en el idioma seleccionado) aparece en una caja `.texto-box.borde-azul` con scroll. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final. Al confirmar ejecuta `_ejecutarDespedida()`: muestra el mensaje de despedida en el idioma del usuario, limpia con `limpiarDatosAventura('completada')`, espera 2 s para que el usuario lea el mensaje y recarga la app con `location.reload()` → P1.
+**Pantalla 17 — Agradecimientos y Fuentes** *(solo accesible vía `?despedida=1`, no en el flujo normal de onboarding)*. Pantalla con fondo naranja `#ff8c00`. Mientras `cargarAgradecimientosOverlay()` importa el texto desde `js/agradecimientos-aventuras.js`, la caja muestra brevemente un spinner inline. El texto de créditos y fuentes (en el idioma seleccionado) aparece en una caja `.texto-box.borde-azul` con scroll. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final. Al confirmar ejecuta `_ejecutarDespedida()`: muestra el mensaje de despedida en el idioma del usuario, limpia con `limpiarDatosAventura('completada')`, espera 2 s para que el usuario lea el mensaje y va a P1 con `location.replace('codigo-padre.html')` (recargar la dirección actual, que lleva `?despedida=1`, volvería a mostrar P17).
 
 Cuando el padre recibe `SELECCION.AVENTURA_ACTIVADA`:
 
@@ -9930,6 +9934,8 @@ Cuando el usuario pulsa el botón **Retos** del hijo 3 (audio), se abre el **hij
 3. **Texto libre** — El usuario escribe una respuesta.
 4. **Puzzle** — Un puzzle interactivo en un iframe.
 
+Los cuatro tipos cierran la parada de la misma manera: al confirmar, hijo4 envía `RETO.COMPLETADO` con `correcto: true`, el campo que el padre lee para dar la parada por completada. En el puzzle esto vale igual si el usuario lo resuelve, si lo salta con su ⏩ o si se le agota el tiempo: los tres casos cuentan como reto cumplido. En modo puzzle los controles normales del reto (incluido "saltar reto") no están a la vista, así que el botón verde del puzzle es la única salida del usuario — y siempre completa la parada. Payload exacto en §7.5, "Payload de RETO.COMPLETADO".
+
 El botón de "Siguiente" empieza **rojo (deshabilitado)**. Solo se pone **verde (habilitado)** cuando el usuario acierta. Si falla:
 
 - El borde se pone rojo.
@@ -10094,7 +10100,7 @@ Los dos botones tienen caminos distintos, pero el resultado final es idéntico �
 | 5. Despedida | Captura idioma, oculta botón, muestra texto de despedida en pantalla (`TRADUCCIONES_DESPEDIDA`, 12 idiomas, `js/traducciones-ui.js` — expuesto vía `globalThis` porque `_ejecutarDespedida()` vive en un `<script>` clásico, no module) |
 | 6. Limpieza total | `await limpiarDatosAventura('completada')` |
 | 7. Pausa 2 s | El usuario lee el mensaje de despedida |
-| 8. Recarga a P1 | `location.reload()` → selector muestra P1 sin estado |
+| 8. Vuelta a P1 | `location.replace('codigo-padre.html')` → selector muestra P1 sin estado |
 
 El `await` sobre `enviarValoracion()` es solo por consistencia de código async — la entrega real no depende de él: `enviarValoracion()` usa `navigator.sendBeacon()` internamente (§10.21), diseñado precisamente para sobrevivir al `location.reload()`/`location.href=` que sigue justo después en ambos caminos.
 
@@ -10169,7 +10175,7 @@ Al crear el modal por primera vez, también arma la **red de seguridad por aband
 3. P17 se muestra (`modoDespedida = true` → pantalla de agradecimientos)
 4. El usuario pulsa el botón verde mundo (`#btn-siguiente-agradecimientos`) → `aceptarAgradecimientos()` → `_ejecutarDespedida()`
 5. **Solo en este paso** ocurre la limpieza: `await limpiarDatosAventura('completada')` (`En-busca-del-tesoro.html` L1519-1520)
-6. Pausa 2 s, recarga a P1
+6. Pausa 2 s y `location.replace('codigo-padre.html')`: P1. Es `replace` y no una recarga, porque recargar esta dirección, que lleva `?despedida=1`, volvería a entrar en P17; y `replace` para que "atrás" no devuelva a la despedida
 
 Es decir: el botón "Terminar" del modal de tiempo agotado **no limpia nada por sí mismo** — solo navega a la pantalla de despedida; la limpieza real ocurre cuando el usuario, tras leer el agradecimiento, pulsa el botón verde mundo de esa pantalla. Es exactamente el mismo mecanismo que usa el botón "Terminar esta experiencia" del modal de fin de aventura normal (§25.11) — no hay lógica duplicada, solo se reutiliza la misma URL/flujo.
 
@@ -10353,7 +10359,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 │    │                    → _ejecutarDespedida()              │
 │    │                    → limpiarDatosAventura('completada')│
 │    │                    → pausa 2 s (leer despedida)        │
-│    │                    → location.reload → P1             │
+│    │                    → location.replace → P1            │
 │    │                    Huella digital = 0 bytes            │
 │    └──────────────────────────────────────┘                 │
 └─────────────────────────────────────────────────────────────┘
@@ -12180,7 +12186,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-ad6569395458';
+const CACHE_VERSION = 'v-d49a04413588';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13103,9 +13109,25 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 
 ## 36. Metodología de auditoría completa
 
-Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 27 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
+Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 28 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno. Los ejes 1-27 se aplican leyendo y midiendo el código y sus instrumentos; el EJE 28 es el recorrido real de la aplicación, de principio a fin, con un espía de mensajes (§36.28).
 
-**Modalidad ligera (no es auditoría formal):** cuando la petición es una opinión o un vistazo general ("qué opinas", "échale un buen vistazo", "si ves algo que no cuadra apúntalo") sin invocar explícitamente "auditoría completa", no aplica el recorrido obligatorio de los 23 ejes de abajo. Es válido partir del contexto ya acumulado en la sesión (código y documentación ya leídos) en vez de releer todo desde cero — pero cada afirmación concreta que se vaya a reportar como hallazgo, y en particular cualquier cosa citada desde memoria como "pendiente"/"sin arreglar", se verifica puntualmente contra el archivo real antes de darla por cierta (la memoria puede estar desactualizada aunque el documento ya no lo esté). Se reporta la opinión más los hallazgos ya verificados, sin implementar nada hasta que el usuario confirme qué quiere tocar. Esta modalidad NO sustituye el protocolo completo de abajo: si el usuario pide auditoría completa o "revisa todo en cada sección", aplica cobertura total de los 23 ejes, nunca una muestra priorizada por riesgo.
+**Dos disparadores, no uno:**
+
+- **(a) Cuando se pide** una auditoría completa: se recorren los 28 ejes en orden y se reporta en el formato de §36.30.
+- **(b) Siempre que se termina de construir o arreglar algo, antes de darlo por hecho:** una pasada inversa corta sobre el propio cambio. No hace falta que nadie la pida.
+
+> **Pasada inversa (obligatoria antes de dar por terminado un cambio propio)**
+>
+> 1. **¿Se dispara?** (EJE 26) Por cada mecanismo defensivo tocado o creado —reintento, fallback, guard, recarga, rescate—: cuál es la condición exacta que lo activa, **medida en ejecución**, no deducida leyendo.
+> 2. **¿Quién lo alimenta?** (EJE 19) Qué caminos deberían rellenar la estructura que ese mecanismo consume, y cuáles lo hacen de verdad.
+> 3. **¿El arnés tapa el fallo?** (EJE 24) Por cada test escrito: si recibe a mano un objeto, flag, iframe u opción que en producción no llega, comprueba el código *después* del punto donde falla.
+> 4. **¿Lo he visto en rojo?** (EJE 24) Con el arreglo revertido, el test tiene que fallar. Si pasa igual, se sospecha del arnés antes que del código (EJE 24b).
+> 5. **Grep del identificador pelado**, sin paréntesis (EJE 13).
+> 6. **Si el cambio toca un flujo de usuario, se recorre ese tramo en la aplicación real** con el espía (EJE 28).
+> 7. **`npm run lint`.** El bloque `js/**/*.js` de `eslint.config.js` activa pocas reglas y `no-unused-vars` solo se aplica a los HTML: para los `js/*.js` se activa a mano en una pasada temporal.
+> 8. **Uso por uso de todo lo que el cambio introduce o deja atrás:** por cada import, desestructuración, asignación a `globalThis` y variable intermedia, se cuentan los usos reales. Un cambio que retira algo casi siempre deja restos: el import que servía a lo retirado, la variable que ya vale una constante, el guard que protegía de un caso que ya no existe.
+
+**Modalidad ligera (no es auditoría formal):** cuando la petición es una opinión o un vistazo general ("qué opinas", "échale un buen vistazo", "si ves algo que no cuadra apúntalo") sin invocar explícitamente "auditoría completa", no aplica el recorrido obligatorio de los 28 ejes de abajo. Es válido partir del contexto ya acumulado en la sesión (código y documentación ya leídos) en vez de releer todo desde cero — pero cada afirmación concreta que se vaya a reportar como hallazgo, y en particular cualquier cosa citada desde memoria como "pendiente"/"sin arreglar", se verifica puntualmente contra el archivo real antes de darla por cierta (la memoria puede estar desactualizada aunque el documento ya no lo esté). Se reporta la opinión más los hallazgos ya verificados, sin implementar nada hasta que el usuario confirme qué quiere tocar. Esta modalidad NO sustituye el protocolo completo de abajo: si el usuario pide auditoría completa o "revisa todo en cada sección", aplica cobertura total de los 28 ejes, nunca una muestra priorizada por riesgo.
 
 **Preparación antes de empezar (solo para la auditoría completa):**
 
@@ -13665,11 +13687,44 @@ Si alguno difiere en un orden de magnitud del valor real, el test no cubre lo qu
 
 ---
 
-### 36.28 Checklist de cierre pre-producción
+### 36.28 EJE 28 — Recorrido real de la aplicación con espía de mensajes
 
-El proyecto se desarrolla actualmente en local, sin el flujo de pago implementado, con la producción como objetivo cercano pero no inmediato. Antes de considerar el proyecto listo para ese lanzamiento, los 23 ejes deben cerrarse con este criterio de aceptación — no basta con "auditoría hecha", hace falta "auditoría en verde":
+Los ejes 1-27 se pueden aplicar leyendo el código y midiendo trozos de él. Este no: es la versión **ejecutada** del EJE 15. Se recorre la aplicación de principio a fin como la usaría una persona, con un espía instalado en todos los frames que anota cada mensaje.
 
-1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 27 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
+**Por qué hace falta.** Cuando el emisor, la guía y el test describen el mismo mensaje de la misma manera, la lectura da por bueno el contrato aunque el receptor lea otro campo: los tres están alineados, y ninguno es el receptor. Solo el recorrido muestra el efecto que el usuario ve (una parada que no se completa, un botón que no se habilita). El recorrido también funciona en sentido contrario: refuta fallos deducidos leyendo que en ejecución no ocurren.
+
+**El instrumento:**
+
+1. Un **espía** que se instala en todos los frames antes que su código (`addInitScript`) y anota, por cada mensaje recibido: el frame que lo recibe, la **ventana real** de la que viene (no el campo `origen`), `origen`, `destino`, si ese frame tenía handler para el tipo y un extracto de `datos`. Anota también cada descarte del bus ("Destino desconocido", "descarta", "sin padre") con la pila de quien lo envió, y cada cartel `#cartel-*` que aparece, con su texto.
+2. Un **conductor** que arranca el servidor, abre el padre con el GPS concedido y avanza **solo con controles de usuario**: botones, gestos y lecturas GPS. Nunca por los atajos (`__triggerCambioParadaInterno`, `_vv_triggerCambioModo`…), porque son parte de lo auditado. Simulaciones admitidas, y declaradas en el informe: el acierto del código dev (solo existe su hash) y, con permiso expreso, el audio acelerado.
+
+**Variantes obligatorias:**
+
+- Selección de P1 a P16: vídeo de introducción escena a escena, puzzle, retos R-1 y R-2, términos y normativa leídos hasta el final, audio de introducción.
+- Activación en CASA, cambio a AVENTURA y vuelta a CASA (Factor 2).
+- Cada elemento de una aventura completa, con su llegada GPS; los tramos, por sus puntos intermedios.
+- Cada tipo de reto: opción, varias respuestas, texto libre y puzzle, incluido el tiempo agotado.
+- Los carteles de §4.7g y §25.5, cerrados con su ✗ como lo haría el usuario.
+- Chat, mapa completo, recarga a media aventura con reanudación, e hijo caído y recuperado.
+- Fin de aventura con sus dos salidas ("otra aventura" y "terminar").
+- Un idioma sin audio, para recorrer el camino de "saltar audio".
+
+**El instrumento también se audita (EJE 27):**
+
+- El GPS se emite de forma continua, como un móvil real: la aplicación filtra el ruido y no confirma una llegada con una sola lectura.
+- Un clic que falla se registra como fallo, nunca como hecho.
+- La traza no se pierde al recargar la página.
+- Si un mismo elemento no avanza dos veces seguidas, el recorrido se corta y vuelca lo que tiene.
+
+**Cómo se reporta:** cada hallazgo del recorrido se cruza con el código antes de reportarlo, y con `git blame` para separar lo que acaba de romperse de lo que ya estaba.
+
+---
+
+### 36.29 Checklist de cierre pre-producción
+
+El proyecto se desarrolla actualmente en local, sin el flujo de pago implementado, con la producción como objetivo cercano pero no inmediato. Antes de considerar el proyecto listo para ese lanzamiento, los 28 ejes deben cerrarse con este criterio de aceptación — no basta con "auditoría hecha", hace falta "auditoría en verde":
+
+1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 28 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
 2. **`npm run lint` sin errores** sobre `js/**/*.js` y `*.html` — incluye la regla `no-console` (todo log pasa por el logger centralizado o tiene su excepción documentada en `eslint.config.js`).
 3. **`npm run test:e2e` en verde en los 4 proyectos de Playwright** (chromium, firefox, pixel5, iphone12), no solo chromium. **Ejecutarlos de uno en uno** (`--project=<nombre>`), no los cuatro en la misma invocación: los 1256 tests seguidos agotan los recursos de proceso de Windows y los workers empiezan a morir con `worker process exited unexpectedly (code=3221225794)` — `0xC0000142`, el proceso no llega a arrancar. Se manifiesta como el primer test de **cada** fichero fallando a partir de cierto punto, con el resto marcado "did not run": patrón de arnés agotado, no de regresión. `workers: 1` ya está fijado en `playwright.config.js` y no lo evita, porque el agotamiento es acumulativo.
 4. **`npm run verificar-mensajeria` sin huérfanos sin revisar** — todo tipo de `TIPOS_MENSAJE` marcado como sin emisor o sin receptor por la herramienta ha sido verificado a mano y clasificado (huérfano real → eliminado; falso positivo de la heurística → descartado con motivo).
@@ -13679,12 +13734,13 @@ El proyecto se desarrolla actualmente en local, sin el flujo de pago implementad
 8. **Ningún `test.skip` sin revalidar** (EJE 27.3) — cada uno se ha quitado y ejecutado al menos una vez en esta ronda; los que sigan puestos llevan escrita la causa que falla **hoy**, medida, y ninguno se justifica citando a otro `skip`.
 9. **Ninguna decisión resuelta por dos caminos** (EJE 27.1) — por cada mecanismo duplicado, o se ha eliminado uno, o el fallback es **ruidoso**: si el camino principal cae, alguien se entera.
 10. **`npm run verificar-esperas` sin esperas nuevas** (EJE 23) — la línea base solo baja. Las marcadas como `VENTANA-OBSERVACION` llevan escrito por qué esperar un tiempo fijo es ahí lo correcto.
+11. **Recorrido real completo** (EJE 28) — todas sus variantes llegan a su final, sin elementos atascados y sin descartes del bus sin explicar.
 
-**Por qué hace falta esta lista:** los ejes 1-27 dicen cómo auditar cada aspecto, pero ninguno define cuándo el conjunto completo está "suficientemente limpio" para lanzar. Sin un criterio de cierre explícito, es posible declarar "auditoría completa" con hallazgos ⚠️ o 🕳️ todavía abiertos y perder de vista cuáles quedaron pendientes de una ronda a la siguiente.
+**Por qué hace falta esta lista:** los ejes 1-28 dicen cómo auditar cada aspecto, pero ninguno define cuándo el conjunto completo está "suficientemente limpio" para lanzar. Sin un criterio de cierre explícito, es posible declarar "auditoría completa" con hallazgos ⚠️ o 🕳️ todavía abiertos y perder de vista cuáles quedaron pendientes de una ronda a la siguiente.
 
 ---
 
-### 36.29 Formato del reporte de auditoría
+### 36.30 Formato del reporte de auditoría
 
 Para cada hallazgo, usar exactamente este formato:
 
@@ -13993,10 +14049,8 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje 
 | `NAVEGACION.USUARIO_FUERA_RANGO` | coordenadas-hijo2.html | codigo-padre.html |
 | `PARADAS.LISTADO_TOGGLE` | extrainfo-hijo1.html | codigo-padre.html |
 | `PARADAS.READY` | boton-casa-hijo5.html | `_hdl_PARADAS_READY` (codigo-padre.html, Script 2) |
-| `PUZZLE.COMPLETADO` | puzzle.html | *(ninguno detectado)* |
-| `PUZZLE.LEGACY_COMPLETADO` | *(ninguno detectado)* | *(ninguno detectado)* |
-| `PUZZLE.LEGACY_TIMEOUT` | *(ninguno detectado)* | *(ninguno detectado)* |
-| `PUZZLE.TIMEOUT` | puzzle.html | *(ninguno detectado)* |
+| `PUZZLE.COMPLETADO` | puzzle.html | retos-hijo4.html |
+| `PUZZLE.TIMEOUT` | puzzle.html | retos-hijo4.html |
 | `RETO.COMPLETADO` | retos-hijo4.html | codigo-padre.html |
 | `RETO.CONFIRMADO` | codigo-padre.html | retos-hijo4.html |
 | `RETO.ESTADO_CASA` | codigo-padre.html | retos-hijo4.html |
