@@ -460,56 +460,6 @@
                 }
             });
 
-            // ============================================================
-            // CONTROLADOR 4: SISTEMA.ACK
-            // ============================================================
-            registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ACK, async (mensaje) => {
-                const controladorPrefix = `${CONFIG_HIJO.LOG_PREFIX}[ACK]`;
-
-                try {
-                    // 1. Validación de origen
-                    if (!mensaje || !mensaje.origen) {
-                        logger.error(`${controladorPrefix} Mensaje sin origen válido`, mensaje);
-                        return { exito: false, error: 'Sin origen' };
-                    }
-
-                    logger.debug(`${controladorPrefix} ACK recibido, respondiendo...`);
-
-                    // 2. Preparar datos de respuesta
-                    const datosRespuesta = {
-                        componenteId: CONFIG_HIJO.COMPONENTE_ID,
-                        timestamp: Date.now(),
-                        estado: 'activo',
-                        menuAbierto: estadoMenu.abierto,
-                        inicializado: estadoMenu.inicializado,
-                        parentReady: estadoMenu.parentReady
-                    };
-
-                    // 3. Enviar respuesta
-                    await enviarMensaje({
-                        destino: 'padre',
-                        tipo: TIPOS_MENSAJE.SISTEMA.ACK,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        datos: datosRespuesta
-                    });
-
-                    logger.debug(`${controladorPrefix} ACK respondido`);
-
-                    return {
-                        exito: true,
-                        timestamp: datosRespuesta.timestamp
-                    };
-
-                } catch (error) {
-                    logger.error(`${controladorPrefix} Error respondiendo ACK:`, error);
-
-                    return {
-                        exito: false,
-                        error: error.message
-                    };
-                }
-            });
-
             // Controlador para cambio de modo - componente simple, solo confirma
             registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, async (mensaje) => {
                 const logPrefix = `${CONFIG_HIJO.LOG_PREFIX}[CAMBIO_MODO]`;

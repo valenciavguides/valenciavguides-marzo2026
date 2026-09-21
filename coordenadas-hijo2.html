@@ -2270,31 +2270,6 @@ try {
         }
     });
 
-    // Controlador para ACK del sistema
-    registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ACK, async (mensaje) => {
-        const logPrefix = `[hijo2][SISTEMA.ACK][${mensaje?.origen || 'desconocido'}]`;
-
-        try {
-            logger.debug(`${logPrefix} ACK recibido, respondiendo...`);
-
-            // Responder al ACK
-            await enviarMensaje({
-                destino: 'padre',
-                tipo: TIPOS_MENSAJE.SISTEMA.ACK,
-                origen: CONFIG_HIJO.IFRAME_ID,
-                datos: {
-                    componenteId: CONFIG_HIJO.COMPONENTE_ID,
-                    timestamp: Date.now(),
-                    estado: 'activo'
-                }
-            });
-
-            logger.debug(`${logPrefix} ACK respondido`);
-
-        } catch (error) {
-            logger.error(`${logPrefix} Error respondiendo ACK:`, error);
-        }
-    });
 
     // ============================================================
     // HANDLERS GPS

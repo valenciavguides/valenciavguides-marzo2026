@@ -2818,26 +2818,6 @@
         }
     }
 
-    async function _onAck(mensaje) {
-        const controladorPrefix = `${CONFIG_HIJO.LOG_PREFIX}[ACK]`;
-        try {
-            if (!mensaje || !mensaje.origen) {
-                logger.error(`${controladorPrefix} Mensaje sin origen válido`, mensaje);
-                return { exito: false, error: 'Sin origen' };
-            }
-            logger.debug(`${controladorPrefix} ACK recibido, respondiendo...`);
-            const datosRespuesta = {
-                componenteId: CONFIG_HIJO.COMPONENTE_ID, timestamp: Date.now(),
-                estado: 'activo', inicializado: estadoComponente.inicializado, padreConectado: estadoComponente.padreConectado
-            };
-            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ACK, origen: CONFIG_HIJO.IFRAME_ID, datos: datosRespuesta });
-            logger.debug(`${controladorPrefix} ACK respondido`);
-            return { exito: true, timestamp: datosRespuesta.timestamp };
-        } catch (error) {
-            logger.error(`${controladorPrefix} Error respondiendo ACK:`, error);
-            return { exito: false, error: error.message };
-        }
-    }
 
     async function _onCambioModo(mensaje) {
         const logPrefix = `${CONFIG_HIJO.LOG_PREFIX}[CAMBIO_MODO]`;
@@ -2892,7 +2872,6 @@
             void registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_DATOS, _onPadreDatos);
             void registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, _onPadreConfirmaHijoListo);
             void registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT, _onHeartbeat);
-            void registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ACK, _onAck);
             void registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, _onCambioModo);
             void registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_APLICADO, _onCambioModoAplicado);
             logger.info(`${logPrefix} Controladores registrados exitosamente`);

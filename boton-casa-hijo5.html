@@ -1247,22 +1247,6 @@
             }
         });
 
-        // Controlador para ACK del sistema de monitoreo
-        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ACK, async (mensaje) => {
-            const logPrefix = `[hijo5][SISTEMA.ACK][${mensaje?.origen || 'desconocido'}]`;
-            try {
-                // Responder automáticamente con ACK para mantener bidireccionalidad
-                await enviarMensaje({
-                    destino: 'padre',
-                    tipo: TIPOS_MENSAJE.SISTEMA.ACK,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    datos: { mensajeOriginalId: mensaje.id }
-                });
-                logger.debug(`${logPrefix} ACK respondido al padre`);
-            } catch (error) {
-                logger.error(`${logPrefix} Error respondiendo ACK:`, error);
-            }
-        });
 
         // Instrumentación: confirmar que los controladores GPS fueron registrados
         logger.debug('[hijo5] Controladores GPS registrados y listos para recibir mensajes');

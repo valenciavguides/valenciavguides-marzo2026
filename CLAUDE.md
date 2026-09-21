@@ -48,6 +48,12 @@ viven aquí.
 3. **Un inventario que salga de un `grep` por nombre no es un inventario**: devuelve a quien tiene
    la cosa, nunca a quien le falta. Para "¿quién no lo tiene?" usar `npm run verificar-frames` o
    enumerar las ausencias a mano, fichero por fichero.
+3b. **Al reportar un barrido sobre varios frames, nombrar también los que NO se han tocado y por
+   qué.** El censo son los diez: padre, selección, hijo1 a hijo6, mapa-completo, puzzle y
+   video-intro. Decir solo dónde se ha actuado hace indistinguible "mirado y no hacía falta" de
+   "olvidado" — y hijo6 ya se ha quedado fuera de una lista por ese motivo. La ausencia se
+   justifica con una comprobación citable (`git show <commit>:<fichero> | grep -c …`), no con un
+   recuerdo.
 4. **Parchear con un script escrito en disco**, nunca con `node -e`, heredoc, ni `sed -i "…"` entre
    comillas dobles: el shell se come las barras invertidas y los backticks, y rompe literales y
    comentarios sin que el lint lo vea. El working tree está en CRLF, así que ningún ancla debe
@@ -58,6 +64,18 @@ viven aquí.
    navegadores (~47 min) solo antes de un commit grande o del push.
 6. **Cuando una lectura estática y una medición en ejecución se contradigan, gana la medición** — y
    se arregla o se retira el instrumento estático, no se ignora la contradicción.
+7. **Leer la memoria COMPLETA, no el índice.** De la memoria solo llegan solos los títulos de
+   `MEMORY.md`: una línea por fichero, que sirve para saber que algo existe y para nada más. El
+   contenido —el porqué, las trampas medidas, las reincidencias— hay que ir a leerlo. Hacerlo al
+   empezar una sesión de trabajo, al cambiar de frente, y siempre antes de escribir en la guía o
+   de tocar la mensajería. Un título leído no es la regla leída: las tres recaídas del estilo de
+   la guía ocurrieron con su memoria escrita y sin abrir.
+8. **La `GUIA-COMPLETA` se consulta siempre, y no se cree nunca.** Es el mejor mapa del proyecto
+   y ahorra horas, así que hay que tenerla presente en cada cambio — pero no es fuente de verdad
+   todavía: contiene afirmaciones que el código nunca implementó, algunas contradiciendo a otra
+   sección del propio documento. Toda afirmación en la que se vaya a apoyar una decisión se
+   verifica contra el código, y la discrepancia se corrige en el mismo trabajo en que aparece, no
+   "para luego".
 
 ## Documentación de autoridad
 

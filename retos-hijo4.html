@@ -1673,11 +1673,6 @@
                 }
             });
 
-            // Controlador para ACK
-            registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ACK, async (mensaje) => {
-                logger.debug(`[hijo4] ACK recibido:`, mensaje.datos);
-                // Procesar confirmaciones del padre
-            });
 
             // CONTROLADOR: SISTEMA.NOTIFICACION - manejar PENDING_INICIADO
             registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.NOTIFICACION, async (mensaje) => {
@@ -1712,9 +1707,6 @@
                             //
                             // El antiguo `estado.paradaPendiente` de este fichero se elimino con
                             // esto: no lo leia nadie. hijo2 tiene un campo homonimo, aparte.
-                            try {
-                                await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.ACK, origen: CONFIG_HIJO.IFRAME_ID, destino: 'padre', datos: { mensaje: 'PENDING_INICIADO recibid' } });
-                            } catch (err) { logger.warn(`${logPrefix} Error procesando PENDING_INICIADO:`, err); }
                         }
                     }
                 } catch (err) {

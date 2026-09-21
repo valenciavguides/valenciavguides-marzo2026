@@ -86,28 +86,10 @@ function _registrarHandlersModo() {
         registrar(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO, async (msg) => {
             _respuestasEntendidoActual.set(msg.origen, { timestamp: Date.now(), datos: msg.datos });
             logger.debug(`[actualizarInterfazModo] ENTENDIDO recibido de ${msg.origen}`);
-            try {
-                const { modo } = msg.datos || {};
-                enviarMensaje({
-                    tipo: TIPOS_MENSAJE.SISTEMA.ACK,
-                    origen: resolverIdPadre(),
-                    destino: msg.origen,
-                    datos: { mensajeRecibido: 'CAMBIO_MODO_ENTENDIDO', modo, timestamp: Date.now() }
-                });
-            } catch (_e) { /* ACK es cosmético */ } // NOSONAR
         }, { permanente: true });
         registrar(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO, async (msg) => {
             _respuestasEfectuadoActual.set(msg.origen, { timestamp: Date.now(), datos: msg.datos });
             logger.debug(`[actualizarInterfazModo] EFECTUADO recibido de ${msg.origen}`);
-            try {
-                const { modo } = msg.datos || {};
-                enviarMensaje({
-                    tipo: TIPOS_MENSAJE.SISTEMA.ACK,
-                    origen: resolverIdPadre(),
-                    destino: msg.origen,
-                    datos: { mensajeRecibido: 'CAMBIO_MODO_EFECTUADO', modo, timestamp: Date.now() }
-                });
-            } catch (_e) { /* ACK es cosmético */ } // NOSONAR
         }, { permanente: true });
         logger.debug('[APP] Handlers ENTENDIDO/EFECTUADO registrados correctamente');
     } catch (e) {
