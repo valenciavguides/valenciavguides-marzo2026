@@ -97,7 +97,11 @@ function analizar(fichero) {
         escuchasCrudas: contar(t, /addEventListener\(\s*['"]message['"]/g),
         enviosCrudos: contar(t, /\.postMessage\(/g),
         registraIframes: /registrarIframe(?:Hijo)?\s*\(/.test(t),
-        tocaOtroFrame: contar(t, /parent\.document|parent\.[A-Za-z_$][\w$]*\s*\(|contentWindow\.[A-Za-z_$]/g),
+        // `postMessage` NO cuenta aqui: hablar con el padre es lo que hay que hacer, y ya tiene
+        // su propia columna. Lo que esta columna busca es el acceso que Opcion A prohibe —leerle
+        // el DOM o llamarle una funcion—, y contarlos juntos daba 5 "accesos prohibidos" en un
+        // fichero que solo mandaba mensajes.
+        tocaOtroFrame: contar(t, /parent\.document|parent\.(?!postMessage)[A-Za-z_$][\w$]*\s*\(|contentWindow\.(?!postMessage)[A-Za-z_$]/g),
     };
 }
 
