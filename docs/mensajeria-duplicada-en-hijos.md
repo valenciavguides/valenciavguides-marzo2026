@@ -1450,6 +1450,24 @@ y el envío explícito en hijo2 (éxito y error). Constante `COORDENADAS_PARADAS
 confirmado con espía de `postMessage`); specs 13/20/21/32 (GPS/fallback de ubicación) sin romperse;
 recorrido con espía sin hallazgos nuevos.
 
+**8.2 — Lista de paradas de hijo5 desde dos fuentes (✅ cerrado).** Dos sitios de empuje
+(`distribuirDatosAventura()` en activación real; `_enviarRespuestaParadasHijosRest()` en
+reanudación) construían a mano la lista desde `__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html']
+.coordenadas` — el fichero crudo de coordenadas, pensado para el mapa de hijo2, que incluye
+entradas `tipo: "referencia"` (Torres de Serranos, Palacio de los Borgia...). El camino de
+petición (`SOLICITAR_DATOS_PARADAS`, cuando hijo5 se autoconsulta) usa en cambio
+`normalizarParadas_S1(DATOS_PADRE[aventura][idioma].elementosIDpadre)` — la fuente que el propio
+comentario del handler ya llamaba "primaria" y que nunca mezcla entradas `referencia`. hijo5
+filtra `tipo` fuera de `['inicio','parada','tramo']` al generar botones, así que el síntoma no
+era visible, pero las dos fuentes podían divergir sin que nada lo detectase — y de hecho
+`DATOS_PADRE` no tiene `lat`/`lng` mientras la fuente cruda sí, un campo (`coordenadas`) que
+`_esParadaValida()` en hijo5 revisó y confirmó **muerto**: siempre devuelve `true` pase lo que
+pase (comprobado leyendo la función completa, no solo su nombre). Los tres sitios pasan ahora
+por `normalizarParadas_S1`/`normalizarParadas_S2(DATOS_PADRE...)` — se añadió el alias en Script 2
+(`js/utils.js` ya se importaba ahí). Verificado: spec 98 nueva (PD-1 en rojo antes del arreglo,
+confirmado con espía de `postMessage`: 3 entradas `referencia` llegaban a hijo5); 36 specs de
+handshake/reanudación/recuperación sin romperse; recorrido con espía sin hallazgos nuevos.
+
 ---
 
 ## Parte VII — Hallazgos colaterales

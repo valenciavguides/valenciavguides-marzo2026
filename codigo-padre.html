@@ -5026,42 +5026,24 @@
         async function _enviarRespuestaParadasHijosRest(logPrefix, datosGuardados) {
             const av = datosGuardados.aventura;
             const id = datosGuardados.idioma || 'es';
+            // Un solo camino (paso 8.2 de la lavadora): hijo2 e hijo5 reciben el mismo
+            // normalizarParadas_S1(DATOS_PADRE...) que ya usa el camino de petición
+            // (SOLICITAR_DATOS_PARADAS, más abajo) — antes hijo5 recibía una construcción a
+            // mano desde __vv_DATOS_AVENTURAS (el fichero crudo de coordenadas, pensado para
+            // el mapa de hijo2), que incluye entradas tipo:"referencia" que DATOS_PADRE nunca
+            // mezcla. hijo5 las filtraba al generar botones, pero las dos fuentes podían
+            // divergir sin que nada lo detectase.
+            if (!DATOS_PADRE[av]?.[id]) { (globalThis.logger || console).warn(`${logPrefix} Sin DATOS_PADRE para ${av}/${id} — hijo2 e hijo5 quedan sin paradas`); return; }
+            const pNorm = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
+            if (pNorm.length === 0) { (globalThis.logger || console).warn(`${logPrefix} DATOS_PADRE sin elementosIDpadre para ${av}/${id}`); return; }
+            if (typeof enviarMensaje_S1 !== 'function') return;
             try {
-                if (DATOS_PADRE[av]?.[id] && typeof enviarMensaje_S1 === 'function') {
-                    const pNorm = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
-                    if (pNorm.length > 0) {
-                        await enviarMensaje_S1({ destino: 'hijo2', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pNorm, timestamp: Date.now() } });
-                        (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo2 (${pNorm.length} paradas)`);
-                    }
-                }
+                await enviarMensaje_S1({ destino: 'hijo2', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pNorm, timestamp: Date.now() } });
+                (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo2 (${pNorm.length} paradas)`);
             } catch (_e2) { (globalThis.logger || console).warn(`${logPrefix} Error enviando RESPUESTA_DATOS_PARADAS a hijo2:`, _e2); }
             try {
-                // FIX: Esperar a que __vv_DATOS_AVENTURAS se cargue antes de enviar a hijo5
-                if (!globalThis.__vv_DATOS_AVENTURAS) {
-                    (globalThis.logger || console).warn(`${logPrefix} ⏳ __vv_DATOS_AVENTURAS no disponible aún, esperando carga...`);
-                    let intentos = 0;
-                    while (!globalThis.__vv_DATOS_AVENTURAS && intentos++ < 20) {
-                        await sleep(250);
-                    }
-                    if (!globalThis.__vv_DATOS_AVENTURAS) {
-                        (globalThis.logger || console).error(`${logPrefix} ❌ Timeout esperando __vv_DATOS_AVENTURAS — no se pueden enviar paradas a hijo5`);
-                        return;
-                    }
-                }
-                const coords = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas;
-                if (!coords || !Array.isArray(coords)) {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay coordenadas para ${av} en __vv_DATOS_AVENTURAS — hijo5 quedará sin paradas`);
-                    return;
-                }
-                if (coords.length === 0) {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ Array de coordenadas vacío para ${av} — hijo5 quedará sin paradas`);
-                    return;
-                }
-                if (typeof enviarMensaje_S1 === 'function') {
-                    const pH5 = coords.map(c => ({ id: `padre-${c.id}`, parada_id: c.id, tipo: c.tipo, parada: c.parada, tramo: c.tramo, nombre: c.nombre, padreid: `padre-${c.id}`, coordenadas: c.coordenadas || c.fin || c.inicio || null }));
-                    await enviarMensaje_S1({ destino: 'hijo5', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pH5, aventura: av, timestamp: Date.now() } });
-                    (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo5 (${pH5.length} paradas)`);
-                }
+                await enviarMensaje_S1({ destino: 'hijo5', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pNorm, aventura: av, timestamp: Date.now() } });
+                (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo5 (${pNorm.length} paradas)`);
             } catch (_e5) { (globalThis.logger || console).warn(`${logPrefix} Error enviando RESPUESTA_DATOS_PARADAS a hijo5:`, _e5); }
         }
         async function _restaurarProgresoRest(logPrefix) {
@@ -9884,7 +9866,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // ============================================================
         // Importación de módulos
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_S2, MODOS: MODOS_S2 } = await import('./js/constants.js');
-        const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2 } = await import('./js/utils.js');
+        const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2, normalizarParadas: normalizarParadas_S2 } = await import('./js/utils.js');
         await import('./js/suppress-warnings.js');
         const { DATOS_PADRE } = await import('./js/aventuras-ID-padre.js');
 
@@ -10118,26 +10100,20 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 // 4. Enviar paradas a hijo5 (botones de navegación CASA)
-                // Fire-and-forget: si hijo5 no está listo, solicitará paradas él mismo vía SOLICITAR_DATOS_PARADAS
-                if (coords.length > 0 && hijosInicializados.has('hijo5')) {
-                    const pH5 = coords.map(c => ({
-                        id: `padre-${c.id}`,
-                        parada_id: c.id,
-                        tipo: c.tipo,
-                        parada: c.parada,
-                        tramo: c.tramo,
-                        nombre: c.nombre,
-                        padreid: `padre-${c.id}`,
-                        coordenadas: c.coordenadas || c.fin || c.inicio || null
-                    }));
+                // Fire-and-forget: si hijo5 no está listo, solicitará paradas él mismo vía SOLICITAR_DATOS_PARADAS.
+                // Un solo camino (paso 8.2 de la lavadora): la misma normalizarParadas_S2(DATOS_PADRE...)
+                // que usa el camino de petición — no la construcción a mano desde `coords` (el
+                // fichero crudo de coordenadas para el mapa de hijo2, que incluye tipo:"referencia").
+                const pNormH5 = DATOS_PADRE[aventura]?.[idioma] ? normalizarParadas_S2(DATOS_PADRE[aventura][idioma].elementosIDpadre || []) : [];
+                if (pNormH5.length > 0 && hijosInicializados.has('hijo5')) {
                     await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE_S2.NAVEGACION.RESPUESTA_DATOS_PARADAS,
                         destino: 'hijo5',
-                        datos: { paradas: pH5, aventura, timestamp: Date.now() }
+                        datos: { paradas: pNormH5, aventura, timestamp: Date.now() }
                     });
-                    resultados.hijo5 = { enviado: true, total: pH5.length };
-                    (globalThis.logger || console).info(`${logPrefix} ✅ ${pH5.length} paradas enviadas a hijo5`);
-                } else if (coords.length > 0) {
+                    resultados.hijo5 = { enviado: true, total: pNormH5.length };
+                    (globalThis.logger || console).info(`${logPrefix} ✅ ${pNormH5.length} paradas enviadas a hijo5`);
+                } else if (pNormH5.length > 0) {
                     (globalThis.logger || console).info(`${logPrefix} 🏠 hijo5 no listo aún — solicitará paradas vía SOLICITAR_DATOS_PARADAS`);
                     resultados.hijo5 = { enviado: false };
                 }

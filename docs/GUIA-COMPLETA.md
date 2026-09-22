@@ -4862,7 +4862,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-89dbc8c96b17'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f8d5c6588d31'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5868,8 +5868,10 @@ hijo5 L866 → padre   NAVEGACION.SOLICITAR_DATOS_PARADAS
   { incluirTramos, incluirInicio, incluirMetadatos, ubicacionUsuario }
   ↓
 codigo-padre.html Script 1 (handler SOLICITAR_DATOS_PARADAS)
-  → Fuente primaria: DATOS_PADRE[av][idioma].elementosIDpadre + normalizarParadas_S1
-  → Fallback: globalThis.__vv_DATOS_AVENTURAS[av]['coordenadas-hijo2.html'].coordenadas
+  → Fuente única: DATOS_PADRE[av][idioma].elementosIDpadre + normalizarParadas_S1 — el
+    fallback a __vv_DATOS_AVENTURAS que hubo aquí era inalcanzable (DATOS_PADRE es un
+    import estático) y se retiró; sin datos, responde lista vacía con un aviso, ruidoso
+    en vez de disimulado
   → Destino dinámico: mensaje.origen (no hardcodeado a 'hijo5')
   → Siempre responde (array vacío si sin aventura, no silencio)
 padre → mensaje.origen   NAVEGACION.RESPUESTA_DATOS_PARADAS
@@ -8045,7 +8047,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-89dbc8c96b17'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-f8d5c6588d31'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8766,7 +8768,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-89dbc8c96b17';
+const CACHE_VERSION = 'v-f8d5c6588d31';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12112,7 +12114,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-89dbc8c96b17';
+const CACHE_VERSION = 'v-f8d5c6588d31';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12321,7 +12323,7 @@ Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de q
 
 **Por qué `_resolverCoordenadasElemento()` lee `entrada.coordenadas || entrada.inicio`, no solo `entrada.coordenadas`:** la respuesta de hijo2 a `solicitarCoordenadasHijo` es la entrada cruda de `coordenadas-aventuras.js` — una parada trae `.coordenadas`, pero un tramo nunca tiene ese campo (trae `.inicio`/`.fin`/`.waypoints`). Sin el fallback a `.inicio`, cualquier tramo activo hacía que la función devolviera `null` incondicionalmente y cayera siempre a `_obtenerCoordenadasFallbackP0()` — la polyline verde apuntaba a Torres de Serranos en vez de al punto real de inicio del tramo, sin importar a qué tramo o dónde estuviera el usuario. `.inicio` (no `.fin`) es la elección correcta aquí porque el botón de ubicación ayuda al usuario a **llegar** al tramo, no a completarlo — el punto al que debe caminar para poder empezarlo.
 
-**Por qué `_obtenerCoordenadasFallbackP0()` no busca en `DATOS_PADRE`:** `DATOS_PADRE` (`js/aventuras-ID-padre.js`) es el registro de IDs y secuencia de la aventura — `padreid`, `parada_id`, `reto_id`... — pero ninguna de sus entradas tiene nunca `lat`/`lng`. Las coordenadas reales viven en `js/coordenadas-aventuras.js`, cacheadas en `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas` (mismo patrón ya usado en el resto de `codigo-padre.html`, ver por ejemplo la construcción de datos para hijo5). La función filtra esa lista por `tipo === 'inicio'` y devuelve `coordenadas.lat`/`coordenadas.lng` de esa entrada.
+**Por qué `_obtenerCoordenadasFallbackP0()` no busca en `DATOS_PADRE`:** `DATOS_PADRE` (`js/aventuras-ID-padre.js`) es el registro de IDs y secuencia de la aventura — `padreid`, `parada_id`, `reto_id`... — pero ninguna de sus entradas tiene nunca `lat`/`lng`. Las coordenadas reales viven en `js/coordenadas-aventuras.js`, cacheadas en `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas`. La función filtra esa lista por `tipo === 'inicio'` y devuelve `coordenadas.lat`/`coordenadas.lng` de esa entrada.
 
 **Por qué ninguna de estas funciones compara contra un ID fijo tipo `'P-0'`:** el `padreid` de la parada de inicio es idéntico en las 7 aventuras (`"padre-P0"`), pero su `parada_id` varía por aventura (`"Av1-P-0"`, `"Av2-P-0"`, `"AvFallas-P-0"`, `"Av34km-P-0"`...). Un literal `'P-0'` a secas no coincide con el `parada_id` real de ninguna aventura. Por eso el ID de la parada de inicio siempre se resuelve desde los datos ya cargados de la aventura activa (`_idParadaInicio()` en hijo2, el filtro por `tipo:'inicio'` en `_obtenerCoordenadasFallbackP0()`), nunca se construye a mano con un prefijo adivinado.
 
