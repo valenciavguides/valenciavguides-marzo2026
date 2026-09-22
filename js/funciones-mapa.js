@@ -3087,6 +3087,11 @@ async function procesarPosicionGPSParaAventura(posicion) {
 
             // 📤 Enviar actualización de distancia a hijo2 (botones) periódicamente
             // CRÍTICO: Incluir toleranciaGPS para que hijo2 ajuste lógica de botones dinámicamente
+            // Un solo camino (paso 8.3 de la lavadora): antes esta misma lectura mandaba un
+            // segundo ACTUALIZAR_ESTADO aparte solo con ubicacionActiva cuando distancia<=50m.
+            // El handler de hijo2 (_aplicarDatosEstado) fusiona cada campo por separado, así
+            // que un único mensaje con ambos produce el mismo estado final sin la segunda
+            // pasada completa de actualizarEstadoBotones()/detección de llegada.
             try {
                 enviarMensaje({
                     destino: 'hijo2',
@@ -3112,30 +3117,16 @@ async function procesarPosicionGPSParaAventura(posicion) {
                         // contra CONFIG.GPS.PRECISION_MINIMA antes de fiarse de cualquier
                         // conclusión de distancia (llegada, franja de fuera de rango).
                         accuracy: typeof accuracy === 'number' ? Math.ceil(accuracy) : null,
+                        // RESET ubicacionActiva: SIEMPRE a 50m fijos (no usar tolerancia
+                        // dinámica) — usuario debe estar CERCA (50m) para desactivar
+                        // ubicación y activar botones.
+                        ...(distancia <= 50 ? { ubicacionActiva: false } : {}),
                         timestamp: Date.now()
                     }
                 });
                 logger.debug(`${logPrefix} 📤 Actualización enviada a hijo2: distancia=${Math.ceil(distancia)}m, tolerancia=${toleranciaGPS}m`);
             } catch (error_) {
                 logger.warn(`${logPrefix} Error al enviar actualización de distancia a hijo2:`, error_);
-            }
-
-            // 📍 RESET ubicacionActiva: SIEMPRE a 50m fijos (no usar tolerancia dinámica)
-            // Razón: Usuario debe estar CERCA (50m) para desactivar ubicación y activar botones
-            if (distancia <= 50) {
-                try {
-                    enviarMensaje({
-                        destino: 'hijo2',
-                        tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
-                        datos: {
-                            ubicacionActiva: false, // Usuario a ≤50m, resetear ubicación
-                            timestamp: Date.now()
-                        }
-                    });
-                    logger.info(`${logPrefix} 📍 Estado ubicacionActiva reseteado a FALSE (distancia ${Math.ceil(distancia)}m ≤ 50m)`);
-                } catch (error_) {
-                    logger.warn(`${logPrefix} Error enviando reset de ubicacionActiva:`, error_);
-                }
             }
         }
 

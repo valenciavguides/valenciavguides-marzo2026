@@ -1468,6 +1468,20 @@ por `normalizarParadas_S1`/`normalizarParadas_S2(DATOS_PADRE...)` — se añadi�
 confirmado con espía de `postMessage`: 3 entradas `referencia` llegaban a hijo5); 36 specs de
 handshake/reanudación/recuperación sin romperse; recorrido con espía sin hallazgos nuevos.
 
+**8.3 — `ACTUALIZAR_ESTADO` doble por lectura GPS (✅ cerrado).** `procesarPosicionGPSParaAventura()`
+(`js/funciones-mapa.js`) mandaba a hijo2, para la MISMA lectura GPS, dos mensajes
+`NAVEGACION.ACTUALIZAR_ESTADO` separados cuando la distancia al destino era ≤50m: uno con
+distancia/tolerancia/coordenadas, y otro aparte con solo `{ ubicacionActiva: false }`. El handler
+de hijo2 (`_aplicarDatosEstado`) fusiona cada campo por separado (`if (campo !== undefined)
+estadoComponente.campo = campo`), así que un único mensaje con ambos produce el mismo estado
+final — lo único que costaba el segundo mensaje era una segunda pasada completa de
+`actualizarEstadoBotones()`/detección de llegada. `docs/GUIA-COMPLETA.md` ya describía un solo
+`ACTUALIZAR_ESTADO` conceptual por lectura en todos sus sitios: no hacía falta corregir la guía,
+solo el código para que la cumpliera. Verificado: spec 99 nueva (AE-1 en rojo antes del arreglo,
+confirmado: 2 mensajes por la misma lectura); 51 specs de GPS/llegada/tramos sin romperse
+(incluye CM-2, que ya comprobaba "cero ACTUALIZAR_ESTADO en CASA" y sigue en verde); recorrido
+con espía sin hallazgos nuevos.
+
 ---
 
 ## Parte VII — Hallazgos colaterales
