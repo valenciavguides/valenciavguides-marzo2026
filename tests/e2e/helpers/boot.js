@@ -187,16 +187,21 @@ async function gotoAndWaitForFase1(page) {
   //
   // No aborta si expira: se deja que la aserción del propio test reporte lo que encuentre, con
   // su mensaje, igual que la espera de FASE 1 de arriba.
-  try {
-    await page.waitForFunction(
-      async () => (await globalThis.__vv_stateManager?.getScript2Listo?.()) === true,
-      null,
-      { timeout: BOOT_TIMEOUT },
-    );
-  } catch (_script2Error) {
-    await page.evaluate(() => {
-      globalThis.__e2e_script2TimedOut = true;
-    });
+  //
+  // Sondeo con page.evaluate, NO waitForFunction: getScript2Listo() es async, y waitForFunction no
+  // espera la promesa de su predicado — una Promise es truthy y la espera se da por cumplida al
+  // instante. MEDIDO: con un predicado async que devuelve false, waitForFunction resuelve en
+  // 16-43 ms en los cuatro navegadores. Asi esta espera no esperaba nunca, y 28/SE-1 lo delataba
+  // con `script2Listo: false` en el mismo documento y sin ninguna espera expirada.
+  const hasta = Date.now() + BOOT_TIMEOUT;
+  for (;;) {
+    const listo = await page.evaluate(async () => (await globalThis.__vv_stateManager?.getScript2Listo?.()) === true);
+    if (listo) break;
+    if (Date.now() > hasta) {
+      await page.evaluate(() => { globalThis.__e2e_script2TimedOut = true; });
+      break;
+    }
+    await page.waitForTimeout(50); // VENTANA-OBSERVACION: sondeo de script2Listo, acotado por BOOT_TIMEOUT
   }
 }
 

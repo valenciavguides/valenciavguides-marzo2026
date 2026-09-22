@@ -87,11 +87,18 @@ test.describe('AC — _manejarAudioControl() no confirma éxito ni pierde el fal
  * vez de dejar que el usuario pulse "play" sin ver nunca ningún efecto ni explicación.
  */
 test.describe('SE — El padre reacciona a SISTEMA.ERROR de audio_control', () => {
+  // Navegaciones del marco principal en cada test: 1 es la del arnes; mas de 1 es una recarga.
+  let navegacionesPrincipales = 0;
   test.beforeEach(async ({ page }) => {
+    navegacionesPrincipales = 0;
+    page.on('framenavigated', (f) => { if (f === page.mainFrame()) navegacionesPrincipales++; });
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
+    // Marca el documento que el arnes deja listo: si al enviar ya no esta, la pagina se ha
+    // cargado de nuevo por el camino y lo que se mide es un arranque a medias.
+    await page.evaluate(() => { globalThis.__e2e_documentoDelArnes = true; });
   });
 
   // SE-1/SE-2 comprueban el DESPACHO por código de `_hdl_SISTEMA_ERROR`, midiendo su efecto
@@ -143,7 +150,9 @@ test.describe('SE — El padre reacciona a SISTEMA.ERROR de audio_control', () =
       script2Listo: (await globalThis.__vv_stateManager?.getScript2Listo?.()) ?? null,
       esperaFase1Expirada: !!globalThis.__e2e_bootTimedOut,
       esperaScript2Expirada: !!globalThis.__e2e_script2TimedOut,
+      mismoDocumentoQueElArnes: globalThis.__e2e_documentoDelArnes === true,
     }));
+    antes.navegacionesPrincipales = navegacionesPrincipales;
 
     await enviarSistemaError(page, 'AUDIO_CONTROL_FALLIDO');
     await page.waitForFunction((id) => globalThis.estado?._audioFalloId === id, AUDIO, { timeout: 8000 }).catch(() => {});
