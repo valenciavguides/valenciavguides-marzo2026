@@ -845,7 +845,7 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
    `_vv_triggerCambioModo`, y el camino único del modo (decisión 11).
 3. ✅ **Destino obligatorio:** un envío sin `destino` no sale y avisa; "a todos" solo con
    `'broadcast'` (§21.2). Antes, inventario completo de los envíos sin destino.
-4. **Los envíos a pelo del padre, al bus**, con el de `CHAT.ESTADO_PADRE` el primero.
+4. ✅ **Los envíos a pelo del padre, al bus**, con el de `CHAT.ESTADO_PADRE` el primero.
 5. **Nombres:** uno para enviar y uno para registrar (§23).
 6. **Registro de handlers del state-manager** (§23): opciones primero.
 7. **Latido y recuperación:** fuera `HEARTBEAT_START/PAUSE` (§22, fila 19); la recuperación de un
@@ -1282,6 +1282,44 @@ sigue en pie antes de afirmar nada.
     escucha hoy `datos.tipo === 'restauracion_modo'` (paso 9).
 - **Tests:** BC-19 y BC-20 en el spec 79 (sin destino no sale; `'todos'` ya no hace broadcast),
   spec 95 nuevo. Rojo antes, verde después.
+
+### 25.13. Paso 4 de la lavadora: los envíos a pelo del padre, al bus
+
+- **Los ocho `postMessage` a pelo que quedaban, migrados**, todos al mismo patrón
+  (`globalThis.mensajeria.enviarMensaje`/`enviarMensajePadre` con `tipo`/`destino`/`datos`, sin
+  `origen` a mano — lo pone el bus): `CHAT.ESTADO_PADRE` (hijo6-chat), `CONTROL.HABILITAR` a
+  hijo2 (cierre de overlay de imagen y de vídeo, dos sitios), `AVENTURA.FINALIZADA`,
+  `AVENTURA.DETENER` y `AVENTURA.INICIADA` (hijo1-opciones), y el `SISTEMA.HEARTBEAT` de
+  `visibilitychange`, que dejó de recorrer `document.querySelectorAll('iframe[name]')` a mano
+  y pasó a `destino: 'broadcast'` — mismo conjunto de receptores: los siete iframes con `name`
+  en la marca estática se registran en el bus antes de poder recibir nada útil.
+- **Código muerto encontrado y retirado, no solo migrado.** El envío de `RETO.MOSTRAR` tenía un
+  `catch` con un `postMessage` de "fallback" que nunca puede ejecutarse: `enviarMensajePadre`
+  (`try { return Promise.resolve(enviarMensaje(mensaje)); } catch { return
+  Promise.resolve(false); }`) no lanza — y `enviarMensaje` tampoco, todos sus caminos de fallo
+  devuelven `false` (paso 1). El `catch` y su `postMessage` a pelo dentro eran inalcanzables
+  desde el paso 1; se retira el bloque entero, no se migra.
+- **Docs corregidas.** El excerto de `CHAT.ESTADO_PADRE` en `abrirChat()`, la fila de
+  `SISTEMA.HEARTBEAT`/visibilitychange y la de `CONTROL.HABILITAR` (las tres describían el envío
+  "raw" que ya no existe). Hallazgo fuera de este paso pero corregido en el mismo trabajo
+  (regla 8): el excerto de `enviarHijoListoConReintento` seguía mostrando
+  `destino: getPadreId()` y `origen: CONFIG_HIJO.IFRAME_ID`, desfasado desde los pasos 1-3 — el
+  código real ya usa `destino: 'padre'` sin `origen`.
+- **Regresión real encontrada por la tanda, no por el inventario estático — corregida en el
+  test, no en el código.** `tests/e2e/41-temporizador-compra-real-y-devmode.spec.js` (TW-1,
+  TW-3) llama a `_iniciarTemporizadorAventura()` directamente, sin pasar por el arranque
+  completo (a propósito, según su propio docstring): `hijo1-opciones` nunca quedaba registrado
+  en el bus. El envío viejo (`iframeOpciones.contentWindow.postMessage` a pelo) no necesitaba
+  registro — leía el `contentWindow` directo del DOM. El nuevo, por el bus, sí: sin registro,
+  `enviarMensajePadre` avisa "destino desconocido" y no llega a llamar a `postMessage`, así que
+  el test capturaba `undefined`. En producción esto no puede pasar: `_iniciarTemporizadorAventura`
+  solo se dispara tras `SISTEMA.CAMBIO_MODO` a AVENTURA, y ese modo no se alcanza sin haber
+  pasado antes por P14, que ya registra `hijo1-opciones`. Arreglo: el test registra el iframe a
+  mano (`globalThis.registrarIframeHijo`) antes de invocar la función, igual que ya está siempre
+  registrado en el arranque real. Verificado que ningún otro de los ocho envíos tiene un test que
+  lo invoque igual de aislado (la tanda completa de Chromium no encontró más casos).
+- **Tests:** Chromium 485/485 tras el arreglo de spec 41 (cambio mecánico de canal, mismo
+  tipo/destino/datos; cubierto por las specs existentes de cada tipo, sin specs nuevos).
 
 ---
 

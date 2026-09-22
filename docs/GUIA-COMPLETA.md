@@ -4893,7 +4893,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-3488c3eeb522'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-218f116d0518'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5012,7 +5012,7 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 | Handler en hijos | hijo1, hijo2, hijo3, hijo4, **hijo5**, hijo6 |
 | Acción hijo | Responde `SISTEMA.HEARTBEAT_RESPONSE`. Quien lleva la cuenta es el padre: `js/mensajeria.js` actualiza el `Map` `ultimoHeartbeat` del estado al recibir la respuesta |
 | Handler en padre | Inline — también maneja HEARTBEAT entrante de hijos: responde con `HEARTBEAT_RESPONSE { estado:'activo', modo, hijosActivos }` y resetea `heartbeatsFallidos` en `estadoHijos` |
-| Emitido raw en visibilitychange | Script 3 de `codigo-padre.html` (bloque `<script type="module">` de reconexión de iframes) — al restaurar visibilidad de la peña, padre recorre todos los iframes con atributo `name` y les envía `{ tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT, razon:'visibilitychange' }` vía `contentWindow.postMessage` directo (fuera del bus, por diseño, ver §10.18). El tipo se escribe con la constante `TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT` (importada en ese mismo bloque como alias de `TIPOS_MENSAJE`), nunca con el literal `'SISTEMA.HEARTBEAT'`. |
+| Emitido en visibilitychange | Script 3 de `codigo-padre.html` (bloque `<script type="module">` de reconexión de iframes) — al restaurar visibilidad de la pestaña, `globalThis.mensajeria.enviarMensaje({ tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT, destino: 'broadcast', datos: { timestamp, razon:'visibilitychange' } })`, por el bus (paso 4 de la lavadora, docs/mensajeria-duplicada-en-hijos.md). Llega a los mismos iframes que recorría el bucle manual: todos los que tienen `name` en la marca estática se registran en el bus antes de poder recibir nada útil. |
 | hijo5 en visibilitychange | `boton-casa-hijo5.html` — además del handler normal, hijo5 envía proactivamente `SISTEMA.HEARTBEAT_RESPONSE` al padre cuando la pestaña vuelve a ser visible (`razon:'visibilitychange'`), sin esperar un HEARTBEAT entrante |
 
 **SISTEMA.HEARTBEAT_START / HEARTBEAT_PAUSE** (padre → hijo)
@@ -5799,16 +5799,15 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 | Payload | `{ datos: { pantalla: 'nombre-pantalla' } }` |
 | Acción | seleccion navega a la pantalla indicada (e.g. mostrar términos, pantalla de inicio) |
 
-#### CONTROL.HABILITAR en cierre de overlays (padre → hijo2, raw)
+#### CONTROL.HABILITAR en cierre de overlays (padre → hijo2)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre L1645 (cierre overlay imagen) y L1921 (cierre overlay vídeo) |
+| Emitido por | Padre, cierre overlay imagen y cierre overlay vídeo (dos sitios, mismo payload) |
 | Tipo | `TIPOS_MENSAJE.CONTROL.HABILITAR` |
-| Canal | Raw `hijo2.contentWindow.postMessage(...)` — bypassa el bus |
+| Canal | `globalThis.mensajeria.enviarMensaje({ tipo, destino: 'hijo2', datos })`, por el bus (antes iba por `hijo2.contentWindow.postMessage` a pelo; paso 4 de la lavadora, docs/mensajeria-duplicada-en-hijos.md) |
 | Payload | `{ motivo: 'vista_cerrada' }` |
 | Acción | Notifica a hijo2 que el overlay se cerró para que rehabilite sus botones de navegación GPS |
-| Nota | Usa raw postMessage porque el bus puede no estar disponible en la clausura del overlay |
 
 #### `mapa-visible` al iframe de overlay (padre → iframe dinámico, raw)
 
@@ -8093,7 +8092,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-3488c3eeb522'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-218f116d0518'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8814,7 +8813,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-3488c3eeb522';
+const CACHE_VERSION = 'v-218f116d0518';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11592,9 +11591,8 @@ let _intervaloReintento = null;
 async function enviarHijoListoConReintento() {
     try {
         await enviarMensaje({
-            destino: getPadreId(),
+            destino: 'padre',
             tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-            origen: CONFIG_HIJO.IFRAME_ID,
             datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
         });
         _reintentosHijoListo++;
@@ -11865,10 +11863,11 @@ function abrirChat() {
     if (chatCargado) {
         // Ya cargado: refrescar estado antes de mostrar (solo si hijo6 completó handshake)
         if (globalThis.estadoPadre?.hijosInicializados?.has('hijo6-chat')) {
-            iframeChat.contentWindow.postMessage(
-                { tipo: TIPOS_MENSAJE.CHAT.ESTADO_PADRE, datos: construirEstadoChat() },
-                globalThis.location.origin
-            );
+            globalThis.mensajeria.enviarMensaje({
+                tipo: TIPOS_MENSAJE.CHAT.ESTADO_PADRE,
+                destino: 'hijo6-chat',
+                datos: construirEstadoChat()
+            });
         }
         // Si aún no está listo, el handshake HIJO_PREPARADO→PADRE_DATOS entregará el estado
     } else {
@@ -12164,7 +12163,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-3488c3eeb522';
+const CACHE_VERSION = 'v-218f116d0518';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

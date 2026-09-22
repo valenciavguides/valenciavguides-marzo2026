@@ -1638,12 +1638,11 @@
                         // Solo refrescar estado si hijo6 ya completó handshake (HIJO_LISTO recibido)
                         const chatListoParaMensajes = globalThis.estadoPadre?.hijosInicializados?.has('hijo6-chat');
                         if (chatListoParaMensajes) {
-                            try {
-                                iframeChat.contentWindow.postMessage(
-                                    { tipo: globalThis.TIPOS_MENSAJE?.CHAT?.ESTADO_PADRE || 'CHAT.ESTADO_PADRE', datos: construirEstadoChat() },
-                                    globalThis.location.origin
-                                );
-                            } catch (e) { (globalThis.logger || console).debug('[PADRE] No se pudo refrescar estado del chat', e && e.message); }
+                            globalThis.mensajeria.enviarMensaje({
+                                tipo: globalThis.TIPOS_MENSAJE?.CHAT?.ESTADO_PADRE || 'CHAT.ESTADO_PADRE',
+                                destino: 'hijo6-chat',
+                                datos: construirEstadoChat()
+                            });
                         }
                         // Si aún no está listo, el handshake HIJO_PREPARADO→PADRE_DATOS entregará el estado
                     } else {
@@ -1827,18 +1826,13 @@
             _galeriaEstado = { imagenes: [], indice: 0, tipo: null, mapa_numero: null };
             (globalThis.logger || console).info('Imagen overlay cerrado');
             // Resetear botón activo en hijo2
-            try {
-                const hijo2 = document.getElementById('hijo2');
-                if (hijo2 && hijo2.contentWindow) {
-                    hijo2.contentWindow.postMessage({
-                        tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                        origen: CONFIG_PADRE ? CONFIG_PADRE.ID : 'padre',
-                        destino: 'hijo2',
-                        datos: { motivo: 'vista_cerrada' },
-                        timestamp: Date.now()
-                    }, globalThis.location.origin);
-                }
-            } catch(e) { (globalThis.logger || console).debug('[PADRE] No se pudo notificar cierre de overlay a hijo2', e && e.message); }
+            if (document.getElementById('hijo2')) {
+                globalThis.mensajeria.enviarMensaje({
+                    tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
+                    destino: 'hijo2',
+                    datos: { motivo: 'vista_cerrada' }
+                });
+            }
         };
 
         function _galeriaEscaparHTML(str) {
@@ -2209,18 +2203,13 @@
             }
             (globalThis.logger || console).info('Video overlay cerrado');
             // Resetear botón activo en hijo2
-            try {
-                const hijo2 = document.getElementById('hijo2');
-                if (hijo2 && hijo2.contentWindow) {
-                    hijo2.contentWindow.postMessage({
-                        tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                        origen: CONFIG_PADRE ? CONFIG_PADRE.ID : 'padre',
-                        destino: 'hijo2',
-                        datos: { motivo: 'vista_cerrada' },
-                        timestamp: Date.now()
-                    }, globalThis.location.origin);
-                }
-            } catch(e) { (globalThis.logger || console).debug('[PADRE] No se pudo notificar cierre de video a hijo2', e && e.message); }
+            if (document.getElementById('hijo2')) {
+                globalThis.mensajeria.enviarMensaje({
+                    tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
+                    destino: 'hijo2',
+                    datos: { motivo: 'vista_cerrada' }
+                });
+            }
         };
 
         // Cerrar overlays con tecla Escape
@@ -10460,8 +10449,8 @@ await _comprobarReanudacionAventura(logPrefix);
             if (modoActual === MODOS.AVENTURA) {
                 (globalThis.logger || console).info(`${logPrefix} 🎉 Fin de la aventura alcanzado (MODO AVENTURA) - mostrando modal de finalización`);
                 const iframeOpciones = document.getElementById('hijo1-opciones');
-                if (iframeOpciones?.contentWindow) {
-                    iframeOpciones.contentWindow.postMessage({ tipo: TIPOS_MENSAJE.AVENTURA.FINALIZADA, origen: getPadreId(), destino: 'hijo1-opciones', datos: { aventuraId: globalThis.aventuraSeleccionada, idioma: globalThis.idiomaSeleccionado, motivo: 'completada', timestamp: Date.now() } }, globalThis.location.origin);
+                if (iframeOpciones) {
+                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.FINALIZADA, destino: 'hijo1-opciones', datos: { aventuraId: globalThis.aventuraSeleccionada, idioma: globalThis.idiomaSeleccionado, motivo: 'completada', timestamp: Date.now() } });
                     (globalThis.logger || console).info(`${logPrefix} Mensaje AVENTURA.FINALIZADA enviado al temporizador — modal se mostrará tras recibir ESTADISTICAS_TIEMPO`);
                 }
             } else {
@@ -11093,23 +11082,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 await enviarMensajePadre(_retoMostrarMsg);
                 (globalThis.logger || console).success(`${logPrefix} RETO.MOSTRAR enviado via enviarMensajePadre`);
             } catch (envioError) {
-                // Si enviarMensajePadre falla, intentar postMessage directo como único fallback
-                (globalThis.logger || console).warn(`${logPrefix} enviarMensajePadre falló, intentando postMessage directo:`, envioError);
-                try {
-                    const _hijo4El = document.getElementById('hijo4');
-                    if (_hijo4El && _hijo4El.contentWindow) {
-                        _hijo4El.contentWindow.postMessage({
-                            tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
-                            origen: getPadreId(),
-                            destino: 'hijo4',
-                            datos: { retoId: retoIdToUsar, contexto: 'manual', retosArray: _retosArray },
-                            timestamp: Date.now()
-                        }, globalThis.location.origin);
-                        (globalThis.logger || console).info(`${logPrefix} ✅ RETO.MOSTRAR enviado por postMessage directo (fallback)`);
-                    }
-                } catch (directError) {
-                    (globalThis.logger || console).error(`${logPrefix} Error en envío directo fallback:`, directError);
-                }
+                // enviarMensajePadre nunca lanza (enviarMensaje no lanza; sus caminos de fallo
+                // devuelven false) — este catch queda como red de seguridad, no como camino real.
+                (globalThis.logger || console).error(`${logPrefix} Error inesperado enviando RETO.MOSTRAR:`, envioError);
             }
         }
 
@@ -13665,13 +13640,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (datosAnterior.aventura === aventura) return;
                 (globalThis.logger || console).info(`${logPrefix} 🔄 Detectada aventura anterior (${datosAnterior.aventura}) → Cancelando timer viejo`);
                 const iframeOpciones = document.getElementById('hijo1-opciones');
-                if (iframeOpciones && iframeOpciones.contentWindow) {
-                    iframeOpciones.contentWindow.postMessage({
-                        tipo: TIPOS_MENSAJE.AVENTURA.DETENER,
-                        origen: getPadreId(),
-                        destino: 'hijo1-opciones',
-                        datos: { motivo: 'nueva_aventura_adquirida', aventuraAnterior: datosAnterior.aventura, aventuraNueva: aventura, timestamp: Date.now() }
-                    }, globalThis.location.origin);
+                if (iframeOpciones) {
+                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.DETENER, destino: 'hijo1-opciones', datos: { motivo: 'nueva_aventura_adquirida', aventuraAnterior: datosAnterior.aventura, aventuraNueva: aventura, timestamp: Date.now() } });
                     (globalThis.logger || console).info(`${logPrefix} ✅ Mensaje DETENER enviado al temporizador anterior`);
                 }
             } catch (parseError) {
@@ -13724,13 +13694,8 @@ await _comprobarReanudacionAventura(logPrefix);
                     tiempoAEnviar = tieneRestante ? tiempoRestanteOverride : tiempoEstimado;
                 }
                 const iframeOpciones = document.getElementById('hijo1-opciones');
-                if (iframeOpciones && iframeOpciones.contentWindow) {
-                    iframeOpciones.contentWindow.postMessage({
-                        tipo: TIPOS_MENSAJE.AVENTURA.INICIADA,
-                        origen: getPadreId(),
-                        destino: 'hijo1-opciones',
-                        datos: { aventuraId: aventura, tiempoEstimado: tiempoAEnviar, idioma: idioma || 'es', timestamp: Date.now() }
-                    }, globalThis.location.origin);
+                if (iframeOpciones) {
+                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, destino: 'hijo1-opciones', datos: { aventuraId: aventura, tiempoEstimado: tiempoAEnviar, idioma: idioma || 'es', timestamp: Date.now() } });
                     (globalThis.logger || console).info(`${logPrefix} ⏱️ Mensaje AVENTURA.INICIADA enviado al temporizador (${tiempoAEnviar}s${tieneRestante ? ', reanudado' : ''})`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ Iframe hijo1-opciones no disponible para temporizador`);
@@ -15234,17 +15199,10 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         if (document.hidden) return;
         (globalThis.logger || console).info('[PADRE] Pestaña visible de nuevo, enviando heartbeat a hijos');
         try {
-            const iframes = document.querySelectorAll('iframe[name]');
-            iframes.forEach(iframe => {
-                try {
-                    if (iframe.contentWindow) {
-                        iframe.contentWindow.postMessage({
-                            tipo: globalThis.TIPOS_MENSAJE_IFRAME?.SISTEMA?.HEARTBEAT || 'SISTEMA.HEARTBEAT',
-                            origen: 'padre',
-                            datos: { timestamp: Date.now(), razon: 'visibilitychange' }
-                        }, globalThis.location.origin);
-                    }
-                } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            globalThis.mensajeria.enviarMensaje({
+                tipo: globalThis.TIPOS_MENSAJE_IFRAME?.SISTEMA?.HEARTBEAT || 'SISTEMA.HEARTBEAT',
+                destino: 'broadcast',
+                datos: { timestamp: Date.now(), razon: 'visibilitychange' }
             });
             // Invalidar tamaño de mapa (puede haberse desincronizado al estar oculta la pestaña)
             if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.invalidarTamañoMapa === 'function') {

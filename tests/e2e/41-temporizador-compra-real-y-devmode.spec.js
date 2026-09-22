@@ -60,6 +60,11 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
       globalThis.estado.modo = { actual: 'aventura', anterior: 'casa' };
       const capturados = [];
       const iframe = document.getElementById('hijo1-opciones');
+      // En producción, hijo1-opciones siempre está registrado en el bus antes de que esta
+      // función pueda dispararse (llega solo tras P14). Este test la llama directo, así que
+      // hay que registrarlo a mano — si no, el envío (que desde el paso 4 va por el bus) se
+      // descarta como destino desconocido y postMessage no llega a llamarse nunca.
+      globalThis.registrarIframeHijo('hijo1-opciones', iframe);
       const originalPostMessage = iframe.contentWindow.postMessage.bind(iframe.contentWindow);
       iframe.contentWindow.postMessage = function (data, origin) {
         capturados.push(data);
@@ -83,6 +88,11 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
       globalThis.estado.modo = { actual: 'aventura', anterior: 'casa' };
       const capturados = [];
       const iframe = document.getElementById('hijo1-opciones');
+      // En producción, hijo1-opciones siempre está registrado en el bus antes de que esta
+      // función pueda dispararse (llega solo tras P14). Este test la llama directo, así que
+      // hay que registrarlo a mano — si no, el envío (que desde el paso 4 va por el bus) se
+      // descarta como destino desconocido y postMessage no llega a llamarse nunca.
+      globalThis.registrarIframeHijo('hijo1-opciones', iframe);
       const originalPostMessage = iframe.contentWindow.postMessage.bind(iframe.contentWindow);
       iframe.contentWindow.postMessage = function (data, origin) {
         capturados.push(data);
@@ -101,6 +111,11 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
       globalThis.estado.tiempoRestante = null;
       const capturados = [];
       const iframe = document.getElementById('hijo1-opciones');
+      // En producción, hijo1-opciones siempre está registrado en el bus antes de que esta
+      // función pueda dispararse (llega solo tras P14). Este test la llama directo, así que
+      // hay que registrarlo a mano — si no, el envío (que desde el paso 4 va por el bus) se
+      // descarta como destino desconocido y postMessage no llega a llamarse nunca.
+      globalThis.registrarIframeHijo('hijo1-opciones', iframe);
       const originalPostMessage = iframe.contentWindow.postMessage.bind(iframe.contentWindow);
       iframe.contentWindow.postMessage = function (data, origin) {
         capturados.push(data);
