@@ -938,9 +938,13 @@
 
     audioPlayer.addEventListener('pause', async () => {
         if (currentAudioId) {
+            // Sin `destino`, se perdía en silencio (hijo3 no tiene iframes propios, así que "a
+            // todos" no llegaba a nadie): el padre nunca se enteraba de la pausa y su recordatorio
+            // de audio (codigo-padre.html) seguía creyendo que sonaba, sin volver a avisar nunca
+            // aunque el usuario llevara rato sin escuchar.
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO,
-                // Se agrega el valor correcto
+                destino: 'padre',
                 datos: { audioId: currentAudioId, estado: 'pausado' }
             });
         }

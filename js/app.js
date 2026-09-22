@@ -971,9 +971,13 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
         estado.modo.anterior = modoFallido;
     }
 
-    // Notificar a los componentes
+    // Notificar a los componentes. Nadie escucha hoy datos.tipo === 'restauracion_modo' (los
+    // handlers de SISTEMA.NOTIFICACION de hijo2/hijo4 solo miran datos.evento): se deja explícito
+    // 'broadcast', el destino que ya tenía por el fallback retirado en el paso 3, para no cambiar
+    // el comportamiento de este envío en este paso — el payload muerto es tarea del paso 9.
     await enviarMensaje({
         tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
+        destino: 'broadcast',
         mensajeId: generarIdUnico(),
         timestamp: Date.now(),
         datos: {

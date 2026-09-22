@@ -843,7 +843,7 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
    la reescritura de `enviarMensajePadre`.
 2. ✅ **Mensajes a sí mismo → `despacharLocal`** (§21.2), incluidos los atajos `__trigger*` y
    `_vv_triggerCambioModo`, y el camino único del modo (decisión 11).
-3. **Destino obligatorio:** un envío sin `destino` no sale y avisa; "a todos" solo con
+3. ✅ **Destino obligatorio:** un envío sin `destino` no sale y avisa; "a todos" solo con
    `'broadcast'` (§21.2). Antes, inventario completo de los envíos sin destino.
 4. **Los envíos a pelo del padre, al bus**, con el de `CHAT.ESTADO_PADRE` el primero.
 5. **Nombres:** uno para enviar y uno para registrar (§23).
@@ -1262,6 +1262,26 @@ sigue en pie antes de afirmar nada.
     escucha tampoco — muerta por los dos lados. Paso 9.
   - `notificarError` (`js/app.js`): sin llamadores. Paso 9.
   - `datos.origen` de `CAMBIO_MODO`: sigue sin leerlo nadie (§25.10). Paso 9.
+
+### 25.12. Paso 3 de la lavadora: destino obligatorio
+
+- **`destino` deja de tener valor por defecto.** Antes, `undefined`/`null` se confundían con
+  `'broadcast'`; ahora un envío sin `destino` no sale y avisa, una vez por tipo. `'todos'` deja
+  de ser sinónimo de `'broadcast'`: no tenía ningún uso real en el proyecto.
+- **Inventario completo, dos envíos reales sin `destino`** (ninguno más, en el padre, los diez
+  frames y los `js/` que carga el padre):
+  - `audio-hijo3.html`, el evento `pause` del reproductor — **bug real, no solo mecánico.**
+    hijo3 no tiene iframes propios, así que "a todos" no llegaba a nadie: el padre nunca se
+    enteraba de la pausa, `estado.audioActual.estado` se quedaba en `'reproduciendo'` desde el
+    último `play`, y el recordatorio "pulse play" (§25.5c) no volvía a avisar nunca aunque el
+    usuario llevara rato sin escuchar. Arreglado con `destino: 'padre'`, igual que el `play` de
+    al lado. Cubierto por `tests/e2e/95-audio-estado-pausado-llega-al-padre.spec.js` (rojo con
+    el `destino` que tenía, verde con el arreglo).
+  - `js/app.js`, la `SISTEMA.NOTIFICACION` de `restaurarEstadoModoAnterior()` — se deja
+    `destino: 'broadcast'` explícito para no cambiar su comportamiento en este paso; nadie
+    escucha hoy `datos.tipo === 'restauracion_modo'` (paso 9).
+- **Tests:** BC-19 y BC-20 en el spec 79 (sin destino no sale; `'todos'` ya no hace broadcast),
+  spec 95 nuevo. Rojo antes, verde después.
 
 ---
 

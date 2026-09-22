@@ -338,7 +338,7 @@ function obtenerMapaManejadores() {
  * @param {Object} mensaje - Mensaje a enviar
  * @param {string} mensaje.tipo - Tipo de mensaje (obligatorio)
  * @param {*} [mensaje.datos] - Datos del mensaje
- * @param {string|Window} [mensaje.destino] - Destino del mensaje; si se omite, hace broadcast
+ * @param {string|Window} mensaje.destino - Destino del mensaje (obligatorio: 'padre', el nombre de un iframe registrado, o 'broadcast' para todos). Sin él, no se envía.
  * El `origen` lo pone el bus, siempre el nombre de este frame: si quien llama pasa uno, se ignora.
  * Un frame que todavía no ha llamado a `inicializarMensajeria` no envía: saldría sin nombre y el
  * receptor lo descartaría.
@@ -510,6 +510,17 @@ function enviarMensajeInterno(mensaje, destino) {
     // Un frame no se manda nada a sí mismo por aquí: nadie lo recibiría —el padre no tiene ventana
     // de arriba y un hijo no está entre sus propios iframes— y el envío se perdía avisando, como
     // mucho, de "sin padre" una sola vez. Para eso está despacharLocal, que pasa por la misma fila.
+    // Sin destino no se envía nada: antes, `undefined`/`null` se confundían con 'broadcast' y un
+    // enviarMensaje() sin destino por descuido salía igual — a veces a nadie, si el frame no tiene
+    // iframes propios, sin ningún aviso (audio-hijo3.html perdía así su 'pausado' hacia el padre;
+    // ver docs/mensajeria-duplicada-en-hijos.md, paso 3). Ahora "a todos" es solo el literal
+    // 'broadcast', explícito.
+    if (destino === undefined || destino === null) {
+        _avisarDescarte(_avisadosSinDestino, mensaje.tipo,
+            `[mensajeria] ${componenteId} no envía ${mensaje.tipo}: falta destino ('padre', el nombre de un iframe registrado, o 'broadcast' para todos)`);
+        return Promise.resolve(false);
+    }
+
     if (destino === componenteId) {
         _avisarDescarte(_avisadosAutoenvio, mensaje.tipo,
             `[mensajeria] ${componenteId} no se envía ${mensaje.tipo} a sí mismo por enviarMensaje: eso se hace con despacharLocal`);
@@ -517,7 +528,7 @@ function enviarMensajeInterno(mensaje, destino) {
     }
     try {
         let resultado = false;
-        const aTodos = destino === undefined || destino === null || destino === 'broadcast' || destino === 'todos';
+        const aTodos = destino === 'broadcast';
 
         if (destino === 'padre') {
             if (ventanaPadre) {
@@ -676,6 +687,7 @@ const _avisadosPorFuente = new Set();
 const _avisadosSuplantacion = new Set();
 const _avisadosSinInicializar = new Set();
 const _avisadosAutoenvio = new Set();
+const _avisadosSinDestino = new Set();
 
 function _avisarDescarte(yaAvisados, tipo, texto) {
     if (yaAvisados.has(tipo)) return;

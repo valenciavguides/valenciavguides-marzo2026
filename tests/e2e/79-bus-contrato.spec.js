@@ -36,6 +36,10 @@
  *   BC-17  Un frame con el bus importado pero sin inicializar no envía: saldría sin `origen`.
  *   BC-18  Un frame no se envía nada a sí mismo por `enviarMensaje` (tampoco el padre a 'padre'):
  *          no sale y avisa. Para eso está `despacharLocal`.
+ *   BC-19  Un envío sin `destino` (undefined/null) no sale y avisa: nunca fue lo mismo que
+ *          `'broadcast'`, aunque antes se confundían.
+ *   BC-20  `destino: 'todos'` ya no es sinónimo de `'broadcast'`: se descarta como destino
+ *          desconocido.
  *
  * ROJO ANTES QUE VERDE: con el bus de antes de la unificación falla todo salvo BC-0.
  */
@@ -537,5 +541,26 @@ test.describe('BC — Identidad: el bus pone el origen y lo comprueba al recibir
     // Control: por despacharLocal sí llega.
     await padre.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'PRUEBA.A_SI_MISMO', datos: { n: 1 } }));
     expect(await recibidos(padre, 'PRUEBA.A_SI_MISMO')).toEqual([{ origen: 'padre', datos: { n: 1 } }]);
+  });
+});
+
+test.describe('BC — Destino: obligatorio, y \'broadcast\' es el único alias de todos', () => {
+  test('BC-19. Un envío sin destino no sale y avisa', async ({ page }) => {
+    const { hijo, logs } = await montar(page);
+    expect(await enviar(hijo, { tipo: 'PRUEBA.SIN_DESTINO', datos: {} }), 'enviarMensaje sin destino no sale').toBe(false);
+    const r = await conAcuse(hijo, { tipo: 'PRUEBA.SIN_DESTINO', datos: {} });
+    expect(r, 'con acuse, tampoco: rechazo que dice por qué').toMatchObject({ ok: false, motivo: 'no-enviado' });
+    expect(avisos(logs, /hijo no envía PRUEBA\.SIN_DESTINO: falta destino/), 'un aviso por tipo').toHaveLength(1);
+  });
+
+  test("BC-20. destino: 'todos' ya no hace broadcast", async ({ page }) => {
+    const { padre, hijo, nieto, logs } = await montar(page);
+    await escuchar(hijo, 'PRUEBA.TODOS_LEGACY');
+    await escuchar(nieto, 'PRUEBA.TODOS_LEGACY');
+    expect(await enviar(padre, { tipo: 'PRUEBA.TODOS_LEGACY', destino: 'todos', datos: {} }), "'todos' no es un destino valido").toBe(false);
+    // VENTANA-OBSERVACION: un destino que ya no existe no puede llegar a ningun handler
+    await page.waitForTimeout(400);
+    expect(await recibidos(hijo, 'PRUEBA.TODOS_LEGACY')).toEqual([]);
+    expect(avisos(logs, /Destino desconocido desde padre: 'todos'/), 'se avisa como destino desconocido').toHaveLength(1);
   });
 });
