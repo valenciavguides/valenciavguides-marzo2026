@@ -200,9 +200,6 @@ function exponerAPIGlobal() {
         desregistrarIframe,
         getIframesRegistrados: () => new Map(iframesRegistrados),
 
-        // Función centralizada (delega a state-manager)
-        registrarControladorCentral,
-
         // Utilidades
         generarIdMensaje: () => generarIdUnico('msg')
     };
@@ -279,19 +276,6 @@ export async function registrarControlador(tipo, handler, opciones = {}) {
     return true;
 }
 
-/**
- * Registra un controlador de forma centralizada (alias)
- * @param {string} tipo - Tipo de mensaje
- * @param {Function} handler - Manejador
- * @returns {Promise<boolean>}
- */
-export async function registrarControladorCentral(tipo, handler) {
-    const sm = obtenerStateManager();
-    if (sm && typeof sm.registrarControladorCentral === 'function') {
-        return sm.registrarControladorCentral(tipo, handler, { tipoMensaje: tipo });
-    }
-    return registrarControlador(tipo, handler, { centralizado: true });
-}
 
 /**
  * Obtiene el mapa de manejadores (local o del state-manager)
@@ -1322,7 +1306,6 @@ export default {
     enviarMensaje,
     enviarMensajeConConfirmacion,
     marcarScript2Listo,
-    registrarControladorCentral,
     registrarIframe,
     limpiar
 };

@@ -1357,6 +1357,48 @@ sigue en pie antes de afirmar nada.
   función subyacente en todos los casos (confirmado: `enviarMensaje` del bus siempre devuelve
   `Promise`, nunca lanza; el alias solo añadía una envoltura redundante desde el paso 1).
 
+### 25.15. Paso 6 de la lavadora: registro de handlers del state-manager
+
+**Investigado antes de tocar.** `js/mensajeria.js` tiene dos funciones exportadas para registrar un
+handler: `registrarControlador()` (la real: ~90 llamadas en el padre vía `registrarControladorSeguro`,
+más las de los diez frames) y `registrarControladorCentral()`. Las dos acaban en el mismo sitio —
+`state.controladores` de `js/state-manager.js`, vía su función `registrarControladorCentral()` —, solo
+que por nombres de propiedad distintos en el objeto que expone el state-manager:
+`registrarControlador()` llega por el alias `sm.registrarManejador` (que en `state-manager.js` es
+literalmente `registrarManejador: registrarControladorCentral`); `registrarControladorCentral()` de
+`mensajeria.js` llama a `sm.registrarControladorCentral` directamente. **Cero llamadores reales** de
+`registrarControladorCentral()` de `mensajeria.js` en toda la app — ni un HTML, ni un `js/`, ni un
+test. Confirmado también que ni `permanente` ni `centralizado` (los dos flags de `opciones` que
+diferencian ambos caminos hoy) se leen en ningún sitio de `state-manager.js` ni `mensajeria.js`: son
+datos que viajan y se guardan, pero no deciden nada. `centralizado: true` solo lo pone la propia
+`registrarControladorCentral()` que se retira.
+
+**Opciones:**
+
+- **A. Retirar `registrarControladorCentral()` de `mensajeria.js` entera** (función, export y su
+  inclusión en el objeto expuesto en `globalThis.mensajeria`). Un solo camino de registro a nivel de
+  bus, coherente con que el registro ya tiene un solo camino en el padre (paso 5, comentario propio de
+  `registrarControladorSeguro`: "aquí había tres, y dos no podían tomarse nunca"). Sin riesgo: cero
+  llamadores.
+- **B. Dejarla como alias de `registrarControlador()`** en vez de reimplementar su propio acceso al
+  state-manager. Quita la duplicación de lógica pero mantiene un nombre sin ningún consumidor —
+  código muerto con otro disfraz.
+- **C. No tocar código, solo documentar** por qué los dos nombres de propiedad (`registrarManejador`/
+  `registrarControladorCentral`) existen en el objeto del state-manager. No resuelve la duplicación,
+  solo la explica.
+
+**Elegida: A.** Es la única que cumple "un solo camino" sin dejar nada muerto detrás — el criterio que
+ya ha gobernado los cinco pasos anteriores de esta lavadora. B cambiaría código para dejar exactamente
+el mismo problema con otro nombre; C no arregla nada.
+
+**Aplicado:** `registrarControladorCentral()` retirada de `js/mensajeria.js` (función, export y entrada
+en el objeto expuesto). `sm.registrarControladorCentral` en `state-manager.js` no se toca: sigue siendo
+el destino real, alcanzado por el único camino que queda (`registrarControlador()` → `sm.registrarManejador`).
+
+**Queda para su paso:** los 61 `{ permanente: true }` en `codigo-padre.html` (y sus equivalentes en los
+diez frames) son datos muertos — ni `state-manager.js` ni `mensajeria.js` leen ese campo en ningún
+sitio. Retirarlos es una limpieza mecánica grande y sin relación con nombres/caminos: paso 9.
+
 ---
 
 ## Parte VII — Hallazgos colaterales
