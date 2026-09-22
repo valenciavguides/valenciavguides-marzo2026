@@ -847,7 +847,7 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
    `'broadcast'` (§21.2). Antes, inventario completo de los envíos sin destino.
 4. ✅ **Los envíos a pelo del padre, al bus**, con el de `CHAT.ESTADO_PADRE` el primero.
 5. ✅ **Nombres:** uno para enviar y uno para registrar (§23).
-6. **Registro de handlers del state-manager** (§23): opciones primero.
+6. ✅ **Registro de handlers del state-manager** (§23): opciones primero.
 7. **Latido y recuperación:** fuera `HEARTBEAT_START/PAUSE` (§22, fila 19); la recuperación de un
    hijo repite la entrega normal de su elemento en vez de un camino propio.
 8. **Un solo camino donde hoy hay dos:** coordenadas pedidas dos veces por elemento, lista de
