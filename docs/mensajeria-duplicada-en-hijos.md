@@ -1,8 +1,9 @@
 # La mensajería entre frames: mapa completo y plan de unificación
 
 Documento de trabajo. Recoge **todo** lo que hay hoy en la comunicación entre frames de la
-app, los fallos que eso esconde y lo que exige unificarla. **El bus está construido y van tres
-frames migrados de siete**; de los cinco fallos vivos no queda ninguno abierto.
+app, los fallos que eso esconde y lo que exige unificarla. **El bus está construido y los diez
+frames hablan ya por él**; de los cinco fallos vivos solo queda un resto de F4 (§0). Falta la parte
+del padre y la limpieza: el orden está en la Parte V ("La lavadora").
 
 Los números de línea son aproximados: se desplazan con cada edición.
 
@@ -30,7 +31,7 @@ no.**
 ### Orden
 
 F1 → F5 → diseño del bus → migración (Parte V). F2 se arregla dentro de la migración; F3 y F4,
-cuando toque. **Los cinco están arreglados y commiteados** (F2 y F3 cayeron al migrar; F4, al separar en el `pagehide` del padre el cierre real del viaje a la caché de atrás).
+cuando toque. **Los cinco están arreglados y commiteados** (F2 y F3 cayeron al migrar; F4, al separar en el `pagehide` del padre el cierre real del viaje a la caché de atrás). **F4 está arreglado solo a medias:** en la misma ventana del padre, `js/app.js` y `js/funciones-mapa.js` tienen su propio `pagehide` y siguen limpiando sin mirar `persisted` —borran `globalThis.estado` y `funcionesMapa` y destruyen el mapa—. El spec 77 no lo ve porque solo cuenta los iframes.
 
 ### Decisiones de diseño (tomadas)
 
@@ -51,9 +52,40 @@ El detalle de cómo se traducen al bus está en la Parte VI.
    principio (§8).
 9. **Fuera la capa `get*` de `utils.js`** (§5.1).
 
+### Decisiones del estudio previo a la lavadora
+
+Salen de un estudio completo del estado real: lectura del código y recorridos reales de la app con
+un espía de mensajes en todos los frames. Cada una se comprobó contra el código antes de tomarse.
+
+10. **La identidad se comprueba también al recibir.** El bus ya pone el `origen` de lo que envía
+    (§21.1). Al recibir, comprobará además que el origen declarado es el de la ventana que manda el
+    mensaje: hoy cualquier frame autorizado puede declararse otro.
+11. **Un solo camino para el modo.** Cada hijo recibe el modo al conectarse (`modoInicial` en
+    `PADRE_CONFIRMA_HIJO_LISTO`) y los cambios por el envío normal. Fuera el cerrojo
+    `secuenciaCompleta`, sus `NACK`, la cola `pendingModeChanges` y la resincronización al quedar
+    listos hijo2, hijo3 y hijo4. **Revisa la decisión de §25.7**, que conservaba el `NACK`: el cerrojo
+    no tiene razón escrita en ningún sitio (viene del commit inicial), la que da la guía no existe
+    en el código, no se disparó en seis recorridos reales, y la resincronización es la que aplica
+    el modo dos veces al reanudar. El padre fija el modo antes de difundirlo, así que un hijo que se
+    conecta tarde lo recibe correcto; selección e hijo1 solo acusan el modo, no lo aplican.
+12. **Una sola puerta para los datos.** El padre carga el contenido (§22.12) y reparte a cada hijo
+    solo lo de la parada activa, como ya hace con el audio (hijo3) y los retos (hijo4). hijo2 deja
+    de ser la excepción: recibe los datos de su elemento dentro del `CAMBIO_PARADA`, deja de recibir
+    la lista completa de coordenadas y textos, y el padre deja de pedirle datos que ya tiene.
+13. **Cada mensaje a un hijo lleva el id de su columna.** Cada entrada de `js/aventuras-ID-padre.js`
+    es la tabla de traducción de un elemento: `padreid` y, al lado, el id que entiende cada hijo
+    (`parada_id`/`tramo_id`, `audio_id`, `reto_id`, `texto_id`). Mandarle a un hijo el id de otra
+    columna es un fallo: `PENDING_INICIADO` le manda a hijo2 el `padreid` y no ha coincidido nunca.
+14. **Las paradas con varios retos se mantienen.** Hoy ningún elemento tiene más de un reto, pero la
+    cola se deja funcionando y probada: una sola función para mostrar un reto y un spec con una
+    parada de dos retos, uno de ellos puzzle.
+
 ---
 
-## Parte I — El mapa de lo que hay hoy
+## Parte I — El mapa de antes de migrar
+
+Foto tomada antes de migrar los frames. Se conserva porque explica qué había que resolver; el
+estado actual está en §0, en §25 y en la Parte V.
 
 ## 1. Quién incrusta a quién
 
@@ -85,7 +117,7 @@ codigo-padre.html
 ## 2. Las copias de los envoltorios
 
 Cada hijo lleva su propia copia de las funciones de mensajería, en vez de usar el bus.
-Comparadas quitando comentarios y espacios. **hijo1, hijo5 y selección ya no tienen copia: hablan por el bus, y las filas de abajo describen a los cuatro que faltan (hijo2, hijo3, hijo4, hijo6).**
+Comparadas quitando comentarios y espacios. **Hoy no queda ninguna copia: los siete hijos y los tres nietos hablan por el bus.**
 
 | Pieza | Copias | Variantes distintas |
 |---|---|---|
@@ -574,7 +606,7 @@ Todos los listeners validan el origen, la fuente o ambos. Pero no todos lo mismo
 
 ## Parte II — Fallos vivos
 
-Existen hoy, sin tocar nada. Ninguno está arreglado.
+Los cinco que había al empezar. Todos arreglados; de F4 queda un resto (§0).
 
 | # | Qué pasa | Evidencia | Test |
 |---|---|---|---|
@@ -795,16 +827,53 @@ Afirmaciones que chocan con el código:
 9. **Borrar lo muerto** de §2, §5, §6, §9.4, §12 y §13, y la cuarta capa de `utils.js` (§5.1).
 10. **Guía:** reescribir las secciones de §18 y dar al contrato una sección propia.
 
-F4 (`pagehide`) se decide aparte. La parte de los hijos desaparece con la migración: el bus no
-quita su listener al salir, y con los adaptadores se va la limpieza que los dejaba sordos. La
-del padre, que borra los iframes, sigue ahí y no depende de este plan.
+**Estado:** 6 y 7 hechos (§25.9). 8 a medias: hecho un solo camino de registro, un solo repartidor,
+sin escuchas sueltas, sin `ACK` y sin la capa `get*`. Del 5 queda al menos `CHAT.ESTADO_PADRE`, que
+el padre sigue mandando a pelo y sin `origen`: hijo6 lo descarta y el asistente se queda con el
+estado de su primera apertura.
+
+### La lavadora: orden para terminar
+
+Lo que falta, en orden de engranaje: cada paso se apoya en el anterior. Antes de cada uno se
+comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro navegadores.
+
+0. Este documento al día.
+1. **Identidad:** el bus pone el `origen` y lo comprueba al recibir (decisión 10). Fuera las
+   firmas inventadas (`padre_<aleatorio>`, `funciones-mapa`, `sistema`, `restauracion-interna`…) y
+   la reescritura de `enviarMensajePadre`.
+2. **Mensajes a sí mismo → `despacharLocal`** (§21.2), incluidos los atajos `__trigger*` y
+   `_vv_triggerCambioModo`, y el camino único del modo (decisión 11).
+3. **Destino obligatorio:** un envío sin `destino` no sale y avisa; "a todos" solo con
+   `'broadcast'` (§21.2). Antes, inventario completo de los envíos sin destino.
+4. **Los envíos a pelo del padre, al bus**, con el de `CHAT.ESTADO_PADRE` el primero.
+5. **Nombres:** uno para enviar y uno para registrar (§23).
+6. **Registro de handlers del state-manager** (§23): opciones primero.
+7. **Latido y recuperación:** fuera `HEARTBEAT_START/PAUSE` (§22, fila 19); la recuperación de un
+   hijo repite la entrega normal de su elemento en vez de un camino propio.
+8. **Un solo camino donde hoy hay dos:** coordenadas pedidas dos veces por elemento, lista de
+   paradas de hijo5 desde dos fuentes, `ACTUALIZAR_ESTADO` doble por lectura GPS, modo por cuatro
+   mecanismos, `NOTIFICACION` con un solo evento usado, carga de datos de hijo2 empujada y pedida,
+   audio a hijo3 por cuatro caminos, dos constructores de `RETO.MOSTRAR`, respuestas dobles (por
+   acuse y por mensaje aparte) y los avisos de error o `NACK` que el padre manda a hijos que no los
+   escuchan. Con las decisiones 12, 13 y 14.
+9. **Lo muerto** (§23): confirmaciones informativas, `DATOS.CARGADOS_RECIBIDO`, guardas
+   inalcanzables, el segundo cargador de hijo4 (asigna `src` sin registrar el iframe), el resto de
+   F4 (§0) y lo que deje sin uso cada paso anterior.
+10. **Estudio completo desde el inicio de la migración**, para lo que se haya escapado.
+11. **Guía.**
+12. **Auditoría de 28 ejes y auditoría inversa; tanda final de los cuatro navegadores.**
+
+F4 (`pagehide`): la parte de los hijos desapareció con la migración —el bus no
+quita su listener al salir, y con los adaptadores se fue la limpieza que los dejaba sordos—. El
+`pagehide` propio del padre ya separa el cierre real del viaje a la caché de atrás; lo que queda
+(`app.js` y `funciones-mapa.js`, §0) va en el paso 9.
 
 ---
 
 ## Parte VI — Diseño del bus
 
 Traducción de todas las decisiones a comportamiento concreto, verificada contra el código antes
-de construir. **Implementado, salvo dos cosas del §21: `tieneControlador(tipo)` y `listarControladores()` no existen —los specs 07 y 20 siguen preguntándole al state-manager— y el plazo por defecto del acuse es `5000` pelado en vez de `ajustarTimeoutPorConexion(5000)`.**
+de construir. **Implementado, salvo el plazo por defecto del acuse, que es `5000` pelado en vez de `ajustarTimeoutPorConexion(5000)`.** `tieneControlador(tipo)` y `listarControladores()` ya existen (`js/mensajeria.js`).
 
 ## 21. Las reglas
 
@@ -969,8 +1038,8 @@ antiguo), 26/31/38 (sus stubs sobran) y 03, 06, 08, 09 y 10 (tripas del padre).
 
 ## 25. Lo construido, y en qué se apartó del diseño
 
-El bus está construido y commiteado (`d7efb72`), con el padre usándolo. Los siete hijos **todavía
-no están migrados**: siguen con su copia de los envoltorios. Suite completa tras construirlo:
+El bus está construido y commiteado (`d7efb72`), con el padre usándolo. En aquel momento los siete hijos **todavía
+no estaban migrados** (hoy lo están los siete y los tres nietos, §25.9). Suite completa tras construirlo:
 1664 verdes y 16 rojos, que son los cuatro ficheros esperados (58, 75, 76, 77) en los cuatro
 navegadores.
 
@@ -1121,8 +1190,11 @@ sigue en pie antes de afirmar nada.
   cubre (`event.persisted === true` ahora no limpia nada). El spec 58 ya no usa un bus inventado:
   su comprobación de `origen` se mudó al 75, al camino real y con el valor exacto — ese campo lo
   pone el bus, no `utils.js`.
-- **Migración**: van 3 de 7 (hijo1, hijo5, selección). Faltan hijo4, hijo6, hijo3 y hijo2, después
-  los tres nietos, y al final los cabos sueltos del padre.
+- **Migración**: los siete hijos y los tres nietos hablan por el bus (hijo4 `54fecbb`, hijo6 `fff4ba5`,
+  hijo3 `4f30231`, hijo2 `b7bd2ad`, mapa `69a8851`, puzzle `317971d`, vídeo `49880a9`). Del padre
+  está hecho un solo camino de registro (`0f10a10`, `72ebef1`), un solo repartidor (`8abb072`), sin
+  escuchas sueltas (`1ef545f`), sin `ACK` (`141be18`) y sin la capa `get*` (`4d87858`). Lo que falta,
+  en el orden de la Parte V ("La lavadora").
 
 ---
 
