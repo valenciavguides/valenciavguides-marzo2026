@@ -529,7 +529,7 @@ export async function manejarCambioModo(estado, mensaje) {
         return { exito: false, error: errorMsg };
     }
 
-    const { modo, opciones = {}, motivo = 'no especificado' } = mensaje.datos;
+    const { modo, opciones = {}, motivo = 'no especificado', restaurado = false } = mensaje.datos;
 
     // Normalizar modo usando helper centralizado
     const modoNormalized = canonicalizarModo(modo); // 'casa'|'aventura' or null
@@ -623,7 +623,7 @@ export async function manejarCambioModo(estado, mensaje) {
 
         // **NUEVO: Limpiar recursos inmediatamente después del cambio de modo**
         try {
-            await limpiarRecursosPorModo(estado, modoNormalized, opciones);
+            await limpiarRecursosPorModo(estado, modoNormalized, opciones, restaurado);
             logger.info(`${logPrefix} Recursos limpiados inmediatamente después del cambio de modo`);
         } catch (errorLimpieza) { // NOSONAR
             logger.warn(`${logPrefix} Error limpiando recursos:`, errorLimpieza);
@@ -863,8 +863,9 @@ async function notificarCambioModoCompletado(modoAnterior, modoNuevo, motivo) {
  * Limpia recursos específicos según el modo
  * @private
  * @param {Object} estado - Estado global de la aplicación
+ * @param {boolean} restaurado - true si este cambio de modo es una reanudación de sesión
  */
-async function limpiarRecursosPorModo(estado, modo, opciones = {}) {
+async function limpiarRecursosPorModo(estado, modo, opciones = {}, restaurado = false) {
     try {
         logger.info(`[APP][LIMPIAR_RECURSOS] Iniciando limpieza completa para cambio a modo '${modo}'`);
         // **NUEVO: Resetear estado de navegación para "empezar de nuevo"**
@@ -893,8 +894,15 @@ async function limpiarRecursosPorModo(estado, modo, opciones = {}) {
 
         logger.debug(`[APP][LIMPIAR_RECURSOS] Estado de navegación reseteado`);
 
-        // Limpiar mapa completamente
-        if (globalThis.funcionesMapa?.limpiarPorEstado) {
+        // Limpiar mapa completamente — un solo camino (paso 8.4 de la lavadora): en un
+        // cambio real (no reanudación), _hdl_SISTEMA_CAMBIO_MODO ya llamó a
+        // funcionesMapa.manejarCambioModoMapa() (que a su vez llama a limpiarPorEstado con
+        // resetCompleto:true) justo antes de llegar aquí — repetirlo aquí vaciaba
+        // marcadores/polylines/rutas dos veces por el mismo cambio (medido: el log "Reset
+        // completo ejecutado" salía dos veces). Solo en una reanudación
+        // (restaurado:true) el handler llama a sincronizarModoMapa() en su lugar, que
+        // nunca limpia el mapa — ahí SÍ hace falta este camino, y es el único que lo cubre.
+        if (restaurado && globalThis.funcionesMapa?.limpiarPorEstado) {
             // Esperar a que el mapa esté inicializado si no lo está
             if (!globalThis.funcionesMapa.isMapInitialized?.()) {
                 logger.info(`[APP][LIMPIAR_RECURSOS] Mapa no inicializado, esperando...`);
@@ -924,6 +932,8 @@ async function limpiarRecursosPorModo(estado, modo, opciones = {}) {
             } else {
                 logger.warn(`[APP][LIMPIAR_RECURSOS] limpiarPorEstado devolvió false`);
             }
+        } else if (!restaurado) {
+            logger.debug(`[APP][LIMPIAR_RECURSOS] Mapa no limpiado aquí: cambio real, ya lo hizo manejarCambioModoMapa()`);
         } else {
             logger.error(`[APP][LIMPIAR_RECURSOS] globalThis.funcionesMapa.limpiarPorEstado no disponible`);
         }

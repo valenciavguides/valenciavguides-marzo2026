@@ -1482,6 +1482,60 @@ confirmado: 2 mensajes por la misma lectura); 51 specs de GPS/llegada/tramos sin
 (incluye CM-2, que ya comprobaba "cero ACTUALIZAR_ESTADO en CASA" y sigue en verde); recorrido
 con espía sin hallazgos nuevos.
 
+**8.4 — Modo por cuatro mecanismos (✅ cerrado).** Primer hallazgo, descartado tras medir: `estado`
+(Script 1) y `globalThis.estadoPadre` son el mismo objeto por referencia
+(`globalThis.estadoScript1` es un getter que devuelve `estadoPadre`; `var estado =
+globalThis.estadoScript1`) — todas las lecturas `globalThis.estadoPadre?.modo?.actual` que no
+tienen fallback a `estado?.modo?.actual` NO son un segundo mecanismo muerto: leen el mismo campo
+por otro nombre. Confirmado con una lectura GPS real (`estadoPadreModo === estadoModo ===
+'aventura'` tras un `CAMBIO_MODO`).
+
+**El hallazgo real, medido:** cada `CAMBIO_MODO` real (no reanudación, no resincronización)
+ejecuta `funcionesMapa.limpiarPorEstado({resetCompleto:true})` **dos veces** — confirmado con
+logs (`"Reset completo ejecutado para modo aventura"` aparece 2 veces por un solo cambio). Los
+dos caminos:
+
+- `_hdl_SISTEMA_CAMBIO_MODO` (padre) llama primero a `funcionesMapa.manejarCambioModoMapa()`, que
+  fija `estadoMapa.modo`, llama a `limpiarPorEstado({resetCompleto: modoAnterior !== modo})` y
+  resetea la vista del mapa (`setMapView` al centro/zoom por defecto).
+- Justo después llama a `manejarCambioModo()` (`js/app.js`), que internamente llama a
+  `limpiarRecursosPorModo()` — esta función resetea `estado.paradaActual/tramoActual/elementoActual`
+  y `estado.gps.posicionUsuario` (trabajo real, único, no duplicado en ningún otro sitio) **y
+  además** vuelve a llamar a `funcionesMapa.limpiarPorEstado({resetCompleto:true})` — el mismo
+  vaciado de marcadores/polylines/rutas que `manejarCambioModoMapa()` ya había hecho.
+
+**Por qué no es tan simple como quitar una de las dos llamadas:** medido que NO son iguales en
+todos los casos:
+
+- **Resincronización** (mismo modo, `js/app.js` línea ~551 corta antes de
+  `limpiarRecursosPorModo`): solo corre la llamada de `manejarCambioModoMapa()`
+  (`resetCompleto:false`, más ligera). Si se quitara esa llamada, la resincronización se quedaría
+  sin ninguna.
+- **Reanudación** (`restaurado:true`): `_hdl_SISTEMA_CAMBIO_MODO` llama a `sincronizarModoMapa()`
+  en vez de `manejarCambioModoMapa()` (comentario propio: evita el salto de cámara mientras
+  `_restaurarProgresoRest()` dibuja el elemento restaurado) — `sincronizarModoMapa()` NO llama a
+  `limpiarPorEstado` en ningún momento. Si se quitara la llamada de `limpiarRecursosPorModo()`, la
+  reanudación se quedaría sin ninguna, con riesgo real de marcadores de la sesión anterior
+  visibles tras reanudar.
+- **Cambio real** (el único caso con las dos llamadas): las dos ejecutan con `resetCompleto:true`
+  — es aquí, y solo aquí, donde se duplica.
+
+**Decisión:** en `limpiarRecursosPorModo()` (`js/app.js`), la llamada a
+`funcionesMapa.limpiarPorEstado()` pasa a ejecutarse solo cuando `mensaje.datos.restaurado ===
+true` (el único caso en que nadie más limpió el mapa). Para el cambio real, `manejarCambioModoMapa()`
+sigue siendo quien limpia — ya se ejecuta antes en la misma secuencia. La resincronización no se
+toca: nunca llegaba a `limpiarRecursosPorModo()`.
+
+**Aplicado:** `manejarCambioModo()` extrae `restaurado` de `mensaje.datos` y lo pasa a
+`limpiarRecursosPorModo(estado, modo, opciones, restaurado)`; esta última solo llama a
+`funcionesMapa.limpiarPorEstado()` cuando `restaurado === true`. El resto de la función (reset de
+`estado.paradaActual/tramoActual/elementoActual` y `estado.gps.posicionUsuario`) no cambia: corría
+sin duplicar y sigue igual. `docs/GUIA-COMPLETA.md` nunca afirmó que la limpieza se ejecutara dos
+veces en un cambio real — no hizo falta corregirla. Verificado: spec 100 nueva (LU-1 en rojo antes
+del arreglo, confirmado: 2 limpiezas por el mismo cambio real; LU-2 y LU-3 de control, ya en verde
+antes del arreglo, confirman que reanudación y resincronización no se tocan); 41 specs de
+modo/reanudación/concurrencia/GPS sin romperse; recorrido con espía sin hallazgos nuevos.
+
 ---
 
 ## Parte VII — Hallazgos colaterales
