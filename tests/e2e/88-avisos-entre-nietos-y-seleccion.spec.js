@@ -64,6 +64,15 @@ async function abrirSeleccionEnMarco(page) {
       return [...(doc?.querySelectorAll('.pantalla') || [])].some((p) => p.classList.contains('visible'));
     }), { timeout: 15_000 })
     .toBe(true);
+
+  // Y a su bus. La pantalla inicial la pone un script clasico, que corre antes que los
+  // modulos: P1 se ve antes de que exista `globalThis.mensajeria`. MEDIDO en iphone12 con
+  // carga: en 31 de 81 arranques el aviso salia con P1 visible y sin bus, y en uno llego antes
+  // que la escucha y se perdio. `HIJO_PREPARADO` lo manda la seleccion con sus handlers ya
+  // registrados, y el marco lo guarda en `__recibidos`.
+  await expect
+    .poll(() => page.evaluate(() => (globalThis.__recibidos || []).some((m) => m.tipo === 'SISTEMA.HIJO_PREPARADO')), { timeout: 15_000 })
+    .toBe(true);
 }
 
 const pantalla5Visible = (page) => page.evaluate(() => {

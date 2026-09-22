@@ -138,6 +138,11 @@ test.describe('SE — El padre reacciona a SISTEMA.ERROR de audio_control', () =
         ? globalThis.obtenerAudioIdActivoPadre() : '(no expuesta)',
       elementoActual: globalThis.estado?.elementoActual?.audio_id ?? null,
       handlers: (await globalThis.__vv_stateManager?.getControladoresPorTipo?.('SISTEMA.ERROR'))?.length ?? '(sin API)',
+      // `handlers: 0` con script2Listo cumplido es imposible por construccion del arnes: si sale,
+      // estas tres dicen si fue una espera de gotoAndWaitForFase1 que expiro (no aborta).
+      script2Listo: (await globalThis.__vv_stateManager?.getScript2Listo?.()) ?? null,
+      esperaFase1Expirada: !!globalThis.__e2e_bootTimedOut,
+      esperaScript2Expirada: !!globalThis.__e2e_script2TimedOut,
     }));
 
     await enviarSistemaError(page, 'AUDIO_CONTROL_FALLIDO');

@@ -86,15 +86,18 @@ test.describe('PC — el reto de puzzle cierra la parada igual que los demás re
   });
 
   test('PC-2. Puzzle con el tiempo agotado: RETO.COMPLETADO lleva correcto: true', async ({ page }) => {
-    // Adelantar 185 s de reloj ejecuta todos los temporizadores de ese tramo: no cabe en los
-    // 60 s por defecto de un test.
-    test.setTimeout(180_000);
+    // 185 pasos de un segundo con fastForward, no runFor(185_000): runFor ejecuta tambien cada
+    // fotograma de la animacion del puzzle (draw() se reprograma con requestAnimationFrame
+    // mientras el puzzle sigue en marcha), unos 11 500 dibujos del lienzo, y en firefox y WebKit
+    // eso solo ya agota el plazo. fastForward dispara cada temporizador vencido una vez por salto:
+    // el intervalo de un segundo del puzzle recibe sus 185 ticks, igual que con el usuario.
+    test.setTimeout(120_000);
     await page.clock.install();
     const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
     await mostrarReto(page, hijo, RETO_PUZZLE, '#puzzleIframe');
     await expect(hijo.frameLocator('#puzzleIframe').locator('#skipBtn')).toBeVisible({ timeout: 15_000 });
     // 180 s es el tiempo por defecto del puzzle (puzzle.html, `puzzleConfig.tiempo || 180`).
-    await page.clock.runFor(185_000);
+    for (let s = 0; s < 185; s++) await page.clock.fastForward(1000);
     await pulsarContinuarDelPuzzle(hijo);
     const msg = await completadoRecibido(page, RETO_PUZZLE.id);
     expect(msg.datos.correcto, `datos recibidos: ${JSON.stringify(msg.datos)}`).toBe(true);

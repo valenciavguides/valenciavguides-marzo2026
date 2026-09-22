@@ -47,6 +47,16 @@ test.describe('RE — "no" en R2 llega al padre', () => {
       () => typeof document.getElementById('seleccion')?.contentWindow?.verificarRetoR2 === 'function',
       null, { timeout: 20_000 },
     );
+    // `verificarRetoR2` sale de un script clasico, que corre antes que los modulos de la
+    // seleccion: la funcion existe antes que su bus. MEDIDO en iphone12 con carga (2 de 80): el
+    // clic llegaba ~20 ms antes de `inicializarMensajeria`, `globalThis.mensajeria` aun no
+    // existia y el envio de SELECCION.REINICIAR lanzaba un TypeError. En la app no pasa: P15
+    // queda muchas pantallas despues del arranque; solo el test salta a ella en el acto.
+    // `PADRE_CONFIRMA_HIJO_LISTO` lo registra la seleccion con el bus ya inicializado.
+    await page.waitForFunction(
+      () => document.getElementById('seleccion')?.contentWindow?.mensajeria?.tieneControlador?.('SISTEMA.PADRE_CONFIRMA_HIJO_LISTO') === true,
+      null, { timeout: 20_000 },
+    );
   });
 
   test('RE-1. Control: con origen, el padre ejecuta su handler y baja las banderas', async ({ page }) => {
