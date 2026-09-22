@@ -1345,8 +1345,8 @@ Cubierto por `tests/e2e/22-carteles-informativos.spec.js`, prueba CI-6: dispara 
 
 **La garantía se extiende a toda la familia de funciones relacionadas:** el mismo principio — nunca devolver un booleano o `undefined` desnudo desde una función que sus callers tratan como Promise — se aplica por construcción a otros tres puntos de la misma clase, sin depender de que el contexto que hoy los protege (guards existentes, hoisting) se mantenga igual en el futuro:
 
-- `enviarMensaje()` (`js/mensajeria.js`) solo acepta `enviarMensaje({ tipo, datos, destino, origen })` — no existe ningún formato posicional (`enviarMensaje(tipo, datos, destino)`); su único camino de fallo (`tipo` ausente) devuelve `Promise.resolve(false)`.
-- `enviarMensajePadre()` (`codigo-padre.html`) devuelve `Promise.resolve(undefined)` en su `catch` más interior (el que se alcanza si tanto el envío enriquecido como el reintento fallan), nunca sale sin `return`. Solo acepta llamarse con el objeto `{tipo, datos, destino, origen}`, nunca con argumentos sueltos.
+- `enviarMensaje()` (`js/mensajeria.js`) solo acepta `enviarMensaje({ tipo, datos, destino })` — no existe ningún formato posicional; sus dos caminos de fallo (`tipo` ausente, o el bus del frame sin inicializar) devuelven `Promise.resolve(false)`. El `origen` lo pone el bus (§26.8, segunda capa).
+- `enviarMensajePadre()` (`codigo-padre.html`) es un alias de `enviarMensaje` que devuelve siempre una Promise: `Promise.resolve(enviarMensaje(mensaje))`, y `Promise.resolve(false)` con aviso en el log si `enviarMensaje` no estuviera disponible. Solo acepta el objeto `{ tipo, datos, destino }`, nunca argumentos sueltos.
 - `globalThis._vv_triggerCambioModo` (`codigo-padre.html`) tiene un `else` explícito que devuelve `Promise.resolve(undefined)` si `_hdl_SISTEMA_CAMBIO_MODO` no está disponible, nunca `undefined` implícito.
 
 Ver detalle completo en la memoria `project_audit_promise_boolean_pendiente`.
@@ -4894,7 +4894,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d49a04413588'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0ac35eb527e6'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7906,7 +7906,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 
 Todos los specs comparten la misma infraestructura (`tests/e2e/helpers/`):
 
-- **`boot.js`** — `gotoAndWaitForFase1()`: navega a `codigo-padre.html` e inyecta un spy que espera a que `globalThis.__MENSAJERIA_INICIADA === true` antes de continuar. `stubCDNResources()` intercepta los CDN externos (histórico) y también `js/vendor/maplibre-gl-csp.js` — vendorizado localmente, no CDN — para que el motor de mapas real nunca se ejecute ni los tests dependan de red o de un contexto WebGL real.
+- **`boot.js`** — `gotoAndWaitForFase1()`: navega a `codigo-padre.html`, espera a FASE 1 (`globalThis.__MENSAJERIA_INICIADA === true`, o la API del bus completa) y después a que el padre haya registrado sus controladores (`getScript2Listo()` del state-manager a `true`). Ninguna de las dos esperas aborta al agotar `BOOT_TIMEOUT`: marcan `__e2e_bootTimedOut` o `__e2e_script2TimedOut` y dejan que informe la aserción del test. La de `script2Listo` sondea con `page.evaluate`, no con `waitForFunction`: `waitForFunction` no espera la promesa de un predicado `async` —una Promise es truthy— y la daría por cumplida al instante. `injectInitSpy()` registra el orden de arranque (`__e2e_initOrder`) y se llama antes de navegar. `stubCDNResources()` intercepta los CDN externos y también `js/vendor/maplibre-gl-csp.js` —vendorizado localmente, no CDN— para que el motor de mapas real nunca se ejecute ni los tests dependan de red o de un contexto WebGL real.
 - **`maplibre-stub.js`** — stub de MapLibre GL JS que expone la API mínima necesaria (`Map`, `Marker`, `.on/.flyTo/.addSource/.addLayer/...`) sin renderizar nada real. Permite que `funciones-mapa.js` e `initializeMap()` se ejecuten sin un mapa real.
 
 #### ¿Qué detectan los E2E que Jest no puede?
@@ -8121,7 +8121,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-d49a04413588'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-0ac35eb527e6'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8842,7 +8842,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-d49a04413588';
+const CACHE_VERSION = 'v-0ac35eb527e6';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11067,15 +11067,22 @@ IIFE que se ejecuta antes que cualquier módulo.
 // Mismo origen y nada mas. El protocolo file:// no se contempla: los modulos ES no
 // cargan ahi, asi que la app no puede funcionar asi.
 if (event.origin !== globalThis.location.origin) return;   // descarte silencioso
+if (!mensaje || typeof mensaje !== 'object' || !mensaje.tipo) return;
 
-// Y la fuente tiene que ser alguien de la conversacion: el padre, un iframe que este
-// frame haya registrado, o uno mismo (auto-mensajes). Ver _fuenteAutorizada().
-if (!_fuenteAutorizada(event)) return;
-if (!mensaje.tipo) return;
-if (mensaje.origen === componenteId) return; // ignora mensajes propios
+// La fuente tiene que ser alguien de la conversacion: el padre, un iframe que este
+// frame haya registrado, o uno mismo. Ver _fuenteAutorizada().
+if (!_fuenteAutorizada(event)) return;                      // descarte con aviso
+if (!mensaje.origen) return;                                // descarte con aviso
+
+// Quien dice ser, lo es: un iframe registrado solo habla con su nombre de registro.
+const idRegistrado = _idDeIframePropio(event);
+if (idRegistrado !== false && mensaje.origen !== idRegistrado) return; // descarte con aviso
+if (mensaje.origen === componenteId) return;                // ignora mensajes propios
 ```
 
-Un mensaje de una página externa maliciosa es descartado sin dejar rastro.
+Un mensaje de una página externa maliciosa es descartado sin dejar rastro. Cada descarte con aviso escribe un `logger.warn` una sola vez por tipo de mensaje.
+
+**El `origen` lo pone el bus del frame que envía**, siempre con el nombre que ese frame le dio en `inicializarMensajeria`: `enviarMensaje`, `enviarMensajeConConfirmacion` y `despacharLocal` ignoran el que pase quien llama. Un frame con el bus importado pero todavía sin inicializar no envía nada —`false`, o rechazo `'no-enviado'` en el envío con acuse— y lo avisa. Con las dos piezas juntas, ningún frame puede firmar como otro ante el padre ni ante un contenedor de nietos: lo cubren `tests/e2e/79-bus-contrato.spec.js` (BC-15 a BC-17) y `tests/e2e/93-nadie-se-hace-pasar-por-otro.spec.js`, que lo prueba con cada frame que registra el padre.
 
 > **Restricción arquitectónica conocida — todos los iframes deben estar en el mismo origen.**
 > El sistema usa `window.location.origin` como target en todos los `postMessage` y valida `event.origin` en todos los receptores. Si en el futuro algún iframe se sirve desde un CDN o subdominio diferente, la comunicación fallará silenciosamente (los mensajes se descartarán en la validación). Esto es una decisión de arquitectura consciente, no un olvido. Cambiar a orígenes múltiples requeriría un inventario completo de todos los puntos de envío y recepción.
@@ -12186,7 +12193,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-d49a04413588';
+const CACHE_VERSION = 'v-0ac35eb527e6';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12812,7 +12819,7 @@ await sm.atomicUpdateHeartbeat(s => {
 
 `utils.js` exporta `resolverIdPadre()`, que determina el ID del padre leyendo URL params, `sessionStorage` o generando un UUID nuevo (`padre-XXXXXXXX`, cacheado en `sessionStorage['vvguides_padreId']`, ver §10). El nombre diferencia esta función de `globalThis.getPadreId`, definida en un `<script>` clásico (no-módulo) temprano de `codigo-padre.html` (líneas 220-233, reforzado con el mismo guard en 3818-3821), que siempre devuelve `CONFIG_PADRE.ID = 'padre'` — dos funciones con propósito distinto.
 
-**Matiz importante — Script 1 no usa `globalThis.getPadreId` para sus propios envíos:** dentro de Script 1 (`<script type="module">`, líneas 2680-8894), la línea 3651 declara `const getPadreId = getPadreId_S1;`, donde `getPadreId_S1` es el alias local de `resolverIdPadre` importado de `utils.js` (línea 3504: `resolverIdPadre: getPadreId_S1`). Como es un `const` de módulo, no toca `globalThis.getPadreId` — pero sí **sombrea** el identificador `getPadreId` para todo el resto de Script 1. En consecuencia, las ~20 llamadas `origen: getPadreId()` dentro de Script 1 (líneas 4760-7103) usan en realidad `resolverIdPadre()`, no la función que "siempre devuelve `'padre'`" — su `origen` real es el UUID de sesión (`padre-XXXXXXXX`), igual que el que usan los hijos para identificarse. Scripts 2, 3 y 4 son módulos separados sin este `const` local, así que en ellos `getPadreId()` sí resuelve por la cadena de scope hasta `globalThis.getPadreId` (la función "siempre `'padre'`") — de ahí que la mayoría de los ~90 usos de `getPadreId()` en el resto del archivo (Script 2 en adelante) sí envíen el literal `'padre'`. El campo `origen` es puramente informativo/de log — `mensajeria.js` identifica al padre en el transporte real con el literal hardcodeado `id: 'padre'` en `inicializarMensajeria()` (línea 3658), no leyendo este campo — así que la inconsistencia no rompe el enrutamiento, pero sí hace que el valor de `origen` en los mensajes salientes de Script 1 no coincida con el de Script 2-4 ni con el de los propios logs de éxito de handshake.
+**Ninguna de las dos firma mensajes del bus.** El `origen` de todo lo que envía el padre lo pone su bus (`inicializarMensajeria({ id: 'padre' })`), así que vale `'padre'` en todos los scripts de `codigo-padre.html` y en los `js/` que carga, se envíe con el nombre que se envíe. Dentro de Script 1, `const getPadreId = getPadreId_S1;` sombrea `globalThis.getPadreId` con `resolverIdPadre`; eso solo afecta a los usos que tienen estas funciones: como `destino` de envíos del padre a sí mismo y como `origen` de los `postMessage` que no pasan por el bus.
 
 `js/utils.js` exporta también `getPadreId` como alias de `resolverIdPadre` para compatibilidad con tests y cualquier código que use el nombre anterior:
 
@@ -12823,14 +12830,11 @@ export const getPadreId = resolverIdPadre;  // alias de compatibilidad
 
 Usos en el código:
 
-- `js/app.js`: importa `resolverIdPadre` + 12 llamadas como `origen:` en mensajes
-- `js/funciones-mapa.js`: importa `resolverIdPadre`
-- `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `chat-hijo6.html`, `boton-casa-hijo5.html`, `En-busca-del-tesoro.html`: importan `resolverIdPadre`
+- `js/app.js`: importa `resolverIdPadre` y lo usa como `destino` de un envío (`notificarError`)
+- `js/funciones-mapa.js`: importa `resolverIdPadre` y lo usa como `destino` en dos envíos
+- Los hijos y la pantalla de selección no la importan: hablan con el padre con `destino: 'padre'`
 
-**Matiz — `codigo-padre.html` y `controladores-padre.js` no evitan `utils.js` de forma tan limpia como sugiere el título de este apartado:**
-
-- `codigo-padre.html` Script 2/3/4: usan `globalThis.getPadreId` (función propia, devuelve siempre `'padre'`) — pero Script 1 usa en realidad `getPadreId_S1` (`resolverIdPadre` de `utils.js`, ver el matiz arriba), no la función propia.
-- `js/controladores-padre.js`: recibe `getPadreId` como inyección de dependencias desde el padre — y el padre le pasa concretamente `getPadreId_S1` (línea ~8213: `getPadreId: getPadreId_S1`), es decir, `resolverIdPadre` de `utils.js` bajo otro nombre, pese a que su JSDoc interno (`js/controladores-padre.js` línea 36: "Retorna el ID del padre ('padre')") describe el comportamiento de la función global, no el de la que realmente recibe.
+**Matiz — `codigo-padre.html` no evita `utils.js` de forma tan limpia como sugiere el título de este apartado:** los scripts a partir del 2 resuelven `getPadreId()` por la cadena de scope hasta `globalThis.getPadreId` (función propia del script clásico, devuelve siempre `'padre'`), y Script 1 usa `getPadreId_S1`, que es `resolverIdPadre` de `utils.js`. `js/controladores-padre.js` no recibe ninguna de las dos.
 
 ---
 
@@ -12880,7 +12884,6 @@ await enviarMensaje({
     await enviarMensaje_S1({
         destino: 'hijo3',
         tipo: TIPOS_MENSAJE_S1.UI.ACCION_USUARIO,
-        origen: getPadreId(),
         datos: { accion: 'audio_control', comando, contexto, reenviadoDe: mensaje.origen }
     });
 }
@@ -13126,6 +13129,7 @@ Esta sección define el protocolo estándar para pedir una auditoría exhaustiva
 > 6. **Si el cambio toca un flujo de usuario, se recorre ese tramo en la aplicación real** con el espía (EJE 28).
 > 7. **`npm run lint`.** El bloque `js/**/*.js` de `eslint.config.js` activa pocas reglas y `no-unused-vars` solo se aplica a los HTML: para los `js/*.js` se activa a mano en una pasada temporal.
 > 8. **Uso por uso de todo lo que el cambio introduce o deja atrás:** por cada import, desestructuración, asignación a `globalThis` y variable intermedia, se cuentan los usos reales. Un cambio que retira algo casi siempre deja restos: el import que servía a lo retirado, la variable que ya vale una constante, el guard que protegía de un caso que ya no existe.
+> 9. **Orden de arranque** (EJE 5). Si el cambio mueve algo al bus o al arranque —un dato que el bus pone por su cuenta, un registro, un handler nuevo—, se comprueba en los diez frames que existe antes de su primer uso, leyendo y midiendo.
 
 **Modalidad ligera (no es auditoría formal):** cuando la petición es una opinión o un vistazo general ("qué opinas", "échale un buen vistazo", "si ves algo que no cuadra apúntalo") sin invocar explícitamente "auditoría completa", no aplica el recorrido obligatorio de los 28 ejes de abajo. Es válido partir del contexto ya acumulado en la sesión (código y documentación ya leídos) en vez de releer todo desde cero — pero cada afirmación concreta que se vaya a reportar como hallazgo, y en particular cualquier cosa citada desde memoria como "pendiente"/"sin arreglar", se verifica puntualmente contra el archivo real antes de darla por cierta (la memoria puede estar desactualizada aunque el documento ya no lo esté). Se reporta la opinión más los hallazgos ya verificados, sin implementar nada hasta que el usuario confirme qué quiere tocar. Esta modalidad NO sustituye el protocolo completo de abajo: si el usuario pide auditoría completa o "revisa todo en cada sección", aplica cobertura total de los 28 ejes, nunca una muestra priorizada por riesgo.
 
@@ -13207,6 +13211,9 @@ Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
 3. Todos los `while(!globalThis.fn) await sleep(x)` deben tener un límite de iteraciones con log de error al superarlo.
 4. Verifica que los iframes no reciben mensajes `postMessage` antes de que `contentWindow` esté disponible (el evento `load` del iframe debe haberse disparado).
 5. Detecta dependencias circulares: Módulo A espera a Módulo B, que espera a Módulo A.
+6. **Cada frame inicializa su bus antes de su primer envío.** `globalThis.mensajeria` existe desde que se importa `js/mensajeria.js`, pero el nombre del frame (`componenteId`) solo existe cuando termina `inicializarMensajeria`: un envío en ese hueco sale sin nombre y el receptor lo descarta. En los diez frames se localiza la línea de `inicializarMensajeria` y se sigue cada envío escrito antes de ella hasta saber cuándo se ejecuta; y se mide en ejecución: cada frame apunta cuándo queda inicializado y ningún mensaje suyo llega antes.
+7. **Registro antes de `src`.** Todo contenedor —el padre, selección, hijo4 y hijo6— llama a `registrarIframe` antes de asignar `src`: un iframe que empieza a hablar sin estar registrado es descartado por su contenedor.
+8. **Llamadas vacías.** Ningún mensaje del arranque se envía a un frame que todavía no tiene handler para ese tipo; la señal de que lo tiene es el handshake `HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO`. Un envío que el bus descarta por destino desconocido, por falta de `origen` o por falta de handler es una llamada vacía aunque no dé ningún error.
 
 ---
 

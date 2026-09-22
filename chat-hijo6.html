@@ -450,7 +450,6 @@
         // calculaba con `ajustarTimeoutPorConexion`. Sin esta linea, una conexion lenta
         // perderia el margen que el rescate necesita (§16.2 del estudio).
         timeout: ajustarTimeoutPorConexion(5000),
-        origen: CONFIG_HIJO.IFRAME_ID,
         destino: 'padre',
         datos: {},
       });
@@ -731,7 +730,6 @@
           await enviarMensaje({
             destino: 'padre',
             tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-            origen: CONFIG_HIJO.IFRAME_ID,
             datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
           });
           logger.info(`[hijo6] HIJO_LISTO enviado al padre (intento ${_reintentosHijoListo + 1}/${MAX_REINTENTOS_HIJO_LISTO})`);
@@ -763,7 +761,6 @@
     await enviarMensaje({
       destino: 'padre',
       tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
-      origen: CONFIG_HIJO.IFRAME_ID,
       datos: { timestamp: Date.now(), estado: inicializado ? 'activo' : 'inicializando' }
     });
   });
@@ -782,13 +779,11 @@
     await enviarMensaje({
       destino: 'padre',
       tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO,
-      origen: CONFIG_HIJO.IFRAME_ID,
       datos: { modo, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id }
     });
     await enviarMensaje({
       destino: 'padre',
       tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
-      origen: CONFIG_HIJO.IFRAME_ID,
       datos: { modo, exito: true, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id }
     });
   });
@@ -818,7 +813,6 @@
     await enviarMensaje({
       destino: 'padre',
       tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
-      origen: CONFIG_HIJO.IFRAME_ID,
       datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, version: '1.0.0', tipo: 'CHAT', capacidades: ['chat', 'faq'], timestamp: Date.now() }
     });
     logger.debug('[hijo6] HIJO_PREPARADO enviado; esperando PADRE_DATOS');

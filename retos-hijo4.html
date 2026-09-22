@@ -701,7 +701,6 @@
                 try {
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.RETO.SOLICITAR_RETO,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         destino: 'padre',
                         datos: { contexto: 'hijo4-botonRetos' }
                     });
@@ -751,7 +750,6 @@
                 try {
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_RETOS,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         destino: 'padre',
                         datos: { retoId, motivo: 'cache_miss', timestamp: Date.now() }
                     });
@@ -1081,7 +1079,6 @@
                     // nunca, y que en el log se parecía demasiado al bueno.
                     await enviarMensajeConConfirmacion({
                         tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         destino: 'padre',
                         datos: datosCompletado
                     });
@@ -1094,7 +1091,6 @@
             // Enviar mensaje al padre para cerrar la ventana
             enviarMensaje({
                 tipo: TIPOS_MENSAJE.RETO.OCULTAR,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 destino: 'padre',
                 datos: {
                     retoId: retoActual ? retoActual.id : null
@@ -1123,7 +1119,6 @@
                     try {
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
-                            origen: CONFIG_HIJO.IFRAME_ID,
                             destino: 'padre',
                             datos: datosCompletado
                         });
@@ -1133,7 +1128,6 @@
                 }
                 enviarMensaje({
                     tipo: TIPOS_MENSAJE.RETO.OCULTAR,
-                    origen: CONFIG_HIJO.IFRAME_ID,
                     destino: 'padre',
                     datos: { retoId: retoActual ? retoActual.id : null }
                 });
@@ -1276,7 +1270,6 @@
                             await enviarMensaje({
                                 destino: 'padre',
                                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-                                origen: CONFIG_HIJO.IFRAME_ID,
                                 datos: {
                                     componenteId: CONFIG_HIJO.COMPONENTE_ID,
                                     iframeId: CONFIG_HIJO.IFRAME_ID,
@@ -1331,7 +1324,7 @@
 
                 // Mostrar UI ahora que el padre confirmó
                 try { _uiConfirmado = true; mostrarUI(); } catch (_e) { /* ignore */ } // NOSONAR
-                try { await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (_e) { /* ignore */ } // NOSONAR
+                try { await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (_e) { /* ignore */ } // NOSONAR
 
             });
 
@@ -1374,7 +1367,7 @@
                     await mostrarReto(retoId);
                     // Fase 2: confirmar al padre que el reto ha sido mostrado
                     try {
-                        await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.MOSTRADO, origen: CONFIG_HIJO.IFRAME_ID, destino: 'padre', datos: { retoId } });
+                        await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.MOSTRADO, destino: 'padre', datos: { retoId } });
                         logger.info(`[hijo4] RETO.MOSTRADO enviado al padre para reto: ${retoId}`);
                     } catch (sendErr) {
                         logger.warn(`[hijo4] Error enviando RETO.MOSTRADO:`, sendErr?.message || sendErr);
@@ -1394,7 +1387,6 @@
                         logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                            origen: CONFIG_HIJO.IFRAME_ID,
                             destino: 'padre',
                             datos: {
                                 error: 'Secuencia no completa',
@@ -1412,7 +1404,6 @@
                         logger.error(`${logPrefix} Modo inválido: ${modo}`);
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                            origen: CONFIG_HIJO.IFRAME_ID,
                             destino: 'padre',
                             datos: { error: 'Modo inválido', modoRecibido: modo }
                         });
@@ -1446,7 +1437,6 @@
                     await enviarMensaje({
                         destino: destinoEntendido,
                         tipo: tipoEntendido,
-                        origen: origenEntendido,
                         datos: {
                             modo,
                             timestamp: Date.now(),
@@ -1475,7 +1465,6 @@
                     await enviarMensaje({
                         destino: 'padre',
                         tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
-                        origen: CONFIG_HIJO?.IFRAME_ID || 'hijo4',
                         datos: {
                             modo,
                             exito: true,
@@ -1488,7 +1477,6 @@
                     try {
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                            origen: CONFIG_HIJO.IFRAME_ID,
                             destino: 'padre',
                             datos: { error: error.message, tipo: 'CAMBIO_MODO_FALLIDO' }
                         });
@@ -1497,7 +1485,6 @@
                     }
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         destino: 'padre',
                         datos: { error: error.message }
                     });
@@ -1624,7 +1611,6 @@
                 await enviarMensaje({
                     destino: 'padre',
                     tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
-                    origen: CONFIG_HIJO.IFRAME_ID,
                     datos: { timestamp: Date.now() }
                 });
             });
@@ -1658,7 +1644,6 @@
                     await enviarMensaje({
                         destino: 'padre',
                         tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         datos: { paradaId: paradaId || null, parada_id: paradaId || null, padreId: padreId || null, padreid: padreId || null, timestamp: Date.now() }
                     });
                 } catch (e) {
@@ -1733,7 +1718,6 @@
                 await enviarMensaje({
                     destino: 'padre',
                     tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
                         componenteId: CONFIG_HIJO.COMPONENTE_ID,
                         version: '1.0.0',

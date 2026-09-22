@@ -339,7 +339,9 @@ function obtenerMapaManejadores() {
  * @param {string} mensaje.tipo - Tipo de mensaje (obligatorio)
  * @param {*} [mensaje.datos] - Datos del mensaje
  * @param {string|Window} [mensaje.destino] - Destino del mensaje; si se omite, hace broadcast
- * @param {string} [mensaje.origen] - Origen; por defecto, el propio componente
+ * El `origen` lo pone el bus, siempre el nombre de este frame: si quien llama pasa uno, se ignora.
+ * Un frame que todavía no ha llamado a `inicializarMensajeria` no envía: saldría sin nombre y el
+ * receptor lo descartaría.
  * @returns {Promise<boolean>} true si se envió correctamente
  */
 export function enviarMensaje(mensaje) {
@@ -347,13 +349,19 @@ export function enviarMensaje(mensaje) {
         logger.error('[mensajeria] enviarMensaje: tipo es requerido');
         return Promise.resolve(false);
     }
-    const { tipo, datos, destino, origen, ...resto } = mensaje;
+    if (!inicializado) {
+        _avisarDescarte(_avisadosSinInicializar, mensaje.tipo,
+            `[mensajeria] No se envía ${mensaje.tipo}: el bus de este frame aún no está inicializado (falta inicializarMensajeria)`);
+        return Promise.resolve(false);
+    }
+    // Si quien llama pasa un `origen`, se queda en `resto` y no viaja: de ahí solo salen datos, id y timestamp.
+    const { tipo, datos, destino, ...resto } = mensaje;
     const mensajeCompleto = {
         tipo,
         datos: datos ?? resto.datos,
         id: resto.id || generarIdUnico('msg'),
         timestamp: resto.timestamp || Date.now(),
-        origen: origen || componenteId,
+        origen: componenteId,
         destino
     };
     if (!String(tipo).includes('HEARTBEAT')) logger.debug(`[mensajeria] Enviando mensaje: ${tipo}`, { destino: destino || 'broadcast' });
@@ -392,6 +400,12 @@ export function enviarMensajeConConfirmacion(tipoOrMensaje, datos, opciones = {}
     }
 
     return new Promise((resolve, reject) => {
+        if (!inicializado) {
+            _avisarDescarte(_avisadosSinInicializar, tipo,
+                `[mensajeria] No se envía ${tipo}: el bus de este frame aún no está inicializado (falta inicializarMensajeria)`);
+            reject(_errorBus('no-enviado', `No se envió ${tipo}: el bus de este frame aún no está inicializado`));
+            return;
+        }
         const mensaje = crearMensaje(tipo, datosReales);
         mensaje.requiereConfirmacion = true;
 
@@ -636,7 +650,7 @@ export function despacharLocal(mensaje) {
     }
     const completo = {
         ...mensaje,
-        origen: mensaje.origen || componenteId,
+        origen: componenteId,
         id: mensaje.id || generarIdUnico('msg'),
         timestamp: mensaje.timestamp || Date.now(),
     };
@@ -651,6 +665,8 @@ export function despacharLocal(mensaje) {
 /** Tipos ya avisados, para no repetir el mismo descarte en cada mensaje. */
 const _avisadosSinOrigen = new Set();
 const _avisadosPorFuente = new Set();
+const _avisadosSuplantacion = new Set();
+const _avisadosSinInicializar = new Set();
 
 function _avisarDescarte(yaAvisados, tipo, texto) {
     if (yaAvisados.has(tipo)) return;
@@ -673,8 +689,16 @@ function _fuenteAutorizada(event) {
 
 /** ¿El mensaje viene de un iframe que este frame ha registrado? */
 function _vieneDeIframePropio(event) {
+    return _idDeIframePropio(event) !== false;
+}
+
+/**
+ * El nombre con que este frame registró el iframe que manda el mensaje, o `false` si no es suyo.
+ * Es la identidad de verdad: la da la ventana que envía, no lo que el mensaje dice de sí mismo.
+ */
+function _idDeIframePropio(event) {
     for (const [, info] of iframesRegistrados) {
-        if (info?.elemento?.contentWindow === event.source) return true;
+        if (info?.elemento?.contentWindow === event.source) return info.id;
     }
     return false;
 }
@@ -710,6 +734,17 @@ function manejarMensajeEntrante(event) {
     }
 
     // Ignorar mensajes propios
+    // Quien dice ser, lo es: un iframe registrado solo puede hablar con su nombre de registro. El
+    // `origen` lo pone el bus de quien envía, así que uno distinto es un frame haciéndose pasar por
+    // otro. De la ventana de arriba no hay a quién confundir (solo hay una), y los mensajes del propio
+    // frame no salen de otra ventana.
+    const idRegistrado = _idDeIframePropio(event);
+    if (idRegistrado !== false && mensaje.origen !== idRegistrado) {
+        _avisarDescarte(_avisadosSuplantacion, mensaje.tipo,
+            `[mensajeria] ${componenteId} descarta ${mensaje.tipo}: dice venir de '${mensaje.origen}' pero lo envía '${idRegistrado}'`);
+        return;
+    }
+
     if (mensaje.origen === componenteId) {
         return;
     }
@@ -833,6 +868,7 @@ export function registrarIframe(id, iframe, opciones = {}) {
     // Sin guardar `contentWindow`: la ventana se lee del elemento en cada envío, porque
     // recargar un iframe la sustituye y la guardada se queda vieja.
     iframesRegistrados.set(id, {
+        id,
         elemento: iframe,
         recuperable: opciones.recuperable === true,
         estado: 'registrado',

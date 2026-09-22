@@ -14,8 +14,7 @@
  *     TIPOS_MENSAJE: TIPOS_MENSAJE_S1,
  *     logger: logger_S1 || globalThis.logger || console,
  *     CONFIG_PADRE: globalThis.CONFIG_PADRE,
- *     enviarMensaje: enviarMensaje_S1,
- *     getPadreId: getPadreId_S1
+ *     enviarMensaje: enviarMensaje_S1
  *   });
  *
  * @module controladores-padre
@@ -33,15 +32,13 @@
  * @param {object}   deps.logger                    - Logger (info/warn/error)
  * @param {object}   deps.CONFIG_PADRE              - Configuración del componente padre
  * @param {Function} deps.enviarMensaje             - Función de envío de mensajes
- * @param {Function} deps.getPadreId                - Retorna el ID del padre ('padre')
  */
 export function registrarControladoresDatos({
     registrarControladorSeguro,
     TIPOS_MENSAJE,
     logger,
     CONFIG_PADRE,
-    enviarMensaje,
-    getPadreId
+    enviarMensaje
 }) {
 
     // ============================================================
@@ -77,7 +74,6 @@ export function registrarControladoresDatos({
             }
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
-                origen: getPadreId(),
                 destino: mensaje.origen,
                 datos: { audioId, audioData: { id: encontrado.id, title: encontrado.title || null, file: encontrado.file || null }, autoplay: false, contexto: { motivo: 'solicitud_hijo' } }
             });
@@ -108,7 +104,6 @@ export function registrarControladoresDatos({
             }
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.DATOS.CARGAR_TEXTOS,
-                origen: getPadreId(),
                 destino: mensaje.origen,
                 datos: { aventura, idioma, textos, total: textos.length, timestamp: Date.now() }
             });
@@ -145,7 +140,6 @@ export function registrarControladoresDatos({
             }
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
-                origen: getPadreId(),
                 destino: mensaje.origen,
                 datos: { retoId, retosArray: [encontrado], contexto: 'solicitud_hijo' }
             });

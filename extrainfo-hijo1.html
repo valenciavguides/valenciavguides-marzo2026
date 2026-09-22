@@ -163,7 +163,6 @@
                 await enviarMensaje({
                     destino: 'padre',
                     tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
                         version: '1.0.0',
                         tipo: 'EXTRAINFO',
@@ -184,7 +183,6 @@
                 await enviarMensaje({
                     destino: 'padre',
                     tipo: TIPOS_MENSAJE.SISTEMA.HIJO_FALLIDO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
                         error: error.message,
                         stack: error.stack,
@@ -251,7 +249,6 @@
                             await enviarMensaje({
                                 destino: 'padre',
                                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-                                origen: CONFIG_HIJO.IFRAME_ID,
                                 datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
                             });
                             logger.info(`[hijo1] HIJO_LISTO enviado al padre (intento ${_reintentosHijoListo + 1}/${MAX_REINTENTOS_HIJO_LISTO})`);
@@ -306,7 +303,7 @@
                     try { if (typeof inicializarLogicaMenu === 'function') inicializarLogicaMenu(); } catch (e) { logger.warn(`${controladorPrefix} inicializarLogicaMenu falló:`, e); }
                     globalThis._uiConfirmado = true;
                     mostrarUI();
-                    try { await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (e) { logger.warn('[hijo1-opciones] Error notificando UI_VISIBLE:', e); }
+                    try { await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (e) { logger.warn('[hijo1-opciones] Error notificando UI_VISIBLE:', e); }
 
                     return {
                         exito: true,
@@ -322,7 +319,6 @@
                         await enviarMensaje({
                             destino: 'padre',
                             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                            origen: CONFIG_HIJO.IFRAME_ID,
                             datos: {
                                 error: error.message,
                                 controlador: 'PADRE_CONFIRMA_HIJO_LISTO',
@@ -440,7 +436,6 @@
                     await enviarMensaje({
                         destino: 'padre',
                         tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         datos: datosRespuesta
                     });
 
@@ -469,7 +464,6 @@
                         logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                            origen: CONFIG_HIJO.IFRAME_ID,
                             destino: 'padre',
                             datos: {
                                 error: 'Secuencia no completa',
@@ -486,7 +480,6 @@
                         logger.error(`${logPrefix} Modo inválido: ${modo}`);
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                            origen: CONFIG_HIJO.IFRAME_ID,
                             destino: 'padre',
                             datos: { error: 'Modo inválido', modoRecibido: modo }
                         });
@@ -504,7 +497,6 @@
                     await enviarMensaje({
                         destino: 'padre',
                         tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         datos: {
                             modo,
                             timestamp: Date.now(),
@@ -517,7 +509,6 @@
                     await enviarMensaje({
                         destino: 'padre',
                         tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
-                        origen: CONFIG_HIJO?.IFRAME_ID || 'hijo1-opciones',
                         datos: {
                             modo,
                             exito: true,
@@ -532,7 +523,6 @@
                     try {
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                            origen: CONFIG_HIJO.IFRAME_ID,
                             destino: 'padre',
                             datos: { error: error.message, tipo: 'CAMBIO_MODO_FALLIDO' }
                         });
@@ -733,7 +723,6 @@
                 await enviarMensaje({
                     destino: 'padre',
                     tipo: TIPOS_MENSAJE.UI.CLOSE_MENUS,
-                    origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
                         except: 'mas-opciones',
                         timestamp: Date.now()
@@ -836,7 +825,6 @@
                         await enviarMensaje({
                             destino: 'padre',
                             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                            origen: CONFIG_HIJO.IFRAME_ID,
                             datos: {
                                 error: error.message,
                                 contexto: 'click-mas-opciones',
@@ -885,7 +873,6 @@
                                         await enviarMensaje({
                                             destino: 'padre',
                                             tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
-                                            origen: CONFIG_HIJO.IFRAME_ID,
                                             datos: { accion: 'audio_control', comando: 'pause', contexto: 'enlace_externo' }
                                         });
                                     } catch (_pe) { /* no bloquear apertura del enlace si la pausa falla */ }
@@ -895,7 +882,6 @@
                                     await enviarMensaje({
                                         destino: 'padre',
                                         tipo: TIPOS_MENSAJE.UI.NAVEGACION_EXTERNA,
-                                        origen: CONFIG_HIJO.IFRAME_ID,
                                         datos: {
                                             url: icono.url,
                                             icono: icono.id,
@@ -909,7 +895,6 @@
                                     await enviarMensaje({
                                         destino: 'padre',
                                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                                        origen: CONFIG_HIJO.IFRAME_ID,
                                         datos: {
                                             error: openError.message,
                                             url: icono.url,
@@ -949,7 +934,6 @@
                 const _enviarDevGesto = () => {
                     enviarMensaje({
                         tipo: TIPOS_MENSAJE.CONTROL.DEV_CINCO_TOQUES,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         destino: 'padre',
                         datos: { timestamp: Date.now() }
                     }).catch(e => logger.debug('[DEV] Error enviando DEV_CINCO_TOQUES:', e?.message));
@@ -1031,7 +1015,6 @@
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.TEMPORIZADOR.TOGGLE,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
                     tiempoRestante: estadoTemporizador.tiempoRestante,
                     tiempoTotal: estadoTemporizador.tiempoTotal,
@@ -1059,7 +1042,6 @@
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { timestamp: Date.now() }
             });
             logger.info(`${logPrefix} Mensaje PARADAS.LISTADO_TOGGLE enviado al padre`);
@@ -1102,7 +1084,6 @@
                 await enviarMensaje({
                     destino: 'padre',
                     tipo: TIPOS_MENSAJE.AVENTURA.TIEMPO_ACTUALIZADO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
                         tiempoRestante: estadoTemporizador.tiempoRestante,
                         tiempoTotal: estadoTemporizador.tiempoTotal,
@@ -1192,7 +1173,6 @@
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.AVENTURA.TIEMPO_AGOTADO,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
                     mensaje: '¡Se acabó el tiempo!',
                     redirigir: 'En-busca-del-tesoro.html',
@@ -1245,7 +1225,6 @@
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.AVENTURA.ESTADISTICAS_TIEMPO,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 datos: stats
             });
 

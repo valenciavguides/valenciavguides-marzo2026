@@ -2037,7 +2037,6 @@ async function manejarCambiarParada(mensaje) {
         enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            origen: 'funciones-mapa',
             mensajeId: generarIdUnico(),
             datos: {
                 error: error.message,
@@ -2059,7 +2058,6 @@ async function enviarConsultaCoordenadas(paradaId, padreId) {
     enviarMensaje({
         destino: 'hijo2',
         tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_COORDENADAS,
-        origen: resolverIdPadre(),
         mensajeId,
         datos: {
             paradaId,
@@ -2381,7 +2379,6 @@ async function completarCambioParada() {
         enviarMensaje({
             destino: origen,
             tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
-            origen: 'funciones-mapa',
             datos: {
                     paradaId,
                     parada_id: paradaId,
@@ -2569,7 +2566,6 @@ export async function manejarGPSActivar(mensaje) {
         enviarMensaje({
             destino: resolverIdPadre(),
             tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR,
-            origen: 'funciones-mapa',
             datos: {
                 timestamp: Date.now(),
                 razon: 'delegacion_desde_iframe'
@@ -2676,7 +2672,6 @@ async function manejarCambioModoMapa(mensaje) {
         try {
             enviarMensaje({
                 tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                origen: 'funciones-mapa',
                 destino: mensaje?.origen || resolverIdPadre(),
                 mensajeId: generarIdUnico(),
                 datos: {
@@ -3085,7 +3080,6 @@ async function procesarPosicionGPSParaAventura(posicion) {
                 enviarMensaje({
                     destino: 'hijo2',
                     tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
-                    origen: 'funciones-mapa',
                     datos: {
                         distanciaAlDestino: Math.ceil(distancia),
                         distanciaAlCamino: Math.ceil(distanciaAlCamino),
@@ -3122,7 +3116,6 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     enviarMensaje({
                         destino: 'hijo2',
                         tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
-                        origen: 'funciones-mapa',
                         datos: {
                             ubicacionActiva: false, // Usuario a ≤50m, resetear ubicación
                             timestamp: Date.now()

@@ -567,7 +567,6 @@
             try {
                 await enviarMensaje({
                     tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS,
-                    origen: CONFIG_HIJO.IFRAME_ID,
                     destino: 'padre',
                     datos: { audioId, motivo: 'cache_miss', timestamp: Date.now() }
                 });
@@ -677,7 +676,6 @@
             // Enviar solicitud al padre para mostrar un reto
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.RETO.SOLICITAR_RETO,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 destino: 'padre',
                 datos: {
                     contexto: 'manual',
@@ -932,7 +930,6 @@
         if (currentAudioId) {
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 destino: 'padre',
                 datos: { audioId: currentAudioId, estado: 'reproduciendo' }
             });
@@ -943,7 +940,7 @@
         if (currentAudioId) {
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO,
-                origen: CONFIG_HIJO.IFRAME_ID, // Se agrega el valor correcto
+                // Se agrega el valor correcto
                 datos: { audioId: currentAudioId, estado: 'pausado' }
             });
         }
@@ -960,7 +957,6 @@
         if (currentAudioId) {
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.AUDIO.FIN_REPRODUCCION,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 destino: 'padre',
                 datos: { audioId: currentAudioId, estado: 'finalizado' }
             });
@@ -980,7 +976,6 @@
         try {
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.AUDIO.ERROR,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 destino: 'padre',
                 datos: { audioId: currentAudioId, error: motivo }
             });
@@ -1207,7 +1202,6 @@
                         await enviarMensaje({
                             destino: 'padre',
                             tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-                            origen: CONFIG_HIJO.IFRAME_ID,
                             datos: {
                                 componenteId: CONFIG_HIJO.COMPONENTE_ID,
                                 iframeId: CONFIG_HIJO.IFRAME_ID,
@@ -1273,7 +1267,7 @@
                     logger.debug(`${logPrefix} No se pudo forzar mostrarUI`, e && e.message);
                 }
                 try {
-                    enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch((err) => logger.debug(`${logPrefix} Confirmacion UI_VISIBLE no enviada`, err && err.message));
+                    enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch((err) => logger.debug(`${logPrefix} Confirmacion UI_VISIBLE no enviada`, err && err.message));
                 } catch (e) {
                     logger.debug(`${logPrefix} Error armando confirmacion UI_VISIBLE`, e && e.message);
                 }
@@ -1321,7 +1315,6 @@
                 // Enviar RESPONSE confirmando (indicar si la reproducción realmente comenzó)
                 await enviarMensaje({
                     tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE,
-                    origen: CONFIG_HIJO.IFRAME_ID,
                     destino: 'padre',
                     datos: {
                         audioId,
@@ -1349,7 +1342,6 @@
                 logger.error(`[hijo3] Error procesando REPRODUCIR_REQUEST:`, error);
                 await enviarMensaje({
                     tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE,
-                    origen: CONFIG_HIJO.IFRAME_ID,
                     destino: 'padre',
                     datos: {
                         exito: false,
@@ -1383,7 +1375,6 @@
                     logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         destino: 'padre',
                         datos: {
                             error: 'Secuencia no completa',
@@ -1401,7 +1392,6 @@
                     logger.error(`${logPrefix} Modo inválido: ${modo}`);
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         destino: 'padre',
                         datos: { error: 'Modo inválido', modoRecibido: modo }
                     });
@@ -1435,7 +1425,6 @@
                 await enviarMensaje({
                     destino: destinoEntendido,
                     tipo: tipoEntendido,
-                    origen: origenEntendido,
                     datos: {
                         modo,
                         timestamp: Date.now(),
@@ -1466,7 +1455,6 @@
                 await enviarMensaje({
                     destino: 'padre',
                     tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
-                    origen: CONFIG_HIJO?.IFRAME_ID || 'hijo3',
                     datos: {
                         modo,
                         exito: true,
@@ -1480,7 +1468,6 @@
                 try {
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         destino: 'padre',
                         datos: { error: error.message, tipo: 'CAMBIO_MODO_FALLIDO' }
                     });
@@ -1564,7 +1551,6 @@
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { timestamp: Date.now() }
             });
         });
@@ -1612,7 +1598,6 @@
                 try {
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
-                        origen: CONFIG_HIJO.IFRAME_ID,
                         destino: 'padre',
                             datos: { paradaId: paradaId || null, parada_id: paradaId || null, padreId: padreId || null, padreid: padreId || null, timestamp: Date.now() }
                     });
@@ -1628,10 +1613,10 @@
             if (boton) {
                 logger.info(`${logPrefix} ✅ Elemento ${elemento} encontrado, ejecutando click`);
                 boton.click();
-                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { accion: 'click_ejecutado', elemento, exito: true, timestamp: Date.now() } });
+                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { accion: 'click_ejecutado', elemento, exito: true, timestamp: Date.now() } });
             } else {
                 logger.warn(`${logPrefix} ⚠️ Elemento ${elemento} no encontrado`);
-                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { codigo: 'ELEMENTO_NO_ENCONTRADO', mensaje: `Elemento ${elemento} no existe`, elemento, timestamp: Date.now() } });
+                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, datos: { codigo: 'ELEMENTO_NO_ENCONTRADO', mensaje: `Elemento ${elemento} no existe`, elemento, timestamp: Date.now() } });
             }
         }
 
@@ -1670,10 +1655,10 @@
                 // se confirmaba exito:true más abajo. En ambos casos quien pidió el comando
                 // se quedaba esperando una respuesta que nunca llegaba, sin saber que falló.
                 logger.warn(`${logPrefix} Comando de audio '${comando}' falló:`, error && error.message ? error.message : error);
-                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { codigo: 'AUDIO_CONTROL_FALLIDO', mensaje: error && error.message ? error.message : String(error), comando, timestamp: Date.now() } });
+                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, datos: { codigo: 'AUDIO_CONTROL_FALLIDO', mensaje: error && error.message ? error.message : String(error), comando, timestamp: Date.now() } });
                 return;
             }
-            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { accion: 'audio_control', comando, exito: true, timestamp: Date.now() } });
+            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { accion: 'audio_control', comando, exito: true, timestamp: Date.now() } });
         }
 
         // Controlador para acciones de UI desde botones horizontales
@@ -1703,7 +1688,6 @@
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
                     componenteId: CONFIG_HIJO.COMPONENTE_ID,
                     version: '1.0.0',

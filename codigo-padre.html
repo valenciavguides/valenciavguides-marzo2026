@@ -4102,7 +4102,6 @@
                                 if (typeof enviarMensaje_S1 === 'function') {
                                     await enviarMensaje_S1({
                                         tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_START,
-                                        origen: CONFIG_PADRE.ID,
                                         destino: CONFIG_PADRE.ID,
                                         datos: { intervalo: hbIntervalo }
                                     });
@@ -5078,7 +5077,7 @@
                 if (DATOS_PADRE[av]?.[id] && typeof enviarMensaje_S1 === 'function') {
                     const pNorm = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
                     if (pNorm.length > 0) {
-                        await enviarMensaje_S1({ destino: 'hijo2', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: pNorm, timestamp: Date.now() } });
+                        await enviarMensaje_S1({ destino: 'hijo2', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pNorm, timestamp: Date.now() } });
                         (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo2 (${pNorm.length} paradas)`);
                     }
                 }
@@ -5107,7 +5106,7 @@
                 }
                 if (typeof enviarMensaje_S1 === 'function') {
                     const pH5 = coords.map(c => ({ id: `padre-${c.id}`, parada_id: c.id, tipo: c.tipo, parada: c.parada, tramo: c.tramo, nombre: c.nombre, padreid: `padre-${c.id}`, coordenadas: c.coordenadas || c.fin || c.inicio || null }));
-                    await enviarMensaje_S1({ destino: 'hijo5', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: pH5, aventura: av, timestamp: Date.now() } });
+                    await enviarMensaje_S1({ destino: 'hijo5', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pH5, aventura: av, timestamp: Date.now() } });
                     (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo5 (${pH5.length} paradas)`);
                 }
             } catch (_e5) { (globalThis.logger || console).warn(`${logPrefix} Error enviando RESPUESTA_DATOS_PARADAS a hijo5:`, _e5); }
@@ -5217,7 +5216,7 @@
             try {
                 const fnAudio = globalThis.solicitarAudioAHijo3 || (typeof solicitarAudioAHijo3 === 'function' ? solicitarAudioAHijo3 : null);
                 if (fnAudio) { await fnAudio(audioId); }
-                else if (typeof enviarMensaje_S1 === 'function') { await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.AUDIO.REPRODUCIR_REQUEST, origen: getPadreId(), destino: 'hijo3', datos: { audioId, contexto: 'progresion_aventura', autoplay: false } }); }
+                else if (typeof enviarMensaje_S1 === 'function') { await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.AUDIO.REPRODUCIR_REQUEST, destino: 'hijo3', datos: { audioId, contexto: 'progresion_aventura', autoplay: false } }); }
                 else { throw new TypeError('No hay función ni canal disponible para solicitar audio a hijo3'); }
                 const fnControles = globalThis.actualizarEstadoControlesAudioPadre || (typeof actualizarEstadoControlesAudioPadre === 'function' ? actualizarEstadoControlesAudioPadre : null);
                 if (fnControles) { fnControles(); } else { (globalThis.logger || console).debug(`${logPrefix} actualizarEstadoControlesAudioPadre aún no disponible en esta fase`); }
@@ -5702,7 +5701,7 @@
             resolveActivacion(true);
 
             try {
-                enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.NAVEGACION.GPS.ESTADO_ACTUALIZADO, origen: getPadreId(), destino: 'hijo2', datos: { activo: true, permisos: true, precision: null, error: null } });
+                enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.NAVEGACION.GPS.ESTADO_ACTUALIZADO, destino: 'hijo2', datos: { activo: true, permisos: true, precision: null, error: null } });
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error notificando estado GPS:`, error);
             }
@@ -5916,7 +5915,7 @@
                     // normal reenvía CONTROL.HABILITAR para btnAvanzar desde otros tres sitios,
                     // y un bloqueo de un solo disparo se perdía en cuanto uno de ellos saltaba.
                     try {
-                        enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.DESHABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'fuera_de_zona_5km' } });
+                        enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.DESHABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'fuera_de_zona_5km' } });
                     } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 } else if (!fuera && wasBlocked) {
                     (globalThis.logger || console).info(`[PADRE][GPS][5KM] Usuario volvió dentro de la ruta (${Math.round(minDistM)}m) — desbloqueando`);
@@ -5925,7 +5924,7 @@
                     if (actionBtn) actionBtn.style.display = '';
                     try { if (typeof hideGpsOutOfRangeOverlay === 'function') hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     try {
-                        enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'de_vuelta_en_zona' } });
+                        enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'de_vuelta_en_zona' } });
                     } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 }
             } catch (e) {
@@ -5973,7 +5972,6 @@
             try {
                 const payload = {
                     tipo: TIPOS_MENSAJE_S1.NAVEGACION.GPS.ERROR,
-                    origen: getPadreId(),
                     datos: {
                         codigo: error.code,
                         mensaje: errorMsg,
@@ -6159,7 +6157,6 @@
                         try {
                             enviarMensajePadre({
                                 tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_REQUEST,
-                                origen: (typeof getPadreId === 'function') ? getPadreId() : undefined,
                                 destino: destino,
                                 datos: { ...payload, pedidoId }
                             });
@@ -7468,7 +7465,6 @@
                         await enviarMensaje_S1({
                             destino: hijoId,
                             tipo: TIPOS_MENSAJE_S1.SISTEMA.PADRE_DATOS,
-                            origen: getPadreId(),
                             datos: datosPadreDatos
                         });
                         (globalThis.logger || console).info(`${logPrefix} PADRE_DATOS enviado a ${hijoId}`);
@@ -7491,7 +7487,7 @@
         async function _hijoListo_confirmarAlHijo(hijoId, logPrefix) {
             try {
                 if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({ destino: hijoId, tipo: TIPOS_MENSAJE_S1.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, origen: getPadreId(), datos: { timestamp: Date.now(), mensaje: 'Hijo confirmado como listo', modoInicial: estado?.modo?.actual || MODOS.CASA } });
+                    await enviarMensaje_S1({ destino: hijoId, tipo: TIPOS_MENSAJE_S1.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, datos: { timestamp: Date.now(), mensaje: 'Hijo confirmado como listo', modoInicial: estado?.modo?.actual || MODOS.CASA } });
                     (globalThis.logger || console).info(`${logPrefix} PADRE_CONFIRMA_HIJO_LISTO enviado a ${hijoId}`);
                 }
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error enviando PADRE_CONFIRMA_HIJO_LISTO a ${hijoId}:`, error); }
@@ -7510,7 +7506,7 @@
                 if (DATOS_PADRE[av] && DATOS_PADRE[av][id]) {
                     const paradasNormalizadas = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
                     if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ destino: 'hijo2', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: paradasNormalizadas, timestamp: Date.now() } });
+                        await enviarMensaje_S1({ destino: 'hijo2', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: paradasNormalizadas, timestamp: Date.now() } });
                         (globalThis.logger || console).info(`${logPrefix} Datos de paradas enviados a hijo2 para inicialización (normalizados)`);
                     }
                 }
@@ -7523,7 +7519,7 @@
                 for (const criticoId of hijosCriticos) {
                     try {
                         if (typeof enviarMensaje_S1 === 'function') {
-                            await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.CAMBIO_MODO, origen: CONFIG_PADRE.ID, destino: criticoId, datos: { modo: modoActual, timestamp: Date.now(), razon: 'sincronizacion_inicial', secuenciaCompleta: true } });
+                            await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.CAMBIO_MODO, destino: criticoId, datos: { modo: modoActual, timestamp: Date.now(), razon: 'sincronizacion_inicial', secuenciaCompleta: true } });
                             (globalThis.logger || console).debug(`${logPrefix} CAMBIO_MODO inicial enviado a ${criticoId}`);
                         } else { (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible para sincronización inicial`); }
                     } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error enviando CAMBIO_MODO inicial a ${criticoId}:`, error); }
@@ -7567,7 +7563,7 @@
                     (globalThis.logger || console).info(`${logPrefix} [CAMBIO_MODO][RESEND] HIJO_LISTO de ${hijoId}, reenviando CAMBIO_MODO pendiente (intentos=${pending.intentos})`);
                     try {
                         if (typeof enviarMensaje_S1 === 'function') {
-                            await enviarMensaje_S1({ destino: hijoId, tipo: TIPOS_MENSAJE_S1.SISTEMA.CAMBIO_MODO, origen: getPadreId(), datos: { modo: pending.modo, ...pending.datos, secuenciaCompleta: true } });
+                            await enviarMensaje_S1({ destino: hijoId, tipo: TIPOS_MENSAJE_S1.SISTEMA.CAMBIO_MODO, datos: { modo: pending.modo, ...pending.datos, secuenciaCompleta: true } });
                             globalThis.pendingModeChanges.delete(hijoId);
                             (globalThis.logger || console).success(`${logPrefix} [CAMBIO_MODO][RESEND] CAMBIO_MODO pendiente reenviado exitosamente a ${hijoId}`);
                         } else { (globalThis.logger || console).warn(`${logPrefix} [CAMBIO_MODO][RESEND] enviarMensaje_S1 no disponible para reenviar CAMBIO_MODO pendiente`); }
@@ -7654,7 +7650,7 @@
                 if (!av) {
                     (globalThis.logger || console).debug(`${logPrefix} Sin aventura seleccionada — enviando lista vacía`);
                     if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: [], aventura: null, timestamp: Date.now() } });
+                        await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: [], aventura: null, timestamp: Date.now() } });
                     }
                     return;
                 }
@@ -7663,7 +7659,7 @@
                 if (DATOS_PADRE[av]?.[id]) {
                     const pNorm = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
                     if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: pNorm, aventura: av, timestamp: Date.now() } });
+                        await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pNorm, aventura: av, timestamp: Date.now() } });
                         (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → ${destino} (${pNorm.length} paradas, fuente: DATOS_PADRE)`);
                     }
                     return;
@@ -7672,7 +7668,7 @@
                 // Sin datos — array vacío explícito
                 (globalThis.logger || console).warn(`${logPrefix} Sin datos para ${av}/${id} — enviando lista vacía`);
                 if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: [], aventura: av, timestamp: Date.now() } });
+                    await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: [], aventura: av, timestamp: Date.now() } });
                 }
             } catch (err) { (globalThis.logger || console).error(`${logPrefix} Error:`, err); }
         }, { permanente: true });
@@ -7686,7 +7682,7 @@
         async function _enviarHeartbeatStartAHijo(h, origen, logPrefix) {
             try {
                 if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_START, origen: CONFIG_PADRE.ID, destino: h, datos: { timestamp: Date.now(), propagadoDesde: origen } });
+                    await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_START, destino: h, datos: { timestamp: Date.now(), propagadoDesde: origen } });
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible para HEARTBEAT_START`);
                 }
@@ -7771,7 +7767,7 @@
             for (const h of hijosCriticos) {
                 try {
                     if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_PAUSE, origen: CONFIG_PADRE.ID, destino: h, datos: { timestamp: Date.now(), propagadoDesde: mensaje.origen } });
+                        await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_PAUSE, destino: h, datos: { timestamp: Date.now(), propagadoDesde: mensaje.origen } });
                     } else {
                         (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible para HEARTBEAT_PAUSE`);
                     }
@@ -8028,7 +8024,6 @@
                 if (typeof enviarMensaje_S1 === 'function') {
                     await enviarMensaje_S1({
                         tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_RESPONSE,
-                        origen: CONFIG_PADRE.ID,
                         destino: mensaje.origen,
                         datos: {
                             timestamp: Date.now(),
@@ -8207,7 +8202,6 @@
                     await enviarMensaje_S1({
                         destino: 'hijo3',
                         tipo: TIPOS_MENSAJE_S1.UI.ACCION_USUARIO,
-                        origen: getPadreId(),
                         datos: { accion: 'audio_control', comando, contexto, reenviadoDe: mensaje.origen }
                     });
                 } else {
@@ -8248,7 +8242,6 @@
                         if (typeof enviarMensaje_S1 === 'function') {
                             await enviarMensaje_S1({
                                 tipo: TIPOS_MENSAJE_S1.SISTEMA.NOTIFICACION,
-                                origen: globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.ID ? globalThis.CONFIG_PADRE.ID : 'padre',
                                 destino: hijoId,
                                 datos: {
                                     evento: 'aplicacion_lista',
@@ -8972,8 +8965,7 @@ await _comprobarReanudacionAventura(logPrefix);
             TIPOS_MENSAJE: TIPOS_MENSAJE_S1,
             logger: logger_S1 || globalThis.logger || console,
             CONFIG_PADRE: globalThis.CONFIG_PADRE,
-            enviarMensaje: enviarMensaje_S1,
-            getPadreId: getPadreId_S1
+            enviarMensaje: enviarMensaje_S1
         });
         // Último registro de Script 1: a partir de aquí no registra más controladores. Sus
         // registros ya están en la cola del state-manager (se encolan sin ningún await por medio),
@@ -10111,22 +10103,22 @@ await _comprobarReanudacionAventura(logPrefix);
                 // esta rama no se cumplía nunca y, aunque se hubiera cumplido, el destino no
                 // existía: la restauración del temporizador no llegaba a ninguna parte.
                 if (hijoId === 'hijo1-opciones' && snap.tiempoRestante !== undefined && snap.tiempoRestante !== null) {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, origen: getPadreId(), destino: 'hijo1-opciones', datos: { tiempoEstimado: snap.tiempoRestante, pausado: false, timestamp: Date.now() } });
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, destino: 'hijo1-opciones', datos: { tiempoEstimado: snap.tiempoRestante, pausado: false, timestamp: Date.now() } });
                     logger.info(`[PADRE][SNAPSHOT] ✅ Temporizador restaurado para hijo1: ${snap.tiempoRestante}s`);
                 }
                 if (hijoId === 'hijo2' && snap.paradaActual) {
                     // parada_id (no paradaActual): el handler de hijo2 lee
                     // datos.parada_id || datos.paradaId — con el nombre viejo
                     // resolvía a null y la restauración no hacía nada (ver auditoría EJE 17).
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, origen: getPadreId(), destino: 'hijo2', datos: { parada_id: snap.paradaActual, timestamp: Date.now() } });
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, destino: 'hijo2', datos: { parada_id: snap.paradaActual, timestamp: Date.now() } });
                     logger.info(`[PADRE][SNAPSHOT] ✅ Parada restaurada para hijo2: ${snap.paradaActual}`);
                 }
                 if (hijoId === 'hijo3' && snap.audioActual) {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, origen: getPadreId(), destino: 'hijo3', datos: { ...snap.audioActual, timestamp: Date.now() } });
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, destino: 'hijo3', datos: { ...snap.audioActual, timestamp: Date.now() } });
                     logger.info(`[PADRE][SNAPSHOT] ✅ Audio restaurado para hijo3`);
                 }
                 if (hijoId === 'hijo4' && snap.retoActual) {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.RETO.MOSTRAR, origen: getPadreId(), destino: 'hijo4', datos: { ...snap.retoActual, timestamp: Date.now() } });
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.RETO.MOSTRAR, destino: 'hijo4', datos: { ...snap.retoActual, timestamp: Date.now() } });
                     logger.info(`[PADRE][SNAPSHOT] ✅ Reto restaurado para hijo4`);
                 }
             } catch (e) { logger.error(`[PADRE][SNAPSHOT] Error restaurando ${hijoId}:`, e); }
@@ -10235,7 +10227,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (coords.length > 0 && hijosInicializados.has('hijo2')) {
                     await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_COORDENADAS,
-                        origen: globalThis.CONFIG_PADRE?.ID || 'padre',
                         destino: 'hijo2',
                         datos: { aventura, idioma, coordenadas: coords, total: coords.length, timestamp: Date.now() }
                     });
@@ -10270,7 +10261,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (textos.length > 0 && hijosInicializados.has('hijo2')) {
                     await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_TEXTOS,
-                        origen: globalThis.CONFIG_PADRE?.ID || 'padre',
                         destino: 'hijo2',
                         datos: { aventura, idioma, textos, total: textos.length, timestamp: Date.now() }
                     });
@@ -10298,7 +10288,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     }));
                     await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE_S2.NAVEGACION.RESPUESTA_DATOS_PARADAS,
-                        origen: globalThis.CONFIG_PADRE?.ID || 'padre',
                         destino: 'hijo5',
                         datos: { paradas: pH5, aventura, timestamp: Date.now() }
                     });
@@ -10327,16 +10316,6 @@ await _comprobarReanudacionAventura(logPrefix);
             (globalThis.logger || console).info('[PADRE] ✅ distribuirDatosAventura disponible globalmente');
         }
 
-        // SAFETY: helper para obtener el ID del padre guardando contra ReferenceErrors
-        function getPadreIdLocal() {
-            try {
-                // Prefer the canonical helper if available
-                if (typeof getPadreId === 'function') return getPadreId();
-                if (globalThis.window && globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.ID) return globalThis.CONFIG_PADRE.ID;
-            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            return 'padre';
-        }
-
         // Safe aliases for common messaging symbols in Script 2 (only define if not already present on window)
         if (globalThis.TIPOS_MENSAJE === undefined) { globalThis.TIPOS_MENSAJE = TIPOS_MENSAJE_S2; }
         if (globalThis.MODOS === undefined) { globalThis.MODOS = MODOS_S2; }
@@ -10344,60 +10323,16 @@ await _comprobarReanudacionAventura(logPrefix);
         if (globalThis.enviarMensaje === undefined) { globalThis.enviarMensaje = enviarMensaje_S2 || globalThis.enviarMensaje; }
         if (globalThis.ajustarTimeoutPorConexion === undefined) { globalThis.ajustarTimeoutPorConexion = ajustarTimeoutPorConexion_S2 || globalThis.ajustarTimeoutPorConexion; }
 
-        function _enriquecerPayloadPadre(payload) {
-            try {
-                const padreId = (typeof getPadreIdLocal === 'function' ? getPadreIdLocal() : (globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.ID) || 'padre');
-                const origenVal = payload.origen === undefined ? '' : payload.origen;
-                const looksLikePlaceholder = (typeof origenVal === 'string' && (
-                    origenVal.trim() === '' ||
-                    origenVal === 'sistema' ||
-                    origenVal === 'undefined' ||
-                    origenVal === 'mensaje.origen' ||
-                    origenVal === 'mensaje?.origen' ||
-                    origenVal.includes('mensaje.origen')
-                ));
-                if (!origenVal || looksLikePlaceholder) {
-                    payload.origen = padreId;
-                }
-                return enviarMensaje(payload);
-            } catch (e) {
-                (globalThis.logger || console).debug('[PADRE][ENVIAR_PADRE] enrichPayload fallback:', e);
-                payload.origen = payload.origen || ((globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.ID) || 'padre');
-                return enviarMensaje(payload);
-            }
-        }
-
-        // Helper: enviarMensajePadre
-        // Ensures all messages originating from the padre include a valid origen (PADRE ID)
-        // Solo acepta el formato objeto — desde que enviarMensaje() (js/mensajeria.js) dejó
-        // de soportar el formato posicional (2026-08-06), el fallback "legacy signature" que
-        // vivía aquí (llamar a enviarMensaje(...args) con varios argumentos sueltos) dejó de
-        // tener sentido: ya estaba sin ningún caller (nada en el proyecto llama a
-        // enviarMensajePadre con más de un argumento — verificado), y además habría quedado
-        // roto de raíz si alguna vez se hubiera alcanzado, así que se retira junto con el de
-        // mensajeria.js en vez de dejarlo silenciosamente inútil.
+        // enviarMensajePadre: alias de enviarMensaje, que se queda hasta el paso 5 (un solo nombre de envío). El
+        // `origen` lo pone el bus (docs/mensajeria-duplicada-en-hijos.md §21.1): aquí ya no se toca. Devuelve
+        // siempre una Promise porque se usa con `.catch()` encadenado (marcarParadaCompletada y otros): sobre
+        // `undefined`, `.catch()` lanzaría ahí mismo y cortaría la función que lo llama sin aviso.
         function enviarMensajePadre(mensaje) {
             try {
-                return _enriquecerPayloadPadre({ ...mensaje });
+                return Promise.resolve(enviarMensaje(mensaje));
             } catch (e) {
-                (globalThis.logger || console).debug('[PADRE][ENVIAR_PADRE] enviarMensaje wrapper error:', e);
-                try {
-                    return enviarMensaje(mensaje);
-                } catch (err) {
-                    (globalThis.logger || console).warn('[PADRE][ENVIAR_PADRE] enviarMensaje not available:', err);
-                    // Refuerzo (2026-08-06): sin este return, un fallo doble (enriquecer Y el
-                    // reintento) dejaba la función devolviendo `undefined` en vez de una Promise.
-                    // enviarMensajePadre() se usa con `.catch()` encadenado sin envolver en 9
-                    // sitios (incluida marcarParadaCompletada) — sobre `undefined`, `.catch()`
-                    // lanza un TypeError síncrono ahí mismo, cortando en seco el resto de la
-                    // función que lo llama, sin ningún aviso. Hoy este camino es inalcanzable
-                    // en la práctica (Script 2 ya espera a que `globalThis.mensajeria` esté
-                    // disponible antes de definir esta función — línea ~8365), pero esa garantía
-                    // vive fuera de esta función; este return la hace correcta por construcción,
-                    // sin depender de que ese guard externo se mantenga igual en el futuro. Ver
-                    // GUIA-COMPLETA.md §4.7g y memoria project_audit_promise_boolean_pendiente.
-                    return Promise.resolve(undefined);
-                }
+                (globalThis.logger || console).warn('[PADRE][ENVIAR_PADRE] enviarMensaje no disponible:', e);
+                return Promise.resolve(false);
             }
         }
         if (globalThis.enviarMensajePadre === undefined) globalThis.enviarMensajePadre = enviarMensajePadre;
@@ -10483,9 +10418,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 })();
                 try {
                     const notifyData = { evento: 'PENDING_INICIADO', padreId: key, ttlMs: estado.pendingCompleciones[key].ttlMs };
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo2', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo2:', e?.message)); // NOSONAR
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo3', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo3:', e?.message)); // NOSONAR
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo4', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo4:', e?.message)); // NOSONAR
+                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo2', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo2:', e?.message)); // NOSONAR
+                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo3', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo3:', e?.message)); // NOSONAR
+                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo4', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo4:', e?.message)); // NOSONAR
                 } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
             }
             return estado.pendingCompleciones[key];
@@ -10794,7 +10729,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
                         (globalThis.logger || console).info(`${logPrefix} ${esTramo ? 'Tramo' : 'Parada'} completado en aventura — habilitando btnAvanzar, esperando confirmación del usuario`);
-                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: esTramo ? 'tramo_completado' : 'parada_completada' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: esTramo ? 'tramo_completado' : 'parada_completada' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
 
                         // Cartel al completarse el elemento — cuál de los 4 exactamente depende
                         // de qué acaba de terminar y qué sigue, mira el elemento siguiente en la
@@ -10881,7 +10816,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 await enviarMensaje_S2({
                     tipo: TIPOS_MENSAJE_S2.DATOS.COORDENADAS_PARADAS_REQUEST,
-                    origen: getPadreId(),
                     destino: 'hijo2',
                     datos: {
                         paradaId: destinoId,
@@ -10910,7 +10844,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 _snapshotRecuperacion.audioActual = { audioId, audioData, contexto: 'progresion_aventura', autoplay: false };
                 await enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
-                    origen: getPadreId(),
                     destino: 'hijo3',
                     datos: {
                         audioId: audioId,
@@ -10970,7 +10903,6 @@ await _comprobarReanudacionAventura(logPrefix);
             try {
                 await enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
-                    origen: getPadreId(),
                     destino: 'hijo3',
                     datos: {
                         accion: 'audio_control',
@@ -11046,7 +10978,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 _ultimoHayAudioNotificadoAHijo3 = hayAudioUtilizable;
                 enviarMensajePadre({
                     tipo: hayAudioUtilizable ? TIPOS_MENSAJE.CONTROL.HABILITAR : TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                    origen: getPadreId(),
                     destino: 'hijo3',
                     datos: { control: 'progressBar', razon: hayAudioUtilizable ? 'audio_activo' : 'sin_audio_o_fuera_de_rango' }
                 }).catch(error => (globalThis.logger || console).debug('[PADRE] Error notificando progressBar a hijo3:', error?.message));
@@ -11226,7 +11157,6 @@ await _comprobarReanudacionAventura(logPrefix);
             _snapshotRecuperacion.retoActual = { retoId: retoIdToUsar, contexto: 'manual', retosArray: _retosArray };
             const _retoMostrarMsg = {
                 tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
-                origen: getPadreId(),
                 destino: 'hijo4',
                 datos: {
                     retoId: retoIdToUsar,
@@ -11276,7 +11206,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     (globalThis.logger || console).warn(`${logPrefix} No hay elementosIDpadre disponibles para aventura ${globalThis.aventuraSeleccionada} idioma ${globalThis.idiomaSeleccionado}`);
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                        origen: getPadreId(),
                         destino: mensaje.origen,
                         datos: {
                             error: 'Datos de aventura no disponibles',
@@ -11310,7 +11239,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     (globalThis.logger || console).warn(`${logPrefix} No hay parada actual (${estado.paradaActual}) o reto_id definido para parada encontrada: ${paradaEncontrada ? JSON.stringify(paradaEncontrada) : 'null'}`);
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                        origen: getPadreId(),
                         destino: mensaje.origen,
                         datos: {
                             error: 'No hay reto disponible',
@@ -11366,7 +11294,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Deshabilitar botón inmediatamente después de solicitar
                 await enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                    origen: getPadreId(),
                     destino: 'hijo3',
                     datos: {
                         control: 'retosBtn',
@@ -11379,7 +11306,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 try {
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
-                        origen: getPadreId(),
                         destino: 'hijo2',
                         datos: {
                             retoActivo: true,
@@ -11455,7 +11381,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     // Notificar a hijo2 que el reto se ocultó (rehabilita botones de navegación)
                     enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                        origen: getPadreId(),
                         destino: 'hijo2',
                         datos: { motivo: 'reto_cerrado' }
                     });
@@ -11467,7 +11392,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     if (_retoSigueActivo) {
                         enviarMensajePadre({
                             tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                            origen: getPadreId(),
                             destino: 'hijo3',
                             datos: { control: 'retosBtn', motivo: 'reto_cerrado' }
                         });
@@ -11480,7 +11404,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     // como si la parada actual tuviera reto — ver guard en su propio handler.
                     enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.RETO.LIMPIAR_ESTADO,
-                        origen: getPadreId(),
                         destino: 'hijo4',
                         datos: { retoId, retoSigueActivo: _retoSigueActivo }
                     });
@@ -11518,7 +11441,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
                         (globalThis.logger || console).info(`${logPrefix} Parada aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
-                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
                     }
                 }
             } catch (error_) {
@@ -11557,7 +11480,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     }
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
-                        origen: getPadreId(),
                         destino: 'hijo4',
                         datos: { retoId: siguienteRetoEnCola, retosArray: _retoDataSec ? [_retoDataSec] : [], contexto: 'secuencial' }
                     });
@@ -11611,7 +11533,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 try {
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-                        origen: getPadreId(),
                         destino: 'hijo3',
                         datos: {
                             evento: 'reto_completado',
@@ -11631,7 +11552,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 try {
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
-                        origen: getPadreId(),
                         destino: 'hijo2',
                         datos: {
                             retoActivo: false,
@@ -11665,7 +11585,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 try {
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                        origen: getPadreId(),
                         destino: mensaje.origen,
                         datos: {
                             error: error.message,
@@ -11686,7 +11605,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const { retoId } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} hijo4 confirmó que mostró el reto: ${retoId}`);
                 // Fase 3: confirmar recepción a hijo4
-                await enviarMensajePadre({ tipo: TIPOS_MENSAJE.RETO.CONFIRMADO, origen: getPadreId(), destino: mensaje.origen, datos: { retoId } });
+                await enviarMensajePadre({ tipo: TIPOS_MENSAJE.RETO.CONFIRMADO, destino: mensaje.origen, datos: { retoId } });
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando RETO.MOSTRADO:`, error);
             }
@@ -11718,7 +11637,6 @@ await _comprobarReanudacionAventura(logPrefix);
                             (globalThis.logger || console).warn(`${logPrefix} Rechazando activación: modo actual no es AVENTURA (${modoActual})`);
                             await enviarMensajePadre({
                                 tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                                origen: getPadreId(),
                                 destino: mensaje.origen,
                                 datos: { error: 'GPS solo disponible en modo AVENTURA', contexto: 'gps_activar_restringido' }
                             });
@@ -11756,7 +11674,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 try {
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                        origen: getPadreId(),
                         destino: mensaje.origen,
                         datos: {
                             error: error.message,
@@ -11998,7 +11915,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     return { exito: false, error: `Error dibujando polyline: ${error.message}` };
                 }
 
-                await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, origen: getPadreId(), destino: 'hijo2', datos: { ubicacionActiva: true, timestamp: Date.now() } });
+                await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, destino: 'hijo2', datos: { ubicacionActiva: true, timestamp: Date.now() } });
                 return { exito: true, ubicacionUsuario: coordenadasUsuario, destino: coordenadasDestino, elementoId };
 
             } catch (error) {
@@ -12138,7 +12055,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 try {
                     await globalThis.enviarMensajeConConfirmacion({
                         tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
-                        origen: getPadreId(),
                         destino: 'hijo3',
                         datos: datosMensaje,
                         timeout: 1200
@@ -12321,7 +12237,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     estado.retoActual = { id: retosDeParada[0], disponible: false, completado: false, cola: retosDeParada, colaCompletados: new Set() };
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                        origen: getPadreId(),
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'esperar_fin_audio_aventura' }
                     });
@@ -12329,20 +12244,17 @@ await _comprobarReanudacionAventura(logPrefix);
                     estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, colaCompletados: new Set() };
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                        origen: getPadreId(),
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'parada_con_reto_sin_audio_aventura', retoId: retosDeParada[0] }
                     });
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.RETO.HABILITAR,
-                        origen: getPadreId(),
                         destino: 'hijo4',
                         datos: { paradaId: parada?.parada_id || parada?.tramo_id, razon: 'sin_audio' }
                     });
                 } else {
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                        origen: getPadreId(),
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'parada_sin_reto_aventura' }
                     });
@@ -12352,14 +12264,12 @@ await _comprobarReanudacionAventura(logPrefix);
                     estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, colaCompletados: new Set() };
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                        origen: getPadreId(),
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'parada_con_reto_casa', retoId: retosDeParada[0] }
                     });
                 } else {
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                        origen: getPadreId(),
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'parada_sin_reto_casa' }
                     });
@@ -12376,7 +12286,6 @@ await _comprobarReanudacionAventura(logPrefix);
             (globalThis.logger || console).debug(`${logPrefix} Solicitando datos de parada a hijo2 con ID: ${paradaIdSolicitud} (esTramo=${esTramo})`);
             return Promise.resolve(enviarMensajeConConfirmacion({
                 tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_REQUEST,
-                origen: getPadreId(),
                 destino: 'hijo2',
                 datos: {
                     paradaId: paradaIdSolicitud,
@@ -12407,7 +12316,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 notificaciones.push(
                     Promise.resolve(enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                        origen: getPadreId(),
                         destino: 'hijo5',
                         datos: {
                             ...datosNotificacion,
@@ -12425,7 +12333,6 @@ await _comprobarReanudacionAventura(logPrefix);
             notificaciones.push(
                 Promise.resolve(enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                    origen: getPadreId(),
                     destino: 'hijo2',
                     datos: {
                         paradaId: datosNotificacion.paradaId,
@@ -12449,7 +12356,6 @@ await _comprobarReanudacionAventura(logPrefix);
             notificaciones.push(
                 Promise.resolve(enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                    origen: getPadreId(),
                     destino: 'hijo3',
                     datos: {
                         paradaId: datosNotificacion.paradaId,
@@ -12468,7 +12374,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 notificaciones.push(
                     Promise.resolve(enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                        origen: getPadreId(),
                         destino: 'hijo4',
                         datos: {
                             paradaId: datosNotificacion.paradaId,
@@ -12623,7 +12528,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     try {
                         await enviarMensajePadre({
                             tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                            origen: getPadreId(),
                             destino: 'hijo2',
                             datos: { control: 'btnAvanzar', razon: 'parada_pendiente_completar' }
                         });
@@ -12638,7 +12542,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     try {
                         await enviarMensajePadre({
                             tipo: TIPOS_MENSAJE.RETO.ESTADO_CASA,
-                            origen: getPadreId(),
                             destino: 'hijo4',
                             datos: {
                                 tipo: esTramo ? 'tramo' : 'parada',
@@ -12908,7 +12811,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 try {
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                        origen: getPadreId(),
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'fuera_de_rango' }
                     });
@@ -13030,7 +12932,7 @@ await _comprobarReanudacionAventura(logPrefix);
                         // esperar confirmación, nunca progresar solo (ver marcarParadaCompletada).
                         estado.paradaListaParaAvanzar = true;
                         (globalThis.logger || console).info(`${logPrefix} ${elementoAudio?.tipo === 'tramo' ? 'Tramo' : 'Parada'} aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
-                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback2' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback2' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
                     }
                 }
             } catch (error_) {
@@ -13057,13 +12959,11 @@ await _comprobarReanudacionAventura(logPrefix);
                 estado.retoActual.colaCompletados = new Set();
                 await enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                    origen: getPadreId(),
                     destino: 'hijo3',
                     datos: { control: 'retosBtn', razon: 'audio_finalizado', retoId: retosDelElemento[0] }
                 });
                 await enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.RETO.HABILITAR,
-                    origen: getPadreId(),
                     destino: 'hijo4',
                     datos: { paradaId: estado.paradaActual, razon: 'audio_escuchado_1vez' }
                 });
@@ -13402,7 +13302,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
                 // Fase 3: confirmar recepción al hijo
                 try {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, origen: getPadreId(), destino: mensaje.origen, datos: { subtipo: 'COORDENADAS', exito: !!exito } });
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, destino: mensaje.origen, datos: { subtipo: 'COORDENADAS', exito: !!exito } });
                 } catch (ackErr) { (globalThis.logger || console).warn(`${logPrefix} Error enviando CARGADOS_RECIBIDO:`, ackErr); }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
@@ -13420,7 +13320,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
                 // Fase 3: confirmar recepción al hijo
                 try {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, origen: getPadreId(), destino: mensaje.origen, datos: { subtipo: 'TEXTOS', exito: !!exito } });
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, destino: mensaje.origen, datos: { subtipo: 'TEXTOS', exito: !!exito } });
                 } catch (ackErr) { (globalThis.logger || console).warn(`${logPrefix} Error enviando CARGADOS_RECIBIDO:`, ackErr); }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
@@ -13438,7 +13338,7 @@ await _comprobarReanudacionAventura(logPrefix);
             const coords = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas || [];
             if (!av || coords.length === 0) return;
             (globalThis.logger || console).info(`[PADRE][SOLICITAR_COORDENADAS] Reenviando ${coords.length} coordenadas a ${mensaje.origen}`);
-            await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS, origen: getPadreId(), destino: mensaje.origen, datos: { aventura: av, idioma: id, coordenadas: coords, total: coords.length, timestamp: Date.now() } });
+            await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS, destino: mensaje.origen, datos: { aventura: av, idioma: id, coordenadas: coords, total: coords.length, timestamp: Date.now() } });
         }
 
         async function _hdl_MONITOREO_METRICA(mensaje) {
@@ -13756,7 +13656,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
         async function _broadcastActivacion(aventura, idioma, logPrefix) {
             try {
-                await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'broadcast', datos: { evento: 'AVENTURA_ACTIVADA', aventura, idioma: idioma || 'es', timestamp: Date.now() } });
+                await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'broadcast', datos: { evento: 'AVENTURA_ACTIVADA', aventura, idioma: idioma || 'es', timestamp: Date.now() } });
             } catch (broadcastError) {
                 (globalThis.logger || console).warn(`${logPrefix} Error en broadcast de activación:`, broadcastError);
             }
@@ -15600,7 +15500,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     try {
                         await enviarMensaje_S4({
                             tipo: TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_START,
-                            origen: CONFIG_PADRE_S4.ID,
                             destino: CONFIG_PADRE_S4.ID,
                             datos: { intervalo: (typeof ajustarTimeoutPorConexion === 'function') ? ajustarTimeoutPorConexion(10000) : 10000 }
                         });
@@ -15617,7 +15516,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     try {
                         await enviarMensaje_S4({
                             tipo: TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_PAUSE,
-                            origen: CONFIG_PADRE_S4.ID,
                             destino: CONFIG_PADRE_S4.ID,
                             datos: { timestamp: Date.now(), razon: 'modo_inicial_casa' }
                         });
@@ -15640,7 +15538,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     try {
                         await enviarMensaje_S4({
                             tipo: modoInicial === MODOS_S4.AVENTURA ? TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_START : TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_PAUSE,
-                            origen: CONFIG_PADRE_S4.ID,
                             destino: h,
                             datos: { timestamp: Date.now(), initial: true }
                         });
@@ -15681,7 +15578,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     try {
                         const respuesta = await enviarMensaje_S4({
                             tipo: TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_ESTADO,
-                            origen: CONFIG_PADRE_S4.ID,
                             destino: CONFIG_PADRE_S4.ID,
                             datos: {}
                         });
@@ -15698,20 +15594,20 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     try {
                         (globalThis.logger || console).info('[PADRE][TEST] Iniciando prueba pause/restart heartbeat');
                         // Pausar mediante cambio de modo
-                        await enviarMensaje_S4({ tipo: TIPOS_MENSAJE_S4.SISTEMA.CAMBIO_MODO, origen: CONFIG_PADRE_S4.ID, destino: CONFIG_PADRE_S4.ID, datos: { modo: MODOS_S4.CASA } });
+                        await enviarMensaje_S4({ tipo: TIPOS_MENSAJE_S4.SISTEMA.CAMBIO_MODO, destino: CONFIG_PADRE_S4.ID, datos: { modo: MODOS_S4.CASA } });
                         await sleep(150);
                         let estado = await globalThis.consultarHeartbeat();
                         console.assert(estado?.estado?.userPaused === true, 'expected userPaused true after CASA');
                         console.assert(estado?.estado?.activo === false, 'expected activo false after CASA');
 
                         // Intentar iniciar: debe ignorarse por userPaused
-                        await enviarMensaje_S4({ tipo: TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_START, origen: CONFIG_PADRE_S4.ID, destino: CONFIG_PADRE_S4.ID, datos: { intervalo: 3000 } });
+                        await enviarMensaje_S4({ tipo: TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_START, destino: CONFIG_PADRE_S4.ID, datos: { intervalo: 3000 } });
                         await sleep(150);
                         estado = await globalThis.consultarHeartbeat();
                         console.assert(estado?.estado?.userPaused === true && estado?.estado?.activo === false, 'expected no change when starting while userPaused');
 
                         // Reanudar mediante cambio de modo a aventura
-                        await enviarMensaje_S4({ tipo: TIPOS_MENSAJE_S4.SISTEMA.CAMBIO_MODO, origen: CONFIG_PADRE_S4.ID, destino: CONFIG_PADRE_S4.ID, datos: { modo: MODOS_S4.AVENTURA } });
+                        await enviarMensaje_S4({ tipo: TIPOS_MENSAJE_S4.SISTEMA.CAMBIO_MODO, destino: CONFIG_PADRE_S4.ID, datos: { modo: MODOS_S4.AVENTURA } });
                         await sleep(200);
                         estado = await globalThis.consultarHeartbeat();
                         console.assert(estado?.estado?.userPaused === false, 'expected userPaused false after AVENTURA');

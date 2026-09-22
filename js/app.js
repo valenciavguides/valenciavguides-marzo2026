@@ -215,7 +215,6 @@ export async function actualizarInterfazModo(estado, modo) {
             Promise.resolve(enviarMensaje({
                 destino: hijoId,
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
-                origen: resolverIdPadre(),
                 datos: { modo, secuenciaCompleta: !!estado?.todosHijosListos, mensajeId }
             })).catch(err => {
                 logger.error(`[actualizarInterfazModo] Error enviando a ${hijoId}:`, err);
@@ -237,7 +236,6 @@ export async function actualizarInterfazModo(estado, modo) {
             Promise.resolve(enviarMensaje({
                 destino: hijoId,
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_APLICADO,
-                origen: resolverIdPadre(),
                 datos: { modo, timestamp: Date.now(), mensajeId }
             })).catch(err => {
                 logger.error(`[actualizarInterfazModo] Error enviando APLICADO a ${hijoId}:`, err);
@@ -289,7 +287,6 @@ export function notificarError(codigo, error, contexto = {}) {
         const r = enviarMensaje({
             destino: resolverIdPadre(),
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            origen: resolverIdPadre(),
             datos: {
                 codigo,
                 mensaje: error.message,
@@ -481,7 +478,6 @@ async function _notificarErrorCambioModo(mensaje, errorMsg, error, modo, logPref
         await enviarMensaje({
             destino: mensaje?.origen || 'sistema',
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            origen: resolverIdPadre(),
             mensajeId: generarIdUnico(),
             timestamp: Date.now(),
             datos: {
@@ -822,7 +818,6 @@ async function notificarCambioModoInminente(modoAnterior, modoNuevo, motivo) {
     // Notificar a los componentes
     await enviarMensaje({
         tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-        origen: 'sistema',
         destino: 'broadcast',
         mensajeId: generarIdUnico(),
         timestamp: Date.now(),
@@ -846,7 +841,6 @@ async function notificarCambioModoCompletado(modoAnterior, modoNuevo, motivo) {
     // Notificar a los componentes
     await enviarMensaje({
         tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-        origen: 'sistema',
         destino: 'broadcast',
         mensajeId: generarIdUnico(),
         timestamp: Date.now(),
@@ -976,7 +970,6 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
     // Notificar a los componentes
     await enviarMensaje({
         tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-        origen: 'sistema',
         mensajeId: generarIdUnico(),
         timestamp: Date.now(),
         datos: {
@@ -1294,7 +1287,6 @@ async function ejecutarAccionCoordinada(accion) {
         const resultado = await enviarMensaje({
             tipo: tipo,
             destino: componente,
-            origen: resolverIdPadre(),
             datos: datos
         });
 
@@ -1405,7 +1397,6 @@ const intervaloReintentoModo = setInterval(async () => {
                 await enviarMensaje({
                     destino: hijoId,
                     tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
-                    origen: resolverIdPadre(),
                     datos: {
                         modo: pending.modo,
                         ...pending.datos,

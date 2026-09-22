@@ -1254,7 +1254,6 @@
         // para un caso que no ocurre, y taparía el fallo si algún día ocurriera de verdad.
         globalThis.mensajeria.enviarMensaje({
           tipo: 'SELECCION.P14_MOSTRADA',
-          origen: 'seleccion',
           destino: 'padre',
           datos: { timestamp: Date.now() }
         });
@@ -1658,7 +1657,6 @@
         _log.info('[SELECCION] Notificando al padre para preparar hijos...');
         globalThis.mensajeria.enviarMensaje({
           tipo: 'SELECCION.PREPARAR_HIJOS',
-          origen: 'seleccion',
           destino: 'padre',
           datos: {
             idioma: idiomaSeleccionado || 'es',
@@ -1788,7 +1786,6 @@
       if (globalThis.parent && globalThis.parent !== globalThis) {
         globalThis.mensajeria.enviarMensaje({
           tipo: 'SELECCION.CODIGO_VALIDADO',
-          origen: 'seleccion',
           destino: 'padre',
           datos: {
             aventura: aventuraSeleccionada,
@@ -2462,13 +2459,11 @@
       } else {
         _log.info('[SELECCION] Reto R2: respuesta negativa → reinicio a P1');
         if (globalThis.parent && globalThis.parent !== globalThis) {
-          // `origen` es obligatorio: el bus del padre descarta en silencio todo mensaje que no
-          // lo trae, y sin él _hdl_SELECCION_REINICIAR no llegaba a ejecutarse (spec 74).
-          // `destino: 'padre'` es obligatorio al ir por el bus: sin destino, `enviarMensaje`
-          // entiende "a todos MIS iframes" — y un hijo no tiene ninguno, así que no saldría nada.
-          // Con `postMessage` daba igual, porque siempre iba al padre. El `origen` también es
-          // obligatorio: el bus del padre descarta en silencio lo que llega sin él (spec 74).
-          globalThis.mensajeria.enviarMensaje({ tipo: 'SELECCION.REINICIAR', origen: 'seleccion', destino: 'padre' });
+          // `destino: 'padre'` es obligatorio: sin destino, `enviarMensaje` lo manda a los iframes
+          // que registra esta pantalla (video-intro, puzzle), nunca al padre. El `origen` lo pone
+          // el bus (`'seleccion'`), y sin él el padre descartaría el aviso y
+          // _hdl_SELECCION_REINICIAR no llegaría a ejecutarse (spec 74).
+          globalThis.mensajeria.enviarMensaje({ tipo: 'SELECCION.REINICIAR', destino: 'padre' });
         }
         setTimeout(() => {
           reiniciarSeleccion();
@@ -2647,7 +2642,6 @@
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { version: CONFIG_HIJO.VERSION, tipo: 'SELECCION', capacidades: ['seleccion', 'idioma', 'aventura'], timestamp: Date.now() }
             });
             logger.info(`${logPrefix} HIJO_PREPARADO enviado al padre`);
@@ -2661,7 +2655,6 @@
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_FALLIDO,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { error: error.message, stack: error.stack, timestamp: Date.now() }
             });
         } catch (notifyError) {
@@ -2726,7 +2719,6 @@
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, capacidades: ['seleccion', 'idioma', 'aventura'], timestamp: Date.now() }
             });
             estadoComponente.hijoListoEnviado = true;
@@ -2764,7 +2756,7 @@
         } catch (e) {
             logger.warn(`${logPrefix} inicializarLogicaSeleccion falló:`, e);
         }
-        enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(() => { /* fire-and-forget: error de confirmación UI ignorado intencionalmente */ });
+        enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(() => { /* fire-and-forget: error de confirmación UI ignorado intencionalmente */ });
     }
 
     async function _notificarErrorPadre(logPrefix, controlador, error) {
@@ -2772,7 +2764,6 @@
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { error: error.message, controlador, timestamp: Date.now() }
             });
         } catch (notifyError) {
@@ -2815,7 +2806,7 @@
                 idiomaSeleccionado: estadoComponente.idiomaSeleccionado, aventuraSeleccionada: estadoComponente.aventuraSeleccionada,
                 terminosAceptados: estadoComponente.terminosAceptados, ultimaInteraccion: estadoComponente.ultimaInteraccion
             };
-            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE, origen: CONFIG_HIJO.IFRAME_ID, datos: datosRespuesta });
+            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE, datos: datosRespuesta });
             return { exito: true, timestamp: datosRespuesta.timestamp };
         } catch (error) {
             logger.error(`${controladorPrefix} Error en controlador:`, error);
@@ -2829,24 +2820,24 @@
         try {
             if (!mensaje.datos?.secuenciaCompleta) {
                 logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
-                await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.NACK, origen: CONFIG_HIJO.IFRAME_ID, destino: 'padre', datos: { error: 'Secuencia no completa', esperarPermiso: true, tipoOriginal: mensaje.tipo, modoSolicitado: mensaje.datos?.modo } });
+                await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.NACK, destino: 'padre', datos: { error: 'Secuencia no completa', esperarPermiso: true, tipoOriginal: mensaje.tipo, modoSolicitado: mensaje.datos?.modo } });
                 return { exito: false, error: 'Secuencia no completa' };
             }
             const { modo } = mensaje.datos || {};
             if (!modo || !['casa', 'aventura'].includes(modo)) {
                 logger.error(`${logPrefix} Modo inválido: ${modo}`);
-                await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.NACK, origen: CONFIG_HIJO.IFRAME_ID, destino: 'padre', datos: { error: 'Modo inválido', modoRecibido: modo } });
+                await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.NACK, destino: 'padre', datos: { error: 'Modo inválido', modoRecibido: modo } });
                 return { exito: false, error: 'Modo inválido' };
             }
             logger.info(`${logPrefix} Cambio de modo a "${modo}" entendido (componente de selección)`);
-            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO, origen: CONFIG_HIJO.IFRAME_ID, datos: { modo, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id } });
+            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO, datos: { modo, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id } });
             logger.info(`${logPrefix} Cambio de modo a "${modo}" efectuado (componente de selección)`);
-            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO, origen: CONFIG_HIJO.IFRAME_ID, datos: { modo, exito: true, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id } });
+            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO, datos: { modo, exito: true, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id } });
             return { exito: true };
         } catch (error) {
             logger.error(`${logPrefix} Error:`, error);
             try {
-                await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, destino: 'padre', datos: { error: error.message, tipo: 'CAMBIO_MODO_FALLIDO' } });
+                await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.ERROR, destino: 'padre', datos: { error: error.message, tipo: 'CAMBIO_MODO_FALLIDO' } });
             } catch (e) {
                 logger.error(`${logPrefix} Error notificando fallo:`, e);
             }
@@ -2908,7 +2899,6 @@
             // Enviar mensaje al padre
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.IDIOMA_SELECCIONADO,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 destino: 'padre',
                 datos: {
                     idioma: idioma,
@@ -2974,7 +2964,6 @@
             logger.info(`[SELECCION] Aventura seleccionada: ${aventura}`);
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.AVENTURA_SELECCIONADA,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 destino: 'padre',
                 datos: { aventura: aventura, idioma: estadoComponente.idiomaSeleccionado || 'es', timestamp: Date.now() }
             });
@@ -3018,7 +3007,6 @@
             // Enviar mensaje de activación al padre (registra aventura, carga hijos, NO cambia modo)
             const mensajeEnviado = await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 destino: 'padre',
                 datos: {
                     aventura: estadoComponente.aventuraSeleccionada || 'Aventura1',
@@ -3059,7 +3047,6 @@
             // Enviar mensaje al padre (opcional)
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.TERMINOS_ACEPTADOS,
-                origen: CONFIG_HIJO.IFRAME_ID,
                 destino: 'padre',
                 datos: {
                     aceptados: true,

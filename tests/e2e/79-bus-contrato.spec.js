@@ -29,6 +29,11 @@
  *   BC-12a El latido vigila todos los iframes registrados.
  *   BC-12b Tras tres fallos se recarga solo el recuperable; el otro, aviso.
  *   BC-12c adelantarLatido respeta la pausa y, activo, late al momento.
+ *   BC-15  El `origen` lo pone el bus: el que pasa quien envía se ignora (enviarMensaje y
+ *          despacharLocal).
+ *   BC-16  Al recibir de un iframe registrado, su `origen` tiene que ser su nombre de registro:
+ *          si dice ser otro, se descarta y se avisa.
+ *   BC-17  Un frame con el bus importado pero sin inicializar no envía: saldría sin `origen`.
  *
  * ROJO ANTES QUE VERDE: con el bus de antes de la unificación falla todo salvo BC-0.
  */
@@ -450,5 +455,63 @@ test.describe('BC — Contrato del bus único', () => {
       'el fallo ya se registra en el log y ya se le contesta a quien envió; una rechazada suelta ' +
       'la recogería instalarReporteErroresAlPadre (js/utils.js) y mandaría un SEGUNDO aviso al padre',
     ).toEqual([]);
+  });
+});
+
+test.describe('BC — Identidad: el bus pone el origen y lo comprueba al recibir', () => {
+  test('BC-15. El origen lo pone el bus: el que pasa quien envía se ignora', async ({ page }) => {
+    const { padre, hijo } = await montar(page);
+
+    await escuchar(padre, 'PRUEBA.SELLO');
+    expect(await enviar(hijo, { tipo: 'PRUEBA.SELLO', destino: 'padre', origen: 'falso', datos: {} })).toBe(true);
+    await expect.poll(() => recibidos(padre, 'PRUEBA.SELLO'), { timeout: 3_000 })
+      .toEqual([{ origen: 'hijo', datos: {} }]);
+
+    await escuchar(padre, 'PRUEBA.SELLO_LOCAL');
+    await padre.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'PRUEBA.SELLO_LOCAL', origen: 'falso', datos: {} }));
+    expect(await recibidos(padre, 'PRUEBA.SELLO_LOCAL'), 'despacharLocal tampoco se fía del llamador')
+      .toEqual([{ origen: 'padre', datos: {} }]);
+  });
+
+  test('BC-16. Un iframe registrado que dice ser otro se descarta y se avisa', async ({ page }) => {
+    const { padre, hijo, logs } = await montar(page);
+    await escuchar(padre, 'PRUEBA.SUPLANTA');
+
+    // Control: con su nombre de registro, el mismo mensaje por el mismo camino llega.
+    await hijo.evaluate(() => globalThis.parent.postMessage(
+      { tipo: 'PRUEBA.SUPLANTA', origen: 'hijo', datos: { n: 'control' }, id: 'supl-control', timestamp: Date.now() },
+      globalThis.location.origin,
+    ));
+    await expect.poll(() => recibidos(padre, 'PRUEBA.SUPLANTA'), { timeout: 3_000 })
+      .toEqual([{ origen: 'hijo', datos: { n: 'control' } }]);
+
+    await hijo.evaluate(() => globalThis.parent.postMessage(
+      { tipo: 'PRUEBA.SUPLANTA', origen: 'otro', datos: { n: 'falso' }, id: 'supl-falso', timestamp: Date.now() },
+      globalThis.location.origin,
+    ));
+    // VENTANA-OBSERVACION: un mensaje que se hace pasar por otro no puede llegar a ningun handler
+    await page.waitForTimeout(400);
+    expect(await recibidos(padre, 'PRUEBA.SUPLANTA'), 'el que dice ser otro no llega')
+      .toEqual([{ origen: 'hijo', datos: { n: 'control' } }]);
+    expect(avisos(logs, /descarta PRUEBA\.SUPLANTA: dice venir de 'otro' pero lo envía 'hijo'/),
+      'y se avisa de quién lo envió de verdad').toHaveLength(1);
+  });
+
+  test('BC-17. Con el bus importado pero sin inicializar no se envía nada', async ({ page }) => {
+    const logs = [];
+    page.on('console', (m) => logs.push({ tipo: m.type(), texto: m.text() }));
+    await page.goto('/tests/e2e/fixtures/bus/sin-init.html');
+    await page.waitForFunction(() => globalThis.__arnesListo === true
+      && document.getElementById('nieto')?.contentWindow?.__arnesListo === true, null, { timeout: 15_000 });
+    const nieto = page.frames().find((f) => f.name() === 'nieto');
+    await escuchar(nieto, 'PRUEBA.SIN_INIT');
+
+    const enviado = await page.evaluate(() => globalThis.mensajeria.enviarMensaje({ tipo: 'PRUEBA.SIN_INIT', destino: 'nieto', datos: {} }));
+    // VENTANA-OBSERVACION: un envio sin nombre no puede llegar a ningun handler
+    await page.waitForTimeout(400);
+    expect(enviado, 'el envío tiene que decir que no ha salido').toBe(false);
+    expect(await recibidos(nieto, 'PRUEBA.SIN_INIT'), 'y no llega nada').toEqual([]);
+    expect(avisos(logs, /No se envía PRUEBA\.SIN_INIT: el bus de este frame aún no está inicializado/),
+      'y se avisa').toHaveLength(1);
   });
 });

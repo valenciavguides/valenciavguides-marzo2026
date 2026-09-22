@@ -837,8 +837,8 @@ estado de su primera apertura.
 Lo que falta, en orden de engranaje: cada paso se apoya en el anterior. Antes de cada uno se
 comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro navegadores.
 
-0. Este documento al día.
-1. **Identidad:** el bus pone el `origen` y lo comprueba al recibir (decisión 10). Fuera las
+0. ✅ Este documento al día.
+1. ✅ **Identidad:** el bus pone el `origen` y lo comprueba al recibir (decisión 10). Fuera las
    firmas inventadas (`padre_<aleatorio>`, `funciones-mapa`, `sistema`, `restauracion-interna`…) y
    la reescritura de `enviarMensajePadre`.
 2. **Mensajes a sí mismo → `despacharLocal`** (§21.2), incluidos los atajos `__trigger*` y
@@ -1172,6 +1172,12 @@ mientras la app sigue trabajando**—:
    Script 2 después. Medido con diagnóstico dentro del test: `handlers: 0` en el instante del
    envío. Arreglado en el arnés esperando a `script2Listo` — protege a todos los specs, incluidos
    los que falten por escribir.
+   **Esa espera no esperaba:** era `waitForFunction` con un predicado `async`, y `waitForFunction`
+   no espera su promesa —una Promise es truthy—. Medido: con un predicado async que devuelve
+   `false`, resuelve en 16-43 ms en los cuatro navegadores. Lo delató 28/SE-1 en la tanda del
+   paso 1: `script2Listo: false` en el mismo documento, con una sola navegación y sin ninguna
+   espera expirada. Ahora sondea con `page.evaluate`, que sí espera la promesa. Tanda de los
+   cuatro navegadores después: 1908/1908, sin alargarse (44,5 min).
 2. **`proximidadReal` lo recalcula la app sola** (`sincronizarEstadoGPSConPadre` copia encima el
    valor de `estadoMapa`, que sin GPS real es `false`). El test lo ponía una vez y se lo pisaban.
 
@@ -1195,6 +1201,35 @@ sigue en pie antes de afirmar nada.
   está hecho un solo camino de registro (`0f10a10`, `72ebef1`), un solo repartidor (`8abb072`), sin
   escuchas sueltas (`1ef545f`), sin `ACK` (`141be18`) y sin la capa `get*` (`4d87858`). Lo que falta,
   en el orden de la Parte V ("La lavadora").
+
+### 25.10. Paso 1 de la lavadora: identidad
+
+- **El bus firma.** `enviarMensaje`, `enviarMensajeConConfirmacion` y `despacharLocal` ponen
+  `origen = componenteId`; el que pase quien llama no viaja. Se quitaron los 248 `origen:` de los
+  llamadores (padre, `js/app.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, los seis
+  hijos con HTML propio y selección) y la reescritura de `enviarMensajePadre`, que queda como alias
+  hasta el paso 5. `registrarControladoresDatos` ya no recibe `getPadreId`.
+- **El bus comprueba.** Un mensaje de un iframe registrado cuyo `origen` no es su nombre de
+  registro se descarta con aviso, una vez por tipo.
+- **Sin llamadas vacías.** Un frame que envía antes de `inicializarMensajeria` no envía y avisa
+  (`false`; rechazo `'no-enviado'` con acuse). Antes de sellar se comprobó el orden de arranque
+  en los diez frames: todos inicializan antes de su primer envío y todos los contenedores
+  registran antes de asignar `src`; el recorrido con espía no registra ningún rechazo.
+- **Tests:** BC-15 a BC-17 en el spec 79; spec 93 con los siete frames que registra el padre
+  (menos hijo5) haciéndose pasar por hijo5, cada uno con su control.
+- **Queda para su paso:**
+  - Los siete `postMessage` a pelo del padre, que firman a mano (cuatro con `getPadreId()`,
+    dos con `CONFIG_PADRE.ID` y el latido de `visibilitychange` con `'padre'`): paso 4.
+  - Las firmas inventadas que nunca pasan por el bus, porque van en llamadas directas a un
+    handler o en un `postMessage` del padre a sí mismo: `'padre-dev'`, `'restauracion'`,
+    `'handshake-interno'`, `'restauracion-interna'`, `'funciones-mapa'`, `'padre-rescate'` y
+    `manejarGPSActivar({ origen: 'cambio-modo-aventura' })`. Desaparecen en el paso 2, al
+    pasar esas llamadas a `despacharLocal`, que pone el `origen` como cualquier envío.
+  - `getPadreId()`/`resolverIdPadre()` como `destino`: pasos 2 y 3.
+  - El `origen` dentro de `datos` de `CAMBIO_MODO` no es una firma, y no lo usa nadie:
+    `_hdl_SISTEMA_CAMBIO_MODO` lo desestructura y se lo pasa a `_gestionarGpsSegunModo`, que no lo
+    lee. El comentario de la reanudación que dice que lo usa `manejarCambioModo()` es falso (esa
+    función solo pone el `origen` del mensaje en su prefijo de log). Paso 9.
 
 ---
 

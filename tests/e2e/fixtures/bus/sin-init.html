@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Arnés del bus — frame sin inicializar</title>
+</head>
+<body>
+  <script type="module">
+    // Arnés del contrato del bus (tests/e2e/79, BC-17). Importa el bus y registra un iframe
+    // suyo, pero NO llama a inicializarMensajeria: es el hueco entre importar el bus (que ya
+    // publica globalThis.mensajeria) y darle nombre al frame. Un envío en ese hueco no puede
+    // salir, porque saldría sin `origen`.
+    import * as bus from '/js/mensajeria.js';
+
+    globalThis.__arnes = { recibidos: {} };
+
+    const nieto = document.createElement('iframe');
+    nieto.id = 'nieto';
+    nieto.name = 'nieto';
+    bus.registrarIframe('nieto', nieto, { recuperable: false });
+    document.body.appendChild(nieto);
+    nieto.src = 'nieto.html';
+
+    globalThis.__arnesListo = true;
+  </script>
+</body>
+</html>
