@@ -192,7 +192,7 @@ test.describe('RR — El reloj del recordatorio de rescate', () => {
       globalThis.estado.pendingCompleciones = {};
 
       // El camino real por el que un elemento pasa a ser el actual. Nada de eventos.
-      await globalThis.__triggerCambioParadaInterno({ paradaId: tramo.padreid });
+      await globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: tramo.padreid } });
 
       const ficha = globalThis.estado.pendingCompleciones[tramo.padreid];
       return { listo: true, existe: !!ficha, conReloj: typeof ficha?.timestamp === 'number' };

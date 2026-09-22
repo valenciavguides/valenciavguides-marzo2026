@@ -288,7 +288,7 @@ test.describe('MU — El marcador de posición propia sigue al zoom', () => {
     // Marker — la comparacion no podia cumplirse nunca, la funcion entera era un no-op
     // silencioso, y cada emoji quedaba congelado al zoom que hubiera cuando nacio.
     //
-    // Se dispara el pipeline REAL de cambio de parada (__triggerCambioParadaInterno, el mismo
+    // Se dispara el pipeline REAL de cambio de parada (CAMBIO_PARADA despachado al padre, el mismo
     // que usa el boton avanzar), no se fabrica el marcador a mano: el fallo no era que la
     // funcion no supiera reescalar, sino que no reconocia a sus propios marcadores.
     //
@@ -297,7 +297,7 @@ test.describe('MU — El marcador de posición propia sigue al zoom', () => {
     // cambio por no haber cambiado nada, sin dibujar el marcador.
     await arrancar(page, context, { conInternosExpuestos: true });
     await page.waitForFunction(
-      () => typeof globalThis.__triggerCambioParadaInterno === 'function'
+      () => globalThis.mensajeria?.tieneControlador?.('NAVEGACION.CAMBIO_PARADA') === true
         && typeof globalThis.__cargarDatosAventuraDiferidos === 'function'
         && (globalThis.__vv_mapasStub || []).length > 0,
       null, { timeout: 25000 }
@@ -321,7 +321,7 @@ test.describe('MU — El marcador de posición propia sigue al zoom', () => {
     test.skip(!paradas, 'los datos de Aventura1 no se cargaron en este entorno');
 
     await page.evaluate(async (parada) => {
-      await globalThis.__triggerCambioParadaInterno({ paradaId: parada.id });
+      await globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: parada.id } });
     }, PARADA);
 
     const leerDiana = () => page.evaluate(() => {

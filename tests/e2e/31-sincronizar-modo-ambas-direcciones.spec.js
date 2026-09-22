@@ -50,7 +50,7 @@ const enviarCambioModo = (page, destino, modo) => enviarAlHijo(page, {
   tipo: 'SISTEMA.CAMBIO_MODO',
   origen: 'padre',
   destino,
-  datos: { modo, secuenciaCompleta: true, timestamp: Date.now() },
+  datos: { modo, timestamp: Date.now() },
 });
 
 const claseDelBody = (hijo, clase) => hijo.evaluate((c) => document.body.classList.contains(c), clase);

@@ -8,7 +8,7 @@
  * archivo fija es independiente de ese enrutado: el ORDEN de llamadas dentro de
  * ejecutarRestauracionAventura() importa porque _restaurarProgresoRest()
  * dispara el NAVEGACION.CAMBIO_PARADA real del elemento restaurado (_restoreBroadcast()
- * -> __triggerCambioParadaInterno() -> _hdl_NAVEGACION_CAMBIO_PARADA), y esa función
+ * -> despacharLocal -> _hdl_NAVEGACION_CAMBIO_PARADA), y esa función
  * decide varias cosas según estado.modo?.actual === MODOS.AVENTURA: si arranca el
  * recordatorio de audio, la lógica de botón GPS en tramos, y si deshabilita btnAvanzar
  * hasta completar audio+reto.
@@ -47,7 +47,7 @@ test.describe('OR — Orden modo/parada en la restauración de sesión', () => {
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
     await page.waitForFunction(
-      () => typeof globalThis.__cargarDatosAventuraDiferidos === 'function' && typeof globalThis.__triggerCambioParadaInterno === 'function',
+      () => typeof globalThis.__cargarDatosAventuraDiferidos === 'function' && globalThis.mensajeria?.tieneControlador?.('NAVEGACION.CAMBIO_PARADA') === true,
       null, { timeout: 15000 }
     ).catch(() => {});
     await page.evaluate(async () => {
@@ -56,7 +56,7 @@ test.describe('OR — Orden modo/parada en la restauración de sesión', () => {
       if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') await globalThis.__cargarDatosAventuraDiferidos();
       globalThis._devModeActivo = true;
       globalThis.estado.hijosInicializados = new Set(['hijo2', 'hijo3', 'hijo4']);
-      // __triggerCambioParadaInterno no monta un hijo3 real que pueda confirmar la
+      // Despachar CAMBIO_PARADA no monta un hijo3 real que pueda confirmar la
       // recepción de AUDIO.REPRODUCIR_REQUEST (_enviarAudioRequestConReintento, §31.7) —
       // sin este stub, esos reintentos se agotarían de verdad (~2.4s) y, al no haber
       // llegado nunca ninguna confirmación real, _marcarAudioNoDisponible() apagaría el
@@ -69,7 +69,7 @@ test.describe('OR — Orden modo/parada en la restauración de sesión', () => {
   test('OR-1. Con el modo aún en CASA (valor de arranque) en el momento del CAMBIO_PARADA, el recordatorio de audio NO arranca solo', async ({ page }) => {
     const modoEnElMomento = await page.evaluate(async ({ p0 }) => {
       globalThis.estado.modo = { actual: 'casa', anterior: null };
-      await globalThis.__triggerCambioParadaInterno({ paradaId: p0.id });
+      await globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: p0.id } });
       return globalThis.estado.modo.actual;
     }, { p0: P0 });
     expect(modoEnElMomento).toBe('casa');
@@ -106,7 +106,7 @@ test.describe('OR — Orden modo/parada en la restauración de sesión', () => {
 
     const modoEnElMomento = await page.evaluate(async ({ p0 }) => {
       globalThis.estado.modo = { actual: 'aventura', anterior: 'casa' };
-      await globalThis.__triggerCambioParadaInterno({ paradaId: p0.id });
+      await globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: p0.id } });
       return globalThis.estado.modo.actual;
     }, { p0: P0 });
     expect(modoEnElMomento).toBe('aventura');

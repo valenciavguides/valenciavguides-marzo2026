@@ -3803,7 +3803,7 @@
 
           { TIPOS_MENSAJE: TIPOS_MENSAJE_S1, MODOS: MODOS_S1 },
 
-          { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S1, normalizarParadas: normalizarParadas_S1, resolverIdPadre: getPadreId_S1 },
+          { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S1, normalizarParadas: normalizarParadas_S1 },
 
           { esTelefonoMovil: esTelefonoMovil_S1 },
 
@@ -3955,7 +3955,6 @@
         // Alias locales para compatibilidad
         const TIPOS_MENSAJE = TIPOS_MENSAJE_S1;
         const MODOS = MODOS_S1;
-        const getPadreId = getPadreId_S1;
 
         // Asegurar que la mensajería se inicialice en el padre antes de usar funciones
         try {
@@ -4237,26 +4236,6 @@
         // El modo dev arranca apagado. Lo enciende `_hdl_SELECCION_DEV_MODE_TOGGLE`, en
         // Script 2 (ver §24 de la guia).
         globalThis._devModeActivo = globalThis._devModeActivo || false;
-        // Exponer disparador de cambio de modo para uso desde Script 2
-        // (Script 1 define _hdl_SISTEMA_CAMBIO_MODO; Script 2 lo necesita para AVENTURA_ACTIVADA y Factor 2)
-        globalThis._vv_triggerCambioModo = function(modo) {
-            if (typeof _hdl_SISTEMA_CAMBIO_MODO === 'function') {
-                return _hdl_SISTEMA_CAMBIO_MODO({
-                    datos: { modo, origen: 'padre-dev', secuenciaCompleta: true, timestamp: Date.now() },
-                    origen: 'padre-dev'
-                });
-            }
-            // Refuerzo (2026-08-06): sin este else, si _hdl_SISTEMA_CAMBIO_MODO no existiera
-            // (function declaration hoisted en este mismo script — hoy siempre existe ya cuando
-            // se llega aquí, pero un renombrado/movido futuro de esa función sin actualizar esta
-            // referencia lo rompería en silencio) esta función devolvía `undefined` en vez de una
-            // Promise. Se usa con `.catch()` sin envolver en línea ~11530 — sobre `undefined`,
-            // `.catch()` lanza un TypeError síncrono que corta el resto de esa función sin aviso,
-            // en los 3 flujos reales que dependen de este puente (activación de aventura en CASA
-            // y AVENTURA, y Factor 2 del modo dev). Este return la hace correcta por construcción.
-            // Ver GUIA-COMPLETA.md §4.7g y memoria project_audit_promise_boolean_pendiente.
-            return Promise.resolve(undefined);
-        };
 
         // ============================================================
         // ESTADO GLOBAL DE LA APLICACIÓN (compartido con Script 2)
@@ -4574,13 +4553,10 @@
             try {
                 const padreIdRest = estado.elementoActual?.padreid || (estado.paradaActual ? `padre-${estado.paradaActual}` : null);
                 const datos = { paradaId: estado.paradaActual || null, parada_id: estado.paradaActual || null, padreId: padreIdRest, padreid: padreIdRest, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), restaurado: true };
-                // Llamar al handler directamente vía globalThis: postMessage self-send no funciona
-                // porque mensajeria.js descarta mensajes con origen===componenteId
-                if (typeof globalThis.__triggerCambioParadaInterno === 'function') {
-                    globalThis.__triggerCambioParadaInterno(datos).catch(err => (globalThis.logger || console).debug('[VV]:', err?.message)); // NOSONAR
-                } else {
-                    (globalThis.logger || console).warn('[PADRE][RESTORE] __triggerCambioParadaInterno no disponible — restauración parcial');
-                }
+                // El handler de CAMBIO_PARADA vive en Script 2: se le despacha por el bus, con la misma
+                // fila que un cambio de parada que llegue de fuera.
+                globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos })
+                    .catch(err => (globalThis.logger || console).debug('[VV]:', err?.message)); // NOSONAR
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
 
@@ -4638,11 +4614,7 @@
                 persistProgressState();
                 try {
                     const datosDefault = { paradaId: estado.paradaActual, parada_id: estado.paradaActual, padreId: padreIdDefault, padreid: padreIdDefault, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), razon: 'default_parada' };
-                    if (typeof globalThis.__triggerCambioParadaInterno === 'function') {
-                        await globalThis.__triggerCambioParadaInterno(datosDefault);
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} __triggerCambioParadaInterno no disponible — parada por defecto sin pipeline`);
-                    }
+                    await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos: datosDefault });
                 } catch (e) { (globalThis.logger || console).warn(`${logPrefix} Error notificando parada por defecto`, e); }
                 (globalThis.logger || console).info(`${logPrefix} Parada por defecto establecida: ${estado.paradaActual} (indice ${estado.indiceProgreso})`);
 
@@ -5172,21 +5144,20 @@
                 // el heartbeat, el GPS y la persistencia de vv_aventura_iniciada.modo.
                 // Las 3 únicas diferencias reales de una reanudación viajan en el propio mensaje
                 // (restaurado:true) y están marcadas una a una dentro del handler.
-                if (typeof _hdl_SISTEMA_CAMBIO_MODO !== 'function') {
-                    (globalThis.logger || console).error(`${logPrefix} _hdl_SISTEMA_CAMBIO_MODO no disponible — la sesión no puede restaurar su modo`);
+                if (!globalThis.mensajeria?.tieneControlador?.(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO)) {
+                    (globalThis.logger || console).error(`${logPrefix} Sin handler de SISTEMA.CAMBIO_MODO — la sesión no puede restaurar su modo`);
                     return;
                 }
-                // El payload lleva solo lo que alguien lee de verdad: `modo` y `origen` los
-                // usa manejarCambioModo(); `restaurado` y `timestampCompra`, el propio
-                // handler y _activarHeartbeatAventura(). No se incluyen aventura/idioma/
-                // secuenciaCompleta/timestamp: ningún receptor los consulta en un
-                // CAMBIO_MODO (actualizarInterfazModo construye su propio payload para los
-                // hijos), y arrastrarlos solo aparenta un contrato que no existe.
-                const _resultadoModo = await _hdl_SISTEMA_CAMBIO_MODO({
-                    origen: 'restauracion',
+                // El payload lleva solo lo que alguien lee de verdad: `modo`, que usa
+                // manejarCambioModo(); `restaurado` y `timestampCompra`, el propio handler y
+                // _activarHeartbeatAventura(). No se incluyen aventura/idioma/timestamp: ningún
+                // receptor los consulta en un CAMBIO_MODO (actualizarInterfazModo construye su
+                // propio payload para los hijos), y arrastrarlos solo aparenta un contrato que no
+                // existe. Por el bus, con despacharLocal: el handler contesta con su resultado.
+                const _resultadoModo = await globalThis.mensajeria.despacharLocal({
+                    tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
                     datos: {
                         modo: _modoRest,
-                        origen: 'restauracion',
                         restaurado: true,
                         // Fecha real de compra: el reloj de hijo1 descuenta el tiempo
                         // transcurrido con la app cerrada, no reanuda el último tick visto.
@@ -5235,9 +5206,9 @@
             } else {
                 (globalThis.logger || console).warn(`${logPrefix} ⚠️ Reanudación sin parada/tramo válido; se omite solicitud de coordenadas`, { parada_id: estado.elementoActual.parada_id, tramo_id: estado.elementoActual.tramo_id });
             }
-            // Audio gestionado por _restoreBroadcast → __triggerCambioParadaInterno → pipeline CAMBIO_PARADA
-            // Fallback: si el disparador no estuviera disponible (timing muy temprano), solicitar audio directamente
-            if (typeof globalThis.__triggerCambioParadaInterno !== 'function') {
+            // El audio lo pide el pipeline de CAMBIO_PARADA que despacha _restoreBroadcast. Si ese
+            // handler aún no estuviera registrado, se pide aquí directamente.
+            if (!globalThis.mensajeria?.tieneControlador?.(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA)) {
                 const audioId = _normalizarIdRest(estado.elementoActual.audio_id);
                 if (audioId) {
                     await _solicitarAudioRest(audioId, logPrefix);
@@ -5292,7 +5263,7 @@
                 await _enviarRespuestaParadasHijosRest(logPrefix, datosGuardados);
                 // _activarModoRest() antes que _restaurarProgresoRest(): esta última dispara
                 // el NAVEGACION.CAMBIO_PARADA real del elemento restaurado (_restoreBroadcast
-                // -> __triggerCambioParadaInterno -> _hdl_NAVEGACION_CAMBIO_PARADA), cuya lógica
+                // -> despacharLocal -> _hdl_NAVEGACION_CAMBIO_PARADA), cuya lógica
                 // depende de estado.modo?.actual === MODOS.AVENTURA (arranque del recordatorio
                 // de audio/reto, botón GPS en tramos, deshabilitar btnAvanzar hasta completar) —
                 // y estado.modo.actual solo se fija dentro de _activarModoRest(). En el orden
@@ -5305,12 +5276,13 @@
                 // parada que se acababan de fijar.
                 await _activarModoRest(logPrefix, datosGuardados);
                 await _restaurarProgresoRest(logPrefix);
-                // Si la sesión se restauró en modo CASA, paradaRealCongelada nunca fue fijada
-                // por _hdl_SISTEMA_CAMBIO_MODO (esa función no se ejecuta durante la restauración).
-                // Sin este punto, el primer cambio CASA→AVENTURA de la sesión restaurada deja el
-                // mapa vacío: limpiarRecursosPorModo() borra estado.paradaActual pero la condición
-                // `if (modo===AVENTURA && paradaRealCongelada)` es false → __triggerCambioParadaInterno
-                // no se llama → mapa queda vacío y estado.paradaActual queda null.
+                // Si la sesión se restauró en modo CASA, _hdl_SISTEMA_CAMBIO_MODO congeló el
+                // progreso ANTES de que _restaurarProgresoRest() lo repusiera (va antes, ver arriba),
+                // así que paradaRealCongelada no tiene el progreso real. Sin este punto, el primer
+                // cambio CASA→AVENTURA de la sesión restaurada deja el mapa vacío:
+                // limpiarRecursosPorModo() borra estado.paradaActual pero la condición
+                // `if (modo===AVENTURA && paradaRealCongelada)` es false → no se despacha el
+                // CAMBIO_PARADA → mapa queda vacío y estado.paradaActual queda null.
                 if (estado.modo?.actual === MODOS.CASA && estado.paradaActual) {
                     estado.paradaRealCongelada = estado.paradaActual;
                     (globalThis.logger || console).debug(`${logPrefix} paradaRealCongelada inicializada desde restauración CASA: ${estado.paradaRealCongelada}`);
@@ -5932,8 +5904,7 @@
             }
         }
         // Expuesta para poder ejercitarla desde los tests sin fabricar posiciones GPS reales
-        // — mismo motivo y misma convencion que __triggerCambioParadaInterno y
-        // _vv_triggerCambioModo. Este control no tenia NINGUNA cobertura, y por eso llevaba
+        // Este control no tenia NINGUNA cobertura, y por eso llevaba
         // roto sin que nadie lo notara.
         globalThis._vv_check5km = _check5kmFromRoute;
 
@@ -7513,26 +7484,10 @@
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error enviando datos de paradas a hijo2:`, error); }
         }
 
-        async function _hijoListo_sincronizarModoCriticos(logPrefix, modoActual, hijosCriticos) {
-            try {
-                (globalThis.logger || console).info(`${logPrefix} Enviando sincronización inicial de modo: ${modoActual}`);
-                for (const criticoId of hijosCriticos) {
-                    try {
-                        if (typeof enviarMensaje_S1 === 'function') {
-                            await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.CAMBIO_MODO, destino: criticoId, datos: { modo: modoActual, timestamp: Date.now(), razon: 'sincronizacion_inicial', secuenciaCompleta: true } });
-                            (globalThis.logger || console).debug(`${logPrefix} CAMBIO_MODO inicial enviado a ${criticoId}`);
-                        } else { (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible para sincronización inicial`); }
-                    } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error enviando CAMBIO_MODO inicial a ${criticoId}:`, error); }
-                }
-            } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error en sincronización inicial de modo:`, error); }
-        }
-
         async function _hijoListo_onTodosListos(logPrefix, hijosCriticos, timestamp) {
             estado.todosHijosListos = true;
             (globalThis.logger || console).success(`${logPrefix} ✅ ¡Todos los hijos críticos están listos!`);
             registrarEvento('TODOS_HIJOS_LISTOS', { timestamp, hijosInicializados: Array.from(estado.hijosInicializados), tiempoTotal: Date.now() - (estado.tiempoInicio || timestamp) });
-            const modoActual = estado.modo?.actual || MODOS.CASA;
-            await _hijoListo_sincronizarModoCriticos(logPrefix, modoActual, hijosCriticos);
             try {
                 const modoA = estado.modo.actual;
                 (globalThis.logger || console).info(`${logPrefix} Modo inicial: ${modoA}`);
@@ -7542,38 +7497,13 @@
                     (globalThis.logger || console).info(`${logPrefix} Modo casa: no se dibujan coordenadas iniciales`);
                 }
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error solicitando coordenadas iniciales:`, error); }
-            // Disparar APLICACION_INICIALIZADA formalmente ahora que todos los hijos críticos están listos
-            // Pasar por mensajería (origen distinto a componenteId para no ser descartado)
-            globalThis.postMessage({
+            // APLICACION_INICIALIZADA, ahora que los hijos críticos están listos. Por el bus, con
+            // despacharLocal; no se espera: el arranque de este hijo no depende del aviso. Si el
+            // handler se rompe, el bus ya lo dice en el log.
+            globalThis.mensajeria.despacharLocal({
                 tipo: TIPOS_MENSAJE_S1.SISTEMA.APLICACION_INICIALIZADA,
-                origen: 'handshake-interno',
-                destino: getPadreId(),
                 datos: { totalComponentes: hijosCriticos.length, tiempoInicializacion: Date.now() - (estado.tiempoInicio || timestamp), version: '1.0.0' }
-            }, globalThis.location.origin);
-        }
-
-        function _actualizarPendingModeFail(hijoId, pending, intentos) {
-            globalThis.pendingModeChanges.set(hijoId, { ...pending, intentos, nextAttemptAt: Date.now() + (globalThis._computeBackoff ? globalThis._computeBackoff(intentos) : (intentos * 1000)) });
-        }
-
-        async function _hijoListo_reenviarModoPendiente(hijoId, logPrefix) {
-            try {
-                if (globalThis.pendingModeChanges !== undefined && globalThis.pendingModeChanges.has(hijoId)) {
-                    const pending = globalThis.pendingModeChanges.get(hijoId);
-                    (globalThis.logger || console).info(`${logPrefix} [CAMBIO_MODO][RESEND] HIJO_LISTO de ${hijoId}, reenviando CAMBIO_MODO pendiente (intentos=${pending.intentos})`);
-                    try {
-                        if (typeof enviarMensaje_S1 === 'function') {
-                            await enviarMensaje_S1({ destino: hijoId, tipo: TIPOS_MENSAJE_S1.SISTEMA.CAMBIO_MODO, datos: { modo: pending.modo, ...pending.datos, secuenciaCompleta: true } });
-                            globalThis.pendingModeChanges.delete(hijoId);
-                            (globalThis.logger || console).success(`${logPrefix} [CAMBIO_MODO][RESEND] CAMBIO_MODO pendiente reenviado exitosamente a ${hijoId}`);
-                        } else { (globalThis.logger || console).warn(`${logPrefix} [CAMBIO_MODO][RESEND] enviarMensaje_S1 no disponible para reenviar CAMBIO_MODO pendiente`); }
-                    } catch (sendErr) {
-                        (globalThis.logger || console).warn(`${logPrefix} [CAMBIO_MODO][RESEND] Error reenviando CAMBIO_MODO a ${hijoId} tras HIJO_LISTO:`, sendErr);
-                        const intentos = Math.min((pending.intentos || 0) + 1, (globalThis.MODE_RETRY_MAX_INTENTOS || 5));
-                        _actualizarPendingModeFail(hijoId, pending, intentos);
-                    }
-                }
-            } catch (reenvioError) { (globalThis.logger || console).warn(`${logPrefix} [CAMBIO_MODO][RESEND] Error procesando reenvío de CAMBIO_MODO tras HIJO_LISTO:`, reenvioError); }
+            }).catch(() => { /* el bus ya avisa: "El handler de ... se rompió" */ });
         }
 
         async function _hdl_SISTEMA_HIJO_LISTO(mensaje) {
@@ -7624,7 +7554,6 @@
                 const hijosCriticos = ['hijo2', 'hijo3', 'hijo4'];
                 const todosListos = hijosCriticos.every(id => estado.hijosInicializados && estado.hijosInicializados.has(id));
                 if (todosListos && !estado.todosHijosListos) { await _hijoListo_onTodosListos(logPrefix, hijosCriticos, timestamp); }
-                await _hijoListo_reenviarModoPendiente(hijoId, logPrefix);
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error procesando hijo listo:`, error); }
         }
 
@@ -7974,7 +7903,7 @@
                     if (modo === MODOS.AVENTURA && estado.paradaRealCongelada) {
                         (globalThis.logger || console).info(`${logPrefix} Resincronizando mapa/hijo2 con el progreso real tras CASA: ${estado.paradaActual} → ${estado.paradaRealCongelada}`);
                         try {
-                            await globalThis.__triggerCambioParadaInterno({ paradaId: estado.paradaRealCongelada });
+                            await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos: { paradaId: estado.paradaRealCongelada } });
                         } catch (restErr) {
                             (globalThis.logger || console).warn(`${logPrefix} Error restaurando progreso real tras CASA:`, restErr?.message);
                         }
@@ -10594,14 +10523,9 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 if (paradaId) {
                     // CAMBIO_PARADA como fan-out: todos los hijos procesan de forma independiente.
-                    // Se invoca el handler directamente porque enviarMensajePadre con destino=padreId
-                    // falla silenciosamente (padre no está en iframesRegistrados).
+                    // Por el bus, con despacharLocal: la misma fila que un cambio de parada que llegue de fuera.
                     const datosCambio = { paradaId, parada_id: paradaId, padreId, padreid: padreId, contexto: 'progresion_aventura', timestamp: Date.now() };
-                    if (typeof globalThis.__triggerCambioParadaInterno === 'function') {
-                        await globalThis.__triggerCambioParadaInterno(datosCambio);
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} __triggerCambioParadaInterno no disponible — progresión sin pipeline`);
-                    }
+                    await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos: datosCambio });
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} No se pudo determinar paradaId para el elemento:`, siguienteElemento);
                 }
@@ -12739,34 +12663,11 @@ await _comprobarReanudacionAventura(logPrefix);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, _hdl_NAVEGACION_CAMBIO_PARADA, { permanente: true });
 
-        // Disparador directo para restauración de sesión (cross-scope: bloque 2419 no puede llamar _hdl directamente)
-        globalThis.__triggerCambioParadaInterno = async function(datos) {
-            return _hdl_NAVEGACION_CAMBIO_PARADA({
-                tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                origen: 'restauracion-interna',
-                destino: getPadreId(),
-                datos
-            });
-        };
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO, _hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA, _hdl_NAVEGACION_LLEGADA_DETECTADA, { permanente: true });
 
-        // Disparador directo para el sensor de llegada de funciones-mapa.js (cross-scope:
-        // funciones-mapa.js no vive en un iframe, así que enviarMensaje({destino:
-        // resolverIdPadre()}) se autodirigía al ID del propio padre — enviarMensaje()
-        // (mensajeria.js) busca ese destino en iframesRegistrados, que nunca contiene al
-        // padre mismo, y lo descartaba en silencio en cada llamada. Mismo patrón que
-        // __triggerCambioParadaInterno, arriba.
-        globalThis.__triggerLlegadaDetectadaInterno = async function(datos) {
-            return _hdl_NAVEGACION_LLEGADA_DETECTADA({
-                tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
-                origen: 'funciones-mapa',
-                destino: getPadreId(),
-                datos
-            });
-        };
         }
 
         async function _hdl_NAVEGACION_USUARIO_FUERA_RANGO(mensaje) {
@@ -13730,22 +13631,17 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (globalThis._devModeActivo) {
                     updateLoadingStatus('Aventura lista', 'Entrando en modo CASA', 100);
                     (globalThis.logger || console).info(`${logPrefix} 🏠 Modo CASA activo (dev) → hijo5 visible, proximidad OFF`);
-                    if (typeof globalThis._vv_triggerCambioModo === 'function') {
-                        await globalThis._vv_triggerCambioModo(MODOS.CASA);
-                    }
+                    await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, datos: { modo: MODOS.CASA } });
                     globalThis.hideParentLoadingOverlay?.();
                 } else {
                     updateLoadingStatus('Aventura lista', 'Iniciando en modo AVENTURA', 100);
                     setTimeout(() => globalThis.hideParentLoadingOverlay?.(), 250);
                     (globalThis.logger || console).info(`${logPrefix} 🗺️ Modo AVENTURA activo (producción) → hijo5 oculto, proximidad ON`);
-                    if (typeof globalThis._vv_triggerCambioModo === 'function') {
-                        // Fire-and-forget intencional (no bloquear el registro de aventura
-                        // hasta 15s por el protocolo CAMBIO_MODO) — pero un error no debe
-                        // quedar como unhandled rejection silencioso.
-                        globalThis._vv_triggerCambioModo(MODOS.AVENTURA).catch(err => {
-                            (globalThis.logger || console).error(`${logPrefix} Error en _vv_triggerCambioModo(AVENTURA):`, err?.message || err);
-                        });
-                    }
+                    // Sin esperar (no bloquear el registro de aventura hasta 15 s por el protocolo
+                    // CAMBIO_MODO), pero un error no puede quedar como rechazo sin dueño.
+                    globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, datos: { modo: MODOS.AVENTURA } }).catch(err => {
+                        (globalThis.logger || console).error(`${logPrefix} Error en el CAMBIO_MODO(AVENTURA) de la activación:`, err?.message || err);
+                    });
                 }
                 (globalThis.logger || console).success(`${logPrefix} ✅ Aventura ${aventura} registrada correctamente`);
                 // Insertar entrada en el historial del navegador para interceptar "botón atrás"
@@ -13921,9 +13817,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     }
                     cerrar();
                     globalThis._devModeActivo = true;
-                    if (typeof globalThis._vv_triggerCambioModo === 'function') {
-                        await globalThis._vv_triggerCambioModo(MODOS_S2.CASA);
-                    }
+                    await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, datos: { modo: MODOS_S2.CASA } });
                     const hijo5El = document.getElementById('hijo5');
                     if (hijo5El) { hijo5El.style.display = 'block'; hijo5El.style.visibility = 'visible'; }
                     (globalThis.logger || console).warn('[DEV_MODE] 🟢 CASA activado desde Factor 2 (timer hijo1)');
@@ -15042,7 +14936,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             // que es quien ya sabe ocultar hijo4, avisar a hijo2 y limpiar el estado de hijo4.
             if (document.getElementById('hijo4')?.classList.contains('visible')) {
                 (globalThis.logger || console).info(`${logPrefix} Había un reto abierto: se cierra antes de conceder`);
-                await _hdl_RETO_OCULTAR({ origen: 'padre-rescate', datos: { retoId: estado.retoActual?.id || null } });
+                await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.RETO.OCULTAR, datos: { retoId: estado.retoActual?.id || null } });
             }
 
             // La ficha, completa. La señal de retos y la cuenta van las dos porque

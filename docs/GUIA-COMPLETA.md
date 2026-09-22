@@ -267,8 +267,8 @@ flowchart TD
 
 1. Inmediatamente (antes de cualquier await): oculta el iframe hijo5 (`display: none`). No toca `globalThis._devModeActivo` — ese flag (ver §24) solo se reinicia al recargar la página, nunca por un cambio de modo; `_transicionarAModoCasa()` (rama CASA de esta misma función) usa ese mismo flag para distinguir una vuelta a CASA real del propio botón de un simple bootstrap de dev, así que debe sobrevivir intacto a cualquier número de cambios de modo dentro de la misma sesión — ver §7.6 para el mecanismo completo.
 2. Llama directamente a `globalThis.funcionesMapa.manejarCambioModoMapa(mensaje)` (no como handler registrado — competiría con este mismo handler por el orden de inserción en `getMapaControladoresSync`) para actualizar `estadoMapa.modo`, ejecutar `limpiarPorEstado` y resetear la vista.
-3. Llama `manejarCambioModo(estado, mensaje)` de `js/app.js`, que actualiza `estado.modo.actual = 'aventura'` (optimistic update) y llama `actualizarInterfazModo()` — envía `SISTEMA.CAMBIO_MODO` a todos los hijos con `secuenciaCompleta: !!estado.todosHijosListos` y espera ENTENDIDO+EFECTUADO de cada uno (timeout 5s+10s).
-4. Si el cambio tuvo éxito y existe `estado.paradaRealCongelada` (progreso real guardado al entrar en CASA, ver §2.5): restaura ese progreso llamando `globalThis.__triggerCambioParadaInterno({ paradaId: estado.paradaRealCongelada })`, y limpia el flag. Esto deshace cualquier navegación "de solo mirar" que el usuario haya hecho en CASA vía hijo5 — sin esta restauración, mapa/hijo2 se quedarían apuntando a lo último que se miró en CASA en vez del progreso real de la aventura.
+3. Llama `manejarCambioModo(estado, mensaje)` de `js/app.js`, que actualiza `estado.modo.actual = 'aventura'` (optimistic update) y llama `actualizarInterfazModo()` — envía `SISTEMA.CAMBIO_MODO` a todos los hijos y espera ENTENDIDO+EFECTUADO de cada uno (timeout 5s+10s).
+4. Si el cambio tuvo éxito y existe `estado.paradaRealCongelada` (progreso real guardado al entrar en CASA, ver §2.5): restaura ese progreso despachando `NAVEGACION.CAMBIO_PARADA` con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos: { paradaId: estado.paradaRealCongelada } })`, y limpia el flag. Esto deshace cualquier navegación "de solo mirar" que el usuario haya hecho en CASA vía hijo5 — sin esta restauración, mapa/hijo2 se quedarían apuntando a lo último que se miró en CASA en vez del progreso real de la aventura.
 5. Inicia heartbeat (`_gestionarHeartbeatSegunModo`) y `_gestionarGpsSegunModo` comprueba el GPS — normalmente ya está activo desde P14 (no hace nada); si por algún motivo se hubiera desactivado, llama a `activarGPS()` como red de seguridad.
 
 **Payload original de hijo5** (enviado al padre al pulsar el botón):
@@ -301,12 +301,12 @@ sequenceDiagram
     H5->>P: SISTEMA.CAMBIO_MODO (modo: aventura, origen: boton-gps)
     Note over P: INMEDIATO: iframe hijo5 display=none (_devModeActivo no se toca)
     P->>P: manejarCambioModo → estado.modo.actual = 'aventura'
-    Note over P: actualizarInterfazModo() envía CAMBIO_MODO a todos los hijos<br/>(secuenciaCompleta: !!todosHijosListos) y espera ENTENDIDO+EFECTUADO
+    Note over P: actualizarInterfazModo() envía CAMBIO_MODO a todos los hijos<br/>y espera ENTENDIDO+EFECTUADO
     par actualizarInterfazModo — primera propagación
-        P->>H2: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta)
-        P->>H3: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta)
-        P->>H4: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta)
-        P->>H5: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta)
+        P->>H2: SISTEMA.CAMBIO_MODO (aventura)
+        P->>H3: SISTEMA.CAMBIO_MODO (aventura)
+        P->>H4: SISTEMA.CAMBIO_MODO (aventura)
+        P->>H5: SISTEMA.CAMBIO_MODO (aventura)
     end
     H2-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
     H3-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
@@ -356,7 +356,7 @@ sequenceDiagram
     P->>P: manejarCambioModoMapa() → estadoMapa.modo='casa'<br/>limpiarPorEstado(resetCompleto:true)<br/>→ limpiarRecursos(): polylines, marcadores, rutas activas<br/>→ setMapView a CENTRO_DEFECTO + ZOOM_INICIAL
     P->>P: manejarCambioModo → estado.modo.actual = 'casa'
     par actualizarInterfazModo
-        P->>HH: SISTEMA.CAMBIO_MODO (modo: casa, secuenciaCompleta)
+        P->>HH: SISTEMA.CAMBIO_MODO (modo: casa)
     end
     HH-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
     Note over P: Solo si el cambio tuvo éxito, continúa:
@@ -374,7 +374,7 @@ aventura — se restaura al volver a AVENTURA (§2.4, paso 4).
 
 **hijo5 vuelve a mostrarse en este mismo cambio de modo:** si `_devModeActivo` sigue en `true`, el `opt` del diagrama de arriba (`display:block; visibility:visible`) usa el mismo patrón que el arranque vía Factor 2 y la reanudación de sesión guardada en CASA (§24) — las tres rutas dejan hijo5 en el mismo estado visible, sin depender de por cuál se llegó a CASA. Cubierto por `tests/e2e/36-hijo5-visible-al-volver-casa.spec.js`.
 
-**Guard de concurrencia (`estado.sistema.cambiandoModo`):** cubre el handler `_hdl_SISTEMA_CAMBIO_MODO` completo, desde la comprobación de rechazo inicial (primera línea de la secuencia) hasta un `finally` que envuelve el handler entero (última línea) — incluye tanto el freeze de `paradaRealCongelada` como la restauración de progreso al volver a AVENTURA vía `__triggerCambioParadaInterno` (§2.4), no solo el tramo intermedio de `manejarCambioModo()` (`js/app.js`). Cualquier `SISTEMA.CAMBIO_MODO` que llegue mientras uno anterior sigue resolviendo se rechaza limpio durante toda la secuencia freeze→switch→restore, evitando que un solape corrompa el progreso congelado. Cubierto por `tests/e2e/37-guard-concurrencia-cambio-modo.spec.js`.
+**Guard de concurrencia (`estado.sistema.cambiandoModo`):** cubre el handler `_hdl_SISTEMA_CAMBIO_MODO` completo, desde la comprobación de rechazo inicial (primera línea de la secuencia) hasta un `finally` que envuelve el handler entero (última línea) — incluye tanto el freeze de `paradaRealCongelada` como la restauración de progreso al volver a AVENTURA despachando `NAVEGACION.CAMBIO_PARADA` con `despacharLocal` (§2.4), no solo el tramo intermedio de `manejarCambioModo()` (`js/app.js`). Cualquier `SISTEMA.CAMBIO_MODO` que llegue mientras uno anterior sigue resolviendo se rechaza limpio durante toda la secuencia freeze→switch→restore, evitando que un solape corrompa el progreso congelado. Cubierto por `tests/e2e/37-guard-concurrencia-cambio-modo.spec.js`.
 
 > La excepción "salvo modo dev" del paso de borrado de `localStorage` es el flag `_devModeActivo` — detalle completo del modo DEV en §24.
 
@@ -409,7 +409,7 @@ secuencia, y el segundo pisa al primero cuando aplica:
 2. De vuelta en `_hdl_SISTEMA_CAMBIO_MODO()` (`codigo-padre.html`, §2.4 paso 4), tras
    confirmar el éxito de `manejarCambioModo()`: si existe `estado.paradaRealCongelada`
    (el progreso real, congelado al entrar en CASA — §2.5), se envía un segundo
-   `CAMBIO_PARADA` hacia esa parada real vía `__triggerCambioParadaInterno()`, que
+   `CAMBIO_PARADA` hacia esa parada real despachándolo con `despacharLocal()`, que
    **sobrescribe** el reset a `padre-P0` del paso 1. El resultado neto para el usuario es
    que el progreso real se conserva — el reset del paso 1 es transitorio e invisible en
    el flujo normal.
@@ -1347,7 +1347,7 @@ Cubierto por `tests/e2e/22-carteles-informativos.spec.js`, prueba CI-6: dispara 
 
 - `enviarMensaje()` (`js/mensajeria.js`) solo acepta `enviarMensaje({ tipo, datos, destino })` — no existe ningún formato posicional; sus dos caminos de fallo (`tipo` ausente, o el bus del frame sin inicializar) devuelven `Promise.resolve(false)`. El `origen` lo pone el bus (§26.8, segunda capa).
 - `enviarMensajePadre()` (`codigo-padre.html`) es un alias de `enviarMensaje` que devuelve siempre una Promise: `Promise.resolve(enviarMensaje(mensaje))`, y `Promise.resolve(false)` con aviso en el log si `enviarMensaje` no estuviera disponible. Solo acepta el objeto `{ tipo, datos, destino }`, nunca argumentos sueltos.
-- `globalThis._vv_triggerCambioModo` (`codigo-padre.html`) tiene un `else` explícito que devuelve `Promise.resolve(undefined)` si `_hdl_SISTEMA_CAMBIO_MODO` no está disponible, nunca `undefined` implícito.
+- Quien necesita disparar un `SISTEMA.CAMBIO_MODO` desde dentro del padre lo despacha con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, datos: { modo } })`, que siempre devuelve una Promise (paso 2 de la lavadora, docs/mensajeria-duplicada-en-hijos.md). El atajo `globalThis._vv_triggerCambioModo` que envolvía esto ya no existe.
 
 Ver detalle completo en la memoria `project_audit_promise_boolean_pendiente`.
 
@@ -1911,7 +1911,7 @@ Necesita FASE 2 completa. Ocurre dentro de `ejecutarInicializacionAutomatica()`,
 
 Cuando esos iframes sí se cargan, van en **paralelo** (`Promise.all`, tolerando fallos individuales) y ocultos (`display:none`). El listener `load` de cada uno incluye una guardia `about:blank`: si `contentWindow.location.href === 'about:blank'` retorna sin llamar a `handleIframeLoad`, evitando un falso "loaded successfully" antes de que se asigne el `src` real.
 
-Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` envía `CAMBIO_MODO { razon:'sincronizacion_inicial' }` a hijo2/hijo3/hijo4 y dispara `SISTEMA.APLICACION_INICIALIZADA` vía `window.postMessage` (origen `'handshake-interno'`), que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus. Este handler es puramente informativo (registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados) — no inicializa ninguna aventura por su cuenta. La activación de una aventura ocurre siempre por una vía explícita: el flujo normal `SELECCION.AVENTURA_ACTIVADA`, o la reanudación vía el modal "continuar aventura" (`ejecutarRestauracionAventura()`, ver §10.14). Ningún CAMBIO_PARADA se envía hasta que una de esas dos vías se complete.
+Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` despacha `SISTEMA.APLICACION_INICIALIZADA` con `globalThis.mensajeria.despacharLocal()`, que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus por la misma fila que un mensaje llegado de fuera. Ya no reenvía el modo a hijo2/hijo3/hijo4: cada uno lo recibió al conectarse (`modoInicial`) y por cualquier `CAMBIO_MODO` posterior — un solo camino (docs/mensajeria-duplicada-en-hijos.md, decisión 11). Este handler es puramente informativo (registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados) — no inicializa ninguna aventura por su cuenta. La activación de una aventura ocurre siempre por una vía explícita: el flujo normal `SELECCION.AVENTURA_ACTIVADA`, o la reanudación vía el modal "continuar aventura" (`ejecutarRestauracionAventura()`, ver §10.14). Ningún CAMBIO_PARADA se envía hasta que una de esas dos vías se complete.
 
 Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el flujo de onboarding:
 
@@ -1964,7 +1964,7 @@ Todos los handlers del padre se registran mediante `globalThis.registrarControla
 | `RETO.*` | Script 2 | `SOLICITAR_RETO`, `OCULTAR`, `COMPLETADO`, `MOSTRADO` |
 | `SELECCION.*` | Script 2 | `PREPARAR_HIJOS`, `CODIGO_VALIDADO`, `AVENTURA_SELECCIONADA`, `AVENTURA_ACTIVADA`, `IDIOMA_SELECCIONADO` |
 | `SELECCION.DEV_MODE_TOGGLE` | Script 1 (IIFE independiente) | No pasa por `registrarControladorSeguro` — IIFE propio que escucha `message` directamente y pone `globalThis._devModeActivo = true`. Recibido desde la pantalla de selección al activar el modo DEV (ver §24) |
-| `CONTROL.DEV_CINCO_TOQUES` | Script 2 | `_hdl_CONTROL_DEV_CINCO_TOQUES` — muestra modal de código del modo DEV (ver §24); con código correcto: `_devModeActivo = true`, hijo5 `display:block`, `_vv_triggerCambioModo(MODOS.CASA)` |
+| `CONTROL.DEV_CINCO_TOQUES` | Script 2 | `_hdl_CONTROL_DEV_CINCO_TOQUES` — muestra modal de código del modo DEV (ver §24); con código correcto: `_devModeActivo = true`, hijo5 `display:block`, despacha `SISTEMA.CAMBIO_MODO(MODOS.CASA)` con `despacharLocal` |
 | `AUDIO.*` | Script 2 | `ESTADO_ACTUALIZADO`, `FIN_REPRODUCCION` |
 | `DATOS.*` | `codigo-padre.html` (`_regCtrl_DatosRespuestas`) + `js/controladores-padre.js` | `COORDENADAS_CARGADAS`, `TEXTOS_CARGADOS`; recuperación puntual por cache-miss: `SOLICITAR_AUDIOS`, `SOLICITAR_RETOS` (resuelven un solo id, no reenvían la aventura — ver §16); fallbacks de bloque: `SOLICITAR_TEXTOS`, `SOLICITAR_DATOS_PARADAS` |
 
@@ -1980,11 +1980,11 @@ La aplicación tiene dos modos, cuyos valores corresponden a las constantes `MOD
 | Origen | Cuándo | Razón (`razon`) |
 |--------|--------|----------------|
 | Padre (`_hijoListo_onTodosListos`) | Al completar la inicialización de todos los hijos críticos | `'sincronizacion_inicial'` |
-| **Padre (producción — el caso real y común)** | `_hdl_SELECCION_AVENTURA_ACTIVADA` cuando `_devModeActivo` es falso (cualquier usuario que no haya activado el modo DEV) — aventura arranca directamente en AVENTURA, GPS con validaciones, hijo5 nunca se hace visible (ver §9.5) | llamada interna fire-and-forget vía `globalThis._vv_triggerCambioModo(MODOS.AVENTURA)` |
+| **Padre (producción — el caso real y común)** | `_hdl_SELECCION_AVENTURA_ACTIVADA` cuando `_devModeActivo` es falso (cualquier usuario que no haya activado el modo DEV) — aventura arranca directamente en AVENTURA, GPS con validaciones, hijo5 nunca se hace visible (ver §9.5) | `SISTEMA.CAMBIO_MODO(MODOS.AVENTURA)` despachado con `despacharLocal`, fire-and-forget |
 | hijo5 (botón GPS 🛰️) | Al pulsar el botón para iniciar AVENTURA o desactivar modo DEV (ver §24) — únicamente alcanzable en modo DEV, porque hijo5 permanece oculto en producción | `'cambio_modo_global'`, `origen: 'boton-gps'` |
 | Reanudación automática | Al detectar `vv_aventura_iniciada` en `localStorage` | payload incluye `restaurado: true` |
-| Padre (modo DEV, ver §24) | `_hdl_SELECCION_AVENTURA_ACTIVADA` cuando `_devModeActivo === true` — aventura arranca directamente en CASA sin GPS | llamada interna via `globalThis._vv_triggerCambioModo(MODOS.CASA)` |
-| Padre (modo DEV, ver §24) | `_hdl_CONTROL_DEV_CINCO_TOQUES` con código correcto — vuelve a CASA desde cualquier modo activo | llamada interna via `globalThis._vv_triggerCambioModo(MODOS.CASA)` |
+| Padre (modo DEV, ver §24) | `_hdl_SELECCION_AVENTURA_ACTIVADA` cuando `_devModeActivo === true` — aventura arranca directamente en CASA sin GPS | `SISTEMA.CAMBIO_MODO(MODOS.CASA)` despachado con `despacharLocal` |
+| Padre (modo DEV, ver §24) | `_hdl_CONTROL_DEV_CINCO_TOQUES` con código correcto — vuelve a CASA desde cualquier modo activo | `SISTEMA.CAMBIO_MODO(MODOS.CASA)` despachado con `despacharLocal` |
 
 **Payload de `CAMBIO_MODO`:**
 
@@ -1992,8 +1992,7 @@ La aplicación tiene dos modos, cuyos valores corresponden a las constantes `MOD
 {
     modo: "aventura" | "casa",
     timestamp: Date.now(),
-    razon: "sincronizacion_inicial" | "cambio_modo_global" | ...,
-    secuenciaCompleta: true,
+    razon: "cambio_modo_global" | ...,
     propagadoDesde?: string   // origen del mensaje que disparó el cambio
 }
 ```
@@ -2011,7 +2010,7 @@ sequenceDiagram
     P->>APP: manejarCambioModo(estado, mensaje)
     APP-->>P: { exito: true, modoActual }
     loop para cada hijo crítico inicializado
-        P->>HC: CAMBIO_MODO { modo, secuenciaCompleta: true }
+        P->>HC: CAMBIO_MODO { modo }
     end
     HC-->>APP: CAMBIO_MODO_ENTENDIDO
     HC-->>APP: CAMBIO_MODO_EFECTUADO
@@ -3900,7 +3899,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 | **→ padre** | `AVENTURA.ESTADISTICAS_TIEMPO` | `{ tiempoTotal, tiempoRestante, tiempoUsado, completado }` | Cuando padre envía `AVENTURA.FINALIZADA` — detiene el temporizador y reporta; `completado:true` si quedaba tiempo |
 | **padre →** | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Handshake init |
 | **padre →** | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Handshake OK — hijo1 muestra su UI |
-| **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo, secuenciaCompleta, mensajeId }` | Cambio CASA↔AVENTURA |
+| **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Cambio CASA↔AVENTURA |
 | **padre →** | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Confirmación global del modo |
 | **padre →** | `AVENTURA.INICIADA` | `{ aventuraId, tiempoEstimado, idioma, timestamp }` | Inicia el temporizador con la duración configurada |
 | **padre →** | `AVENTURA.FINALIZADA` | `{ }` | Detiene el temporizador, muestra estadísticas |
@@ -4419,10 +4418,10 @@ sequenceDiagram
     P->>H: SISTEMA.NOTIFICACION { evento: 'AVENTURA_ACTIVADA' } → broadcast
     P-->>P: hideParentLoadingOverlay()
     P-->>P: _aventuraEnProceso = false
-    Note over P: _vv_triggerCambioModo(_modoInicio) — ver nota debajo
+    Note over P: despacharLocal(SISTEMA.CAMBIO_MODO, _modoInicio) — ver nota debajo
 ```
 
-**`_modoInicio` decide directamente el modo final, sin pasar por hijo5:** `const _modoInicio = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA`. En producción (`_devModeActivo` falso, el caso normal para cualquier usuario real) `_modoInicio` es `AVENTURA` — el padre llama `_vv_triggerCambioModo(MODOS.AVENTURA)` de forma fire-and-forget inmediatamente después de `_broadcastActivacion`, sin esperar ninguna pulsación de botón: el usuario entra directo en modo AVENTURA (GPS con validaciones, hijo5 oculto). El botón GPS de hijo5 (§9.7) nunca interviene en este camino — es exclusivamente la vía manual del modo DEV (ver §24), donde `_modoInicio` es `CASA` y el padre sí espera (`await`) a que `_vv_triggerCambioModo(MODOS.CASA)` complete antes de ocultar el overlay de carga.
+**`_modoInicio` decide directamente el modo final, sin pasar por hijo5:** `const _modoInicio = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA`. En producción (`_devModeActivo` falso, el caso normal para cualquier usuario real) `_modoInicio` es `AVENTURA` — el padre despacha `SISTEMA.CAMBIO_MODO(MODOS.AVENTURA)` con `despacharLocal` de forma fire-and-forget inmediatamente después de `_broadcastActivacion`, sin esperar ninguna pulsación de botón: el usuario entra directo en modo AVENTURA (GPS con validaciones, hijo5 oculto). El botón GPS de hijo5 (§9.7) nunca interviene en este camino — es exclusivamente la vía manual del modo DEV (ver §24), donde `_modoInicio` es `CASA` y el padre sí espera (`await`) a que ese `despacharLocal(SISTEMA.CAMBIO_MODO(MODOS.CASA))` complete antes de ocultar el overlay de carga.
 
 **`_normalizarSetHijos`** elimina de `estado.hijosInicializados` los IDs de los iframes que se van a recargar, para que `_esperarHijosCargados` no resuelva prematuramente con el estado anterior. Solo se llama en la ruta normal.
 
@@ -4522,7 +4521,7 @@ sequenceDiagram
     participant H5 as hijo5 (GPS btn)
 
     P-->>P: progresarSiguienteElemento()
-    Note over P: Llama __triggerCambioParadaInterno(datos) directamente\n(el bus descarta postMessage con origen===componenteId)
+    Note over P: Despacha NAVEGACION.CAMBIO_PARADA con despacharLocal(datos)
 
     P->>H2: DATOS.COORDENADAS_PARADAS_REQUEST { paradaId, padreId, incluirRutas }
     H2-->>P: DATOS.COORDENADAS_PARADAS_RESPONSE { coordenadas }
@@ -4596,7 +4595,7 @@ Si el elemento no tiene `reto_id`, `retosOk` es automáticamente `true` (no hay 
 
 ```mermaid
 flowchart TD
-    A([CAMBIO_PARADA activa elemento\nvía __triggerCambioParadaInterno]) --> B[ensurePending lazy-init:\ncrea entrada cuando llega primer evento\nllegada=false, audio=false, reto=false]
+    A([CAMBIO_PARADA activa elemento\nvía despacharLocal]) --> B[ensurePending lazy-init:\ncrea entrada cuando llega primer evento\nllegada=false, audio=false, reto=false]
     B --> C{¿tipo tramo?}
     C -- No parada/inicio --> D[GPS detecta llegada\n→ pending.llegada=true]
     C -- Sí tramo --> D
@@ -4608,7 +4607,7 @@ flowchart TD
     H --> I
     I -- Condiciones OK --> J[marcarParadaCompletada\n→ persiste en paradasCompletadas + localStorage\n→ habilita btn-avanzar + cartel de transición]
     J --> J2([Usuario pulsa btn-avanzar\nsiempre, parada y tramo por igual])
-    J2 --> K[progresarSiguienteElemento\n→ indiceProgreso++\n→ __triggerCambioParadaInterno]
+    J2 --> K[progresarSiguienteElemento\n→ indiceProgreso++\n→ despacharLocal(CAMBIO_PARADA)]
     I -- Condiciones pendientes --> L([Espera más eventos])
     K --> M{¿último elemento?}
     M -- No --> A
@@ -4628,7 +4627,7 @@ flowchart TD
 2. Elimina el `pendingCompleciones` del elemento anterior
 3. Incrementa `estado.indiceProgreso`
 4. Inicializa `estado.retoActual` con la cola de retos del siguiente elemento
-5. Llama `globalThis.__triggerCambioParadaInterno(datosCambio)` directamente — invoca el handler `_hdl_NAVEGACION_CAMBIO_PARADA` sin pasar por el bus (el bus descarta mensajes con `origen===componenteId`)
+5. Despacha `NAVEGACION.CAMBIO_PARADA` con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos: datosCambio })` — invoca el handler `_hdl_NAVEGACION_CAMBIO_PARADA` por la misma fila que un mensaje llegado de fuera
 
 > **Diseño intencional — fan-out asíncrono:** el padre envía `CAMBIO_PARADA` a hijo5, hijo2, hijo3 e hijo4 con `Promise.all`. No espera confirmación. `CAMBIO_PARADA_CONFIRMADO` existe solo para logging/diagnóstico, nunca como condición de bloqueo.
 
@@ -4700,7 +4699,7 @@ Si la sesión sigue viva y el usuario elige **continuar**, se ejecuta `ejecutarR
 
    El reloj de compra de hijo1 lo arranca `_activarHeartbeatAventura()` con el 6º parámetro `timestampCompra` (la fecha real de compra), de modo que el tiempo enviado es `tiempoEstimado − tiempo real transcurrido`, no el máximo de la aventura ni el último tick conocido antes de cerrar — ver "Temporizador" en §7.2 y `tests/e2e/41-temporizador-compra-real-y-devmode.spec.js`. Contrato completo del paso 8 en `tests/e2e/46-reanudacion-un-solo-camino.spec.js`.
 9. `_restaurarProgresoRest` — lee `indiceProgreso` y `paradaActual` directamente de `localStorage['vv_progreso']` (no recalcula desde `paradasCompletadas`). Llama internamente a `restoreProgressFromStorage()`, que antes de aplicar nada pasa por sus propios guards: `_restoreCheckTimeout()` (si `verificarTimeoutAventura()` indica que la aventura ya excedió su duración estimada, ejecuta `limpiarDatosAventura('timeout')` y aborta la restauración — el timeout de la aventura tiene prioridad sobre reanudarla), `_restoreLoadFromStorage()` (lee y parsea `vv_progreso`), `_restoreCheckStale()` (mismo TTL de 7 días que `vv_aventura_iniciada`, pero aplicado al propio payload de progreso — puede haber sobrevivido uno y caducado el otro si se editan por separado) y `_restoreCheckMismatch()` (descarta `vv_progreso` si su `aventura` o `idioma` no coincide con los ya seleccionados — progreso de una sesión distinta no debe aplicarse a la actual). Si los cuatro pasan, `_restoreApplyState()` aplica el estado (también restaura `estado.tiempoRestante` si el payload lo trae, ver §7.2) → `_restoreBroadcast()`, que dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado. Este paso va **después** del 8, no antes: la lógica de `_hdl_NAVEGACION_CAMBIO_PARADA` que depende de `estado.modo?.actual === MODOS.AVENTURA` (recordatorio de audio, botón GPS en tramos, deshabilitar `btnAvanzar` hasta completar) necesita el modo ya fijado para activarse correctamente — con el orden invertido, se procesaba con el modo todavía en su valor de arranque (CASA). Verificado en `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
-9b. **Inicialización de `estado.paradaRealCongelada` para restauraciones en CASA** — solo si `estado.modo.actual === MODOS.CASA` (y `estado.paradaActual` existe tras el paso 9): se asigna `estado.paradaRealCongelada = estado.paradaActual`. Hace falta aunque el paso 8 ya pase por `_hdl_SISTEMA_CAMBIO_MODO` (que es el otro sitio que lo asigna, al entrar en CASA, §2.5): en el paso 8 `estado.paradaActual` todavía es `null` — el progreso no se restaura hasta el paso 9 —, así que allí se congela `null`. Este paso lo rellena con el valor real ya restaurado. Sin él, el primer cambio CASA→AVENTURA de la sesión restaurada ejecutaría `limpiarRecursosPorModo()` (que borra `estado.paradaActual = null`) pero la condición `if (modo===AVENTURA && paradaRealCongelada)` sería falsa → `__triggerCambioParadaInterno` no se llamaría → mapa vacío y `paradaActual` null para el resto de la sesión. CASA solo es alcanzable en dev mode, así que en una PWA real este escenario no puede ocurrirle a un usuario final.
+9b. **Inicialización de `estado.paradaRealCongelada` para restauraciones en CASA** — solo si `estado.modo.actual === MODOS.CASA` (y `estado.paradaActual` existe tras el paso 9): se asigna `estado.paradaRealCongelada = estado.paradaActual`. Hace falta aunque el paso 8 ya pase por `_hdl_SISTEMA_CAMBIO_MODO` (que es el otro sitio que lo asigna, al entrar en CASA, §2.5): en el paso 8 `estado.paradaActual` todavía es `null` — el progreso no se restaura hasta el paso 9 —, así que allí se congela `null`. Este paso lo rellena con el valor real ya restaurado. Sin él, el primer cambio CASA→AVENTURA de la sesión restaurada ejecutaría `limpiarRecursosPorModo()` (que borra `estado.paradaActual = null`) pero la condición `if (modo===AVENTURA && paradaRealCongelada)` sería falsa → no se despacharía `NAVEGACION.CAMBIO_PARADA` → mapa vacío y `paradaActual` null para el resto de la sesión. CASA solo es alcanzable en dev mode, así que en una PWA real este escenario no puede ocurrirle a un usuario final.
 10. `_solicitarRecursosRest` — solicita coordenadas a hijo2 vía S2 para el elemento actual. El audio ya llegó en el paso 9 vía `_restoreBroadcast` → pipeline CAMBIO_PARADA.
 
 Verificado end-to-end con Playwright (GPS simulado, `vv_aventura_iniciada`/`vv_progreso` en `localStorage` antes de cargar la página): tras pulsar "continuar", el modo, `indiceProgreso` y el GPS (`watchId` real) quedan exactamente como estaban antes de cerrar la app. Esto incluye una sesión guardada en modo CASA: `#hijo5` vuelve a hacerse visible (`display:block`/`visibility:visible`) tras la reanudación, porque `datosGuardados.modo` (no `globalThis._devModeActivo`, perdido en la recarga) es la fuente de verdad para `_activarModoRest` — ver el punto 8 más arriba. Para una sesión guardada en modo AVENTURA, hijo5 permanece oculto durante todo el proceso, verificado con vigilancia continua por `requestAnimationFrame` (2779 muestras).
@@ -4733,7 +4732,7 @@ El círculo (`#loading-spinner-shell`) usa `min(85vmin,85vw,70vh)` con `margin-t
 
 #### `_restoreBroadcast` y el pipeline CAMBIO_PARADA en restauración
 
-`_restoreBroadcast` no puede usar `postMessage` auto-dirigido: `mensajeria.js` descarta mensajes cuyo `origen === componenteId`. En su lugar llama a `globalThis.__triggerCambioParadaInterno(datos)`, un wrapper expuesto por el bloque de script 7159 (donde vive `_hdl_NAVEGACION_CAMBIO_PARADA`). Ese wrapper invoca el handler directamente con `origen: 'restauracion-interna'`, activando el pipeline completo: `_actualizarEstadoParada`, audio (`_solicitarAudioParaParada`), notificación a hijos, evento `vv-parada-cambiada` para funciones-mapa, y `_configurarRetoBtn`. Si `__triggerCambioParadaInterno` no estuviera disponible en ese momento (timing muy temprano), `_solicitarRecursosRest` cae al fallback y solicita el audio directamente.
+`_restoreBroadcast` no puede usar `postMessage` auto-dirigido: el bus no envía nada cuando el destino es el propio frame — para eso está `despacharLocal`. En su lugar despacha `NAVEGACION.CAMBIO_PARADA` con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos })`, que entrega al handler `_hdl_NAVEGACION_CAMBIO_PARADA` por la misma fila que un mensaje llegado de fuera, activando el pipeline completo: `_actualizarEstadoParada`, audio (`_solicitarAudioParaParada`), notificación a hijos, evento `vv-parada-cambiada` para funciones-mapa, y `_configurarRetoBtn`. Si el handler de `NAVEGACION.CAMBIO_PARADA` no estuviera registrado todavía en ese momento (timing muy temprano), `_solicitarRecursosRest` cae al fallback y solicita el audio directamente.
 
 Si el usuario elige **nueva aventura**, se limpia todo el localStorage, se resetean los globals, y se muestra el iframe de selección en P2.
 
@@ -4881,7 +4880,7 @@ La diferencia importa para depurar: un frame **sin** bus no descarta fuentes no 
 
 - Padre → hijos: `enviarMensaje` usa `iframesRegistrados.get(destino)`, lee el `contentWindow` del elemento en ese momento y le hace `postMessage`
 - Hijos → padre: `ventanaPadre.postMessage` (sube al window padre)
-- Auto-envío (padre → padre): **NO funciona** via postMessage — `manejarMensajeEntrante` descarta `origen === componenteId`. Se usa `globalThis.__triggerCambioParadaInterno` como puente directo cross-scope.
+- Auto-envío (padre → padre): **NO funciona** via `enviarMensaje` — el bus avisa y no envía nada cuando el destino es el propio frame. Se usa `globalThis.mensajeria.despacharLocal` para entregarlo por la misma fila que un mensaje llegado de fuera.
 - `registrarControladorSeguro`: primer-registro-gana. Registros duplicados son silenciados.
 
 ---
@@ -4894,7 +4893,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0ac35eb527e6'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-dc23a2621e70'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5711,12 +5710,12 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 #### Patrón: `enviarMensajePadre({destino: padreId})` no funciona
 
-`enviarMensaje(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está en ese mapa — el mensaje se descarta sin error. Las tres funciones afectadas usan en cambio `__triggerCambioParadaInterno` o `funcionesMapa.setMapView`:
+`enviarMensaje(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está en ese mapa — el mensaje se descarta sin error. Las funciones afectadas usan en cambio `despacharLocal` o `funcionesMapa.setMapView`:
 
 | Función | Ubicación | Implementación actual |
 | ------- | --------- | --------------------- |
-| `ensureDefaultParada` | `codigo-padre.html` | `__triggerCambioParadaInterno(datosDefault)` |
-| `progresarSiguienteElemento` | `codigo-padre.html` | `__triggerCambioParadaInterno(datosCambio)` |
+| `ensureDefaultParada` | `codigo-padre.html` | `despacharLocal({ tipo: CAMBIO_PARADA, datos: datosDefault })` |
+| `progresarSiguienteElemento` | `codigo-padre.html` | `despacharLocal({ tipo: CAMBIO_PARADA, datos: datosCambio })` |
 | `_onNextEntityShowMapClick` (GPS overlay) | `codigo-padre.html` | `funcionesMapa.setMapView([lat, lng], 16, { animate: true })` |
 
 #### `GPS.ACTIVAR` — handler en Script 2
@@ -5892,40 +5891,13 @@ En modo puzzle los controles normales del reto, incluido "saltar reto", están o
 
 ---
 
-### 10.11 SISTEMA.NACK — protocolo de reintento de CAMBIO_MODO
+### 10.11 SISTEMA.NACK — hoy no dispara ningún reintento
 
-`SISTEMA.NACK` es la respuesta de un hijo cuando recibe `CAMBIO_MODO` pero no puede completarlo todavía (por ejemplo, está esperando permiso de geolocalización, o en estado transitorio).
+`SISTEMA.NACK` es la respuesta con la que un hijo rechaza un `CAMBIO_MODO` que no puede aplicar: solo cuando el `modo` recibido no es `'casa'` ni `'aventura'`. El padre solo envía esos dos valores (`MODOS.CASA`/`MODOS.AVENTURA`), así que la rama es defensiva y hoy nadie la dispara.
 
-**El padre es el único que recuerda.** El hijo rechaza y se olvida; guardar el cambio también en el hijo hacía que se aplicara dos veces (ver más abajo).
+**El padre no escucha `SISTEMA.NACK`.** Existió un protocolo de reintento —el hijo aparcaba el cambio, avisaba con NACK, y el padre lo recordaba y lo reenviaba por dos disparadores— para el `CAMBIO_MODO` que llegaba antes de que el padre tuviera a hijo2, hijo3 y hijo4 listos. Se retiró en el paso 2 de la lavadora (decisión 11, docs/mensajeria-duplicada-en-hijos.md): medido, cuando el padre recibe el `HIJO_LISTO` de un frame, ese frame ya tiene registrado su handler de `CAMBIO_MODO` — el cerrojo no protegía nada. El modo llega hoy por un solo camino: `modoInicial` en `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` al conectarse, y el envío normal de `SISTEMA.CAMBIO_MODO` después.
 
-```text
-padre emite SISTEMA.CAMBIO_MODO (broadcast)
-  ↓
-hijo recibe CAMBIO_MODO sin `secuenciaCompleta`, no puede procesarlo aún
-hijo → padre   SISTEMA.NACK { esperarPermiso: true, modoSolicitado, tipoOriginal }
-  ↓
-js/app.js — handler de SISTEMA.NACK
-  → si datos.esperarPermiso === true: guarda en pendingModeChanges.Map(hijoId, { modo, datos, intentos, nextAttemptAt })
-  → backoff: min(MODE_RETRY_BASE_MS 2000 ms × 2^(intentos-1), MODE_RETRY_MAX_MS 60000 ms) ± jitter del 10%
-  ↓
-DOS disparadores reenvían, los dos del padre:
-  · js/app.js — bucle cada 5 s: si nextAttemptAt <= Date.now(), reenvía con `secuenciaCompleta: true`
-  · codigo-padre.html — `_hijoListo_reenviarModoPendiente()`: al llegar el HIJO_LISTO de ese hijo, al momento
-  ↓
-Se borra la entrada al reenviar con éxito.
-Al agotar MODE_RETRY_MAX_INTENTOS (6) se suelta la entrada y se registra un `logger.error`
-diciendo qué hijo se queda con el modo anterior — es un fallo real de ese hijo.
-```
-
-**Quién envía NACK**: los cinco hijos (hijo1, hijo2, hijo3, hijo4 y hijo5) y la pantalla de selección. hijo6 no participa en el protocolo de modo.
-
-**Los hijos no aparcan el cambio de modo.** El hijo que recibe un `CAMBIO_MODO` fuera de secuencia lo rechaza con NACK y no se lo guarda: quien lo recuerda y lo reenvía es el padre. Un solo camino — el padre recuerda, el hijo rechaza y espera.
-
-La razón de que tenga que ser uno solo: si el hijo lo aparcase además por su cuenta, los dos caminos entregarían el mismo cambio y el hijo lo aplicaría **dos veces**. En hijo5, que lo aplicaría mandándose un mensaje a sí mismo, la segunda aplicación reentra al handler entero y duplica también sus peticiones de datos.
-
-Lo cubre `tests/e2e/84-cambio-modo-se-aplica-una-vez.spec.js`, un caso por hijo.
-
-**Por qué rendirse tiene que doler:** al ser este el único camino, agotar los reintentos deja a ese hijo con el modo anterior y sin nadie que lo corrija. Por eso el final de los intentos se registra como error y no como un silencio.
+Lo cubre `tests/e2e/84-el-modo-llega-por-un-camino.spec.js`, un caso por frame.
 
 ---
 
@@ -5968,7 +5940,7 @@ También lo reciben: hijo2 L2409 (almacena en `arrayParadasLocal` para cálculos
 
 #### SISTEMA.APLICACION_INICIALIZADA ✅ implementado
 
-Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 completan el handshake. El emisor usa `window.postMessage` con `origen: 'handshake-interno'` para que fluya por la mensajería centralizada (un origen distinto al propio padre evita el filtro anti-bucle). El handler `_hdl_APLICACION_INICIALIZADA` es informativo: registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados. No activa ninguna aventura — eso lo hacen exclusivamente `_hdl_SELECCION_AVENTURA_ACTIVADA` (flujo normal P1→P16) o `ejecutarRestauracionAventura()` (modal "continuar aventura", ver `_comprobarReanudacionAventura()`), ambos completamente independientes de este handler.
+Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 completan el handshake, con `globalThis.mensajeria.despacharLocal()`, que lo entrega al handler `_hdl_APLICACION_INICIALIZADA` por la misma fila que un mensaje llegado de fuera. El handler es informativo: registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados. No activa ninguna aventura — eso lo hacen exclusivamente `_hdl_SELECCION_AVENTURA_ACTIVADA` (flujo normal P1→P16) o `ejecutarRestauracionAventura()` (modal "continuar aventura", ver `_comprobarReanudacionAventura()`), ambos completamente independientes de este handler.
 
 #### DATOS.SOLICITAR_RETOS
 
@@ -6556,7 +6528,7 @@ En CASA, seleccionar cualquier parada/tramo para verlo en pantalla (hijo5) enví
 
 1. **Al entrar en CASA**: `estado.paradaRealCongelada = estado.paradaActual` — una foto del punto real antes de que empiece cualquier navegación libre.
 2. **Mientras se está en CASA**: cada selección en hijo5 mueve `estado.paradaActual`/`indiceProgreso` con total normalidad — es lo que hace posible "verlo" de verdad.
-3. **Al volver a AVENTURA**: si `estado.paradaRealCongelada` difiere de `estado.paradaActual` actual (es decir, se navegó a algo distinto en CASA), se llama a `globalThis.__triggerCambioParadaInterno({ paradaId: estado.paradaRealCongelada })` — el mismo helper interno que usa la restauración de sesión — para resincronizar todo (padre y `estadoMapa.paradaActual` en `funciones-mapa.js`) de vuelta al punto real, antes de que el GPS vuelva a actuar sobre las posiciones. Si no se navegó a nada distinto en CASA, no hace nada (evita un `CAMBIO_PARADA` interno redundante).
+3. **Al volver a AVENTURA**: si `estado.paradaRealCongelada` difiere de `estado.paradaActual` actual (es decir, se navegó a algo distinto en CASA), se despacha `NAVEGACION.CAMBIO_PARADA` con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos: { paradaId: estado.paradaRealCongelada } })` — el mismo camino que usa la restauración de sesión — para resincronizar todo (padre y `estadoMapa.paradaActual` en `funciones-mapa.js`) de vuelta al punto real, antes de que el GPS vuelva a actuar sobre las posiciones. Si no se navegó a nada distinto en CASA, no hace nada (evita un `CAMBIO_PARADA` interno redundante).
 
 Verificado end-to-end: AVENTURA en `Av1-P-2` (índice 7) → CASA → ver `Av1-TR-5` (el puntero se mueve, la navegación libre funciona) → volver a AVENTURA → el progreso real vuelve solo a `Av1-P-2`, índice 7.
 
@@ -7876,7 +7848,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `44-boton-saltar-audio.spec.js` | 27 | Botón ⏩ de saltar audio no disponible (`#audio-action-skip`, §25.5f): cubre el caso "la parada o el tramo tiene `audio_id` asignado pero el fichero real no existe" —hoy la norma en 11 de los 12 idiomas mientras no se termine de grabar— y también un fallo de reproducción en runtime. |
 | `45-texto-intro-fallback-idioma.spec.js` | 6 | P11 (`En-busca-del-tesoro.html`, §7.1) — grupo TI, `cargarTextoIntro()`: un fallo real de red cargando los párrafos del idioma elegido muestra el fallback traducido en ESE idioma, nunca español fijo (TI-1); sin fallo, sigue mostrando el texto real de la aventura (TI-2). Grupo AI, `cargarAudioIntro()`: sin fichero real de audio (inglés), `#btn-siguiente-audio-intro` se habilita directamente en vez de quedar bloqueado esperando un evento `play` que nunca llega (AI-1); con fichero real (español), el botón sigue exigiendo el `play` real como siempre (AI-2). `En-busca-del-tesoro.html` se inserta como `<iframe>` real en el arnés — navegarlo directamente dispara su guardia de redirección a `codigo-padre.html` |
 | `46-reanudacion-un-solo-camino.spec.js` | 9 | La reanudación de sesión usa el mismo camino que cualquier cambio de modo (§9.10 paso 8). Grupo RU: el modo arranca sin decidir (`null`), no en CASA (RU-0); reanudar aplica el modo persistido pasando por `_hdl_SISTEMA_CAMBIO_MODO` — verificado por un efecto que solo produce el handler, el arranque del heartbeat, no por el mero valor del modo (RU-1); el flag `dev` se restaura del campo persistido, de modo que dev+AVENTURA es representable (RU-2) y dev+CASA deja `#hijo5` visible (RU-2b); **reanudar en CASA sin dev no borra la sesión que está restaurando** (RU-3, el caso que `_transicionarAModoCasa()` destruiría sin su guard); un cambio a CASA que no es reanudación sí limpia el progreso, o sea que el guard no desactiva el abandono real (RU-4); y "ya estoy en ese modo" reenvía la propagación a los hijos en vez de devolver `exito:true` sin que nadie se entere (RU-5). Grupo RC, por arranque real con `localStorage` sembrado: una sesión de Aventura1 con 61 h (ventana de compra 60 h) no se ofrece para reanudar (RC-1) y una de 2 h sí (RC-2) |
-| `47-reescalado-marcador-usuario-y-chat.spec.js` | 6 | Dos contratos que comparten arranque. Grupo MU (§4.6, escalado dinámico): con una única lectura de GPS y el zoom cambiado después, el marcador de posición propia se reescala, y encoge al acercar como corresponde a su familia — se ejercita disparando el evento de zoom del mapa, no llamando a `reescalarMarcadorUsuario()` a mano, porque el fallo que cubre no es que esa función no funcione sino que nadie la invoque (MU-1); y ese reescalado conserva `.gps-arrow-heading`, el div que `actualizarRotacionFlechaGPS()` busca en cada lectura de brújula — sin él la flecha dejaría de girar en silencio (MU-2); y el invariante de fondo de todo el sistema de escalado — al acercar el zoom, la polyline ENGORDA y el icono ENCOGE, cada familia en su sentido — medido sobre los valores reales con los que nacen (MU-3, el que cae si alguien intenta "unificar" las dos curvas). Y los 📌/🎯 de ruta reaccionan al zoom, disparando el pipeline real de cambio de parada (`__triggerCambioParadaInterno`, el mismo que usa el botón avanzar) en vez de fabricar el marcador a mano (MU-4). **MU-4 solo puede fallar porque `tests/e2e/helpers/maplibre-stub.js` reproduce las clases que el MapLibre real añade a cada `Marker`**: mientras el stub no las añadía, una comparación estricta de `className` funcionaba en el arnés y fallaba en producción, así que ninguna prueba podía detectar ese fallo por mucho que lo intentara. Grupo CH (§7.7): al pulsar `#btn-chat-soporte` (camino real del usuario, no una llamada a `abrirChat()`), `hijo6-chat` queda en `iframesRegistrados` (CH-1) y un envío del padre a ese destino ya no resuelve `false` por destino desconocido (CH-2). El arnés envuelve `maplibregl.Map`/`Marker` del stub para poder cambiar el zoom y leer el elemento real del marcador — el `addTo()` del stub es un no-op y el elemento nunca llega al documento |
+| `47-reescalado-marcador-usuario-y-chat.spec.js` | 6 | Dos contratos que comparten arranque. Grupo MU (§4.6, escalado dinámico): con una única lectura de GPS y el zoom cambiado después, el marcador de posición propia se reescala, y encoge al acercar como corresponde a su familia — se ejercita disparando el evento de zoom del mapa, no llamando a `reescalarMarcadorUsuario()` a mano, porque el fallo que cubre no es que esa función no funcione sino que nadie la invoque (MU-1); y ese reescalado conserva `.gps-arrow-heading`, el div que `actualizarRotacionFlechaGPS()` busca en cada lectura de brújula — sin él la flecha dejaría de girar en silencio (MU-2); y el invariante de fondo de todo el sistema de escalado — al acercar el zoom, la polyline ENGORDA y el icono ENCOGE, cada familia en su sentido — medido sobre los valores reales con los que nacen (MU-3, el que cae si alguien intenta "unificar" las dos curvas). Y los 📌/🎯 de ruta reaccionan al zoom, disparando el pipeline real de cambio de parada (`NAVEGACION.CAMBIO_PARADA` despachado con `despacharLocal`, el mismo que usa el botón avanzar) en vez de fabricar el marcador a mano (MU-4). **MU-4 solo puede fallar porque `tests/e2e/helpers/maplibre-stub.js` reproduce las clases que el MapLibre real añade a cada `Marker`**: mientras el stub no las añadía, una comparación estricta de `className` funcionaba en el arnés y fallaba en producción, así que ninguna prueba podía detectar ese fallo por mucho que lo intentara. Grupo CH (§7.7): al pulsar `#btn-chat-soporte` (camino real del usuario, no una llamada a `abrirChat()`), `hijo6-chat` queda en `iframesRegistrados` (CH-1) y un envío del padre a ese destino ya no resuelve `false` por destino desconocido (CH-2). El arnés envuelve `maplibregl.Map`/`Marker` del stub para poder cambiar el zoom y leer el elemento real del marcador — el `addTo()` del stub es un no-op y el elemento nunca llega al documento |
 | `48-precarga-video-no-pisa-abierto.spec.js` | 3 | `_precargarVideoParada()` (§15). El `<video>` que precarga y el que reproduce son EL MISMO elemento, así que precargar el vídeo del tramo siguiente no puede pisar uno que el usuario tenga abierto. |
 | `49-escalera-espera-imagen.spec.js` | 5 | La escalera de espera de imágenes (`_escaleraCargaImagen()`) y la precarga que la hace innecesaria casi siempre (`_precargarImagenParada()`), §25.18: 4 s de gracia en silencio → spinner mientras reintenta → rendición. |
 | `50-pending-iniciado-no-borra-reto.spec.js` | 4 | `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` (§13) significa que el padre empieza a seguir la compleción de una parada, NO que el usuario haya salido del reto: hijo4 ya no borra `retoActualId` ni oculta sus controles al recibirlo. |
@@ -8121,7 +8093,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-0ac35eb527e6'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-dc23a2621e70'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8842,7 +8814,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-0ac35eb527e6';
+const CACHE_VERSION = 'v-dc23a2621e70';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9147,7 +9119,7 @@ flowchart TD
     HDLP14 --> P14[P14 — Normativa]
     NORMAL2 --> P14
     P14 --> P15[P15 — Reto R-2\nseleccion envía AVENTURA_ACTIVADA]
-    P15 --> HDLAA["padre: _hdl_SELECCION_AVENTURA_ACTIVADA\n_mostrarUIActivada: hijo5 display:block · visibility:visible\n_vv_triggerCambioModo(MODOS.CASA)"]
+    P15 --> HDLAA["padre: _hdl_SELECCION_AVENTURA_ACTIVADA\n_mostrarUIActivada: hijo5 display:block · visibility:visible\ndespacharLocal(CAMBIO_MODO, MODOS.CASA)"]
     HDLAA --> CASA1([Sistema en MODO CASA\nhijo5 visible · GPS activo en watchPosition · overlay GPS silenciado])
 ```
 
@@ -9171,7 +9143,7 @@ flowchart TD
     MSG2 --> HDL["padre Script 2:\n_hdl_CONTROL_DEV_CINCO_TOQUES\noverlay con input #_dev-code-input\nguard: si ya existe input, no abre"]
     HDL --> CODE2{¿código DEV correcto?}
     CODE2 -- No --> HDL
-    CODE2 -- Sí --> SET2["globalThis._devModeActivo = true\nhijo5: display:block · visibility:visible\n_vv_triggerCambioModo(MODOS.CASA)"]
+    CODE2 -- Sí --> SET2["globalThis._devModeActivo = true\nhijo5: display:block · visibility:visible\ndespacharLocal(CAMBIO_MODO, MODOS.CASA)"]
     SET2 --> CAMBIO["_hdl_SISTEMA_CAMBIO_MODO(CASA)\nheartbeat pausado\nlocalStorage progreso limpiado\nhijos notificados CAMBIO_MODO"]
     CAMBIO --> CASA2([MODO CASA\nhijo5 visible · GPS sin validaciones])
 ```
@@ -9233,7 +9205,6 @@ El modo DEV cruza tres scopes distintos que no comparten variables léxicas:
 | `En-busca-del-tesoro.html` módulo | `globalThis._devCasaMode` | Accede y escribe via `globalThis` |
 | `codigo-padre.html` Script 1 (IIFE) | `globalThis._devModeActivo` | IIFE inicializa y escribe; todos los scripts leen via `globalThis` |
 | `codigo-padre.html` Script 2 | `globalThis._devModeActivo` | Lee y escribe via `globalThis` (no puede ver `let`/`const` de Script 1) |
-| `codigo-padre.html` Script 1 | `globalThis._vv_triggerCambioModo` | Script 1 expone la función `_hdl_SISTEMA_CAMBIO_MODO`; Script 2 la llama via `globalThis` |
 | `codigo-padre.html` Script 2 | `globalThis._verificarCodigoDevPWA` | Definida en Script 2 (junto a Factor 2); el bloque del panel de logs, un `<script type="module">` totalmente aparte al final del documento, la llama vía `globalThis` — mismo patrón que el resto de la fila |
 
 #### Protección anti-doble-modal
@@ -9356,7 +9327,7 @@ Aparece el overlay de carga (`#overlay-carga-aventura`) con el logo giratorio na
 1. Detecta `_iframesPreCargadosP14 = true` → fast-path: no recarga iframes
 2. Distribuye datos de aventura a los hijos (`distribuirDatosAventura()`)
 3. Hace visible hijo5 (`display:block; visibility:visible`)
-4. Llama `await _vv_triggerCambioModo(MODOS.CASA)` — todos los hijos reciben `CAMBIO_MODO(CASA)` y responden con `ENTENDIDO` + `EFECTUADO`
+4. Despacha `SISTEMA.CAMBIO_MODO(MODOS.CASA)` con `await globalThis.mensajeria.despacharLocal(...)` — todos los hijos reciben `CAMBIO_MODO(CASA)` y responden con `ENTENDIDO` + `EFECTUADO`
 5. `_hdl_SISTEMA_CAMBIO_MODO` resetea `globalThis._codigoValidadoP13 = false` al confirmar CASA — a partir de aquí el overlay de GPS solo se muestra en modo AVENTURA (ver estado GPS más abajo)
 6. Oculta el overlay de carga (`hideParentLoadingOverlay()`)
 
@@ -9430,11 +9401,11 @@ Si el desarrollador quiere inspeccionar el estado sin reiniciar la sesión (por 
 1. hijo2 ejecuta `_resetarEstadoParaModo('aventura')` — mismo reset que en el paso 6 de la rama CASA (ver arriba), aplicado igual en ambas direcciones:
    - `timestampSalioDeRango` sigue a `null` — arranca desde cero si el usuario vuelve a salir de rango
    - `posicionActualUsuario` y `distanciaAlDestino` quedan a `null` — como consecuencia, la rama `if (estadoComponente.posicionActualUsuario) verificarDistanciaYActualizarBotones()` de este mismo reset nunca encuentra nada poblado justo después de resetear y no llega a ejecutarse en este punto; la distancia real se recalcula en cuanto llega el siguiente `ACTUALIZAR_ESTADO` fresco del padre (paso 2 más abajo), nunca a partir de un valor desactualizado
-   - `idParadaActual` también se pone a `null` aquí — el hueco momentáneo lo cierra el paso 5 de más abajo, que resincroniza el valor real vía `__triggerCambioParadaInterno`
+   - `idParadaActual` también se pone a `null` aquí — el hueco momentáneo lo cierra el paso 5 de más abajo, que resincroniza el valor real despachando `NAVEGACION.CAMBIO_PARADA` con `despacharLocal`
 2. `funciones-mapa.js` reanuda: `estadoMapa.modo = MODOS.AVENTURA` → el siguiente pulso GPS genera un `ACTUALIZAR_ESTADO` fresco con la distancia real a la siguiente parada no completada
 3. Si el desarrollador está fuera de rango (>15m) al volver: el overlay de aviso correspondiente aparece al instante (sin cuenta atrás ni penalización por el tiempo en CASA — ver §31.4)
 4. `estado.indiceProgreso`/`estado.paradaActual` (los del **padre**) nunca se tocan al cambiar de modo — solo cambian si de verdad se avanza una parada. Lo que SÍ se vacía en cada cambio de modo, incondicionalmente, es la copia local de "parada actual" de **funciones-mapa** (`estadoMapa.paradaActual`, vía `limpiarPorEstado`) y la de **hijo2** (`idParadaActual`, indirectamente) — ninguna de las dos es la misma variable que `estado.paradaActual` del padre.
-5. Por eso `_hdl_SISTEMA_CAMBIO_MODO` (ver §8.12/§10.6) resincroniza SIEMPRE que hay progreso real, no solo si `estado.paradaActual` cambió en CASA: llama a `__triggerCambioParadaInterno({ paradaId: estado.paradaRealCongelada })`, que dispara el pipeline completo de `NAVEGACION.CAMBIO_PARADA` (notifica a hijo2, y dispara `vv-parada-cambiada` para que funciones-mapa fije `estadoMapa.paradaActual` de nuevo). Sin este paso, `_siguienteIdElementoNavegable()` en funciones-mapa (que calcula la "siguiente parada" a partir de `estadoMapa.paradaActual`, no de `estado.indiceProgreso`) arrancaría siempre desde el principio de la aventura tras cualquier vuelta a AVENTURA — la causa real detrás del bug donde la polyline discontinua siempre apuntaba a la parada 0.
+5. Por eso `_hdl_SISTEMA_CAMBIO_MODO` (ver §8.12/§10.6) resincroniza SIEMPRE que hay progreso real, no solo si `estado.paradaActual` cambió en CASA: despacha `NAVEGACION.CAMBIO_PARADA` con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos: { paradaId: estado.paradaRealCongelada } })`, que dispara el pipeline completo (notifica a hijo2, y dispara `vv-parada-cambiada` para que funciones-mapa fije `estadoMapa.paradaActual` de nuevo). Sin este paso, `_siguienteIdElementoNavegable()` en funciones-mapa (que calcula la "siguiente parada" a partir de `estadoMapa.paradaActual`, no de `estado.indiceProgreso`) arrancaría siempre desde el principio de la aventura tras cualquier vuelta a AVENTURA — la causa real detrás del bug donde la polyline discontinua siempre apuntaba a la parada 0.
 
 Repetir desde el paso 8 para volver a AVENTURA.
 
@@ -9592,7 +9563,7 @@ Cuando el padre recibe `SELECCION.AVENTURA_ACTIVADA`:
 
 ### 25.3. El modo AVENTURA comienza
 
-Tras la activación (P16 — pantalla de logos), el turista real pasa **directo a modo AVENTURA** — `_hdl_SELECCION_AVENTURA_ACTIVADA` llama a `_vv_triggerCambioModo(MODOS.AVENTURA)` en cuanto termina de distribuir los datos, sin esperar ninguna acción manual (ver §9.5). El resto de esta sección (25.3 en adelante) describe exactamente lo que ese turista ve al entrar en AVENTURA.
+Tras la activación (P16 — pantalla de logos), el turista real pasa **directo a modo AVENTURA** — `_hdl_SELECCION_AVENTURA_ACTIVADA` despacha `SISTEMA.CAMBIO_MODO(MODOS.AVENTURA)` con `despacharLocal` en cuanto termina de distribuir los datos, sin esperar ninguna acción manual (ver §9.5). El resto de esta sección (25.3 en adelante) describe exactamente lo que ese turista ve al entrar en AVENTURA.
 
 > **Nota de arquitectura — excepción exclusiva de desarrollo:** `hijo5` (panel de modo CASA) arranca siempre oculto (`display:none; visibility:hidden`) y el turista real nunca lo ve. Solo existe una vía distinta: el modo DEV (documentado en §24.0), donde el sistema queda en CASA tras la activación y el propio desarrollador pulsa el botón GPS 🛰️ de hijo5 para pasar a AVENTURA manualmente — el modo DEV lo activa el propio equipo, nunca un usuario final, que no tiene acceso a los gestos que lo disparan.
 
@@ -9679,7 +9650,7 @@ En su lugar, la fiabilidad se resuelve donde de verdad importa: en la confirmaci
 
 **Por qué una ventana y no "2 lecturas seguidas":** exigir que las dos lecturas confirmatorias sean estrictamente consecutivas falla en la calle real. El ruido de GPS urbano no es un error aislado que se corrige solo — la distancia calculada puede oscilar de forma sostenida alrededor de un umbral fijo, lectura tras lectura, mientras el usuario está físicamente parado en el mismo sitio. Bastaba con que **una** lectura de cada dos cayera justo fuera del radio para que el contador de "seguidas" se reiniciara antes de llegar a 2 — y con ese patrón, la llegada podía no confirmarse nunca, por mucho tiempo que el usuario esperase parado en la diana Está medido, con datos reales y un hijo2 cargado como iframe real: 20 lecturas alternando 15 m y 25 m alrededor de un radio de 20 m no confirman jamás la llegada si se exigen dos seguidas. La ventana de 4 conserva exactamente la misma protección contra una lectura ruidosa aislada (1 de 4 sigue sin ser suficiente) sin depender de que el azar alinee dos lecturas buenas justo una detrás de la otra.
 
-> **Sensor redundante de `funciones-mapa.js`: notifica por llamada directa, no por el bus.** El segundo sensor (el de `procesarPosicionGPSParaAventura()`, respaldo del de hijo2) vive dentro del propio padre, no en un iframe, y por eso **no puede** usar `enviarMensaje({ destino: resolverIdPadre(), ... })`: `resolverIdPadre()` devuelve el ID del propio padre y `enviarMensaje()` (`js/mensajeria.js`) busca ese destino en `iframesRegistrados`, que nunca contiene al padre mismo — el envío se descartaría en silencio en todas y cada una de las llamadas, sin ningún error visible, porque `enviarMensaje()` se llama en fire-and-forget y nadie comprueba el resultado. Usa `globalThis.__triggerLlegadaDetectadaInterno(datos)`, expuesto junto al registro de `NAVEGACION.LLEGADA_DETECTADA` en `codigo-padre.html`, que invoca el handler del padre directamente — mismo patrón que `__triggerCambioParadaInterno` para `CAMBIO_PARADA` en reanudación de sesión (§9.10). Es un caso concreto de la regla general de §32.3 ("el padre no puede enviarse mensajes a sí mismo vía `enviarMensaje`") — ver esa sección para el patrón completo y por qué `enviarMensaje()` nunca puede resolver el propio ID del padre.
+> **Sensor redundante de `funciones-mapa.js`: notifica por el bus, con `despacharLocal`.** El segundo sensor (el de `procesarPosicionGPSParaAventura()`, respaldo del de hijo2) vive dentro del propio padre, no en un iframe, y por eso **no puede** usar `enviarMensaje({ destino: resolverIdPadre(), ... })`: `resolverIdPadre()` devuelve el ID del propio padre y `enviarMensaje()` (`js/mensajeria.js`) se niega a enviar a uno mismo — avisa y no sale, para eso está `despacharLocal`. Usa `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA, datos })`, que entrega al handler del padre por la misma fila que un mensaje llegado de fuera — mismo camino que `NAVEGACION.CAMBIO_PARADA` en reanudación de sesión (§9.10). Es un caso concreto de la regla general de §32.3 ("el padre no puede enviarse mensajes a sí mismo vía `enviarMensaje`") — ver esa sección para el patrón completo y por qué `enviarMensaje()` nunca puede resolver el propio ID del padre.
 
 Mientras el usuario está **dentro de los 15 metros** de la parada actual (o dentro del rangoMaximo del tramo):
 
@@ -10018,7 +9989,7 @@ Si el usuario no toca nada, a los **30 segundos** se reanuda automáticamente (p
 7. Se restaura el progreso (parada actual) — dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado.
 8. El usuario continúa exactamente donde lo dejó.
 
-**Por qué el modo se activa antes de restaurar el progreso, no después:** `_restaurarProgresoRest()` (paso 7) dispara el `CAMBIO_PARADA` real del elemento restaurado (`_restoreBroadcast()` → `__triggerCambioParadaInterno()` → `_hdl_NAVEGACION_CAMBIO_PARADA`), y ese handler decide varias cosas según `estado.modo?.actual === MODOS.AVENTURA` — si arranca el recordatorio de audio (§25.5c), la lógica de botón GPS en tramos, y si deshabilita `btnAvanzar` hasta completar audio+reto. `estado.modo.actual` **no lo escribe `codigo-padre.html` en ningún sitio**: sus tres únicas asignaciones están en `manejarCambioModo()` de `js/app.js` (el *optimistic update* del principio, la reafirmación de campos mínimos después del pre-warm, y `restaurarEstadoModoAnterior()` si el cambio falla). En una reanudación, `_activarModoRest()` (paso 6) llega ahí por la vía normal — invoca `_hdl_SISTEMA_CAMBIO_MODO` con `modo: _modoRest` en vez de reimplementar la mitad de sus efectos —, así que es el único punto de la reanudación que provoca ese cambio. Con el modo ya aplicado antes de que se procese la parada restaurada, esas ramas reciben el valor real (`aventura`), no el valor de arranque (`casa`) con el que empieza `estado.modo` antes de cualquier restauración. El mismo orden evita un segundo problema: el `CAMBIO_MODO` que `_activarModoRest()` difunde a los hijos llega a hijo2 antes que el `CAMBIO_PARADA` — así `_resetarEstadoParaModo()` (§24) limpia el estado antes de que lleguen los datos reales de la parada, en vez de después, donde los borraría justo tras fijarlos. Cubierto por `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
+**Por qué el modo se activa antes de restaurar el progreso, no después:** `_restaurarProgresoRest()` (paso 7) dispara el `CAMBIO_PARADA` real del elemento restaurado (`_restoreBroadcast()` → `despacharLocal()` → `_hdl_NAVEGACION_CAMBIO_PARADA`), y ese handler decide varias cosas según `estado.modo?.actual === MODOS.AVENTURA` — si arranca el recordatorio de audio (§25.5c), la lógica de botón GPS en tramos, y si deshabilita `btnAvanzar` hasta completar audio+reto. `estado.modo.actual` **no lo escribe `codigo-padre.html` en ningún sitio**: sus tres únicas asignaciones están en `manejarCambioModo()` de `js/app.js` (el *optimistic update* del principio, la reafirmación de campos mínimos después del pre-warm, y `restaurarEstadoModoAnterior()` si el cambio falla). En una reanudación, `_activarModoRest()` (paso 6) llega ahí por la vía normal — invoca `_hdl_SISTEMA_CAMBIO_MODO` con `modo: _modoRest` en vez de reimplementar la mitad de sus efectos —, así que es el único punto de la reanudación que provoca ese cambio. Con el modo ya aplicado antes de que se procese la parada restaurada, esas ramas reciben el valor real (`aventura`), no el valor de arranque (`casa`) con el que empieza `estado.modo` antes de cualquier restauración. El mismo orden evita un segundo problema: el `CAMBIO_MODO` que `_activarModoRest()` difunde a los hijos llega a hijo2 antes que el `CAMBIO_PARADA` — así `_resetarEstadoParaModo()` (§24) limpia el estado antes de que lleguen los datos reales de la parada, en vez de después, donde los borraría justo tras fijarlos. Cubierto por `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
 
 **El reloj de compra (§7.2) se reanuda con el tiempo real transcurrido, no con el que quedaba al cerrar la app:** `_activarModoRest()`, si el modo restaurado es AVENTURA, llama a `_iniciarTemporizadorAventura()` pasándole `datosGuardados.timestamp` (la fecha real en que se compró/inició la aventura, persistida en `vv_aventura_iniciada`). El tiempo que se envía a hijo1 es `tiempoEstimado - (Date.now() - datosGuardados.timestamp)` — el mismo cálculo en tiempo real que ya usa `verificarTimeoutAventura()` (`js/reciclaje-digital.js`) para cortar el acceso al superar las 60h/150h compradas. Si en vez de esto se reenviara el último `tiempoRestante` conocido antes de cerrar la app, el reloj visible se habría "pausado" durante todo el tiempo que la PWA estuvo cerrada, mostrando más tiempo del que realmente queda. En modo dev (`globalThis._devModeActivo`), `_iniciarTemporizadorAventura()` no envía nada en absoluto — el temporizador cuenta tiempo de compra real, y no hay compra que cronometrar mientras se prueba la app (mismo guard aplica al retorno CASA→AVENTURA en la misma sesión, no solo a la reanudación). Cubierto por `tests/e2e/41-temporizador-compra-real-y-devmode.spec.js`.
 
@@ -11256,7 +11227,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Registra en un `Map` interno que ese hijo recibió y entendió el cambio de modo | (ninguna respuesta directa; el padre espera a `EFECTUADO`) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Registra que el hijo aplicó el modo; cuando todos los hijos confirman, cierra la transición | `SISTEMA.CAMBIO_MODO_APLICADO` | **Broadcast a todos los hijos** | 4.ª y última fase del protocolo; el padre emite broadcast (no solo al emisor) para que todos completen la transición |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat | Resetea el contador de `heartbeatsFallidos` para ese hijo | (ninguna) | — | Confirmar que el hijo está vivo; si el contador supera `MAX_LATIDOS_SIN_RESPUESTAS_FALLIDOS=3`, el padre recarga el iframe |
-| `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (lista de paradas) — o internamente via `__triggerCambioParadaInterno` (progresión automática / restauración) | Actualiza `estadoActual.paradaActual` en state-manager; calcula el índice; solicita coords a hijo2 (`DATOS.COORDENADAS_PARADAS_REQUEST`); resuelve el `audio_id` de la parada vía `cargarAudios()` (`_solicitarAudioParaParada` → `_resolverAudioData`, protección pasiva por parada, ver §16); fan-out `CAMBIO_PARADA` a todos los hijos | `NAVEGACION.CAMBIO_PARADA` → Hijo 5 (si origen ≠ 'hijo5'), Hijo 2, Hijo 3, Hijo 4; `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` → Hijo 3 (mismo camino en CASA y AVENTURA); `CONTROL.HABILITAR`/`DESHABILITAR` `retosBtn` → Hijo 3 | Hijo 2, Hijo 3, Hijo 4, Hijo 5 (condicional) | Orquestar la transición completa a una nueva parada, incluida la entrega del audio de esa parada — no de la aventura completa |
+| `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (lista de paradas) — o internamente despachado con `despacharLocal` (progresión automática / restauración) | Actualiza `estadoActual.paradaActual` en state-manager; calcula el índice; solicita coords a hijo2 (`DATOS.COORDENADAS_PARADAS_REQUEST`); resuelve el `audio_id` de la parada vía `cargarAudios()` (`_solicitarAudioParaParada` → `_resolverAudioData`, protección pasiva por parada, ver §16); fan-out `CAMBIO_PARADA` a todos los hijos | `NAVEGACION.CAMBIO_PARADA` → Hijo 5 (si origen ≠ 'hijo5'), Hijo 2, Hijo 3, Hijo 4; `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` → Hijo 3 (mismo camino en CASA y AVENTURA); `CONTROL.HABILITAR`/`DESHABILITAR` `retosBtn` → Hijo 3 | Hijo 2, Hijo 3, Hijo 4, Hijo 5 (condicional) | Orquestar la transición completa a una nueva parada, incluida la entrega del audio de esa parada — no de la aventura completa |
 | `AUDIO.FIN_REPRODUCCION` | Hijo 3 al terminar el audio | Actualiza los controles de audio del padre y delega en `_procesarFinAudioElemento`, que es quien resuelve `pending.audio` del elemento y decide si habilitar el reto | `RETO.HABILITAR` → Hijo 4 (solo en AVENTURA y solo si la parada tiene retos, vía `_procesarFinAudioElemento`) | Hijo 4 (condicional) | El reto solo se puede intentar después de escuchar el audio de la parada y únicamente si esa parada tiene reto |
 | `RETO.COMPLETADO` | Hijo 4 cuando el usuario resuelve el reto | Actualiza el progreso en state-manager; marca `pending.reto=true`; si llegada + audio (+ reto) ya están todas a `true`, `marcarParadaCompletada()` habilita `btnAvanzar` (nunca envía `CAMBIO_PARADA` directamente, ver §2.2); si es la última parada, dispara el flujo de fin de aventura | (múltiples acciones internas; no hay un único mensaje de respuesta) | — | Avanzar el estado del recorrido tras superar el reto |
 | `NAVEGACION.LLEGADA_DETECTADA` | Hijo 2 al entrar en radio de parada o tramo | Se dispara para **ambos tipos**: paradas (`RADIO_PARADA=15 m` hardcodeado en `_detectarLlegadaParada()`) y tramos (`radioLlegada` = 15 m, el mismo que la parada, **y** `recorridoSuficiente` — distancia real recorrida ≥40% de la longitud del camino, ver §"Distancia recorrida"). El mensaje incluye `tipoParada` ('parada'/'tramo'). El padre distingue por `estado.elementoActual.tipo`: para tramos → solicita audio (`AUDIO.REPRODUCIR_REQUEST`) + llama `_marcarPendingPorLlegada()`; para paradas → solo llama `_marcarPendingPorLlegada()` (audio ya cargado en `CAMBIO_PARADA`). Ambos caminos marcan `pending.llegada=true`, condición necesaria junto con `pending.audio` y `retosOk` para completar la parada/tramo. | — | — | Condición GPS de llegada — aplica a paradas Y tramos; sin ella la parada nunca se completa aunque el usuario escuche el audio y resuelva el reto |
@@ -11271,11 +11242,11 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.ADVERTENCIA` | Cualquier hijo | Registra en log la advertencia con código y texto; no interrumpe el flujo | (ninguna) | — | Canal de advertencias no fatales; evita que los hijos usen `console.warn` directamente para asuntos relevantes |
 | `SELECCION.CODIGO_VALIDADO` | Pantalla de selección (P13 — **solo prod**; en modo DEV, ver §24, P13 se salta y este mensaje nunca se envía) | `_hdl_SELECCION_CODIGO_VALIDADO`: handler vacío — registra con log que el código fue validado; no carga iframes ni activa GPS (todo delegado a `P14_MOSTRADA`). | (ninguna) | — | Registro de que el usuario completó P13; la carga real la dispara P14_MOSTRADA |
 | `SELECCION.DEV_MODE_TOGGLE` | Pantalla de selección (modo DEV, ver §24) | IIFE independiente en Script 1: pone `globalThis._devModeActivo = true`. No pasa por `registrarControladorSeguro`. | (ninguna) | — | Activar el flag DEV antes de que el usuario navegue P2→P11, para que `mostrar()` intercepte P12/P13 |
-| `CONTROL.DEV_CINCO_TOQUES` | Hijo 1 (gesto oculto de activación, ver §24) | `_hdl_CONTROL_DEV_CINCO_TOQUES`: abre modal de código (guard anti-doble); con código DEV correcto pone `_devModeActivo = true`, hace `display:block` en hijo5 y llama `_vv_triggerCambioModo(MODOS.CASA)` | (ninguna directa) | — | Factor 2 DEV: activar modo CASA en mitad de una aventura activa sin reiniciar la sesión (ver §24) |
+| `CONTROL.DEV_CINCO_TOQUES` | Hijo 1 (gesto oculto de activación, ver §24) | `_hdl_CONTROL_DEV_CINCO_TOQUES`: abre modal de código (guard anti-doble); con código DEV correcto pone `_devModeActivo = true`, hace `display:block` en hijo5 y despacha `SISTEMA.CAMBIO_MODO(MODOS.CASA)` con `despacharLocal` | (ninguna directa) | — | Factor 2 DEV: activar modo CASA en mitad de una aventura activa sin reiniciar la sesión (ver §24) |
 | `SELECCION.IDIOMA_SELECCIONADO` | Pantalla de selección (P3) | `_hdl_SELECCION_IDIOMA_SELECCIONADO`: actualiza `estado.idioma`; si los hijos ya están cargados, propaga el cambio | (ninguna) | — | Mantener el idioma sincronizado en el estado global del padre |
 | `SELECCION.AVENTURA_SELECCIONADA` | Pantalla de selección (P7) | `_hdl_SELECCION_AVENTURA_SELECCIONADA`: guarda `estado.aventura`; no carga nada aún | (ninguna) | — | Registrar la aventura elegida antes de que el usuario complete el onboarding |
 | `SELECCION.PREPARAR_HIJOS` | Pantalla de selección (P9) | `_hdl_SELECCION_PREPARAR_HIJOS`: recibe `{ idioma, aventura, timestamp }`; arranca la carga de iframes en background vía `cargarRestoDeiframes()` | (ninguna directa) | — | Arrancar la precarga de iframes mientras el usuario lee términos y reto R-2 (P10–P15) |
-| `SELECCION.AVENTURA_ACTIVADA` | Pantalla de selección (P15 — reto R-2 afirmativo) | `_hdl_SELECCION_AVENTURA_ACTIVADA`: si iframes ya listos → fast-path (sincroniza modo); si no → completa carga; `_modoInicio = _devModeActivo ? MODOS.CASA : MODOS.AVENTURA`; si `_devModeActivo` (modo DEV, ver §24) → `await _vv_triggerCambioModo(MODOS.CASA)`; si no (producción) → `_vv_triggerCambioModo(MODOS.AVENTURA)` directamente, fire-and-forget (ver §9.5) | `SISTEMA.CAMBIO_MODO` broadcast | Todos los hijos | Lanzar la aventura tras confirmación final del usuario |
+| `SELECCION.AVENTURA_ACTIVADA` | Pantalla de selección (P15 — reto R-2 afirmativo) | `_hdl_SELECCION_AVENTURA_ACTIVADA`: si iframes ya listos → fast-path (sincroniza modo); si no → completa carga; `_modoInicio = _devModeActivo ? MODOS.CASA : MODOS.AVENTURA`; si `_devModeActivo` (modo DEV, ver §24) → `await despacharLocal(CAMBIO_MODO, MODOS.CASA)`; si no (producción) → `despacharLocal(CAMBIO_MODO, MODOS.AVENTURA)` directamente, fire-and-forget (ver §9.5) | `SISTEMA.CAMBIO_MODO` broadcast | Todos los hijos | Lanzar la aventura tras confirmación final del usuario |
 | `SELECCION.TERMINOS_ACEPTADOS` | Pantalla de selección (P10) | `_hdl_SELECCION_TERMINOS_ACEPTADOS`: registra aceptación en `estado`; sin efecto en carga de iframes | (ninguna) | — | Trazabilidad legal; el flujo puede continuar sin este ACK |
 | `RETO.SOLICITAR_RETO` | Hijo 3 (click en `#retosBtn`) o Hijo 4 (click en `#botonRetos`) | `_hdl_RETO_SOLICITAR`: llama `mostrarReto(estado.paradaActual)` → envía `RETO.MOSTRAR` a hijo4 con los datos del reto | `RETO.MOSTRAR` | Hijo 4 | El padre es el árbitro de qué reto mostrar; hijos no acceden directamente a los datos |
 | `RETO.OCULTAR` | Hijo 4 (usuario cierra el reto) | `_hdl_RETO_OCULTAR`: oculta iframe hijo4 + backdrop. No limpia ningún estado propio del padre — solo relé y DOM | `CONTROL.HABILITAR` (hijo2, hijo3) + `RETO.LIMPIAR_ESTADO` (hijo4) | Hijo2, Hijo3, Hijo4 | Rehabilitar navegación/audio tras cerrar el reto, y que hijo4 limpie su propio estado interno |
@@ -12193,7 +12164,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-0ac35eb527e6';
+const CACHE_VERSION = 'v-dc23a2621e70';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12318,7 +12289,7 @@ Además, botón de cierre ✗ (`.btn-cerrar-overlay`, mismo patrón visual que e
 
 **Estado de implementación:** ✅ implementado. El overlay se muestra vía `showGpsSignalOverlay(code)` desde `_watchPositionError`. El mecanismo de reintento para código 3 usa `_gpsRetryOnTimeout`.
 
-**Por qué el reintento de TIMEOUT guarda su propio `setTimeout` ID:** `_gpsDoRetrySetup` programa el siguiente intento de `watchPosition` vía `setTimeout`, guardado en `est.gps.retryTimeoutId`. Sin esto, si `activarGPS()` se llamara de nuevo mientras ese reintento sigue pendiente (por ejemplo, un `CAMBIO_MODO` durante el bucle de reintento de `pendingModeChanges`), se crearían dos `watchPosition` simultáneos — el segundo quedaría huérfano al perder su referencia, sin `clearWatch()` posible, corriendo indefinidamente en segundo plano (desgaste de batería, no un crash visible). `activarGPS()` cancela cualquier reintento pendiente (`clearTimeout(est.gps.retryTimeoutId)`) antes de crear un watch nuevo o apagar el GPS.
+**Por qué el reintento de TIMEOUT guarda su propio `setTimeout` ID:** `_gpsDoRetrySetup` programa el siguiente intento de `watchPosition` vía `setTimeout`, guardado en `est.gps.retryTimeoutId`. Sin esto, si `activarGPS()` se llamara de nuevo mientras ese reintento sigue pendiente (por ejemplo, dos `CAMBIO_MODO` despachados solapados, ver §10.6 guard de concurrencia), se crearían dos `watchPosition` simultáneos — el segundo quedaría huérfano al perder su referencia, sin `clearWatch()` posible, corriendo indefinidamente en segundo plano (desgaste de batería, no un crash visible). `activarGPS()` cancela cualquier reintento pendiente (`clearTimeout(est.gps.retryTimeoutId)`) antes de crear un watch nuevo o apagar el GPS.
 
 ---
 
@@ -12602,9 +12573,8 @@ Cuando hijo4 se carga por primera vez durante una sesión de retos, la secuencia
 
 Si `_onCambioModo` limpia `retoDiv.innerHTML` en el paso 6, el iframe del puzzle se destruye antes de que el usuario lo haya visto. Los retos de tipo opción múltiple o reflexión no se ven afectados porque son HTML inline; los retos tipo puzzle (`PZ-xx`) sí, porque el iframe tarda en cargar su módulo JS.
 
-**Fuentes adicionales de `CAMBIO_MODO` durante una sesión de retos:**
-
-- El retry loop de `pendingModeChanges` (reintento cada 5 s si hubo NACK)
+Hoy el modo llega por un solo camino (decisión 11, docs/mensajeria-duplicada-en-hijos.md): no hay ningún
+reintento en segundo plano que pueda repetir un `CAMBIO_MODO` durante una sesión de retos.
 
 **Patrón correcto** en el handler de `SISTEMA.CAMBIO_MODO` de `retos-hijo4.html`:
 
@@ -12662,23 +12632,19 @@ if (typeof pausarFn === 'function') {
 
 Este patrón aplica a cualquier función de mensajería que el padre necesite llamar sobre sí mismo: nunca `enviarMensaje({ destino: CONFIG_PADRE.ID })`, siempre `globalThis.mensajeria.funcionX()`.
 
-**Variante: cuando el destino es un handler de mensaje del propio padre, no una función exportada por `mensajeria.js`.** El patrón de arriba (`globalThis.mensajeria.funcionX()`) sirve para invocar funciones que el propio módulo `mensajeria.js` exporta. Pero cuando lo que hay que invocar es un handler de mensaje registrado en el padre (`_hdl_NAVEGACION_LLEGADA_DETECTADA`, `_hdl_NAVEGACION_CAMBIO_PARADA`...) desde otro módulo que corre dentro del propio padre (no un HTML de hijo cargado en iframe — p.ej. `js/funciones-mapa.js`, importado directamente por `codigo-padre.html`), la solución es exponer un wrapper dedicado en `globalThis` que llama al handler directamente con un mensaje sintetizado, sin pasar por `enviarMensaje` en ningún momento:
+**Variante: cuando el destino es un handler de mensaje del propio padre, no una función exportada por `mensajeria.js`.** El patrón de arriba (`globalThis.mensajeria.funcionX()`) sirve para invocar funciones que el propio módulo `mensajeria.js` exporta. Pero cuando lo que hay que invocar es un handler de mensaje registrado en el padre (`_hdl_NAVEGACION_LLEGADA_DETECTADA`, `_hdl_NAVEGACION_CAMBIO_PARADA`...) desde otro módulo que corre dentro del propio padre (no un HTML de hijo cargado en iframe — p.ej. `js/funciones-mapa.js`, importado directamente por `codigo-padre.html`), la solución es despachar el mensaje por el bus con `globalThis.mensajeria.despacharLocal()`, que lo entrega al handler registrado por la misma fila que un mensaje llegado de fuera:
 
 ```javascript
-// Junto al registro del handler real, en codigo-padre.html:
-globalThis.__triggerLlegadaDetectadaInterno = async function(datos) {
-    return _hdl_NAVEGACION_LLEGADA_DETECTADA({
-        tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
-        origen: 'funciones-mapa',
-        destino: getPadreId(),
-        datos
-    });
-};
+// Desde js/funciones-mapa.js, u otro modulo que corra dentro del padre:
+globalThis.mensajeria.despacharLocal({
+    tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
+    datos
+});
 ```
 
-`js/funciones-mapa.js` llama a `globalThis.__triggerLlegadaDetectadaInterno(datos)` en vez de `enviarMensaje({ destino: resolverIdPadre(), ... })`. Mismo patrón que `globalThis.__triggerCambioParadaInterno` (usado por la restauración de sesión para invocar `_hdl_NAVEGACION_CAMBIO_PARADA` sin pasar por un `postMessage` autodirigido — ver §9.10).
+No hace falta un wrapper dedicado ni sintetizar el mensaje con `origen`/`destino`: `despacharLocal` los pone él mismo (`origen` = el nombre del propio frame) y no pasa por `postMessage`.
 
-**Esta no es una precaución teórica.** El sensor redundante de llegada de `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`, ver §25.5) es código del padre que necesita hacer llegar `NAVEGACION.LLEGADA_DETECTADA` al propio padre: escrito como `enviarMensaje({ destino: resolverIdPadre(), ... })` no lanzaría ningún error ni bloquearía nada, simplemente no haría nada nunca. Por eso usa `globalThis.__triggerLlegadaDetectadaInterno()`. EJE 4 de la metodología de auditoría (§36.4, punto 9) incorpora este caso como comprobación explícita.
+**Esta no es una precaución teórica.** El sensor redundante de llegada de `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`, ver §25.5) es código del padre que necesita hacer llegar `NAVEGACION.LLEGADA_DETECTADA` al propio padre: escrito como `enviarMensaje({ destino: resolverIdPadre(), ... })` no lanzaría ningún error ni bloquearía nada, simplemente no haría nada nunca (y desde el paso 1 de la lavadora, `enviarMensaje` a uno mismo se niega explícitamente y avisa). Por eso usa `despacharLocal`. EJE 4 de la metodología de auditoría (§36.4, punto 9) incorpora este caso como comprobación explícita.
 
 ---
 
@@ -13249,7 +13215,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 2. Lista todos los `await fn()` en flujos críticos sin timeout. Verifica que se usa `withTimeout` donde corresponde. Advertencia: `withTimeout` en `js/app.js` resuelve `null` (no rechaza) al agotar el tiempo — todos los callers deben verificar `result !== null`. Su temporizador se cancela (`clearTimeout` en el `.finally()` del `Promise.race`) en cuanto la promesa envuelta se resuelve o se rechaza, así que **un `[withTimeout] … timed out after Nms` en el log significa un vencimiento real**. Sin esa cancelación el `setTimeout` seguiría vivo tras ganar la promesa y escribiría ese mismo aviso pasados los N ms en TODAS las llamadas, incluidas las que terminan en milisegundos — un cambio de modo de 113 ms dejaría igualmente tres avisos de "timed out after 15000ms". No afecta al valor devuelto (la carrera ya se resolvió con el bueno), pero convierte el log en una fuente de alarmas inventadas justo en el sitio donde se mira para diagnosticar cualquier otra cosa.
 3. Detecta condiciones de carrera: dos handlers que modifican el mismo estado compartido de forma no coordinada.
 4. Detecta `Promise.all([...])` donde un fallo individual puede silenciarse si cada elemento tiene `.catch` interno propio.
-5. **Fire-and-forget + mutex:** busca todas las llamadas a funciones `async` sin `await` y sin almacenar la Promise. Para cada una: (a) ¿setea algún flag de concurrencia (`cambiandoModo`, `_iframesPreCargadosP14`, etc.) síncronamente antes de su primer `await`? (b) ¿puede el usuario interactuar con la UI antes de que ese flag se libere en el `finally`? Calcula el tiempo hasta que la UI se hace interactiva (p.ej. `setTimeout` que oculta un overlay) vs. el tiempo mínimo de la función hasta su `finally`. Si UI\_interactiva < función\_finally → race condition garantizada. Ejemplo real: `_vv_triggerCambioModo(MODOS.CASA)` fire-and-forget setea `cambiandoModo=true`; 250 ms después el overlay desaparece y el usuario puede pulsar el botón GPS; si `manejarCambioModo(CASA)` aún no terminó, el segundo cambio falla silenciosamente.
+5. **Fire-and-forget + mutex:** busca todas las llamadas a funciones `async` sin `await` y sin almacenar la Promise. Para cada una: (a) ¿setea algún flag de concurrencia (`cambiandoModo`, `_iframesPreCargadosP14`, etc.) síncronamente antes de su primer `await`? (b) ¿puede el usuario interactuar con la UI antes de que ese flag se libere en el `finally`? Calcula el tiempo hasta que la UI se hace interactiva (p.ej. `setTimeout` que oculta un overlay) vs. el tiempo mínimo de la función hasta su `finally`. Si UI\_interactiva < función\_finally → race condition garantizada. Ejemplo real: `despacharLocal(SISTEMA.CAMBIO_MODO, MODOS.CASA)` fire-and-forget setea `cambiandoModo=true`; 250 ms después el overlay desaparece y el usuario puede pulsar el botón GPS; si `manejarCambioModo(CASA)` aún no terminó, el segundo cambio se rechaza limpio (fila del bus) en vez de fallar silenciosamente.
 
 ---
 
@@ -13339,10 +13305,10 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 **Blast-radius de campos/temporizadores compartidos al cambiar lógica:** antes de eliminar o cambiar el comportamiento de un campo/temporizador compartido entre mensajes, haz un grep exhaustivo de TODOS sus usos reales en el proyecto — no solo donde se calcula/escribe, también donde se LEE, incluida UI en ficheros sin relación de nombre obvio con la lógica que se está tocando. Ejemplo de este blast-radius: un campo compartido como `timestampSalioDeRango` puede tener lectores en ficheros sin relación de nombre obvio con la lógica que se está tocando — p.ej., una cuenta atrás visual en un fichero distinto de donde se calcula/escribe el campo, sin pasar por ningún mensaje explícito entre ambos.
 
 **Flujo A — Inicio de aventura:**
-P1 selecciona aventura e idioma → emite `AVENTURA_ACTIVADA` → P2 recibe → valida código de acceso → carga iframes hijos secuencialmente → `globalThis.distribuirDatosAventura()` resuelve y envía solo `CARGAR_TEXTOS` / `CARGAR_COORDENADAS` a cada hijo (bulk; audio y retos ya NO se distribuyen aquí, ver §16 "protección pasiva por parada") → cada hijo confirma con `HIJO_LISTO` → padre cambia a modo AVENTURA → GPS se activa → `ensureDefaultParada()` dispara `__triggerCambioParadaInterno()` para la primera parada, que resuelve y envía su `audio_id`/`reto_id` individualmente (mismo mecanismo que el Flujo B).
+P1 selecciona aventura e idioma → emite `AVENTURA_ACTIVADA` → P2 recibe → valida código de acceso → carga iframes hijos secuencialmente → `globalThis.distribuirDatosAventura()` resuelve y envía solo `CARGAR_TEXTOS` / `CARGAR_COORDENADAS` a cada hijo (bulk; audio y retos ya NO se distribuyen aquí, ver §16 "protección pasiva por parada") → cada hijo confirma con `HIJO_LISTO` → padre cambia a modo AVENTURA → GPS se activa → `ensureDefaultParada()` despacha `NAVEGACION.CAMBIO_PARADA` con `despacharLocal` para la primera parada, que resuelve y envía su `audio_id`/`reto_id` individualmente (mismo mecanismo que el Flujo B).
 
 **Flujo B — Parada:**
-El elemento ya está activo (`_hdl_NAVEGACION_CAMBIO_PARADA` disparado antes, al entrar en AVENTURA o tras `btn-avanzar` — vía `__triggerCambioParadaInterno`, el mismo handler único usado en avance manual y en reanudación de sesión) → hijo2 muestra marcador activo → padre muestra overlay de texto (via `cargarTextos`) → padre resuelve el audio de esa parada vía `cargarAudios()` y envía `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` a hijo3, que lo reproduce → padre resuelve el reto vía `cargarRetos()` y envía `RETO.MOSTRAR { retoId, retosArray:[retoData] }` a hijo4 (queda habilitado tras `FIN_REPRODUCCION` del audio) → en paralelo, GPS detecta posición dentro del radio de la parada → `LLEGADA_DETECTADA` → `pending.llegada=true` → usuario resuelve el reto → hijo4 emite `RETO_COMPLETADO` → cuando llegada+audio+reto están completos, `marcarParadaCompletada()` habilita `btn-avanzar` (nunca envía `CAMBIO_PARADA` por sí sola, ver §2.2) → usuario pulsa `btn-avanzar` → `progresarSiguienteElemento()` avanza el progreso y repite este mismo flujo para el siguiente elemento.
+El elemento ya está activo (`_hdl_NAVEGACION_CAMBIO_PARADA` disparado antes, al entrar en AVENTURA o tras `btn-avanzar` — despachado con `despacharLocal`, el mismo camino usado en avance manual y en reanudación de sesión) → hijo2 muestra marcador activo → padre muestra overlay de texto (via `cargarTextos`) → padre resuelve el audio de esa parada vía `cargarAudios()` y envía `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` a hijo3, que lo reproduce → padre resuelve el reto vía `cargarRetos()` y envía `RETO.MOSTRAR { retoId, retosArray:[retoData] }` a hijo4 (queda habilitado tras `FIN_REPRODUCCION` del audio) → en paralelo, GPS detecta posición dentro del radio de la parada → `LLEGADA_DETECTADA` → `pending.llegada=true` → usuario resuelve el reto → hijo4 emite `RETO_COMPLETADO` → cuando llegada+audio+reto están completos, `marcarParadaCompletada()` habilita `btn-avanzar` (nunca envía `CAMBIO_PARADA` por sí sola, ver §2.2) → usuario pulsa `btn-avanzar` → `progresarSiguienteElemento()` avanza el progreso y repite este mismo flujo para el siguiente elemento.
 
 **Flujo C — Fin de aventura:**
 Todas las paradas completadas → `globalThis.mostrarModalFinalizacion()` → modal celebrativo en 12 idiomas → "otra aventura" (vuelve a P2 sin limpiar SW) O "terminar" (`?despedida=1` → página de despedida P5 → `limpiarDatosAventura()`). Tiempo agotado (por cualquiera de sus tres disparadores, ver §25.12) sigue el mismo patrón de botones pero con `globalThis.mostrarModalTiempoAgotado()` — un modal distinto, sin tono celebrativo, porque no hay nada que celebrar cuando la aventura termina por falta de tiempo en vez de por completarse.
@@ -13357,9 +13323,9 @@ GPS denegado por usuario → `verificarPermisosGPS()` devuelve `false` → `acti
 
 Hay dos rutas de activación del modo dev (ver §24 para el gesto de cada una):
 
-*Ruta P14 (DEV\_MODE\_TOGGLE desde pantalla de selección):* `_devModeActivo=true` antes de iniciar aventura → P14 carga iframes y activa GPS (`activarGPS()` se llama siempre en P14, prod y dev por igual) → `_mostrarUIActivada` muestra hijo5 → `await _vv_triggerCambioModo(MODOS.CASA)` (correctamente awaited) → `hideParentLoadingOverlay()` **después del await** → cuando el overlay desaparece, `cambiandoModo` ya es `false`; no hay race condition en esta ruta.
+*Ruta P14 (DEV\_MODE\_TOGGLE desde pantalla de selección):* `_devModeActivo=true` antes de iniciar aventura → P14 carga iframes y activa GPS (`activarGPS()` se llama siempre en P14, prod y dev por igual) → `_mostrarUIActivada` muestra hijo5 → `await despacharLocal(SISTEMA.CAMBIO_MODO, MODOS.CASA)` (correctamente awaited) → `hideParentLoadingOverlay()` **después del await** → cuando el overlay desaparece, `cambiandoModo` ya es `false`; no hay race condition en esta ruta.
 
-*Ruta Factor 2 (`_hdl_CONTROL_DEV_CINCO_TOQUES` desde hijo1):* usuario entra código correcto → `confirmar()` es `async` con flag `_confirming` (bloquea reentradas: doble Enter ignorado) y `try/catch/finally` (error de `_vv_triggerCambioModo` queda logueado, no silencioso) → `_devModeActivo=true` → `await _vv_triggerCambioModo(MODOS_S2.CASA)` → solo después del await: hijo5 se hace visible → `cambiandoModo` ya es `false` cuando el usuario puede pulsar GPS; no hay race condition.
+*Ruta Factor 2 (`_hdl_CONTROL_DEV_CINCO_TOQUES` desde hijo1):* usuario entra código correcto → `confirmar()` es `async` con flag `_confirming` (bloquea reentradas: doble Enter ignorado) y `try/catch/finally` (error del `despacharLocal` queda logueado, no silencioso) → `_devModeActivo=true` → `await despacharLocal(SISTEMA.CAMBIO_MODO, MODOS_S2.CASA)` → solo después del await: hijo5 se hace visible → `cambiandoModo` ya es `false` cuando el usuario puede pulsar GPS; no hay race condition.
 
 *GPS button click (ambas rutas):* hijo5 envía `SISTEMA.CAMBIO_MODO { modo: 'aventura', origen: 'boton-gps' }` → `_hdl_SISTEMA_CAMBIO_MODO`: hijo5 oculto inmediatamente (síncrono) — `_devModeActivo` no se toca → `await manejarCambioModo(AVENTURA)` → `actualizarInterfazModo` envía `CAMBIO_MODO` a todos los hijos (una sola vez; no existe ninguna función `_propagarCambioModoAHijos`) → `_gestionarGpsSegunModo(AVENTURA)` comprueba `!estado.gps.activo` — normalmente ya es `false` porque el GPS lleva activo desde P14, así que no hace nada (red de seguridad, no primera activación) → modo AVENTURA activo, heartbeat arranca.
 
@@ -13703,7 +13669,7 @@ Los ejes 1-27 se pueden aplicar leyendo el código y midiendo trozos de él. Est
 **El instrumento:**
 
 1. Un **espía** que se instala en todos los frames antes que su código (`addInitScript`) y anota, por cada mensaje recibido: el frame que lo recibe, la **ventana real** de la que viene (no el campo `origen`), `origen`, `destino`, si ese frame tenía handler para el tipo y un extracto de `datos`. Anota también cada descarte del bus ("Destino desconocido", "descarta", "sin padre") con la pila de quien lo envió, y cada cartel `#cartel-*` que aparece, con su texto.
-2. Un **conductor** que arranca el servidor, abre el padre con el GPS concedido y avanza **solo con controles de usuario**: botones, gestos y lecturas GPS. Nunca por los atajos (`__triggerCambioParadaInterno`, `_vv_triggerCambioModo`…), porque son parte de lo auditado. Simulaciones admitidas, y declaradas en el informe: el acierto del código dev (solo existe su hash) y, con permiso expreso, el audio acelerado.
+2. Un **conductor** que arranca el servidor, abre el padre con el GPS concedido y avanza **solo con controles de usuario**: botones, gestos y lecturas GPS. Nunca invocando handlers directamente ni con mensajes fabricados a mano, porque son parte de lo auditado. Simulaciones admitidas, y declaradas en el informe: el acierto del código dev (solo existe su hash) y, con permiso expreso, el audio acelerado.
 
 **Variantes obligatorias:**
 

@@ -16,14 +16,13 @@
  *   H5-2  hijo5 tiene el bus montado y se identifica con el id con el que esta registrado.
  *   H5-3  hijo5 contesta al latido Y la respuesta LLEGA al padre. Que conteste no basta: si la
  *         respuesta se pierde por el camino, el padre lo da por caido a los 3 latidos.
- *   H5-4  El auto-mensaje funciona. hijo5 se manda a si mismo un SISTEMA.CAMBIO_MODO para
- *         aplicar un cambio pendiente; `enviarMensaje` no puede entregarselo (uno no esta entre
- *         sus propios iframes registrados), y para eso existe `despacharLocal`.
+ *   (H5-4 probaba que hijo5 aparcaba un CAMBIO_MODO temprano y se lo aplicaba a sí mismo. Ya no
+ *   aparca nada: el modo le llega por un solo camino, y lo cubre 84, CM-hijo5.)
  *   H5-5  Camino real de F2: un error lanzado dentro de hijo5 llega al padre por la captura
  *         automatica de utils.js. Que hijo5 importe utils.js hace DEDUCIR que la captura esta
  *         instalada; esto lo comprueba.
  *
- * ROJO ANTES QUE VERDE: mientras hijo5 no cargue el bus, H5-2, H5-3, H5-4 y H5-5 fallan.
+ * ROJO ANTES QUE VERDE: mientras hijo5 no cargue el bus, H5-2, H5-3 y H5-5 fallan.
  */
 'use strict';
 
@@ -113,67 +112,6 @@ test.describe('H5 — hijo5 habla por el bus', () => {
         message: 'sin esta respuesta el padre da a hijo5 por caido a los 3 latidos',
       })
       .toBeGreaterThan(0);
-  });
-
-  // Recorre el CAMINO REAL, no un tipo inventado: el padre manda un CAMBIO_MODO antes de que
-  // hijo5 haya terminado su handshake (carrera de arranque real), hijo5 lo guarda como pendiente
-  // y responde NACK, y al confirmarse su UI se lo aplica a si mismo con `despacharLocal` —
-  // `enviarMensaje` no puede entregarselo, porque uno no esta entre sus propios iframes.
-  //
-  // LO QUE ESTE TEST NO DISTINGUE, y conviene saberlo: el modo aparcado acaba aplicandose por
-  // DOS caminos independientes. El auto-mensaje de hijo5, y el reintento del padre alimentado
-  // por ese mismo NACK (`pendingModeChanges`, codigo-padre.html). Comprobado rompiendo el
-  // auto-mensaje: el test sigue verde porque el reintento del padre llega igual. Asi que esto
-  // verifica el RESULTADO (el modo aparcado se aplica), no cual de los dos lo consiguio.
-  // Dos caminos al mismo efecto es justo lo que la unificacion quiere quitar: queda anotado en
-  // docs/mensajeria-duplicada-en-hijos.md para decidirlo, no se toca aqui.
-  test('H5-4. Un CAMBIO_MODO llegado antes de tiempo acaba aplicandose', async ({ page }) => {
-    // Se mira lo que hijo5 le MANDA al padre, no sus variables: su `estado` es local del módulo
-    // y no está en globalThis — y aunque lo estuviera, el efecto que importa es el observable.
-    await page.evaluate((id) => {
-      globalThis.__deH5 = [];
-      globalThis.addEventListener('message', (e) => {
-        if (e.data?.origen === id) globalThis.__deH5.push({ tipo: e.data.tipo, datos: e.data.datos });
-      });
-    }, ID);
-
-    // 1) CAMBIO_MODO sin `secuenciaCompleta`: hijo5 lo aparca y contesta NACK pidiendo permiso.
-    await page.evaluate((id) => globalThis.mensajeria.enviarMensaje({
-      tipo: globalThis.TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
-      destino: id,
-      datos: { modo: 'aventura' },
-    }), ID);
-
-    await expect
-      .poll(() => page.evaluate(() => globalThis.__deH5.filter((m) => /NACK/.test(m.tipo)).length), {
-        timeout: 8_000,
-        message: 'hijo5 tiene que rechazar un CAMBIO_MODO fuera de secuencia y guardarlo como pendiente',
-      })
-      .toBeGreaterThan(0);
-
-    // 2) La confirmación de la UI es lo que dispara que el pendiente se aplique, y para aplicarlo
-    //    hijo5 se manda el mensaje A SÍ MISMO. Si ese auto-envío no llega a su propio handler, el
-    //    cambio se queda aparcado para siempre y nadie se entera.
-    await page.evaluate(() => { globalThis.__deH5.length = 0; });
-    await page.evaluate((id) => globalThis.mensajeria.enviarMensaje({
-      tipo: globalThis.TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO,
-      destino: id,
-      datos: { modoInicial: 'casa' },
-    }), ID);
-
-    // Se exige el acuse DEL MODO APARCADO ('aventura'), no un acuse cualquiera: durante estos
-    // segundos el padre propaga sus propios cambios de modo ('casa'), y hijo5 los acusa igual.
-    // Sin esta distinción el test pasa aunque el auto-mensaje no llegue nunca — comprobado
-    // revirtiendo el arreglo.
-    await expect
-      .poll(() => page.evaluate(() => globalThis.__deH5
-        .filter((m) => /CAMBIO_MODO_(ENTENDIDO|EFECTUADO)/.test(m.tipo))
-        .map((m) => m.datos?.modo ?? m.datos?.modoAplicado ?? '(sin modo)')), {
-        timeout: 12_000,
-        message: 'tras confirmar la UI, el CAMBIO_MODO aparcado (aventura) tiene que procesarse de '
-          + 'verdad: eso se ve porque hijo5 acusa ESE modo al padre, no otro',
-      })
-      .toContain('aventura');
   });
 
   test('H5-5. Camino real: un error lanzado en hijo5 llega al padre', async ({ page }) => {

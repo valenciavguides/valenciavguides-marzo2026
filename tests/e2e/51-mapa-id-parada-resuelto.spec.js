@@ -43,7 +43,7 @@ async function prepararPadreConAventura(page) {
   // No se espera a globalThis.AVENTURA_PARADAS: manejarCambiarParada() la puebla de
   // forma lazy en su primer uso desde __vv_DATOS_AVENTURAS (js/funciones-mapa.js ~L1721).
   await page.waitForFunction(
-    () => typeof globalThis.__triggerCambioParadaInterno === 'function'
+    () => globalThis.mensajeria?.tieneControlador?.('NAVEGACION.CAMBIO_PARADA') === true
       && globalThis.__vv_DATOS_AVENTURAS != null,
     null, { timeout: 15000 }
   );
@@ -52,10 +52,10 @@ async function prepararPadreConAventura(page) {
 /** Dispara el cambio de parada por el mismo camino que un click en hijo5. */
 async function cambiarParada(page, paradaId, padreId) {
   await page.evaluate(async ({ p, pid }) => {
-    await globalThis.__triggerCambioParadaInterno({
+    await globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: {
       paradaId: p, parada_id: p, padreId: pid, padreid: pid,
       contexto: 'test_id_resuelto', timestamp: Date.now()
-    });
+    } });
   }, { p: paradaId, pid: padreId });
   await page.waitForTimeout(700);
 }

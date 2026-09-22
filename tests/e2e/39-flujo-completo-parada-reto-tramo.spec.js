@@ -9,8 +9,8 @@
  * tramo, nunca el de transición genérico), y la llegada al final de un tramo caminado
  * se detecta bajo el padreid del propio tramo.
  *
- * Usa siempre disparadores directos reales (_vv_triggerCambioModo,
- * __triggerCambioParadaInterno, funcionesMapa.procesarPosicionGPSParaAventura) y
+ * Usa siempre los caminos reales (SISTEMA.CAMBIO_MODO y NAVEGACION.CAMBIO_PARADA despachados
+ * al padre con despacharLocal, funcionesMapa.procesarPosicionGPSParaAventura) y
  * auto-postMessage al propio padre para AUDIO.FIN_REPRODUCCION/RETO.COMPLETADO
  * (self-message: el padre acepta sus propios mensajes, event.source === window) —
  * nunca hijo2 standalone, que tiene un ~4.5s de retraso de test-harness ajeno a
@@ -42,8 +42,8 @@ async function prepararEscenario(page) {
   await page.waitForFunction(
     () => typeof globalThis.funcionesMapa?.procesarPosicionGPSParaAventura === 'function'
       && typeof globalThis.__cargarDatosAventuraDiferidos === 'function'
-      && typeof globalThis._vv_triggerCambioModo === 'function'
-      && typeof globalThis.__triggerCambioParadaInterno === 'function',
+      && globalThis.mensajeria?.tieneControlador?.('SISTEMA.CAMBIO_MODO') === true
+      && globalThis.mensajeria?.tieneControlador?.('NAVEGACION.CAMBIO_PARADA') === true,
     null, { timeout: 15_000 }
   ).catch(() => {});
 
@@ -58,13 +58,13 @@ async function prepararEscenario(page) {
       if (coords?.length) globalThis.AVENTURA_PARADAS = coords;
     }
     globalThis._devModeActivo = true;
-    // __triggerCambioParadaInterno no monta un hijo3 real que pueda confirmar la
+    // Despachar CAMBIO_PARADA no monta un hijo3 real que pueda confirmar la
     // recepción de AUDIO.REPRODUCIR_REQUEST (_enviarAudioRequestConReintento, §31.7) —
     // sin este stub, esos reintentos se agotarían de verdad (~2.4s) en segundo plano y,
     // al no haber llegado nunca confirmación real, _marcarAudioNoDisponible() alteraría
     // pending/estado por una falsa alarma ajena al flujo que este test verifica.
     globalThis.enviarMensajeConConfirmacion = () => Promise.resolve({ exito: true });
-    await globalThis._vv_triggerCambioModo('aventura');
+    await globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } });
     if (globalThis.estado) {
       globalThis.estado.hijosInicializados = new Set(['hijo2', 'hijo3', 'hijo4']);
     }
@@ -97,7 +97,7 @@ async function leerEstado(page, expr) {
 
 test.describe('FC — Flujo completo real (parada+reto -> tramo -> parada)', () => {
   test.beforeEach(async ({ page, context }) => {
-    // Sin esto, el activarGPS()/watchPosition() real que dispara _vv_triggerCambioModo
+    // Sin esto, el activarGPS()/watchPosition() real que dispara un CAMBIO_MODO a AVENTURA
     // se queda colgado para siempre en Firefox — ver 30-casa-no-fuga-aventura.spec.js
     // (CM-6) y la memoria feedback_e2e_geolocation_firefox.
     await context.grantPermissions(['geolocation']);
@@ -112,7 +112,7 @@ test.describe('FC — Flujo completo real (parada+reto -> tramo -> parada)', () 
     const prep = await prepararEscenario(page);
     test.skip(!prep.tieneFunciones || !prep.tieneDatos, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
-    await page.evaluate(({ paradaId }) => globalThis.__triggerCambioParadaInterno({ paradaId }), { paradaId: P0.id });
+    await page.evaluate(({ paradaId }) => globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId } }), { paradaId: P0.id });
     await page.waitForTimeout(500);
 
     // 1. Llegada GPS real (mismo sensor y patrón que 21-llegada-ruido-gps.spec.js).
@@ -151,7 +151,7 @@ test.describe('FC — Flujo completo real (parada+reto -> tramo -> parada)', () 
     test.skip(!prep.tieneFunciones || !prep.tieneDatos, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
     // Ir directo al tramo (no repetimos FC-1 completo) y confirmar el cambio real.
-    const cambioTramo = await page.evaluate(({ paradaId }) => globalThis.__triggerCambioParadaInterno({ paradaId }), { paradaId: TR1.id });
+    const cambioTramo = await page.evaluate(({ paradaId }) => globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId } }), { paradaId: TR1.id });
     test.skip(!cambioTramo?.exito, `Tramo ${TR1.id} no resuelto en este entorno: ${JSON.stringify(cambioTramo)}`);
     await page.waitForTimeout(500);
 

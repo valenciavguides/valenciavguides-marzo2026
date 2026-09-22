@@ -536,15 +536,6 @@
     }
 
     async function _validarCambioModo(mensaje, logPrefix) {
-        if (!mensaje.datos?.secuenciaCompleta) {
-            logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
-            await enviarMensaje({
-                destino: 'padre',
-                tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                datos: { error: 'Secuencia no completa', esperarPermiso: true, tipoOriginal: mensaje.tipo, modoSolicitado: mensaje.datos?.modo }
-            });
-            return 'nack';
-        }
         if (!mensaje?.origen) {
             logger.warn(`${logPrefix} Mensaje sin origen, ignorando`);
             return 'ignore';
@@ -899,10 +890,7 @@
             } catch (error) {
                 logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);
             }
-            // El cambio de modo fuera de secuencia NO se aparca aquí: se rechaza con NACK y es el
-            // padre quien lo recuerda y lo reenvía (pendingModeChanges, js/app.js). Aparcarlo
-            // además aquí lo aplicaba dos veces — y por este camino salía caro, porque se
-            // reentraba al handler entero: dos ENTENDIDO, dos EFECTUADO y tres peticiones de datos.
+            // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 de docs/mensajeria-duplicada-en-hijos.md).
             try {
                 _uiConfirmado = true;
                 mostrarUI();

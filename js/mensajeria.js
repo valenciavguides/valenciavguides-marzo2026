@@ -507,6 +507,14 @@ function enviarMensajeInterno(mensaje, destino) {
     // en el momento de evaluar `.catch`, que aborta el resto de la función llamante
     // si ese resto vive en el mismo bloque try (ver p.ej. marcarParadaCompletada en
     // codigo-padre.html, donde cortaba el cartel de transición justo después).
+    // Un frame no se manda nada a sí mismo por aquí: nadie lo recibiría —el padre no tiene ventana
+    // de arriba y un hijo no está entre sus propios iframes— y el envío se perdía avisando, como
+    // mucho, de "sin padre" una sola vez. Para eso está despacharLocal, que pasa por la misma fila.
+    if (destino === componenteId) {
+        _avisarDescarte(_avisadosAutoenvio, mensaje.tipo,
+            `[mensajeria] ${componenteId} no se envía ${mensaje.tipo} a sí mismo por enviarMensaje: eso se hace con despacharLocal`);
+        return Promise.resolve(false);
+    }
     try {
         let resultado = false;
         const aTodos = destino === undefined || destino === null || destino === 'broadcast' || destino === 'todos';
@@ -667,6 +675,7 @@ const _avisadosSinOrigen = new Set();
 const _avisadosPorFuente = new Set();
 const _avisadosSuplantacion = new Set();
 const _avisadosSinInicializar = new Set();
+const _avisadosAutoenvio = new Set();
 
 function _avisarDescarte(yaAvisados, tipo, texto) {
     if (yaAvisados.has(tipo)) return;

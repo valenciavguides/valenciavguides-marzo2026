@@ -509,12 +509,12 @@ test.describe('BSA-H — _hdl_NAVEGACION_CAMBIO_PARADA: arranca el recordatorio 
     await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
     await prepararPadreConAventura(page);
     await page.waitForFunction(
-      () => typeof globalThis.__triggerCambioParadaInterno === 'function'
+      () => globalThis.mensajeria?.tieneControlador?.('NAVEGACION.CAMBIO_PARADA') === true
         && typeof globalThis.enviarMensajeConConfirmacion === 'function',
       null, { timeout: 15000 }
     ).catch(() => {});
     await page.evaluate(() => {
-      // __triggerCambioParadaInterno no monta un hijo3 real — sin este stub, la entrega
+      // Despachar CAMBIO_PARADA no monta un hijo3 real — sin este stub, la entrega
       // reforzada de AUDIO.REPRODUCIR_REQUEST (§31.7) se agotaría de verdad en segundo
       // plano y podría interferir con lo que este grupo verifica (mismo motivo que en
       // 39-flujo-completo-parada-reto-tramo.spec.js / 40-orden-restauracion-modo-antes-parada.spec.js).
@@ -522,7 +522,7 @@ test.describe('BSA-H — _hdl_NAVEGACION_CAMBIO_PARADA: arranca el recordatorio 
       // Espías en vez de page.clock + espera de 10s real: lo que este grupo verifica es
       // la DECISIÓN de la puerta (qué función arranca según hayFicheroAudioReal), no el
       // propio temporizador del cartel — ya cubierto end-to-end por el grupo BSA-G. Evita
-      // además una combinación page.clock + __triggerCambioParadaInterno (más maquinaria
+      // además una combinación page.clock + despacho de CAMBIO_PARADA (más maquinaria
       // async que una llamada directa) que resultó inestable en Firefox.
       globalThis.__vv_llamadasRecordatorio = [];
       globalThis._iniciarRecordatorioAudio = () => globalThis.__vv_llamadasRecordatorio.push('play');
@@ -534,7 +534,7 @@ test.describe('BSA-H — _hdl_NAVEGACION_CAMBIO_PARADA: arranca el recordatorio 
 
   test('H-1. Elemento con fichero real: arranca "pulse play", nunca "pulse saltar"', async ({ page }) => {
     await page.evaluate(() => { globalThis.idiomaSeleccionado = 'es'; });
-    await page.evaluate(() => globalThis.__triggerCambioParadaInterno({ paradaId: 'Av1-P-1' }));
+    await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: 'Av1-P-1' } }));
 
     const llamadas = await page.evaluate(() => globalThis.__vv_llamadasRecordatorio);
     expect(llamadas, 'con fichero real debe arrancar el recordatorio de play, nunca el de saltar').toEqual(['play']);
@@ -542,7 +542,7 @@ test.describe('BSA-H — _hdl_NAVEGACION_CAMBIO_PARADA: arranca el recordatorio 
 
   test('H-2. Elemento sin fichero (audio_id existe, file vacío): arranca "pulse saltar", nunca "pulse play"', async ({ page }) => {
     await page.evaluate(() => { globalThis.idiomaSeleccionado = 'en'; });
-    await page.evaluate(() => globalThis.__triggerCambioParadaInterno({ paradaId: 'Av1-P-1' }));
+    await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: 'Av1-P-1' } }));
 
     const llamadas = await page.evaluate(() => globalThis.__vv_llamadasRecordatorio);
     expect(llamadas, 'sin fichero debe arrancar el recordatorio de saltar, nunca el de play').toEqual(['saltar']);

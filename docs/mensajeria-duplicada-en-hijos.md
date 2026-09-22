@@ -841,7 +841,7 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
 1. ✅ **Identidad:** el bus pone el `origen` y lo comprueba al recibir (decisión 10). Fuera las
    firmas inventadas (`padre_<aleatorio>`, `funciones-mapa`, `sistema`, `restauracion-interna`…) y
    la reescritura de `enviarMensajePadre`.
-2. **Mensajes a sí mismo → `despacharLocal`** (§21.2), incluidos los atajos `__trigger*` y
+2. ✅ **Mensajes a sí mismo → `despacharLocal`** (§21.2), incluidos los atajos `__trigger*` y
    `_vv_triggerCambioModo`, y el camino único del modo (decisión 11).
 3. **Destino obligatorio:** un envío sin `destino` no sale y avisa; "a todos" solo con
    `'broadcast'` (§21.2). Antes, inventario completo de los envíos sin destino.
@@ -1218,8 +1218,9 @@ sigue en pie antes de afirmar nada.
 - **Tests:** BC-15 a BC-17 en el spec 79; spec 93 con los siete frames que registra el padre
   (menos hijo5) haciéndose pasar por hijo5, cada uno con su control.
 - **Queda para su paso:**
-  - Los siete `postMessage` a pelo del padre, que firman a mano (cuatro con `getPadreId()`,
-    dos con `CONFIG_PADRE.ID` y el latido de `visibilitychange` con `'padre'`): paso 4.
+  - Los ocho `postMessage` a pelo del padre a un hijo (medido de nuevo en la pasada inversa del
+    paso 2: eran ocho, no siete): cuatro con `getPadreId()`, dos con `CONFIG_PADRE.ID`, el latido
+    de `visibilitychange` con `'padre'`, y `CHAT.ESTADO_PADRE` sin ningún `origen`. Paso 4.
   - Las firmas inventadas que nunca pasan por el bus, porque van en llamadas directas a un
     handler o en un `postMessage` del padre a sí mismo: `'padre-dev'`, `'restauracion'`,
     `'handshake-interno'`, `'restauracion-interna'`, `'funciones-mapa'`, `'padre-rescate'` y
@@ -1230,6 +1231,37 @@ sigue en pie antes de afirmar nada.
     `_hdl_SISTEMA_CAMBIO_MODO` lo desestructura y se lo pasa a `_gestionarGpsSegunModo`, que no lo
     lee. El comentario de la reanudación que dice que lo usa `manejarCambioModo()` es falso (esa
     función solo pone el `origen` del mensaje en su prefijo de log). Paso 9.
+
+### 25.11. Paso 2 de la lavadora: mensajes a sí mismo y un solo camino para el modo
+
+- **Autoenvíos, por `despacharLocal`.** Fuera los tres atajos globales (`__triggerCambioParadaInterno`,
+  `__triggerLlegadaDetectadaInterno`, `_vv_triggerCambioModo`) y las cinco llamadas directas a un
+  handler con un mensaje fabricado a mano. El padre se manda `NAVEGACION.CAMBIO_PARADA`,
+  `NAVEGACION.LLEGADA_DETECTADA`, `SISTEMA.CAMBIO_MODO` y `SISTEMA.APLICACION_INICIALIZADA` con
+  `globalThis.mensajeria.despacharLocal()`, que los entrega por la misma fila que un mensaje
+  llegado de fuera. Comprobado que ninguna cadena de despacho reentra sobre su propio tipo (la
+  única que se repite, `CAMBIO_PARADA`→`CAMBIO_PARADA` en la progresión automática, no espera al
+  anidado: no hay interbloqueo).
+- **El bus rechaza el autoenvío.** Un `enviarMensaje`/`enviarMensajeConConfirmacion` con destino el
+  propio frame no sale y avisa, una vez por tipo (`'no-enviado'` con acuse). Antes se perdía en
+  silencio o, como mucho, avisaba de "sin padre" una sola vez.
+- **Decisión 11, un solo camino para el modo.** Fuera el cerrojo `secuenciaCompleta` (padre y los
+  seis frames con modo), sus NACK, `pendingModeChanges`, el handler de `SISTEMA.NACK`, el bucle de
+  reintento con backoff y la resincronización a hijo2/hijo3/hijo4 al quedar todos listos. Medido
+  antes: los siete frames que registra el padre ya tienen su handler de `CAMBIO_MODO` en el
+  instante en que mandan `HIJO_LISTO`, en los cuatro navegadores — el cerrojo no protegía nada.
+- **Tests:** spec 84 reescrito entero (`84-el-modo-llega-por-un-camino.spec.js`, un caso por frame
+  con modo, más `CM-arranque`); spec 94 nuevo (sin atajos; el padre no se hace `postMessage` a sí
+  mismo); BC-18 en el spec 79. Los 21 specs que usaban los atajos, migrados a `despacharLocal`.
+- **Recorrido con espía (variantes):** cero autoenvíos, cero NACK, cero
+  `sincronizacion_inicial`, cero handlers rotos. Solo queda el aviso ya conocido de destino
+  `'hijo3'` desconocido al arrancar (paso 3 u 8, no de este paso).
+- **Queda para su paso:**
+  - `SISTEMA.NACK` por modo inválido (los seis frames): la rama es defensiva y hoy nadie la
+    dispara (el padre solo envía `MODOS.CASA`/`MODOS.AVENTURA`), y desde este paso nadie la
+    escucha tampoco — muerta por los dos lados. Paso 9.
+  - `notificarError` (`js/app.js`): sin llamadores. Paso 9.
+  - `datos.origen` de `CAMBIO_MODO`: sigue sin leerlo nadie (§25.10). Paso 9.
 
 ---
 

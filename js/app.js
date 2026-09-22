@@ -215,7 +215,7 @@ export async function actualizarInterfazModo(estado, modo) {
             Promise.resolve(enviarMensaje({
                 destino: hijoId,
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
-                datos: { modo, secuenciaCompleta: !!estado?.todosHijosListos, mensajeId }
+                datos: { modo, mensajeId }
             })).catch(err => {
                 logger.error(`[actualizarInterfazModo] Error enviando a ${hijoId}:`, err);
             })
@@ -474,9 +474,13 @@ async function _flujoPrewarmModo(estado, modoKey, modoNormalized) {
 }
 
 async function _notificarErrorCambioModo(mensaje, errorMsg, error, modo, logPrefix) {
+    // Solo a otro frame. Un cambio de modo que el padre se despacha a sí mismo ya devuelve el
+    // fallo a quien lo despachó (el resultado de despacharLocal), y enviárselo por el bus no
+    // saldría. Sin `origen` no hay a quién contestar.
+    if (!mensaje?.origen || mensaje.origen === 'padre') return;
     try {
         await enviarMensaje({
-            destino: mensaje?.origen || 'sistema',
+            destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             mensajeId: generarIdUnico(),
             timestamp: Date.now(),
@@ -1184,7 +1188,6 @@ if (globalThis.window !== undefined) {
                 delete globalThis.intervaloReconciliacion;
             }
             clearInterval(intervaloLimpiezaPromesas);
-            clearInterval(intervaloReintentoModo);
 
             logger.info('Limpieza agresiva de globales de la aplicación completada');
         } catch (error) {
@@ -1314,121 +1317,9 @@ async function ejecutarAccionCoordinada(accion) {
 // propio registrarControladorSeguro(). El payload real es { paradas, aventura?, timestamp },
 // y cada parada tiene la forma que le da normalizarParada() en js/utils.js.
 
-// --- Automatic resend logic for CAMBIO_MODO on NACK with esperarPermiso ---
-// pendingModeChanges: hijoId -> { modo, datos, intentos, nextAttemptAt }
-const pendingModeChanges = new Map();
-
-// Backoff configuration
-const MODE_RETRY_BASE_MS = 2000; // base backoff (2s)
-const MODE_RETRY_MAX_MS = 60 * 1000; // max backoff (60s)
-const MODE_RETRY_MAX_INTENTOS = 6; // max attempts before giving up
-
-// Exponer variables globalmente para acceso desde codigo-padre.html
-globalThis.pendingModeChanges = pendingModeChanges;
-globalThis.MODE_RETRY_MAX_INTENTOS = MODE_RETRY_MAX_INTENTOS;
-globalThis._computeBackoff = _computeBackoff;
-
-function _computeBackoff(attempt) {
-    // exponential backoff with jitter
-    const exp = Math.pow(2, Math.max(0, attempt - 1));
-    const base = Math.min(MODE_RETRY_BASE_MS * exp, MODE_RETRY_MAX_MS);
-    // Jitter de +/-10%: (random-0.5) va de -0.5 a +0.5, asi que el factor 0.2 da una
-    // banda del 20% de ancho repartida a los dos lados. Sirve para que varios hijos que
-    // hayan hecho NACK en el mismo tick no reintenten todos en el mismo milisegundo.
-    const jitter = base * (0.2 * (Math.random() - 0.5));
-    return Math.round(base + jitter);
-}
-
-mensajeriaReadyPromise.then(() => {
-    registrarControlador(TIPOS_MENSAJE.SISTEMA.NACK, async (mensaje) => {
-        if (mensaje?.tipo !== TIPOS_MENSAJE.SISTEMA.NACK) return;
-        if (!mensaje?.datos?.esperarPermiso) return;
-        if (!mensaje?.origen) return;
-
-        try {
-            const hijoId = mensaje.origen;
-            const modoRaw = mensaje.datos?.modoSolicitado || (mensaje.datos?.modo || null);
-            const modo = canonicalizarModo(modoRaw);
-
-            const existing = pendingModeChanges.get(hijoId) || { intentos: 0 };
-            const intentos = Math.min((existing.intentos || 0) + 1, MODE_RETRY_MAX_INTENTOS);
-            const nextAttemptAt = Date.now() + _computeBackoff(intentos);
-
-            pendingModeChanges.set(hijoId, {
-                modo,
-                datos: mensaje.datos,
-                intentos,
-                nextAttemptAt
-            });
-
-            logger.info(`[APP][CAMBIO_MODO][RESEND] NACK con esperarPermiso de ${hijoId}, guardado intento=${intentos} nextAt=${new Date(nextAttemptAt).toISOString()}`);
-        } catch (e) {
-            logger.warn('[APP][CAMBIO_MODO][RESEND] Error procesando NACK esperarPermiso:', e);
-        }
-    }).catch(e => logger.warn('[APP][NACK] Error registrando handler NACK:', e?.message));
-});
-
-// Background retry loop: periodically attempt to resend pending CAMBIO_MODO
-const intervaloReintentoModo = setInterval(async () => {
-    try {
-        if (pendingModeChanges.size === 0) return;
-        const now = Date.now();
-        for (const [hijoId, pending] of Array.from(pendingModeChanges.entries())) {
-            if (!pending || typeof pending.nextAttemptAt !== 'number') continue;
-            if (now < pending.nextAttemptAt) continue; // not yet
-
-            if ((pending.intentos || 0) >= MODE_RETRY_MAX_INTENTOS) {
-                // Rendirse EN VOZ ALTA y soltar la entrada. Antes este `continue` dejaba la
-                // entrada dando vueltas para siempre sin volver a intentarlo y sin decir nada:
-                // el modo de ese hijo se quedaba sin aplicar y no había forma de saberlo.
-                // Ahora es el único camino que aplica el modo (los hijos ya no lo aparcan por
-                // su cuenta), así que rendirse tiene que doler y verse.
-                pendingModeChanges.delete(hijoId);
-                logger.error(
-                    `[APP][CAMBIO_MODO][RESEND] Se agotaron los ${MODE_RETRY_MAX_INTENTOS} intentos de `
-                    + `aplicar el modo '${pending.modo}' a ${hijoId}: ese hijo se queda con el modo anterior. `
-                    + 'Es un fallo real de ese hijo — no contesta a un CAMBIO_MODO ni tras seis reenvíos.'
-                );
-                continue;
-            }
-
-            logger.info(`[APP][CAMBIO_MODO][RESEND] Intentando reenvío programado a ${hijoId} (intento ${pending.intentos + 1})`);
-            try {
-                await enviarMensaje({
-                    destino: hijoId,
-                    tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
-                    datos: {
-                        modo: pending.modo,
-                        ...pending.datos,
-                        secuenciaCompleta: true
-                    }
-                });
-                pendingModeChanges.delete(hijoId);
-                (globalThis.registrarEvento ?? registrarEvento)('CAMBIO_MODO_REENVIADO', { hijoId, timestamp: Date.now() });
-                logger.info(`[APP][CAMBIO_MODO][RESEND] Reenvío exitoso a ${hijoId}`);
-            } catch (sendErr) {
-                // increment attempts and schedule next
-                const intentos = Math.min((pending.intentos || 0) + 1, MODE_RETRY_MAX_INTENTOS);
-                const nextAttemptAt = Date.now() + _computeBackoff(intentos);
-                pendingModeChanges.set(hijoId, {
-                    ...pending,
-                    intentos,
-                    nextAttemptAt
-                });
-                logger.warn(`[APP][CAMBIO_MODO][RESEND] Reintento fallido para ${hijoId}, programado nextAt=${new Date(nextAttemptAt).toISOString()}`, sendErr);
-            }
-        }
-    } catch (err) {
-        logger.warn('[APP][CAMBIO_MODO][RESEND] Error en loop de reintentos:', err);
-    }
-}, 5000);
-
 // Hacer funciones disponibles globalmente para compatibilidad con carga como script
 // Note: These are assignments to window properties, not parameter reassignments
 globalThis.manejarCambioModo = globalThis.manejarCambioModo || manejarCambioModo;
 globalThis.actualizarInterfazModo = globalThis.actualizarInterfazModo || actualizarInterfazModo;
 globalThis.notificarCambioModoInminente = globalThis.notificarCambioModoInminente || notificarCambioModoInminente;
 globalThis.notificarCambioModoCompletado = globalThis.notificarCambioModoCompletado || notificarCambioModoCompletado;
-
-// Exportar variables para acceso desde otros módulos
-export { pendingModeChanges, MODE_RETRY_MAX_INTENTOS, _computeBackoff };

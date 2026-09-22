@@ -2818,11 +2818,6 @@
     async function _onCambioModo(mensaje) {
         const logPrefix = `${CONFIG_HIJO.LOG_PREFIX}[CAMBIO_MODO]`;
         try {
-            if (!mensaje.datos?.secuenciaCompleta) {
-                logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
-                await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.NACK, destino: 'padre', datos: { error: 'Secuencia no completa', esperarPermiso: true, tipoOriginal: mensaje.tipo, modoSolicitado: mensaje.datos?.modo } });
-                return { exito: false, error: 'Secuencia no completa' };
-            }
             const { modo } = mensaje.datos || {};
             if (!modo || !['casa', 'aventura'].includes(modo)) {
                 logger.error(`${logPrefix} Modo inválido: ${modo}`);

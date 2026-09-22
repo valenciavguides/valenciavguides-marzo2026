@@ -2034,16 +2034,20 @@ async function manejarCambiarParada(mensaje) {
         estadoMapa.datosRecopilados = {};
         _procesarSiguienteEnCola();
 
-        enviarMensaje({
-            destino: mensaje.origen,
-            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            mensajeId: generarIdUnico(),
-            datos: {
-                error: error.message,
-                mensajeOriginalId: mensajeId,
-                tipo: 'ERROR_CAMBIO_PARADA'
-            }
-        });
+        // Solo a otro frame: si el mensaje lo despachó el propio padre ('padre'), el resultado ya
+        // le vuelve por despacharLocal, y enviárselo por el bus no saldría.
+        if (mensaje.origen && mensaje.origen !== 'padre') {
+            enviarMensaje({
+                destino: mensaje.origen,
+                tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
+                mensajeId: generarIdUnico(),
+                datos: {
+                    error: error.message,
+                    mensajeOriginalId: mensajeId,
+                    tipo: 'ERROR_CAMBIO_PARADA'
+                }
+            });
+        }
 
         return { exito: false, error: error.message };
     }
@@ -2375,21 +2379,25 @@ async function completarCambioParada() {
         estadoMapa.paradaActual = paradaId;
         estadoMapa.timestamp = Date.now();
 
-        // Confirmar a hijo5-casa
-        enviarMensaje({
-            destino: origen,
-            tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
-            datos: {
-                    paradaId,
-                    parada_id: paradaId,
-                    padreId: resolvedPadreId || null,
-                    padreid: resolvedPadreId || null,
-                    mensajeOriginalId: mensajeId,
-                    coordenadas,
-                    audio: !!audio,
-                    reto: !!reto
-                }
-        });
+        // Confirmar a quien lo pidió (hijo5-casa).
+        // Solo a otro frame: si el cambio lo despachó el propio padre ('padre'), el resultado ya
+        // le vuelve por despacharLocal, y enviárselo por el bus no saldría.
+        if (origen && origen !== 'padre') {
+            enviarMensaje({
+                destino: origen,
+                tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
+                datos: {
+                        paradaId,
+                        parada_id: paradaId,
+                        padreId: resolvedPadreId || null,
+                        padreid: resolvedPadreId || null,
+                        mensajeOriginalId: mensajeId,
+                        coordenadas,
+                        audio: !!audio,
+                        reto: !!reto
+                    }
+            });
+        }
 
         logger.info(`${logPrefix} Cambio de parada completado exitosamente`);
 
@@ -2668,20 +2676,23 @@ async function manejarCambioModoMapa(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error procesando cambio de modo:`, error);
 
-        // Enviar mensaje de error si es posible
-        try {
-            enviarMensaje({
-                tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                destino: mensaje?.origen || resolverIdPadre(),
-                mensajeId: generarIdUnico(),
-                datos: {
-                    error: error.message,
-                    mensajeOriginalId: mensajeId,
-                    tipo: 'ERROR_CAMBIO_MODO_MAPA'
-                }
-            });
-        } catch (sendError) {
-            logger.error(`${logPrefix} Error enviando mensaje de error:`, sendError);
+        // Solo a otro frame: si el mensaje lo despachó el propio padre ('padre'), el resultado ya
+        // le vuelve por despacharLocal, y enviárselo por el bus no saldría.
+        if (mensaje?.origen && mensaje.origen !== 'padre') {
+            try {
+                enviarMensaje({
+                    tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
+                    destino: mensaje.origen,
+                    mensajeId: generarIdUnico(),
+                    datos: {
+                        error: error.message,
+                        mensajeOriginalId: mensajeId,
+                        tipo: 'ERROR_CAMBIO_MODO_MAPA'
+                    }
+                });
+            } catch (sendError) {
+                logger.error(`${logPrefix} Error enviando mensaje de error:`, sendError);
+            }
         }
 
         return { exito: false, error: error.message };
@@ -3269,19 +3280,11 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     distancia: distancia,
                     timestamp: Date.now()
                 };
-                // Este envío ocurre DENTRO del propio padre (funciones-mapa.js no vive en
-                // un iframe) — enviarMensaje({destino: resolverIdPadre()}) se autodirige al
-                // ID del propio padre, que enviarMensaje() (mensajeria.js) busca en
-                // iframesRegistrados y nunca encuentra (ese mapa solo contiene iframes hijo),
-                // así que el mensaje se descartaba en silencio en todas las llamadas. Llamar
-                // al handler directamente vía el wrapper expuesto en globalThis (mismo patrón
-                // que __triggerCambioParadaInterno para _hdl_NAVEGACION_CAMBIO_PARADA) evita
-                // el postMessage roto por completo.
-                if (typeof globalThis.__triggerLlegadaDetectadaInterno === 'function') {
-                    globalThis.__triggerLlegadaDetectadaInterno(_datosLlegada);
-                } else {
-                    logger.warn(`${logPrefix} __triggerLlegadaDetectadaInterno no disponible — notificación de llegada perdida`);
-                }
+                // funciones-mapa.js vive en el padre, y el handler de LLEGADA_DETECTADA también:
+                // se le despacha por el bus, con la misma fila que un mensaje que llegue de fuera.
+                // No se espera; si el handler se rompe, el bus ya lo dice en el log.
+                globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA, datos: _datosLlegada })
+                    .catch(() => { /* el bus ya avisa: "El handler de ... se rompió" */ });
             }
         } else if (!llegadaDetectada && estadoMapa._llegadaNotificada === derivedParadaId && distancia > toleranciaGPS * 1.5) {
             // Usuario se alejó de nuevo del destino ya notificado — permitir renotificar

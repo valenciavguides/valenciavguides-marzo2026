@@ -136,10 +136,15 @@ async function recorrer(page, { id, modo, precision, corteMetros = 0 }) {
     };
 
     const notificadas = [];
-    const orig = globalThis.__triggerLlegadaDetectadaInterno;
-    globalThis.__triggerLlegadaDetectadaInterno = function (d) {
-      notificadas.push(d?.paradaId ?? d?.parada_id ?? d?.id ?? '(sin id)');
-      return orig?.(d);
+    // funciones-mapa despacha la llegada al padre por el bus: se apunta al pasar por despacharLocal.
+    const bus = globalThis.mensajeria;
+    const orig = bus.despacharLocal;
+    bus.despacharLocal = function (m) {
+      if (m?.tipo === 'NAVEGACION.LLEGADA_DETECTADA') {
+        const d = m.datos;
+        notificadas.push(d?.paradaId ?? d?.parada_id ?? d?.id ?? '(sin id)');
+      }
+      return orig.call(this, m);
     };
     for (const p0 of posiciones) {
       // Ruido gaussiano (suma de 3 uniformes) dentro del círculo de precisión, como en la calle.
@@ -150,7 +155,7 @@ async function recorrer(page, { id, modo, precision, corteMetros = 0 }) {
         timestamp: Date.now(),
       });
     }
-    globalThis.__triggerLlegadaDetectadaInterno = orig;
+    bus.despacharLocal = orig;
     return { notificadas, lecturas: posiciones.length };
   }, { id, modo, precision, corteMetros });
 }

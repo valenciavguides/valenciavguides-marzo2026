@@ -16,7 +16,7 @@
  * NOTA de entorno: igual que 12-carga-por-parada.spec.js, se verifica observando
  * los logs del propio padre. `_precargarVideoParada` es local a Script 2 (no está
  * en `globalThis`), así que se ejercita a través del camino real
- * (`__triggerCambioParadaInterno` → `_hdl_NAVEGACION_CAMBIO_PARADA`).
+ * (CAMBIO_PARADA despachado con `despacharLocal` → `_hdl_NAVEGACION_CAMBIO_PARADA`).
  *
  *   PV-1  Overlay cerrado: al activar una parada cuyo siguiente elemento es un
  *         tramo con vídeo, se precarga (comportamiento normal, no regresión).
@@ -51,7 +51,7 @@ async function prepararPadre(page) {
     }
   });
   await page.waitForFunction(
-    () => typeof globalThis.__triggerCambioParadaInterno === 'function',
+    () => globalThis.mensajeria?.tieneControlador?.('NAVEGACION.CAMBIO_PARADA') === true,
     null, { timeout: 15000 }
   );
 }
@@ -92,13 +92,13 @@ async function prepararParadaConVideoDetras(page, urlVideo) {
 
 async function activarParada(page, objetivo) {
   await page.evaluate(async (o) => {
-    await globalThis.__triggerCambioParadaInterno({
+    await globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: {
       paradaId: o.paradaId,
       parada_id: o.paradaId,
       padreId: o.padreId,
       padreid: o.padreId,
       contexto: 'test_precarga_video'
-    });
+    } });
   }, objetivo);
 }
 

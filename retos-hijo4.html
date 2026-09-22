@@ -1312,7 +1312,7 @@
                     logger.info(`[hijo4] Intervalo de reintento limpiado tras recibir PADRE_CONFIRMA_HIJO_LISTO`);
                 }
 
-                // El cambio de modo fuera de secuencia NO se aparca aqui: se rechaza con NACK y es el padre quien lo recuerda y lo reenvia (pendingModeChanges, js/app.js). Aparcarlo ademas aqui lo aplicaba dos veces.
+                // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 de docs/mensajeria-duplicada-en-hijos.md).
 
                 // 🔥 NUEVO: Procesar modo inicial si viene en datos
                 const { modoInicial } = mensaje.datos || {};
@@ -1382,22 +1382,6 @@
                 const logPrefix = `[hijo4][CAMBIO_MODO]`;
 
                 try {
-                    // Validar carga secuencial
-                    if (!mensaje.datos?.secuenciaCompleta) {
-                        logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
-                        await enviarMensaje({
-                            tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                            destino: 'padre',
-                            datos: {
-                                error: 'Secuencia no completa',
-                                esperarPermiso: true,
-                                tipoOriginal: mensaje.tipo,
-                                modoSolicitado: mensaje.datos?.modo
-                            }
-                        });
-                        return;
-                    }
-
                     // Extraer y validar datos
                     const { modo } = mensaje.datos || {};
                     if (!modo || !['casa', 'aventura'].includes(modo)) {

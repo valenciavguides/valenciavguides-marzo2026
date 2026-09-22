@@ -138,7 +138,7 @@ test.describe('CM — Nada de AVENTURA se ejecuta de verdad estando en modo CASA
   });
 
   test('CM-6. _hdl_SISTEMA_CAMBIO_MODO(CASA) cierra los overlays de distancia GPS si estaban visibles', async ({ page, context }) => {
-    // _vv_triggerCambioModo('aventura') dispara _gestionarGpsSegunModo → activarGPS(),
+    // Un CAMBIO_MODO a 'aventura' dispara _gestionarGpsSegunModo → activarGPS(),
     // que llama a navigator.geolocation.watchPosition() de verdad — a diferencia de
     // CM-1/CM-2 (que inyectan coordenadas sintéticas directo en funcionesMapa, sin
     // tocar la API real). Sin permiso de geolocalización concedido en el contexto,
@@ -155,8 +155,8 @@ test.describe('CM — Nada de AVENTURA se ejecuta de verdad estando en modo CASA
     await context.grantPermissions(['geolocation']);
     await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
 
-    const disponible = await page.evaluate(() => typeof globalThis._vv_triggerCambioModo === 'function');
-    test.skip(!disponible, '_vv_triggerCambioModo no disponible');
+    const disponible = await page.evaluate(() => globalThis.mensajeria?.tieneControlador?.('SISTEMA.CAMBIO_MODO') === true);
+    test.skip(!disponible, 'sin handler de SISTEMA.CAMBIO_MODO');
 
     // Crear un overlay "fuera de rango" visible de verdad (clase .show, mismo mecanismo
     // real que usa el propio código — no basta con existir en el DOM, tiene que tener
@@ -175,8 +175,8 @@ test.describe('CM — Nada de AVENTURA se ejecuta de verdad estando en modo CASA
     // defecto del harness), pasar primero por 'aventura' para que el segundo trigger sea
     // un cambio real de verdad, no un no-op.
     await page.evaluate(async () => {
-      await globalThis._vv_triggerCambioModo('aventura');
-      await globalThis._vv_triggerCambioModo('casa');
+      await globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } });
+      await globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'casa' } });
     });
     await page.waitForTimeout(300);
 
@@ -226,7 +226,7 @@ test.describe('CM — hijo2: detección de llegada no se dispara mirando una par
         tipo: 'SISTEMA.CAMBIO_MODO',
         origen: 'padre',
         destino: 'hijo2',
-        datos: { modo: 'casa', origen: 'test', secuenciaCompleta: true, timestamp: Date.now() },
+        datos: { modo: 'casa', origen: 'test', timestamp: Date.now() },
       }, globalThis.location.origin);
       await new Promise(r => setTimeout(r, 300));
 
@@ -267,10 +267,10 @@ test.describe('CM — padre: defensa en profundidad en los handlers de GPS', () 
 
   test('CM-4. _hdl_NAVEGACION_LLEGADA_DETECTADA en CASA no marca pending.llegada ni completa nada', async ({ page }) => {
     const disponible = await page.waitForFunction(
-      () => typeof globalThis.__triggerLlegadaDetectadaInterno === 'function' && typeof globalThis.estado !== 'undefined',
+      () => globalThis.mensajeria?.tieneControlador?.('NAVEGACION.LLEGADA_DETECTADA') === true && typeof globalThis.estado !== 'undefined',
       null, { timeout: 15000 }
     ).then(() => true).catch(() => false);
-    test.skip(!disponible, '__triggerLlegadaDetectadaInterno o estado no disponibles');
+    test.skip(!disponible, 'sin handler de NAVEGACION.LLEGADA_DETECTADA o sin estado');
 
     const resultado = await page.evaluate(async () => {
       if (!globalThis.estado) return { ok: false };
@@ -279,10 +279,10 @@ test.describe('CM — padre: defensa en profundidad en los handlers de GPS', () 
       globalThis.estado.elementoActual = { parada_id: 'P-1', padreid: 'padre-P-1', tipo: 'parada' };
       globalThis.estado.pendingCompleciones = {};
 
-      await globalThis.__triggerLlegadaDetectadaInterno({
+      await globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.LLEGADA_DETECTADA', datos: {
         paradaId: 'P-1', parada_id: 'P-1', tipoParada: 'parada',
         coordenadas: { lat: 39.47959, lng: -0.37583 }, distancia: 3, timestamp: Date.now(),
-      });
+      } });
       await new Promise(r => setTimeout(r, 100));
 
       return {

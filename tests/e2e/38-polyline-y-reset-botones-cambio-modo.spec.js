@@ -24,7 +24,7 @@ const TRAMO = { id: 'Av1-TR-1', inicio: { lat: 39.478760, lng: -0.376260 } };
 
 test.describe('PB-A — Polyline manual se limpia al cambiar a CASA', () => {
   test.beforeEach(async ({ page, context }) => {
-    // Sin esto, el activarGPS()/watchPosition() real que dispara _vv_triggerCambioModo
+    // Sin esto, el activarGPS()/watchPosition() real que dispara un CAMBIO_MODO a AVENTURA
     // se queda colgado para siempre en Firefox — ver 30-casa-no-fuga-aventura.spec.js
     // (CM-6) y la memoria feedback_e2e_geolocation_firefox.
     await context.grantPermissions(['geolocation']);
@@ -36,12 +36,12 @@ test.describe('PB-A — Polyline manual se limpia al cambiar a CASA', () => {
   });
 
   test('PB-1. limpiarPolylineNavegacion() se llama al entrar en CASA', async ({ page }) => {
-    const disponible = await page.evaluate(() => typeof globalThis._vv_triggerCambioModo === 'function');
-    test.skip(!disponible, '_vv_triggerCambioModo no disponible en este entorno');
+    const disponible = await page.evaluate(() => globalThis.mensajeria?.tieneControlador?.('SISTEMA.CAMBIO_MODO') === true);
+    test.skip(!disponible, 'sin handler de SISTEMA.CAMBIO_MODO en este entorno');
 
     await page.evaluate(async ({ inicio }) => {
       globalThis._devModeActivo = true;
-      await globalThis._vv_triggerCambioModo('aventura');
+      await globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } });
       const mod = await import('/js/funciones-mapa.js');
       mod.dibujarPolylineNavegacion({ origen: { lat: inicio.lat + 0.001, lng: inicio.lng + 0.001 }, destino: inicio });
       globalThis.__e2e_limpiarPolylineLlamada = false;
@@ -52,7 +52,7 @@ test.describe('PB-A — Polyline manual se limpia al cambiar a CASA', () => {
       };
     }, { inicio: TRAMO.inicio });
 
-    await page.evaluate(() => globalThis._vv_triggerCambioModo('casa'));
+    await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'casa' } }));
     await page.waitForTimeout(500);
 
     const llamada = await page.evaluate(() => globalThis.__e2e_limpiarPolylineLlamada);
@@ -106,7 +106,7 @@ test.describe('PB-B — Reset de idParadaActual/botones en hijo2 al cambiar de m
     // La espera de 6 s que habia aqui compensaba la rama lenta de enviarMensaje() de hijo2
     // (10 x 500 ms = 5.000 ms agotando retryUntilAvailable sobre un globalThis.mensajeria
     // inexistente). proveerMensajeriaStub() la elimina de raiz, asi que la espera sobra.
-    await enviarMensaje(page, 'SISTEMA.CAMBIO_MODO', { modo: 'aventura', secuenciaCompleta: true });
+    await enviarMensaje(page, 'SISTEMA.CAMBIO_MODO', { modo: 'aventura' });
     await enviarMensaje(page, 'NAVEGACION.ACTUALIZAR_ESTADO', {
       idParada: 'Av1-TR-1', tipoParada: 'tramo', distanciaAlDestino: 5, toleranciaGPS: 50, timestamp: Date.now(),
     });
@@ -119,7 +119,7 @@ test.describe('PB-B — Reset de idParadaActual/botones en hijo2 al cambiar de m
     expect(antes, 'Precondición: avanzar debe estar genuinamente habilitado antes de cambiar de modo').toBe(false);
 
     // 3. Cambiar a CASA sin seleccionar nada — el escenario real del bug.
-    await enviarMensaje(page, 'SISTEMA.CAMBIO_MODO', { modo: 'casa', secuenciaCompleta: true });
+    await enviarMensaje(page, 'SISTEMA.CAMBIO_MODO', { modo: 'casa' });
 
     const despues = await page.evaluate(() => document.getElementById('btn-avanzar')?.disabled);
     expect(despues, 'Tras volver a CASA, avanzar debe quedar deshabilitado pese a haber estado habilitado de verdad en AVENTURA').toBe(true);

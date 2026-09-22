@@ -107,13 +107,13 @@ test.describe('RC — Un hijo caido se recupera', () => {
   test('RC-3. La restauracion de hijo1 llega a hijo1', async ({ page }) => {
     test.setTimeout(90_000);
     const falta = await page.evaluate(() => [
-      ['_vv_triggerCambioModo', typeof globalThis._vv_triggerCambioModo === 'function'],
+      ['SISTEMA.CAMBIO_MODO', globalThis.mensajeria?.tieneControlador?.('SISTEMA.CAMBIO_MODO') === true],
       ['_vv_beforeHijoReload', typeof globalThis._vv_beforeHijoReload === 'function'],
       ['_vv_afterHijoListo', typeof globalThis._vv_afterHijoListo === 'function'],
     ].filter(([, hay]) => !hay).map(([n]) => n));
     test.skip(falta.length > 0, `ganchos de recuperacion no disponibles: ${falta.join(', ')}`);
 
-    await page.evaluate(() => globalThis._vv_triggerCambioModo('aventura'));
+    await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } }));
     // Se espera a que el modo quede APLICADO, que es la condicion real; el padre lo apunta en
     // `estadoPadre.modo.actual` —el mismo campo que lee el handler del temporizador—.
     await expect

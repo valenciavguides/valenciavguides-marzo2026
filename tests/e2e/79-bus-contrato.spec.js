@@ -34,6 +34,8 @@
  *   BC-16  Al recibir de un iframe registrado, su `origen` tiene que ser su nombre de registro:
  *          si dice ser otro, se descarta y se avisa.
  *   BC-17  Un frame con el bus importado pero sin inicializar no envía: saldría sin `origen`.
+ *   BC-18  Un frame no se envía nada a sí mismo por `enviarMensaje` (tampoco el padre a 'padre'):
+ *          no sale y avisa. Para eso está `despacharLocal`.
  *
  * ROJO ANTES QUE VERDE: con el bus de antes de la unificación falla todo salvo BC-0.
  */
@@ -513,5 +515,27 @@ test.describe('BC — Identidad: el bus pone el origen y lo comprueba al recibir
     expect(await recibidos(nieto, 'PRUEBA.SIN_INIT'), 'y no llega nada').toEqual([]);
     expect(avisos(logs, /No se envía PRUEBA\.SIN_INIT: el bus de este frame aún no está inicializado/),
       'y se avisa').toHaveLength(1);
+  });
+
+  test('BC-18. Enviarse algo a uno mismo no sale y avisa: para eso está despacharLocal', async ({ page }) => {
+    const { padre, hijo, logs } = await montar(page);
+    await escuchar(padre, 'PRUEBA.A_SI_MISMO');
+    await escuchar(hijo, 'PRUEBA.A_SI_MISMO');
+
+    // El padre se llama 'padre': mandar a 'padre' desde arriba es mandarse a sí mismo.
+    expect(await enviar(padre, { tipo: 'PRUEBA.A_SI_MISMO', destino: 'padre', datos: {} }), 'el padre a sí mismo').toBe(false);
+    expect(await enviar(hijo, { tipo: 'PRUEBA.A_SI_MISMO', destino: 'hijo', datos: {} }), 'el hijo a sí mismo').toBe(false);
+    const r = await conAcuse(hijo, { tipo: 'PRUEBA.A_SI_MISMO', destino: 'hijo', datos: {} });
+    expect(r, 'con acuse, rechazo que dice por qué').toMatchObject({ ok: false, motivo: 'no-enviado' });
+    // VENTANA-OBSERVACION: un envio a uno mismo no puede llegar a ningun handler
+    await page.waitForTimeout(400);
+    expect(await recibidos(padre, 'PRUEBA.A_SI_MISMO'), 'al padre no le llega').toEqual([]);
+    expect(await recibidos(hijo, 'PRUEBA.A_SI_MISMO'), 'al hijo no le llega').toEqual([]);
+    expect(avisos(logs, /padre no se envía PRUEBA\.A_SI_MISMO a sí mismo/), 'aviso en el padre').toHaveLength(1);
+    expect(avisos(logs, /hijo no se envía PRUEBA\.A_SI_MISMO a sí mismo/), 'aviso en el hijo, uno por tipo').toHaveLength(1);
+
+    // Control: por despacharLocal sí llega.
+    await padre.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'PRUEBA.A_SI_MISMO', datos: { n: 1 } }));
+    expect(await recibidos(padre, 'PRUEBA.A_SI_MISMO')).toEqual([{ origen: 'padre', datos: { n: 1 } }]);
   });
 });

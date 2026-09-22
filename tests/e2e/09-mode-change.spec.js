@@ -24,7 +24,8 @@
  *         tras el boot, los handlers CAMBIO_MODO_ENTENDIDO y CAMBIO_MODO_EFECTUADO
  *         solo aparecen UNA vez en __CONTROLADOR_REGISTRADOS
  *   MC-7  HEARTBEAT_START se lanza en modo AVENTURA
- *   MC-8  globalThis.pendingModeChanges existe (Map para reenvíos tras HIJO_LISTO)
+ *   (MC-8 probaba la cola de reenvíos `pendingModeChanges`, que ya no existe: el modo llega por
+ *   un solo camino y lo cubre 84-el-modo-llega-por-un-camino.spec.js.)
  */
 'use strict';
 
@@ -270,26 +271,6 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
     expect(info.ok).toBe(true);
     expect(info.tieneHeartbeat).toBe(true);
     expect(info.tieneHeartbeatResponse).toBe(true);
-  });
-
-  // ── MC-8: pendingModeChanges Map ─────────────────────────────────────
-
-  test('MC-8. globalThis.pendingModeChanges existe como Map (reenvíos tras HIJO_LISTO)', async ({ page }) => {
-    const info = await page.evaluate(() => {
-      const pmc = globalThis.pendingModeChanges;
-      return {
-        existe: pmc != null,
-        esMap: pmc instanceof Map,
-        estaVacio: pmc instanceof Map ? pmc.size === 0 : null,
-      };
-    });
-    // pendingModeChanges puede no existir si ningún cambio de modo ha fallado aún
-    // En ese caso es undefined, lo que también es correcto (se crea on-demand)
-    if (info.existe) {
-      expect(info.esMap).toBe(true);
-      expect(info.estaVacio).toBe(true);
-    }
-    // Si no existe, el test pasa silenciosamente (comportamiento correcto en cold start)
   });
 
   // ── MC-9: MODOS disponibles ───────────────────────────────────────────

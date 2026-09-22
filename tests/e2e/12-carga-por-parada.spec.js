@@ -41,10 +41,10 @@ const PARADAS_AV1 = [
 
 async function esperarPipelineListo(page) {
   await page.waitForFunction(
-    () => typeof globalThis.__triggerCambioParadaInterno === 'function' && typeof globalThis.__cargarDatosAventuraDiferidos === 'function',
+    () => globalThis.mensajeria?.tieneControlador?.('NAVEGACION.CAMBIO_PARADA') === true && typeof globalThis.__cargarDatosAventuraDiferidos === 'function',
     null,
     { timeout: 15_000 }
-  ).catch(() => { /* el test reportará el fallo real vía prep.tieneTrigger */ });
+  ).catch(() => { /* el test reportará el fallo real vía prep.tieneHandlerCambioParada */ });
 }
 
 async function prepararAventura1(page) {
@@ -56,7 +56,7 @@ async function prepararAventura1(page) {
       await globalThis.__cargarDatosAventuraDiferidos();
     }
     return {
-      tieneTrigger: typeof globalThis.__triggerCambioParadaInterno === 'function',
+      tieneHandlerCambioParada: globalThis.mensajeria?.tieneControlador?.('NAVEGACION.CAMBIO_PARADA') === true,
       audiosDisponibles: globalThis.__vv_AUDIOS_AVENTURAS?.Aventura1?.es?.length || 0,
     };
   });
@@ -65,9 +65,9 @@ async function prepararAventura1(page) {
 async function activarParada(page, paradaId) {
   return page.evaluate(async (id) => {
     try {
-      await globalThis.__triggerCambioParadaInterno({
+      await globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: {
         paradaId: id, parada_id: id, padreId: `padre-${id}`, padreid: `padre-${id}`, timestamp: Date.now(),
-      });
+      } });
       return { ok: true };
     } catch (e) {
       return { ok: false, error: e?.message };
@@ -88,7 +88,7 @@ test.describe('PP — Protección pasiva por parada (audio/reto en línea, sin b
     page.on('console', msg => logs.push(msg.text()));
 
     const prep = await prepararAventura1(page);
-    test.skip(!prep.tieneTrigger || !prep.audiosDisponibles, `Precondición no disponible: ${JSON.stringify(prep)}`);
+    test.skip(!prep.tieneHandlerCambioParada || !prep.audiosDisponibles, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
     const res = await activarParada(page, 'intro');
     expect(res.ok, `Error activando "intro": ${res.error}`).toBe(true);
@@ -108,7 +108,7 @@ test.describe('PP — Protección pasiva por parada (audio/reto en línea, sin b
     page.on('console', msg => logs.push(msg.text()));
 
     const prep = await prepararAventura1(page);
-    test.skip(!prep.tieneTrigger || !prep.audiosDisponibles, `Precondición no disponible: ${JSON.stringify(prep)}`);
+    test.skip(!prep.tieneHandlerCambioParada || !prep.audiosDisponibles, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
     for (const { paradaId } of PARADAS_AV1) {
       const res = await activarParada(page, paradaId);

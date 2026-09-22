@@ -151,7 +151,7 @@ test.describe('RU — La reanudación usa el mismo camino que cualquier cambio d
       globalThis.estado.modo = { actual: 'aventura', anterior: null };
       localStorage.setItem('vv_aventura_iniciada', JSON.stringify({ aventura: 'Aventura1', idioma: 'es', modo: 'aventura', dev: false, timestamp: Date.now() }));
       localStorage.setItem('vv_progreso', JSON.stringify({ indiceProgreso: 7 }));
-      await globalThis._vv_triggerCambioModo('casa');
+      await globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'casa' } });
       return { iniciada: localStorage.getItem('vv_aventura_iniciada'), progreso: localStorage.getItem('vv_progreso') };
     });
 

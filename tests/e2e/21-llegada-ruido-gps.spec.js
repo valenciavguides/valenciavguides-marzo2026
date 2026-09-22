@@ -38,8 +38,8 @@
  * enviarMensaje() (mensajeria.js) busca ese destino en iframesRegistrados, que nunca
  * contiene al padre mismo, así que el mensaje se descartaba en silencio en TODAS las
  * llamadas (código muerto desde que se escribió). Ahora usa
- * globalThis.__triggerLlegadaDetectadaInterno(), que llama al handler del padre
- * directamente — mismo patrón que __triggerCambioParadaInterno.
+ * globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.LLEGADA_DETECTADA', ... }): el
+ * handler del padre lo recibe por la misma fila que un mensaje que llegue de fuera.
  *
  *   RG-1  Caso limpio (sin ruido): 2 lecturas exactas en la diana SÍ confirman la
  *         llegada — control de que el arreglo no rompió el caso normal.

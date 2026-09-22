@@ -1640,7 +1640,7 @@ try {
                 }
             }, 3000);
 
-            // El cambio de modo fuera de secuencia NO se aparca aqui: se rechaza con NACK y es el padre quien lo recuerda y lo reenvia (pendingModeChanges, js/app.js). Aparcarlo ademas aqui lo aplicaba dos veces.
+            // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 de docs/mensajeria-duplicada-en-hijos.md).
 
             // Mostrar UI ahora que el padre confirmó
             try { _uiConfirmado = true; mostrarUI(); } catch (e) { logger.warn('[hijo2] Error mostrando UI:', e && e.message); }
@@ -1705,23 +1705,7 @@ try {
         const logPrefix = `[hijo2][CAMBIO_MODO]`;
 
         try {
-            // Paso 1: Validar carga secuencial
-            if (!mensaje.datos?.secuenciaCompleta) {
-                logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                    destino: 'padre',
-                    datos: {
-                        error: 'Secuencia no completa',
-                        esperarPermiso: true,
-                        tipoOriginal: mensaje.tipo,
-                        modoSolicitado: mensaje.datos?.modo
-                    }
-                });
-                return;
-            }
-
-            // Paso 2: Extraer y validar datos
+            // Paso 1: Extraer y validar datos
             const { modo } = mensaje.datos || {};
             if (!modo || !['casa', 'aventura'].includes(modo)) {
                 logger.error(`${logPrefix} Modo inválido: ${modo}`);
@@ -1733,7 +1717,7 @@ try {
                 return;
             }
 
-            // Paso 3: Enviar ENTENDIDO
+            // Paso 2: Enviar ENTENDIDO
             logger.info(`${logPrefix} Cambio de modo a "${modo}" entendido`);
 
             // Validación explícita antes de enviar
@@ -1767,11 +1751,11 @@ try {
                 }
             });
 
-            // Paso 4: Procesar cambio
+            // Paso 3: Procesar cambio
             logger.info(`${logPrefix} Procesando cambio a modo: ${modo}`);
             _resetarEstadoParaModo(modo, logPrefix);
 
-            // Paso 5: Enviar EFECTUADO
+            // Paso 4: Enviar EFECTUADO
             logger.info(`${logPrefix} Cambio de modo a "${modo}" efectuado`);
             await enviarMensaje({
                 destino: 'padre',

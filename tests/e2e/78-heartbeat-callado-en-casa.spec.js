@@ -61,8 +61,8 @@ test.describe('HC — En CASA el heartbeat se calla', () => {
 
   test('HC-2. Camino real: en CASA, con el heartbeat pausado, hijo2 no recibe latidos', async ({ page }) => {
     test.setTimeout(90_000);
-    const disponible = await page.evaluate(() => typeof globalThis._vv_triggerCambioModo === 'function');
-    test.skip(!disponible, '_vv_triggerCambioModo no disponible');
+    const disponible = await page.evaluate(() => globalThis.mensajeria?.tieneControlador?.('SISTEMA.CAMBIO_MODO') === true);
+    test.skip(!disponible, 'sin handler de SISTEMA.CAMBIO_MODO');
 
     // Entrar en CASA por el camino real. Si desde el arranque no pausa, se hace el recorrido
     // completo AVENTURA -> CASA, que es cuando la app lo pausa.
@@ -70,15 +70,15 @@ test.describe('HC — En CASA el heartbeat se calla', () => {
     // proposito: que no se cumpla no es un fallo aqui, es lo que decide si hace falta el
     // recorrido completo AVENTURA -> CASA; el `test.skip` de abajo es quien juzga.
     const latidoPausado = async () => (await estadoHeartbeat(page))?.userPaused === true;
-    await page.evaluate(() => globalThis._vv_triggerCambioModo('casa'));
+    await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'casa' } }));
     await expect.poll(latidoPausado, { timeout: 4_000 }).toBe(true).catch(() => {});
     let hb = await estadoHeartbeat(page);
     if (!hb || !hb.userPaused) {
-      await page.evaluate(() => globalThis._vv_triggerCambioModo('aventura'));
+      await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } }));
       await expect
         .poll(() => page.evaluate(() => globalThis.estadoPadre?.modo?.actual), { timeout: 6_000 })
         .toBe('aventura').catch(() => {});
-      await page.evaluate(() => globalThis._vv_triggerCambioModo('casa'));
+      await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'casa' } }));
       await expect.poll(latidoPausado, { timeout: 6_000 }).toBe(true).catch(() => {});
       hb = await estadoHeartbeat(page);
     }
