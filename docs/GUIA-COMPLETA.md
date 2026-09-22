@@ -1341,12 +1341,12 @@ Cubierto por `tests/e2e/22-carteles-informativos.spec.js`, prueba CI-6: dispara 
 
 **Disparo:** `globalThis.mostrarCartelTransicion(tipo1, nombre1, tipo2, nombre2)`, definida en `codigo-padre.html` justo después de `mostrarModalFinalizacion` (import dinámico de las traducciones, expuesta en `globalThis` porque la llama `marcarParadaCompletada()`, que puede vivir en un script distinto). Se invoca desde dentro de `marcarParadaCompletada()`, en la misma rama que fija `paradaListaParaAvanzar = true` y envía `CONTROL.HABILITAR { control: 'btnAvanzar' }` — en el mismo instante en que el botón se habilita, no al pulsarlo — y solo cuando la bifurcación de §4.7g resuelve a este cartel (siguiente = parada, o sin siguiente). `tipo1`/`nombre1` son el tipo y nombre del elemento que se acaba de completar (`findElementoPorPadreId(idLimpio)`) — puede ser `'parada'` o `'tramo'` (un tramo llega aquí cuando el audio, no la llegada GPS, fue la última condición en cumplirse); `tipo2`/`nombre2` son el tipo y nombre del **siguiente** elemento en la secuencia (`elementosIDpadre[estado.indiceProgreso + 1]`, resuelto directamente sobre el array — `estado.indiceProgreso` todavía no se ha incrementado en este punto, `progresarSiguienteElemento()` no lo hace hasta que el usuario pulse). Si no hay elemento siguiente (se acaba de completar el último elemento de la aventura), `tipo2`/`nombre2` llegan como `null` y el cartel muestra solo la mitad de "completado" — el modal de fin de aventura (`mostrarModalFinalizacion`, §8.x) es quien se encarga del resto, y se dispara aparte cuando el usuario pulsa `btn-avanzar` y `progresarSiguienteElemento()` no encuentra elemento siguiente.
 
-**Por qué el cartel depende de que `enviarMensajeInterno()` devuelva una Promise real:** la línea anterior a la que dispara el cartel (`enviarMensajePadre({...CONTROL.HABILITAR...}).catch(e => ...)`, patrón fire-and-forget) vive en el mismo bloque `try` de `marcarParadaCompletada()` que la llamada a `mostrarCartelTransicion`. `.catch()` solo existe en el prototipo de `Promise` — si `enviarMensajeInterno()` (la función que hace el envío real dentro de `mensajeria.js`) devolviera alguna vez un booleano desnudo en vez de envolverlo en `Promise.resolve(...)`, `.catch` sería `undefined` y llamarlo lanzaría un `TypeError` **síncrono**, en el momento mismo de evaluar esa línea — no una promesa rechazada más tarde, sino una excepción que corta ahí mismo el resto de la función que la contiene. Eso incluye todo lo que viene después en el mismo bloque `try`: el cartel de transición nunca llegaría a dispararse, con el mensaje ya enviado pero cualquier código posterior abortado en silencio (el `catch` externo de `marcarParadaCompletada()` solo registra el error, no reintenta ni avisa al usuario). Por eso `enviarMensajeInterno()` envuelve sus tres ramas (hijo→padre, padre→hijo, y el `catch` de error) en `Promise.resolve(...)` de forma explícita.
+**Por qué el cartel depende de que `enviarMensajeInterno()` devuelva una Promise real:** la línea anterior a la que dispara el cartel (`enviarMensaje_S2({...CONTROL.HABILITAR...}).catch(e => ...)`, patrón fire-and-forget) vive en el mismo bloque `try` de `marcarParadaCompletada()` que la llamada a `mostrarCartelTransicion`. `.catch()` solo existe en el prototipo de `Promise` — si `enviarMensajeInterno()` (la función que hace el envío real dentro de `mensajeria.js`) devolviera alguna vez un booleano desnudo en vez de envolverlo en `Promise.resolve(...)`, `.catch` sería `undefined` y llamarlo lanzaría un `TypeError` **síncrono**, en el momento mismo de evaluar esa línea — no una promesa rechazada más tarde, sino una excepción que corta ahí mismo el resto de la función que la contiene. Eso incluye todo lo que viene después en el mismo bloque `try`: el cartel de transición nunca llegaría a dispararse, con el mensaje ya enviado pero cualquier código posterior abortado en silencio (el `catch` externo de `marcarParadaCompletada()` solo registra el error, no reintenta ni avisa al usuario). Por eso `enviarMensajeInterno()` envuelve sus tres ramas (hijo→padre, padre→hijo, y el `catch` de error) en `Promise.resolve(...)` de forma explícita.
 
 **La garantía se extiende a toda la familia de funciones relacionadas:** el mismo principio — nunca devolver un booleano o `undefined` desnudo desde una función que sus callers tratan como Promise — se aplica por construcción a otros tres puntos de la misma clase, sin depender de que el contexto que hoy los protege (guards existentes, hoisting) se mantenga igual en el futuro:
 
 - `enviarMensaje()` (`js/mensajeria.js`) solo acepta `enviarMensaje({ tipo, datos, destino })` — no existe ningún formato posicional; sus dos caminos de fallo (`tipo` ausente, o el bus del frame sin inicializar) devuelven `Promise.resolve(false)`. El `origen` lo pone el bus (§26.8, segunda capa).
-- `enviarMensajePadre()` (`codigo-padre.html`) es un alias de `enviarMensaje` que devuelve siempre una Promise: `Promise.resolve(enviarMensaje(mensaje))`, y `Promise.resolve(false)` con aviso en el log si `enviarMensaje` no estuviera disponible. Solo acepta el objeto `{ tipo, datos, destino }`, nunca argumentos sueltos.
+- El alias `enviarMensajePadre()` que envolvía esto (`Promise.resolve(enviarMensaje(mensaje))`) ya no existe: se retiró en el paso 5 de la lavadora (docs/mensajeria-duplicada-en-hijos.md) por ser un segundo nombre para lo mismo — `enviarMensaje()` ya devolvía siempre una Promise por sí sola. Cada script del padre llama a `enviarMensaje` por su alias local (`enviarMensaje_S1`, `enviarMensaje_S2`…).
 - Quien necesita disparar un `SISTEMA.CAMBIO_MODO` desde dentro del padre lo despacha con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, datos: { modo } })`, que siempre devuelve una Promise (paso 2 de la lavadora, docs/mensajeria-duplicada-en-hijos.md). El atajo `globalThis._vv_triggerCambioModo` que envolvía esto ya no existe.
 
 Ver detalle completo en la memoria `project_audit_promise_boolean_pendiente`.
@@ -4863,18 +4863,11 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 | `seleccion` | `En-busca-del-tesoro.html` | Iframe | Selector de aventura/idioma |
 | `funciones-mapa` | `js/funciones-mapa.js` | Módulo en padre | Dibujo de ruta, marcadores (escucha CustomEvent) |
 
-**Quién habla ya por el bus y quién no.** `js/mensajeria.js` está pensado para que lo cargue **todo** frame, con doble papel: hijo de su padre y padre de los iframes que registre. La migración va por partes, y mientras dure conviven los dos mundos sin problema:
-
-| Frame | Mensajería |
-|-------|-----------|
-| `padre` | **El bus** (`js/mensajeria.js`) |
-| `hijo1` | **El bus** |
-| `hijo5` | **El bus** |
-| `seleccion` | **El bus** |
-| `hijo2`, `hijo3`, `hijo4` | Copia propia de los envoltorios (`messagingAdapter`, `safeRegistrar`, un `enviarMensaje` que hace `parent.postMessage` a pelo) |
-| `hijo6` | Ni bus ni `messagingAdapter`: su propio `registrarControladorSeguro` y 4 `parent.postMessage` a pelo |
-
-La diferencia importa para depurar: un frame **sin** bus no descarta fuentes no autorizadas, no ordena por tipo, no tiene el acuse con motivo, y —lo más visible— la captura de errores de `js/utils.js` no llega a ninguna parte, porque envía por `globalThis.mensajeria`, que allí no existe.
+**Los diez frames hablan por el bus.** `js/mensajeria.js` lo carga todo frame (padre, los seis
+hijos, y los tres nietos puzzle/mapa-completo/video-intro), con doble papel donde corresponde:
+hijo de su padre y padre de los iframes que registre. No queda ningún frame con un envoltorio
+propio, un adaptador aparte, ni `postMessage` a pelo para su mensajería — eso incluye la captura
+de errores de `js/utils.js`, que en los diez llega por `globalThis.mensajeria`.
 
 **Reglas fundamentales del bus:**
 
@@ -4893,7 +4886,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-218f116d0518'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0bba18a7c703'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5708,7 +5701,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 - hijo1 (`extrainfo-hijo1.html`) y seleccion (`En-busca-del-tesoro.html`) envían `SISTEMA.HIJO_FALLIDO` si su inicialización falla.
 - Padre tiene handler inline registrado con `registrarControladorSeguro`. Marca `hijoEstado.activo = false` + `hijoEstado.fallido = true` en `estado.estadoHijos`. No hay reintento automático ni alerta al usuario; el fallo queda registrado en el log.
 
-#### Patrón: `enviarMensajePadre({destino: padreId})` no funciona
+#### Patrón: `enviarMensaje({destino: padreId})` no funciona
 
 `enviarMensaje(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está en ese mapa — el mensaje se descarta sin error. Las funciones afectadas usan en cambio `despacharLocal` o `funcionesMapa.setMapView`:
 
@@ -8092,7 +8085,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-218f116d0518'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-0bba18a7c703'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8813,7 +8806,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-218f116d0518';
+const CACHE_VERSION = 'v-0bba18a7c703';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12163,7 +12156,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-218f116d0518';
+const CACHE_VERSION = 'v-0bba18a7c703';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

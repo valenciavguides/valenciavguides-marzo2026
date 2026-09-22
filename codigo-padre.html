@@ -6115,7 +6115,7 @@
                         }, timeoutMs);
                         globalThis.__coordResponseWaiters.set(pedidoId, { resolve, reject, timeout: to });
                         try {
-                            enviarMensajePadre({
+                            enviarMensaje_S1({
                                 tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_REQUEST,
                                 destino: destino,
                                 datos: { ...payload, pedidoId }
@@ -10021,22 +10021,22 @@ await _comprobarReanudacionAventura(logPrefix);
                 // esta rama no se cumplía nunca y, aunque se hubiera cumplido, el destino no
                 // existía: la restauración del temporizador no llegaba a ninguna parte.
                 if (hijoId === 'hijo1-opciones' && snap.tiempoRestante !== undefined && snap.tiempoRestante !== null) {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, destino: 'hijo1-opciones', datos: { tiempoEstimado: snap.tiempoRestante, pausado: false, timestamp: Date.now() } });
+                    await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, destino: 'hijo1-opciones', datos: { tiempoEstimado: snap.tiempoRestante, pausado: false, timestamp: Date.now() } });
                     logger.info(`[PADRE][SNAPSHOT] ✅ Temporizador restaurado para hijo1: ${snap.tiempoRestante}s`);
                 }
                 if (hijoId === 'hijo2' && snap.paradaActual) {
                     // parada_id (no paradaActual): el handler de hijo2 lee
                     // datos.parada_id || datos.paradaId — con el nombre viejo
                     // resolvía a null y la restauración no hacía nada (ver auditoría EJE 17).
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, destino: 'hijo2', datos: { parada_id: snap.paradaActual, timestamp: Date.now() } });
+                    await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, destino: 'hijo2', datos: { parada_id: snap.paradaActual, timestamp: Date.now() } });
                     logger.info(`[PADRE][SNAPSHOT] ✅ Parada restaurada para hijo2: ${snap.paradaActual}`);
                 }
                 if (hijoId === 'hijo3' && snap.audioActual) {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, destino: 'hijo3', datos: { ...snap.audioActual, timestamp: Date.now() } });
+                    await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, destino: 'hijo3', datos: { ...snap.audioActual, timestamp: Date.now() } });
                     logger.info(`[PADRE][SNAPSHOT] ✅ Audio restaurado para hijo3`);
                 }
                 if (hijoId === 'hijo4' && snap.retoActual) {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.RETO.MOSTRAR, destino: 'hijo4', datos: { ...snap.retoActual, timestamp: Date.now() } });
+                    await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.RETO.MOSTRAR, destino: 'hijo4', datos: { ...snap.retoActual, timestamp: Date.now() } });
                     logger.info(`[PADRE][SNAPSHOT] ✅ Reto restaurado para hijo4`);
                 }
             } catch (e) { logger.error(`[PADRE][SNAPSHOT] Error restaurando ${hijoId}:`, e); }
@@ -10241,19 +10241,6 @@ await _comprobarReanudacionAventura(logPrefix);
         if (globalThis.enviarMensaje === undefined) { globalThis.enviarMensaje = enviarMensaje_S2 || globalThis.enviarMensaje; }
         if (globalThis.ajustarTimeoutPorConexion === undefined) { globalThis.ajustarTimeoutPorConexion = ajustarTimeoutPorConexion_S2 || globalThis.ajustarTimeoutPorConexion; }
 
-        // enviarMensajePadre: alias de enviarMensaje, que se queda hasta el paso 5 (un solo nombre de envío). El
-        // `origen` lo pone el bus (docs/mensajeria-duplicada-en-hijos.md §21.1): aquí ya no se toca. Devuelve
-        // siempre una Promise porque se usa con `.catch()` encadenado (marcarParadaCompletada y otros): sobre
-        // `undefined`, `.catch()` lanzaría ahí mismo y cortaría la función que lo llama sin aviso.
-        function enviarMensajePadre(mensaje) {
-            try {
-                return Promise.resolve(enviarMensaje(mensaje));
-            } catch (e) {
-                (globalThis.logger || console).warn('[PADRE][ENVIAR_PADRE] enviarMensaje no disponible:', e);
-                return Promise.resolve(false);
-            }
-        }
-        if (globalThis.enviarMensajePadre === undefined) globalThis.enviarMensajePadre = enviarMensajePadre;
 
         // ============================================================
         // FUNCIONES AUXILIARES DE PROGRESIÓN DE AVENTURA
@@ -10336,9 +10323,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 })();
                 try {
                     const notifyData = { evento: 'PENDING_INICIADO', padreId: key, ttlMs: estado.pendingCompleciones[key].ttlMs };
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo2', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo2:', e?.message)); // NOSONAR
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo3', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo3:', e?.message)); // NOSONAR
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo4', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo4:', e?.message)); // NOSONAR
+                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo2', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo2:', e?.message)); // NOSONAR
+                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo3', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo3:', e?.message)); // NOSONAR
+                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo4', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo4:', e?.message)); // NOSONAR
                 } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
             }
             return estado.pendingCompleciones[key];
@@ -10450,7 +10437,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).info(`${logPrefix} 🎉 Fin de la aventura alcanzado (MODO AVENTURA) - mostrando modal de finalización`);
                 const iframeOpciones = document.getElementById('hijo1-opciones');
                 if (iframeOpciones) {
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.FINALIZADA, destino: 'hijo1-opciones', datos: { aventuraId: globalThis.aventuraSeleccionada, idioma: globalThis.idiomaSeleccionado, motivo: 'completada', timestamp: Date.now() } });
+                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.AVENTURA.FINALIZADA, destino: 'hijo1-opciones', datos: { aventuraId: globalThis.aventuraSeleccionada, idioma: globalThis.idiomaSeleccionado, motivo: 'completada', timestamp: Date.now() } });
                     (globalThis.logger || console).info(`${logPrefix} Mensaje AVENTURA.FINALIZADA enviado al temporizador — modal se mostrará tras recibir ESTADISTICAS_TIEMPO`);
                 }
             } else {
@@ -10642,7 +10629,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
                         (globalThis.logger || console).info(`${logPrefix} ${esTramo ? 'Tramo' : 'Parada'} completado en aventura — habilitando btnAvanzar, esperando confirmación del usuario`);
-                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: esTramo ? 'tramo_completado' : 'parada_completada' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                        enviarMensaje_S2({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: esTramo ? 'tramo_completado' : 'parada_completada' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
 
                         // Cartel al completarse el elemento — cuál de los 4 exactamente depende
                         // de qué acaba de terminar y qué sigue, mira el elemento siguiente en la
@@ -10755,7 +10742,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const audioData = await _resolverAudioData(audioId, logPrefix);
                 // Tracking para snapshot de reload
                 _snapshotRecuperacion.audioActual = { audioId, audioData, contexto: 'progresion_aventura', autoplay: false };
-                await enviarMensajePadre({
+                await enviarMensaje_S2({
                     tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
                     destino: 'hijo3',
                     datos: {
@@ -10814,7 +10801,7 @@ await _comprobarReanudacionAventura(logPrefix);
             }
 
             try {
-                await enviarMensajePadre({
+                await enviarMensaje_S2({
                     tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
                     destino: 'hijo3',
                     datos: {
@@ -10889,7 +10876,7 @@ await _comprobarReanudacionAventura(logPrefix);
             // llamada (esta función se invoca desde varios sitios reactivos).
             if (hayAudioUtilizable !== _ultimoHayAudioNotificadoAHijo3) {
                 _ultimoHayAudioNotificadoAHijo3 = hayAudioUtilizable;
-                enviarMensajePadre({
+                enviarMensaje_S2({
                     tipo: hayAudioUtilizable ? TIPOS_MENSAJE.CONTROL.HABILITAR : TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                     destino: 'hijo3',
                     datos: { control: 'progressBar', razon: hayAudioUtilizable ? 'audio_activo' : 'sin_audio_o_fuera_de_rango' }
@@ -11079,10 +11066,10 @@ await _comprobarReanudacionAventura(logPrefix);
             };
             (globalThis.logger || console).info(`${logPrefix} Enviando RETO.MOSTRAR a hijo4 con retoId: ${retoIdToUsar} (incluyendo ${_retosArray.length} retos como respaldo)`);
             try {
-                await enviarMensajePadre(_retoMostrarMsg);
-                (globalThis.logger || console).success(`${logPrefix} RETO.MOSTRAR enviado via enviarMensajePadre`);
+                await enviarMensaje_S2(_retoMostrarMsg);
+                (globalThis.logger || console).success(`${logPrefix} RETO.MOSTRAR enviado via enviarMensaje_S2`);
             } catch (envioError) {
-                // enviarMensajePadre nunca lanza (enviarMensaje no lanza; sus caminos de fallo
+                // enviarMensaje_S2 nunca lanza (enviarMensaje no lanza; sus caminos de fallo
                 // devuelven false) — este catch queda como red de seguridad, no como camino real.
                 (globalThis.logger || console).error(`${logPrefix} Error inesperado enviando RETO.MOSTRAR:`, envioError);
             }
@@ -11103,7 +11090,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const elementosIDpadre = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre;
                 if (!elementosIDpadre) {
                     (globalThis.logger || console).warn(`${logPrefix} No hay elementosIDpadre disponibles para aventura ${globalThis.aventuraSeleccionada} idioma ${globalThis.idiomaSeleccionado}`);
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.SISTEMA.NACK,
                         destino: mensaje.origen,
                         datos: {
@@ -11136,7 +11123,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 if (!estado.paradaActual || !retoIdToUsar) {
                     (globalThis.logger || console).warn(`${logPrefix} No hay parada actual (${estado.paradaActual}) o reto_id definido para parada encontrada: ${paradaEncontrada ? JSON.stringify(paradaEncontrada) : 'null'}`);
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.SISTEMA.NACK,
                         destino: mensaje.origen,
                         datos: {
@@ -11191,7 +11178,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 await _enviarRetoMostrar(retoIdToUsar, _retosArray, logPrefix);
 
                 // Deshabilitar botón inmediatamente después de solicitar
-                await enviarMensajePadre({
+                await enviarMensaje_S2({
                     tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                     destino: 'hijo3',
                     datos: {
@@ -11203,7 +11190,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // 📤 Notificar a hijo2 que reto está activo (para deshabilitar botones según reglas)
                 try {
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
                         destino: 'hijo2',
                         datos: {
@@ -11278,7 +11265,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     (globalThis.logger || console).info(`${logPrefix} Reto ${retoId} ocultado correctamente`);
 
                     // Notificar a hijo2 que el reto se ocultó (rehabilita botones de navegación)
-                    enviarMensajePadre({
+                    enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
                         destino: 'hijo2',
                         datos: { motivo: 'reto_cerrado' }
@@ -11289,7 +11276,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     const _colaCurrent = estado.retoActual?.cola || [];
                     const _retoSigueActivo = !retoId || retoId === estado.retoActual?.id || _colaCurrent.includes(retoId);
                     if (_retoSigueActivo) {
-                        enviarMensajePadre({
+                        enviarMensaje_S2({
                             tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
                             destino: 'hijo3',
                             datos: { control: 'retosBtn', motivo: 'reto_cerrado' }
@@ -11301,7 +11288,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     // usuario ya cambió de parada antes de que este mensaje llegue, hijo4 debe limpiar
                     // su estado interno igualmente, pero NO debe volver a mostrar botonRetos-wrapper
                     // como si la parada actual tuviera reto — ver guard en su propio handler.
-                    enviarMensajePadre({
+                    enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.RETO.LIMPIAR_ESTADO,
                         destino: 'hijo4',
                         datos: { retoId, retoSigueActivo: _retoSigueActivo }
@@ -11340,7 +11327,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
                         (globalThis.logger || console).info(`${logPrefix} Parada aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
-                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                        enviarMensaje_S2({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
                     }
                 }
             } catch (error_) {
@@ -11377,7 +11364,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     if (!_retoDataSec) {
                         (globalThis.logger || console).warn(`${logPrefix} Reto ${siguienteRetoEnCola} no encontrado en ${_aventuraSec}/${_idiomaSec}`);
                     }
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
                         destino: 'hijo4',
                         datos: { retoId: siguienteRetoEnCola, retosArray: _retoDataSec ? [_retoDataSec] : [], contexto: 'secuencial' }
@@ -11430,7 +11417,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // Notificar a hijo3 (audio) para que pueda reanudar o actuar
                 try {
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
                         destino: 'hijo3',
                         datos: {
@@ -11449,7 +11436,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // 📤 Notificar a hijo2 que reto terminó (para rehabilitar botones)
                 try {
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
                         destino: 'hijo2',
                         datos: {
@@ -11482,7 +11469,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).error(`${logPrefix} Error procesando reto completado:`, error);
 
                 try {
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                         destino: mensaje.origen,
                         datos: {
@@ -11504,7 +11491,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const { retoId } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} hijo4 confirmó que mostró el reto: ${retoId}`);
                 // Fase 3: confirmar recepción a hijo4
-                await enviarMensajePadre({ tipo: TIPOS_MENSAJE.RETO.CONFIRMADO, destino: mensaje.origen, datos: { retoId } });
+                await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.RETO.CONFIRMADO, destino: mensaje.origen, datos: { retoId } });
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando RETO.MOSTRADO:`, error);
             }
@@ -11534,7 +11521,7 @@ await _comprobarReanudacionAventura(logPrefix);
                         const modoActual = (globalThis.estadoPadre && globalThis.estadoPadre.modo && globalThis.estadoPadre.modo.actual) || (estado && estado.modo && estado.modo.actual);
                         if (modoActual !== MODOS.AVENTURA) {
                             (globalThis.logger || console).warn(`${logPrefix} Rechazando activación: modo actual no es AVENTURA (${modoActual})`);
-                            await enviarMensajePadre({
+                            await enviarMensaje_S2({
                                 tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                                 destino: mensaje.origen,
                                 datos: { error: 'GPS solo disponible en modo AVENTURA', contexto: 'gps_activar_restringido' }
@@ -11571,7 +11558,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // Notificar error al solicitante
                 try {
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                         destino: mensaje.origen,
                         datos: {
@@ -11814,7 +11801,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     return { exito: false, error: `Error dibujando polyline: ${error.message}` };
                 }
 
-                await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, destino: 'hijo2', datos: { ubicacionActiva: true, timestamp: Date.now() } });
+                await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, destino: 'hijo2', datos: { ubicacionActiva: true, timestamp: Date.now() } });
                 return { exito: true, ubicacionUsuario: coordenadasUsuario, destino: coordenadasDestino, elementoId };
 
             } catch (error) {
@@ -12134,25 +12121,25 @@ await _comprobarReanudacionAventura(logPrefix);
                     // TODO: cuando toda la app tenga audios, este será el único camino en aventura —
                     //       eliminar la rama sin audio y habilitar únicamente desde el audio-finish path.
                     estado.retoActual = { id: retosDeParada[0], disponible: false, completado: false, cola: retosDeParada, colaCompletados: new Set() };
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'esperar_fin_audio_aventura' }
                     });
                 } else if (tieneReto) {
                     estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, colaCompletados: new Set() };
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'parada_con_reto_sin_audio_aventura', retoId: retosDeParada[0] }
                     });
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.RETO.HABILITAR,
                         destino: 'hijo4',
                         datos: { paradaId: parada?.parada_id || parada?.tramo_id, razon: 'sin_audio' }
                     });
                 } else {
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'parada_sin_reto_aventura' }
@@ -12161,13 +12148,13 @@ await _comprobarReanudacionAventura(logPrefix);
             } else {
                 if (tieneReto) {
                     estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, colaCompletados: new Set() };
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'parada_con_reto_casa', retoId: retosDeParada[0] }
                     });
                 } else {
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'parada_sin_reto_casa' }
@@ -12213,7 +12200,7 @@ await _comprobarReanudacionAventura(logPrefix);
             const notificaciones = [];
             if (mensaje.origen !== 'hijo5') {
                 notificaciones.push(
-                    Promise.resolve(enviarMensajePadre({
+                    Promise.resolve(enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                         destino: 'hijo5',
                         datos: {
@@ -12230,7 +12217,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 );
             }
             notificaciones.push(
-                Promise.resolve(enviarMensajePadre({
+                Promise.resolve(enviarMensaje_S2({
                     tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                     destino: 'hijo2',
                     datos: {
@@ -12253,7 +12240,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 })
             );
             notificaciones.push(
-                Promise.resolve(enviarMensajePadre({
+                Promise.resolve(enviarMensaje_S2({
                     tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                     destino: 'hijo3',
                     datos: {
@@ -12271,7 +12258,7 @@ await _comprobarReanudacionAventura(logPrefix);
             );
             if (estado.hijosInicializados?.has('hijo4')) {
                 notificaciones.push(
-                    Promise.resolve(enviarMensajePadre({
+                    Promise.resolve(enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                         destino: 'hijo4',
                         datos: {
@@ -12425,7 +12412,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else if (!esTramo && estado.modo?.actual === MODOS.AVENTURA) {
                     (globalThis.logger || console).info(`${logPrefix} Parada detectada, btnAvanzar deshabilitado hasta completar audio+reto`);
                     try {
-                        await enviarMensajePadre({
+                        await enviarMensaje_S2({
                             tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                             destino: 'hijo2',
                             datos: { control: 'btnAvanzar', razon: 'parada_pendiente_completar' }
@@ -12439,7 +12426,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (estado.modo?.actual === MODOS.CASA) {
                     const habilitadoCasa = !esTramo && retosDeParada.length > 0;
                     try {
-                        await enviarMensajePadre({
+                        await enviarMensaje_S2({
                             tipo: TIPOS_MENSAJE.RETO.ESTADO_CASA,
                             destino: 'hijo4',
                             datos: {
@@ -12685,7 +12672,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // a propósito — no dependen de la proximidad real.
                 try { actualizarEstadoControlesAudioPadre(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 try {
-                    await enviarMensajePadre({
+                    await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'fuera_de_rango' }
@@ -12808,7 +12795,7 @@ await _comprobarReanudacionAventura(logPrefix);
                         // esperar confirmación, nunca progresar solo (ver marcarParadaCompletada).
                         estado.paradaListaParaAvanzar = true;
                         (globalThis.logger || console).info(`${logPrefix} ${elementoAudio?.tipo === 'tramo' ? 'Tramo' : 'Parada'} aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
-                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback2' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                        enviarMensaje_S2({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback2' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
                     }
                 }
             } catch (error_) {
@@ -12833,12 +12820,12 @@ await _comprobarReanudacionAventura(logPrefix);
                 estado.retoActual.completado = false;
                 estado.retoActual.cola = retosDelElemento;
                 estado.retoActual.colaCompletados = new Set();
-                await enviarMensajePadre({
+                await enviarMensaje_S2({
                     tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
                     destino: 'hijo3',
                     datos: { control: 'retosBtn', razon: 'audio_finalizado', retoId: retosDelElemento[0] }
                 });
-                await enviarMensajePadre({
+                await enviarMensaje_S2({
                     tipo: TIPOS_MENSAJE.RETO.HABILITAR,
                     destino: 'hijo4',
                     datos: { paradaId: estado.paradaActual, razon: 'audio_escuchado_1vez' }
@@ -13178,7 +13165,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
                 // Fase 3: confirmar recepción al hijo
                 try {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, destino: mensaje.origen, datos: { subtipo: 'COORDENADAS', exito: !!exito } });
+                    await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, destino: mensaje.origen, datos: { subtipo: 'COORDENADAS', exito: !!exito } });
                 } catch (ackErr) { (globalThis.logger || console).warn(`${logPrefix} Error enviando CARGADOS_RECIBIDO:`, ackErr); }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
@@ -13196,7 +13183,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
                 // Fase 3: confirmar recepción al hijo
                 try {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, destino: mensaje.origen, datos: { subtipo: 'TEXTOS', exito: !!exito } });
+                    await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, destino: mensaje.origen, datos: { subtipo: 'TEXTOS', exito: !!exito } });
                 } catch (ackErr) { (globalThis.logger || console).warn(`${logPrefix} Error enviando CARGADOS_RECIBIDO:`, ackErr); }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
@@ -13641,7 +13628,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).info(`${logPrefix} 🔄 Detectada aventura anterior (${datosAnterior.aventura}) → Cancelando timer viejo`);
                 const iframeOpciones = document.getElementById('hijo1-opciones');
                 if (iframeOpciones) {
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.DETENER, destino: 'hijo1-opciones', datos: { motivo: 'nueva_aventura_adquirida', aventuraAnterior: datosAnterior.aventura, aventuraNueva: aventura, timestamp: Date.now() } });
+                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.AVENTURA.DETENER, destino: 'hijo1-opciones', datos: { motivo: 'nueva_aventura_adquirida', aventuraAnterior: datosAnterior.aventura, aventuraNueva: aventura, timestamp: Date.now() } });
                     (globalThis.logger || console).info(`${logPrefix} ✅ Mensaje DETENER enviado al temporizador anterior`);
                 }
             } catch (parseError) {
@@ -13695,7 +13682,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
                 const iframeOpciones = document.getElementById('hijo1-opciones');
                 if (iframeOpciones) {
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, destino: 'hijo1-opciones', datos: { aventuraId: aventura, tiempoEstimado: tiempoAEnviar, idioma: idioma || 'es', timestamp: Date.now() } });
+                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, destino: 'hijo1-opciones', datos: { aventuraId: aventura, tiempoEstimado: tiempoAEnviar, idioma: idioma || 'es', timestamp: Date.now() } });
                     (globalThis.logger || console).info(`${logPrefix} ⏱️ Mensaje AVENTURA.INICIADA enviado al temporizador (${tiempoAEnviar}s${tieneRestante ? ', reanudado' : ''})`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ Iframe hijo1-opciones no disponible para temporizador`);

@@ -846,7 +846,7 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
 3. ✅ **Destino obligatorio:** un envío sin `destino` no sale y avisa; "a todos" solo con
    `'broadcast'` (§21.2). Antes, inventario completo de los envíos sin destino.
 4. ✅ **Los envíos a pelo del padre, al bus**, con el de `CHAT.ESTADO_PADRE` el primero.
-5. **Nombres:** uno para enviar y uno para registrar (§23).
+5. ✅ **Nombres:** uno para enviar y uno para registrar (§23).
 6. **Registro de handlers del state-manager** (§23): opciones primero.
 7. **Latido y recuperación:** fuera `HEARTBEAT_START/PAUSE` (§22, fila 19); la recuperación de un
    hijo repite la entrega normal de su elemento en vez de un camino propio.
@@ -1320,6 +1320,42 @@ sigue en pie antes de afirmar nada.
   lo invoque igual de aislado (la tanda completa de Chromium no encontró más casos).
 - **Tests:** Chromium 485/485 tras el arreglo de spec 41 (cambio mecánico de canal, mismo
   tipo/destino/datos; cubierto por las specs existentes de cada tipo, sin specs nuevos).
+
+### 25.14. Paso 5 de la lavadora: un nombre para enviar, uno para registrar
+
+- **Registro: ya estaba hecho**, de una migración anterior — comprobado antes de tocar nada.
+  El padre tiene un único `registrarControladorSeguro` (definido una vez, con dedup real vía
+  `__CONTROLADOR_REGISTRADOS` y captura de errores) y ~90 llamadas a él; su propio comentario ya
+  documenta que los otros dos caminos que hubo eran inalcanzables. Cada uno de los diez frames
+  usa un único nombre de registro consistente en todo el fichero.
+- **Envío: `enviarMensajePadre` era el alias real que quedaba, y su propio comentario ya lo
+  decía** ("que se queda hasta el paso 5, un solo nombre de envío"). Convivía con
+  `enviarMensaje_S1` (Script 1, 22 usos) y `enviarMensaje_S2` (Script 2, 5 usos) para la misma
+  operación — medido: dentro de Script 1 había 1 llamada mezclada con `enviarMensajePadre`;
+  dentro de Script 2, 50. Los 51 sitios se sustituyen por el nombre local de su propio script
+  (`enviarMensaje_S1`/`enviarMensaje_S2`); se retira la función y su exposición global. Un solo
+  caso fuera de `codigo-padre.html` dependía del nombre global: `76-pausa-audio-enlace-externo.
+  spec.js` lo llamaba directo desde el navegador — pasa a `globalThis.mensajeria.enviarMensaje`,
+  la API que sí sigue expuesta siempre. `eslint.config.js` pierde la entrada de global que ya no
+  existe.
+- **Segundo hallazgo, en `coordenadas-hijo2.html`: `safeRegistrar`.** Los diez frames repiten el
+  patrón `const registrarControladorSeguro = bus.registrarControlador` (alias puro, sin la
+  deduplicación real que sí tiene el del padre) — consistente, un nombre por fichero. Solo hijo2
+  tenía además `const safeRegistrar = bus.registrarControlador`, la misma asignación con otro
+  nombre, usada en 2 de sus 20 registros; los otros 18 ya usaban `registrarControladorSeguro`. El
+  propio comentario que queda junto a la definición ya lo señalaba ("un cuarto nombre para lo
+  mismo... se queda uno"). Se unifican los 2 usos y se retira el alias.
+- **Verificado y descartado como duplicación real:** los wrappers de `js/app.js`
+  (`enviarMensaje`/`registrarControlador` con guarda de `mensajeriaReady`) son el único camino de
+  ese módulo, no una segunda vía; `js/funciones-mapa.js` y `js/controladores-padre.js` usan cada
+  uno un solo nombre propio en todo el fichero. La diferencia de nombre ENTRE ficheros distintos
+  (`enviarMensaje_S1` en Script 1 del padre, `enviarMensaje_S2` en Script 2, `enviarMensaje` a
+  secas en cada hijo) no es la duplicación que este paso ataca: es el alias local que exige el
+  aislamiento de scope entre los 5 `<script>` del padre y entre cada frame (CLAUDE.md); dentro de
+  cada scope hay uno solo.
+- **Tests:** Chromium 485/485, sin specs nuevos — sustitución mecánica de identificador, misma
+  función subyacente en todos los casos (confirmado: `enviarMensaje` del bus siempre devuelve
+  `Promise`, nunca lanza; el alias solo añadía una envoltura redundante desde el paso 1).
 
 ---
 

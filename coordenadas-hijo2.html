@@ -423,7 +423,6 @@ const { enviarMensaje, enviarMensajeConConfirmacion } = bus;
 // sobra la capa de deduplicación que había aquí. `safeRegistrar` era un cuarto nombre para lo
 // mismo, definido en seis hijos y usado solo aquí, en dos sitios: se queda uno.
 const registrarControladorSeguro = bus.registrarControlador;
-const safeRegistrar = bus.registrarControlador;
 
 // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
 // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
@@ -2262,7 +2261,7 @@ try {
         }
     });
 
-    safeRegistrar(TIPOS_MENSAJE.NAVEGACION.GPS.ERROR, async (mensaje) => {
+    registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ERROR, async (mensaje) => {
         try {
             const datos = mensaje?.datos || {};
             const { codigo } = datos;
@@ -2366,7 +2365,7 @@ globalThis.addEventListener('pagehide', () => {
     }
 
     // CONTROLADOR: SISTEMA.NOTIFICACION - manejar PENDING_INICIADO
-    safeRegistrar(TIPOS_MENSAJE.SISTEMA.NOTIFICACION, async (mensaje) => {
+    registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.NOTIFICACION, async (mensaje) => {
         const logPrefix = `[hijo2][NOTIFICACION][${mensaje?.origen || 'desconocido'}]`;
         try {
             const evento = mensaje.datos?.evento;

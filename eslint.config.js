@@ -140,7 +140,6 @@ module.exports = [
         // ── Globals propios — funciones de mensajería ─────────────────────
         enviarMensaje: "readonly",
         enviarMensaje_S1: "readonly",
-        enviarMensajePadre: "readonly",
         enviarMensajeConConfirmacion: "readonly",
         registrarControladorSeguro: "readonly",
         desregistrarControlador: "readonly",

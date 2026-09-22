@@ -57,7 +57,7 @@ test.describe('PA — Abrir una pagina informativa pausa el audio', () => {
   });
 
   test('PA-1. Control: el padre pausa a hijo3 por el bus', async ({ page }) => {
-    await page.evaluate(() => globalThis.enviarMensajePadre({
+    await page.evaluate(() => globalThis.mensajeria.enviarMensaje({
       tipo: globalThis.TIPOS_MENSAJE.UI.ACCION_USUARIO,
       destino: 'hijo3',
       datos: { accion: 'audio_control', comando: 'pause' },
