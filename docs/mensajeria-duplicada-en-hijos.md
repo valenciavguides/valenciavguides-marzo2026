@@ -1399,6 +1399,57 @@ el destino real, alcanzado por el único camino que queda (`registrarControlador
 diez frames) son datos muertos — ni `state-manager.js` ni `mensajeria.js` leen ese campo en ningún
 sitio. Retirarlos es una limpieza mecánica grande y sin relación con nombres/caminos: paso 9.
 
+### 25.16. Paso 7 de la lavadora: latido y recuperación
+
+**Investigado antes de tocar:** `js/config.js` nunca asigna `CONFIG.ID` (grep confirmado). Todos los
+autos-mensajes `HEARTBEAT_START`/`PAUSE`/`ESTADO` con `destino: CONFIG_PADRE.ID` (bootstrap de Script 1,
+bootstrap de Script 4, `consultarHeartbeat`, `_testHeartbeatPauseResume`) mandaban `destino: undefined`.
+**Medido en runtime** (spec temporal, borrada tras confirmar): el bus resuelve `false` y avisa
+"falta destino" en cada carga — desde el paso 3 (destino obligatorio) esta vía nunca llegaba a nadie,
+y como `enviarMensaje` no lanza, los `catch`/fallback-directo que la rodeaban tampoco se disparaban
+nunca. El camino directo ya existía y funcionaba (`_activarHeartbeatAventura`/`_transicionarAModoCasa`,
+llamadas por `_hdl_SISTEMA_CAMBIO_MODO`, que cubre tanto la activación real como la reanudación).
+
+**Aplicado:** el bootstrap de Script 1 y de Script 4 pasan a llamada directa. Retirados los 3 handlers
+de Script 4 sobre sí mismo (`HEARTBEAT_START`/`PAUSE`/`ESTADO`), el broadcast a `hijosCriticos` (Script 1
+y Script 4) y sus 5 handlers en los hijos (audio-hijo3, boton-casa-hijo5, chat-hijo6,
+coordenadas-hijo2, retos-hijo4) — `__HEARTBEAT_ACTIVO` no lo leía nadie (grep confirmado). Las
+constantes `HEARTBEAT_START`/`PAUSE`/`ESTADO` se retiran de `js/constants.js` por quedar sin uso.
+`consultarHeartbeat()` pasa a llamar a `state-manager.getHeartbeat()` directo; `_testHeartbeatPauseResume()`
+dispara `CAMBIO_MODO` por `despacharLocal` (decisión 11) en vez del envío roto.
+
+**Recuperación de hijo2:** `_vv_afterHijoListo('hijo2')` mandaba `NAVEGACION.CAMBIO_PARADA` en crudo
+directo al iframe, saltándose `_hdl_NAVEGACION_CAMBIO_PARADA` — el único otro sitio que cambia de
+parada (comentario propio en el código), que además actualiza `estado.paradaActual` del padre y
+precarga audio/vídeo/imagen. Pasa a `despacharLocal`, el mismo camino que cualquier otro cambio real.
+hijo3/hijo4/hijo1 no tenían este problema: su entrega normal ya es un envío directo, igual que su
+recuperación.
+
+**Verificado:** spec 96 nueva (LH-1/RC2-1 en rojo antes del arreglo, confirmado; LH-2 de control ya en
+verde); specs 78 y 89 (89 pierde su exclusión `DE_SCRIPT_4`, que su propio comentario ya anticipaba);
+82 specs de contrato/registro/handshake sin romperse; recorrido con espía sin hallazgos nuevos.
+Cascada de ~30 menciones corregida en `docs/GUIA-COMPLETA.md`.
+
+### 25.17. Paso 8 de la lavadora: un solo camino donde hoy hay dos (en curso)
+
+Diez duplicaciones bajo un mismo paso — mucho más grande que los anteriores. Se registra el avance
+sub-ítem a sub-ítem, cada uno con su propio commit, en vez de un solo commit al final.
+
+**8.1 — Coordenadas pedidas dos veces por elemento (✅ cerrado).** `DATOS.COORDENADAS_PARADAS_REQUEST`
+es uno de los 5 envíos con acuse del proyecto (§3.2): el `return` del handler de hijo2 ya entrega el
+resultado por `enviarMensajeConConfirmacion`, camino que usan con éxito `_solicitarParadaAHijo2()` y
+`solicitarCoordenadasAHijo2()`. `solicitarCoordenadasHijo()` (fallback de `btn-ubicacion`) no lo usaba:
+montaba su propio `pedidoId` + `Map` de espera + handler correlador para un
+`DATOS.COORDENADAS_PARADAS_RESPONSE` que hijo2 mandaba ADEMÁS "para compatibilidad". **Medido:** en un
+boot limpio, la vía del `pedidoId` se quedaba colgada hasta su timeout mientras
+`enviarMensajeConConfirmacion` resolvía al instante — el "segundo camino" no solo era redundante, no
+funcionaba. Reescrito `solicitarCoordenadasHijo()` para usar `enviarMensajeConConfirmacion` directo
+(mismo `timeoutMs` configurable); retirados el `pedidoId`, el `Map`, `_handleCoordenadasParadasResponse`
+y el envío explícito en hijo2 (éxito y error). Constante `COORDENADAS_PARADAS_RESPONSE` retirada de
+`js/constants.js` por quedar sin uso. Verificado: spec 97 nueva (CO-2 en rojo antes del arreglo,
+confirmado con espía de `postMessage`); specs 13/20/21/32 (GPS/fallback de ubicación) sin romperse;
+recorrido con espía sin hallazgos nuevos.
+
 ---
 
 ## Parte VII — Hallazgos colaterales

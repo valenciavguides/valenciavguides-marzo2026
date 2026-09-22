@@ -1916,7 +1916,7 @@ try {
      * Controlador: DATOS.COORDENADAS_PARADAS_REQUEST
      * Descripción: Envía coordenadas filtradas por paradaId o el array completo al solicitante
      * Origen esperado: padre
-     * Respuesta: DATOS.COORDENADAS_PARADAS_RESPONSE
+     * Respuesta: acuse automático (enviarMensajeConConfirmacion) — return del handler
      *
      * Datos recibidos: {
      *     paradaId?: string (opcional - filtra por ID específico),
@@ -1984,14 +1984,7 @@ try {
                 contexto: contexto
             };
 
-            // También enviar respuesta por mensaje normal para compatibilidad
-            await enviarMensaje({
-                tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_RESPONSE,
-                destino: 'padre',
-                datos: respuesta
-            });
-
-            logger.success(`${logPrefix} ✅ Enviadas ${coordenadasFiltradas.length} coordenadas`);
+            logger.success(`${logPrefix} ✅ Respondidas ${coordenadasFiltradas.length} coordenadas`);
 
             // Return para confirmación automática
             return respuesta;
@@ -2007,16 +2000,6 @@ try {
                 pedidoId: mensaje.datos?.pedidoId,
                 contexto: mensaje.datos?.contexto
             };
-
-            try {
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_RESPONSE,
-                    destino: 'padre',
-                    datos: errorResponse
-                });
-            } catch (sendError) {
-                logger.error(`${logPrefix} Error enviando respuesta de error:`, sendError);
-            }
 
             // Return para confirmación automática
             return errorResponse;

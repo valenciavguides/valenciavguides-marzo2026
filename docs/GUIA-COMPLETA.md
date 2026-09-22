@@ -3764,8 +3764,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `DATOS.SOLICITAR_AUDIOS` | Hijo3 → Padre | Cache-miss: pide un `audioId` concreto (no la aventura completa); el padre responde con `AUDIO.REPRODUCIR_REQUEST` |
 | | `DATOS.SOLICITAR_RETOS` | Hijo4 → Padre | Cache-miss: pide un `retoId` concreto; el padre responde con `RETO.MOSTRAR` |
 | | `DATOS.SOLICITAR_TEXTOS` | Hijo2 → Padre | Solicita textos si no los recibió en handshake |
-| | `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre → Hijo2 | Pide coordenadas de una o todas las paradas (`paradaId` opcional; si se omite devuelve todas) |
-| | `DATOS.COORDENADAS_PARADAS_RESPONSE` | Hijo2 → Padre | Devuelve `{ coordenadas[], total, exito, paradaId? }` — padre lo procesa y dibuja en mapa |
+| | `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre → Hijo2 | Pide coordenadas de una o todas las paradas (`paradaId` opcional; si se omite devuelve todas); responde por acuse automático, sin mensaje de vuelta explícito |
 | | `DATOS.SOLICITAR_COORDENADAS` | Hijo2 → Padre | Fallback: hijo2 solicita sus coordenadas si no las recibió en handshake; padre responde con `DATOS.CARGAR_COORDENADAS` |
 | **AUDIO** | `AUDIO.REPRODUCIR_REQUEST` | Padre → Hijo3 | Reproduce este audio (`{ audioId, audioData, autoplay }`) — `audioData` resuelto en línea vía `cargarAudios()`, protección pasiva por parada (ver §16) |
 | | `AUDIO.REPRODUCIR_RESPONSE` | Hijo3 → Padre | Confirmación de **carga**; no dice nada sobre si suena (§7.4) |
@@ -3922,7 +3921,6 @@ Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `dis
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | `{ formato: 'jpg', url, aventura, paradaActual }` | Usuario pulsa `#btn-mapa-jpg` |
 | `NAVEGACION.LLEGADA_DETECTADA` | `{ paradaId, parada_id, distancia, tipoParada: 'parada'\|'tramo', timestamp }` | **Solo AVENTURA** — GPS detecta entrada en radio ≤15 m (`radioLlegada`), el mismo en parada y en tramo |
 | `NAVEGACION.RESPUESTA_COORDENADAS` | `{ coordenadas, paradaId }` | Respuesta a `SOLICITAR_COORDENADAS` |
-| `DATOS.COORDENADAS_PARADAS_RESPONSE` | `{ coordenadas[], total, exito, paradaId? }` | Respuesta a `COORDENADAS_PARADAS_REQUEST` del padre |
 | `DATOS.SOLICITAR_TEXTOS` | `{ motivo:'datos_no_recibidos', timestamp }` | Si no recibió `DATOS.CARGAR_TEXTOS` en 3 s — solicita fallback al padre |
 | `DATOS.SOLICITAR_COORDENADAS` | `{ aventura }` | Si no recibió `DATOS.CARGAR_COORDENADAS` — padre responde reenviando `DATOS.CARGAR_COORDENADAS` |
 | `DATOS.COORDENADAS_CARGADAS` | `{ exito, aventura, idioma, totalCargadas }` | Tras procesar `DATOS.CARGAR_COORDENADAS` — fase 2 del protocolo 3 fases |
@@ -3940,7 +3938,7 @@ Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `dis
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` | Almacena en `globalThis.__vv_coordenadasAventura`; envía `COORDENADAS_CARGADAS` | ✓ | ✓ |
 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` | Almacena descripciones de paradas | ✓ | ✓ |
-| `DATOS.COORDENADAS_PARADAS_REQUEST` | `{ paradaId?, incluirRutas?, actualizarMapa?, contexto?, pedidoId }` | Devuelve coordenadas filtradas (o todas si no hay `paradaId`) vía `COORDENADAS_PARADAS_RESPONSE` | ✓ | ✓ |
+| `DATOS.COORDENADAS_PARADAS_REQUEST` | `{ paradaId?, incluirRutas?, actualizarMapa?, contexto? }` | Devuelve coordenadas filtradas (o todas si no hay `paradaId`) por acuse automático, sin mensaje de vuelta explícito | ✓ | ✓ |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, nombre, tipo, imagen, video, coordenadas, timestamp }` | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea estado GPS/llegada; llama `actualizarEstadoBotones()` | ✓ | ✓ |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], estadisticas }` | Actualiza lista interna de paradas | ✓ | ✓ |
 | `NAVEGACION.SOLICITAR_COORDENADAS` | `{ paradaId }` | Devuelve coordenadas de esa parada | ✓ | ✓ |
@@ -4504,7 +4502,7 @@ sequenceDiagram
     Note over P: Despacha NAVEGACION.CAMBIO_PARADA con despacharLocal(datos)
 
     P->>H2: DATOS.COORDENADAS_PARADAS_REQUEST { paradaId, padreId, incluirRutas }
-    H2-->>P: DATOS.COORDENADAS_PARADAS_RESPONSE { coordenadas }
+    H2-->>P: acuse automático { coordenadas }
     P->>H3: AUDIO.REPRODUCIR_REQUEST { audioId, audioData, autoplay:false }
     Note over H3: Mismo camino en CASA y AVENTURA — audioData resuelto vía cargarAudios()
 
@@ -4864,7 +4862,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d7ef06dd40af'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-89dbc8c96b17'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5194,7 +5192,7 @@ El mensaje más importante de la app. Se emite al iniciar una aventura, al avanz
 ```text
 padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
   ├── _actualizarEstadoParada → actualiza estado.paradaActual, indiceProgreso, elementoActual
-  ├── _solicitarParadaAHijo2 → DATOS.COORDENADAS_PARADAS_REQUEST → hijo2 responde vía DATOS.COORDENADAS_PARADAS_RESPONSE
+  ├── _solicitarParadaAHijo2 → DATOS.COORDENADAS_PARADAS_REQUEST → hijo2 responde por acuse automático
   ├── _solicitarAudioParaParada → resuelve el audio de la parada vía cargarAudios() (mismo camino CASA/AVENTURA)
   │     └── AUDIO.REPRODUCIR_REQUEST { audioId, audioData, autoplay:false } → hijo3
   ├── _notificarCambioParadaHijos → NAVEGACION.CAMBIO_PARADA a hijo2, hijo3, hijo4, hijo5 (hijo5 excluido si origen==='hijo5')
@@ -5235,11 +5233,10 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 | Campo | Valor |
 |-------|-------|
 | Dirección | Padre solicita coordenadas de una parada/tramo (nunca la lista completa en el uso real) |
-| Payload REQUEST | `{ paradaId, padreId, tipo, contexto, incluirRutas?, pedidoId? }` |
-| Emisores reales (3) | `_solicitarParadaAHijo2(parada)` — sin `pedidoId`; en cada `NAVEGACION.CAMBIO_PARADA` normal, para obtener imagen/vídeo/coordenadas y pasárselos a los demás hijos, nada que ver con dibujar en el mapa. `solicitarCoordenadasAHijo2(elemento)` — sin `pedidoId`; solo desde `_solicitarRecursosRest()` al reanudar una aventura guardada, para que hijo2 resincronice `idParadaActual`/`tipoParadaActual` de sus propios botones. `solicitarCoordenadasHijo(destino, payload)` — genera `pedidoId`; fallback de `_resolverCoordenadasElemento()` cuando `btn-ubicacion` pide coordenadas que no están ya cacheadas en `DATOS_PADRE`. |
-| Handler en hijo2 | — no distingue entre emisores: responde con el valor de retorno (confirmación automática, `SISTEMA.CONFIRMACION` con `idOriginal`, mecanismo genérico de `js/mensajeria.js` — es lo único que usan `_solicitarParadaAHijo2`/`solicitarCoordenadasAHijo2`) **y además** envía explícitamente `DATOS.COORDENADAS_PARADAS_RESPONSE` con el mismo `pedidoId` que recibió (o `undefined` si no venía ninguno) — comentado en el propio código como "también enviar respuesta por mensaje normal para compatibilidad" |
-| Respuesta | `DATOS.COORDENADAS_PARADAS_RESPONSE` → padre (solo la usa `solicitarCoordenadasHijo`; para los otros dos emisores es puro ruido de mensajería, sin consumidor) |
-| Handler en padre | `_handleCoordenadasParadasResponse` — si `mensaje.datos.pedidoId` coincide con un waiter pendiente (`globalThis.__coordResponseWaiters`), resuelve esa promesa vía `_resolveCoordWaiter()`; si no hay `pedidoId` (los otros dos emisores), no hace nada — cada uno ya tiene lo que necesita por su propio canal. No existe ningún camino, real ni de test, en que esta respuesta dibuje nada en el mapa. |
+| Payload REQUEST | `{ paradaId, padreId, tipo, contexto, incluirRutas? }` |
+| Emisores reales (3) | `_solicitarParadaAHijo2(parada)` — en cada `NAVEGACION.CAMBIO_PARADA` normal, para obtener imagen/vídeo/coordenadas y pasárselos a los demás hijos, nada que ver con dibujar en el mapa. `solicitarCoordenadasAHijo2(elemento)` — solo desde `_solicitarRecursosRest()` al reanudar una aventura guardada, para que hijo2 resincronice `idParadaActual`/`tipoParadaActual` de sus propios botones. `solicitarCoordenadasHijo(destino, payload, timeoutMs)` — fallback de `_resolverCoordenadasElemento()` cuando `btn-ubicacion` pide coordenadas que no están ya cacheadas en `DATOS_PADRE`. |
+| Handler en hijo2 | Responde con el valor de retorno — la confirmación automática (`enviarMensajeConConfirmacion`) que ya llega a los tres emisores. Un solo camino desde el paso 8 de la lavadora: antes, hijo2 mandaba ADEMÁS un `DATOS.COORDENADAS_PARADAS_RESPONSE` explícito "para compatibilidad" (con un `pedidoId` que solo `solicitarCoordenadasHijo` generaba y correlacionaba con un `Map` propio del padre) — un segundo camino que, medido en un boot limpio, se quedaba colgado hasta su propio timeout mientras la confirmación automática ya había resuelto. |
+| Respuesta | Ninguna explícita — la confirmación automática de `enviarMensajeConConfirmacion` es la única vía. |
 
 ---
 
@@ -8048,7 +8045,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-d7ef06dd40af'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-89dbc8c96b17'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8769,7 +8766,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-d7ef06dd40af';
+const CACHE_VERSION = 'v-89dbc8c96b17';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11072,8 +11069,7 @@ Controla la detección de proximidad GPS, los 6 botones de acción (avanzar, ima
 | Padre → Hijo | `DATOS.CARGAR_COORDENADAS` | Entrega el array de paradas, tramos y referencias |
 | Hijo → Padre | `NAVEGACION.GPS.ACTIVAR` | Al pulsar el botón GPS (`#btnAvanzar`) |
 | Padre → Hijo | `NAVEGACION.CAMBIO_PARADA` | Al cambiar de parada activa |
-| Padre → Hijo | `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre solicita coords de la parada activa (durante CAMBIO_PARADA) |
-| Hijo → Padre | `DATOS.COORDENADAS_PARADAS_RESPONSE` | Responde con las coords solicitadas |
+| Padre → Hijo | `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre solicita coords de la parada activa (durante CAMBIO_PARADA); hijo2 responde por acuse automático |
 | Hijo → Padre | `NAVEGACION.LLEGADA_DETECTADA` | GPS detecta entrada en radio de parada o tramo |
 
 #### Hijo 3 — audio-hijo3.html (el reproductor)
@@ -11320,7 +11316,7 @@ Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y 
 | `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
 | `NAVEGACION.CAMBIO_PARADA` | Padre | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea estado de llegada y distancia; refresca el estado de los 6 botones (`actualizarEstadoBotones`) | (ninguna directa) | — | Actualizar el elemento vigilado por los detectores de proximidad GPS |
 | `DATOS.CARGAR_COORDENADAS` | Padre | Almacena el array de elementos en `globalThis.__vv_coordenadasAventura` para uso por los detectores de proximidad; envía `DATOS.COORDENADAS_CARGADAS` al padre | `DATOS.COORDENADAS_CARGADAS` | Padre | El array de coordenadas es la fuente de verdad para la detección GPS de llegada |
-| `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre (durante CAMBIO_PARADA pipeline) | Filtra `__vv_coordenadasAventura` por `paradaId` o devuelve el array completo | `DATOS.COORDENADAS_PARADAS_RESPONSE` | Padre | El padre necesita las coords de la parada activa antes de fan-out |
+| `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre (durante CAMBIO_PARADA pipeline) | Filtra `__vv_coordenadasAventura` por `paradaId` o devuelve el array completo | Acuse automático (return del handler) | Padre | El padre necesita las coords de la parada activa antes de fan-out |
 | `NAVEGACION.SOLICITAR_COORDENADAS` | Padre (ad-hoc) | Devuelve información detallada de coordenadas de la parada solicitada | `NAVEGACION.RESPUESTA_COORDENADAS` | Padre | Solicitud de coords fuera del pipeline CAMBIO_PARADA |
 | `CONTROL.HABILITAR` | Padre | Muestra el iframe | (ninguna) | — | Ciclo de vida del iframe |
 | `CONTROL.DESHABILITAR` | Padre | Oculta el iframe | (ninguna) | — | Ciclo de vida del iframe |
@@ -11339,7 +11335,6 @@ Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y 
 | `NAVEGACION.GPS.RESTRINGIDO` | Padre | Cuando la API de geolocalización devuelve error de permiso | Notificar al padre que GPS fue denegado por el usuario |
 | `NAVEGACION.LLEGADA_DETECTADA` | Padre | Para **paradas**: distancia ≤ `RADIO_PARADA=15 m` (hardcodeado en `_detectarLlegadaParada()`). Para **tramos**: distancia ≤ `radioLlegada` = 15 m — el mismo radio que una parada **y** que el círculo naranja que el usuario ve — **y** `recorridoSuficiente`. El mensaje incluye `tipoParada: 'parada'/'tramo'`. | Marcar `pending.llegada=true` en el padre para habilitar la condición de completado de la parada/tramo (requiere llegada + audio + reto) |
 | `DATOS.COORDENADAS_CARGADAS` | Padre | Tras almacenar `DATOS.CARGAR_COORDENADAS` | Confirmar recepción de coordenadas |
-| `DATOS.COORDENADAS_PARADAS_RESPONSE` | Padre | En respuesta a `DATOS.COORDENADAS_PARADAS_REQUEST` | Entrega coordenadas filtradas por `paradaId` o el array completo |
 | `NAVEGACION.RESPUESTA_COORDENADAS` | Padre | En respuesta a `NAVEGACION.SOLICITAR_COORDENADAS` | Entrega información detallada de coordenadas de la parada solicitada |
 
 ---
@@ -12117,7 +12112,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-d7ef06dd40af';
+const CACHE_VERSION = 'v-89dbc8c96b17';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12693,8 +12688,6 @@ registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS, async (mensaje)
 Ahora mismo `opciones.permanente` no lo lee ningún código de la app — no hay ningún barrido de controladores en tiempo de ejecución que lo consulte (§28.4). El campo queda como una etiqueta declarativa en el propio registro ("este handler es del núcleo, no es un registro puntual") sin efecto funcional hoy.
 
 **Alcance total:** **57 handlers** con `permanente: true` en total — 52 en `codigo-padre.html` (repartidos entre Script 1, Script 2 y el bloque final de Script 4 tras el TTL de pending — incluye `_hdl_PARADAS_LISTADO_TOGGLE`, ver §7.2), 2 en `app.js`, 3 en `controladores-padre.js` (recuento verificado por `grep -c "permanente: *true"` sobre los 4 archivos).
-
-**Excepción:** El handler de `COORDENADAS_PARADAS_RESPONSE` (~línea 5801) se registra dentro de una función específica, no en la inicialización general junto al resto, y no lleva `permanente: true`.
 
 ---
 
@@ -13944,7 +13937,6 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje 
 | `DATOS.CARGAR_TEXTOS` | codigo-padre.html, js/controladores-padre.js | coordenadas-hijo2.html |
 | `DATOS.COORDENADAS_CARGADAS` | coordenadas-hijo2.html | codigo-padre.html |
 | `DATOS.COORDENADAS_PARADAS_REQUEST` | codigo-padre.html | coordenadas-hijo2.html |
-| `DATOS.COORDENADAS_PARADAS_RESPONSE` | coordenadas-hijo2.html | codigo-padre.html |
 | `DATOS.SOLICITAR_AUDIOS` | audio-hijo3.html | js/controladores-padre.js |
 | `DATOS.SOLICITAR_COORDENADAS` | coordenadas-hijo2.html | codigo-padre.html |
 | `DATOS.SOLICITAR_RETOS` | retos-hijo4.html | js/controladores-padre.js |
