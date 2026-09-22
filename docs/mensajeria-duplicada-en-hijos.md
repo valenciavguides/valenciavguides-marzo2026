@@ -848,7 +848,7 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
 4. ✅ **Los envíos a pelo del padre, al bus**, con el de `CHAT.ESTADO_PADRE` el primero.
 5. ✅ **Nombres:** uno para enviar y uno para registrar (§23).
 6. ✅ **Registro de handlers del state-manager** (§23): opciones primero.
-7. **Latido y recuperación:** fuera `HEARTBEAT_START/PAUSE` (§22, fila 19); la recuperación de un
+7. ✅ **Latido y recuperación:** fuera `HEARTBEAT_START/PAUSE` (§22, fila 19); la recuperación de un
    hijo repite la entrega normal de su elemento en vez de un camino propio.
 8. **Un solo camino donde hoy hay dos:** coordenadas pedidas dos veces por elemento, lista de
    paradas de hijo5 desde dos fuentes, `ACTUALIZAR_ESTADO` doble por lectura GPS, modo por cuatro
@@ -1422,11 +1422,16 @@ Salieron tirando del hilo. No son de la mensajería y no se han tocado.
    busca esos valores en `globalThis.Config.HEARTBEAT`, que no existe, y se queda con sus valores
    por defecto (3 fallos, reconexión activa). La guía citaba `CONFIG.HEARTBEAT.INTERVALO_HEARTBEAT`,
    que tampoco existe: corregido al quitar F5.
-4. **El Script 4 arranca el heartbeat mandándose un mensaje a sí mismo.** Envía
+4. ✅ **El Script 4 arranca el heartbeat mandándose un mensaje a sí mismo.** Envía
    `HEARTBEAT_START`/`HEARTBEAT_PAUSE` con `destino: 'padre'` (L~15583, 15600, 15623, 15689),
    justo lo que la guía (§32.3) dice que no funciona, y su "fallback directo" está en un `catch`
    que no salta, porque el envío no lanza. Medido: la cadencia real del bus es 5 s, no los 10 s que
-   pide esa ruta. Sin determinar si esa ruta llega a ejecutarse.
-5. **`HEARTBEAT_START`/`HEARTBEAT_PAUSE` a los hijos no hacen nada.** El padre se los manda
-   (L~7788, L~7873) y sus handlers en hijo2 a hijo5 solo escriben en el log.
+   pide esa ruta. **Confirmado en el paso 7** (era `CONFIG.ID`, que no se asigna en
+   `js/config.js`: el destino siempre `undefined`, descartado sin lanzar excepción desde el paso
+   3 — medido en runtime, aviso "falta destino" en cada carga). Arreglado con una llamada
+   directa, igual que Script 1.
+5. ✅ **`HEARTBEAT_START`/`HEARTBEAT_PAUSE` a los hijos no hacen nada.** El padre se los manda
+   (L~7788, L~7873) y sus handlers en hijo2 a hijo5 solo escriben en el log. **Retirado en el
+   paso 7** — el envío y los 5 handlers (audio-hijo3, boton-casa-hijo5, chat-hijo6,
+   coordenadas-hijo2, retos-hijo4); `__HEARTBEAT_ACTIVO` no lo leía nadie (grep confirmado).
 6. **hijo1 y hijo5 cargan `js/monitoreo.js` y nadie lo arranca en ellos.**

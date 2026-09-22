@@ -1599,18 +1599,6 @@
                 });
             });
 
-            // Controlador: SISTEMA.HEARTBEAT.START
-            registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_START, async (_mensaje) => {
-                try {
-                    globalThis.__HEARTBEAT_ACTIVO = true;
-                    logger.debug(`[hijo4][HEARTBEAT_START] Activado heartbeat local`);
-                    return { started: true };
-                } catch (error) {
-                    logger.error(`[hijo4][HEARTBEAT_START] Error:`, error);
-                    return { started: false, error: error && error.message };
-                }
-            });
-
             // Controlador: NAVEGACION.CAMBIO_PARADA
             registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, async (mensaje) => {
                 try {
@@ -1632,18 +1620,6 @@
                     });
                 } catch (e) {
                     logger.warn('[hijo4] Error manejando CAMBIO_PARADA', e);
-                }
-            });
-
-            // Controlador: SISTEMA.HEARTBEAT.PAUSE
-            registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_PAUSE, async (_mensaje) => {
-                try {
-                    globalThis.__HEARTBEAT_ACTIVO = false;
-                    logger.debug(`[hijo4][HEARTBEAT_PAUSE] Pausado heartbeat local`);
-                    return { paused: true };
-                } catch (error) {
-                    logger.error(`[hijo4][HEARTBEAT_PAUSE] Error:`, error);
-                    return { paused: false, error: error && error.message };
                 }
             });
 

@@ -1013,29 +1013,6 @@
             }
         });
 
-        // Controlador: SISTEMA.HEARTBEAT.START
-        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_START, async (mensaje) => {
-            const logPrefix = `[hijo5][HEARTBEAT_START][${mensaje?.origen || 'desconocido'}]`;
-            try {
-                logger.debug(`${logPrefix} Activado heartbeat local`);
-                return { started: true };
-            } catch (error) {
-                logger.error(`${logPrefix} Error procesando HEARTBEAT_START:`, error);
-                return { started: false, error: error?.message };
-            }
-        });
-
-        // Controlador: SISTEMA.HEARTBEAT.PAUSE
-        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_PAUSE, async (mensaje) => {
-            const logPrefix = `[hijo5][HEARTBEAT_PAUSE][${mensaje?.origen || 'desconocido'}]`;
-            try {
-                logger.debug(`${logPrefix} Pausado heartbeat local`);
-                return { paused: true };
-            } catch (error) {
-                logger.error(`${logPrefix} Error procesando HEARTBEAT_PAUSE:`, error);
-                return { paused: false, error: error?.message };
-            }
-        });
 
         // ============================================
         // CONTROLADOR: NAVEGACION.RESPUESTA_DATOS_PARADAS

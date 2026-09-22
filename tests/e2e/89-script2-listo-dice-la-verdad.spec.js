@@ -94,22 +94,6 @@ async function controladoresFinales(page) {
 }
 
 test.describe('S2 — script2Listo dice la verdad', () => {
-  /**
-   * Los TRES que registra Script 4, y que por tanto llegan después del marcado.
-   *
-   * `script2Listo` promete que están los controladores de Script 1 y Script 2. Los de Script 4
-   * son otro bloque y corren después. Este caso comparaba contra el total final
-   * —Script 2 + Script 4— y pasaba solo cuando Script 4 se adelantaba, que era lo habitual
-   * hasta que Script 2 dejó de tener colas de espera y empezó a terminar antes. Estaba
-   * pasando por suerte de reloj.
-   *
-   * Van nombrados uno a uno a propósito, no filtrados por prefijo: si mañana un CUARTO
-   * controlador llega tarde, este caso lo caza. Y desaparecen de aquí solos cuando se haga el
-   * paso 19 del plan, que retira los auto-mensajes de heartbeat del padre y con ellos estos
-   * tres handlers.
-   */
-  const DE_SCRIPT_4 = ['SISTEMA.HEARTBEAT_START', 'SISTEMA.HEARTBEAT_PAUSE', 'SISTEMA.HEARTBEAT_ESTADO'];
-
   test('S2-1. Al marcarse, no falta ningún controlador de Script 1 ni de Script 2', async ({ page }) => {
     await arrancarEspiandoElMarcado(page);
     const alMarcar = await page.evaluate(() => globalThis.__marcados[0].tipos);
@@ -117,15 +101,11 @@ test.describe('S2 — script2Listo dice la verdad', () => {
 
     expect(alMarcar, 'el espía tiene que haber leído el mapa en el instante del marcado').not.toBeNull();
 
-    // Control: los tres de Script 4 tienen que existir al final. Sin esto, la exclusión de
-    // abajo taparía que alguien los hubiera borrado.
-    for (const tipo of DE_SCRIPT_4) {
-      expect(finales, `${tipo} tiene que seguir registrándose en Script 4`).toContain(tipo);
-    }
-
-    const deScript1y2 = finales.filter((t) => !DE_SCRIPT_4.includes(t));
-    const faltaban = deScript1y2.filter((t) => !alMarcar.includes(t));
-    expect(faltaban, `al marcar script2Listo faltaban ${faltaban.length} de ${deScript1y2.length} controladores de Script 1 y Script 2`).toEqual([]);
+    // Ya no hay controladores de Script 4 que lleguen después del marcado (paso 7 de la
+    // lavadora: retirados los auto-mensajes de heartbeat del padre y sus tres handlers
+    // HEARTBEAT_START/PAUSE/ESTADO), así que la comparación es directa contra el total final.
+    const faltaban = finales.filter((t) => !alMarcar.includes(t));
+    expect(faltaban, `al marcar script2Listo faltaban ${faltaban.length} de ${finales.length} controladores`).toEqual([]);
   });
 
   test('S2-2. Al marcarse, SISTEMA.ERROR ya tiene handler', async ({ page }) => {

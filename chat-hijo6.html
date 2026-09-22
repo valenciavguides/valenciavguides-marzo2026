@@ -765,13 +765,6 @@
     });
   });
 
-  registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_START, async () => {
-    logger.debug('[hijo6] HEARTBEAT_START recibido');
-  });
-
-  registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_PAUSE, async () => {
-    logger.debug('[hijo6] HEARTBEAT_PAUSE recibido');
-  });
 
   registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, async (mensaje) => {
     const modo = mensaje?.datos?.modo;

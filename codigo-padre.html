@@ -4086,20 +4086,12 @@
                         } else if (modoActual) {
                             // Modo AVENTURA confirmado: iniciar heartbeat
                             const hbIntervalo = ajustarTimeoutPorConexionSafe(5000);
-                            try {
-                                if (typeof enviarMensaje_S1 === 'function') {
-                                    await enviarMensaje_S1({
-                                        tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_START,
-                                        destino: CONFIG_PADRE.ID,
-                                        datos: { intervalo: hbIntervalo }
-                                    });
-                                } else {
-                                    hbFn(hbIntervalo);
-                                }
-                            } catch (e) {
-                                (globalThis.logger || console).debug('[VV] heartbeat enviarMensaje falló, usando fallback:', e?.message);
-                                try { hbFn(hbIntervalo); } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
-                            }
+                            // Un solo camino (paso 7): llamada directa, igual que
+                            // _activarHeartbeatAventura — un auto-mensaje a si mismo con
+                            // destino:CONFIG_PADRE.ID (nunca definido) se descartaba desde
+                            // el paso 3 sin lanzar excepcion, dejando el fallback de abajo
+                            // sin disparar nunca (medido: aviso "falta destino" en cada carga).
+                            try { hbFn(hbIntervalo); } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
                             globalThis.__HEARTBEAT_INICIADO = true;
                             (globalThis.logger || console).info(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Heartbeat iniciado (Script1)`);
                         } else {
@@ -7597,19 +7589,7 @@
         // ============================================================
 
         // CONTROLADOR: SISTEMA.CAMBIO_MODO
-        async function _enviarHeartbeatStartAHijo(h, origen, logPrefix) {
-            try {
-                if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_START, destino: h, datos: { timestamp: Date.now(), propagadoDesde: origen } });
-                } else {
-                    (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible para HEARTBEAT_START`);
-                }
-            } catch (error) {
-                (globalThis.logger || console).warn(`${logPrefix} Error enviando HEARTBEAT_START a ${h}:`, error);
-            }
-        }
-
-        async function _activarHeartbeatAventura(hijosCriticos, mensaje, logPrefix) {
+        async function _activarHeartbeatAventura(mensaje, logPrefix) {
             try {
                 // padre no está en iframesRegistrados — enviarMensaje a sí mismo no funciona.
                 // Llamar directamente a iniciarHeartbeat a través de globalThis.mensajeria.
@@ -7623,9 +7603,6 @@
                     (globalThis.logger || console).warn(`${logPrefix} iniciarHeartbeat no disponible en padre`);
                 }
             } catch (e) { (globalThis.logger || console).error(`${logPrefix} Error iniciando heartbeat en padre:`, e); }
-            for (const h of hijosCriticos) {
-                await _enviarHeartbeatStartAHijo(h, mensaje.origen, logPrefix);
-            }
             const _restaurando = mensaje?.datos?.restaurado === true;
             // Excepción 2 de 3 de la reanudación: no fijar la parada por defecto. En una
             // reanudación este punto se alcanza ANTES de _restaurarProgresoRest(), con
@@ -7651,7 +7628,7 @@
             } catch (err) { (globalThis.logger || console).warn(`${logPrefix} Error iniciando temporizador de aventura:`, err); }
         }
 
-        async function _transicionarAModoCasa(hijosCriticos, mensaje, logPrefix) {
+        async function _transicionarAModoCasa(mensaje, logPrefix) {
             // En modo dev, la propia activación entra en CASA como paso de bootstrap
             // (atajo para saltar pago/código) — no es un abandono real, así que no debe
             // borrar el progreso. El flujo de abandono/fin real (limpiarDatosAventura(),
@@ -7682,25 +7659,14 @@
                     (globalThis.logger || console).warn(`${logPrefix} pausarHeartbeat no disponible en padre`);
                 }
             } catch (e) { (globalThis.logger || console).error(`${logPrefix} Error pausando heartbeat en padre:`, e); }
-            for (const h of hijosCriticos) {
-                try {
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_PAUSE, destino: h, datos: { timestamp: Date.now(), propagadoDesde: mensaje.origen } });
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible para HEARTBEAT_PAUSE`);
-                    }
-                } catch (error) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error enviando HEARTBEAT_PAUSE a ${h}:`, error);
-                }
-            }
         }
 
-        async function _gestionarHeartbeatSegunModo(modo, hijosCriticos, mensaje, logPrefix) {
+        async function _gestionarHeartbeatSegunModo(modo, mensaje, logPrefix) {
             try {
                 if (modo === 'aventura') {
-                    await _activarHeartbeatAventura(hijosCriticos, mensaje, logPrefix);
+                    await _activarHeartbeatAventura(mensaje, logPrefix);
                 } else if (modo === 'casa') {
-                    await _transicionarAModoCasa(hijosCriticos, mensaje, logPrefix);
+                    await _transicionarAModoCasa(mensaje, logPrefix);
                 }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error propagando heartbeat control a hijos criticos:`, error);
@@ -7899,10 +7865,7 @@
                     }
                     if (modo === MODOS.AVENTURA) estado.paradaRealCongelada = null;
 
-                    const hijosCriticos = ['hijo2', 'hijo3', 'hijo4', 'hijo5'].filter(
-                        h => globalThis.estadoPadre?.hijosInicializados?.has(h)
-                    );
-                    await _gestionarHeartbeatSegunModo(modo, hijosCriticos, mensaje, logPrefix);
+                    await _gestionarHeartbeatSegunModo(modo, mensaje, logPrefix);
                     await _gestionarGpsSegunModo(modo, origen, mensaje, logPrefix);
                 } else {
                     (globalThis.logger || console).error(`${logPrefix} Error en cambio de modo:`, resultado.error);
@@ -10025,11 +9988,19 @@ await _comprobarReanudacionAventura(logPrefix);
                     logger.info(`[PADRE][SNAPSHOT] ✅ Temporizador restaurado para hijo1: ${snap.tiempoRestante}s`);
                 }
                 if (hijoId === 'hijo2' && snap.paradaActual) {
-                    // parada_id (no paradaActual): el handler de hijo2 lee
-                    // datos.parada_id || datos.paradaId — con el nombre viejo
-                    // resolvía a null y la restauración no hacía nada (ver auditoría EJE 17).
-                    await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, destino: 'hijo2', datos: { parada_id: snap.paradaActual, timestamp: Date.now() } });
-                    logger.info(`[PADRE][SNAPSHOT] ✅ Parada restaurada para hijo2: ${snap.paradaActual}`);
+                    // Un solo camino (paso 7 de la lavadora): pasa por despacharLocal,
+                    // igual que cualquier otro cambio de parada real, para heredar lo que
+                    // solo dispara _hdl_NAVEGACION_CAMBIO_PARADA — estado.paradaActual del
+                    // propio padre, marcadores del mapa, y la precarga de audio/video/imagen
+                    // de esa parada. Un envío directo a hijo2 dejaba a hijo2 mostrando la
+                    // parada recuperada mientras el padre se quedaba con su estado y sus
+                    // precargas desincronizados de lo que el usuario veía.
+                    const _resultadoParadaSnapshot = await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos: { paradaId: snap.paradaActual } });
+                    if (_resultadoParadaSnapshot?.exito) {
+                        logger.info(`[PADRE][SNAPSHOT] ✅ Parada restaurada para hijo2: ${snap.paradaActual}`);
+                    } else {
+                        logger.warn(`[PADRE][SNAPSHOT] Parada NO restaurada para hijo2: ${_resultadoParadaSnapshot?.error || 'sin detalle'}`);
+                    }
                 }
                 if (hijoId === 'hijo3' && snap.audioActual) {
                     await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, destino: 'hijo3', datos: { ...snap.audioActual, timestamp: Date.now() } });
@@ -15280,10 +15251,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         if (!globalThis.mensajeria?.enviarMensaje) {
             throw new Error('[PADRE Script4] mensajeria no disponible tras 10s — Script 4 abortado: migración de controladores y diagnóstico GPS sin registrar');
         }
-        const { enviarMensaje: enviarMensaje_S4 } = globalThis.mensajeria;
         const { ajustarTimeoutPorConexion } = await import('./js/utils.js');
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_S4, MODOS: MODOS_S4 } = await import('./js/constants.js');
-        const { CONFIG: CONFIG_PADRE_S4 } = await import('./js/config.js');
 
         // Migrar controladores registrados tempranamente en módulos al sistema de mensajería
         try {
@@ -15293,100 +15262,33 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             (globalThis.logger || console).warn('No se pudieron migrar algunos controladores:', e.message);
         }
 
-        // Handlers reales para los auto-mensajes de heartbeat que el propio padre se envía
-        // (arranque de Script 4 más abajo, y las herramientas de diagnóstico consultarHeartbeat/
-        // _testHeartbeatPauseResume). Se registran aquí, ANTES de que el bloque de arranque
-        // envíe HEARTBEAT_START/HEARTBEAT_PAUSE, porque sin el handler ya registrado el
-        // auto-mensaje no lo procesa nadie.
-        if (typeof globalThis.registrarControladorSeguro !== 'function') {
-            (globalThis.logger || console).error('[PADRE Script4] registrarControladorSeguro sigue sin disponible — handlers de heartbeat NO registrados');
-        } else {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_START, async (mensaje) => {
-            const intervalo = mensaje?.datos?.intervalo;
-            const ok = await globalThis.mensajeria.iniciarHeartbeat(intervalo);
-            return { ok };
-        }, { permanente: true });
+        // Paso 7 de la lavadora: los handlers HEARTBEAT_START/PAUSE/ESTADO que vivían aquí
+        // solo servían a auto-mensajes del propio padre con destino:CONFIG_PADRE_S4.ID —
+        // CONFIG.ID nunca se asigna en js/config.js, así que ese destino siempre era
+        // undefined y el bus lo descartaba desde el paso 3 (medido: aviso "falta destino"
+        // en cada carga). El arranque de más abajo y las herramientas de diagnóstico llaman
+        // ahora directo a iniciarHeartbeat/pausarHeartbeat/getHeartbeat: sin auto-mensaje no
+        // hace falta el handler que lo recibía.
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_PAUSE, async () => {
-            const ok = await globalThis.mensajeria.pausarHeartbeat();
-            return { ok };
-        }, { permanente: true });
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_ESTADO, async () => {
-            try {
-                const sm = globalThis.__stateManager || globalThis.__vv_stateManager;
-                const estado = (sm && typeof sm.getHeartbeat === 'function') ? await sm.getHeartbeat() : null;
-                return {
-                    estado: {
-                        activo: !!estado?.activo,
-                        userPaused: !!estado?.userPaused,
-                        intervaloActivo: !!estado?.intervalo
-                    }
-                };
-            } catch (e) {
-                (globalThis.logger || console).warn('[PADRE][HEARTBEAT_ESTADO] Error leyendo estado del heartbeat:', e && e.message);
-                return { estado: { activo: false, userPaused: false, intervaloActivo: false } };
-            }
-        }, { permanente: true });
-        }
-
-        // Iniciar o pausar heartbeat según el modo inicial (si estamos en el padre)
+        // Iniciar o pausar heartbeat según el modo inicial (si estamos en el padre). Un solo
+        // camino (paso 7): llamada directa, igual que _activarHeartbeatAventura/
+        // _transicionarAModoCasa de Script 1 — sin auto-mensaje a si mismo, y sin el
+        // broadcast a hijosCriticos que ya no tiene handler que lo reciba.
         if (globalThis.parent === globalThis.window && !globalThis.__HEARTBEAT_INICIADO) {
             const modoInicial = globalThis.estadoPadre?.modo?.actual || MODOS_S4.CASA;
             try {
                 if (modoInicial === MODOS_S4.AVENTURA) {
-                    // Start heartbeat via messaging (mensajeria.js handler will call iniciarHeartbeat internally)
-                    try {
-                        await enviarMensaje_S4({
-                            tipo: TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_START,
-                            destino: CONFIG_PADRE_S4.ID,
-                            datos: { intervalo: (typeof ajustarTimeoutPorConexion === 'function') ? ajustarTimeoutPorConexion(10000) : 10000 }
-                        });
-                    } catch (e) {
-                        (globalThis.logger || console).debug('[PADRE] HEARTBEAT_START via mensaje falló, usando fallback directo:', e);
-                        try { // Fallback to direct function call in case messaging is not yet running
-                            (typeof globalThis.iniciarHeartbeat === 'function') && globalThis.iniciarHeartbeat(ajustarTimeoutPorConexion(10000));
-                        } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
+                    if (typeof globalThis.iniciarHeartbeat === 'function') {
+                        globalThis.iniciarHeartbeat((typeof ajustarTimeoutPorConexion === 'function') ? ajustarTimeoutPorConexion(10000) : 10000);
                     }
                     globalThis.__HEARTBEAT_INICIADO = true;
                     (globalThis.logger || console).debug('[PADRE] Heartbeat iniciado (Script 4) - modo AVENTURA');
                 } else {
-                    // Ensure heartbeat is paused in CASA
-                    try {
-                        await enviarMensaje_S4({
-                            tipo: TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_PAUSE,
-                            destino: CONFIG_PADRE_S4.ID,
-                            datos: { timestamp: Date.now(), razon: 'modo_inicial_casa' }
-                        });
-                    } catch (e) {
-                        (globalThis.logger || console).debug('[PADRE] HEARTBEAT_PAUSE via mensaje falló, usando fallback directo:', e);
-                        try { (typeof globalThis.pausarHeartbeat === 'function') && globalThis.pausarHeartbeat(); } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
-                    }
+                    if (typeof globalThis.pausarHeartbeat === 'function') { globalThis.pausarHeartbeat(); }
                     (globalThis.logger || console).debug('[PADRE] Heartbeat no iniciado por modo CASA (Script 4)');
                 }
             } catch (e) {
                 (globalThis.logger || console).warn('[PADRE] Error controlando heartbeat en script 4:', e);
-            }
-
-            // Propagar control de heartbeat a hijos críticos según el modo inicial
-            try {
-                const hijosCriticos = ['hijo2', 'hijo3', 'hijo4', 'hijo5'].filter(
-                    h => globalThis.estadoPadre?.hijosInicializados?.has(h)
-                );
-                for (const h of hijosCriticos) {
-                    try {
-                        await enviarMensaje_S4({
-                            tipo: modoInicial === MODOS_S4.AVENTURA ? TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_START : TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_PAUSE,
-                            destino: h,
-                            datos: { timestamp: Date.now(), initial: true }
-                        });
-                    } catch (e) {
-                        // If a child isn't ready yet, it's fine; it'll get the mode broadcast later
-                        (globalThis.logger || console).debug('[PADRE] broadcast HEARTBEAT to child failed (maybe not ready):', h, e && e.message);
-                    }
-                }
-            } catch (e) {
-                (globalThis.logger || console).warn('[PADRE] Error propagando heartbeat control inicial:', e);
             }
         }
 
@@ -15415,11 +15317,9 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 // Helper: Consultar estado del heartbeat via mensajería
                 globalThis.consultarHeartbeat = async function() {
                     try {
-                        const respuesta = await enviarMensaje_S4({
-                            tipo: TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_ESTADO,
-                            destino: CONFIG_PADRE_S4.ID,
-                            datos: {}
-                        });
+                        const sm = globalThis.__stateManager || globalThis.__vv_stateManager;
+                        const hb = (sm && typeof sm.getHeartbeat === 'function') ? await sm.getHeartbeat() : null;
+                        const respuesta = { estado: { activo: !!hb?.activo, userPaused: !!hb?.userPaused, intervaloActivo: !!hb?.intervalo } };
                         (globalThis.logger || console).info('[PADRE] Estado heartbeat:', respuesta);
                         return respuesta;
                     } catch (e) {
@@ -15433,20 +15333,20 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     try {
                         (globalThis.logger || console).info('[PADRE][TEST] Iniciando prueba pause/restart heartbeat');
                         // Pausar mediante cambio de modo
-                        await enviarMensaje_S4({ tipo: TIPOS_MENSAJE_S4.SISTEMA.CAMBIO_MODO, destino: CONFIG_PADRE_S4.ID, datos: { modo: MODOS_S4.CASA } });
+                        await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE_S4.SISTEMA.CAMBIO_MODO, datos: { modo: MODOS_S4.CASA } });
                         await sleep(150);
                         let estado = await globalThis.consultarHeartbeat();
                         console.assert(estado?.estado?.userPaused === true, 'expected userPaused true after CASA');
                         console.assert(estado?.estado?.activo === false, 'expected activo false after CASA');
 
                         // Intentar iniciar: debe ignorarse por userPaused
-                        await enviarMensaje_S4({ tipo: TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_START, destino: CONFIG_PADRE_S4.ID, datos: { intervalo: 3000 } });
+                        if (typeof globalThis.iniciarHeartbeat === 'function') { globalThis.iniciarHeartbeat(3000); }
                         await sleep(150);
                         estado = await globalThis.consultarHeartbeat();
                         console.assert(estado?.estado?.userPaused === true && estado?.estado?.activo === false, 'expected no change when starting while userPaused');
 
                         // Reanudar mediante cambio de modo a aventura
-                        await enviarMensaje_S4({ tipo: TIPOS_MENSAJE_S4.SISTEMA.CAMBIO_MODO, destino: CONFIG_PADRE_S4.ID, datos: { modo: MODOS_S4.AVENTURA } });
+                        await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE_S4.SISTEMA.CAMBIO_MODO, datos: { modo: MODOS_S4.AVENTURA } });
                         await sleep(200);
                         estado = await globalThis.consultarHeartbeat();
                         console.assert(estado?.estado?.userPaused === false, 'expected userPaused false after AVENTURA');
