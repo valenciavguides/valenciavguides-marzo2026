@@ -76,6 +76,12 @@ viven aquí.
    sección del propio documento. Toda afirmación en la que se vaya a apoyar una decisión se
    verifica contra el código, y la discrepancia se corrige en el mismo trabajo en que aparece, no
    "para luego".
+9. **No se recomienda nada mientras quede algo sin comprobar de lo que lo sostiene.** Primero se
+   comprueba todo —el código entero de lo que se toca, quién lo lee y quién lo escribe, los `js/`
+   compartidos que carga ese frame, la línea entera del dato— y después se recomienda. Etiquetar
+   algo como "sin comprobar" no es la solución: es presentar trabajo a medias. Si falta un dato que
+   solo tiene el usuario, se le pregunta eso, y no se recomienda encima. Se incumplió dos veces en una
+   misma sesión, con la regla ya escrita en la memoria.
 
 ## Documentación de autoridad
 
