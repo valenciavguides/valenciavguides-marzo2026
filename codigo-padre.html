@@ -12944,52 +12944,6 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _hdl_AUDIO_REPRODUCIR_RESPONSE(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[AUDIO.REPRODUCIR_RESPONSE]`;
-
-            try {
-                if (!mensaje?.origen) {
-                    (globalThis.logger || console).warn(`${logPrefix} Mensaje sin origen`);
-                    return;
-                }
-
-                const { audioId, exito, error: errorMsg, estado: estadoAudio } = mensaje.datos || {};
-
-                (globalThis.logger || console).debug(`${logPrefix} Respuesta de reproducción de audio desde ${mensaje.origen}`, {
-                    audioId,
-                    exito,
-                    estado: estadoAudio
-                });
-
-                if (!exito) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error en reproducción de audio: ${errorMsg}`);
-                    return;
-                }
-
-                // NO se escribe estado.audioActual aqui. Su unico dueno es
-                // AUDIO.ESTADO_ACTUALIZADO, que hijo3 emite desde los eventos nativos
-                // 'play'/'pause' del reproductor — es decir, hechos, no suposiciones
-                // (lo exige el comentario de _iniciarRecordatorioAudio, que lee este
-                // estado para callarse mientras suena el audio).
-                //
-                // Este handler escribia estado:'reproduciendo' al recibir la respuesta de
-                // CARGA, con la peticion enviada con autoplay:false — o sea, con el audio
-                // cargado y en pausa. Y como hijo3 nunca manda el campo `estado`, el
-                // `|| 'reproduciendo'` ganaba siempre. Consecuencia: el padre creia que
-                // sonaba desde el instante de cargarlo y el cartel recordatorio de
-                // "pulse play" no llegaba a aparecer nunca.
-                //
-                // No deja ciego a nadie: obtenerAudioIdActivoPadre() resuelve por
-                // estado.elementoActual.audio_id, que el propio padre escribe en
-                // _actualizarEstadoParada() ANTES de pedir el audio; audioActual.id era
-                // solo su segundo fallback.
-                (globalThis.logger || console).debug(`${logPrefix} Carga confirmada por ${mensaje.origen}: ${audioId} (estado de reproduccion: lo fija AUDIO.ESTADO_ACTUALIZADO)`);
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando respuesta de audio:`, error);
-            }
-        }
-
         // SISTEMA.ERROR es un tipo genérico de error usado por varios hijos (p.ej. también
         // 'ELEMENTO_NO_ENCONTRADO' desde _manejarSimularClick en audio-hijo3.html) — este
         // handler no cubre cada código posible, solo evita que el mensaje se pierda sin
@@ -13023,7 +12977,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.ERROR, _hdl_AUDIO_ERROR, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE, _hdl_AUDIO_REPRODUCIR_RESPONSE, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ERROR, _hdl_SISTEMA_ERROR, { permanente: true });
         }

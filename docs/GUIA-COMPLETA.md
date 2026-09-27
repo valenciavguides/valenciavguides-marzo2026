@@ -3766,8 +3766,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `DATOS.SOLICITAR_TEXTOS` | Hijo2 → Padre | Solicita textos si no los recibió en handshake |
 | | `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre → Hijo2 | Pide coordenadas de una o todas las paradas (`paradaId` opcional; si se omite devuelve todas); responde por acuse automático, sin mensaje de vuelta explícito |
 | | `DATOS.SOLICITAR_COORDENADAS` | Hijo2 → Padre | Fallback: hijo2 solicita sus coordenadas si no las recibió en handshake; padre responde con `DATOS.CARGAR_COORDENADAS` |
-| **AUDIO** | `AUDIO.REPRODUCIR_REQUEST` | Padre → Hijo3 | Reproduce este audio (`{ audioId, audioData, autoplay }`) — `audioData` resuelto en línea vía `cargarAudios()`, protección pasiva por parada (ver §16) |
-| | `AUDIO.REPRODUCIR_RESPONSE` | Hijo3 → Padre | Confirmación de **carga**; no dice nada sobre si suena (§7.4) |
+| **AUDIO** | `AUDIO.REPRODUCIR_REQUEST` | Padre → Hijo3 | Reproduce este audio (`{ audioId, audioData, autoplay }`) — `audioData` resuelto en línea vía `cargarAudios()`, protección pasiva por parada (ver §16); responde por acuse automático, sin mensaje de vuelta explícito |
 | | `AUDIO.FIN_REPRODUCCION` | Hijo3 → Padre | Audio terminó de forma natural |
 | | `AUDIO.ESTADO_ACTUALIZADO` | Hijo3 → Padre | Cambio de estado (play/pause/stop) |
 | | `AUDIO.ERROR` | Hijo3 → Padre | Error durante reproducción |
@@ -3968,7 +3967,6 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, mensajeId }` | Al recibir CAMBIO_MODO |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar modo |
 | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
-| `AUDIO.REPRODUCIR_RESPONSE` | `{ audioId, exito, reproducido, autoplayBlocked, mensajeOriginal }` | Confirmación de **carga**; no es el ACK que espera `enviarMensajeConConfirmacion()` (§7.4) |
 | `AUDIO.ESTADO_ACTUALIZADO` | `{ audioId, estado:'reproduciendo'/'pausado' }` | Al hacer play/pause |
 | `AUDIO.FIN_REPRODUCCION` | `{ audioId, estado:'finalizado' }` | Audio termina de forma natural |
 | `AUDIO.ERROR` | `{ audioId, error }` | Error durante reproducción |
@@ -4862,7 +4860,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-4bc752eabff0'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-47176ef70690'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5340,6 +5338,16 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Handler en hijo3 | sí |
 | Acción | Guarda `audioData` en su caché local acotada (máx. 2 ids); carga el audio, NO lo reproduce automáticamente. Muestra controles. |
 
+> **Responde por acuse automático, sin mensaje de vuelta explícito.** El envío exige confirmación
+> (`enviarMensajeConConfirmacion`, vía `_enviarAudioRequestConReintento()`): la mensajería contesta
+> con `SISTEMA.CONFIRMACION` en cuanto el handler de hijo3 termina, lleve el valor que lleve —
+> incluido `undefined` —, así que "devolver algo" no es lo que dispara la confirmación. Lo que sí
+> exige un `return` es distinguir un fallo real de una entrega perdida: el controlador de hijo3
+> hace `return { audioId, exito, ... }` en sus dos ramas (éxito y `catch`) para que
+> `_enviarAudioRequestConReintento()` sepa si el audio cargó o no, no solo si el mensaje llegó.
+> Mismo contrato que cumple hijo2 en `DATOS.COORDENADAS_PARADAS_REQUEST`, el otro mensaje que el
+> padre envía con confirmación exigida.
+
 **AUDIO.ESTADO_ACTUALIZADO** (hijo3 → padre)
 
 | Campo | Valor |
@@ -5349,7 +5357,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Handler en padre | `_hdl_AUDIO_ESTADO_ACTUALIZADO` |
 | Acción | Actualiza `estado.audioActual`, refresca controles de audio del padre |
 
-> **Es el único escritor de `estado.audioActual`.** hijo3 lo emite desde los listeners de los eventos nativos `play` y `pause` de su `<audio>` (`audio-hijo3.html`), así que ese estado refleja hechos observados, nunca suposiciones. Importa porque `_iniciarRecordatorioAudio()` (§25.5c) lo lee para callarse mientras el audio suena de verdad: cualquier otro sitio que escribiera ahí `'reproduciendo'` por adelantado apagaría ese cartel sin que sonara nada. `AUDIO.REPRODUCIR_RESPONSE` **no** escribe `estado.audioActual` justamente por esto. Los únicos que además lo mutan son `_hdl_AUDIO_FIN_REPRODUCCION` y `_hdl_AUDIO_ERROR`, y solo el campo `.estado` de un `audioId` que ya coincide con el activo.
+> **Es el único escritor de `estado.audioActual`.** hijo3 lo emite desde los listeners de los eventos nativos `play` y `pause` de su `<audio>` (`audio-hijo3.html`), así que ese estado refleja hechos observados, nunca suposiciones. Importa porque `_iniciarRecordatorioAudio()` (§25.5c) lo lee para callarse mientras el audio suena de verdad: cualquier otro sitio que escribiera ahí `'reproduciendo'` por adelantado apagaría ese cartel sin que sonara nada. Los únicos que además lo mutan son `_hdl_AUDIO_FIN_REPRODUCCION` y `_hdl_AUDIO_ERROR`, y solo el campo `.estado` de un `audioId` que ya coincide con el activo.
 
 **AUDIO.FIN_REPRODUCCION** (hijo3 → padre)
 
@@ -5359,18 +5367,6 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Payload | `{ audioId, duracion, timestamp }` |
 | Handler en padre | `_hdl_AUDIO_FIN_REPRODUCCION` |
 | Acción | Actualiza estado, llama `_procesarFinAudioElemento` → habilita botón retos (si hay reto), o marca `pending.audio=true` y, si ya se cumplen las demás condiciones, habilita btnAvanzar vía `marcarParadaCompletada()` (parada y tramo por igual — el GPS nunca avanza por sí solo, ver §4.7d) |
-
-**AUDIO.REPRODUCIR_RESPONSE** (hijo3 → padre)
-
-| Campo | Valor |
-|-------|-------|
-| Emitido por | hijo3, tras resolver la carga del audio (no su reproducción: el flujo envía `autoplay:false`) |
-| Handler en padre | `_hdl_AUDIO_REPRODUCIR_RESPONSE` |
-| Acción | Logging. **No escribe `estado.audioActual`** — ver el aviso de `AUDIO.ESTADO_ACTUALIZADO` arriba |
-
-> **No es el ACK que desbloquea `_enviarAudioRequestConReintento()`.** Ese ACK es un `SISTEMA.CONFIRMACION` con `idOriginal`, y en los hijos lo emite `_enviarAutoConfirmacion()` del `messagingAdapter`, que **solo lo envía si el handler devuelve un valor distinto de `undefined`** (guard `resultado === undefined`). Por eso el controlador de `AUDIO.REPRODUCIR_REQUEST` en `audio-hijo3.html` hace `return` en sus dos ramas — la de éxito y la del `catch` — con `{ audioId, exito, ... }`. Ese objeto viaja como `datos` de la confirmación y es lo que resuelve la promesa del padre. Es el mismo contrato que cumple hijo2 en `DATOS.COORDENADAS_PARADAS_REQUEST`, el otro único mensaje que el padre envía con confirmación exigida.
->
-> Un handler de hijo que reciba un mensaje con `requiereConfirmacion` y termine sin `return` deja al emisor esperando hasta su timeout, sin ningún error visible por ninguno de los dos lados.
 
 **AUDIO.ERROR** (hijo3 → padre)
 
@@ -6903,10 +6899,9 @@ export const AUDIOS_AVENTURAS = {
 **Reproducción** — al activar cada parada o tramo, un único camino sirve tanto CASA como AVENTURA: no existe una consulta previa de metadatos separada para CASA — `_solicitarAudioParaParada()` resuelve y envía el audio directamente en ambos modos:
 
 1. `_hdl_NAVEGACION_CAMBIO_PARADA` (padre) resuelve `parada.audio_id` en `DATOS_PADRE` y llama a `_solicitarAudioParaParada()`, que resuelve el contenido real (`{id, title, file}`) vía `_resolverAudioData()` → `cargarAudios(aventura, idioma)`.
-2. Padre envía `AUDIO.REPRODUCIR_REQUEST` a hijo3 con `{ audioId, audioData, autoplay: false }`. hijo3 guarda `audioData` en su caché local acotada (máx. 2 ids) y carga `audioPlayer.src = audioData.file`, actualiza el título visible — **no intenta reproducir nada todavía**.
-3. hijo3 envía `AUDIO.REPRODUCIR_RESPONSE` al padre confirmando que el audio está pre-cargado.
-4. El usuario pulsa `#audio-main-toggle-btn` (botón overlay en el padre) → padre envía `UI.ACCION_USUARIO { accion: 'audio_control', comando: 'play' }` a hijo3 → hijo3 llama `audioPlayer.play()`.
-5. Al terminar la reproducción: hijo3 envía `AUDIO.FIN_REPRODUCCION` al padre → padre habilita `retosBtn` en hijo3 (`CONTROL.HABILITAR`) y `#botonRetos` en hijo4 (`RETO.HABILITAR { razon: 'audio_escuchado_1vez' }`).
+2. Padre envía `AUDIO.REPRODUCIR_REQUEST` a hijo3 con `{ audioId, audioData, autoplay: false }`, exigiendo confirmación (`enviarMensajeConConfirmacion`, vía `_enviarAudioRequestConReintento()`). hijo3 guarda `audioData` en su caché local acotada (máx. 2 ids) y carga `audioPlayer.src = audioData.file`, actualiza el título visible — **no intenta reproducir nada todavía** — y responde con el acuse automático de la mensajería, sin mensaje de vuelta explícito.
+3. El usuario pulsa `#audio-main-toggle-btn` (botón overlay en el padre) → padre envía `UI.ACCION_USUARIO { accion: 'audio_control', comando: 'play' }` a hijo3 → hijo3 llama `audioPlayer.play()`.
+4. Al terminar la reproducción: hijo3 envía `AUDIO.FIN_REPRODUCCION` al padre → padre habilita `retosBtn` en hijo3 (`CONTROL.HABILITAR`) y `#botonRetos` en hijo4 (`RETO.HABILITAR { razon: 'audio_escuchado_1vez' }`).
 
 Si `cargarYReproducirAudio()` recibe un `audioId` que no está en la caché local (p. ej. el usuario retrocede a una parada visitada hace más de un salto), hijo3 pide `DATOS.SOLICITAR_AUDIOS { audioId }` al padre, que resuelve solo ese audio y responde con el mismo `AUDIO.REPRODUCIR_REQUEST`.
 
@@ -8038,7 +8033,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-4bc752eabff0'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-47176ef70690'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8759,7 +8754,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-4bc752eabff0';
+const CACHE_VERSION = 'v-47176ef70690';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11075,7 +11070,6 @@ Reproductor HTML5 con barra de progreso personalizada. No sabe en qué parada es
 | Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — sin audio; el contenido llega parada a parada (ver §16) |
 | Padre → Hijo | `AUDIO.REPRODUCIR_REQUEST` | Con el audio resuelto (`audioData`) de la parada actual, en línea |
 | Padre → Hijo | `UI.ACCION_USUARIO` | Comandos `audio_control` para `play`, `pause`, `stop` y `replay` |
-| Hijo → Padre | `AUDIO.REPRODUCIR_RESPONSE` | Confirmando que el audio se ha cargado (no que suene) |
 | Hijo → Padre | `AUDIO.FIN_REPRODUCCION` | Cuando el audio termina |
 | Hijo → Padre | `AUDIO.ESTADO_ACTUALIZADO` | Periódicamente con el tiempo de reproducción |
 | Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Pausa y resetea el audio en curso en cualquier cambio de modo (no solo al entrar en CASA) y recalcula si la barra de progreso es arrastrable |
@@ -11211,7 +11205,6 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Hijo 2 (botón de mapa completo) | `_hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO`: abre `mapa-completo.html` en overlay de pantalla completa | (ninguna) | — | Vista interactiva del mapa Leaflet con todas las paradas |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Hijo 2 (botón de mapa vintage) | `_hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE`: muestra imagen JPG del mapa vintage en overlay | (ninguna) | — | Vista alternativa del mapa con estética histórica |
 | `AUDIO.ESTADO_ACTUALIZADO` | Hijo 3 (cambio de estado play/pause/stop) | `_hdl_AUDIO_ESTADO_ACTUALIZADO`: actualiza `estadoAudio` interno; sin reenvío | (ninguna) | — | Tracking del estado de reproducción para lógica de pending |
-| `AUDIO.REPRODUCIR_RESPONSE` | Hijo 3 (confirmación de carga) | `_hdl_AUDIO_REPRODUCIR_RESPONSE`: solo logging; no toca `estado.audioActual` | (ninguna) | — | No es el ACK de `REPRODUCIR_REQUEST`: ese es `SISTEMA.CONFIRMACION`, ver §7.4 |
 | `AUDIO.ERROR` | Hijo 3 (error durante reproducción) | `_hdl_AUDIO_ERROR`: registra en log; habilita el reto igualmente si la parada tiene reto (el audio no es bloqueante ante error) | `RETO.HABILITAR` condicional | Hijo 4 | El error de audio no debe impedir al usuario completar el reto |
 | `DATOS.COORDENADAS_CARGADAS` | Hijo 2 (confirmación de carga) | `_hdl_DATOS_COORDENADAS_CARGADAS`: marca coordenadas como listas en el estado de carga | (ninguna) | — | Tracking de completitud de carga de datos |
 | `DATOS.TEXTOS_CARGADOS` | Hijo 2 (confirmación de carga de textos descriptivos) | `_hdl_DATOS_TEXTOS_CARGADOS`: marca textos como listos | (ninguna) | — | Ídem |
@@ -12105,7 +12098,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-4bc752eabff0';
+const CACHE_VERSION = 'v-47176ef70690';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13913,7 +13906,6 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje 
 | `AUDIO.ESTADO_ACTUALIZADO` | audio-hijo3.html | codigo-padre.html |
 | `AUDIO.FIN_REPRODUCCION` | audio-hijo3.html | codigo-padre.html |
 | `AUDIO.REPRODUCIR_REQUEST` | codigo-padre.html, js/controladores-padre.js | audio-hijo3.html |
-| `AUDIO.REPRODUCIR_RESPONSE` | audio-hijo3.html | codigo-padre.html |
 | `AVENTURA.DETENER` | codigo-padre.html | extrainfo-hijo1.html |
 | `AVENTURA.ESTADISTICAS_TIEMPO` | extrainfo-hijo1.html | codigo-padre.html |
 | `AVENTURA.FINALIZADA` | codigo-padre.html | codigo-padre.html, extrainfo-hijo1.html |

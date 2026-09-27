@@ -1645,6 +1645,37 @@ constructores); GUIA-COMPLETA.md corregida (línea ~11624, tabla de `_snapshotRe
 describía la limpieza en `RETO.COMPLETADO` sin mencionar la repoblación cuando queda reto
 siguiente).
 
+**8.9 — Respuestas dobles: por acuse y por mensaje aparte (✅ cerrado).** De los 5 envíos con acuse
+del proyecto (`solicitarCoordenadasHijo`/`_solicitarParadaAHijo2` → hijo2, `_enviarAudioRequestConReintento`
+→ hijo3, `CHAT.RESCATE_SOLICITADO` → padre, `NAVEGACION.GPS.ACTIVAR` → padre, `RETO.COMPLETADO` →
+padre), revisados todos, solo uno tenía el patrón: el controlador de `AUDIO.REPRODUCIR_REQUEST` en
+`audio-hijo3.html` contestaba dos veces a la misma petición — con el `return` que dispara el acuse
+automático de `enviarMensajeConConfirmacion` (necesario) y ADEMÁS con un `AUDIO.REPRODUCIR_RESPONSE`
+explícito a `'padre'`, en las dos ramas (éxito y `catch`). El handler que lo recibía
+(`_hdl_AUDIO_REPRODUCIR_RESPONSE`) ya no escribía ningún estado — su propio comentario decía que
+`estado.audioActual` lo fija únicamente `AUDIO.ESTADO_ACTUALIZADO` —, así que el segundo mensaje no
+tenía consumidor real, solo logging. De paso, verificado contra el código actual de `js/mensajeria.js`
+(`_ejecutarYContestar`) que la condición documentada para el acuse ("solo se emite si el handler
+devuelve un valor distinto de `undefined`", atribuida a un `messagingAdapter`/`_enviarAutoConfirmacion`
+que ya no existe en el proyecto — mismo hallazgo del paso 6) es **falsa**: el acuse se manda siempre
+que `mensaje.requiereConfirmacion` sea cierto, sea cual sea el valor de retorno, incluido
+`undefined`; sin handler registrado en absoluto es el único caso real en que no llega nunca. Los
+otros 4 senders confirmados limpios: hijo2 (ya unificado en 8.1), `CHAT.RESCATE_SOLICITADO` y
+`RETO.COMPLETADO` devuelven directamente sin ningún envío aparte, y `NAVEGACION.GPS.ACTIVAR` solo
+manda un `SISTEMA.ERROR` explícito en sus dos ramas de fallo — no un segundo mensaje de éxito
+duplicando el acuse. Aplicado: retirados los dos `enviarMensaje({tipo: AUDIO.REPRODUCIR_RESPONSE})`
+de `audio-hijo3.html`, `_hdl_AUDIO_REPRODUCIR_RESPONSE` y su registro en `codigo-padre.html`, y la
+constante en `js/constants.js`. Verificado: spec 104 nueva (RR-1 y RR-2 en rojo antes del arreglo,
+confirmado con espía de `postMessage` en ambas ramas); spec 95 (AE-2, ya existía) usaba el mensaje
+retirado solo como señal de temporización para saber cuándo hijo3 había cargado el audio — se
+adaptó a la condición real (`audioPlayer.src`); 214 specs de audio/hijo3/hijo2/reto/coordenadas/
+GPS/reanudación en chromium sin romperse; recorrido con espía sin hallazgos nuevos. GUIA-COMPLETA.md
+corregida en 8 sitios (tabla de mensajes hijo3→padre ×2, la subsección completa de
+`AUDIO.REPRODUCIR_RESPONSE` con sus dos callouts sobre el acuse, la secuencia numerada de
+reproducción, dos tablas de catálogo, y la tabla de cruce de módulos) — la explicación correcta del
+acuse (siempre se manda si `requiereConfirmacion`, no depende del valor de retorno) se conservó,
+reubicada junto a `AUDIO.REPRODUCIR_REQUEST`.
+
 ---
 
 ## Parte VII — Hallazgos colaterales

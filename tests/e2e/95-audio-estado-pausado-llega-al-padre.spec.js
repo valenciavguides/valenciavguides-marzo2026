@@ -40,9 +40,12 @@ async function prepararAudioActivo(page, audioId) {
     destino: 'hijo3',
     datos: { audioId, autoplay: false, audioData: { id: audioId, file: 'audios-aventuras/audio-de-prueba.mp3' } },
   });
+  // Antes se esperaba AUDIO.REPRODUCIR_RESPONSE, retirado en el paso 8.9 de la lavadora (un
+  // segundo camino de respuesta sin consumidor real — la confirmación real viaja por el acuse).
+  // La condición real que esa espera señalizaba: audioPlayer.src ya refleja el fichero pedido.
   await expect
-    .poll(() => recibidosPorElMarco(page), { timeout: 5_000 })
-    .toEqual(expect.arrayContaining([expect.objectContaining({ tipo: 'AUDIO.REPRODUCIR_RESPONSE' })]));
+    .poll(() => page.evaluate(() => document.getElementById('marco-hijo')?.contentDocument?.getElementById('audioPlayer')?.src || ''), { timeout: 5_000 })
+    .toContain('audio-de-prueba.mp3');
 }
 
 test.describe('AP — El estado del audio de hijo3 llega al padre', () => {
