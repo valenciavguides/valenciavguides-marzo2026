@@ -1904,7 +1904,7 @@ Necesita FASE 2 completa. Ocurre dentro de `ejecutarInicializacionAutomatica()`,
 
 Cuando esos iframes sí se cargan, van en **paralelo** (`Promise.all`, tolerando fallos individuales) y ocultos (`display:none`). El listener `load` de cada uno incluye una guardia `about:blank`: si `contentWindow.location.href === 'about:blank'` retorna sin llamar a `handleIframeLoad`, evitando un falso "loaded successfully" antes de que se asigne el `src` real.
 
-Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` despacha `SISTEMA.APLICACION_INICIALIZADA` con `globalThis.mensajeria.despacharLocal()`, que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus por la misma fila que un mensaje llegado de fuera. Ya no reenvía el modo a hijo2/hijo3/hijo4: cada uno lo recibió al conectarse (`modoInicial`) y por cualquier `CAMBIO_MODO` posterior — un solo camino (docs/mensajeria-duplicada-en-hijos.md, decisión 11). Este handler es puramente informativo (registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados) — no inicializa ninguna aventura por su cuenta. La activación de una aventura ocurre siempre por una vía explícita: el flujo normal `SELECCION.AVENTURA_ACTIVADA`, o la reanudación vía el modal "continuar aventura" (`ejecutarRestauracionAventura()`, ver §10.14). Ningún CAMBIO_PARADA se envía hasta que una de esas dos vías se complete.
+Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` despacha `SISTEMA.APLICACION_INICIALIZADA` con `globalThis.mensajeria.despacharLocal()`, que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus por la misma fila que un mensaje llegado de fuera. Ya no reenvía el modo a hijo2/hijo3/hijo4: cada uno lo recibió al conectarse (`modoInicial`) y por cualquier `CAMBIO_MODO` posterior — un solo camino (docs/mensajeria-duplicada-en-hijos.md, decisión 11). Este handler es puramente informativo (registra el evento) — no inicializa ninguna aventura por su cuenta. La activación de una aventura ocurre siempre por una vía explícita: el flujo normal `SELECCION.AVENTURA_ACTIVADA`, o la reanudación vía el modal "continuar aventura" (`ejecutarRestauracionAventura()`, ver §10.14). Ningún CAMBIO_PARADA se envía hasta que una de esas dos vías se complete.
 
 Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el flujo de onboarding:
 
@@ -4240,7 +4240,7 @@ El objeto `MAPEO_IDIOMAS` del mismo archivo mapea los 12 códigos de idioma (`es
 
 #### 9.2.3 pendingCompleciones — estado de completado por elemento
 
-El padre mantiene `estado.pendingCompleciones` (objeto simple, clave = `padreid`). Cada entrada es creada de forma **lazy** por `ensurePending(padreId, tipo)`: la función se invoca cuando llega el primer evento relevante para esa parada (LLEGADA_DETECTADA, FIN_REPRODUCCION o RETO_COMPLETADO), no durante CAMBIO_PARADA. En la primera llamada para una clave nueva crea la entrada y envía PENDING_INICIADO a hijo2/3/4; en llamadas posteriores solo actualiza el campo correspondiente:
+El padre mantiene `estado.pendingCompleciones` (objeto simple, clave = `padreid`). Cada entrada es creada de forma **lazy** por `ensurePending(padreId, tipo)`: la función se invoca cuando llega el primer evento relevante para esa parada (LLEGADA_DETECTADA, FIN_REPRODUCCION o RETO_COMPLETADO), no durante CAMBIO_PARADA. En la primera llamada para una clave nueva crea la entrada y envía PENDING_INICIADO a hijo2/4; en llamadas posteriores solo actualiza el campo correspondiente:
 
 ```javascript
 estado.pendingCompleciones[padreid] = {
@@ -4258,7 +4258,7 @@ estado.pendingCompleciones[padreid] = {
 
 La lógica de completado en `intentarCompletarElemento` exige `pending.llegada = true` para **todos** los tipos (paradas, inicio y tramos): la llegada GPS siempre es necesaria, sin excepciones por tipo de elemento.
 
-Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` a hijo2, hijo3 e hijo4.
+Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` a hijo2 e hijo4 — los únicos dos frames que registran handler para `SISTEMA.NOTIFICACION` en todo el proyecto (paso 8.5 de la lavadora: hijo3 no tiene ninguno, así que se retiró el envío que le llegaba sin consumidor).
 
 **Por qué la clave siempre es el `padreid` real, nunca el `tramo_id`/`parada_id` con el que llega el evento:** `_marcarPendingPorLlegada` (llamada por `LLEGADA_DETECTADA`) recibe el id tal como lo manda el sensor GPS — para un tramo, eso es su `tramo_id` (p.ej. `"Av1-TR-1"`), no su `padreid` (`"padre-TR1"`). Antes de construir la clave, resuelve el elemento real con `findElementoPorPadreId(paradaId)`, que busca en `elementosIDpadre` comparando contra `padreid`, `parada_id` **y `tramo_id`** — las tres columnas de id que puede traer la entrada. Sin la comparación por `tramo_id`, la búsqueda fallaba para todos los tramos y la clave caía al fallback `` `padre-${paradaId}` `` (`"padre-Av1-TR-1"`, una clave inventada que no coincide con ningún `padreid` real): el `LLEGADA_DETECTADA` de un tramo y su `AUDIO.FIN_REPRODUCCION` (que sí resuelve correctamente vía `findElementoPorAudio`, y sí obtiene `"padre-TR1"`) creaban dos entradas `pendingCompleciones` distintas para el mismo tramo, y `pending.llegada`/`pending.audio` nunca coincidían en la misma — el tramo no se completaba nunca por esta vía, sin importar cuánto GPS o audio llegara. Con `findElementoPorPadreId` resolviendo también por `tramo_id`, ambos caminos convergen en la misma clave real.
 
@@ -4514,7 +4514,7 @@ sequenceDiagram
     Note over H4: Solo si hijo4 está en hijosInicializados
 
     H2->>P: NAVEGACION.LLEGADA_DETECTADA { padreId, distancia }
-    P-->>P: ensurePending(padreId, tipo) — lazy-init: crea entrada si no existe\n→ PENDING_INICIADO a hijo2/hijo3/hijo4 (solo en primera llamada por parada)
+    P-->>P: ensurePending(padreId, tipo) — lazy-init: crea entrada si no existe\n→ PENDING_INICIADO a hijo2/hijo4 (solo en primera llamada por parada)
     P-->>P: pending.llegada = true → intentarCompletarElemento()
 
     H3->>P: AUDIO.FIN_REPRODUCCION { padreId }
@@ -4862,7 +4862,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-84e62e88fea4'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c800bcaace5c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5900,7 +5900,7 @@ También lo reciben: hijo2 L2409 (almacena en `arrayParadasLocal` para cálculos
 
 #### SISTEMA.APLICACION_INICIALIZADA ✅ implementado
 
-Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 completan el handshake, con `globalThis.mensajeria.despacharLocal()`, que lo entrega al handler `_hdl_APLICACION_INICIALIZADA` por la misma fila que un mensaje llegado de fuera. El handler es informativo: registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados. No activa ninguna aventura — eso lo hacen exclusivamente `_hdl_SELECCION_AVENTURA_ACTIVADA` (flujo normal P1→P16) o `ejecutarRestauracionAventura()` (modal "continuar aventura", ver `_comprobarReanudacionAventura()`), ambos completamente independientes de este handler.
+Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 completan el handshake, con `globalThis.mensajeria.despacharLocal()`, que lo entrega al handler `_hdl_APLICACION_INICIALIZADA` por la misma fila que un mensaje llegado de fuera. El handler es informativo: solo registra el evento (paso 8.5 de la lavadora: retirado el broadcast `aplicacion_lista` a los hijos ya inicializados — ninguno tenía handler que reaccionara a él). No activa ninguna aventura — eso lo hacen exclusivamente `_hdl_SELECCION_AVENTURA_ACTIVADA` (flujo normal P1→P16) o `ejecutarRestauracionAventura()` (modal "continuar aventura", ver `_comprobarReanudacionAventura()`), ambos completamente independientes de este handler.
 
 #### DATOS.SOLICITAR_RETOS
 
@@ -5941,16 +5941,15 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 
 | Evento | Dirección | Descripción |
 |--------|-----------|-------------|
-| `PENDING_INICIADO` | padre → hijo2/3/4 | Se ha iniciado seguimiento de completado para una parada |
-| `AVENTURA_ACTIVADA` | padre → broadcast | La aventura quedó activada con éxito (idioma, aventura, modo final ya aplicado — AVENTURA en producción, CASA solo en dev, ver §9.5) |
+| `PENDING_INICIADO` | padre → hijo2/4 | Se ha iniciado seguimiento de completado para una parada |
 
-**PENDING_INICIADO** (padre → hijo2, hijo3, hijo4)
+**PENDING_INICIADO** (padre → hijo2, hijo4)
 
 ```text
 padre ensurePending(key) L9300
   → estado.pendingCompleciones[key] = { llegada:false, audio:false, reto:false, ttlMs }
   → populatePendingCoords(key) — obtiene coords del destino async (via solicitarCoordenadasHijo)
-padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, ttlMs }
+padre → hijo2/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, ttlMs }
 ```
 
 **Qué hace cada hijo al recibirlo — y qué no debe hacer:**
@@ -5958,7 +5957,6 @@ padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId,
 | Hijo | Acción |
 |---|---|
 | **hijo2** | `_manejarPendingIniciado()`: **deshabilita `#btn-ubicacion`** mientras el pending esté abierto |
-| **hijo3** | No tiene handler. El padre se lo envía igualmente |
 | **hijo4** | **Solo acusa recibo con `SISTEMA.ACK`. No toca la UI del reto** |
 
 > **El aviso significa "el padre ha empezado a seguir la compleción de esta parada", no "el usuario ha salido del reto".** Si hijo4 respondiera haciendo `estado.retoActualId = null` + `ocultarControles()`, rompería tres botones de golpe con el reto ya abierto: `btnEnviar` pasaría a `display:none` (desaparece), `btnMostrarRespuesta` quedaría `disabled` (visible pero inerte) y `btnSaltarReto`, aunque intacto, dejaría de funcionar porque su listener abre con `if (!estado.retoActualId) return`. Por eso solo acusa recibo.
@@ -5966,13 +5964,6 @@ padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId,
 > Ocurría porque `ensurePending()` emite el aviso **al crear** el pending, y eso puede pasar con el reto ya abierto. **En modo CASA es el caso normal**: `#botonRetos` se habilita nada más cambiar de parada (§29.8), así que el usuario abre el reto antes de que exista pending alguno; el primer `ensurePending()` llega después, desde el camino del audio o de la llegada. En AVENTURA el reto solo se abre tras terminar el audio (§29.7) y para entonces el pending ya está creado — **protegido por el orden de los eventos, no por diseño**, que es exactamente por lo que hacía falta arreglarlo en hijo4 y no confiar en la secuencia.
 >
 > Ninguno de los dos hijos guarda ya un flag `paradaPendiente`: tanto el de `retos-hijo4.html` como el de `coordenadas-hijo2.html` se escribían y **no los leía ningún punto de sus ficheros**, así que se eliminaron. Lo que sí persiste es el efecto real en hijo2: `#btn-ubicacion` queda deshabilitado. Cubierto por `tests/e2e/50-pending-iniciado-no-borra-reto.spec.js`; PI-4 comprueba el control —un aviso de otra parada tampoco toca nada—.
-
-**AVENTURA_ACTIVADA** (padre → broadcast)
-
-```text
-_hdl_SELECCION_AVENTURA_ACTIVADA → _broadcastActivacion() (tras distribuir datos con éxito)
-padre → todos   SISTEMA.NOTIFICACION { evento:'AVENTURA_ACTIVADA', aventura, idioma, timestamp }
-```
 
 **Eventos del ciclo de cambio de modo** (app.js → broadcast, fire-and-forget)
 
@@ -8047,7 +8038,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-84e62e88fea4'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c800bcaace5c'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8768,7 +8759,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-84e62e88fea4';
+const CACHE_VERSION = 'v-c800bcaace5c';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11213,7 +11204,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `UI.ACCION_USUARIO` | Hijo 2 (click en botones de mapa: imagen, vídeo) | `_hdl_UI_ACCION_USUARIO`: abre el overlay correspondiente en el padre según `datos.accion` (`'video'`/`'imagen'`) | (ninguna directa — abre overlay interno) | — | El padre gestiona todos los overlays; hijo2 solo avisa de la acción del usuario |
 | `UI.CLOSE_MENUS` | Hijo 1 ↔ Padre | `_hdl_UI_CLOSE_MENUS_PADRE`: colapsa todos los menús desplegables del padre | (ninguna) | — | Sincronizar el estado de menús cuando hijo1 o el padre mismo solicitan cerrarlos |
 | `SISTEMA.HIJO_FALLIDO` | Cualquier hijo que no pudo inicializar | Registra en log el error con código y origen; el padre puede intentar recargar el iframe | (ninguna) | — | Gestión de errores de carga de iframes |
-| `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados. No activa ninguna aventura (ver §10.14) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
+| `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: solo registra el evento. No activa ninguna aventura (ver §10.14) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: registra la confirmación por hijo; cuando ambos confirman, el padre puede habilitar el botón de avance | (ninguna) | — | Garantizar que audio y retos están listos antes de que el usuario pueda avanzar |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2, tras la gracia de su franja (§31.4/§25.7) | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: marca `estado.usuarioFueraRango`, deshabilita audio del padre y `retosBtn` de hijo3 | (ninguna directa) | — | |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo 2 (botón de ubicación) | `_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE`: dibuja una línea en el mapa de aventura desde la posición actual del usuario hasta la parada objetivo | (ninguna) | — | Feedback visual de dirección al usuario |
@@ -12114,7 +12105,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-84e62e88fea4';
+const CACHE_VERSION = 'v-c800bcaace5c';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

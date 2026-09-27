@@ -102,11 +102,12 @@ test.describe('CM — El modo llega a cada frame por un solo camino', () => {
 
     const criticos = ['hijo2', 'hijo3', 'hijo4'];
     const recibidos = (id) => page.evaluate((i) => document.getElementById(i)?.contentWindow?.__recibidosModo || null, id);
-    // El padre avisa 'aplicacion_lista' despues de lo que haga al quedar listos los tres: con ese
-    // aviso en cada uno, cualquier reenvio del modo (anterior, y a la misma ventana) ya ha llegado.
+    // Antes se esperaba el aviso 'aplicacion_lista' que el padre mandaba tras quedar listos los
+    // tres (retirado, paso 8.5 de la lavadora: ningun hijo tenia handler para el). La condicion
+    // real que ese aviso senalizaba era esta: los tres ya en hijosInicializados.
     for (const id of criticos) {
       await expect
-        .poll(async () => ((await recibidos(id)) || []).some((m) => m.evento === 'aplicacion_lista'), { timeout: 60_000 })
+        .poll(() => page.evaluate((i) => globalThis.estado?.hijosInicializados?.has(i) === true, id), { timeout: 60_000 })
         .toBe(true);
     }
 

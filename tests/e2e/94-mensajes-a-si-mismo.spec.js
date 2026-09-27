@@ -46,14 +46,7 @@ test.describe('AE — Lo que el padre se dice a sí mismo pasa por el bus', () =
     test.setTimeout(120_000);
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await page.addInitScript(() => {
-      if (globalThis.top !== globalThis) {
-        // En los hijos: apuntar el aviso de 'aplicacion_lista', que marca el final del arranque.
-        globalThis.__aplicacionLista = false;
-        globalThis.addEventListener('message', (ev) => {
-          if (ev.data?.tipo === 'SISTEMA.NOTIFICACION' && ev.data?.datos?.evento === 'aplicacion_lista') globalThis.__aplicacionLista = true;
-        }, true);
-        return;
-      }
+      if (globalThis.top !== globalThis) return;
       // Se mide al recibir, no sustituyendo postMessage: los hijos llaman al postMessage de esta
       // misma ventana para escribirle, y contarían como si fueran del padre. Aquí, un mensaje
       // cuya fuente es la propia ventana solo puede habérselo mandado el padre a sí mismo.
@@ -67,9 +60,12 @@ test.describe('AE — Lo que el padre se dice a sí mismo pasa por el bus', () =
     await gotoAndWaitForFase1(page);
     await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
 
+    // Fin del arranque = la condición real que dispara despacharLocal(APLICACION_INICIALIZADA)
+    // (paso 8.5 de la lavadora: el aviso 'aplicacion_lista' que antes marcaba este instante para
+    // los hijos se retiró — ningún hijo tenía handler que reaccionara a él).
     for (const id of ['hijo2', 'hijo3', 'hijo4']) {
       await expect
-        .poll(() => page.evaluate((i) => document.getElementById(i)?.contentWindow?.__aplicacionLista === true, id), { timeout: 60_000 })
+        .poll(() => page.evaluate((i) => globalThis.estado?.hijosInicializados?.has(i) === true, id), { timeout: 60_000 })
         .toBe(true);
     }
     expect(await page.evaluate(() => globalThis.__autoenvios), 'ningún postMessage a la propia ventana').toEqual([]);

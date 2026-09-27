@@ -1536,6 +1536,41 @@ del arreglo, confirmado: 2 limpiezas por el mismo cambio real; LU-2 y LU-3 de co
 antes del arreglo, confirman que reanudación y resincronización no se tocan); 41 specs de
 modo/reanudación/concurrencia/GPS sin romperse; recorrido con espía sin hallazgos nuevos.
 
+**8.5 — `SISTEMA.NOTIFICACION` con dos eventos, uno solo con consumidor (✅ cerrado).**
+`_hdl_APLICACION_INICIALIZADA` mandaba `SISTEMA.NOTIFICACION {evento:'aplicacion_lista'}` a TODOS
+los `hijosInicializados` al terminar el arranque (hijo2+hijo3+hijo4 con handshake completo).
+**Medido leyendo el cuerpo completo de cada handler del proyecto:** solo hijo2 y hijo4 registran
+un handler para `SISTEMA.NOTIFICACION`, y ese handler solo actúa si `evento === 'PENDING_INICIADO'`
+— cualquier otro valor, incluido `'aplicacion_lista'`, entra, se comprueba y se descarta sin hacer
+nada. `ensurePending()` mandaba además ese mismo `PENDING_INICIADO` a hijo3, que no tiene NINGÚN
+handler de `SISTEMA.NOTIFICACION` — ese envío tampoco tenía consumidor (hijo2 y hijo4 sí lo
+consumen: cada uno registra su propio handler y actúa sobre `evento === 'PENDING_INICIADO'`, ninguno
+de los dos se toca). En la misma pasada, mismo patrón: `_broadcastActivacion()` (llamado desde
+`_hdl_SELECCION_AVENTURA_ACTIVADA` tras distribuir datos) mandaba `SISTEMA.NOTIFICACION
+{evento:'AVENTURA_ACTIVADA'}` a broadcast — mismo resultado, ningún handler del proyecto reacciona a
+ese valor de `evento`. Se retiró el broadcast `aplicacion_lista` en `_hdl_APLICACION_INICIALIZADA`
+(queda puramente informativo: registra el evento y ya), el envío a hijo3 en `ensurePending()`, y
+`_broadcastActivacion()` completo junto con su único punto de llamada. Los dos eventos con
+consumidor real — `PENDING_INICIADO` hacia hijo2 y hacia hijo4 — no se tocan. Verificado: spec 101
+nueva (NO-1 y NO-2 en rojo antes del arreglo, confirmado con espía de `postMessage` en
+hijo2/hijo3/hijo4 escuchando en directo; NO-3 de control, ya en verde antes del arreglo, confirma que
+`PENDING_INICIADO` hacia hijo2 sigue llegando); spec 94 (AE-2) usaba el broadcast retirado solo como
+señal de temporización
+para saber que el arranque había terminado — no por su contenido — así que se adaptó para esperar
+la condición real subyacente (`estado.hijosInicializados.has(id)` de hijo2/hijo3/hijo4) en vez del
+broadcast ya inexistente; recorrido con espía sin hallazgos nuevos.
+
+**Queda para más adelante, fuera de este sub-ítem:** la misma investigación encontró otros tres
+envíos de aviso sin consumidor — `cambio_modo_iniciado`, `cambio_modo_completado` y
+`restauracion_modo` (`js/app.js`: `notificarCambioModoInminente`, `notificarCambioModoCompletado`,
+`restaurarEstadoModoAnterior`) — confirmados muertos tanto por lectura de código como por la propia
+`docs/GUIA-COMPLETA.md`, que ya documenta correctamente "Ningún hijo actual tiene handler para
+ellos" (no hizo falta corregir la guía). No se tocan en este sub-ítem: a diferencia de los
+broadcasts de arriba (fire-and-forget, aislados), estos son pasos inline, `await`-eados, con guarda
+de timeout de 15s, dentro del mismo pipeline central de cambio de modo que el sub-ítem 8.4 ya tocó
+una vez esta sesión — superficie de riesgo mayor y distinta, se aparca como hallazgo apuntado, no
+arreglado (paso 9, "lo muerto").
+
 ---
 
 ## Parte VII — Hallazgos colaterales

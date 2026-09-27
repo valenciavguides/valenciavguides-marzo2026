@@ -8055,26 +8055,11 @@
                     componentesListos: Array.from(estado.hijosInicializados)
                 });
 
-                for (const hijoId of estado.hijosInicializados) {
-                    try {
-                        if (typeof enviarMensaje_S1 === 'function') {
-                            await enviarMensaje_S1({
-                                tipo: TIPOS_MENSAJE_S1.SISTEMA.NOTIFICACION,
-                                destino: hijoId,
-                                datos: {
-                                    evento: 'aplicacion_lista',
-                                    timestamp,
-                                    totalComponentes,
-                                    estado: 'operativo'
-                                }
-                            });
-                        } else {
-                            (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible para notificación`);
-                        }
-                    } catch (error) {
-                        (globalThis.logger || console).warn(`${logPrefix} Error notificando a ${hijoId}:`, error);
-                    }
-                }
+                // Un solo camino (paso 8.5 de la lavadora): SISTEMA.NOTIFICACION llevaba dos
+                // eventos, y ningún hijo tiene handler para 'aplicacion_lista' — hijo2 e hijo4
+                // son los únicos con handler de SISTEMA.NOTIFICACION, y solo actúan si
+                // evento==='PENDING_INICIADO' (ensurePending()); cualquier otro valor, incluido
+                // este, se descarta sin hacer nada. Retirado el broadcast a hijosInicializados.
 
                 (globalThis.logger || console).success(`${logPrefix} ✅ Sistema completamente operativo`);
 
@@ -10224,9 +10209,11 @@ await _comprobarReanudacionAventura(logPrefix);
                     try { await populatePendingCoords(key); } catch (err) { (globalThis.logger || console).debug('[PADRE][PENDING] populatePendingCoords failed:', err); }
                 })();
                 try {
+                    // Un solo camino (paso 8.5 de la lavadora): hijo3 no registra ningún
+                    // handler para SISTEMA.NOTIFICACION — el envío no tenía consumidor. Solo
+                    // hijo2 y hijo4 actúan sobre PENDING_INICIADO.
                     const notifyData = { evento: 'PENDING_INICIADO', padreId: key, ttlMs: estado.pendingCompleciones[key].ttlMs };
                     enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo2', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo2:', e?.message)); // NOSONAR
-                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo3', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo3:', e?.message)); // NOSONAR
                     enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo4', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo4:', e?.message)); // NOSONAR
                 } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
             }
@@ -13419,14 +13406,6 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _broadcastActivacion(aventura, idioma, logPrefix) {
-            try {
-                await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'broadcast', datos: { evento: 'AVENTURA_ACTIVADA', aventura, idioma: idioma || 'es', timestamp: Date.now() } });
-            } catch (broadcastError) {
-                (globalThis.logger || console).warn(`${logPrefix} Error en broadcast de activación:`, broadcastError);
-            }
-        }
-
         async function _hdl_SELECCION_AVENTURA_ACTIVADA(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SELECCION.ACTIVADA]`;
             (globalThis.logger || console).info('🎯 [PADRE] AVENTURA_ACTIVADA RECIBIDO:', mensaje);
@@ -13490,7 +13469,11 @@ await _comprobarReanudacionAventura(logPrefix);
                 updateLoadingStatus('Datos distribuidos', 'Aplicando interfaz final', 82);
 
                 _mostrarUIActivada(logPrefix);
-                await _broadcastActivacion(aventura, idioma, logPrefix);
+                // Un solo camino (paso 8.5 de la lavadora): el broadcast SISTEMA.NOTIFICACION
+                // {evento:'AVENTURA_ACTIVADA'} se retiró — ningún frame del proyecto registra
+                // handler de SISTEMA.NOTIFICACION salvo hijo2/hijo4, y ambos solo actúan sobre
+                // 'PENDING_INICIADO'. Verificado por grep en las 10 páginas del censo, no con un
+                // test dedicado (el flujo de activación real es costoso de montar aislado).
 
                 if (globalThis._devModeActivo) {
                     updateLoadingStatus('Aventura lista', 'Entrando en modo CASA', 100);
