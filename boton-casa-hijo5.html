@@ -524,14 +524,21 @@
         }
     }
 
-    function _esParadaValida(p, logPrefix) {
+    function _esParadaValida(p, _logPrefix) {
+        // Lo muerto (paso 9 de la lavadora): dos guardas inalcanzables, medidas y retiradas.
+        // _transformarParadaPadre() (arriba) construye `p` justo antes de esta llamada y
+        // rellena SIEMPRE dos campos con un valor por defecto cuando el original no los trae:
+        //   - `ubicacion`: `{lat:0, lng:0}` si no hay `paradaPadre.coordenadas` — el caso de
+        //     TODAS (DATOS_PADRE/elementosIDpadre nunca trae coordenadas). `typeof 0 ===
+        //     'number'`, así que la comprobación `typeof p.ubicacion.lat !== 'number'` nunca
+        //     era cierta.
+        //   - `nombre`: `` `Parada ${paradaPadre.parada_id}` `` si no hay `paradaPadre.nombre`
+        //     — siempre una cadena no vacía, así que `!p.nombre` tampoco lo era nunca.
+        // Solo queda una comprobación real: `id`/`padreid` y `parada_id` no tienen ningún
+        // valor por defecto en _transformarParadaPadre, así que una parada sin ninguno de los
+        // dos sí puede llegar aquí y sí debe rechazarse.
         if (!p || typeof p !== 'object') return false;
         if (!p.id && !p.parada_id) return false;
-        if (!p.nombre) return false;
-        if (!p.ubicacion || typeof p.ubicacion.lat !== 'number' || typeof p.ubicacion.lng !== 'number') {
-            logger.debug(`${logPrefix} Parada ${p.id} sin coordenadas válidas, solicitando a hijo2`);
-            return true;
-        }
         return true;
     }
 

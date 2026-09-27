@@ -1784,6 +1784,22 @@ romperse; 147 specs de pagehide/bfcache/mapa/GPS/modo/reanudación/arranque en c
 romperse; recorrido con espía sin hallazgos nuevos. Con esto, F4 queda arreglado del todo (antes
 solo lo estaba a medias, según dejó anotado §0 del propio plan).
 
+**Guarda inalcanzable en `_esParadaValida()` (✅ cerrado, hallazgo apuntado en el paso 8.2).**
+`_esParadaValida()` (`boton-casa-hijo5.html`) comprobaba `p.ubicacion.lat`/`lng` (¿coordenadas
+reales?) y `!p.nombre` (¿tiene nombre?). Pero `_transformarParadaPadre()`, que construye `p` justo
+antes de esta llamada, rellena SIEMPRE ambos campos con un valor por defecto cuando el original no
+los trae: `ubicacion: {lat:0, lng:0}` (nunca hay `paradaPadre.coordenadas` — `DATOS_PADRE`/
+`elementosIDpadre`, paso 8.2, no trae coordenadas) y `` nombre: `Parada ${parada_id}` `` (siempre
+una cadena no vacía). `typeof 0 === 'number'` y una cadena no vacía nunca es falsy, así que
+ninguna de las dos comprobaciones era alcanzable jamás, para ninguna parada real — el hallazgo
+original de 8.2 decía "siempre `true`"; medido ahora con precisión, es "`true` salvo por la única
+comprobación que sí puede fallar: falta de `id`/`padreid` y `parada_id`, que `_transformarParadaPadre()`
+no rellena con ningún valor por defecto". Retiradas las dos ramas inalcanzables, sin cambiar el
+resultado. Verificado: spec 109 nueva (sin rojo/verde — limpieza de código muerto sin cambio de
+comportamiento; confirma con un mensaje real `NAVEGACION.RESPUESTA_DATOS_PARADAS` que una parada
+sin `id` ni `parada_id` se descarta y una sin `nombre` no, vía el `count` real de `PARADAS.READY`);
+24 specs de hijo5 en chromium sin romperse; recorrido con espía sin hallazgos nuevos.
+
 ---
 
 ## Parte VII — Hallazgos colaterales
