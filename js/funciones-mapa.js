@@ -3319,7 +3319,16 @@ logger.info('[FUNCIONES-MAPA] ✅ Funciones GPS expuestas globalmente');
 
 // Limpieza agresiva de globales al descargar la página
 if (globalThis.window !== undefined) {
-    globalThis.addEventListener('pagehide', () => {
+    globalThis.addEventListener('pagehide', (evento) => {
+        // `pagehide` cubre dos viajes distintos: la pagina se cierra de verdad, o el
+        // navegador la congela en su cache de atras (bfcache) y puede devolverla viva
+        // (`event.persisted`). Sin esta condicion, volver atras encontraba el mapa
+        // destruido y globalThis.funcionesMapa borrado — mismo motivo que _limpiarPagehide
+        // en codigo-padre.html (F4, docs/mensajeria-duplicada-en-hijos.md).
+        if (evento?.persisted === true) {
+            logger.info('[funciones-mapa] pagehide con persisted: la pagina se guarda en la cache de atras, NO se limpia nada');
+            return;
+        }
         try {
             // Limpiar globales del mapa agresivamente
             if (globalThis.funcionesMapa) {

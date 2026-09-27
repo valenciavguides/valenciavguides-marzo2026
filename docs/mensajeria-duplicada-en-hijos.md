@@ -2,7 +2,7 @@
 
 Documento de trabajo. Recoge **todo** lo que hay hoy en la comunicación entre frames de la
 app, los fallos que eso esconde y lo que exige unificarla. **El bus está construido y los diez
-frames hablan ya por él**; de los cinco fallos vivos solo queda un resto de F4 (§0). Falta la parte
+frames hablan ya por él**; los cinco fallos vivos están arreglados del todo (§0). Falta la parte
 del padre y la limpieza: el orden está en la Parte V ("La lavadora").
 
 Los números de línea son aproximados: se desplazan con cada edición.
@@ -31,7 +31,7 @@ no.**
 ### Orden
 
 F1 → F5 → diseño del bus → migración (Parte V). F2 se arregla dentro de la migración; F3 y F4,
-cuando toque. **Los cinco están arreglados y commiteados** (F2 y F3 cayeron al migrar; F4, al separar en el `pagehide` del padre el cierre real del viaje a la caché de atrás). **F4 está arreglado solo a medias:** en la misma ventana del padre, `js/app.js` y `js/funciones-mapa.js` tienen su propio `pagehide` y siguen limpiando sin mirar `persisted` —borran `globalThis.estado` y `funcionesMapa` y destruyen el mapa—. El spec 77 no lo ve porque solo cuenta los iframes.
+cuando toque. **Los cinco están arreglados y commiteados** (F2 y F3 cayeron al migrar; F4, al separar en el `pagehide` del padre el cierre real del viaje a la caché de atrás, y — paso 9 de la lavadora — al aplicar la misma guarda de `persisted` a los otros dos `pagehide` de la misma ventana, en `js/app.js` y `js/funciones-mapa.js`, que hasta entonces seguían limpiando `globalThis.estado`/`funcionesMapa` y destruyendo el mapa sin mirar ese campo; el spec 77 no lo veía porque solo cuenta iframes, cubierto ahora por el spec 108).
 
 ### Decisiones de diseño (tomadas)
 
@@ -1763,6 +1763,26 @@ vez se hubiera usado de verdad. Retirada la función completa (dev-console-only,
 la mencionara). Verificado: spec 107 nueva (confirma que `globalThis.diagnosticarHijo4` ya no
 existe); 52 specs de hijo4/reto/puzzle en chromium sin romperse; recorrido con espía sin hallazgos
 nuevos.
+
+**El resto de F4 (✅ cerrado).** El padre ya separaba los dos viajes de `pagehide` en su propio
+`_limpiarPagehide` (cierre real vs. guardado en la cache de atrás bfcache, `event.persisted`;
+spec 77). Pero en la MISMA ventana del padre, `js/app.js` y `js/funciones-mapa.js` registraban su
+PROPIO listener de `pagehide`, cada uno con su propia "limpieza agresiva de globales", y ninguno
+de los dos miraba `persisted`: borraban `globalThis.estado` (app.js) y `globalThis.funcionesMapa`
++ destruían la instancia del mapa (funciones-mapa.js) igual si la página se cerraba de verdad que
+si el navegador solo la congelaba para la cache de atrás. El spec 77 no lo detectaba porque solo
+cuenta iframes. Medido con los mismos dos eventos sintéticos que usa el spec 77
+(`PageTransitionEvent('pagehide'/'pageshow', {persisted:true})` — los cuatro navegadores de
+Playwright nunca restauran de verdad desde bfcache): antes del arreglo, `globalThis.estado` y
+`globalThis.funcionesMapa` quedaban borrados tras el viaje. Aplicado el mismo patrón que
+`_limpiarPagehide`: ambos listeners aceptan ahora el evento y devuelven pronto si
+`evento?.persisted === true`, sin tocar nada. Verificado: spec 108 nueva (AJ-1 y AJ-2 en rojo antes
+del arreglo, confirmado: los dos globales desaparecían; AJ-3 de control, ya en verde antes del
+arreglo y sigue en verde — un cierre real sin `persisted` sigue limpiando los dos globales, la
+guarda nueva no apaga la limpieza real); spec 77 (VA-1/VA-2, la comprobación gemela del padre) sin
+romperse; 147 specs de pagehide/bfcache/mapa/GPS/modo/reanudación/arranque en chromium sin
+romperse; recorrido con espía sin hallazgos nuevos. Con esto, F4 queda arreglado del todo (antes
+solo lo estaba a medias, según dejó anotado §0 del propio plan).
 
 ---
 
