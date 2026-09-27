@@ -857,9 +857,10 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
    acuse y por mensaje aparte) y los avisos de error o `NACK` que el padre manda a hijos que no los
    escuchan. Los diez sub-ítems (8.1-8.10) cerrados en §25.17; ninguno abrió una decisión de diseño
    separada (12/13/14 no llegaron a materializarse).
-9. **Lo muerto** (§23): confirmaciones informativas, `DATOS.CARGADOS_RECIBIDO`, guardas
+9. ✅ **Lo muerto** (§23): confirmaciones informativas, `DATOS.CARGADOS_RECIBIDO`, guardas
    inalcanzables, el segundo cargador de hijo4 (asigna `src` sin registrar el iframe), el resto de
-   F4 (§0) y lo que deje sin uso cada paso anterior.
+   F4 (§0) y lo que deje sin uso cada paso anterior. Cerrado en §25.18, incluidos los tres avisos
+   `cambio_modo_*`/`restauracion_modo` apuntados en el paso 8.5.
 10. **Estudio completo desde el inicio de la migración**, para lo que se haya escapado.
 11. **Guía.**
 12. **Auditoría de 28 ejes y auditoría inversa; tanda final de los cuatro navegadores.**
@@ -1431,7 +1432,7 @@ verde); specs 78 y 89 (89 pierde su exclusión `DE_SCRIPT_4`, que su propio come
 82 specs de contrato/registro/handshake sin romperse; recorrido con espía sin hallazgos nuevos.
 Cascada de ~30 menciones corregida en `docs/GUIA-COMPLETA.md`.
 
-### 25.17. Paso 8 de la lavadora: un solo camino donde hoy hay dos (en curso)
+### 25.17. Paso 8 de la lavadora: un solo camino donde hoy hay dos (✅ cerrado)
 
 Diez duplicaciones bajo un mismo paso — mucho más grande que los anteriores. Se registra el avance
 sub-ítem a sub-ítem, cada uno con su propio commit, en vez de un solo commit al final.
