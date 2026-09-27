@@ -1571,6 +1571,32 @@ de timeout de 15s, dentro del mismo pipeline central de cambio de modo que el su
 una vez esta sesión — superficie de riesgo mayor y distinta, se aparca como hallazgo apuntado, no
 arreglado (paso 9, "lo muerto").
 
+**8.6 — Carga de datos de hijo2 empujada y pedida (✅ cerrado, investigado — sin duplicación real).**
+Coordenadas y textos llegan a hijo2 por dos caminos nombrados así en el checklist: `distribuirDatosAventura()`
+empuja `DATOS.CARGAR_COORDENADAS`/`DATOS.CARGAR_TEXTOS` cuando hijo2 ya está en `hijosInicializados`
+en el momento de la activación; si no lo está, se limita a loguear que hijo2 los pedirá él mismo. El
+propio hijo2, 3 segundos después de `PADRE_CONFIRMA_HIJO_LISTO`, comprueba si
+`globalThis.__vv_coordenadasAventura`/`__vv_textosAventura` siguen vacíos y, solo entonces, manda
+`DATOS.SOLICITAR_COORDENADAS`/`DATOS.SOLICITAR_TEXTOS` — que el padre responde reenviando el mismo
+`CARGAR_*` (`js/controladores-padre.js`). **Investigado a fondo, con medición en vivo, antes de tocar
+nada (regla 6/9):** un spec desechable escuchó en la ventana de hijo2 durante una activación real
+completa (`distribuirDatosAventura('Aventura1','es')` tras cargar los datos diferidos) y esperó más
+de los 3 segundos del temporizador de hijo2 — solo llegaron los dos `CARGAR_*`, nunca un
+`SOLICITAR_*`: el empuje llega dentro del margen y el temporizador de respaldo no se dispara. Se
+revisó también si algún mecanismo del padre reintenta el empuje cuando hijo2 no está listo en el
+momento de `distribuirDatosAventura()` (la rama `else` que solo loguea) — no existe: `__pendingDistribucion`
+(usado en otros 3 sitios) cubre un fallo distinto (la función `distribuirDatosAventura` aún no
+definida), no la falta de hijo2 en `hijosInicializados`. En ese caso el único camino de recuperación
+es el temporizador de hijo2, y es correcto: no hay un segundo emisor compitiendo con él. **Veredicto:
+no es la misma clase de hallazgo que 8.1-8.5** — ahí dos mecanismos competían o uno estaba muerto;
+aquí hay un único camino primario (empuje) con un único camino de respaldo (petición), mutuamente
+excluyentes por diseño y confirmados así por medición, no solo por lectura. No se ha tocado código:
+no hay nada que unificar. Se revisó de paso `NAVEGACION.SOLICITAR_COORDENADAS`
+(`js/funciones-mapa.js` → hijo2), que a primera vista suena a lo mismo por el nombre — es un
+mecanismo distinto y ya de un solo camino (§9.11/manejarCambiarParada: caché local del padre primero,
+esta consulta a hijo2 solo como "Ruta 2" cuando la parada no está en caché), sin relación con la
+carga de coordenadas/textos en bloque.
+
 ---
 
 ## Parte VII — Hallazgos colaterales
