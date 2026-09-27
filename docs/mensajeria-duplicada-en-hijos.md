@@ -864,7 +864,8 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
 10. ✅ **Estudio completo desde el inicio de la migración**, para lo que se haya escapado. Cerrado
     en §25.19: `SISTEMA.ADVERTENCIA` retirado (sin emisor real); tabla de §37.3 de GUIA-COMPLETA.md
     regenerada y corregida.
-11. **Guía.**
+11. ✅ **Guía.** Cerrado en §25.20: §32.1 reescrita entera (describía un `messagingAdapter` que ya
+    no existe); §10.25 nueva, el contrato del bus (21 garantías) con sección propia.
 12. **Auditoría de 28 ejes y auditoría inversa; tanda final de los cuatro navegadores.**
 
 F4 (`pagehide`): la parte de los hijos desapareció con la migración —el bus no
@@ -1917,6 +1918,59 @@ catálogo, §10.5 subsección de handler, tabla de scope de Script 2, tabla EJE 
 
 Verificado en conjunto: lint limpio; 193 specs de la sesión (constants/padre/arranque/modo/
 navegacion-externa/escuchas) en chromium sin romperse; `grep -c` de fechas en GUIA-COMPLETA.md = 0.
+
+---
+
+### 25.20. Paso 11 de la lavadora: Guía (✅ cerrado)
+
+Cita del plan (§18, Parte IV — escrita antes de empezar la lavadora): *"Afirmaciones que chocan
+con el código: §10.5 FASE 9 describe la regla estricta como contrato y dice que hijo2 la cumple.
+hijo2 es el único que no la tiene. §33.4 documenta los nombres del padre... y lo da por inofensivo
+'porque no rompe el enrutamiento'. Con doble papel sí lo rompe. §32.1 enseña como 'patrón
+correcto' la limpieza en pagehide que deja el frame sordo al volver de la caché: da por hecho que
+pagehide significa que la página muere. §10.17 afirma que los errores no controlados de los hijos
+'viajan al padre' (hoy no llegan, F2) y presenta como patrón las confirmaciones informativas, que
+nadie escucha."* Y el ítem 10 del plan propuesto original (Parte V): *"Guía: reescribir las
+secciones de §18 y dar al contrato una sección propia."*
+
+De las 4 secciones citadas en §18, 3 ya estaban corregidas por pasos anteriores de esta misma
+lavadora (F2 cayó al migrar la pantalla de selección — paso 2; F3 con el arreglo de hijo1→hijo3 —
+paso 2/3; los nombres del padre, con la identidad puesta por el bus — paso 1): verificado leyendo
+el texto actual de §10.5 (ya dice "mismo contrato que cumple hijo2"), §33.4 (ya dice "ninguna de
+las dos firma mensajes del bus... el origen lo pone el bus") y §10.17 (ya describe la captura
+automática real de `instalarReporteErroresAlPadre`, sin rastro de "confirmaciones informativas").
+
+**§32.1 seguía completamente desactualizada — el único hallazgo real de este paso.** Describía
+`messagingAdapter._listenerRegistry.clear()` como el mecanismo de limpieza, y presentaba como
+"patrón correcto" un fragmento de código que llama a `globalThis.messagingAdapter` — un objeto que
+NO EXISTE en ningún fichero del proyecto (`messagingAdapter` solo aparece como nombre de variable
+en 3 tests que comprueban que la capa antigua no reapareció, y como comentario histórico en
+`js/mensajeria.js`). Era el envoltorio por-hijo de antes de la unificación ("opción A"), reemplazado
+enteramente por `js/mensajeria.js` compartido. Medido el estado real: el único mecanismo de
+dedup hoy es el propio `registrarControlador()` del bus (se queda el primer registro, el segundo
+se rechaza con `logger.error`, nunca en silencio); `codigo-padre.html` añade
+`__CONTROLADOR_REGISTRADOS` como capa extra propia por su arquitectura de 5 scripts; el patrón
+`pagehide` correcto de hoy es `_limpiarPagehide()` (padre) y las guardas gemelas de `js/app.js`/
+`js/funciones-mapa.js` del paso 9 (persisted-aware, spec 108) — nada de eso limpia "listeners de
+mensajería" porque no hay ninguno que limpiar. De paso, medido que de los 6 hijos solo
+coordenadas-hijo2.html y audio-hijo3.html registran su propio `pagehide`, y ninguno toca
+mensajería: hijo2 pone un campo puramente diagnóstico (`estadoComponente.inicializado`, solo lo
+lee el payload de `HEARTBEAT_RESPONSE`, cero efecto funcional) sin mirar `persisted` — hallazgo
+menor, cosmético, no se arregla porque no cambia ningún comportamiento observable; hijo3 solo
+escribe un log. Reescrita la sección entera con el mecanismo real.
+
+**Contrato con sección propia — nueva §10.25.** El contrato del bus (`tests/e2e/79-bus-contrato.spec.js`)
+no tenía una sección dedicada: sus garantías estaban dispersas y citadas sueltas en otras
+subsecciones (§10.6, identidad en §10.x). Medido: el contrato creció de los "15 casos" que
+mencionaba el plan original a 21 (BC-0 a BC-20, con BC-12 en tres partes) según fue creciendo la
+lavadora — identidad (paso 1) y destino obligatorio (paso 3) añadieron sus propios casos.
+Escrita §10.25 con las 21 garantías agrupadas por tema (enrutamiento, identidad, destino, acuse y
+fallos de handler, mensajes a sí mismo, latido), usando los títulos de los tests como enunciado —
+son ya la descripción exacta y verificada de cada garantía, no una paráfrasis.
+
+Verificado: los 23 tests de spec 79 (BC-0 a BC-20) en chromium, todos en verde, confirmando que la
+nueva sección describe exactamente lo que el código de hoy hace; `grep -c` de fechas en
+GUIA-COMPLETA.md = 0. Sin cambio de código: paso puramente documental.
 
 ---
 

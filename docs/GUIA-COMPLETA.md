@@ -6187,6 +6187,70 @@ export const MAPEO_IDIOMAS = {
 
 ---
 
+### 10.25 El contrato del bus — 21 garantías, `tests/e2e/79-bus-contrato.spec.js`
+
+Todo lo anterior de esta sección describe mensajes concretos; esto describe el bus mismo — lo
+que cualquier mensaje, de cualquier tipo, puede dar por hecho. Las 21 garantías (BC-0 a BC-20,
+con BC-12 en tres partes) son lo primero que se rompería si alguien tocara `js/mensajeria.js` sin
+volver a leer este apartado.
+
+**Enrutamiento**
+
+| Caso | Garantía |
+|---|---|
+| BC-1 | Un envío "arriba" llega al padre, "abajo" a un hijo, y `'broadcast'` a todos los hijos — nunca sube a un contenedor ni baja a los nietos de otro hijo |
+| BC-2 | Un iframe sin `registrarIframe()` no llega a ningún handler; el propio frame emisor sí recibe lo que se envía a sí mismo |
+| BC-8 | Tras `desregistrarIframe`: ni el padre le envía nada, ni se aceptan mensajes que digan venir de él |
+| BC-18 | Enviarse algo a uno mismo por `enviarMensaje` no sale y avisa — para eso está `despacharLocal` |
+
+**Identidad — el bus pone el `origen`, no quien llama**
+
+| Caso | Garantía |
+|---|---|
+| BC-3 | Un mensaje sin `origen` se descarta y se avisa |
+| BC-15 | El `origen` lo pone el bus del frame que envía; el que pase quien llama a la función se ignora |
+| BC-16 | Un iframe registrado que dice ser otro (`origen` no coincide con su nombre de registro) se descarta y se avisa |
+| BC-17 | Con el bus importado pero sin `inicializarMensajeria()` todavía, no se envía nada |
+
+**Destino**
+
+| Caso | Garantía |
+|---|---|
+| BC-19 | Un envío sin `destino` no sale y avisa |
+| BC-20 | `destino: 'todos'` ya NO es alias de `'broadcast'` — solo `'broadcast'` hace ese envío |
+
+**Acuse y fallos de handler**
+
+| Caso | Garantía |
+|---|---|
+| BC-4 | Un envío con acuse resuelve con lo que devuelve el handler, y rechaza con el motivo si falla |
+| BC-5 | Sin ningún handler registrado para el tipo, no se contesta nada: el emisor agota su plazo y se avisa (distinto de un handler que sí existe y falla — eso SÍ contesta, ver BC-4) |
+| BC-6 | Registrar dos veces el mismo tipo en el mismo frame es un error ruidoso (`logger.error`); se queda el primer handler, el segundo se ignora |
+| BC-9 | La fila de mensajes de un tipo sobrevive a un fallo sin objeto `Error` real (un `throw` de un valor no-Error no la deja atascada) |
+| BC-13 | Un handler que lanza no deja una promesa rechazada sin dueño — `instalarReporteErroresAlPadre` no la reporta dos veces |
+| BC-14 | Un handler que no termina nunca no deja su tipo parado para siempre: pasados `PLAZO_MAX_HANDLER` (20 s), la fila avanza sin él (§10.6) |
+
+**Mensajes a sí mismo**
+
+| Caso | Garantía |
+|---|---|
+| BC-10 | `despacharLocal` pasa por la MISMA fila por tipo que un mensaje llegado de fuera — mismo orden, mismo serializado |
+| BC-11 | Un error sin capturar en un nieto llega al padre por `SISTEMA.ERROR`, con el nombre del nieto como `origen` (reenviado por su contenedor) |
+
+**Latido (heartbeat)**
+
+| Caso | Garantía |
+|---|---|
+| BC-12a | El latido vigila TODOS los iframes registrados, no una lista aparte |
+| BC-12b | Tras tres fallos de latido seguidos, se recarga solo el hijo marcado `recuperable`; el resto, solo aviso |
+| BC-12c | `adelantarLatido()` respeta la pausa (no late si está pausado) y, si está activo, late al instante en vez de esperar al intervalo |
+
+Control: BC-0 monta el arnés con el bus real y la jerarquía correcta (padre → hijo → nieto) —
+si BC-0 falla, ninguno de los otros 20 casos es fiable, porque el problema está en el montaje,
+no en el bus.
+
+---
+
 ## 11. El mapa y el GPS
 
 ### Tecnología usada
@@ -12407,32 +12471,55 @@ Esta sección documenta restricciones de diseño que no deben violarse. Son inva
 
 ---
 
-### 32.1 Limpieza de listeners: únicamente en `pagehide`
+### 32.1 Registro de handlers y limpieza en `pagehide`
 
-`messagingAdapter._listenerRegistry.clear()` solo puede llamarse en el handler de `pagehide`. En cualquier otro contexto — incluyendo `CAMBIO_MODO`, cambios de aventura, o reinicio de estado — esta llamada deja al iframe permanentemente sordo.
+**El objeto `messagingAdapter` de este apartado no existe.** Era el envoltorio propio que cada
+hijo mantenía antes de la unificación de la mensajería ("opción A"): cada frame corría su propia
+copia de la lógica de envío/registro. Desde esa unificación los 10 frames (padre, los 6 hijos y
+los 3 nietos) hablan por el mismo `js/mensajeria.js`, y ningún fichero del proyecto define ni lee
+`messagingAdapter` ni `_listenerRegistry` — solo quedan como nombre de variable en tres tests que
+comprueban justamente que la capa antigua no reapareció, y como comentario histórico en
+`js/mensajeria.js` explicando por qué existe `tieneControlador(tipo)` (la introspección pública
+que sustituye a fisgonear `_listenerRegistry` desde fuera).
 
-**Por qué es irreversible:** `registrarControladorSeguro` usa el Set interno `__CONTROLADOR_REGISTRADOS` para evitar registros duplicados. Una vez que un handler ha sido registrado y luego borrado del registry, el flag de registro persiste → en la siguiente llamada a `registrarControladorSeguro`, el sistema detecta que ya fue registrado y no lo vuelve a añadir → el iframe no recibe ese mensaje nunca más, sin ningún error en consola.
+**Registro duplicado hoy: un solo camino, rechazado con aviso.** `registrarControlador()`
+(`js/mensajeria.js`) es el único punto real de registro — cada hijo expone
+`registrarControladorSeguro` como alias directo de `bus.registrarControlador`, sin envoltorio
+propio. Si dos registros compiten por el mismo `tipo` en el mismo frame, gana el primero y el
+segundo se rechaza con `logger.error(...)` explícito (`"ya tiene un handler para X: se queda el
+primero y este se ignora"`) — nunca en silencio, nunca sobrescrito. `codigo-padre.html` añade
+una capa extra propia, `__CONTROLADOR_REGISTRADOS` (un `Set`), porque su arquitectura de 5
+`<script type="module">` con scope separado (ver §14 raíz de este documento) puede reintentar el
+registro de la misma función entre scripts o tras una re-inicialización; los hijos, al ser un
+único script por fichero, no lo necesitan.
 
-**Efectos en cascada si se limpia en `CAMBIO_MODO`:**
-
-- hijo3 pierde su handler de `HEARTBEAT` y `CONTROL.HABILITAR` → `#retosBtn` nunca se habilita
-- hijo4 pierde su handler de `RETO.MOSTRAR` → panel de retos permanece vacío
-- El heartbeat detecta falsos negativos (no recibe ACK) y recarga iframes innecesariamente
-
-**Dónde sí debe estar la limpieza** (patrón correcto — todos los hijos excepto hijo6):
+**El patrón correcto de `pagehide` hoy es `_limpiarPagehide()`, en `codigo-padre.html`** —
+persisted-aware desde el paso 9 de la lavadora (`docs/mensajeria-duplicada-en-hijos.md` §25.18):
 
 ```javascript
-globalThis.addEventListener('pagehide', function() {
-    if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
-        for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
-            globalThis.removeEventListener('message', listener);
-        }
-        globalThis.messagingAdapter._listenerRegistry.clear();
+function _limpiarPagehide(evento) {
+    if (evento?.persisted === true) {
+        logger.info('pagehide con persisted: la pagina se guarda en la cache de atras, NO se limpia nada');
+        return;
     }
-});
+    // cierre real: retira iframes, para intervalos/timers, detiene el heartbeat,
+    // y solo AQUÍ vacía __CONTROLADOR_REGISTRADOS y globalThis.controladores
+}
+globalThis.addEventListener('pagehide', _limpiarPagehide);
 ```
 
-**El primer argumento es `'message'`, no la clave del `Map`** — ver §28.3 para por qué recorrer `.values()` en vez de `[tipo, fn]`.
+`js/app.js` y `js/funciones-mapa.js` registran cada uno su propio `pagehide` en la MISMA ventana
+del padre, con la misma guarda `persisted` (paso 9, spec 108) — las tres limpiezas del padre
+conviven, cada una revisando el campo antes de tocar nada.
+
+**De los 6 hijos, solo dos registran su propio `pagehide`, y ninguno limpia mensajería:**
+`coordenadas-hijo2.html` pone `estadoComponente.inicializado = false` (un campo puramente
+diagnóstico: su único lector es el payload de `HEARTBEAT_RESPONSE`, que nadie usa para decidir
+nada) sin mirar `persisted` — una vuelta desde la caché de atrás le hace reportar "inicializando"
+en vez de "activo" en ese diagnóstico, sin ningún efecto funcional; `audio-hijo3.html` solo
+escribe un log y no toca nada. hijo1, hijo4, hijo5 y hijo6 no registran `pagehide` en absoluto.
+Ninguno de los seis necesita limpiar handlers de mensajería al salir: el bus no dejaba huérfanos
+que limpiar desde que dejó de existir el envoltorio por hijo.
 
 Para el estado por archivo, ver §28.5.
 
