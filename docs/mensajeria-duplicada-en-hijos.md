@@ -1713,7 +1713,7 @@ que ninguno abriera una bifurcación de diseño genuina que necesitara registrar
 
 ---
 
-### 25.18. Paso 9 de la lavadora: lo muerto (en curso)
+### 25.18. Paso 9 de la lavadora: lo muerto (✅ cerrado)
 
 **`DATOS.CARGADOS_RECIBIDO` (✅ cerrado).** Fase 3 de un patrón bidireccional sin destinatario real:
 hijo2 confirma que cargó coordenadas/textos (`DATOS.COORDENADAS_CARGADAS`/`DATOS.TEXTOS_CARGADOS`),
@@ -1799,6 +1799,49 @@ resultado. Verificado: spec 109 nueva (sin rojo/verde — limpieza de código mu
 comportamiento; confirma con un mensaje real `NAVEGACION.RESPUESTA_DATOS_PARADAS` que una parada
 sin `id` ni `parada_id` se descarta y una sin `nombre` no, vía el `count` real de `PARADAS.READY`);
 24 specs de hijo5 en chromium sin romperse; recorrido con espía sin hallazgos nuevos.
+
+**Los avisos `cambio_modo_*`/`restauracion_modo` (✅ cerrado, hallazgo apuntado en el paso 8.5).**
+El pipeline de `SISTEMA.CAMBIO_MODO` en `js/app.js` mandaba tres broadcasts adicionales de
+`SISTEMA.NOTIFICACION` por `datos.tipo` (no `datos.evento`): `'cambio_modo_iniciado'` (antes del
+cambio, desde `notificarCambioModoInminente()`), `'cambio_modo_completado'` (tras aplicarlo, desde
+`notificarCambioModoCompletado()`) y `'restauracion_modo'` (si falla y se restaura el modo
+anterior, desde dentro de `restaurarEstadoModoAnterior()`). Los únicos handlers de
+`SISTEMA.NOTIFICACION` del proyecto (hijo2, hijo4 — ver §10.16) solo miran `mensaje.datos?.evento`,
+nunca `datos.tipo`, así que ninguno de los tres tenía consumidor posible por diseño, no por
+casualidad: el propio código de `restaurarEstadoModoAnterior()` ya lo decía en un comentario
+("Nadie escucha hoy datos.tipo === 'restauracion_modo'... el payload muerto es tarea del paso 9").
+
+Se apuntó en el paso 8.5 en vez de arreglarse en el momento porque, a diferencia de los otros
+broadcasts muertos de esa sesión (fire-and-forget, aislados), estos tres son pasos inline,
+`await`-eados, con guarda de timeout de 15s, dentro del mismo pipeline central de cambio de modo —
+mayor superficie de riesgo aparente. Medido ahora: cada llamada es un `enviarMensaje` liso (sin
+acuse, no `enviarMensajeConConfirmacion`), así que el `withTimeout(...,15000,...)` que las envuelve
+resuelve casi al instante en la práctica — el riesgo real era menor de lo que parecía al apuntarlo.
+
+Retiradas las dos funciones completas (`notificarCambioModoInminente`, `notificarCambioModoCompletado`),
+sus dos puntos de llamada dentro de `manejarCambioModo()`, sus dos líneas de exposición en
+`globalThis`, y el broadcast de `restauracion_modo` dentro de `restaurarEstadoModoAnterior()` —
+manteniendo intacta la restauración de estado (`estado.modo.actual`/`anterior`) y la llamada a
+`actualizarInterfazModo()` que la rodean. Corregida GUIA-COMPLETA.md §10.16: la subsección
+"Eventos del ciclo de cambio de modo" describía los tres como mecanismo vivo con tabla de función
+emisora; sustituida por una frase que describe el estado real (el pipeline no manda ya ningún
+NOTIFICACION adicional).
+
+Verificado: spec 110 nueva (CI-1/CI-2 en rojo antes del arreglo, confirmado con un
+`SISTEMA.CAMBIO_MODO` real: los dos avisos sí llegaban a hijo2 e hijo4); 91 specs de
+modo/concurrencia/reanudación/arranque en chromium sin romperse, incluida la comprobación de
+concurrencia sensible a WebKit `37-guard-concurrencia-cambio-modo.spec.js` (GC-1/GC-2) — su propio
+comentario menciona estas tres funciones como parte de una cadena de timeouts del peor caso;
+retirarlas solo la acorta, nunca la alarga, así que no hay riesgo de regresión desde ese ángulo;
+recorrido con espía sin hallazgos nuevos para este cambio (el único aviso presente,
+"Destino desconocido desde padre: 'hijo3'" en `actualizarEstadoControlesAudioPadre`, es idéntico —
+mismo texto, misma pila, mismo conteo de 4 — en los recorridos de los pasos anteriores a este, así
+que es preexistente y ajeno; anotado aparte en memoria, no es de la mensajería).
+
+Con esto, el paso 9 queda cerrado entero: confirmaciones informativas, `DATOS.CARGADOS_RECIBIDO`,
+las dos guardas inalcanzables, el segundo cargador de hijo4, el resto de F4, y los tres avisos
+`cambio_modo_*`/`restauracion_modo` — todo lo que dejó apuntado el paso 8 y lo que este mismo paso
+9 fue encontrando por el camino.
 
 ---
 

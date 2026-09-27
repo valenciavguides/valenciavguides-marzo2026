@@ -631,8 +631,10 @@ export async function manejarCambioModo(estado, mensaje) {
         }
 
         try {
-            // 8. Notificar a los componentes del cambio inminente (no bloquear>5s)
-            await withTimeout(notificarCambioModoInminente(modoActual, modoNormalized, motivo), 15000, 'notificarCambioModoInminente');
+            // Lo muerto (paso 9 de la lavadora, apuntado en el 8.5): aquí se mandaba un
+            // SISTEMA.NOTIFICACION{datos.tipo:'cambio_modo_iniciado'} a broadcast. Los únicos
+            // handlers de SISTEMA.NOTIFICACION del proyecto (hijo2, hijo4) solo miran
+            // datos.evento, nunca datos.tipo — sin consumidor posible por diseño.
 
             // 8.1 Preparar pre-warm / pausar según el modo (usar valores normalizados)
             await _flujoPrewarmModo(estado, modoKey, modoNormalized);
@@ -660,8 +662,9 @@ export async function manejarCambioModo(estado, mensaje) {
             // de inserción en getMapaControladoresSync). Repetirlo aquí sería la misma
             // limpieza dos veces por cada cambio de modo.
 
-            // 11. Notificar a los componentes del cambio completado (no bloquear>5s)
-            await withTimeout(notificarCambioModoCompletado(modoActual, modoNormalized, motivo), 15000, 'notificarCambioModoCompletado');
+            // Lo muerto (paso 9 de la lavadora): mismo motivo que 'cambio_modo_iniciado' arriba
+            // — se mandaba un SISTEMA.NOTIFICACION{datos.tipo:'cambio_modo_completado'} a
+            // broadcast sin consumidor posible.
 
             // 12. Registrar éxito
             logger.info(`${logPrefix} Cambio de modo completado exitosamente`, {
@@ -814,52 +817,6 @@ async function validarPermisosCambioModo(origen, modo) {
 }
 
 /**
- * Notifica a los componentes sobre un cambio de modo inminente
- * @private
- */
-async function notificarCambioModoInminente(modoAnterior, modoNuevo, motivo) {
-    logger.info(`[notificarCambioModoInminente] Notificando cambio inminente: ${modoAnterior} → ${modoNuevo} (motivo: ${motivo})`);
-    // Notificar a los componentes
-    await enviarMensaje({
-        tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-        destino: 'broadcast',
-        mensajeId: generarIdUnico(),
-        timestamp: Date.now(),
-        datos: {
-            tipo: 'cambio_modo_iniciado',
-            modoAnterior,
-            modoNuevo,
-            motivo,
-            timestamp: Date.now()
-        }
-    });
-    logger.debug(`[notificarCambioModoInminente] Notificación broadcast enviada`);
-}
-
-/**
- * Notifica a los componentes que el cambio de modo se completó
- * @private
- */
-async function notificarCambioModoCompletado(modoAnterior, modoNuevo, motivo) {
-    logger.info(`[notificarCambioModoCompletado] Notificando cambio completado: ${modoAnterior} → ${modoNuevo} (motivo: ${motivo})`);
-    // Notificar a los componentes
-    await enviarMensaje({
-        tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-        destino: 'broadcast',
-        mensajeId: generarIdUnico(),
-        timestamp: Date.now(),
-        datos: {
-            tipo: 'cambio_modo_completado',
-            modoAnterior,
-            modoActual: modoNuevo,
-            motivo,
-            timestamp: Date.now()
-        }
-    });
-    logger.debug(`[notificarCambioModoCompletado] Notificación broadcast enviada`);
-}
-
-/**
  * Limpia recursos específicos según el modo
  * @private
  * @param {Object} estado - Estado global de la aplicación
@@ -981,23 +938,11 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
         estado.modo.anterior = modoFallido;
     }
 
-    // Notificar a los componentes. Nadie escucha hoy datos.tipo === 'restauracion_modo' (los
-    // handlers de SISTEMA.NOTIFICACION de hijo2/hijo4 solo miran datos.evento): se deja explícito
-    // 'broadcast', el destino que ya tenía por el fallback retirado en el paso 3, para no cambiar
-    // el comportamiento de este envío en este paso — el payload muerto es tarea del paso 9.
-    await enviarMensaje({
-        tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-        destino: 'broadcast',
-        mensajeId: generarIdUnico(),
-        timestamp: Date.now(),
-        datos: {
-            tipo: 'restauracion_modo',
-            modoRestaurado: modoAnterior,
-            modoFallido,
-            motivo,
-            timestamp: Date.now()
-        }
-    });
+    // Lo muerto (paso 9 de la lavadora): aquí se mandaba un
+    // SISTEMA.NOTIFICACION{datos.tipo:'restauracion_modo'} a broadcast. Los únicos handlers de
+    // SISTEMA.NOTIFICACION del proyecto (hijo2, hijo4) solo miran datos.evento, nunca
+    // datos.tipo — sin consumidor posible por diseño, igual que 'cambio_modo_iniciado'/
+    // 'cambio_modo_completado' (ver notas gemelas en manejarCambioModo()).
 
     // Actualizar la interfaz
     await actualizarInterfazModo(estado, modoAnterior);
@@ -1344,5 +1289,3 @@ async function ejecutarAccionCoordinada(accion) {
 // Note: These are assignments to window properties, not parameter reassignments
 globalThis.manejarCambioModo = globalThis.manejarCambioModo || manejarCambioModo;
 globalThis.actualizarInterfazModo = globalThis.actualizarInterfazModo || actualizarInterfazModo;
-globalThis.notificarCambioModoInminente = globalThis.notificarCambioModoInminente || notificarCambioModoInminente;
-globalThis.notificarCambioModoCompletado = globalThis.notificarCambioModoCompletado || notificarCambioModoCompletado;
