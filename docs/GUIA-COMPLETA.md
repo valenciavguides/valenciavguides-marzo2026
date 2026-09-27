@@ -1850,7 +1850,7 @@ El archivo `codigo-padre.html` (unas 15.500 líneas) es el **orquestador** de to
 | Script | Empieza en (aprox., se desplaza con cada edición — `grep -n '<script type="module">' codigo-padre.html` da el número exacto) | Rol principal |
 |--------|--------|--------------|
 | **Script 1** | ~2716 | Orquestador de arranque: FASE 1 infra → FASE 2 datos → FASE 3 iframes. Registra handlers del ciclo de vida: `SISTEMA.HIJO_PREPARADO`, `SISTEMA.HIJO_LISTO`, `SISTEMA.CAMBIO_MODO`, `SISTEMA.HEARTBEAT`, `SISTEMA.HIJO_FALLIDO`, `UI.ACCION_USUARIO`. Contiene también la reanudación de sesión (`ejecutarRestauracionAventura`) y los carteles. Al final carga `js/controladores-padre.js`. |
-| **Script 2** | ~9727 | Handlers de dominio: todos los `NAVEGACION.*` (GPS, CAMBIO_PARADA, LLEGADA_DETECTADA…), `RETO.*`, `SELECCION.*`, `AUDIO.*`, `UI.NAVEGACION_EXTERNA`, `SISTEMA.ADVERTENCIA`. Contiene `distribuirDatosAventura`, `marcarParadaCompletada` y `_iniciarTemporizadorAventura`. |
+| **Script 2** | ~9727 | Handlers de dominio: todos los `NAVEGACION.*` (GPS, CAMBIO_PARADA, LLEGADA_DETECTADA…), `RETO.*`, `SELECCION.*`, `AUDIO.*`, `UI.NAVEGACION_EXTERNA`. Contiene `distribuirDatosAventura`, `marcarParadaCompletada` y `_iniciarTemporizadorAventura`. |
 | **Script 3** | ~14216 | Gestión de visibilidad de iframes (`mostrarHijo4`) y reconexión en `visibilitychange`. |
 | **Script 4** | ~14381 | "Migración de controladores y diagnóstico GPS": registra los controladores de `js/app.js` (`registrarControladoresApp`), `js/monitoreo.js` y `js/utils.js`; arranca el heartbeat. **No llega hasta el final del archivo.** |
 | **Script 5** | ~14896 | Panel de logs en pantalla (gesto de 7 toques, ver §24). Último bloque del documento, autocontenido. |
@@ -3724,7 +3724,6 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SISTEMA.CONFIRMACION` | Cualquiera | Confirmación específica |
 | | `SISTEMA.ERROR` | Cualquiera | Notificación de error |
 | | `SISTEMA.NOTIFICACION` | Padre → Hijo | Notificación informativa |
-| | `SISTEMA.ADVERTENCIA` | Cualquiera | Advertencia no bloqueante |
 | | `SISTEMA.APLICACION_INICIALIZADA` | Padre broadcast | App completamente lista |
 | **SELECCION** | `SELECCION.IDIOMA_SELECCIONADO` | Tesoro → Padre | Usuario eligió idioma (P2) |
 | | `SELECCION.AVENTURA_SELECCIONADA` | Tesoro → Padre | Usuario eligió aventura (P7) |
@@ -4848,7 +4847,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-2116c00e4bbc'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-5e68d62ce765'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5560,13 +5559,6 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 | Emitido por | hijo1, hijo2, hijo3, hijo4 (eventos de rendimiento) |
 | Handler en padre | `_hdl_MONITOREO_METRICA` |
 | Acción | Agrega métrica a `estado.monitoreo.historial.metricas` |
-
-**SISTEMA.ADVERTENCIA** (cualquier hijo → padre)
-
-| Campo | Valor |
-|-------|-------|
-| Handler en padre | `_hdl_SISTEMA_ADVERTENCIA` |
-| Acción | Log de advertencia de seguridad/sistema |
 
 ---
 
@@ -7991,7 +7983,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-2116c00e4bbc'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-5e68d62ce765'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8712,7 +8704,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-2116c00e4bbc';
+const CACHE_VERSION = 'v-5e68d62ce765';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11134,7 +11126,6 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo 5 | Lee la lista completa de paradas con sus nombres localizados | `NAVEGACION.RESPUESTA_DATOS_PARADAS` (array de paradas con nombre, número y estado) | Hijo 5 | Hijo 5 necesita los nombres de las paradas para renderizar los botones de la barra de navegación |
 | `CHAT.CERRAR` | Hijo 6 (asistente) | Oculta el panel del asistente en el padre; libera el iframe | (ninguna) | — | El usuario pulsó el botón de cerrar dentro del iframe de soporte |
 | `UI.NAVEGACION_EXTERNA` | Cualquier hijo | Registra en log la URL que el hijo abrió en una pestaña externa; no bloquea ni modifica nada | (ninguna) | — | Trazabilidad de navegación externa; el hijo avisa al padre antes de hacer `window.open()` |
-| `SISTEMA.ADVERTENCIA` | Cualquier hijo | Registra en log la advertencia con código y texto; no interrumpe el flujo | (ninguna) | — | Canal de advertencias no fatales; evita que los hijos usen `console.warn` directamente para asuntos relevantes |
 | `SELECCION.CODIGO_VALIDADO` | Pantalla de selección (P13 — **solo prod**; en modo DEV, ver §24, P13 se salta y este mensaje nunca se envía) | `_hdl_SELECCION_CODIGO_VALIDADO`: handler vacío — registra con log que el código fue validado; no carga iframes ni activa GPS (todo delegado a `P14_MOSTRADA`). | (ninguna) | — | Registro de que el usuario completó P13; la carga real la dispara P14_MOSTRADA |
 | `SELECCION.DEV_MODE_TOGGLE` | Pantalla de selección (modo DEV, ver §24) | IIFE independiente en Script 1: pone `globalThis._devModeActivo = true`. No pasa por `registrarControladorSeguro`. | (ninguna) | — | Activar el flag DEV antes de que el usuario navegue P2→P11, para que `mostrar()` intercepte P12/P13 |
 | `CONTROL.DEV_CINCO_TOQUES` | Hijo 1 (gesto oculto de activación, ver §24) | `_hdl_CONTROL_DEV_CINCO_TOQUES`: abre modal de código (guard anti-doble); con código DEV correcto pone `_devModeActivo = true`, hace `display:block` en hijo5 y despacha `SISTEMA.CAMBIO_MODO(MODOS.CASA)` con `despacharLocal` | (ninguna directa) | — | Factor 2 DEV: activar modo CASA en mitad de una aventura activa sin reiniciar la sesión (ver §24) |
@@ -12055,7 +12046,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-2116c00e4bbc';
+const CACHE_VERSION = 'v-5e68d62ce765';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13852,7 +13843,7 @@ El fallo, cuando falta un puente, es **mudo**: la variable se queda en su valor 
 
 ### 37.3 Mensajes (`TIPOS_MENSAJE`) — emisor(es) → receptor(es)
 
-Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje totales. `*(ninguno detectado)*` no significa necesariamente huérfano — puede ser un falso negativo de la heurística (indirección vía variable) o un tipo ya identificado como huérfano real en auditorías previas (`NAVEGACION.GPS.DESACTIVAR`/`.ERROR`, `PUZZLE.LEGACY_*` — ver §36.13); verificar leyendo el código antes de actuar sobre cualquiera de ellos.
+Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje totales. `*(ninguno detectado)*` no significa necesariamente huérfano — es un falso negativo conocido de la heurística de proximidad (variable intermedia entre el tipo y `enviarMensaje`/`registrarControlador`, alias `TIPOS_MENSAJE_S1..S5` del padre, `globalThis.` de por medio, o un operador ternario/`||` entre `tipo:` y el valor) casi siempre que aparece — verificar leyendo el código antes de actuar sobre cualquiera de ellos. El único caso de esta tabla confirmado como huérfano real (no falso negativo) es `NAVEGACION.GPS.DESACTIVAR`: nada en el proyecto lo emite ni lo escucha — el propio código (`codigo-padre.html`, junto a `_regCtrl_GPS`) lo deja dicho y conserva la constante a propósito, por si algún día un hijo necesita pedir la desactivación de verdad. Correcciones verificadas sobre las demás celdas `*(ninguno detectado)*` de esta tabla, debajo.
 
 <details>
 <summary>Tabla completa (100 filas) — clic para desplegar</summary>
@@ -13869,8 +13860,9 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje 
 | `AVENTURA.INICIADA` | codigo-padre.html | extrainfo-hijo1.html |
 | `AVENTURA.TIEMPO_ACTUALIZADO` | extrainfo-hijo1.html | codigo-padre.html |
 | `AVENTURA.TIEMPO_AGOTADO` | extrainfo-hijo1.html | codigo-padre.html |
-| `CHAT.CERRAR` | *(ninguno detectado)* | codigo-padre.html |
+| `CHAT.CERRAR` | chat-hijo6.html | codigo-padre.html |
 | `CHAT.ESTADO_PADRE` | codigo-padre.html | chat-hijo6.html |
+| `CHAT.RESCATE_SOLICITADO` | chat-hijo6.html, js/constants.js | codigo-padre.html |
 | `CONTROL.DESHABILITAR` | codigo-padre.html | audio-hijo3.html, coordenadas-hijo2.html, retos-hijo4.html |
 | `CONTROL.DEV_CINCO_TOQUES` | extrainfo-hijo1.html | codigo-padre.html |
 | `CONTROL.HABILITAR` | codigo-padre.html | audio-hijo3.html, coordenadas-hijo2.html, retos-hijo4.html |
@@ -13883,15 +13875,18 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje 
 | `DATOS.SOLICITAR_RETOS` | retos-hijo4.html | js/controladores-padre.js |
 | `DATOS.SOLICITAR_TEXTOS` | coordenadas-hijo2.html | js/controladores-padre.js |
 | `DATOS.TEXTOS_CARGADOS` | coordenadas-hijo2.html | codigo-padre.html |
+| `MAPA_COMPLETO.DATOS` | codigo-padre.html | mapa-completo.html |
+| `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo.html | codigo-padre.html |
+| `MAPA_COMPLETO.VISIBLE` | codigo-padre.html | mapa-completo.html |
 | `MONITOREO.METRICA` | coordenadas-hijo2.html | codigo-padre.html |
-| `NAVEGACION_PANTALLA` | codigo-padre.html | tools/renumber-pantallas.js |
+| `NAVEGACION_PANTALLA` | codigo-padre.html | En-busca-del-tesoro.html, tools/renumber-pantallas.js |
 | `NAVEGACION.ACTUALIZAR_ESTADO` | codigo-padre.html, js/funciones-mapa.js, js/mensajeria.js | coordenadas-hijo2.html |
 | `NAVEGACION.CAMBIO_PARADA` | boton-casa-hijo5.html, codigo-padre.html | audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | audio-hijo3.html, js/funciones-mapa.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html |
 | `NAVEGACION.GPS.ACTIVAR` | coordenadas-hijo2.html, js/funciones-mapa.js | codigo-padre.html |
 | `NAVEGACION.GPS.DENTRO_DE_RANGO` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.GPS.DESACTIVAR` | *(ninguno detectado)* | *(ninguno detectado)* |
-| `NAVEGACION.GPS.ERROR` | *(ninguno detectado)* | *(ninguno detectado)* |
+| `NAVEGACION.GPS.ERROR` | *(ninguno detectado)* †1 | coordenadas-hijo2.html |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | codigo-padre.html | coordenadas-hijo2.html |
 | `NAVEGACION.GPS.PRECISION_INSUFICIENTE` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.GPS.PRECISION_RECUPERADA` | coordenadas-hijo2.html | codigo-padre.html |
@@ -13901,13 +13896,13 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje 
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.RESPUESTA_COORDENADAS` | coordenadas-hijo2.html | js/funciones-mapa.js |
-| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | boton-casa-hijo5.html, codigo-padre.html, js/app.js | boton-casa-hijo5.html, coordenadas-hijo2.html |
+| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | boton-casa-hijo5.html, codigo-padre.html | boton-casa-hijo5.html, coordenadas-hijo2.html |
 | `NAVEGACION.SOLICITAR_COORDENADAS` | js/funciones-mapa.js | coordenadas-hijo2.html |
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | boton-casa-hijo5.html | codigo-padre.html |
-| `NAVEGACION.SUPRIMIR_ROTACION` | En-busca-del-tesoro.html | codigo-padre.html |
+| `NAVEGACION.SUPRIMIR_ROTACION` | *(ninguno detectado)* †2 | codigo-padre.html |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | coordenadas-hijo2.html | codigo-padre.html |
 | `PARADAS.LISTADO_TOGGLE` | extrainfo-hijo1.html | codigo-padre.html |
-| `PARADAS.READY` | boton-casa-hijo5.html | `_hdl_PARADAS_READY` (codigo-padre.html, Script 2) |
+| `PARADAS.READY` | boton-casa-hijo5.html | codigo-padre.html |
 | `PUZZLE.COMPLETADO` | puzzle.html | retos-hijo4.html |
 | `PUZZLE.TIMEOUT` | puzzle.html | retos-hijo4.html |
 | `RETO.COMPLETADO` | retos-hijo4.html | codigo-padre.html |
@@ -13928,28 +13923,40 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje 
 | `SELECCION.PREPARAR_HIJOS` | En-busca-del-tesoro.html | codigo-padre.html |
 | `SELECCION.REINICIAR` | En-busca-del-tesoro.html | codigo-padre.html |
 | `SELECCION.TERMINOS_ACEPTADOS` | En-busca-del-tesoro.html | codigo-padre.html |
-| `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html | En-busca-del-tesoro.html, chat-hijo6.html, tools/renumber-pantallas.js |
-| `SISTEMA.ADVERTENCIA` | js/funciones-mapa.js | codigo-padre.html |
-| `SISTEMA.APLICACION_INICIALIZADA` | codigo-padre.html | codigo-padre.html |
-| `SISTEMA.CAMBIO_MODO` | boton-casa-hijo5.html, codigo-padre.html, js/app.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
+| `SELECCION.VIDEO_INTRO_TERMINADO` | *(ninguno detectado)* †3 | En-busca-del-tesoro.html, chat-hijo6.html, tools/renumber-pantallas.js |
+| `SISTEMA.APLICACION_INICIALIZADA` | *(ninguno detectado)* †4 | codigo-padre.html |
+| `SISTEMA.CAMBIO_MODO` | boton-casa-hijo5.html, js/app.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | js/app.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
-| `SISTEMA.CAMBIO_MODO_EFECTUADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | *(ninguno detectado)* |
-| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | En-busca-del-tesoro.html, chat-hijo6.html, extrainfo-hijo1.html | js/app.js |
-| `SISTEMA.CONFIRMACION` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | En-busca-del-tesoro.html, boton-casa-hijo5.html |
-| `SISTEMA.ERROR` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, js/funciones-mapa.js, js/utils.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | *(ninguno detectado)* †5 |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | En-busca-del-tesoro.html, chat-hijo6.html, extrainfo-hijo1.html | boton-casa-hijo5.html, js/app.js |
+| `SISTEMA.CONFIRMACION` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | boton-casa-hijo5.html |
+| `SISTEMA.ERROR` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, js/funciones-mapa.js, js/mensajeria.js, js/utils.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
 | `SISTEMA.HEARTBEAT` | boton-casa-hijo5.html, codigo-padre.html, js/mensajeria.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `SISTEMA.HEARTBEAT_RESPONSE` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
 | `SISTEMA.HIJO_FALLIDO` | En-busca-del-tesoro.html, extrainfo-hijo1.html | codigo-padre.html |
 | `SISTEMA.HIJO_LISTO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
-| `SISTEMA.HIJO_PREPARADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
-| `SISTEMA.NACK` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | js/app.js |
-| `SISTEMA.NOTIFICACION` | codigo-padre.html, js/app.js | retos-hijo4.html |
+| `SISTEMA.HIJO_PREPARADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
+| `SISTEMA.NACK` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | retos-hijo4.html |
+| `SISTEMA.NOTIFICACION` | codigo-padre.html | coordenadas-hijo2.html, retos-hijo4.html |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | codigo-padre.html | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `SISTEMA.PADRE_DATOS` | codigo-padre.html | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `TEMPORIZADOR.TOGGLE` | extrainfo-hijo1.html | codigo-padre.html |
 | `UI.ACCION_USUARIO` | codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html | audio-hijo3.html, codigo-padre.html |
 | `UI.CLOSE_MENUS` | extrainfo-hijo1.html | codigo-padre.html, extrainfo-hijo1.html |
 | `UI.NAVEGACION_EXTERNA` | extrainfo-hijo1.html | codigo-padre.html |
+
+†1 Emisor real: `codigo-padre.html` (`_hdl_NAVEGACION_GPS_ACTIVAR`, error de timeout/denegado) — la
+heurística no ve el `enviarMensaje` porque el `tipo` llega por una variable armada unas líneas antes.
+†2 Emisor real: `En-busca-del-tesoro.html` (`_avisarRotacion()`) — `tipo` es una constante
+(`const tipo = globalThis.TIPOS_MENSAJE?.NAVEGACION?.SUPRIMIR_ROTACION`) usada como propiedad
+abreviada (`{ tipo, destino, datos }`), no como `tipo: TIPOS_MENSAJE...` en la misma expresión.
+†3 Emisor real: `video-intro.html` (`globalThis._continuarVideo`) — mismo patrón de propiedad
+abreviada que †2.
+†4 Emisor real: `codigo-padre.html`, mensaje a sí mismo por `despacharLocal` (Script 1, alias
+`TIPOS_MENSAJE_S1`) — la heurística no reconoce ese alias como el mismo objeto.
+†5 Receptor real: `js/app.js` (`_registrarHandlersModo()`) — el registro pasa por una variable
+local (`const registrar = globalThis.registrarControladorSeguro || ...`), no por el nombre literal
+`registrarControladorSeguro(...)` que busca la heurística.
 
 </details>
 

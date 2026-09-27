@@ -12485,11 +12485,6 @@ await _comprobarReanudacionAventura(logPrefix);
             globalThis.__vv_salidaEnlaceExterno = true;
         }
 
-        function _hdl_SISTEMA_ADVERTENCIA(mensaje) {
-            const { mensaje: texto, codigo, detalle } = mensaje.datos || {};
-            (globalThis.logger || console).warn(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SISTEMA.ADVERTENCIA] desde ${mensaje.origen || 'desconocido'}${codigo ? ` [${codigo}]` : ''}: ${texto || detalle || JSON.stringify(mensaje.datos)}`);
-        }
-
         function _hdl_UI_CLOSE_MENUS_PADRE(mensaje) {
             // hijo1 envía este mensaje para que el padre cierre sus propios desplegables
             // antes de abrir el panel de más-opciones (evita solapamiento visual)
@@ -12504,8 +12499,6 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.USUARIO_FUERA_RANGO, _hdl_NAVEGACION_USUARIO_FUERA_RANGO, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.NAVEGACION_EXTERNA, _hdl_UI_NAVEGACION_EXTERNA, { permanente: true });
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ADVERTENCIA, _hdl_SISTEMA_ADVERTENCIA, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.CLOSE_MENUS, _hdl_UI_CLOSE_MENUS_PADRE, { permanente: true });
         }

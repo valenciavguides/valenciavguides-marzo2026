@@ -861,7 +861,9 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
    inalcanzables, el segundo cargador de hijo4 (asigna `src` sin registrar el iframe), el resto de
    F4 (§0) y lo que deje sin uso cada paso anterior. Cerrado en §25.18, incluidos los tres avisos
    `cambio_modo_*`/`restauracion_modo` apuntados en el paso 8.5.
-10. **Estudio completo desde el inicio de la migración**, para lo que se haya escapado.
+10. ✅ **Estudio completo desde el inicio de la migración**, para lo que se haya escapado. Cerrado
+    en §25.19: `SISTEMA.ADVERTENCIA` retirado (sin emisor real); tabla de §37.3 de GUIA-COMPLETA.md
+    regenerada y corregida.
 11. **Guía.**
 12. **Auditoría de 28 ejes y auditoría inversa; tanda final de los cuatro navegadores.**
 
@@ -1843,6 +1845,78 @@ Con esto, el paso 9 queda cerrado entero: confirmaciones informativas, `DATOS.CA
 las dos guardas inalcanzables, el segundo cargador de hijo4, el resto de F4, y los tres avisos
 `cambio_modo_*`/`restauracion_modo` — todo lo que dejó apuntado el paso 8 y lo que este mismo paso
 9 fue encontrando por el camino.
+
+---
+
+### 25.19. Paso 10 de la lavadora: estudio completo desde el inicio (✅ cerrado)
+
+Barrido mecánico de los 95 tipos de `TIPOS_MENSAJE` cruzando emisor(es) contra receptor(es) en
+todo el proyecto (padre, los 6 hijos, los 3 nietos y `js/`), con un script propio (no
+`tools/verificar-mensajeria.js` — ver más abajo por qué se usó uno nuevo primero). Primera pasada:
+9 tipos con emisor pero sin receptor o viceversa. De los 9, 8 resultaron falsos negativos de la
+propia heurística — verificados uno a uno leyendo el código real, no descartados por el grep:
+
+- `SISTEMA.CAMBIO_MODO_ENTENDIDO`/`EFECTUADO`: sí tienen receptor, en `js/app.js`
+  (`_registrarHandlersModo()`) — el registro pasa por una variable local
+  (`const registrar = globalThis.registrarControladorSeguro || ...`), no por el nombre literal.
+  Protocolo bidireccional completo confirmado vivo: `CAMBIO_MODO` → `ENTENDIDO` → `EFECTUADO` →
+  `CAMBIO_MODO_APLICADO`, los 7 hijos participan en los cuatro pasos.
+- `NAVEGACION.SUPRIMIR_ROTACION`, `SELECCION.VIDEO_INTRO_TERMINADO`: sí tienen emisor
+  (`En-busca-del-tesoro.html`, `video-intro.html`) — `tipo` es una constante local usada como
+  propiedad abreviada (`{ tipo, destino, datos }`), no `tipo: TIPOS_MENSAJE...` en la misma
+  expresión.
+- `PUZZLE.COMPLETADO`/`TIMEOUT`: sí tiene emisor (`puzzle.html`) — el valor de `tipo` es un
+  operador ternario (`success ? TIPOS_MENSAJE.PUZZLE.COMPLETADO : ...TIMEOUT`).
+- `MAPA_COMPLETO.VISIBLE`: sí tiene emisor (`codigo-padre.html`) — con `globalThis.` de por medio
+  entre `tipo:` y `TIPOS_MENSAJE`.
+- `CHAT.ESTADO_PADRE`: sí se manda por el bus, con `origen` — el hallazgo de
+  `project_unificacion_mensajeria.md` ("el padre lo manda a pelo") ya estaba resuelto por el paso 4
+  ("los envíos a pelo del padre, al bus, con el de CHAT.ESTADO_PADRE el primero"); la memoria
+  simplemente no se había actualizado tras cerrar ese paso.
+- `NAVEGACION.GPS.DESACTIVAR`: confirmado el único caso genuino — el propio código
+  (`codigo-padre.html`, junto a `_regCtrl_GPS`) ya lo documenta como huérfano intencional, constante
+  conservada por si un hijo necesita pedir la desactivación en el futuro; hay un test
+  (`11-constants-integrity.spec.js`) que exige que la constante exista. No se toca.
+
+**`SISTEMA.ADVERTENCIA` (✅ cerrado, único hallazgo real).** Handler registrado en
+`codigo-padre.html` (`_hdl_SISTEMA_ADVERTENCIA`, solo `logger.warn(...)`), pero CERO emisores en
+todo el proyecto — ni un hijo, ni un nieto, ni un módulo de `js/` lo manda nunca. A diferencia de
+`GPS.DESACTIVAR`, ningún comentario documenta una intención de futuro para este canal: parece el
+hermano "no fatal" de `SISTEMA.ERROR` (que sí usan los 6 hijos) que ningún hijo llegó a adoptar.
+Retirados el handler, su registro y la constante — sin dejar la constante "por si acaso", porque
+aquí no hay ninguna razón escrita que lo justifique (a diferencia de `GPS.DESACTIVAR`). Verificado:
+spec 111 nueva (SA-1, `TIPOS_MENSAJE.SISTEMA.ADVERTENCIA` ya no existe); 193 specs de
+constants/padre/arranque/modo/navegacion-externa/escuchas en chromium sin romperse.
+
+**Instrumento usado y por qué se escribió uno nuevo.** `tools/verificar-mensajeria.js` (el que
+genera la tabla de GUIA-COMPLETA.md §37.3) ya existe y documenta sus propias limitaciones en su
+cabecera — es la herramienta correcta y se usó para regenerar la tabla una vez identificados los
+9 candidatos. Pero antes de fiarse de su salida (memoria: "validar el instrumento antes de creer su
+salida"), escribí un script propio con la misma heurística para tener control total sobre qué
+patrones cubre, y así entender exactamente CADA falso negativo en vez de solo saber que
+"puede haberlos". El resultado confirma que el heurístico de `verificar-mensajeria.js` tiene los
+mismos puntos ciegos (variable intermedia, alias `_S1..S5`, `globalThis.` de por medio, ternario) —
+documentados ya en su propia cabecera, así que no es una sorpresa, pero SÍ lo era encontrar que
+GUIA-COMPLETA.md había convertido varios de esos falsos negativos en afirmaciones seguras.
+
+**GUIA-COMPLETA.md §37.3 corregida a fondo.** La tabla estaba desactualizada (100 tipos declarados
+cuando el código de hoy tiene 95 antes de este paso, 94 después) y su nota introductoria afirmaba
+como hecho confirmado que `NAVEGACION.GPS.ERROR` era "huérfano real de auditorías previas" junto a
+`GPS.DESACTIVAR` — falso: `codigo-padre.html` SÍ manda `GPS.ERROR` a hijo2 (confirmado por
+lectura de código Y por medición en vivo — el recorrido con espía del cierre de paso 9, unas horas
+antes en esta misma sesión, mostró el mensaje viajando de verdad, regla 6 de CLAUDE.md). La misma
+nota citaba `PUZZLE.LEGACY_*` como otro huérfano confirmado: no existe en ningún fichero del
+proyecto, ni en `TIPOS_MENSAJE`, ni en ningún comentario — referencia fantasma. Regenerada la tabla
+entera con `node tools/verificar-mensajeria.js --todos` (94 filas, fresco); añadidas notas al pie
+verificadas a mano para las 5 celdas `*(ninguno detectado)*` que resultaron falsos negativos
+(GPS.ERROR emisor, SUPRIMIR_ROTACION emisor, VIDEO_INTRO_TERMINADO emisor,
+APLICACION_INICIALIZADA emisor, CAMBIO_MODO_EFECTUADO receptor); reescrita la nota introductoria
+para no repetir la misma clase de error (afirmar como hecho lo que el instrumento solo sugiere).
+Quitadas las 5 menciones sueltas de `SISTEMA.ADVERTENCIA` en el resto del documento (§10.2 tabla de
+catálogo, §10.5 subsección de handler, tabla de scope de Script 2, tabla EJE 17).
+
+Verificado en conjunto: lint limpio; 193 specs de la sesión (constants/padre/arranque/modo/
+navegacion-externa/escuchas) en chromium sin romperse; `grep -c` de fechas en GUIA-COMPLETA.md = 0.
 
 ---
 
