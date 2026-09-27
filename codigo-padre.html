@@ -9925,7 +9925,9 @@ await _comprobarReanudacionAventura(logPrefix);
                     }
                 }
                 if (hijoId === 'hijo3' && snap.audioActual) {
-                    await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, destino: 'hijo3', datos: { ...snap.audioActual, timestamp: Date.now() } });
+                    // Un solo camino (paso 8.7 de la lavadora): mismo camino reforzado que
+                    // solicitarAudioAHijo3 y la progresión normal — confirmación real de hijo3.
+                    await _enviarAudioRequestConReintento({ ...snap.audioActual, timestamp: Date.now() }, '[PADRE][SNAPSHOT]');
                     logger.info(`[PADRE][SNAPSHOT] ✅ Audio restaurado para hijo3`);
                 }
                 if (hijoId === 'hijo4' && snap.retoActual) {
@@ -10631,16 +10633,15 @@ await _comprobarReanudacionAventura(logPrefix);
                 const audioData = await _resolverAudioData(audioId, logPrefix);
                 // Tracking para snapshot de reload
                 _snapshotRecuperacion.audioActual = { audioId, audioData, contexto: 'progresion_aventura', autoplay: false };
-                await enviarMensaje_S2({
-                    tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
-                    destino: 'hijo3',
-                    datos: {
-                        audioId: audioId,
-                        audioData,
-                        contexto: 'progresion_aventura',
-                        autoplay: false
-                    }
-                });
+                // Un solo camino (paso 8.7 de la lavadora): mismo camino reforzado que usa
+                // la progresión normal (_solicitarAudioParaParada) — confirmación real de
+                // hijo3 y reintento si el mensaje se pierde, en vez de un envío liso.
+                await _enviarAudioRequestConReintento({
+                    audioId: audioId,
+                    audioData,
+                    contexto: 'progresion_aventura',
+                    autoplay: false
+                }, logPrefix);
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error solicitando audio:`, error);
@@ -10941,15 +10942,15 @@ await _comprobarReanudacionAventura(logPrefix);
             return listo;
         }
 
-        async function _enviarRetoMostrar(retoIdToUsar, _retosArray, logPrefix) {
+        async function _enviarRetoMostrar(retoIdToUsar, _retosArray, logPrefix, contexto = 'manual') {
             // Tracking para snapshot de reload
-            _snapshotRecuperacion.retoActual = { retoId: retoIdToUsar, contexto: 'manual', retosArray: _retosArray };
+            _snapshotRecuperacion.retoActual = { retoId: retoIdToUsar, contexto, retosArray: _retosArray };
             const _retoMostrarMsg = {
                 tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
                 destino: 'hijo4',
                 datos: {
                     retoId: retoIdToUsar,
-                    contexto: 'manual',
+                    contexto,
                     retosArray: _retosArray
                 }
             };
@@ -11253,12 +11254,12 @@ await _comprobarReanudacionAventura(logPrefix);
                     if (!_retoDataSec) {
                         (globalThis.logger || console).warn(`${logPrefix} Reto ${siguienteRetoEnCola} no encontrado en ${_aventuraSec}/${_idiomaSec}`);
                     }
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
-                        destino: 'hijo4',
-                        datos: { retoId: siguienteRetoEnCola, retosArray: _retoDataSec ? [_retoDataSec] : [], contexto: 'secuencial' }
-                    });
-                    (globalThis.logger || console).info(`${logPrefix} RETO.MOSTRAR enviado para siguiente reto: ${siguienteRetoEnCola}`);
+                    // Un solo camino (paso 8.8 de la lavadora): mismo constructor que
+                    // _hdl_RETO_SOLICITAR — deja _snapshotRecuperacion.retoActual apuntando al
+                    // reto que ya está activo. _hdl_RETO_COMPLETADO lo había puesto a null nada
+                    // más entrar (asumiendo parada cerrada); si queda un siguiente reto en cola,
+                    // esta llamada lo repuebla con el correcto antes de que nada pueda leerlo.
+                    await _enviarRetoMostrar(siguienteRetoEnCola, _retoDataSec ? [_retoDataSec] : [], logPrefix, 'secuencial');
                 } catch (error_) {
                     (globalThis.logger || console).error(`${logPrefix} Error mostrando siguiente reto en cola:`, error_);
                 }

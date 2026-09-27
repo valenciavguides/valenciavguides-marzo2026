@@ -1597,6 +1597,54 @@ mecanismo distinto y ya de un solo camino (§9.11/manejarCambiarParada: caché l
 esta consulta a hijo2 solo como "Ruta 2" cuando la parada no está en caché), sin relación con la
 carga de coordenadas/textos en bloque.
 
+**8.7 — Audio a hijo3 por cuatro caminos, solo uno reforzado (✅ cerrado).** `AUDIO.REPRODUCIR_REQUEST`
+llega a hijo3 desde cuatro sitios de `codigo-padre.html`: (1) `_solicitarAudioParaParada()` —
+progresión normal, disparada por `NAVEGACION.CAMBIO_PARADA` — que pasa por
+`_enviarAudioRequestConReintento()`: exige un ACK real de hijo3 vía `enviarMensajeConConfirmacion`
+y reintenta hasta `MAX_REINTENTOS_ENVIO_AUDIO` veces; (2) `solicitarAudioAHijo3()`, usada solo desde
+`_solicitarAudioRest()` en la reanudación de sesión; (3) el bloque `hijoId === 'hijo3'` de
+`_vv_afterHijoListo()`, que restaura el audio en curso tras una recarga de hijo3; y (4)
+`DATOS.SOLICITAR_AUDIOS` (`js/controladores-padre.js`), dirección inversa — hijo3 pide un audioId
+concreto tras un cache-miss local — que no compite con los otros tres y no se toca. El comentario
+que ya vivía junto al camino 1 explica por qué existe la confirmación: "sin confirmación, un mensaje
+perdido (iframe momentáneamente no listo, postMessage descartado) dejaba pending.audio en false para
+siempre, sin ninguna señal". Los caminos 2 y 3 entregaban el mismo `AUDIO.REPRODUCIR_REQUEST`, al
+mismo hijo3, por el mismo `postMessage`, con el mismo riesgo descrito — pero con un `enviarMensaje`
+liso, sin esa protección: comprobado leyendo el cuerpo completo de ambas funciones, no solo su
+nombre. **Distinto de 8.6:** ahí la lectura estática sugería duplicación y la medición en vivo la
+descartó; aquí la lectura estática por sí sola ya establece la asimetría (dos de los tres emisores
+de empuje carecen de una protección que el tercero sí tiene y documenta como necesaria) — no hacía
+falta reproducir el fallo en vivo para justificar unificar los tres al mismo primitivo, igual que en
+8.1. Aplicado: `solicitarAudioAHijo3()` y el bloque de `_vv_afterHijoListo()` para hijo3 llaman ahora
+a `_enviarAudioRequestConReintento()` en vez de a un `enviarMensaje` directo, con el mismo payload que
+antes. `DATOS.SOLICITAR_AUDIOS` no se toca: es la dirección de petición, no de empuje. Verificado:
+spec 102 nueva (AR-1 y AR-2 en rojo antes del arreglo, confirmado: ninguna de las dos funciones
+llamaba a `enviarMensajeConConfirmacion`); 40 specs de audio/reanudación/recuperación (specs 39, 40,
+44, 46) sin romperse; 94 specs de audio/hijo3/reanudación/recarga/reconexión en chromium sin
+romperse; recorrido con espía sin hallazgos nuevos.
+
+**8.8 — Dos constructores de `RETO.MOSTRAR` (✅ cerrado).** El mensaje se construye en dos sitios:
+`_enviarRetoMostrar()` (llamado desde `_hdl_RETO_SOLICITAR`, el camino normal cuando hijo4 pide
+reto) y, a mano, dentro de `_procesarResultadoReto()` — la rama "queda un siguiente reto en la cola
+de la misma parada" (funcionalidad de varios retos por parada, hoy sin ninguna entrada real en los
+datos, ver `project_varios_retos_por_parada.md`). Ambos resuelven el `retoData` de la misma forma
+(mismo `cargarRetos()` + búsqueda por id), pero solo el primero actualizaba
+`_snapshotRecuperacion.retoActual` antes de enviar. El propio `_hdl_RETO_COMPLETADO` pone ese mismo
+campo a `null` incondicionalmente nada más entrar, con un comentario que asume que un reto
+completado siempre cierra la parada ("ya no debe restaurarse si hijo4 se recarga después") — falso
+cuando queda un reto siguiente en cola: hay un reto nuevo activo, y el segundo constructor no lo
+registraba. Consecuencia medida: una recarga de hijo4 justo en ese instante no restauraba nada (el
+guard `snap.retoActual` en `_vv_afterHijoListo()` fallaba sobre `null`), en vez de reenviar el reto
+correcto. Aplicado: `_enviarRetoMostrar()` acepta ahora un cuarto parámetro `contexto` (por defecto
+`'manual'`, el valor que ya usaba su único llamador); `_procesarResultadoReto()` llama a esa misma
+función con `'secuencial'` en vez de construir el mensaje a mano — repuebla el snapshot que
+`_hdl_RETO_COMPLETADO` acababa de vaciar. Verificado: spec 103 nueva (RM-1 ya en verde antes del
+arreglo — el mensaje en sí siempre llegó bien; RM-2 en rojo antes del arreglo, confirmado: una
+recarga de hijo4 con un siguiente reto en cola no restauraba nada, y en verde tras unificar los dos
+constructores); GUIA-COMPLETA.md corregida (línea ~11624, tabla de `_snapshotRecuperacion`, que
+describía la limpieza en `RETO.COMPLETADO` sin mencionar la repoblación cuando queda reto
+siguiente).
+
 ---
 
 ## Parte VII — Hallazgos colaterales
