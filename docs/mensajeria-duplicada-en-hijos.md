@@ -1751,6 +1751,19 @@ acuse único del bus), y una nueva nota explicativa en el handshake de `HIJO_PRE
 qué había y por qué se retiró, citando el propio comentario del código. No hace falta spec: no hay
 comportamiento que verificar, solo texto que ya no describía nada real.
 
+**El segundo cargador de hijo4 (✅ cerrado).** `globalThis.diagnosticarHijo4()` era una herramienta
+de consola sin ningún llamador en el proyecto (`grep` global → 0 referencias fuera de su propia
+definición). Su paso 3 reasignaba `hijo4Element.src` directamente para "arreglar" un hijo4 sin
+cargar — un segundo camino de carga, distinto de `_cargarSingleIframe()`/`_cargarUnIframeHijo()`/
+`_cargarSoloIframeActivacion()`, que no llamaba a `registrarIframe()`. Medido con un spec desechable
+antes del arreglo: tras invocarla, hijo4 cargaba de verdad (`src` cambiaba a la URL real) pero
+`mensajeria.getIframesRegistrados()` no lo incluía — quedaba mudo para el bus. La propia
+herramienta, pensada para diagnosticar un hijo4 roto, lo habría dejado en un estado peor si alguna
+vez se hubiera usado de verdad. Retirada la función completa (dev-console-only, sin test ni doc que
+la mencionara). Verificado: spec 107 nueva (confirma que `globalThis.diagnosticarHijo4` ya no
+existe); 52 specs de hijo4/reto/puzzle en chromium sin romperse; recorrido con espía sin hallazgos
+nuevos.
+
 ---
 
 ## Parte VII — Hallazgos colaterales
