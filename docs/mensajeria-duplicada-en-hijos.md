@@ -1713,6 +1713,26 @@ que ninguno abriera una bifurcación de diseño genuina que necesitara registrar
 
 ---
 
+### 25.18. Paso 9 de la lavadora: lo muerto (en curso)
+
+**`DATOS.CARGADOS_RECIBIDO` (✅ cerrado).** Fase 3 de un patrón bidireccional sin destinatario real:
+hijo2 confirma que cargó coordenadas/textos (`DATOS.COORDENADAS_CARGADAS`/`DATOS.TEXTOS_CARGADOS`),
+y el padre le respondía ADEMÁS con `DATOS.CARGADOS_RECIBIDO` — una confirmación de la confirmación.
+El controlador de hijo2 para ese mensaje, leído completo, solo hacía `logger.info(...)`: no escribe
+estado, no desbloquea nada. Retirados los dos envíos en `codigo-padre.html`
+(`_hdl_DATOS_COORDENADAS_CARGADAS`, `_hdl_DATOS_TEXTOS_CARGADOS`), el controlador en
+`coordenadas-hijo2.html`, y la constante en `js/constants.js`. De paso, GUIA-COMPLETA.md tenía una
+fila en la tabla de controladores de **hijo3** afirmando que hijo3 también maneja
+`DATOS.CARGADOS_RECIBIDO` ("confirma recepción de audios") — comprobado con `grep` en
+`audio-hijo3.html`: 0 coincidencias, esa fila nunca fue cierta, ni antes de este cambio. Corregidas
+7 menciones en total (2 tablas de catálogo de hijo2, 1 fila falsa de hijo3, 1 diagrama mermaid, la
+subsección completa con su tabla y nota de "protocolo 3 fases", y la tabla de cruce de módulos).
+Verificado: spec 106 nueva (rojo antes del arreglo, confirmado con espía de `postMessage`: los dos
+subtipos —COORDENADAS y TEXTOS— llegaban); 138 specs de hijo2/hijo3/hijo4/coordenadas/carga/datos/
+audio en chromium sin romperse; recorrido con espía sin hallazgos nuevos.
+
+---
+
 ## Parte VII — Hallazgos colaterales
 
 Salieron tirando del hilo. No son de la mensajería y no se han tocado.

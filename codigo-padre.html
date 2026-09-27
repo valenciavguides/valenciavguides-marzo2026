@@ -13006,10 +13006,9 @@ await _comprobarReanudacionAventura(logPrefix);
                     if (!estado.seleccion) estado.seleccion = {};
                     estado.seleccion.coordenadasCargadas = false;
                 }
-                // Fase 3: confirmar recepción al hijo
-                try {
-                    await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, destino: mensaje.origen, datos: { subtipo: 'COORDENADAS', exito: !!exito } });
-                } catch (ackErr) { (globalThis.logger || console).warn(`${logPrefix} Error enviando CARGADOS_RECIBIDO:`, ackErr); }
+                // Lo muerto (paso 9 de la lavadora): aquí se mandaba además un
+                // DATOS.CARGADOS_RECIBIDO a hijo2 — confirmación de la confirmación. Su
+                // handler en hijo2 solo hacía logger.info(...), sin ningún efecto real.
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
             }
@@ -13024,10 +13023,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     (globalThis.logger || console).error(`${logPrefix} ⚠️ hijo2 reportó error cargando textos: ${errorMsg}`);
                 }
-                // Fase 3: confirmar recepción al hijo
-                try {
-                    await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, destino: mensaje.origen, datos: { subtipo: 'TEXTOS', exito: !!exito } });
-                } catch (ackErr) { (globalThis.logger || console).warn(`${logPrefix} Error enviando CARGADOS_RECIBIDO:`, ackErr); }
+                // Lo muerto (paso 9 de la lavadora): ver nota gemela en
+                // _hdl_DATOS_COORDENADAS_CARGADAS — mismo DATOS.CARGADOS_RECIBIDO sin consumidor.
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
             }

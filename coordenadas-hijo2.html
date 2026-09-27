@@ -2275,12 +2275,6 @@ try {
         }
     });
 
-    // Fase 3 del patrón bidireccional: padre confirma recepción de datos cargados
-    registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, async (mensaje) => {
-        const { subtipo } = mensaje.datos || {};
-        logger.info(`[hijo2][DATOS.CARGADOS_RECIBIDO] Padre confirmó recepción de ${subtipo}`);
-    });
-
     // Notificar al padre que hijo2 está listo
     logger.debug('[hijo2] Controladores críticos registrados; enviando HIJO_PREPARADO ahora');
 
