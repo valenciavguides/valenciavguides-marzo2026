@@ -850,12 +850,13 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
 6. ✅ **Registro de handlers del state-manager** (§23): opciones primero.
 7. ✅ **Latido y recuperación:** fuera `HEARTBEAT_START/PAUSE` (§22, fila 19); la recuperación de un
    hijo repite la entrega normal de su elemento en vez de un camino propio.
-8. **Un solo camino donde hoy hay dos:** coordenadas pedidas dos veces por elemento, lista de
+8. ✅ **Un solo camino donde hoy hay dos:** coordenadas pedidas dos veces por elemento, lista de
    paradas de hijo5 desde dos fuentes, `ACTUALIZAR_ESTADO` doble por lectura GPS, modo por cuatro
    mecanismos, `NOTIFICACION` con un solo evento usado, carga de datos de hijo2 empujada y pedida,
    audio a hijo3 por cuatro caminos, dos constructores de `RETO.MOSTRAR`, respuestas dobles (por
    acuse y por mensaje aparte) y los avisos de error o `NACK` que el padre manda a hijos que no los
-   escuchan. Con las decisiones 12, 13 y 14.
+   escuchan. Los diez sub-ítems (8.1-8.10) cerrados en §25.17; ninguno abrió una decisión de diseño
+   separada (12/13/14 no llegaron a materializarse).
 9. **Lo muerto** (§23): confirmaciones informativas, `DATOS.CARGADOS_RECIBIDO`, guardas
    inalcanzables, el segundo cargador de hijo4 (asigna `src` sin registrar el iframe), el resto de
    F4 (§0) y lo que deje sin uso cada paso anterior.
@@ -1675,6 +1676,40 @@ corregida en 8 sitios (tabla de mensajes hijo3→padre ×2, la subsección compl
 reproducción, dos tablas de catálogo, y la tabla de cruce de módulos) — la explicación correcta del
 acuse (siempre se manda si `requiereConfirmacion`, no depende del valor de retorno) se conservó,
 reubicada junto a `AUDIO.REPRODUCIR_REQUEST`.
+
+**8.10 — Avisos de error/NACK que el padre manda a hijos que no los escuchan (✅ cerrado, último
+sub-ítem del paso 8).** El padre manda `SISTEMA.NACK`/`SISTEMA.ERROR` a `mensaje.origen` en cinco
+sitios cuando una petición puntual no puede atenderse: `_hdl_RETO_SOLICITAR` → `NACK` a hijo4 (sin
+datos de aventura; sin reto que mostrar), `_hdl_RETO_COMPLETADO` → `ERROR` a hijo4 en su `catch`, y
+`_hdl_NAVEGACION_GPS_ACTIVAR` → `ERROR` a hijo2 (modo no es AVENTURA; `catch` de `activarGPS()`).
+Comprobado leyendo el fichero completo de cada hijo: ni `retos-hijo4.html` ni `coordenadas-hijo2.html`
+registraban un handler para `SISTEMA.NACK` ni `SISTEMA.ERROR` — el aviso de un fallo real (botón sin
+reto que mostrar, GPS rechazado) se perdía sin ningún rastro, ni siquiera un log. `boton-casa-hijo5.html`
+sí tiene un handler mínimo para `SISTEMA.ERROR` (solo registra el fallo en el log); se aplicó el
+mismo patrón a los otros dos, sin inventar UI nueva (mostrar un aviso visible al usuario sería una
+mejora de UX distinta, fuera de "un solo camino"). De paso, dos correcciones a GUIA-COMPLETA.md
+encontradas mientras se verificaba el estado real de `SISTEMA.NACK`: §10.15 y §10.18 afirmaban que
+`js/app.js` procesa `SISTEMA.NACK` "solo si `esperarPermiso === true`" con un "retry loop
+exponencial" — ese campo y ese mecanismo no existen en ningún fichero del proyecto (`grep` global →
+0 coincidencias); es documentación del protocolo de reintento de `CAMBIO_MODO` retirado en el paso 2
+de la lavadora (decisión 11), que el propio §10.11 ya describe correctamente como retirado — las dos
+tablas de §10.15/§10.18 no se habían actualizado a la vez. Corregidas ambas para reflejar el estado
+real: el uso hijo→padre está muerto (§10.11), el uso padre→hijo4 es el que se acaba de cerrar aquí.
+Apuntado sin arreglar: `_hdl_NAVEGACION_GPS_ACTIVAR` deja que el acuse de `enviarMensajeConConfirmacion`
+se resuelva con éxito (`undefined`) incluso cuando rechaza la activación por modo incorrecto —
+hijo2 muestra "GPS activado" en ese caso aunque el padre lo haya rechazado. Corregirlo exigiría que
+el handler devuelva `{exito:false, ...}` en sus ramas de rechazo y que hijo2 lo compruebe antes de
+dar el éxito por hecho — cambio de comportamiento visible, no una simple limpieza de duplicado;
+mayor riesgo y fuera del alcance de "un solo camino". Verificado: spec 105 nueva (NE-1/NE-2/NE-3 en
+rojo antes del arreglo, confirmado con `tieneControlador`; NE-4 de control, ya en verde, confirma
+que el nuevo handler no rompe nada más); 123 specs de hijo2/hijo4/reto/GPS/coordenadas en chromium
+sin romperse; recorrido con espía sin hallazgos nuevos.
+
+**Con 8.10 cerrado, el paso 8 completo queda cerrado.** Las decisiones 12, 13 y 14 anticipadas por
+el plan no llegaron a materializarse como decisiones separadas: cada sub-ítem se resolvió aplicando
+directamente el principio ya establecido (un solo camino, la protección donde ya existe en el
+camino hermano, o "investigado y no hace falta tocar nada" cuando la medición lo desmintió) sin
+que ninguno abriera una bifurcación de diseño genuina que necesitara registrarse aparte.
 
 ---
 

@@ -1664,6 +1664,31 @@
                 }
             });
 
+            // Un solo camino (paso 8.10 de la lavadora): el padre manda SISTEMA.NACK/ERROR
+            // a este mismo hijo cuando RETO.SOLICITAR_RETO o RETO.COMPLETADO fallan
+            // (_hdl_RETO_SOLICITAR, _hdl_RETO_COMPLETADO en codigo-padre.html) — sin handler
+            // aquí, el aviso se perdía sin ningún rastro. Mismo patrón mínimo que ya usa
+            // boton-casa-hijo5.html: solo registrar el fallo en el log.
+            registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.NACK, async (mensaje) => {
+                const logPrefix = `[hijo4][SISTEMA.NACK][${mensaje?.origen || 'desconocido'}]`;
+                try {
+                    const { error, mensaje: detalle } = mensaje.datos || {};
+                    logger.warn(`${logPrefix} Petición rechazada: ${error || 'sin detalle'}${detalle ? ` — ${detalle}` : ''}`);
+                } catch (err) {
+                    logger.error(`${logPrefix} Error procesando NACK:`, err);
+                }
+            });
+
+            registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ERROR, async (mensaje) => {
+                const logPrefix = `[hijo4][SISTEMA.ERROR][${mensaje?.origen || 'desconocido'}]`;
+                try {
+                    const { error, mensaje: detalle } = mensaje.datos || {};
+                    logger.error(`${logPrefix} Error recibido: ${error || 'sin detalle'}${detalle ? ` — ${detalle}` : ''}`);
+                } catch (err) {
+                    logger.error(`${logPrefix} Error procesando SISTEMA.ERROR:`, err);
+                }
+            });
+
             // Fase 3 del patrón bidireccional: padre confirma recepción de RETO.MOSTRADO
             registrarControladorSeguro(TIPOS_MENSAJE.RETO.CONFIRMADO, async (mensaje) => {
                 const { retoId } = mensaje.datos || {};

@@ -2335,6 +2335,20 @@ globalThis.addEventListener('pagehide', () => {
             logger.warn(`${logPrefix} Error procesando NOTIFICACION:`, err);
         }
     });
+
+    // Un solo camino (paso 8.10 de la lavadora): el padre manda SISTEMA.ERROR a este mismo
+    // hijo cuando NAVEGACION.GPS.ACTIVAR falla (_hdl_NAVEGACION_GPS_ACTIVAR en
+    // codigo-padre.html) — sin handler aquí, el aviso se perdía sin ningún rastro. Mismo
+    // patrón mínimo que ya usa boton-casa-hijo5.html: solo registrar el fallo en el log.
+    registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ERROR, async (mensaje) => {
+        const logPrefix = `[hijo2][SISTEMA.ERROR][${mensaje?.origen || 'desconocido'}]`;
+        try {
+            const { error, contexto } = mensaje.datos || {};
+            logger.error(`${logPrefix} Error recibido: ${error || 'sin detalle'}${contexto ? ` (contexto: ${contexto})` : ''}`);
+        } catch (err) {
+            logger.error(`${logPrefix} Error procesando SISTEMA.ERROR:`, err);
+        }
+    });
 } catch (error) {
     logger.error('[hijo2] Error durante la inicialización:', error);
     actualizarEstado('Error de inicialización', 'error');
