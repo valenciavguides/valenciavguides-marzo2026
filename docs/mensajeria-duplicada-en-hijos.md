@@ -1731,6 +1731,26 @@ Verificado: spec 106 nueva (rojo antes del arreglo, confirmado con espía de `po
 subtipos —COORDENADAS y TEXTOS— llegaban); 138 specs de hijo2/hijo3/hijo4/coordenadas/carga/datos/
 audio en chromium sin romperse; recorrido con espía sin hallazgos nuevos.
 
+**`SISTEMA.ACK` (✅ cerrado, docs-only).** Al revisar "confirmaciones informativas" (el otro término
+del mismo ítem de §23), se encontró que `SISTEMA.ACK` no existe en absoluto en el código actual:
+`grep` global sobre todo `*.html`/`js/*.js` → 0 coincidencias, y no hay entrada `ACK` en el objeto
+`SISTEMA` de `js/constants.js` (solo `NACK` y `CONFIRMACION`). El propio código ya lo confirma con
+un comentario en `_hdl_SISTEMA_HIJO_PREPARADO` (codigo-padre.html): *"Aquí había un ACK al
+HIJO_PREPARADO que ningún hijo usaba para nada... Un solo acuse, el del bus (§3.7 del estudio)"* —
+es decir, se retiró del código en una sesión **anterior a esta lavadora**, pero GUIA-COMPLETA.md
+nunca se actualizó: describía `SISTEMA.ACK` como mecanismo vivo en **15 ubicaciones** distintas (tres
+tablas de catálogo de mensajes con filas repetidas por hijo, la descripción de
+`enviarMensajeConConfirmacion` diciendo que espera "SISTEMA.ACK" en vez de `SISTEMA.CONFIRMACION`,
+una subsección completa `**SISTEMA.ACK** (padre → hijo)` para un supuesto acuse "cosmético" a
+ENTENDIDO/EFECTUADO, la fila de handshake de `HIJO_PREPARADO` en dos sitios, una línea del trazado
+temporal de arranque, una fila sobre el handler de `PENDING_INICIADO` en hijo4 que afirmaba que
+"solo acusa recibo con SISTEMA.ACK" cuando en realidad solo hace `logger.info(...)`, y la tabla de
+cruce de módulos). Sin cambio de código — nada que borrar, ya estaba borrado. Corregidas las 15
+menciones: 14 eliminadas o reescritas para reflejar el mecanismo real (`SISTEMA.CONFIRMACION`, el
+acuse único del bus), y una nueva nota explicativa en el handshake de `HIJO_PREPARADO` que cuenta
+qué había y por qué se retiró, citando el propio comentario del código. No hace falta spec: no hay
+comportamiento que verificar, solo texto que ya no describía nada real.
+
 ---
 
 ## Parte VII — Hallazgos colaterales

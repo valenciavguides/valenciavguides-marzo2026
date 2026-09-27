@@ -2386,7 +2386,6 @@ flowchart TD
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 | `SISTEMA.CAMBIO_MODO` | Responde con `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO` |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Confirma que el modo ha sido completamente aplicado |
-| `SISTEMA.ACK` | Acuse de recibo de mensajes del sistema |
 
 #### Mensajes que envía al padre
 
@@ -2678,7 +2677,6 @@ Las pantallas de aviso (imágenes, cuenta atrás, botón de reintento) viven en 
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Muestra/oculta el iframe |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Confirma que el modo ha sido completamente aplicado |
-| `SISTEMA.ACK` | Acuse de recibo de mensajes del sistema |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Recibe actualizaciones de estado del GPS desde el padre (activo/inactivo/error) |
 | `NAVEGACION.SOLICITAR_COORDENADAS` | Responde con coordenadas de la parada solicitada; recibe `{ paradaId, tipoConsulta:'COORDENADAS' }` |
 
@@ -3592,7 +3590,7 @@ La comunicación entre `codigo-padre.html` y todos sus iframes usa la API nativa
 | Función | Descripción |
 |---------|-------------|
 | `enviarMensaje({ tipo, datos?, destino })` | Envío estándar — solo acepta formato objeto, sin formato posicional (ver nota más abajo). `destino` es obligatorio: `'padre'`, el nombre de un iframe registrado, o `'broadcast'` para todos los del propio frame; sin él (o con cualquier otro valor) no se envía. Devuelve `Promise<boolean>` — `false` si `tipo` falta, si no hay `destino`, o si el destino no existe; nunca lanza de forma síncrona |
-| `enviarMensajeConConfirmacion(tipoOrMensaje, datos?, opciones?)` | Envío con espera de `SISTEMA.ACK`; a diferencia de `enviarMensaje`, sigue aceptando formato dual — objeto `({tipo, datos, destino, ...})` o posicional `(tipo, datos, opciones)` — implementación independiente, no delega en `enviarMensaje`; timeout configurable; añade campo `id` al mensaje para rastrear la confirmación |
+| `enviarMensajeConConfirmacion(tipoOrMensaje, datos?, opciones?)` | Envío con espera de `SISTEMA.CONFIRMACION`; a diferencia de `enviarMensaje`, sigue aceptando formato dual — objeto `({tipo, datos, destino, ...})` o posicional `(tipo, datos, opciones)` — implementación independiente, no delega en `enviarMensaje`; timeout configurable; añade campo `id` al mensaje para rastrear la confirmación |
 | `registrarControlador(tipo, handler, opciones={})` | Registra un handler para un tipo de mensaje entrante; delega al state-manager si está disponible, o cae en `__vv_manejadoresLocales` |
 | `registrarIframe(id, elemento, opciones={})` | Registra un iframe por su ID para que `enviarMensaje` lo resuelva y el latido lo vigile. `opciones.recuperable === true` es lo único que autoriza al bus a recargarlo cuando deje de contestar (§2.7a). No guarda el `contentWindow`: lo lee del elemento en cada envío, porque recargar un iframe lo sustituye |
 | `desregistrarIframe(id)` | Da de baja un iframe: deja de recibírsele y sus mensajes dejan de aceptarse. Para los que van y vienen (el puzzle de cada reto, el mapa completo) |
@@ -3722,7 +3720,6 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre → Hijos | Broadcast de confirmación global del modo |
 | | `SISTEMA.HEARTBEAT` | Padre → Hijos | Latido "¿sigues vivo?" (solo AVENTURA) |
 | | `SISTEMA.HEARTBEAT_RESPONSE` | Hijo → Padre | "Sigo activo" |
-| | `SISTEMA.ACK` | Cualquiera | Acuse de recibo genérico |
 | | `SISTEMA.NACK` | Cualquiera | Rechazo de mensaje |
 | | `SISTEMA.CONFIRMACION` | Cualquiera | Confirmación específica |
 | | `SISTEMA.ERROR` | Cualquiera | Notificación de error |
@@ -3854,7 +3851,6 @@ sequenceDiagram
 |---------|--------|----------|
 | `SISTEMA.PADRE_DATOS` | Padre | Recibe `{ modo, timestamp }` — handshake estándar |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Completa el handshake |
-| `SISTEMA.ACK` | Padre | Acuse de recibo de mensajes enviados |
 | `SISTEMA.CAMBIO_MODO` | Padre | Responde con `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO` |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Acuse de recibo de que el modo fue aplicado globalmente |
 | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html (sub-iframe activo de P4, ver §35) | Recibido por un listener genérico de `message` en `En-busca-del-tesoro.html`, que llama `mostrar(5)` directamente. No reenvía al padre. |
@@ -3889,7 +3885,6 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 | **padre →** | `AVENTURA.FINALIZADA` | `{ }` | Detiene el temporizador, muestra estadísticas |
 | **padre →** | `AVENTURA.DETENER` | `{ motivo, aventuraAnterior, aventuraNueva }` | Cancela el temporizador antes de cambiar de aventura |
 | **padre →** | `UI.CLOSE_MENUS` | `{ except }` | Colapsa el menú si `except !== 'mas-opciones'` |
-| **padre →** | `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados |
 
 > hijo1 recibe `SISTEMA.HEARTBEAT` desde el momento en que su cargador lo registra en `iframesRegistrados` (tiene el handler y responde). Está marcado `recuperable`: si deja de contestar tres latidos, el bus recarga su iframe y el padre le devuelve el tiempo restante (§2.7a). Ni `DATOS.CARGAR_*`, ni participa en el flujo de paradas.
 >
@@ -3947,7 +3942,6 @@ Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `dis
 | `NAVEGACION.ACTUALIZAR_ESTADO` | `{ distanciaAlDestino, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng }` | Almacena posición en `posicionActualUsuario`; detecta llegada; activa lógica fuera-de-rango (instantánea) | — | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global (no-op informativo) | ✓ | ✓ |
 | `SISTEMA.NOTIFICACION` | `{ evento }` | Notificaciones informativas del sistema | ✓ | ✓ |
-| `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados | ✓ | ✓ |
 
 ---
 
@@ -3988,7 +3982,6 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId }` | Reset spin + quita clase `.activo` del `#retosBtn` | ✓ | ✓ |
 | `UI.ACCION_USUARIO` | `{ accion:'audio_control', comando, audioId }` ó `{ accion:'simular_click', elemento, contexto:'boton_horizontal' }` | Controles de audio del overlay del padre (play/pause/stop/replay) y simulación de clicks en botones horizontales | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
-| `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados | ✓ | ✓ |
 
 > **Protección pasiva por parada** (ver §16): hijo3 nunca recibe la aventura completa. `AUDIO.REPRODUCIR_REQUEST` trae el audio de una sola parada en cada mensaje, y la caché local descarta el id más antiguo en cuanto llega un tercero.
 >
@@ -4033,7 +4026,6 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `CONTROL.DESHABILITAR` | — | Handler registrado pero stub vacío — padre no envía CONTROL a hijo4 actualmente | — | — |
 | `RETO.LIMPIAR_ESTADO` | `{ retoId, retoSigueActivo }` | Limpia siempre el estado interno del reto; restaura `#botonRetos-wrapper` en modo CASA solo si `retoSigueActivo !== false` (padre envía este mensaje justo después de recibir `RETO.OCULTAR` de este mismo hijo4 — direcciones opuestas, tipos distintos a propósito) | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
-| `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados | ✓ | ✓ |
 | `SISTEMA.NOTIFICACION` | `{ evento }` | Detecta `AVENTURA_ACTIVADA` para limpiar estado de reto anterior | ✓ | ✓ |
 
 > **Protección pasiva por parada** (ver §16): hijo4 nunca recibe la aventura completa. `RETO.MOSTRAR` trae el reto de una sola parada en cada mensaje, y la caché local descarta el id más antiguo en cuanto llega un tercero.
@@ -4082,7 +4074,6 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.ERROR` | `{ error, contexto, mensajeOriginal }` | Reintenta `SOLICITAR_DATOS_PARADAS` si es ese error | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
 | `SISTEMA.CONFIRMACION` | `{ tipo }` | ACK de datos recibidos y handshake | ✓ | ✓ |
-| `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados | ✓ | ✓ |
 
 ---
 
@@ -4918,8 +4909,8 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 | Destino | `padre` |
 | Payload | `{ componenteId, version, capacidades[], timestamp }` |
 | Handler en padre | `_hdl_SISTEMA_HIJO_PREPARADO` (codigo-padre.html) |
-| Acción | Registra al hijo en `estado.hijosPreparados` (Set), envía ACK, y envía `PADRE_DATOS` inmediatamente (no espera a los demás hijos) |
-| Responde con | `SISTEMA.ACK` + `SISTEMA.PADRE_DATOS` |
+| Acción | Registra al hijo en `estado.hijosPreparados` (Set), y envía `PADRE_DATOS` inmediatamente (no espera a los demás hijos). Aquí había además un `SISTEMA.ACK` al `HIJO_PREPARADO` que ningún hijo escuchaba — un segundo acuse que duplicaba el del propio bus (`SISTEMA.CONFIRMACION`); retirado antes de esta lavadora |
+| Responde con | `SISTEMA.PADRE_DATOS` |
 
 ##### SISTEMA.PADRE_DATOS
 
@@ -5155,15 +5146,6 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 | Emitido por | Padre (tras recoger todos los EFECTUADO) |
 | Handler en hijos | hijo2, hijo3, hijo4, hijo1 |
 | Acción | Confirmación final — hijos completan transición de modo |
-
-**SISTEMA.ACK** (padre → hijo)
-
-| Campo | Valor |
-|-------|-------|
-| Emitido por | Padre (respuesta cosmética a ENTENDIDO/EFECTUADO) |
-| Payload | `{ mensajeRecibido, modo, timestamp }` |
-| Handler en hijos | hijo1, hijo2, hijo3, hijo4 |
-| Acción | Solo logging — el ACK no desbloquea ningún flujo |
 
 ---
 
@@ -5939,7 +5921,7 @@ padre → hijo2/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, t
 | Hijo | Acción |
 |---|---|
 | **hijo2** | `_manejarPendingIniciado()`: **deshabilita `#btn-ubicacion`** mientras el pending esté abierto |
-| **hijo4** | **Solo acusa recibo con `SISTEMA.ACK`. No toca la UI del reto** |
+| **hijo4** | **Solo registra el evento en el log. No toca la UI del reto** |
 
 > **El aviso significa "el padre ha empezado a seguir la compleción de esta parada", no "el usuario ha salido del reto".** Si hijo4 respondiera haciendo `estado.retoActualId = null` + `ocultarControles()`, rompería tres botones de golpe con el reto ya abierto: `btnEnviar` pasaría a `display:none` (desaparece), `btnMostrarRespuesta` quedaría `disabled` (visible pero inerte) y `btnSaltarReto`, aunque intacto, dejaría de funcionar porque su listener abre con `if (!estado.retoActualId) return`. Por eso solo acusa recibo.
 >
@@ -10646,7 +10628,6 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 
 ~600 ms  Padre recibe HIJO_PREPARADO de cada hijo (independiente, por hijo):
          → Añade hijoId a state.estadoPadre.hijosPreparados (Set)
-         → Responde con SISTEMA.ACK al mismo hijo
          → Envía inmediatamente SISTEMA.PADRE_DATOS al mismo hijo
               (no espera a que todos estén listos — handshake por hijo)
 
@@ -11146,7 +11127,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta el padre | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.HIJO_PREPARADO` | Cualquier hijo al cargarse | Registra al hijo en `hijosPreparados`; envía ACK + PADRE_DATOS inmediatamente (no espera a los demás hijos) | `SISTEMA.ACK` + `SISTEMA.PADRE_DATOS { modo, timestamp }` | El hijo que envió la señal | Arrancar el handshake de inicialización |
+| `SISTEMA.HIJO_PREPARADO` | Cualquier hijo al cargarse | Registra al hijo en `hijosPreparados`; envía PADRE_DATOS inmediatamente (no espera a los demás hijos) | `SISTEMA.PADRE_DATOS { modo, timestamp }` | El hijo que envió la señal | Arrancar el handshake de inicialización |
 | `SISTEMA.HIJO_LISTO` | Cualquier hijo tras procesar `PADRE_DATOS` | Marca ese hijo como `listo=true` en el mapa interno; cuando todos los hijos esperados están listos, llama `_hijoListo_onTodosListos()` | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | El hijo que envió la señal | Completar la fase de handshake; saber cuándo la app está 100% operativa |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Registra en un `Map` interno que ese hijo recibió y entendió el cambio de modo | (ninguna respuesta directa; el padre espera a `EFECTUADO`) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Registra que el hijo aplicó el modo; cuando todos los hijos confirman, cierra la transición | `SISTEMA.CAMBIO_MODO_APLICADO` | **Broadcast a todos los hijos** | 4.ª y última fase del protocolo; el padre emite broadcast (no solo al emisor) para que todos completen la transición |
@@ -13958,7 +13939,6 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje 
 | `SELECCION.REINICIAR` | En-busca-del-tesoro.html | codigo-padre.html |
 | `SELECCION.TERMINOS_ACEPTADOS` | En-busca-del-tesoro.html | codigo-padre.html |
 | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html | En-busca-del-tesoro.html, chat-hijo6.html, tools/renumber-pantallas.js |
-| `SISTEMA.ACK` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, retos-hijo4.html | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `SISTEMA.ADVERTENCIA` | js/funciones-mapa.js | codigo-padre.html |
 | `SISTEMA.APLICACION_INICIALIZADA` | codigo-padre.html | codigo-padre.html |
 | `SISTEMA.CAMBIO_MODO` | boton-casa-hijo5.html, codigo-padre.html, js/app.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
