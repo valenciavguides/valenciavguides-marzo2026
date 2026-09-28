@@ -17,7 +17,7 @@ const apiPort = Number(process.env.API_PORT) || 3001;
 // El frontend debe obtener estos datos a través de la API autenticada.
 //
 // ADVERTENCIA — PROTECT_DATA=true requiere BACKEND_READY=true en js/data-loader.js:
-// mientras el frontend siga en DATA_MODE='local' (BACKEND_READY=false, el valor por
+// mientras el frontend siga en modo 'local' (BACKEND_READY=false, el valor por
 // defecto — ver js/data-loader.js), el propio arranque del padre importa directamente
 // estos mismos ficheros protegidos (Fase 2, codigo-padre.html). Si PROTECT_DATA=true
 // se activa sin que exista y esté probado un backend real, la app entera deja de
@@ -128,7 +128,7 @@ const server = http.createServer((req, res) => {
   // producción pero no en local" que este proxy elimina, sin tocar el CSP.
   //
   // GitHub Pages no ejecuta este servidor: allí /api/* no existe y el frontend debe
-  // seguir en DATA_MODE='local' (ese es un asunto aparte, la detección de entorno).
+  // seguir en modo 'local' (ese es un asunto aparte, la detección de entorno).
   if (urlPath === '/api' || urlPath.startsWith('/api/')) {
     const destino = http.request(
       { host: '127.0.0.1', port: apiPort, path: req.url, method: req.method, headers: { ...req.headers, host: `127.0.0.1:${apiPort}` } },
@@ -147,7 +147,7 @@ const server = http.createServer((req, res) => {
       res.end(JSON.stringify({
         error: true,
         codigo: 'BACKEND_NO_DISPONIBLE',
-        mensaje: `No hay backend escuchando en localhost:${apiPort}. Arráncalo, o usa DATA_MODE local.`
+        mensaje: `No hay backend escuchando en localhost:${apiPort}. Arráncalo, o deja BACKEND_READY en false.`
       }));
     });
     req.pipe(destino);

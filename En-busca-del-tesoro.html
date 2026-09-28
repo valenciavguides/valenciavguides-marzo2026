@@ -1751,7 +1751,12 @@
       const email = inputEmail ? inputEmail.value.trim() : '';
 
       try {
-        const { getDataMode } = await import('./js/data-loader.js');
+        // asegurarModo() antes de getDataMode(): el modo se resuelve preguntando si hay
+        // backend detrás (data-loader.js), no por el nombre del host. Sin esperarla, aquí
+        // se leería el valor de partida ('local') y se rechazaría la activación incluso
+        // con el backend delante.
+        const { getDataMode, asegurarModo } = await import('./js/data-loader.js');
+        await asegurarModo();
         if (getDataMode() === 'api') {
           // Producción: comprobación real contra el backend (código + email, ver §16.2)
           const { ApiClient } = await import('./js/api-client.js');

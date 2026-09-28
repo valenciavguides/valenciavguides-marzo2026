@@ -10566,7 +10566,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // esa referencia existe (campo .file no vacío) — hoy vacío en los 12 idiomas
         // salvo español mientras no se termine de grabar (ver aventuras-ID-padre.js).
         // Lee __vv_AUDIOS_AVENTURAS directamente (poblado en Fase 2, siempre síncrono e
-        // independiente de DATA_MODE) en vez de pasar por data-loader.js/_resolverAudioData,
+        // independiente del modo de datos) en vez de pasar por data-loader.js/_resolverAudioData,
         // que son async — esta función se llama desde contextos síncronos reactivos.
         function hayFicheroAudioReal(audioId) {
             if (!audioId) return false;
@@ -11658,7 +11658,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // Resuelve el contenido real de un audio_id (url/title) para incluirlo en línea en
         // AUDIO.REPRODUCIR_REQUEST — protección pasiva por parada: hijo3 ya no necesita tener
         // precargada la aventura completa, solo lo que el padre le envía en este mensaje.
-        // En DATA_MODE='local' es un import ya en caché; en 'api' será la petición real al backend.
+        // En modo 'local' es un import ya en caché; en 'api' será la petición real al backend.
         async function _resolverAudioData(audioId, logPrefix) {
             if (!audioId) return null;
             try {

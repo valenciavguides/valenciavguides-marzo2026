@@ -1,40 +1,89 @@
 /**
  * Data Loader - Cargador de datos con protección
  *
- * En DESARROLLO (DATA_MODE = 'local'):
- *   Importa los datos directamente desde los ficheros JS locales.
- *   Funciona sin backend ni autenticación.
+ * MODO 'local': importa los datos directamente desde los ficheros JS locales. Funciona sin
+ *   backend ni autenticación.
  *
- * En PRODUCCIÓN (DATA_MODE = 'api'):
- *   Obtiene los datos desde la API del backend, que requiere token.
- *   Los ficheros JS locales están bloqueados por el servidor estático.
- *   Sin token válido → no hay acceso a coordenadas, textos ni respuestas.
+ * MODO 'api': obtiene los datos desde la API del backend, que requiere token. Los ficheros
+ *   JS locales están bloqueados por el servidor estático. Sin token válido no hay acceso a
+ *   coordenadas, textos ni respuestas.
+ *
+ * El modo NO se escribe a mano: lo resuelve asegurarModo() preguntando si hay backend detrás
+ * de /api/health. Así el mismo código vale en los tres sitios donde corre el proyecto —local,
+ * GitHub Pages y el VPS— sin tocar nada al desplegar. Ante la duda, 'local'. GitHub Pages
+ * seguirá en local aunque BACKEND_READY sea true: allí /api/health responde 404 porque no hay
+ * ningún proceso Node detrás (medido).
  *
  * TRANSICIÓN A PRODUCCIÓN:
- *   1. Cambiar DATA_MODE a 'api'
+ *   1. Poner BACKEND_READY = true (autoriza a preguntar; no fuerza el modo)
  *   2. Establecer PROTECT_DATA=true en el servidor estático
  *   3. Establecer AUTH_ENABLED=true en el backend
  *   4. Los ficheros JS sensibles quedan inaccesibles directamente
  */
 
 // ═══════════════════════════════════════════════════
-// CONFIGURACIÓN — Automático según entorno, detrás de un interruptor explícito
-// localhost/127.0.0.1 → 'local' (desarrollo) siempre, en cualquier caso.
-// cualquier otro dominio → 'api' SOLO si BACKEND_READY=true.
+// CONFIGURACIÓN — El entorno se detecta solo, detrás de un interruptor explícito
 // ═══════════════════════════════════════════════════
 //
-// BACKEND_READY debe permanecer en `false` hasta que exista un backend real
-// desplegado y probado (ver docs/GUIA-COMPLETA.md §16 — hoy backend/ está vacío).
-// Con auto-detección sin este interruptor, cualquier despliegue a un dominio
-// real (p.ej. valenciavguides.es) cambiaría a DATA_MODE='api' de inmediato y
-// rompería la app entera (fetchFromAPI contra un backend que no existe).
-// Cuando el backend esté listo: cambiar BACKEND_READY a `true` — no hace falta
-// tocar nada más en este archivo, la detección por hostname ya está lista.
+// BACKEND_READY es el freno de mano: mientras esté en `false` no se pregunta nada y el
+// modo es 'local' siempre. Ponerlo en `true` NO fuerza el modo 'api': solo autoriza a
+// comprobar si hay backend detrás. Ver `hayBackendDisponible()`.
 const BACKEND_READY = false;
 
-const _host = globalThis.location?.hostname;
-const _esLocal = _host === 'localhost' || _host === '127.0.0.1' || !_host;
-const DATA_MODE = (BACKEND_READY && !_esLocal) ? 'api' : 'local';
+// ── El modo se decide por CAPACIDAD, no por el nombre del host ──────────────────────
+//
+// El proyecto vive en tres sitios, y dos de ellos comparten hostname:
+//
+//   | Dónde                  | /api/health        | Modo   |
+//   |------------------------|--------------------|--------|
+//   | local, backend activo  | 200                | api    |
+//   | local, sin backend     | 502 (proxy avisa)  | local  |
+//   | GitHub Pages           | 404 (no hay Node)  | local  |
+//   | VPS con backend        | 200                | api    |
+//
+// Antes se decidía por hostname (`localhost` → local, cualquier otro → api). Pages y el
+// VPS son el MISMO hostname, así que esa regla no podía distinguirlos: el día que
+// BACKEND_READY pasara a `true`, Pages pedía los datos a un `/api` que allí no existe y
+// la app se quedaba sin datos. Medido contra el sitio real: `/api/health` responde 404.
+// Preguntando por la capacidad, cada entorno se identifica solo y no hay que acordarse de
+// nada al desplegar. Ante cualquier duda gana 'local', que es el modo que siempre funciona.
+let _modo = 'local';
+let _deteccionEnCurso = null;
+
+/**
+ * ¿Hay un backend contestando detrás de /api? Exportada porque es el contrato que decide el
+ * modo, y lo que decide algo tiene que poder comprobarse: un test que reimplemente este mismo
+ * fetch estaría probando su propia copia y no se enteraría si esto cambiara (EJE 24, §36.24).
+ */
+export async function hayBackendDisponible() {
+    try {
+        const ctrl = new AbortController();
+        const corte = setTimeout(() => ctrl.abort(), 2500);
+        const resp = await fetch('/api/health', { signal: ctrl.signal, cache: 'no-store' });
+        clearTimeout(corte);
+        return resp.ok;
+    } catch {
+        // Abortado, sin red, o bloqueado: no hay backend utilizable.
+        return false;
+    }
+}
+
+/**
+ * Resuelve el modo una sola vez por sesión y lo deja fijado. Hay que esperarla antes de
+ * leer `getDataMode()`; todas las `cargarX` de este módulo lo hacen por su cuenta.
+ */
+export async function asegurarModo() {
+    if (!BACKEND_READY) return _modo;
+    if (!_deteccionEnCurso) {
+        _deteccionEnCurso = hayBackendDisponible().then((hay) => {
+            _modo = hay ? 'api' : 'local';
+            (globalThis.logger || console).info(`[DataLoader] Modo de datos: ${_modo}`);
+            return _modo;
+        });
+    }
+    return _deteccionEnCurso;
+}
+
 // Ruta RELATIVA, igual en local (proxy /api/* de js/server.js) que en el VPS (Caddy):
 // un solo origen, cubierto por el `connect-src 'self'` del CSP y sin CORS. Ver el bloque
 // PROXY de js/server.js.
@@ -92,7 +141,7 @@ export async function cargarCoordenadas(aventuraId) {
     if (dataCache.has(key)) return dataCache.get(key);
 
     let result;
-    if (DATA_MODE === 'local') {
+    if (await asegurarModo() === 'local') {
         const { DATOS_AVENTURAS } = await import('./coordenadas-aventuras.js');
         result = DATOS_AVENTURAS[aventuraId];
     } else {
@@ -153,7 +202,7 @@ export async function cargarTextos(aventuraId, idioma) {
 
     let result;
     let _mapaParrafosCargado = true; // false → fetch falló → no cachear
-    if (DATA_MODE === 'local') {
+    if (await asegurarModo() === 'local') {
         const { TEXTOS_AVENTURAS } = await import('./textos-aventuras.js');
         const { AUDIOS_AVENTURAS } = await import('./audios-aventuras.js');
         const entradas = TEXTOS_AVENTURAS[aventuraId] ?? [];
@@ -209,7 +258,7 @@ export async function cargarRetos(aventuraId, idioma) {
     if (dataCache.has(key)) return dataCache.get(key);
 
     let result;
-    if (DATA_MODE === 'local') {
+    if (await asegurarModo() === 'local') {
         const { RETOS_AVENTURAS } = await import('./retos-aventuras.js');
         result = RETOS_AVENTURAS[aventuraId]?.[idioma];
     } else {
@@ -229,7 +278,7 @@ export async function cargarAudios(aventuraId, idioma) {
     if (dataCache.has(key)) return dataCache.get(key);
 
     let result;
-    if (DATA_MODE === 'local') {
+    if (await asegurarModo() === 'local') {
         const { AUDIOS_AVENTURAS } = await import('./audios-aventuras.js');
         result = AUDIOS_AVENTURAS[aventuraId]?.[idioma];
     } else {
@@ -249,7 +298,7 @@ export async function cargarIndice() {
     if (dataCache.has(key)) return dataCache.get(key);
 
     let result;
-    if (DATA_MODE === 'local') {
+    if (await asegurarModo() === 'local') {
         const { INDICE_AVENTURAS } = await import('./indice-aventuras.js');
         result = INDICE_AVENTURAS;
     } else {
@@ -266,7 +315,7 @@ export async function cargarIndice() {
  * (Solo disponible en modo API — en local, la validación es en el frontend)
  */
 export async function validarRespuesta(aventuraId, idioma, retoId, respuesta) {
-    if (DATA_MODE === 'local') {
+    if (await asegurarModo() === 'local') {
         (globalThis.logger || console).warn('[DataLoader] validarRespuesta() no disponible en modo local');
         return null;
     }
@@ -297,5 +346,7 @@ export function limpiarCacheDatos() {
  * Devuelve el modo actual de datos
  */
 export function getDataMode() {
-    return DATA_MODE;
+    // Síncrona a propósito (sus llamadores lo son). Devuelve lo último resuelto por
+    // `asegurarModo()`; si nadie la ha esperado todavía, devuelve el seguro: 'local'.
+    return _modo;
 }

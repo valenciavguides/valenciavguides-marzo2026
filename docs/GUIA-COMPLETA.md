@@ -4815,10 +4815,10 @@ Por una razón de diseño pensando en la seguridad futura:
 
 > ⚠️ **CRÍTICO — No activar `PROTECT_DATA=true` todavía**: el servidor estático ya bloquea los JS sensibles con 403 cuando esta flag está activa, pero `codigo-padre.html` y `En-busca-del-tesoro.html` siguen importándolos directamente (sin pasar por el backend). Activarla en producción rompería la carga de aventuras. Ver §22.12 para la lista exacta de imports a migrar. Ver **§17** para el modelo de seguridad completo.
 
-El módulo `js/data-loader.js` gestiona esta transición. Tiene una variable `DATA_MODE`, calculada automáticamente y gateada por el interruptor manual `BACKEND_READY` (`false` por defecto — ver detalle completo en **§17**):
+El módulo `js/data-loader.js` gestiona esta transición. El modo no se escribe a mano: `asegurarModo()` lo resuelve preguntando a `/api/health` si hay backend detrás, y el interruptor manual `BACKEND_READY` (`false` por defecto) decide si llega a preguntarse — ver detalle completo en **§17**:
 
-- `'local'`: carga desde ficheros JS (desarrollo). Activo siempre mientras `BACKEND_READY=false`, sin importar el dominio.
-- `'api'`: carga desde el backend con token (producción). Solo posible con `BACKEND_READY=true` en un dominio no local.
+- `'local'`: carga desde ficheros JS (desarrollo). Activo siempre mientras `BACKEND_READY=false`, y también con el interruptor levantado allí donde no haya backend que conteste.
+- `'api'`: carga desde el backend con token (producción). Requiere `BACKEND_READY=true` **y** un backend que responda a `/api/health`.
 
 ---
 
@@ -4866,7 +4866,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-6f714a1b8f43'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-03fcb06241d7'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6065,7 +6065,7 @@ codigo-padre.html arranca
 
 ### 10.21 HTTP / fetch — capa de datos
 
-Dos módulos gestionan la comunicación con servidores externos. **Actualmente `DATA_MODE = 'local'` siempre**, porque `BACKEND_READY = false` en `js/data-loader.js` — todas las peticiones al backend están desactivadas hasta que ese interruptor pase a `true`. Para los detalles de seguridad de `PROTECT_DATA`, protección de rutas y el modelo de origen verificado en `postMessage`, ver **§17 (Seguridad y protección)**.
+Dos módulos gestionan la comunicación con servidores externos. **Actualmente el modo de datos es `'local'` siempre**, porque `BACKEND_READY = false` en `js/data-loader.js` — todas las peticiones al backend están desactivadas hasta que ese interruptor pase a `true`. Para los detalles de seguridad de `PROTECT_DATA`, protección de rutas y el modelo de origen verificado en `postMessage`, ver **§17 (Seguridad y protección)**.
 
 #### js/data-loader.js — cargador de datos (activo ahora)
 
@@ -7445,7 +7445,7 @@ El directorio `backend/` existe pero está vacío. El backend con API REST auten
 - Endpoints para coordenadas, retos (sin respuestas), textos, audios
 - Validación de código de activación
 
-El módulo `js/data-loader.js` implementa las dos ramas (`DATA_MODE='local'` / `DATA_MODE='api'`) para `cargarTextos`, `cargarCoordenadas`, `cargarAudios`, `cargarRetos` e `cargarIndice`, pero el arranque real del padre no las usa todas por igual: `globalThis.__cargarDatosAventuraDiferidos` (Fase 2, `codigo-padre.html`) importa `coordenadas-aventuras.js`, `audios-aventuras.js` e `indice-aventuras.js` con un `await import()` incondicional, saltandose `data-loader.js` — cambiar a `DATA_MODE='api'` hoy no tiene ningún efecto sobre esa carga inicial. Los otros dos grandes, `retos-aventuras.js` y `textos-aventuras.js`, **ya no están en la Fase 2**: se resuelven bajo demanda por `cargarRetos()`/`cargarTextos()` (§6). `cargarTextos()` está conectada al flujo real (usada para ensamblar `{id,title,content}` a partir de los párrafos, ver `distribuirDatosAventura()`). **`cargarAudios()` y `cargarRetos()` sí están conectadas**, como parte de la protección pasiva por parada (ver arriba): `_solicitarAudioParaParada()` (`codigo-padre.html`) y los handlers `SOLICITAR_AUDIOS`/`SOLICITAR_RETOS` (`js/controladores-padre.js`) las llaman para resolver el contenido de cada parada individualmente en el momento en que se activa — el mismo código ya funciona en ambos `DATA_MODE`, sin cambios pendientes cuando exista backend. `cargarCoordenadas()` sigue sin ningún call site (la carga de coordenadas sigue siendo bulk por import directo, no forma parte de esta protección).
+El módulo `js/data-loader.js` implementa las dos ramas (modo `'local'` / modo `'api'`) para `cargarTextos`, `cargarCoordenadas`, `cargarAudios`, `cargarRetos` e `cargarIndice`, pero el arranque real del padre no las usa todas por igual: `globalThis.__cargarDatosAventuraDiferidos` (Fase 2, `codigo-padre.html`) importa `coordenadas-aventuras.js`, `audios-aventuras.js` e `indice-aventuras.js` con un `await import()` incondicional, saltandose `data-loader.js` — pasar a modo `'api'` hoy no tiene ningún efecto sobre esa carga inicial. Los otros dos grandes, `retos-aventuras.js` y `textos-aventuras.js`, **ya no están en la Fase 2**: se resuelven bajo demanda por `cargarRetos()`/`cargarTextos()` (§6). `cargarTextos()` está conectada al flujo real (usada para ensamblar `{id,title,content}` a partir de los párrafos, ver `distribuirDatosAventura()`). **`cargarAudios()` y `cargarRetos()` sí están conectadas**, como parte de la protección pasiva por parada (ver arriba): `_solicitarAudioParaParada()` (`codigo-padre.html`) y los handlers `SOLICITAR_AUDIOS`/`SOLICITAR_RETOS` (`js/controladores-padre.js`) las llaman para resolver el contenido de cada parada individualmente en el momento en que se activa — el mismo código ya funciona en ambos modos, sin cambios pendientes cuando exista backend. `cargarCoordenadas()` sigue sin ningún call site (la carga de coordenadas sigue siendo bulk por import directo, no forma parte de esta protección).
 
 **Puzzles — la imagen viaja con el reto, no la busca `puzzle.html`:** los retos de `tipo:'puzzle'` (`retos-aventuras.js`) llevan un campo `src` con la página y el id (p. ej. `"puzzle.html?id=PZ-01"`). El padre resuelve la imagen al resolver el reto y la añade como `reto.imagenPuzzle`; hijo4 la concatena a ese `src` y crea el `<iframe>`. **`puzzle.html` no importa `puzzles-aventuras.js`** — la única mención que queda en el fichero es un comentario — ni busca nada: lee `id` e `imagen` de su URL y monta con eso (§13). Quien sí carga el pool completo es la Fase 2 del padre, con un `await import('./js/puzzles-aventuras.js')` que expone `globalThis.__vv_PUZZLES`; y `En-busca-del-tesoro.html` hace el suyo para el puzzle de P6. `data-loader.js` no tiene función para puzzles: la forma real de los datos (pool compartido bajo la clave `INTRO`, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)` que usan `cargarAudios`/`cargarRetos`/`cargarCoordenadas`/`cargarTextos`. Si se quiere proteger, hace falta inventarle esa función primero (§22.12).
 
@@ -7593,7 +7593,7 @@ Qué parte de la activación real está ya construida en `En-busca-del-tesoro.ht
 
 **1. `validarCodigo()` — doble modo** — listo
 
-Valida solo formato (código ≥4 caracteres + email con forma de email) para habilitar el botón. La bifurcación real por `DATA_MODE` ocurre en `_irANormativa()`, no en `validarCodigo()` — ver el recuadro "Estado actual" más arriba.
+Valida solo formato (código ≥4 caracteres + email con forma de email) para habilitar el botón. La bifurcación real por modo de datos ocurre en `_irANormativa()`, no en `validarCodigo()` — ver el recuadro "Estado actual" más arriba.
 
 **2. `ApiClient.activar()` envía el email** — listo
 
@@ -7621,17 +7621,36 @@ En producción: al cargar P12, comprobar `new URLSearchParams(location.search).g
 
 ## 17. Seguridad y protección
 
-El módulo `js/data-loader.js` gestiona la transición local/producción mediante la variable `DATA_MODE`, calculada así:
+El módulo `js/data-loader.js` gestiona la transición local/producción. El modo **no depende del nombre del host, sino de si hay un backend que conteste**:
 
 ```js
-const BACKEND_READY = false; // ← único interruptor manual
-const DATA_MODE = (BACKEND_READY && !_esLocal) ? 'api' : 'local';
+const BACKEND_READY = false;   // ← único interruptor manual: autoriza a preguntar
+
+export async function hayBackendDisponible() {   // GET /api/health, con corte a 2.500 ms
+    ...                                          // true solo si responde 2xx
+}
+
+export async function asegurarModo() {           // resuelve el modo una vez por sesión
+    if (!BACKEND_READY) return _modo;            // freno puesto ⇒ 'local', sin preguntar
+    ...
+}
 ```
 
-- `'local'`: carga desde ficheros JS directamente. **Activo ahora**, siempre, porque `BACKEND_READY = false`. La detección automática por hostname (`localhost`/`127.0.0.1` → `'local'`, cualquier otro dominio → `'api'`) ya está implementada y activa, pero queda anulada mientras `BACKEND_READY` sea `false` — es la salvaguarda: desplegar a un dominio real sin backend probado no activa `'api'` por accidente.
-- `'api'`: carga desde el backend con token. Se activa cambiando `BACKEND_READY` a `true` una vez el backend esté implementado y probado — no hace falta tocar la lógica de detección, ya está lista.
+- `'local'`: carga desde ficheros JS directamente. **Activo ahora**, siempre, porque `BACKEND_READY = false`. Es además el modo al que se cae ante cualquier duda: sin red, con error, o con un 404/502 en `/api/health`.
+- `'api'`: carga desde el backend con token. Requiere `BACKEND_READY = true` **y** que `/api/health` responda 2xx.
 
-> **¿Puede alguien acceder a `data-loader.js` y cambiar `DATA_MODE`?** No. `js/server.js` sirve ficheros solo en lectura (GET); no existe ningún endpoint de escritura. Un atacante puede leer el fichero pero no modificarlo en el servidor. En producción, los datos sensibles están protegidos por `PROTECT_DATA=true` independientemente del valor de `DATA_MODE`. Si el atacante tuviera acceso de escritura al servidor, el problema sería de otra magnitud.
+**Por qué se pregunta en vez de deducirlo del hostname.** El proyecto corre en tres sitios, y dos de ellos comparten nombre de dominio:
+
+| Dónde | `/api/health` | Modo |
+|---|---|---|
+| local, backend levantado | 200 | `api` |
+| local, sin backend | 502 — lo da el proxy de `js/server.js` (§22.4) | `local` |
+| GitHub Pages | 404 — es estático, no hay ningún proceso Node detrás | `local` |
+| VPS con backend | 200 | `api` |
+
+GitHub Pages y el VPS son **el mismo hostname**, así que ninguna regla basada en el nombre puede distinguirlos: con `BACKEND_READY = true`, Pages pediría los datos a un `/api` que allí no existe y se quedaría sin ellos. Preguntando por la capacidad, cada entorno se identifica solo y no hay nada que recordar al desplegar. Cubierto por `tests/e2e/114-modo-datos-por-capacidad.spec.js`.
+
+> **¿Puede alguien acceder a `data-loader.js` y cambiar el modo?** No. `js/server.js` sirve ficheros solo en lectura (GET); no existe ningún endpoint de escritura. Un atacante puede leer el fichero pero no modificarlo en el servidor. En producción, los datos sensibles están protegidos por `PROTECT_DATA=true` independientemente del modo. Si el atacante tuviera acceso de escritura al servidor, el problema sería de otra magnitud.
 
 Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 (HTTP / fetch — capa de datos)**.
 
@@ -8070,7 +8089,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-6f714a1b8f43'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-03fcb06241d7'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8434,7 +8453,7 @@ Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌
 | 8 | Protección del código JavaScript (minificación/obfuscación) | §22.8 | ⏳ pendiente |
 | 9 | Eliminar archivos sensibles del `APP_SHELL` del SW | §22.9 | ⏳ pendiente |
 | 10 | `CACHE_VERSION` al desplegar | §22.10 | ⏳ pendiente |
-| 11 | `BACKEND_READY = true` en `js/data-loader.js` (activa `DATA_MODE='api'` en dominios no locales) | §22.11 | ⏳ pendiente |
+| 11 | `BACKEND_READY = true` en `js/data-loader.js` (autoriza a preguntar; el modo `'api'` se activa solo donde `/api/health` conteste) | §22.11 | ⏳ pendiente |
 | 12 | Validación del código DEV en el backend (mover de hash cliente a endpoint autenticado) | §22.4 | ⏳ pendiente |
 | 13 | Decidir si `puzzles-aventuras.js` y `mapa-vintage-aventuras.js` entran en `PROTECTED_FILES`, y con qué función de `data-loader.js` se cargarían. `aventuras-ID-padre.js` queda fuera por decisión (§2.2) | §22.12 | ⏳ pendiente |
 | 14 | Compatibilidad iOS PWA y navegadores antiguos (meta tags, Permissions-Policy vía cabecera) | §22.13 | ⏳ pendiente |
@@ -8554,7 +8573,7 @@ Dos consecuencias, las dos buenas: **el CSP de producción no rompe la app en iP
 
 Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier petición GET directa a los ficheros sensibles. El frontend debe obtener esos datos a través de una API autenticada (pendiente de implementar).
 
-> ⚠️ **Dependencia cruzada con `BACKEND_READY`**: `PROTECT_DATA=true` solo tiene sentido junto con `BACKEND_READY=true` en `js/data-loader.js` (§22.11) — si `BACKEND_READY` sigue en `false`, `DATA_MODE` seguirá siendo `'local'` y la Fase 2 del padre (`codigo-padre.html`) seguirá importando directamente los ficheros que `PROTECT_DATA` bloquearía, rompiendo la carga de aventuras con 403. `js/server.js` emite un `console.warn` al arrancar con `PROTECT_DATA=true` recordando esta dependencia. Ver también §22.12 para los imports directos aún pendientes de migrar.
+> ⚠️ **Dependencia cruzada con `BACKEND_READY`**: `PROTECT_DATA=true` solo tiene sentido junto con `BACKEND_READY=true` en `js/data-loader.js` (§22.11) — si `BACKEND_READY` sigue en `false`, el modo seguirá siendo `'local'` y la Fase 2 del padre (`codigo-padre.html`) seguirá importando directamente los ficheros que `PROTECT_DATA` bloquearía, rompiendo la carga de aventuras con 403. `js/server.js` emite un `console.warn` al arrancar con `PROTECT_DATA=true` recordando esta dependencia. Ver también §22.12 para los imports directos aún pendientes de migrar.
 
 **Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 25–35):
 
@@ -8637,7 +8656,7 @@ El servidor actual **no tiene autenticación**. Para producción habrá que impl
 - **Endpoints autenticados** que sirvan los ficheros protegidos por `PROTECT_DATA`.
 - **CSP via cabeceras HTTP** en lugar del `<meta>` actual (ver §22.2).
 - **CORS restringido** al dominio de producción.
-- **`DATA_MODE = 'api'`** en `js/data-loader.js` (ver §22.11).
+- **Modo de datos `'api'`** en `js/data-loader.js` (ver §22.11).
 - **Validación del código DEV en el backend:** el modo DEV (ver §24) verifica su código actualmente en el propio cliente. Aunque el código no es visible en texto plano, un atacante con tiempo puede hacer fuerza bruta sobre esa verificación. En producción, la validación debe moverse a un endpoint protegido del backend: el cliente envía el código via POST (HTTPS), el servidor compara contra una variable de entorno (`DEV_CODE`) y devuelve un token de sesión de corta duración. El cliente solo activa `_devModeActivo = true` si recibe ese token. Así el código nunca está en ningún fichero del proyecto.
 
 ---
@@ -8782,7 +8801,7 @@ Actualmente en APP_SHELL (sw.js):
 
 1. Eliminar los archivos sensibles del array `APP_SHELL` en `sw.js`.
 2. Implementar el backend autenticado con JWT (§22.4).
-3. Cambiar `DATA_MODE` a `'api'` en `js/data-loader.js` (§22.11).
+3. Poner `BACKEND_READY = true` en `js/data-loader.js` (§22.11).
 4. Los datos sensibles se cargarán exclusivamente vía API autenticada en runtime — nunca pre-cacheados.
 
 **Mientras tanto:** No es un problema en desarrollo local. Pero esta tarea es **bloqueante para producción con protección real de datos**.
@@ -8795,7 +8814,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-6f714a1b8f43';
+const CACHE_VERSION = 'v-03fcb06241d7';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8803,24 +8822,30 @@ const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 
 ---
 
-### 22.11 `DATA_MODE`: activar el modo `'api'`
+### 22.11 Activar el modo `'api'`
 
-En `js/data-loader.js` la detección automática por hostname ya está implementada, gobernada por un único interruptor manual:
+En `js/data-loader.js` la detección ya está implementada y es por **capacidad**: se pregunta a `/api/health` si hay backend. Un único interruptor manual gobierna si llega a preguntarse:
 
 ```javascript
 // js/data-loader.js — estado actual
 const BACKEND_READY = false; // ← cambiar a true cuando el backend esté implementado Y probado
-const _host = globalThis.location?.hostname;
-const _esLocal = _host === 'localhost' || _host === '127.0.0.1' || !_host;
-const DATA_MODE = (BACKEND_READY && !_esLocal) ? 'api' : 'local';
-const API_BASE = DATA_MODE === 'local'
-    ? 'http://localhost:3001/api'
-    : `${globalThis.location.origin}/api`;
+
+let _modo = 'local';         // el seguro: lo que vale mientras nadie demuestre lo contrario
+
+export async function asegurarModo() {
+    if (!BACKEND_READY) return _modo;            // freno puesto: ni se pregunta
+    ...                                          // GET /api/health ⇒ 2xx ? api : local
+}
+
+// Ruta relativa: el mismo origen en local (proxy de js/server.js) que en el VPS (Caddy).
+const API_BASE = '/api';
 ```
 
 En modo `'local'`, los datos de aventura se importan como módulos JS — el navegador los descarga y el SW los cachea. En modo `'api'`, los datos se obtienen mediante llamadas autenticadas al backend y nunca se almacenan en caché del SW.
 
-Mientras `BACKEND_READY = false`, `DATA_MODE` es siempre `'local'` sin importar el hostname — es la salvaguarda contra desplegar a un dominio real antes de tener backend. **El único cambio pendiente** es poner `BACKEND_READY = true`, y solo debe hacerse junto con §22.4 (backend con JWT) y §22.9 (revisión de `APP_SHELL`) ya implementados y probados — los tres deben estar listos conjuntamente antes de voltear el interruptor.
+Mientras `BACKEND_READY = false`, el modo es siempre `'local'` y no se emite ni una petición de sondeo — es la salvaguarda contra desplegar a un dominio real antes de tener backend. **El único cambio pendiente** es poner `BACKEND_READY = true`, y solo debe hacerse junto con §22.4 (backend con JWT) y §22.9 (revisión de `APP_SHELL`) ya implementados y probados — los tres deben estar listos conjuntamente antes de voltear el interruptor.
+
+Voltear ese interruptor **no** rompe GitHub Pages: allí `/api/health` responde 404 y el sitio se queda en modo `'local'`, que es el que funciona sin backend. Ver §17 para la tabla de los cuatro entornos y `tests/e2e/114-modo-datos-por-capacidad.spec.js` para su cobertura.
 
 ---
 
@@ -8843,7 +8868,7 @@ Mientras `BACKEND_READY = false`, `DATA_MODE` es siempre `'local'` sin importar 
 
 `puzzle.html` ya no importa `puzzles-aventuras.js`: recibe la imagen por URL de quien lo invoca.
 
-`js/data-loader.js` también exporta `validarRespuesta()`, `limpiarCacheDatos()` y `getDataMode()` que son independientes de PROTECT_DATA.
+`js/data-loader.js` también exporta `validarRespuesta()`, `limpiarCacheDatos()`, `getDataMode()`, `asegurarModo()` y `hayBackendDisponible()`, que son independientes de PROTECT_DATA.
 
 **Qué queda por decidir y por hacer:**
 
@@ -9021,8 +9046,8 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | Término | Significado |
 |---------|-------------|
 | **PROTECT_DATA** | Variable de entorno (`PROTECT_DATA=true`) en `js/server.js` que bloquea el acceso HTTP directo a los archivos de pago (coordenadas, textos, audios, retos). En desarrollo está desactivada |
-| **DATA_MODE** | Modo de carga de datos en `js/data-loader.js`, calculado como `(BACKEND_READY && !_esLocal) ? 'api' : 'local'`. Siempre `'local'` mientras `BACKEND_READY = false` |
-| **BACKEND_READY** | Interruptor manual (`js/data-loader.js`) que gobierna si `DATA_MODE` puede ser `'api'`. `false` por defecto — salvaguarda para no activar peticiones a un backend que aún no existe/no está probado al desplegar a un dominio real |
+| **Modo de datos** | De dónde salen los datos de aventura: `'local'` (ficheros JS) o `'api'` (backend con token). Lo resuelve `asegurarModo()` (`js/data-loader.js`) preguntando a `/api/health`, una vez por sesión. Siempre `'local'` mientras `BACKEND_READY = false` |
+| **BACKEND_READY** | Interruptor manual (`js/data-loader.js`) que autoriza a comprobar si hay backend. `false` por defecto — salvaguarda para no sondear a un backend que aún no existe/no está probado al desplegar a un dominio real. Ponerlo en `true` no fuerza el modo `'api'`: lo decide la respuesta de `/api/health` |
 | **Pass-through** | Comportamiento de `js/server.js` cuando `PROTECT_DATA=false`: todos los archivos son accesibles directamente. Modo de desarrollo local |
 | **localStorage** | Almacenamiento del navegador donde se persisten las preferencias del usuario: `vv_idioma` (idioma), `vv_aventura` (aventura elegida), `vv_aventura_iniciada` (flag de inicio) |
 
@@ -9732,7 +9757,7 @@ Cubierto por `tests/e2e/35-guardian-anti-solape-carteles.spec.js` (GS-1..GS-3 pa
 
 **Los cuatro motivos por los que aparece — `ficheroFalla` en `actualizarEstadoControlesAudioPadre()`:**
 
-1. **Estático** — `hayFicheroAudioReal(audioId)` (`codigo-padre.html`) comprueba el campo `.file` de la referencia en `globalThis.__vv_AUDIOS_AVENTURAS[aventura][idioma]` (poblado en Fase 2, síncrono e independiente de `DATA_MODE`), no solo si la referencia existe — eso ya lo hace `obtenerAudioIdActivoPadre()`, que solo mira `estado.elementoActual.audio_id`/`estado.audioActual.id`. Se sabe en el instante en que la parada/tramo se activa, sin necesidad de intentar reproducir nada.
+1. **Estático** — `hayFicheroAudioReal(audioId)` (`codigo-padre.html`) comprueba el campo `.file` de la referencia en `globalThis.__vv_AUDIOS_AVENTURAS[aventura][idioma]` (poblado en Fase 2, síncrono e independiente del modo de datos), no solo si la referencia existe — eso ya lo hace `obtenerAudioIdActivoPadre()`, que solo mira `estado.elementoActual.audio_id`/`estado.audioActual.id`. Se sabe en el instante en que la parada/tramo se activa, sin necesidad de intentar reproducir nada.
 2. **Runtime, entrega del mensaje** — `AUDIO.REPRODUCIR_REQUEST` nunca llegó a hijo3 pese a los reintentos de `_enviarAudioRequestConReintento()` (§31.7): se llama a `_marcarAudioNoDisponible()` directamente desde el padre, sin pasar por `AUDIO.ERROR` — no hace falta un mensaje de vuelta cuando el problema es precisamente que los mensajes no llegan.
 3. **Runtime, reproducción pasiva/automática** — `estado._audioFalloId === audioId`: hijo3 confirmó que este audioId concreto no se puede reproducir, tras agotar sus propios reintentos automáticos de `stalled`/`waiting`/`error` (ver "Reintentos en hijo3" más abajo). Se marca en `_hdl_AUDIO_ERROR` al recibir `AUDIO.ERROR`, comparando primero contra el elemento activo real (`estado.elementoActual.audio_id === audioId`) para descartar un aviso tardío de una parada ya abandonada. Se limpia solo cuando el audio activo cambia (comparación exacta de id — un cambio de parada/tramo ya lo neutraliza sin resetearlo aparte) o cuando hijo3 confirma que sí está reproduciendo de verdad (`estado.audioActual.estado === 'reproduciendo'`).
 4. **Runtime, comando manual del usuario** (`AUDIO_CONTROL_FALLIDO`) — distinto del motivo 3: aquí el fallo lo dispara el propio usuario pulsando play/pausa/stop/replay en el desplegable (`_manejarAudioControl()`, §7.4), no la reproducción automática/pasiva. `_hdl_SISTEMA_ERROR` (`codigo-padre.html`), al recibir `SISTEMA.ERROR{codigo:'AUDIO_CONTROL_FALLIDO'}`, resuelve el audioId activo con `obtenerAudioIdActivoPadre()` (el payload de este mensaje no lo trae) y llama a `_marcarAudioNoDisponible()` directamente — sin pasar por reintentos automáticos, porque este es un único intento manual, no una reproducción en curso que pueda recuperarse sola. Así, un fallo persistente en este camino activa el botón de saltar (ver más abajo) igual que los otros tres motivos, en vez de dejar al usuario reintentando indefinidamente sin ninguna vía de rescate real.
@@ -10744,7 +10769,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 |--------|-----|--------|
 | `mensajeria.js` | Bus central de comunicación padre↔hijos. Registro de handlers, envío dirigido o broadcast, cola de mensajes pendientes, sistema ACK/timeout, limpieza periódica por TTL. Delega al `state-manager` para almacenar handlers; fallback a mapa local si no está disponible. | `window.mensajeria` / `window.__vv_mensajeria` |
 | `api-client.js` | Cliente HTTP para el backend. Detecta entorno automáticamente (localhost:3001 en dev, dominio real en prod). Implementa `TokenManager` (JWT en memoria + `sessionStorage`). | `window.TokenManager` |
-| `data-loader.js` | Carga datos con doble modo: `'local'` (import JS directo) o `'api'` (backend + token) — `DATA_MODE` se calcula por hostname pero queda anulado a `'local'` mientras `BACKEND_READY=false` (ver §17). Cache interna (`Map`) para evitar peticiones repetidas. | `cargarCoordenadas()`, `cargarTextos()`, `cargarAudios()`, `cargarRetos()` |
+| `data-loader.js` | Carga datos con doble modo: `'local'` (import JS directo) o `'api'` (backend + token) — el modo lo resuelve `asegurarModo()` preguntando a `/api/health`, y se queda en `'local'` mientras `BACKEND_READY=false` (ver §17). Cache interna (`Map`) para evitar peticiones repetidas. | `cargarCoordenadas()`, `cargarTextos()`, `cargarAudios()`, `cargarRetos()` |
 | `monitoreo.js` | Métricas de rendimiento (tiempos de carga, latencias). `promesasPendientes` compartido con `app.js`. Historial en `state-manager.estadoPadre.monitoreo`. | `registrarMetrica()`, `promesasPendientes` |
 
 #### Módulos de aplicación
@@ -12148,7 +12173,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-6f714a1b8f43';
+const CACHE_VERSION = 'v-03fcb06241d7';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
