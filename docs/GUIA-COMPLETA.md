@@ -7434,7 +7434,7 @@ Verificado end-to-end con Playwright, no solo por lectura de código: el `<video
 
 ### El servidor actual: `js/server.js`
 
-El único servidor implementado es `js/server.js` — un servidor HTTP estático minimalista escrito en Node.js puro (sin Express ni dependencias externas). Sirve todos los ficheros del proyecto en el puerto 8080. Ver la sección **"Pendiente antes del despliegue → §3"** para la documentación completa con variables de entorno, PROTECT_DATA, comandos de arranque y características técnicas.
+El único servidor implementado es `js/server.js` — un servidor HTTP estático minimalista escrito en Node.js puro (sin Express ni dependencias externas). Sirve todos los ficheros del proyecto en el puerto 8080. Ver **§22.4** para la documentación completa: variables de entorno, `PROTECT_DATA`, comandos de arranque, el proxy de `/api/*` y las demás características técnicas.
 
 ### Servidor de producción: pendiente de implementar
 
@@ -7442,8 +7442,22 @@ El directorio `backend/` existe pero está vacío. El backend con API REST auten
 
 - Express (framework web)
 - JWT para proteger acceso a datos de aventuras
-- Endpoints para coordenadas, retos (sin respuestas), textos, audios
 - Validación de código de activación
+
+**Los endpoints no son una lista a inventar: el frontend ya los pide.** `js/api-client.js` construye estas 17 rutas, y `js/data-loader.js` una más que aquel no cubre. Un backend que solo sirva «coordenadas, retos, textos y audios» se queda corto desde el primer arranque:
+
+| Familia | Rutas |
+|---|---|
+| Salud | `/health/ping` — **y `/health` a secas**, que es la que usa `asegurarModo()` para decidir el modo (§17). Son dos rutas distintas pedidas por los dos clientes: unificarlas, o servir ambas |
+| Auth | `/auth/activar` · `/auth/verificar` |
+| Aventuras | `/aventuras` (con `?todas=true`) · `/aventuras/:id` · `/aventuras/:id/completa?idioma=` |
+| Coordenadas | `/coordenadas/:id` · `/coordenadas/:id/parada/:paradaId` · `/coordenadas/:id/tramo/:tramoId` · `/coordenadas/:id/ruta/:desdeId/:hastaId` |
+| Audios | `/audios/:id/:idioma` · `/audios/:id/:idioma/parada/:paradaId` |
+| Retos | `/retos/:id/:idioma` · `/retos/:id/:idioma/:retoId` · `/retos/:id/:idioma/:retoId/validar` |
+| Puzzles | `/puzzles/:id` · `/puzzles/:id/:puzzleId` |
+| Textos | `/textos/:id/:idioma` — **solo en `data-loader.js`**; `ApiClient` no tiene `getTextos()` (§16.1b) |
+
+Las rutas granulares (`/parada/`, `/tramo/`, `:retoId`) son las que pide la protección pasiva por parada: no son un extra, son el camino normal de la app en marcha.
 
 El módulo `js/data-loader.js` implementa las dos ramas (modo `'local'` / modo `'api'`) para `cargarTextos`, `cargarCoordenadas`, `cargarAudios`, `cargarRetos` e `cargarIndice`, pero el arranque real del padre no las usa todas por igual: `globalThis.__cargarDatosAventuraDiferidos` (Fase 2, `codigo-padre.html`) importa `coordenadas-aventuras.js`, `audios-aventuras.js` e `indice-aventuras.js` con un `await import()` incondicional, saltandose `data-loader.js` — pasar a modo `'api'` hoy no tiene ningún efecto sobre esa carga inicial. Los otros dos grandes, `retos-aventuras.js` y `textos-aventuras.js`, **ya no están en la Fase 2**: se resuelven bajo demanda por `cargarRetos()`/`cargarTextos()` (§6). `cargarTextos()` está conectada al flujo real (usada para ensamblar `{id,title,content}` a partir de los párrafos, ver `distribuirDatosAventura()`). **`cargarAudios()` y `cargarRetos()` sí están conectadas**, como parte de la protección pasiva por parada (ver arriba): `_solicitarAudioParaParada()` (`codigo-padre.html`) y los handlers `SOLICITAR_AUDIOS`/`SOLICITAR_RETOS` (`js/controladores-padre.js`) las llaman para resolver el contenido de cada parada individualmente en el momento en que se activa — el mismo código ya funciona en ambos modos, sin cambios pendientes cuando exista backend. `cargarCoordenadas()` sigue sin ningún call site (la carga de coordenadas sigue siendo bulk por import directo, no forma parte de esta protección).
 
@@ -7524,14 +7538,14 @@ El acceso de pago tiene tres fases secuenciales. La plataforma de pago concreta 
 1. El usuario llega a P12 (pantalla de pago, actualmente placeholder).
 2. P12 integra el widget o redirect de la plataforma de pago elegida.
 3. Al completarse el pago, la plataforma redirige al usuario a una URL de éxito configurada al crear el pago, por ejemplo:
-   `https://tudominio.com/codigo-padre.html?payment=ok&session_id=cs_xxx`
+   `https://valenciavguides.es/codigo-padre.html?payment=ok&referencia=<id de la pasarela>`
 4. P12 detecta el parámetro `?payment=ok` en la URL y avanza automáticamente a P13.
 
 #### Fase 2 — Generación del código (backend)
 
 5. La plataforma de pago llama al webhook del backend (`POST /api/webhooks/pago`) de forma asíncrona, independiente del redirect del usuario.
 6. El backend ejecuta en orden:
-   - Verifica la firma del webhook (cada plataforma tiene su mecanismo; p.ej. `Stripe-Signature`).
+   - Verifica la firma del webhook con el mecanismo de la pasarela elegida (todas lo tienen; el nombre de la cabecera y el algoritmo cambian según cuál sea).
    - Extrae el email del comprador del payload del webhook.
    - Genera un código único de activación (alfanumérico corto, p.ej. `A3X7-K2P9`).
    - Guarda en base de datos: `{ codigo, email, aventuraId, usado: false, expira: Date.now() + 31536000000 }` (365 días / 1 año).
@@ -7684,8 +7698,8 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 | **Log de seguridad** | Pendiente — requiere backend |
 | **Validación de código de activación real (email + código)** | Frontend preparado: `#input-email` habilitado, `ApiClient.activar()` envía email, `_irANormativa()` llama al backend en modo `'api'` (ver §16.2/§16.3). Lo único pendiente es que exista un backend real que responda a `POST /api/auth/activar`; hasta entonces (`BACKEND_READY=false`), toda activación se rechaza siempre en modo `'local'`. |
 | **CORS restringido al dominio** | Pendiente para producción |
-| **Sandboxing de iframes** | Pendiente — añadir `sandbox="allow-scripts allow-same-origin allow-forms"` a los 7 iframes hijo; ver "Pendiente antes del despliegue §4" |
-| **HSTS** | Pendiente — solo activo en producción HTTPS; ver "Pendiente antes del despliegue §5" |
+| **Sandboxing de iframes** | Pendiente — añadir `sandbox="allow-scripts allow-same-origin allow-forms"` a los 7 iframes hijo; ver §22.5 |
+| **HSTS** | Pendiente — solo activo en producción HTTPS; ver §22.6 |
 | **Protección de MP3** | Pendiente — los ficheros de audio son IP de pago; necesitan endpoint autenticado en producción |
 
 ### Cómo activar la protección de ficheros (disponible ahora)
@@ -7694,7 +7708,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 PROTECT_DATA=true node js/server.js
 ```
 
-Ver §3 de "Pendiente antes del despliegue" para la lista completa de ficheros protegidos y detalles de implementación.
+Ver §22.4 para la lista completa de ficheros protegidos y detalles de implementación.
 
 ---
 
@@ -8089,7 +8103,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-03fcb06241d7'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-03fcb06241d7'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8352,7 +8366,7 @@ Solo hace falta una vez al clonar el proyecto:
 npm install
 ```
 
-Instala Playwright y ESLint. El `postinstall` (`tools/install-hooks.js`) instala automáticamente el hook de pre-commit que mantiene `CACHE_VERSION` al día — ver §21.
+Instala Playwright y ESLint. El `postinstall` (`tools/install-hooks.js`) instala automáticamente el hook de pre-commit que mantiene `CACHE_VERSION` al día — ver §21.1.
 
 ### 2. Arrancar el servidor
 
@@ -8362,7 +8376,7 @@ Desde la raíz del proyecto:
 node js/server.js
 ```
 
-Arranca un servidor estático en `http://localhost:8080`. No hay backend separado — todo se sirve desde este único servidor. Los archivos se resuelven relativos al directorio de trabajo actual, por lo que **hay que ejecutarlo desde la raíz del proyecto**.
+Arranca un servidor estático en `http://localhost:8080`. Sirve los ficheros del proyecto y, además, hace de **proxy para `/api/*` hacia `localhost:3001`** (configurable con `API_PORT`), que es donde irá el backend — el mismo papel que hace Caddy en el VPS, para que local y producción vean un solo origen (§22.4). Mientras no haya backend escuchando, `/api/*` responde `502` con `codigo: "BACKEND_NO_DISPONIBLE"` en vez de colgarse. Los archivos se resuelven relativos al directorio de trabajo actual, por lo que **hay que ejecutarlo desde la raíz del proyecto**.
 
 ### 3. Abrir la aplicación
 
@@ -8389,6 +8403,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 | `npm run verificar-esperas` | Trinquete contra las esperas ciegas de los tests E2E: cuenta los `page.waitForTimeout(n)` y falla si suben respecto a la base de `tools/esperas-base.json` (`tools/verificar-esperas.js`, EJE 23) |
 | `npm run verificar-totales` | Comprueba que los totales precalculados de `js/indice-aventuras.js` (paradas, tramos, retos, monumentos, audios de las 7 aventuras) siguen coincidiendo con los ficheros de datos reales (`tools/verificar-totales-indice.js`) |
 | `npm run verificar-mensajeria` | Detecta tipos de `TIPOS_MENSAJE` sin emisor, sin receptor, o sin ninguna referencia (`tools/verificar-mensajeria.js`) — tiene falsos positivos documentados, verificar cada hallazgo en el código real |
+| `npm run verificar-frames` | Matriz de frames × patrones (`tools/verificar-frames.js`): una fila por página del proyecto, una columna por cada patrón que debería ser igual en todas — ocultado del body, uso del bus, capa privada, escuchas y envíos crudos, registro de iframes, acceso a otro frame. Es la herramienta para la pregunta **"¿quién *no* lo tiene?"**: un `grep` por nombre devuelve la lista de quien sí lo tiene, y quien no lo tiene no aparece en ninguna parte. Aquí las filas salen del disco y la ausencia es una casilla vacía que se ve |
 | `npm run verificar-docs` | Señala qué secciones de esta guía mencionan ficheros HTML/JS/CSS cambiados en la sesión/rama actual (`tools/verificar-docs.js`) — no verifica que el texto sea correcto, solo evita el fallo de no pararse a mirar. Admite `--since=REF` para comparar contra un punto concreto |
 | `npm run build:sw` | Recalcula `CACHE_VERSION` a mano desde el working tree (`tools/build-sw.js`) — normalmente no hace falta, el hook de pre-commit ya lo hace solo |
 | `npm run dev:watch` | Vigila `sw.js` y los ficheros del shell y recalcula `CACHE_VERSION` en vivo mientras se desarrolla (`tools/watch-sw.js`) |
@@ -8399,7 +8414,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 
 ### 21.1 Sistema de auto-actualización de `CACHE_VERSION`
 
-`CACHE_VERSION` se actualiza sola cada vez que cambia algún fichero del shell — nunca a mano. Actualizarla manualmente (editar el string en `sw.js` línea 91 y sus 4 apariciones en este documento) sería un proceso fácil de dejar a medias, con el riesgo real de olvidar una de las referencias. El sistema, construido en `tools/build-sw.js`, `tools/install-hooks.js` y `tools/watch-sw.js`, lo hace automático:
+`CACHE_VERSION` se actualiza sola cada vez que cambia algún fichero del shell — nunca a mano. Actualizarla manualmente (editar el string en `sw.js` línea 101 y sus 4 apariciones en este documento) sería un proceso fácil de dejar a medias, con el riesgo real de olvidar una de las referencias. El sistema, construido en `tools/build-sw.js`, `tools/install-hooks.js` y `tools/watch-sw.js`, lo hace automático:
 
 **`tools/build-sw.js`** es el núcleo — expone `computeCacheVersion({staged})` y `aplicarCacheVersion(valor)`, reusadas por los otros dos scripts (ninguna lógica de hash duplicada):
 
@@ -8479,7 +8494,7 @@ El fichero `CNAME` en la raíz ya contiene `valenciavguides.es`. Basta con activ
 
 **Opción B — VPS propio con Node.js (recomendada, plan elegido para este proyecto):**
 
-Eliminar o ignorar el fichero `CNAME`. Desplegar el proyecto en un VPS, arrancar `js/server.js` gestionado con PM2 (no `node js/server.js` suelto — ver por qué abajo) y apuntar el DNS de `valenciavguides.es` a la IP del servidor. HTTPS mediante proxy inverso (Nginx, Caddy o Cloudflare).
+Eliminar o ignorar el fichero `CNAME`. Desplegar el proyecto en un VPS, arrancar `js/server.js` gestionado con PM2 (no `node js/server.js` suelto — ver por qué abajo) y apuntar el DNS de `valenciavguides.es` a la IP del servidor. HTTPS mediante proxy inverso. `docs/plan-produccion-infraestructura.md` §3.7 desarrolla la opción de Caddy con el `Caddyfile` ya escrito, por gestionar el certificado de Let's Encrypt sin configuración manual; la elección final no está cerrada.
 
 - Permite `PROTECT_DATA=true` y, cuando esté implementado, el backend autenticado con JWT.
 - Es la opción correcta para proteger los datos de pago.
@@ -8525,7 +8540,9 @@ pm2 restart vv-static
 
 ### 22.3 `console.log` → `logger.js` en producción
 
-**Qué es:** Múltiples archivos (`app.js`, `api-client.js`, `funciones-mapa.js`, `mensajeria.js`, `state-manager.js`, etc.) usan `console.log/warn/error` directos en lugar de pasar por `js/logger.js`. En producción, cualquier usuario con DevTools ve estados internos, rutas de datos e IDs de mensajes.
+**Qué es:** el patrón del proyecto es `(globalThis.logger || console).nivel(...)`, que respeta `CONFIG.DEBUG.NIVEL_LOG`. Un `console.*` suelto no lo respeta: en producción, cualquier usuario con DevTools ve estados internos, rutas de datos e IDs de mensajes por mucho que se baje el nivel.
+
+**Lo que queda, medido:** **dos** llamadas directas en todo el código de frontend —una en `En-busca-del-tesoro.html` y otra en `retos-hijo4.html`—. Los ficheros grandes ya están migrados (`codigo-padre.html` usa el patrón con respaldo 918 veces, `state-manager.js` 10, `api-client.js` 6). Los `console.*` de `js/server.js` son otra cosa: salida de un proceso Node en el servidor, que ningún usuario ve.
 
 **Por qué no se toca ahora:** En desarrollo los logs son útiles.
 
@@ -8557,11 +8574,13 @@ node js/server.js
 # PROTECT_DATA=false por defecto (todos los ficheros accesibles)
 ```
 
-**Retira `upgrade-insecure-requests` del CSP de cada HTML que sirve.** Los 15 HTML del proyecto llevan esa directiva en su `<meta>` CSP, y este servidor habla HTTP plano. WebKit aplica la directiva **también a `localhost`**, así que eleva cada recurso a `https://localhost:8080/…` y falla con *SSL connect error*: 22 peticiones muertas y la app congelada en la pantalla de carga, porque los módulos de FASE 1 nunca llegan a importarse. Chromium no lo hace — considera `localhost` un origen confiable y exime la directiva. Junto a ella se retira la `<meta http-equiv="Strict-Transport-Security">`, que provoca el mismo salto en WebKit (según la especificación HSTS solo es válida como cabecera HTTP y un `<meta>` debería ignorarse; WebKit no lo ignora).
+**Retira `upgrade-insecure-requests` del CSP de cada HTML que sirve.** 15 de los 17 HTML del proyecto llevan esa directiva en su `<meta>` CSP —las excepciones son `debug-brujula.html` y `video-intro.html`—, y este servidor habla HTTP plano. WebKit aplica la directiva **también a `localhost`**, así que eleva cada recurso a `https://localhost:8080/…` y falla con *SSL connect error*: 22 peticiones muertas y la app congelada en la pantalla de carga, porque los módulos de FASE 1 nunca llegan a importarse. Chromium no lo hace — considera `localhost` un origen confiable y exime la directiva. Junto a ella se retira la `<meta http-equiv="Strict-Transport-Security">`, que provoca el mismo salto en WebKit (según la especificación HSTS solo es válida como cabecera HTTP y un `<meta>` debería ignorarse; WebKit no lo ignora).
 
 La sustitución opera sobre la etiqueta `<meta>` entera, no sobre la cadena suelta, porque la directiva aparece de **dos formas**: como última de un CSP largo (`codigo-padre.html`) y como contenido **único** de la meta (los otros 14 HTML). Un reemplazo que exija el `;` previo se deja fuera la segunda forma, que es la mayoritaria. El resto del CSP —`default-src`, `script-src`, `connect-src`…— se sirve intacto.
 
-> **No cambia el CSP efectivo de producción.** Allí todo se sirve por HTTPS desde GitHub Pages, donde la directiva no tiene nada que elevar, y **este servidor no se ejecuta nunca**: GitHub Pages sirve ficheros estáticos con su propia infraestructura. El ajuste vive solo en desarrollo y tests.
+> **Dónde vive este ajuste, y dónde no.** En el despliegue actual —GitHub Pages— este servidor **no se ejecuta**: Pages sirve los ficheros estáticos con su propia infraestructura, por HTTPS, donde la directiva no tiene nada que elevar. Ahí el ajuste vive solo en desarrollo y tests.
+>
+> ⚠️ **Con la Opción B de §22.1 (VPS propio) esto deja de ser cierto**, porque ahí sí se ejecuta este servidor. La retirada **no comprueba el protocolo**: el código actúa sobre todo HTML con extensión `.html` que sirve, sin mirar si la petición llegó por HTTP o por HTTPS (el mensaje de consola dice "al servir por HTTP", pero eso no es lo que hace el código). Detrás de un proxy inverso con HTTPS, el HTML de producción saldría **sin `upgrade-insecure-requests` y sin la meta HSTS**. Antes de desplegar por esa vía hay que decidir una de dos: condicionar la retirada al protocolo, o emitir ambas como cabecera HTTP desde el proxy inverso (§22.6), que es donde HSTS es válida de todas formas.
 
 **Por qué importa más de lo que parece:** sin este ajuste, el proyecto `iphone12` de Playwright corre sus ~300 tests contra una app que ni siquiera arranca. Pasarían sin ejercitar nada —verde vacuo del tipo que describe el EJE 26 (§36.26)— y cualquier fallo real de Safari quedaría invisible. Con él, WebKit arranca la app completa en ~2 s y 0 peticiones fallidas.
 
@@ -8575,7 +8594,7 @@ Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier 
 
 > ⚠️ **Dependencia cruzada con `BACKEND_READY`**: `PROTECT_DATA=true` solo tiene sentido junto con `BACKEND_READY=true` en `js/data-loader.js` (§22.11) — si `BACKEND_READY` sigue en `false`, el modo seguirá siendo `'local'` y la Fase 2 del padre (`codigo-padre.html`) seguirá importando directamente los ficheros que `PROTECT_DATA` bloquearía, rompiendo la carga de aventuras con 403. `js/server.js` emite un `console.warn` al arrancar con `PROTECT_DATA=true` recordando esta dependencia. Ver también §22.12 para los imports directos aún pendientes de migrar.
 
-**Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 25–35):
+**Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 30–41):
 
 ```text
 /js/coordenadas-aventuras.js    ← coordenadas GPS de paradas y tramos
@@ -8667,13 +8686,17 @@ El servidor actual **no tiene autenticación**. Para producción habrá que impl
 
 **Por qué no se activa ahora:** Los iframes hijo usan `postMessage` con `allow-same-origin` para comunicarse con el padre. Hay que verificar que cada handler sigue funcionando correctamente antes de activarlo en producción.
 
-**Qué hacer al desplegar** — añadir a cada `<iframe>` en `codigo-padre.html`:
+**Qué hacer al desplegar** — añadir el atributo a cada iframe. Ojo con dos cosas que la receta ingenua no contempla:
+
+**Ninguno de los 9 `<iframe>` de `codigo-padre.html` tiene atributo `src`**: la página lo asigna por JavaScript. Buscar `src="coordenadas-hijo2.html"` en el padre no encuentra nada. El `sandbox` sí va en el marcado, porque el navegador lo aplica al asignarse el `src`:
 
 ```html
-<iframe id="hijo2" src="coordenadas-hijo2.html"
+<iframe id="hijo2" name="hijo2"
   sandbox="allow-scripts allow-same-origin allow-forms"
-  ...></iframe>
+  ...></iframe>   <!-- el src lo pone el JS del padre, no el marcado -->
 ```
+
+**Y hay tres iframes que no existen en ningún marcado**, creados con `document.createElement('iframe')`: el del puzzle en `retos-hijo4.html`, el de vídeo en `chat-hijo6.html` y otro en `En-busca-del-tesoro.html`. A esos hay que ponerles el atributo con `setAttribute('sandbox', …)` antes de asignarles el `src` — si se asigna después, el navegador ya ha creado el contexto sin restricción.
 
 | Permiso | Por qué incluirlo |
 |---------|------------------|
@@ -8683,7 +8706,7 @@ El servidor actual **no tiene autenticación**. Para producción habrá que impl
 
 **Sin incluir:** `allow-top-navigation`, `allow-popups`, `allow-downloads` — innecesarios y añaden superficie de ataque.
 
-**Afecta a:** `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `puzzle.html`.
+**Afecta a los 7 iframes de `codigo-padre.html`:** `En-busca-del-tesoro.html` (`#seleccion`), `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html` y `chat-hijo6.html` — más `#fondo-blanco`, decorativo, si se quiere cubrir entero. **`puzzle.html` no es iframe del padre**: lo embebe `En-busca-del-tesoro.html` (`#puzzle-iframe`) y lo crea `retos-hijo4.html` por JS, así que se trata por el segundo camino.
 
 ---
 
@@ -8722,19 +8745,19 @@ La app recoge datos personales (correo electrónico, ubicación GPS) y procesa p
 | # | Qué cambiar | Por qué |
 |---|-------------|---------|
 | 1 | **Eliminar** la frase "La aplicación puede incorporar publicidad gestionada por terceros" | No habrá publicidad en el modelo de negocio — la frase es engañosa |
-| 2 | **Añadir Stripe** como encargado del tratamiento de datos de pago (nombrar explícitamente) | El RGPD exige identificar a los subencargados por nombre |
+| 2 | **Añadir la pasarela de pago** como encargada del tratamiento, con su nombre y forma jurídica exactos | El RGPD exige identificar a los subencargados por nombre — **no se puede redactar hasta elegir pasarela** (§16.2) |
 | 3 | **Añadir** que los datos GPS se procesan únicamente en el dispositivo del usuario y no se transmiten a ningún servidor | Requisito de transparencia y ventaja competitiva |
 | 4 | **Añadir** el derecho a presentar reclamación ante la **AEPD** (Agencia Española de Protección de Datos, `aepd.es`) | Obligatorio en España |
 | 5 | **Añadir** el plazo de conservación del correo electrónico | El RGPD exige especificarlo — p.ej. "hasta 12 meses tras la compra, o hasta que el usuario solicite la supresión" |
 
 #### 22.7.2 Aviso de privacidad en la pantalla de pago P12
 
-Cuando se implemente P12 (pantalla de pago, actualmente placeholder), añadir **justo debajo del campo de email** y antes del botón de pago:
+Cuando se implemente P12 (pantalla de pago, actualmente placeholder), añadir **justo debajo del campo de email** y antes del botón de pago. `<PASARELA>` se sustituye por el nombre y la forma jurídica exactos de la pasarela cuando se elija (§16.2) — es texto legal, no se deja un genérico:
 
 ```text
 Tu correo electrónico se usa únicamente para enviarte el código de activación
 de tu compra. No lo usaremos para publicidad ni lo cederemos a terceros.
-El pago es gestionado por Stripe, Inc. Valencia VGuides no almacena
+El pago es gestionado por <PASARELA>. Valencia VGuides no almacena
 datos de tarjeta. [Ver condiciones completas →]
 ```
 
@@ -8810,10 +8833,10 @@ Actualmente en APP_SHELL (sw.js):
 
 ### 22.10 `CACHE_VERSION` al desplegar
 
-`CACHE_VERSION` en `sw.js` (línea 91) se actualiza sola en cada commit que toca algún fichero del shell, vía el hook de pre-commit instalado por `tools/install-hooks.js` (`postinstall`, automático tras `npm install`) — ver §21.1 para el mecanismo completo. No requiere ninguna acción manual antes de desplegar.
+`CACHE_VERSION` en `sw.js` (línea 101) se actualiza sola en cada commit que toca algún fichero del shell, vía el hook de pre-commit instalado por `tools/install-hooks.js` (`postinstall`, automático tras `npm install`) — ver §21.1 para el mecanismo completo. No requiere ninguna acción manual antes de desplegar.
 
 ```javascript
-// sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
+// sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
 const CACHE_VERSION = 'v-03fcb06241d7';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
@@ -11241,7 +11264,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.HIJO_LISTO` | Cualquier hijo tras procesar `PADRE_DATOS` | Marca ese hijo como `listo=true` en el mapa interno; cuando todos los hijos esperados están listos, llama `_hijoListo_onTodosListos()` | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | El hijo que envió la señal | Completar la fase de handshake; saber cuándo la app está 100% operativa |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Registra en un `Map` interno que ese hijo recibió y entendió el cambio de modo | (ninguna respuesta directa; el padre espera a `EFECTUADO`) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Registra que el hijo aplicó el modo; cuando todos los hijos confirman, cierra la transición | `SISTEMA.CAMBIO_MODO_APLICADO` | **Broadcast a todos los hijos** | 4.ª y última fase del protocolo; el padre emite broadcast (no solo al emisor) para que todos completen la transición |
-| `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat | Resetea el contador de `heartbeatsFallidos` para ese hijo | (ninguna) | — | Confirmar que el hijo está vivo; si el contador supera `MAX_LATIDOS_SIN_RESPUESTAS_FALLIDOS=3`, el padre recarga el iframe |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat | Resetea el contador de `heartbeatsFallidos` para ese hijo | (ninguna) | — | Confirmar que el hijo está vivo; si el contador supera `MAX_LATIDOS_SIN_RESPUESTA=3` (`js/mensajeria.js`), el padre recarga el iframe |
 | `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (lista de paradas) — o internamente despachado con `despacharLocal` (progresión automática / restauración) | Actualiza `estadoActual.paradaActual` en state-manager; calcula el índice; solicita coords a hijo2 (`DATOS.COORDENADAS_PARADAS_REQUEST`); resuelve el `audio_id` de la parada vía `cargarAudios()` (`_solicitarAudioParaParada` → `_resolverAudioData`, protección pasiva por parada, ver §16); fan-out `CAMBIO_PARADA` a todos los hijos | `NAVEGACION.CAMBIO_PARADA` → Hijo 5 (si origen ≠ 'hijo5'), Hijo 2, Hijo 3, Hijo 4; `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` → Hijo 3 (mismo camino en CASA y AVENTURA); `CONTROL.HABILITAR`/`DESHABILITAR` `retosBtn` → Hijo 3 | Hijo 2, Hijo 3, Hijo 4, Hijo 5 (condicional) | Orquestar la transición completa a una nueva parada, incluida la entrega del audio de esa parada — no de la aventura completa |
 | `AUDIO.FIN_REPRODUCCION` | Hijo 3 al terminar el audio | Actualiza los controles de audio del padre y delega en `_procesarFinAudioElemento`, que es quien resuelve `pending.audio` del elemento y decide si habilitar el reto | `RETO.HABILITAR` → Hijo 4 (solo en AVENTURA y solo si la parada tiene retos, vía `_procesarFinAudioElemento`) | Hijo 4 (condicional) | El reto solo se puede intentar después de escuchar el audio de la parada y únicamente si esa parada tiene reto |
 | `RETO.COMPLETADO` | Hijo 4 cuando el usuario resuelve el reto | Actualiza el progreso en state-manager; marca `pending.reto=true`; si llegada + audio (+ reto) ya están todas a `true`, `marcarParadaCompletada()` habilita `btnAvanzar` (nunca envía `CAMBIO_PARADA` directamente, ver §2.2); si es la última parada, dispara el flujo de fin de aventura | (múltiples acciones internas; no hay un único mensaje de respuesta) | — | Avanzar el estado del recorrido tras superar el reto |
@@ -12170,7 +12193,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 
 ### 30.4 Ciclo de vida del Service Worker — CACHE_VERSION
 
-**Archivo:** `sw.js` línea 91
+**Archivo:** `sw.js` línea 101
 
 ```js
 const CACHE_VERSION = 'v-03fcb06241d7';
