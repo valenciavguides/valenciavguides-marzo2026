@@ -2093,16 +2093,11 @@ try {
                 }))
             });
 
-            // Confirmar recepción al padre
-            await enviarMensaje({
-                destino: 'padre',
-                tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-                idOriginal: mensaje.id, // CLAVE: permite resolver promesas pendientes
-                datos: {
-                    tipoConfirmacion: 'DATOS_RECIBIDOS',
-                    totalParadas: estadoComponente.arrayParadasLocal.length
-                }
-            });
+            // El padre no registra ningún handler de SISTEMA.CONFIRMACION para este
+            // aviso, y el campo idOriginal que llevaba se descartaba en el envío —
+            // enviarMensaje() solo construye tipo/datos/id/timestamp/origen/destino.
+            // No tenía ningún efecto: retirado (verificado en vivo, ver docs/
+            // mensajeria-duplicada-en-hijos.md, Parte VIII).
 
         } catch (error) {
             logger.error(`${logPrefix} Error al procesar respuesta de datos de paradas:`, error);

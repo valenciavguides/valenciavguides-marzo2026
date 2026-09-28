@@ -1059,13 +1059,11 @@
 
                 logger.info(`${logPrefix} Paradas procesadas y UI actualizada exitosamente`);
                 estado.datosRecibidos = true;
-
-                await enviarMensaje({
-                    destino: 'padre',
-                    tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-                    idOriginal: mensaje.id,
-                    datos: { tipoConfirmacion: 'DATOS_RECIBIDOS', totalParadas: validas.length }
-                });
+                // El padre no registra ningún handler de SISTEMA.CONFIRMACION para este
+                // aviso, y el campo idOriginal que llevaba se descartaba en el envío —
+                // enviarMensaje() solo construye tipo/datos/id/timestamp/origen/destino.
+                // No tenía ningún efecto: retirado (verificado en vivo, ver docs/
+                // mensajeria-duplicada-en-hijos.md, Parte VIII).
 
             } catch (error) {
                 logger.error(`${logPrefix} Error al procesar respuesta de paradas:`, error);
