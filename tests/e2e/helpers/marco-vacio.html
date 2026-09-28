@@ -16,8 +16,8 @@
     Cargarlo dentro del padre REAL tampoco sirve para eso: el padre le manda su confirmación
     como parte del arranque normal, y comprobar que estuvo oculto "antes" sería una carrera.
 
-    Aquí el hijo tiene un padre que cumple la guarda y no le manda nada. El test decide
-    cuándo llega la confirmación, y el caso deja de depender del reloj.
+    Aquí el hijo tiene un padre que cumple la guarda y no le manda nada por su cuenta. El test
+    decide cuándo llega la confirmación, y el caso deja de depender del reloj.
   -->
   <script>
     globalThis.__marcoVacio = true;
@@ -30,9 +30,49 @@
     // `globalThis.mensajeria` de mentira estaban mirando su propio muñeco. Aquí hay un padre
     // de verdad y se mira lo que de verdad le llega.
     globalThis.__recibidos = [];
+
+    // ── Acuses ──────────────────────────────────────────────────────────────────────────
+    //
+    // El marco contesta los mensajes que piden acuse, igual que el padre real. Sin esto, un
+    // hijo que envía con `enviarMensajeConConfirmacion` espera aquí su plazo ENTERO —medido:
+    // 4.941 ms entre el `RETO.COMPLETADO` del botón verde del puzzle y el `RETO.OCULTAR` que
+    // va justo después, frente a 3 ms contra el padre real— y el test pasa igual sin haber
+    // probado el acuse: el arnés contradecía a la aplicación justo donde vive el contrato
+    // (EJE 24b, §36.24b).
+    //
+    // FIDELIDAD, y en qué se aparta a propósito:
+    //  · Formato idéntico al de `enviarConfirmacion()` (js/mensajeria.js): `tipo`,
+    //    `idOriginal`, `timestamp`, `origen`, más el contenido. El `origen` es obligatorio —
+    //    sin él, el bus del hijo descarta el mensaje con aviso y no resuelve nada.
+    //  · Solo contesta si el mensaje trae `requiereConfirmacion: true`, como el bus real.
+    //  · El bus real, además, solo contesta SI HAY HANDLER para ese tipo: sin handler calla a
+    //    propósito, para que el emisor agote su plazo y reintente (es lo que salva al audio
+    //    cuando hijo3 todavía no ha cargado). El marco no tiene handlers, así que contesta
+    //    siempre: representa a un padre que SÍ atiende ese tipo, que es el caso de todos los
+    //    envíos con acuse que hacen los hijos hoy.
+    //  · Para ejercitar el caso contrario —el padre no contesta y el emisor agota su plazo—,
+    //    un test pone `__marcoContestaAcuses = false` antes de provocar el envío.
+    globalThis.__marcoContestaAcuses = true;
+    globalThis.__acusesEnviados = [];
+
     globalThis.addEventListener('message', (ev) => {
       if (ev.origin !== globalThis.location.origin) return;
-      if (ev.data && typeof ev.data === 'object' && ev.data.tipo) globalThis.__recibidos.push(ev.data);
+      const mensaje = ev.data;
+      if (!mensaje || typeof mensaje !== 'object' || !mensaje.tipo) return;
+      globalThis.__recibidos.push(mensaje);
+
+      if (!globalThis.__marcoContestaAcuses) return;
+      if (!mensaje.requiereConfirmacion || !mensaje.id || !ev.source) return;
+
+      const acuse = {
+        tipo: 'SISTEMA.CONFIRMACION',
+        idOriginal: mensaje.id,
+        timestamp: Date.now(),
+        origen: 'padre',
+        datos: { exito: true, contestadoPor: 'marco-vacio' }
+      };
+      ev.source.postMessage(acuse, globalThis.location.origin);
+      globalThis.__acusesEnviados.push(acuse);
     });
   </script>
 </body>

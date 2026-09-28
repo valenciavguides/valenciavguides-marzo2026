@@ -2987,14 +2987,27 @@ Los cuatro tipos de reto (opción, opción múltiple, texto y puzzle) y el botó
 
 Los dos caminos mandan exactamente los mismos dos campos: `retoId` y `correcto`. El padre no
 guarda ningún dato más del reto —ni respuesta, ni puntuación, ni tiempo— porque esta PWA no
-lleva estadísticas de ningún tipo (ver §13). Cubierto por
-`tests/e2e/91-puzzle-cierra-la-parada.spec.js`: PC-0 (control, un reto de opción llega con
-`correcto: true`), PC-1 (puzzle resuelto) y PC-2 (puzzle con el tiempo agotado).
+lleva estadísticas de ningún tipo (ver §13).
 
-Los dos caminos lo envían además **con acuse** (`enviarMensajeConConfirmacion`): el botón
-«siguiente» de un reto normal y el botón verde del puzzle. Medido contra el padre real, el
-acuse llega en ~3 ms; si no llegara, el `catch` de cada camino lo registra y la ventana del
-reto se cierra igual — el usuario nunca se queda encerrado esperando una confirmación.
+**Los dos caminos envían con acuse** (`enviarMensajeConConfirmacion`), así que los cuatro
+tipos de reto tienen la misma garantía de entrega:
+
+| Camino | Botón | Tipos que cubre |
+|---|---|---|
+| `verificar()` → `_pendienteCompletado` | `#btnNextAfterReto` | opción única, varias respuestas, texto libre, y el botón de saltar ⏩ |
+| `_cerrarPuzzleConResultado()` → `_pendienteCompletado` | `#btn-puzzle-continuar` | puzzle (resuelto, saltado o con el tiempo agotado) |
+
+Medido contra el padre real, el acuse llega en ~3 ms. Si no llegara, el `catch` de cada
+camino lo registra y la ventana del reto se cierra igual — el usuario nunca se queda
+encerrado esperando una confirmación.
+
+Cubierto por `tests/e2e/91-puzzle-cierra-la-parada.spec.js`: PC-0 (control, un reto de opción
+llega con `correcto: true`), PC-1 (puzzle resuelto), PC-2 (puzzle con el tiempo agotado),
+PC-3 (el puzzle pide acuse y sale por la rama de éxito), PC-4 (con el padre callado, el reto
+se cierra igual) y PC-5 ×3 (lo mismo que PC-3 para opción única, varias respuestas y texto
+libre). PC-3 y PC-5 miran el campo `requiereConfirmacion` del mensaje y el log de la rama que
+solo corre si la promesa resuelve: comprobar únicamente que el mensaje llega no distingue un
+camino con acuse de uno sin él.
 
 > **Nota**: el payload lleva solo los campos mínimos que el padre necesita para avanzar. Ni el tipo de reto, ni la respuesta que dio el usuario, ni la correcta, ni el tiempo que tardó, ni el número de intentos viajan en él: el padre no usa nada de eso.
 
@@ -7834,6 +7847,16 @@ Todos los specs comparten la misma infraestructura (`tests/e2e/helpers/`):
 
 - **`boot.js`** — `gotoAndWaitForFase1()`: navega a `codigo-padre.html`, espera a FASE 1 (`globalThis.__MENSAJERIA_INICIADA === true`, o la API del bus completa) y después a que el padre haya registrado sus controladores (`getScript2Listo()` del state-manager a `true`). Ninguna de las dos esperas aborta al agotar `BOOT_TIMEOUT`: marcan `__e2e_bootTimedOut` o `__e2e_script2TimedOut` y dejan que informe la aserción del test. La de `script2Listo` sondea con `page.evaluate`, no con `waitForFunction`: `waitForFunction` no espera la promesa de un predicado `async` —una Promise es truthy— y la daría por cumplida al instante. `injectInitSpy()` registra el orden de arranque (`__e2e_initOrder`) y se llama antes de navegar. `stubCDNResources()` intercepta los CDN externos y también `js/vendor/maplibre-gl-csp.js` —vendorizado localmente, no CDN— para que el motor de mapas real nunca se ejecute ni los tests dependan de red o de un contexto WebGL real.
 - **`maplibre-stub.js`** — stub de MapLibre GL JS que expone la API mínima necesaria (`Map`, `Marker`, `.on/.flyTo/.addSource/.addLayer/...`) sin renderizar nada real. Permite que `funciones-mapa.js` e `initializeMap()` se ejecuten sin un mapa real.
+- **`marco-vacio.html`** — un documento del mismo origen que hace de **padre** de un hijo
+  cargado suelto (`abrirHijoEnMarco()`). Existe porque un hijo sin ventana de arriba no
+  envía nada: su bus lo corta y lo dice, así que un test que lo cargara como página de
+  primer nivel acabaría mirando un `globalThis.mensajeria` de mentira en vez de la
+  aplicación. Apunta en `__recibidos` todo lo que el hijo manda hacia arriba, y **contesta
+  los mensajes que piden acuse** con el mismo formato que `enviarConfirmacion()` del bus
+  real (`tipo`, `idOriginal`, `timestamp`, `origen`). Ese acuse importa: sin él, cualquier
+  envío con `enviarMensajeConConfirmacion` agota aquí su plazo entero —medido, ~5 s— y el
+  test pasa igual sin haber probado nada del acuse. Un test que necesite el caso contrario
+  —el padre calla y el emisor agota el plazo— pone `__marcoContestaAcuses = false`.
 
 #### ¿Qué detectan los E2E que Jest no puede?
 
@@ -10861,7 +10884,7 @@ Cada llamada a `enviarMensajeConConfirmacion` en los hijos genera un `idMensaje`
 
 Esto evita que dos mensajes concurrentes del mismo tipo resuelvan el listener del otro. Todos los puntos del código que comparan `event.data.tipo` para el ACK de confirmación usan `TIPOS_MENSAJE.SISTEMA.CONFIRMACION` (la constante, no el string `'SISTEMA.CONFIRMACION'`) — incluyendo el adapter interno de `coordenadas-hijo2.html` (`enviarMensajeConConfirmacion` y `messagingAdapter`), que comparten el mismo `import` de `TIPOS_MENSAJE` que el resto del archivo.
 
-#### ACK garantizado aunque no haya handler
+#### Sin handler no hay acuse, a propósito
 
 hijo2 usa `enviarMensajeConConfirmacion` para notificar al padre cuando termina de cargar sus datos:
 
@@ -10871,16 +10894,24 @@ hijo2 usa `enviarMensajeConConfirmacion` para notificar al padre cuando termina 
 
 hijo3 y hijo4 no confirman ninguna carga masiva porque no la reciben: la protección pasiva por parada (ver §16) resuelve el contenido bajo demanda, sin fase de confirmación de bloque.
 
-**Regla importante:** `mensajeria.js` envía `SISTEMA.CONFIRMACION` para **cualquier** mensaje con `requiereConfirmacion: true`, aunque no haya un handler registrado en el mapa de controladores. Esto evita que los hijos sufran timeout (5 s) por un fallo de registro del handler en el padre. La confirmación significa "mensaje recibido", no "mensaje procesado".
+**Regla importante:** un mensaje con `requiereConfirmacion: true` solo recibe acuse **si el
+receptor tiene handler registrado para ese tipo**. Sin handler, `mensajeria.js` **calla** y deja
+un `logger.warn` diciéndolo — quien envió agotará su plazo:
 
 ```javascript
-// mensajeria.js — siempre ACK si se requiere, con o sin handler
+// js/mensajeria.js — el acuse acompaña al handler, no a la mera recepción
 if (handler) {
-    // ... ejecutar handler y confirmar
+    _encolarEjecucionHandler(mensaje, event, handler);   // al terminar, el bus contesta
 } else if (mensaje.requiereConfirmacion) {
-    enviarConfirmacion(mensaje, null, event.source);  // ACK sin handler
+    // Sin handler NO se contesta: nadie ha procesado nada.
+    logger.warn(`${componenteId} recibió ${mensaje.tipo} con acuse y no tiene handler...`);
 }
 ```
+
+**Y callar es lo correcto aquí:** contestar sin haber procesado nada le diría al emisor
+«entregado» y le quitaría el reintento — justo lo que salva al audio cuando hijo3 todavía no
+ha terminado de cargar (`_enviarAudioRequestConReintento()`, §31.7). El acuse significa
+«alguien lo ha atendido», no «ha llegado al buzón».
 
 > **Nota de depuración:** si un hijo muestra `Error: Timeout esperando confirmación` en el handler de carga de datos, la causa no es que los ficheros no existan — los datos ya se cargaron de los JSON centrales. El timeout ocurre en el paso de notificación al padre, no en la carga en sí.
 
