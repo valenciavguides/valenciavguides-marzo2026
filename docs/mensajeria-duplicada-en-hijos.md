@@ -2424,10 +2424,22 @@ No se ha tocado ninguna — la Fase B es estudio. Quedan aquí para decidir apar
 2. **`RETO.COMPLETADO` sale por dos caminos y solo uno está reforzado.** El del botón "siguiente"
    usa `enviarMensajeConConfirmacion`; el del botón verde del puzzle, `enviarMensaje` liso. Es el
    mismo patrón que el paso 8.7 corrigió para el audio de hijo3.
-3. **Los campos de `RETO.COMPLETADO` no cuadran por ninguno de los dos lados.** hijo4 manda
-   `progreso`, que `_hdl_RETO_COMPLETADO` no lee nunca; y el handler destructura `respuesta`,
-   `puntos` y `tiempoRespuesta`, que hijo4 no manda en ninguno de sus dos caminos — se guardan
-   siempre vacíos en `estado.retosCompletados`.
+3. **`respuesta`/`puntos`/`tiempoRespuesta` de `RETO.COMPLETADO` son un hilo muerto de punta a
+   punta, no solo un campo que falta.** hijo4 no los manda en ninguno de sus dos caminos —
+   `_hdl_RETO_COMPLETADO` los destructura con `puntos = 0, tiempoRespuesta = 0` de respaldo,
+   así que llegan siempre así. Se guardan en `estado.retosCompletados` (que nadie vuelve a
+   leer) y `puntos` se reenvía además a hijo3 dentro de un `SISTEMA.NOTIFICACION` con
+   `evento:'reto_completado'` — pero **hijo3 no registra ningún handler de
+   `SISTEMA.NOTIFICACION`**, el mismo hueco que el paso 8.5 de la lavadora ya demostró y usó
+   para retirar otros tres envíos sin consumidor (`aplicacion_lista`, `AVENTURA_ACTIVADA`,
+   `PENDING_INICIADO` a hijo3). Este cuarto envío al mismo destino sin handler se le escapó a
+   esa limpieza. Ningún concepto de "puntos" existe en ningún otro sitio del proyecto — no es
+   que hijo4 se olvide de mandarlo, es que la característica nunca se construyó.
+   `progreso`, en cambio, sí viaja con un valor real en el camino reforzado, y el handler no
+   lo lee — pero el padre ya lleva su propio contador independiente de retos completados por
+   parada (`estado.retoActual.cola` + un `Set` propio en `_retoColaCompletada`), así que puede
+   que ese campo sea información redundante y no un hueco que rellenar — eso hay que decidirlo,
+   no darlo por hecho.
 4. **Dos llamadas al bus arrastran un segundo argumento de `postMessage`.** En la pantalla de
    selección, los envíos de `SELECCION.PREPARAR_HIJOS` y `SELECCION.CODIGO_VALIDADO` terminan en
    `}, globalThis.location.origin)`. `enviarMensaje` recibe un solo argumento, así que el segundo
