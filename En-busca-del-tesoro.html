@@ -1164,13 +1164,13 @@
         const puzzleIntro = PUZZLES_DATOS?.INTRO?.['puzzle.html']?.puzzle_id?.find(p => p.id === 'PZ-intro');
         const imagenPuzzle = puzzleIntro?.imagen || 'fotos-botones/logo-luna.jpg';
         if (!await verificarImagenExiste(imagenPuzzle)) {
-          _log.warn('[SELECCION] Imagen del puzzle no encontrada:', imagenPuzzle, '- Saltando a P10');
+          _log.warn('[SELECCION] Imagen del puzzle no encontrada:', imagenPuzzle, '- Saltando');
           return false;
         }
         _log.info('[SELECCION] Imagen del puzzle encontrada:', imagenPuzzle);
         return true;
       } catch (error) {
-        _log.warn('[SELECCION] Error verificando puzzle, saltando a P10:', error);
+        _log.warn('[SELECCION] Error verificando puzzle, saltando:', error);
         return false;
       }
     }
@@ -1182,7 +1182,7 @@
       checkAgradecimientosScroll();
     }
 
-    // P10 (pantalla11): recuerda periódicamente al usuario pulsar play con el guante
+    // pantalla11: recuerda periódicamente al usuario pulsar play con el guante
     // guantelete_mira_arriba — entra desde la izquierda, apunta al botón play propio del
     // reproductor (#audio-intro-toggle-btn), y se retira. Se repite hasta que el usuario
     // pulsa play de verdad; btn-siguiente-audio-intro permanece deshabilitado hasta ese
@@ -1577,10 +1577,10 @@
     }
 
     // ============================================================
-    // P10: CARGAR PUZZLE DESDE js/puzzles-aventuras.js
+    // PUZZLE DE INTRODUCCIÓN (pantalla6): CARGAR DESDE js/puzzles-aventuras.js
     // ============================================================
     /*
-     * El puzzle de P10 avisa por el bus, como todo lo demás.
+     * El puzzle avisa por el bus, como todo lo demás.
      *
      * Aquí había una escucha cruda que solo comprobaba el origen del dominio, no que el
      * mensaje viniera de SU puzzle. Y aceptaba además un formato antiguo —el mensaje como
@@ -1620,7 +1620,7 @@
           // del puzzle sin botón de continuar y sin salida, así que se dice en voz alta.
           const P = globalThis.TIPOS_MENSAJE?.PUZZLE;
           if (!P) {
-            (globalThis.logger || console).error('[SELECCION] globalThis.TIPOS_MENSAJE.PUZZLE no disponible: el puzzle de P10 no podrá completarse');
+            (globalThis.logger || console).error('[SELECCION] globalThis.TIPOS_MENSAJE.PUZZLE no disponible: el puzzle no podrá completarse');
             btnContinuar.style.display = 'flex';
             return;
           }
@@ -1641,14 +1641,14 @@
     }
 
     // ============================================================
-    // P10: COMPLETAR PUZZLE Y CONTINUAR
+    // COMPLETAR PUZZLE Y CONTINUAR
     // ============================================================
     function completarPuzzle() { // eslint-disable-line no-unused-vars -- lo invoca el onclick de #btn-continuar-puzzle
       void mostrar(7);
     }
 
     // ============================================================
-    // P10: NOTIFICAR AL PADRE PARA PREPARAR LOS HIJOS
+    // NOTIFICAR AL PADRE PARA PREPARAR LOS HIJOS
     // Durante el puzzle, el padre tiene tiempo para comunicar
     // idioma y aventura a los hijos 1,2,3,4,5
     // ============================================================
