@@ -67,6 +67,7 @@ test.describe('CI — Avisos cambio_modo_* muertos, retirados', () => {
       tipo: globalThis.TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
       datos: { modo: 'aventura' },
     }));
+    // VENTANA-OBSERVACION: comprobar la ausencia de estos dos broadcasts fire-and-forget no admite poll.
     await page.waitForTimeout(800);
 
     const recibidos = [...await leerHijo2(), ...await leerHijo4()];

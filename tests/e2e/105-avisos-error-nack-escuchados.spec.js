@@ -58,6 +58,7 @@ test.describe('NE — Avisos de error/NACK del padre, ahora escuchados', () => {
       destino: 'hijo4',
       datos: { error: 'No hay reto disponible', mensaje: 'No se puede solicitar reto en este momento' },
     });
+    // VENTANA-OBSERVACION: comprobar que el handler nuevo no rompe nada no admite poll.
     await page.waitForTimeout(200);
     // Un mensaje normal posterior debe seguir procesándose: el handler nuevo no debe haber
     // dejado la cola de ese tipo, ni ningún otro, en un estado roto.

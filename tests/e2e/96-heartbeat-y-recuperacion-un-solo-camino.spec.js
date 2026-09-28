@@ -55,6 +55,7 @@ test.describe('LH/RC2 — Latido sin auto-mensajes muertos; recuperación por el
     });
     await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'casa' } }));
     await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } }));
+    // VENTANA-OBSERVACION: comprobar la ausencia de HEARTBEAT_START/PAUSE no admite poll.
     await page.waitForTimeout(1000);
     const recibidos = await frame(page, 'hijo2').evaluate(() => globalThis.__hb);
     expect(recibidos, `hijo2 no debe recibir HEARTBEAT_START/PAUSE: ${JSON.stringify(recibidos)}`).toEqual([]);

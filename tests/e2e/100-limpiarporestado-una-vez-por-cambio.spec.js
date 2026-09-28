@@ -45,6 +45,7 @@ async function contarLimpiezas(page, accion) {
   };
   page.on('console', onConsole);
   await accion();
+  // VENTANA-OBSERVACION: se cuentan apariciones de un log en una ventana, sin condición que pollear.
   await page.waitForTimeout(600);
   page.off('console', onConsole);
   return logs.length;
@@ -84,7 +85,7 @@ test.describe('LU — limpiarPorEstado una sola vez por cambio de modo real', ()
 
   test('LU-3. Control: una resincronización (mismo modo) no dispara ningún reset completo', async ({ page }) => {
     await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } }));
-    await page.waitForTimeout(600);
+    await expect.poll(() => page.evaluate(() => globalThis.estado?.modo?.actual), { timeout: 5_000 }).toBe('aventura');
     const veces = await contarLimpiezas(page, () => page.evaluate(() =>
       globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } })));
     expect(veces, 'una resincronización (mismo modo) toma la rama resetCompleto:false, sin este log').toBe(0);

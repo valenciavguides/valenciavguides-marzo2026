@@ -866,7 +866,11 @@ comprueba todo lo que lo sostiene y se explica; después, la tanda de los cuatro
     regenerada y corregida.
 11. ✅ **Guía.** Cerrado en §25.20: §32.1 reescrita entera (describía un `messagingAdapter` que ya
     no existe); §10.25 nueva, el contrato del bus (21 garantías) con sección propia.
-12. **Auditoría de 28 ejes y auditoría inversa; tanda final de los cuatro navegadores.**
+12. ✅ **Auditoría de 28 ejes y auditoría inversa; tanda final de los cuatro navegadores.**
+    Cerrado en §25.21: sin hallazgos nuevos de mensajería; 19 esperas ciegas de la lavadora
+    corregidas (poll donde era posible, marcadas donde no); tanda final lanzada.
+
+**LA LAVADORA QUEDA CERRADA ENTERA (pasos 1-12).**
 
 F4 (`pagehide`): la parte de los hijos desapareció con la migración —el bus no
 quita su listener al salir, y con los adaptadores se fue la limpieza que los dejaba sordos—. El
@@ -1971,6 +1975,71 @@ son ya la descripción exacta y verificada de cada garantía, no una paráfrasis
 Verificado: los 23 tests de spec 79 (BC-0 a BC-20) en chromium, todos en verde, confirmando que la
 nueva sección describe exactamente lo que el código de hoy hace; `grep -c` de fechas en
 GUIA-COMPLETA.md = 0. Sin cambio de código: paso puramente documental.
+
+---
+
+### 25.21. Paso 12 de la lavadora: 28 ejes, auditoría inversa y tanda final (✅ cerrado)
+
+Cita del plan (Parte V, ítem 12): *"Auditoría de 28 ejes y auditoría inversa; tanda final de los
+cuatro navegadores."* Alcance aplicado: los 28 ejes de `feedback-audit-metodologia-completa`
+(memoria), enfocados en la mensajería y en todo lo que tocaron los pasos 1-11 — no una auditoría
+completa del proyecto entero desde cero (temas ajenos a la mensajería, como párrafos/idiomas o
+media, quedan fuera de este cierre).
+
+**EJE 12 (duplicidades) — `enviarHijoListoConReintento`, 6 archivos.** Comparado línea a línea:
+los 6 hijos implementan el mismo reintento de `HIJO_LISTO` de forma casi idéntica (mismo
+comentario de bug fechado "auditoría 2026-08-18"). Única diferencia real: 5 de 6 muestran la UI
+como fallback si se agotan los reintentos (`_uiConfirmado = true; mostrarUI()`); chat-hijo6.html
+no lo hace. Verificado que NO es un olvido: `grep` de `mostrarUI`/`_uiConfirmado` en
+chat-hijo6.html → 0 coincidencias — hijo6 no tiene el concepto de "UI oculta hasta confirmar",
+se abre bajo demanda con `abrirChat()`. Sin acción.
+
+**Auditoría inversa (funciones sin mención en la guía) — barrido de `globalThis.*` relacionados
+con mensajería.** `globalThis.consultarHeartbeat`/`globalThis._testHeartbeatPauseResume`
+(codigo-padre.html, herramientas de consola con `console.assert`) sin llamadores fuera de sí
+mismas — pero SÍ mencionadas en GUIA-COMPLETA.md (2 coincidencias): no es el patrón de
+`diagnosticarHijo4` (paso 9), que estaba roto y sin documentar. Sin acción.
+
+**EJE 28 (recorrido real con espía) — 8 escenarios completos.** `pasos-reanudar.cjs`,
+`pasos-cierre.cjs`, `pasos-chat.cjs`, `pasos-bienvenida.cjs`, `pasos-iconos.cjs`,
+`pasos-estudio2.cjs`, y `pasos-aventura.cjs` con las dos salidas (`fin-otra`/`fin-terminar`) —
+cubren P1-P16 de selección, CASA y AVENTURA, tramos y paradas, carteles informativos, chat,
+recarga+reanudación, recordatorio de rescate (con la petición y concesión reales, no simuladas), y
+las dos salidas de fin de aventura. Único descarte nuevo en las 8 tandas (aparte del ya conocido
+"hijo3 no registrado al arrancar", ver `project_aviso_hijo3_no_registrado_startup`): *"seleccion
+está sin padre... este aviso no se repite"*, en `fin-terminar`, justo al entrar en el modal de
+fin ("valorar 5 estrellas y terminar") — contrastado contra BC-7 (§10.25: *"Un frame sin padre ni
+iframes no envía, no espera y lo avisa una sola vez"*), que exactamente esto prueba. La pantalla de
+selección deja de tener padre al volverse standalone tras el "terminar"; el recorrido confirma que
+acaba en P1, sin errores ni pantallas atascadas. No es un hallazgo — es la garantía funcionando.
+
+**Checklist de cierre (memoria, 11 puntos) — verificado punto por punto, alcance mensajería:**
+1. Sin ❌/🕳️ sin triar en los ejes recorridos — ninguno encontrado.
+2. `npm run lint` — limpio.
+3. Tanda de los 4 navegadores — lanzada tras este commit (ver más abajo).
+4. `npm run verificar-mensajeria` sin huérfanos sin revisar — los 6 candidatos (`ninguno
+   detectado`) son exactamente los mismos 6 ya verificados a mano en el paso 10 (§25.19): 5 falsos
+   negativos de la heurística, 1 huérfano real intencional (`GPS.DESACTIVAR`). Nada nuevo.
+5. `npm run inventory:dupes` — revisado el único caso relevante a mensajería (arriba, EJE 12).
+6. EJE 20 — cubierto en el paso 11 (§25.20) para las secciones de mensajería.
+7. `npm run verificar-docs` — fuera de alcance de este cierre (no es un eje de mensajería).
+8. Ningún `test.skip` sin revalidar — los 28 archivos con `test.skip` usan el patrón
+   `test.skip(condicion, motivo)` (guarda de precondición evaluada en cada ejecución), no el
+   patrón de "test permanentemente desactivado" que preocupa a EJE 27.3; `grep` de
+   `test.skip(async|describe.skip` → 0 coincidencias en todo `tests/e2e/`.
+9. Ninguna decisión resuelta por dos caminos — cubierto en los pasos 8 y 9.
+10. `npm run verificar-esperas` — encontró 19 esperas ciegas nuevas sin marcar, las 19 en
+    specs de esta misma lavadora (100, 96-99 de pasos 7/8.1-8.3, y 101/103/104/105/106/110 de
+    esta sesión). De las 19: 6 convertidas a `expect.poll` sobre una condición real observable
+    (103 RM-1/RM-2, 100 LU-3, 98 PD-1 — todas confirmaban una PRESENCIA, pollable); las 13
+    restantes marcadas `// VENTANA-OBSERVACION: <motivo>` porque confirman una AUSENCIA o un
+    recuento dentro de una ventana, que no admite poll por definición. Quedan 2 esperas de la
+    base histórica (159, fijada 2026-09-08) sin identificar, en ficheros ajenos a la mensajería
+    (fuera de los pasos 1-12) — no se persiguen en este cierre.
+11. EJE 28 — hecho, arriba.
+
+Verificado en conjunto: 26 tests de las specs tocadas (96-101, 103-106, 110) en chromium, todos en
+verde; lint limpio; `npm run verificar-esperas` sin esperas nuevas de mensajería.
 
 ---
 

@@ -43,6 +43,7 @@ test.describe('RR — AUDIO.REPRODUCIR_REQUEST responde una sola vez', () => {
     await expect.poll(() => page.evaluate(() =>
       document.getElementById('marco-hijo')?.contentDocument?.getElementById('audioPlayer')?.src || ''),
     { timeout: 5_000 }).toContain('audio-de-prueba.mp3');
+    // VENTANA-OBSERVACION: el mensaje retirado podría llegar un instante después del audio; su ausencia no admite poll.
     await page.waitForTimeout(300);
     const recibidos = await recibidosPorElMarco(page);
     expect(recibidos.some((m) => m.tipo === 'AUDIO.REPRODUCIR_RESPONSE'), `no debe mandarse aparte: ${JSON.stringify(recibidos)}`).toBe(false);
@@ -56,6 +57,7 @@ test.describe('RR — AUDIO.REPRODUCIR_REQUEST responde una sola vez', () => {
       destino: 'hijo3',
       datos: {},
     });
+    // VENTANA-OBSERVACION: la rama catch no produce ninguna señal observable a la que hacer poll.
     await page.waitForTimeout(500);
     const recibidos = await recibidosPorElMarco(page);
     expect(recibidos.some((m) => m.tipo === 'AUDIO.REPRODUCIR_RESPONSE'), `no debe mandarse aparte: ${JSON.stringify(recibidos)}`).toBe(false);

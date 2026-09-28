@@ -84,23 +84,27 @@ test.describe('RM — RETO.MOSTRAR, un solo constructor', () => {
       tipo: globalThis.TIPOS_MENSAJE.RETO.COMPLETADO,
       datos: { retoId: 'reto-A', correcto: true },
     }));
-    await page.waitForTimeout(500);
+    await expect.poll(() => leer().then((r) => r.some((d) => d.retoId === 'reto-B')), { timeout: 5_000 }).toBe(true);
     const recibidos = await leer();
     expect(recibidos.some((d) => d.retoId === 'reto-B'), `hijo4 debe recibir el siguiente reto: ${JSON.stringify(recibidos)}`).toBe(true);
   });
 
   test('RM-2. Una recarga de hijo4 justo después SÍ restaura el reto en curso (snapshot actualizado)', async ({ page }) => {
+    const leerAntes = await escucharRetoMostrar(page, 'hijo4');
     await page.evaluate(() => globalThis.mensajeria.despacharLocal({
       tipo: globalThis.TIPOS_MENSAJE.RETO.COMPLETADO,
       datos: { retoId: 'reto-A', correcto: true },
     }));
-    await page.waitForTimeout(300);
+    // Condición real: el snapshot que se está probando no está expuesto en globalThis (const de
+    // módulo, codigo-padre.html:9781), así que se usa el efecto observable ya probado en RM-1 —
+    // RETO.MOSTRAR con reto-B — como señal de que el estado previo al reload ya se asentó.
+    await expect.poll(() => leerAntes().then((r) => r.some((d) => d.retoId === 'reto-B')), { timeout: 5_000 }).toBe(true);
 
     await page.evaluate(() => globalThis._vv_beforeHijoReload('hijo4'));
 
     const leer = await escucharRetoMostrar(page, 'hijo4');
     await page.evaluate(() => globalThis._vv_afterHijoListo('hijo4'));
-    await page.waitForTimeout(500);
+    await expect.poll(() => leer().then((r) => r.some((d) => d.retoId === 'reto-B')), { timeout: 5_000 }).toBe(true);
 
     const recibidos = await leer();
     expect(recibidos.some((d) => d.retoId === 'reto-B'), `una recarga de hijo4 debe restaurar el reto en curso (reto-B), no quedarse callada: ${JSON.stringify(recibidos)}`).toBe(true);

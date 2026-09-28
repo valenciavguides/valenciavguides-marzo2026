@@ -81,6 +81,7 @@ test.describe('AE — Un solo ACTUALIZAR_ESTADO por lectura GPS cercana', () => 
         coords: { latitude: parada.lat, longitude: parada.lng, accuracy: 5 },
       });
     }, PARADA);
+    // VENTANA-OBSERVACION: confirmar que no llega un segundo mensaje duplicado no admite poll.
     await page.waitForTimeout(500);
     const recibidos = await frameHijo2.evaluate(() => globalThis.__actualizarEstadoRecibidos);
     expect(recibidos.length, `debe llegar un solo ACTUALIZAR_ESTADO por lectura: ${JSON.stringify(recibidos)}`).toBe(1);

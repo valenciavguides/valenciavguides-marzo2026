@@ -56,6 +56,7 @@ test.describe('CO — Coordenadas pedidas dos veces por elemento, un solo camino
       });
     });
     await page.evaluate(() => globalThis.solicitarCoordenadasHijo('hijo2', { paradaId: 'Av1-P-0', incluirMetadatos: false }, 4000).catch(() => null));
+    // VENTANA-OBSERVACION: comprobar la ausencia del mensaje explícito no admite poll.
     await page.waitForTimeout(500);
     const recibidas = await page.evaluate(() => globalThis.__coordRespuestasExplicitas.length);
     expect(recibidas, 'hijo2 no debe mandar DATOS.COORDENADAS_PARADAS_RESPONSE explícito: el return (acuse) ya lo entrega').toBe(0);

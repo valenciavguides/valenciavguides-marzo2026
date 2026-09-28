@@ -65,7 +65,7 @@ test.describe('PD — Paradas de hijo5, una sola fuente', () => {
     await page.waitForFunction(() => typeof globalThis.__cargarDatosAventuraDiferidos === 'function', null, { timeout: 15_000 });
     await page.evaluate(() => globalThis.__cargarDatosAventuraDiferidos());
     await page.evaluate(() => globalThis.distribuirDatosAventura('Aventura1', 'es'));
-    await page.waitForTimeout(500);
+    await expect.poll(() => frameHijo5.evaluate(() => globalThis.__paradasHijo5Recibidas.length), { timeout: 5_000 }).toBeGreaterThan(0);
     const recibidas = await frameHijo5.evaluate(() => globalThis.__paradasHijo5Recibidas);
     expect(recibidas.length, 'distribuirDatosAventura debe haber mandado RESPUESTA_DATOS_PARADAS').toBeGreaterThan(0);
     const conReferencia = recibidas.flatMap((d) => d.paradas || []).filter((p) => p.tipo === 'referencia');

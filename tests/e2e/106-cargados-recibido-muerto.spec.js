@@ -57,6 +57,7 @@ test.describe('CR — DATOS.CARGADOS_RECIBIDO retirado', () => {
   test('CR-1/CR-2. Camino real: distribuirDatosAventura() hace que hijo2 confirme coordenadas y textos, y el padre no manda CARGADOS_RECIBIDO de vuelta', async ({ page }) => {
     const leer = await escucharCargadosRecibido(page);
     await page.evaluate(() => globalThis.distribuirDatosAventura?.('Aventura1', 'es'));
+    // VENTANA-OBSERVACION: comprobar la ausencia de CARGADOS_RECIBIDO no admite poll desde este frame.
     await page.waitForTimeout(600);
     const recibidos = await leer();
     expect(recibidos, `no debe llegar CARGADOS_RECIBIDO tras la carga real: ${JSON.stringify(recibidos)}`).toEqual([]);
