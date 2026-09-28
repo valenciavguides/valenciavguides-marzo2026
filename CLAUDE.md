@@ -94,8 +94,9 @@ viven aquí.
    sube el listón — una errata pasa con una comprobación, "hay algo roto que el usuario toca"
    necesita tres caminos independientes. Cada hallazgo se reporta con el método pegado
    ("medido con", "leído en fichero:línea", "ejecutado"); lo que solo esté inferido no sale del
-   borrador: o se termina de comprobar, o se plantea como pregunta. Caso de referencia y
-   detalle en `docs/GUIA-COMPLETA.md` §36.27.7.
+   borrador: o se termina de comprobar, o se plantea como pregunta. Antes de escribir CUALQUIER
+   hallazgo (dentro o fuera de una auditoría formal), repasar `docs/GUIA-COMPLETA.md` §36.0 —
+   la tabla de 30 segundos, una fila por tipo de afirmación. Detalle y más casos en §36.27.7.
 
 ## Documentación de autoridad
 

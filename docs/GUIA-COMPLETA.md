@@ -13141,6 +13141,27 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 
 Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 28 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno. Los ejes 1-27 se aplican leyendo y midiendo el código y sus instrumentos; el EJE 28 es el recorrido real de la aplicación, de principio a fin, con un espía de mensajes (§36.28).
 
+### 36.0 Antes de afirmar cualquier hallazgo: la comprobación por clase
+
+Esto no es un paso más del protocolo — es lo que se recorre en la cabeza, en segundos, antes de escribir CUALQUIER frase de hallazgo dentro de cualquiera de los 28 ejes o de la pasada inversa. Un `grep`, una regex o un extractor devuelven **lo que casa**; que algo no aparezca en su salida no distingue entre "no está" y "el patrón no lo vio" — y esa distinción es exactamente lo que separa un hallazgo real de uno inventado por la propia herramienta de medir.
+
+| Si la frase que voy a escribir es del tipo… | La comprobación obligatoria | Caso real que lo prueba |
+|---|---|---|
+| **Ausencia** — "no existe", "nadie lo llama", "está muerto" | Búsqueda del identificador **pelado**, sin `(`, sin ancla, en TODO el repositorio — no en el fichero donde se investiga | `grep "registrarHijo("` no veía `mensajeria?.registrarHijo?.(...)` (el `?.` rompe la subcadena) ni `registrarIframe_S1(...)` (el sufijo la rompe igual) — por poco se borra una función viva (24-jul) |
+| **Recuento** — "son 19", "hay N entradas" | El extractor imprime lo que quedó **sin casar** dentro de su propia entrada, o el número no se reporta | Una regex que exigía coma tras cada clave descartó en silencio la última entrada de un objeto —sin coma final— y dio 19 en vez de 20 (28-sep) |
+| **Ejecución** — "lanza", "no se dispara", "está roto" | Ejecutarlo o leer las líneas exactas; nunca inferirlo de la salida de otra herramienta | — |
+| **Esto confirma lo que ya esperaba** | Repetirlo con un **método distinto**, diseñado para tumbarlo, antes de reportarlo. Lo que confirma se comprueba con el mismo esfuerzo que lo que contradice, nunca menos | Cuatro veces en una sesión: un grep que "cuadraba" con la expectativa se aceptó sin repetir; el único que contradecía sí se investigó al momento (04-sep) |
+| **Varios candidatos comparten el mismo rasgo** (mismo grep positivo, mismo patrón) | Cada uno se verifica **individualmente** — un rasgo compartido no implica el mismo riesgo real | De 6 specs con la misma llamada sospechosa, solo 2 arrancaban de verdad el camino en riesgo; los otros 4 cargaban una página hijo de forma aislada (19-ago) |
+| **La afirmación es sobre "solo pasa en X" / "nadie hace Y"** | Grep en **todo** el proyecto, incluidos los `js/` que ese fichero importa — no solo donde se está trabajando | "El chat no hace peticiones de red": la petición vivía en `js/feedback-forms.js`, que el chat importa (13-sep) |
+| **Estoy a punto de escribir "porque" sobre código que no he abierto en esta sesión** | Parar y abrirlo antes de completar la frase | Tres invenciones plausibles y falsas en una sola sesión: un color, el nombre de una API, el motivo de una protección (17-sep) |
+| **El hallazgo va a un comentario, un commit o la guía** | El listón sube: nada de "plausible" — solo lo comprobado. Ahí no lo vuelve a cuestionar nadie | — |
+| **Coincide con lo que ya dice la guía, o con mi propia hipótesis inicial** | Eso **no corrobora nada** — en una auditoría el documento es el acusado; la pregunta es de dónde salió el mismo número en los dos sitios | Una regla escrita en `feedback_audit_no_agents` sobre `?.()` y alias, repetida casi igual dos meses después con otro patrón — la coincidencia con "ya lo sabía" no impidió el segundo fallo |
+| **Un test está en verde** | Comprobar que ejercita el camino real, no un mock propio del arnés — rojo antes que verde: revertir el arreglo y ver que falla por el motivo esperado | Un test "reparado" pasaba con y sin el bug porque el valor de partida ya cumplía la aserción débil a la que se había rebajado (31-jul) |
+
+**Por qué está aquí y no solo en la memoria del proyecto:** la lección de la primera fila se escribió dos veces antes de hoy (24-jul, 16-sep) en memorias distintas, y se repitió una tercera vez (28-sep) sin que ninguna de las dos anteriores se disparara — el texto existía, pero 600 líneas de EJE 27 no se recorren solas antes de cada frase. Esta tabla sí. Detalle completo y más casos en §36.27; la lista viva de memorias que sostienen cada fila está en `feedback_ausencias_no_se_demuestran_con_patron` (familia completa enlazada ahí).
+
+---
+
 **Dos disparadores, no uno:**
 
 - **(a) Cuando se pide** una auditoría completa: se recorren los 28 ejes en orden y se reporta en el formato de §36.30.
