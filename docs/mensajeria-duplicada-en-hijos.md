@@ -2436,11 +2436,14 @@ que gobierna el arranque de la aplicación.
   sentido; video-intro no manda ninguno. Ninguno de los dos necesita más de lo que ya manda para
   lo que hace su contenedor.
 
-### Lo que salió al medir y NO es matriz: cinco cosas del código — decisión 15 aplicada
+### Lo que salió al medir y NO es matriz: cinco cosas del código — decisión 15 aplicada, los 5
 
-La Fase B era solo estudio; el plan de arreglo que el usuario aprobó después sí tocó
-cuatro de los cinco. El quinto (el campo `progreso` dentro del hallazgo 3) queda
-aparcado a propósito, con una decisión pendiente del usuario — no resuelto en silencio.
+La Fase B era solo estudio; el plan de arreglo que el usuario aprobó después cerró los
+cinco. El campo `progreso` del hallazgo 3 quedó aparcado primero (decisión de producto,
+no un bug) y se resolvió después, en el chat: *"yo no necesito estadísticas de ningún
+tipo en esta PWA"*. Esa misma frase se aplicó también a dos cosas que aparecieron al ir a
+retirarlo (`estadoRetos.estadisticas` en hijo4, `estado.retosCompletados` en el padre) —
+exactamente el "habrá más si seguimos tirando del hilo" que el propio usuario predijo.
 
 1. ✅ **`idOriginal` se manda y no llega — CERRADO.** hijo2 y hijo5 mandan su `SISTEMA.CONFIRMACION` de datos
    con `idOriginal: mensaje.id` en el primer nivel, y uno de los dos lo comenta como "CLAVE:
@@ -2470,14 +2473,17 @@ aparcado a propósito, con una decisión pendiente del usuario — no resuelto e
    que hijo4 se olvide de mandarlo, es que la característica nunca se construyó.
    `progreso`, en cambio, sí viaja con un valor real en el camino reforzado, y el handler no
    lo lee — pero el padre ya lleva su propio contador independiente de retos completados por
-   parada (`estado.retoActual.cola` + un `Set` propio en `_retoColaCompletada`), así que puede
-   que ese campo sea información redundante y no un hueco que rellenar — eso hay que decidirlo,
-   no darlo por hecho. **`respuesta`/`puntos`/`tiempoRespuesta` retirados** de la
-   desestructuración, del `Map` y del envío a hijo3 — el resto de este hallazgo está cerrado.
-   **`progreso` queda APARCADO, sin tocar**: no es un bug (nada lo necesita hoy — el padre
-   sigue su propio contador), así que cambiarlo sería una decisión de producto, no una
-   corrección. Sigue pendiente de que el usuario elija entre dejarlo como está, que hijo4 deje
-   de mandarlo, o que el padre lo use en vez de su contador propio.
+   parada (`estado.retoActual.cola` + un `Set` propio en `_retoColaCompletada`), así que ese
+   campo era información redundante, no un hueco que rellenar. **`respuesta`/`puntos`/
+   `tiempoRespuesta` retirados** de la desestructuración, del `Map` y del envío a hijo3.
+   **`progreso` CERRADO** (decisión del usuario en el chat: "no necesito estadísticas de
+   ningún tipo en esta PWA"): retirado entero de hijo4 — junto con `estadoRetos.estadisticas`
+   (`aciertosConsecutivos` se incrementaba sin lector; `tiempoPromedio`/`intentosPromedio`
+   nunca se escribían) — y `estado.retosCompletados` retirado entero del padre (el `Map` en
+   sí, no solo sus campos: sin ningún `.get()`/`.has()` en todo el fichero). No se tocó
+   `AVENTURA.ESTADISTICAS_TIEMPO` (dispara el modal de fin de aventura, funcional) ni
+   `js/monitoreo.js`/`registrarMetrica` (monitorización operativa de memoria/errores,
+   categoría distinta a estadísticas de juego).
 4. ✅ **Dos llamadas al bus arrastran un segundo argumento de `postMessage` — CERRADO.** En la pantalla de
    selección, los envíos de `SELECCION.PREPARAR_HIJOS` y `SELECCION.CODIGO_VALIDADO` terminan en
    `}, globalThis.location.origin)`. `enviarMensaje` recibe un solo argumento, así que el segundo
@@ -2492,7 +2498,7 @@ aparcado a propósito, con una decisión pendiente del usuario — no resuelto e
    **Los 8 comentarios corregidos** (7 sobre el puzzle + 1 sobre pantalla11); el de Términos
    (pantalla10) ya era correcto y no se tocó.
 
-**Decisión 15 aplicada.** De los cinco hallazgos, cuatro están cerrados (1, 2, 4, 5 enteros;
-3 salvo `progreso`) y verificados con la suite de tests real en verde antes de cada commit
-— nunca solo "el script dijo que aplicó". El único punto vivo es la elección sobre `progreso`
-(hallazgo 3), que no se ha resuelto en nombre del usuario.
+**Decisión 15 aplicada — los cinco hallazgos CERRADOS.** Verificados con la suite de tests
+real en verde antes de cada commit — nunca solo "el script dijo que aplicó". Ningún punto
+vivo: la última elección (`progreso`) la resolvió el usuario mismo en el chat, no una
+suposición.
