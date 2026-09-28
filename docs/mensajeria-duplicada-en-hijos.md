@@ -2062,6 +2062,61 @@ entero (los 11 puntos) y **la lavadora completa (pasos 1-12) queda cerrada**.
 
 ---
 
+### 25.22. Revisión a fondo de la Fase A (identidad), con la lavadora ya cerrada
+
+La Fase A es el paso 1 y lo que arrastró: el bus firma cada mensaje con el nombre del frame que
+lo envía y comprueba esa firma al recibir. Repasada entera contra el código, punto por punto del
+plan aprobado.
+
+**Lo que está bien, medido:**
+
+- El sellado es hermético en las tres salidas. `enviarMensaje` deja el `origen` del llamador en
+  `...resto`, que no viaja; `enviarMensajeConConfirmacion` construye por `crearMensaje()` en sus
+  **dos** formatos de llamada; `despacharLocal` pone `origen: componenteId` después del spread.
+- La comprobación al recibir está completa y en orden: fuente autorizada → hay `origen` →
+  coincide con el nombre de registro del iframe que lo manda → no es propio. Cada descarte avisa
+  una vez por tipo (`_avisarDescarte`).
+- Los once frames inicializan el bus con su nombre de registro exacto.
+- **233 llamadas de envío en los diez frames y en `js/`, ninguna con clave `origen:`.**
+- Los tests lo fijan de verdad, no solo de nombre: BC-15 a BC-18 en `79-bus-contrato.spec.js` y
+  `93-nadie-se-hace-pasar-por-otro.spec.js` con los siete frames que registra el padre.
+
+**Lo que quedó atrás, y se retira aquí:**
+
+1. **`origenEntendido` en hijo2, hijo3, hijo4 y hijo5.** Se calculaba desde
+   `CONFIG_HIJO.IFRAME_ID` para escribir a mano el `origen` del `CAMBIO_MODO_ENTENDIDO`. Al
+   quitar ese campo del mensaje quedaron la variable, su entrada en el objeto de diagnóstico y
+   —lo que importa— su cláusula en la guarda, con un `throw`: un hijo sin `IFRAME_ID` se negaba
+   a contestar un cambio de modo que puede atender, y el padre agotaba su plazo esperándolo.
+   Medido en `112-identidad-resto-en-los-hijos.spec.js` (RI-1 y RI-2 en rojo antes del arreglo,
+   RI-3 de control en verde antes y después). Con ellos se va `!destinoEntendido`, que compara
+   el literal `'padre'`: hijo5 ya lo había quitado por esa misma razón.
+2. **hijo5, handler de `NAVEGACION.CAMBIO_PARADA`: `mensaje.origen === CONFIG_HIJO.IFRAME_ID`.**
+   Único sitio del proyecto que comparaba identidades a mano. Inalcanzable: el bus descarta los
+   mensajes propios antes de llamar a ningún handler, hijo5 no usa `despacharLocal`, y el padre
+   ya evita devolverle lo que viene de él (`_notificarCambioParadaHijos`). Y era una trampa: el
+   día que hijo5 se despachara un `CAMBIO_PARADA` a sí mismo, esa línea se lo tragaba en silencio.
+3. **La guía describía canales que ya no existen.** §10.4 dice que ningún frame tiene envoltorio
+   propio ni `postMessage` a pelo, y es cierto —cero escuchas de `message` de iframe en los diez
+   frames, dos instrumentos independientes de acuerdo—, pero §10.8 enumeraba siete canales
+   "fuera del bus", §26.5 y §26.7 enseñaban a un hijo escribiendo su propio `origen` en un
+   `window.parent.postMessage`, la tabla de seguridad listaba escuchas inexistentes
+   (`_onPuzzleMessage`, `'mapa-completo-solicitar-datos'`) y §10.23 contaba cinco accesos
+   directos al padre cuando queda uno de dato de aplicación. Corregido todo; `solicitar-ruta` /
+   `ruta-completa` sale de la guía porque el código ya no lo tiene.
+
+**Frames que no aparecen en 1 y 2, y por qué:** padre, selección, hijo1, hijo6, mapa-completo,
+puzzle y video-intro dan `grep -c origenEntendido` = 0, y ninguno compara identidades a mano
+(el único `.origen ===` que queda en todo el proyecto es el del padre contra `'hijo5'`, que es
+real y es justo lo que la Fase A hizo fiable).
+
+**Apuntado, sin tocar:** `!mensaje?.origen` al principio de un handler aparece **25 veces en 7
+frames**. El bus ya garantiza que ese campo está —descarta antes de repartir lo que llegue sin
+él—, así que ninguna de las 25 puede saltar. Es una clase entera, no un resto suelto de este
+paso: se decide aparte.
+
+---
+
 ## Parte VII — Hallazgos colaterales
 
 Salieron tirando del hilo. No son de la mensajería y no se han tocado.

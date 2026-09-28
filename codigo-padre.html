@@ -1680,7 +1680,7 @@
                     }
                 }
 
-                // Expose a global hard-close API so child can always close chat even if messaging fails.
+                // Puente entre scopes: `_hdl_CHAT_CERRAR` vive en Script 2 y necesita esta `cerrarChat`.
                 globalThis.cerrarChatSoporte = cerrarChat;
                 // Expuesto para que el handshake genérico HIJO_PREPARADO→PADRE_DATOS (Script 1,
                 // otro scope) pueda incluir el idioma real en la primera apertura del chat.
@@ -2327,7 +2327,7 @@
 
             overlay.classList.add('visible');
             // Notify mapa-completo that it's visible so it can call invalidateSize+fitBounds.
-            // Send mapa-visible ONCE. mapa-completo.html handles an internal retry (300ms).
+            // Se envia UNA vez. mapa-completo.html se encarga de su propio reintento (300 ms).
             // Cancelling the fallback timer prevents a double-send if load fires first.
             const _iframeEl = overlay.querySelector('iframe');
             if (_iframeEl) {

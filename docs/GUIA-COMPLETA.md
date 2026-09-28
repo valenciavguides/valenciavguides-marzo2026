@@ -4846,7 +4846,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-ac553dc1a7d8'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-315d265b54ef'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5481,7 +5481,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | `_handleFinDeAventura` vía raw postMessage — se activa cuando `progresarSiguienteElemento` no encuentra siguiente elemento |
+| Emitido por | `_handleFinDeAventura` (por el bus, `destino: 'hijo1-opciones'`) — se activa cuando `progresarSiguienteElemento` no encuentra siguiente elemento |
 | Handler en hijo1 | el controlador de `AVENTURA.FINALIZADA` (prefijo de log `[TEMPORIZADOR][AVENTURA.FINALIZADA]`) — detiene temporizador, responde con `AVENTURA.ESTADISTICAS_TIEMPO` |
 | Acción completa | Padre para timer → hijo1 detiene temporizador y envía `AVENTURA.ESTADISTICAS_TIEMPO` → padre lo recibe en `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` → llama `mostrarModalFinalizacion()` (solo en modo AVENTURA) → modal `#modal-finalizacion-aventura` con 2 botones: "Hacer otra aventura" (`_finalizarYLimpiar('otra_aventura')` → reload a P1) / "Terminar esta experiencia" (→ `En-busca-del-tesoro.html?despedida=1` → P17 → cleanup → P1) |
 
@@ -5545,7 +5545,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Acción | Hijo6 actualiza `estadoPadre` (usado solo como contexto del buzón de sugerencias — idioma, aventura, parada actual) y, si cambió el idioma, reconstruye el acordeón completo en el nuevo idioma. Las respuestas del FAQ ya no contienen marcadores dinámicos — es un acordeón de preguntas y respuestas estático, sin IA/LLM implicado (ver §7.7 y §27) |
 | Nota | hijo6 no tiene handlers de CAMBIO_PARADA — recibe contexto solo vía ESTADO_PADRE |
 
-hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_PREPARADO`, y `CHAT.CERRAR` (raw postMessage a padre cuando el usuario cierra el panel desde dentro de hijo6). No inicia flujos de aventura.
+hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_PREPARADO`, y `CHAT.CERRAR` (al padre, por el bus, cuando el usuario cierra el panel desde dentro de hijo6). No inicia flujos de aventura.
 
 ---
 
@@ -5677,40 +5677,40 @@ hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel d
 
 ---
 
-### 10.8 Listeners pre-módulo (fuera del bus de mensajería)
+### 10.8 Avisos sueltos, fuera del flujo de la aventura
 
-Algunos mensajes son procesados por listeners raw `window.addEventListener('message')` que se registran **antes** de que los módulos JS carguen. Estos mensajes NO pasan por `mensajeria.js` ni `registrarControladorSeguro`. No tienen garantías de dedup, logging ni routing estándar.
+Todos van por `js/mensajeria.js`, como el resto (§10.4): ninguno tiene escucha propia de `message` ni se construye a mano. Se documentan aparte porque cada uno lleva un detalle —de temporización, de alcance o de dirección— que no se deduce de su tipo.
 
 #### NAVEGACION.SUPRIMIR_ROTACION (seleccion → padre)
 
 | Campo | Valor |
 |-------|-------|
 | Emitido por | `En-busca-del-tesoro.html`, en `mostrarMapaVintage()` al abrir el overlay del mapa vintage y en `cerrarMapaVintage()` al cerrarlo |
-| Tipo | `'NAVEGACION.SUPRIMIR_ROTACION'` o `'SUPPRESS_ROTATION'` (string literal) |
-| Listener en padre | escucha independiente del módulo de rotación, junto a `toggleRotationMessage()` |
+| Tipo | `TIPOS_MENSAJE.NAVEGACION.SUPRIMIR_ROTACION` = `'NAVEGACION.SUPRIMIR_ROTACION'`. `SUPPRESS_ROTATION` no es otro tipo: es un patrón de `js/suppress-warnings.js`, que filtra ese texto del log |
+| Handler en padre | `_hdl_NAVEGACION_SUPRIMIR_ROTACION`, que llama a `toggleRotationMessage()` |
 | Acción | Suprime (`value: true`) o restaura (`value: false`) el aviso `#rotation-message` del padre — el overlay que pide al usuario girar el dispositivo. Se suprime mientras el mapa vintage está visible para no bloquear la imagen |
-| Canal | Raw `parent.postMessage` — aunque usa el mismo string que `TIPOS_MENSAJE.NAVEGACION.SUPRIMIR_ROTACION`, el listener no pasa por el bus |
+| Canal | Por el bus, con `destino: 'padre'` |
 
-#### CHAT.CERRAR (unidireccional — hijo6 → padre, raw)
+#### CHAT.CERRAR (unidireccional — hijo6 → padre)
 
 > **Unidireccional: hijo6 → padre, y solo en ese sentido.** El padre no envía `CHAT.CERRAR` a hijo6 en ningún caso — lo que envía hacia el chat es `CHAT.ESTADO_PADRE`. Su `cerrarChat()` se limita a ocultar el iframe, sin emitir ningún mensaje.
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | `cerrarChatVentana()` (`chat-hijo6.html`): primero intenta la llamada directa `globalThis.parent.cerrarChatSoporte()` — el padre expone ahí su propia `cerrarChat()`; si esa función no está disponible, cae a `parent.postMessage` con `tipo:'CHAT.CERRAR'` |
-| Tipo | `TIPOS_MENSAJE.CHAT.CERRAR` = `'CHAT.CERRAR'` (con fallback string literal) |
-| Listener en padre | Raw `globalThis.addEventListener('message')` en un `<script>` clásico → llama a `cerrarChat()`, que solo oculta el iframe |
+| Emitido por | `cerrarChatVentana()` (`chat-hijo6.html`) — un aviso al padre y nada más: ningún frame toca el DOM ni las funciones de otro. Quien cierra es el padre, al recibirlo |
+| Tipo | `TIPOS_MENSAJE.CHAT.CERRAR` = `'CHAT.CERRAR'` |
+| Handler en padre | `_hdl_CHAT_CERRAR` → llama a `cerrarChat()`, que solo oculta el iframe |
 | Acción | Padre oculta el iframe hijo6 |
-| Canal | Raw `parent.postMessage` desde hijo6; padre escucha con raw `addEventListener` |
+| Canal | Por el bus, con `destino: 'padre'` |
 
 #### NAVEGACION_PANTALLA (padre → seleccion)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre `codigo-padre.html` L3965 |
+| Emitido por | El padre (`enviarMensaje_S1`, `destino: 'seleccion'`), en los dos caminos que devuelven al usuario a la pantalla de inicio después de limpiar |
 | Tipo | `TIPOS_MENSAJE.NAVEGACION_PANTALLA` = `'NAVEGAR_PANTALLA'` (string bare, no categoría) |
-| Listener en seleccion | `En-busca-del-tesoro.html` L2680 |
-| Payload | `{ datos: { pantalla: 'nombre-pantalla' } }` |
+| Handler en seleccion | `En-busca-del-tesoro.html` — llama a `mostrar(pantalla)`; sin `pantalla` devuelve `false` y no navega |
+| Payload | `{ pantalla: 1 }` — el número de pantalla. Los dos emisores mandan P1 |
 | Acción | seleccion navega a la pantalla indicada (e.g. mostrar términos, pantalla de inicio) |
 
 #### CONTROL.HABILITAR en cierre de overlays (padre → hijo2)
@@ -5723,41 +5723,30 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 | Payload | `{ motivo: 'vista_cerrada' }` |
 | Acción | Notifica a hijo2 que el overlay se cerró para que rehabilite sus botones de navegación GPS |
 
-#### `mapa-visible` al iframe de overlay (padre → iframe dinámico, raw)
+#### `MAPA_COMPLETO.VISIBLE` al iframe del overlay (padre → mapa-completo.html)
 
 | Campo | Valor |
 |-------|-------|
 | Emitido por | `mostrarIframeOverlay` en padre |
-| Tipo | `'mapa-visible'` (string literal, fuera de `TIPOS_MENSAJE`) |
-| Canal | Raw `iframeEl.contentWindow.postMessage(...)`, una sola vez por apertura del overlay |
+| Tipo | `TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE` |
+| Canal | Por el bus, con `destino: 'mapa-completo'`, una sola vez por apertura del overlay |
 | Destino | El iframe dinámico que carga `mapa-completo.html` |
-| Acción | Al recibir `mapa-visible`, `mapa-completo.html` llama `_reajustarVista()` — que hace `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` si `_bounds` está definido — y `setTimeout(_reajustarVista, 300)` como reintento de seguridad. |
+| Acción | Al recibirlo, `mapa-completo.html` llama `_reajustarVista()` — que hace `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` si `_bounds` está definido — y `setTimeout(_reajustarVista, 300)` como reintento de seguridad. |
 | Secuencia de init | Polyline + marcadores de referencia añadidos → `_reajustarVista()` (invalidateSize + fitBounds) → `L.tileLayer().addTo(map)`. Las tiles se piden solo para la vista correcta porque se añaden después de `fitBounds`. |
 | Por qué overlay visible en init | `mostrarIframeOverlay` es síncrona: añade `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo de `mapa-completo.html` solo puede ejecutar después de que esa tarea termine — el overlay ya es visible cuando el script corre y `_reajustarVista()` obtiene dimensiones reales. |
-| Timing de envío | `mapa-visible` se envía **una sola vez** por apertura del overlay, siempre vía `load` listener + `requestAnimationFrame`. Fallback cancelable a 1500 ms por si `load` no dispara. El reintento a 300 ms es interno a `mapa-completo.html` (en el handler de `mapa-visible`). |
-| Por qué una sola vez | Cada `mapa-visible` dispara un `fitBounds()`. Enviarlo varias veces (un escalonado de temporizadores, o un fallback que no se cancela cuando `load` sí dispara) llama a `fitBounds()` con tiles ya en vuelo, y cada llamada abre una ronda nueva de peticiones en paralelo: el mapa se pinta a trozos de distintos niveles de zoom. Por eso el escalonado vive **dentro** de `mapa-completo.html` —un único reintento a 300 ms sobre el mapa ya construido— y no en el emisor. |
+| Timing de envío | Se envía **una sola vez** por apertura del overlay, siempre vía `load` listener + `requestAnimationFrame`. Fallback cancelable a 1500 ms por si `load` no dispara. El reintento a 300 ms es interno a `mapa-completo.html` (en su propio handler). |
+| Por qué una sola vez | Cada uno dispara un `fitBounds()`. Enviarlo varias veces (un escalonado de temporizadores, o un fallback que no se cancela cuando `load` sí dispara) llama a `fitBounds()` con tiles ya en vuelo, y cada llamada abre una ronda nueva de peticiones en paralelo: el mapa se pinta a trozos de distintos niveles de zoom. Por eso el escalonado vive **dentro** de `mapa-completo.html` —un único reintento a 300 ms sobre el mapa ya construido— y no en el emisor. |
 
-#### `solicitar-ruta` / `ruta-completa` (padre → mapa-completo.html, raw — sin emisor activo)
-
-| Campo | Valor |
-|-------|-------|
-| Tipo solicitud | `'solicitar-ruta'` (string literal, fuera de `TIPOS_MENSAJE`) |
-| Tipo respuesta | `'ruta-completa'` (string literal) |
-| Canal | Raw `addEventListener('message')` en `mapa-completo.html`; responde con `globalThis.parent.postMessage` |
-| Listener | `mapa-completo.html` — escucha `tipo: 'solicitar-ruta'`, responde con `{ tipo:'ruta-completa', paradas:[], waypoints:[], ruta:[] }` |
-| Emisor activo | **Ninguno** — no existe ningún archivo en el proyecto que envíe `tipo:'solicitar-ruta'`. Handler preparado, sin implementar. |
-| Nota | Protocolo separado de `mapa-visible`. La ruta completa (`rutaCompleta`) se construye en el init de `mapa-completo.html` a partir de `DATOS_AVENTURAS`; queda en memoria y está disponible para quien envíe `solicitar-ruta`. |
-
-#### `globalThis.postMessage` self-send (js/app.js → mismo ventana, fallback bootstrap)
+#### Autodespacho de `js/app.js` (fallback de arranque, al propio frame del padre)
 
 | Campo | Valor |
 |-------|-------|
 | Tipo | `TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA` |
-| Canal | `globalThis.postMessage(payload, targetOrigin)` — envío a la propia ventana; recibido por el bus del padre (`manejarMensajeEntrante`) |
+| Canal | `despacharLocal(payload)` — entra en la misma fila por tipo que un `CAMBIO_PARADA` llegado de fuera |
 | Emisor | `js/app.js` — fallback cuando `globalThis.__vv_stateManager` no está disponible durante el arranque del modo AVENTURA |
-| Payload | CAMBIO_PARADA estándar con `origen:'app-bootstrap'`, `destino: getPadreId()`, `contexto:'arranque_aventura'` |
-| Receptor | El propio bus del padre — procesa el CAMBIO_PARADA como si viniera de cualquier otro emisor |
-| Nota | Path de emergencia. El path normal es `globalThis.__vv_stateManager.enviarMensajeCentral(payload)`. Solo ocurre si el state manager no estaba listo en el momento del bootstrap de modo. |
+| Payload | `{ paradaId, parada_id, padreId, padreid, contexto: 'arranque_aventura', timestamp }`. Sin `origen` ni `destino`: el bus firma como `'padre'`, y en un autodespacho un destino no significa nada |
+| Receptor | El handler de `NAVEGACION.CAMBIO_PARADA` del propio padre, el mismo que atiende los que llegan de fuera |
+| Nota | Camino de arranque, para cuando el state-manager no está listo al entrar en modo AVENTURA. No hay rama alternativa: `app.js` se importa después del bus, así que `globalThis.mensajeria` existe siempre ahí. |
 
 ---
 
@@ -6115,23 +6104,19 @@ Los parámetros URL son un canal de comunicación de un solo sentido: el compone
 
 ### 10.23 Acceso directo a propiedades del padre (fuera del bus)
 
-Hay cinco puntos donde un hijo accede directamente a propiedades o métodos del objeto `globalThis.parent` **sin pasar por el bus de mensajería**. Todos están protegidos con `try/catch` o guard `if (globalThis.parent && ...)` para tolerar contextos cross-origin, pero representan acoplamiento directo padre↔hijo.
+Quedan dos puntos donde un frame lee algo de `globalThis.parent` sin pasar por el bus, los dos lecturas pasivas: ninguno llama a una función del otro frame ni le toca el DOM. Van protegidos con guard o `try/catch` para tolerar contextos cross-origin.
 
-| Archivo | Línea(s) | Propiedad / método accedido | Propósito y contexto |
-|---------|----------|----------------------------|----------------------|
-| `puzzle.html` | 142 | `parent.__vv_aventuraActual` | Fallback 1: aventura activa si no hay `?aventura=` en URL |
-| `puzzle.html` | 153 | `parent.aventuraSeleccionada` | Fallback 2: si fallback 1 falla → último recurso antes de usar `'Aventura1'` |
-| `coordenadas-hijo2.html` | 1585, 1615 | `parent.aventuraSeleccionada` | Fallback de aventura al abrir mapa completo o mapa vintage (si `globalThis.__vv_aventuraActual` no está en hijo2) |
-| `chat-hijo6.html` | 200 | `parent.cerrarChatSoporte()` | Llamada directa a función expuesta por padre (documentado en §10.8) |
+| Archivo | Propiedad accedida | Propósito y contexto |
+|---------|----------------------------|----------------------|
+| `puzzle.html` | `(globalThis.top \|\| globalThis.parent).innerWidth/innerHeight` | Tamaño real de la ventana para dimensionar el lienzo; no es un dato de la aplicación |
+| `coordenadas-hijo2.html` | `parent.aventuraSeleccionada` | Respaldo de la aventura al abrir el mapa completo, si `globalThis.__vv_aventuraActual` no está en hijo2. Si tampoco lo está, avisa en el log y usa `'Aventura1'` |
 
-**Por qué existen estos accesos directos**: los datos `__vv_aventuraActual`
-y `aventuraSeleccionada` se publican en `window` del padre como propiedades
-globales. Los iframes los leen directamente como optimización de arranque
-(disponibles síncronamente sin esperar un mensaje). El bus es el canal
-principal; estos accesos directos son fallbacks de último recurso cuando el
-bus aún no ha transmitido el dato.
+**Por qué existe el de hijo2**: el padre publica `aventuraSeleccionada` en su propio
+`globalThis`, y leerla de ahí es síncrono. El bus es el canal; esta lectura es el último
+recurso para cuando el dato todavía no ha llegado por él. hijo2 mira primero su propia
+`globalThis.__vv_aventuraActual`, que es lo que el padre le manda.
 
-**Propiedad expuesta explícitamente por el padre**: `cerrarChatSoporte()` se asigna en `codigo-padre.html` como `globalThis.cerrarChatSoporte = function() {...}` para que hijo6 la pueda llamar directamente. El resto de accesos leen estado pasivo, no llaman funciones del padre.
+**`globalThis.cerrarChatSoporte` no es uno de estos accesos**: el padre se lo publica a sí mismo. `cerrarChat()` vive en el IIFE del botón del chat y `_hdl_CHAT_CERRAR` está en Script 2, otro scope — el global es el puente entre los dos (§6, aislamiento de scope entre scripts). Ningún hijo lo llama: hijo6 avisa con `CHAT.CERRAR` y quien cierra es el padre.
 
 **Acceso inverso (padre → hijo, contentDocument):** `_injectParadasStyle` inyecta CSS directamente en el documento de hijo5 (`iframe.contentDocument` → inserción de `<style id='vv-hijo5-paradas-fix-style'>`). Es el único caso de manipulación DOM directa entre ventanas en la app.
 
@@ -7630,7 +7615,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 
 | Capa | Qué hace | Dónde |
 |------|---------|--------|
-| **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`. Todos los receptores verifican `event.origin` antes de procesar. El bus central (`js/mensajeria.js`) exige en `manejarMensajeEntrante` que `event.origin` sea exactamente el propio y nada más —el protocolo `file://` no se contempla, porque los módulos ES no cargan ahí—, y en `_fuenteAutorizada` solo admite como fuente a su padre, a un iframe que él mismo haya registrado, o a sí mismo (auto-mensajes). Las escuchas raw que quedan fuera del bus, y todas validan `event.origin` (se localizan buscando `addEventListener('message'` en cada fichero): en `codigo-padre.html`, la de `CHAT.CERRAR` —dentro del IIFE del botón de chat, junto a `abrirChat()`—, la que filtra `'mapa-completo-solicitar-datos'`, la de `NAVEGACION.SUPRIMIR_ROTACION` —junto a `toggleRotationMessage()`— y la de `SELECCION.DEV_MODE_TOGGLE` —el IIFE que pone `globalThis._devModeActivo`—; en `En-busca-del-tesoro.html`, `_onPuzzleMessage` y la que atiende `NAVEGACION_PANTALLA` y `SELECCION.VIDEO_INTRO_TERMINADO`; y en `retos-hijo4.html`, la del puzzle, que además exige `event.source === puzzleEl.contentWindow`. Los messagingAdapters de hijo2, hijo3 y hijo4 validan `event.source === globalThis.parent`. | `js/mensajeria.js`, `codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` |
+| **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`. Todos los receptores verifican `event.origin` antes de procesar. El bus central (`js/mensajeria.js`) exige en `manejarMensajeEntrante` que `event.origin` sea exactamente el propio y nada más —el protocolo `file://` no se contempla, porque los módulos ES no cargan ahí—, y en `_fuenteAutorizada` solo admite como fuente a su padre, a un iframe que él mismo haya registrado, o a sí mismo (auto-mensajes). No hay ninguna escucha de `message` fuera del bus: buscar `addEventListener('message'` en los diez frames deja una sola coincidencia, la de `navigator.serviceWorker` en `codigo-padre.html`, que no es tráfico entre iframes. Sobre esa validación de fuente, el bus comprueba además la identidad declarada: un iframe registrado solo habla con su nombre de registro (§26.8). | `js/mensajeria.js`, `codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` |
 | **confirmListener por ID único** | Cada mensaje con confirmación genera un `idMensaje` único; el listener filtra por `event.data.idOriginal === idMensaje` para evitar resoluciones cruzadas | `js/mensajeria.js` |
 | **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3), `imagenes/imagenes-aventuras/` (fotos), `videos-aventuras/` (vídeos), `backend/` — todos son contenido de pago. **`js/aventuras-ID-padre.js` no está en la lista, y es deliberado**: contiene el itinerario y los ids, no el contenido (ver §2.2). Que se vea el orden de las paradas no compromete nada; lo que hay detrás de cada `texto_id`/`audio_id`/`reto_id` sí está protegido. | `js/server.js` |
 | **Path traversal** | Rechaza cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) | `js/server.js` |
@@ -8045,7 +8030,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-ac553dc1a7d8'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-315d265b54ef'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8759,7 +8744,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ac553dc1a7d8';
+const CACHE_VERSION = 'v-315d265b54ef';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10819,14 +10804,20 @@ targetWindow.postMessage(mensajeCompleto, window.location.origin);
 #### Cómo responde un hijo
 
 ```javascript
-// En cualquier hijo (ej. hijo2):
-window.parent.postMessage({
-    tipo:      'SISTEMA.CONFIRMACION',
-    idOriginal: mensaje.id,          // correlaciona con el mensaje original
-    datos:     { exito: true },
-    origen:    'hijo2',
-    timestamp: Date.now()
-}, window.location.origin);
+// El hijo no construye la confirmación: devuelve un valor desde su handler.
+registrarControlador(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, async (mensaje) => {
+    // ...
+    return { exito: true };
+});
+
+// Si el mensaje pedía acuse, la manda el bus por él — enviarConfirmacion():
+{
+    tipo:       'SISTEMA.CONFIRMACION',
+    idOriginal: mensajeOriginal.id,   // correlaciona con el mensaje original
+    timestamp:  Date.now(),
+    origen:     componenteId,         // el nombre de este frame, no lo que diga nadie
+    datos:      { exito: true }
+}
 ```
 
 #### La cola de mensajes
@@ -10910,19 +10901,21 @@ Cada 5 segundos el padre envía `SISTEMA.HEARTBEAT` a todos los iframes de `ifra
 USUARIO pulsa "Parada 5" en hijo5
 │
 ▼ hijo5 → padre:
-  window.parent.postMessage({
-      tipo: 'NAVEGACION.CAMBIO_PARADA',
-      datos: { paradaId: 'P-5' },
-      origen: 'hijo5',
-      id: 'msg-17...-abc'
-  }, window.location.origin)
+  enviarMensaje({
+      tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
+      destino: 'padre',
+      datos: { paradaId: 'P-5' }
+  })
+  El bus le añade id, timestamp y origen: 'hijo5' — el nombre de este frame.
 │
 ▼ mensajeria.js padre — manejarMensajeEntrante():
-  1. Valida event.origin === window.location.origin  ✓
-  2. mensaje.origen ('hijo5') ≠ componenteId ('padre')  ✓
-  3. Busca handler en manejadores.get('NAVEGACION.CAMBIO_PARADA')
-  4. Encuentra handler registrado en Script 1 de codigo-padre.html
-  5. Lo ejecuta async
+  1. Valida event.origin === globalThis.location.origin  ✓
+  2. La fuente es un iframe que este frame registró  ✓
+  3. Trae origen, y es el nombre con el que hijo5 está registrado  ✓
+  4. mensaje.origen ('hijo5') ≠ componenteId ('padre')  ✓
+  5. Busca handler en manejadores.get('NAVEGACION.CAMBIO_PARADA')
+  6. Encuentra handler registrado en Script 1 de codigo-padre.html
+  7. Lo encola en la fila de su tipo y lo ejecuta async
 │
 ▼ Handler en codigo-padre.html:
   - Actualiza state-manager: paradaActual = 'P-5'
@@ -10939,12 +10932,8 @@ USUARIO pulsa "Parada 5" en hijo5
 ▼ mensajeria.js hijo2 — manejarMensajeEntrante():
   1. Valida origen  ✓
   2. Handler 'NAVEGACION.CAMBIO_PARADA': actualiza estado GPS local, resetea botones
-  3. Si requiereConfirmacion:
-       window.parent.postMessage({
-           tipo: 'SISTEMA.CONFIRMACION',
-           idOriginal: mensaje.id,
-           datos: { exito: true }
-       }, window.location.origin)
+  3. Si requiereConfirmacion, contesta el bus por él: SISTEMA.CONFIRMACION
+       { idOriginal: mensaje.id, datos: lo que devolviera el handler }
 │
 USUARIO responde al reto correctamente (en hijo4)
 │
@@ -11850,9 +11839,8 @@ Usuario pulsa una pregunta (nivel 2) → se muestra la respuesta
   └─ si la respuesta tiene enlace, se añade el botón ➤ que abre el modal correspondiente
 
 Usuario pulsa el botón ✕ de cerrar:
-  1. Intenta llamar a globalThis.parent.cerrarChatSoporte() (acceso directo mismo origen)
-  2. Intenta ocultar iframe por DOM directo
-  3. postMessage { tipo: 'CHAT.CERRAR' } al padre
+  Un solo aviso al padre: CHAT.CERRAR por el bus. hijo6 no oculta su propio iframe
+  ni llama a ninguna función del padre.
 
 Padre recibe CHAT.CERRAR:
   └─ cerrarChat() → display:none, visibility:hidden
@@ -11889,7 +11877,7 @@ El asistente es 100% offline:
 
 | Tipo | Sentido | Qué hace |
 |---|---|---|
-| `CHAT.CERRAR` | hijo6 → padre | El usuario pulsa la ✗ del panel. Vía de reserva: `cerrarChatVentana()` intenta primero la llamada directa `globalThis.parent.cerrarChatSoporte()` y solo cae al mensaje si esa función no está |
+| `CHAT.CERRAR` | hijo6 → padre | El usuario pulsa la ✗ del panel. `cerrarChatVentana()` manda este aviso y nada más; si no sale, se dice en el log |
 | `CHAT.ESTADO_PADRE` | padre → hijo6 | Idioma y contexto de la aventura (`construirEstadoChat()`). El idioma es lo único que cambia lo que se pinta: el acordeón se reconstruye entero en el idioma nuevo |
 
 **Con dos basta porque hijo6 no conversa.** Es un acordéon estático de 9 temas y 47 preguntas (`RESPUESTAS_CHAT`, `js/traducciones-ui.js`, 12 idiomas) más un buzón de sugerencias de una sola dirección (`enviarSugerencia()`, `js/feedback-forms.js`, `mode:'no-cors'` — se envía y no se lee respuesta). No hay pregunta libre que responder, ni intenciones que interpretar, ni hilo que mantener: **hijo6 no guarda historial de ninguna clase** — ni `localStorage`, ni `sessionStorage`, ni array de conversación en memoria.
@@ -12101,7 +12089,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-ac553dc1a7d8';
+const CACHE_VERSION = 'v-315d265b54ef';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12613,7 +12601,7 @@ El módulo ejecuta en secuencia durante el init:
 3. `_reajustarVista()` — `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` — **antes** de añadir tiles
 4. `L.tileLayer('https://{s}.tile.openstreetmap.org/...').addTo(map)` — tiles con la vista ya correcta
 
-La variable `_bounds` tiene scope de módulo para que el handler de `mapa-visible` pueda llamar `fitBounds` sin necesidad de parámetros.
+La variable `_bounds` tiene scope de módulo para que el handler de `MAPA_COMPLETO.VISIBLE` pueda llamar `fitBounds` sin necesidad de parámetros.
 
 ```javascript
 let _bounds = null;
@@ -12633,16 +12621,17 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// En el handler de mapa-visible:
-if (event.data?.tipo === 'mapa-visible') {
+// El handler de MAPA_COMPLETO.VISIBLE, registrado en el bus:
+bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE, () => {
     _reajustarVista();
     setTimeout(_reajustarVista, 300);
-}
+    return true;
+});
 ```
 
 **Por qué las tiles van después de `_reajustarVista()`:** Al añadir `L.tileLayer`, Leaflet solicita inmediatamente tiles para la vista actual. Si se añaden antes de `fitBounds`, Leaflet pide tiles para el centro por defecto (`[39.476, -0.375]` zoom 15) y después, al abrir el overlay, pide un segundo conjunto para la vista correcta — ambas peticiones en vuelo simultáneo producen el efecto de "piezas de mapa fragmentado". Llamando `_reajustarVista()` primero, las tiles se piden directamente para la vista final.
 
-**El handler de `mapa-visible`** sirve como garantía de refresco: si al abrir el overlay el CSS o el navegador aún no aplicó las dimensiones finales al iframe, `_reajustarVista()` las recalcula. El reintento a 300 ms absorbe las transiciones CSS del overlay. El padre envía `mapa-visible` **una sola vez** por apertura; múltiples envíos causarían múltiples rondas de peticiones de tiles en paralelo → "piezas".
+**El handler de `MAPA_COMPLETO.VISIBLE`** sirve como garantía de refresco: si al abrir el overlay el CSS o el navegador aún no aplicó las dimensiones finales al iframe, `_reajustarVista()` las recalcula. El reintento a 300 ms absorbe las transiciones CSS del overlay. El padre lo envía **una sola vez** por apertura; múltiples envíos causarían múltiples rondas de peticiones de tiles en paralelo → "piezas".
 
 **Por qué el overlay ya es visible cuando el módulo corre:** `mostrarIframeOverlay` (padre) es síncrona: añade la clase `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo ES de `mapa-completo.html` solo ejecuta una vez que el navegador ha analizado el HTML del iframe — después de que el ciclo de tarea del padre termine. El overlay es visible cuando `_reajustarVista()` corre en el init, por lo que obtiene dimensiones reales del contenedor.
 
