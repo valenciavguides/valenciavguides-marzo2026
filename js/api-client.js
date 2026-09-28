@@ -262,12 +262,18 @@ const ApiClient = {
     },
 
     /**
-     * Verifica si el servidor está disponible
+     * Verifica si el servidor está disponible. Usa /health — la misma ruta que
+     * asegurarModo() (js/data-loader.js) para decidir el modo de datos — en vez de una
+     * ruta de "ping" aparte: un solo camino para la misma pregunta (¿hay backend?).
+     * La latencia se mide con reloj propio, sin depender de que el backend devuelva
+     * ningún campo concreto en el cuerpo — un health check no debería tener más
+     * contrato que "responde 2xx".
      */
     async ping() {
         try {
-            const data = await fetchWithRetry(`${API_CONFIG.baseUrl}/health/ping`);
-            return { disponible: true, latencia: Date.now() - data.timestamp };
+            const inicio = performance.now();
+            await fetchWithRetry(`${API_CONFIG.baseUrl}/health`);
+            return { disponible: true, latencia: Math.round(performance.now() - inicio) };
         } catch (error) {
             return { disponible: false, error: error.getMensajeUsuario() };
         }
