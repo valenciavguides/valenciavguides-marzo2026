@@ -2056,6 +2056,10 @@ Verificado en conjunto: 26 tests de las specs tocadas (96-101, 103-106, 110) en 
 verde; lint limpio; `npm run verificar-esperas` sin esperas nuevas de mensajería; spec 110 en los
 4 navegadores tras el arreglo del permiso de geolocalización.
 
+**Tanda final #2 (definitiva): 2064/2064 en verde, en los 4 navegadores (chromium, firefox,
+pixel5, iphone12), 40.6 min.** Sin ningún fallo. Con esto queda cerrado el checklist de cierre
+entero (los 11 puntos) y **la lavadora completa (pasos 1-12) queda cerrada**.
+
 ---
 
 ## Parte VII — Hallazgos colaterales
