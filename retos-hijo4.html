@@ -528,15 +528,11 @@
     // const retosAventura1Es_BACKUP = [ /* fallback placeholder, commented out */ ]
     /* ═══════════════════════════════════════════════════════════════════════════════ */
 
-    const estadoRetos = {
-        retosCompletados: new Set(),
-        progreso: { completados: 0, total: obtenerRetos().length },
-        estadisticas: {
-            tiempoPromedio: 0,
-            intentosPromedio: 0,
-            aciertosConsecutivos: 0
-        }
-    };
+    // estadoRetos (progreso, estadisticas: tiempoPromedio/intentosPromedio/
+    // aciertosConsecutivos) retirado entero: ningún campo tenía lector real, ni
+    // aquí ni en el padre — decisión explícita del usuario, "no necesito
+    // estadísticas de ningún tipo en esta PWA" (ver docs/
+    // mensajeria-duplicada-en-hijos.md, Parte VIII, hallazgo 3).
 
     // Duración de la animación de fuegos artificiales
     const DURACION_TOTAL_MS = 3000;
@@ -915,21 +911,13 @@
                 btnNext.style.backgroundColor = "#00FF00";
             }
 
-            // Enviar mensaje al padre indicando que el reto se completó
-            // Actualizar estado de progreso
-            estadoRetos.retosCompletados.add(retoId);
-            estadoRetos.progreso.completados = estadoRetos.retosCompletados.size;
-            estadoRetos.estadisticas.aciertosConsecutivos++;
-
-            logger.info(`[hijo4] Reto completado: ${retoId}. Progreso: ${estadoRetos.progreso.completados}/${estadoRetos.progreso.total}`);
             logger.info(`[FLUJO-RETO] [HIJO4] Reto completado localmente: ${retoId}. Pendiente de confirmación con el botón verde.`);
 
             // El envío real a RETO.COMPLETADO ocurre al pulsar btnNext (más abajo) — no
             // aquí. Guardamos los datos para ese momento.
             _pendienteCompletado = {
                 retoId,
-                correcto: true,
-                progreso: estadoRetos.progreso
+                correcto: true
             };
         }
 

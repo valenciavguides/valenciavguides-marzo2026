@@ -4317,7 +4317,9 @@
                 cola: [],           // ["R7-Av1-es", "PZ-01"] — todos los retos de la parada
                 colaCompletados: new Set()  // IDs completados correctamente
             },
-            retosCompletados: new Map(),
+            // retosCompletados retirado: era un Map de solo-escritura, sin ningún
+            // .get()/.has() en el fichero — decisión explícita del usuario, "no
+            // necesito estadísticas de ningún tipo en esta PWA".
             // Pendientes por elemento (padreId): { llegada: bool, audio: bool, reto: bool, timestamp }
             pendingCompleciones: {},
             // true cuando una parada de aventura está completada (audio+reto) y espera
@@ -11172,7 +11174,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
         async function _hdl_RETO_COMPLETADO(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[RETO.COMPLETADO]`;
-            const timestamp = Date.now();
             // Limpiar snapshot de reto: ya no debe restaurarse si hijo4 se recarga después
             _snapshotRecuperacion.retoActual = null;
 
@@ -11189,22 +11190,10 @@ await _comprobarReanudacionAventura(logPrefix);
                     correcto
                 });
 
-                // Actualizar estado global del padre
-                if (!estado.retosCompletados) {
-                    estado.retosCompletados = new Map();
-                }
-
-                // respuesta/puntos/tiempoRespuesta no se guardan: hijo4 no los manda con
-                // ningún valor real en ninguno de sus dos caminos (siempre llegaban a 0/
-                // undefined), nadie vuelve a leer este Map con .get(), y el envío de
-                // "puntos" a hijo3 vía SISTEMA.NOTIFICACION no tenía handler que lo
-                // recibiera — retirado (ver docs/mensajeria-duplicada-en-hijos.md, Parte
-                // VIII, mismo hueco que el paso 8.5 de la lavadora).
-                estado.retosCompletados.set(retoId, {
-                    correcto,
-                    timestamp,
-                    origen: mensaje.origen
-                });
+                // estado.retosCompletados retirado entero (no solo sus campos):
+                // era un Map que nadie leía con .get() — decisión del usuario, "no
+                // necesito estadísticas de ningún tipo en esta PWA" (ver docs/
+                // mensajeria-duplicada-en-hijos.md, Parte VIII).
 
                 // Actualizar estado del reto actual
                 estado.retoActual.completado = correcto;
