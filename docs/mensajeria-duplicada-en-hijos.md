@@ -2436,11 +2436,13 @@ que gobierna el arranque de la aplicación.
   sentido; video-intro no manda ninguno. Ninguno de los dos necesita más de lo que ya manda para
   lo que hace su contenedor.
 
-### Lo que salió al medir y NO es matriz: cinco cosas del código
+### Lo que salió al medir y NO es matriz: cinco cosas del código — decisión 15 aplicada
 
-No se ha tocado ninguna — la Fase B es estudio. Quedan aquí para decidir aparte.
+La Fase B era solo estudio; el plan de arreglo que el usuario aprobó después sí tocó
+cuatro de los cinco. El quinto (el campo `progreso` dentro del hallazgo 3) queda
+aparcado a propósito, con una decisión pendiente del usuario — no resuelto en silencio.
 
-1. **`idOriginal` se manda y no llega.** hijo2 y hijo5 mandan su `SISTEMA.CONFIRMACION` de datos
+1. ✅ **`idOriginal` se manda y no llega — CERRADO.** hijo2 y hijo5 mandan su `SISTEMA.CONFIRMACION` de datos
    con `idOriginal: mensaje.id` en el primer nivel, y uno de los dos lo comenta como "CLAVE:
    permite resolver promesas pendientes". `enviarMensaje` construye el mensaje que sale con seis
    campos —`tipo`, `datos`, `id`, `timestamp`, `origen`, `destino`— y nada más: `idOriginal` cae en
@@ -2449,11 +2451,13 @@ No se ha tocado ninguna — la Fase B es estudio. Quedan aquí para decidir apar
    que busca handler de `SISTEMA.CONFIRMACION` — y **el padre no registra ninguno** (el único del
    proyecto está en hijo5, para lo que le baja el padre). Los dos envíos no tienen efecto.
    Quien manda esos datos (`RESPUESTA_DATOS_PARADAS`) lo hace con `enviarMensaje` liso, sin esperar
-   acuse, así que tampoco hay nadie esperando.
-2. **`RETO.COMPLETADO` sale por dos caminos y solo uno está reforzado.** El del botón "siguiente"
+   acuse, así que tampoco hay nadie esperando. **Retirado el envío en los dos ficheros** —
+   sin ningún handler que lo recibiera, no tenía efecto que preservar.
+2. ✅ **`RETO.COMPLETADO` sale por dos caminos y solo uno está reforzado — CERRADO.** El del botón "siguiente"
    usa `enviarMensajeConConfirmacion`; el del botón verde del puzzle, `enviarMensaje` liso. Es el
-   mismo patrón que el paso 8.7 corrigió para el audio de hijo3.
-3. **`respuesta`/`puntos`/`tiempoRespuesta` de `RETO.COMPLETADO` son un hilo muerto de punta a
+   mismo patrón que el paso 8.7 corrigió para el audio de hijo3. **El camino del puzzle ya usa
+   `enviarMensajeConConfirmacion`**, igual que el del botón "siguiente".
+3. ✅ **`respuesta`/`puntos`/`tiempoRespuesta` de `RETO.COMPLETADO` son un hilo muerto de punta a
    punta, no solo un campo que falta.** hijo4 no los manda en ninguno de sus dos caminos —
    `_hdl_RETO_COMPLETADO` los destructura con `puntos = 0, tiempoRespuesta = 0` de respaldo,
    así que llegan siempre así. Se guardan en `estado.retosCompletados` (que nadie vuelve a
@@ -2468,17 +2472,27 @@ No se ha tocado ninguna — la Fase B es estudio. Quedan aquí para decidir apar
    lo lee — pero el padre ya lleva su propio contador independiente de retos completados por
    parada (`estado.retoActual.cola` + un `Set` propio en `_retoColaCompletada`), así que puede
    que ese campo sea información redundante y no un hueco que rellenar — eso hay que decidirlo,
-   no darlo por hecho.
-4. **Dos llamadas al bus arrastran un segundo argumento de `postMessage`.** En la pantalla de
+   no darlo por hecho. **`respuesta`/`puntos`/`tiempoRespuesta` retirados** de la
+   desestructuración, del `Map` y del envío a hijo3 — el resto de este hallazgo está cerrado.
+   **`progreso` queda APARCADO, sin tocar**: no es un bug (nada lo necesita hoy — el padre
+   sigue su propio contador), así que cambiarlo sería una decisión de producto, no una
+   corrección. Sigue pendiente de que el usuario elija entre dejarlo como está, que hijo4 deje
+   de mandarlo, o que el padre lo use en vez de su contador propio.
+4. ✅ **Dos llamadas al bus arrastran un segundo argumento de `postMessage` — CERRADO.** En la pantalla de
    selección, los envíos de `SELECCION.PREPARAR_HIJOS` y `SELECCION.CODIGO_VALIDADO` terminan en
    `}, globalThis.location.origin)`. `enviarMensaje` recibe un solo argumento, así que el segundo
    se ignora; lo que hace es que la llamada parezca un `postMessage` crudo cuando no lo es.
-5. **La numeración "P*n*" de la pantalla de selección no es fiable en sus comentarios.** El
+   **Segundo argumento retirado en los dos envíos.**
+5. ✅ **La numeración "P*n*" de la pantalla de selección no es fiable en sus comentarios — CERRADO.** El
    puzzle de introducción está en `<div class="pantalla" id="pantalla6">`, y siete comentarios
    del mismo fichero lo llaman P10 — número que `<!-- P10: Términos y Condiciones -->` usa a la
    vez para `pantalla10`, mientras otro comentario escribe "P10 (pantalla11)". Son restos de una
    renumeración (`tools/renumber-pantallas.js`). Por eso esta matriz nombra las pantallas por lo
    que contienen y no por su número: hoy el número no identifica nada sin abrir el HTML.
+   **Los 8 comentarios corregidos** (7 sobre el puzzle + 1 sobre pantalla11); el de Términos
+   (pantalla10) ya era correcto y no se tocó.
 
-Sin más acción: **esto es el estudio que pedía la Fase B.** La decisión 15 en sí —qué hacer con
-esta información, si es que hay que hacer algo— espera a que el usuario la vea.
+**Decisión 15 aplicada.** De los cinco hallazgos, cuatro están cerrados (1, 2, 4, 5 enteros;
+3 salvo `progreso`) y verificados con la suite de tests real en verde antes de cada commit
+— nunca solo "el script dijo que aplicó". El único punto vivo es la elección sobre `progreso`
+(hallazgo 3), que no se ha resuelto en nombre del usuario.
