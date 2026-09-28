@@ -1117,13 +1117,18 @@
                     const datosCompletado = _pendienteCompletado;
                     _pendienteCompletado = null;
                     try {
-                        await enviarMensaje({
+                        // Mismo refuerzo que btnNext (paso 8.7 de la lavadora): el reto
+                        // completado necesita el acuse real del padre, no un envío liso —
+                        // antes este camino (el del puzzle) era el único de los dos sin él.
+                        await enviarMensajeConConfirmacion({
                             tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
                             destino: 'padre',
                             datos: datosCompletado
                         });
+                        logger.info(`[FLUJO-RETO] [HIJO4] ✅ Confirmación recibida del padre para reto ${datosCompletado.retoId} (puzzle)`);
                     } catch (e) {
-                        logger.error(`[FLUJO-RETO] [HIJO4] ❌ Error enviando reto completado (puzzle):`, e);
+                        logger.error(`[FLUJO-RETO] [HIJO4] ❌ Error enviando/confirmando reto completado (puzzle):`, e);
+                        // No bloqueamos el cierre de la ventana, el usuario ya ganó visualmente
                     }
                 }
                 enviarMensaje({
