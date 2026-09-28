@@ -2119,7 +2119,9 @@ paso: se decide aparte.
 
 ## Parte VII — Hallazgos colaterales
 
-Salieron tirando del hilo. No son de la mensajería y no se han tocado.
+Salieron tirando del hilo mientras se investigaba otra cosa. La mayoría no son de la
+mensajería; los puntos 4 y 5 sí lo son y ya se cerraron dentro de la lavadora (paso 7) —
+quedan aquí porque así es como se encontraron, no porque sigan sin tocar.
 
 1. **El linter mira `js/` pero casi sin reglas.** Cuidado con resumirlo como "no cubre `js/`":
    `npm run lint` es `eslint "js/**/*.js" "*.html"` y solo ignora `js/vendor/`, `js/server.js` y
@@ -2132,7 +2134,18 @@ Salieron tirando del hilo. No son de la mensajería y no se han tocado.
    `marcadorPosicionActual`), `js/mensajeria.js` (`script2Listo`) y `js/utils.js` (`timeout`).
    Activar `no-undef` saca más de 600 avisos, porque a ese bloque no se le declararon los
    globales del navegador.
-2. **`RESPUESTA_DATOS_PARADAS` se envía desde siete sitios** del padre.
+2. **`RESPUESTA_DATOS_PARADAS` se envía desde tres funciones distintas del padre — SÍ es
+   mensajería, y nunca se investigó.** Empuje proactivo a hijo2+hijo5
+   (`elementosIDpadre` normalizado, dos destinos, un `try/catch` por cada uno); un segundo
+   envío a hijo2 solo cuando **hijo2 avisa que está listo** (`_hijoListo_enviarDatosHijo2`,
+   "para inicialización"); y una respuesta a petición explícita
+   (`NAVEGACION.SOLICITAR_DATOS_PARADAS`, con 3 ramas mutuamente excluyentes: sin aventura,
+   con datos, sin datos). Tiene la misma forma que el paso 8.6 ya investigó y encontró limpia
+   —empuje + respaldo por si acaso + petición, sin solaparse nunca— pero **8.6 fue sobre
+   `CARGAR_COORDENADAS`/`CARGAR_TEXTOS`/`SOLICITAR_COORDENADAS`/`SOLICITAR_TEXTOS`, un tipo
+   distinto; nunca cubrió este.** Que se parezca a un caso ya limpio no prueba que este
+   también lo esté — hace falta medirlo en vivo (mismo método que 8.6: espía en hijo2 durante
+   una activación real) antes de decidir si hay algo que arreglar.
 3. **Configuración de heartbeat que no lee nadie.** `CONFIG.HIJOS.TIMEOUT_INIT`,
    `MAX_HEARTBEATS_FALLIDOS` y `AUTO_RECONECTAR` (`js/config.js`) no los usa ningún fichero. El bus
    busca esos valores en `globalThis.Config.HEARTBEAT`, que no existe, y se queda con sus valores
