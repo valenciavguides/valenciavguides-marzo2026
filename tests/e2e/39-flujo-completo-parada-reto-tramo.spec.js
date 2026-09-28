@@ -130,7 +130,11 @@ test.describe('FC — Flujo completo real (parada+reto -> tramo -> parada)', () 
     expect(retoDisponible, 'El reto debe quedar disponible tras terminar el audio de una parada con reto').toBe(true);
 
     // 3. Reto completado real -> debe completar la parada entera (llegada+audio+reto).
-    await autoPostMessagePadre(page, 'RETO.COMPLETADO', 'hijo4', { retoId: 'R3-Av1-es', correcto: true, respuesta: 'ok', puntos: 10, tiempoRespuesta: 5 });
+    // Los dos campos que hijo4 manda de verdad, y los únicos que el padre lee. El payload
+    // llevaba además respuesta/puntos/tiempoRespuesta: ningún emisor real los mandaba nunca
+    // y el padre ya no los destructura — un arnés que inventa campos inexistentes describe
+    // un contrato que no existe.
+    await autoPostMessagePadre(page, 'RETO.COMPLETADO', 'hijo4', { retoId: 'R3-Av1-es', correcto: true });
     await page.waitForTimeout(600);
 
     const paradaCompletada = await leerEstado(page, `estado.paradasCompletadas?.has('${P0.id}')`);

@@ -2971,8 +2971,7 @@ Los cuatro tipos de reto (opción, opción múltiple, texto y puzzle) y el botó
   tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
   datos: {
     retoId: 'R3-Av1-es',   // 'retoId', no 'reto_id'
-    correcto: true,
-    progreso: estadoRetos.progreso   // índice de progreso interno de hijo4
+    correcto: true
   }
 }
 
@@ -2986,7 +2985,16 @@ Los cuatro tipos de reto (opción, opción múltiple, texto y puzzle) y el botó
 }
 ```
 
-El padre no lee `progreso`; por eso el puzzle, que no lleva la cuenta de `estadoRetos`, no lo envía. Cubierto por `tests/e2e/91-puzzle-cierra-la-parada.spec.js`: PC-0 (control, un reto de opción llega con `correcto: true`), PC-1 (puzzle resuelto) y PC-2 (puzzle con el tiempo agotado).
+Los dos caminos mandan exactamente los mismos dos campos: `retoId` y `correcto`. El padre no
+guarda ningún dato más del reto —ni respuesta, ni puntuación, ni tiempo— porque esta PWA no
+lleva estadísticas de ningún tipo (ver §13). Cubierto por
+`tests/e2e/91-puzzle-cierra-la-parada.spec.js`: PC-0 (control, un reto de opción llega con
+`correcto: true`), PC-1 (puzzle resuelto) y PC-2 (puzzle con el tiempo agotado).
+
+Los dos caminos lo envían además **con acuse** (`enviarMensajeConConfirmacion`): el botón
+«siguiente» de un reto normal y el botón verde del puzzle. Medido contra el padre real, el
+acuse llega en ~3 ms; si no llegara, el `catch` de cada camino lo registra y la ventana del
+reto se cierra igual — el usuario nunca se queda encerrado esperando una confirmación.
 
 > **Nota**: el payload lleva solo los campos mínimos que el padre necesita para avanzar. Ni el tipo de reto, ni la respuesta que dio el usuario, ni la correcta, ni el tiempo que tardó, ni el número de intentos viajan en él: el padre no usa nada de eso.
 
@@ -4057,7 +4065,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `{ incluirTramos, incluirInicio, incluirMetadatos, ubicacionUsuario }` | Al arrancar o al necesitar actualizar la lista |
 | `SISTEMA.ERROR` | `{ error, contexto, timestamp }` | Notificación de error interno |
 | `PARADAS.READY` | `{ count:botonesGenerados }` | UI de paradas lista |
-| `SISTEMA.CONFIRMACION` | `{ tipo:'UI_VISIBLE'/'DATOS_RECIBIDOS' }` | ACK de handshake y datos |
+| `SISTEMA.CONFIRMACION` | `{ tipo:'UI_VISIBLE' }` | Handshake visual: la interfaz ya se ve |
 
 #### Mensajes que hijo5 recibe del padre
 
@@ -4513,10 +4521,9 @@ sequenceDiagram
     H4-->>P: RETO.MOSTRADO { retoId }
     P->>H4: RETO.CONFIRMADO { retoId }
 
-    H4->>P: RETO.COMPLETADO { correcto: true, padreId, retoId }
+    H4->>P: RETO.COMPLETADO { retoId, correcto: true } — con acuse
     P-->>P: pending.reto = true / retosCompletadosCount++
-    P->>H3: SISTEMA.NOTIFICACION { evento: 'RETO_COMPLETADO' }
-    P->>H2: SISTEMA.NOTIFICACION { evento: 'RETO_COMPLETADO' }
+    P->>H2: NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: false, retoCompletado, retoId }
     Note over P: En modo AVENTURA: habilita GPS para avanzar
 
     P-->>P: intentarCompletarElemento(padreId)
@@ -5918,13 +5925,23 @@ padre → hijo2/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, t
 
 **SISTEMA.CONFIRMACION** — usos principales:
 
-| Contexto | Emisor | Campo crítico |
-|----------|--------|---------------|
-| ACK de `enviarMensajeConConfirmacion` | hijo2, hijo3 | **`idOriginal: mensajeId`** — resuelve la promesa pendiente |
+| Contexto | Quién lo construye | Campo crítico |
+|----------|--------------------|---------------|
+| ACK de `enviarMensajeConConfirmacion` | **el bus**, no el frame | **`idOriginal: mensajeOriginal.id`** — resuelve la promesa pendiente |
 | UI_VISIBLE (handshake visual) | hijo1, hijo2, hijo3, hijo5 | `{ tipo:'UI_VISIBLE', timestamp }` |
-| Respuesta a acciones de audio | hijo3 L1842/1863 | `{ accion:'click_ejecutado', exito:true }` |
+| Respuesta a acciones de audio | hijo3 | `{ accion:'click_ejecutado', exito:true }` |
 
-El campo `idOriginal` es **crítico para `enviarMensajeConConfirmacion`**: mensajeria.js lo usa para correlacionar con la promesa pendiente. Si falta `idOriginal`, la promesa no se resuelve y se cumple el timeout.
+El campo `idOriginal` es **crítico para `enviarMensajeConConfirmacion`**: `mensajeria.js` lo usa
+para correlacionar con la promesa pendiente. Si falta, la promesa no se resuelve y se cumple el
+timeout.
+
+**Lo pone el bus, y solo el bus.** `enviarConfirmacion()` (`js/mensajeria.js`) construye el acuse
+por su cuenta cuando el mensaje entrante pide confirmación; el frame receptor solo devuelve un
+valor desde su handler. Un `idOriginal` escrito a mano dentro de una llamada a `enviarMensaje()`
+no llega a viajar: esa función arma el mensaje con seis campos —`tipo`, `datos`, `id`,
+`timestamp`, `origen`, `destino`— y descarta el resto. Poner `idOriginal` a mano, por tanto, no
+resuelve ninguna promesa: o se usa `enviarMensajeConConfirmacion` y el acuse lo genera el bus, o
+no hay acuse.
 
 **SISTEMA.ERROR** — emisores y contextos:
 
