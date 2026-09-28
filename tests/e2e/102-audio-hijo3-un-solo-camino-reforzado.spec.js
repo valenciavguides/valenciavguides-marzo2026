@@ -77,9 +77,8 @@ test.describe('AR — Audio a hijo3, un solo camino reforzado', () => {
       globalThis.estadoPadre.modo.actual = globalThis.MODOS.AVENTURA;
       // Deja un audioActual real en el snapshot de recuperación: solicitarAudioAHijo3 lo rellena
       // como efecto secundario, con el mismo audioData que resolvería la vía normal.
-      let llamadasPrevias = 0;
       const original = globalThis.enviarMensajeConConfirmacion;
-      globalThis.enviarMensajeConConfirmacion = () => { llamadasPrevias++; return Promise.resolve({ exito: true }); };
+      globalThis.enviarMensajeConConfirmacion = () => Promise.resolve({ exito: true });
       await globalThis.solicitarAudioAHijo3(audioId);
       globalThis.enviarMensajeConConfirmacion = original;
 

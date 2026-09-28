@@ -37,7 +37,7 @@ const { abrirHijoEnMarco, recibidosPorElMarco, enviarAlHijo } = require('./helpe
 
 test.describe('EP — _esParadaValida(): solo la comprobación alcanzable (id/parada_id)', () => {
   test('EP-1. Sin id ni parada_id se descarta; sin nombre no (rama inalcanzable)', async ({ page }) => {
-    const hijo = await abrirHijoEnMarco(page, 'boton-casa-hijo5.html');
+    await abrirHijoEnMarco(page, 'boton-casa-hijo5.html');
     await enviarAlHijo(page, {
       tipo: 'NAVEGACION.RESPUESTA_DATOS_PARADAS',
       origen: 'padre',
