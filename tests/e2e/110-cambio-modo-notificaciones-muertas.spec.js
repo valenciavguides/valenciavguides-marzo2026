@@ -36,8 +36,13 @@ const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./help
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 test.describe('CI — Avisos cambio_modo_* muertos, retirados', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, context }) => {
     test.setTimeout(90_000);
+    // Este CAMBIO_MODO real activa GPS (activarGPS() dentro de _hdl_SISTEMA_CAMBIO_MODO). Sin
+    // conceder el permiso, Firefox deja watchPosition() colgado para siempre (no hace timeout,
+    // no llama ni éxito ni error) — ver feedback_e2e_geolocation_firefox en memoria.
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);

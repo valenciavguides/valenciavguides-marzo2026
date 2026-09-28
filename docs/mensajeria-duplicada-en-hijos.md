@@ -2016,7 +2016,21 @@ acaba en P1, sin errores ni pantallas atascadas. No es un hallazgo — es la gar
 **Checklist de cierre (memoria, 11 puntos) — verificado punto por punto, alcance mensajería:**
 1. Sin ❌/🕳️ sin triar en los ejes recorridos — ninguno encontrado.
 2. `npm run lint` — limpio.
-3. Tanda de los 4 navegadores — lanzada tras este commit (ver más abajo).
+3. Tanda de los 4 navegadores — primera pasada: 2063/2064 en verde, 1 fallo real
+   (`110-cambio-modo-notificaciones-muertas.spec.js`, CI-1/CI-2, solo en firefox: `page.evaluate`
+   colgado sin resolver nunca, medido incluso subiendo el timeout a 240s). Diagnosticado con
+   captura de consola en vivo: el último log antes del cuelgue es "Iniciando watchPosition..."
+   dentro de `activarGPS()` (el CAMBIO_MODO real a AVENTURA activa GPS). Este spec era el único
+   de los tres que dispara ese mismo camino real (junto a 96 y 100) sin haber llamado antes
+   `context.grantPermissions(['geolocation'])` + `setGeolocation(...)` — exactamente el patrón que
+   ya documenta `feedback_e2e_geolocation_firefox` en memoria (fechada hace 43 días, encontrada
+   entonces en un spec distinto): sin el permiso concedido, Firefox dentro de Playwright no
+   resuelve `watchPosition()` ni por éxito ni por error, y se queda colgado para siempre — no es
+   lento, es un cuelgue real, y no se arregla subiendo el timeout (ya probado). Bug del arnés de
+   test, no de la app: un usuario real ve el diálogo nativo y lo resuelve en los dos sentidos.
+   Añadidas las dos líneas que faltaban al `beforeEach` de spec 110, igual que ya las tienen 96 y
+   100. Verificado: spec 110 en los 4 navegadores, verde (antes tardaba >240s colgado en firefox,
+   ahora 5s). Segunda pasada de la tanda completa, lanzada tras el commit de este arreglo.
 4. `npm run verificar-mensajeria` sin huérfanos sin revisar — los 6 candidatos (`ninguno
    detectado`) son exactamente los mismos 6 ya verificados a mano en el paso 10 (§25.19): 5 falsos
    negativos de la heurística, 1 huérfano real intencional (`GPS.DESACTIVAR`). Nada nuevo.
@@ -2039,7 +2053,8 @@ acaba en P1, sin errores ni pantallas atascadas. No es un hallazgo — es la gar
 11. EJE 28 — hecho, arriba.
 
 Verificado en conjunto: 26 tests de las specs tocadas (96-101, 103-106, 110) en chromium, todos en
-verde; lint limpio; `npm run verificar-esperas` sin esperas nuevas de mensajería.
+verde; lint limpio; `npm run verificar-esperas` sin esperas nuevas de mensajería; spec 110 en los
+4 navegadores tras el arreglo del permiso de geolocalización.
 
 ---
 
