@@ -2096,3 +2096,193 @@ Salieron tirando del hilo. No son de la mensajería y no se han tocado.
    paso 7** — el envío y los 5 handlers (audio-hijo3, boton-casa-hijo5, chat-hijo6,
    coordenadas-hijo2, retos-hijo4); `__HEARTBEAT_ACTIVO` no lo leía nadie (grep confirmado).
 6. **hijo1 y hijo5 cargan `js/monitoreo.js` y nadie lo arranca en ellos.**
+
+---
+
+## Parte VIII — Fase B: matriz de emisión ascendente (decisión 15, SOLO estudio)
+
+Cita de la memoria (`project_plan_noche_paso1`): *"Fase B — decision 15 (SOLO estudio): matriz
+completa de quien puede enviar que tipo a quien, en todos los niveles (nieto -> contenedor:
+puzzle->hijo4/seleccion, video-intro->seleccion/hijo6; hijo -> padre), codigo + trazas medidas."*
+Ampliada por el usuario: *"saber que tipo de informacion le puede enviar cada nieto a cada hijo y
+cada hijo al padre."* Y la regla que la acompaña: **"no aplicar la decisión 15 sin que el usuario
+vea la matriz"** — este apartado es exactamente eso, y se detiene ahí. Nada de lo de abajo cambia
+código ni comportamiento; es lectura directa del código de hoy (post-lavadora, los 12 pasos
+cerrados), no inferencia ni memoria antigua.
+
+**Método:** para cada uno de los 2 nietos y los 6 hijos, `grep` de todo envío con destino a su
+contenedor directo ('padre' en términos del bus — que para un nieto es la ventana que lo incrusta,
+no necesariamente `codigo-padre.html`), leído uno a uno en el código real, payload completo
+incluido. Ningún dato de esta sección viene de `tools/verificar-mensajeria.js` sin contrastar:
+la lista de tipos por archivo se usó solo como punto de partida, cada fila se verificó leyendo la
+llamada real.
+
+### Nietos → contenedor
+
+Solo 2 nietos, y cada uno tiene **un único punto de envío** en todo su fichero.
+
+**`puzzle.html`** (embebido en dos sitios distintos, nunca a la vez: `hijo4` al abrir un reto de
+puzzle, `en-busca-del-tesoro` en P10 estático) — envía siempre con `destino: 'padre'`, que el bus
+resuelve como *quien lo incrusta en ese momento*:
+
+| Tipo | Cuándo | `datos` |
+|---|---|---|
+| `PUZZLE.COMPLETADO` | el puzzle se resuelve | `{ puzzleId, exito: true, timestamp }` |
+| `PUZZLE.TIMEOUT` | se agota el tiempo sin resolverlo | `{ puzzleId, exito: false, timestamp }` |
+
+Un solo emisor (`notificarPuzzleAlPadre(success)`) construye los dos; el tipo es el único campo
+que cambia. Nunca manda nada más — ni progreso parcial, ni intentos, ni la imagen.
+
+**`video-intro.html`** (embebido en dos sitios: `en-busca-del-tesoro` en P4, `hijo6-chat` en el
+modal "ver de nuevo") — un único envío, sin `datos` en absoluto:
+
+| Tipo | Cuándo | `datos` |
+|---|---|---|
+| `SELECCION.VIDEO_INTRO_TERMINADO` | el vídeo termina (botón o fin natural) | *(sin campo `datos`)* |
+
+El contenedor decide qué hacer solo con el tipo y con su propio `origen`: `en-busca-del-tesoro` lo
+usa para avanzar de pantalla (P4→P5); `chat-hijo6` para cerrar el modal. Ninguno de los dos lee
+ningún dato adicional porque no hay ninguno que leer.
+
+### Hijo → padre, por hijo
+
+Catálogo completo de cada hijo — todo lo que puede subir, con el payload exacto de una llamada
+real (cuando dos sitios mandan el mismo tipo con formas ligeramente distintas, se anota).
+
+**`extrainfo-hijo1.html`** (18 tipos):
+
+| Tipo | `datos` |
+|---|---|
+| `SISTEMA.HIJO_PREPARADO` | `{ version, tipo:'EXTRAINFO', capacidades:['opciones','configuracion'], timestamp }` |
+| `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId, timestamp }` |
+| `SISTEMA.HIJO_FALLIDO` | `{ error, stack, timestamp }` |
+| `SISTEMA.CONFIRMACION` | `{ tipo:'UI_VISIBLE', timestamp }` |
+| `SISTEMA.HEARTBEAT_RESPONSE` | `datosRespuesta` (construido antes, mismo patrón que los demás hijos) |
+| `SISTEMA.NACK` | `{ error:'Modo inválido', modoRecibido }` |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, timestamp, mensajeId }` |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito:true, timestamp, mensajeId }` |
+| `SISTEMA.ERROR` | 3 sitios distintos: `{error,stack,timestamp}` (fallo genérico), `{error,tipo:'CAMBIO_MODO_FALLIDO'}`, `{error,contexto:'click-mas-opciones'/'PADRE_CONFIRMA_HIJO_LISTO', timestamp}` |
+| `UI.CLOSE_MENUS` | `{ except:'mas-opciones', timestamp }` |
+| `UI.ACCION_USUARIO` | `{ accion:'audio_control', comando:'pause', contexto:'enlace_externo' }` |
+| `UI.NAVEGACION_EXTERNA` | `{ url, icono, timestamp }` |
+| `CONTROL.DEV_CINCO_TOQUES` | `{ timestamp }` |
+| `TEMPORIZADOR.TOGGLE` | `{ tiempoRestante, tiempoTotal, estado, modoAventura, tiempoFormateado }` |
+| `PARADAS.LISTADO_TOGGLE` | `{ timestamp }` |
+| `AVENTURA.TIEMPO_ACTUALIZADO` | `{ tiempoRestante, tiempoTotal, porcentajeRestante, estado, tiempoFormateado }` |
+| `AVENTURA.TIEMPO_AGOTADO` | `{ mensaje, redirigir:'En-busca-del-tesoro.html', timestamp }` |
+| `AVENTURA.ESTADISTICAS_TIEMPO` | `stats` (objeto de estadísticas de tiempo, construido aparte) |
+
+**`coordenadas-hijo2.html`** (24 tipos — el hijo con más superficie, por el GPS):
+
+| Tipo | `datos` |
+|---|---|
+| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, coordenadasDisponibles, tipo:'COORDENADAS', capacidades:['navegacion','coordenadas'], timestamp }` |
+| `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId, timestamp }` |
+| `SISTEMA.CONFIRMACION` | dos formas — `{tipo:'UI_VISIBLE',timestamp}` (handshake visual) y `{idOriginal, datos:{tipoConfirmacion:'DATOS_RECIBIDOS', totalParadas}}` (acuse de datos, con `idOriginal` explícito) |
+| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, estado:'activo'/'inicializando', gpsActivo, paradaActual, coordenadasCargadas }` |
+| `SISTEMA.NACK` | `{ error:'Modo inválido', modoRecibido }` |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito:true, timestamp, mensajeId }` |
+| `SISTEMA.ERROR` | `{ error, tipo:'CAMBIO_MODO_FALLIDO' }` |
+| `NAVEGACION.LLEGADA_DETECTADA` | `{ paradaId, parada_id, distancia, tipoParada:'tramo'\|'parada', timestamp }` |
+| `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` |
+| `NAVEGACION.USUARIO_FUERA_RANGO` | `{ distancia, franja, elementoMasCercano, timestamp }` |
+| `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | `{ accion, formato:'html', url, aventura, mostrarTodo:true }` |
+| `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | `{ accion, formato:'jpg', aventura }` |
+| `NAVEGACION.GPS.ACTIVAR` | `{ activar, idParada, distancia }` — **con acuse** (`enviarMensajeConConfirmacion`, timeout ajustado por conexión) |
+| `NAVEGACION.GPS.RESTRINGIDO` | `{ idParada, distancia, rangoMaximo, timestampSalioDeRango }` |
+| `NAVEGACION.GPS.DENTRO_DE_RANGO` | `{ timestamp }` |
+| `NAVEGACION.GPS.PRECISION_INSUFICIENTE` | `{ accuracy, umbral, timestamp }` |
+| `NAVEGACION.GPS.PRECISION_RECUPERADA` | `{ timestamp }` |
+| `NAVEGACION.RESPUESTA_COORDENADAS` | `informacionCompleta` (imagen/vídeo/texto resueltos del elemento pedido) |
+| `DATOS.COORDENADAS_CARGADAS` | `{ exito:true, aventura, idioma, totalCargadas, timestamp }` |
+| `DATOS.TEXTOS_CARGADOS` | `{ exito:true, aventura, idioma, totalCargados, timestamp }` |
+| `DATOS.SOLICITAR_COORDENADAS` | `{ motivo:'datos_no_recibidos', timestamp }` |
+| `DATOS.SOLICITAR_TEXTOS` | `{ motivo:'datos_no_recibidos', timestamp }` |
+| `UI.ACCION_USUARIO` | `{ accion:'reproducir-video'\|'mostrar-imagen', paradaActual, url*, nombre, sinContenido, mensajeError }` |
+| `MONITOREO.METRICA` | `{ nombre:'gps_error_code', valor:1, metadatos:{codigo} }` |
+
+**`audio-hijo3.html`** (13 tipos):
+
+| Tipo | `datos` |
+|---|---|
+| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, tipo:'AUDIO', capacidades:['audio','reproduccion','controles'], timestamp }` |
+| `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId, timestamp }` |
+| `SISTEMA.CONFIRMACION` | tres formas: `{tipo:'UI_VISIBLE',timestamp}`, `{accion:'click_ejecutado',elemento,exito:true,timestamp}`, `{accion:'audio_control',comando,exito:true,timestamp}` |
+| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp }` |
+| `SISTEMA.NACK` | `{ error:'Modo inválido', modoRecibido }` |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito:true, timestamp, mensajeId }` |
+| `SISTEMA.ERROR` | tres formas: `{error,tipo:'CAMBIO_MODO_FALLIDO'}`, `{codigo:'ELEMENTO_NO_ENCONTRADO',mensaje,elemento,timestamp}`, `{codigo:'AUDIO_CONTROL_FALLIDO',mensaje,comando,timestamp}` |
+| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | `{ paradaId, parada_id, padreId, padreid, timestamp }` |
+| `DATOS.SOLICITAR_AUDIOS` | `{ audioId, motivo:'cache_miss', timestamp }` |
+| `AUDIO.ESTADO_ACTUALIZADO` | `{ audioId, estado:'reproduciendo'\|'pausado' }` — desde los listeners nativos `play`/`pause` |
+| `AUDIO.FIN_REPRODUCCION` | `{ audioId, estado:'finalizado' }` |
+| `AUDIO.ERROR` | `{ audioId, error: motivo }` |
+| `RETO.SOLICITAR_RETO` | `{ contexto:'manual', audioId: currentAudioId }` |
+
+**`retos-hijo4.html`** (13 tipos):
+
+| Tipo | `datos` |
+|---|---|
+| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, tipo:'RETO', capacidades:['retos','preguntas','validacion'], timestamp }` |
+| `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId, timestamp }` |
+| `SISTEMA.CONFIRMACION` | `{ tipo:'UI_VISIBLE', timestamp }` |
+| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp }` |
+| `SISTEMA.NACK` | dos sitios: `{error:'Modo inválido',modoRecibido}` y `{error: error.message}` (tras fallar el CAMBIO_MODO) |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito:true, timestamp, mensajeId }` |
+| `SISTEMA.ERROR` | `{ error, tipo:'CAMBIO_MODO_FALLIDO' }` |
+| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | `{ paradaId, parada_id, padreId, padreid, timestamp }` |
+| `DATOS.SOLICITAR_RETOS` | `{ retoId, motivo:'cache_miss', timestamp }` |
+| `RETO.SOLICITAR_RETO` | `{ contexto:'hijo4-botonRetos' }` |
+| `RETO.MOSTRADO` | `{ retoId }` |
+| `RETO.OCULTAR` | `{ retoId }` |
+| `RETO.COMPLETADO` | `{ retoId, correcto:true, progreso }` — **con acuse** (`enviarMensajeConConfirmacion`) |
+
+**`boton-casa-hijo5.html`** (11 tipos — dev-only, ver `project_hijo5_devonly`):
+
+| Tipo | `datos` |
+|---|---|
+| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, tipo:'CASA', capacidades:['modo-selector','paradas-list'], timestamp }` |
+| `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId, timestamp }` |
+| `SISTEMA.CONFIRMACION` | dos formas: `{tipo:'UI_VISIBLE',timestamp}` y `{idOriginal, datos:{tipoConfirmacion:'DATOS_RECIBIDOS', totalParadas}}` |
+| `SISTEMA.HEARTBEAT_RESPONSE` | dos sitios con formas distintas: uno solo `{timestamp,componenteId,estado:{...}}`, otro (disparado por `visibilitychange`) añade `razon:'visibilitychange'` |
+| `SISTEMA.ERROR` | 5 sitios: `contexto` cambia según el punto (`click-boton-parada`, `manejarClickGPS`, `solicitarParadasDelPadre`, `SISTEMA.HEARTBEAT`, `inicializacion-hijo5` con `critico:true`, `NAVEGACION.RESPUESTA_DATOS_PARADAS` con `stack`) |
+| `SISTEMA.CAMBIO_MODO` | `{ modo: modoNuevo, timestamp, origen:'boton-gps' }` — **el único hijo que INICIA un cambio de modo**, no solo lo acusa (es el botón GPS del modo dev) |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito:true, timestamp, mensajeId }` |
+| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, timestamp, origen:'hijo5' }` — hijo5 dispara cambios de parada al pulsar sus botones |
+| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `{ incluirTramos:true, incluirInicio:true, incluirMetadatos:true, ubicacionUsuario }` |
+| `PARADAS.READY` (valor real: `VV:PARADAS:READY`) | `{ count: botonesGenerados }` |
+
+**`chat-hijo6.html`** (7 tipos — el más pequeño):
+
+| Tipo | `datos` |
+|---|---|
+| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, tipo:'CHAT', capacidades:['chat','faq'], timestamp }` |
+| `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId, timestamp }` |
+| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, estado:'activo'/'inicializando' }` |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, timestamp, mensajeId }` |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito:true, timestamp, mensajeId }` |
+| `CHAT.CERRAR` | *(sin `datos`)* |
+| `CHAT.RESCATE_SOLICITADO` | `{}` — **con acuse** (`enviarMensajeConConfirmacion`, timeout ajustado por conexión); toda la información relevante vuelve en la RESPUESTA del padre, no en la petición |
+
+### Observaciones para cuando el usuario revise la matriz (sin decidir nada)
+
+- **Los 6 hijos comparten un núcleo casi idéntico:** `HIJO_PREPARADO`, `HIJO_LISTO`,
+  `HEARTBEAT_RESPONSE`, `CONFIRMACION{tipo:'UI_VISIBLE'}`, y (los 5 que participan en el
+  protocolo bidireccional de modo) `CAMBIO_MODO_ENTENDIDO`/`EFECTUADO`/`NACK`/`ERROR{tipo:
+  'CAMBIO_MODO_FALLIDO'}` — mismo payload, mismo propósito, siete copias del mismo patrón.
+  Candidato natural a un helper compartido si se decide extraer código común — no se propone
+  aquí, solo se deja apuntado como lo que la matriz hace visible de un vistazo.
+- **`SISTEMA.ERROR` es el tipo con más variantes de payload** (distinto `contexto`/`codigo` según
+  el sitio) — coherente con ser el canal genérico de errores, no una señal de duplicidad.
+- **hijo5 es el único hijo que hace de EMISOR de `SISTEMA.CAMBIO_MODO` y de
+  `NAVEGACION.CAMBIO_PARADA`** — el resto de hijos solo los reciben. Coherente con su rol de
+  "panel de control" en modo desarrollo, no un hallazgo.
+- **`PARADAS.READY` tiene el valor de cadena `'VV:PARADAS:READY'`**, distinto de su nombre de
+  propiedad — ya documentado y corregido en la tabla de §37.3 de GUIA-COMPLETA.md (paso 10).
+- **Los dos nietos son extremos opuestos de tamaño de payload:** puzzle manda 3 campos con
+  sentido (`puzzleId`, `exito`, `timestamp`); video-intro no manda ningún campo — el contenedor
+  decide solo con el tipo. Ninguno de los dos nietos necesita más información de la que ya manda
+  para lo que hace su contenedor (avanzar pantalla / cerrar reto o modal).
+
+Sin más acción por ahora: **esto es el estudio completo que pedía la Fase B.** La decisión 15 en
+sí (qué hacer con esta información, si es que hay que hacer algo) espera a que el usuario la vea.
