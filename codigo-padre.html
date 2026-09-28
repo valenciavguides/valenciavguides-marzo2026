@@ -11182,12 +11182,11 @@ await _comprobarReanudacionAventura(logPrefix);
                     return;
                 }
 
-                const { retoId, correcto, respuesta, puntos = 0, tiempoRespuesta = 0 } = mensaje.datos || {};
+                const { retoId, correcto } = mensaje.datos || {};
 
                 (globalThis.logger || console).info(`${logPrefix} Reto completado recibido de ${mensaje.origen}`, {
                     retoId,
-                    correcto,
-                    puntos
+                    correcto
                 });
 
                 // Actualizar estado global del padre
@@ -11195,36 +11194,20 @@ await _comprobarReanudacionAventura(logPrefix);
                     estado.retosCompletados = new Map();
                 }
 
+                // respuesta/puntos/tiempoRespuesta no se guardan: hijo4 no los manda con
+                // ningún valor real en ninguno de sus dos caminos (siempre llegaban a 0/
+                // undefined), nadie vuelve a leer este Map con .get(), y el envío de
+                // "puntos" a hijo3 vía SISTEMA.NOTIFICACION no tenía handler que lo
+                // recibiera — retirado (ver docs/mensajeria-duplicada-en-hijos.md, Parte
+                // VIII, mismo hueco que el paso 8.5 de la lavadora).
                 estado.retosCompletados.set(retoId, {
                     correcto,
-                    respuesta,
-                    puntos,
-                    tiempoRespuesta,
                     timestamp,
                     origen: mensaje.origen
                 });
 
                 // Actualizar estado del reto actual
                 estado.retoActual.completado = correcto;
-
-                // Notificar a hijo3 (audio) para que pueda reanudar o actuar
-                try {
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-                        destino: 'hijo3',
-                        datos: {
-                            evento: 'reto_completado',
-                            retoId,
-                            correcto,
-                            puntos,
-                            timestamp
-                        }
-                    });
-
-                    (globalThis.logger || console).debug(`${logPrefix} Notificación enviada a hijo3`);
-                } catch (notifError) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error notificando a hijo3:`, notifError);
-                }
 
                 // 📤 Notificar a hijo2 que reto terminó (para rehabilitar botones)
                 try {
