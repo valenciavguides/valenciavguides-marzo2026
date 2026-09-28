@@ -10,6 +10,13 @@ node tools/inventory.js | grep -i "nombre_o_concepto"
 
 Si encuentras algo con nombre similar o propósito parecido, muéstraselo al usuario antes de continuar. No implementes hasta confirmar que realmente hace falta algo nuevo.
 
+**Que el grep no encuentre nada no es prueba de que no exista.** `inventory.js` lista por patrón,
+igual que cualquier `grep`: un alias (`const fn_S1 = modulo.fn`), una asignación a `globalThis`
+con otro nombre, o un método colgado de un objeto pueden no aparecer con el nombre o concepto que
+se busca. Antes de decir "no existe nada parecido", repasar la fila de **ausencia** de
+`docs/GUIA-COMPLETA.md` §36.0 — la comprobación es una búsqueda del identificador pelado en los
+ficheros reales, no solo un filtro sobre la lista curada del inventario.
+
 Comandos disponibles:
 - `npm run inventory` — lista completa de todas las funciones del proyecto (orden alfabético)
 - `npm run inventory:dupes` — solo nombres que aparecen en más de un archivo
