@@ -13719,6 +13719,24 @@ La dirección contraria es la misma trampa con el signo cambiado: unas coordenad
 
 Si alguno difiere en un orden de magnitud del valor real, el test no cubre lo que dice cubrir por mucho que esté en verde. `57-llegada-tramo-recorrido.spec.js` es el que fija los tres para este caso: paso de 1-2 m, cadencia de 1 Hz y ruido inyectado, incluido el escenario de estar quieto.
 
+#### 27.7 Una herramienta que busca por patrón no demuestra una ausencia
+
+Es la regla del inventario un nivel más arriba, aplicada al instrumento: un `grep`, una regex o un extractor devuelven **lo que casa**. Que algo no aparezca en su salida tiene dos causas indistinguibles *desde la salida*: no está, o el patrón no lo vio. La herramienta nunca dice cuál de las dos, y un elemento perdido no baja el recuento a cero — lo deja en un número plausible.
+
+**El caso de referencia.** Un extractor de las claves de `globalThis.funcionesMapa` con la forma `/^\s{4}(\w+)\s*[,:]/gm` exigía coma o dos puntos tras cada clave. `setMapView` es la **última** entrada del objeto y no lleva coma final: la regex la descartó en silencio y devolvió 19 nombres en vez de 20. De ahí salía una cadena de inferencia impecable y enteramente falsa — la clave no está expuesta, luego `globalThis.funcionesMapa?.setMapView(...)` lanza `TypeError`, luego el botón «mostrar en mapa» del overlay de GPS está roto. Bastó abrir el objeto y leerlo para ver la clave en su sitio.
+
+**Lo que hizo la trampa creíble fue que la guía también decía 19.** En una auditoría el documento es el acusado: que la medición coincida con él no corrobora nada. Obliga a la pregunta contraria — ¿de dónde sacaron los dos el mismo número?
+
+| Clase de afirmación | Por qué no basta el patrón | Qué sí la sostiene |
+|---|---|---|
+| **Ausencia** — «X no existe», «falta Y», «no lo llama nadie» | No casar y no estar son indistinguibles | Una búsqueda **desnuda del nombre**, sin anclas ni contexto, en todo el repositorio |
+| **Recuento** — «son 19», «hay 5 entradas» | Un elemento perdido da un número plausible, no un error | Que el extractor imprima **lo que quedó sin casar** dentro de su propia entrada. Sin control de residuo, el recuento no se reporta |
+| **Ejecución** — «esto lanza», «nunca se dispara», «está roto» | Es una inferencia de tercer grado sobre una lista ya derivada | Ejecutarlo, o leer las líneas exactas del fichero. Nunca deducirlo de la salida de otra herramienta |
+
+**La regla operativa:** clasificar cada afirmación en una de esas tres filas antes de reportarla, y aplicar su columna derecha. El listón sube con la gravedad: una errata de recuento pasa con una comprobación; «hay algo roto que el usuario toca» necesita tres caminos independientes, porque una falsa alarma cuesta el tiempo de quien la comprueba y, repetida, la credibilidad del informe entero.
+
+Cada hallazgo se reporta **con el método pegado** —«medido con», «leído en fichero:línea», «ejecutado»—. Lo que solo esté inferido no sale del borrador: o se termina de comprobar, o se plantea como pregunta, nunca como hallazgo.
+
 ---
 
 ### 36.28 EJE 28 — Recorrido real de la aplicación con espía de mensajes

@@ -82,6 +82,20 @@ viven aquí.
    algo como "sin comprobar" no es la solución: es presentar trabajo a medias. Si falta un dato que
    solo tiene el usuario, se le pregunta eso, y no se recomienda encima. Se incumplió dos veces en una
    misma sesión, con la regla ya escrita en la memoria.
+10. **Una herramienta que busca por patrón no demuestra una ausencia.** Un `grep`, una regex o
+   un extractor devuelven **lo que casa**; que algo no salga puede ser que no esté o que el
+   patrón no lo viera, y la salida no distingue las dos. Antes de reportar, clasificar la
+   afirmación y aplicar su comprobación: **ausencia** ("no existe", "falta", "no lo llama
+   nadie") → búsqueda desnuda del nombre, sin anclas, en todo el repositorio; **recuento**
+   ("son 19") → el extractor tiene que imprimir lo que dejó **sin casar** dentro de su propia
+   entrada, o el recuento no se reporta; **ejecución** ("lanza", "no se dispara", "está roto")
+   → ejecutarlo o leer las líneas exactas, nunca deducirlo de la salida de otra herramienta.
+   Coincidir con la guía **no** corrobora: en una auditoría la guía es la acusada. La gravedad
+   sube el listón — una errata pasa con una comprobación, "hay algo roto que el usuario toca"
+   necesita tres caminos independientes. Cada hallazgo se reporta con el método pegado
+   ("medido con", "leído en fichero:línea", "ejecutado"); lo que solo esté inferido no sale del
+   borrador: o se termina de comprobar, o se plantea como pregunta. Caso de referencia y
+   detalle en `docs/GUIA-COMPLETA.md` §36.27.7.
 
 ## Documentación de autoridad
 
