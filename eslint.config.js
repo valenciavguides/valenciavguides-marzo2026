@@ -142,13 +142,11 @@ module.exports = [
         enviarMensaje_S1: "readonly",
         enviarMensajeConConfirmacion: "readonly",
         registrarControladorSeguro: "readonly",
-        desregistrarControlador: "readonly",
         registrarIframe_S1: "readonly",
 
         // ── Globals propios — funciones de utilidad ───────────────────────
         logger: "readonly",
         getPadreId: "readonly",
-        getPadreIdLocal: "readonly",
         generarIdUnico: "readonly",
         getEstadoSafe: "readonly",
         ajustarTimeoutPorConexion_S1: "readonly",
@@ -157,7 +155,6 @@ module.exports = [
         persistProgressState: "readonly",
         calcularDistancia: "readonly",
         coordinarAccion: "readonly",
-        safeRegistrar: "readonly",
         registrarEvento: "readonly",
 
         // ── Globals propios — funciones de UI/navegación ─────────────────

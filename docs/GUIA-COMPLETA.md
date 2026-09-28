@@ -1339,8 +1339,8 @@ Cubierto por `tests/e2e/22-carteles-informativos.spec.js`, prueba CI-6: dispara 
 **La garantía se extiende a toda la familia de funciones relacionadas:** el mismo principio — nunca devolver un booleano o `undefined` desnudo desde una función que sus callers tratan como Promise — se aplica por construcción a otros tres puntos de la misma clase, sin depender de que el contexto que hoy los protege (guards existentes, hoisting) se mantenga igual en el futuro:
 
 - `enviarMensaje()` (`js/mensajeria.js`) solo acepta `enviarMensaje({ tipo, datos, destino })` — no existe ningún formato posicional; sus dos caminos de fallo (`tipo` ausente, o el bus del frame sin inicializar) devuelven `Promise.resolve(false)`. El `origen` lo pone el bus (§26.8, segunda capa).
-- El alias `enviarMensajePadre()` que envolvía esto (`Promise.resolve(enviarMensaje(mensaje))`) ya no existe: se retiró en el paso 5 de la lavadora (docs/mensajeria-duplicada-en-hijos.md) por ser un segundo nombre para lo mismo — `enviarMensaje()` ya devolvía siempre una Promise por sí sola. Cada script del padre llama a `enviarMensaje` por su alias local (`enviarMensaje_S1`, `enviarMensaje_S2`…).
-- Quien necesita disparar un `SISTEMA.CAMBIO_MODO` desde dentro del padre lo despacha con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, datos: { modo } })`, que siempre devuelve una Promise (paso 2 de la lavadora, docs/mensajeria-duplicada-en-hijos.md). El atajo `globalThis._vv_triggerCambioModo` que envolvía esto ya no existe.
+- Cada script del padre llama a `enviarMensaje` por su alias local (`enviarMensaje_S1`, `enviarMensaje_S2`…), sin ningún envoltorio intermedio.
+- Quien necesita disparar un `SISTEMA.CAMBIO_MODO` desde dentro del padre lo despacha con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, datos: { modo } })`, que siempre devuelve una Promise.
 
 Ver detalle completo en la memoria `project_audit_promise_boolean_pendiente`.
 
@@ -4243,7 +4243,7 @@ estado.pendingCompleciones[padreid] = {
 
 La lógica de completado en `intentarCompletarElemento` exige `pending.llegada = true` para **todos** los tipos (paradas, inicio y tramos): la llegada GPS siempre es necesaria, sin excepciones por tipo de elemento.
 
-Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` a hijo2 e hijo4 — los únicos dos frames que registran handler para `SISTEMA.NOTIFICACION` en todo el proyecto (paso 8.5 de la lavadora: hijo3 no tiene ninguno, así que se retiró el envío que le llegaba sin consumidor).
+Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` a hijo2 e hijo4 — los únicos dos frames que registran handler para `SISTEMA.NOTIFICACION` en todo el proyecto (hijo3 no registra ninguno, y no recibe este aviso).
 
 **Por qué la clave siempre es el `padreid` real, nunca el `tramo_id`/`parada_id` con el que llega el evento:** `_marcarPendingPorLlegada` (llamada por `LLEGADA_DETECTADA`) recibe el id tal como lo manda el sensor GPS — para un tramo, eso es su `tramo_id` (p.ej. `"Av1-TR-1"`), no su `padreid` (`"padre-TR1"`). Antes de construir la clave, resuelve el elemento real con `findElementoPorPadreId(paradaId)`, que busca en `elementosIDpadre` comparando contra `padreid`, `parada_id` **y `tramo_id`** — las tres columnas de id que puede traer la entrada. Sin la comparación por `tramo_id`, la búsqueda fallaba para todos los tramos y la clave caía al fallback `` `padre-${paradaId}` `` (`"padre-Av1-TR-1"`, una clave inventada que no coincide con ningún `padreid` real): el `LLEGADA_DETECTADA` de un tramo y su `AUDIO.FIN_REPRODUCCION` (que sí resuelve correctamente vía `findElementoPorAudio`, y sí obtiene `"padre-TR1"`) creaban dos entradas `pendingCompleciones` distintas para el mismo tramo, y `pending.llegada`/`pending.audio` nunca coincidían en la misma — el tramo no se completaba nunca por esta vía, sin importar cuánto GPS o audio llegara. Con `findElementoPorPadreId` resolviendo también por `tramo_id`, ambos caminos convergen en la misma clave real.
 
@@ -4399,7 +4399,6 @@ sequenceDiagram
 | Helper | Responsabilidad |
 |--------|-----------------|
 | `_distribuirDatosActivacion(aventura, idioma, logPrefix)` | Llama `distribuirDatosAventura` y gestiona su resultado (`pospuesto` vs completado) con try/catch propio |
-| `_broadcastActivacion(aventura, idioma, logPrefix)` | Emite `SISTEMA.NOTIFICACION { evento:'AVENTURA_ACTIVADA' }` vía `enviarMensaje_S2` con su try/catch |
 
 El comportamiento externo es idéntico al anterior — la extracción es puramente estructural.
 
@@ -4618,7 +4617,7 @@ El heartbeat solo está activo en modo AVENTURA. Se gestiona en `_gestionarHeart
 
 El intervalo se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s, ajustado por calidad de conexión. El pulso `SISTEMA.HEARTBEAT` se envía a todos los iframes de `iframesRegistrados` (Map dinámico de `mensajeria.js`, poblado conforme cada hijo envía `HIJO_PREPARADO`); arrancar o parar ese ciclo es una llamada directa, sin ningún mensaje de por medio, ni al propio padre ni a los hijos.
 
-**Por qué la llamada directa (no self-message):** un auto-mensaje a `destino: CONFIG_PADRE.ID` (el padre a sí mismo) siempre se descartaba — `CONFIG.ID` nunca se asigna en `js/config.js`, así que ese destino era `undefined`; desde el paso 3 de la lavadora ("destino obligatorio") el bus lo rechaza sin lanzar excepción, así que ningún `catch`/fallback llegaba a dispararse. Medido en runtime: el aviso "falta destino" salía en cada carga. La solución es llamar `globalThis.mensajeria.iniciarHeartbeat()` / `globalThis.mensajeria.pausarHeartbeat()` directamente — sin mensaje, sin destino que resolver.
+**Por qué la llamada directa (no self-message):** el padre arranca y pausa su propio latido llamando a `globalThis.mensajeria.iniciarHeartbeat()` / `globalThis.mensajeria.pausarHeartbeat()` — sin mensaje y sin destino que resolver. Un auto-mensaje aquí no serviría: el bus exige `destino` y rechaza el envío sin lanzar excepción (§21.2), así que un `catch` alrededor no se enteraría del fallo.
 
 Cuando el modo vuelve a CASA, `_transicionarAModoCasa` elimina `localStorage['vv_aventura_iniciada']`, `['vv_progreso']` y `['vv_paradas_completadas']` antes de pausar el heartbeat — con **dos excepciones**, y basta con que se dé una para que no borre nada: en modo dev (`globalThis._devModeActivo === true`, ver §24) y cuando el cambio de modo viene marcado como reanudación de sesión (`mensaje.datos.restaurado === true`, §9.10) — reanudar no es abandonar, y sin ese segundo guard una sesión guardada en CASA sin dev se borraría a sí misma en el instante de restaurarse. Razón: la propia activación en dev entra en CASA como paso de bootstrap (atajo para saltar pago/código), no como abandono real — sin esta excepción, el progreso recién guardado se autoborraba en el instante de activar, y una recarga posterior nunca ofrecía el modal de reanudación. El flujo real de abandono/fin (`limpiarDatosAventura()`, `js/reciclaje-digital.js`) es independiente de esto y sigue limpiando todo por completo, en dev o no.
 
@@ -4847,7 +4846,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-5e68d62ce765'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-ac553dc1a7d8'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4908,7 +4907,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 | Destino | `padre` |
 | Payload | `{ componenteId, version, capacidades[], timestamp }` |
 | Handler en padre | `_hdl_SISTEMA_HIJO_PREPARADO` (codigo-padre.html) |
-| Acción | Registra al hijo en `estado.hijosPreparados` (Set), y envía `PADRE_DATOS` inmediatamente (no espera a los demás hijos). Aquí había además un `SISTEMA.ACK` al `HIJO_PREPARADO` que ningún hijo escuchaba — un segundo acuse que duplicaba el del propio bus (`SISTEMA.CONFIRMACION`); retirado antes de esta lavadora |
+| Acción | Registra al hijo en `estado.hijosPreparados` (Set), y envía `PADRE_DATOS` inmediatamente (no espera a los demás hijos). El acuse de recepción es el del propio bus (`SISTEMA.CONFIRMACION`), uno solo |
 | Responde con | `SISTEMA.PADRE_DATOS` |
 
 ##### SISTEMA.PADRE_DATOS
@@ -4966,10 +4965,10 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 | Handler en hijos | hijo1, hijo2, hijo3, hijo4, **hijo5**, hijo6 |
 | Acción hijo | Responde `SISTEMA.HEARTBEAT_RESPONSE`. Quien lleva la cuenta es el padre: `js/mensajeria.js` actualiza el `Map` `ultimoHeartbeat` del estado al recibir la respuesta |
 | Handler en padre | Inline — también maneja HEARTBEAT entrante de hijos: responde con `HEARTBEAT_RESPONSE { estado:'activo', modo, hijosActivos }` y resetea `heartbeatsFallidos` en `estadoHijos` |
-| Emitido en visibilitychange | Script 3 de `codigo-padre.html` (bloque `<script type="module">` de reconexión de iframes) — al restaurar visibilidad de la pestaña, `globalThis.mensajeria.enviarMensaje({ tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT, destino: 'broadcast', datos: { timestamp, razon:'visibilitychange' } })`, por el bus (paso 4 de la lavadora, docs/mensajeria-duplicada-en-hijos.md). Llega a los mismos iframes que recorría el bucle manual: todos los que tienen `name` en la marca estática se registran en el bus antes de poder recibir nada útil. |
+| Emitido en visibilitychange | Script 3 de `codigo-padre.html` (bloque `<script type="module">` de reconexión de iframes) — al restaurar visibilidad de la pestaña, `globalThis.mensajeria.enviarMensaje({ tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT, destino: 'broadcast', datos: { timestamp, razon:'visibilitychange' } })`, por el bus. Llega a los mismos iframes que recorría el bucle manual: todos los que tienen `name` en la marca estática se registran en el bus antes de poder recibir nada útil. |
 | hijo5 en visibilitychange | `boton-casa-hijo5.html` — además del handler normal, hijo5 envía proactivamente `SISTEMA.HEARTBEAT_RESPONSE` al padre cuando la pestaña vuelve a ser visible (`razon:'visibilitychange'`), sin esperar un HEARTBEAT entrante |
 
-El ciclo de `SISTEMA.HEARTBEAT` se arranca/detiene con una llamada directa a `iniciarHeartbeat()`/`pausarHeartbeat()` al cambiar de modo (§9.9) — no hay `SISTEMA.HEARTBEAT_START`/`HEARTBEAT_PAUSE` ni mensaje de ningún tipo para eso.
+El ciclo de `SISTEMA.HEARTBEAT` se arranca/detiene con una llamada directa a `iniciarHeartbeat()`/`pausarHeartbeat()` al cambiar de modo (§9.9): no hay ningún mensaje de por medio para arrancarlo ni pararlo.
 
 **SISTEMA.HEARTBEAT_RESPONSE** (hijo → padre)
 
@@ -5200,7 +5199,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 | Dirección | Padre solicita coordenadas de una parada/tramo (nunca la lista completa en el uso real) |
 | Payload REQUEST | `{ paradaId, padreId, tipo, contexto, incluirRutas? }` |
 | Emisores reales (3) | `_solicitarParadaAHijo2(parada)` — en cada `NAVEGACION.CAMBIO_PARADA` normal, para obtener imagen/vídeo/coordenadas y pasárselos a los demás hijos, nada que ver con dibujar en el mapa. `solicitarCoordenadasAHijo2(elemento)` — solo desde `_solicitarRecursosRest()` al reanudar una aventura guardada, para que hijo2 resincronice `idParadaActual`/`tipoParadaActual` de sus propios botones. `solicitarCoordenadasHijo(destino, payload, timeoutMs)` — fallback de `_resolverCoordenadasElemento()` cuando `btn-ubicacion` pide coordenadas que no están ya cacheadas en `DATOS_PADRE`. |
-| Handler en hijo2 | Responde con el valor de retorno — la confirmación automática (`enviarMensajeConConfirmacion`) que ya llega a los tres emisores. Un solo camino desde el paso 8 de la lavadora: antes, hijo2 mandaba ADEMÁS un `DATOS.COORDENADAS_PARADAS_RESPONSE` explícito "para compatibilidad" (con un `pedidoId` que solo `solicitarCoordenadasHijo` generaba y correlacionaba con un `Map` propio del padre) — un segundo camino que, medido en un boot limpio, se quedaba colgado hasta su propio timeout mientras la confirmación automática ya había resuelto. |
+| Handler en hijo2 | Responde con el valor de retorno, y ese es el único camino: la confirmación automática de `enviarMensajeConConfirmacion` llega a los tres emisores sin ningún mensaje de respuesta aparte |
 | Respuesta | Ninguna explícita — la confirmación automática de `enviarMensajeConConfirmacion` es la única vía. |
 
 ---
@@ -5720,7 +5719,7 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 |-------|-------|
 | Emitido por | Padre, cierre overlay imagen y cierre overlay vídeo (dos sitios, mismo payload) |
 | Tipo | `TIPOS_MENSAJE.CONTROL.HABILITAR` |
-| Canal | `globalThis.mensajeria.enviarMensaje({ tipo, destino: 'hijo2', datos })`, por el bus (antes iba por `hijo2.contentWindow.postMessage` a pelo; paso 4 de la lavadora, docs/mensajeria-duplicada-en-hijos.md) |
+| Canal | `globalThis.mensajeria.enviarMensaje({ tipo, destino: 'hijo2', datos })`, por el bus |
 | Payload | `{ motivo: 'vista_cerrada' }` |
 | Acción | Notifica a hijo2 que el overlay se cerró para que rehabilite sus botones de navegación GPS |
 
@@ -5809,7 +5808,7 @@ En modo puzzle los controles normales del reto, incluido "saltar reto", están o
 
 `SISTEMA.NACK` es la respuesta con la que un hijo rechaza un `CAMBIO_MODO` que no puede aplicar: solo cuando el `modo` recibido no es `'casa'` ni `'aventura'`. El padre solo envía esos dos valores (`MODOS.CASA`/`MODOS.AVENTURA`), así que la rama es defensiva y hoy nadie la dispara.
 
-**El padre no escucha `SISTEMA.NACK`.** Existió un protocolo de reintento —el hijo aparcaba el cambio, avisaba con NACK, y el padre lo recordaba y lo reenviaba por dos disparadores— para el `CAMBIO_MODO` que llegaba antes de que el padre tuviera a hijo2, hijo3 y hijo4 listos. Se retiró en el paso 2 de la lavadora (decisión 11, docs/mensajeria-duplicada-en-hijos.md): medido, cuando el padre recibe el `HIJO_LISTO` de un frame, ese frame ya tiene registrado su handler de `CAMBIO_MODO` — el cerrojo no protegía nada. El modo llega hoy por un solo camino: `modoInicial` en `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` al conectarse, y el envío normal de `SISTEMA.CAMBIO_MODO` después.
+**El padre no escucha `SISTEMA.NACK`.** No hace falta ningún reenvío: cuando el padre recibe el `HIJO_LISTO` de un frame, ese frame ya tiene registrado su handler de `CAMBIO_MODO`. El modo llega por un solo camino: `modoInicial` en `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` al conectarse, y el envío normal de `SISTEMA.CAMBIO_MODO` después.
 
 Lo cubre `tests/e2e/84-el-modo-llega-por-un-camino.spec.js`, un caso por frame.
 
@@ -5824,10 +5823,9 @@ hijo5 L866 → padre   NAVEGACION.SOLICITAR_DATOS_PARADAS
   { incluirTramos, incluirInicio, incluirMetadatos, ubicacionUsuario }
   ↓
 codigo-padre.html Script 1 (handler SOLICITAR_DATOS_PARADAS)
-  → Fuente única: DATOS_PADRE[av][idioma].elementosIDpadre + normalizarParadas_S1 — el
-    fallback a __vv_DATOS_AVENTURAS que hubo aquí era inalcanzable (DATOS_PADRE es un
-    import estático) y se retiró; sin datos, responde lista vacía con un aviso, ruidoso
-    en vez de disimulado
+  → Fuente única: DATOS_PADRE[av][idioma].elementosIDpadre + normalizarParadas_S1
+    (DATOS_PADRE es un import estático, siempre presente); sin datos, responde lista
+    vacía con un aviso, ruidoso en vez de disimulado
   → Destino dinámico: mensaje.origen (no hardcodeado a 'hijo5')
   → Siempre responde (array vacío si sin aventura, no silencio)
 padre → mensaje.origen   NAVEGACION.RESPUESTA_DATOS_PARADAS
@@ -5856,7 +5854,7 @@ También lo reciben: hijo2 L2409 (almacena en `arrayParadasLocal` para cálculos
 
 #### SISTEMA.APLICACION_INICIALIZADA ✅ implementado
 
-Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 completan el handshake, con `globalThis.mensajeria.despacharLocal()`, que lo entrega al handler `_hdl_APLICACION_INICIALIZADA` por la misma fila que un mensaje llegado de fuera. El handler es informativo: solo registra el evento (paso 8.5 de la lavadora: retirado el broadcast `aplicacion_lista` a los hijos ya inicializados — ninguno tenía handler que reaccionara a él). No activa ninguna aventura — eso lo hacen exclusivamente `_hdl_SELECCION_AVENTURA_ACTIVADA` (flujo normal P1→P16) o `ejecutarRestauracionAventura()` (modal "continuar aventura", ver `_comprobarReanudacionAventura()`), ambos completamente independientes de este handler.
+Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 completan el handshake, con `globalThis.mensajeria.despacharLocal()`, que lo entrega al handler `_hdl_APLICACION_INICIALIZADA` por la misma fila que un mensaje llegado de fuera. El handler es informativo: solo registra el evento (los hijos no reciben ningún aviso adicional por este evento: ninguno tendría handler que reaccionara a él). No activa ninguna aventura — eso lo hacen exclusivamente `_hdl_SELECCION_AVENTURA_ACTIVADA` (flujo normal P1→P16) o `ejecutarRestauracionAventura()` (modal "continuar aventura", ver `_comprobarReanudacionAventura()`), ambos completamente independientes de este handler.
 
 #### DATOS.SOLICITAR_RETOS
 
@@ -5864,7 +5862,7 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 
 #### Diagnóstico del heartbeat: consultarHeartbeat / _testHeartbeatPauseResume
 
-`iniciarHeartbeat()`, `pausarHeartbeat()` y la lectura de `state-manager.getHeartbeat()` son llamadas directas — no hay mensaje `HEARTBEAT_START`/`HEARTBEAT_PAUSE`/`HEARTBEAT_ESTADO` de por medio (paso 7 de la lavadora: esos tres auto-mensajes del padre a sí mismo se retiraron por la misma razón que su fallback nunca se ejecutaba — ver §32.3).
+`iniciarHeartbeat()`, `pausarHeartbeat()` y la lectura de `state-manager.getHeartbeat()` son llamadas directas: el padre gobierna su latido sin mandarse mensajes a sí mismo (ver §32.3).
 
 `globalThis.consultarHeartbeat()` (definido dentro de `globalThis.diagnosticarGPS()`, disponible solo tras invocar esa función una vez desde la consola) llama a `state-manager.getHeartbeat()` directamente y devuelve `{ estado: { activo, userPaused, intervaloActivo } }` — es una herramienta de diagnóstico para desarrolladores, no algo que el usuario final vea. `globalThis._testHeartbeatPauseResume()` (misma ubicación) ejercita el ciclo pausa/reanudación completo con `console.assert`, disparando `SISTEMA.CAMBIO_MODO` por `despacharLocal` (el único camino del modo, decisión 11) y llamando a `iniciarHeartbeat()` directamente para el intento fuera de secuencia.
 
@@ -5884,7 +5882,7 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 |------|--------|
 | `RETO.MOSTRADO` + `RETO.CONFIRMADO` | **✅ Implementado** — hijo4 emite `MOSTRADO` tras `mostrarReto()`; padre actualiza `estado.retoActual.disponible=true` y responde con `CONFIRMADO` |
 | `SISTEMA.APLICACION_INICIALIZADA` | **✅ Implementado** — `_hijoListo_onTodosListos` lo dispara cuando hijo2+hijo3+hijo4 completan el handshake; ver §10.14 para detalle |
-| `SISTEMA.NACK` | El uso hijo→padre para `CAMBIO_MODO` está retirado y nadie lo dispara (ver §10.11). El padre lo manda hoy hacia hijo4 en `_hdl_RETO_SOLICITAR` cuando no hay datos de aventura o no hay reto que mostrar — hijo4 registra un handler mínimo que solo lo registra en el log (paso 8.10 de la lavadora) |
+| `SISTEMA.NACK` | El padre lo manda hacia hijo4 en `_hdl_RETO_SOLICITAR` cuando no hay datos de aventura o no hay reto que mostrar; hijo4 registra un handler mínimo que solo lo deja en el log. En sentido hijo→padre es una rama defensiva que nadie dispara (ver §10.11) |
 | `AVENTURA.FINALIZADA` | **✅ Implementado.** Flujo: `_handleFinDeAventura()` → envía `AVENTURA.FINALIZADA` a hijo1 → hijo1 detiene timer y responde con `AVENTURA.ESTADISTICAS_TIEMPO` → `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` llama `mostrarModalFinalizacion()`. `_hdl_AVENTURA_FINALIZADA()` registra el mensaje pero no realiza ninguna acción — toda la gestión de fin de aventura ocurre en `_hdl_AVENTURA_ESTADISTICAS_TIEMPO`. Ver §25.11. |
 
 ---
@@ -5921,7 +5919,7 @@ padre → hijo2/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, t
 >
 > Ninguno de los dos hijos guarda ya un flag `paradaPendiente`: tanto el de `retos-hijo4.html` como el de `coordenadas-hijo2.html` se escribían y **no los leía ningún punto de sus ficheros**, así que se eliminaron. Lo que sí persiste es el efecto real en hijo2: `#btn-ubicacion` queda deshabilitado. Cubierto por `tests/e2e/50-pending-iniciado-no-borra-reto.spec.js`; PI-4 comprueba el control —un aviso de otra parada tampoco toca nada—.
 
-El pipeline de `SISTEMA.CAMBIO_MODO` en `js/app.js` (`manejarCambioModo()`, `restaurarEstadoModoAnterior()`) no manda ningún `SISTEMA.NOTIFICACION` adicional: los únicos handlers de NOTIFICACION del proyecto (hijo2, hijo4) miran `datos.evento`, nunca `datos.tipo`, así que un aviso por `datos.tipo` no tiene consumidor posible por diseño.
+`SISTEMA.NOTIFICACION` transporta un solo evento, `PENDING_INICIADO`, y lo lleva en `datos.evento`. Los dos handlers del proyecto (hijo2, hijo4) leen ese campo: un aviso que viajara por `datos.tipo` no tendría consumidor.
 
 ---
 
@@ -8047,7 +8045,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-5e68d62ce765'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-ac553dc1a7d8'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8092,16 +8090,9 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 La aplicación está diseñada para usarse en **vertical (portrait)** en teléfonos móviles, y lo consigue con **un solo mecanismo**: el overlay `#rotation-message`, que tapa la pantalla y pide girar el dispositivo.
 
-**Hubo dos mecanismos más y se retiraron los dos**, no por rotos sino por funcionar solo a medias:
+El manifest **no** fija `"orientation"` y el código **no** llama a `screen.orientation.lock()`: un bloqueo a nivel de sistema solo surte efecto en Android con la PWA instalada, y en iPhone no hace nada, así que la decisión "esta app se usa en vertical" se toma en un único sitio y se comporta igual en todos los teléfonos.
 
-| Lo retirado | Qué hacía | Por qué se fue |
-|---|---|---|
-| `"orientation": "portrait"` en el manifest | Bloqueaba la orientación a nivel de sistema | Solo en Android con la PWA instalada. En iPhone no hace nada |
-| `screen.orientation.lock('portrait')` en `codigo-padre.html` | Intentaba bloquearla desde JS, con reintento tras el primer clic | El propio código ya reconocía que iOS no lo permite |
-
-Con los tres a la vez, una sola decisión —"esta app se usa en vertical"— tenía **tres caminos, cada uno activo en una parte del parque de móviles**. Y tenía una consecuencia visible: en Android la pantalla no giraba, así que el overlay no llegaba a salir nunca y **`NAVEGACION.SUPRIMIR_ROTACION` no suprimía nada** — el mensaje con el que el mapa vintage pide que se le deje ver en apaisado funcionaba en iPhone y no en Android, sin que nada lo explicara. El mismo mapa, dos comportamientos según el teléfono.
-
-Con el overlay como único mecanismo, el comportamiento es idéntico en todos los móviles y la supresión funciona donde tiene que funcionar. **El precio, que conviene saber:** en Android la pantalla ahora sí gira, así que el usuario ve el aviso en vez de que no pase nada. Es un paso más de fricción a cambio de que el comportamiento sea uno y predecible.
+**El precio, que conviene saber:** con el overlay como único mecanismo, en Android la pantalla gira y el usuario ve el aviso, en vez de que la rotación quede bloqueada sin explicación. Es un paso más de fricción a cambio de que el comportamiento sea uno y predecible — y de que `NAVEGACION.SUPRIMIR_ROTACION` (el mensaje con el que el mapa vintage pide que se le deje ver en apaisado) suprima algo real en todos los móviles por igual.
 
 #### Las dos excepciones: los mapas vintage
 
@@ -8768,7 +8759,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-5e68d62ce765';
+const CACHE_VERSION = 'v-ac553dc1a7d8';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10801,10 +10792,10 @@ El papel de cada frame **no viaja en el mensaje**: el bus lo deduce (es hijo si 
 
 | Categoría | Mensajes principales |
 |-----------|---------------------|
-| `SISTEMA` | `HIJO_PREPARADO`, `HIJO_LISTO`, `PADRE_DATOS`, `PADRE_CONFIRMA_HIJO_LISTO`, `CAMBIO_MODO`, `CAMBIO_MODO_ENTENDIDO`, `CAMBIO_MODO_EFECTUADO`, `CAMBIO_MODO_APLICADO`, `HEARTBEAT`, `ACK`, `NACK`, `ERROR`, `CONFIRMACION` |
+| `SISTEMA` | `HIJO_PREPARADO`, `HIJO_LISTO`, `PADRE_DATOS`, `PADRE_CONFIRMA_HIJO_LISTO`, `CAMBIO_MODO`, `CAMBIO_MODO_ENTENDIDO`, `CAMBIO_MODO_EFECTUADO`, `CAMBIO_MODO_APLICADO`, `HEARTBEAT`, `NACK`, `ERROR`, `CONFIRMACION` |
 | `NAVEGACION` | `CAMBIO_PARADA`, `GPS.ACTIVAR`, `SOLICITAR_DATOS_PARADAS`, `RESPUESTA_DATOS_PARADAS` |
 | `DATOS` | Solicitudes y respuestas de coordenadas, audios, textos, retos |
-| `AUDIO` | `REPRODUCIR_REQUEST`, `REPRODUCIR_RESPONSE`, `FIN_REPRODUCCION`, `ESTADO_ACTUALIZADO` |
+| `AUDIO` | `REPRODUCIR_REQUEST`, `FIN_REPRODUCCION`, `ESTADO_ACTUALIZADO` |
 | `RETO` | `MOSTRAR`, `COMPLETADO`, `SOLICITAR_RETO`, `OCULTAR`, `HABILITAR` |
 | `UI` | Notificaciones visuales, navegación externa |
 | `MONITOREO` | Métricas y eventos internos |
@@ -12110,7 +12101,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-5e68d62ce765';
+const CACHE_VERSION = 'v-ac553dc1a7d8';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12377,7 +12368,7 @@ En los tres casos el resultado es el mismo: la parada no queda bloqueada, y todo
 
 **El TTL ya no rescata nada, ni audio ni llegada.** Forzar una llegada por temporizador permitiría completar un tramo entero —y, encadenando pending tras pending, la aventura completa— sin haber estado nunca cerca, con solo esperar y pulsar avanzar. Esta app es una audioguía geolocalizada; completarla sin presencia física real no es aceptable, sea cual sea la causa de que el GPS nunca confirmara. La salida para un usuario genuinamente bloqueado existe, pero **la pide él**: es el rescate a petición de §25.19.
 
-**El barrido de 60 s sigue vivo y cambió de oficio.** `_ejecutarBarridoRecordatorioRescate()` ya no gasta ni completa nada: mira cuánto lleva el usuario parado en el elemento actual y, a los 8, 10, 12 y 14 minutos, le recuerda que hay una salida (§25.19). Con el automatismo se fueron la puerta del 18 % de progreso —existía para frenar un disparo automático que ya no existe, y a cambio creaba una zona ciega al empezar la aventura—, su contador `progresoEnUltimoSkip`, y la marca `_rescateTramoPendiente`.
+**El barrido de 60 s solo recuerda.** `_ejecutarBarridoRecordatorioRescate()` no gasta ni completa nada: mira cuánto lleva el usuario parado en el elemento actual y, a los 8, 10, 12 y 14 minutos, le recuerda que hay una salida (§25.19). No hay umbral de progreso que module ese aviso ni marca que quede pendiente entre barridos: el único estado que consulta es el tiempo parado en el elemento en curso.
 
 **La ficha de cada elemento nace al activarse**, en `_hdl_NAVEGACION_CAMBIO_PARADA` (`ensurePending()` justo tras `_actualizarEstadoParada()`), no con su primer evento. Nacía con la llegada, el reto resuelto o el fin del audio, y quien se queda bloqueado sin que ninguno de los tres ocurra no tenía ficha: sin ficha no hay reloj, y el recordatorio no salía **nunca** — tampoco al reabrir la app, porque el audio ya había sonado y no volvería a disparar nada.
 
@@ -12473,16 +12464,12 @@ Esta sección documenta restricciones de diseño que no deben violarse. Son inva
 
 ### 32.1 Registro de handlers y limpieza en `pagehide`
 
-**El objeto `messagingAdapter` de este apartado no existe.** Era el envoltorio propio que cada
-hijo mantenía antes de la unificación de la mensajería ("opción A"): cada frame corría su propia
-copia de la lógica de envío/registro. Desde esa unificación los 10 frames (padre, los 6 hijos y
-los 3 nietos) hablan por el mismo `js/mensajeria.js`, y ningún fichero del proyecto define ni lee
-`messagingAdapter` ni `_listenerRegistry` — solo quedan como nombre de variable en tres tests que
-comprueban justamente que la capa antigua no reapareció, y como comentario histórico en
-`js/mensajeria.js` explicando por qué existe `tieneControlador(tipo)` (la introspección pública
-que sustituye a fisgonear `_listenerRegistry` desde fuera).
+Los 10 frames (padre, los 6 hijos y los 3 nietos) hablan por el mismo `js/mensajeria.js`: ninguno
+mantiene su propia capa de envío o de registro. Para saber desde fuera si un frame ya escucha un
+tipo está `tieneControlador(tipo)`, la introspección pública del bus — no hay estructura interna
+que inspeccionar.
 
-**Registro duplicado hoy: un solo camino, rechazado con aviso.** `registrarControlador()`
+**Registro duplicado: un solo camino, rechazado con aviso.** `registrarControlador()`
 (`js/mensajeria.js`) es el único punto real de registro — cada hijo expone
 `registrarControladorSeguro` como alias directo de `bus.registrarControlador`, sin envoltorio
 propio. Si dos registros compiten por el mismo `tipo` en el mismo frame, gana el primero y el
@@ -12493,8 +12480,8 @@ una capa extra propia, `__CONTROLADOR_REGISTRADOS` (un `Set`), porque su arquite
 registro de la misma función entre scripts o tras una re-inicialización; los hijos, al ser un
 único script por fichero, no lo necesitan.
 
-**El patrón correcto de `pagehide` hoy es `_limpiarPagehide()`, en `codigo-padre.html`** —
-persisted-aware desde el paso 9 de la lavadora (`docs/mensajeria-duplicada-en-hijos.md` §25.18):
+**El patrón de `pagehide` es `_limpiarPagehide()`, en `codigo-padre.html`**, que distingue el
+cierre real del viaje a la caché de atrás mirando `evento.persisted`:
 
 ```javascript
 function _limpiarPagehide(evento) {
@@ -12509,8 +12496,8 @@ globalThis.addEventListener('pagehide', _limpiarPagehide);
 ```
 
 `js/app.js` y `js/funciones-mapa.js` registran cada uno su propio `pagehide` en la MISMA ventana
-del padre, con la misma guarda `persisted` (paso 9, spec 108) — las tres limpiezas del padre
-conviven, cada una revisando el campo antes de tocar nada.
+del padre, con la misma guarda `persisted` (cubierto por `tests/e2e/108-app-funciones-mapa-persisted.spec.js`)
+— las tres limpiezas del padre conviven, cada una revisando el campo antes de tocar nada.
 
 **De los 6 hijos, solo dos registran su propio `pagehide`, y ninguno limpia mensajería:**
 `coordenadas-hijo2.html` pone `estadoComponente.inicializado = false` (un campo puramente
@@ -12518,8 +12505,8 @@ diagnóstico: su único lector es el payload de `HEARTBEAT_RESPONSE`, que nadie 
 nada) sin mirar `persisted` — una vuelta desde la caché de atrás le hace reportar "inicializando"
 en vez de "activo" en ese diagnóstico, sin ningún efecto funcional; `audio-hijo3.html` solo
 escribe un log y no toca nada. hijo1, hijo4, hijo5 y hijo6 no registran `pagehide` en absoluto.
-Ninguno de los seis necesita limpiar handlers de mensajería al salir: el bus no dejaba huérfanos
-que limpiar desde que dejó de existir el envoltorio por hijo.
+Ninguno de los seis necesita limpiar handlers de mensajería al salir: el bus no deja huérfanos
+que limpiar.
 
 Para el estado por archivo, ver §28.5.
 
@@ -12613,7 +12600,7 @@ globalThis.mensajeria.despacharLocal({
 
 No hace falta un wrapper dedicado ni sintetizar el mensaje con `origen`/`destino`: `despacharLocal` los pone él mismo (`origen` = el nombre del propio frame) y no pasa por `postMessage`.
 
-**Esta no es una precaución teórica.** El sensor redundante de llegada de `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`, ver §25.5) es código del padre que necesita hacer llegar `NAVEGACION.LLEGADA_DETECTADA` al propio padre: escrito como `enviarMensaje({ destino: resolverIdPadre(), ... })` no lanzaría ningún error ni bloquearía nada, simplemente no haría nada nunca (y desde el paso 1 de la lavadora, `enviarMensaje` a uno mismo se niega explícitamente y avisa). Por eso usa `despacharLocal`. EJE 4 de la metodología de auditoría (§36.4, punto 9) incorpora este caso como comprobación explícita.
+**Esta no es una precaución teórica.** El sensor redundante de llegada de `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`, ver §25.5) es código del padre que necesita hacer llegar `NAVEGACION.LLEGADA_DETECTADA` al propio padre: escrito como `enviarMensaje({ destino: resolverIdPadre(), ... })` no lanzaría ningún error ni bloquearía nada, simplemente no haría nada nunca (y `enviarMensaje` a uno mismo se niega explícitamente y avisa). Por eso usa `despacharLocal`. EJE 4 de la metodología de auditoría (§36.4, punto 9) incorpora este caso como comprobación explícita.
 
 ---
 
@@ -13131,7 +13118,7 @@ Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
 4. Para mensajes bidireccionales (los que esperan ENTENDIDO / EFECTUADO / respuesta): verifica que la respuesta existe, viaja al `origen` correcto y se procesa dentro del timeout esperado.
 5. Resultado en tabla: `Tipo | Emisor | Receptor | Payload | Estado (✅/⚠️/❌/🕳️)`.
 6. **Call-chain deduplication:** para cada `enviarMensaje(tipo=X)`, sube el call-stack completo hacia el caller y el segundo nivel. Verifica si alguna función ancestora también emite `tipo=X` a destinatarios solapados. Si hay solapamiento, el receptor recibe el mismo mensaje dos veces en una sola acción de usuario; determina si los side effects del handler son idempotentes o dañinos. En `SISTEMA.CAMBIO_MODO`, por ejemplo, `actualizarInterfazModo` lo envía a todos los hijos una única vez — no existe ninguna función `_propagarCambioModoAHijos` ni un segundo envío duplicado (ver §36.15, Flujo F).
-7. **Auto-mensajes (origen === destino):** `enviarMensaje()` a uno mismo no sale y avisa (para eso está `despacharLocal`, ver §21.2) — pero eso no dispensa de comprobar quién procesa realmente cada auto-envío histórico: los tres que existían para el heartbeat (`HEARTBEAT_START`/`PAUSE`/`ESTADO`) resultaron tener el destino roto desde el paso 3 de la lavadora (`CONFIG.ID` nunca se asigna) y se retiraron en el paso 7, sustituidos por llamadas directas. Un auto-mensaje sin handler, o con un destino que nunca resuelve, no lanza ningún error visible — es exactamente el tipo de huérfano que EJE 7 (rutas de error silenciosas) debe cruzar con este eje.
+7. **Auto-mensajes (origen === destino):** `enviarMensaje()` a uno mismo no sale y avisa (para eso está `despacharLocal`, ver §21.2) — pero eso no dispensa de comprobar quién procesa realmente cada auto-envío. Un patrón a vigilar: un auto-mensaje cuyo `destino` sale de una constante de configuración que nadie asigna resuelve a `undefined` y se descarta en silencio, con la apariencia de estar funcionando. Un auto-mensaje sin handler, o con un destino que nunca resuelve, no lanza ningún error visible — es exactamente el tipo de huérfano que EJE 7 (rutas de error silenciosas) debe cruzar con este eje.
 8. **Descentralización:** cualquier `window.addEventListener('message', ...)` que NO sea el listener central de `mensajeria.js` es una señal de alerta, no un patrón válido más. Localízalo, identifica qué tipos de mensaje procesa y por qué no pasa por `registrarControladorSeguro`/`registrarControlador`. Si no hay una razón documentada (p.ej. necesidad de capturar mensajes antes de que `mensajeria.js` esté listo), repórtalo como ⚠️ y propone migrarlo al canal centralizado.
 9. **Autoenvío del padre con `destino: resolverIdPadre()`:** distinto del punto 7 (que cubre `origen === destino` sin handler) — aquí el problema es de enrutamiento, no de handler ausente. `resolverIdPadre()`/`getPadreId()` (`js/utils.js`) está pensada para que un **hijo** direccione un mensaje hacia el padre; si un módulo que corre dentro del propio padre (p.ej. `funciones-mapa.js`, importado directamente, no cargado en un iframe) la usa como `destino`, el valor resultante es el ID del propio padre. `enviarMensaje()` (`js/mensajeria.js`) resuelve ese `destino` buscándolo en `iframesRegistrados` — un mapa que **por construcción nunca contiene al padre mismo**, solo a sus iframes hijo — así que la búsqueda falla siempre, se loguea `"Iframe no encontrado o sin contentWindow: <id>"` y el mensaje se descarta. Si el envío es fire-and-forget (sin `.catch()` que compruebe el resultado `false`, el patrón más común en el código), esto es indistinguible de "todo va bien" salvo por ese único warning suelto en el log — fácil de no ver en una lectura superficial porque no rompe nada más. Para cada `enviarMensaje({ destino: resolverIdPadre(), ... })` (o `getPadreId()`), confirma primero desde qué contexto corre ese código: si es un módulo que vive dentro del padre (no un HTML de hijo cargado en iframe), es casi con certeza este bug. Ejemplo de este patrón: un módulo que corre dentro del propio padre (como `js/funciones-mapa.js`, importado directamente y no cargado en iframe) usando `destino: resolverIdPadre()` para notificar un evento al padre — el mensaje nunca llega, sin ningún error visible en el resto del flujo.
 
@@ -13814,7 +13801,6 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_marcarRetoPulsadoRecordatorio` | módulo 1 | módulo 2 | función/objeto |
 | `_obtenerCoordenadasP0Fallback` | módulo 1 (L5522) | módulo 2 | función/objeto |
 | `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6444) | módulo 2 | función/objeto |
-| `_vv_triggerCambioModo` | módulo 1 | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3968) | módulo 2, módulo 4 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4820) | clásico 7, módulo 2 | función/objeto |
@@ -13861,7 +13847,6 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `verificarTimeoutAventura` | módulo 1 (L3021) | módulo 2 | función/objeto |
 | `waitForMapLibreAndInitialize` | módulo 1 (L8909) | módulo 2 | función/objeto |
 | `__distribuirReadyPromise` | módulo 2 | módulo 1 | estado |
-| `__triggerCambioParadaInterno` | módulo 2 (L12778) | módulo 1 | función/objeto |
 | `__VV_PENDING_CLEANUP` | módulo 2 | clásico 13 | estado |
 | `_buscarParadaEnDatos` | módulo 2 | módulo 1 | función/objeto |
 | `_configurarRetoBtn` | módulo 2 | módulo 1 | función/objeto |
@@ -13872,7 +13857,6 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `actualizarEstadoControlesAudioPadre` | módulo 2 | módulo 1 | función/objeto |
 | `AVENTURA_PARADAS` | módulo 2 (L10203) | clásico 7, módulo 1 | función/objeto |
 | `distribuirDatosAventura` | módulo 2 | módulo 1 | función/objeto |
-| `enviarMensajePadre` | módulo 2 | módulo 1 | función/objeto |
 | `marcarParadaCompletada` | módulo 2 (L10795) | módulo 1 | función/objeto |
 | `mostrarModalTiempoAgotado` | módulo 2 | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 | módulo 1 | función/objeto |
@@ -13890,7 +13874,6 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
 | `_devCasaMode` | clásico 3 | módulo 2 | estado |
-| `_puzzleListener` | clásico 3 | módulo 2 | función/objeto |
 | `_resetearFlagsContenido` | clásico 3 | módulo 2 | función/objeto |
 | `_setAventuraIniciando` | clásico 3 | módulo 2 | puente |
 | `_setAventuraSeleccionada` | clásico 3 | módulo 2 | **puente** |

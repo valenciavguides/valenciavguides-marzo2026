@@ -58,14 +58,6 @@ const enviarMensaje = (...args) => {
         return Promise.reject(new Error('mensajeria not ready'));
     }
 };
-const registrarControlador = (...args) => {
-    if (mensajeriaReady && globalThis.mensajeria) {
-        return globalThis.mensajeria.registrarControlador(...args);
-    } else {
-        logger.error('mensajeria not loaded', args);
-        return Promise.reject(new Error('mensajeria not ready'));
-    }
-};
 // registrarControladorSeguro is globally defined in codigo-padre.html or utils.js
 
 /**
