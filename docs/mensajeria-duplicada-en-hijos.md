@@ -2134,18 +2134,34 @@ quedan aquí porque así es como se encontraron, no porque sigan sin tocar.
    `marcadorPosicionActual`), `js/mensajeria.js` (`script2Listo`) y `js/utils.js` (`timeout`).
    Activar `no-undef` saca más de 600 avisos, porque a ese bloque no se le declararon los
    globales del navegador.
-2. **`RESPUESTA_DATOS_PARADAS` se envía desde tres funciones distintas del padre — SÍ es
-   mensajería, y nunca se investigó.** Empuje proactivo a hijo2+hijo5
-   (`elementosIDpadre` normalizado, dos destinos, un `try/catch` por cada uno); un segundo
-   envío a hijo2 solo cuando **hijo2 avisa que está listo** (`_hijoListo_enviarDatosHijo2`,
-   "para inicialización"); y una respuesta a petición explícita
-   (`NAVEGACION.SOLICITAR_DATOS_PARADAS`, con 3 ramas mutuamente excluyentes: sin aventura,
-   con datos, sin datos). Tiene la misma forma que el paso 8.6 ya investigó y encontró limpia
-   —empuje + respaldo por si acaso + petición, sin solaparse nunca— pero **8.6 fue sobre
-   `CARGAR_COORDENADAS`/`CARGAR_TEXTOS`/`SOLICITAR_COORDENADAS`/`SOLICITAR_TEXTOS`, un tipo
-   distinto; nunca cubrió este.** Que se parezca a un caso ya limpio no prueba que este
-   también lo esté — hace falta medirlo en vivo (mismo método que 8.6: espía en hijo2 durante
-   una activación real) antes de decidir si hay algo que arreglar.
+2. ✅ **`RESPUESTA_DATOS_PARADAS` se envía desde CUATRO funciones del padre, no tres —
+   medido en vivo, cerrado sin tocar código.** El recuento de "tres" de la primera
+   redacción de este hallazgo era incompleto: hay una cuarta, dentro de
+   `distribuirDatosAventura()`, que manda solo a hijo5 (paso "4. Enviar paradas a hijo5",
+   condicionado a `hijosInicializados.has('hijo5')`). Las cuatro: **(A)** empuje proactivo a
+   hijo2+hijo5 desde `_enviarRespuestaParadasHijosRest` (dos destinos, un `try/catch` por
+   cada uno, solo en restauración de sesión); **(B)** `_hijoListo_enviarDatosHijo2`, a hijo2
+   en cuanto avisa que está listo; **(C)** el handler de `NAVEGACION.SOLICITAR_DATOS_PARADAS`,
+   respuesta a petición explícita (normalmente de hijo5, tras su propio
+   `PADRE_CONFIRMA_HIJO_LISTO`); **(D)** el envío a hijo5 de `distribuirDatosAventura()`.
+   
+   **Espía en vivo sobre una reanudación real** (`vv_aventura_iniciada` sembrado, servidor
+   real, los 5 hijos cargando de verdad): hijo2 recibió el mensaje **2 veces** (B, luego A);
+   hijo5 lo recibió **4 veces** (C, D, A, y una segunda C) — la comparación con el paso 8.6
+   ("sin solaparse nunca") es **falsa** para este tipo, medida: aquí sí solapan, y con más
+   frecuencia de la que sugería contar solo tres funciones. **Pero el solape no tiene ningún
+   efecto visible**, también medido: hijo2 e hijo5 ya traen su propio guard de
+   deduplicación — cada envío después del primero que aceptan se registra como
+   `"Datos ya recibidos anteriormente, ignorando mensaje duplicado"` (hijo5) o
+   `"Datos iniciales ya recibidos, ignorando envío masivo duplicado"` (hijo2), sin volver a
+   procesar ni re-renderizar nada. No hay dato obsoleto pisando a uno fresco en ningún caso
+   observado, porque los cuatro envíos de una misma reanudación llevan siempre el mismo
+   contenido (`elementosIDpadre` normalizado de la misma aventura/idioma activos).
+   **Conclusión: no hay nada que arreglar en el comportamiento.** Los cuatro envíos siguen
+   siendo trabajo de más — tres de las cuatro llamadas a `enviarMensaje`/construcción de
+   `pNorm` no hacían falta en esa ejecución concreta — pero es desperdicio silencioso, no un
+   defecto visible, y limpiarlo sería una decisión de eficiencia, no una corrección de bug;
+   no entra en el alcance de este arreglo salvo que el usuario lo pida aparte.
 3. **Configuración de heartbeat que no lee nadie.** `CONFIG.HIJOS.TIMEOUT_INIT`,
    `MAX_HEARTBEATS_FALLIDOS` y `AUTO_RECONECTAR` (`js/config.js`) no los usa ningún fichero. El bus
    busca esos valores en `globalThis.Config.HEARTBEAT`, que no existe, y se queda con sus valores
