@@ -35,9 +35,10 @@ const BACKEND_READY = false;
 const _host = globalThis.location?.hostname;
 const _esLocal = _host === 'localhost' || _host === '127.0.0.1' || !_host;
 const DATA_MODE = (BACKEND_READY && !_esLocal) ? 'api' : 'local';
-const API_BASE = DATA_MODE === 'local'
-    ? 'http://localhost:3001/api'
-    : `${globalThis.location.origin}/api`;
+// Ruta RELATIVA, igual en local (proxy /api/* de js/server.js) que en el VPS (Caddy):
+// un solo origen, cubierto por el `connect-src 'self'` del CSP y sin CORS. Ver el bloque
+// PROXY de js/server.js.
+const API_BASE = '/api';
 
 // ═══════════════════════════════════════════════════
 // CACHE EN MEMORIA

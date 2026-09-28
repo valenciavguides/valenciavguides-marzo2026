@@ -10,14 +10,16 @@ import { sleep } from './utils.js';
 // Configuración del cliente (dinámica según entorno)
 (function() {
     const { location } = globalThis;
-    const { protocol, hostname } = location; // http: o https:
+    const { hostname } = location;
     const isDevelopment = hostname === 'localhost' || hostname === '127.0.0.1';
-    const port = isDevelopment ? ':3001' : ''; // No incluir puerto en producción
 
     globalThis.API_CONFIG = {
-        baseUrl: isDevelopment
-            ? `${protocol}//localhost:3001/api`
-            : `${protocol}//${hostname}${port}/api`,
+        // Ruta RELATIVA, igual en los tres entornos: en local la sirve el proxy /api/* de
+        // js/server.js por el mismo :8080 que la página; en el VPS la sirve Caddy por el
+        // mismo dominio. Un solo origen en los dos casos, así que el `connect-src 'self'`
+        // del CSP la cubre y no hace falta CORS en ninguno. Una URL absoluta con puerto
+        // fijo aquí volvería a separar los dos entornos (ver js/server.js, bloque PROXY).
+        baseUrl: '/api',
         timeout: 15000, // 15 segundos
         retries: 4, // Aumentado de 2 a 4 para conexiones pobres
         retryDelay: 1000, // Base: 1s (backoff exponencial: 1s → 2s → 4s → 8s)

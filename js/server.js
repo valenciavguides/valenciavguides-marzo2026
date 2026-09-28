@@ -4,6 +4,11 @@ const path = require('node:path');
 
 const port = 8080;
 
+// Puerto donde escucha el backend en local. En producción no se usa: allí es Caddy quien
+// hace de proxy inverso hacia el mismo proceso (ver docs/plan-produccion-infraestructura.md
+// §3.7 y §3.9). Configurable por si 3001 estuviera ocupado: API_PORT=3002 node js/server.js
+const apiPort = Number(process.env.API_PORT) || 3001;
+
 // ========================================
 // PROTECCIÓN DE ARCHIVOS SENSIBLES
 // ========================================
@@ -110,6 +115,45 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ========================================
+  // PROXY DEL BACKEND — /api/* → localhost:apiPort
+  // ========================================
+  // Que local y producción no difieran en el modelo de origen. En el VPS, Caddy recibe
+  // todo en valenciavguides.es y reparte; el navegador solo ve UN origen, así que el
+  // `connect-src 'self'` del CSP cubre tanto la página como la API, y no hay CORS.
+  //
+  // Sin este proxy, en local el front (:8080) llamaría a :3001 — otro origen, que el CSP
+  // NO permite (`connect-src` no lo lista): el navegador bloquearía cada llamada al
+  // backend en local mientras en producción funcionarían. Exactamente el "funciona en
+  // producción pero no en local" que este proxy elimina, sin tocar el CSP.
+  //
+  // GitHub Pages no ejecuta este servidor: allí /api/* no existe y el frontend debe
+  // seguir en DATA_MODE='local' (ese es un asunto aparte, la detección de entorno).
+  if (urlPath === '/api' || urlPath.startsWith('/api/')) {
+    const destino = http.request(
+      { host: '127.0.0.1', port: apiPort, path: req.url, method: req.method, headers: { ...req.headers, host: `127.0.0.1:${apiPort}` } },
+      (respuestaApi) => {
+        res.writeHead(respuestaApi.statusCode || 502, respuestaApi.headers);
+        respuestaApi.pipe(res);
+      }
+    );
+    // Sin backend levantado (ECONNREFUSED) se contesta 502 en voz alta y al instante. Un
+    // fallo mudo aquí se confundiría con un bug del frontend, que es justo lo que cuesta
+    // horas de diagnóstico.
+    destino.on('error', (err) => {
+      console.warn(`⚠️  /api sin backend detrás (${err.code}): ${req.method} ${req.url}`);
+      if (res.headersSent) { res.destroy(); return; }
+      res.writeHead(502, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: true,
+        codigo: 'BACKEND_NO_DISPONIBLE',
+        mensaje: `No hay backend escuchando en localhost:${apiPort}. Arráncalo, o usa DATA_MODE local.`
+      }));
+    });
+    req.pipe(destino);
+    return;
+  }
+
   // Bloquear acceso a archivos sensibles en producción
   if (isProtectedFile(urlPath)) {
     console.warn(`🚫 Acceso bloqueado a archivo protegido: ${urlPath}`);
@@ -207,6 +251,7 @@ const server = http.createServer((req, res) => {
 server.listen(port, () => {
   console.log(`🚀 Servidor HTTP corriendo en http://localhost:${port}`);
   console.log(`📁 Sirviendo archivos desde: ${process.cwd()}`);
+  console.log(`🔌 /api/* → localhost:${apiPort} (mismo origen que la página, igual que en producción)`);
   console.log(`\n🌐 Abre en tu navegador:`);
   console.log(`   http://localhost:${port}/codigo-padre.html`);
 });
