@@ -579,7 +579,7 @@
         // Con los rescates AGOTADOS sí se pinta, y no es una excepción caprichosa: saber que
         // se han acabado es información real, y es lo único que hace llegar al usuario el
         // cartel que se lo explica. Escondiéndolo también ahí, ese cartel no lo vería nadie.
-        const rescateOfrecible = rescate.puede || rescate.motivo === 'agotados';
+        const rescateOfrecible = rescate?.puede || rescate?.motivo === 'agotados';
         if (clave === 'UBIC_ATASCADO_TRAMO' && rescateOfrecible) {
           const btnRescate = document.createElement('button');
           btnRescate.type = 'button';
