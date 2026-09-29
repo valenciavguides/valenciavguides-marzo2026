@@ -199,15 +199,21 @@ arrancar el test en un punto conocido — no son stubs de comportamiento y no pu
 un contrato.
 
 - **Patrón más repetido y de más riesgo real:** `globalThis.enviarMensajeConConfirmacion = () =>
-  Promise.resolve({ exito: true })`, usado en más de media docena de specs para simplificar el
-  acuse del bus. Verificado contra el código real (`js/mensajeria.js:829`,
+  Promise.resolve({ exito: true })`, usado en 7 specs (`100`, `102`, `39`, `40`, `44`, `46`, `47`)
+  para simplificar el acuse del bus. Verificado contra el código real (`js/mensajeria.js:829`,
   `pendiente.resolve(mensaje.datos)`): el contrato real es "lo que el handler de destino
   devolvió", que en el caso de audio incluye además `audioId` (§31.7). El stub genérico
   **coincide en el campo que casi todos los tests comprueban** (`.exito`) pero nunca en los
-  demás campos reales. **No confirmado como bug** — ningún camino de producción ejercitado por
-  estos tests concretos parece leer un campo distinto de `.exito` de esa resolución, pero no se
-  ha comprobado uno por uno los 8+ specs que lo usan. Anotado como candidato de baja prioridad,
-  sin acción recomendada (regla 9: no se recomienda sin terminar de comprobar).
+  demás campos reales.
+- **Verificado el de mayor riesgo aparente** (`102-audio-hijo3-un-solo-camino-reforzado.spec.js`,
+  el único de los 7 cuyo nombre sugiere que ejercita justo el camino de audio con confirmación):
+  los tests AR-1/AR-2 usan el stub para comprobar **cuántas veces** se llamó a
+  `enviarMensajeConConfirmacion` (`llamadas >= 1`), nunca lo que la promesa resuelve — el stub
+  genérico es indistinguible del real para lo que esos tests miden. Patrón consistente con el
+  resto de usos vistos en el barrido (comprobar efectos/flags/contadores, no el valor resuelto
+  campo a campo). **No confirmado como bug en ninguno de los sitios verificados** — sin
+  comprobar los 7 specs exhaustivamente uno a uno, así que se deja como observación estructural
+  de baja prioridad, no como hallazgo cerrado con la misma certeza que C1/C4.
 - El caso ya conocido y ya arreglado (`maplibre-stub.js` no reproducía las clases reales de
   MapLibre, EJE 24b) sigue siendo el único caso **confirmado** de esta categoría — no se ha
   encontrado un segundo caso con la misma severidad.
@@ -419,7 +425,7 @@ la ejecución da.
 |---|---|
 | 1 — fetch/localStorage/geo | Sin hallazgos nuevos |
 | 2 — arranque/parada de recursos | Sin hallazgos nuevos |
-| 3 — arnés vs. producción | Sin hallazgo confirmado; 1 candidato de baja prioridad sin cerrar |
+| 3 — arnés vs. producción | Sin hallazgo confirmado; 1 observación estructural de baja prioridad, verificada parcialmente (1 de 7 specs) |
 | 4 — constantes/lecturas duplicadas | **1 hallazgo confirmado** (C4) + factor estructural (`getConfig()`) |
 | 5 — estado con varios escritores | Sospecha inicial (C5) **investigada con reproducción real y refutada** — los 5 escritores de `estado.elementoActual` revisados |
 | 6 — funciones mismo nombre | **1 hallazgo confirmado** (C1, variante B únicamente) + 2 cerrados limpios |
@@ -435,8 +441,10 @@ investigaron a fondo y NO sobrevivieron a la comprobación** (C1 variante C por 
 git; C5 por reproducción real contra la app con Playwright) — quedan documentadas como
 cerradas, no como pendientes, para que nadie las reabra sin motivo nuevo (regla 1b).
 
-**Lo que queda genuinamente pendiente, con honestidad:** categoría 3 tiene un candidato sin
-cerrar (el stub `enviarMensajeConConfirmacion` en los tests, sin verificar specs uno por uno); y
-una segunda pasada más exhaustiva podría aplicar los mismos ángulos (historial, reproducción
-real) a los hallazgos ya cerrados de las categorías 1 y 2, no solo a los de las categorías 4, 5
-y 6 donde se aplicaron esta vez.
+**Lo que queda genuinamente pendiente, con honestidad:** categoría 3 verificó 1 de los 7 specs
+que usan el stub genérico de `enviarMensajeConConfirmacion` (el de mayor riesgo aparente por
+nombre) sin encontrar problema, pero no los otros 6 uno a uno — queda como observación
+estructural, no como hallazgo cerrado con la misma certeza que C1/C4; y una segunda pasada más
+exhaustiva podría aplicar los mismos ángulos (historial, reproducción real) a los hallazgos ya
+cerrados de las categorías 1 y 2, no solo a los de las categorías 3, 4, 5 y 6 donde se aplicaron
+esta vez.
