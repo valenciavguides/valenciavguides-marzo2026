@@ -263,21 +263,72 @@ estructural de `getConfig()` sin adoptar. Además de los 2 ya arreglados en la s
 ### Barrido mecánico — categoría 5 (estado compartido con varios escritores)
 
 - **`localStorage`/`sessionStorage`:** ya cubierto en categoría 1, limpio.
-- **`estado.elementoActual`** (`codigo-padre.html`, campo central de progreso): 5 sitios de
-  escritura. Verificados los dos más próximos entre sí (`_restoreApplyState()` y
-  `ensureDefaultParada()`) — son mutuamente excluyentes por guard explícito
-  (`ensureDefaultParada()` retorna de inmediato `if (estado.paradaActual)` ya existe), cada uno
-  cubre un momento de arranque distinto (sesión restaurada vs. arranque limpio), y los dos
-  terminan despachando `NAVEGACION.CAMBIO_PARADA` por el mismo `despacharLocal()` — un solo
-  pipeline de salida aunque haya varias entradas. **Limpio** en los dos sitios verificados; los
-  otros 3 sitios de escritura no se han verificado individualmente (anotado como cobertura
-  parcial, no cierre total de este campo).
 - **`estado.modo.actual` / `estadoMapa.modo`:** ya documentado y verificado por la propia guía
   como "arrancan distinto a propósito" (§37.5) — no reabierto aquí sin nueva evidencia (regla
   1b).
+- **`estado.elementoActual`** (`codigo-padre.html`, campo central de progreso) — **los 5 sitios
+  de escritura, cerrado completo:**
+  1. `_restoreApplyState()` (L4535) — resuelve por **id** (`elementoActualId` guardado),
+     `elementos.find(p => p.parada_id === obj.elementoActualId || ...)`.
+  2. `_restaurarProgresoRest()` (L5060) — **sobrescribe** lo anterior, resolviendo por
+     **índice** (`obtenerElementoActual()` → `elementosIDpadre[estado.indiceProgreso]`).
+  3. `ensureDefaultParada()` (L4598) — mutuamente excluyente con 1/2 (guard `if
+     (estado.paradaActual)`), arranque limpio. Limpio.
+  4. `progresarSiguienteElemento()` (L10282) — avance normal: incrementa `indiceProgreso`
+     y busca por índice. Correcto en este contexto — no hay ID guardado que reconciliar, se
+     avanza desde un estado ya bueno.
+  5. `_actualizarEstadoParada()` (L11958) — el pipeline central de `CAMBIO_PARADA` (el más
+     usado de los 5): recibe el objeto `parada` ya resuelto por **id** y **deriva el índice a
+     partir de él** (`findIndexByPadreIdOrId(paradaId)`) — el orden inverso al de 1→2.
 
-**Veredicto categoría 5: sin hallazgo nuevo** en lo verificado; cobertura parcial, no
-exhaustiva — campo de progreso central con 3 de 5 escritores aún sin revisar uno a uno.
+#### C5. Restauración de sesión: dos resoluciones para "qué elemento estaba activo" — investigado con reproducción real, hipótesis inicial REFUTADA
+
+**Primera lectura (solo código, sin ejecutar):** `_restaurarProgresoRest()` parecía sobrescribir
+siempre, con una resolución por **índice**, el resultado por **id** que `_restoreApplyState()`
+ya había calculado — y por tanto, razonando en frío, una reordenación futura de
+`elementosIDpadre` (ya ha pasado una vez, ver `feedback_renumerar_av34km` en memoria) haría que
+la reanudación aterrizara en un elemento distinto del guardado.
+
+**Reproducción real, no solo lectura (regla 6 — la medición manda):** se sembró un
+`vv_progreso` real con `elementoActualId: "Av1-P-1"` (índice real 5) e `indiceProgreso: 2`
+(índice de otro elemento real, "intro") — un desfase deliberado que reproduce justo el
+escenario temido — y se disparó la restauración real pulsando `#btn-continuar-aventura` en un
+Chromium real contra la app real (sin mocks de la función bajo prueba). **Resultado medido:
+`indiceProgreso` terminó en `5` y `paradaActual`/`elementoActual` en `"Av1-P-1"` — el id
+guardado ganó, el índice desfasado NO sobrevivió.** La hipótesis inicial queda **refutada**.
+
+**Por qué se autocorrige — leído después de medir, no antes:** `_restoreApplyState()` no solo
+fija `estado.elementoActual` por id: al final de la misma función, `_restoreBroadcast()`
+despacha un `NAVEGACION.CAMBIO_PARADA` real (`despacharLocal`, fire-and-forget, sin `await`) con
+`paradaId: estado.paradaActual` (ya puesto al valor guardado). Ese mensaje llega a
+`_actualizarEstadoParada()` (el sitio 5, el pipeline central de cualquier `CAMBIO_PARADA`), que
+resuelve **de nuevo por id** y **recalcula el índice a partir de él**
+(`findIndexByPadreIdOrId`) — dejando `indiceProgreso` correcto. La sobrescritura por índice de
+`_restaurarProgresoRest()` (líneas 5057-5060) sigue ejecutándose y sigue siendo, en sí misma,
+redundante y potencialmente confusa de leer — pero su efecto queda **siempre** reemplazado por
+el broadcast, porque `ejecutarRestauracionAventura()` hace `await _restaurarProgresoRest(...)`
+y el broadcast fire-and-forget se resuelve en un microtask posterior, antes de que se oculte el
+overlay de carga y de que cualquier otro código llegue a leer `estado.elementoActual`.
+
+**Lo que queda, con esta clasificación honesta:**
+- ✅ **Confirmado por ejecución:** la restauración de sesión NO aterriza en el elemento
+  equivocado tras una reordenación de `elementosIDpadre` — el id guardado prevalece siempre,
+  vía el mismo pipeline central que usa cualquier cambio de parada real.
+- ⚠️ **Sigue siendo cierto, y sigue siendo código confuso de mantener:** las líneas 5057-5060
+  de `_restaurarProgresoRest()` calculan un valor que el broadcast que la misma función acaba
+  de disparar va a pisar siempre — no es un bug de comportamiento, pero es una redundancia real
+  que invita a que alguien "optimice" el broadcast pensando que es superfluo, sin saber que es
+  la única razón de que el resultado final sea correcto. Candidato a limpieza de código, no a
+  fix de bug — fuera del alcance de "hallazgo" de este estudio tal y como está definido.
+- **Ninguna acción recomendada.** No hay bug que arreglar; hay una explicación que merece un
+  comentario en el código (`_restaurarProgresoRest()` no lo tiene hoy) para que la próxima
+  persona que lo lea no repita el mismo razonamiento en frío que este estudio tuvo que
+  refutar con una reproducción.
+
+**Veredicto categoría 5: sin hallazgo activo.** La sospecha inicial fue investigada a fondo,
+reproducida con datos reales contra la app real, y refutada — exactamente el caso que
+`feedback_verificacion_asimetrica` pide comprobar con el mismo esfuerzo que uno que confirma.
+Los 5 escritores del campo central quedan todos revisados.
 
 ### Hallazgo tangencial, fuera de alcance de "un solo camino" pero encontrado en el barrido
 
@@ -328,8 +379,16 @@ categorías mecánicas originales:
    código pueden producir este efecto visible?" para un efecto concreto
    (`actualizarMarcadorUsuario()`, el marcador GPS del usuario en el mapa). Un solo llamador de
    producción confirmado — limpio, pero por un método que las 6 categorías no cubrían.
+4. **Reproducción real contra la app, no solo lectura del código** — para el hallazgo C5
+   (restauración de sesión), en vez de razonar en frío sobre lo que el código *debería* hacer,
+   se sembró un `vv_progreso` real con un desfase deliberado entre id e índice, se disparó la
+   restauración pulsando el botón real (`#btn-continuar-aventura`) en un Chromium real, y se leyó
+   el estado final — un caso de uso directo de la regla 6 de CLAUDE.md ("cuando una lectura
+   estática y una medición en ejecución se contradigan, gana la medición"). El script de la
+   reproducción era desechable (`tests/e2e/zz-repro-c5-temp.spec.js`, copiado, ejecutado y
+   borrado en el momento — nunca llegó a commitearse).
 
-### La corrección que demuestra por qué hace falta esta segunda pasada
+### Dos correcciones que demuestran por qué hace falta esta segunda pasada
 
 La primera redacción de C1 (`escalar()`) marcaba la variante de `puzzle.html` como "candidato a
 bug visual, pendiente de prueba de escritorio" — una sospecha razonada pero no comprobada del
@@ -342,6 +401,18 @@ fix real ya verificado. **La lección, ya anotada en memoria persistente
 (`feedback_verificacion_asimetrica`/EJE 27.2): antes de marcar algo como "pendiente de prueba",
 mirar primero si el historial ya hizo esa prueba.**
 
+La segunda corrección es más seria porque no venía de una redacción provisional sino de un
+razonamiento completo, encadenado línea a línea: C5 (restauración de sesión) parecía, leyendo
+el código con cuidado, un caso real de "el índice guardado gana y descarta el id, al revés de
+como debería ser". El ángulo 4 (reproducción real, no lectura) mostró que el razonamiento tenía
+un hueco — no había tenido en cuenta que `_restoreApplyState()` **también** dispara un
+`CAMBIO_PARADA` real por el mismo pipeline central que corrige el índice a partir del id, y que
+ese disparo, aunque fire-and-forget, se resuelve siempre antes de que nada más lea el estado.
+Sin ejecutarlo de verdad, ese hallazgo se habría publicado como confirmado siendo falso — el
+caso exacto que la regla 6 y la tabla de §36.0 de la guía existen para evitar: una cadena de
+inferencias impecable sobre código real, y aun así equivocada, porque faltaba el dato que solo
+la ejecución da.
+
 ### Estado final del barrido
 
 | Categoría | Resultado |
@@ -350,18 +421,22 @@ mirar primero si el historial ya hizo esa prueba.**
 | 2 — arranque/parada de recursos | Sin hallazgos nuevos |
 | 3 — arnés vs. producción | Sin hallazgo confirmado; 1 candidato de baja prioridad sin cerrar |
 | 4 — constantes/lecturas duplicadas | **1 hallazgo confirmado** (C4) + factor estructural (`getConfig()`) |
-| 5 — estado con varios escritores | Sin hallazgo nuevo; cobertura parcial (2 de 5 escritores de `estado.elementoActual`) |
+| 5 — estado con varios escritores | Sospecha inicial (C5) **investigada con reproducción real y refutada** — los 5 escritores de `estado.elementoActual` revisados |
 | 6 — funciones mismo nombre | **1 hallazgo confirmado** (C1, variante B únicamente) + 2 cerrados limpios |
-| Segunda pasada (git history + efecto observable) | 1 hallazgo retractado con evidencia (C1 variante C), 2 hallazgos confirmados como no-regresión, 1 confirmación adicional limpia |
+| Segunda pasada (git history + efecto observable + reproducción real) | 2 hallazgos retractados con evidencia (C1 variante C por historial, C5 por reproducción en Playwright), 2 hallazgos confirmados como no-regresión, 1 confirmación adicional limpia |
 
-**Total de hallazgos activos de esta ronda: 2** (C1 variante B en `chat-hijo6.html`, severidad
-baja; C4 en `js/funciones-mapa.js`, rama muerta con bug de nombres, severidad baja porque es
-inalcanzable hoy pero relevante si alguien la reactiva) — más el hallazgo tangencial de
+**Total de hallazgos activos de esta ronda: 2**, ambos de severidad baja: C1 variante B en
+`chat-hijo6.html`; C4 en `js/funciones-mapa.js` (rama muerta con bug de nombres, inalcanzable
+hoy pero relevante si alguien la reactiva) — más el hallazgo tangencial de
 `validarPermisosCambioModo()`/`getConfig()` sin adoptar, fuera del alcance estricto de "un solo
-camino" pero dejado por escrito por transparencia.
+camino" pero dejado por escrito por transparencia, y una nota de limpieza de código sin bug
+asociado (la redundancia de `_restaurarProgresoRest()`, ver C5). **Dos sospechas razonadas se
+investigaron a fondo y NO sobrevivieron a la comprobación** (C1 variante C por historial de
+git; C5 por reproducción real contra la app con Playwright) — quedan documentadas como
+cerradas, no como pendientes, para que nadie las reabra sin motivo nuevo (regla 1b).
 
 **Lo que queda genuinamente pendiente, con honestidad:** categoría 3 tiene un candidato sin
-cerrar (el stub `enviarMensajeConConfirmacion` en los tests); categoría 5 solo cubrió 2 de 5
-escritores de `estado.elementoActual`; y una segunda pasada más exhaustiva podría aplicar los
-mismos 3 ángulos nuevos a los hallazgos ya cerrados de las categorías 1 y 2, no solo a los de
-las categorías 4 y 6 donde se aplicaron esta vez.
+cerrar (el stub `enviarMensajeConConfirmacion` en los tests, sin verificar specs uno por uno); y
+una segunda pasada más exhaustiva podría aplicar los mismos ángulos (historial, reproducción
+real) a los hallazgos ya cerrados de las categorías 1 y 2, no solo a los de las categorías 4, 5
+y 6 donde se aplicaron esta vez.
