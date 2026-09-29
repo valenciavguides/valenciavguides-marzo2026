@@ -6422,7 +6422,7 @@ Existe infraestructura para reintentar envíos GPS fallidos, pero **el alimentad
 | Componente | Archivo | Estado |
 |-----------|---------|--------|
 | `gpsPendientes` array + `agregarMensajeGPSAPendientes()` | `js/state-manager.js` | ✅ existe — nunca llamada |
-| `reenviarMensajesGPSAPendientes(hijoId)` | `js/mensajeria.js` L1035 | ✅ existe — se llama en `procesarHeartbeatResponse` cuando hijo2 se reconecta, pero la cola siempre está vacía |
+| `reenviarMensajesGPSAPendientes(hijoId)` | `js/mensajeria.js` | ✅ existe — se llama en `procesarHeartbeatResponse` cuando hijo2 se reconecta, pero la cola siempre está vacía |
 
 **Flujo GPS real:** `funciones-mapa.js:procesarPosicionGPSParaAventura()` → `enviarMensaje({destino:'hijo2', tipo: ACTUALIZAR_ESTADO})` — envío directo sin confirmación ni cola. Si hijo2 no responde, el mensaje se pierde silenciosamente.
 
@@ -13626,7 +13626,7 @@ Marcarlas sin motivo derrota la herramienta: la marca es para las cuatro o cinco
 
 Un polling acotado que **solo se pisa fuera de producción** cuesta siempre `maxIntentos × intervalo` completos, porque la condición que espera no va a cumplirse nunca en ese contexto. Si ese coste queda cerca del timeout que el test concede, el resultado lo decide el planificador: verde en solitario, rojo en tanda completa.
 
-El caso vivo del proyecto es `enviarMensaje()` de los hijos (`retos-hijo4.html`, `coordenadas-hijo2.html` ~L396), que bifurca por `parent !== window`:
+El caso vivo del proyecto es `enviarMensaje()` de los hijos (`retos-hijo4.html`, `coordenadas-hijo2.html`), que bifurca por `parent !== window`:
 
 | Rama | Cuándo | Coste |
 |---|---|---|
@@ -13916,19 +13916,19 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarImagenOverlay` | clásico 8 (L1774) | módulo 1, módulo 2 | función/objeto |
 | `mostrarVideoOverlay` | clásico 8 (L2111) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5341) | clásico 13 | estado |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 | clásico 13 | estado |
 | `__HEARTBEAT_INICIADO` | módulo 1 (L4086) | clásico 13, módulo 4 | función/objeto |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3823) | clásico 8, módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L6271) | clásico 13 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6943) | clásico 13 | estado |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 | clásico 13 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 | clásico 13 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3825) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L7083) | clásico 13 | estado |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 | clásico 13 | estado |
 | `__vv_MAPAS_VINTAGE` | módulo 1 (L3827) | módulo 2 | función/objeto |
 | `__vv_PUZZLES` | módulo 1 | módulo 2 | función/objeto |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L5004) | módulo 2 | función/objeto |
-| `_calcularProgresoFraccion` | módulo 1 (L4503) | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 (L7949) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 | módulo 2 | función/objeto |
+| `_calcularProgresoFraccion` | módulo 1 | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 | módulo 2 | función/objeto |
 | `_detenerRecordatorioAudio` | módulo 1 | módulo 2 | función/objeto |
 | `_detenerRecordatorioReto` | módulo 1 | módulo 2 | función/objeto |
 | `_detenerRecordatorioSaltarAudio` | módulo 1 | módulo 2 | función/objeto |
@@ -13939,52 +13939,52 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_marcarPlayPulsadoRecordatorio` | módulo 1 | módulo 2 | función/objeto |
 | `_marcarRetoPulsadoRecordatorio` | módulo 1 | módulo 2 | función/objeto |
 | `_obtenerCoordenadasP0Fallback` | módulo 1 (L5522) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6444) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3968) | módulo 2, módulo 4 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4820) | clásico 7, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8908) | módulo 2 | función/objeto |
-| `cargarIframeSecuencial` | módulo 1 (L8907) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8906) | módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 | módulo 2 | función/objeto |
+| `cargarIframeSecuencial` | módulo 1 | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 | módulo 2 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L4102) | clásico 6, clásico 8, módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3962) | módulo 2, módulo 3, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3963) | módulo 2 | función/objeto |
 | `estadoPadre` | módulo 1 (L4266) | clásico 7, módulo 2, módulo 4 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4616) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4413) | módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 | módulo 2 | función/objeto |
 | `getPadreId` | módulo 1 (L4116) | clásico 6, módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6847) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 | módulo 2 | función/objeto |
 | `idiomaSeleccionado` | módulo 1 (L4821) | clásico 7, módulo 2, clásico 14 | función/objeto |
 | `limpiarDatosAventura` | módulo 1 (L3020) | módulo 2, clásico 14 | función/objeto |
 | `MODOS` | módulo 1 (L3960) | módulo 2, módulo 4 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L9402) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 | módulo 2 | función/objeto |
 | `mostrarCartelLlegadaParada` | módulo 1 (L9471) | módulo 2 | función/objeto |
 | `mostrarCartelTransicion` | módulo 1 (L9325) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L9178) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L9221) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4483) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 | módulo 2 | función/objeto |
 | `registrarControlador` | módulo 1 (L3961) | módulo 2 | función/objeto |
 | `registrarControladorSeguro` | módulo 1 (L5354) | módulo 2, módulo 4 | función/objeto |
 | `registrarEvento` | módulo 1 (L5413) | clásico 7, módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L3026) | clásico 8, módulo 2 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L3015) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L3016) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6683) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6608) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6535) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6763) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6839) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L7140) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L7139) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 | módulo 2 | función/objeto |
 | `sleep` | módulo 1 (L2895) | módulo 2, módulo 3, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L6186) | módulo 2 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 | módulo 2 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L3959) | clásico 5, clásico 7, clásico 8, módulo 2, módulo 3, módulo 4 | función/objeto |
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L3024) | clásico 14 | función/objeto |
 | `updateLoadingStatus` | módulo 1 | módulo 2 | función/objeto |
 | `verificarTimeoutAventura` | módulo 1 (L3021) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8909) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 | módulo 2 | función/objeto |
 | `__distribuirReadyPromise` | módulo 2 | módulo 1 | estado |
 | `__VV_PENDING_CLEANUP` | módulo 2 | clásico 13 | estado |
 | `_buscarParadaEnDatos` | módulo 2 | módulo 1 | función/objeto |
