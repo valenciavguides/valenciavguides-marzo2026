@@ -49,11 +49,24 @@ viven aquí.
    (cleanup). Antes de proponer o tocar algo de la mensajería, releer esas secciones contra el
    código real (regla 8) — no reabrir una decisión ya tomada sin decir antes qué cambió desde
    entonces.
-2. **Antes de escribir en `docs/GUIA-COMPLETA.md`**, leer `feedback_guia_es_manifiesto` y
-   `feedback_guia_detalle` de la memoria. La guía describe lo que existe, en presente: prohibidas
-   las fechas, el "antes/ahora", "se eliminó" y cualquier verbo en pasado sobre el proyecto. El
-   porqué de una decisión va en los comentarios del código. Al cerrar cualquier tanda de ediciones:
-   `grep -n "2026-0[0-9]-[0-9]\{2\}" docs/GUIA-COMPLETA.md`.
+1b. **`docs/estudio-caminos.md` recibe el mismo trato que la regla 1 da a mensajería, y más
+   severo** — mensajería es una sola pieza del proyecto; esto es la PWA entera. Antes de tocar
+   cualquier mecanismo que tenga, o se sospeche que pueda tener, más de un camino para la misma
+   decisión, releer la entrada correspondiente de ese documento contra el código real (regla 8)
+   antes de actuar. Mientras el documento no exista todavía, ningún hallazgo de "dos caminos" se
+   arregla al vuelo ni de pasada: se investiga y se registra primero — eso es lo que construye su
+   Parte I, el mapa — y solo después se decide el arreglo. Un segundo camino nunca se cierra sin
+   pasar por el catálogo, ni siquiera uno pequeño.
+2. **Antes de escribir en `docs/GUIA-COMPLETA.md`**, leer `feedback_guia_es_manifiesto`,
+   `feedback_guia_detalle` y `feedback_guia_encoding` de la memoria. La guía describe lo que
+   existe, en presente: prohibidas las fechas, el "antes/ahora", "se eliminó" y cualquier verbo
+   en pasado sobre el proyecto. El porqué de una decisión va en los comentarios del código. Al
+   cerrar cualquier tanda de ediciones: `grep -n "2026-0[0-9]-[0-9]\{2\}" docs/GUIA-COMPLETA.md`
+   (fechas) y, contra corrupción de encoding real: `grep -c $'\xef\xbf\xbd' docs/GUIA-COMPLETA.md`
+   (U+FFFD) más `grep -c $'\x14' docs/GUIA-COMPLETA.md` (carácter de control invisible donde
+   debería ir un guion largo) — los tres deben dar 0. Esto no lo atrapa ningún lint: si una frase
+   no cuadra gramaticalmente sin motivo aparente, inspeccionar los códigos de carácter uno a uno,
+   no solo releer el texto por encima.
 3. **Un inventario que salga de un `grep` por nombre no es un inventario**: devuelve a quien tiene
    la cosa, nunca a quien le falta. Para "¿quién no lo tiene?" usar `npm run verificar-frames` o
    enumerar las ausencias a mano, fichero por fichero.

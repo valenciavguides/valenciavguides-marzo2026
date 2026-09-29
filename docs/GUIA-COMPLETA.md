@@ -1737,7 +1737,7 @@ sequenceDiagram
     Note over H6: hijo6-chat: src="" en HTML<br/>Se carga al primer click en btn-chat-soporte<br/>(apertura lazy)
 ```
 
-> **Carga en paralelo:** `cargarRestoDeiframes()` usa `Promise.all` sobre hijo1-opciones/hijo2/hijo3/hijo4 (cada uno v�a `_cargarUnIframeHijo`, que espera su `HIJO_LISTO`), tolerando fallos individuales: los que fallan se acumulan en `hijosFallidos` sin abortar el resto. hijo5 va aparte en `cargarHijoCasa()`, y ambas se lanzan juntas con `await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])`. La pantalla de selecci�n se carga antes y por separado en `cargarIframeSoloSeleccion()`  `cargarIframeSecuencial` es solo un alias suyo por compatibilidad. `_hdl_SELECCION_AVENTURA_ACTIVADA` carga los 5 hijos (hijo1-5 incluyendo hijo4) vía `_cargarSoloIframeActivacion`. `_fase2CargarDatos()` precarga módulos JS cuando P14 se muestra (`SELECCION.P14_MOSTRADA`), de modo que AVENTURA_ACTIVADA puede distribuir datos sin esperar imports adicionales.
+> **Carga en paralelo:** `cargarRestoDeiframes()` usa `Promise.all` sobre hijo1-opciones/hijo2/hijo3/hijo4 (cada uno vía `_cargarUnIframeHijo`, que espera su `HIJO_LISTO`), tolerando fallos individuales: los que fallan se acumulan en `hijosFallidos` sin abortar el resto. hijo5 va aparte en `cargarHijoCasa()`, y ambas se lanzan juntas con `await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])`. La pantalla de selección se carga antes y por separado en `cargarIframeSoloSeleccion()` — `cargarIframeSecuencial` es solo un alias suyo por compatibilidad. `_hdl_SELECCION_AVENTURA_ACTIVADA` carga los 5 hijos (hijo1-5 incluyendo hijo4) vía `_cargarSoloIframeActivacion`. `_fase2CargarDatos()` precarga módulos JS cuando P14 se muestra (`SELECCION.P14_MOSTRADA`), de modo que AVENTURA_ACTIVADA puede distribuir datos sin esperar imports adicionales.
 
 ### Diagrama de arquitectura global
 
@@ -10120,7 +10120,7 @@ El `await` sobre `enviarValoracion()` es solo por consistencia de código async 
 | Todas las cachés del Service Worker | `caches.delete()` para cada caché |
 | El propio Service Worker | `registration.unregister()` |
 
-Antes de tocar nada, `limpiarDatosAventura()` levanta `globalThis.__VV_RECICLANDO = true`  bandera interna, sin efecto visual. Sin ella, desregistrar el Service Worker dispara `controllerchange`, que el bloque de actualizaci�n de `codigo-padre.html` leer�a como "hay versi�n nueva": banner al cliente justo al terminar su aventura y `vv_sw_update_pendiente` reescrita en el `localStorage` reci�n vaciado. Detalle en �19.5, "El reciclaje digital silencia el mecanismo".
+Antes de tocar nada, `limpiarDatosAventura()` levanta `globalThis.__VV_RECICLANDO = true` — bandera interna, sin efecto visual. Sin ella, desregistrar el Service Worker dispara `controllerchange`, que el bloque de actualización de `codigo-padre.html` leería como "hay versión nueva": banner al cliente justo al terminar su aventura y `vv_sw_update_pendiente` reescrita en el `localStorage` recién vaciado. Detalle en §19.5, "El reciclaje digital silencia el mecanismo".
 
 **En modo CASA (desarrollo):** `_handleFinDeAventura()` y `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` comprueban el modo antes de llamar al modal. Si no es AVENTURA, solo escriben logs — sin modal, sin reciclaje, para que el desarrollador pueda recorrer el flujo completo sin destruir la sesión.
 
