@@ -8447,7 +8447,7 @@ if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = ne
                             // en frío — sin esto, el modal (que lee globalThis.idiomaSeleccionado)
                             // caería siempre a español, ignorando el idioma real de la aventura
                             // abandonada.
-                            globalThis.idiomaSeleccionado = globalThis.idiomaSeleccionado || datosGuardados.idioma;
+                            globalThis.idiomaSeleccionado = globalThis.idiomaSeleccionado || datosGuardados.idioma || 'es';
                             if (typeof globalThis.mostrarModalTiempoAgotado === 'function') {
                                 await globalThis.mostrarModalTiempoAgotado();
                             } else {
@@ -13004,7 +13004,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 estado.seleccion.aventura = aventura;
                 estado.seleccion.idioma = idioma || estado.seleccion.idioma;
                 globalThis.aventuraSeleccionada = aventura;
-                globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado;
+                globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado || 'es';
                 try {
                     localStorage.setItem('vv_aventura', aventura);
                     localStorage.setItem('vv_idioma', idioma || globalThis.idiomaSeleccionado || 'es');
