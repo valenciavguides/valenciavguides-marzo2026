@@ -4486,8 +4486,12 @@
             return JSON.parse(raw) || null;
         }
 
+        // Un solo valor para el TTL de progreso/sesion guardada — antes se repetia como
+        // literal en dos funciones (auditoria "un solo camino", 2026-09-29).
+        const TTL_PROGRESO_GUARDADO_MS = 7 * 24 * 60 * 60 * 1000;
+
         function _restoreCheckStale(obj, logPrefix) {
-            const TTL = 7 * 24 * 60 * 60 * 1000;
+            const TTL = TTL_PROGRESO_GUARDADO_MS;
             if (!obj.timestamp || Date.now() - obj.timestamp <= TTL) return false;
             (globalThis.logger || console).info(`${logPrefix} vv_progreso expirado (${Math.round((Date.now() - obj.timestamp) / 86400000)} días), descartando`);
             localStorage.removeItem('vv_progreso');
@@ -8413,7 +8417,7 @@ if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = ne
                         // ofrecer nada. El TTL de 7 días se conserva como red de seguridad
                         // para un payload sin metadatos de aventura utilizables, donde
                         // verificarTimeoutAventura() no puede concluir nada.
-                        const _TTL_AVENTURA = 7 * 24 * 60 * 60 * 1000;
+                        const _TTL_AVENTURA = TTL_PROGRESO_GUARDADO_MS;
                         const _ttlSuperado = !!datosGuardados.timestamp && (Date.now() - datosGuardados.timestamp > _TTL_AVENTURA);
 
                         // El INDICE hace falta AQUI, antes de decidir. verificarTimeoutAventura()
