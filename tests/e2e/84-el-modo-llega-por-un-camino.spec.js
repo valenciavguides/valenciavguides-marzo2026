@@ -14,7 +14,7 @@
  * hijo4 listos, y la cola del padre que recordaba esos rechazos y los reenviaba
  * (`pendingModeChanges`), mas una resincronizacion que volvia a mandar el modo a los tres al
  * quedar listos. Queda uno: `modoInicial` al conectarse y el envio normal despues
- * (docs/mensajeria-duplicada-en-hijos.md, decision 11).
+ * (decisión 11 — ver GUIA-COMPLETA.md §10.11).
  *
  * El cerrojo no protegia nada: medido, cuando el padre recibe el HIJO_LISTO de un frame ese
  * frame ya tiene su handler de CAMBIO_MODO (los siete, en los cuatro navegadores). Y el padre

@@ -40,7 +40,7 @@ Lo que de verdad queda por resolver antes de publicar en `valenciavguides.es` es
 25. [La experiencia del usuario: narrativa completa del modo AVENTURA](#25-la-experiencia-del-usuario-narrativa-completa-del-modo-aventura)
 26. [Los controladores JS: roles, comunicación e inicialización](#26-los-controladores-js-roles-comunicación-e-inicialización)
 27. [El asistente de soporte (hijo 6)](#27-el-asistente-de-soporte-hijo-6)
-28. [Cleanup de listeners en cambio de aventura o modo](#28-cleanup-de-listeners-en-cambio-de-aventura-o-modo)
+28. [Cleanup en pagehide](#28-cleanup-en-pagehide)
 29. [Implementación de restricciones GPS y comportamiento visual](#29-implementación-de-restricciones-gps-y-comportamiento-visual)
 30. [Inicialización robusta: logger, sleep e HIJO_LISTO](#30-inicialización-robusta-logger-sleep-e-hijo_listo)
 31. [Posibles problemas en modo aventura](#31-posibles-problemas-en-modo-aventura)
@@ -1904,7 +1904,7 @@ Necesita FASE 2 completa. Ocurre dentro de `ejecutarInicializacionAutomatica()`,
 
 Cuando esos iframes sí se cargan, van en **paralelo** (`Promise.all`, tolerando fallos individuales) y ocultos (`display:none`). El listener `load` de cada uno incluye una guardia `about:blank`: si `contentWindow.location.href === 'about:blank'` retorna sin llamar a `handleIframeLoad`, evitando un falso "loaded successfully" antes de que se asigne el `src` real.
 
-Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` despacha `SISTEMA.APLICACION_INICIALIZADA` con `globalThis.mensajeria.despacharLocal()`, que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus por la misma fila que un mensaje llegado de fuera. Ya no reenvía el modo a hijo2/hijo3/hijo4: cada uno lo recibió al conectarse (`modoInicial`) y por cualquier `CAMBIO_MODO` posterior — un solo camino (docs/mensajeria-duplicada-en-hijos.md, decisión 11). Este handler es puramente informativo (registra el evento) — no inicializa ninguna aventura por su cuenta. La activación de una aventura ocurre siempre por una vía explícita: el flujo normal `SELECCION.AVENTURA_ACTIVADA`, o la reanudación vía el modal "continuar aventura" (`ejecutarRestauracionAventura()`, ver §10.14). Ningún CAMBIO_PARADA se envía hasta que una de esas dos vías se complete.
+Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` despacha `SISTEMA.APLICACION_INICIALIZADA` con `globalThis.mensajeria.despacharLocal()`, que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus por la misma fila que un mensaje llegado de fuera. Ya no reenvía el modo a hijo2/hijo3/hijo4: cada uno lo recibió al conectarse (`modoInicial`) y por cualquier `CAMBIO_MODO` posterior — un solo camino (decisión 11, ver §10.11). Este handler es puramente informativo (registra el evento) — no inicializa ninguna aventura por su cuenta. La activación de una aventura ocurre siempre por una vía explícita: el flujo normal `SELECCION.AVENTURA_ACTIVADA`, o la reanudación vía el modal "continuar aventura" (`ejecutarRestauracionAventura()`, ver §10.14). Ningún CAMBIO_PARADA se envía hasta que una de esas dos vías se complete.
 
 Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el flujo de onboarding:
 
@@ -4866,7 +4866,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c3cf2af396f0'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-89d9dbc3bc97'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8107,7 +8107,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-c3cf2af396f0'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-89d9dbc3bc97'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8844,7 +8844,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c3cf2af396f0';
+const CACHE_VERSION = 'v-89d9dbc3bc97';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12002,59 +12002,52 @@ El asistente es 100% offline:
 
 De ahí que las dos operaciones que un chat conversacional sí necesitaría — mandar una consulta y recibir su respuesta — no existan, y que tampoco exista nada que "limpiar" al cambiar de parada o de aventura. Y abrir el panel no necesita mensaje: `abrirChat()` corre en el mismo `window` que el padre, así que es una llamada directa (mismo criterio que §10.9 y §32.3).
 
-## 28. Cleanup de listeners en cambio de aventura o modo
+## 28. Cleanup en pagehide
 
 ### 28.1 Estado actual
 
-**El cleanup de `messagingAdapter._listenerRegistry` en `CAMBIO_MODO` no debe existir en ningún hijo.** Ver §32.1 para la explicación completa del invariante y sus efectos en cascada.
+**No existe ningún registro de listeners por-hijo que limpiar.** El bus (`js/mensajeria.js`) registra un único `addEventListener('message', manejarMensajeEntrante)` por frame, en `inicializarMensajeria()`, para toda la vida de ese frame — nunca se añade ni se retira uno nuevo por tipo de mensaje. `messagingAdapter` y su `_listenerRegistry` (el patrón que describía esta sección) no existen en ningún fichero de producción: eran de una copia de mensajería previa a la unificación en un solo bus (opción A), y no sobrevivieron a esa migración.
 
-El único cleanup legítimo que permanece es el de `pagehide` — limpia los listeners cuando el iframe se descarga del DOM, que es el momento correcto.
+### 28.2 Qué limpia cada `pagehide`, y qué no hace falta limpiar
 
-### 28.2 Qué NO hacer: cleanup en CAMBIO_MODO
+Solo dos hijos registran `pagehide`, y ninguno limpia un listener registry:
 
-**No añadir nunca un bloque de limpieza de `messagingAdapter._listenerRegistry` en el handler de `CAMBIO_MODO` de ningún hijo.**
+- **`coordenadas-hijo2.html`**: pone `estadoComponente.inicializado = false` — un flag diagnóstico sin ningún lector en el fichero, cosmético.
+- **`audio-hijo3.html`**: solo deja constancia en el log (`logger.info(...)`), sin tocar ningún estado.
 
-La razón: `messagingAdapter._listenerRegistry` contiene los handlers registrados con `registrarControladorSeguro` — incluyendo `HEARTBEAT`, `RETO.MOSTRAR`, `CAMBIO_MODO` propio, etc. Limpiar este Map en `CAMBIO_MODO` deja al hijo sin capacidad de responder a ningún mensaje posterior, rompiendo toda la cadena de comunicación padre-hijo. Los síntomas son:
+El resto de hijos (`extrainfo-hijo1.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`) no registran `pagehide` en absoluto — no tienen nada que limpiar: el único listener del bus se destruye con el propio documento cuando el iframe se descarga, y no hay temporizadores ni estado propio que sobreviva a eso.
 
-- El botón de retos (`#retosBtn`) permanece deshabilitado (hijo3 no puede habilitar porque perdió su listener de HEARTBEAT/RETO)
-- El panel de retos no muestra contenido (hijo4 no puede procesar `RETO.MOSTRAR`)
-- El heartbeat detecta falsos negativos y recarga iframes innecesariamente
+### 28.3 El cleanup real vive en el padre y en dos módulos que comparten su ventana
 
-### 28.3 Qué SÍ hacer: cleanup en pagehide
-
-Cada hijo (excepto hijo6) limpia `_listenerRegistry` en el evento `pagehide`:
+Los tres siguen el mismo patrón: distinguir un cierre real de un viaje a la caché de atrás (bfcache), con `evento?.persisted === true` — sin esa guarda, volver atrás con el botón del navegador revivía la página ya limpiada (F4, paso 9 de la lavadora de mensajería).
 
 ```javascript
-globalThis.addEventListener('pagehide', function() {
-    if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
-        for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
-            globalThis.removeEventListener('message', listener);
-        }
-        globalThis.messagingAdapter._listenerRegistry.clear();
-    }
-});
+// codigo-padre.html — _limpiarPagehide()
+if (evento?.persisted === true) {
+    logger.info('pagehide con persisted: la página se guarda en la caché de atrás, NO se limpia nada');
+    return;
+}
+// Cierre real: borra los iframes, para temporizadores e intervalos,
+// detiene el heartbeat y vacía __CONTROLADOR_REGISTRADOS/controladores.
 ```
 
-Este es el momento correcto: el iframe se está descargando, no necesitará más esos listeners, y limpiarlos evita fugas de memoria.
+- **`codigo-padre.html`** (`_limpiarPagehide`): en un cierre real, quita todos los `<iframe>` del DOM, para el heartbeat, limpia los temporizadores de overlay GPS y de recordatorio de rescate, y vacía `__CONTROLADOR_REGISTRADOS`/`controladores`.
+- **`js/app.js`** y **`js/funciones-mapa.js`**: cada uno registra su propio `pagehide` en la misma ventana del padre (no en un iframe), con la misma guarda `persisted`. En un cierre real, limpian sus propios globales (`globalThis.estado`, `globalThis.funcionesMapa`) — antes de la guarda, un viaje a la bfcache los borraba igual que un cierre real y dejaba el mapa destruido al volver atrás.
 
-**El primer argumento de `removeEventListener` es siempre `'message'`, nunca la clave del `Map`.** El registro está indexado por tipo de mensaje (`'SISTEMA.HEARTBEAT'`, `'RETO.MOSTRAR'`…), pero eso es una convención de la app: en el DOM **todos** esos listeners están suscritos al mismo evento, `'message'`, y se distinguen dentro del propio handler. Iterar el `Map` como `[tipo, fn]` y llamar a `removeEventListener(tipo, fn)` no lanza ningún error — simplemente no quita nada, porque no existe ningún listener registrado bajo un evento llamado `'SISTEMA.HEARTBEAT'`. Por eso se recorre `.values()` y se pasa el literal.
-
-### 28.4 Cleanup del padre
+### 28.4 Cleanup del padre: por qué no hace falta un barrido periódico
 
 El padre no tiene un barrido periódico de controladores. No hace falta: cada documento (padre y cada hijo) registra su conjunto de controladores una única vez, al arrancar — no hay ningún punto del código que registre controladores nuevos repetidamente durante una sesión, así que no hay nada que crezca ni que necesite limpiarse con el tiempo.
 
 ### 28.5 Estado por archivo
 
-| Archivo | pagehide | CAMBIO_MODO |
+| Archivo | `pagehide` propio | Qué limpia |
 |---------|----------|-------------|
-| `extrainfo-hijo1.html` | — sin registry que limpiar: habla por `js/mensajeria.js` | ✗ no tiene |
-| `coordenadas-hijo2.html` | ✓ limpia registry | ✗ no tiene |
-| `audio-hijo3.html` | ✓ limpia registry | ✗ no tiene |
-| `retos-hijo4.html` | ✓ limpia registry | ✗ no tiene |
-| `boton-casa-hijo5.html` | — sin registry que limpiar: habla por `js/mensajeria.js` | ✗ no tiene |
-| `En-busca-del-tesoro.html` | — sin registry que limpiar: habla por `js/mensajeria.js` | ✗ no tiene |
-| `chat-hijo6.html` | — (no usa messagingAdapter) | — |
-| `codigo-padre.html` | — no usa el patrón `messagingAdapter._listenerRegistry` (eso es exclusivo de hijos; el padre registra controladores vía `js/mensajeria.js`). Sí tiene su propio `pagehide` activo (`_limpiarPagehide`, registrado con `addEventListener`), pero limpia iframes/referencias globales, no un listener registry | — |
+| `codigo-padre.html` | ✓ (`_limpiarPagehide`) | Iframes, temporizadores, heartbeat, `__CONTROLADOR_REGISTRADOS` — con guarda `persisted` |
+| `js/app.js` | ✓ | `globalThis.estado` — con guarda `persisted` |
+| `js/funciones-mapa.js` | ✓ | `globalThis.funcionesMapa` — con guarda `persisted` |
+| `coordenadas-hijo2.html` | ✓ | Un flag diagnóstico sin lector — sin guarda `persisted`, pero sin efecto funcional |
+| `audio-hijo3.html` | ✓ | Nada (solo log) |
+| `extrainfo-hijo1.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html` | — | Nada que limpiar: sin `pagehide` propio |
 
 ---
 
@@ -12207,7 +12200,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-c3cf2af396f0';
+const CACHE_VERSION = 'v-89d9dbc3bc97';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12635,7 +12628,7 @@ Cuando hijo4 se carga por primera vez durante una sesión de retos, la secuencia
 
 Si `_onCambioModo` limpia `retoDiv.innerHTML` en el paso 6, el iframe del puzzle se destruye antes de que el usuario lo haya visto. Los retos de tipo opción múltiple o reflexión no se ven afectados porque son HTML inline; los retos tipo puzzle (`PZ-xx`) sí, porque el iframe tarda en cargar su módulo JS.
 
-Hoy el modo llega por un solo camino (decisión 11, docs/mensajeria-duplicada-en-hijos.md): no hay ningún
+Hoy el modo llega por un solo camino (decisión 11, ver §10.11): no hay ningún
 reintento en segundo plano que pueda repetir un `CAMBIO_MODO` durante una sesión de retos.
 
 **Patrón correcto** en el handler de `SISTEMA.CAMBIO_MODO` de `retos-hijo4.html`:

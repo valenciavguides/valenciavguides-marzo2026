@@ -7,8 +7,7 @@
  * usuario pulsa atras y el navegador restaura el padre desde la cache de atras (bfcache) en
  * vez de recargarlo, ocurre esto: al salir, `_limpiarPagehide` (script clasico de
  * codigo-padre.html) borra TODOS los iframes sin mirar `event.persisted`, y al volver no hay
- * ningun `pageshow` que los reconstruya. Ver docs/mensajeria-duplicada-en-hijos.md, §14 y
- * Parte II, F4.
+ * ningun `pageshow` que los reconstruya.
  *
  * POR QUE NO SE NAVEGA DE VERDAD
  *

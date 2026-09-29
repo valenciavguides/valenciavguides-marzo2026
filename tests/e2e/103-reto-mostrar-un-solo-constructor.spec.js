@@ -10,8 +10,8 @@
  *      `_snapshotRecuperacion.retoActual` (para que `_vv_afterHijoListo('hijo4', ...)` pueda
  *      restaurarlo si hijo4 se recarga), muestra hijo4 y espera a que esté listo antes de enviar.
  *   2. `_procesarResultadoReto()` (parte de `_hdl_RETO_COMPLETADO`, rama "siguiente reto en cola",
- *      para paradas con más de un reto — ver docs/mensajeria-duplicada-en-hijos.md, feature
- *      planeada, sin datos reales todavía) — construye el mismo mensaje a mano, con su propia
+ *      para paradas con más de un reto — feature planeada, sin datos reales todavía) —
+ *      construye el mismo mensaje a mano, con su propia
  *      resolución de datos, pero SIN tocar `_snapshotRecuperacion.retoActual`.
  *
  * El propio `_hdl_RETO_COMPLETADO` limpia `_snapshotRecuperacion.retoActual = null`

@@ -531,8 +531,7 @@
     // estadoRetos (progreso, estadisticas: tiempoPromedio/intentosPromedio/
     // aciertosConsecutivos) retirado entero: ningún campo tenía lector real, ni
     // aquí ni en el padre — decisión explícita del usuario, "no necesito
-    // estadísticas de ningún tipo en esta PWA" (ver docs/
-    // mensajeria-duplicada-en-hijos.md, Parte VIII, hallazgo 3).
+    // estadísticas de ningún tipo en esta PWA".
 
     // Duración de la animación de fuegos artificiales
     const DURACION_TOTAL_MS = 3000;
@@ -1305,7 +1304,7 @@
                     logger.info(`[hijo4] Intervalo de reintento limpiado tras recibir PADRE_CONFIRMA_HIJO_LISTO`);
                 }
 
-                // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 de docs/mensajeria-duplicada-en-hijos.md).
+                // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 — ver GUIA-COMPLETA.md §10.11).
 
                 // 🔥 NUEVO: Procesar modo inicial si viene en datos
                 const { modoInicial } = mensaje.datos || {};

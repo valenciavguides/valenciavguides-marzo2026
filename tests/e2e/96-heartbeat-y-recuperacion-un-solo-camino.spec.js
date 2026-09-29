@@ -1,6 +1,6 @@
 /**
- * 96 — Paso 7 de la lavadora de mensajería (F19 y F20 de docs/mensajeria-duplicada-en-hijos.md,
- * §22): el latido no manda auto-mensajes a hijos cuyo handler no hace nada, y la recuperación
+ * 96 — Paso 7 de la lavadora de mensajería: el latido no manda auto-mensajes a hijos cuyo
+ * handler no hace nada, y la recuperación
  * de un hijo caído repite la entrega normal de su elemento en vez de un camino propio.
  *
  * POR QUE EXISTE

@@ -44,9 +44,11 @@ Estas reglas ya estaban en la memoria del proyecto y aun así se han incumplido 
 La memoria solo se lee si alguien decide ir a leerla; este fichero está delante siempre. Por eso
 viven aquí.
 
-1. **Antes de proponer o ejecutar un paso de la migración de mensajería**, citar textualmente el
-   párrafo de `docs/mensajeria-duplicada-en-hijos.md` que lo cubre. Sin cita no hay propuesta. El
-   plan ya está decidido: no se reinventa el orden.
+1. **La migración de mensajería (opción A, bus único) quedó cerrada** — los 12 pasos de la
+   lavadora, verificados en `docs/GUIA-COMPLETA.md` §10, §10.25 (contrato del bus) y §28
+   (cleanup). Antes de proponer o tocar algo de la mensajería, releer esas secciones contra el
+   código real (regla 8) — no reabrir una decisión ya tomada sin decir antes qué cambió desde
+   entonces.
 2. **Antes de escribir en `docs/GUIA-COMPLETA.md`**, leer `feedback_guia_es_manifiesto` y
    `feedback_guia_detalle` de la memoria. La guía describe lo que existe, en presente: prohibidas
    las fechas, el "antes/ahora", "se eliminó" y cualquier verbo en pasado sobre el proyecto. El

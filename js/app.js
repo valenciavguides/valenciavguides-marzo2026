@@ -1102,7 +1102,7 @@ if (globalThis.window !== undefined) {
         // navegador la congela en su cache de atras (bfcache) y puede devolverla viva
         // (`event.persisted`). Sin esta condicion, volver atras encontraba
         // globalThis.estado borrado — mismo motivo que _limpiarPagehide en codigo-padre.html
-        // (F4, docs/mensajeria-duplicada-en-hijos.md).
+        // (F4 — ver GUIA-COMPLETA.md §28).
         if (evento?.persisted === true) {
             logger.info('[app.js] pagehide con persisted: la pagina se guarda en la cache de atras, NO se limpia nada');
             return;

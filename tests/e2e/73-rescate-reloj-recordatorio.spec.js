@@ -3,7 +3,7 @@
  *
  * POR QUE EXISTE
  *
- * Cuarta y última pieza del rescate a petición (`docs/rescate-a-peticion.md`). El barrido que
+ * Cuarta y última pieza del rescate a petición (`docs/GUIA-COMPLETA.md` §25.19). El barrido que
  * antes gastaba rescates él solo cambia de oficio: ahora solo recuerda que hay una salida,
  * a los 8, 10, 12 y 14 minutos parado en el mismo punto. Quien decide es el usuario.
  *

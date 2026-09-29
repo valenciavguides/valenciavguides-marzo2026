@@ -14,7 +14,7 @@
  * trae escrito por quien lo manda. El bus comprobaba que el mensaje viniera de una ventana suya
  * (su padre, un iframe registrado o él mismo), pero no que esa ventana fuera quien decía ser:
  * cualquier hijo podía firmar como otro. Cada hijo sirve a un propósito, y ninguno puede pasar
- * por otro (docs/mensajeria-duplicada-en-hijos.md, decisión 10).
+ * por otro (decisión 10 — ver GUIA-COMPLETA.md §10.25, BC-15 a BC-18).
  *
  * Se prueba con TODOS los frames que el padre registra, menos hijo5: la comprobación es la misma
  * para todos, así que el spec tiene que demostrar que ninguno se libra. El chat y el mapa completo

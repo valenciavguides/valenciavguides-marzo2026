@@ -3,7 +3,7 @@
  *
  * POR QUE EXISTE
  *
- * Primera pieza del rescate a petición (`docs/rescate-a-peticion.md`): el viaje de ida y
+ * Primera pieza del rescate a petición (`docs/GUIA-COMPLETA.md` §25.19): el viaje de ida y
  * vuelta, sin gastar nada y sin enseñar nada todavía. El usuario pulsa el botón del
  * asistente, el padre contesta si puede concederse, y esa respuesta **vuelve**.
  *

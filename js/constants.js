@@ -197,7 +197,7 @@ export const TIPOS_MENSAJE = {
          * lo que ve a continuación: un mensaje perdido dejaría el botón mudo.
          *
          * El padre responde SIEMPRE con un objeto —nunca `undefined`— diciendo si puede
-         * concederse y por qué no, si no. Ver `docs/rescate-a-peticion.md`.
+         * concederse y por qué no, si no. Ver `docs/GUIA-COMPLETA.md` §25.19.
          */
         RESCATE_SOLICITADO: 'CHAT.RESCATE_SOLICITADO'
     },

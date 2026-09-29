@@ -11,7 +11,7 @@
  * La consecuencia visible es que `js/utils.js` instala en todo iframe una captura de `error` y
  * `unhandledrejection` que avisa al padre, pero envia por `globalThis.mensajeria.enviarMensaje`
  * —el bus del propio frame— que en hijo1 no existia: cada error se encolaba, se reintentaba 10 s
- * y se descartaba. Ver docs/mensajeria-duplicada-en-hijos.md, Parte II (F2) y Parte V.
+ * y se descartaba.
  *
  * Se mira la LLEGADA del mensaje a la ventana del padre, no los logs: la consola la comparten
  * todos los frames, y el aviso con el que el propio hijo se rinde contiene el mismo texto.

@@ -3,7 +3,7 @@
  *
  * POR QUE EXISTE
  *
- * Segunda pieza del rescate a petición (`docs/rescate-a-peticion.md`). Cubre dos cosas que
+ * Segunda pieza del rescate a petición (`docs/GUIA-COMPLETA.md` §25.19). Cubre dos cosas que
  * la primera dejó abiertas y que no se ven desde el viaje de ida y vuelta:
  *
  *  1. EL BOTON. Se pintaba siempre, sin mirar el estado. En el punto de partida, fuera de

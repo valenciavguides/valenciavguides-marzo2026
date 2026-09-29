@@ -497,7 +497,7 @@ function enviarMensajeInterno(mensaje, destino) {
     // Sin destino no se envía nada: antes, `undefined`/`null` se confundían con 'broadcast' y un
     // enviarMensaje() sin destino por descuido salía igual — a veces a nadie, si el frame no tiene
     // iframes propios, sin ningún aviso (audio-hijo3.html perdía así su 'pausado' hacia el padre;
-    // ver docs/mensajeria-duplicada-en-hijos.md, paso 3). Ahora "a todos" es solo el literal
+    // ver GUIA-COMPLETA.md §10.25, BC-20). Ahora "a todos" es solo el literal
     // 'broadcast', explícito.
     if (destino === undefined || destino === null) {
         _avisarDescarte(_avisadosSinDestino, mensaje.tipo,

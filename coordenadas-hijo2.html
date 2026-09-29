@@ -1639,7 +1639,7 @@ try {
                 }
             }, 3000);
 
-            // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 de docs/mensajeria-duplicada-en-hijos.md).
+            // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 — ver GUIA-COMPLETA.md §10.11).
 
             // Mostrar UI ahora que el padre confirmó
             try { _uiConfirmado = true; mostrarUI(); } catch (e) { logger.warn('[hijo2] Error mostrando UI:', e && e.message); }
@@ -1930,7 +1930,7 @@ try {
         const logPrefix = `[hijo2][COORDENADAS_PARADAS_REQUEST]`;
 
         try {
-            const { paradaId, incluirRutas, incluirMarcadores, actualizarMapa, contexto, pedidoId } = mensaje.datos || {};
+            const { paradaId, incluirRutas, incluirMarcadores, actualizarMapa, contexto } = mensaje.datos || {};
 
             logger.info(`${logPrefix} 📥 Solicitud recibida - paradaId: ${paradaId || 'TODAS'}, contexto: ${contexto}`);
 
@@ -1945,7 +1945,6 @@ try {
                     total: 0,
                     exito: false,
                     error: 'No hay coordenadas cargadas',
-                    pedidoId: pedidoId,
                     contexto: contexto
                 };
             }
@@ -1976,7 +1975,6 @@ try {
                 total: coordenadasFiltradas.length,
                 exito: true,
                 paradaId: paradaId || null,
-                pedidoId: pedidoId,
                 incluirRutas: incluirRutas !== false,
                 incluirMarcadores: incluirMarcadores !== false,
                 actualizarMapa: actualizarMapa !== false,
@@ -1996,7 +1994,6 @@ try {
                 total: 0,
                 exito: false,
                 error: error.message,
-                pedidoId: mensaje.datos?.pedidoId,
                 contexto: mensaje.datos?.contexto
             };
 
@@ -2096,8 +2093,8 @@ try {
             // El padre no registra ningún handler de SISTEMA.CONFIRMACION para este
             // aviso, y el campo idOriginal que llevaba se descartaba en el envío —
             // enviarMensaje() solo construye tipo/datos/id/timestamp/origen/destino.
-            // No tenía ningún efecto: retirado (verificado en vivo, ver docs/
-            // mensajeria-duplicada-en-hijos.md, Parte VIII).
+            // No tenía ningún efecto: retirado (verificado en vivo — el
+            // mecanismo completo del acuse está en GUIA-COMPLETA.md §10.17).
 
         } catch (error) {
             logger.error(`${logPrefix} Error al procesar respuesta de datos de paradas:`, error);

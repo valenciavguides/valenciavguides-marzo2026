@@ -10,8 +10,8 @@
  *
  * POR QUÉ EXISTE
  *
- * El envío de `pause` no llevaba `destino`. Antes del paso 3 de la lavadora
- * (docs/mensajeria-duplicada-en-hijos.md), "sin destino" se confundía con "a todos los
+ * El envío de `pause` no llevaba `destino`. Antes de que el destino se hiciera obligatorio,
+ * "sin destino" se confundía con "a todos los
  * iframes registrados" — y hijo3 no registra ninguno, así que el mensaje no llegaba a nadie,
  * en silencio. El padre nunca se enteraba de la pausa: `estado.audioActual.estado` se quedaba
  * en `'reproduciendo'` desde el último `play` real, y con eso el recordatorio "pulse play"

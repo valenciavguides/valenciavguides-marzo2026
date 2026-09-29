@@ -8,8 +8,8 @@
  * Fase 3 de un patrón bidireccional que ya no tiene destinatario real: hijo2 confirma que cargó
  * coordenadas/textos (`DATOS.COORDENADAS_CARGADAS`/`DATOS.TEXTOS_CARGADOS`), y el padre le
  * responde ADEMÁS con `DATOS.CARGADOS_RECIBIDO` — una confirmación de la confirmación. El
- * controlador de hijo2 para ese mensaje (docs/mensajeria-duplicada-en-hijos.md §23, "confirmaciones
- * informativas") solo hace `logger.info(...)`, comprobado leyendo su cuerpo completo: no escribe
+ * controlador de hijo2 para ese mensaje (una confirmación informativa sin efecto) solo hace
+ * `logger.info(...)`, comprobado leyendo su cuerpo completo: no escribe
  * ningún estado, no desbloquea nada, no lo lee nadie más en el proyecto (`grep` global antes del
  * arreglo → 6 referencias, todas en el propio emisor/receptor muertos).
  *

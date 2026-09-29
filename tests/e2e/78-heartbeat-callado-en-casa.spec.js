@@ -6,7 +6,7 @@
  * En CASA el bus pausa su heartbeat a proposito (`pausarHeartbeat`), y es el unico latido
  * periodico que debe haber. `js/monitoreo.js` tenia otro que mandaba `SISTEMA.HEARTBEAT` a todos
  * los iframes cada 5 s, no se paraba nunca y anulaba esa pausa: los hijos contestaban cada vez.
- * Ver docs/mensajeria-duplicada-en-hijos.md, §13 y Parte II, F5.
+ * El bus es el único latido periódico legítimo mientras dura la pausa de CASA.
  *
  *   HC-1  Control: un latido enviado por el bus a hijo2 llega a la escucha. Demuestra que la
  *         escucha funciona, para que un HC-2 en verde no pueda deberse a una escucha rota.

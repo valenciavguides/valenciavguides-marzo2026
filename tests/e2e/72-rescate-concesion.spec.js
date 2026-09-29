@@ -3,7 +3,7 @@
  *
  * POR QUE EXISTE
  *
- * Tercera pieza del rescate a petición (`docs/rescate-a-peticion.md`). El usuario dice que sí
+ * Tercera pieza del rescate a petición (`docs/GUIA-COMPLETA.md` §25.19). El usuario dice que sí
  * dos veces y el punto queda atrás. Lo que se prueba aquí no es que funcione el camino feliz
  * —eso se ve mirando— sino las tres cosas que cuestan dinero al usuario si fallan:
  *

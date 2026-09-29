@@ -16,7 +16,7 @@
  * —cada una con su `origen` inventado— y un `postMessage` a la propia ventana. Todos se saltaban
  * la fila por tipo del bus: un cambio de parada anidado se ejecutaba en medio del que lo había
  * provocado. `despacharLocal` entrega el mensaje por la misma fila que los que llegan de fuera, con
- * el nombre del frame (docs/mensajeria-duplicada-en-hijos.md, lavadora, paso 2).
+ * el nombre del frame.
  *
  * AE-2 mira lo que le llega al padre con él mismo como fuente: un envío suyo por el bus va a la
  * ventana de un hijo, nunca a la suya.

@@ -4,8 +4,8 @@
  *
  * POR QUE EXISTE
  *
- * `DATOS.COORDENADAS_PARADAS_REQUEST` es uno de los 5 envíos con acuse del proyecto (docs/
- * mensajeria-duplicada-en-hijos.md §3.2): el `return` del handler de hijo2 ya entrega el
+ * `DATOS.COORDENADAS_PARADAS_REQUEST` es uno de los 5 envíos con acuse del proyecto (ver
+ * GUIA-COMPLETA.md §10.5): el `return` del handler de hijo2 ya entrega el
  * resultado a quien pidió, vía `enviarMensajeConConfirmacion`. Pero `solicitarCoordenadasHijo`
  * (el helper del fallback de btn-ubicacion y de otros dos sitios) no usaba ese camino: montaba
  * su propio `pedidoId` + `Map` de espera + handler correlador, y hijo2 respondía ADEMÁS con un

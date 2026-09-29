@@ -7,8 +7,7 @@
  * `SELECCION.REINICIAR` para que baje `_codigoValidadoP13` e `_iframesPreCargadosP14`.
  * Ese aviso es un `postMessage` escrito a mano, y el bus del padre (`js/mensajeria.js`)
  * descarta en silencio todo mensaje sin `origen`: sin ese campo el handler no llega a
- * ejecutarse. Asi estuvo, sin que nada lo notara. Ver docs/mensajeria-duplicada-en-hijos.md,
- * Parte II, F1.
+ * ejecutarse. Asi estuvo, sin que nada lo notara.
  *
  *   RE-1  Control: el mismo mensaje CON `origen`, enviado desde el iframe de seleccion,
  *         si baja las dos banderas. Demuestra que el handler existe y que el montaje

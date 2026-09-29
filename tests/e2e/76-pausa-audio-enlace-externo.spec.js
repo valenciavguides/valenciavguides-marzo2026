@@ -6,7 +6,7 @@
  * Al pulsar Gastronomia, Informacion, Historia o Paginas oficiales, hijo1 intenta pausar el
  * audio mandando `UI.ACCION_USUARIO { accion: 'audio_control', comando: 'pause' }` con
  * `destino: 'hijo3'`. Pero un hijo solo puede escribir al padre, y el padre no reenvia nada
- * ni conoce esa accion. Ver docs/mensajeria-duplicada-en-hijos.md, §10 y Parte II, F3.
+ * ni conoce esa accion.
  *
  * Se espia `pause()` del `<audio>` de hijo3, que su handler llama sin condiciones: asi no
  * hace falta que suene nada. `window.open` de hijo1 se sustituye porque abrir la pestana no

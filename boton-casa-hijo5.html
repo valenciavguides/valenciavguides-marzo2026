@@ -897,7 +897,7 @@
             } catch (error) {
                 logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);
             }
-            // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 de docs/mensajeria-duplicada-en-hijos.md).
+            // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 — ver GUIA-COMPLETA.md §10.11).
             try {
                 _uiConfirmado = true;
                 mostrarUI();
@@ -1062,8 +1062,8 @@
                 // El padre no registra ningún handler de SISTEMA.CONFIRMACION para este
                 // aviso, y el campo idOriginal que llevaba se descartaba en el envío —
                 // enviarMensaje() solo construye tipo/datos/id/timestamp/origen/destino.
-                // No tenía ningún efecto: retirado (verificado en vivo, ver docs/
-                // mensajeria-duplicada-en-hijos.md, Parte VIII).
+                // No tenía ningún efecto: retirado (verificado en vivo — el
+                // mecanismo completo del acuse está en GUIA-COMPLETA.md §10.17).
 
             } catch (error) {
                 logger.error(`${logPrefix} Error al procesar respuesta de paradas:`, error);

@@ -23,7 +23,7 @@
 
 ---
 
-## � Estado de las auditorías previas
+## Estado de las auditorías previas
 
 Los documentos de auditoría/investigación que existieron en `docs/` (diagnóstico de race conditions, memory leaks, mensajería huérfana, etc.) fueron verificados línea a línea contra el código real y retirados: la mayoría de sus hallazgos resultaron ya corregidos, ya documentados como comportamiento intencional en `GUIA-COMPLETA.md`, o basados en premisas técnicas incorrectas (p.ej. la "race condition `estadoPadre`" asumía que los 5 `<script type="module">` de `codigo-padre.html` podían ejecutar fuera de orden, algo que el HTML Standard no permite para scripts sin `async`). Lo que seguía siendo válido ya está incorporado en `GUIA-COMPLETA.md`. Para el estado real de tareas pendientes antes de producción, ver **§22** de esa guía.
 
@@ -46,7 +46,10 @@ docs/
 ├── GUIA-COMPLETA.md                              ← DOCUMENTO MAESTRO
 ├── README.md                                      ← Este archivo (índice)
 ├── fonetica.md
-└── plan-produccion-infraestructura.md
+├── plan-produccion-infraestructura.md             ← gitignored, no en el repo público
+├── contraste-textos-mapa.md                       ← auditoría: número de mapa vs texto
+├── imagenes-referencias-pendientes.md             ← seguimiento de imágenes de aventuras
+└── aventuras_ordenado/                            ← guiones generados (tools/generar-guiones-aventuras.mjs)
 ```
 
 ---
@@ -120,4 +123,9 @@ Para cualquier duda sobre la documentación o el proyecto:
 ---
 
 **Última revisión:** 2026-09-02  
-**Documentos activos:** `GUIA-COMPLETA.md` + 2 guías específicas + este índice
+**Documentos activos:** `GUIA-COMPLETA.md`, este índice, 2 guías específicas (`fonetica.md`,
+`plan-produccion-infraestructura.md`), 2 documentos de seguimiento (`contraste-textos-mapa.md`,
+`imagenes-referencias-pendientes.md`) y los guiones generados en `aventuras_ordenado/`. Los
+documentos de trabajo de una migración cerrada (mensajería, rescate a petición) se retiran una
+vez su contenido queda incorporado a `GUIA-COMPLETA.md` — el historial de commits conserva el
+registro completo de cada migración.

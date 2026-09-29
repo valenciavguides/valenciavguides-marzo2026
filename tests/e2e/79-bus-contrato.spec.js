@@ -4,7 +4,7 @@
  * POR QUE EXISTE
  *
  * La app va a pasar a un solo bus para todos los frames: padre, hijos y nietos
- * (docs/mensajeria-duplicada-en-hijos.md, Parte VI). Este spec fija su contrato ANTES de
+ * Este spec fija su contrato ANTES de
  * construirlo, con el bus real y nada de la app: el arnés de tests/e2e/fixtures/bus monta
  * padre → hijo → nieto, un iframe intruso sin registrar y dos iframes mudos que no contestan
  * al latido.

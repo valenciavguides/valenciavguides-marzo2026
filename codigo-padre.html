@@ -6045,7 +6045,7 @@
 
         // solicitarCoordenadasHijo (paso 8 de la lavadora): un solo camino de respuesta.
         // DATOS.COORDENADAS_PARADAS_REQUEST es uno de los 5 envíos con acuse del proyecto
-        // (docs/mensajeria-duplicada-en-hijos.md §3.2) — el return del handler de hijo2 ya
+        // (GUIA-COMPLETA.md §10.5, "mismo contrato... con confirmación exigida") — el return del handler de hijo2 ya
         // llega aquí por enviarMensajeConConfirmacion, igual que usan ya
         // _solicitarParadaAHijo2()/solicitarCoordenadasAHijo2(). Antes montaba su propio
         // pedidoId + Map de espera + handler correlador para
@@ -9241,7 +9241,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
         /**
          * Recordatorio de que hay una salida, a los 8, 10, 12 y 14 minutos parado en el mismo
-         * punto (§3.3 de docs/rescate-a-peticion.md). No gasta nada y no decide nada: su
+         * punto (GUIA-COMPLETA.md §25.19). No gasta nada y no decide nada: su
          * botón abre el asistente, que es donde vive la petición de rescate. Es navegación,
          * no una segunda puerta al gasto.
          *
@@ -11192,8 +11192,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // estado.retosCompletados retirado entero (no solo sus campos):
                 // era un Map que nadie leía con .get() — decisión del usuario, "no
-                // necesito estadísticas de ningún tipo en esta PWA" (ver docs/
-                // mensajeria-duplicada-en-hijos.md, Parte VIII).
+                // necesito estadísticas de ningún tipo en esta PWA".
 
                 // Actualizar estado del reto actual
                 estado.retoActual.completado = correcto;
@@ -14290,7 +14289,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         }
 
         // ============================================================
-        // Pantalla de decisión del rescate (§3.4 a §3.7 de docs/rescate-a-peticion.md)
+        // Pantalla de decisión del rescate (GUIA-COMPLETA.md §25.19)
         // ============================================================
         //
         // NO es un cartel, y la diferencia es deliberada. Los diez carteles de la familia
