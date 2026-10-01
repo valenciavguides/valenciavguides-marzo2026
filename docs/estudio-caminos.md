@@ -1128,8 +1128,22 @@ los arranques (a) y (c) como vivos y con políticas opuestas. El barrido de nomb
 - **La validación del modo existe en cuatro formas** (amplía C2): `canonicalizarModo`
   (`js/utils.js:14`, minúsculas y recorte; un llamador, `app.js:527`), `normalizarModo` (hijo3
   `:1081`, hijo4 `:1169`; sanea para una clase CSS, no valida), el `includes` estricto de arriba
-  y, en el padre, `_hdl_SISTEMA_CAMBIO_MODO` (no releído en esta ronda). Hoy no divergen
+  y, en el padre, `_hdl_SISTEMA_CAMBIO_MODO` (leído entero, abajo). Hoy no divergen
   (el padre solo envía `'casa'`/`'aventura'` en minúscula).
+- **`_hdl_SISTEMA_CAMBIO_MODO`, leído entero (`codigo-padre.html:7638-7828`).** Un único guard de
+  secuencia (`estado.sistema.cambiandoModo`, `:7653-7658`, liberado en el `finally`, `:7826`): no hay
+  un segundo camino de bloqueo. La validación del modo **no está en el handler**: este compara el
+  `modo` crudo con `===` contra `MODOS.CASA`/`MODOS.AVENTURA` (`:7677, 7729, 7732, 7801`) y contra los
+  literales `'casa'`/`'aventura'` (`_gestionarHeartbeatSegunModo`, `:7609-7611`), y la delega en
+  `manejarCambioModo` (`js/app.js:512-537`, que sí pasa por `canonicalizarModo` y responde
+  `{ exito: false }` a un modo inválido, sin NACK). Los efectos previos de entrar en CASA —congelar
+  el progreso real, parar los recordatorios, ocultar los carteles de distancia, `_codigoValidadoP13 =
+  false`, reiniciar `estado.retoActual` (`:7677-7714`)— corren **antes** de esa validación. Con
+  `modo: 'CASA'` en mayúsculas, `canonicalizarModo` lo aceptaría y esos efectos previos y la pausa del
+  latido no correrían; hoy nadie lo manda así. Dos cosas menores: `_gestionarGpsSegunModo` recibe dos
+  parámetros que no usa (`origen`, `mensaje`) y se le hace `await` siendo síncrona (`:7812`), y
+  hijo5 se muestra/oculta en dos sitios (`:7729-7740` aquí y `_mostrarInterfazReanudacion`,
+  `:4970`, con la misma condición de modo desarrollo).
 
 ##### K-16 — Mapa del bus: completo, con las precisiones de K-35 y K-36 — ➖
 
@@ -2316,7 +2330,8 @@ G-11).
   datos; el de i18n compara forma, marcadores y vacías, no la calidad ni la corrección de cada
   traducción (eso es trabajo de revisión nativa).
 - Ninguna medición se ha ejecutado (R2.4).
-- No se ha leído `_hdl_SISTEMA_CAMBIO_MODO` entero (K-15).
+- `_hdl_SISTEMA_CAMBIO_MODO` se leyó entero en la pasada final (K-15); de `manejarCambioModo` solo se siguió la
+  validación y la actualización optimista (`js/app.js:512-640`).
 - Los scripts de los extractores no están versionados (R2.0); si se quieren conservar, lo decide
   el usuario.
 
