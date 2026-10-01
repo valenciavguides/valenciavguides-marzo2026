@@ -46,7 +46,7 @@ por impecable que parezca encadenado.
 **Ronda 2 (2026-10-01).** La metodología de arriba es la de la ronda 1 (`grep` e inventario). La
 ronda 2, al final de este documento, repite el barrido con parser real (`acorn`) y con el residuo
 de cada instrumento a la vista: desmiente siete afirmaciones de este texto (erratas E1-E7, con una
-nota fechada en cada sección afectada) y añade 34 entradas (K-01 a K-34) para su estudio
+nota fechada en cada sección afectada) y añade 39 entradas (K-01 a K-39) para su estudio
 individual. Léase junto con ella: lo que aquí se dio por cerrado o limpio puede no estarlo.
 
 **No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
@@ -609,7 +609,7 @@ decisión del usuario, no se ha hecho.
 | funciones | toda función/método/asignación de función con su texto normalizado | 2009 funciones, 0 bloques sin parsear |
 | homónimos y clones | mismo nombre en ≥2 ficheros; mismo texto con nombre distinto; misma forma; Jaccard ≥0.70 | 26 homónimos (25 divergentes, 1 idéntico); 15 pares casi iguales (K-28, K-29) |
 | mensajes | emisores y receptores de cada tipo del bus, resolviendo alias (`globalThis.TIPOS_MENSAJE…`, `registrar(`, `despacharLocal`) | 94 tipos, 253 emisores, 144 receptores; residuo 8 explicado (K-16) |
-| globals | `globalThis.X = …` por frame y sus escritores | padre: 182 globals, 32 con ≥2 escritores; el resto de frames: 3 en total (K-10) |
+| globals | `globalThis.X = …` por frame y sus escritores | padre: 182 globals, 32 con ≥2 escritores; el resto de frames: 3 en total (K-10); no recorría los módulos de datos (K-34) |
 | storage | claves de `localStorage`/`sessionStorage`, lectores/escritores/borradores | 9 + 2 claves, 53 sitios de 54; residuo 1 (lectura por alias `ls`, K-21) |
 | constantes | declaraciones, comparaciones y plazos con valor numérico | 578 / 221 / 146 (K-05) |
 | estado | escritores por ruta de campo de `estado`/`estadoMapa`/`estadoComponente`/… | 441 escrituras, 148 rutas (K-08, K-09) |
@@ -619,6 +619,11 @@ decisión del usuario, no se ha hecho.
 | i18n | literales en español asignados a texto de usuario | 321 asignaciones de texto; 93 literales en español (K-25) |
 | web/visibilidad/avisos | APIs web por fichero, mecanismos de mostrar/ocultar, `alert`/`confirm`/`console` | 43 APIs distintas, 416 usos de visibilidad, 6 ficheros con avisos directos (K-25, K-33) |
 | CSS/DOM | variables CSS definidas/usadas por documento, ids pedidos vs definidos, `CustomEvent` | 34 variables, 0 ids fantasma, 3 eventos propios (K-13, K-14, K-33) |
+| clases CSS | clases que el JS pone sin regla ni lectura, y reglas cuya clase nadie usa | 3 clases fantasma, ~70 reglas sin uso (con falsos positivos por nombres compuestos, K-33) |
+| destinos del bus | cada emisión de `destino` literal frente a los frames que registran handler del tipo, y a la inversa | 5 tipos con emisiones al vacío (3 falsos positivos descartados), 5 handlers inalcanzables (K-35) |
+| carga útil | claves que lee cada handler frente a las que mandan los emisores; valores literales comparados frente a valores mandados | 93 tipos, 31 comparaciones; 14 tipos con claves leídas sin emisor, 3 ramas muertas (K-36) |
+| constants.js | lectores por ruta de cada hoja de los 9 objetos exportados y literales crudos con su valor | 177 hojas, 75 sin lector; 140 `destino: 'padre'` crudos (K-37) |
+| globals por frame | por página: los ficheros que ejecuta (inline, `import` estáticos y dinámicos con literal, `<script src>`); nombres sueltos sin resolver (`eslint-scope`), `globalThis.X` leídos sin escritura en el frame, lecturas `parent.X`/`contentWindow.X`; y el uso real de la lista `globals` de `eslint.config.js` | 17 páginas, 48 ficheros, 2195 usos de `globalThis.X`; residuo: 0 bloques sin parsear, 1 `import()` no literal, 1 asignación computada (K-38, K-39, K-34) |
 
 Además se han ejecutado las herramientas propias del repo que esta auditoría no había usado:
 `node tools/codigo-muerto.js`, `node tools/verificar-mensajeria.js`, `node tools/verificar-frames.js`.
@@ -646,7 +651,9 @@ video-intro: once nombres, aunque CLAUDE.md los llama "los diez"— más `index.
 y los 111 specs de `tests/e2e/`. **Leídos a mano** los once frames del censo,
 `js/mensajeria.js`, `js/state-manager.js`, `js/config.js`, `js/funciones-mapa.js` (por tramos) y
 `js/app.js` (por tramos). **No barridos, y por qué:** `docs/` (la guía es "el acusado",
-se consulta, no se barre); `js/vendor/` (código ajeno); `tools/*` salvo las tres herramientas
+se consulta, no se barre); `js/vendor/` (código ajeno); `js/proteccion.js` pasa por los
+extractores, pero lo que hace como módulo de protección no se estudia ni se describe en este
+documento (repo público; se trata aparte); `tools/*` salvo las tres herramientas
 ejecutadas; `tests/*.js` sueltos (15 ficheros fuera de `tests/e2e/`, no los ejecuta
 Playwright); los diez módulos de datos de `js/` (`*-aventuras.js`, `traducciones-ui.js`), de los
 que solo se miraron las tablas indexadas por idioma y la lista de ficheros del SW. Las cinco
@@ -961,29 +968,41 @@ Dos formas concretas ya vistas al leer:
 
 #### Familia C — Heartbeat y mensajería
 
-##### K-11 — Heartbeat: tres arranques, una bandera con siete escrituras y un camino de "volver a la pestaña" que no usa el previsto — ✅ + ⚠️ POR MEDIR
+##### K-11 — Heartbeat: cuatro rutas de arranque (dos no hacen nada), una bandera con siete escrituras y un camino de "volver a la pestaña" que no usa el previsto — ✅ + ⚠️ POR MEDIR
 
-- **Arranques.** (a) Script 1, `codigo-padre.html:4075-4104`: solo si `modo.actual` es
-  verdadero y no es CASA; con `modo` nulo **pospone**. Intervalo `ajustarTimeoutPorConexionSafe(5000)`.
-  (b) `_activarHeartbeatAventura` (`:7535-7548`): `iniciarHeartbeat` por `globalThis.mensajeria`,
-  5000 ajustado; no mira la bandera. (c) Script 4, `:15012-15024`: solo si `parent === window` y la
-  bandera está a falso; `modoInicial = estadoPadre?.modo?.actual || CASA` — con `modo` nulo **cae a
-  `pausarHeartbeat()`**, la política opuesta a la de (a); intervalo 10000. (d) `js/app.js`:
-  `iniciarPrewarmEnCasa` (`:745-748`: `preiniciarHeartbeat()` y a continuación
-  `pausarHeartbeat()`), `_preiniciarHeartbeatSiNecesario` (`:382-387`) y
-  `_reanudarSubsistemasTrasPrewarm` (`:395-396`: `reanudarHeartbeat()`, que limpia `userPaused`,
-  `mensajeria.js:994-1008`).
-- **Paradas.** `_transicionarAModoCasa` (`:7574-7605`), `_detenerHeartbeatSeguro` en `pagehide`
-  (`:14913-14924`), `app.js:_pausarHeartbeatCasa` (`:442-446`). El helper de consola
-  `_testHeartbeatPauseResume` (`:15066-15090`; nadie lo llama, `tools/codigo-muerto.js` lo marca)
-  documenta la expectativa: con `userPaused`, `iniciarHeartbeat` se ignora, y un `CAMBIO_MODO` a
-  aventura lo limpia.
+*Corregida el 2026-10-01, el mismo día de su redacción: la primera versión de esta entrada trataba
+los arranques (a) y (c) como vivos y con políticas opuestas. El barrido de nombres de `globalThis`
+(K-38) mostró que los dos buscan la función con un nombre que nadie define y no hacen nada.*
+
+- **Arranques.** (a) Script 1, `codigo-padre.html:4075-4105`: **no hace nada.** Busca la función
+  como `iniciarHeartbeat`, `iniciarHeartbeat_S1` o `globalThis.iniciarHeartbeat` (`:4079`); las
+  tres son `undefined` (K-38), `typeof hbFn === 'function'` es falso y el bloque entero —con su
+  política "con `modo` nulo pospone" y su intervalo `ajustarTimeoutPorConexionSafe(5000)`— se salta
+  sin dejar ni un log. (b) `_activarHeartbeatAventura` (`:7535-7548`): `iniciarHeartbeat` por
+  `globalThis.mensajeria`, 5000 ajustado; no mira la bandera. **Es el único arranque que arranca.**
+  (c) Script 4, `:15012-15028`: **tampoco hace nada** — sus dos llamadas son
+  `globalThis.iniciarHeartbeat` y `globalThis.pausarHeartbeat`, que nadie asigna (K-38) —; lo único
+  que ejecuta es poner la bandera a `true` en la rama AVENTURA (`:15019`, fuera de la guarda) y el
+  log de nivel debug de la rama CASA (`:15023`). Su política "con `modo` nulo cae a CASA" y su
+  intervalo de 10000 no llegan a usarse. (d) `js/app.js`: `iniciarPrewarmEnCasa` (`:745-748`:
+  `preiniciarHeartbeat()` y a continuación `pausarHeartbeat()`), `_preiniciarHeartbeatSiNecesario`
+  (`:382-387`) y `_reanudarSubsistemasTrasPrewarm` (`:395-396`: `reanudarHeartbeat()`, que limpia
+  `userPaused`, `mensajeria.js:994-1008`).
+- **Paradas.** `_transicionarAModoCasa` (`:7574-7605`) y `app.js:_pausarHeartbeatCasa`
+  (`:442-446`). `_detenerHeartbeatSeguro`, que llama el `pagehide` del padre (`:14913-14924`,
+  `:14952`), **no detiene el latido**: busca `globalThis.detenerHeartbeat`, que no existe (K-38), y
+  solo baja la bandera (`:14919`). El helper de consola `_testHeartbeatPauseResume`
+  (`:15066-15090`; nadie lo llama, `tools/codigo-muerto.js` lo marca) documenta la expectativa:
+  con `userPaused`, `iniciarHeartbeat` se ignora, y un `CAMBIO_MODO` a aventura lo limpia.
 - **La bandera `__HEARTBEAT_INICIADO`:** 7 escrituras en 6 sitios (`:4095, 5273, 7543, 7599, 14919,
-  15019`) y 3 lecturas (`:4078, 14915, 15012`). El estado real vive en el state-manager
-  (`getHeartbeat()`: `activo`, `userPaused`, `intervalo`). `_activarHeartbeatAventura` pone la
-  bandera a `true` aunque `iniciarHeartbeat` haya devuelto `false`: se niega mientras `userPaused`
+  15019`) y 3 lecturas (`:4078, 14915, 15012`); la de `:4095` pertenece al arranque (a), que no
+  corre, y la de `:15019` se ejecuta sin que nada haya arrancado (solo si el modo ya es AVENTURA
+  cuando Script 4 llega ahí). El estado real vive en el state-manager (`getHeartbeat()`: `activo`,
+  `userPaused`, `intervalo`). `_activarHeartbeatAventura` pone la bandera a `true` aunque
+  `iniciarHeartbeat` haya devuelto `false`: se niega mientras `userPaused`
   (`mensajeria.js:964-967`), y `pausarHeartbeat()` marca `userPaused: true` **aunque el latido no
-  estuviera activo** (`:1060-1066`) — que es lo que hace el arranque (c) en un arranque en frío.
+  estuviera activo** (`:1060-1066`) — cosa que hacen `_transicionarAModoCasa` y (d); (c) no llega
+  a hacerla (K-38).
 - **Volver a la pestaña.** El handler inline del padre (`:14891-14907`) manda un
   `SISTEMA.HEARTBEAT` en `broadcast` **sin mirar la pausa**. `adelantarLatido()`
   (`mensajeria.js:1028-1045`) está escrita justo para eso y su comentario dice: "Si el latido está
@@ -994,11 +1013,21 @@ Dos formas concretas ya vistas al leer:
   guía, spec. Es decir: la función existe, está documentada y probada, y el camino real que
   debía usarla hace otra cosa.
 - **POR MEDIR (necesita ejecución y el OK del usuario):** (1) arranque en frío directo a AVENTURA
-  sin pasar por CASA: ¿`userPaused` queda a `true` por (c) y bloquea el `iniciarHeartbeat` de
-  `_activarHeartbeatAventura`, dejando la bandera mintiendo? (2) intervalo efectivo, 5000 o
-  10000, según quién llegue primero; (3) en CASA, qué hacen los hijos con el `HEARTBEAT` que
-  llega al volver a la pestaña. Tres listeners más de `visibilitychange` en el padre (`:4952,
-  :15344, :15387`) no se han examinado en esta entrada.
+  (reanudación): estado final del latido y de la bandera. Con K-38 el arranque (c) no pausa; queda
+  por ver si algún otro camino —(d), en una carga que pase por CASA— deja `userPaused` a `true` y
+  bloquea el `iniciarHeartbeat` de `_activarHeartbeatAventura`, y si la bandera miente por
+  `:15019`. (2) intervalo efectivo: se espera el de (b), 5000 ajustado por la conexión; (3) en
+  CASA, qué hacen los hijos con el `HEARTBEAT` que llega al volver a la pestaña.
+- **Los demás `visibilitychange`, leídos uno a uno** (ninguno toca el latido; cada uno decide una
+  cosa distinta): en el padre, `:4952` (diálogo de "vuelta rápida" tras salir por un enlace
+  externo, solo si está la bandera `__vv_salidaEnlaceExterno`), `:6777` (`once`: con el GPS
+  denegado en iOS, reintenta `activarGPS()` al volver), `:15344` (service worker:
+  `registration.update()` al ocultar; al volver, reaviso del banner pendiente y nueva consulta de
+  versiones) y `:15387` (wake lock). Fuera del padre, `js/reciclaje-digital.js:196-199`
+  (`armarRedDeSeguridad`: al ocultarse la pestaña ejecuta la limpieza; solo se arma durante los
+  modales de fin, etiquetas `FIN_AVENTURA`, `TIEMPO_AGOTADO` y `P17_DESPEDIDA`) y
+  `boton-casa-hijo5.html:1284` (solo desarrollo: al volver manda por iniciativa propia un
+  `HEARTBEAT_RESPONSE` con `razon: 'visibilitychange'` y regenera sus botones).
 
 ##### K-12 — Registro de handlers: tres almacenes, uno sin definición y un "fallback previsto" que avisa como si fuera una avería — ✅
 
@@ -1065,7 +1094,7 @@ Dos formas concretas ya vistas al leer:
   también de hijo4 hacia el padre, desde un `catch` genérico (`retos-hijo4.html:1462`) — ese
   **sí puede dispararse** con cualquier excepción del handler de `CAMBIO_MODO`; y dos del padre
   a hijo4 (`codigo-padre.html:10892`, `:10925`), único receptor. Un NACK al padre cae en "sin
-  handler", que el bus registra a nivel **`debug`** (`mensajeria.js:784-787`).
+  handler", que el bus registra a nivel **`debug`** (`mensajeria.js:784-787`); ver K-35.
 - **El bloque copiado:** `!modo || !['casa','aventura'].includes(modo)` → NACK en 6 frames
   (`audio-hijo3.html:1357`, `coordenadas-hijo2.html:1709`, `extrainfo-hijo1.html:463`,
   `retos-hijo4.html:1379`, `En-busca-del-tesoro.html:2827`, hijo5 `:558` en otra forma).
@@ -1075,12 +1104,15 @@ Dos formas concretas ya vistas al leer:
   y, en el padre, `_hdl_SISTEMA_CAMBIO_MODO` (no releído en esta ronda). Hoy no divergen
   (el padre solo envía `'casa'`/`'aventura'` en minúscula).
 
-##### K-16 — Mapa del bus: completo y limpio — ➖
+##### K-16 — Mapa del bus: completo, con las precisiones de K-35 y K-36 — ➖
 
 94 tipos, 253 puntos de emisión, 144 de recepción; un único `addEventListener('message')`
 (`mensajeria.js:130`) más el canal del Service Worker (`codigo-padre.html:15253`, `sw.js:180`);
 `postMessage` solo en `mensajeria.js:479, 519, 530, 853` y en el canal del SW. Todos los tipos
-tienen emisor y receptor salvo `NAVEGACION.GPS.DESACTIVAR` (cerrado, placeholder). Residuo 8
+tienen emisor y receptor **en algún frame** salvo `NAVEGACION.GPS.DESACTIVAR` (cerrado,
+placeholder); **comprobado por destino, no todo lo emitido llega a un handler** (ocho
+`SISTEMA.CONFIRMACION` y siete `SISTEMA.NACK` al padre; cinco handlers que ninguna emisión alcanza,
+K-35) y la carga útil tiene claves y valores que solo existen en un lado (K-36). Residuo 8
 explicado: `registrarEvento` (no es mensaje), 3 del SW, 4 internos del bus.
 `node tools/verificar-mensajeria.js` marca 5 tipos más como "sin emisor/receptor" y **los 5 son
 falsos positivos del verificador** (K-34), comprobados con búsqueda desnuda de cada tipo.
@@ -1403,6 +1435,16 @@ propósito". Método: `ficherosDelShell()` contra el literal de `APP_SHELL`.
   se define en 6 documentos con valores distintos y se usa en 5: correcto (las variables no
   cruzan iframes). `video-intro.html:366` (`.or-badge`) usa `--tx`/`--ty`, que nadie define, y la
   clase no la usa ningún elemento (búsqueda desnuda `or-badge`: 1 línea): CSS muerto 🔎.
+- **Clases CSS (instrumento de clases):** el JS pone tres clases que ninguna regla del documento
+  menciona y ninguna lectura usa: `deshabilitado` (`retos-hijo4.html:1534, 1557, 1564`: el efecto
+  visual lo da `button:disabled`, la clase es un segundo mecanismo sin efecto), `img-fallback`
+  (`codigo-padre.html:1993, 9739`) y `activa` (hijo5). Reglas cuya clase no aparece en el HTML ni en
+  el JS del documento: padre 6 (todo el componente `#notification-container`/`.notification*`,
+  `:256-330`, sin elemento ni JS que lo use), hijo2 15 (`.icon-gps`, `.icon-imagen`,
+  `.icon-video`, `.gps-activo`, `.gps-inactivo`, `.ubicacion-btn`, `.boton .label-text`…), selección 6,
+  hijo3 2, hijo5 2 y video-intro 37; en hijo5 y video-intro los nombres se componen en tiempo de
+  ejecución, así que esos dos recuentos son un techo, no un hallazgo. Es CSS muerto, no un segundo
+  camino: se anota para quien limpie. 🔎
 - **`index.html`:** tres vías hacia `codigo-padre.html` en el mismo fichero — el `location.replace` del
   `<head>` (`:8`), un `setTimeout` de 100 ms (`:147-151`, "si el meta refresh no funciona": no hay
   `<meta http-equiv="refresh">`, búsqueda desnuda `refresh` → solo ese comentario) y el enlace
@@ -1438,11 +1480,343 @@ retira el instrumento estático". Medido en esta ronda:
   (`estado.monitoreo.historial.eventos`, cuenta la autolectura) y lecturas de claves inexistentes.
 - **`npm run inventory:dupes`:** 23 nombres; el parser, 26 (K-29).
 - **El extractor de storage de esta ronda** no vio `ls.getItem` (lectura por alias): residuo 1/54.
+- **La lista `globals` de `eslint.config.js`** (`:76-221`, bloque `*.html`, con `no-undef:
+  "warn"`): 120 nombres, 80 de ellos propios del proyecto. Medido con el instrumento por frame
+  (K-38): de los 80, 40 se usan sueltos y están definidos en el frame que los usa; **2 se usan y no
+  existen en ningún frame — `iniciarHeartbeat` e `iniciarHeartbeat_S1` (`:206-207`)**, y la lista es
+  lo que impide que `no-undef` avise de `codigo-padre.html:4079`; 38 no se usan sueltos en ningún
+  bloque inline de las 17 páginas, y 12 de ellos ni siquiera están definidos como global en ningún
+  frame (`CONFIG`, `ajustarTimeoutPorConexion_S1`, `btnTop`, `codigo`, `coordinarAccion`,
+  `enviarMensaje_S1`, `estadoMapa`, `generarIdUnico`, `idPadre`, `notifError`, `overlay`,
+  `registrarIframe_S1`): silenciadores latentes, que ocultarían un uso futuro. Además, el bloque de
+  `js/**/*.js` no activa `no-undef` (solo lo activa el de `*.html`; el de `tests/**/*.html` lo apaga,
+  `:302`), así que los módulos no tienen esa comprobación. El análisis de ámbitos del instrumento
+  por frame no usa esa lista: da 0 nombres sueltos sin resolver en los módulos y en `sw.js`
+  (`eslint-scope`, builtins de service worker aparte) y 2 en el padre.
+- **Los instrumentos de esta ronda.** El de globals de K-10 y la primera pasada de este barrido
+  excluían los módulos de datos del lado de las escrituras; dos de ellos asignan un global
+  (`DATOS_PADRE`, `RETOS_AVENTURAS`). `RETOS_AVENTURAS` salió "sin definidor" y no lo es: lo cazó la
+  búsqueda desnuda (regla 10) antes de escribirlo, y el instrumento por frame ya los incluye.
+  Ninguno de los dos tiene un segundo escritor, así que K-10 no cambia; sí su recuento de globals del
+  padre (182), que no los incluye.
 
 **Decisión pendiente:** corregir `verificar-frames.js` y `verificar-mensajeria.js` (ignorar
 comentarios, cubrir `?.`, propiedades y alias) o retirar las dos columnas/avisos que mienten.
 Mientras no se haga, citar su salida como evidencia exige comprobarla a mano, como aquí.
 
+#### Familia J — Contrato del bus y constantes compartidas
+
+Tres barridos más, hechos tras redactar K-01 a K-34: el primer enunciado de K-16 ("todos los
+tipos tienen emisor y receptor") solo comprobaba que *algún* frame registrara un handler, no que
+fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las constantes.
+
+##### K-35 — Mensajes enviados al vacío y handlers que ninguna emisión alcanza — ✅
+
+- **Método.** Para cada emisión con `destino` literal se comprueba que el frame de destino
+  registre un handler de ese tipo, y a la inversa (handlers que ninguna emisión alcanza: ni
+  destino literal, ni `broadcast`, ni destino dinámico). 94 tipos, 253 emisiones. Cada hallazgo
+  se verificó leyendo emisor y receptor.
+- **Emisiones al vacío — `SISTEMA.CONFIRMACION` ×8.** Todas van al padre, que **no registra
+  ningún handler** de ese tipo (búsqueda desnuda de `CONFIRMACION` en el padre,
+  `js/app.js`, `js/funciones-mapa.js` y `js/controladores-padre.js`: solo timeouts de configuración):
+  `audio-hijo3.html:1274` (`UI_VISIBLE`), `:1556` (`click_ejecutado`), `:1601` (`audio_control`),
+  `boton-casa-hijo5.html:904`, `coordenadas-hijo2.html:1646`, `En-busca-del-tesoro.html:2764`,
+  `extrainfo-hijo1.html:306`, `retos-hijo4.html:1319` (los otros cinco, `UI_VISIBLE`). Caen en "sin
+  handler", que el bus anota a nivel `debug` (`mensajeria.js:784-787`). La guía §10.17 los lista
+  como usos de `SISTEMA.CONFIRMACION` ("UI_VISIBLE (handshake visual)", "Respuesta a acciones de
+  audio") sin decir que nadie los recibe, y hijo5 ya retiró uno por ese motivo
+  (`boton-casa-hijo5.html:1062-1066`). El tipo tiene además un uso que sí funciona: el acuse del
+  propio bus (`mensajeria.js:774, 845`, con `idOriginal`). Dos usos del mismo nombre: uno vivo y
+  ocho mensajes sueltos.
+- **`SISTEMA.NACK` ×7:** ver K-15 (documentado en §10.11).
+- **Falsos positivos que el instrumento da y se descartan:** `PUZZLE.COMPLETADO`,
+  `PUZZLE.TIMEOUT` (`puzzle.html:195`) y `SELECCION.VIDEO_INTRO_TERMINADO` (`video-intro.html:1964`)
+  mandan a `'padre'`, que en el bus significa "la ventana de arriba": el puzzle vive en hijo4 o en
+  la selección, y video-intro en la selección o en hijo6 (`chat-hijo6.html:645` registra el iframe
+  `video-intro`); los receptores coinciden.
+- **Handlers que ninguna emisión alcanza (5):**
+  - hijo5 `SISTEMA.CONFIRMACION` (`boton-casa-hijo5.html:1151`): solo loguea, y todo lo que se emite
+    va al padre.
+  - hijo1 `UI.CLOSE_MENUS` (`extrainfo-hijo1.html:347`, unas 50 líneas con `ocultarTodos()`): **la
+    guía lo describe como padre → hijo1** (L2498, L2532 "P->>H1: UI.CLOSE_MENUS { except }", L3907,
+    L5471, L11309) pero el único emisor es hijo1 → padre (`extrainfo-hijo1.html:709`). Búsqueda
+    desnuda de `CLOSE_MENUS` en el padre: solo su handler (`codigo-padre.html:12463, 12478`).
+  - padre `AVENTURA.FINALIZADA` (`_hdl_AVENTURA_FINALIZADA`, registrado en `:13993`): solo loguea
+    ("No limpiar aquí"); el padre emite el tipo hacia `hijo1-opciones` y nadie se lo manda a él.
+  - hijo4 `CONTROL.HABILITAR` y `CONTROL.DESHABILITAR` (`retos-hijo4.html:1573-1581`): handlers
+    sin cuerpo ("Implementar lógica … si es necesario"); el padre manda `CONTROL.*` solo a hijo2 y
+    hijo3.
+- **Pendiente:** decidir si se retiran los cinco handlers y los ocho envíos, o si se quiere un
+  receptor real. Ninguna acción tocaría el contrato del bus (regla 1): son extremos sin pareja.
+
+##### K-36 — Contrato de la carga útil: claves y valores que solo existen en un lado — ✅ (alcance 🔎)
+
+- **Método.** Dos instrumentos: (1) claves que cada handler lee de `mensaje.datos` frente a las
+  que los emisores del tipo ponen en `datos`; (2) valores literales con los que un handler
+  compara una clave (`x === 'lit'`, `switch`, `[..].includes(x)`) frente a los valores literales
+  que los emisores mandan para ella. Solo se concluye cuando todos los emisores del tipo tienen
+  `datos` literal. **Cobertura:** 93 tipos con claves y 31 comparaciones; los tipos con emisor
+  opaco (`AVENTURA.ESTADISTICAS_TIEMPO`, `CHAT.ESTADO_PADRE`, `NAVEGACION.CAMBIO_PARADA`,
+  `RETO.COMPLETADO`, `SISTEMA.PADRE_DATOS`) quedan **sin concluir**.
+- **Tres ramas muertas — leído el emisor y el receptor, búsqueda desnuda del valor:**
+  1. `UI.ACCION_USUARIO` `accion === 'simular_click'` (`audio-hijo3.html:1609`, que además exige
+     `elemento` y `contexto === 'boton_horizontal'`): ningún emisor manda esa acción ni esa clave
+     (los emisores mandan `audio_control`, `reproducir-video`, `mostrar-imagen`: padre `:8028` y
+     `:10603`, hijo2 `:910, 919, 928, 1048, 1069, 1088`, hijo1 `:859`). Búsqueda desnuda de
+     `simular_click|boton_horizontal|click_ejecutado`: hijo3 (receptor) y la guía (L2813, L3798,
+     L4003, L5945), que la presenta como camino vivo. Arrastra `_manejarSimularClick`
+     (`audio-hijo3.html:1551-1561`), el `SISTEMA.CONFIRMACION {click_ejecutado}` (K-35) y el
+     `SISTEMA.ERROR ELEMENTO_NO_ENCONTRADO`.
+  2. `CONTROL.DESHABILITAR` `motivo === 'reto_abierto'` (`coordenadas-hijo2.html:1480`):
+     `'reto_abierto'` no tiene emisor en todo el repo, y los emisores de `DESHABILITAR` mandan
+     `razon`, no `motivo`. El flag `retoActivo` de hijo2 le llega por `NAVEGACION.ACTUALIZAR_ESTADO`
+     (`:1261`). (El valor hermano `'reto_cerrado'` sí lo mandan `codigo-padre.html:11069, 11080`,
+     por `CONTROL.HABILITAR`.) Dentro de la familia `CONTROL.*` el porqué viaja con dos nombres,
+     `motivo` y `razon`.
+  3. `UI.CLOSE_MENUS` `except !== 'audio-control'` (`codigo-padre.html:12467`): el único valor que
+     se manda es `'mas-opciones'` (`extrainfo-hijo1.html:709`); la exención nunca se aplica y el
+     padre cierra siempre el overlay.
+- **Claves leídas que ningún emisor manda, de efecto benigno (valor por defecto, alias o solo
+  log) — 12 tipos (el duodécimo, `SISTEMA.CONFIRMACION`, es el de K-35):** `AUDIO.ERROR`,
+  `AUDIO.ESTADO_ACTUALIZADO` y `AUDIO.FIN_REPRODUCCION` leen
+  `timestamp` y caen a `Date.now()` (`codigo-padre.html:12653-12663, 12787`); `FIN_REPRODUCCION`
+  además loguea `duracion`, que el emisor no manda (`audio-hijo3.html:963` manda `{audioId,
+  estado}`, y `estado` no se lee); `SISTEMA.HIJO_LISTO` lee `version` y `tiempoInicializacion`
+  con valores por defecto (`'1.0.0'`, `0`, `codigo-padre.html:7446`) y **los guarda así en
+  `estado.estadoHijos` para todos los hijos**; `UI.NAVEGACION_EXTERNA` lee `titulo`
+  (solo para el log, `:12456-12461`) y el emisor manda `icono` y `timestamp` que nadie lee;
+  `DATOS.COORDENADAS_PARADAS_REQUEST` lee `incluirMarcadores` y `actualizarMapa` como opciones
+  con `!== false` (`coordenadas-hijo2.html:1933, 1979-1980`) que ningún emisor usa;
+  `NAVEGACION.RESPUESTA_DATOS_PARADAS` (`estadisticas`, `paradaActual`),
+  `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` (`padre`, alias en una cadena `||`),
+  `NAVEGACION.GPS.ERROR` (`message`/`context` junto a `mensaje`/`contexto`),
+  `SISTEMA.HIJO_FALLIDO` (`componenteId`, solo para el log) y `SISTEMA.NOTIFICACION`
+  (`padreid`, `motivo` con valor por defecto, `retos-hijo4.html:1626`).
+- **Una copia dentro del contrato de audio:** `_resolverAudioData` (`codigo-padre.html:11665-11682`) y
+  el handler de `DATOS.SOLICITAR_AUDIOS` de `js/controladores-padre.js:54-84` hacen la misma
+  búsqueda del audio por id y devuelven la misma forma `{id, title, file}`; el segundo manda
+  `AUDIO.REPRODUCIR_REQUEST` sin acuse (`:75`) y el primero con acuse y reintento
+  (`:11709`). 🧩.
+- **Tipos que se mandan con acuse y también sin él (🔎).** Los tipos que alguien manda con
+  `enviarMensajeConConfirmacion` son cinco —`AUDIO.REPRODUCIR_REQUEST`, `CHAT.RESCATE_SOLICITADO`,
+  `DATOS.COORDENADAS_PARADAS_REQUEST`, `NAVEGACION.GPS.ACTIVAR`, `RETO.COMPLETADO`—, que es la
+  cuenta de la guía (§10.5). Tres de ellos tienen además emisores **sin** acuse:
+  `AUDIO.REPRODUCIR_REQUEST` (la rama de respaldo de `_solicitarAudioRest`, `codigo-padre.html:5159`,
+  que solo corre si no existe `solicitarAudioAHijo3`; y la respuesta a `DATOS.SOLICITAR_AUDIOS`,
+  `js/controladores-padre.js:75`), `DATOS.COORDENADAS_PARADAS_REQUEST` (`solicitarCoordenadasAHijo2`,
+  `:10516`, que se usa en la reanudación, `:5172`; su comentario en `:6050-6059` dice lo contrario,
+  G-13) y `NAVEGACION.GPS.ACTIVAR` (`js/funciones-mapa.js:2574`, la rama "estoy en un iframe" del
+  adaptador `manejarGPSActivar`, que **no puede ejecutarse**: solo el padre importa
+  `funciones-mapa.js`, `codigo-padre.html:3789, 9869, 15036`, y el único llamador interno es
+  `:2640`). Que un mismo tipo tenga dos garantías de entrega según quién lo manda no es un fallo
+  por sí mismo; se anota para decidir si cada caso es deliberado.
+- **Lo que no se hizo:** leer uno a uno los 5 tipos con emisor opaco, ni ampliar el extractor de
+  discriminadores (31 comparaciones). 🔎.
+
+##### K-37 — `js/constants.js`: 75 de 177 hojas sin lector, un valor que no coincide con el bus y una lista de validación que nadie usa — ✅
+
+- **Recuento por ruta con residuo.** 177 hojas en los 9 objetos que exporta
+  (`LOG_LEVELS` 5, `MODOS` 2, `TTL_LIMPIEZA` 6, `TIPOS_MENSAJE` 94, `ERRORES` 48, `ESTADOS` 3,
+  `CODIGOS_ERROR` 14, `DESTINOS` 2, `CSS_CLASES` 3); **75 sin lector**: `ERRORES` (48),
+  `CODIGOS_ERROR` (14), `ESTADOS` (3), `DESTINOS` (2), `CSS_CLASES` (3), cuatro de las seis de
+  `TTL_LIMPIEZA` (`LOGGER.*` y `SUPPRESS.*`; solo `MENSAJERIA.MOVIL/DESKTOP` se leen,
+  `mensajeria.js:1283`) y `NAVEGACION.GPS.DESACTIVAR` (cerrado, K-16). Búsqueda desnuda de
+  `\bERRORES\b|\bCODIGOS_ERROR\b|\bESTADOS\b|\bDESTINOS\b|\bCSS_CLASES\b` en el padre, `js/*.js`,
+  los HTML, los specs y la guía: solo `js/constants.js` y L10788 de la guía.
+- **`TIPOS_MENSAJE_VALIDOS`** (`constants.js:323, 345`, "lista plana para validación O(1)"): ningún
+  lector en todo el repo. Nada valida un tipo contra ella.
+- **`DESTINOS.TODOS = 'todos'`** no existe para el bus, que usa `'broadcast'`
+  (`mensajeria.js:325, 504`): de usarse, mandaría a ninguna parte. `DESTINOS.PADRE = 'padre'` es
+  correcto, no lo lee nadie y hay **140 literales** `destino: 'padre'` (selección 21, hijo1 21, hijo2
+  32, hijo3 18, hijo4 16, hijo5 20, hijo6 7, mapa-completo, puzzle y video-intro 1 cada uno,
+  `mensajeria.js` 1, `utils.js` 1; `grep -cE "destino:\s*['\"]padre['\"]" <fichero>`).
+- **Mismas constantes sustituidas por literales:** `MODOS.CASA/AVENTURA` lo leen el padre (62
+  veces), `js/funciones-mapa.js` (11) y `js/app.js` (5), y **ningún** hijo ni nieto (0 en los diez
+  frames restantes), que escriben los literales `'casa'`/`'aventura'` (hijo5 18, hijo2 17, hijo4 4,
+  selección 4, hijo3 3, hijo1 3, mapa-completo 1; el padre y `funciones-mapa.js` conservan
+  además 9 y 10 literales);
+  `CSS_CLASES.MODO_CASA/MODO_AVENTURA/HIJO3_CONTAINER` (`'modo-casa'`, `'modo-aventura'`,
+  `'hijo3-container'`) sin lector y los literales en `audio-hijo3.html:388, 1114, 1129`,
+  `retos-hijo4.html:1203`, `coordenadas-hijo2.html:333`; `ESTADOS.INICIALIZANDO` frente al
+  literal de `chat-hijo6.html:764`. Dos únicos sitios usan un tipo de mensaje como literal en vez
+  de la constante: `js/mensajeria.js:1241` (respaldo de `mensaje.tipo`) y `js/utils.js:668`
+  (respaldo tras `globalThis.TIPOS_MENSAJE?.SISTEMA?.ERROR`, porque `utils.js` no importa
+  `constants.js`).
+- **Guía:** L10788 dice que `constants.js` es la "fuente de verdad de todas las constantes" con
+  "16 categorías y 83 tipos"; hay 16 categorías y **94** tipos, y de `ERRORES`/`ESTADOS` que
+  cita no lee nada ningún fichero.
+- **Pendiente:** el mismo planteamiento que K-02 — ¿se vacían, o se adoptan (y se sustituyen los
+  literales)? Dos ficheros de constantes (`config.js` y `constants.js`) con más de la mitad de su
+  contenido sin lector es el patrón de K-01/K-02 repetido.
+
+#### Familia K — Nombres de `globalThis` que nadie define, y un frame que no publica lo que los demás
+
+Un barrido más, hecho tras K-35 a K-37: los tres anteriores miraban lo que viaja por el bus y por
+las constantes; este mira lo que viaja por `globalThis`. Un camino que se apoya en un nombre
+que no existe **no falla**: la guarda (`typeof … === 'function'`, `if (globalThis.x)`) lo salta sin
+ruido, y el código parece cubrir un caso que en realidad nadie cubre. Es la versión "función o
+variable al vacío" de K-35 ("mensaje al vacío").
+
+##### K-38 — Nombres de `globalThis` que el código lee, comprueba o limpia y que ningún frame define — ✅ (confirmación en ejecución ⚠️ M-10)
+
+- **Método (instrumento nuevo, "globals por frame").** Para cada una de las 17 páginas `.html`
+  calcula el conjunto de ficheros que ejecuta (bloques inline y cierre de `import` estáticos,
+  `import()` con literal y `<script src>`), analiza los ámbitos de cada bloque con `eslint-scope` y
+  lista (A) los nombres sueltos sin resolver que ningún bloque del frame define, (B) los
+  `globalThis.X`/`window.X`/`self.X` leídos, llamados, comprobados con `typeof` o borrados cuyo `X`
+  no asigna ninguna escritura del frame (con los frames donde sí se define, si hay alguno) y (C)
+  las lecturas `parent.X` y `<iframe>.contentWindow.X`. **Un símbolo de nivel superior de un módulo
+  no es un global**: por eso `iniciarHeartbeat`, que es un `export` de `js/mensajeria.js:948`,
+  sale como inexistente cuando se pide por `globalThis`. **Residuo impreso:** 0 bloques sin
+  parsear; 1 `import()` no literal (`En-busca-del-tesoro.html:2199`,
+  `./js/indice-aventuras.js?v=${Date.now()}`, que no asigna nada a `globalThis`); 1 asignación
+  computada (`codigo-padre.html:14950`: las tres claves de temporizadores de overlay); 4
+  `<script src>` fuera del análisis (MapLibre, Leaflet ×2, page-flip). **Cobertura:** el código de
+  la aplicación y los módulos de datos (dos asignan un global: `DATOS_PADRE`,
+  `js/aventuras-ID-padre.js:10625`, y `RETOS_AVENTURAS`, `js/retos-aventuras.js:25017`); lo que
+  `js/proteccion.js` hace como módulo de protección no se estudia aquí. **Resultado:** sobre 2195
+  usos de `globalThis.X`, (A) deja solo `iniciarHeartbeat` e `iniciarHeartbeat_S1`; (B) deja los
+  nombres de abajo; (C) deja dos lecturas de `parent` con nombre propio (`aventuraSeleccionada`,
+  K-26, y `__vv_config`, K-01) y ninguna de `contentWindow`. Un control: el filtro que descarta
+  propiedades del navegador no esconde ningún nombre sospechoso (se imprimió la lista de lo
+  filtrado: solo `Array`, `Date`, `document`, `console`, `localStorage`… ).
+- **Historial.** Para cada nombre de los apartados 1 a 5, `git log --oneline
+  -G"(globalThis|window|self)\.NOMBRE\s*(\|\||&&|\?\?)?=[^=]"` da **0 commits** sobre los 664 del
+  repo; control positivo con la misma expresión: `logger` 7, `TIPOS_MENSAJE` 6,
+  `__HEARTBEAT_INICIADO` 3, `DATOS_PADRE` 1. Las guardas de `detenerHeartbeat`,
+  `iniciarHeartbeat_S1`, `typeof globalThis.pausarHeartbeat` y `registerAllowedOrigin` están desde el
+  commit inicial (`2c5c2c2`): no son una regresión de la lavadora.
+
+**1. El latido del padre — dos de las cuatro rutas de arranque de K-11 no hacen nada.**
+
+- `codigo-padre.html:4079` (arranque (a)): `hbFn = (typeof iniciarHeartbeat === 'function' &&
+  iniciarHeartbeat) || (typeof iniciarHeartbeat_S1 === 'function' && iniciarHeartbeat_S1) ||
+  globalThis.iniciarHeartbeat`. Búsqueda desnuda de `iniciarHeartbeat` en `{*.html,js/*.js}`: en
+  el padre solo hay usos (`:4079, 7540, 15016-15017, 15078`), comentarios y un texto de log
+  (`:7546`); las únicas definiciones son el `export` de `js/mensajeria.js:948` y la clave del
+  objeto `globalThis.mensajeria` (`:186`). `iniciarHeartbeat_S1` no aparece más que en `:4079` y en la lista de globals de ESLint
+  (`eslint.config.js:207`, K-34). Las tres alternativas son `undefined`, `typeof hbFn ===
+  'function'` es falso y el bloque `:4080-4104` no se ejecuta; **ni siquiera deja un log**.
+- Arranque (c), Script 4 `:15012-15028`: `typeof globalThis.iniciarHeartbeat` (`:15016`) y
+  `typeof globalThis.pausarHeartbeat` (`:15022`); nadie los asigna. Lo que sí ocurre: en la rama
+  AVENTURA se pone `__HEARTBEAT_INICIADO = true` (`:15019`, fuera de la guarda) sin haber arrancado
+  nada, y en la rama CASA se emite el log debug "Heartbeat no iniciado por modo CASA (Script 4)"
+  (`:15023`) igual que si hubiera pausado. El comentario de `:15004-15006` dice que ese arranque
+  llama "ahora directo a iniciarHeartbeat/pausarHeartbeat/getHeartbeat"; la llamada directa está
+  escrita contra `globalThis.`, no contra el bus (`globalThis.mensajeria.…`).
+- `_detenerHeartbeatSeguro` (`:14913-14924`, llamada por `_limpiarPagehide`, `:14952`):
+  `typeof globalThis.detenerHeartbeat === 'function'` — el bus expone `pausarHeartbeat`, no
+  `detenerHeartbeat`. En un `pagehide` real el latido no se detiene; solo se baja la bandera
+  (`:14919`). La guía (L12591) dice que ese `pagehide` "detiene el heartbeat" (G-14).
+- `_testHeartbeatPauseResume` (`:15078`, helper de consola sin llamadores, ya en K-34): su paso
+  "intentar iniciar mientras está en pausa" también cuelga de `typeof globalThis.iniciarHeartbeat`,
+  así que no ejecuta nada y la comprobación que le sigue se cumple en vacío.
+- Lo que vive: `_activarHeartbeatAventura` (`:7540`) y `_transicionarAModoCasa` (`:7596`) toman
+  primero `globalThis.mensajeria?.…`, que existe. Su segundo operando (`|| globalThis.iniciarHeartbeat`,
+  `|| globalThis.pausarHeartbeat`) es el respaldo muerto, y la guía lo presenta como "patrón
+  correcto" (L12674, L12681; G-15).
+
+**2. Contadores de telemetría que no cuentan — `incrementarContador`.** Ocho sitios con la guarda
+`typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(clave)`:
+`codigo-padre.html:5453` (el envoltorio `_gpsInc`, que tiene ocho llamadas, `:5513-5570`), `:11299,
+11321, 12306`; `js/funciones-mapa.js:2544, 2553, 2566`; `coordenadas-hijo2.html:2227` (clave
+`gps_error_code_${codigo}`). Son 15 puntos de cuenta y 14 claves (`gps.solicitudes_recibidas`,
+`gps.activaciones_ok`, `gps.fallback_p0`, `confirmaciones_cambio_parada`…). Nada define
+`incrementarContador`; `js/monitoreo.js` exporta `registrarMetrica(nombre, valor, tags)` y
+`getEstadoMonitoreo`, sin contadores. La telemetría de GPS y de cambio de parada que el código
+parece recoger no se recoge. Misma familia que K-04 (monitoreo con umbrales sin lector).
+
+**3. Ayudante de consola sobre un nombre inexistente — `registerAllowedOrigin`.**
+`debugRegisterAllowedOrigin` (`codigo-padre.html:8653-8664`, publicada en `globalThis`;
+`tools/codigo-muerto.js` la marca) comprueba `typeof globalThis.registerAllowedOrigin ===
+'function'` (`:8656`), siempre falso, y por tanto solo puede responder "API not available in this
+context" y `false`.
+
+**4. Limpiezas de `pagehide` sobre nombres que ningún código crea.** `js/app.js:1139-1148`
+(`puntosRuta`, `CoordenadasParadas`, `estadoHijos` e `intervaloReconciliacion`, cada uno con su
+`if (globalThis.x)` y `delete`/`clearInterval`), `codigo-padre.html:14944`
+(`globalThis.intervaloMonitoreo`) y `:14956` (`globalThis.controladores.clear()`). Dos de ellos
+existen con ese nombre en otro sitio —`estadoPadre.estadoHijos`, un `Map` (`codigo-padre.html:4297`),
+y el `Map` de handlers `controladores` del state-manager (`js/state-manager.js:101`, ámbito de
+módulo)— pero no como globals: la limpieza apunta al nombre equivocado. Es inocuo (en un cierre
+real la página se destruye, y con `persisted === true` los tres `pagehide` salen antes:
+`codigo-padre.html:14937`, `js/app.js:1106`, `js/funciones-mapa.js:3328`); es código que dice
+limpiar y no limpia, y la guía lo describe como si limpiara (L12591-12592; G-14).
+
+**5. Operandos muertos de una cadena `||`.**
+
+- `codigo-padre.html:7951`: `globalThis.__vv_aventuraSeleccionada || globalThis.aventuraSeleccionada`
+  — el primero no se asigna nunca.
+- `codigo-padre.html:9909`: `globalThis.estadoPadre || globalThis.estadoScript2 || {}` —
+  `estadoScript2` fue una `const` local de Script 2 en el commit inicial y se retiró en `9b5f4d5`;
+  el `globalThis.estadoScript2` nunca tuvo asignación.
+- `js/reciclaje-digital.js:141`: `globalThis.__vv_INDICE_AVENTURAS || globalThis.INDICE_AVENTURAS`
+  — el segundo solo existe como `let` local del padre (`codigo-padre.html:3841`) y como export del
+  módulo de datos. `verificarTimeoutAventura()` solo se llama en el padre (`:4467, 8446`), que sí
+  asigna el primero (`:3847, 3908, 8437`); en la selección, que también carga el módulo, el nombre
+  no existe pero la función no corre. (K-21 trata cómo falla esa función.)
+
+**6. Interruptor manual de consola — 📌.** `js/funciones-mapa.js:1518`:
+`globalThis.__vv_debug_tramo`, dentro de un bloque marcado "TEMP DEBUG" (`:1516`); solo se lee, y se
+activa a mano desde la consola. Es intencional según su comentario; queda por decidir si el
+"TEMP" se retira.
+
+**7. Cableado pendiente del backend — 📌.** `js/data-loader.js:108, 120, 327-328` lee
+`globalThis.TokenManager`. Lo asigna `js/api-client.js:89, 489`, y ese módulo solo se importa en la
+selección (`En-busca-del-tesoro.html:1762`); `data-loader.js` corre también en el padre, donde el
+nombre no existe. El comentario de `:106-107` lo declara "pendiente de conectar cuando el backend
+esté desplegado" y dice que la ruta solo se recorre en modo `'api'`. Se anota la asimetría entre
+frames para cuando se conecte.
+
+**8. Un diagnóstico que mide el nombre equivocado.** `audio-hijo3.html:1380-1381` y
+`retos-hijo4.html:1402-1403`: dentro del `if (!tipoEntendido)` que prepara el log de error de
+`CAMBIO_MODO_ENTENDIDO` se informa `TIPOS_MENSAJE_exists: globalThis.TIPOS_MENSAJE !== undefined`.
+Esos frames usan `TIPOS_MENSAJE` por import, no el global (que solo asignan el padre, la selección
+y video-intro; K-35, K-37), así que el diagnóstico diría "no existe" aunque exista.
+
+**Tratados en otro sitio o descartados (➖):** `Config` (K-01), `__vv_getManejadores` (K-12),
+`__vv_idiomaActual` (K-24), `__stateManager` y `__vv_stateManager` (K-13: solo el padre carga el
+state-manager y `mensajeria.js:111-123` lo tolera), `__vv_config` (K-01; lectura de `parent`
+documentada), `TIPOS_MENSAJE` en `js/utils.js:668` (K-37), `_vv_beforeHijoReload` (asignada en el
+padre, `:9793`; su lectura de `mensajeria.js:1172` está en `intentarReconectarHijo`, que solo corre
+en el padre, donde existe `iframesRegistrados`) y `opera` (propiedad heredada del navegador,
+`js/device-detection.js:28`).
+
+- **Pendiente de decisión del usuario.** En cada grupo, lo mismo que en K-02: ¿se retira la rama
+  muerta, o se conecta a lo que existe? (1) El latido: conectar (a) y (c) los volvería vivos con
+  tres políticas distintas (K-11: "pospone", "cae a pausa" y "arranca sin mirar la bandera"), así
+  que primero hay que decidir cuál se quiere. (2) Contadores: implementar `incrementarContador`
+  sobre `registrarMetrica` o retirar los 15 puntos. (3) La lista `globals` de ESLint que esconde
+  (1) (K-34). No se arregla nada aquí (regla 1b). **Medición (M-10, ⚠️):** `typeof` de cada nombre
+  de los apartados 1 a 5 en el padre ya cargado, y de `incrementarContador` en hijo2. La lectura
+  estática y la historia de git coinciden; falta solo la ejecución (regla 10).
+
+##### K-39 — `mapa-completo.html` es el único de los once frames que no publica el logger en su `globalThis` — ✅ (alcance 🔎)
+
+- **Los otros diez sí.** Publican `globalThis.logger = logger;` tras importarlo, con un comentario
+  que explica por qué: cada iframe tiene su propio `globalThis`, el del padre no alcanza a los
+  demás y, sin esa línea, los `(globalThis.logger || console).x` de los módulos compartidos caen al
+  `console` crudo y se saltan el nivel de log. Hijo1 `extrainfo-hijo1.html:69`, hijo2
+  `coordenadas-hijo2.html:436`, hijo3 `audio-hijo3.html:479`, hijo4 `retos-hijo4.html:464`, hijo5
+  `boton-casa-hijo5.html:315`, hijo6 `chat-hijo6.html:402`, selección
+  `En-busca-del-tesoro.html:2583`, puzzle `puzzle.html:147`, video-intro `video-intro.html:601`; el
+  padre, `codigo-padre.html:3982`, con guarda `=== undefined`.
+- **`mapa-completo.html` no.** No importa `logger.js` ni asigna `globalThis.logger` (`:148-175`:
+  importa `mensajeria.js` y `constants.js`, y la propia página no loguea). El bus sí loguea con
+  nivel (`mensajeria.js` importa su `logger`), pero los módulos compartidos que ese frame arrastra
+  llaman `(globalThis.logger || console)`: `js/constants.js:347` (`debug`, "✅ constants.js
+  cargado"), `js/utils.js:296, 305` (`retryUntilAvailable`) y `:694, 714` (captura de errores no
+  controlados). En ese frame esas líneas salen siempre por el `console` crudo y no obedecen
+  `CONFIG.DEBUG.NIVEL_LOG`.
+- **Por qué no lo ve nadie.** ESLint no lo detecta (la guía lo dice: el `||` esconde el patrón de
+  la regla `no-console`), `tools/verificar-frames.js` no comprueba esa línea (búsqueda desnuda de
+  `logger` en el script: 0 apariciones) y la guía (L10790) enumera "los siete hijos más
+  `puzzle.html` y `video-intro.html`", sin `mapa-completo.html`. Lo encontró el instrumento por
+  frame, apartado (B): `logger` leído y sin escritura en ese frame.
+- **Alcance 🔎.** Efecto pequeño (una línea `debug` y avisos que se quieren siempre), pero es el
+  patrón "el frame que se quedó fuera de una lista" (regla 3b). **Pendiente:** ¿`mapa-completo.html`
+  publica el logger como los demás, o se acepta y se corrige la guía? No se toca aquí. Medición
+  M-11 (⚠️).
 
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
@@ -1481,8 +1855,8 @@ con la consola del propio navegador sobre la app real.
 
 | # | Entrada | Qué medir | Cómo (sin ejecutar aquí) |
 |---|---|---|---|
-| M-1 | K-11 | Arranque en frío directo a AVENTURA: ¿`userPaused` queda a `true` y bloquea el `iniciarHeartbeat` de `_activarHeartbeatAventura`? ¿La bandera `__HEARTBEAT_INICIADO` miente? | tras activar en producción, `await globalThis.consultarHeartbeat()` (se define al invocar una vez `globalThis.diagnosticarGPS()` desde la consola, `codigo-padre.html:15053`; guía L5876) y leer la bandera |
-| M-2 | K-11 | Intervalo efectivo del latido (5000 o 10000 según quién llegue primero) | timestamps de dos `SISTEMA.HEARTBEAT` consecutivos desde el padre |
+| M-1 | K-11 | Arranque en frío directo a AVENTURA (reanudación): estado final del latido (`activo`, `userPaused`) y de la bandera `__HEARTBEAT_INICIADO`. Con K-38 el arranque (c) no pausa; queda por ver si otro camino —(d), en una carga que pase por CASA— deja `userPaused` a `true` y bloquea el `iniciarHeartbeat` de `_activarHeartbeatAventura`, y si la bandera miente por `:15019` | tras activar en producción, `await globalThis.consultarHeartbeat()` (se define al invocar una vez `globalThis.diagnosticarGPS()` desde la consola, `codigo-padre.html:15053`; guía L5876) y leer la bandera |
+| M-2 | K-11 | Intervalo efectivo del latido (se espera el de (b), 5000 ajustado por la conexión; los 10000 de (c) no se usan) | timestamps de dos `SISTEMA.HEARTBEAT` consecutivos desde el padre |
 | M-3 | K-11 | En CASA, qué hacen los hijos con el `HEARTBEAT` del `visibilitychange` inline | contar `HEARTBEAT_RESPONSE` y logs de los hijos al volver a la pestaña con el latido en pausa |
 | M-4 | K-07 | Reactivación tras `SELECCION.REINICIAR` (ruta fallback): ¿`_esperarHijosCargados` espera al HIJO_LISTO nuevo? ¿`distribuirDatosAventura` devuelve `pospuesto`? | log "HIJO_LISTO RECIBIDO" frente al instante en que termina la espera |
 | M-5 | K-19 | "Vuelta rápida → Elegir otra → nueva aventura": ¿sigue activo "Seguir mi rumbo"? | leer `_brujulaModoActivo` (indirecto: `funcionesMapa.brujulaEstaActiva()`) antes y después |
@@ -1490,6 +1864,8 @@ con la consola del propio navegador sobre la app real.
 | M-7 | K-32 | Que el stub de `enviarMensajeConConfirmacion` reciba llamadas en cada uno de los 7 specs | contador y `expect` por spec (los 7 de K-32) |
 | M-8 | K-17 | Reintento de señal con timeout 15000 frente a 5000 en GPS en frío | prueba de campo; no es un caso de Playwright |
 | M-9 | K-20 | Que ninguna fila de borrado parcial deje `vv_paradas_completadas`/`vv_aventura` vivas para la sesión siguiente | recorrer cada vía de borrado y listar `localStorage` |
+| M-10 | K-38 | `typeof` de cada nombre sin definidor en su frame, ya cargado: se espera `'undefined'` en todos | en el padre, `['iniciarHeartbeat','pausarHeartbeat','detenerHeartbeat','incrementarContador','registerAllowedOrigin','controladores','intervaloMonitoreo','puntosRuta','CoordenadasParadas','estadoHijos','intervaloReconciliacion','estadoScript2','__vv_aventuraSeleccionada'].map(n => [n, typeof globalThis[n]])`; en hijo2, `typeof globalThis.incrementarContador` |
+| M-11 | K-39 | En `mapa-completo.html` abierta con un padre: `typeof globalThis.logger` y si el aviso `debug` "✅ constants.js cargado" sale con el nivel de log subido a WARN | consola del frame; mismo mecanismo que `60-nivel-de-log-alcanza-hijos.spec.js` |
 
 ### R2.5 Discrepancias entre la guía (o comentarios de código) y el código — para decidir
 
@@ -1506,6 +1882,14 @@ estas son las contradicciones que esta ronda tropezó, cada una verificada contr
 | G-6 | `codigo-padre.html:3628-3631` (comentario de `_resetBrujulaModo`) | existe "para que `ejecutarElegirOtra()` pueda resetear…" | también hace falta en `_elegirOtra` (K-19) |
 | G-7 | `js/app.js:954` (docblock de `registrarEvento`) | "@returns {string} ID del evento registrado" | no devuelve nada (K-04) |
 | G-8 | `CLAUDE.md` regla 3b | "El censo son los diez" y enumera padre, selección, hijo1 a hijo6, mapa-completo, puzzle y video-intro | son once nombres |
+| G-9 | `GUIA-COMPLETA.md` L2498, L2532, L3907, L5471, L11309 | `UI.CLOSE_MENUS { except }` también va padre → hijo1 ("Colapsa el menú si `except !== 'mas-opciones'`") | el padre no lo manda nunca; solo hijo1 → padre (`extrainfo-hijo1.html:709`); el handler de hijo1 no tiene emisor (K-35) |
+| G-10 | `GUIA-COMPLETA.md` L2813, L3798, L4003, L5945 | `UI.ACCION_USUARIO` con `accion:'simular_click'` (`contexto:'boton_horizontal'`) y la respuesta `SISTEMA.CONFIRMACION {accion:'click_ejecutado'}` | ningún emisor manda esa acción; el receptor está en `audio-hijo3.html:1609` (K-36) |
+| G-11 | `GUIA-COMPLETA.md` §10.17 (L5935-5950), L3987, L4081 | `SISTEMA.CONFIRMACION { tipo:'UI_VISIBLE' }` como "handshake visual" y como respuesta a acciones de audio | el padre no registra ningún handler de ese tipo (K-35) |
+| G-12 | `GUIA-COMPLETA.md` L10788 | `constants.js`: "fuente de verdad de todas las constantes", "16 categorías y 83 tipos", `TIPOS_MENSAJE_VALIDOS` "para validación O(1)", cita `ERRORES` y `ESTADOS` | 94 tipos; ninguna de esas constantes tiene lector (K-37) |
+| G-13 | `codigo-padre.html:6050-6059` (comentario de `solicitarCoordenadasHijo`) | `_solicitarParadaAHijo2()` y `solicitarCoordenadasAHijo2()` usan ya `enviarMensajeConConfirmacion` | `solicitarCoordenadasAHijo2` manda `DATOS.COORDENADAS_PARADAS_REQUEST` con `enviarMensaje_S2`, sin acuse (`:10516`; K-36) |
+| G-14 | `GUIA-COMPLETA.md` L12591-12592 | el `pagehide` real "detiene el heartbeat" y "vacía `__CONTROLADOR_REGISTRADOS` y `globalThis.controladores`" | `detenerHeartbeat` y `globalThis.controladores` no existen; solo se vacía `__CONTROLADOR_REGISTRADOS` (K-38) |
+| G-15 | `GUIA-COMPLETA.md` L12670-12686; `codigo-padre.html:15004-15006` (comentario) | "patrón correcto": `globalThis.mensajeria?.iniciarHeartbeat \|\| globalThis.iniciarHeartbeat` y la regla de usar `globalThis.mensajeria` directamente; el comentario dice que el arranque de Script 4 llama "directo a iniciarHeartbeat/pausarHeartbeat/getHeartbeat" | el segundo operando no existe; los arranques (a) y (c) llaman por nombre suelto o `globalThis.`, no por el bus (K-38, K-11) |
+| G-16 | `GUIA-COMPLETA.md` L10790 | "Cada página que loguea publica su logger en su propio `globalThis` … los siete hijos más `puzzle.html` y `video-intro.html`" | `mapa-completo.html` no lo publica y arrastra `utils.js` y `constants.js`, que loguean por `(globalThis.logger \|\| console)` (K-39) |
 
 ### R2.6 Censo de frames (regla 3b)
 
@@ -1515,17 +1899,17 @@ comprobó y no dio nada, con su comprobación.
 
 | Frame | Hallazgos | Clases sin hallazgo y comprobación |
 |---|---|---|
-| `codigo-padre.html` | K-01, K-04, K-05, K-07, K-08, K-09, K-10, K-11, K-14, K-17, K-18, K-19, K-20, K-21, K-22, K-25, K-26 (lectura de `parent` en el script inyectado), K-28, K-30, K-32, K-33 | ids DOM sin definir: 0 (instrumento CSS/DOM); `alert()`: 2 llamadas reales, traducidas (`grep -n '\balert(' codigo-padre.html` da 5 líneas, 3 son comentarios) |
-| `En-busca-del-tesoro.html` (selección) | K-15, K-18, K-25 (19 literales), K-27, K-28 | ids DOM: 0; `alert()`: 0 (`grep -c`); `console`: 1 `warn` en `:17` antes de que exista el logger; 41 `on*=` con funciones existentes |
-| `extrainfo-hijo1.html` | E1, E3, K-10 (`_uiConfirmado`), K-15, K-28 | `alert()`: 0; literales en español: 0 (instrumento i18n); ids DOM: 0 |
-| `coordenadas-hijo2.html` | E1, K-02 (único lector de `GPS.PRECISION_MINIMA`), K-05, K-06, K-08, K-15, K-24 (escribe `__vv_idiomaActual`), K-25 (3 `title`), K-26, K-28 | `alert()`: 0; ids DOM: 0 |
-| `audio-hijo3.html` | E3, K-15, K-28 | `alert()`: 0; literales: 0; ids DOM: 0 |
-| `retos-hijo4.html` | E3, K-15, K-24, K-25, K-28 | ids DOM: 0 |
-| `boton-casa-hijo5.html` (solo desarrollo) | K-15 (variante), K-25 (2), K-28 | `alert()`: 0; ids DOM: 0 |
-| `chat-hijo6.html` | E1 (variante B), K-28 (`enviarHijoListoConReintento` sin respaldo de UI) | `alert()`: 0; literales en español: 0; ids DOM: 0; `verificar-frames` le atribuye 1 "ajeno" y es un comentario (`:376`, K-34) |
-| `mapa-completo.html` | K-25 (1 literal) | `alert()`: 0; Leaflet por CDN y `maxZoom` 21/19: documentado (guía L6278-6282); ids DOM: 0 |
-| `puzzle.html` | K-25 (2 literales), K-28 (`createParticle`/`loop`) | `escalar` variante C: cerrada en la ronda 1 (historial `94734b6`); `alert()`: 0 |
-| `video-intro.html` | K-28 (`createParticle`/`loop`), K-33 (`.or-badge`) | `alert()`: 0; 5 `on*=` con funciones existentes |
+| `codigo-padre.html` | K-01, K-04, K-05, K-07, K-08, K-09, K-10, K-11, K-14, K-17, K-18, K-19, K-20, K-21, K-22, K-25, K-26 (lectura de `parent` en el script inyectado), K-28, K-30, K-32, K-33, K-35 (sin handler de `SISTEMA.CONFIRMACION`; `AVENTURA.FINALIZADA` inalcanzable), K-36, K-37, K-38 (arranques (a) y (c) del latido sin efecto, contadores sin función, limpiezas de `pagehide` sobre nombres inexistentes) | ids DOM sin definir: 0 (instrumento CSS/DOM); `alert()`: 2 llamadas reales, traducidas (`grep -n '\balert(' codigo-padre.html` da 5 líneas, 3 son comentarios); globals por frame: (A) solo `iniciarHeartbeat`/`iniciarHeartbeat_S1`, (B) los nombres de K-38 y `Config` (K-01); lecturas `contentWindow.X`: 0 en toda la app |
+| `En-busca-del-tesoro.html` (selección) | K-15, K-18, K-25 (19 literales), K-27, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío), K-37 (21 `destino: 'padre'`, 4 `'casa'`/`'aventura'` crudos), K-38 (`import()` no literal en `:2199`; único frame que carga `api-client.js`, `:1762`) | ids DOM: 0; `alert()`: 0 (`grep -c`); `console`: 1 `warn` en `:17` antes de que exista el logger; 41 `on*=` con funciones existentes; `globalThis.logger` publicado (`:2583`) |
+| `extrainfo-hijo1.html` | E1, E3, K-10 (`_uiConfirmado`), K-15, K-28, K-35 (handler de `UI.CLOSE_MENUS` sin emisor; emite `SISTEMA.CONFIRMACION` al vacío), K-36 (emisor de `UI.NAVEGACION_EXTERNA`), K-37 (21 `destino: 'padre'`) | `alert()`: 0; literales en español: 0 (instrumento i18n); ids DOM: 0; globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:69`) |
+| `coordenadas-hijo2.html` | E1, K-02 (único lector de `GPS.PRECISION_MINIMA`), K-05, K-06, K-08, K-15, K-24 (escribe `__vv_idiomaActual`), K-25 (3 `title`), K-26, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío), K-36 (`motivo === 'reto_abierto'`), K-37 (32 `destino: 'padre'`, 17 modos crudos), K-38 (`incrementarContador`, `:2227`) | `alert()`: 0; ids DOM: 0; `globalThis.logger` publicado (`:436`) |
+| `audio-hijo3.html` | E3, K-15, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío ×3), K-36 (`simular_click` sin emisor), K-37 (18 `destino: 'padre'`), K-38 (diagnóstico `TIPOS_MENSAJE_exists`, `:1380-1381`) | `alert()`: 0; literales: 0; ids DOM: 0; `globalThis.logger` publicado (`:479`) |
+| `retos-hijo4.html` | E3, K-15, K-24, K-25, K-28, K-35 (handlers `CONTROL.*` sin cuerpo y sin emisión; emite `SISTEMA.CONFIRMACION` al vacío), K-37 (16 `destino: 'padre'`), K-38 (diagnóstico `TIPOS_MENSAJE_exists`, `:1402-1403`) | ids DOM: 0; `globalThis.logger` publicado (`:464`) |
+| `boton-casa-hijo5.html` (solo desarrollo) | K-15 (variante), K-25 (2), K-28, K-35 (handler de `SISTEMA.CONFIRMACION` inalcanzable; emite el mismo tipo al vacío), K-37 (20 `destino: 'padre'`, 18 modos crudos) | `alert()`: 0; ids DOM: 0; globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:315`) |
+| `chat-hijo6.html` | E1 (variante B), K-28 (`enviarHijoListoConReintento` sin respaldo de UI), K-37 (7 `destino: 'padre'`; `'inicializando'` crudo en `:764`) | `alert()`: 0; literales en español: 0; ids DOM: 0; `verificar-frames` le atribuye 1 "ajeno" y es un comentario (`:376`, K-34); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:402`) |
+| `mapa-completo.html` | K-25 (1 literal), K-37 (1 `destino: 'padre'`), K-39 (único frame que no publica `globalThis.logger`) | `alert()`: 0; Leaflet por CDN y `maxZoom` 21/19: documentado (guía L6278-6282); ids DOM: 0; globals por frame: (B) solo `logger` (K-39) |
+| `puzzle.html` | K-25 (2 literales), K-28 (`createParticle`/`loop`), K-37 (1 `destino: 'padre'`) | `escalar` variante C: cerrada en la ronda 1 (historial `94734b6`); `alert()`: 0; `PUZZLE.*` a `'padre'` = la ventana anfitriona (K-35); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:147`) |
+| `video-intro.html` | K-28 (`createParticle`/`loop`), K-33 (`.or-badge`), K-37 (1 `destino: 'padre'`) | `alert()`: 0; 5 `on*=` con funciones existentes; `VIDEO_INTRO_TERMINADO` a `'padre'` = la ventana anfitriona (K-35); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:601`) |
 
 ### R2.7 Estado final de la ronda 2
 
@@ -1540,12 +1924,16 @@ comprobó y no dio nada, con su comprobación.
 | G — Idioma y textos | K-24 … K-27 | 2 confirmadas (K-24, K-25), 2 familias |
 | H — Copias y homónimos | K-28, K-29 | familias; los 26 homónimos clasificados |
 | I — Recursos, SW, arnés, CSS, instrumentos | K-30 … K-34 | limpio con restos, 1 documentada, 1 por medir (K-32), 1 confirmada (K-34: los instrumentos del repo mienten en casos concretos) |
+| J — Contrato del bus y constantes | K-35 … K-37 | 3 confirmadas: 8 envíos al vacío y 5 handlers sin emisión (K-35), 3 ramas muertas y claves sin pareja en la carga útil (K-36, con alcance por estudiar), 75 de 177 constantes sin lector (K-37) |
+| K — Nombres de `globalThis` sin definidor | K-38, K-39 | 2 confirmadas: 16 nombres que ningún frame define (dos de las cuatro rutas de arranque del latido sin efecto, 15 puntos de contador sin función, seis limpiezas de `pagehide` sobre nombres inexistentes) y un frame, `mapa-completo.html`, que no publica el logger |
 
-**Total: 34 entradas — 12 confirmadas, 2 por medir, 5 documentadas, 9 familias de copias, 2 por
-estudiar y 4 limpias o mixtas; 9 mediciones pendientes repartidas entre ellas (R2.4).** Lo que más pesa, sin
-ánimo de ordenarlo por urgencia: lo que cambia lo que ve el usuario (K-24, K-25), lo que puede
-dejar un estado equivocado (K-07, K-11, K-19) y lo que hace que una configuración no mande
-(K-01 a K-03).
+**Total: 39 entradas — 17 confirmadas, 2 por medir, 5 documentadas, 9 familias de copias, 2 por
+estudiar y 4 limpias o mixtas; 11 mediciones pendientes repartidas entre ellas (R2.4).** Lo que más
+pesa, sin ánimo de ordenarlo por urgencia: lo que cambia lo que ve el usuario (K-24, K-25), lo que
+puede dejar un estado equivocado (K-07, K-11, K-19), lo que hace que una configuración, una
+constante o un contador no mande ni cuente (K-01 a K-03, K-37, K-38) y las ramas del contrato del
+bus que ningún emisor alcanza, algunas descritas por la guía como caminos vivos (K-35, K-36, G-9 a
+G-11).
 
 **Límites de esta ronda — qué no garantiza:**
 
@@ -1557,9 +1945,18 @@ dejar un estado equivocado (K-07, K-11, K-19) y lo que hace que una configuraci�
   citado se comprobó con una búsqueda desnuda del identificador (K-01, K-02, K-04, K-12, K-13).
 - La lista de 49 rutas con ≥3 escritores (K-09), las 17 de K-08 y las 93 candidatas de K-25
   están **identificadas, no examinadas una a una**: son trabajo del estudio individual.
+- El instrumento de destinos solo ve destinos literales; los dinámicos (`mensaje.origen`,
+  variables) se dan por buenos. El de carga útil deja 5 tipos con emisor opaco sin concluir y el
+  de discriminadores solo analiza 31 comparaciones (K-36).
+- El instrumento por frame resuelve nombres y propiedades de `globalThis` escritos con literal: un
+  acceso por clave computada no se ve (una sola asignación computada en el código de la aplicación,
+  `codigo-padre.html:14950`), ni las escrituras de código externo (MapLibre, Leaflet, page-flip). Un
+  nombre cuenta como definido si alguna escritura del frame lo asigna, aunque sea después de usarlo o
+  solo bajo una condición: el orden no se ha comprobado. El cierre de ficheros por frame es una
+  sobreaproximación (incluye todo lo importable, también bajo condición), así que puede dejar pasar
+  un nombre definido solo en una rama que ese frame no ejecuta.
 - Ninguna medición se ha ejecutado (R2.4).
-- No se ha leído `_hdl_SISTEMA_CAMBIO_MODO` entero (K-15) ni los otros tres listeners de
-  `visibilitychange` del padre (K-11).
+- No se ha leído `_hdl_SISTEMA_CAMBIO_MODO` entero (K-15).
 - Los scripts de los extractores no están versionados (R2.0); si se quieren conservar, lo decide
   el usuario.
 
