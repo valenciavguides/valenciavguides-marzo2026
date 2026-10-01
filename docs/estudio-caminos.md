@@ -1770,7 +1770,8 @@ variable al vacío" de K-35 ("mensaje al vacío").
   K-26, y `__vv_config`, K-01) y ninguna de `contentWindow`. Un control: el filtro que descarta
   propiedades del navegador no esconde ningún nombre sospechoso (se imprimió la lista de lo
   filtrado: solo `Array`, `Date`, `document`, `console`, `localStorage`… ).
-- **Historial.** Para cada nombre de los apartados 1 a 5, `git log --oneline
+- **Historial.** Para cada nombre de los apartados 1 a 5 (salvo `modoActual`, explicado en el 4),
+  `git log --oneline
   -G"(globalThis|window|self)\.NOMBRE\s*(\|\||&&|\?\?)?=[^=]"` da **0 commits** sobre los 664 del
   repo; control positivo con la misma expresión: `logger` 7, `TIPOS_MENSAJE` 6,
   `__HEARTBEAT_INICIADO` 3, `DATOS_PADRE` 1. Las guardas de `detenerHeartbeat`,
@@ -2324,7 +2325,8 @@ G-11).
   acceso por clave computada no se ve (una sola asignación computada en el código de la aplicación,
   `codigo-padre.html:14950`), ni las escrituras de código externo (MapLibre, Leaflet, page-flip). Un
   nombre cuenta como definido si alguna escritura del frame lo asigna, aunque sea después de usarlo o
-  solo bajo una condición: el orden no se ha comprobado. El cierre de ficheros por frame es una
+  solo bajo una condición: el orden no se ha comprobado (las asignaciones de valor vacío se revisan
+  aparte, tercer paso de K-38). El cierre de ficheros por frame es una
   sobreaproximación (incluye todo lo importable, también bajo condición), así que puede dejar pasar
   un nombre definido solo en una rama que ese frame no ejecuta.
 - Los objetos-API se resuelven solo cuando su asignación a `globalThis` es un literal o un
