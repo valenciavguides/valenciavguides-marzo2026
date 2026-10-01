@@ -630,6 +630,7 @@ decisión del usuario, no se ha hecho.
 | completitud i18n | por cada tabla por idioma de `js/traducciones-ui.js`: idiomas presentes, forma del valor, marcadores `{x}`/`%s`, cadenas vacías, textos idénticos al español; integridad de `PREGUNTAS_CHAT`, `RESPUESTAS_CHAT` y `TEMAS_AGRUPADOS_CHAT` | 133 tablas por idioma (12 idiomas), 0 problemas; chat 47/47/47; control con copia mutada (➖, R2.3) |
 | recursos locales | cadenas JS, atributos HTML, `url()`, `sw.js` y `manifest.json` que apuntan a ficheros locales, frente al disco | 491 referencias en 50 ficheros, 81 nombres sueltos resueltos por nombre base, 1 inexistente, 16 con `${…}` sin resolver (K-44) |
 | listeners duplicados | `addEventListener` sobre `window`/`document` agrupados por (objetivo, evento) dentro del cierre de ficheros de cada frame | 12 pares con varios sitios en el padre, 1 en la selección, 2 en el puzzle; 4 deciden lo mismo dos veces (R2.3, K-04, K-11, K-40); residuo 3 eventos no literales |
+| contratos menores | cadenas de respaldo con `\|\|`/`??` y varias fuentes de un mismo dato; handlers registrados dos veces en un frame; parámetros de URL leídos frente a escritos | 152 cadenas (12 con varias fuentes); 144 receptores sin duplicados; 7 parámetros leídos y 12 escritos (R2.3, K-36) |
 
 Además se han ejecutado las herramientas propias del repo que esta auditoría no había usado:
 `node tools/codigo-muerto.js`, `node tools/verificar-mensajeria.js`, `node tools/verificar-frames.js`.
@@ -1692,6 +1693,15 @@ fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las c
   `{ retoId, correcto }` (`retos-hijo4.html:917-920, 1157`) y el handler del padre lee esas dos
   claves (`:11179-11197`). `NAVEGACION.CAMBIO_PARADA` — K-43. `SISTEMA.PADRE_DATOS` — el hallazgo de
   arriba. Sigue sin hacerse: ampliar el extractor de discriminadores (31 comparaciones). 🔎.
+- **Parámetros de URL: el mismo contrato por otro canal.** Siete nombres se leen (`aventura`,
+  `despedida`, `id`, `imagen`, `lang`, `padreId`, `replay`) y doce aparecen escritos en cadenas de
+  URL. **`noOverlay` se escribe y nadie lo lee**: `En-busca-del-tesoro.html:1615` lo pone en la URL
+  del puzzle de introducción (`…&noOverlay=1&…`) y es su única aparición en el repo. **`padreId` se
+  lee y nadie lo escribe**: lo lee `resolverIdPadre` (`js/utils.js:38`), parte del `getPadreId` sin
+  llamadores de producción (K-28), con su respaldo en `sessionStorage`. El resto de los escritos sin
+  lector son parámetros de caché y de enlaces externos (`t` en `codigo-padre.html:15315`, `v` en
+  `En-busca-del-tesoro.html:2199` y en los enlaces de YouTube de `gastronomia.html`) o del backend
+  (`idioma`, `tipo`, `todas`, `js/api-client.js:342-377`). Residuo: 0 lecturas con nombre no literal.
 
 ##### K-37 — `js/constants.js`: 75 de 177 hojas sin lector, un valor que no coincide con el bus y una lista de validación que nadie usa — ✅
 
