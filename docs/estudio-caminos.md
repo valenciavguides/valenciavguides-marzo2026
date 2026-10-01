@@ -46,7 +46,7 @@ por impecable que parezca encadenado.
 **Ronda 2 (2026-10-01).** La metodología de arriba es la de la ronda 1 (`grep` e inventario). La
 ronda 2, al final de este documento, repite el barrido con parser real (`acorn`) y con el residuo
 de cada instrumento a la vista: desmiente siete afirmaciones de este texto (erratas E1-E7, con una
-nota fechada en cada sección afectada) y añade 43 entradas (K-01 a K-43) para su estudio
+nota fechada en cada sección afectada) y añade 44 entradas (K-01 a K-44) para su estudio
 individual. Léase junto con ella: lo que aquí se dio por cerrado o limpio puede no estarlo.
 
 **No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
@@ -627,6 +627,9 @@ decisión del usuario, no se ha hecho.
 | API e imports | por cada import (estático con nombre o por defecto, `import * as` con sus miembros, `await import()` desestructurado, `(await import()).X`, `.then`): que el módulo exporte el nombre pedido; por cada objeto-API publicado en `globalThis` con claves derivables: los miembros pedidos que no son clave | 97 + 8 + 68 + 3 usos de import, 0 nombres sin exportar; 20 objetos-API, 1 miembro inexistente (K-38) |
 | estado solo-escritura | rutas de estado escritas frente a leídas (13 raíces; lectura = uso fuera de escritura, desestructuración o cadena más larga; sin contar la inicialización perezosa pura) | 158 rutas escritas, 30 sin lector (12 estrictas, 15 con un ancestro leído entero, 3 con clave computada); residuo: 20 accesos con clave computada (K-41) |
 | exports sin uso | por cada `export` de `js/` (191): apariciones de su nombre como token identificador en los demás ficheros de producción y en los specs, descontando declaración, `export` y claves del objeto-API publicado | 55 sin mención externa: 27 muertos del todo, 3 solo en specs, 25 con uso solo interno; 5 `export default` sin importador (K-42) |
+| completitud i18n | por cada tabla por idioma de `js/traducciones-ui.js`: idiomas presentes, forma del valor, marcadores `{x}`/`%s`, cadenas vacías, textos idénticos al español; integridad de `PREGUNTAS_CHAT`, `RESPUESTAS_CHAT` y `TEMAS_AGRUPADOS_CHAT` | 133 tablas por idioma (12 idiomas), 0 problemas; chat 47/47/47; control con copia mutada (➖, R2.3) |
+| recursos locales | cadenas JS, atributos HTML, `url()`, `sw.js` y `manifest.json` que apuntan a ficheros locales, frente al disco | 491 referencias en 50 ficheros, 81 nombres sueltos resueltos por nombre base, 1 inexistente, 16 con `${…}` sin resolver (K-44) |
+| listeners duplicados | `addEventListener` sobre `window`/`document` agrupados por (objetivo, evento) dentro del cierre de ficheros de cada frame | 12 pares con varios sitios en el padre, 1 en la selección, 2 en el puzzle; 4 deciden lo mismo dos veces (R2.3, K-04, K-11, K-40); residuo 3 eventos no literales |
 
 Además se han ejecutado las herramientas propias del repo que esta auditoría no había usado:
 `node tools/codigo-muerto.js`, `node tools/verificar-mensajeria.js`, `node tools/verificar-frames.js`.
@@ -662,8 +665,11 @@ Playwright); los diez módulos de datos de `js/` (`*-aventuras.js`, `traduccione
 que solo se miraron las tablas indexadas por idioma y la lista de ficheros del SW. Las cinco
 páginas estáticas (`consejos-valencia`, `gastronomia`, `paginas-oficiales-valencia`,
 `videos-valencia-historica`, `debug-brujula`) y `index.html` pasaron por los extractores sin
-dar nada y no se leyeron enteras: `node tools/verificar-frames.js` las muestra sin bus, sin
-escuchas y sin envíos (`debug-brujula.html` además "nadie la nombra").
+dar nada. En la pasada final se leyeron enteras las cuatro de contenido (sin `<script>` y solo en
+español: K-25) e `index.html` (redirige a `codigo-padre.html` por dos vías automáticas y un
+enlace, que la guía documenta, L4703); `debug-brujula.html`, que ningún fichero de producción
+enlaza, no se leyó entera. `node tools/verificar-frames.js` las muestra sin bus, sin escuchas y sin
+envíos.
 
 ### R2.1 Erratas de la ronda 1 — lo que esta ronda desmiente de este mismo documento
 
@@ -826,6 +832,24 @@ Amplía C4 (no lo sustituye).
 - **`registrarEvento` dos veces:** `globalThis.registrarEvento` (`:5329`, loguea y rellena ese
   historial) y `registrarEvento` de `js/app.js:954` (solo loguea; su docblock promete "ID del
   evento registrado" y no devuelve nada; no se expone a propósito, comentario `app.js:1020`).
+- **Un cuarto juego de umbrales, local y fijo, es el único que se aplica.** `js/monitoreo.js:35-40`
+  define `UMBRALES` (`MEMORIA_MB` 150, `MENSAJES_PENDIENTES` 50, `TIEMPO_RESPUESTA_MS` 1000,
+  `ERRORES_POR_MINUTO` 10), que lee `verificarUmbrales` (`:194-217`; `MENSAJES_PENDIENTES` no tiene
+  lector). El módulo importa `CONFIG` solo para `INTERVALO_METRICAS` (`:66`): ninguno de los tres
+  juegos configurables de arriba (85 % en el padre, 80 % en el state-manager, 50 MB en `config.js`)
+  llega a ese código. Lo que producen las alertas es un `logger.warn` (`generarAlerta`, `:221-238`)
+  y `estadoMonitoreo.alertas`, que solo se escribe y se recorta a sí misma (`:228-232`), el mismo
+  patrón que `historial.eventos`.
+- **Captura de errores no controlados: dos mecanismos que se solapan.** `js/utils.js:741-766`
+  (`instalarReporteErroresAlPadre`) registra `error` y `unhandledrejection` y manda cada uno al padre
+  como `SISTEMA.ERROR`, con deduplicación y tope; solo se instala en frames con padre (`:744`:
+  en el padre devuelve `false`). `js/monitoreo.js:82-83` registra los mismos dos eventos y los
+  convierte en `registrarMetrica('error', …)` (`:239-254`), que incrementa un contador, apila el
+  error en un historial de cinco minutos y emite un `debug` (`:98-138`). `monitoreo.js` se carga en
+  el padre y, por `<script type="module" src>`, en hijo1 y hijo5: en esos dos un mismo error activa
+  los dos caminos (el que avisa al padre y el que alimenta un contador sin lector) y en el padre solo
+  el segundo; el padre cuenta además los `SISTEMA.ERROR` que recibe en su propio contador
+  (`codigo-padre.html:12800`, K-41). Las dos mitades no se hablan.
 - **Pendiente:** decidir si el monitoreo se queda (y entonces tiene que tener un lector y una
   sola config) o se retira. Sin urgencia: ninguno de los tres juegos hace nada hoy.
 
@@ -1298,6 +1322,16 @@ completitud.
   `:956-957` cuya rama `=== false` solo se alcanza si el propio `console.info` lanza). Búsqueda
   desnuda `ejecutarValidacion`: solo esas líneas. El `catch` de `:963-969` (el que hace el
   `alert("Error en la validación…")`) es defensivo: inalcanzable salvo que algo lance.
+- **Páginas de contenido estáticas — fuera del alcance del instrumento de i18n, que solo ve JS.**
+  `gastronomia.html`, `consejos-valencia.html`, `videos-valencia-historica.html` y
+  `paginas-oficiales-valencia.html` (105 a 348 líneas) son HTML y CSS sin ningún `<script>`, con
+  `lang="es"` único y sin ninguna elección de idioma (búsqueda de `idioma`, `hreflang` y `:lang()`
+  en ellas: 0). `extrainfo-hijo1.html:544-550` las abre desde su menú para los 12 idiomas, así que
+  **su contenido sale en español cualquiera que sea el idioma elegido**; la guía las lista sin
+  mencionar el idioma (L1624-1627, L2425-2428). Además, `videos-valencia-historica.html` tiene un
+  único enlace de YouTube titulado "Video Valencia Histórica - Ejemplo 1" y el subtítulo
+  "(créditos a los autores del video)": parece contenido provisional. Decisión de producto, no
+  comprobada con el usuario.
 - **Pendiente:** ¿se quieren estos textos en `traducciones-ui.js`? Es una decisión de producto
   (la memoria dice "botones en 12 idiomas"); lo mínimo defendible son los 3 `alert` de hijo4 y los
   de la selección (visibles en el flujo normal si falla una carga).
@@ -2043,6 +2077,35 @@ estrictas y su nombre no tiene más lectores en el fichero; no se han leído una
   (familias de copias). 🔎 el efecto del prefijo en `estado.paradaActual` cuando el origen es hijo5
   (solo desarrollo).
 
+#### Familia O — Recursos locales
+
+##### K-44 — Recursos locales: 491 referencias y una ruta que nunca existió (el respaldo del puzzle de introducción) — ✅
+
+- **Método.** Todas las cadenas de los `<script>` y de `js/*.js` (con `acorn`), los atributos
+  `src`/`href`/`data-src`/`poster` y los `url(…)` de los `.html`, y las cadenas de `sw.js` y de
+  `manifest.json`, que terminan en una extensión de recurso (html, js, css, json, imágenes, audio,
+  vídeo, fuentes…): **491 referencias en 50 ficheros**, comprobadas contra el disco. Los nombres
+  sueltos, sin carpeta, se dan por buenos si existe un fichero con ese nombre en cualquier carpeta
+  del repo, porque el código antepone la carpeta en ejecución (81: la tabla de imágenes de
+  `video-intro.html:630-681`, los títulos y banderas de `En-busca-del-tesoro.html:1813, 2914`, los
+  de `codigo-padre.html:3520-3522, 13794-13797`…). **Residuo:** 16 literales con `${…}` que no se
+  pueden resolver (`chat-hijo6.html:505`, `js/data-loader.js:172`, las variables `AI`/`MV`/`IM` de
+  `video-intro.html`…) y los módulos de datos (`*-aventuras.js`), que quedan fuera porque
+  referencian media de aventuras y esas ausencias ya son conocidas.
+- **Resultado.** **Una** ruta que no existe: `En-busca-del-tesoro.html:1165` y `:1610`,
+  `puzzleIntro?.imagen || 'fotos-botones/logo-luna.jpg'`. La carpeta `fotos-botones/` no existe y
+  ningún commit de los 664 añadió ficheros bajo ella (`git log --diff-filter=ADR --
+  'fotos-botones/*'`: vacío); la imagen real es `imagenes/imagenes-aplicación/logo-luna.png` (otra
+  carpeta y otra extensión), que es la que declara el dato (`js/puzzles-aventuras.js:7`). El
+  respaldo solo corre si el dato falta, y entonces `verificarImagenExiste` falla y la selección **se
+  salta el puzzle de introducción con un `warn`** (`:1166-1169`) en vez de mostrarlo con otra
+  imagen. La guía repite la ruta (`GUIA-COMPLETA.md:2338`) y un spec monta una URL con ella
+  (`60-nivel-de-log-alcanza-hijos.spec.js:90`).
+- **Veredicto.** Respaldo que nunca pudo funcionar (la cadena está desde el commit inicial,
+  `2c5c2c2`); inocuo mientras el dato exista. **Pendiente:** ¿se corrige la ruta o se retira el
+  respaldo? Con la ruta actual el respaldo no es un segundo camino, es un camino que falla en
+  silencio parcial.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -2071,6 +2134,33 @@ Para que "no sale nada" no se confunda con "no se miró":
   Leaflet por CDN en lugar de `js/vendor/`).
 - **Los dos clientes HTTP (M1) y los imports de Fase 2 (M2)** de la ronda 1: no reabiertos; las
   búsquedas de esta ronda no encontraron ninguna llamada nueva a `fetch` ni a `ApiClient`.
+- **Completitud de `js/traducciones-ui.js` (12 idiomas: de, en, es, fr, it, ja, nl, pl, pt, ru, uk,
+  zh).** Con `acorn`: 133 tablas por idioma (86 de primer nivel o anidadas y las 47 respuestas del
+  chat, que son llamadas `_rChat({…})`) comprobadas una a una contra la entrada española: idiomas
+  presentes, forma del valor (cadena, array con el mismo número de elementos, objeto con las mismas
+  claves), marcadores `{x}`/`%s`/`${…}`, cadenas vacías y textos idénticos al español de más de 12
+  caracteres (en valores de tipo cadena y en propiedades de objeto, no en elementos de array).
+  **0 problemas** en las cinco comprobaciones. Integridad del chat: 47 preguntas, 47
+  respuestas y 47 claves repartidas en 9 temas, sin duplicadas ni huérfanas; los valores de `enlace`
+  son los cuatro previstos (`null`, `terminos`, `video-intro`, `agradecimientos`). **Control:** en una
+  copia mutada (un idioma retirado, una cadena vaciada, un marcador cambiado) el instrumento
+  detecta los tres fallos. Residuo: 1 objeto que no es tabla por idioma (`TEMAS_AGRUPADOS_CHAT`,
+  array de claves, comprobado aparte).
+- **Listeners de `window`/`document` registrados en dos o más sitios del mismo frame** (parser, por
+  cierre de ficheros de cada frame; residuo: 3 registros con nombre de evento no literal,
+  `debug-brujula.html:203` y `js/funciones-mapa.js:1175, 1818`). En el padre salen 12 pares
+  (objetivo, evento) con varios sitios, 1 en la selección y 2 en el puzzle. **Leídos todos:** deciden
+  lo mismo dos veces `visibilitychange` (K-11), `online`/`offline` (K-40), `error`/`unhandledrejection`
+  (K-04) y `pagehide` (K-30 y la guía, L12597-12599); el resto son responsabilidades distintas:
+  `DOMContentLoaded` (el aviso de navegador antiguo, `codigo-padre.html:38`, `nomodule`, frente al
+  "único listener consolidado", `:1516`), `click` (cierre del desplegable de audio, controles del
+  mapa, el gesto del panel de logs —ver §24—), `keydown` (Escape cierra overlays, `:2216`, y por separado el
+  desplegable, `:10800`), `resize`/`orientationchange` (mapa, aviso de rotación, diámetro de los
+  botones de audio, caché de `device-detection.js:101`). Un orden que importa y es el correcto:
+  `toggleRotationMessage` (`:4199`) y la invalidación de la caché de `esTelefonoMovil`
+  (`js/device-detection.js:101`) escuchan el mismo `orientationchange`, y la invalidación se registra
+  primero porque la FASE 1 espera a `import('./js/device-detection.js')` (`:3813-3831`) antes de
+  llegar al registro de `:4199`.
 
 ### R2.4 Lo que queda POR MEDIR (consolidado)
 
@@ -2126,8 +2216,8 @@ comprobó y no dio nada, con su comprobación.
 | Frame | Hallazgos | Clases sin hallazgo y comprobación |
 |---|---|---|
 | `codigo-padre.html` | K-01, K-04, K-05, K-07, K-08, K-09, K-10, K-11, K-14, K-17, K-18, K-19, K-20, K-21, K-22, K-25, K-26 (lectura de `parent` en el script inyectado), K-28, K-30, K-32, K-33, K-35 (sin handler de `SISTEMA.CONFIRMACION`; `AVENTURA.FINALIZADA` inalcanzable), K-36, K-37, K-38 (arranques (a) y (c) del latido sin efecto, contadores sin función, limpiezas de `pagehide` sobre nombres inexistentes, llamador de `iniciarGPSAventura`), K-40 (los listeners de `js/app.js:1089-1090` no hacen lo que dicen), K-41 (campos de estado sin lector), K-42 (exports de `js/` sin uso: la mayoría de los módulos cuelgan del padre) | ids DOM sin definir: 0 (instrumento CSS/DOM); `alert()`: 2 llamadas reales, traducidas (`grep -n '\balert(' codigo-padre.html` da 5 líneas, 3 son comentarios); globals por frame: (A) solo `iniciarHeartbeat`/`iniciarHeartbeat_S1`, (B) los nombres de K-38 y `Config` (K-01); lecturas `contentWindow.X`: 0 en toda la app |
-| `En-busca-del-tesoro.html` (selección) | K-15, K-18, K-25 (19 literales), K-27, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío), K-37 (21 `destino: 'padre'`, 4 `'casa'`/`'aventura'` crudos), K-38 (`import()` no literal en `:2199`; único frame que carga `api-client.js`, `:1762`), K-36 (`paradaActual` de `PADRE_DATOS`, sin emisor) | ids DOM: 0; `alert()`: 0 (`grep -c`); `console`: 1 `warn` en `:17` antes de que exista el logger; 41 `on*=` con funciones existentes; `globalThis.logger` publicado (`:2583`) |
-| `extrainfo-hijo1.html` | E1, E3, K-10 (`_uiConfirmado`), K-15, K-28, K-35 (handler de `UI.CLOSE_MENUS` sin emisor; emite `SISTEMA.CONFIRMACION` al vacío), K-36 (emisor de `UI.NAVEGACION_EXTERNA`), K-37 (21 `destino: 'padre'`) | `alert()`: 0; literales en español: 0 (instrumento i18n); ids DOM: 0; globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:69`) |
+| `En-busca-del-tesoro.html` (selección) | K-15, K-18, K-25 (19 literales), K-27, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío), K-37 (21 `destino: 'padre'`, 4 `'casa'`/`'aventura'` crudos), K-38 (`import()` no literal en `:2199`; único frame que carga `api-client.js`, `:1762`), K-36 (`paradaActual` de `PADRE_DATOS`, sin emisor), K-44 (respaldo `fotos-botones/logo-luna.jpg`, `:1165` y `:1610`) | ids DOM: 0; `alert()`: 0 (`grep -c`); `console`: 1 `warn` en `:17` antes de que exista el logger; 41 `on*=` con funciones existentes; `globalThis.logger` publicado (`:2583`) |
+| `extrainfo-hijo1.html` | E1, E3, K-10 (`_uiConfirmado`), K-15, K-28, K-35 (handler de `UI.CLOSE_MENUS` sin emisor; emite `SISTEMA.CONFIRMACION` al vacío), K-36 (emisor de `UI.NAVEGACION_EXTERNA`), K-37 (21 `destino: 'padre'`), K-25 (abre las cuatro páginas de contenido solo en español, `:544-550`) | `alert()`: 0; literales en español: 0 (instrumento i18n); ids DOM: 0; globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:69`) |
 | `coordenadas-hijo2.html` | E1, K-02 (único lector de `GPS.PRECISION_MINIMA`), K-05, K-06, K-08, K-15, K-24 (escribe `__vv_idiomaActual`), K-25 (3 `title`), K-26, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío), K-36 (`motivo === 'reto_abierto'`), K-37 (32 `destino: 'padre'`, 17 modos crudos), K-38 (`incrementarContador`, `:2227`), K-41 (`estadoComponente.radioLlegada`/`.recorridoSuficiente`/`.botonesActivos.ubicacion`, por leer), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor), K-43 (lectura inline del id de `CAMBIO_PARADA`) | `alert()`: 0; ids DOM: 0; `globalThis.logger` publicado (`:436`) |
 | `audio-hijo3.html` | E3, K-15, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío ×3), K-36 (`simular_click` sin emisor), K-37 (18 `destino: 'padre'`), K-38 (diagnóstico `TIPOS_MENSAJE_exists`, `:1380-1381`), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor) | `alert()`: 0; literales: 0; ids DOM: 0; `globalThis.logger` publicado (`:479`) |
 | `retos-hijo4.html` | E3, K-15, K-24, K-25, K-28, K-35 (handlers `CONTROL.*` sin cuerpo y sin emisión; emite `SISTEMA.CONFIRMACION` al vacío), K-37 (16 `destino: 'padre'`), K-38 (diagnóstico `TIPOS_MENSAJE_exists`, `:1402-1403`), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor), K-43 (lectura inline del id de `CAMBIO_PARADA`) | ids DOM: 0; `globalThis.logger` publicado (`:464`) |
@@ -2155,8 +2245,9 @@ comprobó y no dio nada, con su comprobación.
 | L — Estado escrito y no leído, registros que dicen más de lo que hacen | K-40, K-41 | 1 confirmada (K-40: el listener que dice "pausando operaciones" solo escribe una bandera sin lector) y 1 por estudiar (K-41: 12 filas de campos sin lector confirmadas con nombre desnudo, 15 por leer) |
 | M — Lo que se publica y nadie usa | K-42 | 1 por estudiar: 27 exports muertos (12 ya tratados en otras entradas, 15 nuevos), 3 que solo usan specs, 25 exportados sin que nadie los pida y 5 `export default` sin importador |
 | N — Identificadores con varios nombres | K-43 | 1 familia de copias: `paradaId`, `parada_id`, `padreId` y `padreid` en el mismo mensaje y dos resolutores (`resolverIdsParada` y lecturas a mano) |
+| O — Recursos locales | K-44 | 1 confirmada: 491 referencias comprobadas contra el disco y una ruta que nunca existió (respaldo del puzzle de introducción) |
 
-**Total: 43 entradas — 18 confirmadas, 2 por medir, 5 documentadas, 10 familias de copias, 4 por
+**Total: 44 entradas — 19 confirmadas, 2 por medir, 5 documentadas, 10 familias de copias, 4 por
 estudiar y 4 limpias o mixtas; 12 mediciones pendientes repartidas entre ellas (R2.4).** Lo que más
 pesa, sin ánimo de ordenarlo por urgencia: lo que cambia lo que ve el usuario (K-24, K-25), lo que
 puede dejar un estado equivocado (K-07, K-11, K-19), lo que hace que una configuración, una
@@ -2193,6 +2284,9 @@ G-11).
 - El instrumento de exports no ve los accesos por cadena (`obj['nombre']`) y cuenta como uso
   cualquier token igual en otro fichero: sobreaproxima el uso, así que lo que lista es ausencia casi
   segura, pero puede dejar fuera exports que solo usa un nombre homónimo.
+- El barrido de recursos locales no resuelve los literales con `${…}` (16) ni mira los módulos de
+  datos; el de i18n compara forma, marcadores y vacías, no la calidad ni la corrección de cada
+  traducción (eso es trabajo de revisión nativa).
 - Ninguna medición se ha ejecutado (R2.4).
 - No se ha leído `_hdl_SISTEMA_CAMBIO_MODO` entero (K-15).
 - Los scripts de los extractores no están versionados (R2.0); si se quieren conservar, lo decide
