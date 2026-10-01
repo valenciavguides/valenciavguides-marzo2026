@@ -71,7 +71,7 @@ viven aquí.
    la cosa, nunca a quien le falta. Para "¿quién no lo tiene?" usar `npm run verificar-frames` o
    enumerar las ausencias a mano, fichero por fichero.
 3b. **Al reportar un barrido sobre varios frames, nombrar también los que NO se han tocado y por
-   qué.** El censo son los diez: padre, selección, hijo1 a hijo6, mapa-completo, puzzle y
+   qué.** El censo son los once: padre, selección, hijo1 a hijo6, mapa-completo, puzzle y
    video-intro. Decir solo dónde se ha actuado hace indistinguible "mirado y no hacía falta" de
    "olvidado" — y hijo6 ya se ha quedado fuera de una lista por ese motivo. La ausencia se
    justifica con una comprobación citable (`git show <commit>:<fichero> | grep -c …`), no con un

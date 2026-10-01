@@ -4843,11 +4843,11 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 | `seleccion` | `En-busca-del-tesoro.html` | Iframe | Selector de aventura/idioma |
 | `funciones-mapa` | `js/funciones-mapa.js` | Módulo en padre | Dibujo de ruta, marcadores (escucha CustomEvent) |
 
-**Los diez frames hablan por el bus.** `js/mensajeria.js` lo carga todo frame (padre, los seis
-hijos, y los tres nietos puzzle/mapa-completo/video-intro), con doble papel donde corresponde:
+**Los once frames hablan por el bus.** `js/mensajeria.js` lo carga todo frame (el padre, la pantalla de selección, los seis
+hijos y los tres nietos puzzle/mapa-completo/video-intro), con doble papel donde corresponde:
 hijo de su padre y padre de los iframes que registre. No queda ningún frame con un envoltorio
 propio, un adaptador aparte, ni `postMessage` a pelo para su mensajería — eso incluye la captura
-de errores de `js/utils.js`, que en los diez llega por `globalThis.mensajeria`.
+de errores de `js/utils.js`, que en los once llega por `globalThis.mensajeria`.
 
 **Reglas fundamentales del bus:**
 
@@ -4896,7 +4896,7 @@ Al cargar el padre, por orden de ejecución:
 
 | Evento | Quién lo dispara | Quién lo escucha | Payload |
 |--------|-----------------|-----------------|---------|
-| `mensajeriaReady` | `mensajeria.js` (tras `inicializarMensajeria`) | `js/app.js` (`addEventListener once`) | — |
+| `mensajeriaReady` | `mensajeria.js` (al cargarse el módulo, antes de `inicializarMensajeria`) y el padre (tras inicializarla) | `js/app.js` (`addEventListener once`, solo si `globalThis.mensajeria` aún no existe cuando se evalúa el módulo) | — |
 | `vv:paradas-disponibles` | padre (en `distribuirDatosAventura`) | `js/funciones-mapa.js` (su `addEventListener` pasivo de `vv:paradas-disponibles`) — solo actualiza el caché local `arrayParadasLocal`, sin dibujar nada en el mapa | `coords[]` (array directo — `event.detail` es el array de coordenadas, no un objeto `{ paradas, aventura }`) |
 | `vv-parada-cambiada` | padre (`_hdl_NAVEGACION_CAMBIO_PARADA`) | `js/funciones-mapa.js` | mensaje CAMBIO_PARADA con `paradaId` **ya resuelto** |
 
@@ -13170,7 +13170,7 @@ Esto no es un paso más del protocolo — es lo que se recorre en la cabeza, en 
 > 6. **Si el cambio toca un flujo de usuario, se recorre ese tramo en la aplicación real** con el espía (EJE 28).
 > 7. **`npm run lint`.** El bloque `js/**/*.js` de `eslint.config.js` activa pocas reglas y `no-unused-vars` solo se aplica a los HTML: para los `js/*.js` se activa a mano en una pasada temporal.
 > 8. **Uso por uso de todo lo que el cambio introduce o deja atrás:** por cada import, desestructuración, asignación a `globalThis` y variable intermedia, se cuentan los usos reales. Un cambio que retira algo casi siempre deja restos: el import que servía a lo retirado, la variable que ya vale una constante, el guard que protegía de un caso que ya no existe.
-> 9. **Orden de arranque** (EJE 5). Si el cambio mueve algo al bus o al arranque —un dato que el bus pone por su cuenta, un registro, un handler nuevo—, se comprueba en los diez frames que existe antes de su primer uso, leyendo y midiendo.
+> 9. **Orden de arranque** (EJE 5). Si el cambio mueve algo al bus o al arranque —un dato que el bus pone por su cuenta, un registro, un handler nuevo—, se comprueba en los once frames que existe antes de su primer uso, leyendo y midiendo.
 
 **Modalidad ligera (no es auditoría formal):** cuando la petición es una opinión o un vistazo general ("qué opinas", "échale un buen vistazo", "si ves algo que no cuadra apúntalo") sin invocar explícitamente "auditoría completa", no aplica el recorrido obligatorio de los 28 ejes de abajo. Es válido partir del contexto ya acumulado en la sesión (código y documentación ya leídos) en vez de releer todo desde cero — pero cada afirmación concreta que se vaya a reportar como hallazgo, y en particular cualquier cosa citada desde memoria como "pendiente"/"sin arreglar", se verifica puntualmente contra el archivo real antes de darla por cierta (la memoria puede estar desactualizada aunque el documento ya no lo esté). Se reporta la opinión más los hallazgos ya verificados, sin implementar nada hasta que el usuario confirme qué quiere tocar. Esta modalidad NO sustituye el protocolo completo de abajo: si el usuario pide auditoría completa o "revisa todo en cada sección", aplica cobertura total de los 28 ejes, nunca una muestra priorizada por riesgo.
 
@@ -13252,7 +13252,7 @@ Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
 3. Todos los `while(!globalThis.fn) await sleep(x)` deben tener un límite de iteraciones con log de error al superarlo.
 4. Verifica que los iframes no reciben mensajes `postMessage` antes de que `contentWindow` esté disponible (el evento `load` del iframe debe haberse disparado).
 5. Detecta dependencias circulares: Módulo A espera a Módulo B, que espera a Módulo A.
-6. **Cada frame inicializa su bus antes de su primer envío.** `globalThis.mensajeria` existe desde que se importa `js/mensajeria.js`, pero el nombre del frame (`componenteId`) solo existe cuando termina `inicializarMensajeria`: un envío en ese hueco sale sin nombre y el receptor lo descarta. En los diez frames se localiza la línea de `inicializarMensajeria` y se sigue cada envío escrito antes de ella hasta saber cuándo se ejecuta; y se mide en ejecución: cada frame apunta cuándo queda inicializado y ningún mensaje suyo llega antes.
+6. **Cada frame inicializa su bus antes de su primer envío.** `globalThis.mensajeria` existe desde que se importa `js/mensajeria.js`, pero el nombre del frame (`componenteId`) solo existe cuando termina `inicializarMensajeria`: un envío en ese hueco sale sin nombre y el receptor lo descarta. En los once frames se localiza la línea de `inicializarMensajeria` y se sigue cada envío escrito antes de ella hasta saber cuándo se ejecuta; y se mide en ejecución: cada frame apunta cuándo queda inicializado y ningún mensaje suyo llega antes.
 7. **Registro antes de `src`.** Todo contenedor —el padre, selección, hijo4 y hijo6— llama a `registrarIframe` antes de asignar `src`: un iframe que empieza a hablar sin estar registrado es descartado por su contenedor.
 8. **Llamadas vacías.** Ningún mensaje del arranque se envía a un frame que todavía no tiene handler para ese tipo; la señal de que lo tiene es el handshake `HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO`. Un envío que el bus descarta por destino desconocido, por falta de `origen` o por falta de handler es una llamada vacía aunque no dé ningún error.
 
@@ -13626,14 +13626,14 @@ Marcarlas sin motivo derrota la herramienta: la marca es para las cuatro o cinco
 
 Un polling acotado que **solo se pisa fuera de producción** cuesta siempre `maxIntentos × intervalo` completos, porque la condición que espera no va a cumplirse nunca en ese contexto. Si ese coste queda cerca del timeout que el test concede, el resultado lo decide el planificador: verde en solitario, rojo en tanda completa.
 
-El caso vivo del proyecto es `enviarMensaje()` de los hijos (`retos-hijo4.html`, `coordenadas-hijo2.html`), que bifurca por `parent !== window`:
+La forma típica es un envío que bifurca según el contexto en el que vive la página:
 
 | Rama | Cuándo | Coste |
 |---|---|---|
-| `postMessage` directo al padre | **producción** — el hijo siempre es un iframe | inmediato |
-| `retryUntilAvailable(..., 10, 500)` sobre `globalThis.mensajeria` | **solo** cargando el hijo como página suelta | **10 × 500 ms = 5.000 ms** |
+| Vía directa (por ejemplo, `postMessage` al padre) | **producción** — la página siempre es un iframe | inmediato |
+| Reintento acotado (por ejemplo, `retryUntilAvailable(..., 10, 500)` sobre un objeto global) | **solo** con la página cargada suelta, donde ese objeto no existe | **10 × 500 ms = 5.000 ms** |
 
-`globalThis.mensajeria` no existe standalone —el hijo no carga `mensajeria.js`—, así que la segunda rama agota siempre los diez intentos. Y el handler de `SISTEMA.CAMBIO_MODO` hace `await` de ese envío (el `CAMBIO_MODO_ENTENDIDO`) **antes** de llamar a `sincronizarEstadoModo()`, que es quien aplica la clase al `body`. Un `expect.poll` que espere esa clase con `timeout: 5000` empata exactamente con el coste de la rama.
+Con la página cargada suelta, la segunda rama agota siempre los diez intentos. Si el handler hace `await` de ese envío **antes** de aplicar el efecto que el test espera (por ejemplo, una clase en el `body`), un `expect.poll` con `timeout: 5000` empata exactamente con el coste de la rama.
 
 **Cómo se reconoce:**
 
@@ -13641,7 +13641,7 @@ El caso vivo del proyecto es `enviarMensaje()` de los hijos (`retos-hijo4.html`,
 2. Sumar el polling: `maxIntentos × intervalo`. Si el resultado cae dentro de un factor 2 del timeout del test, ahí está.
 3. Comprobar de qué lado vive la rama lenta. Si producción no la pisa nunca, el arreglo va en el arnés y **nunca** en producción.
 
-**El arreglo es proveer lo que el código busca, no ensanchar el timeout.** `proveerMensajeriaStub()` —definido en `26-reto-completado-boton-verde`, `31-sincronizar-modo-ambas-direcciones` y `38-polyline-y-reset-botones-cambio-modo`— inyecta `globalThis.mensajeria` con `addInitScript` antes de cargar la página, y la rama lenta resuelve al instante.
+**El arreglo es proveer lo que el código busca, no ensanchar el timeout.** Para un hijo, lo que el código busca es un padre: `abrirHijoEnMarco()` (`tests/e2e/helpers/boot.js`) lo carga dentro de `helpers/marco-vacio.html`, que le hace de padre, y el envío toma el camino de producción. Inyectar un objeto de mentira con `addInitScript` también elimina la espera, pero el test deja de comprobar la aplicación y pasa a comprobar su propio montaje.
 
 **Se verifica con el reloj, no con el verde**: un arreglo real baja el tiempo de pared del spec; un timeout ensanchado lo sube. Comparar la duración antes y después del cambio es lo que distingue los dos.
 
