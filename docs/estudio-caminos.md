@@ -1763,6 +1763,15 @@ variable al vacío" de K-35 ("mensaje al vacío").
   globalThis.X`) y que no son clave. Resultado: **uno** (apartado 9) y dos claves de
   `estadoPadre` que se crean de forma perezosa donde se leen (`hijosFallidos`, `hijosPreparados`,
   K-41).
+- **Tercer paso: nombres cuya única escritura es un valor vacío.** Un nombre que alguna escritura
+  del frame "define" con `null`, `undefined`, `false`, `0`, `''`, `[]` o `{}` sale como definido en
+  los apartados de arriba. El tercer paso lista los `globalThis.X` leídos cuyas únicas asignaciones
+  del cierre del frame son de ese tipo: `__VV_GPS_OVERLAY_SNOOZE` (`{}` que se rellena por clave),
+  `__pendingBroadcast` y `_gpsHistorial` (`[]` en los que se hace `push`) son contenedores
+  legítimos y se descartan; salen **dos más**: `globalThis.modoActual` (apartado 4) y
+  `__vv_coordenadasAventura` (apartado 5). El resto de lo que lista —`AVENTURA_PARADAS` en
+  cinco frames y `__vv_coordenadasAventura` en otros cuatro— son lecturas de `js/proteccion.js`, que
+  queda fuera de este documento.
 
 **1. El latido del padre — dos de las cuatro rutas de arranque de K-11 no hacen nada.**
 
@@ -1819,6 +1828,11 @@ módulo)— pero no como globals: la limpieza apunta al nombre equivocado. Es in
 real la página se destruye, y con `persisted === true` los tres `pagehide` salen antes:
 `codigo-padre.html:14937`, `js/app.js:1106`, `js/funciones-mapa.js:3328`); es código que dice
 limpiar y no limpia, y la guía lo describe como si limpiara (L12591-12592; G-14).
+  Una más sale del tercer paso: `codigo-padre.html:14943`, `if (globalThis.modoActual)
+  globalThis.modoActual = undefined;` (la limpieza ya existía en el commit inicial como `delete
+  globalThis.modoActual` y los dos commits que la reescribieron, `4436131` y `b0e255f`, solo cambian
+  la forma); `globalThis.modoActual` no aparece en ningún otro sitio (búsqueda desnuda
+  `globalThis\.modoActual|window\.modoActual`).
 
 **5. Operandos muertos de una cadena `||`.**
 
@@ -1832,6 +1846,10 @@ limpiar y no limpia, y la guía lo describe como si limpiara (L12591-12592; G-14
   módulo de datos. `verificarTimeoutAventura()` solo se llama en el padre (`:4467, 8446`), que sí
   asigna el primero (`:3847, 3908, 8437`); en la selección, que también carga el módulo, el nombre
   no existe pero la función no corre. (K-21 trata cómo falla esa función.)
+- `codigo-padre.html:5425` y `:5443`: `globalThis.__vv_coordenadasAventura ||
+  globalThis.AVENTURA_PARADAS` — el primer operando solo lo asigna hijo2, en su propio `globalThis`
+  (`coordenadas-hijo2.html:1821`); en el padre nadie le da un valor, así que esa cadena resuelve
+  siempre por el segundo.
 
 **6. Interruptor manual de consola — 📌.** `js/funciones-mapa.js:1518`:
 `globalThis.__vv_debug_tramo`, dentro de un bloque marcado "TEMP DEBUG" (`:1516`); solo se lee, y se
@@ -2161,6 +2179,16 @@ Para que "no sale nada" no se confunda con "no se miró":
   (`js/device-detection.js:101`) escuchan el mismo `orientationchange`, y la invalidación se registra
   primero porque la FASE 1 espera a `import('./js/device-detection.js')` (`:3813-3831`) antes de
   llegar al registro de `:4199`.
+- **Handlers duplicados en un mismo frame.** 144 receptores del bus, 144 pares (frame, tipo)
+  distintos: ningún tipo se registra dos veces en el mismo frame (el bus ignoraría el segundo,
+  `mensajeria.js:247`). Residuo: 0 receptores sin tipo canónico.
+- **Cadenas de respaldo `a || b || c` con varias fuentes del mismo dato.** 152 cadenas de tres o
+  más operandos; solo 12 combinan dos o más fuentes (global, estado, `localStorage`, parámetro de
+  URL): `__vv_INDICE_AVENTURAS`/`aventuraSeleccionada` para el nombre de la aventura (6 sitios del
+  padre, `:8704-9198`), `estado.elementoActual.parada_id`/`tramo_id`/`padreid` (K-43),
+  `estadoPadre.modo.actual` (`:7351`), `aventuraSeleccionada`/`estado.seleccion.aventura` (`:11623`,
+  K-41), `__vv_coordenadasAventura`/`AVENTURA_PARADAS` (`:5443`, K-38) y `estadoPadre`/
+  `estadoScript2` (`:9909`, K-38). Las tres últimas ya están en sus entradas.
 
 ### R2.4 Lo que queda POR MEDIR (consolidado)
 
@@ -2179,7 +2207,7 @@ con la consola del propio navegador sobre la app real.
 | M-7 | K-32 | Que el stub de `enviarMensajeConConfirmacion` reciba llamadas en cada uno de los 7 specs | contador y `expect` por spec (los 7 de K-32) |
 | M-8 | K-17 | Reintento de señal con timeout 15000 frente a 5000 en GPS en frío | prueba de campo; no es un caso de Playwright |
 | M-9 | K-20 | Que ninguna fila de borrado parcial deje `vv_paradas_completadas`/`vv_aventura` vivas para la sesión siguiente | recorrer cada vía de borrado y listar `localStorage` |
-| M-10 | K-38 | `typeof` de cada nombre sin definidor en su frame, ya cargado: se espera `'undefined'` en todos | en el padre, `['iniciarHeartbeat','pausarHeartbeat','detenerHeartbeat','incrementarContador','registerAllowedOrigin','controladores','intervaloMonitoreo','puntosRuta','CoordenadasParadas','estadoHijos','intervaloReconciliacion','estadoScript2','__vv_aventuraSeleccionada'].map(n => [n, typeof globalThis[n]])`; en hijo2, `typeof globalThis.incrementarContador` |
+| M-10 | K-38 | `typeof` de cada nombre sin definidor en su frame, ya cargado: se espera `'undefined'` en todos | en el padre, `['iniciarHeartbeat','pausarHeartbeat','detenerHeartbeat','incrementarContador','registerAllowedOrigin','controladores','intervaloMonitoreo','puntosRuta','CoordenadasParadas','estadoHijos','intervaloReconciliacion','estadoScript2','__vv_aventuraSeleccionada','modoActual'].map(n => [n, typeof globalThis[n]])`; en hijo2, `typeof globalThis.incrementarContador` |
 | M-11 | K-39 | En `mapa-completo.html` abierta con un padre: `typeof globalThis.logger` y si el aviso `debug` "✅ constants.js cargado" sale con el nivel de log subido a WARN | consola del frame; mismo mecanismo que `60-nivel-de-log-alcanza-hijos.spec.js` |
 | M-12 | K-40 | Con la app en AVENTURA, disparar `offline` y `online`: ¿sale el overlay del padre y no se pausa nada pese al `warn` "pausando operaciones" de `js/app.js:1074`? | `globalThis.dispatchEvent(new Event('offline'))` y después `await globalThis.consultarHeartbeat()` (se define como en M-1) y `globalThis.estadoPadre.gps.activo`: se espera latido y GPS sin cambios; luego `online` |
 
@@ -2241,7 +2269,7 @@ comprobó y no dio nada, con su comprobación.
 | H — Copias y homónimos | K-28, K-29 | familias; los 26 homónimos clasificados |
 | I — Recursos, SW, arnés, CSS, instrumentos | K-30 … K-34 | limpio con restos, 1 documentada, 1 por medir (K-32), 1 confirmada (K-34: los instrumentos del repo mienten en casos concretos) |
 | J — Contrato del bus y constantes | K-35 … K-37 | 3 confirmadas: 8 envíos al vacío y 5 handlers sin emisión (K-35), 3 ramas muertas y claves sin pareja en la carga útil (K-36, con alcance por estudiar), 75 de 177 constantes sin lector (K-37) |
-| K — Nombres de `globalThis` sin definidor | K-38, K-39 | 2 confirmadas: 16 nombres que ningún frame define (dos de las cuatro rutas de arranque del latido sin efecto, 15 puntos de contador sin función, seis limpiezas de `pagehide` sobre nombres inexistentes), una llamada a un método retirado (`iniciarGPSAventura`, con el historial que lo demuestra) y un frame, `mapa-completo.html`, que no publica el logger |
+| K — Nombres de `globalThis` sin definidor | K-38, K-39 | 2 confirmadas: 17 nombres que ningún frame define (dos de las cuatro rutas de arranque del latido sin efecto, 15 puntos de contador sin función, siete limpiezas de `pagehide` sobre nombres inexistentes), un operando que solo define otro frame (`__vv_coordenadasAventura`), una llamada a un método retirado (`iniciarGPSAventura`, con el historial que lo demuestra) y un frame, `mapa-completo.html`, que no publica el logger |
 | L — Estado escrito y no leído, registros que dicen más de lo que hacen | K-40, K-41 | 1 confirmada (K-40: el listener que dice "pausando operaciones" solo escribe una bandera sin lector) y 1 por estudiar (K-41: 12 filas de campos sin lector confirmadas con nombre desnudo, 15 por leer) |
 | M — Lo que se publica y nadie usa | K-42 | 1 por estudiar: 27 exports muertos (12 ya tratados en otras entradas, 15 nuevos), 3 que solo usan specs, 25 exportados sin que nadie los pida y 5 `export default` sin importador |
 | N — Identificadores con varios nombres | K-43 | 1 familia de copias: `paradaId`, `parada_id`, `padreId` y `padreid` en el mismo mensaje y dos resolutores (`resolverIdsParada` y lecturas a mano) |
