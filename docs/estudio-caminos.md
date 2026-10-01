@@ -1007,7 +1007,7 @@ los arranques (a) y (c) como vivos y con políticas opuestas. El barrido de nomb
   tres son `undefined` (K-38), `typeof hbFn === 'function'` es falso y el bloque entero —con su
   política "con `modo` nulo pospone" y su intervalo `ajustarTimeoutPorConexionSafe(5000)`— se salta
   sin dejar ni un log. (b) `_activarHeartbeatAventura` (`:7535-7548`): `iniciarHeartbeat` por
-  `globalThis.mensajeria`, 5000 ajustado; no mira la bandera. **Es el único arranque que arranca.**
+  `globalThis.mensajeria`, 5000 ajustado; no mira la bandera. **Con (d), es de los dos arranques que sí arrancan.**
   (c) Script 4, `:15012-15028`: **tampoco hace nada** — sus dos llamadas son
   `globalThis.iniciarHeartbeat` y `globalThis.pausarHeartbeat`, que nadie asigna (K-38) —; lo único
   que ejecuta es poner la bandera a `true` en la rama AVENTURA (`:15019`, fuera de la guarda) y el
@@ -1468,6 +1468,16 @@ propósito". Método: `ficherosDelShell()` contra el literal de `APP_SHELL`.
   (`_enviarAudioRequestConReintento`, `:11705-11726`: "expuesta para poder testear … mockeando
   `globalThis.enviarMensajeConConfirmacion`"); no hay nada que compruebe que, en los demás 6
   specs, el stub intercepta lo que se propone.
+- **Un spec que mide un nombre que no existe (MC-7a).** Instrumento: los `globalThis.X` que leen
+  los 111 specs (1511 lecturas) frente a lo que asigna producción; salen 14 nombres sin definidor,
+  de los cuales casi todos son variables del propio arnés (`__arnes`, `__e2e_*`, `__recibidos`…,
+  asignadas desde cadenas de `addInitScript` que el parser no sigue), la rama muerta de una cadena
+  `||` (`TIPOS_MENSAJE_S1`, `app`) o una ausencia afirmada a propósito (`diagnosticarHijo4`, spec
+  `107`). El que importa: `09-mode-change.spec.js:244-258`, «En modo CASA (inicial), el heartbeat no
+  está activo», lee `globalThis.__heartbeatInterval`, `__heartbeatActivo` y `__vv_heartbeatActivo`,
+  que **ningún fichero de producción asigna**, y afirma `toBe(false)`: **no puede fallar**. El
+  indicador real sería `__HEARTBEAT_INICIADO` o `getHeartbeat()` (K-11); lo que garantiza "sin latido
+  en CASA" es el spec `78`, no este.
 - **POR MEDIR:** para cada uno de los 7 specs, que el stub reciba al menos una llamada (un
   contador y un `expect`). La ronda 1 verificó 1 de 7.
 
@@ -2214,6 +2224,10 @@ Para que "no sale nada" no se confunda con "no se miró":
   `estadoPadre.modo.actual` (`:7351`), `aventuraSeleccionada`/`estado.seleccion.aventura` (`:11623`,
   K-41), `__vv_coordenadasAventura`/`AVENTURA_PARADAS` (`:5443`, K-38) y `estadoPadre`/
   `estadoScript2` (`:9909`, K-38). Las tres últimas ya están en sus entradas.
+- **`APP_SHELL` y ids.** `sw.js`: 56 entradas, las 56 existen en disco y ninguna se repite (un 404
+  en esa lista haría fallar el `addAll` de la instalación del service worker). Ids estáticos de los
+  17 `.html`: 193 distintos, ninguno repetido dentro de su documento. Y los 14 nombres de
+  `globalThis` que leen los specs sin que producción los asigne, en K-32 (uno solo importa).
 
 ### R2.4 Lo que queda POR MEDIR (consolidado)
 
