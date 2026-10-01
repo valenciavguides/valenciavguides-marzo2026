@@ -1,5 +1,14 @@
 # Estudio "un solo camino" — auditoría de la PWA completa
 
+**Qué es este archivo y para qué sirve.** Es el registro de una auditoría en curso de toda la
+PWA buscando mecanismos con **más de un camino para la misma decisión** — p. ej. dos funciones
+que responden la misma pregunta de forma distinta, o dos clientes HTTP contra el mismo backend.
+No es una lista de bugs confirmados ni una guía de arquitectura: es el mapa de lo que se ha
+investigado, con qué se verificó, y qué sigue abierto para decidir. Su función es evitar que un
+hallazgo de "dos caminos" se arregle de pasada, al vuelo, sin registrar antes por qué uno de los
+dos sobra — y servir de punto de partida para que una sesión nueva (de Claude o del usuario)
+pueda retomar el trabajo sin repetir desde cero lo ya comprobado.
+
 Modelado sobre el estudio que produjo la migración de mensajería (opción A, bus único —
 `docs/GUIA-COMPLETA.md` §10, §10.25, §28). Alcance: **total y absoluto, la PWA entera** —
 mensajería fue una sola pieza del proyecto; esto la incluye pero va más allá. Motivo: evitar
@@ -20,6 +29,28 @@ hay ≥2, comprobar cuál está roto desactivando el otro; un fallback legítimo
 traza también qué otros frames dependen de él por mensajería o por `globalThis`/estado
 compartido, y qué se rompe en cadena si falla. No son piezas sueltas: todo funciona como un
 engranaje.
+
+**Herramientas usadas en esta auditoría** (para que una sesión nueva sepa qué ya se hizo y
+pueda repetirlo o extenderlo, en vez de adivinar el método): `Grep`/grep desnudo sobre todo el
+repo para cada categoría del barrido mecánico (una afirmación de "ausencia" exige esto, no solo
+mirar la lista curada de `npm run inventory`); `npm run inventory:dupes` y
+`npm run inventory:timers` para las categorías 6 y 2; `git log --oneline -- <fichero>` y
+`git log -S"<literal>" -- <fichero>` para distinguir una regresión reciente de andamiaje
+original nunca ejercitado; `Read` completo de cada función candidata (nunca juzgar por el
+nombre o por un fragmento) antes de reportar una divergencia; y, para el único caso donde la
+lectura estática no bastaba (C5, restauración de sesión), una reproducción real desechable en
+Playwright contra la app real (`tests/e2e/zz-repro-*-temp.spec.js`, copiada, ejecutada y
+borrada sin commitear) — regla 6 de CLAUDE.md: la medición manda sobre el razonamiento estático,
+por impecable que parezca encadenado.
+
+**No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
+`docs/GUIA-COMPLETA.md`: este documento se consulta siempre y no se cree nunca a ciegas. Una
+entrada de aquí es un punto de partida para verificar, no una conclusión cerrada — el propio
+documento ya tiene dos casos (C1 variante C, C5) de un hallazgo razonado con cuidado, línea a
+línea, que una comprobación posterior (historial de git o reproducción real) refutó por
+completo. Antes de actuar sobre cualquier hallazgo de aquí: releer la entrada entera (no solo
+el título ni el veredicto), y volver a comprobar contra el código real que sigue siendo cierto
+— sobre todo si ha pasado tiempo desde que se escribió.
 
 ---
 
@@ -49,6 +80,32 @@ engranaje.
   hecho al leer la guía completa — pendiente de decidir con el usuario si se ejecuta la fusión
   ahora o se deja para cuando el backend se construya.
 
+**Verificado más a fondo (2026-10-01), con grep desnudo de cada nombre en todo el repo, antes
+de proponer tocar nada (regla 9):**
+
+- `validarRespuesta()` (`data-loader.js:317`) tiene **cero llamadores reales** en todo el
+  proyecto — ni en HTML, ni en `js/`, ni en ningún spec. Las coincidencias de "validarRespuesta"
+  en `tests/dataService.test.js` son `dataService.validarRespuestaReto()`, una función distinta
+  de otro módulo — no confundir las dos.
+- De los ~17 métodos de `ApiClient`, **solo `activar()` tiene un llamador real**
+  (`En-busca-del-tesoro.html:1763`). El resto, incluido `validarReto()`, no los llama nadie
+  todavía.
+- **Consecuencia:** hoy este hallazgo es 100% andamiaje para un backend que no existe —
+  arreglarlo es limpieza de diseño, no corrección de un bug que se esté ejecutando en ningún
+  camino real. Riesgo de la fusión: cero, en cualquier dirección que se elija.
+- **Arreglo propuesto, con las decisiones ya tomadas para que no haga falta otra ronda:** (1)
+  arreglar los 2 huecos reales de `fetchWithRetry()` (el `AbortError` del timeout no reintenta;
+  el filtro `.includes('fetch')` deja fuera a WebKit); (2) añadir `getTextos()` a `ApiClient`;
+  (3) borrar `validarRespuesta()` de `data-loader.js` (cero llamadores, nada que redirigir),
+  dejando `ApiClient.validarReto()` como único camino; (4) que `data-loader.js` llame a
+  `fetchWithRetry()` en vez de su propio `fetch` sin reintento, adoptando el contrato de éxito
+  `!data.error` de `api-client.js` (gana por ser el que ya generalizan los ~17 métodos de
+  `ApiClient`, frente a `data.exito` que solo usa `data-loader.js` internamente — mismo criterio
+  que "un solo camino": se queda el que ya funciona en más sitios).
+- **Pendiente de decidir con el usuario:** únicamente el *cuándo* — ejecutar esto ahora, o
+  dejarlo para cuando el backend real se construya (dado que nada lo ejecuta hoy, no hay
+  urgencia). El *qué* ya está decidido arriba.
+
 #### M2. Imports directos de Fase 2 que se saltan las funciones `cargarX()` ya escritas
 
 - **Dónde:** `codigo-padre.html`, `__cargarDatosAventuraDiferidos` (Fase 2) importa
@@ -58,6 +115,30 @@ engranaje.
 - **Ya analizado** en `docs/GUIA-COMPLETA.md` §22.12, con tabla de estado por fichero. Distinto
   de M1: aquí el problema es qué función de carga se usa, no qué cliente HTTP.
 - **Estado:** catalogado, pendiente de decisión (no bloquea nada mientras `PROTECT_DATA=false`).
+
+**Verificado más a fondo (2026-10-01), releyendo §22.12 completa contra el código real antes de
+proponer el arreglo (regla 8/9):**
+
+- La tabla de §22.12 **no está desactualizada** — ya distingue correctamente `retos-aventuras.js`
+  y `textos-aventuras.js` como ✅ migrados (vía `cargarRetos()`/`cargarTextos()`, confirmado
+  leyendo `distribuirDatosAventura()` en `codigo-padre.html:~9976`) de `coordenadas-aventuras.js`/
+  `audios-aventuras.js`/`indice-aventuras.js` como ⚠️ pendientes. No hay error de la guía aquí.
+- **Lo que la guía no dice, y cambia el plan:** `cargarCoordenadas(aventuraId)` y
+  `cargarAudios(aventuraId, idioma)` en `data-loader.js` están pensadas para traer **una sola
+  aventura**. Pero `__cargarDatosAventuraDiferidos()` (Fase 2, `codigo-padre.html:3858`) no
+  recibe ningún parámetro — carga **todas** las aventuras de golpe en
+  `globalThis.__vv_DATOS_AVENTURAS`, y `distribuirDatosAventura()` después indexa por `aventura`
+  dentro de ese objeto. Sustituir el `await import()` por `cargarCoordenadas()`/`cargarAudios()`
+  tal cual **no es un cambio mecánico**: cambia la forma del dato, de "todas las aventuras" a
+  "una aventura".
+- **Radio cruzado, confirmado con grep, no es una lista de memoria:** 33 specs de `tests/e2e/`
+  llaman a `__cargarDatosAventuraDiferidos()` o leen `__vv_DATOS_AVENTURAS` directamente.
+  Rediseñar Fase 2 para que cargue por aventura (que además es lo correcto de cara a
+  `PROTECT_DATA=true`: descargar todas las aventuras en cada arranque es derrochador) tiene
+  radio de impacto real sobre la suite de tests — no es un barrido seguro.
+- **Pendiente de decidir con el usuario:** si se aborda el rediseño (pieza de trabajo propia,
+  con su propio verificado contra los 33 specs) o se deja también para cuando el backend se
+  acerque, igual que M1 — sin urgencia mientras `PROTECT_DATA=false`.
 
 ### Barrido mecánico — categoría 1 (fetch/XMLHttpRequest/localStorage/sessionStorage/geolocalización)
 
