@@ -1477,7 +1477,10 @@ propósito". Método: `ficherosDelShell()` contra el literal de `APP_SHELL`.
   está activo», lee `globalThis.__heartbeatInterval`, `__heartbeatActivo` y `__vv_heartbeatActivo`,
   que **ningún fichero de producción asigna**, y afirma `toBe(false)`: **no puede fallar**. El
   indicador real sería `__HEARTBEAT_INICIADO` o `getHeartbeat()` (K-11); lo que garantiza "sin latido
-  en CASA" es el spec `78`, no este.
+  en CASA" es el spec `78`, no este. Mismo barrido sobre las claves de primer nivel de `estadoPadre`
+  que leen los specs (191 lecturas): una sola sin escritor en producción, `estadoPadre.modoActual`
+  (`09-mode-change.spec.js:191, 251`, siempre con `|| estadoPadre.modo.actual` detrás, que es la que
+  vale).
 - **POR MEDIR:** para cada uno de los 7 specs, que el stub reciba al menos una llamada (un
   contador y un `expect`). La ronda 1 verificó 1 de 7.
 
