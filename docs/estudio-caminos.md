@@ -46,7 +46,7 @@ por impecable que parezca encadenado.
 **Ronda 2 (2026-10-01).** La metodología de arriba es la de la ronda 1 (`grep` e inventario). La
 ronda 2, al final de este documento, repite el barrido con parser real (`acorn`) y con el residuo
 de cada instrumento a la vista: desmiente siete afirmaciones de este texto (erratas E1-E7, con una
-nota fechada en cada sección afectada) y añade 41 entradas (K-01 a K-41) para su estudio
+nota fechada en cada sección afectada) y añade 43 entradas (K-01 a K-43) para su estudio
 individual. Léase junto con ella: lo que aquí se dio por cerrado o limpio puede no estarlo.
 
 **No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
@@ -626,6 +626,7 @@ decisión del usuario, no se ha hecho.
 | globals por frame | por página: los ficheros que ejecuta (inline, `import` estáticos y dinámicos con literal, `<script src>`); nombres sueltos sin resolver (`eslint-scope`), `globalThis.X` leídos sin escritura en el frame, lecturas `parent.X`/`contentWindow.X`; y el uso real de la lista `globals` de `eslint.config.js` | 17 páginas, 48 ficheros, 2195 usos de `globalThis.X`; residuo: 0 bloques sin parsear, 1 `import()` no literal, 1 asignación computada (K-38, K-39, K-34) |
 | API e imports | por cada import (estático con nombre o por defecto, `import * as` con sus miembros, `await import()` desestructurado, `(await import()).X`, `.then`): que el módulo exporte el nombre pedido; por cada objeto-API publicado en `globalThis` con claves derivables: los miembros pedidos que no son clave | 97 + 8 + 68 + 3 usos de import, 0 nombres sin exportar; 20 objetos-API, 1 miembro inexistente (K-38) |
 | estado solo-escritura | rutas de estado escritas frente a leídas (13 raíces; lectura = uso fuera de escritura, desestructuración o cadena más larga; sin contar la inicialización perezosa pura) | 158 rutas escritas, 30 sin lector (12 estrictas, 15 con un ancestro leído entero, 3 con clave computada); residuo: 20 accesos con clave computada (K-41) |
+| exports sin uso | por cada `export` de `js/` (191): apariciones de su nombre como token identificador en los demás ficheros de producción y en los specs, descontando declaración, `export` y claves del objeto-API publicado | 55 sin mención externa: 27 muertos del todo, 3 solo en specs, 25 con uso solo interno; 5 `export default` sin importador (K-42) |
 
 Además se han ejecutado las herramientas propias del repo que esta auditoría no había usado:
 `node tools/codigo-muerto.js`, `node tools/verificar-mensajeria.js`, `node tools/verificar-frames.js`.
@@ -1480,6 +1481,10 @@ retira el instrumento estático". Medido en esta ronda:
   llama un test (`adelantarLatido`), una rama sin llamadores dentro de una función viva
   (`retryUntilAvailable` legacy), un historial que se lee solo a sí mismo
   (`estado.monitoreo.historial.eventos`, cuenta la autolectura) y lecturas de claves inexistentes.
+- **`tools/codigo-muerto.js` frente a los exports muertos:** devuelve 3 funciones (`cargarCoordenadas`,
+  `cargarIndice` y `limpiarCacheDatos`, de `data-loader.js`); el barrido por tokens de esta ronda
+  (K-42) halla 27 exports cuyo nombre no aparece en ningún otro fichero de producción, entre ellos
+  esas tres y `validarRespuesta`, que la herramienta no marca.
 - **`npm run inventory:dupes`:** 23 nombres; el parser, 26 (K-29).
 - **El extractor de storage de esta ronda** no vio `ls.getItem` (lectura por alias): residuo 1/54.
 - **La lista `globals` de `eslint.config.js`** (`:76-221`, bloque `*.html`, con `no-undef:
@@ -1559,7 +1564,8 @@ fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las c
   que los emisores mandan para ella. Solo se concluye cuando todos los emisores del tipo tienen
   `datos` literal. **Cobertura:** 93 tipos con claves y 31 comparaciones; los tipos con emisor
   opaco (`AVENTURA.ESTADISTICAS_TIEMPO`, `CHAT.ESTADO_PADRE`, `NAVEGACION.CAMBIO_PARADA`,
-  `RETO.COMPLETADO`, `SISTEMA.PADRE_DATOS`) quedan **sin concluir**.
+  `RETO.COMPLETADO`, `SISTEMA.PADRE_DATOS`) quedan **sin concluir para el instrumento**; se leyeron a
+  mano (las dos últimas viñetas de esta entrada).
 - **Tres ramas muertas — leído el emisor y el receptor, búsqueda desnuda del valor:**
   1. `UI.ACCION_USUARIO` `accion === 'simular_click'` (`audio-hijo3.html:1609`, que además exige
      `elemento` y `contexto === 'boton_horizontal'`): ningún emisor manda esa acción ni esa clave
@@ -1612,8 +1618,32 @@ fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las c
   `funciones-mapa.js`, `codigo-padre.html:3789, 9869, 15036`, y el único llamador interno es
   `:2640`). Que un mismo tipo tenga dos garantías de entrega según quién lo manda no es un fallo
   por sí mismo; se anota para decidir si cada caso es deliberado.
-- **Lo que no se hizo:** leer uno a uno los 5 tipos con emisor opaco, ni ampliar el extractor de
-  discriminadores (31 comparaciones). 🔎.
+- **`SISTEMA.PADRE_DATOS`: `paradas` y `paradaActual` se leen y nadie las manda.** El padre manda
+  `{ modo, timestamp }` (`codigo-padre.html:7350-7364`), más el estado del chat solo a hijo6, y
+  `{}` en el único uso de `cargarIframeConDatos` (`:14856`). Cinco receptores desestructuran
+  `{ modo, paradas, paradaActual }` —hijo2 en `_procesarDatosPadre`, `coordenadas-hijo2.html:1555`;
+  hijo3, `audio-hijo3.html:1180`; hijo4, `retos-hijo4.html:1242`; hijo5,
+  `boton-casa-hijo5.html:815`— o `paradaActual` —la selección, `En-busca-del-tesoro.html:2745`— y
+  con ellas solo hacen un `debug`: ramas sin efecto, copiadas en cinco frames. El comentario de
+  `codigo-padre.html:14852-14856` ya lo dice de hijo4 ("hijo4 espera `{ modo, paradas,
+  paradaActual }`" y el padre manda `{}`). `modo` sí se aplica en hijo2 (`estadoComponente.modo` y
+  la clase del `body`), hijo3 (`sincronizarSeekPorModo`) e hijo4 (`sincronizarEstadoModo`), y solo se
+  loguea en hijo1, hijo5 y la selección; el modo llega además por `SISTEMA.CAMBIO_MODO` (K-15), así
+  que el modo inicial tiene dos entregas a los hijos. Es un decimotercer tipo con claves leídas sin
+  emisor, que el instrumento no pudo contar por su emisor opaco (de efecto benigno, como los doce).
+- **Los cinco tipos con emisor opaco, leídos uno a uno** (cierra el límite de la cobertura):
+  `AVENTURA.ESTADISTICAS_TIEMPO` — sin hueco: hijo1 manda lo que devuelve `detenerTemporizador()`
+  (`{ tiempoTotal, tiempoRestante, tiempoUsado, completado }`, `extrainfo-hijo1.html:1110-1128,
+  1211`) y el handler del padre (`codigo-padre.html:13512-13516`) lee tres de las cuatro y solo las
+  loguea. `CHAT.ESTADO_PADRE` — sin hueco: lo manda `abrirChat()` con `construirEstadoChat()`
+  (definida en `:1622-1633`, enviada en `:1644`) y hijo6 lo funde en su estado y lee `idioma` (`chat-hijo6.html:784-800`); es además
+  un segundo camino de entrega del mismo estado, porque `SISTEMA.PADRE_DATOS` lleva el mismo
+  `construirEstadoChat()` en la primera apertura (`:7357-7358`), y el comentario de
+  `chat-hijo6.html:788-798` lo reconoce ("dos caminos casi iguales con distinta garantía") — 📌.
+  `RETO.COMPLETADO` — sin hueco: los dos productores de `_pendienteCompletado` mandan
+  `{ retoId, correcto }` (`retos-hijo4.html:917-920, 1157`) y el handler del padre lee esas dos
+  claves (`:11179-11197`). `NAVEGACION.CAMBIO_PARADA` — K-43. `SISTEMA.PADRE_DATOS` — el hallazgo de
+  arriba. Sigue sin hacerse: ampliar el extractor de discriminadores (31 comparaciones). 🔎.
 
 ##### K-37 — `js/constants.js`: 75 de 177 hojas sin lector, un valor que no coincide con el bus y una lista de validación que nadie usa — ✅
 
@@ -1920,6 +1950,99 @@ estrictas y su nombre no tiene más lectores en el fichero; no se han leído una
   filas con varias casas para el mismo hecho (hijo listo, sistema inicializado, selección,
   contadores de error) son las que tocan "un solo camino por decisión".
 
+#### Familia M — Lo que se publica y nadie usa
+
+##### K-42 — Exports de `js/` que ningún otro fichero menciona: 27 muertos del todo, 3 que solo nombran los specs y 25 que se exportan sin que nadie los pida — 🔎 (con varios grupos ya cerrados en otras entradas)
+
+- **Método.** Para cada `export` de los módulos de `js/` (191) cuenta las apariciones de su nombre
+  como **token identificador** (sin comentarios ni cadenas) en todos los demás ficheros de
+  producción (los `.html` y `js/*.js`) y en los specs. Un token igual en otro sitio cuenta como
+  uso, así que el instrumento sobreaproxima el uso y lo que sale es ausencia casi segura. Se
+  descuentan la propia declaración, el `export` y las claves del objeto-API que publica el módulo
+  (`globalThis.mensajeria = {…}`, `export default {…}`). **Residuo:** 0 ficheros sin tokenizar; no
+  se ven los accesos por cadena (`obj['nombre']`). **Comprobación independiente:** `grep -w` de
+  17 nombres (los 15 nuevos y dos ya tratados, `updateEstadoPadre` y `getMapaControladores`),
+  sobre `*.html js/*.js sw.js tools/*.js`: solo aparecen en su propio módulo (`throttle`, además,
+  en tres comentarios).
+- **Resultado.** 191 exports; 55 sin mención en otro fichero de producción: **27 muertos del
+  todo**, 3 que solo nombran specs y 25 con uso interno (se exportan, y solo los usa su propio
+  módulo; algunos también los usan specs): `ApiClientError`, `API_CONFIG`, `actualizarInterfazModo`,
+  `notificarError`, `iniciarPrewarmEnCasa`, `obtenerEstadoMonitoreo`, `getConfig`,
+  `hayBackendDisponible`, `ejecutarOperacionMapa`, `getMapCenter`, `limpiarRecursos`,
+  `revelarNavegacion`, `manejarGPSActivar`, `registrarManejadoresMensajes`,
+  `calcularToleranciaGPS`, `actualizarMarcadorUsuario`, `reenviarMensajesGPSAPendientes`,
+  `registrarControladorCentral`, `getControladoresRegistrados`, `getMapaControladoresSync`,
+  `diagnosticarStateManager`, `deepClone`, `deepMerge`, `sonIguales` e
+  `instalarReporteErroresAlPadre`.
+- **Los 27, por grupos.** Ya tratados en otra entrada (12): `js/data-loader.js` —
+  `cargarCoordenadas`, `cargarIndice`, `validarRespuesta`, `limpiarCacheDatos`, reservados al
+  backend y ya catalogados (M1) —, `js/constants.js` — `ERRORES`, `ESTADOS`, `CODIGOS_ERROR`,
+  `DESTINOS`, `CSS_CLASES`, `TIPOS_MENSAJE_VALIDOS` (K-37) — y, en `js/state-manager.js`,
+  `getMapaControladores` (K-12) y `updateEstadoPadre` (K-07). **Nuevos (15, 🔎):**
+  - `js/utils.js`: `throttle`, `formatearBytes`, `formatearTiempo`, `capitalizar`, `truncar`,
+    `getByPath` y `setByPath`, publicados solo en el `export default` del módulo (`:768-789`;
+    `globalThis.__vv_utils`, `:623`, no los incluye) y sin un solo llamador.
+  - `js/state-manager.js`: `setHeartbeat`, `setGpsPendientes`, `agregarMensajeGPSAPendientes`,
+    `cancelarPromiseHijoListo` y `removerControladorCentral`, publicados en el objeto del
+    state-manager (`:481-482`).
+  - `js/mensajeria.js`: `listarControladores` (clave de `globalThis.mensajeria`).
+  - `js/monitoreo.js`: `getEstadoMonitoreo`; su gemela `obtenerEstadoMonitoreo` (`js/app.js:995`)
+    solo la usa su propio módulo (K-04).
+  - `js/app.js`: `coordinarAccion` (`:1179`), que además figura en la lista de globals de ESLint
+    sin existir como tal (K-34).
+- **Cinco `export default` de objeto que nadie importa:** `js/config.js:201`, `js/constants.js:325`,
+  `js/mensajeria.js:1303`, `js/monitoreo.js:292` y `js/utils.js:768` repiten los exports con nombre
+  en un objeto y ninguna importación por defecto los usa (el instrumento de imports no registra
+  ni una); todo el código importa por nombre. El `default` de `js/logger.js`, en cambio, sí se usa.
+- **Solo los nombran specs (3):** `adelantarLatido` (K-11), `getScript2Listo` y `getEstadoPadre`
+  (K-07).
+- **Observación — `throttle`.** El helper compartido no lo usa nadie y la app limita a mano: el
+  chequeo de integridad de la ruta ("throttle 3 minutos", `codigo-padre.html:5754`) y la escritura
+  de la flecha a ~10 Hz (`js/funciones-mapa.js:1760`) llevan cada uno su propia marca de tiempo.
+  Familia de copias, como las de K-28.
+- **Pendiente:** ¿los 15 nuevos y los cinco `default` se retiran o se declaran API pública? El instrumento no distingue
+  entre "andamiaje de una API general" y "código que se quedó"; esa decisión es del estudio
+  individual. `tools/codigo-muerto.js` solo ve 3 de los 27 (K-34).
+
+#### Familia N — Identificadores con varios nombres
+
+##### K-43 — El id del elemento activo viaja con cuatro nombres y se resuelve de dos maneras — 🧩 (con un 🔎)
+
+- **Un hecho, cuatro nombres.** `paradaId`, `parada_id`, `padreId` y `padreid` salen juntos en
+  `NAVEGACION.CAMBIO_PARADA`. Los once emisores, leídos: `_restoreBroadcast`
+  (`codigo-padre.html:4542`), la parada por defecto (`:4603`), la progresión (`:10302`), el fan-out del
+  padre a hijo5, hijo2, hijo3 y hijo4 (`:11966-12048`), `js/app.js:353-358` y hijo5
+  (`boton-casa-hijo5.html:408-411`) mandan los cuatro; los de `:7804` y `:9828` mandan solo
+  `paradaId`. También los llevan los dos `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` (hijo3,
+  `audio-hijo3.html:1540-1542`; hijo4, `retos-hijo4.html:1609-1610`); `NAVEGACION.LLEGADA_DETECTADA` lleva
+  `paradaId` y `parada_id`, y `SISTEMA.NOTIFICACION` lee `padreid`, que nadie manda (K-36).
+- **Dos maneras de resolverlo.** `resolverIdsParada` (`js/utils.js:176`) toma `paradaId ?? parada_id ??
+  tramo_id ?? id ?? ID` y `padreId ?? padreid` y normaliza el prefijo `padre-`. La usan el padre
+  (`:12056`, `:12357`), hijo3 (`audio-hijo3.html:1528`), hijo5 (`:1092`, `:1179`) y
+  `js/funciones-mapa.js:1877`. **Dos receptores del mismo `CAMBIO_PARADA` no la usan** y leen a mano,
+  con precedencia opuesta: hijo2, `datos.parada_id || datos.paradaId`
+  (`coordenadas-hijo2.html:2243`), y hijo4, `datos.padreId || datos.padreid` y `datos.paradaId ||
+  datos.parada_id` (`retos-hijo4.html:1597-1598`). El propio handler del padre combina las dos:
+  `datos.paradaId || datos.parada_id || resolved.paradaId` (`codigo-padre.html:12057`). La guía no
+  menciona el resolutor ni la duplicidad (búsqueda desnuda de `resolverIdsParada` en
+  `docs/estudio-caminos.md`: 0 hasta esta entrada).
+- **Dos significados de `paradaId`.** En los emisores del padre es el id sin prefijo (`'P-5'`); en
+  hijo5 es el id con prefijo (`paradaId: idPadre`, `parada_id: idSinPrefijo`,
+  `boton-casa-hijo5.html:408-411`). El handler del padre lo sabe (`codigo-padre.html:12076-12080`:
+  "hijo5 envía `padre-P-5`") y recorta el prefijo solo para buscar, pero guarda
+  `estado.paradaActual = paradaId` tal como llegó (`_actualizarEstadoParada`, `:11956-11958`):
+  tras un clic de hijo5 puede quedar con `padre-` y por las demás vías sin él. Un bug de este
+  tipo ya existió (comentario `:12216-12221`: "Parada padre-P2 no encontrada en datos base").
+  hijo5 es herramienta de desarrollo y no aparece en la PWA real.
+- **Efecto hoy.** Ninguno observable en producción: los emisores del padre mandan `paradaId` y
+  `parada_id` iguales (o `parada_id` normalizado), así que las dos precedencias dan el mismo valor, y
+  el handler de hijo4 no hace nada con él ("No-op: placeholder for actual reto prefetch logic",
+  `:1602`). El coste es de mantenimiento: cada emisor nuevo debe acordarse de los cuatro nombres y
+  cada receptor nuevo elegir resolutor.
+- **Pendiente:** ¿un solo nombre en el contrato y un solo resolutor? Mismo planteamiento que K-28
+  (familias de copias). 🔎 el efecto del prefijo en `estado.paradaActual` cuando el origen es hijo5
+  (solo desarrollo).
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -2002,14 +2125,14 @@ comprobó y no dio nada, con su comprobación.
 
 | Frame | Hallazgos | Clases sin hallazgo y comprobación |
 |---|---|---|
-| `codigo-padre.html` | K-01, K-04, K-05, K-07, K-08, K-09, K-10, K-11, K-14, K-17, K-18, K-19, K-20, K-21, K-22, K-25, K-26 (lectura de `parent` en el script inyectado), K-28, K-30, K-32, K-33, K-35 (sin handler de `SISTEMA.CONFIRMACION`; `AVENTURA.FINALIZADA` inalcanzable), K-36, K-37, K-38 (arranques (a) y (c) del latido sin efecto, contadores sin función, limpiezas de `pagehide` sobre nombres inexistentes, llamador de `iniciarGPSAventura`), K-40 (los listeners de `js/app.js:1089-1090` no hacen lo que dicen), K-41 (campos de estado sin lector) | ids DOM sin definir: 0 (instrumento CSS/DOM); `alert()`: 2 llamadas reales, traducidas (`grep -n '\balert(' codigo-padre.html` da 5 líneas, 3 son comentarios); globals por frame: (A) solo `iniciarHeartbeat`/`iniciarHeartbeat_S1`, (B) los nombres de K-38 y `Config` (K-01); lecturas `contentWindow.X`: 0 en toda la app |
-| `En-busca-del-tesoro.html` (selección) | K-15, K-18, K-25 (19 literales), K-27, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío), K-37 (21 `destino: 'padre'`, 4 `'casa'`/`'aventura'` crudos), K-38 (`import()` no literal en `:2199`; único frame que carga `api-client.js`, `:1762`) | ids DOM: 0; `alert()`: 0 (`grep -c`); `console`: 1 `warn` en `:17` antes de que exista el logger; 41 `on*=` con funciones existentes; `globalThis.logger` publicado (`:2583`) |
+| `codigo-padre.html` | K-01, K-04, K-05, K-07, K-08, K-09, K-10, K-11, K-14, K-17, K-18, K-19, K-20, K-21, K-22, K-25, K-26 (lectura de `parent` en el script inyectado), K-28, K-30, K-32, K-33, K-35 (sin handler de `SISTEMA.CONFIRMACION`; `AVENTURA.FINALIZADA` inalcanzable), K-36, K-37, K-38 (arranques (a) y (c) del latido sin efecto, contadores sin función, limpiezas de `pagehide` sobre nombres inexistentes, llamador de `iniciarGPSAventura`), K-40 (los listeners de `js/app.js:1089-1090` no hacen lo que dicen), K-41 (campos de estado sin lector), K-42 (exports de `js/` sin uso: la mayoría de los módulos cuelgan del padre) | ids DOM sin definir: 0 (instrumento CSS/DOM); `alert()`: 2 llamadas reales, traducidas (`grep -n '\balert(' codigo-padre.html` da 5 líneas, 3 son comentarios); globals por frame: (A) solo `iniciarHeartbeat`/`iniciarHeartbeat_S1`, (B) los nombres de K-38 y `Config` (K-01); lecturas `contentWindow.X`: 0 en toda la app |
+| `En-busca-del-tesoro.html` (selección) | K-15, K-18, K-25 (19 literales), K-27, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío), K-37 (21 `destino: 'padre'`, 4 `'casa'`/`'aventura'` crudos), K-38 (`import()` no literal en `:2199`; único frame que carga `api-client.js`, `:1762`), K-36 (`paradaActual` de `PADRE_DATOS`, sin emisor) | ids DOM: 0; `alert()`: 0 (`grep -c`); `console`: 1 `warn` en `:17` antes de que exista el logger; 41 `on*=` con funciones existentes; `globalThis.logger` publicado (`:2583`) |
 | `extrainfo-hijo1.html` | E1, E3, K-10 (`_uiConfirmado`), K-15, K-28, K-35 (handler de `UI.CLOSE_MENUS` sin emisor; emite `SISTEMA.CONFIRMACION` al vacío), K-36 (emisor de `UI.NAVEGACION_EXTERNA`), K-37 (21 `destino: 'padre'`) | `alert()`: 0; literales en español: 0 (instrumento i18n); ids DOM: 0; globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:69`) |
-| `coordenadas-hijo2.html` | E1, K-02 (único lector de `GPS.PRECISION_MINIMA`), K-05, K-06, K-08, K-15, K-24 (escribe `__vv_idiomaActual`), K-25 (3 `title`), K-26, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío), K-36 (`motivo === 'reto_abierto'`), K-37 (32 `destino: 'padre'`, 17 modos crudos), K-38 (`incrementarContador`, `:2227`), K-41 (`estadoComponente.radioLlegada`/`.recorridoSuficiente`/`.botonesActivos.ubicacion`, por leer) | `alert()`: 0; ids DOM: 0; `globalThis.logger` publicado (`:436`) |
-| `audio-hijo3.html` | E3, K-15, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío ×3), K-36 (`simular_click` sin emisor), K-37 (18 `destino: 'padre'`), K-38 (diagnóstico `TIPOS_MENSAJE_exists`, `:1380-1381`) | `alert()`: 0; literales: 0; ids DOM: 0; `globalThis.logger` publicado (`:479`) |
-| `retos-hijo4.html` | E3, K-15, K-24, K-25, K-28, K-35 (handlers `CONTROL.*` sin cuerpo y sin emisión; emite `SISTEMA.CONFIRMACION` al vacío), K-37 (16 `destino: 'padre'`), K-38 (diagnóstico `TIPOS_MENSAJE_exists`, `:1402-1403`) | ids DOM: 0; `globalThis.logger` publicado (`:464`) |
-| `boton-casa-hijo5.html` (solo desarrollo) | K-15 (variante), K-25 (2), K-28, K-35 (handler de `SISTEMA.CONFIRMACION` inalcanzable; emite el mismo tipo al vacío), K-37 (20 `destino: 'padre'`, 18 modos crudos), K-41 (`estado.gpsActivo`, por leer) | `alert()`: 0; ids DOM: 0; globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:315`) |
-| `chat-hijo6.html` | E1 (variante B), K-28 (`enviarHijoListoConReintento` sin respaldo de UI), K-37 (7 `destino: 'padre'`; `'inicializando'` crudo en `:764`) | `alert()`: 0; literales en español: 0; ids DOM: 0; `verificar-frames` le atribuye 1 "ajeno" y es un comentario (`:376`, K-34); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:402`) |
+| `coordenadas-hijo2.html` | E1, K-02 (único lector de `GPS.PRECISION_MINIMA`), K-05, K-06, K-08, K-15, K-24 (escribe `__vv_idiomaActual`), K-25 (3 `title`), K-26, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío), K-36 (`motivo === 'reto_abierto'`), K-37 (32 `destino: 'padre'`, 17 modos crudos), K-38 (`incrementarContador`, `:2227`), K-41 (`estadoComponente.radioLlegada`/`.recorridoSuficiente`/`.botonesActivos.ubicacion`, por leer), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor), K-43 (lectura inline del id de `CAMBIO_PARADA`) | `alert()`: 0; ids DOM: 0; `globalThis.logger` publicado (`:436`) |
+| `audio-hijo3.html` | E3, K-15, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío ×3), K-36 (`simular_click` sin emisor), K-37 (18 `destino: 'padre'`), K-38 (diagnóstico `TIPOS_MENSAJE_exists`, `:1380-1381`), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor) | `alert()`: 0; literales: 0; ids DOM: 0; `globalThis.logger` publicado (`:479`) |
+| `retos-hijo4.html` | E3, K-15, K-24, K-25, K-28, K-35 (handlers `CONTROL.*` sin cuerpo y sin emisión; emite `SISTEMA.CONFIRMACION` al vacío), K-37 (16 `destino: 'padre'`), K-38 (diagnóstico `TIPOS_MENSAJE_exists`, `:1402-1403`), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor), K-43 (lectura inline del id de `CAMBIO_PARADA`) | ids DOM: 0; `globalThis.logger` publicado (`:464`) |
+| `boton-casa-hijo5.html` (solo desarrollo) | K-15 (variante), K-25 (2), K-28, K-35 (handler de `SISTEMA.CONFIRMACION` inalcanzable; emite el mismo tipo al vacío), K-37 (20 `destino: 'padre'`, 18 modos crudos), K-41 (`estado.gpsActivo`, por leer), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor), K-43 (emite `paradaId` con prefijo `padre-`) | `alert()`: 0; ids DOM: 0; globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:315`) |
+| `chat-hijo6.html` | E1 (variante B), K-28 (`enviarHijoListoConReintento` sin respaldo de UI), K-37 (7 `destino: 'padre'`; `'inicializando'` crudo en `:764`), K-36 (estado del chat entregado por dos tipos, `CHAT.ESTADO_PADRE` y `SISTEMA.PADRE_DATOS`, 📌) | `alert()`: 0; literales en español: 0; ids DOM: 0; `verificar-frames` le atribuye 1 "ajeno" y es un comentario (`:376`, K-34); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:402`) |
 | `mapa-completo.html` | K-25 (1 literal), K-37 (1 `destino: 'padre'`), K-39 (único frame que no publica `globalThis.logger`) | `alert()`: 0; Leaflet por CDN y `maxZoom` 21/19: documentado (guía L6278-6282); ids DOM: 0; globals por frame: (B) solo `logger` (K-39) |
 | `puzzle.html` | K-25 (2 literales), K-28 (`createParticle`/`loop`), K-37 (1 `destino: 'padre'`) | `escalar` variante C: cerrada en la ronda 1 (historial `94734b6`); `alert()`: 0; `PUZZLE.*` a `'padre'` = la ventana anfitriona (K-35); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:147`) |
 | `video-intro.html` | K-28 (`createParticle`/`loop`), K-33 (`.or-badge`), K-37 (1 `destino: 'padre'`) | `alert()`: 0; 5 `on*=` con funciones existentes; `VIDEO_INTRO_TERMINADO` a `'padre'` = la ventana anfitriona (K-35); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:601`) |
@@ -2030,8 +2153,10 @@ comprobó y no dio nada, con su comprobación.
 | J — Contrato del bus y constantes | K-35 … K-37 | 3 confirmadas: 8 envíos al vacío y 5 handlers sin emisión (K-35), 3 ramas muertas y claves sin pareja en la carga útil (K-36, con alcance por estudiar), 75 de 177 constantes sin lector (K-37) |
 | K — Nombres de `globalThis` sin definidor | K-38, K-39 | 2 confirmadas: 16 nombres que ningún frame define (dos de las cuatro rutas de arranque del latido sin efecto, 15 puntos de contador sin función, seis limpiezas de `pagehide` sobre nombres inexistentes), una llamada a un método retirado (`iniciarGPSAventura`, con el historial que lo demuestra) y un frame, `mapa-completo.html`, que no publica el logger |
 | L — Estado escrito y no leído, registros que dicen más de lo que hacen | K-40, K-41 | 1 confirmada (K-40: el listener que dice "pausando operaciones" solo escribe una bandera sin lector) y 1 por estudiar (K-41: 12 filas de campos sin lector confirmadas con nombre desnudo, 15 por leer) |
+| M — Lo que se publica y nadie usa | K-42 | 1 por estudiar: 27 exports muertos (12 ya tratados en otras entradas, 15 nuevos), 3 que solo usan specs, 25 exportados sin que nadie los pida y 5 `export default` sin importador |
+| N — Identificadores con varios nombres | K-43 | 1 familia de copias: `paradaId`, `parada_id`, `padreId` y `padreid` en el mismo mensaje y dos resolutores (`resolverIdsParada` y lecturas a mano) |
 
-**Total: 41 entradas — 18 confirmadas, 2 por medir, 5 documentadas, 9 familias de copias, 3 por
+**Total: 43 entradas — 18 confirmadas, 2 por medir, 5 documentadas, 10 familias de copias, 4 por
 estudiar y 4 limpias o mixtas; 12 mediciones pendientes repartidas entre ellas (R2.4).** Lo que más
 pesa, sin ánimo de ordenarlo por urgencia: lo que cambia lo que ve el usuario (K-24, K-25), lo que
 puede dejar un estado equivocado (K-07, K-11, K-19), lo que hace que una configuración, una
@@ -2050,8 +2175,8 @@ G-11).
 - La lista de 49 rutas con ≥3 escritores (K-09), las 17 de K-08 y las 93 candidatas de K-25
   están **identificadas, no examinadas una a una**: son trabajo del estudio individual.
 - El instrumento de destinos solo ve destinos literales; los dinámicos (`mensaje.origen`,
-  variables) se dan por buenos. El de carga útil deja 5 tipos con emisor opaco sin concluir y el
-  de discriminadores solo analiza 31 comparaciones (K-36).
+  variables) se dan por buenos. Los 5 tipos con emisor opaco del instrumento de carga útil se
+  leyeron a mano (K-36); el de discriminadores solo analiza 31 comparaciones (K-36).
 - El instrumento por frame resuelve nombres y propiedades de `globalThis` escritos con literal: un
   acceso por clave computada no se ve (una sola asignación computada en el código de la aplicación,
   `codigo-padre.html:14950`), ni las escrituras de código externo (MapLibre, Leaflet, page-flip). Un
@@ -2065,6 +2190,9 @@ G-11).
   alias locales ni accesos con clave computada (20), y los specs no cuentan como lectores: un campo
   "sin lector" puede tener uno en un sitio que el extractor no sigue (K-41 lo marca como
   "por leer" cuando hay un ancestro leído entero).
+- El instrumento de exports no ve los accesos por cadena (`obj['nombre']`) y cuenta como uso
+  cualquier token igual en otro fichero: sobreaproxima el uso, así que lo que lista es ausencia casi
+  segura, pero puede dejar fuera exports que solo usa un nombre homónimo.
 - Ninguna medición se ha ejecutado (R2.4).
 - No se ha leído `_hdl_SISTEMA_CAMBIO_MODO` entero (K-15).
 - Los scripts de los extractores no están versionados (R2.0); si se quieren conservar, lo decide
