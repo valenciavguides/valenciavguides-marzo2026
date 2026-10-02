@@ -57,7 +57,13 @@ async function prepararAventura(page, { tipo = 'tramo', gastados = 0 } = {}) {
   }, { tipo, gastados });
 }
 
-/** Abre el asistente y espera a que su FAQ esté construido dentro del iframe. */
+/**
+ * Abre el asistente y espera a que su FAQ esté construido dentro del iframe, YA con el estado del padre.
+ *
+ * El FAQ se construye dos veces: al cargar el iframe, sin estado (sin la pregunta del atasco), y cuando llega el
+ * estado del padre, que lo reconstruye entero y pliega lo que se hubiera abierto. `.tema-btn` existe desde la primera
+ * construcción; la pregunta del atasco ("dispone de N rescates") solo desde la segunda.
+ */
 async function abrirAsistente(page) {
   await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
   await page.waitForFunction(
@@ -66,6 +72,11 @@ async function abrirAsistente(page) {
   );
   await page.waitForFunction(
     () => !!document.getElementById('hijo6-chat')?.contentDocument?.querySelector('.tema-btn'),
+    null, { timeout: 20_000 },
+  );
+  // Neutral frente al relleno: vale "dispone de 12 rescates" y vale "dispone de {total} rescates" (eso lo juzga OB-3).
+  await page.waitForFunction(
+    () => /dispone de (\d+|\{total\}) rescates/i.test(document.getElementById('hijo6-chat')?.contentDocument?.body?.textContent || ''),
     null, { timeout: 20_000 },
   );
 }
@@ -82,10 +93,16 @@ async function desplegarFAQ(page) {
         if (b.getAttribute('aria-expanded') !== 'true') b.click();
       }
     };
-    abrirSiCerrado('.tema-btn');
-    await new Promise((r) => setTimeout(r, 150));
-    abrirSiCerrado('.pregunta-btn');
-    await new Promise((r) => setTimeout(r, 150));
+    const todoAbierto = () => [...doc.querySelectorAll('.tema-btn, .pregunta-btn')].every((b) => b.getAttribute('aria-expanded') === 'true');
+    // Un mensaje del padre puede reconstruir el FAQ entre un clic y la lectura y dejarlo plegado: se repite hasta que,
+    // en el mismo instante en que se lee (sin ningún await entre la comprobación y la lectura), todo esté abierto.
+    for (let intento = 0; intento < 20; intento++) {
+      abrirSiCerrado('.tema-btn');
+      await new Promise((r) => setTimeout(r, 150));
+      abrirSiCerrado('.pregunta-btn');
+      await new Promise((r) => setTimeout(r, 150));
+      if (todoAbierto()) break;
+    }
     return {
       botones: doc.querySelectorAll('.boton-rescate').length,
       preguntas: doc.querySelectorAll('.pregunta-btn').length,
