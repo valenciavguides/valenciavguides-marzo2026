@@ -429,6 +429,7 @@ y el broadcast fire-and-forget se resuelve en un microtask posterior, antes de q
 overlay de carga y de que cualquier otro código llegue a leer `estado.elementoActual`.
 
 **Lo que queda, con esta clasificación honesta:**
+
 - ✅ **Confirmado por ejecución:** la restauración de sesión NO aterriza en el elemento
   equivocado tras una reordenación de `elementosIDpadre` — el id guardado prevalece siempre,
   vía el mismo pipeline central que usa cualquier cambio de parada real.
@@ -571,9 +572,11 @@ esta vez.
 
 Esta ronda existe porque el usuario sospechó que la anterior "no estaba acabada eficientemente" y
 pidió completar la búsqueda y anotarla aquí **para su estudio individual posterior**. La sospecha
-era correcta, y se puede cuantificar (ver R2.1). **Esta ronda no arregla nada ni toca ningún
-fichero de código** (regla 1b): registra. `git status --short -- '*.html' 'js/*.js' sw.js tools
-tests` está vacío antes y después.
+era correcta, y se puede cuantificar (ver R2.1). **El barrido (R2.0 a R2.7) no arregla nada ni toca
+ningún fichero de código** (regla 1b): registra, y `git status --short -- '*.html' 'js/*.js' sw.js
+tools tests` estuvo vacío antes y después. Los arreglos vinieron después, con el OK del usuario
+("ok a todo, revisa y arregla"), en una tanda aparte y con sus pruebas (R2.8); cada entrada de R2.2
+lleva al final una nota «Estado final» con lo que pasó con ella.
 
 ### R2.0 Qué cambia respecto a la ronda 1
 
@@ -599,10 +602,10 @@ fuera sin que nada lo avise. Medido esta ronda:
 **Instrumentos de esta ronda.** Todos parsean con `acorn` (el que ya está en `node_modules`) en
 vez de buscar por patrón, extraen los `<script>` de los HTML con comentarios y `<style>`
 blanqueados (para que un `<script>` citado en un comentario no cuente) y **imprimen su residuo**
-(regla 10: un recuento sin su residuo no se reporta). Viven en el scratchpad de la sesión, no están
-versionados — cada hallazgo de abajo lleva pegado el comando de comprobación que cualquiera puede
-repetir con `grep`/`Read`. Si se quieren conservar como herramientas del repo (`tools/`), es una
-decisión del usuario, no se ha hecho.
+(regla 10: un recuento sin su residuo no se reporta). Están versionados en `tools/estudio-caminos/`
+(con un `README.md` que da el orden de ejecución y las cifras que deben dar sobre el commit base de
+la ronda, `ffe9bfc`: los 47 extractores reproducen la tabla de abajo), y además cada hallazgo de abajo
+lleva pegado el comando de comprobación que cualquiera puede repetir con `grep`/`Read`.
 
 | Instrumento | Qué extrae | Resultado y residuo |
 |---|---|---|
@@ -715,7 +718,14 @@ en cada una apuntando aquí. Todas están comprobadas leyendo las líneas.
   3, `44` hace 3), y hay otros 5 nombres de producción sobrescritos por specs que esa ronda no
   miró (K-32). La observación de baja prioridad se mantiene; se amplía con una limitación
   estructural del stub.
-
+- **E8 — R2.6, fila de `codigo-padre.html`: "lecturas `contentWindow.X`: 0 en toda la app" es falso.** El bloque
+  clásico que enlaza los siete iframes (`codigo-padre.html:2842`, hoy) lee la ubicación de otro frame en el `load` de cada
+  uno, `el.contentWindow?.location?.href`, para descartar la carga inicial en `about:blank` antes de llamar a
+  `handleIframeLoad`. Lo ve `node tools/verificar-frames.js --detalle` (columna "ajeno": 3 en el padre, 1 en hijo2
+  —`parent.aventuraSeleccionada`, K-26— y 1 en `js/logger.js` —`parent?.__vv_config`—) y la búsqueda desnuda de
+  `contentWindow` en el padre: una lectura de propiedad ajena y los usos de `iframe.contentWindow` como destino de
+  `postMessage` y como comprobación de existencia. Es una lectura de mismo origen dentro de un `try`; no cambia la
+  conclusión (el bus es el único camino de datos), pero la frase literal no se sostiene.
 
 ### R2.2 Catálogo de hallazgos
 
@@ -755,6 +765,18 @@ familia, no por gravedad; el resumen por veredicto está en R2.7.
   nombres del `Config` fantasma (`HIGH_ACC_INIT_ATTEMPTS`…) ¿son un diseño previo que se quiere
   materializar en `js/config.js`, o se retiran los lectores y se dejan los literales como verdad?
 
+- **Estado final (2026-10-02).** ✅ Cerrada en `6c152ab`: las siete lecturas de `globalThis.Config` pasan a
+  ser el literal que ya aplicaban —GPS inicial 3 intentos × 8000 ms y sin umbral de precisión; reintento por
+  `TIMEOUT` de 15000 ms con backoff ×2 hasta 60000, `maximumAge` 0 y 3 reintentos; TTL de 10 min de
+  `pending` y 5000 ms en `populatePendingCoords`; `CONFIG_PADRE.ID`; `_prewarmAventura`, 10 s— y la guía
+  deja de decir que esos valores salen de `CONFIG.GPS`. Las otras dos lecturas, las de los stubs de
+  `getPadreId()`, desaparecen con la función (`f6ab460`, K-28). `js/app.js` sigue esperando 10000 ms donde
+  `CONFIG` dice 5000: el plazo no se toca (es de producción) y queda anotado en el comentario de
+  `_prewarmAventura`. La pregunta del «Pendiente» queda respondida por los hechos: `Config` no se
+  materializa (nadie lo asigna ni lo necesita) y los literales son la verdad. Sin tocar:
+  `CONFIG_PADRE.COMPONENTE_ID`, `VERSION` y `DEBUG` (sin lector; el spec `02-global-variables` solo
+  comprueba que existen), que entran en la decisión de K-02.
+
 ##### K-02 — `CONFIG`: 38 de 46 hojas sin ningún lector — ✅
 
 - **Recuento por ruta (con residuo).** 46 hojas. Con lector: `DEBUG.NIVEL_LOG`
@@ -788,6 +810,17 @@ familia, no por gravedad; el resumen por veredicto está en R2.7.
 - **Pendiente:** decidir si `CONFIG` se vacía de lo que no se lee o se adopta (junto con K-01 y
   K-03). Decisión de producto, no mecánica.
 
+- **Estado final (2026-10-02).** Retirados en `01eeb47`: `getConfig()` y `globalThis.__vv_getConfig`
+  (búsqueda desnuda de los dos nombres en 259 ficheros: solo esas dos líneas) y el `export default CONFIG`
+  (todo el código importa `{ CONFIG }`). Se queda `globalThis.__vv_config`, que `js/logger.js` lee en cada
+  llamada. **Abierta, decisión de producto** (las 38 hojas sin lector y las dos representaciones de
+  `MENSAJERIA.TIMEOUT_*`): *A) vaciar `CONFIG` de lo que no se lee* — **recomendada**: `config.js` conserva
+  solo las 8 hojas vivas y quien edite un valor sabe que tiene efecto; si luego se quiere adoptar alguna,
+  entra con su lector. *B) adoptarlo*: sustituir los literales (GPS, audio, mapa, mensajería) por lecturas
+  de `CONFIG`; toca más ficheros y cada valor hay que compararlo con el literal que hoy manda (los 10 s de
+  `_prewarmAventura` frente a los 5 s de `CONFIG`, por ejemplo). Mientras no se decida, `CONFIG.GPS.TIMEOUT`
+  y compañía siguen siendo un interruptor que no conecta con nada.
+
 ##### K-03 — Lecturas de claves que no existen, y cuatro fuentes para "dónde arranca el mapa" — ✅
 
 Amplía C4 (no lo sustituye).
@@ -814,6 +847,14 @@ Amplía C4 (no lo sustituye).
   búsqueda desnuda `maxZoom|minZoom` en padre/js/mapa-completo/video-intro.
 - **Pendiente:** C4 ya propone la decisión (borrar la rama o repararla). Añadir: si se
   centraliza la lectura (K-02), el mapa real debería leer también de ahí.
+
+- **Estado final (2026-10-02).** ✅ Cerrada en `cf1d484`: `inicializarServicioMapa` ya no tiene la rama que
+  creaba otro mapa (OSM raster, `maxZoom` 18) con claves que no existen en `CONFIG.MAPA`; sin instancia
+  avisa y devuelve `false`, que el padre ya trata como «reintentar». Todos los llamadores pasan una
+  instancia (el padre la crea justo antes con `new maplibregl.Map(...)` y los nueve specs que lo llaman
+  pasan `fakeMap`; `funciones-mapa.js` solo lo importa el padre). Quedan las otras fuentes de «dónde arranca
+  el mapa» (los literales del mapa real, `CONFIG.MAPA` leído en `completarCambioParada` y
+  `manejarCambioModoMapa`, `mapa-completo.html` y `video-intro.html`): se deciden con K-02.
 
 ##### K-04 — Configuración de monitoreo: tres juegos de umbrales, ninguno leído; un historial que nadie consume — ✅
 
@@ -853,6 +894,20 @@ Amplía C4 (no lo sustituye).
   (`codigo-padre.html:12800`, K-41). Las dos mitades no se hablan.
 - **Pendiente:** decidir si el monitoreo se queda (y entonces tiene que tener un lector y una
   sola config) o se retira. Sin urgencia: ninguno de los tres juegos hace nada hoy.
+
+- **Estado final (2026-10-02).** Retirados: `obtenerEstadoMonitoreo` de `js/app.js`, con su publicación en
+  `globalThis` y su limpieza en `pagehide` (`f6ab460`, cero lectores), y el `export default` de
+  `monitoreo.js` (`01eeb47`); el docblock de `registrarEvento` ya no promete un id (G-7, `6538bba`). La guía
+  de §26.4 dice lo que hay (`218c0ae`): los umbrales los fija `monitoreo.js` (memoria 150 MB, no los 50 MB
+  de `config.js`), `TIEMPO_RESPUESTA_ALTO` no puede dispararse y el historial vive en `estadoMonitoreo`.
+  Comprobado con búsqueda desnuda: `tiempo_respuesta`, `mensaje_enviado` y `mensaje_recibido` solo aparecen
+  en el `switch` de `registrarMetrica` (`js/monitoreo.js`) y en `tests/test_registrarMetrica.js`, y el único
+  emisor de `MONITOREO.METRICA` (hijo2) manda `gps_error_code`, que ese `switch` no trata. **Abierta,
+  decisión:** *A) retirar el monitoreo* — **recomendada**: `js/monitoreo.js`, los tres juegos de umbrales
+  configurables (`codigo-padre.html`, `js/state-manager.js` y `js/config.js`), el historial sin consumidor y
+  el contador duplicado de errores (K-41) no producen nada observable. *B) conservarlo y darle un lector*
+  (por ejemplo, mostrar `alertas` en el panel de logs), con una sola configuración y emisores reales para
+  las tres métricas que hoy nadie emite.
 
 ##### K-05 — Constantes copiadas, con su valor en cada sitio — 🧩 (con una pregunta ⚠️)
 
@@ -898,7 +953,7 @@ compartir el algoritmo:
 - **Veredicto:** decisión de diseño documentada. El estudio individual decide si compensa
   extraer el algoritmo (los dos frames no comparten módulo hoy: hijo2 no carga `funciones-mapa.js`).
 
-##### K-07 — `hijosInicializados` y `estadoPadre` existen dos veces, con ciclos de vida distintos — ⚠️ POR MEDIR
+##### K-07 — `hijosInicializados` y `estadoPadre` existen dos veces, con ciclos de vida distintos — ✅ (medido: M-4)
 
 - **Dos conjuntos.** (1) El del padre, `estado.hijosInicializados`: alta en
   `_hdl_SISTEMA_HIJO_LISTO` (`codigo-padre.html:7441`), baja en `_normalizarSetHijos`
@@ -933,6 +988,21 @@ compartir el algoritmo:
   espera de verdad al HIJO_LISTO nuevo o resuelve al instante? Medir el tiempo entre su llamada y
   el log "HIJO_LISTO RECIBIDO" real, y si `distribuirDatosAventura` devuelve `pospuesto`.
   Spec candidato: `74-reiniciar-seleccion-llega-al-padre.spec.js` (no lo ejecuta esta ronda).
+
+- **Estado final (2026-10-02).** ✅ Medido (M-4): la hipótesis se confirma. En la ruta fallback de
+  `SELECCION.AVENTURA_ACTIVADA` con los hijos ya cargados una vez, `_esperarHijosCargados` resuelve en 0 ms
+  (los cinco `load` tardan 85 ms y los cinco `HIJO_LISTO` nuevos llegan entre +96 y +123 ms, 11–38 ms
+  después de que la espera diera por buenos a todos) y `distribuirDatosAventura` devuelve `pospuesto`; lo
+  compensa `__pendingDistribucion`, que reintenta al llegar el aviso de hijo2. En el código, `218c0ae`
+  retira lo que ningún llamador usaba del state-manager —`updateEstadoPadre`, `getMapaControladores`,
+  `removerControladorCentral`, `setHeartbeat`, `setGpsPendientes`, `cancelarPromiseHijoListo`, 8 de los 12
+  mutexes y 7 banderas de estado— y `getEstado()`/`diagnosticarStateManager()` informan solo de lo que
+  existe (`script2Listo`). **Abierta, decisión** (toca el ciclo de vida de un conjunto que usa el bus, regla
+  1): *A) añadir al state-manager `olvidarHijoListo(id)` y llamarla donde el padre vacía el suyo
+  (`_normalizarSetHijos`)* — **recomendada**: son tres líneas, `crearPromiseHijoListo` vuelve a esperar un
+  `HIJO_LISTO` nuevo y desaparece la compensación implícita. *B) dejarlo*: el comportamiento observable es
+  correcto gracias a `__pendingDistribucion`, y la espera de esa ruta sigue resolviendo antes de tiempo
+  (solo ocurre tras `SELECCION.REINICIAR` seguido de una reactivación).
 
 ##### K-08 — El mismo campo de estado en varias raíces — 🧩 / 🔎
 
@@ -994,9 +1064,13 @@ Dos formas concretas ya vistas al leer:
   selección. Hijo2 a hijo6, mapa-completo, puzzle y video-intro: 0 (`globals.txt` del
   instrumento, una línea por frame).
 
+- **Estado final (2026-10-02).** Los dos bloques con guarda de `getPadreId` ya no existen (la función se
+  retira en `f6ab460`, K-28); el resto del apartado no cambia. `activarGPS` y los pares de alias entre
+  scripts siguen igual.
+
 #### Familia C — Heartbeat y mensajería
 
-##### K-11 — Heartbeat: cuatro rutas de arranque (dos no hacen nada), una bandera con siete escrituras y un camino de "volver a la pestaña" que no usa el previsto — ✅ + ⚠️ POR MEDIR
+##### K-11 — Heartbeat: cuatro rutas de arranque (dos no hacen nada), una bandera con siete escrituras y un camino de "volver a la pestaña" que no usa el previsto — ✅ (medido: M-1, M-2, M-3)
 
 *Corregida el 2026-10-01, el mismo día de su redacción: la primera versión de esta entrada trataba
 los arranques (a) y (c) como vivos y con políticas opuestas. El barrido de nombres de `globalThis`
@@ -1057,6 +1131,26 @@ los arranques (a) y (c) como vivos y con políticas opuestas. El barrido de nomb
   `boton-casa-hijo5.html:1284` (solo desarrollo: al volver manda por iniciativa propia un
   `HEARTBEAT_RESPONSE` con `razon: 'visibilitychange'` y regenera sus botones).
 
+- **Estado final (2026-10-02).** ✅ Medido (M-1, M-2, M-3). M-1: en la reanudación directa a AVENTURA el
+  latido arranca (`activo:true, userPaused:false`) y la bandera `__HEARTBEAT_INICIADO` queda a `true`; tras
+  CASA, `activo:false, userPaused:true`; de vuelta a AVENTURA arranca de nuevo — ni el prewarm de CASA deja
+  `userPaused` pegado ni queda bloqueado el arranque (b). M-2: intervalo efectivo **5000 ms**; los 10000 ms
+  de (c) no se usaban. M-3: con el latido pausado, el `visibilitychange` manda un `SISTEMA.HEARTBEAT` en
+  `broadcast` a los seis iframes registrados sin mirar la pausa; los seis contestan y `activo`/`userPaused`
+  no cambian. Código (`2ed1658`): fuera los arranques (a) del Script 1 y (c) del Script 4 —buscaban
+  funciones que nadie define—, la bandera `__HEARTBEAT_INICIADO` (el estado real es `getHeartbeat()`; el
+  spec 46 RU-1 lo lee de ahí), `_detenerHeartbeatSeguro`, las limpiezas de `pagehide` sobre nombres
+  inexistentes y los operandos `|| globalThis.iniciarHeartbeat`/`pausarHeartbeat`; el ayudante de consola
+  `_testHeartbeatPauseResume` llama ya a `globalThis.mensajeria.iniciarHeartbeat`. El spec 09 MC-7a deja de
+  leer tres globals que nadie asigna y mide `getHeartbeat()` (`8452f8d`, K-32). La guía dice que
+  `adelantarLatido()` no tiene llamador y que el `visibilitychange` difunde por su cuenta (G-3, `6538bba`).
+  **Abierta, decisión** (el camino de «volver a la pestaña»: el handler inline manda el `HEARTBEAT` sin
+  mirar la pausa y `adelantarLatido()` está escrita justo para respetarla): *A) llamar a `adelantarLatido()`
+  desde ese handler* — **recomendada**: respeta la pausa de CASA, es lo que la guía ya describía y lo que
+  prueba BC-12c; el efecto observable es que en CASA los hijos dejan de recibir ese `HEARTBEAT` suelto al
+  volver a la pestaña. *B) dejar el envío directo y retirar `adelantarLatido` con su BC-12c*: coincide con
+  lo medido, pero se pierde la pausa respetada.
+
 ##### K-12 — Registro de handlers: tres almacenes, uno sin definición y un "fallback previsto" que avisa como si fuera una avería — ✅
 
 - **Dónde.** `js/mensajeria.js:237-305`. `registrarControlador` delega en el state-manager si
@@ -1079,6 +1173,15 @@ los arranques (a) y (c) como vivos y con políticas opuestas. El barrido de nomb
   `debug` o se quita? Ninguna toca la regla 1 (la mensajería sigue cerrada): es limpieza dentro
   del contrato del bus.
 
+- **Estado final (2026-10-02).** Retirados en `218c0ae`: el almacén (2) `__vv_getManejadores` (nadie lo
+  define), `listarControladores` y `getMapaControladores()` (búsqueda desnuda en los 260 ficheros de texto:
+  solo aparecían su definición, su clave en un objeto-API y menciones de los documentos). **Abierta,
+  decisión:** el aviso del almacén (3),
+  `logger.warn("state-manager no disponible en init — se usará fallback local")`, sigue saliendo en cada
+  arranque de cada frame que no es el padre (es el camino normal de diez frames). *A) emitirlo solo en el
+  padre* — **recomendada**: ahí sí significaría una avería; en los hijos es el camino previsto. *B) bajarlo
+  a `debug` en todos.* Es limpieza dentro del contrato del bus.
+
 ##### K-13 — `mensajeriaReady`: dos emisores, un receptor condicional y una bandera que no se escribe — 🧩
 
 - **Dos emisores:** `js/mensajeria.js:1323` (`new Event('mensajeriaReady')` al *cargar el
@@ -1099,6 +1202,11 @@ los arranques (a) y (c) como vivos y con políticas opuestas. El barrido de nomb
 - **Veredicto:** inocuo hoy (el listener nunca espera), pero es una señal de "bus listo" repetida
   de cuatro formas (existencia del global, evento, `__MENSAJERIA_INICIADA`, bandera del
   state-manager).
+
+- **Estado final (2026-10-02).** La bandera sin escritor `state.mensajeriaReady` se retira con el resto de
+  banderas muertas del state-manager (`218c0ae`), y la contradicción de la guía (L3627 frente a L4899, G-2)
+  se corrige en `cf4b973`. Los dos emisores del evento `mensajeriaReady` y el receptor condicional de
+  `js/app.js` no se tocan: son inocuos y entran en la mensajería cerrada (regla 1).
 
 ##### K-14 — Un segundo bus dentro del padre: tres eventos DOM propios — 📌
 
@@ -1159,6 +1267,11 @@ explicado: `registrarEvento` (no es mensaje), 3 del SW, 4 internos del bus.
 `node tools/verificar-mensajeria.js` marca 5 tipos más como "sin emisor/receptor" y **los 5 son
 falsos positivos del verificador** (K-34), comprobados con búsqueda desnuda de cada tipo.
 
+- **Estado final (2026-10-02).** Tras `8daa6db` ya no hay ningún `SISTEMA.CONFIRMACION` al vacío y los
+  handlers que ninguna emisión alcanza son dos (`AVENTURA.FINALIZADA` en el padre y `UI.CLOSE_MENUS` en
+  hijo1: K-35). Quedan los 7 `SISTEMA.NACK` al padre, que son una rama defensiva documentada en §10.11. Los
+  94 tipos no cambian; la tabla de §37.3 de la guía se regeneró en `8daa6db`.
+
 #### Familia D — GPS
 
 ##### K-17 — Una posición puntual, seis maneras de pedirla y tres de reintentarla — ✅
@@ -1182,6 +1295,17 @@ falsos positivos del verificador** (K-34), comprobados con búsqueda desnuda de 
 - **POR MEDIR (en campo, no en Playwright):** ¿el timeout distinto del reintento de señal importa
   con GPS en frío? Hay un hueco de decisión, no un bug demostrado.
 
+- **Estado final (2026-10-02).** Sin cambios en los seis sitios de `getCurrentPosition` ni en las tres
+  implementaciones de «reintentar ubicación»: es una decisión de diseño, no una avería. M-8 (reintento de
+  15000 ms frente a 5000 ms con el GPS en frío) **no es ejecutable en Playwright**: es una prueba de campo y
+  queda sin medir. Lo único que cambia alrededor: los plazos que leían el `Config` inexistente son ahora
+  literales (K-01) y los 15 puntos de cuenta `incrementarContador` (el hub del GPS del padre,
+  `funciones-mapa.js` y hijo2) se retiran (K-38). **Abierta, decisión:** *A) una sola función «pedir una
+  posición puntual» con el plazo como parámetro* — recomendada si se quiere reducir copias: conservando cada
+  plazo (5000 ajustado por conexión, 15000 literal) no cambia nada observable, y las tres políticas de
+  posproceso se eligen con un argumento. *B) dejarlo*, que es lo que la lectura estática permite sostener
+  hoy.
+
 ##### K-18 — Permisos de geolocalización consultados desde tres ficheros y dos frames — 🧩
 
 `navigator.permissions.query({name:'geolocation'})`: padre `:5392` (¿hay permiso? —devuelve `true`
@@ -1191,10 +1315,9 @@ de permiso tras un error de código 1; no en Apple), selección `En-busca-del-te
 (diagnóstico). Cuatro decisiones distintas con la misma API; ninguna comparte código. La memoria
 del proyecto ya dice que el esfuerzo va al camino con permisos concedidos: se anota solo el mapa.
 
-
 #### Familia E — Sesión, abandono y caducidad
 
-##### K-19 — Dos implementaciones de "abandonar la aventura y volver a selección"; el reinicio de la brújula solo está en una — ✅ (efecto ⚠️ POR MEDIR)
+##### K-19 — Dos implementaciones de "abandonar la aventura y volver a selección"; el reinicio de la brújula solo está en una — ✅ (efecto medido y corregido: M-5)
 
 - **Dónde.** `ejecutarElegirOtra()` (`codigo-padre.html:4758-4820`, dentro de
   `mostrarDialogoReanudacion`) y `_elegirOtra()` (`:4879-4927`, dentro de
@@ -1220,7 +1343,17 @@ del proyecto ya dice que el esfuerzo va al camino con permisos concedidos: se an
 - **POR MEDIR:** "Vuelta rápida → Elegir otra → nueva aventura": ¿sigue activo "Seguir mi rumbo" y
   el icono desincronizado? Es lectura estática firme; falta la ejecución.
 
-##### K-20 — Cinco formas de borrar la sesión guardada — 🧩
+- **Estado final (2026-10-02).** ✅ Medido y corregido. M-5: con «Seguir mi rumbo» elegido y la brújula
+  «viva», `desactivarSeguimientoRumbo()` se llamaba **0 veces** tras «Vuelta rápida → Elegir otra aventura»
+  (1 con `_resetBrujulaModo()` directo); `#brujula-modo` quedaba oculto y `estado.tiempoRestante` a `null`,
+  es decir, lo demás del abandono sí corría. `c7c7b1a`: `_elegirOtra` llama al mismo `_resetBrujulaModo()`,
+  con el mismo motivo escrito; el comentario de `_resetBrujulaModo` nombra las dos vías (G-6) y el spec 25
+  gana BR-10 (rojo antes: 0 llamadas; verde después). La guía distingue los dos diálogos (G-23). **Abierta,
+  decisión:** los dos cuerpos siguen siendo casi el mismo texto (K-20). *A) extraer una función común de
+  «abandonar la aventura y volver a la selección»* — **recomendada**: este mismo fallo demuestra que una
+  corrección hecha en una copia se pierde en la otra. *B) dejar las dos copias con un comentario cruzado.*
+
+##### K-20 — Cinco formas de borrar la sesión guardada — 🧩 (con una medición: M-9)
 
 Cada una tiene su motivo y su comentario; ninguna comparte código, así que añadir una clave a la
 sesión obliga a revisar todas.
@@ -1237,6 +1370,21 @@ sesión obliga a revisar todas.
 Veredicto 🧩: las diferencias parecen intencionadas (cada fila responde a un motivo distinto).
 Lo que no se ha comprobado es qué pasa si una de las filas parciales deja `vv_paradas_completadas`
 o `vv_aventura` viva para la siguiente sesión (la fila de `:8459-8460` es la que más claves deja).
+
+- **Estado final (2026-10-02).** Medido (M-9): una sesión caducada (8 días) sembrada con las cinco claves y
+  con `mostrarModalTiempoAgotado` ocultado, para forzar la rama «sin modal disponible» de
+  `_comprobarReanudacionAventura`, borra `vv_aventura_iniciada` y `vv_progreso` y **deja vivas
+  `vv_aventura`, `vv_idioma` y `vv_paradas_completadas`**; con el modal disponible no se borra nada hasta
+  que el usuario lo cierra y entonces `limpiarDatosAventura('timeout')` lo vacía todo. Lectores:
+  `vv_paradas_completadas` solo la lee la restauración de una sesión guardada (necesita
+  `vv_aventura_iniciada`, que la siguiente aventura vuelve a escribir) y `vv_aventura` es el último respaldo
+  de un nombre de aventura; el daño solo sería posible si se reabre la app antes de completar ninguna parada
+  de la aventura siguiente, y la rama solo corre si `mostrarModalTiempoAgotado` no existe (en M-9 hubo que
+  ocultarla para alcanzarla). Su equivalente, `_restoreCheckTimeout`, sí llama a
+  `limpiarDatosAventura('timeout')`. **Abierta, decisión:** *A) que la rama «sin modal» llame también a
+  `limpiarDatosAventura('timeout')`* — **recomendada**: una línea, mismo comportamiento que su gemela y sin
+  claves vivas. *B) dejarla*: el riesgo medido es casi nulo. La tabla de arriba sigue siendo la fotografía
+  de las cinco formas; ninguna se unifica.
 
 ##### K-21 — Caducidad de la aventura guardada — 📌
 
@@ -1291,9 +1439,19 @@ completitud.
 - **Pendiente (decisión del usuario, la guía no se toca sin permiso):** quitar la rama legacy de
   `retryUntilAvailable` y reescribir el ejemplo de la guía y los comentarios de los specs.
 
+- **Estado final (2026-10-02).** ✅ `b6affee`: `retryUntilAvailable` con una sola convención de llamada
+  (`checkFn`, `{ maxIntentos, intervalo, mensaje }`); la rama «legacy» se retira porque no tenía llamadores
+  (los 8 de producción pasaban el objeto, comprobado leyendo cada llamada). El spec 38 deja de apoyarse en
+  una rama de `enviarMensaje()` que ya no existe: abre hijo2 en el marco (`abrirHijoEnMarco`), como los
+  specs 26 y 31. Medido al reescribirlo: **PB-2 no podía fallar** (con `idParadaActual` y
+  `btnAvanzarCompletadoPorPadre` sin resetear, tanto el original como el reescrito pasaban, porque en CASA
+  avanzar queda deshabilitado de todos modos); se añade el tramo de volver a AVENTURA sin completar nada
+  (rojo con la mutación, verde sin ella) y se espera a `CAMBIO_MODO_EFECTUADO` en vez de a un tiempo. La
+  guía (G-1): `retryUntilAvailable`, el ejemplo de §36 y la descripción del spec 38.
+
 #### Familia G — Idioma y textos
 
-##### K-24 — `__vv_idiomaActual` se lee en hijo4 y no se asigna nunca allí: sus textos salen siempre en español — ✅
+##### K-24 — `__vv_idiomaActual` se lee en hijo4 y no se asigna nunca allí: sus textos salen siempre en español — ✅ (medido: M-13)
 
 - **Dónde.** Lee: `retos-hijo4.html:739` (`MSG_RETO_NO_DISPONIBLE[globalThis.__vv_idiomaActual] ||
   .es`) y `:841` (`PLACEHOLDER_RESPUESTA_TEXTO[…] || .es`). Escribe: solo
@@ -1307,6 +1465,20 @@ completitud.
 - **Pendiente:** hijo4 necesita recibir el idioma por el bus (el padre ya lo manda a hijo2 en
   `DATOS.CARGAR_COORDENADAS`). Pregunta: ¿en `PADRE_DATOS`, en `RETO.MOSTRAR` o en un mensaje de
   datos propio de hijo4? No se ha leído qué lleva hoy `RETO.MOSTRAR`.
+
+- **Estado final (2026-10-02).** ✅ Medido (M-13): `idiomaActual` es `undefined` en hijo4
+  (`__vv_idiomaActual` no se asigna nunca allí), y el marcador del campo de texto («Escriba su respuesta
+  aquí...») y el aviso «Este reto no está disponible en este momento.» salen en español, igual que la
+  entrada `es` de la tabla, que sí tiene los 12 idiomas. Los textos de los retos (enunciado, opciones,
+  respuestas) no se ven afectados: vienen en los 12 idiomas de los datos; lo afectado son solo los dos
+  textos propios de hijo4. **No se arregla** (cambia lo que ve el usuario). **Abierta, decisión — canal del
+  idioma hacia hijo4:** *A) que `RETO.MOSTRAR` lleve `idioma`* — **recomendada**: ese mensaje ya viaja por
+  parada y es el que pinta el reto, así que el idioma llega justo cuando se necesita y hijo4 no tiene que
+  guardar ni refrescar ningún estado. *B) `SISTEMA.PADRE_DATOS` con `idioma`*: un solo envío, pero hijo4
+  tendría que conservarlo y no se enteraría de un cambio de idioma. *C) que hijo4 lea
+  `parent.idiomaSeleccionado`*: descartada, abre un segundo camino fuera del bus (K-26). Ninguna medición
+  cubre el efecto con una aventura no española en vivo: se deduce de las tres líneas de código citadas
+  arriba.
 
 ##### K-25 — Textos de usuario fuera de `traducciones-ui.js`: 93 candidatos a literal en español asignados en ejecución, 5 `alert()` y un hook de validación que nadie implementa — ✅ (alcance 🔎)
 
@@ -1351,6 +1523,17 @@ completitud.
   (la memoria dice "botones en 12 idiomas"); lo mínimo defendible son los 3 `alert` de hijo4 y los
   de la selección (visibles en el flujo normal si falla una carga).
 
+- **Estado final (2026-10-02).** M-6: pulsar «Enviar» sin elegir opción en un reto de opción muestra un
+  `alert()` real, en español («Por favor, seleccione una opción.»), con el botón visible y habilitado: es un
+  caso de uso normal. **No se arregla** (cambia lo que ve el usuario; se decide junto con K-24).
+  `ejecutarValidacion` sigue siendo un stub sin implementación. **Abierta, decisión — textos de usuario
+  fuera de `traducciones-ui.js`:** *A) mover los tres `alert()` de hijo4 y los mensajes de fallo de la
+  selección a `traducciones-ui.js`, en los 12 idiomas y con el registro formal de usted* — **recomendada**
+  como mínimo defendible: son los que se ven en el flujo normal (el `alert()` de hijo4) o cuando falla una
+  carga (los de la selección). *B) además, los `alt`/`title`/`aria-label` del padre y de hijo2*: solo
+  afectan a accesibilidad. *C) las cuatro páginas de contenido estáticas*: decisión de producto aparte
+  (`videos-valencia-historica.html` parece contenido provisional).
+
 ##### K-26 — "¿Qué aventura es esta?" en hijo2: tres vías y una lectura directa de `parent` — 🧩
 
 `coordenadas-hijo2.html:1187-1189`: `__vv_aventuraActual` (escrita solo en `:1822`, al llegar los
@@ -1382,7 +1565,7 @@ Otras tablas indexadas por idioma (12/12): `LANG_ARCHIVO_PARRAFOS` (`data-loader
 | Escapar HTML | 8, todas en `codigo-padre.html`: `_escapar` ×6 (`:8916, 8993, 9072, 9136, 9199, 9273`), `_esc` (`:13898`), un `return` en `:14326` | texto idéntico; ninguna copia en `js/` (búsqueda desnuda del mapa `&#39;`: solo el padre) |
 | `sleep` | `codigo-padre.html:2888` y `js/utils.js:355` | **texto idéntico** (el único homónimo idéntico) |
 | `mostrarFraseAleatoria` | `codigo-padre.html:2940-2951`, `En-busca-del-tesoro.html:1972-1983` | misma forma (89 tokens, Jaccard 0.74), distinto elemento y estado; 400 ms/5000 ms copiados |
-| Detección de móvil | `codigo-padre.html:4140` (regex propia, usada en `:4291, 4295`), `js/proteccion.js:24`, `js/device-detection.js:35` (usada por `mensajeria.js`, `funciones-mapa.js:1137-1180`, `app.js:1006`) | tres listas de patrones distintas (solo `device-detection` incluye `webos`, `windows phone`, `mobile`, `tablet`). La cabecera `device-detection.js:5-11` dice que solo la usan `mensajeria.js` y el padre: no es cierto. Además `esApple = /iPad|iPhone|iPod/` dos veces en el padre (`:6773, 6853`) |
+| Detección de móvil | `codigo-padre.html:4140` (regex propia, usada en `:4291, 4295`), `js/proteccion.js:24`, `js/device-detection.js:35` (usada por `mensajeria.js`, `funciones-mapa.js:1137-1180`, `app.js:1006`) | tres listas de patrones distintas (solo `device-detection` incluye `webos`, `windows phone`, `mobile`, `tablet`). La cabecera `device-detection.js:5-11` dice que solo la usan `mensajeria.js` y el padre: no es cierto. Además `esApple = /iPad\|iPhone\|iPod/` dos veces en el padre (`:6773, 6853`) |
 | Logger | `(globalThis.logger \|\| console)` **918 veces** en `codigo-padre.html` (el padre resuelve el logger en cada llamada por el global); módulos y hijos importan `logger` y llaman `logger.x` | sin divergencia de resultado; la forma del padre cae al `console` sin filtro de nivel si el global aún no existe. La selección tiene un envoltorio `_log` documentado (`En-busca-del-tesoro.html:1059-1081`, spec 62): ➖ |
 | `enviarHijoListoConReintento` | 6 (hijo1 `:247`, hijo2 `:1528`, hijo3 `:1204`, hijo4 `:1260`, hijo5 `:837`, hijo6 `:728`) | mismo algoritmo; la corrección "en `finally`" de la auditoría 2026-08-18 aparece con el mismo comentario en hijo1, hijo3 y hijo6 (hijo2, hijo4 y hijo5 tienen la misma forma según el parser): seis copias que corregir; hijo1 y hijo3 muestran la UI como último recurso, hijo6 no (no tiene `mostrarUI`, §26.13) |
 | `_displayOriginalBody` | hijo1 `:52`, hijo2 `:412`, hijo3 `:497`, hijo4 `:444`, hijo5 `:332` | una línea cada una, mismo cálculo |
@@ -1393,6 +1576,19 @@ Otras tablas indexadas por idioma (12/12): `LANG_ARCHIVO_PARRAFOS` (`data-loader
 | Vibración | `codigo-padre.html:8879`, `En-busca-del-tesoro.html:1570`, `retos-hijo4.html:674-675` | tres frames, tres formas (`typeof … === 'function'`, `?.()`, `if (navigator.vibrate)`), 200/300/300 ms |
 | Inyección de estilo en hijo5 | `codigo-padre.html:111-166` (`_handleHijo5IframeLoad`) y `:13923-13935` (`_injectParadasStyle`) | dos inyectores del padre sobre el DOM de un frame de desarrollo |
 | Escalado `font-size` raíz | `escalar()` ×8 | ya en C1 + E1/E2 |
+
+- **Estado final (2026-10-02).** Retirados `getPadreId` y `resolverIdPadre` (devolvía `?padreId=` —que nadie
+  escribe—, el `vvguides_padreId` de `sessionStorage` —que solo escribía ella— o un id generado que el bus
+  no enruta; sus tres usos eran código muerto o inalcanzable), los dos stubs `globalThis.getPadreId` del
+  padre y el alias de `utils.js` (`f6ab460`), y `notificarError` de `js/app.js` (el reporte real de errores
+  es el de `utils.js`: `SISTEMA.ERROR` con `destino: 'padre'`). La guía deja de describirlos (§33.4 fuera;
+  el punto 9 del EJE 4 explica lo que hace `enviarMensaje` cuando `destino === componenteId`: avisa una vez
+  por tipo y devuelve `false`, G-22). El resto de las familias de copias (escapar HTML ×8, `sleep` ×2,
+  `mostrarFraseAleatoria`, detección de móvil ×3, `enviarHijoListoConReintento` ×6, `_displayOriginalBody`
+  ×5, los modales de código ×3…) **no se toca**: es coste de mantenimiento, no una avería, y cada una pide
+  su propia decisión (extraer a `js/` o aceptar la copia). Si se decide reducir copias, la que más rinde es
+  `enviarHijoListoConReintento`: seis copias de un algoritmo con una corrección («en `finally`») que hay que
+  repetir en cada una.
 
 ##### K-29 — Los 26 homónimos del parser, clasificados — ➖ / 🧩
 
@@ -1417,6 +1613,10 @@ La ronda 1 comparó 3. Aquí, los 26 (más 5 que solo ve `inventory:dupes`):
 | `registrarEvento` | `codigo-padre.html:5329`, `js/app.js:954` | K-04 |
 | `diagnosticarGPS` | `codigo-padre.html:15031`, `js/funciones-mapa.js:2463` | ➖ el del padre es un envoltorio que importa y llama al de funciones-mapa |
 | `idx`, `modoActual` | variables locales | ➖ |
+
+- **Estado final (2026-10-02).** `intentar` pasa de tres definiciones a dos (`js/utils.js:228` y
+  `js/funciones-mapa.js:490`): la rama «legacy» de `retryUntilAvailable` se retira (K-23). El resto de la
+  tabla no cambia (`npm run inventory:dupes`).
 
 #### Familia I — Recursos, listas, arnés, CSS y herramientas
 
@@ -1451,7 +1651,7 @@ que entra en el hash de `CACHE_VERSION`). Difieren en `debug-brujula.html` (est�
 "APP_SHELL dice qué se PRECARGA para uso offline; el hash dice qué cuenta … Son cosas distintas a
 propósito". Método: `ficherosDelShell()` contra el literal de `APP_SHELL`.
 
-##### K-32 — Arnés de tests frente a producción — ⚠️ POR MEDIR
+##### K-32 — Arnés de tests frente a producción — ✅ (medido: M-7)
 
 - **Nombres de producción sobrescritos con una función de prueba (6):**
   `enviarMensajeConConfirmacion` (11 asignaciones en 7 specs: `100`, `102`×3, `39`, `40`, `44`×3,
@@ -1483,6 +1683,17 @@ propósito". Método: `ficherosDelShell()` contra el literal de `APP_SHELL`.
   vale).
 - **POR MEDIR:** para cada uno de los 7 specs, que el stub reciba al menos una llamada (un
   contador y un `expect`). La ronda 1 verificó 1 de 7.
+
+- **Estado final (2026-10-02).** ✅ Medido (M-7): en todos los tests que sustituyen
+  `enviarMensajeConConfirmacion` por un stub, este recibe al menos una llamada (copias instrumentadas de los
+  siete specs: `100` 2/2/2, `102` 1 y 2, `39` 4 y 4, `40` 2 y 2, `44` 2 en F-1, H-1 y H-2, `46` 2 y 2, `47`
+  2); ninguno intercepta en el vacío. El spec `09-mode-change` MC-7a leía `__heartbeatInterval`,
+  `__heartbeatActivo` y `__vv_heartbeatActivo` (nadie los asigna) y afirmaba `toBe(false)`: no podía fallar.
+  Ahora lee `getHeartbeat()` del state-manager, y una copia donde el padre arranca el latido antes de leerlo
+  falla con «Expected: false, Received: true» (`8452f8d`); MC-5 pierde además `estadoPadre.modoActual`, que
+  nadie asigna. El spec 38 PB-2 tampoco podía fallar (K-23, `b6affee`). El spec 71 OB-3 tenía una carrera
+  propia con la reconstrucción del FAQ de hijo6 (reproducida también sobre `origin/main`), corregida en
+  `5c52038` con mutación como prueba (K-45).
 
 ##### K-33 — CSS, DOM y redirecciones — ➖ con restos 🔎
 
@@ -1573,6 +1784,23 @@ retira el instrumento estático". Medido en esta ronda:
 comentarios, cubrir `?.`, propiedades y alias) o retirar las dos columnas/avisos que mienten.
 Mientras no se haga, citar su salida como evidencia exige comprobarla a mano, como aquí.
 
+- **Estado final (2026-10-02).** ✅ Corregidos los instrumentos que mentían (regla 6), en `0e115d4`:
+  `tools/verificar-mensajeria.js`, `tools/verificar-frames.js` y `tools/codigo-muerto.js` leen con parser
+  (`acorn`, con piezas comunes en `tools/lib/analisis-js.js` y el residuo impreso por cada herramienta) y la
+  guía los describe (§37.3 regenerada). `verificar-mensajeria` resuelve alias de import, `?.`, constantes
+  locales y literales, asigna cada hallazgo a los frames que ejecutan el fichero y reproduce las cifras
+  medidas con el extractor de la ronda (94 tipos, 253 emisores, 144 receptores, 15 envíos al vacío y 5
+  handlers inalcanzables), sin los 5 falsos positivos; `verificar-frames` ignora comentarios y cuenta
+  cualquier propiedad de `parent`/`contentWindow`, así que deja de marcar `chat-hijo6` y ve
+  `coordenadas-hijo2.html:1188`, `js/logger.js:116` y el padre; `codigo-muerto` gana una categoría 5 con los
+  exports sin uso fuera de su módulo (K-42). Después `verificar-mensajeria` reconoce lo que el propio bus
+  construye (el acuse con `idOriginal`) y atiende (la comparación de `mensaje.tipo` en `js/mensajeria.js`) y
+  no lo cuenta como handler de un frame, de modo que no oculta los envíos al vacío (`8daa6db`). La lista
+  `globals` de `eslint.config.js` pierde 14 nombres: `iniciarHeartbeat` e `iniciarHeartbeat_S1`, que
+  impedían que `no-undef` avisara (`2ed1658`); `coordinarAccion` (`218c0ae`); y los otros 11 fantasmas
+  (`24ec574`); `npm run lint` sigue sin ningún aviso. La «decisión pendiente» de esta entrada se resuelve
+  por la primera opción: se corrigen los dos verificadores, no se retiran sus columnas.
+
 #### Familia J — Contrato del bus y constantes compartidas
 
 Tres barridos más, hechos tras redactar K-01 a K-34: el primer enunciado de K-16 ("todos los
@@ -1617,6 +1845,23 @@ fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las c
     hijo3.
 - **Pendiente:** decidir si se retiran los cinco handlers y los ocho envíos, o si se quiere un
   receptor real. Ninguna acción tocaría el contrato del bus (regla 1): son extremos sin pareja.
+
+- **Estado final (2026-10-02).** ✅ `8daa6db` retira lo que nadie recibía: los seis avisos `UI_VISIBLE`
+  (hijo1, hijo2, hijo3, hijo4, hijo5 y la selección), el handler de `SISTEMA.CONFIRMACION` de hijo5 (solo
+  logueaba, y el bus no le entrega acuses), el `click_ejecutado` y el `audio_control` con acuse de hijo3 (el
+  fallo sigue avisando con `SISTEMA.ERROR`) y los handlers `CONTROL.HABILITAR`/`DESHABILITAR` sin cuerpo de
+  hijo4 (el padre manda `CONTROL.*` solo a hijo2 e hijo3). Comprobado con búsqueda desnuda en todo el repo,
+  con el historial (`simular_click` y `reto_abierto` no tuvieron emisor desde el commit inicial) y con
+  `tools/verificar-mensajeria.js` antes y después: quedan los 7 `SISTEMA.NACK` al padre (rama defensiva
+  documentada en §10.11) y dos handlers sin emisión. **Abiertas, decisión:** (1) `AVENTURA.FINALIZADA` en el
+  padre solo loguea («No limpiar aquí») y el padre emite el tipo hacia hijo1: *A) retirar el handler* —
+  **recomendada**, y registrarlo con cuerpo cuando se construya el flujo de fin de aventura pendiente; *B)
+  dejarlo hasta ese flujo.* (2) `UI.CLOSE_MENUS` padre → hijo1: hoy el padre cierra su overlay de audio al
+  abrir hijo1 y no al revés. *A) retirar el handler de hijo1 y la exención `except !== 'audio-control'` del
+  padre (que nunca se aplica: el único valor que se manda es `'mas-opciones'`) y mandar solo
+  `{ timestamp }`* — **recomendada**: deja el único sentido que existe. *B) conectar el sentido que falta*
+  (que el padre mande `CLOSE_MENUS` a hijo1 al abrir su desplegable de audio): cambia lo que ve el usuario
+  (exclusión mutua de los dos menús), así que es decisión de producto.
 
 ##### K-36 — Contrato de la carga útil: claves y valores que solo existen en un lado — ✅ (alcance 🔎)
 
@@ -1716,6 +1961,23 @@ fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las c
   `En-busca-del-tesoro.html:2199` y en los enlaces de YouTube de `gastronomia.html`) o del backend
   (`idioma`, `tipo`, `todas`, `js/api-client.js:342-377`). Residuo: 0 lecturas con nombre no literal.
 
+- **Estado final (2026-10-02).** ✅ `8daa6db`: fuera la rama `simular_click` de hijo3 (con
+  `_manejarSimularClick`, el `click_ejecutado` y el `SISTEMA.ERROR ELEMENTO_NO_ENCONTRADO`) y la de
+  `motivo === 'reto_abierto'` de hijo2 (`retoActivo` llega por `NAVEGACION.ACTUALIZAR_ESTADO`); la guía deja
+  de presentarlas como caminos vivos (G-10). `a4644e5` (**M-14**): las claves reales de cada
+  `SISTEMA.PADRE_DATOS` son `["modo","timestamp"]` para la selección, hijo1, hijo2, hijo3, hijo4 y hijo5
+  (hijo6 recibe además `aventura`, `idioma`, `paradaActualNombre`, `paradasRestantes`, `rescate` y
+  `siguienteParadaNombre`), y los dos únicos emisores del tipo son `_hdl_SISTEMA_HIJO_PREPARADO` y
+  `cargarIframeConDatos('hijo4', …, {})`; los cinco receptores dejan de leer `paradas` y `paradaActual`, que
+  nadie manda, y el comentario de `mostrarHijo4()` dice ya que hijo4 solo lee `modo`. La guía corrige las
+  filas de `PADRE_DATOS` de la selección, hijo1, hijo2, hijo3, hijo4 y hijo5 —decían que llevaba aventura,
+  idioma, coordenadas o la lista de paradas— y el handshake, que describía un ACK del padre que no existe
+  desde `141be18` (G-28; G-30 añade `rescate` a la lista de hijo6). `dae5bf2`: la URL del puzzle de P6 deja
+  de llevar `aventura=INTRO` y `noOverlay=1`, que `puzzle.html` no lee (solo busca `id` e `imagen`); y el
+  parámetro `padreId`, que se leía y nadie escribía, desaparece con `resolverIdPadre` (`f6ab460`). Se
+  quedan, por decisión del apartado de K-35, la exención de `UI.CLOSE_MENUS` y las 12 claves de efecto
+  benigno (valor por defecto, alias o solo log).
+
 ##### K-37 — `js/constants.js`: 75 de 177 hojas sin lector, un valor que no coincide con el bus y una lista de validación que nadie usa — ✅
 
 - **Recuento por ruta con residuo.** 177 hojas en los 9 objetos que exporta
@@ -1752,6 +2014,18 @@ fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las c
   literales)? Dos ficheros de constantes (`config.js` y `constants.js`) con más de la mitad de su
   contenido sin lector es el patrón de K-01/K-02 repetido.
 
+- **Estado final (2026-10-02).** ✅ `e3bab74`: `constants.js` pierde lo que ningún fichero lee —`ERRORES`,
+  `ESTADOS`, `CODIGOS_ERROR`, `DESTINOS`, `CSS_CLASES`, `TIPOS_MENSAJE_VALIDOS` con `_flattenTipos`, el
+  `export default`, `globalThis.constants` y `globalThis.TTL_LIMPIEZA`, y
+  `TTL_LIMPIEZA.LOGGER`/`.SUPPRESS`—; se quedan `LOG_LEVELS`, `MODOS`, `TIPOS_MENSAJE` y
+  `TTL_LIMPIEZA.MENSAJERIA`. La guía (G-12) dice 94 tipos y ya no cita las constantes retiradas; `1e5bbf3`
+  corrige dos citas de línea que la limpieza dejó fuera de rango. **Sin tocar, decisión de diseño:** los
+  literales `'casa'`/`'aventura'` y `destino: 'padre'` que los hijos escriben a mano en vez de usar `MODOS`
+  o una constante (140 `destino: 'padre'`; ningún hijo ni nieto importa `MODOS`). *A) dejarlos* —
+  **recomendada**: son los mismos dos valores y el mismo destino del contrato del bus, sin ningún fallo
+  demostrado, y *B) importar `MODOS` en los siete hijos y la selección* toca once ficheros por una ganancia
+  solo de legibilidad.
+
 #### Familia K — Nombres de `globalThis` que nadie define, y un frame que no publica lo que los demás
 
 Un barrido más, hecho tras K-35 a K-37: los tres anteriores miraban lo que viaja por el bus y por
@@ -1760,7 +2034,7 @@ que no existe **no falla**: la guarda (`typeof … === 'function'`, `if (globalT
 ruido, y el código parece cubrir un caso que en realidad nadie cubre. Es la versión "función o
 variable al vacío" de K-35 ("mensaje al vacío").
 
-##### K-38 — Nombres de `globalThis` que el código lee, comprueba o limpia y que ningún frame define — ✅ (confirmación en ejecución ⚠️ M-10)
+##### K-38 — Nombres de `globalThis` que el código lee, comprueba o limpia y que ningún frame define — ✅ (confirmado en ejecución: M-10)
 
 - **Método (instrumento nuevo, "globals por frame").** Para cada una de las 17 páginas `.html`
   calcula el conjunto de ficheros que ejecuta (bloques inline y cierre de `import` estáticos,
@@ -1939,6 +2213,22 @@ en el padre, donde existe `iframesRegistrados`) y `opera` (propiedad heredada de
   de los apartados 1 a 5 en el padre ya cargado, y de `incrementarContador` en hijo2. La lectura
   estática y la historia de git coinciden; falta solo la ejecución (regla 10).
 
+- **Estado final (2026-10-02).** ✅ Confirmado en ejecución (M-10): los 23 nombres del padre dan
+  `typeof === 'undefined'` (más `funcionesMapa.iniciarGPSAventura`; en hijo2, `incrementarContador` y
+  `__vv_idiomaActual`) y `mensajeria.iniciarHeartbeat`, `.pausarHeartbeat` y `.adelantarLatido` son
+  `function`. Retirado en `2ed1658`: los arranques (a) y (c) del latido, la bandera `__HEARTBEAT_INICIADO`,
+  `_detenerHeartbeatSeguro`, las limpiezas de `pagehide` sobre `modoActual`, `intervaloMonitoreo`,
+  `controladores`, `puntosRuta`, `CoordenadasParadas`, `estadoHijos` e `intervaloReconciliacion`, el
+  llamador de `iniciarGPSAventura` y `debugRegisterAllowedOrigin`. En `8806429`: los 15 puntos de cuenta de
+  `incrementarContador` con su envoltorio `_gpsInc` y los operandos `||` sobre `__vv_aventuraSeleccionada`,
+  `estadoScript2`, `__vv_coordenadasAventura` e `INDICE_AVENTURAS`. Se quedan, por documentados o leídos por
+  specs, `__MENSAJERIA_INICIADA`, `_mostrarDialogoVueltaRapida`, `_vv_check5km`, `_testHeartbeatPauseResume`
+  y los dos ayudantes de consola de `suppress-warnings.js`. Además, un barrido de lo que el código *publica*
+  frente a quién lo *lee* (231 nombres en las 17 páginas y módulos; 9 sin lector) retira cuatro globals que
+  nadie leía —`__hijo3_paradaActual`, `__vv_mensajeria`, `cargarIframeSecuencial` y `_reflow`— (`0fe5b3f`).
+  La pregunta «¿se retira la rama muerta o se conecta a lo que existe?» se resuelve por la primera opción en
+  todos los grupos: eran ramas sin efecto y conectarlas habría activado políticas distintas (K-11).
+
 ##### K-39 — `mapa-completo.html` es el único de los once frames que no publica el logger en su `globalThis` — ✅ (alcance 🔎)
 
 - **Los otros diez sí.** Publican `globalThis.logger = logger;` tras importarlo, con un comentario
@@ -1966,9 +2256,16 @@ en el padre, donde existe `iframesRegistrados`) y `opera` (propiedad heredada de
   publica el logger como los demás, o se acepta y se corrige la guía? No se toca aquí. Medición
   M-11 (⚠️).
 
+- **Estado final (2026-10-02).** ✅ M-11 confirma el hallazgo (sin padre: `typeof globalThis.logger` es
+  `undefined` y la línea «✅ constants.js cargado» sale por `console.debug` crudo). `545323b`:
+  `mapa-completo.html` importa `logger.js` y asigna `globalThis.logger = logger` como los otros diez frames,
+  con el mismo comentario; el spec 60 (NH-3) carga también `mapa-completo.html` (rojo antes:
+  `mapa-completo.html=undefined`; verde después) y la fila de `logger.js` y la del spec 60 de la guía
+  incluyen ya el frame que faltaba (G-16). Los once frames publican el logger.
+
 #### Familia L — Estado que se escribe y no se lee, y registros que dicen más de lo que hacen
 
-##### K-40 — Conectividad: tres reacciones a `offline`/`online`, y la que dice "pausando operaciones" solo escribe una bandera que nadie lee — ✅ (efecto ⚠️ M-12)
+##### K-40 — Conectividad: tres reacciones a `offline`/`online`, y la que dice "pausando operaciones" solo escribe una bandera que nadie lee — ✅ (efecto medido: M-12)
 
 - **Los caminos.** (1) El aviso al usuario: `codigo-padre.html:7003` (`offline` →
   `showInternetOverlay()`, que solo actúa en AVENTURA, `:6968-6969`) y `:6961` (`online` →
@@ -1993,6 +2290,15 @@ en el padre, donde existe `iframesRegistrados`) y `opera` (propiedad heredada de
   acción no ocurría y no había aviso; aquí el aviso afirma una acción que no ocurre.
 - **Pendiente:** ¿se retira el camino 3 y con él `estado.conectado`, o se le da el cuerpo que
   promete (y entonces ¿qué se pausa: latido, GPS, envíos?)? Medición M-12 (⚠️).
+
+- **Estado final (2026-10-02).** ✅ Medido (M-12): en AVENTURA, `offline` muestra el overlay del padre, pone
+  `estado.conectado` a `false` y escribe un `warning` «Conexión perdida, pausando operaciones», mientras el
+  latido sigue `activo:true, userPaused:false`: **no se pausa nada**; `online` oculta el overlay y escribe
+  «Conexión restablecida, reanudando operaciones». **Abierta, decisión:** *A) retirar el camino 3*
+  (`manejarPerdidaConexion`, `manejarReconexion`, sus dos listeners y `estado.conectado`) — **recomendada**:
+  el aviso afirma una pausa que no ocurre, nadie lee la bandera y el aviso real al usuario es el overlay del
+  camino 1. *B) darle el cuerpo que promete*: habría que decidir qué se pausa (¿el latido, el GPS, los
+  envíos?), y eso es una decisión de comportamiento, no mecánica.
 
 ##### K-41 — Campos de estado que se escriben y que ningún código lee por su nombre — 🔎 (con doce filas confirmadas)
 
@@ -2039,6 +2345,30 @@ estrictas y su nombre no tiene más lectores en el fichero; no se han leído una
 - **Pendiente:** el estudio individual decide, campo a campo, si se retira o si falta el lector. Las
   filas con varias casas para el mismo hecho (hijo listo, sistema inicializado, selección,
   contadores de error) son las que tocan "un solo camino por decisión".
+
+- **Estudio individual (2026-10-02): solo veredictos, ningún cambio de código.** Las filas confirmadas se
+  comprobaron de nuevo con el nombre desnudo en producción, specs y guía; «sonda» = la lee un spec o la
+  nombra la guía, así que retirarla exige tocar ese spec o esa frase.
+
+| Campo | Veredicto | Evidencia |
+|---|---|---|
+| `estadoPadre.hijosPreparados` | Se queda (sonda) | 3 líneas de producción (`codigo-padre.html:7263-7264, 8280`); 9 specs la leen como sonda de «hijo listo» (`08`, `60`, `76`, `78`, `80`, `96`, `97`, `99`, `101`) y la guía la nombra; consolidar el hecho «este hijo avisó» es K-07, no esto |
+| `estadoPadre.hijosFallidos` | Candidato a retirar | solo se inicializa a `new Set()` (`:5216-5217`); los fallos viajan por arrays locales con el mismo nombre, que son los que citan la guía (§5, `cargarRestoDeiframes`) y el spec `08` |
+| `estadoHijos.get(id).preparado` y `.listo` | Candidato a retirar (con K-07) | se escriben en los dos sitios del handshake y ningún código ni spec los lee; son el cuarto y el quinto sitio del hecho que K-07 describe en dos |
+| `estadoPadre.sistemaInicializado` | Candidato a retirar la copia | `:8470-8471` escribe la propiedad y el global `globalThis.sistemaInicializado`; solo se lee el global (`:4969`); la guía (§5) habla de «marcar `sistemaInicializado`» sin decir cuál |
+| `estado.modo.anterior`, `estado.modo.ultimoCambio` | Candidato a retirar, con la guía | `js/app.js:573-575, 605-607, 899` los escribe y nadie los lee; el bloque de «estado inicial» de la guía (L115-132) los enseña, así que se cambian juntos |
+| `estado.tramoActual` | Candidato a retirar la escritura | `js/app.js` lo pone a `null` en `limpiarRecursosPorModo`; el que se usa es `estadoMapa.tramoActual` (K-08); el spec `100` lo nombra solo en un comentario |
+| `estado.seleccion.{idioma, iniciada, coordenadasCargadas, terminosAceptados, timestampInicio}` | Decisión | 7+5+2+2+1 escrituras en el padre y ninguna lectura; la selección real vive en `globalThis.aventuraSeleccionada`/`idiomaSeleccionado` (`.activada` y `.aventura` sí se leen); la guía los nombra en un diagrama (§ selección) y en una lista de pasos. Recomendado: retirarlos, y con ellos esas dos frases |
+| `estado.retoActual.completado` | Candidato a retirar | 7 escrituras (`codigo-padre.html:10851, 11018, 11068, 11116, 12490, 12511, 12518`); la compleción real es la de `colaCompletados`; solo lo nombra `tests/flujo_bidireccional_exhaustivo.json`, que no ejecuta Playwright |
+| `estado.gps.visualActivo` | Se queda (sonda) | el spec `20` lo lee (`globalThis.estado?.gps?.visualActivo`) y la guía lo describe en tres sitios; el recordatorio de audio no lo usa a propósito (usa `proximidadReal`, comentario `:9243`) |
+| `estadoMonitoreo.metricas.ultimaActividad`, `estadoMonitoreo.intervaloMetricas`, `estado.monitoreo.metricas.errores` | Se deciden con K-04 | el monitoreo entero está en cuestión; no tiene sentido retirar tres campos de algo que se puede retirar entero |
+| `estado.conectado` | Se decide con K-40 | es la bandera del camino 3 |
+
+- Las rutas «con ancestro leído entero» (`estado.audioActual.error`/`.timestamp`,
+  `estado.gps.permisos`/`.precision`/`.ultimaUbicacion`) **siguen por leer**: pudieron leerse por la copia
+  entera del padre y comprobarlo exige leer cada receptor del payload. Recomendación general: retirar los
+  candidatos como una sola tanda con sus frases de la guía, después de decidir K-04, K-07 y K-40, que
+  afectan a seis de las doce filas.
 
 #### Familia M — Lo que se publica y nadie usa
 
@@ -2094,6 +2424,29 @@ estrictas y su nombre no tiene más lectores en el fichero; no se han leído una
   entre "andamiaje de una API general" y "código que se quedó"; esa decisión es del estudio
   individual. `tools/codigo-muerto.js` solo ve 3 de los 27 (K-34).
 
+- **Estado final (2026-10-02).** Barrido repetido con el mismo instrumento: 162 exports (191 antes); 28 sin
+  mención en otro fichero de producción (antes 55): 6 muertos del todo, 3 que solo nombran specs y 19 con
+  uso interno. Retirados 21 de los 27 muertos del todo —los 6 de `constants.js` (K-37), los 2 del
+  state-manager de K-07, los 7 de `utils.js` y 4 de los 5 del state-manager nuevos (`setHeartbeat`,
+  `setGpsPendientes`, `cancelarPromiseHijoListo`, `removerControladorCentral`), `listarControladores` y
+  `coordinarAccion`—, 6 de los 25 con uso interno (`notificarError`, `obtenerEstadoMonitoreo`, `getConfig`,
+  `deepClone`, `deepMerge` y `sonIguales`) y los cinco `export default` de objeto (`218c0ae`, `01eeb47`,
+  `f6ab460`, `e3bab74`). Quedan: los cuatro de `js/data-loader.js` reservados al backend (M1),
+  `getEstadoMonitoreo` (se decide con K-04), `agregarMensajeGPSAPendientes` (la cadena de abajo) y los 3 que
+  solo nombran specs: `adelantarLatido` (K-11), `getScript2Listo` y `getEstadoPadre` (sondas). **Abierta,
+  decisión — la cadena `gpsPendientes`:** `reenviarMensajesGPSAPendientes('hijo2')` corre cuando hijo2
+  vuelve de estar desconectado y lee `state.gpsPendientes`, que ningún código llena
+  (`agregarMensajeGPSAPendientes` no tiene llamador): la cola siempre está vacía y el reenvío solo escribe
+  un `debug`. *A) retirar la cadena* (`gpsPendientes`, `getGpsPendientes`, `agregarMensajeGPSAPendientes`,
+  `limpiarGpsPendientes`, `reenviarMensajesGPSAPendientes` y su llamada en el manejo del
+  `HEARTBEAT_RESPONSE`) — **recomendada**: es un consumidor sin productor, y la recuperación real de un hijo
+  caído es la recarga y el reenvío de datos (spec 80). *B) conectar un productor* (que el padre encole el
+  `NAVEGACION.ACTUALIZAR_ESTADO` que no pudo entregar a hijo2 mientras estuvo desconectado): solo tiene
+  sentido si se define ese escenario de pérdida. Toca el bus, así que no se aplica sin decisión (regla 1).
+  **Los 19 con uso interno** (se exportan sin que nadie los pida) quedan para el estudio individual: el
+  instrumento no distingue andamiaje de una API general de código que se quedó. Los números se repiten con
+  `node tools/codigo-muerto.js` (categoría 5: 6, 3 y 19).
+
 #### Familia N — Identificadores con varios nombres
 
 ##### K-43 — El id del elemento activo viaja con cuatro nombres y se resuelve de dos maneras — 🧩 (con un 🔎)
@@ -2133,6 +2486,14 @@ estrictas y su nombre no tiene más lectores en el fichero; no se han leído una
   (familias de copias). 🔎 el efecto del prefijo en `estado.paradaActual` cuando el origen es hijo5
   (solo desarrollo).
 
+- **Estado final (2026-10-02).** Sin cambios: es una familia de copias sin efecto observable (los emisores
+  del padre mandan `paradaId` y `parada_id` iguales; hijo4 no hace nada con el id y hijo5 es solo de
+  desarrollo). **Abierta, decisión:** *A) un único nombre `paradaId` (sin prefijo) en el contrato y que
+  hijo2 e hijo4 usen `resolverIdsParada`* — es lo correcto a medio plazo, pero toca los once emisores, dos
+  receptores y los specs del cambio de parada (`51` y siguientes): trabajo de una tanda propia. *B)
+  dejarlo*, con el coste de que cada emisor nuevo tiene que recordar los cuatro nombres. **Recomendada: B
+  ahora y A al tocar el contrato de `CAMBIO_PARADA`.**
+
 #### Familia O — Recursos locales
 
 ##### K-44 — Recursos locales: 491 referencias y una ruta que nunca existió (el respaldo del puzzle de introducción) — ✅
@@ -2161,6 +2522,50 @@ estrictas y su nombre no tiene más lectores en el fichero; no se han leído una
   `2c5c2c2`); inocuo mientras el dato exista. **Pendiente:** ¿se corrige la ruta o se retira el
   respaldo? Con la ruta actual el respaldo no es un segundo camino, es un camino que falla en
   silencio parcial.
+
+- **Estado final (2026-10-02).** ✅ `545323b`: el respaldo `fotos-botones/logo-luna.jpg` apunta ya a
+  `imagenes/imagenes-aplicación/logo-luna.png` (la imagen que declara `js/puzzles-aventuras.js`) en los dos
+  sitios de `En-busca-del-tesoro.html`, en el ejemplo de la guía y en el spec 60 (NH-3 deja de pasarle al
+  puzzle la ruta inexistente). La pregunta del «Pendiente» se resuelve corrigiendo la ruta, no retirando el
+  respaldo.
+
+#### Familia P — Orden de llegada de los datos de un frame
+
+Un barrido más, hecho al cerrar la tanda de arreglos: lo encontró un spec que fallaba a veces (la carrera de
+`71`, OB-3), no un instrumento.
+
+##### K-45 — hijo6 construye su FAQ dos veces al abrirse por primera vez, y la primera escribe un `error` en el log aunque todo vaya bien — ✅ (medido: M-15; decisión abierta)
+
+- **Dónde.** `chat-hijo6.html`: `construirFAQ()` (`:513`) se llama al final del módulo (`:815`,
+  «Construcción inicial») con `estadoPadre = {}`, y otra vez cuando llega el estado del padre:
+  `SISTEMA.PADRE_DATOS` (`:718-723`) y `CHAT.ESTADO_PADRE` (`:784-800`) llaman a `actualizarIdioma()`, que
+  reconstruye el acordeón entero. El iframe se carga la primera vez que el usuario abre el asistente
+  (`abrirChat()`, `codigo-padre.html:1622`).
+- **El `error`.** En la construcción inicial no hay `estadoPadre.rescate`, y la pregunta del atasco
+  (`UBIC_ATASCADO_TRAMO`) exige ese estado para rellenar «dispone de {total} rescates» (`:538-541`): el
+  código la omite y escribe
+  `logger.error('[hijo6] El padre no ha mandado el estado del rescate: la pregunta del atasco no se muestra')`.
+  El comentario dice que se avisa «porque que falte significa que algo se ha roto antes», lo que es cierto
+  después del saludo y falso antes: en el camino normal el estado llega 34 ms más tarde.
+- **Medido (M-15).** Primera apertura del asistente: dos construcciones, a los 27 ms y a los 61 ms de cargar
+  el iframe; `SISTEMA.PADRE_DATOS` llega a los 61 ms con 8 claves y `rescate`; **un** `error` «estado del
+  rescate» en la consola; el acordeón queda con 47 botones de pregunta. Segunda apertura (cerrar y volver a
+  abrir): sin ningún `error` nuevo y **una** reconstrucción completa, a la llegada de `CHAT.ESTADO_PADRE`.
+- **Consecuencias.** (1) Un `error` por carga de página en el camino nominal: ruido en el log que acaba
+  escondiendo un error de verdad. (2) La reconstrucción completa en cada apertura colapsa los acordeones que
+  el usuario tuviera desplegados, y fue la causa de una carrera real del spec `71` (OB-3): el test
+  desplegaba un acordeón y la reconstrucción que llegaba después lo cerraba. Se corrigió en el test
+  (`5c52038`, con prueba de mutación: sin el relleno de `{total}` OB-3 falla; con el botón siempre visible
+  falla OB-1; el spec pasa 5/5), y la carrera se reproduce también sobre `origin/main`.
+- **Pendiente: decisión de diseño** (el comportamiento visible para el usuario es correcto en los tres
+  casos). *A) no construir el FAQ hasta que llegue el estado del padre* — descartada: si `PADRE_DATOS` no
+  llegara, el asistente se abriría vacío, un fallo peor que un FAQ sin la pregunta del atasco. *B) mantener
+  la construcción inicial y escribir ese aviso a nivel `debug` hasta que llegue el primer
+  `PADRE_DATOS`/`CHAT.ESTADO_PADRE`, y a `error` a partir de entonces* — **recomendada**: sigue siendo
+  ruidoso donde significa avería (después del saludo) y deja de serlo donde no; es una bandera y una
+  condición. *C) actualizar solo lo que cambia* (idioma, pregunta del atasco) en vez de reconstruir el
+  acordeón: evita el colapso, pero es un cambio mayor en el único frame que ya tuvo una avería por tener dos
+  caminos casi iguales (el chat en español).
 
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
@@ -2232,31 +2637,40 @@ Para que "no sale nada" no se confunda con "no se miró":
   17 `.html`: 193 distintos, ninguno repetido dentro de su documento. Y los 14 nombres de
   `globalThis` que leen los specs sin que producción los asigne, en K-32 (uno solo importa).
 
-### R2.4 Lo que queda POR MEDIR (consolidado)
+### R2.4 Las mediciones (hechas el 2026-10-02)
 
-Ninguna de estas mediciones se ha ejecutado: no hay OK del usuario para Playwright y la regla 5
-impide mezclarlas con otra cosa. Cada una se puede hacer con un spec desechable (como en C5) o
-con la consola del propio navegador sobre la app real.
+Las doce mediciones que la ronda 2 dejó "POR MEDIR" (M-1 a M-12) y tres más que salieron al arreglar
+(M-13, M-14 y M-15) se ejecutaron el 2026-10-02, salvo M-8, que es de campo. Se hicieron con el OK del
+usuario ("ok a todo, revisa y arregla"), sin nada más corriendo (regla 5) y con specs desechables en
+chromium sobre la app real (el padre con el stub de MapLibre y los hijos reales). Los specs de medición
+no se versionan: cada fila dice qué se hizo, que es lo que hay que repetir. Donde la medición pedía una
+condición que el entorno de pruebas no da sola (una brújula "viva", la hora), se dice cómo se simuló.
+La hipótesis de cada una está en su entrada de R2.2, con una nota "Estado final" que dice qué pasó
+después.
 
-| # | Entrada | Qué medir | Cómo (sin ejecutar aquí) |
+| # | Entrada | Medido | Resultado |
 |---|---|---|---|
-| M-1 | K-11 | Arranque en frío directo a AVENTURA (reanudación): estado final del latido (`activo`, `userPaused`) y de la bandera `__HEARTBEAT_INICIADO`. Con K-38 el arranque (c) no pausa; queda por ver si otro camino —(d), en una carga que pase por CASA— deja `userPaused` a `true` y bloquea el `iniciarHeartbeat` de `_activarHeartbeatAventura`, y si la bandera miente por `:15019` | tras activar en producción, `await globalThis.consultarHeartbeat()` (se define al invocar una vez `globalThis.diagnosticarGPS()` desde la consola, `codigo-padre.html:15053`; guía L5876) y leer la bandera |
-| M-2 | K-11 | Intervalo efectivo del latido (se espera el de (b), 5000 ajustado por la conexión; los 10000 de (c) no se usan) | timestamps de dos `SISTEMA.HEARTBEAT` consecutivos desde el padre |
-| M-3 | K-11 | En CASA, qué hacen los hijos con el `HEARTBEAT` del `visibilitychange` inline | contar `HEARTBEAT_RESPONSE` y logs de los hijos al volver a la pestaña con el latido en pausa |
-| M-4 | K-07 | Reactivación tras `SELECCION.REINICIAR` (ruta fallback): ¿`_esperarHijosCargados` espera al HIJO_LISTO nuevo? ¿`distribuirDatosAventura` devuelve `pospuesto`? | log "HIJO_LISTO RECIBIDO" frente al instante en que termina la espera |
-| M-5 | K-19 | "Vuelta rápida → Elegir otra → nueva aventura": ¿sigue activo "Seguir mi rumbo"? | leer `_brujulaModoActivo` (indirecto: `funcionesMapa.brujulaEstaActiva()`) antes y después |
-| M-6 | K-25 | En retos de opción, ¿puede pulsarse Enviar sin elegir (alert en español)? | abrir un reto `opcion` y pulsar Enviar |
-| M-7 | K-32 | Que el stub de `enviarMensajeConConfirmacion` reciba llamadas en cada uno de los 7 specs | contador y `expect` por spec (los 7 de K-32) |
-| M-8 | K-17 | Reintento de señal con timeout 15000 frente a 5000 en GPS en frío | prueba de campo; no es un caso de Playwright |
-| M-9 | K-20 | Que ninguna fila de borrado parcial deje `vv_paradas_completadas`/`vv_aventura` vivas para la sesión siguiente | recorrer cada vía de borrado y listar `localStorage` |
-| M-10 | K-38 | `typeof` de cada nombre sin definidor en su frame, ya cargado: se espera `'undefined'` en todos | en el padre, `['iniciarHeartbeat','pausarHeartbeat','detenerHeartbeat','incrementarContador','registerAllowedOrigin','controladores','intervaloMonitoreo','puntosRuta','CoordenadasParadas','estadoHijos','intervaloReconciliacion','estadoScript2','__vv_aventuraSeleccionada','modoActual'].map(n => [n, typeof globalThis[n]])`; en hijo2, `typeof globalThis.incrementarContador` |
-| M-11 | K-39 | En `mapa-completo.html` abierta con un padre: `typeof globalThis.logger` y si el aviso `debug` "✅ constants.js cargado" sale con el nivel de log subido a WARN | consola del frame; mismo mecanismo que `60-nivel-de-log-alcanza-hijos.spec.js` |
-| M-12 | K-40 | Con la app en AVENTURA, disparar `offline` y `online`: ¿sale el overlay del padre y no se pausa nada pese al `warn` "pausando operaciones" de `js/app.js:1074`? | `globalThis.dispatchEvent(new Event('offline'))` y después `await globalThis.consultarHeartbeat()` (se define como en M-1) y `globalThis.estadoPadre.gps.activo`: se espera latido y GPS sin cambios; luego `online` |
+| M-1 | K-11 | Reanudación directa a AVENTURA: `getHeartbeat()` y la bandera `__HEARTBEAT_INICIADO` | Antes: `activo:false, userPaused:false`. Tras activar AVENTURA: `activo:true, userPaused:false`, con intervalo y la bandera a `true`. Tras CASA: `activo:false, userPaused:true`. De vuelta a AVENTURA: `activo:true, userPaused:false`. Ni el prewarm de CASA deja `userPaused` pegado ni el arranque (b) queda bloqueado. ✅ |
+| M-2 | K-11 | Retardo efectivo del `setInterval` del latido | **5000 ms**, el de (b); los 10000 ms de (c) no se usaban. ✅ |
+| M-3 | K-11 | Con el latido **pausado** (`activo:false, userPaused:true`, como lo deja `_transicionarAModoCasa`), disparar el `visibilitychange` del padre | Sale **un** `SISTEMA.HEARTBEAT` en `broadcast` (`razon:'visibilitychange'`) a los 6 iframes registrados (`seleccion`, `hijo1-opciones`, `hijo2`, `hijo3`, `hijo4`, `hijo5`); los 6 contestan `HEARTBEAT_RESPONSE`; el padre anota `ultimoHeartbeat` de los 6 y `heartbeatsFallidos: 0`; `activo` y `userPaused` no cambian. El latido en pausa no impide ese envío: el handler inline no mira la pausa y `adelantarLatido()` no interviene. ✅ |
+| M-4 | K-07 | Ruta fallback de `SELECCION.AVENTURA_ACTIVADA` (`_iframesPreCargadosP14 = false`, lo que deja `SELECCION.REINICIAR`) con los hijos ya cargados una vez | **Confirmada la hipótesis.** +3 ms "Cargando iframes hijos (ruta fallback)"; +85 ms los cinco `load` y **"Hijos cargados (sistema de eventos), 0ms"**: `_esperarHijosCargados` no espera; +85 ms `distribuirDatosAventura` devuelve `pospuesto` ("Datos no disponibles aún"); **+96 a +123 ms** llegan los cinco `HIJO_LISTO` nuevos, 11–38 ms después de que la espera diera por buenos a todos. El conjunto del padre se vacía en `_normalizarSetHijos` y se rellena con los `HIJO_LISTO` nuevos; el del state-manager no se vacía en ningún sitio, y `crearPromiseHijoListo` devuelve una promesa ya resuelta a quien esté en él. ✅ |
+| M-5 | K-19 | Con "Seguir mi rumbo" elegido y la brújula "viva" (`brujulaEstaActiva` simulada a `true`, para que no actúe la auto-reversión de BR-7), "Vuelta rápida → Elegir otra aventura" | `desactivarSeguimientoRumbo()`: **0 llamadas** (con `_resetBrujulaModo()` directo, 1); `#brujula-modo` queda oculto y `estado.tiempoRestante` a `null`: lo demás del abandono sí corre. El botón principal usa siempre `boton-brujula.png`, así que el estado solo se observa por sus efectos. ✅ confirmada y corregida (BR-10) |
+| M-6 | K-25 | Reto de opción: pulsar Enviar sin elegir | Sale un `alert()` real, en español: «Por favor, seleccione una opción.»; el botón existe, está habilitado y visible. ✅ |
+| M-7 | K-32 | Cada spec que sustituye `enviarMensajeConConfirmacion` por un stub, con una copia instrumentada que cuenta las llamadas al stub | En todos los tests que lo instalan recibe al menos una: `100` (LU-1/2/3: 2, 2, 2), `102` (AR-1: 1, AR-2: 2), `39` (FC-1/2: 4, 4), `40` (OR-1/2: 2, 2), `44` (F-1, H-1, H-2: 2 cada uno; F-2 cuenta con su variable local), `46` (RU-1/2: 2, 2), `47` (MU-4: 2). Ninguno intercepta en el vacío. ✅ |
+| M-8 | K-17 | Reintento de señal con timeout 15000 frente a 5000 en GPS en frío | ➖ No ejecutable en Playwright: es una prueba de campo. Queda anotada, sin medir. |
+| M-9 | K-20 | Sesión **caducada** (8 días) sembrada con las cinco claves, con `mostrarModalTiempoAgotado` ocultado para forzar la rama «sin modal disponible» de `_comprobarReanudacionAventura`; control con el modal disponible | Rama forzada: se borran `vv_aventura_iniciada` y `vv_progreso` y **quedan vivas `vv_aventura`, `vv_idioma` y `vv_paradas_completadas`**. Control: con el modal disponible no se borra nada hasta que el usuario lo cierra (entonces `limpiarDatosAventura('timeout')` lo vacía todo). Lectores: `vv_paradas_completadas` solo lo lee la restauración de una sesión guardada (necesita `vv_aventura_iniciada`, que la siguiente aventura vuelve a escribir) y `vv_aventura` solo es el último respaldo de un nombre de aventura; el daño solo sería posible si se reabre la app antes de completar ninguna parada de la aventura siguiente. Rama de error; la otra rama equivalente, `_restoreCheckTimeout`, sí llama a `limpiarDatosAventura('timeout')`. ✅ |
+| M-10 | K-38 | `typeof` de los nombres sin definidor, con la página cargada | Los 23 nombres del padre dan `'undefined'` (`iniciarHeartbeat`, `iniciarHeartbeat_S1`, `pausarHeartbeat`, `detenerHeartbeat`, `incrementarContador`, `registerAllowedOrigin`, `controladores`, `intervaloMonitoreo`, `puntosRuta`, `CoordenadasParadas`, `estadoHijos`, `intervaloReconciliacion`, `estadoScript2`, `__vv_aventuraSeleccionada`, `modoActual`, `INDICE_AVENTURAS`, `AVENTURA_PARADAS`, `__vv_coordenadasAventura`, `__vv_getManejadores`, `iniciarGPSAventura`, `TextosAventuras`, `TEXTOS_AVENTURAS`, `DATOS_AVENTURAS`), y `funcionesMapa.iniciarGPSAventura` también; en hijo2, `incrementarContador` y `__vv_idiomaActual` (leído como `idiomaActual`). Control: `mensajeria.iniciarHeartbeat`, `.pausarHeartbeat` y `.adelantarLatido` son `function`. ✅ |
+| M-11 | K-39 | `mapa-completo.html` suelta (sin padre): `typeof globalThis.logger` y la línea `debug` de `constants.js` | `logger`: `undefined` (`mensajeria`: `object`); la línea "✅ constants.js cargado" sale por `console.debug` crudo, sin pasar por el logger. ✅ confirmada y corregida (NH-3) |
+| M-12 | K-40 | En AVENTURA, `offline` y luego `online` | `offline`: overlay del padre visible, `estado.conectado:false` y un `warning` «Conexión perdida, pausando operaciones»; el latido sigue `activo:true, userPaused:false` (no se pausa nada). `online`: overlay oculto, `conectado:true` y un `info` «Conexión restablecida, reanudando operaciones». ✅ |
+| M-13 | K-24 | (nueva, no estaba en las doce originales) Idioma de los textos propios de hijo4 | `idiomaActual` es `undefined` en hijo4 (`__vv_idiomaActual` no se asigna nunca allí); el placeholder sale en español («Escriba su respuesta aquí...»), igual que la entrada `es` de la tabla; la tabla tiene los 12 idiomas; el aviso «Este reto no está disponible en este momento.» también sale en español. ✅ |
+| M-14 | K-36 | (nueva, salió al arreglar K-36) Claves reales de `datos` en cada `SISTEMA.PADRE_DATOS`, con cada frame escuchando en captura sus propios `message` | `["modo","timestamp"]` para la selección, hijo1, hijo2, hijo3, hijo4 y hijo5; hijo6-chat recibe además `aventura`, `idioma`, `paradaActualNombre`, `paradasRestantes`, `rescate` y `siguienteParadaNombre`. Ninguna lleva `paradas` ni `paradaActual`. ✅ |
+| M-15 | K-45 | (nueva, salió al cerrar la tanda) Primera y segunda apertura del asistente: construcciones del FAQ de hijo6, llegada del estado del padre y `error` de rescate | 1.ª apertura: dos construcciones (a los 27 y a los 61 ms de cargar el iframe), `SISTEMA.PADRE_DATOS` a los 61 ms con 8 claves y `rescate`, **un** `error` «El padre no ha mandado el estado del rescate» y 47 botones de pregunta. 2.ª apertura: ningún `error` nuevo y una reconstrucción completa, al llegar `CHAT.ESTADO_PADRE`. ✅ |
 
 ### R2.5 Discrepancias entre la guía (o comentarios de código) y el código — para decidir
 
-La guía "se consulta siempre y no se cree nunca" (CLAUDE.md regla 8). No se ha editado ninguna;
-estas son las contradicciones que esta ronda tropezó, cada una verificada contra el código:
+La guía "se consulta siempre y no se cree nunca" (CLAUDE.md regla 8). Estas son las contradicciones que la ronda tropezó,
+cada una verificada contra el código. **Las 18 se corrigieron en la tanda de arreglos del 2026-10-02**, junto con las que la
+propia tanda fue encontrando (G-19 a G-33, tabla de estado más abajo); la tabla de aquí conserva lo que decían y lo que había:
 
 | # | Dónde | Dice | El código |
 |---|---|---|---|
@@ -2277,11 +2691,51 @@ estas son las contradicciones que esta ronda tropezó, cada una verificada contr
 | G-15 | `GUIA-COMPLETA.md` L12670-12686; `codigo-padre.html:15004-15006` (comentario) | "patrón correcto": `globalThis.mensajeria?.iniciarHeartbeat \|\| globalThis.iniciarHeartbeat` y la regla de usar `globalThis.mensajeria` directamente; el comentario dice que el arranque de Script 4 llama "directo a iniciarHeartbeat/pausarHeartbeat/getHeartbeat" | el segundo operando no existe; los arranques (a) y (c) llaman por nombre suelto o `globalThis.`, no por el bus (K-38, K-11) |
 | G-16 | `GUIA-COMPLETA.md` L10790 | "Cada página que loguea publica su logger en su propio `globalThis` … los siete hijos más `puzzle.html` y `video-intro.html`" | `mapa-completo.html` no lo publica y arrastra `utils.js` y `constants.js`, que loguean por `(globalThis.logger \|\| console)` (K-39) |
 
+**Estado tras la tanda de arreglos (2026-10-02).** `GUIA-COMPLETA.md` y los comentarios de código se corrigieron contra el
+código leído ese día; los hashes son de los commits locales (sin pushear).
+
+| # | Estado | Dónde se corrigió |
+|---|---|---|
+| G-1 | ✅ | `cf4b973` (guía), `b6affee` (los specs `31` y `38` y `retryUntilAvailable`) |
+| G-2 | ✅ | `cf4b973` |
+| G-3 | ✅ | `6538bba`: la guía dice que `adelantarLatido()` no tiene llamador y que el `visibilitychange` difunde por su cuenta (M-3) |
+| G-4 | ✅ | `6538bba` (cabecera de `device-detection.js` y su fila en la guía) |
+| G-5 | ✅ | Este documento: erratas E1–E8 |
+| G-6 | ✅ | `c7c7b1a` (el comentario nombra las dos vías y `_elegirOtra` llama a `_resetBrujulaModo`: K-19) |
+| G-7 | ✅ | `6538bba` (`registrarEvento` ya no promete un id; los dos docblocks de `registrarMetrica` describían una firma que no existe) |
+| G-8 | ✅ | `cf4b973` (CLAUDE.md regla 3b: "los once") |
+| G-9 | ✅ | `6538bba`: `UI.CLOSE_MENUS` va solo hijo1 → padre; el handler de hijo1 sigue sin emisor (decisión abierta en K-35) |
+| G-10 | ✅ | `8daa6db` (código) y `cf4b973` (guía) |
+| G-11 | ✅ | `8daa6db` |
+| G-12 | ✅ | `e3bab74` (`constants.js`) y `1e5bbf3` |
+| G-13 | ✅ | `6538bba` |
+| G-14 | ✅ | `2ed1658` y `cf4b973` |
+| G-15 | ✅ | `2ed1658` |
+| G-16 | ✅ | `545323b`: `mapa-completo.html` publica el logger y la guía lo lista |
+| G-17 | ✅ | `cf4b973`: "los diez frames" pasa a once en la guía |
+| G-18 | ✅ | `6538bba`: `CONTROL.HABILITAR`/`DESHABILITAR` habilitan controles concretos de hijo2 y hijo3, no "muestran/ocultan el iframe"; se retiran las filas de hijo1, hijo4 y hijo5, que no los registran |
+| G-19 | ✅ | `218c0ae`: §26.4 (monitoreo) decía 50 MB de `config.js` y el código usa **150 MB** de `UMBRALES.MEMORIA_MB`; que el tiempo de respuesta se calcula sobre los ACK del bus (nadie emite `tiempo_respuesta`); que el historial vive en `state-manager.estadoPadre.monitoreo` (vive en `estadoMonitoreo`, local del módulo) |
+| G-20 | ✅ | `218c0ae`: §"El state-manager" decía 13 mutexes (eran 12, 8 sin uso), banderas de carga como vivas y `mensajesEnviados`/`limpiarMensajesAntiguos`, que no existen |
+| G-21 | ✅ | `218c0ae`: la fila de `validacion.js` y su cabecera citaban `globalThis.__vv_validacion` y `_assertMensajeValido`, que no existen en ningún fichero |
+| G-22 | ✅ | `f6ab460`: §33.4 y el punto 9 del EJE 4 daban a `resolverIdPadre()` el id del propio padre y decían que el bus lo buscaba en `iframesRegistrados` ("Iframe no encontrado"); devolvía un id generado, y `enviarMensaje` rechaza `destino === componenteId` con un aviso que sugiere `despacharLocal`. Dos snippets (payload de hijo5 y de `ERROR_NO_CONTROLADO`) llevaban `destino: resolverIdPadre()`; el real es `'padre'` |
+| G-23 | ✅ | `c7c7b1a`: la guía atribuía `ejecutarElegirOtra()` a `mostrarDialogoVueltaRapida`; son dos diálogos (`mostrarDialogoReanudacion` y `mostrarDialogoVueltaRapida`, con `_elegirOtra`) |
+| G-24 | ✅ | `c7c7b1a`: la fila del spec 25 decía que elegir "Seguir mi rumbo" cambia el icono del botón principal; usa siempre `boton-brujula.png` |
+| G-25 | ✅ | `f6ab460`, `c7c7b1a`: §37.2 regenerada con `tools/inventory-conexiones.js` (sus citas de línea eran reales y se movían con cada edición) |
+| G-26 | ✅ | `6538bba`: la guía decía que el padre abre una ventana flotante y manda `UI.CLOSE_MENUS` a todos los iframes al recibir `UI.NAVEGACION_EXTERNA`; hijo1 pausa el audio, abre la URL en una pestaña nueva y avisa, y el padre solo registra la URL y marca `__vv_salidaEnlaceExterno` |
+| G-27 | ✅ | `218c0ae`: §30.3 citaba `state-manager.js` "línea 200 (declarada en la línea 186)" para `crearPromiseHijoListo`; ni antes ni después coincidían |
+| G-28 | ✅ | `a4644e5`: la guía daba a `PADRE_DATOS` de la selección, hijo1, hijo2, hijo3, hijo4 y hijo5 un contenido que no lleva (aventura, idioma, coordenadas, lista de paradas; medido en M-14: `{ modo, timestamp }`); decía que `HIJO_LISTO` de hijo2 y de hijo5 sale tras procesar coordenadas y tras renderizar los botones (sale tras `PADRE_DATOS`); situaba `SOLICITAR_COORDENADAS` de hijo2 y `SOLICITAR_DATOS_PARADAS` de hijo5 «tras `PADRE_DATOS`» (salen tras `PADRE_CONFIRMA_HIJO_LISTO`); citaba un `confirmListener` de hijo2 y un «ACK (best-effort)» del padre al `HIJO_PREPARADO` que no existen en ningún fichero (`SISTEMA.ACK` salió en `141be18`), con otras cinco frases sobre ese ACK (la etiqueta del esquema de §10, las filas de `CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO`, el ciclo de cuatro fases y la fila de hijo1); y contaba cinco receptores de `PADRE_DATOS` donde hay siete |
+| G-29 | ✅ | `dae5bf2`: la guía llamaba «parámetros inertes» a `aventura` y `noOverlay` de la URL del puzzle de P6 (ahora no se escriben), afirmaba que los hijos «leen `padreId` de `sessionStorage`» (ningún fichero lo hace) y el diagrama de §7.8 decía P9 donde es P6 |
+| G-30 | ✅ | `94007e9`: las listas de claves del `PADRE_DATOS` de hijo6 omitían `rescate` (M-14) |
+| G-31 | ✅ | `94007e9`: tres sitios describían un «confirmListener» por frame que filtra por `event.data.idOriginal` y un adaptador `messagingAdapter` de hijo2 que no existen en ningún fichero; la correlación la hace el bus (`confirmacionesPendientes`), como dice §10.17; el glosario daba `messagingAdapter` como presente en hijo2, hijo3 y hijo4 |
+| G-32 | ✅ | `94007e9`: el glosario de CAMBIO_MODO citaba `_listenerRegistry.clear()` (solo existe en dos comentarios) y §32.1 contaba «10 frames» donde hablan por el bus once |
+| G-33 | ✅ | `3d41dd6`: el árbol del repo de la guía (§20) y `docs/README.md` no listaban `docs/estudio-caminos.md` (documento de autoridad en la regla 1b de `CLAUDE.md`), ni `tools/estudio-caminos/`, ni dos documentos de seguimiento versionados (`contraste-textos-mapa.md`, `imagenes-referencias-pendientes.md`) |
+
 ### R2.6 Censo de frames (regla 3b)
 
-Ningún frame se ha modificado (`git status --short -- '*.html' 'js/*.js' sw.js tools tests`
-vacío). La columna "hallazgos" es dónde la ronda 2 encontró algo; la de "limpio" es lo que se
-comprobó y no dio nada, con su comprobación.
+La tabla es el censo tal como lo dejó el barrido (los frames estaban sin modificar:
+`git status --short -- '*.html' 'js/*.js' sw.js tools tests` vacío). La columna "hallazgos" es dónde
+la ronda 2 encontró algo; la de "limpio" es lo que se comprobó y no dio nada, con su comprobación. Lo
+que la tanda de arreglos tocó, y lo que no, está debajo de la tabla.
 
 | Frame | Hallazgos | Clases sin hallazgo y comprobación |
 |---|---|---|
@@ -2296,6 +2750,24 @@ comprobó y no dio nada, con su comprobación.
 | `mapa-completo.html` | K-25 (1 literal), K-37 (1 `destino: 'padre'`), K-39 (único frame que no publica `globalThis.logger`) | `alert()`: 0; Leaflet por CDN y `maxZoom` 21/19: documentado (guía L6278-6282); ids DOM: 0; globals por frame: (B) solo `logger` (K-39) |
 | `puzzle.html` | K-25 (2 literales), K-28 (`createParticle`/`loop`), K-37 (1 `destino: 'padre'`) | `escalar` variante C: cerrada en la ronda 1 (historial `94734b6`); `alert()`: 0; `PUZZLE.*` a `'padre'` = la ventana anfitriona (K-35); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:147`) |
 | `video-intro.html` | K-28 (`createParticle`/`loop`), K-33 (`.or-badge`), K-37 (1 `destino: 'padre'`) | `alert()`: 0; 5 `on*=` con funciones existentes; `VIDEO_INTRO_TERMINADO` a `'padre'` = la ventana anfitriona (K-35); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:601`) |
+
+**Tras la tanda de arreglos (regla 3b).** Comprobado contra el commit base de la ronda, `ffe9bfc`, con `git diff --quiet ffe9bfc HEAD -- <fichero>` (código de salida 1: tocado; 0: no tocado) y `git log --oneline ffe9bfc..HEAD -- <fichero>`:
+
+| Frame | ¿Tocado? | Commits | Qué se hizo |
+|---|---|---|---|
+| `codigo-padre.html` | sí | `2ed1658`, `8806429`, `6c152ab`, `0fe5b3f`, `f6ab460`, `c7c7b1a`, `6538bba`, `a4644e5` | arranques del latido y limpiezas de `pagehide` sin efecto, contadores, lecturas de `Config`, globals sin lector, `getPadreId`, reinicio de la brújula en «Vuelta rápida», comentarios contrastados con el código |
+| `En-busca-del-tesoro.html` | sí | `8daa6db`, `545323b`, `a4644e5`, `dae5bf2` | avisos `UI_VISIBLE`, respaldo del puzzle de introducción, lectura de `paradaActual`, parámetros de la URL del puzzle |
+| `extrainfo-hijo1.html` | sí | `8daa6db`, `0fe5b3f` | avisos `UI_VISIBLE`; `_reflow` |
+| `coordenadas-hijo2.html` | sí | `8806429`, `8daa6db`, `a4644e5` | contador, `UI_VISIBLE` y `reto_abierto`, lectura de `paradas`/`paradaActual` |
+| `audio-hijo3.html` | sí | `8daa6db`, `0fe5b3f`, `a4644e5` | `UI_VISIBLE`, `simular_click`, `audio_control` con acuse, `__hijo3_paradaActual`, lectura de `paradas`/`paradaActual` |
+| `retos-hijo4.html` | sí | `8daa6db`, `a4644e5` | `UI_VISIBLE`, handlers `CONTROL.*` sin cuerpo, lectura de `paradas`/`paradaActual` |
+| `boton-casa-hijo5.html` | sí | `8daa6db`, `a4644e5` | `UI_VISIBLE`, handler de `SISTEMA.CONFIRMACION`, lectura de `paradas`/`paradaActual` |
+| `mapa-completo.html` | sí | `545323b` | publica el logger |
+| `chat-hijo6.html` | **no** | — | `git diff --quiet ffe9bfc HEAD -- chat-hijo6.html` = 0 y 0 commits: su hallazgo (K-45, el FAQ se construye dos veces) es una decisión abierta, no un arreglo mecánico; sí lee el `idioma` que le llega |
+| `puzzle.html` | **no** | — | `git diff --quiet` = 0 y 0 commits: solo lee `id` e `imagen`; el arreglo de K-36 estaba en quien lo invoca (la selección) |
+| `video-intro.html` | **no** | — | `git diff --quiet` = 0 y 0 commits: sin hallazgos que arreglar (K-28, las copias de `createParticle`/`loop`, es coste de mantenimiento) |
+
+Módulos de `js/` tocados (11): `app.js`, `config.js`, `constants.js`, `device-detection.js`, `funciones-mapa.js`, `mensajeria.js`, `monitoreo.js`, `reciclaje-digital.js`, `state-manager.js`, `utils.js` y `validacion.js`. No tocados (21; `git diff --quiet` = 0): `api-client.js`, `controladores-padre.js`, `data-loader.js`, `feedback-forms.js`, `logger.js`, `proteccion.js`, `server.js`, `suppress-warnings.js`, `video-playback-utils.js` y los módulos de datos (`*-aventuras.js`, `indice-aventuras.js`, `normativa-cumplimiento.js`, `traducciones-ui.js`).
 
 ### R2.7 Estado final de la ronda 2
 
@@ -2317,13 +2789,15 @@ comprobó y no dio nada, con su comprobación.
 | N — Identificadores con varios nombres | K-43 | 1 familia de copias: `paradaId`, `parada_id`, `padreId` y `padreid` en el mismo mensaje y dos resolutores (`resolverIdsParada` y lecturas a mano) |
 | O — Recursos locales | K-44 | 1 confirmada: 491 referencias comprobadas contra el disco y una ruta que nunca existió (respaldo del puzzle de introducción) |
 
-**Total: 44 entradas — 19 confirmadas, 2 por medir, 5 documentadas, 10 familias de copias, 4 por
-estudiar y 4 limpias o mixtas; 12 mediciones pendientes repartidas entre ellas (R2.4).** Lo que más
-pesa, sin ánimo de ordenarlo por urgencia: lo que cambia lo que ve el usuario (K-24, K-25), lo que
-puede dejar un estado equivocado (K-07, K-11, K-19), lo que hace que una configuración, una
-constante o un contador no mande ni cuente (K-01 a K-03, K-37, K-38) y las ramas del contrato del
-bus que ningún emisor alcanza, algunas descritas por la guía como caminos vivos (K-35, K-36, G-9 a
-G-11).
+**Total tal como lo dejó el barrido: 44 entradas — 19 confirmadas, 2 por medir, 5 documentadas, 10
+familias de copias, 4 por estudiar y 4 limpias o mixtas; 12 mediciones pendientes repartidas entre
+ellas (R2.4).** Lo que más pesaba, sin ánimo de ordenarlo por urgencia: lo que cambia lo que ve el
+usuario (K-24, K-25), lo que puede dejar un estado equivocado (K-07, K-11, K-19), lo que hace que una
+configuración, una constante o un contador no mande ni cuente (K-01 a K-03, K-37, K-38) y las ramas del
+contrato del bus que ningún emisor alcanza, algunas descritas por la guía como caminos vivos (K-35,
+K-36, G-9 a G-11). **Tras la tanda de arreglos son 45 entradas** (K-45 se encontró al cerrar): se
+hicieron las 14 mediciones posibles (M-8 es de campo), K-07 y K-32 dejan de estar «por medir», y el
+resultado por entrada y las decisiones que siguen abiertas están en R2.8.
 
 **Límites de esta ronda — qué no garantiza:**
 
@@ -2358,14 +2832,85 @@ G-11).
 - El barrido de recursos locales no resuelve los literales con `${…}` (16) ni mira los módulos de
   datos; el de i18n compara forma, marcadores y vacías, no la calidad ni la corrección de cada
   traducción (eso es trabajo de revisión nativa).
-- Ninguna medición se ha ejecutado (R2.4).
+- Se ejecutaron 14 de las 15 mediciones de R2.4; M-8, el reintento de señal con el GPS en frío, es una
+  prueba de campo y queda sin medir.
 - `_hdl_SISTEMA_CAMBIO_MODO` se leyó entero en la pasada final (K-15); de `manejarCambioModo` solo se siguió la
   validación y la actualización optimista (`js/app.js:512-640`).
-- Los scripts de los extractores no están versionados (R2.0); si se quieren conservar, lo decide
-  el usuario.
+- Los extractores de la ronda están versionados en `tools/estudio-caminos/`; los specs desechables de
+  medición no (R2.4): cada fila de R2.4 dice qué se hizo.
 
-**Pendiente de decisión del usuario, sin orden de prioridad:** cómo se quiere estudiar cada
-entrada (K-nn individualmente, con la lectura de R2.2 como punto de partida y el comando pegado
-para repetir cada comprobación); si se versionan los extractores en `tools/`; si se corrigen
-`verificar-frames.js`/`verificar-mensajeria.js` (K-34); y qué hacer con las discrepancias de
-R2.5 (la guía y `CLAUDE.md` no se han tocado).
+**Pendiente de decisión del usuario:** las decisiones abiertas de R2.8, cada una con sus opciones y
+la recomendada. Lo demás de lo que esta ronda dejó para decidir —versionar los extractores en `tools/`,
+corregir `verificar-frames.js` y `verificar-mensajeria.js` (K-34) y las discrepancias de R2.5— está
+hecho; el estudio individual de cada entrada, con la lectura de R2.2 como punto de partida y el comando
+pegado para repetir cada comprobación, es del usuario.
+
+### R2.8 Tanda de arreglos y cierre (2026-10-02)
+
+**Alcance y límite.** Con el OK del usuario («ok a todo, revisa y arregla» y, después, «la idea es dejar todo el estudio acabado, revisado, contrastado, verificado y documentado») se hicieron cuatro cosas: ejecutar las mediciones (R2.4), corregir los instrumentos del repo que mentían (K-34), corregir la guía y los comentarios de código donde contradecían al código (R2.5) y **retirar el código muerto una vez confirmado que lo era**, con su referencia en la guía y en los specs. No se aplicó nada que cambie lo que ve el usuario, que toque el contrato del bus sin una decisión previa (regla 1) o que sea una decisión de producto o de diseño: eso queda como decisión abierta, con sus opciones y una recomendada (tabla de más abajo).
+
+**Cómo se comprobó cada cosa** (CLAUDE.md). Para borrar: búsqueda desnuda del nombre en todo el repo (la guía y los specs incluidos), lectura del llamador, `typeof` o medición en la app real cuando se podía y, para los tipos de mensaje, el historial (`git log -G`). Los parches se escribieron en disco, con un ancla que tiene que aparecer exactamente una vez y comprobación del texto resultante. Después de cada tanda: `npm run lint` limpio y los specs que tocan lo cambiado en chromium; la guía en presente y sin fechas, con las tres comprobaciones a 0, `node tools/verificar-citas-guia.js --check` en verde y §37.2 regenerada; un commit por tanda coherente, añadido por nombre y sin `push`; y nada más corriendo mientras corría Playwright (regla 5). Varias veces la medición contradijo a la lectura estática y ganó la medición (regla 6): el PB-2 del spec 38 y el MC-7a del spec 09 «no podían fallar», y el OB-3 del spec 71 tenía una carrera que no era del código sino del test.
+
+**Los commits** (locales, sin `push`; del más antiguo al más reciente):
+
+| Commit | Qué hace | Entradas y discrepancias |
+|---|---|---|
+| `cf4b973` | `retryUntilAvailable`, `mensajeriaReady` y el recuento de once frames en la guía; `CLAUDE.md` regla 3b | G-1, G-2, G-8, G-17 |
+| `0e115d4` | `verificar-mensajeria`, `verificar-frames` y `codigo-muerto` leen con parser; guía regenerada (§37.3) | K-34 |
+| `2ed1658` | latido y `pagehide` sin las rutas que no hacían nada | K-11, K-38, G-14, G-15 |
+| `8806429` | telemetría que no contaba (`incrementarContador`) y operandos `\|\|` que nadie asigna | K-38 |
+| `8daa6db` | contrato del bus sin mensajes que nadie recibe ni ramas que ningún emisor alcanza | K-35, K-36, G-10, G-11 |
+| `b6affee` | `retryUntilAvailable` con una sola convención; el PB-2 del spec 38 deja de ser vacuo | K-23, K-32, G-1 |
+| `e3bab74` | `constants.js` sin lo que ningún fichero lee | K-37, G-12 |
+| `1e5bbf3` | dos citas de línea de `constants.js` que la limpieza dejó fuera de rango | guía |
+| `5c52038` | spec 71: OB-3 y OB-1 esperan el estado del padre en hijo6 | K-45 (origen) |
+| `218c0ae` | state-manager, mensajería, utils y `app.js` sin código que nadie llama; guía del state-manager y de monitoreo | K-07, K-12, K-13, K-42, G-19, G-20, G-21, G-27 |
+| `6c152ab` | siete lecturas de `globalThis.Config` pasan a ser el literal que ya aplicaban | K-01 |
+| `cf1d484` | `inicializarServicioMapa` sin la rama que crea un mapa propio | K-03 |
+| `545323b` | `mapa-completo.html` publica el logger; el respaldo del puzzle de introducción apunta a la imagen real | K-39, K-44, G-16 |
+| `24ec574` | 11 globals de ESLint que no existen dejan de silenciar `no-undef` | K-34 |
+| `01eeb47` | `config.js` y `monitoreo.js` sin lo que publican y nadie lee | K-02, K-42 |
+| `0fe5b3f` | cuatro globals que el código publicaba y nadie leía | K-38 |
+| `f6ab460` | `getPadreId`, `resolverIdPadre`, `notificarError` y `obtenerEstadoMonitoreo` fuera; la guía deja de describir un autoenvío que no existe | K-28, K-01, K-42, K-04, G-22, G-25 |
+| `c7c7b1a` | «Vuelta rápida → Elegir otra aventura» reinicia el modo de cámara como «Elegir otra» | K-19, G-6, G-23, G-24 |
+| `6538bba` | guía y comentarios contrastados: `CLOSE_MENUS`, `CONTROL.*`, `adelantarLatido`, `device-detection`, `registrarMetrica` | G-3, G-4, G-7, G-9, G-13, G-18, G-26 |
+| `8452f8d` | spec 09: MC-7a mide el latido real | K-32 |
+| `a4644e5` | `PADRE_DATOS` se lee solo por las claves que el padre manda; la guía deja de describir un ACK y unos payloads que no existen | K-36, G-28 (M-14) |
+| `dae5bf2` | la URL del puzzle de P6 sin `aventura` ni `noOverlay` | K-36, G-29 |
+| `94007e9` | guía: restos de la mensajería anterior al bus único y claves de `PADRE_DATOS` de hijo6 | G-30, G-31, G-32 |
+| `3d41dd6` | los extractores de la ronda pasan a `tools/estudio-caminos/` (rutas relativas, salida fuera del repo, README con las cifras sobre `ffe9bfc`); la guía (§18.2 y el árbol de §20) y `docs/README.md` los listan, y también este documento | K-34, G-33 |
+
+**Resultado por entrada.**
+
+| Resultado | Entradas |
+|---|---|
+| Corregidas y cerradas | K-01, K-03, K-13, K-23, K-32, K-34, K-36, K-38, K-39, K-44 |
+| Corregidas, con una decisión abierta al lado | K-02, K-04, K-07, K-11, K-12, K-19, K-28, K-35, K-37, K-42 |
+| Medidas, con decisión abierta y sin código tocado | K-17, K-20, K-24, K-25, K-40, K-41, K-43, K-45 |
+| Documentadas, sin cambios (copias, intencional, limpio) | K-05, K-06, K-08, K-09, K-10, K-14, K-15, K-16, K-18, K-21, K-22, K-26, K-27, K-29, K-30, K-31, K-33 |
+
+**Decisiones abiertas — para el estudio individual del usuario.** Cada una tiene su nota «Estado final» en R2.2, con la comprobación pegada. «Cambia lo que ve el usuario» dice si la opción recomendada se nota en la pantalla; las que sí se notan son las que no se han tocado a propósito.
+
+| Entrada | Pregunta | Opciones (la recomendada, en negrita) | ¿Cambia lo que ve el usuario? |
+|---|---|---|---|
+| K-02 | ¿Qué se hace con las 38 hojas de `CONFIG` sin lector? | **A) vaciar lo que no se lee**; B) adoptarlo y sustituir los literales | no |
+| K-04 | ¿Se queda el monitoreo? | **A) retirarlo entero** (módulo, tres juegos de umbrales, historial y contador duplicado); B) conservarlo con un lector y una sola configuración | no |
+| K-07 | `crearPromiseHijoListo` resuelve al instante tras `SELECCION.REINICIAR` | **A) `olvidarHijoListo(id)` en el state-manager**; B) dejarlo (lo compensa `__pendingDistribucion`) | no |
+| K-11 | «Volver a la pestaña» no respeta la pausa del latido | **A) llamar a `adelantarLatido()`**; B) retirarla con su BC-12c | solo en CASA y solo en el tráfico de fondo |
+| K-12 | `warn` en el arranque nominal de diez frames | **A) emitirlo solo en el padre**; B) bajarlo a `debug` | no (log) |
+| K-17 | seis maneras de pedir una posición puntual | A) una función con el plazo como parámetro; **B) dejarlo hasta tener la prueba de campo M-8** | no |
+| K-19 | dos cuerpos casi iguales de «abandonar la aventura» | **A) función común**; B) comentario cruzado | no |
+| K-20 | la rama «sin modal» deja tres claves vivas | **A) llamar a `limpiarDatosAventura('timeout')`**; B) dejarla (riesgo medido casi nulo) | no |
+| K-24 | idioma de los textos propios de hijo4 | **A) `RETO.MOSTRAR` con `idioma`**; B) `PADRE_DATOS` con `idioma`; C) leer `parent` (descartada) | **sí** (placeholder y aviso en el idioma elegido) |
+| K-25 | textos de usuario fuera de `traducciones-ui.js` | **A) los tres `alert()` de hijo4 y los mensajes de fallo de la selección**; B) además la accesibilidad; C) además las páginas estáticas | **sí** |
+| K-28 | familias de copias | A) extraer `enviarHijoListoConReintento`; **B) dejarlas salvo que se toque el algoritmo** | no |
+| K-35 (1) | `AVENTURA.FINALIZADA` en el padre | **A) retirar el handler** y registrarlo cuando exista el flujo de fin de aventura; B) dejarlo | no |
+| K-35 (2) | `UI.CLOSE_MENUS` padre → hijo1 | **A) retirar el handler de hijo1 y la exención `except`**; B) conectar el sentido que falta | A no; B sí |
+| K-37 | literales `'casa'`/`'aventura'` y `destino: 'padre'` | **A) dejarlos**; B) importar `MODOS` en los hijos | no |
+| K-40 | camino 3 de `offline`/`online` | **A) retirarlo**; B) darle cuerpo (¿qué se pausa?) | A no; B sí |
+| K-41 | siete campos candidatos a retirar | retirarlos en una sola tanda, con sus frases de la guía, **después de decidir K-04, K-07 y K-40** | no |
+| K-42 | cadena `gpsPendientes` y 19 exports de uso interno | **A) retirar la cadena**; B) conectar un productor | no |
+| K-43 | cuatro nombres para el id de parada | A) un nombre y un resolutor; **B) dejarlo y hacer A al tocar el contrato de `CAMBIO_PARADA`** | no |
+| K-45 | `error` en el camino normal de hijo6 | A) no construir el FAQ hasta tener el estado (descartada); **B) `debug` hasta el primer estado**; C) actualizar solo lo que cambia | no (log) |
+
+**Límites residuales** (los de R2.7 siguen valiendo). M-8 es de campo y no se midió. M-14 y M-15 se midieron en chromium con el stub de MapLibre y recorren el arranque y la apertura del asistente, no todos los flujos de la aventura; que `PADRE_DATOS` tiene solo dos emisores lo dice la búsqueda desnuda, no la medición. El efecto de K-24 con una aventura no española en vivo no se midió: se deduce de las tres líneas de código. Cada borrado se apoya en búsqueda desnuda y lectura del llamador; un acceso por clave computada (`obj['nombre']`) no lo ve ninguna de las dos (límite del instrumento de exports, K-42). Los verificadores corregidos en K-34 imprimen su residuo, pero siguen siendo análisis estático.
