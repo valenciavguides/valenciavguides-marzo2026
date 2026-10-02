@@ -5395,7 +5395,7 @@
          */
         function _obtenerCoordenadasP0Fallback() {
             try {
-                const coords = globalThis.__vv_coordenadasAventura || (globalThis.AVENTURA_PARADAS);
+                const coords = globalThis.AVENTURA_PARADAS;
                 if (Array.isArray(coords)) {
                     const inicio = coords.find(e => e.tipo === 'inicio' && e.coordenadas);
                     if (inicio && inicio.coordenadas) {
@@ -5413,17 +5413,9 @@
         // ID real de la parada de inicio de la aventura activa (nunca el literal 'P-0',
         // que no coincide con ningún id real — ver _obtenerCoordenadasP0Fallback).
         function _idParadaInicioAventura() {
-            const coords = globalThis.__vv_coordenadasAventura || globalThis.AVENTURA_PARADAS || [];
+            const coords = globalThis.AVENTURA_PARADAS || [];
             return Array.isArray(coords) ? (coords.find(e => e.tipo === 'inicio')?.id || null) : null;
         }
-
-        /**
-         * Hub GPS central — única implementación real de navigator.geolocation.watchPosition.
-         * DISEÑO INTENCIONAL — manejarGPSActivar() en funciones-mapa.js es solo la capa adaptadora
-         * para contexto iframe: cuando se llama desde un hijo, reenvía aquí vía postMessage.
-         * No existe duplicación: hay un hub (aquí) y un adaptador (funciones-mapa.js).
-         */
-        function _gpsInc(key) { try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(key); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } } // NOSONAR
 
         async function _gpsEsperarHijosListos(logPrefix) {
             try {
@@ -5483,7 +5475,6 @@
 
         async function _aplicarFallbackCoordenadasGPS(est, logPrefix, maxAttempts) {
             (globalThis.logger || console).warn(`${logPrefix} No se obtuvo posición inicial aceptable tras ${maxAttempts} intentos; intentando fallback a coordenadas de inicio`);
-            _gpsInc('gps.fallback_intento_hijo2');
             try {
                 const idInicio = _idParadaInicioAventura();
                 const coordenadasResponse = await solicitarCoordenadasHijo('hijo2', { paradaId: idInicio, incluirMetadatos: false, contexto: 'gps_fallback' }, ajustarTimeoutPorConexionSafe(5000));
@@ -5493,7 +5484,6 @@
                     est.gps.posicionUsuario = { lat: c.lat || c[0], lng: c.lng || c[1], accuracy: 1000, timestamp: Date.now() };
                     est.gps.ultimaUbicacion = est.gps.posicionUsuario;
                     est.gps.precision = 1000;
-                    _gpsInc('gps.fallback_hijo2_ok');
                     (globalThis.logger || console).info(`${logPrefix} Coordenadas de fallback obtenidas de hijo2 y aplicadas: [${est.gps.posicionUsuario.lat}, ${est.gps.posicionUsuario.lng}]`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} Respuesta inválida de coordenadas de fallback:`, coordenadasResponse);
@@ -5501,7 +5491,6 @@
                     est.gps.posicionUsuario = { ...fallbackCoords, accuracy: 1000, timestamp: Date.now() };
                     est.gps.ultimaUbicacion = est.gps.posicionUsuario;
                     est.gps.precision = 1000;
-                    _gpsInc('gps.fallback_p0');
                     (globalThis.logger || console).info(`${logPrefix} Fallback a inicio aplicado: [${est.gps.posicionUsuario.lat}, ${est.gps.posicionUsuario.lng}]`);
                 }
             } catch (err) {
@@ -5509,7 +5498,6 @@
                 est.gps.posicionUsuario = { ...fallbackCoords, accuracy: 1000, timestamp: Date.now() };
                 est.gps.ultimaUbicacion = est.gps.posicionUsuario;
                 est.gps.precision = 1000;
-                _gpsInc('gps.fallback_p0');
                 (globalThis.logger || console).warn(`${logPrefix} Error solicitando coordenadas a hijo2 para fallback (${err.message}); fallback a inicio`);
             }
         }
@@ -5520,7 +5508,6 @@
                 ? ajustarTimeoutPorConexion_S1(rawTimeout)
                 : rawTimeout;
             try {
-                _gpsInc('gps.inicial_intentos');
                 const fresh = await new Promise((resolve, reject) => {
                     navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 });
                 });
@@ -5531,16 +5518,13 @@
                     est.gps.ultimaUbicacion = est.gps.posicionUsuario;
                     est.gps.precision = a2;
                     est.gps.permisos = true;
-                    _gpsInc('gps.inicial_intentos_exitosos');
                     (globalThis.logger || console).debug(`${logPrefix} ✅ Posición inicial de alta precisión aceptada (±${Math.round(a2)}m)`);
                     return { ok: true, error: null };
                 }
                 (globalThis.logger || console).warn(`${logPrefix} Posición inicial obtenida pero precisión insuficiente: ±${Math.round(a2)}m`);
-                _gpsInc('gps.inicial_intentos_precision_insuficiente');
                 return { ok: false, error: null };
             } catch (error_) {
                 (globalThis.logger || console).debug(`${logPrefix} getCurrentPosition intento ${i + 1} falló:`, error_?.message ?? error_);
-                _gpsInc('gps.inicial_intentos_fallidos');
                 return { ok: false, error: error_ };
             }
         }
@@ -5897,6 +5881,12 @@
             }
         }
 
+        /**
+         * Hub GPS central — única implementación real de navigator.geolocation.watchPosition.
+         * DISEÑO INTENCIONAL — manejarGPSActivar() en funciones-mapa.js es solo la capa adaptadora
+         * para contexto iframe: cuando se llama desde un hijo, reenvía aquí vía postMessage.
+         * No existe duplicación: hay un hub (aquí) y un adaptador (funciones-mapa.js).
+         */
         async function activarGPS() {
             const logPrefix = '[PADRE][GPS][ACTIVAR]';
 
@@ -7919,7 +7909,7 @@
         // Recibe acciones de usuario desde hijos (mostrar-imagen, etc.)
         async function _buscarTextoParaParada(paradaActual, logPrefix) {
             try {
-                const aventuraActual = globalThis.__vv_aventuraSeleccionada || globalThis.aventuraSeleccionada;
+                const aventuraActual = globalThis.aventuraSeleccionada;
                 const idiomaActual = globalThis.idiomaSeleccionado || 'es';
                 if (!aventuraActual) return null;
                 const { cargarTextos: _cTx } = await import('./js/data-loader.js');
@@ -9860,7 +9850,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
             try {
                 // USAR ESTADO GLOBAL CORRECTO
-                const estadoPadre = globalThis.estadoPadre || globalThis.estadoScript2 || {};
+                const estadoPadre = globalThis.estadoPadre || {};
                 const hijosInicializados = estadoPadre.hijosInicializados || new Set();
 
                 // DIAGNÓSTICO: Ver estado de datos centralizados
@@ -11250,7 +11240,6 @@ await _comprobarReanudacionAventura(logPrefix);
                             return;
                         }
                     } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.solicitudes_recibidas'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
                 // Si la parada está completada y esperando que el usuario confirme avance, progresar
                 // primero — completarCambioParada() revela siempre de inmediato al activar el
@@ -11272,7 +11261,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 await activarGPS();
 
                 (globalThis.logger || console).info(`${logPrefix} GPS activado exitosamente`);
-                try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.solicitudes_exitosas'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando activación GPS:`, error);
@@ -12256,8 +12244,6 @@ await _comprobarReanudacionAventura(logPrefix);
                         est.paradasConfirmaciones[padreId] = est.paradasConfirmaciones[padreId] || [];
                         est.paradasConfirmaciones[padreId].push({ origen: mensaje.origen, timestamp: Date.now(), datos: mensaje.datos });
                     }
-                    // Telemetría: incrementar contador si existe
-                    try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('confirmaciones_cambio_parada'); } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
                 } catch (err) {
                     (globalThis.logger || console).warn(`${logPrefix} Error gestionando confirmación local:`, err);
                 }

@@ -138,7 +138,7 @@ export function verificarTimeoutAventura() {
         const { aventura, timestamp } = JSON.parse(datosInicio);
         if (!aventura || !timestamp) return { excedido: false };
 
-        const INDICE = globalThis.__vv_INDICE_AVENTURAS || globalThis.INDICE_AVENTURAS;
+        const INDICE = globalThis.__vv_INDICE_AVENTURAS;
         const metadatos = INDICE?.[aventura];
 
         if (!metadatos) {

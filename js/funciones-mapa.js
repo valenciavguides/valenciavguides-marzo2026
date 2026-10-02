@@ -2541,7 +2541,6 @@ export async function manejarGPSActivar(mensaje) {
     const logPrefix = `[GPS.ACTIVAR][${mensaje?.origen || 'desconocido'}]`;
 
     try {
-        try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.activaciones_intentadas'); } catch (_e) { /* ignore */ } // NOSONAR
         // Si ya estamos en el contexto del padre, delegar a la implementación centralizada
         if (globalThis.parent === globalThis.window) {
             logger.info(`${logPrefix} En contexto padre: delegando a la implementación centralizada (globalThis.activarGPS)`);
@@ -2550,7 +2549,6 @@ export async function manejarGPSActivar(mensaje) {
                     const res = await globalThis.activarGPS();
                     // sincronizar estado local con el estado global del padre
                     sincronizarEstadoGPSConPadre();
-                    try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.activaciones_ok'); } catch (_e) { /* ignore */ } // NOSONAR
                     return { exito: true, detalle: res };
                 }
                 // Fallback: mantener comportamiento previo (marcar activo) y sincronizar
@@ -2563,7 +2561,6 @@ export async function manejarGPSActivar(mensaje) {
                 logger.error(`${logPrefix} Error delegando activación al padre:`, err);
                 estadoMapa.gpsError = err.message || String(err);
                 sincronizarEstadoGPSConPadre();
-                try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.activaciones_fallidas'); } catch (_e) { /* ignore */ } // NOSONAR
                 return { exito: false, error: err.message || String(err) };
             }
         }
