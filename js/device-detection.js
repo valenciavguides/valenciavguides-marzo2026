@@ -2,9 +2,10 @@
  * @fileoverview Detección de dispositivos para ValenciaVGuides
  * @version 3.0.0
  *
- * Solo esMovil()/esTelefonoMovil() tienen caller real hoy — usadas por mensajeria.js
- * (TTL de limpieza de mensajes) y codigo-padre.html (aviso de "gira el móvil" en
- * horizontal). El resto de detecciones que existían aquí (tablet/iOS/Android/navegador/
+ * Solo esMovil()/esTelefonoMovil() tienen caller real hoy. esMovil(): mensajeria.js (TTL de
+ * limpieza de mensajes), funciones-mapa.js (umbrales de la limpieza de recursos inactivos) y
+ * app.js (periodo del monitoreo de memoria); esTelefonoMovil(): codigo-padre.html (aviso de
+ * "gira el móvil" en horizontal). El resto de detecciones que existían aquí (tablet/iOS/Android/navegador/
  * táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA
  * instalada) se retiraron en la auditoría de 2026-08-03: 0 callers en todo el proyecto,
  * solo alcanzables manualmente vía un agregador de debug sin ningún uso en el flujo real

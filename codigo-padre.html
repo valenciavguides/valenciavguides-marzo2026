@@ -5985,8 +5985,8 @@
         // solicitarCoordenadasHijo (paso 8 de la lavadora): un solo camino de respuesta.
         // DATOS.COORDENADAS_PARADAS_REQUEST es uno de los 5 envíos con acuse del proyecto
         // (GUIA-COMPLETA.md §10.5, "mismo contrato... con confirmación exigida") — el return del handler de hijo2 ya
-        // llega aquí por enviarMensajeConConfirmacion, igual que usan ya
-        // _solicitarParadaAHijo2()/solicitarCoordenadasAHijo2(). Antes montaba su propio
+        // llega aquí por enviarMensajeConConfirmacion, igual que en _solicitarParadaAHijo2() (solicitarCoordenadasAHijo2()
+        // manda el mismo tipo por enviarMensaje_S2, sin acuse, y no espera respuesta). Antes montaba su propio
         // pedidoId + Map de espera + handler correlador para
         // DATOS.COORDENADAS_PARADAS_RESPONSE, y hijo2 respondía dos veces (el return de
         // acuse + un enviarMensaje "para compatibilidad" que solo ese camino consumía).

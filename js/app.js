@@ -918,7 +918,6 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
  * @param {string} tipo - Tipo de evento
  * @param {Object} datos - Datos del evento
  * @param {string} [nivel='info'] - Nivel de severidad ('debug', 'info', 'warn', 'error')
- * @returns {string} ID del evento registrado
  */
 function registrarEvento(tipo, datos = {}, nivel = 'info') {
     const mensaje = `Evento: ${tipo}, Nivel: ${nivel}, Datos: ${JSON.stringify(datos)}`;
@@ -938,22 +937,7 @@ function registrarEvento(tipo, datos = {}, nivel = 'info') {
     }
 }
 
-/**
- * Registra una métrica de rendimiento
- * @param {Object} estado - Estado global de la aplicación
- * @param {string} nombre - Nombre de la métrica
- * @param {number} valor - Valor de la métrica
- * @param {string} [unidad='ms'] - Unidad de medida
- */
-/**
- * Registra una métrica utilizando una firma simple y consistente.
- * Nueva firma pública: `registrarMetrica(nombre, valor, metadatos = {})`
- * - `metadatos.unidad` : unidad legible (opcional)
- * - `metadatos.estado` : permitir pasar un `estado` explícito (útil en tests)
- * Compatibilidad: si se llama con la firma antigua (estado, nombre, valor, unidad)
- * se detecta y se comporta como antes.
- */
-// Reexportar registrarMetrica desde el módulo central `monitoreo` para una implementación canónica única
+// Reexportar registrarMetrica(nombre, valor, tags = {}) desde el módulo central `monitoreo`: una implementación canónica única
 export const registrarMetrica = registrarMetricaMonitoreo;
 
 // Inicializar monitoreo de memoria si está disponible (optimized for mobile)

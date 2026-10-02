@@ -2430,7 +2430,7 @@ i = 0..5 (listado, gastronomia, informacion, historia, páginas, temporizador)
 
 `listado` es el primero del array `iconosArriba` (índice `i=0`) — por eso queda pegado al botón principal, el más fácil de alcanzar con el pulgar.
 
-Al pulsar cualquier icono con URL, hijo1 envía `UI.NAVEGACION_EXTERNA` al padre. El padre abre la URL en una ventana flotante/modal superpuesta al mapa. Al mismo tiempo cierra el menú enviando `UI.CLOSE_MENUS` a todos los iframes con `datos: { except: 'mas-opciones' }`.
+Al pulsar cualquier icono con URL, hijo1 pide al padre pausar el audio (`UI.ACCION_USUARIO` con `accion:'audio_control'`, `comando:'pause'`, `contexto:'enlace_externo'`), abre la URL en una pestaña nueva (`globalThis.open(url, '_blank')`) y envía `UI.NAVEGACION_EXTERNA` al padre. El padre no abre nada: registra la URL en el log y marca `__vv_salidaEnlaceExterno`, la bandera con la que decide mostrar el diálogo de vuelta rápida cuando el usuario regresa a la pestaña. No manda ningún `UI.CLOSE_MENUS`.
 
 #### Temporizador
 
@@ -2485,7 +2485,7 @@ Mensajes del temporizador:
 |---|---|
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
-| `UI.CLOSE_MENUS` | Cierra iconos desplegados (respeta `datos.except`) |
+| `UI.CLOSE_MENUS` | Cierra iconos desplegados (respeta `datos.except`). Ningún emisor lo manda hoy: el padre no envía este tipo; hijo1 lo envía al padre al abrir su panel |
 | `SISTEMA.CAMBIO_MODO` | En CASA: detiene y resetea el temporizador; responde con ACK estándar |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Confirma aplicación del modo |
 | `AVENTURA.INICIADA` | Inicia la cuenta atrás con el tiempo recibido |
@@ -2510,17 +2510,15 @@ Mensajes del temporizador:
 sequenceDiagram
     participant P as Padre
     participant H1 as hijo1
-    participant PW as Padre (ventana flotante)
 
     P->>H1: AVENTURA.INICIADA { aventuraId, tiempoEstimado: 90, idioma, timestamp }
     loop cada 1 segundo
         H1-->>P: AVENTURA.TIEMPO_ACTUALIZADO { tiempoRestante, porcentaje }
     end
     Note over H1: Usuario abre menú → click gastronomía
+    H1->>H1: globalThis.open(url, '_blank') — pestaña nueva
     H1-->>P: UI.NAVEGACION_EXTERNA { url: 'gastronomia.html' }
-    P->>PW: abre ventana flotante con URL
-    P->>H1: UI.CLOSE_MENUS { except: 'mas-opciones' }
-    H1-->>H1: cierra iconos desplegados
+    Note over P: registra la URL y marca __vv_salidaEnlaceExterno
 ```
 
 **Modo AVENTURA**: todos los iconos activos, temporizador corre si fue iniciado.  
@@ -2664,7 +2662,7 @@ Las pantallas de aviso (imágenes, cuenta atrás, botón de reintento) viven en 
 | `DATOS.COORDENADAS_PARADAS_REQUEST` | Responde con datos de coordenadas |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Recibe lista completa de paradas y tramos |
 | `NAVEGACION.CAMBIO_PARADA` | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea `distanciaAlDestino` y `_llegadaNotificada`; llama `actualizarEstadoBotones()` y `_resetSpinsAventura()` |
-| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Muestra/oculta el iframe |
+| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Con `control: 'btnAvanzar'`: habilita (una `razon` de completado real lo deja habilitado hasta el siguiente elemento) o deshabilita el botón de avanzar. Sin `control` (p. ej. `motivo: 'reto_cerrado'` o `'vista_cerrada'`): recalcula los botones del mapa según las reglas GPS |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Confirma que el modo ha sido completamente aplicado |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Recibe actualizaciones de estado del GPS desde el padre (activo/inactivo/error) |
@@ -3014,7 +3012,6 @@ camino con acuse de uno sin él.
 | `RETO.CONFIRMADO` | Padre confirma recepción de `RETO.MOSTRADO` — fase 3 del protocolo RETO |
 | `SISTEMA.CAMBIO_MODO` | Cambia clase CSS del body |
 | `NAVEGACION.CAMBIO_PARADA` | No precarga el reto (comentario propio en el código: "placeholder") — solo actualiza `estado.retoActualId`/`paradaIdActual`. El reto real llega después vía `RETO.MOSTRAR`, disparado por `RETO.SOLICITAR_RETO` |
-| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Muestra/oculta el iframe |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 
 #### Mensajes que envía al padre
@@ -3074,7 +3071,7 @@ sequenceDiagram
 
 **Propósito**: interruptor de modo (CASA ↔ AVENTURA) y navegador de paradas en modo CASA. Es el **único componente** que puede disparar el cambio de modo desde la interfaz. En modo CASA muestra la lista completa de paradas/tramos con scroll horizontal para que el desarrollador navegue libremente.
 
-**Inicialización**: pre-cargado por `cargarRestoDeiframes()`, oculto. Solicita la lista de paradas al padre via `NAVEGACION.SOLICITAR_DATOS_PARADAS`; genera los botones al recibir `NAVEGACION.RESPUESTA_DATOS_PARADAS`. Envía `PARADAS.READY { count }` al terminar.
+**Inicialización**: pre-cargado por `cargarRestoDeiframes()`, oculto. Solicita la lista de paradas al padre via `NAVEGACION.SOLICITAR_DATOS_PARADAS`; genera los botones al recibir `NAVEGACION.RESPUESTA_DATOS_PARADAS`. Envía `PARADAS.READY { count }` (el tipo en el cable es `VV:PARADAS:READY`) al terminar.
 
 **Posición**: `position:fixed; top:3px; left:50%; transform:translateX(-50%); width:99vw; height:22vh` (style inline, precedencia sobre CSS).
 
@@ -3606,7 +3603,7 @@ La comunicación entre `codigo-padre.html` y todos sus iframes usa la API nativa
 | `registrarIframe(id, elemento, opciones={})` | Registra un iframe por su ID para que `enviarMensaje` lo resuelva y el latido lo vigile. `opciones.recuperable === true` es lo único que autoriza al bus a recargarlo cuando deje de contestar (§2.7a). No guarda el `contentWindow`: lo lee del elemento en cada envío, porque recargar un iframe lo sustituye |
 | `desregistrarIframe(id)` | Da de baja un iframe: deja de recibírsele y sus mensajes dejan de aceptarse. Para los que van y vienen (el puzzle de cada reto, el mapa completo) |
 | `despacharLocal(mensaje)` | Entrega un mensaje a los handlers de **este mismo frame**, por la misma fila que los que llegan de fuera. Es la única forma correcta de que un frame se mande algo a sí mismo: `enviarMensaje` no puede, porque uno no está entre sus propios iframes registrados |
-| `adelantarLatido()` | Fuerza un latido inmediato (al volver a la pestaña) **respetando la pausa**: si el latido está parado en CASA, no hace nada |
+| `adelantarLatido()` | Fuerza un latido inmediato **respetando la pausa**: si el latido está parado en CASA, no hace nada. Ningún código de producción la llama: al volver a la pestaña, el `visibilitychange` del padre manda por su cuenta un `SISTEMA.HEARTBEAT` en `broadcast`, sin mirar la pausa — con el latido pausado, los seis hijos registrados lo contestan y el padre anota su `ultimoHeartbeat`, sin tocar `activo` ni `userPaused`. La función la ejercita `BC-12c` |
 | `iniciarHeartbeat(intervalo=5000)` | Inicia el latido: envía `SISTEMA.HEARTBEAT` cada `intervalo` ms a **todos los iframes registrados**, sin lista fija ni reserva. El estado (intervalId, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados`) vive en el state-manager. Tras `MAX_LATIDOS_SIN_RESPUESTA` (3) latidos consecutivos sin `HEARTBEAT_RESPONSE`, `marcarHijoDesconectado()` lo apunta en `hijosDesconectados` y pone su contador a 0 para no repetir la recarga mientras esta ocurre; **solo si el iframe está marcado `recuperable`**, `intentarReconectarHijo()` avisa a `globalThis._vv_beforeHijoReload(hijoId)` para que el padre tome un snapshot del estado y recarga el iframe por self-assign (`iframe.elemento.src = iframe.elemento.src`). Si no lo está, queda el aviso en el log y nada más |
 | `pausarHeartbeat()` | Pausa el latido via state-manager (`sm.updateHeartbeat({ activo:false, intervalo:null })`); libera el `setInterval` |
 | `procesarHeartbeatResponse(mensaje)` | Resetea `heartbeatsFallidos` a 0 para el hijo que responde; si estaba marcado como desconectado, lo elimina de `hijosDesconectados` y reenvía mensajes GPS pendientes (`sm.getGpsPendientes()` → `NAVEGACION.ACTUALIZAR_ESTADO`) |
@@ -3786,7 +3783,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `RETO.HABILITAR` | Padre → Hijo4 | Habilitar panel de retos (solo AVENTURA) |
 | | `RETO.ESTADO_CASA` | Padre → Hijo4 | Estado del panel según posición (solo CASA) |
 | **UI** | `UI.ACCION_USUARIO` | Bidireccional | Hijo2 → Padre: acción en el mapa (`accion:'video'/'imagen'`) · Padre → Hijo3: controles de audio del overlay (`accion:'audio_control'`) |
-| | `UI.CLOSE_MENUS` | Hijo1 ↔ Padre | Colapsar todos los menús |
+| | `UI.CLOSE_MENUS` | Hijo1 → Padre | hijo1 abre su panel de opciones: el padre cierra su desplegable de control de audio. El handler de hijo1 para el sentido inverso no tiene emisor |
 | | `UI.NAVEGACION_EXTERNA` | Hijo1 → Padre | Apertura de enlace externo |
 | **AVENTURA** | `AVENTURA.INICIADA` | Padre → Hijo1 | Iniciar temporizador con `tiempoEstimado` |
 | | `AVENTURA.FINALIZADA` | Padre → Hijo1 | Detener temporizador, mostrar estadísticas |
@@ -3894,7 +3891,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 | **padre →** | `AVENTURA.INICIADA` | `{ aventuraId, tiempoEstimado, idioma, timestamp }` | Inicia el temporizador con la duración configurada |
 | **padre →** | `AVENTURA.FINALIZADA` | `{ }` | Detiene el temporizador, muestra estadísticas |
 | **padre →** | `AVENTURA.DETENER` | `{ motivo, aventuraAnterior, aventuraNueva }` | Cancela el temporizador antes de cambiar de aventura |
-| **padre →** | `UI.CLOSE_MENUS` | `{ except }` | Colapsa el menú si `except !== 'mas-opciones'` |
+| **padre →** | `UI.CLOSE_MENUS` | `{ except }` | Handler registrado (colapsa el menú si `except !== 'mas-opciones'`) que ningún mensaje alcanza: el padre no envía este tipo |
 
 > hijo1 recibe `SISTEMA.HEARTBEAT` desde el momento en que su cargador lo registra en `iframesRegistrados` (tiene el handler y responde). Está marcado `recuperable`: si deja de contestar tres latidos, el bus recarga su iframe y el padre le devuelve el tiempo restante (§2.7a). Ni `DATOS.CARGAR_*`, ni participa en el flujo de paradas.
 >
@@ -4117,7 +4114,7 @@ flowchart LR
     P -->|"PADRE_DATOS\nCONFIRMA_HIJO_LISTO"| T
 
     H1 -->|"HIJO_PREPARADO/LISTO\nTEMPORIZADOR.TOGGLE · PARADAS.LISTADO_TOGGLE\nAVENTURA.TIEMPO_*\nUI.CLOSE_MENUS"| P
-    P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nAVENTURA.INICIADA/FINALIZADA/DETENER\nUI.CLOSE_MENUS"| H1
+    P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nAVENTURA.INICIADA/FINALIZADA/DETENER"| H1
 
     H2 -->|"HIJO_PREPARADO/LISTO\nLLEGADA_DETECTADA\nUSUARIO_FUERA_RANGO\nUI.ACCION_USUARIO\nCOORDS_PARADAS_RESPONSE\nDAT.COORDENADAS/TEXTOS_CARGADOS"| P
     P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nHEARTBEAT\nDATA.CARGAR_COORDS/TEXTOS\nNAVEG.CAMBIO_PARADA\nCONTROL.HAB/DESHAB\nGPS.ESTADO_ACTUALIZADO/ERROR"| H2
@@ -4849,7 +4846,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-1df554f9f14b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-665fd0c35fd8'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5451,14 +5448,13 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Handler en padre | `_hdl_UI_ACCION_USUARIO` |
 | Acción | Según `accion`: progresa aventura, activa GPS, avanza parada |
 
-**UI.CLOSE_MENUS** (padre → hijo1) y (hijo1 → padre)
+**UI.CLOSE_MENUS** (hijo1 → padre)
 
 | Campo | Valor |
 |-------|-------|
-| padre → hijo1 | Padre pide a hijo1 que cierre sus menús |
-| Handler en hijo1 | cierra panel de opciones |
-| hijo1 → padre | hijo1 notifica al padre que cerró sus menús |
-| Handler en padre | **NO EXISTE** — notificación informativa, padre no necesita actuar |
+| Emitido por | hijo1, al abrir su panel de opciones (`toggleMenu`), con `datos: { except: 'mas-opciones' }` |
+| Handler en padre | `_hdl_UI_CLOSE_MENUS_PADRE` (Script 2): cierra el desplegable de control de audio (`#audio-control-overlay`) salvo que `datos.except` sea `'audio-control'` (§34.1) |
+| padre → hijo1 | No hay emisor: hijo1 registra un handler (cierra su menú si `except !== 'mas-opciones'`) que ningún mensaje alcanza |
 
 **UI.NAVEGACION_EXTERNA** (hijo1 → padre)
 
@@ -5466,7 +5462,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido por | hijo1 (usuario pulsa enlace externo) |
 | Handler en padre | `_hdl_UI_NAVEGACION_EXTERNA` |
-| Acción | Log de URL visitada |
+| Acción | Registra la URL en el log y marca `__vv_salidaEnlaceExterno`: el diálogo de vuelta rápida se muestra al volver a la pestaña |
 
 ---
 
@@ -8085,7 +8081,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-1df554f9f14b'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-665fd0c35fd8'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8823,7 +8819,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-1df554f9f14b';
+const CACHE_VERSION = 'v-665fd0c35fd8';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10768,7 +10764,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 | `state-manager.js` | Estado compartido del padre, con acceso serializado: un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por cada uno de los cuatro campos que se leen o escriben desde fuera —`script2Listo`, `estadoPadre`, `controladores` (el Map de handlers) y `heartbeat` (con `gpsPendientes`)—, más `hijosListosPromises`, sin mutex. Solo lo carga el padre. Detalle en «El state-manager (gestor de estado)». | `globalThis.__vv_stateManager` (y `globalThis.__stateManager`) |
 | `logger.js` | Logging centralizado con los cinco niveles de `LOG_LEVELS` (`constants.js`): DEBUG, INFO, WARN, ERROR y NONE. El nivel efectivo sale de `CONFIG.DEBUG.NIVEL_LOG`, que `logger.js` lee **en cada llamada**: primero de `globalThis.__vv_config` y, si su ventana no lo tiene, del `__vv_config` de la ventana padre. No lo importa, porque `logger.js` y `config.js` van en el mismo `Promise.all` de la FASE 1 sin orden garantizado entre ellos, y resolverlo una sola vez dejaría el nivel clavado si el primer log ocurriera antes que `config.js`. **El salto a la ventana padre es lo que hace que el nivel alcance a los hijos**: cada iframe tiene su propio `globalThis` y solo `coordenadas-hijo2.html` importa `config.js`, así que sin él los otros cinco seguirían logueándolo todo. Mirar hacia arriba en vez de importar `config.js` en cada hijo deja además **una sola fuente del nivel para toda la app**. `setNivel()` permite forzarlo en runtime y, desde esa llamada, gana sobre `CONFIG`. Con `NONE` no sale nada, ni los errores. Cada página que loguea publica su logger en su propio `globalThis` justo tras importarlo — los siete hijos más `puzzle.html`, `video-intro.html` y `mapa-completo.html`. Sin esa línea, sus `(globalThis.logger \|\| console).x` caen al `console` crudo y se saltan el nivel, y **eslint no lo detecta**: su regla `no-console` no marca ese patrón porque el objeto va envuelto en el `\|\|`. Las únicas llamadas a `console` que quedan son seis en scripts clásicos pre-módulo, donde `logger.js` aún no se ha importado; llevan su `// eslint-disable-line no-console` con el motivo, según la convención de `eslint.config.js`. Cubierto por `tests/e2e/59-nivel-de-log.spec.js` y `60-nivel-de-log-alcanza-hijos.spec.js`. Buffer en memoria de 500 entradas (FIFO — elimina la entrada más antigua cuando se llena). **Sin limpieza periódica por TTL** — `TTL_LIMPIEZA.LOGGER` está definido en `constants.js` pero `logger.js` no lo importa ni lo usa. Colorea la consola por nivel. | `default export logger` |
 | `utils.js` | Funciones compartidas: `generarIdUnico(prefijo)` → `prefijo_timestamp_aleatorio`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `normalizarParadas()`, `esIdDeTramo()`, `resolverIdsParada()`, `ajustarTimeoutPorConexion()`, `retryUntilAvailable()`, `debounce()`, `sleep()`, `calcularDistancia()` y `puntoMasCercanoEnLinea()`. Al cargarse instala, solo en los frames que tienen padre, el reporte de errores no controlados hacia el padre (`instalarReporteErroresAlPadre()`, §10.17). | Named exports |
-| `device-detection.js` | Detecta tipo de dispositivo analizando `userAgent`. Resultados cacheados en el primer acceso. Solo exporta `esMovil()` (usada en `mensajeria.js` para elegir el TTL de limpieza de mensajes, `TTL_LIMPIEZA.MENSAJERIA.MOVIL`/`.DESKTOP`, definido en `constants.js`) y `esTelefonoMovil()` (usada en `codigo-padre.html` para el aviso de "gira el móvil" en horizontal). No expone ninguna otra detección (tablet/iOS/Android/navegador/táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA instalada) — ningún caller en todo el proyecto las necesita, y no hay ningún agregador de debug alrededor: ni `getInfoDispositivo()` ni `globalThis.__vv_deviceInfo` existen en el repositorio. | `esMovil()`, `esTelefonoMovil()` |
+| `device-detection.js` | Detecta tipo de dispositivo analizando `userAgent`. Resultados cacheados en el primer acceso. Solo exporta `esMovil()` (usada en `mensajeria.js` para elegir el TTL de limpieza de mensajes, `TTL_LIMPIEZA.MENSAJERIA.MOVIL`/`.DESKTOP`, definido en `constants.js`; en `funciones-mapa.js`, para los umbrales de la limpieza de recursos inactivos; y en `app.js`, para el periodo del monitoreo de memoria) y `esTelefonoMovil()` (usada en `codigo-padre.html` para el aviso de "gira el móvil" en horizontal). No expone ninguna otra detección (tablet/iOS/Android/navegador/táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA instalada) — ningún caller en todo el proyecto las necesita, y no hay ningún agregador de debug alrededor: ni `getInfoDispositivo()` ni `globalThis.__vv_deviceInfo` existen en el repositorio. | `esMovil()`, `esTelefonoMovil()` |
 | `validacion.js` | Solo exporta `validarCoordenadas()` (usada en `funciones-mapa.js`) — sin validación por tipo con soporte de opciones, validación de mensajes, validación de paradas, validación por schema, sanitización XSS de strings/objetos, ni registro de validadores personalizados; el módulo no tiene nada de eso. | `validarCoordenadas()` |
 | `suppress-warnings.js` | Silencia advertencias de consola de librerías de terceros (patrón `mapbox-gl` — MapLibre GL hereda mensajes internos de su origen como fork de Mapbox GL —, fuentes, cookies de terceros, DevTools/source maps, extensiones del navegador). Se carga con `defer` justo tras `proteccion.js`. | — |
 
@@ -11137,7 +11133,6 @@ Panel lateral con un botón "Más opciones" que despliega iconos flotantes de ac
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al cargarse |
 | Padre → Hijo | `SISTEMA.PADRE_DATOS` | Con idioma y aventura activa |
 | Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Muestra en AVENTURA, oculta en CASA |
-| Padre → Hijo | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Activa/desactiva el iframe |
 | Hijo → Padre | (toggle temporizador) | Al pulsar `#icono-temporizador` |
 
 #### Hijo 2 — coordenadas-hijo2.html (controles GPS y botones)
@@ -11289,7 +11284,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `TEMPORIZADOR.TOGGLE` | Hijo 1 (click en `#icono-temporizador` sin gesto multi-tap) | `_hdl_TEMPORIZADOR_TOGGLE`: registra el estado visible/oculto del temporizador en el padre | (ninguna) | — | Sincronizar visibilidad del temporizador entre hijo1 y el estado del padre |
 | `PARADAS.LISTADO_TOGGLE` | Hijo 1 (click en `#icono-listado-paradas`) | `_hdl_PARADAS_LISTADO_TOGGLE`: crea/alterna `#ventana-listado-paradas-padre`; al mostrarla, construye las filas (paradas + puentes) cruzando `coordenadas-aventuras.js` con `estado.paradasCompletadas` | (ninguna) | — | El progreso de la aventura solo vive en el padre (`estado.paradasCompletadas`); hijo1 no necesita conocer el contenido, solo dispara el toggle |
 | `UI.ACCION_USUARIO` | Hijo 2 (click en botones de mapa: imagen, vídeo) | `_hdl_UI_ACCION_USUARIO`: abre el overlay correspondiente en el padre según `datos.accion` (`'video'`/`'imagen'`) | (ninguna directa — abre overlay interno) | — | El padre gestiona todos los overlays; hijo2 solo avisa de la acción del usuario |
-| `UI.CLOSE_MENUS` | Hijo 1 ↔ Padre | `_hdl_UI_CLOSE_MENUS_PADRE`: colapsa todos los menús desplegables del padre | (ninguna) | — | Sincronizar el estado de menús cuando hijo1 o el padre mismo solicitan cerrarlos |
+| `UI.CLOSE_MENUS` | Hijo 1 → Padre | `_hdl_UI_CLOSE_MENUS_PADRE`: cierra el desplegable de control de audio (`#audio-control-overlay`) salvo que `datos.except` sea `'audio-control'` | (ninguna) | — | Evitar solapamiento visual cuando hijo1 abre su panel de opciones |
 | `SISTEMA.HIJO_FALLIDO` | Cualquier hijo que no pudo inicializar | Registra en log el error con código y origen; el padre puede intentar recargar el iframe | (ninguna) | — | Gestión de errores de carga de iframes |
 | `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: solo registra el evento. No activa ninguna aventura (ver §10.14) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: apunta cada confirmación en `estado.paradasConfirmaciones[padreId]` y la registra en el log. No habilita nada ni desbloquea ningún flujo (§10.7) | (ninguna) | — | Garantizar que audio y retos están listos antes de que el usuario pueda avanzar |
@@ -11367,7 +11362,6 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; el botón queda interactivo | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | En modo `AVENTURA` se muestra; en `CASA` se oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | El panel solo tiene sentido durante la aventura |
 | `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
-| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
 
 **Mensajes salientes de Hijo 1:**
 
@@ -11430,7 +11424,7 @@ Gestiona la reproducción del audio de guía de cada parada. Invisible para el u
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
 | `AUDIO.REPRODUCIR_REQUEST` | Padre (al activar cada parada — inicio, avance o reanudación, vía `_hdl_NAVEGACION_CAMBIO_PARADA`) | Recibe `{ audioId, audioData:{id,title,file}, autoplay:false }`; guarda `audioData` en su caché local acotada (máx. 2 ids: parada actual + 1 anterior); carga el audio pero NO inicia reproducción automáticamente — el usuario arranca el audio con los controles del desplegable del padre. Si `audioData` falta o el id no está en caché, pide `DATOS.SOLICITAR_AUDIOS` | (el evento `ended` del `<audio>` dispara `FIN_REPRODUCCION`) | — | Protección pasiva por parada (§16): entregar solo el audio de la parada activa, no la aventura completa |
 | `UI.ACCION_USUARIO` `{ accion:'audio_control', comando:'play'\|'pause'\|'stop'\|'replay' }` | Padre (botones del desplegable overlay) | Ejecuta el comando sobre el `<audio>`: play inicia reproducción, pause la pausa, stop para y resetea `currentTime=0`, replay vuelve al inicio y reproduce | `SISTEMA.CONFIRMACION{exito:true}` si el comando se ejecuta; `SISTEMA.ERROR{codigo:'AUDIO_CONTROL_FALLIDO'}` si `play()`/`replay()` fallan (autoplay bloqueado, audio no encontrado) — nunca se pierde en silencio ni confirma un éxito falso (§7.4, "Controles globales de audio") | Padre | El padre centraliza el control de audio; hijo3 expone únicamente el elemento `<audio>` |
-| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida del iframe |
+| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Habilita o deshabilita un control concreto: `retosBtn` (`disabled`, opacidad y `pointer-events`) o `progressBar` (`_seekHabilitadoPorPadre`, que `_actualizarSeekHabilitado()` combina con el modo) | (ninguna) | — | El padre decide cuándo el usuario puede abrir el reto o mover la barra de progreso |
 
 **Mensajes salientes de Hijo 3:**
 
@@ -11460,7 +11454,6 @@ Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuabl
 | `RETO.HABILITAR` | Padre (tras `FIN_REPRODUCCION` en modo AVENTURA, solo si la parada tiene retos) | Habilita el botón `#botonRetos`; activa la interacción del usuario | (ninguna) | — | El botón de retos solo se activa después de escuchar el audio completo y solo en paradas con reto |
 | `RETO.ESTADO_CASA` | Padre (en `_hdl_NAVEGACION_CAMBIO_PARADA`) | Muestra y habilita `#botonRetos` si `habilitado: true` (parada con reto); lo oculta si `habilitado: false` (tramo o parada sin reto) | (ninguna) | — | Controla la visibilidad del botón de retos en modo CASA según si el elemento actual tiene reto o no |
 | `RETO.LIMPIAR_ESTADO` | Padre (`_hdl_RETO_OCULTAR`, justo tras recibir `RETO.OCULTAR` de este mismo hijo) | Limpia su estado interno del reto (caché de la pregunta activa, respuesta seleccionada) y, solo si `retoSigueActivo !== false`, restaura `#botonRetos-wrapper` en modo CASA | (ninguna) | — | Tipo distinto de `RETO.OCULTAR` a propósito: mismo nombre de concepto, direcciones opuestas y efectos distintos (ver §25, protocolo detallado) |
-| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
 
 **Mensajes salientes de Hijo 4:**
 
@@ -11488,7 +11481,6 @@ Herramienta de desarrollo. El iframe arranca oculto (`display:none; visibility:h
 | `SISTEMA.CAMBIO_MODO` | Padre | En `AVENTURA` muestra la barra; en `CASA` la oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | La barra solo es visible durante la aventura |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre | Renderiza los botones de parada/tramo con emoji, código corto y nombre completo; activa el efecto marquee si el nombre no cabe | (ninguna) | — | Poblar la barra con los botones navegables de la aventura |
-| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
 
 **Mensajes salientes de Hijo 5:**
 
@@ -12183,7 +12175,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-1df554f9f14b';
+const CACHE_VERSION = 'v-665fd0c35fd8';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
