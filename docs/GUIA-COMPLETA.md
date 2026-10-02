@@ -4859,7 +4859,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d25ed7377fb9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-dfe05d19aed3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6284,7 +6284,7 @@ No hay ninguna pausa fija (`sleep`) en este punto de la cadena: la única espera
 
 #### Patrón `retryUntilAvailable()` — polling acotado, no `setTimeout` recursivo a mano
 
-`js/utils.js` (`retryUntilAvailable(checkFn, {maxIntentos, intervalo, mensaje})`, línea 340) es el helper único para "reintentar hasta que una condición sea verdadera": resuelve `true` en cuanto `checkFn()` devuelve verdadero, o `false` tras agotar `maxIntentos` (con un `logger.warn` automático usando `mensaje`). Los 5 sitios de `codigo-padre.html` que necesitan este patrón lo usan en vez de un `check()`/`setTimeout(check, ms)` autoreprogramado a mano: sin el límite acotado que da este helper, si la condición esperada nunca se cumple (módulo que falla al cargar, hijo que nunca confirma `HIJO_LISTO`), el bucle quedaría corriendo para siempre, sin log de error ni feedback al usuario.
+`js/utils.js` (`retryUntilAvailable(checkFn, {maxIntentos, intervalo, mensaje})`) es el helper único para "reintentar hasta que una condición sea verdadera": resuelve `true` en cuanto `checkFn()` devuelve verdadero, o `false` tras agotar `maxIntentos` (con un `logger.warn` automático usando `mensaje`). Los 5 sitios de `codigo-padre.html` que necesitan este patrón lo usan en vez de un `check()`/`setTimeout(check, ms)` autoreprogramado a mano: sin el límite acotado que da este helper, si la condición esperada nunca se cumple (módulo que falla al cargar, hijo que nunca confirma `HIJO_LISTO`), el bucle quedaría corriendo para siempre, sin log de error ni feedback al usuario.
 
 | Función | Condición esperada | Límite | Efecto si se agota |
 |---|---|---|---|
@@ -7834,7 +7834,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `35-guardian-anti-solape-carteles.spec.js` | 5 | Guardián anti-solape entre los 9 carteles de `codigo-padre.html`: con un cartel de "algo acaba de pasar" (uso único) en pantalla, el recordatorio espera y no aparece a la vez (GS-1); en cuanto ese cartel se cierra, el recordatorio aparece en el siguiente chequeo (≤2s) (GS-2); si el recordatorio ya está en pantalla, un cartel de "algo acaba de pasar" lo cierra y se muestra él — los de uso único ganan siempre (GS-3); `localStorage.setItem` fallando en AVENTURA muestra el cartel de aviso de progreso con el texto correcto, una sola vez por sesión (AP-1); con otro cartel ya en pantalla, el aviso espera y aparece en su primer reintento (3s) en cuanto queda libre (AP-2) |
 | `36-hijo5-visible-al-volver-casa.spec.js` | 1 | hijo5 (herramienta de solo-desarrollo, §24) vuelve a mostrarse al pasar de AVENTURA a CASA en caliente, igual que al reanudar sesión guardada en modo CASA o al arrancar con Factor-2 dev-code-entry — las tres rutas dejan hijo5 en el mismo estado |
 | `37-guard-concurrencia-cambio-modo.spec.js` | 2 | Guard de secuencia completa en `_hdl_SISTEMA_CAMBIO_MODO` (`estado.sistema.cambiandoModo`), cubriendo el handler entero — incluido el freeze de `paradaRealCongelada` y la restauración posterior, no solo el interior de `manejarCambioModo()`: dos cambios de modo solapados — exactamente uno tiene éxito, el guard nunca queda atascado en `true` (GC-1); tras el rechazo, un tercer cambio sin solape funciona con normalidad (GC-2) |
-| `38-polyline-y-reset-botones-cambio-modo.spec.js` | 2 | Dos limpiezas de `_resetarEstadoParaModo()`/`_hdl_SISTEMA_CAMBIO_MODO`: la polyline manual del botón ubicación se limpia al entrar en CASA (PB-1); en coordenadas-hijo2.html, `idParadaActual`/`btnAvanzarCompletadoPorPadre` resetean al volver a CASA aunque avanzar hubiera quedado genuinamente habilitado en AVENTURA (PB-2) |
+| `38-polyline-y-reset-botones-cambio-modo.spec.js` | 2 | Dos limpiezas de `_resetarEstadoParaModo()`/`_hdl_SISTEMA_CAMBIO_MODO`: la polyline manual del botón ubicación se limpia al entrar en CASA (PB-1); en coordenadas-hijo2.html, `idParadaActual`/`btnAvanzarCompletadoPorPadre` resetean al cambiar de modo aunque avanzar hubiera quedado genuinamente habilitado en AVENTURA: avanzar se deshabilita al volver a CASA y, al volver a AVENTURA sin completar nada, no se rehabilita solo (PB-2, con hijo2 abierto en el marco y esperando su `CAMBIO_MODO_EFECTUADO`; el tramo de vuelta a AVENTURA es el que detecta un reseteo ausente, porque en CASA avanzar queda deshabilitado de todos modos) |
 | `39-flujo-completo-parada-reto-tramo.spec.js` | 2 | Flujo completo real con datos de Aventura1 (Av1-P-0 → Av1-TR-1 → Av1-P-1): llegada GPS real + fin de audio real (habilita el reto) + `RETO.COMPLETADO` real completan la parada entera y muestran el cartel correcto según qué sigue — `cartel-inicio-tramo`, nunca `cartel-transicion` genérico, cuando el siguiente elemento es un tramo (FC-1); tras avanzar al tramo y caminarlo con lecturas GPS reales hasta la parada siguiente, la llegada se registra bajo el padreid del propio tramo (FC-2) |
 | `40-orden-restauracion-modo-antes-parada.spec.js` | 2 | Mecanismo aislado que gobierna `ejecutarRestauracionAventura()` (§25.10): con `estado.modo.actual` en `casa` en el instante del `CAMBIO_PARADA` restaurado, el recordatorio de audio no arranca solo (OR-1); con el modo ya en `aventura` en ese mismo instante — el orden real que aplica `_activarModoRest()` antes que `_restaurarProgresoRest()` — sí arranca solo (OR-2) |
 | `41-temporizador-compra-real-y-devmode.spec.js` | 3 | `_iniciarTemporizadorAventura()` (§7.2, §9.10 paso 8): al reanudar sesión, el tiempo enviado a hijo1 descuenta el tiempo real transcurrido desde `datosGuardados.timestamp` (la compra), no el que quedaba al cerrar la app — con 1h real transcurrida, Aventura1 (216000s/60h) envía ~212400s, nunca los 216000s completos (TW-1); en modo dev no se envía `AVENTURA.INICIADA` en absoluto, aunque el modo sea AVENTURA y haya reanudación — no hay compra real que cronometrar mientras se prueba la app (TW-2); sin reanudación ni tiempo restante previo (arranque nuevo), se envía el máximo completo sin descontar nada (TW-3) |
@@ -8098,7 +8098,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-d25ed7377fb9'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-dfe05d19aed3'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8836,7 +8836,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-d25ed7377fb9';
+const CACHE_VERSION = 'v-dfe05d19aed3';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12192,7 +12192,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-d25ed7377fb9';
+const CACHE_VERSION = 'v-dfe05d19aed3';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13623,7 +13623,7 @@ La forma típica es un envío que bifurca según el contexto en el que vive la p
 | Rama | Cuándo | Coste |
 |---|---|---|
 | Vía directa (por ejemplo, `postMessage` al padre) | **producción** — la página siempre es un iframe | inmediato |
-| Reintento acotado (por ejemplo, `retryUntilAvailable(..., 10, 500)` sobre un objeto global) | **solo** con la página cargada suelta, donde ese objeto no existe | **10 × 500 ms = 5.000 ms** |
+| Reintento acotado (por ejemplo, `retryUntilAvailable(fn, { maxIntentos: 10, intervalo: 500 })` sobre un objeto global) | **solo** con la página cargada suelta, donde ese objeto no existe | **10 × 500 ms = 5.000 ms** |
 
 Con la página cargada suelta, la segunda rama agota siempre los diez intentos. Si el handler hace `await` de ese envío **antes** de aplicar el efecto que el test espera (por ejemplo, una clase en el `body`), un `expect.poll` con `timeout: 5000` empata exactamente con el coste de la rama.
 

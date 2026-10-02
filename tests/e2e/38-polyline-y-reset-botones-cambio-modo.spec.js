@@ -17,7 +17,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, abrirHijoEnMarco, enviarAlHijo, recibidosPorElMarco } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 const TRAMO = { id: 'Av1-TR-1', inicio: { lat: 39.478760, lng: -0.376260 } };
@@ -60,68 +60,45 @@ test.describe('PB-A — Polyline manual se limpia al cambiar a CASA', () => {
   });
 });
 
-// hijo2 cargado como página de nivel superior (sin padre real), mismo patrón que
-// 31-sincronizar-modo-ambas-direcciones.spec.js usa para hijo3/hijo4 — evita el
-// conflicto de que el pipeline real de AVENTURA reemplace el iframe #hijo2 manual.
-/**
- * Provee el `globalThis.mensajeria` que el hijo espera cuando NO vive en un iframe.
- *
- * `enviarMensaje()` de los hijos bifurca por `parent !== window`. En produccion el hijo
- * SIEMPRE es un iframe y toma la rama rapida de postMessage. Cargado como pagina suelta
- * —lo que hacen estos tests— cae al `else`, que hace `retryUntilAvailable(..., 10, 500)`
- * sobre `globalThis.mensajeria`, objeto que no existe standalone porque el hijo no carga
- * mensajeria.js: agota los 10 intentos, **5.000 ms exactos**, y el handler hace `await`
- * de eso antes de seguir.
- *
- * Con el stub la rama lenta resuelve al instante. No debilita lo que se prueba y se
- * parece mas a produccion, donde ese envio tampoco bloquea. Mismo arreglo que en
- * 31-sincronizar-modo-ambas-direcciones.spec.js, donde se diagnostico el problema.
- */
-async function proveerMensajeriaStub(page) {
-  await page.addInitScript(() => {
-    globalThis.mensajeria = globalThis.mensajeria || {
-      enviarMensaje: () => Promise.resolve({ exito: true, metodo: 'stub-e2e' }),
-    };
-  });
-}
-
+// hijo2 se abre DENTRO de helpers/marco-vacio.html, que le hace de padre: un hijo suelto, sin
+// padre, no envía ni recibe por el camino real (ver abrirHijoEnMarco en helpers/boot.js), y el
+// pipeline real de AVENTURA del padre sustituiría el iframe #hijo2 que el test controla.
 test.describe('PB-B — Reset de idParadaActual/botones en hijo2 al cambiar de modo', () => {
-  test.beforeEach(async ({ page }) => { await proveerMensajeriaStub(page); });
+  const enviarAHijo2 = (page, tipo, datos) => enviarAlHijo(page, { tipo, origen: 'padre', destino: 'hijo2', datos: { ...datos, timestamp: Date.now() } });
 
-  async function enviarMensaje(page, tipo, datos) {
-    await page.evaluate(({ tipo, datos }) => {
-      globalThis.postMessage({ tipo, origen: 'padre', destino: 'hijo2', datos }, globalThis.location.origin);
-    }, { tipo, datos });
-  }
-
-  test('PB-2. Con avanzar realmente habilitado en AVENTURA (parada completada) y CAMBIO_MODO->casa, avanzar se deshabilita y no vuelve a habilitarse solo', async ({ page }) => {
-    await page.goto('coordenadas-hijo2.html');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(500);
+  test('PB-2. Con avanzar realmente habilitado en AVENTURA (parada completada), CAMBIO_MODO->casa lo deshabilita y al volver a AVENTURA sin completar nada no se rehabilita solo', async ({ page }) => {
+    const hijo = await abrirHijoEnMarco(page, 'coordenadas-hijo2.html');
+    const avanzarDeshabilitado = () => hijo.evaluate(() => document.getElementById('btn-avanzar')?.disabled);
+    // hijo2 manda CAMBIO_MODO_EFECTUADO después de resetear su estado: esperarlo asegura que el reseteo ya corrió
+    const efectuados = async () => (await recibidosPorElMarco(page)).filter((m) => m.tipo === 'SISTEMA.CAMBIO_MODO_EFECTUADO').length;
+    const cambiarModo = async (modo) => {
+      const antes = await efectuados();
+      await enviarAHijo2(page, 'SISTEMA.CAMBIO_MODO', { modo });
+      await expect.poll(efectuados, { message: `hijo2 debe aplicar el cambio a ${modo}` }).toBe(antes + 1);
+    };
 
     // 1. Entrar en AVENTURA de verdad primero (en CASA, _actualizarBotonGps fuerza
     //    avanzar deshabilitado sin mirar nada más — hace falta AVENTURA para que el
     //    escenario "sucio" (parada completada) sea real).
-    // Espera larga (6s): en esta página standalone (sin padre real, parent===self),
-    // La espera de 6 s que habia aqui compensaba la rama lenta de enviarMensaje() de hijo2
-    // (10 x 500 ms = 5.000 ms agotando retryUntilAvailable sobre un globalThis.mensajeria
-    // inexistente). proveerMensajeriaStub() la elimina de raiz, asi que la espera sobra.
-    await enviarMensaje(page, 'SISTEMA.CAMBIO_MODO', { modo: 'aventura' });
-    await enviarMensaje(page, 'NAVEGACION.ACTUALIZAR_ESTADO', {
-      idParada: 'Av1-TR-1', tipoParada: 'tramo', distanciaAlDestino: 5, toleranciaGPS: 50, timestamp: Date.now(),
+    await cambiarModo('aventura');
+    await enviarAHijo2(page, 'NAVEGACION.ACTUALIZAR_ESTADO', {
+      idParada: 'Av1-TR-1', tipoParada: 'tramo', distanciaAlDestino: 5, toleranciaGPS: 50,
     });
     // 2. Habilitar avanzar de verdad (mismo mensaje real que envía marcarParadaCompletada()
     //    al confirmar audio+llegada+reto — btnAvanzarCompletadoPorPadre=true).
-    await enviarMensaje(page, 'CONTROL.HABILITAR', { control: 'btnAvanzar', razon: 'parada_completada' });
-    await page.waitForTimeout(300);
-
-    const antes = await page.evaluate(() => document.getElementById('btn-avanzar')?.disabled);
-    expect(antes, 'Precondición: avanzar debe estar genuinamente habilitado antes de cambiar de modo').toBe(false);
+    await enviarAHijo2(page, 'CONTROL.HABILITAR', { control: 'btnAvanzar', razon: 'parada_completada' });
+    await expect.poll(avanzarDeshabilitado, {
+      message: 'Precondición: avanzar debe estar genuinamente habilitado antes de cambiar de modo',
+    }).toBe(false);
 
     // 3. Cambiar a CASA sin seleccionar nada — el escenario real del bug.
-    await enviarMensaje(page, 'SISTEMA.CAMBIO_MODO', { modo: 'casa' });
+    await cambiarModo('casa');
+    expect(await avanzarDeshabilitado(), 'Tras volver a CASA, avanzar debe quedar deshabilitado pese a haber estado habilitado de verdad en AVENTURA').toBe(true);
 
-    const despues = await page.evaluate(() => document.getElementById('btn-avanzar')?.disabled);
-    expect(despues, 'Tras volver a CASA, avanzar debe quedar deshabilitado pese a haber estado habilitado de verdad en AVENTURA').toBe(true);
+    // 4. Volver a AVENTURA sin elegir ni completar nada: avanzar no hereda el "completado" de la
+    //    sesión anterior. Este tramo es el que detecta un reseteo ausente (en CASA avanzar queda
+    //    deshabilitado de todos modos, así que el paso 3 solo no lo prueba).
+    await cambiarModo('aventura');
+    expect(await avanzarDeshabilitado(), 'Al volver a AVENTURA sin completar nada, avanzar no puede rehabilitarse solo con el estado de la sesión anterior').toBe(true);
   });
 });
