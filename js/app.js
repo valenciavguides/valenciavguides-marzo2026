@@ -5,12 +5,12 @@
  *
  * IMPORTANTE — lógica dividida:
  * Este módulo exporta las funciones de orquestación (actualizarInterfazModo,
- * manejarCambioModo, coordinarAccion…).
+ * manejarCambioModo…).
  *
  * Los handlers que reaccionan a los mensajes reales del padre
  * (HIJO_PREPARADO, HIJO_LISTO, CAMBIO_PARADA, RETO.COMPLETADO, GPS.*, AUDIO.*…)
- * están registrados en el script type="module" de codigo-padre.html,
- * a partir de la línea ~2087 (buscar el comentario «Script 1 — controladores»).
+ * están registrados en el script type="module" de codigo-padre.html
+ * (buscar el comentario «Script 1 — controladores del padre»).
  */
 
 // Esperar a que mensajeria esté lista antes de ejecutar lógica crítica
@@ -1128,9 +1128,6 @@ if (globalThis.window !== undefined) {
             // Limpiar promesas pendientes
             promesasPendientes.clear();
 
-            // Limpiar estado de coordinación
-            estadoCoordinacion.coordinacionesActivas.clear();
-
             // Limpiar intervalos
             clearInterval(intervaloLimpiezaPromesas);
 
@@ -1142,120 +1139,8 @@ if (globalThis.window !== undefined) {
     });
 }
 
-/**
- * SISTEMA DE COORDINACIÓN CENTRALIZADA
- * Funciones para orquestar la comunicación entre componentes hijos
- */
-
-/**
- * Estado de coordinación entre componentes
- */
-const estadoCoordinacion = {
-    coordinacionesActivas: new Set() // ids de coordinaciones en progreso
-};
-
-/**
- * Coordina una acción entre múltiples componentes
- * @param {string} idCoordinacion - ID único de la coordinación
- * @param {Array<Object>} acciones - Array de acciones a coordinar
- * @param {Object} opciones - Opciones de coordinación
- * @returns {Promise<Object>} Resultado de la coordinación
- */
-export async function coordinarAccion(idCoordinacion, acciones, opciones = {}) {
-    if (estadoCoordinacion.coordinacionesActivas.has(idCoordinacion)) {
-        throw new Error(`Coordinación ${idCoordinacion} ya está activa`);
-    }
-
-    estadoCoordinacion.coordinacionesActivas.add(idCoordinacion);
-
-    try {
-        logger.info(`Iniciando coordinación ${idCoordinacion} con ${acciones.length} acciones`);
-
-        const resultados = [];
-        const errores = [];
-
-        // Ejecutar acciones en secuencia o paralelo según opciones
-        const modoEjecucion = opciones.modo || 'paralelo';
-
-        if (modoEjecucion === 'secuencial') {
-            for (const accion of acciones) {
-                try {
-                    const resultado = await ejecutarAccionCoordinada(accion);
-                    resultados.push(resultado);
-                } catch (error) {
-                    errores.push({ accion, error: error.message });
-                    if (opciones.detenerEnError !== false) break;
-                }
-            }
-        } else {
-            // Paralelo por defecto
-            const promesas = acciones.map(accion => ejecutarAccionCoordinada(accion));
-            const resultadosParalelos = await Promise.allSettled(promesas);
-
-            resultadosParalelos.forEach((resultado, index) => {
-                if (resultado.status === 'fulfilled') {
-                    resultados.push(resultado.value);
-                } else {
-                    errores.push({
-                        accion: acciones[index],
-                        error: resultado.reason.message
-                    });
-                }
-            });
-        }
-
-        const resultadoFinal = {
-            idCoordinacion,
-            exito: errores.length === 0,
-            resultados,
-            errores,
-            timestamp: new Date().toISOString()
-        };
-
-        logger.info(`Coordinación ${idCoordinacion} completada: ${resultados.length} exitosos, ${errores.length} errores`);
-        return resultadoFinal;
-
-    } finally {
-        estadoCoordinacion.coordinacionesActivas.delete(idCoordinacion);
-    }
-}
-
-/**
- * Ejecuta una acción coordinada individual
- * @param {Object} accion - Acción a ejecutar
- * @returns {Promise<Object>} Resultado de la ejecución
- */
-async function ejecutarAccionCoordinada(accion) {
-    const { componente, tipo, datos } = accion;
-
-    try {
-        logger.debug(`Ejecutando acción coordinada para ${componente}: ${tipo}`);
-
-        // Enviar mensaje al componente especificado
-        const resultado = await enviarMensaje({
-            tipo: tipo,
-            destino: componente,
-            datos: datos
-        });
-
-        logger.debug(`Acción coordinada completada para ${componente}`);
-        return {
-            componente,
-            tipo,
-            exito: true,
-            resultado,
-            timestamp: Date.now()
-        };
-
-    } catch (error) {
-        logger.error(`Error ejecutando acción coordinada para ${componente}:`, error);
-        throw Object.assign(new Error(error.message), { componente, tipo, exito: false, timestamp: Date.now() });
-    }
-}
-
-// La lógica de coordinación entre hijos está implementada en la función
-// exportada coordinarAccion() y en los handlers registrados en el script
-// inline de codigo-padre.html (~línea 2087).
+// La coordinación entre hijos no vive en este módulo: la hacen los handlers registrados en el
+// script inline de codigo-padre.html (Script 1 — controladores del padre).
 
 // NAVEGACION.RESPUESTA_DATOS_PARADAS no se maneja aqui: lo emite codigo-padre.html y lo
 // reciben hijo2 (coordenadas-hijo2.html) y hijo5 (boton-casa-hijo5.html), cada uno con su

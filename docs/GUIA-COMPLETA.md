@@ -2083,54 +2083,48 @@ Esta reconexión es **solo para fallos de carga inicial**. Los fallos de heartbe
 
 ### El state-manager (gestor de estado)
 
-El estado de la aplicación se guarda en un único lugar: `js/state-manager.js`. **Todos** los campos de estado tienen su propio `SimpleMutex` que serializa lecturas y escrituras concurrentes. `SimpleMutex` es una implementación nativa de Promise-chain (sin dependencias externas) definida al principio del archivo.
+El estado compartido del padre se guarda en un único lugar: `js/state-manager.js`. Solo lo carga el padre: los hijos y las demás páginas no lo importan, y registran sus handlers en un mapa local (`globalThis.__vv_manejadoresLocales`, que crea `obtenerMapaManejadores()` de `js/mensajeria.js` cuando no hay state-manager). Cada campo al que se llega desde fuera del módulo tiene su propio `SimpleMutex`, que serializa lecturas y escrituras concurrentes. `SimpleMutex` es una implementación nativa de Promise-chain (sin dependencias externas) definida al principio del archivo; es FIFO: `runExclusive(fn)` fija el nuevo candado de forma síncrona antes de su primer `await`, así que cada operación espera a todas las anteriores.
 
-**13 mutexes definidos**, uno por campo protegido — conteo verificable con `grep -c 'new SimpleMutex()' js/state-manager.js`. Cada campo del estado que se lee o escribe desde más de un sitio tiene el suyo; un campo sin consumidores fuera de `state-manager.js` no lo necesita, y no lo lleva:
+**4 mutexes definidos**, uno por campo protegido — conteo verificable con `grep -c 'new SimpleMutex()' js/state-manager.js`. Un campo sin consumidores fuera de `state-manager.js` no lo necesita, y no lo lleva:
 
-| Campo | Tipo | Propósito |
-| --- | --- | --- |
-| `heartbeatPrewarmed` | `boolean` | Flag: heartbeat pre-calentado antes de activar GPS |
-| `procesandoCola` | `boolean` | Evita procesamiento concurrente de la cola de controladores |
-| `script2Listo` | `boolean` | Flag de sincronización entre Script 1 y Script 2 del padre |
-| `listenerRegistrado` | `boolean` | Flag: listener de mensajes ya registrado |
-| `mensajeriaReady` | `boolean` | Flag: `globalThis.mensajeria` disponible |
-| `coordenadasCargadas` | `boolean` | Confirmación de carga del módulo de coordenadas |
-| `audiosCargados` | `boolean` | Confirmación de carga del módulo de audios |
-| `retosCargados` | `boolean` | Confirmación de carga del módulo de retos |
-| `estadoPadre` | `object` | Estado completo del padre (modo, GPS, paradas, hijos, monitoreo…) |
-| `controladores` | `Map` | Map de handlers de mensajes registrados |
-| `mensajesEnviados` | `Set` | Set de IDs de mensajes ya enviados (deduplicación) |
-| `heartbeat` | `object` | Estado completo del heartbeat (activo, fallos, timers, `gpsPendientes`) |
-| `hijosListosPromises` | `Map` | Promesas de carga de cada hijo (resueltas por `marcarHijoListo`) |
+| Campo | Tipo | Mutex | Contenido |
+| --- | --- | --- | --- |
+| `script2Listo` | `boolean` | `script2Listo` | Flag de sincronización entre Script 1 y Script 2 del padre. Lo escribe `marcarScript2Listo()` de `js/mensajeria.js` (con `setScript2Listo`) y lo leen los tests con `getScript2Listo()` |
+| `estadoPadre` | `object` | `estadoPadre` | Copia profunda de `globalThis.estadoPadre`, tomada al arrancar con `setEstadoPadre`; de ella solo `hijosInicializados` se mantiene al día (`marcarHijoListo`). El estado vivo es `globalThis.estadoPadre` |
+| `controladores` | `Map` | `controladores` | Handlers registrados con `registrarControladorCentral`: id → `{ handler, opciones, registradoEn, activo, fingerprint }`; rechaza un id repetido y un handler lógicamente duplicado (mismo tipo y mismo código) |
+| `heartbeat` | `object` | `heartbeat` | Estado del heartbeat: `activo`, `intervalo`, `userPaused`, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados` |
+| `gpsPendientes` | `array` | `heartbeat` (compartido) | Mensajes GPS encolados mientras hijo2 está desconectado, con un máximo de 50 |
+| `hijosListosPromises` | `Map` | ninguno | Promesas de carga de cada hijo (resueltas por `marcarHijoListo`) |
 
-`aventuraSeleccionada`/`idiomaSeleccionado` (la aventura e idioma activos) siguen existiendo como datos reales de la app, pero fuera de `state-manager.js` — viven como variables `globalThis.aventuraSeleccionada`/`globalThis.idiomaSeleccionado` en `codigo-padre.html`, sin mutex propio.
+`aventuraSeleccionada`/`idiomaSeleccionado` (la aventura e idioma activos) son datos reales de la app, pero fuera de `state-manager.js` — viven como variables `globalThis.aventuraSeleccionada`/`globalThis.idiomaSeleccionado` en `codigo-padre.html`, sin mutex propio.
 
-> **Nota:** `gpsPendientes` (mensajes GPS encolados mientras hijo2 está desconectado) se almacena **dentro** del objeto `heartbeat` y comparte su mutex — no tiene mutex propio.
+> **Nota:** `gpsPendientes` es un campo propio del estado, no del objeto `heartbeat`, pero se protege con el mutex de `heartbeat` — no tiene mutex propio.
 >
-> **Nota:** `controladores` y `mensajesEnviados` tienen mutex definido pero el comentario en el código (línea 250) aclara: *"Sin mutex: el browser es single-threaded; Map/Set ops son atómicas en este contexto"* — se usan solo para consistencia de la API.
+> **Nota:** `hijosListosPromises` no tiene mutex; el comentario del código, junto a `crearPromiseHijoListo`, lo aclara: *"Sin mutex: el browser es single-threaded; Map/Set ops son atómicas en este contexto"*.
 
-**Convención de nombres de los accesores:** cada campo booleano de la tabla que tiene consumidores fuera de `state-manager.js` expone su propio par `getX()`/`setX()` (p.ej. `getScript2Listo()`/`setScript2Listo()`, usadas por `js/mensajeria.js`), con la misma forma mecánica: `mutexes.campo.runExclusive(() => state.campo)` para leer, `mutexes.campo.runExclusive(() => { state.campo = value; })` para escribir. No es universal: `heartbeatPrewarmed` no tiene accesor público, porque no tiene consumidores fuera de este módulo — el campo en sí sigue existiendo (se lee/escribe solo internamente dentro de `state-manager.js` y aparece en el snapshot de diagnóstico).
+**Accesores.** Cada lectura o escritura de un campo con mutex tiene la forma mecánica `mutexes.campo.runExclusive(() => …)`: `getScript2Listo()`/`setScript2Listo(valor)`, `getEstadoPadre()`/`setEstadoPadre(valor)` (copia profunda al leer y al escribir), `getHeartbeat()` (copia profunda), `updateHeartbeat(parcial)` (mezcla en profundidad) y `atomicUpdateHeartbeat(fn)` (lectura-modificación-escritura dentro de una sola adquisición del mutex, §33.3), `getGpsPendientes()`, `agregarMensajeGPSAPendientes(datos)` y `limpiarGpsPendientes()`. Para los controladores: `registrarControladorCentral(id, handler, opciones)` (con su alias `registrarManejador`), `getControladoresRegistrados()`, `getControladoresPorTipo(tipo)` y `getMapaControladoresSync()` — el mapa tipo → handler que lee `js/mensajeria.js` con su alias `getManejadores()`, sin mutex. `crearPromiseHijoListo(id)` y `marcarHijoListo(id)` (§30.3) trabajan sobre `hijosListosPromises`.
 
-`js/mensajeria.js` sincroniza su propio flag `script2Listo` con el de `state-manager.js` para que quede visible en el snapshot de diagnóstico (`stateManagerAPI.getEstado().flags`) — llama a `sm.setScript2Listo(true)`, expuesta explícitamente en `stateManagerAPI` (junto a `getScript2Listo`) para este único uso externo.
+`esperarRegistrosPendientes()` resuelve cuando han terminado todos los registros de controladores lanzados hasta ese momento. Registrar un controlador no es inmediato —cada `registrarControladorCentral` escribe en el mapa dentro del mutex `controladores`, esperando al anterior— y el Script 2 del padre lanza decenas de registros sin `await`. Como `SimpleMutex` es FIFO, esta espera se encola detrás de todos ellos y no espera a los que se lancen después de llamarla.
 
-`mensajesEnviados` sí necesita limpieza periódica real (a diferencia del registro de controladores, que no crece durante la sesión — ver §28.4): `limpiarMensajesAntiguos(500)` se ejecuta cada 60 segundos desde un `setInterval` que arranca dentro de `inicializarStateManager()`, purgando las entradas más antiguas cuando el Set supera 1000 IDs. Este Set sí crece de forma continua durante una sesión (cada `enviarMensajeCentral()` añade un ID), a diferencia de `controladores`, que se puebla una vez al arrancar y no vuelve a crecer.
+`marcarScript2Listo()` de `js/mensajeria.js` guarda el dato solo en el state-manager (`sm.setScript2Listo(true)`): el bus no lleva copia propia. Los tests lo esperan con `getScript2Listo()` (el helper de arranque de `tests/e2e/helpers/boot.js` lo sondea con `page.evaluate`, porque es una función asíncrona).
+
+El objeto API del state-manager (`globalThis.__vv_stateManager`, también publicado como `globalThis.__stateManager`) lleva dos instrumentos de consola: `getEstado()` devuelve `{ controladores: nº, estadoPadre, flags: { script2Listo } }`, y `diagnosticar()` (alias de `diagnosticarStateManager()`) registra y devuelve `{ timestamp, totalControladores, controladoresRegistrados, controladoresPorTipo, flags, estadoPadre: { modo, hijosInicializados, todosHijosListos, gps } }`; `gps` sale de `globalThis.estadoPadre` cuando existe, y el resto de `estadoPadre`, de la copia del arranque.
 
 La estructura del estado (`state`) tiene dos niveles diferenciados:
 
 ```javascript
-// Campos raíz — cada uno con su propio SimpleMutex
+// Campos raíz
 {
-    // Flags de inicialización (boolean)
-    heartbeatPrewarmed, procesandoCola, script2Listo,
-    listenerRegistrado, mensajeriaReady,
-    coordenadasCargadas, audiosCargados, retosCargados,
+    script2Listo: false,                  // mutex script2Listo
 
-    // Estado completo del padre (mutex estadoPadre)
+    // Copia del estado del padre (mutex estadoPadre)
     estadoPadre: {
-        modo: { actual: "aventura", anterior: "casa" },
-        paradaActual: 5,
         hijosInicializados: Set([...]),
-        gps: { activo, watchId, posicionUsuario, precision, error, ultimaUbicacion },
+        modo: { actual: null, anterior: null },   // null hasta que se decide el modo
+        paradaActual: 0,
+        mapaInicializado, paradas: [], inicializacionPromises: Map,
+        conectado, todosHijosListos,
+        gps: { activo, watchId, posicionUsuario, permisos, precision, error, ultimaUbicacion },
         monitoreo: { metricas, config, historial },
         sistema: { prewarmIniciado, prewarmPausado, cambiandoModo },
         retoActivo, audioActivo, ubicacionActiva,
@@ -2138,21 +2132,19 @@ La estructura del estado (`state`) tiene dos niveles diferenciados:
         hijosQueRecibieronPadreListo: Set([...])
     },
 
-    // Colecciones (mutex propio pero atómicas en la práctica)
-    controladores: Map,      // handlers de mensajes
-    mensajesEnviados: Set,   // deduplicación de envíos
+    controladores: Map,                   // mutex controladores: handlers de mensajes
 
     // Heartbeat + GPS pendientes (mutex compartido 'heartbeat')
     heartbeat: {
-        activo, intervalo,
-        heartbeatsFallidos: Map,  // hijo → nº de fallos
-        ultimoHeartbeat: Map,     // hijo → timestamp
+        activo, intervalo, userPaused,
+        heartbeatsFallidos: Map,          // hijo → nº de fallos
+        ultimoHeartbeat: Map,             // hijo → timestamp
         hijosDesconectados: []
     },
-    gpsPendientes: [],            // dentro del mutex 'heartbeat'
+    gpsPendientes: [],                    // dentro del mutex 'heartbeat'
 
-    // Promesas de carga de hijos
-    hijosListosPromises: Map      // id → { promise, resolve, reject, timeout }
+    // Promesas de carga de hijos (sin mutex)
+    hijosListosPromises: Map              // id → { promise, resolve, reject, timeout }
 }
 ```
 
@@ -2470,8 +2462,6 @@ Con `tiempoTotal === 0` devuelve `'verde'` sin dividir, para no calcular un porc
 ```javascript
 // Formato de display: HHH:MM:SS — las horas se rellenan a 3 dígitos, no a 2:
 // una aventura dura hasta 150 h y "150:00:00" no cabe en dos.
-// Nota: se llama formatearReloj (no formatearTiempo) para distinguirla de
-// utils.js/formatearTiempo, que formatea milisegundos para logs de depuración.
 function formatearReloj(segundos) {
   const horas = Math.floor(segundos / 3600);
   const minutos = Math.floor((segundos % 3600) / 60);
@@ -4859,7 +4849,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-822460836151'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0cf32715bb3d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6417,7 +6407,7 @@ Existe infraestructura para reintentar envíos GPS fallidos, pero **el alimentad
 
 **Flujo GPS real:** `funciones-mapa.js:procesarPosicionGPSParaAventura()` → `enviarMensaje({destino:'hijo2', tipo: ACTUALIZAR_ESTADO})` — envío directo sin confirmación ni cola. Si hijo2 no responde, el mensaje se pierde silenciosamente.
 
-La infraestructura de cola fue preparada pero nunca conectada al emisor real.
+La infraestructura de cola está preparada y no está conectada al emisor real.
 
 > **Hijo2 no tiene `watchPosition` propio.** `funciones-mapa.js` incluye `lat` y `lng` en cada `ACTUALIZAR_ESTADO`; `_aplicarDatosEstado()` los almacena en `estadoComponente.posicionActualUsuario`. En **modo CASA** los botones se deshabilitan directamente y no se llama a `verificarDistanciaYActualizarBotones()`. En **modo AVENTURA** sí se llama, y con `posicionActualUsuario` ya poblado, decide el botón ubicación y notifica al padre la distancia real (§31.4).
 
@@ -8098,7 +8088,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-822460836151'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-0cf32715bb3d'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8836,7 +8826,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-822460836151';
+const CACHE_VERSION = 'v-0cf32715bb3d';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10698,7 +10688,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 
 ~200 ms  state-manager.js      ← primer módulo ES6 en ejecutarse
          → Crea el objeto state con todos sus campos
-         → Crea un SimpleMutex por campo (acceso serializado)
+         → Crea los cuatro SimpleMutex (script2Listo, estadoPadre, controladores, heartbeat)
          → Expone globalThis.__vv_stateManager
 
 ~300 ms  Cadena de imports ES6 (en paralelo):
@@ -10778,11 +10768,11 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 | Módulo | Rol | Expone |
 |--------|-----|--------|
 | `constants.js` | Los tipos de mensaje y las constantes compartidas. Define `TIPOS_MENSAJE` (árbol jerárquico de 94 tipos), `MODOS`, `LOG_LEVELS` y `TTL_LIMPIEZA` (solo la parte de mensajería: el TTL de limpieza en móvil y en desktop). | `globalThis.TIPOS_MENSAJE` (copia global para scripts no-módulo) |
-| `state-manager.js` | Gestor de estado global con acceso serializado. Un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por campo. Almacena `estadoPadre` (modo, parada, hijos, GPS, monitoreo), `aventuraSeleccionada`, `idiomaSeleccionado`, `controladores` (el Map de handlers), y flags booleanos de carga. | `globalThis.__vv_stateManager` |
+| `state-manager.js` | Estado compartido del padre, con acceso serializado: un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por cada uno de los cuatro campos que se leen o escriben desde fuera —`script2Listo`, `estadoPadre`, `controladores` (el Map de handlers) y `heartbeat` (con `gpsPendientes`)—, más `hijosListosPromises`, sin mutex. Solo lo carga el padre. Detalle en «El state-manager (gestor de estado)». | `globalThis.__vv_stateManager` (y `globalThis.__stateManager`) |
 | `logger.js` | Logging centralizado con los cinco niveles de `LOG_LEVELS` (`constants.js`): DEBUG, INFO, WARN, ERROR y NONE. El nivel efectivo sale de `CONFIG.DEBUG.NIVEL_LOG`, que `logger.js` lee **en cada llamada**: primero de `globalThis.__vv_config` y, si su ventana no lo tiene, del `__vv_config` de la ventana padre. No lo importa, porque `logger.js` y `config.js` van en el mismo `Promise.all` de la FASE 1 sin orden garantizado entre ellos, y resolverlo una sola vez dejaría el nivel clavado si el primer log ocurriera antes que `config.js`. **El salto a la ventana padre es lo que hace que el nivel alcance a los hijos**: cada iframe tiene su propio `globalThis` y solo `coordenadas-hijo2.html` importa `config.js`, así que sin él los otros cinco seguirían logueándolo todo. Mirar hacia arriba en vez de importar `config.js` en cada hijo deja además **una sola fuente del nivel para toda la app**. `setNivel()` permite forzarlo en runtime y, desde esa llamada, gana sobre `CONFIG`. Con `NONE` no sale nada, ni los errores. Cada página que loguea publica su logger en su propio `globalThis` justo tras importarlo — los siete hijos más `puzzle.html` y `video-intro.html`. Sin esa línea, sus `(globalThis.logger \|\| console).x` caen al `console` crudo y se saltan el nivel, y **eslint no lo detecta**: su regla `no-console` no marca ese patrón porque el objeto va envuelto en el `\|\|`. Las únicas llamadas a `console` que quedan son seis en scripts clásicos pre-módulo, donde `logger.js` aún no se ha importado; llevan su `// eslint-disable-line no-console` con el motivo, según la convención de `eslint.config.js`. Cubierto por `tests/e2e/59-nivel-de-log.spec.js` y `60-nivel-de-log-alcanza-hijos.spec.js`. Buffer en memoria de 500 entradas (FIFO — elimina la entrada más antigua cuando se llena). **Sin limpieza periódica por TTL** — `TTL_LIMPIEZA.LOGGER` está definido en `constants.js` pero `logger.js` no lo importa ni lo usa. Colorea la consola por nivel. | `default export logger` |
 | `utils.js` | Funciones sin efectos secundarios: `generarIdUnico(prefijo)` → `prefijo-timestamp-base36`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `getPadreId()`, `normalizarParadas()`. | Named exports |
 | `device-detection.js` | Detecta tipo de dispositivo analizando `userAgent`. Resultados cacheados en el primer acceso. Solo exporta `esMovil()` (usada en `mensajeria.js` para elegir el TTL de limpieza de mensajes, `TTL_LIMPIEZA.MENSAJERIA.MOVIL`/`.DESKTOP`, definido en `constants.js`) y `esTelefonoMovil()` (usada en `codigo-padre.html` para el aviso de "gira el móvil" en horizontal). No expone ninguna otra detección (tablet/iOS/Android/navegador/táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA instalada) — ningún caller en todo el proyecto las necesita, y no hay ningún agregador de debug alrededor: ni `getInfoDispositivo()` ni `globalThis.__vv_deviceInfo` existen en el repositorio. | `esMovil()`, `esTelefonoMovil()` |
-| `validacion.js` | Solo exporta `validarCoordenadas()` (usada en `funciones-mapa.js`) — sin validación por tipo con soporte de opciones, validación de mensajes, validación de paradas, validación por schema, sanitización XSS de strings/objetos, ni registro de validadores personalizados; nada de eso tiene ningún caller en el proyecto, solo alcanzable vía `globalThis.__vv_validacion` desde consola. `state-manager.js` tiene su propia validación de mensajes independiente (`_assertMensajeValido`, lanza en vez de devolver `{valido, errores}`), sin relación con este módulo. | `validarCoordenadas()` |
+| `validacion.js` | Solo exporta `validarCoordenadas()` (usada en `funciones-mapa.js`) — sin validación por tipo con soporte de opciones, validación de mensajes, validación de paradas, validación por schema, sanitización XSS de strings/objetos, ni registro de validadores personalizados; el módulo no tiene nada de eso. | `validarCoordenadas()` |
 | `suppress-warnings.js` | Silencia advertencias de consola de librerías de terceros (patrón `mapbox-gl` — MapLibre GL hereda mensajes internos de su origen como fork de Mapbox GL —, fuentes, cookies de terceros, DevTools/source maps, extensiones del navegador). Se carga con `defer` justo tras `proteccion.js`. | — |
 
 #### Módulos de comunicación y datos
@@ -10792,13 +10782,13 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 | `mensajeria.js` | Bus central de comunicación padre↔hijos. Registro de handlers, envío dirigido o broadcast, cola de mensajes pendientes, sistema ACK/timeout, limpieza periódica por TTL. Delega al `state-manager` para almacenar handlers; fallback a mapa local si no está disponible. | `globalThis.mensajeria` / `globalThis.__vv_mensajeria` |
 | `api-client.js` | Cliente HTTP para el backend. Usa la ruta **relativa** `/api`, igual en local (proxy de `js/server.js`) que en el VPS (proxy inverso): un solo origen, sin CORS y cubierto por el `connect-src 'self'` del CSP (§22.4). Implementa `TokenManager` (JWT en memoria + `sessionStorage`). | `globalThis.TokenManager`, `globalThis.ApiClient`, `globalThis.API_CONFIG` |
 | `data-loader.js` | Carga datos con doble modo: `'local'` (import JS directo) o `'api'` (backend + token) — el modo lo resuelve `asegurarModo()` preguntando a `/api/health`, y se queda en `'local'` mientras `BACKEND_READY=false` (ver §17). Cache interna (`Map`) para evitar peticiones repetidas. | `cargarCoordenadas()`, `cargarTextos()`, `cargarAudios()`, `cargarRetos()` |
-| `monitoreo.js` | Métricas de rendimiento (tiempos de carga, latencias). `promesasPendientes` compartido con `app.js`. Historial en `state-manager.estadoPadre.monitoreo`. | `registrarMetrica()`, `promesasPendientes` |
+| `monitoreo.js` | Métricas de rendimiento y alertas (memoria, tiempo de respuesta, errores por minuto; ver §26.4). Estado propio del módulo (`estadoMonitoreo`); `promesasPendientes` compartido con `app.js`. | `inicializarMonitoreo()`, `registrarMetrica()`, `getEstadoMonitoreo()`, `promesasPendientes` (y `globalThis.__vv_monitoreo`) |
 
 #### Módulos de aplicación
 
 | Módulo | Rol | Expone |
 |--------|-----|--------|
-| `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo, notificación de errores, coordinación entre hijos, métricas. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. El intervalo de monitoreo de memoria se guarda en `globalThis.__vv_intervaloMemoria` con guard contra doble inicialización. | `actualizarInterfazModo()`, `manejarCambioModo()`, `coordinarAccion()`, `notificarError()`, `iniciarPrewarmEnCasa()`, `obtenerEstadoMonitoreo()` |
+| `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo, notificación de errores, métricas. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. El intervalo de monitoreo de memoria se guarda en `globalThis.__vv_intervaloMemoria` con guard contra doble inicialización. | `actualizarInterfazModo()`, `manejarCambioModo()`, `notificarError()`, `iniciarPrewarmEnCasa()`, `obtenerEstadoMonitoreo()` |
 | `funciones-mapa.js` | El módulo más grande. Recibe la instancia MapLibre ya creada en `codigo-padre.html` (con las capas base de los tres modos ya definidas) y la registra mediante `inicializarServicioMapa(mapInstance)`. Gestiona: (1) **marcador GPS del usuario** (`actualizarMarcadorUsuario()`): triángulo azul `#4285F4` estilo Google Maps (sin punto central — el triángulo solo ya representa posición y rumbo) que rota con la brújula en tiempo real vía `DeviceOrientationEvent`; en modo CASA aparece como 🛸. Los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul) llevan cada uno `transform: translate(-50%,-50%)` antes de su pequeño offset de sombreado — con la técnica CSS de bordes (`width:0;height:0;border-*`), un triángulo se renderiza con su vértice en la esquina superior izquierda de su caja, no en el centro; sin ese `-50%/-50%` el vértice queda anclado en el punto GPS real y el resto del triángulo cuelga hacia abajo, así que al rotar `.gps-arrow-heading` la flecha entera orbita alrededor del punto en vez de girar sobre sí misma. El HTML de este marcador lo construye una única función, `_htmlMarcadorUsuario(modo)`, compartida por la creación y por `reescalarMarcadorUsuario()` (el reescalado por zoom, §4.6) para que ambos momentos no puedan divergir. `actualizarMarcadorUsuario()` destruye y recrea el marcador entero en cada posición GPS (hace falta para reposicionarlo — no hay un `setLatLng` barato para un marcador HTML completo), y el ángulo inicial del elemento nuevo sale **siempre** del ángulo acumulado de la brújula (`_flechaGpsAnguloAcumulado`): es la única fuente del rumbo de la flecha (§4.5). La firma `actualizarMarcadorUsuario(lat, lng, accuracy, modo)` no incluye ningún rumbo, precisamente para que no pueda entrar otro por ahí. (2) **Cámara siguiendo al usuario** (§4.6b): `actualizarMarcadorUsuario()` centra la cámara en cada posición GPS real (`_camaraSiguiendoUsuario`), salvo mientras un `flyTo` de cambio de parada/tramo está en curso o tras un arrastre manual del mapa (`_registrarSeguimientoCamara()`, escucha `'dragstart'`) — retomado por `reactivarSeguimientoCamara()`, el botón de recentrar. (3) Brújula en tiempo real (`activarBrujula()`/`desactivarBrujula()`). (4) Polylines de ruta, con auto-reparación si el estilo del mapa aún no cargó (§4.6a). Calcula `calcularToleranciaGPS()`: `RADIO_LLEGADA_PARADA_M` (15 m) para paradas e inicios, dinámica con suelo de 35 m para tramos; y `radioLlegada()`, el radio con el que se declara una llegada, que es el del círculo naranja que ve el usuario (§4.5). El efecto de pulso de llegada usa `_pulseTimeout` (módulo) con `clearTimeout` para evitar acumulación si llegan confirmaciones consecutivas. | `invalidarTamañoMapa()`, `diagnosticarMapa()`, `isMapInitialized()` |
 | `proteccion.js` | IIFE de protección anti-inspección. Se ejecuta antes que cualquier módulo. Cuatro capas: teclas DevTools, clic derecho, arrastre de media, detector por timing/resize. Borra `globalThis.RETOS_AVENTURAS` y coordenadas si detecta ≥2 intentos de debugger o ≥3 de resize. | — |
 
@@ -10825,15 +10815,17 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 
 | Alerta | Qué mide | Umbral | Fuente |
 |--------|----------|--------|--------|
-| `MEMORIA_ALTA` | `performance.memory.usedJSHeapSize` (heap JS del proceso) | **50 MB** (`UMBRAL_MEMORIA: 52428800` en `config.js`) | Chrome-only; no disponible en Safari/Firefox |
-| `TIEMPO_RESPUESTA_ALTO` | Tiempo de respuesta promedio de mensajes entre padre e hijos | **1 000 ms** | Calculado sobre el historial de ACKs en `mensajeria.js` |
-| `ERRORES_FRECUENTES` | Número de errores registrados en el último minuto | **10 errores/min** | Historial interno de `monitoreo.js` |
+| `MEMORIA_ALTA` | `performance.memory.usedJSHeapSize` (heap JS del proceso) | **150 MB** (`UMBRALES.MEMORIA_MB`, constante de `js/monitoreo.js`) | Chrome-only; no disponible en Safari/Firefox |
+| `TIEMPO_RESPUESTA_ALTO` | Promedio de las últimas 100 métricas `tiempo_respuesta` | **1 000 ms** (`UMBRALES.TIEMPO_RESPUESTA_MS`) | Solo se alimenta con `registrarMetrica('tiempo_respuesta', ms)`, y ningún código de producción la emite: el promedio se queda en 0 y la alerta no llega a dispararse |
+| `ERRORES_FRECUENTES` | Número de errores registrados en el último minuto | **10 errores/min** (`UMBRALES.ERRORES_POR_MINUTO`) | `historialErrores` de `monitoreo.js` (conserva cinco minutos), alimentado por los listeners `error` y `unhandledrejection` |
+
+Los umbrales son constantes locales de `js/monitoreo.js` (`UMBRALES`). De `CONFIG.MONITOREO` solo se lee `INTERVALO_METRICAS` (30 000 ms, el periodo de la recogida); `UMBRAL_MEMORIA`, `UMBRAL_MENSAJES_PENDIENTES` y `METRICAS_HABILITADAS` de `config.js` no los lee ningún código, y `UMBRALES.MENSAJES_PENDIENTES` tampoco.
 
 #### Sobre `MEMORIA_ALTA`
 
 La API `performance.memory` solo existe en Chrome/Chromium. En Safari y Firefox la métrica no se recoge y la alerta nunca se dispara.
 
-El umbral está fijado en **50 MB** (`UMBRAL_MEMORIA: 52428800` bytes en `config.js`). En una sesión normal el heap de la app puede superar este valor con facilidad (motor del mapa + tiles en caché + iframes activos); la alerta es indicativa, no crítica. Si aparece de forma sostenida (varias mediciones consecutivas), los focos habituales son listeners acumulados o historial interno sin límite de tamaño.
+El umbral está fijado en **150 MB** (`UMBRALES.MEMORIA_MB` en `js/monitoreo.js`); la alerta es indicativa, no crítica.
 
 Si aparece `MEMORIA_ALTA` de forma sostenida (varias mediciones consecutivas, no solo una), los focos habituales son:
 
@@ -10843,11 +10835,13 @@ Si aparece `MEMORIA_ALTA` de forma sostenida (varias mediciones consecutivas, no
 
 #### Historial y acceso en runtime
 
-El historial de métricas se almacena en `state-manager.estadoPadre.monitoreo` y es accesible desde la consola con:
+`monitoreo.js` guarda sus métricas y alertas en un objeto propio del módulo, `estadoMonitoreo`, y el historial de errores de los últimos cinco minutos en `historialErrores`. Se leen desde la consola con:
 
 ```javascript
-globalThis.estadoPadre.monitoreo
+globalThis.__vv_monitoreo.getEstadoMonitoreo()
 ```
+
+Devuelve una copia con `inicializado`, `intervaloMetricas`, `metricas` (`mensajesEnviados`, `mensajesRecibidos`, `errores`, `tiempoRespuestaPromedio`, `tiemposRespuesta`, `ultimaActividad`), `alertas` (las 50 últimas) y `componentesActivos`. El bloque `monitoreo` de `globalThis.estadoPadre` es otra estructura: este módulo no la escribe.
 
 ---
 
@@ -12183,7 +12177,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 
 ### 30.3 Timeout de HIJO_LISTO
 
-**Archivo:** `js/state-manager.js` línea 200 (función `crearPromiseHijoListo`, declarada en la línea 186)
+**Archivo:** `js/state-manager.js` (función `crearPromiseHijoListo`; el `setTimeout` de 30 000 ms está dentro de ella)
 
 Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los dispositivos lentos o conexiones de baja calidad pueden tardar más de 15 s en cargar los iframes hijos.
 
@@ -12192,7 +12186,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-822460836151';
+const CACHE_VERSION = 'v-0cf32715bb3d';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

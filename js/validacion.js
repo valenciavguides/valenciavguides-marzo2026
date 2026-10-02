@@ -7,9 +7,7 @@
  * sanitizarObjeto/registrarValidador, con soporte de tipos, sanitización XSS y schemas)
  * se retiró en la auditoría de 2026-08-03: 0 callers en todo el proyecto, solo
  * alcanzable manualmente vía un agregador de debug sin ningún uso en el flujo real de la
- * app. `state-manager.js` tiene su propia validación de mensajes independiente
- * (`_assertMensajeValido`) y nunca reutilizó `validarMensaje()` de aquí. Ver
- * docs/GUIA-COMPLETA.md §26.3 para el detalle verificado.
+ * app. Ver docs/GUIA-COMPLETA.md §26.3 para el detalle verificado.
  */
 
 /**

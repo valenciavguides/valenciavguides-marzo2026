@@ -17,32 +17,18 @@ class SimpleMutex {
   }
 }
 
-// Mutexes for each flag
+// Un mutex por cada campo que se lee o se escribe desde fuera de este módulo (`hijosListosPromises` no lleva: ver
+// crearPromiseHijoListo).
 const mutexes = {
-  heartbeatPrewarmed: new SimpleMutex(),
-  procesandoCola: new SimpleMutex(),
   script2Listo: new SimpleMutex(),
-  listenerRegistrado: new SimpleMutex(),
-  mensajeriaReady: new SimpleMutex(),
-  coordenadasCargadas: new SimpleMutex(),
-  audiosCargados: new SimpleMutex(),
-  retosCargados: new SimpleMutex(),
   estadoPadre: new SimpleMutex(),
   controladores: new SimpleMutex(),
   heartbeat: new SimpleMutex(),
-  hijosListosPromises: new SimpleMutex(),
 };
 
 // Centralized state
 const state = {
-  heartbeatPrewarmed: false,
-  procesandoCola: false,
   script2Listo: false,
-  listenerRegistrado: false,
-  mensajeriaReady: false,
-  coordenadasCargadas: false,
-  audiosCargados: false,
-  retosCargados: false,
   estadoPadre: {
     hijosInicializados: new Set(),
     // null = todavía sin decidir. Ver el comentario extenso junto a la misma
@@ -143,10 +129,6 @@ export async function getHeartbeat() {
   return await mutexes.heartbeat.runExclusive(() => _deepCopy(state.heartbeat));
 }
 
-export async function setHeartbeat(value) {
-  await mutexes.heartbeat.runExclusive(() => { state.heartbeat = _deepCopy(value); });
-}
-
 function _deepMerge(target, source) {
   for (const key in source) {
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && !(source[key] instanceof Set) && !(source[key] instanceof Map)) {
@@ -174,10 +156,6 @@ export async function atomicUpdateHeartbeat(fn) {
 
 export async function getGpsPendientes() {
   return await mutexes.heartbeat.runExclusive(() => _deepCopy(state.gpsPendientes));
-}
-
-export async function setGpsPendientes(value) {
-  await mutexes.heartbeat.runExclusive(() => { state.gpsPendientes = _deepCopy(value); });
 }
 
 export async function agregarMensajeGPSAPendientes(datos) {
@@ -232,15 +210,6 @@ export function marcarHijoListo(hijoId) {
   }
 }
 
-export function cancelarPromiseHijoListo(hijoId) {
-  const entry = state.hijosListosPromises.get(hijoId);
-  if (entry) {
-    clearTimeout(entry.timeout);
-    state.hijosListosPromises.delete(hijoId);
-    entry.reject(new Error(`Promise cancelada para ${hijoId}`));
-  }
-}
-
 function _deepCopy(obj) {
   if (obj === null || typeof obj !== 'object') return obj;
   if (obj instanceof Set) return new Set(obj);
@@ -259,12 +228,6 @@ export async function getEstadoPadre() {
 
 export async function setEstadoPadre(value) {
   await mutexes.estadoPadre.runExclusive(() => { state.estadoPadre = _deepCopy(value); });
-}
-
-export async function updateEstadoPadre(updates) {
-  await mutexes.estadoPadre.runExclusive(() => {
-    _deepMerge(state.estadoPadre, updates);
-  });
 }
 
 
@@ -358,26 +321,7 @@ export async function getControladoresPorTipo(tipo) {
 }
 
 /**
- * Returns a Map of type -> handler for compatibility with mensajeria.js
- * This transforms the internal controladores structure into a Map<tipo, handler>
- * @returns {Promise<Map>} - Map of tipo -> handler
- */
-export async function getMapaControladores() {
-  return await mutexes.controladores.runExclusive(() => {
-    const mapa = new Map();
-    for (const [, c] of state.controladores) {
-      if (!c?.activo) continue;
-      const tipo = c.opciones?.tipoMensaje;
-      if (tipo && !mapa.has(tipo)) {
-        mapa.set(tipo, c.handler);
-      }
-    }
-    return mapa;
-  });
-}
-
-/**
- * Versión SÍNCRONA de getMapaControladores para compatibilidad con mensajeria.js
+ * Mapa tipo -> handler de los controladores activos: el que consulta mensajeria.js (su alias en la API es `getManejadores`)
  * NOTA: Esta versión no usa mutex, es para uso en handlers síncronos
  * @returns {Map} - Map of tipo -> handler
  */
@@ -391,21 +335,6 @@ export function getMapaControladoresSync() {
     }
   }
   return mapa;
-}
-
-/**
- * Removes a controller from the registry
- * @param {string} controladorId - ID to remove
- * @returns {boolean} - True if removed
- */
-export async function removerControladorCentral(controladorId) {
-  return await mutexes.controladores.runExclusive(() => {
-    const removed = state.controladores.delete(controladorId);
-    if (removed) {
-      (globalThis.logger || console).info(`Controlador removido: '${controladorId}'`);
-    }
-    return removed;
-  });
 }
 
 // Proxy for globalThis.estadoPadre to synchronize access
@@ -431,25 +360,20 @@ export async function inicializarStateManager() {
       registrarManejador: registrarControladorCentral, // Alias para compatibilidad con mensajeria.js
       getControladoresRegistrados,
       getControladoresPorTipo,
-      getMapaControladores,
       getMapaControladoresSync,
       getManejadores: getMapaControladoresSync, // Alias SÍNCRONO para compatibilidad con mensajeria.js
-      removerControladorCentral,
 
       // Funciones de mensajes
 
       // Funciones de estado
       getEstadoPadre,
       setEstadoPadre,
-      updateEstadoPadre,
       getScript2Listo,
       setScript2Listo,
       esperarRegistrosPendientes,
       getHeartbeat,
-      setHeartbeat,
       updateHeartbeat,
       getGpsPendientes,
-      setGpsPendientes,
       agregarMensajeGPSAPendientes,
       limpiarGpsPendientes,
       atomicUpdateHeartbeat,
@@ -457,7 +381,6 @@ export async function inicializarStateManager() {
       // Sistema de eventos para HIJO_LISTO
       crearPromiseHijoListo,
       marcarHijoListo,
-      cancelarPromiseHijoListo,
 
       // Diagnóstico
       diagnosticar: diagnosticarStateManager,
@@ -468,11 +391,7 @@ export async function inicializarStateManager() {
         controladores: state.controladores.size,
         estadoPadre: state.estadoPadre,
         flags: {
-          heartbeatPrewarmed: state.heartbeatPrewarmed,
-          procesandoCola: state.procesandoCola,
-          script2Listo: state.script2Listo,
-          listenerRegistrado: state.listenerRegistrado,
-          mensajeriaReady: state.mensajeriaReady
+          script2Listo: state.script2Listo
         }
       })
     };
@@ -510,14 +429,7 @@ export async function diagnosticarStateManager() {
     controladoresRegistrados: controladores,
     controladoresPorTipo: Object.fromEntries(controladoresPorTipo),
     flags: {
-      heartbeatPrewarmed: state.heartbeatPrewarmed,
-      procesandoCola: state.procesandoCola,
-      script2Listo: state.script2Listo,
-      listenerRegistrado: state.listenerRegistrado,
-      mensajeriaReady: state.mensajeriaReady,
-      coordenadasCargadas: state.coordenadasCargadas,
-      audiosCargados: state.audiosCargados,
-      retosCargados: state.retosCargados
+      script2Listo: state.script2Listo
     },
     estadoPadre: {
       modo: state.estadoPadre.modo,

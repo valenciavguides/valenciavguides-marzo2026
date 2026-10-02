@@ -159,14 +159,6 @@ export function tieneControlador(tipo) {
     return obtenerMapaManejadores().has(tipo);
 }
 
-/**
- * Los tipos con handler en este frame, para diagnóstico.
- * @returns {string[]}
- */
-export function listarControladores() {
-    return [...obtenerMapaManejadores().keys()];
-}
-
 function exponerAPIGlobal() {
     if (globalThis.window === undefined) return;
 
@@ -175,7 +167,6 @@ function exponerAPIGlobal() {
         inicializarMensajeria,
         registrarControlador,
         tieneControlador,
-        listarControladores,
         enviarMensaje,
         enviarMensajeConConfirmacion,
         despacharLocal,
@@ -268,7 +259,7 @@ export async function registrarControlador(tipo, handler, opciones = {}) {
         }
     }
 
-    // Fallback: usar registro local mediante __vv_getManejadores
+    // Sin state-manager (todos los frames menos el padre): registro local, en el mapa de obtenerMapaManejadores()
     const manejadores = obtenerMapaManejadores();
     manejadores.set(tipo, handler);
     logger.debug(`[mensajeria] Controlador registrado localmente: ${tipo}`);
@@ -286,11 +277,6 @@ function obtenerMapaManejadores() {
     const sm = obtenerStateManager();
     if (sm && typeof sm.getManejadores === 'function') {
         return sm.getManejadores();
-    }
-
-    // Usar __vv_getManejadores si está definido
-    if (globalThis.window !== undefined && typeof globalThis.__vv_getManejadores === 'function') {
-        return globalThis.__vv_getManejadores();
     }
 
     // Crear mapa local como último recurso
@@ -1299,16 +1285,6 @@ if (globalThis.window !== undefined) {
         }
     }, ttlMensajeria / 2);
 }
-
-export default {
-    inicializarMensajeria,
-    registrarControlador,
-    enviarMensaje,
-    enviarMensajeConConfirmacion,
-    marcarScript2Listo,
-    registrarIframe,
-    limpiar
-};
 
 // =====================================================
 // EXPOSICIÓN INMEDIATA DE API GLOBAL

@@ -154,7 +154,6 @@ module.exports = [
         findIndexByPadreIdOrId: "readonly",
         persistProgressState: "readonly",
         calcularDistancia: "readonly",
-        coordinarAccion: "readonly",
         registrarEvento: "readonly",
 
         // ── Globals propios — funciones de UI/navegación ─────────────────
