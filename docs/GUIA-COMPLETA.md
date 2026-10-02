@@ -4866,7 +4866,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-026617a1bb7c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-40ecc9e5f47a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7851,7 +7851,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `43-saltar-reto-puzzle-roto.spec.js` | 4 (WebKit omite 2 de puzzle) | Botón ⏩ (§13, "Saltar un reto o puzzle roto"): en `puzzle.html`, un puzzle válido se salta montando las piezas de verdad y avisando `PUZZLE.COMPLETADO` (PZ-1); uno roto/no encontrado hace lo mismo sin excepciones (PZ-2); en `retos-hijo4.html`, un reto de opción válido se salta marcando la respuesta correcta en el selector y habilita el mundo verde, que sí intenta el envío de `RETO.COMPLETADO` al pulsarlo (RT-1); un reto roto/no encontrado deja el botón de saltar habilitado (a diferencia del resto de controles) y también habilita el mundo verde (RT-2) |
 | `44-boton-saltar-audio.spec.js` | 27 | Botón ⏩ de saltar audio no disponible (`#audio-action-skip`, §25.5f): cubre el caso "la parada o el tramo tiene `audio_id` asignado pero el fichero real no existe" —hoy la norma en 11 de los 12 idiomas mientras no se termine de grabar— y también un fallo de reproducción en runtime. |
 | `45-texto-intro-fallback-idioma.spec.js` | 6 | P11 (`En-busca-del-tesoro.html`, §7.1) — grupo TI, `cargarTextoIntro()`: un fallo real de red cargando los párrafos del idioma elegido muestra el fallback traducido en ESE idioma, nunca español fijo (TI-1); sin fallo, sigue mostrando el texto real de la aventura (TI-2). Grupo AI, `cargarAudioIntro()`: sin fichero real de audio (inglés), `#btn-siguiente-audio-intro` se habilita directamente en vez de quedar bloqueado esperando un evento `play` que nunca llega (AI-1); con fichero real (español), el botón sigue exigiendo el `play` real como siempre (AI-2). `En-busca-del-tesoro.html` se inserta como `<iframe>` real en el arnés — navegarlo directamente dispara su guardia de redirección a `codigo-padre.html` |
-| `46-reanudacion-un-solo-camino.spec.js` | 9 | La reanudación de sesión usa el mismo camino que cualquier cambio de modo (§9.10 paso 8). Grupo RU: el modo arranca sin decidir (`null`), no en CASA (RU-0); reanudar aplica el modo persistido pasando por `_hdl_SISTEMA_CAMBIO_MODO` — verificado por un efecto que solo produce el handler, el arranque del heartbeat, no por el mero valor del modo (RU-1); el flag `dev` se restaura del campo persistido, de modo que dev+AVENTURA es representable (RU-2) y dev+CASA deja `#hijo5` visible (RU-2b); **reanudar en CASA sin dev no borra la sesión que está restaurando** (RU-3, el caso que `_transicionarAModoCasa()` destruiría sin su guard); un cambio a CASA que no es reanudación sí limpia el progreso, o sea que el guard no desactiva el abandono real (RU-4); y "ya estoy en ese modo" reenvía la propagación a los hijos en vez de devolver `exito:true` sin que nadie se entere (RU-5). Grupo RC, por arranque real con `localStorage` sembrado: una sesión de Aventura1 con 61 h (ventana de compra 60 h) no se ofrece para reanudar (RC-1) y una de 2 h sí (RC-2) |
+| `46-reanudacion-un-solo-camino.spec.js` | 9 | La reanudación de sesión usa el mismo camino que cualquier cambio de modo (§9.10 paso 8). Grupo RU: el modo arranca sin decidir (`null`), no en CASA (RU-0); reanudar aplica el modo persistido pasando por `_hdl_SISTEMA_CAMBIO_MODO` — verificado por un efecto que solo produce el handler, el arranque del heartbeat (`getHeartbeat().activo`, el estado real del state-manager), no por el mero valor del modo (RU-1); el flag `dev` se restaura del campo persistido, de modo que dev+AVENTURA es representable (RU-2) y dev+CASA deja `#hijo5` visible (RU-2b); **reanudar en CASA sin dev no borra la sesión que está restaurando** (RU-3, el caso que `_transicionarAModoCasa()` destruiría sin su guard); un cambio a CASA que no es reanudación sí limpia el progreso, o sea que el guard no desactiva el abandono real (RU-4); y "ya estoy en ese modo" reenvía la propagación a los hijos en vez de devolver `exito:true` sin que nadie se entere (RU-5). Grupo RC, por arranque real con `localStorage` sembrado: una sesión de Aventura1 con 61 h (ventana de compra 60 h) no se ofrece para reanudar (RC-1) y una de 2 h sí (RC-2) |
 | `47-reescalado-marcador-usuario-y-chat.spec.js` | 6 | Dos contratos que comparten arranque. Grupo MU (§4.6, escalado dinámico): con una única lectura de GPS y el zoom cambiado después, el marcador de posición propia se reescala, y encoge al acercar como corresponde a su familia — se ejercita disparando el evento de zoom del mapa, no llamando a `reescalarMarcadorUsuario()` a mano, porque el fallo que cubre no es que esa función no funcione sino que nadie la invoque (MU-1); y ese reescalado conserva `.gps-arrow-heading`, el div que `actualizarRotacionFlechaGPS()` busca en cada lectura de brújula — sin él la flecha dejaría de girar en silencio (MU-2); y el invariante de fondo de todo el sistema de escalado — al acercar el zoom, la polyline ENGORDA y el icono ENCOGE, cada familia en su sentido — medido sobre los valores reales con los que nacen (MU-3, el que cae si alguien intenta "unificar" las dos curvas). Y los 📌/🎯 de ruta reaccionan al zoom, disparando el pipeline real de cambio de parada (`NAVEGACION.CAMBIO_PARADA` despachado con `despacharLocal`, el mismo que usa el botón avanzar) en vez de fabricar el marcador a mano (MU-4). **MU-4 solo puede fallar porque `tests/e2e/helpers/maplibre-stub.js` reproduce las clases que el MapLibre real añade a cada `Marker`**: mientras el stub no las añadía, una comparación estricta de `className` funcionaba en el arnés y fallaba en producción, así que ninguna prueba podía detectar ese fallo por mucho que lo intentara. Grupo CH (§7.7): al pulsar `#btn-chat-soporte` (camino real del usuario, no una llamada a `abrirChat()`), `hijo6-chat` queda en `iframesRegistrados` (CH-1) y un envío del padre a ese destino ya no resuelve `false` por destino desconocido (CH-2). El arnés envuelve `maplibregl.Map`/`Marker` del stub para poder cambiar el zoom y leer el elemento real del marcador — el `addTo()` del stub es un no-op y el elemento nunca llega al documento |
 | `48-precarga-video-no-pisa-abierto.spec.js` | 3 | `_precargarVideoParada()` (§15). El `<video>` que precarga y el que reproduce son EL MISMO elemento, así que precargar el vídeo del tramo siguiente no puede pisar uno que el usuario tenga abierto. |
 | `49-escalera-espera-imagen.spec.js` | 5 | La escalera de espera de imágenes (`_escaleraCargaImagen()`) y la precarga que la hace innecesaria casi siempre (`_precargarImagenParada()`), §25.18: 4 s de gracia en silencio → spinner mientras reintenta → rendición. |
@@ -8107,7 +8107,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-026617a1bb7c'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-40ecc9e5f47a'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8845,7 +8845,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-026617a1bb7c';
+const CACHE_VERSION = 'v-40ecc9e5f47a';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12028,11 +12028,11 @@ if (evento?.persisted === true) {
     logger.info('pagehide con persisted: la página se guarda en la caché de atrás, NO se limpia nada');
     return;
 }
-// Cierre real: borra los iframes, para temporizadores e intervalos,
-// detiene el heartbeat y vacía __CONTROLADOR_REGISTRADOS/controladores.
+// Cierre real: quita los iframes, limpia los temporizadores de overlay GPS y de
+// recordatorio de rescate, y vacía __CONTROLADOR_REGISTRADOS.
 ```
 
-- **`codigo-padre.html`** (`_limpiarPagehide`): en un cierre real, quita todos los `<iframe>` del DOM, para el heartbeat, limpia los temporizadores de overlay GPS y de recordatorio de rescate, y vacía `__CONTROLADOR_REGISTRADOS`/`controladores`.
+- **`codigo-padre.html`** (`_limpiarPagehide`): en un cierre real, quita todos los `<iframe>` del DOM, limpia los temporizadores de overlay GPS y de recordatorio de rescate, y vacía `__CONTROLADOR_REGISTRADOS`. No detiene el latido: el navegador destruye la página con sus temporizadores.
 - **`js/app.js`** y **`js/funciones-mapa.js`**: cada uno registra su propio `pagehide` en la misma ventana del padre (no en un iframe), con la misma guarda `persisted`. En un cierre real, limpian sus propios globales (`globalThis.estado`, `globalThis.funcionesMapa`) — antes de la guarda, un viaje a la bfcache los borraba igual que un cierre real y dejaba el mapa destruido al volver atrás.
 
 ### 28.4 Cleanup del padre: por qué no hace falta un barrido periódico
@@ -12043,7 +12043,7 @@ El padre no tiene un barrido periódico de controladores. No hace falta: cada do
 
 | Archivo | `pagehide` propio | Qué limpia |
 |---------|----------|-------------|
-| `codigo-padre.html` | ✓ (`_limpiarPagehide`) | Iframes, temporizadores, heartbeat, `__CONTROLADOR_REGISTRADOS` — con guarda `persisted` |
+| `codigo-padre.html` | ✓ (`_limpiarPagehide`) | Iframes, temporizadores de overlay y de recordatorio de rescate, `__CONTROLADOR_REGISTRADOS` — con guarda `persisted` |
 | `js/app.js` | ✓ | `globalThis.estado` — con guarda `persisted` |
 | `js/funciones-mapa.js` | ✓ | `globalThis.funcionesMapa` — con guarda `persisted` |
 | `coordenadas-hijo2.html` | ✓ | Un flag diagnóstico sin lector — sin guarda `persisted`, pero sin efecto funcional |
@@ -12201,7 +12201,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-026617a1bb7c';
+const CACHE_VERSION = 'v-40ecc9e5f47a';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12589,8 +12589,8 @@ function _limpiarPagehide(evento) {
         logger.info('pagehide con persisted: la pagina se guarda en la cache de atras, NO se limpia nada');
         return;
     }
-    // cierre real: retira iframes, para intervalos/timers, detiene el heartbeat,
-    // y solo AQUÍ vacía __CONTROLADOR_REGISTRADOS y globalThis.controladores
+    // cierre real: retira iframes, limpia los temporizadores de overlay y de recordatorio de rescate,
+    // y solo AQUÍ vacía __CONTROLADOR_REGISTRADOS
 }
 globalThis.addEventListener('pagehide', _limpiarPagehide);
 ```
@@ -12672,19 +12672,19 @@ No se lanza ninguna excepción. El `return false` es el único indicador — y s
 
 ```javascript
 // Activar heartbeat en padre (en _activarHeartbeatAventura)
-const hbFn = globalThis.mensajeria?.iniciarHeartbeat || globalThis.iniciarHeartbeat;
+const hbFn = globalThis.mensajeria?.iniciarHeartbeat;
 if (typeof hbFn === 'function') {
     await hbFn(intervalo);
-    globalThis.__HEARTBEAT_INICIADO = true;
 }
 
 // Pausar heartbeat en padre (en _transicionarAModoCasa)
-const pausarFn = globalThis.mensajeria?.pausarHeartbeat || globalThis.pausarHeartbeat;
+const pausarFn = globalThis.mensajeria?.pausarHeartbeat;
 if (typeof pausarFn === 'function') {
     await pausarFn();
-    globalThis.__HEARTBEAT_INICIADO = false;
 }
 ```
+
+El estado del latido (`activo`, `userPaused`, `intervalo`) vive solo en el state-manager (`getHeartbeat()`): el padre no lleva una bandera global paralela.
 
 Este patrón aplica a cualquier función de mensajería que el padre necesite llamar sobre sí mismo: nunca `enviarMensaje({ destino: CONFIG_PADRE.ID })`, siempre `globalThis.mensajeria.funcionX()`.
 
@@ -13918,7 +13918,6 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarVideoOverlay` | clásico 8 (L2111) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 | módulo 2 | función/objeto |
 | `__CONTROLADOR_REGISTRADOS` | módulo 1 | clásico 13 | estado |
-| `__HEARTBEAT_INICIADO` | módulo 1 (L4086) | clásico 13, módulo 4 | función/objeto |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3823) | clásico 8, módulo 2 | función/objeto |
 | `__VV_GPS_OVERLAY_TIMER` | módulo 1 | clásico 13 | estado |
@@ -13939,7 +13938,7 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_iniciarRecordatorioSaltarAudio` | módulo 1 | módulo 2 | función/objeto |
 | `_marcarPlayPulsadoRecordatorio` | módulo 1 | módulo 2 | función/objeto |
 | `_marcarRetoPulsadoRecordatorio` | módulo 1 | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5522) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5500) | módulo 2 | función/objeto |
 | `_ocultarTodasPantallasDistanciaGPS` | módulo 1 | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3968) | módulo 2, módulo 4 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 | módulo 2 | función/objeto |

@@ -78,11 +78,14 @@ test.describe('RU — La reanudación usa el mismo camino que cualquier cambio d
       if (globalThis.funcionesMapa) {
         globalThis.funcionesMapa.sincronizarModoMapa = (m) => { vistos.push(m); return real?.call(globalThis.funcionesMapa, m); };
       }
-      globalThis.__HEARTBEAT_INICIADO = false;
+      // El estado real del latido vive en el state-manager (activo / userPaused / intervalo).
+      const antes = await globalThis.__vv_stateManager.getHeartbeat();
       await globalThis._activarModoRest('[TEST]', datos);
-      return { modo: globalThis.estado.modo?.actual, vistos, heartbeat: globalThis.__HEARTBEAT_INICIADO };
+      const despues = await globalThis.__vv_stateManager.getHeartbeat();
+      return { modo: globalThis.estado.modo?.actual, vistos, heartbeatAntes: antes?.activo === true, heartbeat: despues?.activo === true };
     }, sesion({ modo: 'aventura', dev: false }));
 
+    expect(r.heartbeatAntes, 'precondición: el latido no estaba activo antes de reanudar').toBe(false);
     expect(r.modo, 'el modo restaurado debe quedar aplicado en el estado').toBe('aventura');
     expect(r.vistos, 'la rama restaurado:true del handler único debe haber sincronizado el mapa').toContain('aventura');
     // El heartbeat es la prueba fuerte de que se pasó por el handler: la reanudación

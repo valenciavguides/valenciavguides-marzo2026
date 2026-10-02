@@ -203,8 +203,6 @@ module.exports = [
         // ── Globals propios — funciones de carga de iframes ──────────────
         cargarHijoCasa: "readonly",
         cargarRestoDeiframes: "readonly",
-        iniciarHeartbeat: "readonly",
-        iniciarHeartbeat_S1: "readonly",
 
         // ── Globals propios — callbacks de carga ─────────────────────────
         agradecimientosCargados: "readonly",

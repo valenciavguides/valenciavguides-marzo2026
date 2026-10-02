@@ -396,10 +396,6 @@ async function _reanudarSubsistemasTrasPrewarm(estado) {
         globalThis.mensajeria.reanudarHeartbeat();
         logger.debug('[APP][CAMBIO_MODO] Heartbeat reanudado tras pre-warm');
     }
-    if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.iniciarGPSAventura === 'function') {
-        await globalThis.funcionesMapa.iniciarGPSAventura();
-        logger.debug('[APP][CAMBIO_MODO] Iniciado GPS aventura tras pre-warm');
-    }
     if (!(estado.sistema?.prewarmIniciado && estado.sistema?.prewarmPausado)) {
         await _activarParadaDefectoAventura();
         estado.sistema.prewarmIniciado = true;
@@ -1135,18 +1131,7 @@ if (globalThis.window !== undefined) {
             // Limpiar estado de coordinación
             estadoCoordinacion.coordinacionesActivas.clear();
 
-            // Limpiar arrays globales
-            if (globalThis.puntosRuta) delete globalThis.puntosRuta;
-            if (globalThis.CoordenadasParadas) delete globalThis.CoordenadasParadas;
-
-            // Limpiar estado de hijos
-            if (globalThis.estadoHijos) delete globalThis.estadoHijos;
-
             // Limpiar intervalos
-            if (globalThis.intervaloReconciliacion) {
-                clearInterval(globalThis.intervaloReconciliacion);
-                delete globalThis.intervaloReconciliacion;
-            }
             clearInterval(intervaloLimpiezaPromesas);
 
             logger.info('Limpieza agresiva de globales de la aplicación completada');

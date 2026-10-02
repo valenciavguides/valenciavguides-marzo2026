@@ -4072,37 +4072,11 @@
 
         (globalThis.logger || console).info('Todos los módulos inicializados correctamente');        // ============================================================
 
-        // Marcar mensajería como iniciada y arrancar heartbeat si está disponible
+        // Marcar mensajería como iniciada. El latido no arranca aquí: lo arranca el cambio de modo
+        // a AVENTURA (_activarHeartbeatAventura, por llamada directa a
+        // globalThis.mensajeria.iniciarHeartbeat) y lo pausa la vuelta a CASA.
         try {
             globalThis.__MENSAJERIA_INICIADA = true;
-            if (!globalThis.__HEARTBEAT_INICIADO) {
-                const hbFn = (typeof iniciarHeartbeat === 'function' && iniciarHeartbeat) || (typeof iniciarHeartbeat_S1 === 'function' && iniciarHeartbeat_S1) || globalThis.iniciarHeartbeat;
-                if (typeof hbFn === 'function') {
-                    try {
-                        // Only auto-start heartbeat if we have a known estadoPadre and it's AVENTURA.
-                        const modoActual = (globalThis.estadoPadre && globalThis.estadoPadre.modo && globalThis.estadoPadre.modo.actual) ? globalThis.estadoPadre.modo.actual : null;
-                        if (modoActual === MODOS.CASA) {
-                            (globalThis.logger || console).info(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Heartbeat not auto-started because initial mode is CASA`);
-                        } else if (modoActual) {
-                            // Modo AVENTURA confirmado: iniciar heartbeat
-                            const hbIntervalo = ajustarTimeoutPorConexionSafe(5000);
-                            // Un solo camino (paso 7): llamada directa, igual que
-                            // _activarHeartbeatAventura — un auto-mensaje a si mismo con
-                            // destino:CONFIG_PADRE.ID (nunca definido) se descartaba desde
-                            // el paso 3 sin lanzar excepcion, dejando el fallback de abajo
-                            // sin disparar nunca (medido: aviso "falta destino" en cada carga).
-                            try { hbFn(hbIntervalo); } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
-                            globalThis.__HEARTBEAT_INICIADO = true;
-                            (globalThis.logger || console).info(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Heartbeat iniciado (Script1)`);
-                        } else {
-                            // Estado not yet initialized; postpone — el cambio de modo lo iniciará
-                            (globalThis.logger || console).info(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Heartbeat auto-start postponed (estado not yet initialized)`);
-                        }
-                    } catch (e) {
-                        (globalThis.logger || console).warn(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} No se pudo iniciar heartbeat:`, e && e.message);
-                    }
-                }
-            }
         } catch (e) {
             (globalThis.logger || console).warn('[PADRE] Error marcando mensajería iniciada:', e && e.message);
         }
@@ -5270,7 +5244,6 @@
 
         // Guards/flags globales para evitar doble inicialización/registro
         globalThis.__MENSAJERIA_INICIADA = globalThis.__MENSAJERIA_INICIADA || false;
-        globalThis.__HEARTBEAT_INICIADO = globalThis.__HEARTBEAT_INICIADO || false;
         globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
 
         // Wrapper seguro para evitar doble registro de controladores críticos.
@@ -7537,10 +7510,9 @@
                 // padre no está en iframesRegistrados — enviarMensaje a sí mismo no funciona.
                 // Llamar directamente a iniciarHeartbeat a través de globalThis.mensajeria.
                 const intervalo = (typeof ajustarTimeoutPorConexion_S1 === 'function') ? ajustarTimeoutPorConexion_S1(5000) : 5000;
-                const hbFn = globalThis.mensajeria?.iniciarHeartbeat || globalThis.iniciarHeartbeat;
+                const hbFn = globalThis.mensajeria?.iniciarHeartbeat;
                 if (typeof hbFn === 'function') {
                     await hbFn(intervalo);
-                    globalThis.__HEARTBEAT_INICIADO = true;
                     (globalThis.logger || console).info(`${logPrefix} Heartbeat iniciado en padre (intervalo: ${intervalo}ms)`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} iniciarHeartbeat no disponible en padre`);
@@ -7593,10 +7565,9 @@
             try {
                 // padre no está en iframesRegistrados — enviarMensaje a sí mismo no funciona.
                 // Llamar directamente a pausarHeartbeat a través de globalThis.mensajeria.
-                const pausarFn = globalThis.mensajeria?.pausarHeartbeat || globalThis.pausarHeartbeat;
+                const pausarFn = globalThis.mensajeria?.pausarHeartbeat;
                 if (typeof pausarFn === 'function') {
                     await pausarFn();
-                    globalThis.__HEARTBEAT_INICIADO = false;
                     (globalThis.logger || console).info(`${logPrefix} Heartbeat pausado en padre`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} pausarHeartbeat no disponible en padre`);
@@ -8648,23 +8619,6 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.cargarIframeSecuencial = cargarIframeSoloSeleccion; // Backward compatibility
         globalThis.cargarHijoCasa = cargarHijoCasa;
         globalThis.waitForMapLibreAndInitialize = waitForMapLibreAndInitialize;
-
-        // Debug helper: register allowed origin dynamically at runtime
-        globalThis.debugRegisterAllowedOrigin = function(origin) {
-            try {
-                if (!origin || typeof origin !== 'string') return false;
-                if (typeof globalThis.registerAllowedOrigin === 'function') {
-                    const res = globalThis.registerAllowedOrigin(origin);
-                    (globalThis.logger || console).info('[DEBUG] registerAllowedOrigin called result:', res);
-                    return true;
-                }
-                (globalThis.logger || console).warn('[DEBUG] registerAllowedOrigin API not available in this context');
-                return false;
-            } catch (e) {
-                (globalThis.logger || console).error('[DEBUG] Error calling registerAllowedOrigin:', e);
-                return false;
-            }
-        };
 
         // ============================================================
         // DT-1 OPCIÓN B: Controladores de datos extraídos
@@ -14910,19 +14864,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
     <!-- Cleanup on pagehide: removes iframes and global references to reduce memory -->
     <script>
     // Implementar pagehide para limpiar iframes y referencias globales
-    function _detenerHeartbeatSeguro() {
-        try {
-            if (globalThis.__HEARTBEAT_INICIADO) {
-                if (typeof globalThis.detenerHeartbeat === 'function') {
-                    try { globalThis.detenerHeartbeat(); } catch { }
-                }
-                globalThis.__HEARTBEAT_INICIADO = false;
-            }
-        } catch (e) {
-            (globalThis.logger || console).warn('[PADRE] Error deteniendo heartbeat en pagehide:', e && e.message);
-        }
-    }
-
     function _limpiarPagehide(evento) {
         // `pagehide` cubre dos viajes muy distintos y hay que separarlos: la pagina se cierra de
         // verdad, o el navegador la CONGELA en su cache de atras y puede devolverla viva. El
@@ -14940,8 +14881,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         }
         (globalThis.logger || console).info(`[codigo-padre] Limpiando recursos en pagehide`);
         document.querySelectorAll('iframe').forEach(iframe => { iframe.src = 'about:blank'; iframe.remove(); });
-        if (globalThis.modoActual) globalThis.modoActual = undefined;
-        if (globalThis.intervaloMonitoreo) clearInterval(globalThis.intervaloMonitoreo);
         if (globalThis.__VV_PENDING_CLEANUP) {
             try { clearInterval(globalThis.__VV_PENDING_CLEANUP); } catch { }
             globalThis.__VV_PENDING_CLEANUP = undefined;
@@ -14949,11 +14888,9 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         for (const key of ['__VV_GPS_OVERLAY_TIMER', '__VV_GPS_SIGNAL_TIMER', '__VV_INET_OVERLAY_TIMER']) {
             if (globalThis[key]) { try { clearInterval(globalThis[key]); } catch { } globalThis[key] = undefined; }
         }
-        _detenerHeartbeatSeguro();
         if (globalThis.__CONTROLADOR_REGISTRADOS && typeof globalThis.__CONTROLADOR_REGISTRADOS.clear === 'function') {
             try { globalThis.__CONTROLADOR_REGISTRADOS.clear(); } catch { }
         }
-        if (globalThis.controladores) globalThis.controladores.clear();
         (globalThis.logger || console).info('Recursos limpiados completamente');
     }
 
@@ -14986,7 +14923,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         if (!globalThis.mensajeria?.enviarMensaje) {
             throw new Error('[PADRE Script4] mensajeria no disponible tras 10s — Script 4 abortado: migración de controladores y diagnóstico GPS sin registrar');
         }
-        const { ajustarTimeoutPorConexion } = await import('./js/utils.js');
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_S4, MODOS: MODOS_S4 } = await import('./js/constants.js');
 
         // Migrar controladores registrados tempranamente en módulos al sistema de mensajería
@@ -14997,35 +14933,12 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             (globalThis.logger || console).warn('No se pudieron migrar algunos controladores:', e.message);
         }
 
-        // Paso 7 de la lavadora: los handlers HEARTBEAT_START/PAUSE/ESTADO que vivían aquí
-        // solo servían a auto-mensajes del propio padre con destino:CONFIG_PADRE_S4.ID —
-        // CONFIG.ID nunca se asigna en js/config.js, así que ese destino siempre era
-        // undefined y el bus lo descartaba desde el paso 3 (medido: aviso "falta destino"
-        // en cada carga). El arranque de más abajo y las herramientas de diagnóstico llaman
-        // ahora directo a iniciarHeartbeat/pausarHeartbeat/getHeartbeat: sin auto-mensaje no
-        // hace falta el handler que lo recibía.
-
-        // Iniciar o pausar heartbeat según el modo inicial (si estamos en el padre). Un solo
-        // camino (paso 7): llamada directa, igual que _activarHeartbeatAventura/
-        // _transicionarAModoCasa de Script 1 — sin auto-mensaje a si mismo, y sin el
-        // broadcast a hijosCriticos que ya no tiene handler que lo reciba.
-        if (globalThis.parent === globalThis.window && !globalThis.__HEARTBEAT_INICIADO) {
-            const modoInicial = globalThis.estadoPadre?.modo?.actual || MODOS_S4.CASA;
-            try {
-                if (modoInicial === MODOS_S4.AVENTURA) {
-                    if (typeof globalThis.iniciarHeartbeat === 'function') {
-                        globalThis.iniciarHeartbeat((typeof ajustarTimeoutPorConexion === 'function') ? ajustarTimeoutPorConexion(10000) : 10000);
-                    }
-                    globalThis.__HEARTBEAT_INICIADO = true;
-                    (globalThis.logger || console).debug('[PADRE] Heartbeat iniciado (Script 4) - modo AVENTURA');
-                } else {
-                    if (typeof globalThis.pausarHeartbeat === 'function') { globalThis.pausarHeartbeat(); }
-                    (globalThis.logger || console).debug('[PADRE] Heartbeat no iniciado por modo CASA (Script 4)');
-                }
-            } catch (e) {
-                (globalThis.logger || console).warn('[PADRE] Error controlando heartbeat en script 4:', e);
-            }
-        }
+        // Los handlers HEARTBEAT_START/PAUSE/ESTADO que vivían aquí solo servían a auto-mensajes
+        // del propio padre con destino:CONFIG_PADRE_S4.ID — CONFIG.ID nunca se asigna en
+        // js/config.js, así que ese destino siempre era undefined y el bus lo descartaba. El
+        // latido lo gobierna el cambio de modo (_activarHeartbeatAventura y
+        // _transicionarAModoCasa, en Script 1): llamada directa a
+        // globalThis.mensajeria.iniciarHeartbeat/pausarHeartbeat, sin auto-mensaje.
 
         // Función de diagnóstico GPS para debugging desde consola
         globalThis.diagnosticarGPS = async function() {
@@ -15075,7 +14988,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                         console.assert(estado?.estado?.activo === false, 'expected activo false after CASA');
 
                         // Intentar iniciar: debe ignorarse por userPaused
-                        if (typeof globalThis.iniciarHeartbeat === 'function') { globalThis.iniciarHeartbeat(3000); }
+                        await globalThis.mensajeria.iniciarHeartbeat(3000);
                         await sleep(150);
                         estado = await globalThis.consultarHeartbeat();
                         console.assert(estado?.estado?.userPaused === true && estado?.estado?.activo === false, 'expected no change when starting while userPaused');
