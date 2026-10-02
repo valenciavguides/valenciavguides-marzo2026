@@ -1316,7 +1316,6 @@
 
                 // Mostrar UI ahora que el padre confirmó
                 try { _uiConfirmado = true; mostrarUI(); } catch (_e) { /* ignore */ } // NOSONAR
-                try { await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (_e) { /* ignore */ } // NOSONAR
 
             });
 
@@ -1567,18 +1566,6 @@
                 } catch (error) {
                     logger.error(`${logPrefix} Error procesando RETO.ESTADO_CASA:`, error);
                 }
-            });
-
-            // Controlador para habilitar controles
-            registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (_mensaje) => {
-                logger.debug(`[hijo4] CONTROL.HABILITAR recibido`);
-                // Implementar lógica para habilitar controles si es necesario
-            });
-
-            // Controlador para deshabilitar controles
-            registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (_mensaje) => {
-                logger.debug(`[hijo4] CONTROL.DESHABILITAR recibido`);
-                // Implementar lógica para deshabilitar controles si es necesario
             });
 
             // Controlador para heartbeat

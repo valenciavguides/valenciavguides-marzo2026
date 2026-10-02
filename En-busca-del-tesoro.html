@@ -2761,7 +2761,6 @@
         } catch (e) {
             logger.warn(`${logPrefix} inicializarLogicaSeleccion falló:`, e);
         }
-        enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(() => { /* fire-and-forget: error de confirmación UI ignorado intencionalmente */ });
     }
 
     async function _notificarErrorPadre(logPrefix, controlador, error) {

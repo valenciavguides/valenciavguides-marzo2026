@@ -901,8 +901,7 @@
             try {
                 _uiConfirmado = true;
                 mostrarUI();
-                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } });
-            } catch (e) { logger.debug('[hijo5] mostrarUI/confirmación UI error:', e); }
+            } catch (e) { logger.debug('[hijo5] mostrarUI error:', e); }
         });
 
         // ============================================
@@ -1138,30 +1137,6 @@
 
             } catch (error) {
                 logger.error(`${logPrefix} Error al procesar notificación de error:`, error);
-            }
-        });
-
-        // ============================================
-        // CONTROLADOR: SISTEMA.CONFIRMACION
-        // ============================================
-        // Propósito: Confirmar recepción de mensajes enviados
-        // Origen esperado: manejador-errores, otros componentes
-        // Datos requeridos: { mensajeOriginalId: string }
-        // Respuesta: Ninguna (logging)
-        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CONFIRMACION, async (mensaje) => {
-            const logPrefix = `[hijo5][SISTEMA.CONFIRMACION][${mensaje?.origen || 'desconocido'}]`;
-
-            try {
-                logger.debug(`${logPrefix} Confirmación recibida`, {
-                    mensajeOriginalId: mensaje.datos?.mensajeOriginalId,
-                    timestamp: mensaje.timestamp
-                });
-
-                // Aquí se podría implementar lógica adicional si es necesario
-                // Por ahora solo logging
-
-            } catch (error) {
-                logger.error(`${logPrefix} Error al procesar confirmación:`, error);
             }
         });
 

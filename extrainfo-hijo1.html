@@ -303,7 +303,6 @@
                     try { if (typeof inicializarLogicaMenu === 'function') inicializarLogicaMenu(); } catch (e) { logger.warn(`${controladorPrefix} inicializarLogicaMenu falló:`, e); }
                     globalThis._uiConfirmado = true;
                     mostrarUI();
-                    try { await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (e) { logger.warn('[hijo1-opciones] Error notificando UI_VISIBLE:', e); }
 
                     return {
                         exito: true,

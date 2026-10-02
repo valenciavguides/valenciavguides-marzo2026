@@ -2793,11 +2793,11 @@ El padre tiene un overlay central desplegable con botones que controlan el `<aud
 | Click stop | `{ accion:'audio_control', comando:'stop' }` | `audio.pause(); audio.currentTime = 0;` resetea progreso visual |
 | Click replay | `{ accion:'audio_control', comando:'replay', audioId? }` | Reinicia desde 0; recarga si el `audioId` cambió |
 
-hijo3 responde con `SISTEMA.CONFIRMACION { accion:'audio_control', comando, exito:true }` tras ejecutar el comando con éxito. Ver §8.7 para el handler completo (`UI.ACCION_USUARIO` a `_manejarAudioControl`).
+hijo3 no contesta un comando ejecutado con éxito: la reproducción se refleja por `AUDIO.ESTADO_ACTUALIZADO` y `AUDIO.FIN_REPRODUCCION`. Ver §8.7 para el handler completo (`UI.ACCION_USUARIO` a `_manejarAudioControl`).
 
-**Si el comando falla, responde `SISTEMA.ERROR` en vez de quedarse callado o confirmar un éxito falso.** `_manejarAudioControl()` envuelve la ejecución del comando en su propio `try/catch`: si `audioPlayer.play()` rechaza (autoplay bloqueado por el navegador — posible en `play`/`replay`) o `cargarYReproducirAudio()` devuelve `{exito:false, error}` (audio no encontrado en caché ni recibido a tiempo del padre, o sin archivo configurado — sin lanzar excepción, solo devuelve el objeto), el catch lo detecta y envía `SISTEMA.ERROR { codigo:'AUDIO_CONTROL_FALLIDO', mensaje, comando }` — la línea de `SISTEMA.CONFIRMACION{exito:true}` nunca se alcanza en ese caso. Sin ese catch, ambos fallos desaparecerían: la excepción de `.play()` subiría sin capturar hasta el `catch` genérico de `registrarControladorSeguro` —que solo hace `logger.error`, sin avisar a quien pidió el comando, que se queda esperando una confirmación que nunca llega—, y el `exito:false` de `cargarYReproducirAudio()` no lo miraría nadie: el código seguiría de largo y confirmaría éxito de todos modos. Cubierto por `tests/e2e/28-audio-control-error.spec.js` (AC-1).
+**Si el comando falla, responde `SISTEMA.ERROR` en vez de quedarse callado.** `_manejarAudioControl()` envuelve la ejecución del comando en su propio `try/catch`: si `audioPlayer.play()` rechaza (autoplay bloqueado por el navegador — posible en `play`/`replay`) o `cargarYReproducirAudio()` devuelve `{exito:false, error}` (audio no encontrado en caché ni recibido a tiempo del padre, o sin archivo configurado — sin lanzar excepción, solo devuelve el objeto), el catch lo detecta y envía `SISTEMA.ERROR { codigo:'AUDIO_CONTROL_FALLIDO', mensaje, comando }` y no sigue. Sin ese catch, ambos fallos desaparecerían: la excepción de `.play()` subiría sin capturar hasta el `catch` genérico de `registrarControladorSeguro` —que solo hace `logger.error`, sin avisar a quien pidió el comando—, y el `exito:false` de `cargarYReproducirAudio()` no lo miraría nadie: el código seguiría de largo como si hubiera funcionado. Cubierto por `tests/e2e/28-audio-control-error.spec.js` (AC-1).
 
-**El padre escucha ese `SISTEMA.ERROR` y ofrece una salida real, no solo un aviso.** `_hdl_SISTEMA_ERROR` (`codigo-padre.html`, registrado junto al resto de handlers de audio) es genérico — `SISTEMA.ERROR` también lo usan otros fallos sin relación con audio (p. ej. `'ELEMENTO_NO_ENCONTRADO'` desde `_manejarSimularClick` en hijo3) — pero cuando `datos.codigo === 'AUDIO_CONTROL_FALLIDO'`, llama a `_marcarAudioNoDisponible()` (la misma función que usan los otros dos caminos de fallo de audio — `AUDIO.ERROR` de hijo3 tras agotar sus reintentos, y el TTL de tramos — ver §25.5f), que activa el botón de saltar audio (`#audio-action-skip`). Los dos mecanismos son necesarios y ninguno sustituye al otro: sin el `try/catch` de hijo3 no hay `SISTEMA.ERROR` que enviar, y sin este handler en el padre ese mensaje no lo recibe nadie. Faltando cualquiera de los dos, un fallo persistente al pulsar play/pausa —no solo el intento puntual— deja al usuario reintentando indefinidamente, sin ninguna vía de rescate. Cubierto por `tests/e2e/28-audio-control-error.spec.js` (SE-1: código `AUDIO_CONTROL_FALLIDO` sí muestra el toast; SE-2: cualquier otro código no lo muestra).
+**El padre escucha ese `SISTEMA.ERROR` y ofrece una salida real, no solo un aviso.** `_hdl_SISTEMA_ERROR` (`codigo-padre.html`, registrado junto al resto de handlers de audio) es genérico — `SISTEMA.ERROR` también lo usan otros fallos sin relación con audio — pero cuando `datos.codigo === 'AUDIO_CONTROL_FALLIDO'`, llama a `_marcarAudioNoDisponible()` (la misma función que usan los otros dos caminos de fallo de audio — `AUDIO.ERROR` de hijo3 tras agotar sus reintentos, y el TTL de tramos — ver §25.5f), que activa el botón de saltar audio (`#audio-action-skip`). Los dos mecanismos son necesarios y ninguno sustituye al otro: sin el `try/catch` de hijo3 no hay `SISTEMA.ERROR` que enviar, y sin este handler en el padre ese mensaje no lo recibe nadie. Faltando cualquiera de los dos, un fallo persistente al pulsar play/pausa —no solo el intento puntual— deja al usuario reintentando indefinidamente, sin ninguna vía de rescate. Cubierto por `tests/e2e/28-audio-control-error.spec.js` (SE-1: código `AUDIO_CONTROL_FALLIDO` sí muestra el toast; SE-2: cualquier otro código no lo muestra).
 
 #### Controladores que registra
 
@@ -2810,7 +2810,7 @@ hijo3 responde con `SISTEMA.CONFIRMACION { accion:'audio_control', comando, exit
 | `CONTROL.DESHABILITAR` | Si `datos.control === 'retosBtn'`: `disabled = true` |
 | `NAVEGACION.CAMBIO_PARADA` | Quita clase `.activo` del `#retosBtn` y resetea spin si hay animación activa |
 | `SISTEMA.CAMBIO_MODO` | Cambia clase CSS `modo-casa`/`modo-aventura` en body |
-| `UI.ACCION_USUARIO` | `accion:'audio_control'` → controla `<audio>` via comandos (`play/pause/stop/replay`); `accion:'simular_click'` → simula click en botón horizontal |
+| `UI.ACCION_USUARIO` | `accion:'audio_control'` → controla `<audio>` via comandos (`play/pause/stop/replay`) |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 
 #### Mensajes que envía al padre
@@ -3742,7 +3742,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SISTEMA.HEARTBEAT` | Padre → Hijos | Latido "¿sigues vivo?" (solo AVENTURA) |
 | | `SISTEMA.HEARTBEAT_RESPONSE` | Hijo → Padre | "Sigo activo" |
 | | `SISTEMA.NACK` | Cualquiera | Rechazo de mensaje |
-| | `SISTEMA.CONFIRMACION` | Cualquiera | Confirmación específica |
+| | `SISTEMA.CONFIRMACION` | Receptor → emisor | ACK de `enviarMensajeConConfirmacion` (lo construye el bus con `idOriginal`) |
 | | `SISTEMA.ERROR` | Cualquiera | Notificación de error |
 | | `SISTEMA.NOTIFICACION` | Padre → Hijo | Notificación informativa |
 | | `SISTEMA.APLICACION_INICIALIZADA` | Padre broadcast | App completamente lista |
@@ -3795,7 +3795,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `RETO.SOLICITAR_RETO` | Hijo3/Hijo4 → Padre | Usuario pulsó `#retosBtn` (hijo3) o `#botonRetos` (hijo4) — payloads distintos pero padre usa solo `mensaje.origen` y `estado.paradaActual` |
 | | `RETO.HABILITAR` | Padre → Hijo4 | Habilitar panel de retos (solo AVENTURA) |
 | | `RETO.ESTADO_CASA` | Padre → Hijo4 | Estado del panel según posición (solo CASA) |
-| **UI** | `UI.ACCION_USUARIO` | Bidireccional | Hijo2 → Padre: acción en el mapa (`accion:'video'/'imagen'`) · Padre → Hijo3: controles de audio del overlay (`accion:'audio_control'`) y simulación de clicks en botones horizontales (`accion:'simular_click'`) |
+| **UI** | `UI.ACCION_USUARIO` | Bidireccional | Hijo2 → Padre: acción en el mapa (`accion:'video'/'imagen'`) · Padre → Hijo3: controles de audio del overlay (`accion:'audio_control'`) |
 | | `UI.CLOSE_MENUS` | Hijo1 ↔ Padre | Colapsar todos los menús |
 | | `UI.NAVEGACION_EXTERNA` | Hijo1 → Padre | Apertura de enlace externo |
 | **AVENTURA** | `AVENTURA.INICIADA` | Padre → Hijo1 | Iniciar temporizador con `tiempoEstimado` |
@@ -3938,7 +3938,6 @@ Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `dis
 | `DATOS.COORDENADAS_CARGADAS` | `{ exito, aventura, idioma, totalCargadas }` | Tras procesar `DATOS.CARGAR_COORDENADAS` — fase 2 del protocolo 3 fases |
 | `DATOS.TEXTOS_CARGADOS` | `{ exito, aventura, idioma, totalCargados }` | Tras procesar `DATOS.CARGAR_TEXTOS` — fase 2 del protocolo 3 fases |
 | `UI.ACCION_USUARIO` | `{ accion:'video'/'imagen', paradaId }` | Usuario pulsa `#btn-video` o `#btn-imagen` |
-| `SISTEMA.CONFIRMACION` | `{ tipo }` | ACK de datos recibidos |
 
 #### Mensajes que hijo2 recibe del padre
 
@@ -3984,7 +3983,6 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `RETO.SOLICITAR_RETO` | `{ contexto:'manual', audioId }` | Usuario pulsa `#retosBtn` (cuando está habilitado) |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | `{ paradaId, parada_id, padreId, timestamp }` | Confirmación de haber procesado el cambio de parada |
 | `DATOS.SOLICITAR_AUDIOS` | `{ audioId, motivo:'cache_miss', timestamp }` | Cuando `cargarYReproducirAudio()` no encuentra ese `audioId` en la caché local acotada (máx. 2 entradas) |
-| `SISTEMA.CONFIRMACION` | `{ tipo:'inicializacion'/'UI_VISIBLE' }` | Confirmaciones de estado |
 
 #### Mensajes que hijo3 recibe del padre
 
@@ -4000,7 +3998,7 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `CONTROL.HABILITAR` | `{ control:'progressBar' }` | `_seekHabilitadoPorPadre=true` → `_actualizarSeekHabilitado()` quita la clase `deshabilitado` del thumb (arrastrable, verde) | ✓ (aunque en CASA ya estaba arrastrable localmente, ver abajo) | ✓ cuando `#audio-main-toggle-btn` está habilitado |
 | `CONTROL.DESHABILITAR` | `{ control:'progressBar', razon }` | `_seekHabilitadoPorPadre=false` → si además no está en modo CASA, añade `deshabilitado` (no arrastrable, rojo) | Sin efecto visible — CASA fuerza habilitado igualmente | ✓ cuando no hay audio activo o está fuera de rango |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId }` | Reset spin + quita clase `.activo` del `#retosBtn` | ✓ | ✓ |
-| `UI.ACCION_USUARIO` | `{ accion:'audio_control', comando, audioId }` ó `{ accion:'simular_click', elemento, contexto:'boton_horizontal' }` | Controles de audio del overlay del padre (play/pause/stop/replay) y simulación de clicks en botones horizontales | ✓ | ✓ |
+| `UI.ACCION_USUARIO` | `{ accion:'audio_control', comando, audioId }` | Controles de audio del overlay del padre (play/pause/stop/replay) | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
 
 > **Protección pasiva por parada** (ver §16): hijo3 nunca recibe la aventura completa. `AUDIO.REPRODUCIR_REQUEST` trae el audio de una sola parada en cada mensaje, y la caché local descarta el id más antiguo en cuanto llega un tercero.
@@ -4027,7 +4025,6 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | `{ paradaId, parada_id, padreId, timestamp }` | Confirmación de haber procesado el cambio de parada |
 | `DATOS.SOLICITAR_RETOS` | `{ retoId, motivo:'cache_miss', timestamp }` | Cuando `mostrarReto()` no encuentra ese `retoId` en la caché local acotada (máx. 2 entradas) |
 | `RETO.MOSTRADO` | `{ retoId }` | Tras renderizar correctamente el reto — fase 2 del protocolo RETO |
-| `SISTEMA.CONFIRMACION` | `{ tipo }` | ACK de init |
 
 #### Mensajes que hijo4 recibe del padre
 
@@ -4042,8 +4039,6 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `RETO.CONFIRMADO` | `{ retoId }` | Padre confirma recepción de `RETO.MOSTRADO` — fase 3 del protocolo RETO | ✓ | ✓ |
 | `RETO.HABILITAR` | `{ paradaId, razon:'audio_escuchado_1vez'/'sin_audio' }` | Muestra y habilita `#botonRetos-wrapper` | — | ✓ |
 | `RETO.ESTADO_CASA` | `{ tipo:'parada'/'tramo', habilitado:bool }` | Muestra/oculta `#botonRetos-wrapper` según posición | ✓ | — |
-| `CONTROL.HABILITAR` | — | Handler registrado pero stub vacío — padre no envía CONTROL a hijo4 actualmente | — | — |
-| `CONTROL.DESHABILITAR` | — | Handler registrado pero stub vacío — padre no envía CONTROL a hijo4 actualmente | — | — |
 | `RETO.LIMPIAR_ESTADO` | `{ retoId, retoSigueActivo }` | Limpia siempre el estado interno del reto; restaura `#botonRetos-wrapper` en modo CASA solo si `retoSigueActivo !== false` (padre envía este mensaje justo después de recibir `RETO.OCULTAR` de este mismo hijo4 — direcciones opuestas, tipos distintos a propósito) | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
 | `SISTEMA.NOTIFICACION` | `{ evento }` | Detecta `AVENTURA_ACTIVADA` para limpiar estado de reto anterior | ✓ | ✓ |
@@ -4078,7 +4073,6 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `{ incluirTramos, incluirInicio, incluirMetadatos, ubicacionUsuario }` | Al arrancar o al necesitar actualizar la lista |
 | `SISTEMA.ERROR` | `{ error, contexto, timestamp }` | Notificación de error interno |
 | `PARADAS.READY` | `{ count:botonesGenerados }` | UI de paradas lista |
-| `SISTEMA.CONFIRMACION` | `{ tipo:'UI_VISIBLE' }` | Handshake visual: la interfaz ya se ve |
 
 #### Mensajes que hijo5 recibe del padre
 
@@ -4093,7 +4087,6 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | `{ paradaId, audio, reto }` | Confirmación final con metadatos | ✓ | ✓ |
 | `SISTEMA.ERROR` | `{ error, contexto, mensajeOriginal }` | Reintenta `SOLICITAR_DATOS_PARADAS` si es ese error | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
-| `SISTEMA.CONFIRMACION` | `{ tipo }` | ACK de datos recibidos y handshake | ✓ | ✓ |
 
 ---
 
@@ -4866,7 +4859,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-4c752506b3d7'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d25ed7377fb9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5686,7 +5679,7 @@ hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel d
 | RETO.MOSTRAR/OCULTAR | — | — | — | ✅ | — | — |
 | RETO.HABILITAR | — | — | — | ✅ | — | — |
 | RETO.ESTADO_CASA | — | — | — | ✅ | — | — |
-| CONTROL.HABILITAR/DESHABILITAR | — | ✅ | ✅ | ✅ | — | — |
+| CONTROL.HABILITAR/DESHABILITAR | — | ✅ | ✅ | — | — | — |
 | AVENTURA.INICIADA/FINALIZADA | ✅ | — | — | — | — | — |
 | RESPUESTA_DATOS_PARADAS | — | — | — | — | ✅ (genera botones) | — |
 | CHAT.ESTADO_PADRE | — | — | — | — | — | ✅ |
@@ -5936,13 +5929,11 @@ padre → hijo2/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, t
 
 `SISTEMA.CONFIRMACION` es el ACK universal del sistema. `SISTEMA.ERROR` propaga errores definitivos.
 
-**SISTEMA.CONFIRMACION** — usos principales:
+**SISTEMA.CONFIRMACION** — un único uso, el acuse del bus. Ningún frame lo manda por su cuenta ni registra un handler propio de este tipo: el bus consume el acuse (con `idOriginal`) antes de buscar handlers.
 
 | Contexto | Quién lo construye | Campo crítico |
 |----------|--------------------|---------------|
 | ACK de `enviarMensajeConConfirmacion` | **el bus**, no el frame | **`idOriginal: mensajeOriginal.id`** — resuelve la promesa pendiente |
-| UI_VISIBLE (handshake visual) | hijo1, hijo2, hijo3, hijo5 | `{ tipo:'UI_VISIBLE', timestamp }` |
-| Respuesta a acciones de audio | hijo3 | `{ accion:'click_ejecutado', exito:true }` |
 
 El campo `idOriginal` es **crítico para `enviarMensajeConConfirmacion`**: `mensajeria.js` lo usa
 para correlacionar con la promesa pendiente. Si falta, la promesa no se resuelve y se cumple el
@@ -8107,7 +8098,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-4c752506b3d7'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-d25ed7377fb9'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8845,7 +8836,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-4c752506b3d7';
+const CACHE_VERSION = 'v-d25ed7377fb9';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12201,7 +12192,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-4c752506b3d7';
+const CACHE_VERSION = 'v-d25ed7377fb9';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14052,7 +14043,7 @@ El fallo, cuando falta un puente, es **mudo**: la variable se queda en su valor 
 
 ### 37.3 Mensajes (`TIPOS_MENSAJE`) — emisor(es) → receptor(es)
 
-Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje. La herramienta lee el código con un parser (acorn) y resuelve cada tipo por su valor —alias de import (`TIPOS_MENSAJE_S1`), `globalThis.TIPOS_MENSAJE?.X?.Y`, constantes locales con ámbito de bloque, literales—; cuenta como emisor un objeto con `tipo` que se pasa a un envío o que lleva `destino`/`datos`, y como receptor una llamada a `registrarControlador`, `registrarControladorSeguro`, `registrarSiNoExiste` o al `registrar` local de `js/app.js`. `*(ninguno detectado)*` significa que ningún fichero cumple esa condición. El único caso de esta tabla es `NAVEGACION.GPS.DESACTIVAR`: nada en el proyecto lo emite ni lo escucha — el propio código (`codigo-padre.html`, junto a `_regCtrl_GPS`) lo deja dicho y conserva la constante a propósito, por si algún día un hijo necesita pedir la desactivación de verdad. Sin `--todos`, la herramienta imprime además los envíos con destino literal que caen en un frame sin handler de ese tipo, los handlers que ninguna emisión alcanza y el residuo (lo que parece emisor o receptor y no se resolvió a un tipo).
+Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje. La herramienta lee el código con un parser (acorn) y resuelve cada tipo por su valor —alias de import (`TIPOS_MENSAJE_S1`), `globalThis.TIPOS_MENSAJE?.X?.Y`, constantes locales con ámbito de bloque, literales—; cuenta como emisor un objeto con `tipo` que se pasa a un envío o que lleva `destino`/`datos`, y como receptor una llamada a `registrarControlador`, `registrarControladorSeguro`, `registrarSiNoExiste` o al `registrar` local de `js/app.js`. `*(ninguno detectado)*` significa que ningún fichero cumple esa condición. El único caso de esta tabla es `NAVEGACION.GPS.DESACTIVAR`: nada en el proyecto lo emite ni lo escucha — el propio código (`codigo-padre.html`, junto a `_regCtrl_GPS`) lo deja dicho y conserva la constante a propósito, por si algún día un hijo necesita pedir la desactivación de verdad. `js/mensajeria.js` aparece como emisor o receptor de los tipos que el propio bus construye o atiende sin handler registrado: el acuse `SISTEMA.CONFIRMACION`, el latido y el reenvío de `SISTEMA.ERROR`. Sin `--todos`, la herramienta imprime además los envíos con destino literal que caen en un frame sin handler de ese tipo, los handlers que ninguna emisión alcanza y el residuo (lo que parece emisor o receptor y no se resolvió a un tipo).
 
 <details>
 <summary>Tabla completa (94 filas) — clic para desplegar</summary>
@@ -14072,9 +14063,9 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje. 
 | `CHAT.CERRAR` | chat-hijo6.html | codigo-padre.html |
 | `CHAT.ESTADO_PADRE` | codigo-padre.html | chat-hijo6.html |
 | `CHAT.RESCATE_SOLICITADO` | chat-hijo6.html | codigo-padre.html |
-| `CONTROL.DESHABILITAR` | codigo-padre.html | audio-hijo3.html, coordenadas-hijo2.html, retos-hijo4.html |
+| `CONTROL.DESHABILITAR` | codigo-padre.html | audio-hijo3.html, coordenadas-hijo2.html |
 | `CONTROL.DEV_CINCO_TOQUES` | extrainfo-hijo1.html | codigo-padre.html |
-| `CONTROL.HABILITAR` | codigo-padre.html | audio-hijo3.html, coordenadas-hijo2.html, retos-hijo4.html |
+| `CONTROL.HABILITAR` | codigo-padre.html | audio-hijo3.html, coordenadas-hijo2.html |
 | `DATOS.CARGAR_COORDENADAS` | codigo-padre.html | coordenadas-hijo2.html |
 | `DATOS.CARGAR_TEXTOS` | codigo-padre.html, js/controladores-padre.js | coordenadas-hijo2.html |
 | `DATOS.COORDENADAS_CARGADAS` | coordenadas-hijo2.html | codigo-padre.html |
@@ -14137,10 +14128,10 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje. 
 | `SISTEMA.CAMBIO_MODO_APLICADO` | js/app.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | js/app.js |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | js/app.js |
-| `SISTEMA.CONFIRMACION` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | boton-casa-hijo5.html |
-| `SISTEMA.ERROR` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, js/funciones-mapa.js, js/mensajeria.js, js/utils.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
-| `SISTEMA.HEARTBEAT` | codigo-padre.html, js/mensajeria.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
-| `SISTEMA.HEARTBEAT_RESPONSE` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
+| `SISTEMA.CONFIRMACION` | js/mensajeria.js | js/mensajeria.js |
+| `SISTEMA.ERROR` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, js/funciones-mapa.js, js/mensajeria.js, js/utils.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, js/mensajeria.js, retos-hijo4.html |
+| `SISTEMA.HEARTBEAT` | codigo-padre.html, js/mensajeria.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/mensajeria.js, retos-hijo4.html |
+| `SISTEMA.HEARTBEAT_RESPONSE` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html, js/mensajeria.js |
 | `SISTEMA.HIJO_FALLIDO` | En-busca-del-tesoro.html, extrainfo-hijo1.html | codigo-padre.html |
 | `SISTEMA.HIJO_LISTO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
 | `SISTEMA.HIJO_PREPARADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |

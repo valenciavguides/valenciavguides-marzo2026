@@ -233,7 +233,8 @@ function analizar(rel, T, valoresValidos) {
                 const llamada = padre && (padre.type === 'CallExpression' || padre.type === 'NewExpression') && padre.arguments.includes(n)
                     ? L.textoDe(padre.callee.type === 'ChainExpression' ? padre.callee.expression : padre.callee) : null;
                 const destProp = prop('destino');
-                if (!(llamada && EMISION.test(llamada)) && !destProp && !prop('datos')) return;
+                // `idOriginal` marca el acuse que construye el propio bus (`enviarConfirmacion`).
+                if (!(llamada && EMISION.test(llamada)) && !destProp && !prop('datos') && !prop('idOriginal')) return;
                 let destino = null; // null = sin destino (envío local o dinámico)
                 let destinoLiteral = false;
                 if (destProp) {
@@ -248,6 +249,18 @@ function analizar(rel, T, valoresValidos) {
                 for (const c of candidatos(tipoProp.value, padres, n.start)) {
                     const reg = { rel, linea, llamada, crudo: c.crudo, tipo: c.tipo, destino, destinoLiteral, local };
                     if (c.tipo) emisores.push(reg); else sinResolver.push({ rel, linea, que: `emisor ${c.crudo}` });
+                }
+            }
+            // Lo que el propio bus atiende sin registrar un handler: compara `mensaje.tipo` con el tipo
+            // (acuses, latido, reenvío de errores). Cuenta como receptor del tipo en la tabla y en las
+            // listas de huérfanos, pero NO como handler de un frame: no oculta los envíos al vacío.
+            if (rel === 'js/mensajeria.js' && n.type === 'BinaryExpression' && ['===', '==', '!==', '!='].includes(n.operator)) {
+                const esTipo = (x) => x.type === 'MemberExpression' && !x.computed && x.property.name === 'tipo';
+                const otro = esTipo(n.left) ? n.right : (esTipo(n.right) ? n.left : null);
+                if (otro) {
+                    for (const c of candidatos(otro, padres, n.start)) {
+                        if (c.tipo) receptores.push({ rel, linea, llamada: 'comparación con .tipo', crudo: c.crudo, tipo: c.tipo, interno: true });
+                    }
                 }
             }
             if (n.type === 'CallExpression') {
@@ -305,6 +318,7 @@ async function main() {
     // --- emisiones al vacío y handlers inalcanzables
     const framesConHandler = new Map(); // tipo -> Set(frames)
     for (const r of receptores) {
+        if (r.interno) continue;
         if (!framesConHandler.has(r.tipo)) framesConHandler.set(r.tipo, new Set());
         for (const f of framesDe(r.rel)) framesConHandler.get(r.tipo).add(f);
     }
@@ -330,6 +344,7 @@ async function main() {
     const inalcanzables = [];
     const vistos = new Set();
     for (const r of receptores) {
+        if (r.interno) continue;
         const emisoresDelTipo = porTipo.get(r.tipo).emisores;
         for (const f of framesDe(r.rel)) {
             const clave = `${r.tipo}|${f}|${r.rel}:${r.linea}`;

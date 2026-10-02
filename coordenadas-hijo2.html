@@ -1476,11 +1476,6 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (mensaje) =
             return;
         }
 
-        // Actualizar estado interno
-        if (motivo === 'reto_abierto') {
-            estadoComponente.retoActivo = true;
-        }
-
         // Recalcular estados de todos los botones
         actualizarEstadoBotones();
 
@@ -1643,7 +1638,6 @@ try {
 
             // Mostrar UI ahora que el padre confirmó
             try { _uiConfirmado = true; mostrarUI(); } catch (e) { logger.warn('[hijo2] Error mostrando UI:', e && e.message); }
-            try { await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(e => logger.warn('[hijo2] Error confirmando UI_VISIBLE:', e && e.message)); } catch (e) { logger.warn('[hijo2] Error enviando UI_VISIBLE:', e && e.message); }
 
         } catch (error) {
             logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);

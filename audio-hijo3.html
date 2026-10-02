@@ -1270,11 +1270,6 @@
                 } catch (e) {
                     logger.debug(`${logPrefix} No se pudo forzar mostrarUI`, e && e.message);
                 }
-                try {
-                    enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch((err) => logger.debug(`${logPrefix} Confirmacion UI_VISIBLE no enviada`, err && err.message));
-                } catch (e) {
-                    logger.debug(`${logPrefix} Error armando confirmacion UI_VISIBLE`, e && e.message);
-                }
 
                 // 🔥 NUEVO: Procesar modo inicial si viene en datos
                 const { modoInicial } = mensaje.datos || {};
@@ -1548,18 +1543,6 @@
             }
         });
 
-        async function _manejarSimularClick(elemento, msg, logPrefix) {
-            const boton = document.getElementById(elemento);
-            if (boton) {
-                logger.info(`${logPrefix} ✅ Elemento ${elemento} encontrado, ejecutando click`);
-                boton.click();
-                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { accion: 'click_ejecutado', elemento, exito: true, timestamp: Date.now() } });
-            } else {
-                logger.warn(`${logPrefix} ⚠️ Elemento ${elemento} no encontrado`);
-                await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, datos: { codigo: 'ELEMENTO_NO_ENCONTRADO', mensaje: `Elemento ${elemento} no existe`, elemento, timestamp: Date.now() } });
-            }
-        }
-
         async function _manejarAudioControl(comando, audioId, msg, logPrefix) {
             logger.info(`${logPrefix} Ejecutando comando de audio: ${comando}`);
             try {
@@ -1589,30 +1572,23 @@
             } catch (error) {
                 // audioPlayer.play() puede rechazar (autoplay bloqueado por el navegador) y
                 // cargarYReproducirAudio() puede devolver exito:false (audio no encontrado,
-                // sin archivo configurado) sin lanzar — sin este catch y esta comprobación,
-                // ambos casos se perdían: la excepción subía al catch genérico del
-                // controlador (solo logueaba) o el exito:false se ignoraba y de todos modos
-                // se confirmaba exito:true más abajo. En ambos casos quien pidió el comando
-                // se quedaba esperando una respuesta que nunca llegaba, sin saber que falló.
+                // sin archivo configurado) sin lanzar: en los dos casos se avisa al padre con
+                // SISTEMA.ERROR (AUDIO_CONTROL_FALLIDO) en vez de perder el fallo en el log.
                 logger.warn(`${logPrefix} Comando de audio '${comando}' falló:`, error && error.message ? error.message : error);
                 await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, datos: { codigo: 'AUDIO_CONTROL_FALLIDO', mensaje: error && error.message ? error.message : String(error), comando, timestamp: Date.now() } });
                 return;
             }
-            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, datos: { accion: 'audio_control', comando, exito: true, timestamp: Date.now() } });
         }
 
-        // Controlador para acciones de UI desde botones horizontales
+        // Controlador para acciones de UI del padre (controles de audio del overlay)
         registrarControladorSeguro(TIPOS_MENSAJE.UI.ACCION_USUARIO, async (mensaje) => {
             const logPrefix = `[hijo3][UI.ACCION_USUARIO][${mensaje?.origen || 'desconocido'}]`;
             try {
-                const { accion, elemento, contexto, comando, audioId } = mensaje?.datos || {};
-                if (accion === 'simular_click' && elemento && contexto === 'boton_horizontal') {
-                    logger.info(`${logPrefix} Simulando click en ${elemento} desde boton horizontal`);
-                    await _manejarSimularClick(elemento, mensaje, logPrefix);
-                } else if (accion === 'audio_control') {
+                const { accion, comando, audioId } = mensaje?.datos || {};
+                if (accion === 'audio_control') {
                     await _manejarAudioControl(comando, audioId, mensaje, logPrefix);
                 } else {
-                    logger.warn(`${logPrefix} Acción no reconocida:`, { accion, elemento, contexto });
+                    logger.warn(`${logPrefix} Acción no reconocida:`, { accion });
                 }
             } catch (error) {
                 logger.error(`${logPrefix} Error procesando acción UI:`, error);
