@@ -171,31 +171,7 @@ export const CONFIG = {
     }
 };
 
-/**
- * Función para obtener configuración con valor por defecto
- * @param {string} ruta - Ruta de la configuración (ej: 'GPS.TIMEOUT')
- * @param {*} defecto - Valor por defecto si no existe
- * @returns {*} Valor de configuración
- */
-export function getConfig(ruta, defecto = null) {
-    const partes = ruta.split('.');
-    let valor = CONFIG;
-
-    for (const parte of partes) {
-        if (valor && typeof valor === 'object' && parte in valor) {
-            valor = valor[parte];
-        } else {
-            return defecto;
-        }
-    }
-
-    return valor;
-}
-
-// Hacer CONFIG disponible globalmente para debug
+// Hacer CONFIG disponible globalmente: lo lee js/logger.js (CONFIG.DEBUG.NIVEL_LOG) en cada llamada, en cada ventana
 if (globalThis.window !== undefined) {
     globalThis.__vv_config = CONFIG;
-    globalThis.__vv_getConfig = getConfig;
 }
-
-export default CONFIG;

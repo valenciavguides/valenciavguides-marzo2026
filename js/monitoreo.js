@@ -288,9 +288,3 @@ if (globalThis.window !== undefined) {
         getEstadoMonitoreo
     };
 }
-
-export default {
-    inicializarMonitoreo,
-    registrarMetrica,
-    getEstadoMonitoreo
-};
