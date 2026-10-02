@@ -4849,7 +4849,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0cf32715bb3d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c010eb4587c6'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6306,9 +6306,9 @@ Antes de mostrar P14, `En-busca-del-tesoro.html` comprueba el permiso GPS con `n
 
 #### Si la posición inicial no llega a tiempo: fallback al punto de inicio
 
-`activarGPS()` intenta obtener una posición inicial de alta precisión con `_obtenerPosicionInicialGPS()`: hasta `CONFIG.GPS.HIGH_ACC_INIT_ATTEMPTS` intentos (por defecto 3) de `getCurrentPosition()`, cada uno con timeout creciente (`INIT_ATTEMPT_TIMEOUT_MS × 1.8^intento`, por defecto 8000ms base — ≈8s/14s/26s, ≈48s en el peor caso: presupuesto pensado para un GPS en frío al aire libre en el centro histórico de Valencia, donde calles estrechas y edificios altos retrasan la primera adquisición de posición). `CONFIG.GPS.REJECT_ACCURACY_M` no está definido, así que el umbral de precisión equivale a `Infinity` en la práctica — este fallback solo se activa cuando `getCurrentPosition()` **falla** en todos los intentos (permiso denegado, sin señal, timeout), no por baja precisión.
+`activarGPS()` intenta obtener una posición inicial de alta precisión con `_obtenerPosicionInicialGPS()`: 3 intentos (`maxAttempts`) de `getCurrentPosition()`, cada uno con timeout creciente (`8000 ms × 1.8^intento` — ≈8s/14s/26s, ≈48s en el peor caso: presupuesto pensado para un GPS en frío al aire libre en el centro histórico de Valencia, donde calles estrechas y edificios altos retrasan la primera adquisición de posición). El umbral de precisión es `Infinity` — este fallback solo se activa cuando `getCurrentPosition()` **falla** en todos los intentos (permiso denegado, sin señal, timeout) o devuelve una lectura sin `accuracy` numérico, no por baja precisión.
 
-**`globalThis.Config` no se asigna en ningún archivo del proyecto**, ni tampoco existen `HIGH_ACC_INIT_ATTEMPTS`/`INIT_ATTEMPT_TIMEOUT_MS`/`REJECT_ACCURACY_M` en `js/config.js`. Los valores de arriba son, en la práctica, los únicos que se usan — no hay ningún sitio real donde configurarlos salvo editando directamente los `||` por defecto en `_obtenerPosicionInicialGPS()`.
+Los tres valores (3 intentos, 8000 ms de base y ningún umbral de precisión) son literales de `_obtenerPosicionInicialGPS()`: `js/config.js` no define campos para ellos, y no hay otro sitio donde configurarlos que esos literales.
 
 Cuando el fallback se activa, pasan dos cosas:
 
@@ -8088,7 +8088,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-0cf32715bb3d'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c010eb4587c6'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8826,7 +8826,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-0cf32715bb3d';
+const CACHE_VERSION = 'v-c010eb4587c6';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8971,7 +8971,7 @@ Es diagnóstico, no una pantalla pensada para un cliente final: expone un mensaj
 **Dónde se dispara:** en dos sitios, cubriendo tanto la pérdida de señal durante la aventura como el fallo de la primera búsqueda de posición.
 
 1. Desde `_watchPositionError` (el `watchPosition` continuo) y los botones de reintento manual del propio overlay — la señal se pierde mientras el usuario ya está en marcha.
-2. Desde `_obtenerPosicionInicialGPS()`: si los `HIGH_ACC_INIT_ATTEMPTS` intentos de `getCurrentPosition()` fallan todos, dispara el overlay con el error real del último intento (o un mensaje genérico si el fallo fue por precisión insuficiente, sin error de navegador propiamente dicho) antes de aplicar el fallback a coordenadas de inicio en `_aplicarFallbackCoordenadasGPS()`. `_gpsIntentarPosicion()` devuelve `{ok, error}` en vez de un booleano suelto precisamente para que este segundo punto tenga acceso al error real de cada intento.
+2. Desde `_obtenerPosicionInicialGPS()`: si los 3 intentos de `getCurrentPosition()` fallan todos, dispara el overlay con el error real del último intento (o un mensaje genérico si el fallo fue por precisión insuficiente, sin error de navegador propiamente dicho) antes de aplicar el fallback a coordenadas de inicio en `_aplicarFallbackCoordenadasGPS()`. `_gpsIntentarPosicion()` devuelve `{ok, error}` en vez de un booleano suelto precisamente para que este segundo punto tenga acceso al error real de cada intento.
 
 **Posicionamiento del texto:** `#gps-signal-overlay img` es `position:absolute; width:100%; height:100%; z-index:1000` — cubre toda la tarjeta. Por eso `#gps-signal-detalle`, igual que el botón de reintentar y la cuenta atrás, necesita su propio `position:absolute` con `z-index` por encima de la imagen (1015, entre la imagen y el resto de controles) para ser visible — cualquier elemento en flujo normal sin ese tratamiento queda pintado detrás de la imagen aunque exista en el DOM. Se muestra como píldora oscura semitransparente con texto blanco en la parte superior de la tarjeta, mismo tratamiento visual que la cuenta atrás, para leerse encima de cualquier imagen de fondo.
 
@@ -12186,7 +12186,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-0cf32715bb3d';
+const CACHE_VERSION = 'v-c010eb4587c6';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12283,7 +12283,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 **Diferencia entre código 2 y código 3:**
 
 - Código 2 (POSITION_UNAVAILABLE, GPS apagado): sin reintento automático. El `watchPosition` queda registrado y el browser lo retomará cuando el GPS vuelva.
-- Código 3 (TIMEOUT): reintento automático en `_gpsRetryOnTimeout()` — hasta `globalThis.Config?.GPS?.REINTENTOS || 3` intentos; `Config.GPS` no define ningún campo `REINTENTOS` (ver §29.1), así que esa lectura siempre resuelve `undefined` y el valor real usado es siempre el fallback hardcodeado, **3** — con `enableHighAccuracy: false` y backoff exponencial. Cada reintento reutiliza `_watchPositionSuccess`/`_watchPositionError` como callbacks del nuevo `watchPosition` (no una copia propia): si ese reintento también agota el tiempo, `_watchPositionError` se ejecuta de nuevo y encadena el siguiente intento hasta agotar el máximo — el conteo de reintentos y el encadenado son consistentes en toda la cadena, no solo en el primer intento.
+- Código 3 (TIMEOUT): reintento automático en `_gpsRetryOnTimeout()` — hasta **3** intentos (`MAX_REINTENTOS_GPS`, un literal: `CONFIG.GPS` de `js/config.js` no define ningún campo para ello) — con `enableHighAccuracy: false` y backoff exponencial. Cada reintento reutiliza `_watchPositionSuccess`/`_watchPositionError` como callbacks del nuevo `watchPosition` (no una copia propia): si ese reintento también agota el tiempo, `_watchPositionError` se ejecuta de nuevo y encadena el siguiente intento hasta agotar el máximo — el conteo de reintentos y el encadenado son consistentes en toda la cadena, no solo en el primer intento.
 
 **Qué ve el usuario:** overlay a pantalla completa con `imagen-no-gps.png`. El botón de reintento distingue visualmente entre los dos códigos, cada uno con su propio icono:
 

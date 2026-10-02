@@ -4083,7 +4083,7 @@
         // CONFIGURACIÓN DEL COMPONENTE PADRE (compartida con Script 2)
         // ============================================================
         globalThis.CONFIG_PADRE = {
-            ID: (globalThis.Config && globalThis.Config.ID_PADRE) ? globalThis.Config.ID_PADRE : 'padre',
+            ID: 'padre',
             COMPONENTE_ID: 'PADRE-PRINCIPAL',
             VERSION: '3.0.0',
             DEBUG: true,
@@ -5532,16 +5532,14 @@
         async function _obtenerPosicionInicialGPS(est, logPrefix) {
             try {
                 if (navigator.geolocation && typeof navigator.geolocation.getCurrentPosition === 'function') {
-                    // globalThis.Config nunca se asigna en ningún archivo del proyecto (ni
-                    // tampoco existen estos 3 campos en js/config.js) — gpsCfg es siempre {}
-                    // y estos valores por defecto son, en la práctica, los únicos que se usan.
                     // Subidos tras confirmar en producción real (móvil, centro histórico) que
                     // 2 intentos/~14s totales eran insuficientes para un GPS en frío al aire
-                    // libre — ver auditoría GPS 2026-07-23.
-                    const gpsCfg = (globalThis.Config && globalThis.Config.GPS) ? globalThis.Config.GPS : {};
-                    const maxAttempts = Number(gpsCfg.HIGH_ACC_INIT_ATTEMPTS || 3);
-                    const baseTimeout = Number(gpsCfg.INIT_ATTEMPT_TIMEOUT_MS || 8000);
-                    const acceptThreshold = gpsCfg.REJECT_ACCURACY_M || Infinity;
+                    // libre — ver auditoría GPS 2026-07-23. No salen de CONFIG (js/config.js no
+                    // define estos campos): 3 intentos, 8000 ms de base y sin umbral de precisión,
+                    // de modo que solo una lectura sin `accuracy` numérico cuenta como insuficiente.
+                    const maxAttempts = 3;
+                    const baseTimeout = 8000;
+                    const acceptThreshold = Infinity;
                     let initialAccepted = false;
                     let ultimoError = null;
                     for (let i = 0; i < maxAttempts; i++) {
@@ -5633,11 +5631,10 @@
 
         function _gpsDoRetrySetup(est, logPrefix, maxReintentos) {
             est.gps.retries += 1;
-            const gpsCfg = globalThis.Config?.GPS || { ENABLE_HIGH_ACCURACY: true, TIMEOUT_MS: 15000 };
             const newOptions = {
                 enableHighAccuracy: false,
-                timeout: Math.min((gpsCfg.TIMEOUT_MS || 15000) * Math.pow(2, est.gps.retries - 1), 60000),
-                maximumAge: gpsCfg.MAXIMUM_AGE_MS || 0
+                timeout: Math.min(15000 * Math.pow(2, est.gps.retries - 1), 60000),
+                maximumAge: 0
             };
             (globalThis.logger || console).info(`${logPrefix} Reintentando watchPosition (intento ${est.gps.retries}/${maxReintentos}) con opciones:`, newOptions);
             try { if (est.gps.watchId !== null) navigator.geolocation.clearWatch(est.gps.watchId); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
@@ -5650,7 +5647,7 @@
 
         function _gpsRetryOnTimeout(error, est, logPrefix) {
             try {
-                const MAX_REINTENTOS_GPS = globalThis.Config?.GPS?.REINTENTOS || 3;
+                const MAX_REINTENTOS_GPS = 3;
                 est.gps.retries = est.gps.retries || 0;
                 if (error.code === error.TIMEOUT && est.gps.retries < MAX_REINTENTOS_GPS) {
                     _gpsDoRetrySetup(est, logPrefix, MAX_REINTENTOS_GPS);
@@ -10043,9 +10040,9 @@ await _comprobarReanudacionAventura(logPrefix);
             return DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(e => e.padreid === padreIdOrParadaId || e.padreid === `padre-${idClean}` || e.parada_id === padreIdOrParadaId || e.parada_id === idClean || e.tramo_id === padreIdOrParadaId || e.tramo_id === idClean);
         }
 
-        function _buildPendingConfig(elemento, globalPendingCfg) {
+        function _buildPendingConfig(elemento) {
             const cfg = elemento.pending || elemento.pendingConfig || {};
-            const ttlMs = typeof cfg.TTL_MS === 'number' ? cfg.TTL_MS : (globalPendingCfg.TTL_MS || 10 * 60 * 1000);
+            const ttlMs = typeof cfg.TTL_MS === 'number' ? cfg.TTL_MS : 10 * 60 * 1000;
             return { ttlMs };
         }
 
@@ -10055,8 +10052,7 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!estado.pendingCompleciones) estado.pendingCompleciones = {};
             if (!estado.pendingCompleciones[key]) {
                 const elemento = findElementoPorPadreId(key) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.padreid === key || p.parada_id === key || p.tramo_id === key) || {};
-                const globalPendingCfg = (globalThis.Config && globalThis.Config.PENDING) ? globalThis.Config.PENDING : {};
-                const { ttlMs } = _buildPendingConfig(elemento, globalPendingCfg);
+                const { ttlMs } = _buildPendingConfig(elemento);
                 const retosIds = obtenerRetosIds(elemento);
                 estado.pendingCompleciones[key] = { tipo: tipo || 'parada', llegada: false, audio: false, reto: false, retosTotal: retosIds.length, retosCompletadosCount: 0, timestamp: Date.now(), destinoCoords: null, ttlMs };
                 (async () => {
@@ -10105,7 +10101,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (fromElemento) { pending.destinoCoords = fromElemento; return pending.destinoCoords; }
 
                 const paradaId = (elemento && (elemento.parada_id || elemento.tramo_id)) || String(pendKey).replace(/^padre-/, '');
-                const timeoutMs = (globalThis.Config?.PENDING?.CLEANUP_INTERVAL_MS) ? Math.max(globalThis.Config.PENDING.CLEANUP_INTERVAL_MS * 0.5, 2000) : 5000;
+                const timeoutMs = 5000;
                 const coordsResponse = await solicitarCoordenadasHijo('hijo2', { paradaId, padreId: pendKey }, timeoutMs).catch(_err => null);
                 const fromResponse = _normalizarCoordsRespuesta(coordsResponse);
                 if (fromResponse) { pending.destinoCoords = fromResponse; return pending.destinoCoords; }

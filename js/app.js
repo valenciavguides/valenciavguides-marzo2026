@@ -404,7 +404,8 @@ async function _reanudarSubsistemasTrasPrewarm(estado) {
 }
 
 async function _prewarmAventura(estado) {
-    const cfgConfirmTimeout = globalThis.Config?.MENSAJERIA?.TIMEOUTS?.CONFIRMACION || 10000;
+    // 10 s de espera a los hijos tras el pre-warm. CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION (5 s) no se lee aquí: ver docs/estudio-caminos.md (K-01).
+    const cfgConfirmTimeout = 10000;
     const promises = [];
 
     try {
