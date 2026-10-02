@@ -46,7 +46,7 @@ por impecable que parezca encadenado.
 **Ronda 2 (2026-10-01).** La metodología de arriba es la de la ronda 1 (`grep` e inventario). La
 ronda 2, al final de este documento, repite el barrido con parser real (`acorn`) y con el residuo
 de cada instrumento a la vista: desmiente siete afirmaciones de este texto (erratas E1-E7, con una
-nota fechada en cada sección afectada), corrige dos de la propia ronda (E8 y E9) y añade 47 entradas (K-01 a K-47) para su estudio
+nota fechada en cada sección afectada), corrige dos de la propia ronda (E8 y E9) y añade 48 entradas (K-01 a K-48) para su estudio
 individual. Léase junto con ella: lo que aquí se dio por cerrado o limpio puede no estarlo.
 
 **No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
@@ -624,7 +624,7 @@ lleva pegado el comando de comprobación que cualquiera puede repetir con `grep`
 | CSS/DOM | variables CSS definidas/usadas por documento, ids pedidos vs definidos, `CustomEvent` | 34 variables, 0 ids fantasma, 3 eventos propios (K-13, K-14, K-33) |
 | clases CSS | clases que el JS pone sin regla ni lectura, y reglas cuya clase nadie usa | 3 clases fantasma, ~70 reglas sin uso (con falsos positivos por nombres compuestos, K-33) |
 | destinos del bus | cada emisión de `destino` literal frente a los frames que registran handler del tipo, y a la inversa | 5 tipos con emisiones al vacío (3 falsos positivos descartados), 5 handlers inalcanzables (K-35) |
-| carga útil | claves que lee cada handler frente a las que mandan los emisores; valores literales comparados frente a valores mandados | 93 tipos, 31 comparaciones; 14 tipos con claves leídas sin emisor, 3 ramas muertas (K-36) |
+| carga útil | claves que lee cada handler frente a las que mandan los emisores; valores literales comparados frente a valores mandados | 93 tipos, 31 comparaciones; 14 tipos con claves leídas sin emisor, 3 ramas muertas (K-36); sobre `HEAD`, 92 tipos, 28 comparaciones y 12 tipos (`extract-payload` y `extract-discriminadores` leían `TIPOS_MENSAJE_VALIDOS`, que K-37 retiró: con el conjunto vacío daban 0 tipos y ningún informe; corregidos, G-43) |
 | constants.js | lectores por ruta de cada hoja de los 9 objetos exportados y literales crudos con su valor | 177 hojas, 75 sin lector; 140 `destino: 'padre'` crudos (K-37) |
 | globals por frame | por página: los ficheros que ejecuta (inline, `import` estáticos y dinámicos con literal, `<script src>`); nombres sueltos sin resolver (`eslint-scope`), `globalThis.X` leídos sin escritura en el frame, lecturas `parent.X`/`contentWindow.X`; y el uso real de la lista `globals` de `eslint.config.js` | 17 páginas, 48 ficheros, 2195 usos de `globalThis.X`; residuo: 0 bloques sin parsear, 1 `import()` no literal, 1 asignación computada (K-38, K-39, K-34) |
 | API e imports | por cada import (estático con nombre o por defecto, `import * as` con sus miembros, `await import()` desestructurado, `(await import()).X`, `.then`): que el módulo exporte el nombre pedido; por cada objeto-API publicado en `globalThis` con claves derivables: los miembros pedidos que no son clave | 97 + 8 + 68 + 3 usos de import, 0 nombres sin exportar; 20 objetos-API, 1 miembro inexistente (K-38) |
@@ -634,8 +634,10 @@ lleva pegado el comando de comprobación que cualquiera puede repetir con `grep`
 | recursos locales | cadenas JS, atributos HTML, `url()`, `sw.js` y `manifest.json` que apuntan a ficheros locales, frente al disco | 491 referencias en 50 ficheros, 81 nombres sueltos resueltos por nombre base, 1 inexistente, 16 con `${…}` sin resolver (K-44) |
 | listeners duplicados | `addEventListener` sobre `window`/`document` agrupados por (objetivo, evento) dentro del cierre de ficheros de cada frame | 12 pares con varios sitios en el padre, 1 en la selección, 2 en el puzzle; 4 deciden lo mismo dos veces (R2.3, K-04, K-11, K-40); residuo 3 eventos no literales |
 | contratos menores | cadenas de respaldo con `\|\|`/`??` y varias fuentes de un mismo dato; handlers registrados dos veces en un frame; parámetros de URL leídos frente a escritos | 152 cadenas (12 con varias fuentes); 144 receptores sin duplicados; 7 parámetros leídos y 12 escritos (R2.3, K-36) |
-| guía frente a código | por cada frame (padre, selección, hijo1 a hijo6): los tipos que el código registra y emite frente a las filas de las tablas de handlers y de salientes de §26.12 y a los tipos que mencionan §7 y §8 (`guia-handlers-por-frame.cjs`, añadido al cerrar la tanda: mide contra `HEAD`) | antes de G-34 a G-42: 48 handlers de 62 en el padre, y 4 de 9, 4 de 9, 10 de 18, 8 de 10, 8 de 16, 5 de 9 y 5 de 6 en la selección y los hijos; después, tantos en la guía como en el código en los ocho frames (K-46, G-34 a G-42) |
+| guía frente a código | por cada frame (padre, selección, hijo1 a hijo6): los tipos que el código registra y emite frente a las filas de las tablas de handlers y de salientes de §26.12 y de las tablas de §7 y §8, y a los tipos que mencionan las tres secciones (`guia-handlers-por-frame.cjs`, añadido al cerrar la tanda: mide contra `HEAD`) | antes de G-34 a G-42: 48 handlers de 62 en el padre, y 4 de 9, 4 de 9, 10 de 18, 8 de 10, 8 de 16, 5 de 9 y 5 de 6 en la selección y los hijos; después, tantos en la guía como en el código en los ocho frames (K-46, G-34 a G-42); con las tablas de §7 y §8, una fila falsa más (hijo1 mandaba `MONITOREO.METRICA`, G-43) |
 | handlers solo-log | de cada registro de handler del bus, si su función solo escribe en el log (`handlers-solo-log.cjs`, añadido al cerrar la tanda) | 140 registros: 136 analizados, 15 solo-log, 0 que además devuelvan un valor; residuo 4 (K-46) |
+| guía frente a código: fichas | la tabla de cobertura por hijo de §10.7 celda por celda frente a los handlers del código (sale con código 1 si no cuadra) y las filas «Emitido por» y «Handler en …» de las fichas de §10 junto a lo que registra y emite cada frame (`guia-fichas-mensaje.cjs`, añadido al cerrar la tanda; `ESTUDIO_GUIA` apunta a otra copia de la guía) | contra la guía anterior a G-43: 3 discrepancias en §10.7; contra la actual, 0 (G-43) |
+| guía frente a código: payloads | las claves de las celdas «Payload» de §7, §8 y §10 frente a las que mandan los emisores del código (`guia-payloads.cjs`, añadido al cerrar la tanda; necesita `payload.json`) | contra la guía anterior a G-43: 38 de 222 filas con claves que ningún emisor manda; contra la actual, 7 de 221, todas leídas a mano (cinco de emisor opaco —`datos` no literal—, `UI.CLOSE_MENUS` padre → hijo1, que no tiene emisor, y `CHAT.ESTADO_PADRE`) (G-43) |
 
 Además se han ejecutado las herramientas propias del repo que esta auditoría no había usado:
 `node tools/codigo-muerto.js`, `node tools/verificar-mensajeria.js`, `node tools/verificar-frames.js`.
@@ -1723,7 +1725,7 @@ propósito". Método: `ficherosDelShell()` contra el literal de `APP_SHELL`.
 - **Clases CSS (instrumento de clases):** el JS pone tres clases que ninguna regla del documento
   menciona y ninguna lectura usa: `deshabilitado` (`retos-hijo4.html:1534, 1557, 1564`: el efecto
   visual lo da `button:disabled`, la clase es un segundo mecanismo sin efecto), `img-fallback`
-  (`codigo-padre.html:1993, 9739`) y `activa` (hijo5). Reglas cuya clase no aparece en el HTML ni en
+  (`codigo-padre.html:1993, 9739`) y `activa` (hijo5: es lo único que pone su handler de `NAVEGACION.CAMBIO_PARADA`; K-48). Reglas cuya clase no aparece en el HTML ni en
   el JS del documento: padre 6 (todo el componente `#notification-container`/`.notification*`,
   `:256-330`, sin elemento ni JS que lo use), hijo2 15 (`.icon-gps`, `.icon-imagen`,
   `.icon-video`, `.gps-activo`, `.gps-inactivo`, `.ubicacion-btn`, `.boton .label-text`…), selección 6,
@@ -2594,8 +2596,9 @@ Un barrido más, hecho al cerrar la tanda de arreglos: lo encontró un spec que 
 #### Familia Q — Handlers que existen y no hacen lo que su descripción dice
 
 Un barrido más, hecho al contrastar las tablas de handlers de la guía (§26.12) con el código, frame por frame: dos extractores nuevos
-(`guia-handlers-por-frame.cjs` y `handlers-solo-log.cjs`) y la lectura de cada handler dieron estas dos entradas y las discrepancias
-G-34 a G-42.
+(`guia-handlers-por-frame.cjs` y `handlers-solo-log.cjs`) y la lectura de cada handler dieron las dos primeras entradas y las discrepancias
+G-34 a G-42; el barrido de las fichas de §10 y de las tablas de §7 y §8 (`guia-fichas-mensaje.cjs`, `guia-payloads.cjs`) dio la tercera, K-48,
+y G-43.
 
 ##### K-46 — Handlers del bus que solo escriben en el log — ✅ (decisión abierta)
 
@@ -2652,6 +2655,35 @@ G-34 a G-42.
 - **Pendiente: decisión** (la opción A cambia lo que ve el usuario). *A) escribir la clase también en `_resetarEstadoParaModo`* (una
   línea, igual que hijo3 y hijo4): el botón de avanzar activo pulsaría en AVENTURA, como la regla preveía. *B) retirar la regla y la
   clase de hijo2* — **recomendada**: no cambia nada de lo que se ve hoy y deja una sola fuente del modo, `estadoComponente.modo`.
+
+##### K-48 — hijo5 marca la parada activa por tres caminos que no se ponen de acuerdo — ✅ (medido: M-18; decisión abierta)
+
+- **Dónde.** `boton-casa-hijo5.html`. El botón de una parada o tramo se marca como el actual en tres sitios: el click del propio botón
+  (`_crearOnclickHandler`, `:397-398`) y la generación de los botones, si hay `estado.paradaActualIndex` (`:645-646`), ponen la clase
+  `actual`; el handler de `NAVEGACION.CAMBIO_PARADA` (`:1077-1097`, que llama a `_resaltarBotonParada`, `:564-577`) pone la clase `activa`; y
+  el de `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` (`:1137-1175`) compara `btn.dataset.padreid` con la parada, pone `actual` al que coincide y se
+  la quita a los demás.
+- **Lo que no cuadra.** (1) Solo `.parada-tramo-btn.actual` tiene regla CSS (`:265`). Búsqueda desnuda de `activa` en los ficheros
+  rastreados (salvo docs y tests): como clase aparece solo en esas dos líneas de hijo5 y, sin relación, en las flechas de la galería del
+  padre (`.galeria-flecha-icono.activa`); ninguna regla estila `activa` ni ningún código la lee. Lo único que hace el handler de
+  `CAMBIO_PARADA` de hijo5 es esa clase. (2) `data-padreid` no lo asigna nadie: `_crearBotonParada` (`:427-460`) pone `data-punto-index`,
+  `data-punto-tipo` y `data-punto-id`. El handler de `CAMBIO_PARADA_CONFIRMADO` compara contra algo que siempre es `undefined`: no coincide
+  ningún botón y solo quita `actual` a todos.
+- **Medido (M-18).** Con el padre y hijo5 reales (`cargarHijoCasa`, tres paradas): tras un `NAVEGACION.CAMBIO_PARADA` el botón 2 tiene
+  `parada-tramo-btn parada-btn activa` y su estilo calculado (fondo, borde, color, sombra, transformación, peso) es **idéntico** al de antes;
+  tras un click real en el botón 3 lleva `actual` y su estilo cambia; tras un `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` con la forma que
+  construye `completarCambioParada()` (`paradaId` con y sin el prefijo `padre-`) la clase `actual` desaparece y el estilo vuelve al de antes
+  del click. Ningún botón tiene `data-padreid`.
+- **Consecuencia.** En CASA, con hijo5 a la vista (modo de desarrollo, ver §24), el resalte que pone el click sobre un botón se borra
+  cuando llega la confirmación del padre, y un cambio de parada que no empieza en hijo5 no se refleja en la barra. Es el mismo hecho,
+  «qué parada es la actual», escrito por tres caminos: dos con clases distintas y uno que no puede marcar. La guía decía que
+  `CAMBIO_PARADA` «marca el botón con `.activo`» y que `CAMBIO_PARADA_CONFIRMADO` «marca como `actual`» (G-43).
+- **Pendiente: decisión** (A y B cambian lo que se ve en la herramienta de desarrollo, no en la aplicación del usuario). *A) una sola
+  función que marque `actual`* (por el índice de `estado.aventuraParadas`, como ya hace `_resaltarBotonParada`) y que llamen los tres
+  caminos: el resalte sobrevive a la confirmación y sigue los cambios que vienen del padre — **recomendada**. *B) dejar solo el click y la
+  generación y retirar los dos handlers de marcado* (el de `CAMBIO_PARADA` de hijo5 y el bucle de `CAMBIO_PARADA_CONFIRMADO`, y con ellos
+  el envío de `CAMBIO_PARADA` a hijo5 de `_notificarCambioParadaHijos`): el resalte lo pone el click y se queda. *C) dejarlo*, si hijo5
+  se retira o no se usa.
 
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
@@ -2725,8 +2757,8 @@ Para que "no sale nada" no se confunda con "no se miró":
 
 ### R2.4 Las mediciones (hechas el 2026-10-02)
 
-Las doce mediciones que la ronda 2 dejó "POR MEDIR" (M-1 a M-12) y cinco más que salieron al arreglar
-(M-13 a M-17) se ejecutaron el 2026-10-02, salvo M-8, que es de campo. Se hicieron con el OK del
+Las doce mediciones que la ronda 2 dejó "POR MEDIR" (M-1 a M-12) y seis más que salieron al arreglar
+(M-13 a M-18) se ejecutaron el 2026-10-02, salvo M-8, que es de campo. Se hicieron con el OK del
 usuario ("ok a todo, revisa y arregla"), sin nada más corriendo (regla 5) y con specs desechables en
 chromium sobre la app real (el padre con el stub de MapLibre y los hijos reales). Los specs de medición
 no se versionan: cada fila dice qué se hizo, que es lo que hay que repetir. Donde la medición pedía una
@@ -2753,12 +2785,13 @@ después.
 | M-15 | K-45 | (nueva, salió al cerrar la tanda) Primera y segunda apertura del asistente: construcciones del FAQ de hijo6, llegada del estado del padre y `error` de rescate | 1.ª apertura: dos construcciones (a los 27 y a los 61 ms de cargar el iframe), `SISTEMA.PADRE_DATOS` a los 61 ms con 8 claves y `rescate`, **un** `error` «El padre no ha mandado el estado del rescate» y 47 botones de pregunta. 2.ª apertura: ningún `error` nuevo y una reconstrucción completa, al llegar `CHAT.ESTADO_PADRE`. ✅ |
 | M-16 | K-35 | (nueva, salió al cerrar) ¿Recibe el padre algún `SISTEMA.HEARTBEAT`? Con el padre y los hijos reales, un `message` en captura en el padre para todo `SISTEMA.HEARTBEAT` que llegue de otra ventana y un espía de `despacharLocal`, durante el arranque, la carga de los hijos, el paso a AVENTURA y a CASA y un `visibilitychange` | `entrantes: []` y `locales: 0`; 18 `SISTEMA.HEARTBEAT_RESPONSE` en la misma ventana, como control de que el oyente ve lo que llega de los hijos. ✅ confirmada y corregida (`e3a9cff`) |
 | M-17 | K-47 | (nueva, salió al cerrar) Clase del `body` de hijo2, hijo3 y hijo4 tras el arranque, tras pasar a AVENTURA, tras volver a CASA y de nuevo a AVENTURA (el padre cambia el modo con `despacharLocal`) | `hijo2`: `modo-casa hijo2-container` las cuatro veces; `hijo3` y `hijo4` siguen el modo (`modo-casa`, `modo-aventura`, `modo-casa`, `modo-aventura`). ✅ confirmada; decisión abierta |
+| M-18 | K-48 | (nueva, salió al cerrar) En hijo5 con tres botones de parada: clases y estilo calculado del botón tras un `NAVEGACION.CAMBIO_PARADA` del padre, tras un click real y tras un `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` con la forma de `completarCambioParada()` (`paradaId` con y sin prefijo `padre-`) | `CAMBIO_PARADA`: el botón 2 gana la clase `activa` y su estilo calculado no cambia; click: el botón 3 gana `actual` y su estilo cambia; `CAMBIO_PARADA_CONFIRMADO`: `actual` desaparece y el estilo vuelve al anterior, con las dos formas del id; ningún botón tiene `data-padreid`. ✅ confirmada; decisión abierta |
 
 ### R2.5 Discrepancias entre la guía (o comentarios de código) y el código — para decidir
 
 La guía "se consulta siempre y no se cree nunca" (CLAUDE.md regla 8). Estas son las contradicciones que la ronda tropezó,
 cada una verificada contra el código. **Las 18 se corrigieron en la tanda de arreglos del 2026-10-02**, junto con las que la
-propia tanda fue encontrando (G-19 a G-42, tabla de estado más abajo); la tabla de aquí conserva lo que decían y lo que había:
+propia tanda fue encontrando (G-19 a G-43, tabla de estado más abajo); la tabla de aquí conserva lo que decían y lo que había:
 
 | # | Dónde | Dice | El código |
 |---|---|---|---|
@@ -2826,6 +2859,7 @@ código leído ese día; los hashes son de los commits locales (sin pushear).
 | G-40 | ✅ | `c40ecd0`: el recuento de handlers con `permanente: true` (57 = 52 + 2 + 3) no cuadraba con el árbol: 60 = 55 + 2 + 3; y §10 decía que `RESPUESTA_COORDENADAS` «resuelve la promesa pendiente de `enviarMensajeConConfirmacion`», cuando guarda las coordenadas en `estadoMapa.datosRecopilados` y completa el cambio de parada |
 | G-41 | ✅ | `f151ca3`: §26.12.3 a §26.12.9: 33 handlers y 43 mensajes salientes que las tablas de la selección y los seis hijos no tenían, y 36 filas falsas o incompletas (hijo1 «se muestra o se oculta según el modo», hijo4 «oculta o muestra el reto», hijo5 al revés, `CONTROL.*` de hijo2 «muestra el iframe», `UI.ACCION_USUARIO` de hijo3 con un acuse que no manda, `IDIOMA_SELECCIONADO` en P3…); sección nueva §26.12.10 para los tres nietos |
 | G-42 | ✅ | `f151ca3`: §7.1, §7.2, §7.3 y §2.9: la selección «no participa en el ciclo de modos»; `#icono-temporizador` «solo en AVENTURA y se oculta en CASA» (nada lo oculta); hijo2 «cambia la clase CSS del body» en `CAMBIO_MODO` (solo la fija `PADRE_DATOS`: K-47, M-17) y «carga coordenadas desde `coordenadas-aventuras.js`» (las recibe del padre); hijo5 en AVENTURA «lista de paradas actualizada» (la ventana está oculta) |
+| G-43 | ✅ | `4ff98d5`: las fichas por mensaje de §10, las tablas de los siete frames de §7 y §8 y la tabla 10.7 repetían lo que §26.12 dice de cada handler y en varios puntos decían otra cosa. Modo: `CAMBIO_MODO` como `broadcast` con `aventura` e `idioma` y cinco handlers (son la orden al padre, `{ modo }`, y el aviso por hijo, `{ modo, mensajeId }`, y lo atienden siete frames); `EFECTUADO` sin la selección, hijo5 ni hijo6 y con una nota de que hijo6 no lo manda (lo manda); `APLICADO` en cuatro hijos y con efecto (seis frames, solo log). Fichas: `IDIOMA_SELECCIONADO` que «propaga a los hijos», `TERMINOS_ACEPTADOS` que «desbloquea el botón», `GPS.ACTIVAR` que llama a `revelarNavegacion`, `RETO.MOSTRADO` que toca `estado.retoActual`, `AUDIO.ERROR` que «no desbloquea flujo» (llama a `_marcarAudioNoDisponible`), `TEMPORIZADOR.TOGGLE` que pausa el temporizador, `HIJO_LISTO` que reenvía el modo, `SOLICITAR_DATOS_PARADAS` que lee `__vv_DATOS_AVENTURAS`, `MONITOREO.METRICA` mandada por cuatro hijos y guardada en un historial que no existe (la manda hijo2) y `UI.ACCION_USUARIO` mandada por hijo3 (la recibe). §8: `GPS.ERROR` y `GPS.ESTADO_ACTUALIZADO` de hijo2 que «muestran un overlay», `NOTIFICACION` de hijo4 que «limpia el reto», `SISTEMA.ERROR` de hijo5 que «reintenta», `CAMBIO_MODO` de hijo6 «sin acción» y el de hijo2 que «cambia la clase del body» (K-47). §7: hijo1 no manda `MONITOREO.METRICA`. §10.7: ❌ a hijo5 en `APLICADO`, ✅ a hijo4 en `RETO.OCULTAR` (lo manda, no lo atiende) y — a hijo2 en `RESPUESTA_DATOS_PARADAS`. Y 31 filas de payload con claves que ningún emisor manda (`HIJO_PREPARADO` y `HIJO_LISTO` con `componenteId`, `version` o `iframeId` que no llevan todos, `HEARTBEAT_RESPONSE` con `componente`, `AUDIO.*` con `parada_id` y `duracion`, `UI.ACCION_USUARIO` con `accion: 'video'`, `MOSTRAR_MAPA_VINTAGE` con `url` y `paradaActual`…). M-18 y K-48: hijo5 marca la parada con una clase sin estilo |
 
 ### R2.6 Censo de frames (regla 3b)
 
@@ -2842,7 +2876,7 @@ que la tanda de arreglos tocó, y lo que no, está debajo de la tabla.
 | `coordenadas-hijo2.html` | E1, K-02 (único lector de `GPS.PRECISION_MINIMA`), K-05, K-06, K-08, K-15, K-24 (escribe `__vv_idiomaActual`), K-25 (3 `title`), K-26, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío), K-36 (`motivo === 'reto_abierto'`), K-37 (32 `destino: 'padre'`, 17 modos crudos), K-38 (`incrementarContador`, `:2227`), K-41 (`estadoComponente.radioLlegada`/`.recorridoSuficiente`/`.botonesActivos.ubicacion`, por leer), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor), K-43 (lectura inline del id de `CAMBIO_PARADA`) | `alert()`: 0; ids DOM: 0; `globalThis.logger` publicado (`:436`) |
 | `audio-hijo3.html` | E3, K-15, K-28, K-35 (emite `SISTEMA.CONFIRMACION` al vacío ×3), K-36 (`simular_click` sin emisor), K-37 (18 `destino: 'padre'`), K-38 (diagnóstico `TIPOS_MENSAJE_exists`, `:1380-1381`), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor) | `alert()`: 0; literales: 0; ids DOM: 0; `globalThis.logger` publicado (`:479`) |
 | `retos-hijo4.html` | E3, K-15, K-24, K-25, K-28, K-35 (handlers `CONTROL.*` sin cuerpo y sin emisión; emite `SISTEMA.CONFIRMACION` al vacío), K-37 (16 `destino: 'padre'`), K-38 (diagnóstico `TIPOS_MENSAJE_exists`, `:1402-1403`), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor), K-43 (lectura inline del id de `CAMBIO_PARADA`) | ids DOM: 0; `globalThis.logger` publicado (`:464`) |
-| `boton-casa-hijo5.html` (solo desarrollo) | K-15 (variante), K-25 (2), K-28, K-35 (handler de `SISTEMA.CONFIRMACION` inalcanzable; emite el mismo tipo al vacío), K-37 (20 `destino: 'padre'`, 18 modos crudos), K-41 (`estado.gpsActivo`, por leer), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor), K-43 (emite `paradaId` con prefijo `padre-`) | `alert()`: 0; ids DOM: 0; globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:315`) |
+| `boton-casa-hijo5.html` (solo desarrollo) | K-15 (variante), K-25 (2), K-28, K-35 (handler de `SISTEMA.CONFIRMACION` inalcanzable; emite el mismo tipo al vacío), K-37 (20 `destino: 'padre'`, 18 modos crudos), K-41 (`estado.gpsActivo`, por leer), K-36 (`paradas`/`paradaActual` de `PADRE_DATOS`, sin emisor), K-43 (emite `paradaId` con prefijo `padre-`), K-48 (marca la parada activa por tres caminos: `activa` sin estilo y `data-padreid` sin asignar) | `alert()`: 0; ids DOM: 0; globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:315`) |
 | `chat-hijo6.html` | E1 (variante B), K-28 (`enviarHijoListoConReintento` sin respaldo de UI), K-37 (7 `destino: 'padre'`; `'inicializando'` crudo en `:764`), K-36 (estado del chat entregado por dos tipos, `CHAT.ESTADO_PADRE` y `SISTEMA.PADRE_DATOS`, 📌) | `alert()`: 0; literales en español: 0; ids DOM: 0; `verificar-frames` le atribuye 1 "ajeno" y es un comentario (`:376`, K-34); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:402`) |
 | `mapa-completo.html` | K-25 (1 literal), K-37 (1 `destino: 'padre'`), K-39 (único frame que no publica `globalThis.logger`) | `alert()`: 0; Leaflet por CDN y `maxZoom` 21/19: documentado (guía L6278-6282); ids DOM: 0; globals por frame: (B) solo `logger` (K-39) |
 | `puzzle.html` | K-25 (2 literales), K-28 (`createParticle`/`loop`), K-37 (1 `destino: 'padre'`) | `escalar` variante C: cerrada en la ronda 1 (historial `94734b6`); `alert()`: 0; `PUZZLE.*` a `'padre'` = la ventana anfitriona (K-35); globals por frame: solo lecturas de módulos compartidos que K-38 descarta o deja fuera de alcance; `globalThis.logger` publicado (`:147`) |
@@ -2863,6 +2897,8 @@ que la tanda de arreglos tocó, y lo que no, está debajo de la tabla.
 | `chat-hijo6.html` | **no** | — | `git diff --quiet ffe9bfc HEAD -- chat-hijo6.html` = 0 y 0 commits: su hallazgo (K-45, el FAQ se construye dos veces) es una decisión abierta, no un arreglo mecánico; sí lee el `idioma` que le llega |
 | `puzzle.html` | **no** | — | `git diff --quiet` = 0 y 0 commits: solo lee `id` e `imagen`; el arreglo de K-36 estaba en quien lo invoca (la selección) |
 | `video-intro.html` | **no** | — | `git diff --quiet` = 0 y 0 commits: sin hallazgos que arreglar (K-28, las copias de `createParticle`/`loop`, es coste de mantenimiento) |
+
+Los commits posteriores a `e3a9cff` (el último que toca un frame, el padre) no cambian ninguno de los once: `git diff --quiet e3a9cff HEAD -- <fichero>` da 0 y `git log --oneline e3a9cff..HEAD -- <fichero>` no da nada para cada uno de los once; tampoco cambian `js/`, `sw.js` ni `tests/`.
 
 Módulos de `js/` tocados (11): `app.js`, `config.js`, `constants.js`, `device-detection.js`, `funciones-mapa.js`, `mensajeria.js`, `monitoreo.js`, `reciclaje-digital.js`, `state-manager.js`, `utils.js` y `validacion.js`. No tocados (21; `git diff --quiet` = 0): `api-client.js`, `controladores-padre.js`, `data-loader.js`, `feedback-forms.js`, `logger.js`, `proteccion.js`, `server.js`, `suppress-warnings.js`, `video-playback-utils.js` y los módulos de datos (`*-aventuras.js`, `indice-aventuras.js`, `normativa-cumplimiento.js`, `traducciones-ui.js`).
 
@@ -2886,7 +2922,7 @@ Módulos de `js/` tocados (11): `app.js`, `config.js`, `constants.js`, `device-d
 | N — Identificadores con varios nombres | K-43 | 1 familia de copias: `paradaId`, `parada_id`, `padreId` y `padreid` en el mismo mensaje y dos resolutores (`resolverIdsParada` y lecturas a mano) |
 | O — Recursos locales | K-44 | 1 confirmada: 491 referencias comprobadas contra el disco y una ruta que nunca existió (respaldo del puzzle de introducción) |
 | P — Orden de llegada de los datos de un frame | K-45 | 1 confirmada (medida: M-15), con decisión abierta: el FAQ de hijo6 se construye dos veces al abrirse y la primera escribe un `error` aunque todo vaya bien |
-| Q — Handlers que no hacen lo que su descripción dice | K-46, K-47 | 2 confirmadas: 15 handlers que solo escriben en el log (K-46) y la clase del `body` de hijo2, que no sigue al modo (K-47, M-17) |
+| Q — Handlers que no hacen lo que su descripción dice | K-46, K-47, K-48 | 3 confirmadas: 15 handlers que solo escriben en el log (K-46), la clase del `body` de hijo2, que no sigue al modo (K-47, M-17), y el resalte de la parada activa de hijo5, que marca con una clase sin estilo y borra lo que marca el click (K-48, M-18) |
 
 **Total tal como lo dejó el barrido: 44 entradas — 19 confirmadas, 2 por medir, 5 documentadas, 10
 familias de copias, 4 por estudiar y 4 limpias o mixtas; 12 mediciones pendientes repartidas entre
@@ -2894,8 +2930,8 @@ ellas (R2.4).** Lo que más pesaba, sin ánimo de ordenarlo por urgencia: lo que
 usuario (K-24, K-25), lo que puede dejar un estado equivocado (K-07, K-11, K-19), lo que hace que una
 configuración, una constante o un contador no mande ni cuente (K-01 a K-03, K-37, K-38) y las ramas del
 contrato del bus que ningún emisor alcanza, algunas descritas por la guía como caminos vivos (K-35,
-K-36, G-9 a G-11). **Tras la tanda de arreglos son 47 entradas** (K-45 a K-47 se encontraron al cerrar): se
-hicieron las 16 mediciones posibles (M-8 es de campo), K-07 y K-32 dejan de estar «por medir», y el
+K-36, G-9 a G-11). **Tras la tanda de arreglos son 48 entradas** (K-45 a K-48 se encontraron al cerrar): se
+hicieron las 17 mediciones posibles (M-8 es de campo), K-07 y K-32 dejan de estar «por medir», y el
 resultado por entrada y las decisiones que siguen abiertas están en R2.8.
 
 **Límites de esta ronda — qué no garantiza:**
@@ -2931,13 +2967,19 @@ resultado por entrada y las decisiones que siguen abiertas están en R2.8.
 - El barrido de recursos locales no resuelve los literales con `${…}` (16) ni mira los módulos de
   datos; el de i18n compara forma, marcadores y vacías, no la calidad ni la corrección de cada
   traducción (eso es trabajo de revisión nativa).
-- Se ejecutaron 16 de las 17 mediciones de R2.4; M-8, el reintento de señal con el GPS en frío, es una
+- Se ejecutaron 17 de las 18 mediciones de R2.4; M-8, el reintento de señal con el GPS en frío, es una
   prueba de campo y queda sin medir.
 - `handlers-solo-log.cjs` cuenta como efecto cualquier llamada a una función que no sea de log, aunque esa función no haga nada (falso
   negativo), y como solo-log un handler cuyo único efecto es no estar registrado; lo que lista se confirma leyendo el handler (K-46).
-- `guia-handlers-por-frame.cjs` compara por tipo y por frame los handlers y los mensajes del código con las filas de §26.12; no mira el
-  contenido de las filas: eso se leyó a mano contra el handler de cada una (G-34 a G-42). Fuera de §26.12, la deriva entre el texto de la
-  guía y el código solo se barrió en lo que tocaron esas correcciones.
+- `guia-handlers-por-frame.cjs` compara por tipo y por frame los handlers y los mensajes del código con las filas de §26.12, §7 y §8;
+  `guia-fichas-mensaje.cjs` compara la tabla de §10.7 celda por celda con los handlers y enseña las fichas de §10 junto al código, y
+  `guia-payloads.cjs` compara las claves de las celdas de payload con las que mandan los emisores. Ninguno juzga el resto del contenido
+  de las filas («qué hace»): eso se leyó a mano contra el handler de cada una (G-34 a G-43). Fuera de esos catálogos —las narrativas
+  de §2, §4, §9, §25 y §31, por ejemplo— la deriva entre el texto de la guía y el código solo se barrió en lo que tocaron las
+  correcciones.
+- Un extractor que lee un export de `js/` se rompe en silencio cuando el export se retira: `extract-payload` y `extract-discriminadores`
+  imprimían «tipos analizados: 0» desde que K-37 retiró `TIPOS_MENSAJE_VALIDOS` y nadie los volvió a ejecutar hasta G-43. Los extractores
+  se vuelven a ejecutar contra `HEAD` cuando cambia lo que leen, y lo primero que hay que mirar es su recuento.
 - `_hdl_SISTEMA_CAMBIO_MODO` se leyó entero en la pasada final (K-15); de `manejarCambioModo` solo se siguió la
   validación y la actualización optimista (`js/app.js:512-640`).
 - Los extractores de la ronda están versionados en `tools/estudio-caminos/`; los specs desechables de
@@ -2987,6 +3029,11 @@ pegado para repetir cada comprobación, es del usuario.
 | `e3a9cff` | el padre sin el handler de `SISTEMA.HEARTBEAT` que ningún emisor alcanzaba (con su spec); `verificar-mensajeria` modela el broadcast desde el emisor real; dos extractores nuevos | K-35, K-34 (M-16) |
 | `c40ecd0` | guía: el catálogo del padre (§8.3, §26.12.1, §26.12.2) contrastado con el código; el padre sin `SISTEMA.HEARTBEAT`; columnas y citas de línea desfasadas; los rangos de los scripts en `CLAUDE.md` | G-34 a G-40 |
 | `f151ca3` | guía: §26.12.3 a §26.12.9 contrastadas con el código y §26.12.10 para los tres nietos; correcciones de §7.1, §7.2, §7.3 y §2.9 | G-41, G-42 (M-17) |
+| `9f533f9` | `guia-handlers-por-frame` reconoce los tipos sin categoría (`NAVEGAR_PANTALLA`) | G-36 (instrumento) |
+| `724a4da` | este documento al día: K-46 y K-47, M-16 y M-17, E9 y G-34 a G-42 | todas |
+| `70ec0a5` | guía: §37.3 regenerada tras retirar el handler de `SISTEMA.HEARTBEAT` del padre | K-35 |
+| `4ff98d5` | guía: fichas de §10, tablas de §7 y §8 y tabla 10.7 contrastadas con el código | G-43 (M-18) |
+| `524669d` | `guia-fichas-mensaje` y `guia-payloads`; `guia-handlers-por-frame` mira también §7 y §8; `extract-payload` y `extract-discriminadores` sin `TIPOS_MENSAJE_VALIDOS` | K-34, G-43 |
 
 **Resultado por entrada.**
 
@@ -2994,7 +3041,7 @@ pegado para repetir cada comprobación, es del usuario.
 |---|---|
 | Corregidas y cerradas | K-01, K-03, K-13, K-23, K-32, K-34, K-36, K-38, K-39, K-44 |
 | Corregidas, con una decisión abierta al lado | K-02, K-04, K-07, K-11, K-12, K-19, K-28, K-35, K-37, K-42 |
-| Medidas, con decisión abierta y sin código tocado | K-17, K-20, K-24, K-25, K-40, K-41, K-43, K-45, K-46, K-47 |
+| Medidas, con decisión abierta y sin código tocado | K-17, K-20, K-24, K-25, K-40, K-41, K-43, K-45, K-46, K-47, K-48 |
 | Documentadas, sin cambios (copias, intencional, limpio) | K-05, K-06, K-08, K-09, K-10, K-14, K-15, K-16, K-18, K-21, K-22, K-26, K-27, K-29, K-30, K-31, K-33 |
 
 **Decisiones abiertas — para el estudio individual del usuario.** Cada una tiene su nota «Estado final» en R2.2, con la comprobación pegada. «Cambia lo que ve el usuario» dice si la opción recomendada se nota en la pantalla; las que sí se notan son las que no se han tocado a propósito.
@@ -3022,5 +3069,6 @@ pegado para repetir cada comprobación, es del usuario.
 | K-45 | `error` en el camino normal de hijo6 | A) no construir el FAQ hasta tener el estado (descartada); **B) `debug` hasta el primer estado**; C) actualizar solo lo que cambia | no (log) |
 | K-46 | handlers que solo escriben en el log | **A) dejar, documentados, `CAMBIO_MODO_APLICADO`, `SISTEMA.ERROR`, `SISTEMA.NACK`, `SISTEMA.NOTIFICACION` y `CODIGO_VALIDADO`**; **B) retirar `RETO.MOSTRADO` → `RETO.CONFIRMADO` y `DATOS.TEXTOS_CARGADOS`**; C) retirar la 4.ª fase del modo entera | no |
 | K-47 | clase del `body` de hijo2 | A) escribirla también al cambiar de modo; **B) retirar la regla y la clase de hijo2** | A sí (el botón de avanzar activo pulsa en AVENTURA); B no |
+| K-48 | resalte de la parada activa en hijo5 | **A) una sola función que marque `actual`, llamada por el click, la generación y los dos handlers**; B) dejar solo el click y la generación y retirar los dos handlers de marcado; C) dejarlo | A y B sí, solo en la herramienta de desarrollo (hijo5); C no |
 
-**Límites residuales** (los de R2.7 siguen valiendo). M-8 es de campo y no se midió. M-14 a M-17 se midieron en chromium con el stub de MapLibre y recorren el arranque, la apertura del asistente y los cambios de modo, no todos los flujos de la aventura; que `PADRE_DATOS` tiene solo dos emisores lo dice la búsqueda desnuda, no la medición. El efecto de K-24 con una aventura no española en vivo no se midió: se deduce de las tres líneas de código. Cada borrado se apoya en búsqueda desnuda y lectura del llamador; un acceso por clave computada (`obj['nombre']`) no lo ve ninguna de las dos (límite del instrumento de exports, K-42). Los verificadores corregidos en K-34 imprimen su residuo, pero siguen siendo análisis estático.
+**Límites residuales** (los de R2.7 siguen valiendo). M-8 es de campo y no se midió. M-14 a M-18 se midieron en chromium con el stub de MapLibre y recorren el arranque, la apertura del asistente y los cambios de modo, no todos los flujos de la aventura; que `PADRE_DATOS` tiene solo dos emisores lo dice la búsqueda desnuda, no la medición. El efecto de K-24 con una aventura no española en vivo no se midió: se deduce de las tres líneas de código. Cada borrado se apoya en búsqueda desnuda y lectura del llamador; un acceso por clave computada (`obj['nombre']`) no lo ve ninguna de las dos (límite del instrumento de exports, K-42). Los verificadores corregidos en K-34 imprimen su residuo, pero siguen siendo análisis estático.
