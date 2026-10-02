@@ -73,6 +73,13 @@ const ANFITRION = {
     'mapa-completo': ['padre'],
 };
 
+/**
+ * Un `broadcast` llega a los iframes que el frame emisor tiene registrados, nunca a su propia ventana
+ * (`_enviarATodos` recorre `iframesRegistrados`). Para un fichero que cargan varios frames hay que decir quién
+ * lo ejecuta de verdad: el latido de js/mensajeria.js (`iniciarHeartbeat`) solo lo arranca el padre.
+ */
+const EMISOR_DE_BROADCAST = { 'js/mensajeria.js': ['padre'] };
+
 /** Ids del bus que no coinciden con la etiqueta del frame. */
 const ID_A_FRAME = { 'hijo1-opciones': 'hijo1', 'hijo6-chat': 'hijo6' };
 
@@ -352,8 +359,8 @@ async function main() {
             vistos.add(clave);
             const alcanza = emisoresDelTipo.some((e) => {
                 if (e.local) return framesDe(e.rel).includes(f); // despacharLocal: solo el propio frame
-                if (!e.destinoLiteral) return true;              // dinámico: alcanza a cualquiera
-                if (e.destino === 'broadcast') return true;
+                if (!e.destinoLiteral) return (EMISOR_DE_BROADCAST[e.rel] || framesDe(e.rel)).some((origen) => origen !== f); // dinámico: a cualquiera menos al propio emisor (el bus no se envía a sí mismo)
+                if (e.destino === 'broadcast') return (EMISOR_DE_BROADCAST[e.rel] || framesDe(e.rel)).some((origen) => origen !== f);
                 return framesDe(e.rel).some((origen) => destinosDe(e, origen).includes(f));
             });
             if (!alcanza) inalcanzables.push({ ...r, frame: f, emisores: emisoresDelTipo });

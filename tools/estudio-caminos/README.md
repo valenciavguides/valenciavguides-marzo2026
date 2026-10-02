@@ -26,7 +26,7 @@ Un script de la primera columna deja un fichero que leen los de la segunda; el r
 | Primero | Después | Qué mide |
 |---|---|---|
 | `extract-functions` → `funciones.json` | `analiza-funciones`, `clones-mismo-fichero`, `extract-tests` | funciones, homónimos entre ficheros, clones |
-| `extract-mensajes` → `mensajes.json` | `reporte-mensajes`, `destinos`, `destinos-inverso`, `handlers-duplicados` | emisores y receptores de cada tipo del bus; emisiones al vacío; handlers que ninguna emisión alcanza |
+| `extract-mensajes` → `mensajes.json` | `reporte-mensajes`, `destinos`, `destinos-inverso`, `handlers-duplicados`, `handlers-solo-log`, `guia-handlers-por-frame` | emisores y receptores de cada tipo del bus; emisiones al vacío; handlers que ninguna emisión alcanza; handlers cuyo cuerpo solo escribe en el log; filas de las tablas de §26.12 de la guía sin respaldo en el código y tipos de cada frame que la guía no cuenta |
 | `extract-globals` → `globals.json` | `extract-tests` | `globalThis.X` escritos por frame y sus escritores |
 | `extract-constantes` → `constantes.json` | `analiza-const` | declaraciones, comparaciones y plazos con valor numérico |
 | `extract-recursos` → `recursos.json` | `analiza-recursos` | `setInterval`, listeners, observers, `map.on` y su pareja de parada |

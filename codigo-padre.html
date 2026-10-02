@@ -7765,51 +7765,6 @@
         // NOTA: AUDIO.FIN_REPRODUCCION se maneja en Script 2 para evitar duplicados
         // (Controlador eliminado de aquí - ver línea ~6993 en Script 2)
 
-        // CONTROLADOR: SISTEMA.HEARTBEAT
-        registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT, async (mensaje) => {
-            const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[HEARTBEAT]`;
-
-            try {
-                if (!mensaje?.origen) {
-                    (globalThis.logger || console).warn(`${logPrefix} Heartbeat sin origen`);
-                    return;
-                }
-
-                // Silenciado: Solo loguear en modo debug explícito
-                // (globalThis.logger || console).debug(`${logPrefix} Heartbeat recibido de ${mensaje.origen}`);
-
-                if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({
-                        tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_RESPONSE,
-                        destino: mensaje.origen,
-                        datos: {
-                            timestamp: Date.now(),
-                            mensajeOriginalId: mensaje.mensajeId,
-                            estado: 'activo',
-                            modo: estado.modo?.actual,
-                            hijosActivos: estado.estadoHijos.size
-                        }
-                    });
-                } else {
-                    (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible para HEARTBEAT_RESPONSE`);
-                }
-
-                if (estado.estadoHijos.has(mensaje.origen)) {
-                    const hijoEstado = estado.estadoHijos.get(mensaje.origen);
-                    hijoEstado.fallosConsecutivos = 0;
-                    hijoEstado.activo = true;
-                } else {
-                    estado.estadoHijos.set(mensaje.origen, {
-                        activo: true,
-                        fallosConsecutivos: 0
-                    });
-                }
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando heartbeat:`, error);
-            }
-        }, { permanente: true });
-
         // CONTROLADOR: SISTEMA.HEARTBEAT_RESPONSE
         registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_RESPONSE, async (mensaje) => {
             const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[HEARTBEAT_RESPONSE]`;
@@ -10729,7 +10684,7 @@ await _comprobarReanudacionAventura(logPrefix);
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Inicializando controladores del padre...`);
         inicializarControlesAudioPadre();
 
-        // Controladores SISTEMA registrados en Script 1: CAMBIO_MODO, ESTADO, HEARTBEAT, APLICACION_INICIALIZADA
+        // Controladores SISTEMA registrados en Script 1: HIJO_PREPARADO, HIJO_LISTO, CAMBIO_MODO, HEARTBEAT_RESPONSE, HIJO_FALLIDO, APLICACION_INICIALIZADA
 
         function _encontrarParadaEnElementos(elementosIDpadre, paradaId, idSinPrefijo) {
             return elementosIDpadre.find(p =>

@@ -254,7 +254,7 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
     expect(hb.tieneIntervalo, 'ni tener un intervalo armado').toBe(false);
   });
 
-  test('MC-7b. HEARTBEAT y HEARTBEAT_RESPONSE están en __CONTROLADOR_REGISTRADOS', async ({ page }) => {
+  test('MC-7b. El padre atiende HEARTBEAT_RESPONSE y no registra HEARTBEAT (el latido sale de él, no entra)', async ({ page }) => {
     const info = await page.evaluate(() => {
       const registrados = globalThis.__CONTROLADOR_REGISTRADOS;
       if (!(registrados instanceof Set)) return { ok: false };
@@ -266,7 +266,8 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
       };
     });
     expect(info.ok).toBe(true);
-    expect(info.tieneHeartbeat).toBe(true);
+    // Nadie le manda SISTEMA.HEARTBEAT al padre: el latido solo sale de él, hacia sus iframes (el bus no se envía a sí mismo). Un handler aquí no se alcanzaría nunca.
+    expect(info.tieneHeartbeat, 'el padre no debe registrar SISTEMA.HEARTBEAT: ningún emisor lo alcanza').toBe(false);
     expect(info.tieneHeartbeatResponse).toBe(true);
   });
 
