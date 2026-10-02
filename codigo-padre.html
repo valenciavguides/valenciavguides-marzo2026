@@ -182,20 +182,6 @@
             }
         } // cierra globalThis.handleIframeLoad = function(iframeId)
         </script>
-        <script>
-            // Proveer un stub global para getPadreId si se necesita antes de importar utils
-            try {
-                if (globalThis.getPadreId === undefined) {
-                    globalThis.getPadreId = function() {
-                        try {
-                            if (globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.ID) return globalThis.CONFIG_PADRE.ID;
-                            if (globalThis.Config && globalThis.Config.ID_PADRE) return globalThis.Config.ID_PADRE;
-                        } catch (e) { (globalThis.logger || console).debug('[PADRE] getPadreId fallback: no se pudo leer config', e && e.message); }
-                        return 'padre';
-                    };
-                }
-            } catch (e) { (globalThis.logger || console).debug('[PADRE] No se pudo definir getPadreId global', e && e.message); }
-        </script>
 
     <style>
         /* Escalado proporcional puro: 2.5% del menor lado del viewport */
@@ -4092,21 +4078,6 @@
 
         // Alias local (var para evitar redeclaración entre bloques script)
         var CONFIG_PADRE = globalThis.CONFIG_PADRE;
-
-        // Exponer getPadreId temprano en window para evitar ReferenceErrors en scripts no-modulares
-        try {
-            if (globalThis.getPadreId === undefined) {
-                globalThis.getPadreId = function() {
-                    try {
-                        if (globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.ID) return globalThis.CONFIG_PADRE.ID;
-                        if (globalThis.Config && globalThis.Config.ID_PADRE) return globalThis.Config.ID_PADRE;
-                    } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                    return 'padre';
-                };
-            }
-        } catch (e) { // NOSONAR
-            (globalThis.logger || console).debug('[VV]:', e?.message);
-        }
 
         // ============================================================
         // DETECCIÓN DE DISPOSITIVO MÓVIL
@@ -9817,7 +9788,7 @@ await _comprobarReanudacionAventura(logPrefix);
         const resolverIdsParada = resolverIdsParada_S2;
 
         // Aliases locales que no chocan con Script 1
-        // NOTE: CONFIG_PADRE_LOCAL alias intentionally avoided; use getPadreId()/CONFIG_PADRE where possible
+        // NOTE: CONFIG_PADRE_LOCAL alias intentionally avoided; use CONFIG_PADRE where possible
         // const CONFIG_PADRE_LOCAL = configGlobal;
         const registrarEventoScript2 = registrarEventoGlobal;
 

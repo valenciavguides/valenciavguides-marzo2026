@@ -44,7 +44,7 @@ mensajeriaReadyPromise.then(() => {
 
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import logger from './logger.js';
-import { generarIdUnico, resolverIdPadre, canonicalizarModo, retryUntilAvailable } from './utils.js';
+import { generarIdUnico, canonicalizarModo, retryUntilAvailable } from './utils.js';
 import { promesasPendientes, registrarMetrica as registrarMetricaMonitoreo } from './monitoreo.js';
 import { esMovil } from './device-detection.js';
 
@@ -265,34 +265,6 @@ async function esperarRespuestas(mapaRespuestas, hijosEsperados, timeoutMs, tipo
     // Timeout: reportar quiénes no respondieron
     const noRespondieron = hijosEsperados.filter(hijo => !mapaRespuestas.has(hijo));
     logger.warn(`[esperarRespuestas] Timeout esperando ${tipoRespuesta} de: ${noRespondieron.join(', ')}`);
-}
-
-/**
- * Notifica un error al sistema.
- * @param {string} codigo - Código de error.
- * @param {Error} error - Objeto de error.
- * @param {Object} [contexto] - Contexto adicional del error.
- */
-export function notificarError(codigo, error, contexto = {}) {
-    logger.error('Error crítico:', error);
-    try {
-        const r = enviarMensaje({
-            destino: resolverIdPadre(),
-            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            datos: {
-                codigo,
-                mensaje: error.message,
-                stack: error.stack,
-                contexto,
-                timestamp: new Date().toISOString()
-            }
-        });
-        if (r && typeof r.then === 'function') {
-            r.catch(err => logger.error('Error al notificar error:', err));
-        }
-    } catch (err) {
-        logger.error('Error al notificar error:', err);
-    }
 }
 
 // Constantes para los modos de operación del sistema (diferentes a MODOS de constants.js que son 'casa'/'aventura')
@@ -984,20 +956,6 @@ function registrarEvento(tipo, datos = {}, nivel = 'info') {
 // Reexportar registrarMetrica desde el módulo central `monitoreo` para una implementación canónica única
 export const registrarMetrica = registrarMetricaMonitoreo;
 
-/**
- * Obtiene el estado actual del sistema de monitoreo
- * @param {Object} estado - Estado global de la aplicación
- * @returns {Object} Estado actual del monitoreo
- */
-export function obtenerEstadoMonitoreo(estado) {
-    return {
-        metricas: estado?.monitoreo?.metricas || {},
-        config: { ...(estado?.monitoreo?.config) },
-        totalEventos: estado?.monitoreo?.historial?.eventos?.length || 0,
-        totalErrores: estado?.monitoreo?.historial?.errores?.length || 0,
-    };
-}
-
 // Inicializar monitoreo de memoria si está disponible (optimized for mobile)
 if (globalThis.performance?.memory && !globalThis.__vv_intervaloMemoria) {
     const intervaloMemoria = esMovil() ? 300000 : 60000; // 5 min móvil, 1 min desktop
@@ -1020,8 +978,6 @@ if (globalThis.performance?.memory && !globalThis.__vv_intervaloMemoria) {
 // preferir la del padre cuando ya está disponible, igual que registrarMetrica más abajo.
 if (globalThis.window !== undefined) {
     globalThis.registrarMetrica = registrarMetrica;
-    globalThis.notificarError = notificarError;
-    globalThis.obtenerEstadoMonitoreo = obtenerEstadoMonitoreo;
 
     // Evento de inicialización app se registra en el DOMContentLoaded unificado del padre
     // (eliminado listener duplicado - ver codigo-padre.html línea ~1185)
@@ -1120,8 +1076,6 @@ if (globalThis.window !== undefined) {
             // registrarEvento no se borra aquí — no es de este módulo (ver nota más arriba,
             // donde se deja de exponer); borrarlo aquí borraría la del padre por error.
             if (globalThis.registrarMetrica) delete globalThis.registrarMetrica;
-            if (globalThis.notificarError) delete globalThis.notificarError;
-            if (globalThis.obtenerEstadoMonitoreo) delete globalThis.obtenerEstadoMonitoreo;
 
             // Limpiar estado global de la aplicación
             if (globalThis.estado) delete globalThis.estado;

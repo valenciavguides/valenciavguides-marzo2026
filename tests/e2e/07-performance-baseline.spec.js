@@ -200,7 +200,6 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
       ajustarTimeoutPorConexion:    typeof globalThis.ajustarTimeoutPorConexion,
       ajustarTimeoutPorConexionSafe:typeof globalThis.ajustarTimeoutPorConexionSafe,
       CONFIG_PADRE:                 typeof globalThis.CONFIG_PADRE,
-      getPadreId:                   typeof globalThis.getPadreId,
       MENSAJERIA_INICIADA:          globalThis.__MENSAJERIA_INICIADA,
       stateManager:                 typeof globalThis.__vv_stateManager,
       mensajeria:                   typeof globalThis.mensajeria,
@@ -219,7 +218,6 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
     expect(snapshot.ajustarTimeoutPorConexion).toBe('function');
     expect(snapshot.ajustarTimeoutPorConexionSafe).toBe('function');
     expect(snapshot.CONFIG_PADRE).toBe('object');
-    expect(snapshot.getPadreId).toBe('function');
     expect(snapshot.MENSAJERIA_INICIADA).toBe(true);
     expect(snapshot.stateManager).toBe('object');
     expect(snapshot.mensajeria).toBe('object');

@@ -8,8 +8,7 @@
  *    globalThis.TIPOS_MENSAJE, globalThis.MODOS, globalThis.registrarControlador,
  *    globalThis.enviarMensaje, globalThis.enviarMensajeConConfirmacion, globalThis.logger,
  *    globalThis.esTelefonoMovil, globalThis.ajustarTimeoutPorConexion,
- *    globalThis.CONFIG_PADRE (ID, COMPONENTE_ID, VERSION, DEBUG, LOG_PREFIX),
- *    globalThis.getPadreId()"
+ *    globalThis.CONFIG_PADRE (ID, COMPONENTE_ID, VERSION, DEBUG, LOG_PREFIX)"
  */
 'use strict';
 
@@ -132,19 +131,6 @@ test.describe('Globals requeridas tras FASE 1', () => {
     expect(cfg.hasVersion).toBe(true);
     expect(cfg.hasDebug).toBe(true);
     expect(cfg.hasLogPrefix).toBe(true);
-  });
-
-  // ── Función de ID del padre ────────────────────────────────────────────
-
-  test('1f. globalThis.getPadreId() es una función que retorna un string no vacío', async ({ page }) => {
-    const result = await page.evaluate(() => {
-      if (typeof globalThis.getPadreId !== 'function') return { ok: false };
-      const id = globalThis.getPadreId();
-      return { ok: true, type: typeof id, nonEmpty: typeof id === 'string' && id.length > 0 };
-    });
-    expect(result.ok).toBe(true);
-    expect(result.type).toBe('string');
-    expect(result.nonEmpty).toBe(true);
   });
 
   // ── Flag de estado del sistema ─────────────────────────────────────────

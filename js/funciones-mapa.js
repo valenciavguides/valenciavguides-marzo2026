@@ -17,7 +17,7 @@ import {
 import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import { validarCoordenadas } from './validacion.js';
-import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, normalizarParadas, resolverIdsParada, resolverIdPadre, puntoMasCercanoEnLinea } from './utils.js';
+import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, normalizarParadas, resolverIdsParada, puntoMasCercanoEnLinea } from './utils.js';
 import logger from './logger.js';
 
 /**
@@ -2521,7 +2521,7 @@ export async function manejarGPSActivar(mensaje) {
         logger.info(`${logPrefix} Delegando activación GPS al padre`);
 
         enviarMensaje({
-            destino: resolverIdPadre(),
+            destino: 'padre',
             tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR,
             datos: {
                 timestamp: Date.now(),

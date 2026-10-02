@@ -140,7 +140,6 @@ module.exports = [
 
         // ── Globals propios — funciones de utilidad ───────────────────────
         logger: "readonly",
-        getPadreId: "readonly",
         getEstadoSafe: "readonly",
         ajustarTimeoutPorConexionSafe: "readonly",
         findIndexByPadreIdOrId: "readonly",

@@ -277,7 +277,7 @@ flowchart TD
 {
     tipo: 'SISTEMA.CAMBIO_MODO',
     origen: 'hijo5',
-    destino: resolverIdPadre(),   // 'padre'
+    destino: 'padre',
     datos: {
         modo: 'aventura',
         timestamp: Date.now(),
@@ -1378,7 +1378,7 @@ Dos iconos en ambas variantes, igual que §4.7h: avanzar (`fotoruta-A-B.png`) y 
 
 **Disparo:** `globalThis.mostrarCartelLlegadaParada(nombreParada)`, en **un solo sitio**:
 
-1. **El punto de inicio de la aventura** — el único sitio donde "ha llegado" es literal, porque no hay ningún elemento anterior que cerrar ni botón que pulsar: llamado desde `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) cuando `siguienteParada.tipo === 'inicio'` y el GPS confirma llegada real (`llegadaDetectada`), con guard de una sola vez (`estadoMapa._cartelLlegadaInicioMostrado`, reseteado en `completarCambioParada()`). No hay ningún elemento previo cuya compleción dispare nada, así que este es el único cartel que anuncia la llegada al primer punto de la aventura (p. ej. Torres de Serranos) — y lo hace solo tras la misma confirmación GPS real que exige el resto de la familia, nunca en el instante de revelar el trazado. Solo aplica en modo AVENTURA — en CASA, `procesarPosicionGPSParaAventura()` nunca llega a esta rama. Llamada directa vía `globalThis`, no `postMessage` — mismo motivo que el sensor redundante de llegada (§25.5, §32.3): un `enviarMensaje({destino: resolverIdPadre()})` desde aquí se descartaría en silencio. Cubierto por `tests/e2e/32-llegada-inicio-gps-confirmada.spec.js` (LI-1..LI-4: lejos no dispara, cerca sí, no se re-dispara con el guard, nunca en CASA).
+1. **El punto de inicio de la aventura** — el único sitio donde "ha llegado" es literal, porque no hay ningún elemento anterior que cerrar ni botón que pulsar: llamado desde `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) cuando `siguienteParada.tipo === 'inicio'` y el GPS confirma llegada real (`llegadaDetectada`), con guard de una sola vez (`estadoMapa._cartelLlegadaInicioMostrado`, reseteado en `completarCambioParada()`). No hay ningún elemento previo cuya compleción dispare nada, así que este es el único cartel que anuncia la llegada al primer punto de la aventura (p. ej. Torres de Serranos) — y lo hace solo tras la misma confirmación GPS real que exige el resto de la familia, nunca en el instante de revelar el trazado. Solo aplica en modo AVENTURA — en CASA, `procesarPosicionGPSParaAventura()` nunca llega a esta rama. Llamada directa vía `globalThis`, no `postMessage` — mismo motivo que el sensor redundante de llegada (§25.5, §32.3): un `enviarMensaje({destino: 'padre'})` desde aquí se descartaría en silencio. Cubierto por `tests/e2e/32-llegada-inicio-gps-confirmada.spec.js` (LI-1..LI-4: lejos no dispara, cerca sí, no se re-dispara con el guard, nunca en CASA).
 
 **Contenido:** mismo estilo visual que el resto de la familia. Cuerpo de `TRADUCCIONES_LLEGADA_PARADA` (12 idiomas, clave `mensaje` con `{nombre}`) — en español: *"Ha llegado a la parada Plaza de la Crida (Puente de Serranos). Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura."* Dos iconos: avanzar y audio.
 
@@ -4849,7 +4849,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-5532f241955f'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-36f1a419fb3b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5958,8 +5958,7 @@ Un error no capturado o una promesa rechazada sin capturar dentro de un hijo via
 
 ```js
 { tipo: 'SISTEMA.ERROR',
-  origen: globalThis.name || 'hijo-desconocido',
-  destino: resolverIdPadre(),
+  destino: 'padre',
   datos: { codigo: 'ERROR_NO_CONTROLADO',
            mensaje: 'Error no capturado: <texto> (<fichero>:<línea>)' } }
 ```
@@ -6037,7 +6036,6 @@ codigo-padre.html arranca
 
 | Clave | Escritor | Lector | Contenido |
 |-------|---------|--------|-----------|
-| `vvguides_padreId` | `js/utils.js` `getPadreId()` L52 | `js/utils.js` `getPadreId()` | ID único del padre generado una vez por sesión de pestaña (`padre-XXXXXXXX`). Persiste mientras la pestaña esté abierta. |
 | `vbg_session_token` | `js/api-client.js` `TokenManager.setToken()` | `js/api-client.js`, `js/data-loader.js` (en modo API) | JWT de autenticación con el backend. Se incluye como `Authorization: Bearer` en cada petición. Se borra al cerrar sesión o al recibir 401. |
 
 **Limpieza total:** `js/reciclaje-digital.js` llama `sessionStorage.clear()` — borra todas las claves de sessionStorage de golpe (no selectivamente). Se invoca desde la pantalla de "reciclaje digital" / reset total de la app.
@@ -6103,7 +6101,6 @@ Los parámetros URL son un canal de comunicación de un solo sentido: el compone
 | `?id=` | `puzzle.html` | 156 | Obligatorio — sin él no hay puzzle |
 | `?imagen=` | `puzzle.html` | 172 | La imagen ya resuelta por quien lo invoca — `puzzle.html` no la busca (§16). **No lee `?aventura=`** |
 | `?aventura=` | `mapa-completo.html` | 178 | URL → `'Aventura1'` (default) |
-| `?padreId=` | `js/utils.js` `getPadreId()` | 38 | URL → `sessionStorage('vvguides_padreId')` → UUID nuevo |
 | `?despedida=1` | `En-busca-del-tesoro.html` | — | Activa `modoDespedida`, salta a P17 (agradecimientos), ejecuta `limpiarDatosAventura` + pausa 2 s + `location.replace('codigo-padre.html')` (P1) al pulsar botón verde. No recarga: la misma dirección con `?despedida=1` volvería a mostrar P17 |
 | `?vv_debug=1` | `js/proteccion.js` | 25 | Flag booleano — desactiva bloqueos de seguridad |
 | `?vv_hard_protect=1` | `js/proteccion.js` | 29 | Flag booleano — fuerza protección estricta en local |
@@ -8088,7 +8085,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-5532f241955f'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-36f1a419fb3b'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8826,7 +8823,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-5532f241955f';
+const CACHE_VERSION = 'v-36f1a419fb3b';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9668,7 +9665,7 @@ En su lugar, la fiabilidad se resuelve donde de verdad importa: en la confirmaci
 
 **Por qué una ventana y no "2 lecturas seguidas":** exigir que las dos lecturas confirmatorias sean estrictamente consecutivas falla en la calle real. El ruido de GPS urbano no es un error aislado que se corrige solo — la distancia calculada puede oscilar de forma sostenida alrededor de un umbral fijo, lectura tras lectura, mientras el usuario está físicamente parado en el mismo sitio. Bastaba con que **una** lectura de cada dos cayera justo fuera del radio para que el contador de "seguidas" se reiniciara antes de llegar a 2 — y con ese patrón, la llegada podía no confirmarse nunca, por mucho tiempo que el usuario esperase parado en la diana Está medido, con datos reales y un hijo2 cargado como iframe real: 20 lecturas alternando 15 m y 25 m alrededor de un radio de 20 m no confirman jamás la llegada si se exigen dos seguidas. La ventana de 4 conserva exactamente la misma protección contra una lectura ruidosa aislada (1 de 4 sigue sin ser suficiente) sin depender de que el azar alinee dos lecturas buenas justo una detrás de la otra.
 
-> **Sensor redundante de `funciones-mapa.js`: notifica por el bus, con `despacharLocal`.** El segundo sensor (el de `procesarPosicionGPSParaAventura()`, respaldo del de hijo2) vive dentro del propio padre, no en un iframe, y por eso **no puede** usar `enviarMensaje({ destino: resolverIdPadre(), ... })`: `resolverIdPadre()` devuelve el ID del propio padre y `enviarMensaje()` (`js/mensajeria.js`) se niega a enviar a uno mismo — avisa y no sale, para eso está `despacharLocal`. Usa `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA, datos })`, que entrega al handler del padre por la misma fila que un mensaje llegado de fuera — mismo camino que `NAVEGACION.CAMBIO_PARADA` en reanudación de sesión (§9.10). Es un caso concreto de la regla general de §32.3 ("el padre no puede enviarse mensajes a sí mismo vía `enviarMensaje`") — ver esa sección para el patrón completo y por qué `enviarMensaje()` nunca puede resolver el propio ID del padre.
+> **Sensor redundante de `funciones-mapa.js`: notifica por el bus, con `despacharLocal`.** El segundo sensor (el de `procesarPosicionGPSParaAventura()`, respaldo del de hijo2) vive dentro del propio padre, no en un iframe, y por eso **no puede** usar `enviarMensaje({ destino: 'padre', ... })`: `enviarMensaje()` (`js/mensajeria.js`) se niega a enviar a uno mismo — avisa y no sale, para eso está `despacharLocal`. Usa `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA, datos })`, que entrega al handler del padre por la misma fila que un mensaje llegado de fuera — mismo camino que `NAVEGACION.CAMBIO_PARADA` en reanudación de sesión (§9.10). Es un caso concreto de la regla general de §32.3 ("el padre no puede enviarse mensajes a sí mismo vía `enviarMensaje`") — ver esa sección para el patrón completo y por qué `enviarMensaje()` nunca puede resolver el propio ID del padre.
 
 Mientras el usuario está **dentro de los 15 metros** de la parada actual (o dentro del rangoMaximo del tramo):
 
@@ -10696,7 +10693,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
            └─ mensajeria.js
                 └─ constants.js       (TIPOS_MENSAJE, TTL_LIMPIEZA, MODOS)
                 └─ logger.js          (buffer de 500 entradas; DEBUG/INFO/WARN/ERROR)
-                └─ utils.js           (generarIdUnico, getPadreId, canonicalizarModo)
+                └─ utils.js           (generarIdUnico, canonicalizarModo)
                 └─ device-detection.js
 
 > **`getEstadoSafe()` — red de seguridad para acceso a `estadoPadre`**
@@ -10770,7 +10767,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 | `constants.js` | Los tipos de mensaje y las constantes compartidas. Define `TIPOS_MENSAJE` (árbol jerárquico de 94 tipos), `MODOS`, `LOG_LEVELS` y `TTL_LIMPIEZA` (solo la parte de mensajería: el TTL de limpieza en móvil y en desktop). | `globalThis.TIPOS_MENSAJE` (copia global para scripts no-módulo) |
 | `state-manager.js` | Estado compartido del padre, con acceso serializado: un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por cada uno de los cuatro campos que se leen o escriben desde fuera —`script2Listo`, `estadoPadre`, `controladores` (el Map de handlers) y `heartbeat` (con `gpsPendientes`)—, más `hijosListosPromises`, sin mutex. Solo lo carga el padre. Detalle en «El state-manager (gestor de estado)». | `globalThis.__vv_stateManager` (y `globalThis.__stateManager`) |
 | `logger.js` | Logging centralizado con los cinco niveles de `LOG_LEVELS` (`constants.js`): DEBUG, INFO, WARN, ERROR y NONE. El nivel efectivo sale de `CONFIG.DEBUG.NIVEL_LOG`, que `logger.js` lee **en cada llamada**: primero de `globalThis.__vv_config` y, si su ventana no lo tiene, del `__vv_config` de la ventana padre. No lo importa, porque `logger.js` y `config.js` van en el mismo `Promise.all` de la FASE 1 sin orden garantizado entre ellos, y resolverlo una sola vez dejaría el nivel clavado si el primer log ocurriera antes que `config.js`. **El salto a la ventana padre es lo que hace que el nivel alcance a los hijos**: cada iframe tiene su propio `globalThis` y solo `coordenadas-hijo2.html` importa `config.js`, así que sin él los otros cinco seguirían logueándolo todo. Mirar hacia arriba en vez de importar `config.js` en cada hijo deja además **una sola fuente del nivel para toda la app**. `setNivel()` permite forzarlo en runtime y, desde esa llamada, gana sobre `CONFIG`. Con `NONE` no sale nada, ni los errores. Cada página que loguea publica su logger en su propio `globalThis` justo tras importarlo — los siete hijos más `puzzle.html`, `video-intro.html` y `mapa-completo.html`. Sin esa línea, sus `(globalThis.logger \|\| console).x` caen al `console` crudo y se saltan el nivel, y **eslint no lo detecta**: su regla `no-console` no marca ese patrón porque el objeto va envuelto en el `\|\|`. Las únicas llamadas a `console` que quedan son seis en scripts clásicos pre-módulo, donde `logger.js` aún no se ha importado; llevan su `// eslint-disable-line no-console` con el motivo, según la convención de `eslint.config.js`. Cubierto por `tests/e2e/59-nivel-de-log.spec.js` y `60-nivel-de-log-alcanza-hijos.spec.js`. Buffer en memoria de 500 entradas (FIFO — elimina la entrada más antigua cuando se llena). **Sin limpieza periódica por TTL** — `TTL_LIMPIEZA.LOGGER` está definido en `constants.js` pero `logger.js` no lo importa ni lo usa. Colorea la consola por nivel. | `default export logger` |
-| `utils.js` | Funciones sin efectos secundarios: `generarIdUnico(prefijo)` → `prefijo-timestamp-base36`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `getPadreId()`, `normalizarParadas()`. | Named exports |
+| `utils.js` | Funciones compartidas: `generarIdUnico(prefijo)` → `prefijo_timestamp_aleatorio`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `normalizarParadas()`, `esIdDeTramo()`, `resolverIdsParada()`, `ajustarTimeoutPorConexion()`, `retryUntilAvailable()`, `debounce()`, `sleep()`, `calcularDistancia()` y `puntoMasCercanoEnLinea()`. Al cargarse instala, solo en los frames que tienen padre, el reporte de errores no controlados hacia el padre (`instalarReporteErroresAlPadre()`, §10.17). | Named exports |
 | `device-detection.js` | Detecta tipo de dispositivo analizando `userAgent`. Resultados cacheados en el primer acceso. Solo exporta `esMovil()` (usada en `mensajeria.js` para elegir el TTL de limpieza de mensajes, `TTL_LIMPIEZA.MENSAJERIA.MOVIL`/`.DESKTOP`, definido en `constants.js`) y `esTelefonoMovil()` (usada en `codigo-padre.html` para el aviso de "gira el móvil" en horizontal). No expone ninguna otra detección (tablet/iOS/Android/navegador/táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA instalada) — ningún caller en todo el proyecto las necesita, y no hay ningún agregador de debug alrededor: ni `getInfoDispositivo()` ni `globalThis.__vv_deviceInfo` existen en el repositorio. | `esMovil()`, `esTelefonoMovil()` |
 | `validacion.js` | Solo exporta `validarCoordenadas()` (usada en `funciones-mapa.js`) — sin validación por tipo con soporte de opciones, validación de mensajes, validación de paradas, validación por schema, sanitización XSS de strings/objetos, ni registro de validadores personalizados; el módulo no tiene nada de eso. | `validarCoordenadas()` |
 | `suppress-warnings.js` | Silencia advertencias de consola de librerías de terceros (patrón `mapbox-gl` — MapLibre GL hereda mensajes internos de su origen como fork de Mapbox GL —, fuentes, cookies de terceros, DevTools/source maps, extensiones del navegador). Se carga con `defer` justo tras `proteccion.js`. | — |
@@ -10788,7 +10785,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 
 | Módulo | Rol | Expone |
 |--------|-----|--------|
-| `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo, notificación de errores, métricas. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. El intervalo de monitoreo de memoria se guarda en `globalThis.__vv_intervaloMemoria` con guard contra doble inicialización. | `actualizarInterfazModo()`, `manejarCambioModo()`, `notificarError()`, `iniciarPrewarmEnCasa()`, `obtenerEstadoMonitoreo()` |
+| `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo, métricas. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. El intervalo de monitoreo de memoria se guarda en `globalThis.__vv_intervaloMemoria` con guard contra doble inicialización. | `actualizarInterfazModo()`, `manejarCambioModo()`, `iniciarPrewarmEnCasa()` |
 | `funciones-mapa.js` | El módulo más grande. Recibe la instancia MapLibre ya creada en `codigo-padre.html` (con las capas base de los tres modos ya definidas) y la registra mediante `inicializarServicioMapa(mapInstance)`. Gestiona: (1) **marcador GPS del usuario** (`actualizarMarcadorUsuario()`): triángulo azul `#4285F4` estilo Google Maps (sin punto central — el triángulo solo ya representa posición y rumbo) que rota con la brújula en tiempo real vía `DeviceOrientationEvent`; en modo CASA aparece como 🛸. Los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul) llevan cada uno `transform: translate(-50%,-50%)` antes de su pequeño offset de sombreado — con la técnica CSS de bordes (`width:0;height:0;border-*`), un triángulo se renderiza con su vértice en la esquina superior izquierda de su caja, no en el centro; sin ese `-50%/-50%` el vértice queda anclado en el punto GPS real y el resto del triángulo cuelga hacia abajo, así que al rotar `.gps-arrow-heading` la flecha entera orbita alrededor del punto en vez de girar sobre sí misma. El HTML de este marcador lo construye una única función, `_htmlMarcadorUsuario(modo)`, compartida por la creación y por `reescalarMarcadorUsuario()` (el reescalado por zoom, §4.6) para que ambos momentos no puedan divergir. `actualizarMarcadorUsuario()` destruye y recrea el marcador entero en cada posición GPS (hace falta para reposicionarlo — no hay un `setLatLng` barato para un marcador HTML completo), y el ángulo inicial del elemento nuevo sale **siempre** del ángulo acumulado de la brújula (`_flechaGpsAnguloAcumulado`): es la única fuente del rumbo de la flecha (§4.5). La firma `actualizarMarcadorUsuario(lat, lng, accuracy, modo)` no incluye ningún rumbo, precisamente para que no pueda entrar otro por ahí. (2) **Cámara siguiendo al usuario** (§4.6b): `actualizarMarcadorUsuario()` centra la cámara en cada posición GPS real (`_camaraSiguiendoUsuario`), salvo mientras un `flyTo` de cambio de parada/tramo está en curso o tras un arrastre manual del mapa (`_registrarSeguimientoCamara()`, escucha `'dragstart'`) — retomado por `reactivarSeguimientoCamara()`, el botón de recentrar. (3) Brújula en tiempo real (`activarBrujula()`/`desactivarBrujula()`). (4) Polylines de ruta, con auto-reparación si el estilo del mapa aún no cargó (§4.6a). Calcula `calcularToleranciaGPS()`: `RADIO_LLEGADA_PARADA_M` (15 m) para paradas e inicios, dinámica con suelo de 35 m para tramos; y `radioLlegada()`, el radio con el que se declara una llegada, que es el del círculo naranja que ve el usuario (§4.5). El efecto de pulso de llegada usa `_pulseTimeout` (módulo) con `clearTimeout` para evitar acumulación si llegan confirmaciones consecutivas. | `invalidarTamañoMapa()`, `diagnosticarMapa()`, `isMapInitialized()` |
 | `proteccion.js` | IIFE de protección anti-inspección. Se ejecuta antes que cualquier módulo. Cuatro capas: teclas DevTools, clic derecho, arrastre de media, detector por timing/resize. Borra `globalThis.RETOS_AVENTURAS` y coordenadas si detecta ≥2 intentos de debugger o ≥3 de resize. | — |
 
@@ -12186,7 +12183,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-5532f241955f';
+const CACHE_VERSION = 'v-36f1a419fb3b';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12684,7 +12681,7 @@ globalThis.mensajeria.despacharLocal({
 
 No hace falta un wrapper dedicado ni sintetizar el mensaje con `origen`/`destino`: `despacharLocal` los pone él mismo (`origen` = el nombre del propio frame) y no pasa por `postMessage`.
 
-**Esta no es una precaución teórica.** El sensor redundante de llegada de `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`, ver §25.5) es código del padre que necesita hacer llegar `NAVEGACION.LLEGADA_DETECTADA` al propio padre: escrito como `enviarMensaje({ destino: resolverIdPadre(), ... })` no lanzaría ningún error ni bloquearía nada, simplemente no haría nada nunca (y `enviarMensaje` a uno mismo se niega explícitamente y avisa). Por eso usa `despacharLocal`. EJE 4 de la metodología de auditoría (§36.4, punto 9) incorpora este caso como comprobación explícita.
+**Esta no es una precaución teórica.** El sensor redundante de llegada de `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`, ver §25.5) es código del padre que necesita hacer llegar `NAVEGACION.LLEGADA_DETECTADA` al propio padre: escrito como `enviarMensaje({ destino: 'padre', ... })` no lanzaría ningún error ni bloquearía nada, simplemente no haría nada nunca (y `enviarMensaje` a uno mismo se niega explícitamente y avisa). Por eso usa `despacharLocal`. EJE 4 de la metodología de auditoría (§36.4, punto 9) incorpora este caso como comprobación explícita.
 
 ---
 
@@ -12817,29 +12814,6 @@ await sm.atomicUpdateHeartbeat(s => {
 ```
 
 ---
-
-### 33.4 Nombres de funciones en `utils.js` — `resolverIdPadre` y `getPadreId`
-
-**Archivos:** `js/utils.js`, `js/app.js`, `js/funciones-mapa.js`, y todos los hijos HTML.
-
-`utils.js` exporta `resolverIdPadre()`, que determina el ID del padre leyendo URL params, `sessionStorage` o generando un UUID nuevo (`padre-XXXXXXXX`, cacheado en `sessionStorage['vvguides_padreId']`, ver §10). El nombre diferencia esta función de `globalThis.getPadreId`, definida en un `<script>` clásico (no-módulo) temprano de `codigo-padre.html` (líneas 220-233, reforzado con el mismo guard en 3818-3821), que siempre devuelve `CONFIG_PADRE.ID = 'padre'` — dos funciones con propósito distinto.
-
-**Ninguna de las dos firma mensajes del bus.** El `origen` de todo lo que envía el padre lo pone su bus (`inicializarMensajeria({ id: 'padre' })`), así que vale `'padre'` en todos los scripts de `codigo-padre.html` y en los `js/` que carga, se envíe con el nombre que se envíe. Dentro de Script 1, `const getPadreId = getPadreId_S1;` sombrea `globalThis.getPadreId` con `resolverIdPadre`; eso solo afecta a los usos que tienen estas funciones: como `destino` de envíos del padre a sí mismo y como `origen` de los `postMessage` que no pasan por el bus.
-
-`js/utils.js` exporta también `getPadreId` como alias de `resolverIdPadre` para compatibilidad con tests y cualquier código que use el nombre anterior:
-
-```js
-export function resolverIdPadre() { ... }
-export const getPadreId = resolverIdPadre;  // alias de compatibilidad
-```
-
-Usos en el código:
-
-- `js/app.js`: importa `resolverIdPadre` y lo usa como `destino` de un envío (`notificarError`)
-- `js/funciones-mapa.js`: importa `resolverIdPadre` y lo usa como `destino` en dos envíos
-- Los hijos y la pantalla de selección no la importan: hablan con el padre con `destino: 'padre'`
-
-**Matiz — `codigo-padre.html` no evita `utils.js` de forma tan limpia como sugiere el título de este apartado:** los scripts a partir del 2 resuelven `getPadreId()` por la cadena de scope hasta `globalThis.getPadreId` (función propia del script clásico, devuelve siempre `'padre'`), y Script 1 usa `getPadreId_S1`, que es `resolverIdPadre` de `utils.js`. `js/controladores-padre.js` no recibe ninguna de las dos.
 
 ---
 
@@ -13226,7 +13200,7 @@ Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
 6. **Call-chain deduplication:** para cada `enviarMensaje(tipo=X)`, sube el call-stack completo hacia el caller y el segundo nivel. Verifica si alguna función ancestora también emite `tipo=X` a destinatarios solapados. Si hay solapamiento, el receptor recibe el mismo mensaje dos veces en una sola acción de usuario; determina si los side effects del handler son idempotentes o dañinos. En `SISTEMA.CAMBIO_MODO`, por ejemplo, `actualizarInterfazModo` lo envía a todos los hijos una única vez — no existe ninguna función `_propagarCambioModoAHijos` ni un segundo envío duplicado (ver §36.15, Flujo F).
 7. **Auto-mensajes (origen === destino):** `enviarMensaje()` a uno mismo no sale y avisa (para eso está `despacharLocal`, ver §21.2) — pero eso no dispensa de comprobar quién procesa realmente cada auto-envío. Un patrón a vigilar: un auto-mensaje cuyo `destino` sale de una constante de configuración que nadie asigna resuelve a `undefined` y se descarta en silencio, con la apariencia de estar funcionando. Un auto-mensaje sin handler, o con un destino que nunca resuelve, no lanza ningún error visible — es exactamente el tipo de huérfano que EJE 7 (rutas de error silenciosas) debe cruzar con este eje.
 8. **Descentralización:** cualquier `addEventListener('message', ...)` —con `globalThis.`, con `window.` o a secas— que NO sea el listener central de `mensajeria.js` es una señal de alerta, no un patrón válido más. Localízalo, identifica qué tipos de mensaje procesa y por qué no pasa por `registrarControladorSeguro`/`registrarControlador`. Si no hay una razón documentada (p.ej. necesidad de capturar mensajes antes de que `mensajeria.js` esté listo), repórtalo como ⚠️ y propone migrarlo al canal centralizado.
-9. **Autoenvío del padre con `destino: resolverIdPadre()`:** distinto del punto 7 (que cubre `origen === destino` sin handler) — aquí el problema es de enrutamiento, no de handler ausente. `resolverIdPadre()`/`getPadreId()` (`js/utils.js`) está pensada para que un **hijo** direccione un mensaje hacia el padre; si un módulo que corre dentro del propio padre (p.ej. `funciones-mapa.js`, importado directamente, no cargado en un iframe) la usa como `destino`, el valor resultante es el ID del propio padre. `enviarMensaje()` (`js/mensajeria.js`) resuelve ese `destino` buscándolo en `iframesRegistrados` — un mapa que **por construcción nunca contiene al padre mismo**, solo a sus iframes hijo — así que la búsqueda falla siempre, se loguea `"Iframe no encontrado o sin contentWindow: <id>"` y el mensaje se descarta. Si el envío es fire-and-forget (sin `.catch()` que compruebe el resultado `false`, el patrón más común en el código), esto es indistinguible de "todo va bien" salvo por ese único warning suelto en el log — fácil de no ver en una lectura superficial porque no rompe nada más. Para cada `enviarMensaje({ destino: resolverIdPadre(), ... })` (o `getPadreId()`), confirma primero desde qué contexto corre ese código: si es un módulo que vive dentro del padre (no un HTML de hijo cargado en iframe), es casi con certeza este bug. Ejemplo de este patrón: un módulo que corre dentro del propio padre (como `js/funciones-mapa.js`, importado directamente y no cargado en iframe) usando `destino: resolverIdPadre()` para notificar un evento al padre — el mensaje nunca llega, sin ningún error visible en el resto del flujo.
+9. **Autoenvío del padre con `destino: 'padre'`:** distinto del punto 7 (que cubre `origen === destino` sin handler) — aquí el problema es de enrutamiento, no de handler ausente. Un **hijo** direcciona sus mensajes al padre con `destino: 'padre'`; si un módulo que corre dentro del propio padre (p.ej. `funciones-mapa.js`, importado directamente, no cargado en un iframe) usa ese mismo destino, `enviarMensaje()` (`js/mensajeria.js`) lo detecta —`destino === componenteId`—, avisa una vez por tipo de mensaje con `"… no se envía <tipo> a sí mismo por enviarMensaje: eso se hace con despacharLocal"` y devuelve `false`: no envía nada. Si el envío es fire-and-forget (sin `.catch()` que compruebe el resultado `false`, el patrón más común en el código), esto es indistinguible de "todo va bien" salvo por ese único aviso suelto en el log — fácil de no ver en una lectura superficial porque no rompe nada más. Para cada `enviarMensaje({ destino: 'padre', ... })`, confirma primero desde qué contexto corre ese código: si es un módulo que vive dentro del padre (no un HTML de hijo cargado en iframe), es casi con certeza este bug, y el camino correcto es `despacharLocal`. Ejemplo de este patrón: un módulo que corre dentro del propio padre (como `js/funciones-mapa.js`, importado directamente y no cargado en iframe) usando `destino: 'padre'` para notificar un evento al padre — el mensaje no sale, sin ningún error visible en el resto del flujo.
 
 ---
 
@@ -13883,134 +13857,141 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 
 ### 37.2 `globalThis` compartido entre bloques `<script>` inline (todos los archivos)
 
-Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **123 en total**. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
+Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **127 en total**. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 102 identificadores cruzados, de 161 expuestos (20 bloques &lt;script&gt; inline: 5 módulo + 15 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 104 identificadores cruzados, de 153 expuestos (20 bloques &lt;script&gt; inline: 5 módulo + 15 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
-| `modoActual` | clásico 13 (L14806) | módulo 1, módulo 2 | función/objeto |
 | `__setRealActivarGPS` | clásico 3 (L75) | módulo 1 | función/objeto |
 | `activarGPS` | clásico 3 (L65) | módulo 1, módulo 2 | función/objeto |
-| `handleIframeError` | clásico 5 (L95) | clásico 9 | función/objeto |
-| `handleIframeLoad` | clásico 5 | clásico 9 | función/objeto |
-| `actualizarVisibilidadSelectorMapa` | clásico 7 (L1578) | clásico 8, módulo 1, módulo 2, módulo 3 | función/objeto |
-| `construirEstadoChat` | clásico 7 (L1678) | módulo 1 | función/objeto |
-| `mostrarIframeOverlay` | clásico 8 | módulo 2 | función/objeto |
-| `mostrarImagenOverlay` | clásico 8 (L1774) | módulo 1, módulo 2 | función/objeto |
-| `mostrarVideoOverlay` | clásico 8 (L2111) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 | clásico 13 | estado |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3823) | clásico 8, módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 | clásico 13 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 | clásico 13 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3825) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 | clásico 13 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3827) | módulo 2 | función/objeto |
-| `__vv_PUZZLES` | módulo 1 | módulo 2 | función/objeto |
-| `__vv_salidaEnlaceExterno` | módulo 1 | módulo 2 | función/objeto |
-| `_calcularProgresoFraccion` | módulo 1 | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5500) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3968) | módulo 2, módulo 4 | función/objeto |
-| `ajustarTimeoutPorConexionSafe` | módulo 1 | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4820) | clásico 7, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 | módulo 2 | función/objeto |
-| `cargarIframeSecuencial` | módulo 1 | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 | módulo 2 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L4102) | clásico 6, clásico 8, módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3962) | módulo 2, módulo 3, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3963) | módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L4266) | clásico 7, módulo 2, módulo 4 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 | módulo 2 | función/objeto |
-| `getPadreId` | módulo 1 (L4116) | clásico 6, módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 | módulo 2 | función/objeto |
-| `hideParentLoadingOverlay` | módulo 1 | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4821) | clásico 7, módulo 2, clásico 14 | función/objeto |
-| `limpiarDatosAventura` | módulo 1 (L3020) | módulo 2, clásico 14 | función/objeto |
-| `MODOS` | módulo 1 (L3960) | módulo 2, módulo 4 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L9471) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L9325) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 | módulo 2 | función/objeto |
-| `registrarControlador` | módulo 1 (L3961) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5354) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5413) | clásico 7, módulo 2 | función/objeto |
-| `reproducirVideoConBuffer` | módulo 1 (L3026) | clásico 8, módulo 2 | función/objeto |
-| `resolverIdsParada` | módulo 1 (L3015) | módulo 2 | función/objeto |
-| `retryUntilAvailable` | módulo 1 (L3016) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 | módulo 2 | función/objeto |
-| `showParentLoadingOverlay` | módulo 1 | módulo 2 | función/objeto |
-| `sleep` | módulo 1 (L2895) | módulo 2, módulo 3, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3959) | clásico 5, clásico 7, clásico 8, módulo 2, módulo 3, módulo 4 | función/objeto |
-| `TRADUCCIONES_SW_UPDATE` | módulo 1 (L3024) | clásico 14 | función/objeto |
-| `updateLoadingStatus` | módulo 1 | módulo 2 | función/objeto |
-| `verificarTimeoutAventura` | módulo 1 (L3021) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 | clásico 13 | estado |
-| `_buscarParadaEnDatos` | módulo 2 | módulo 1 | función/objeto |
-| `_configurarRetoBtn` | módulo 2 | módulo 1 | función/objeto |
-| `_iframesPreCargadosP14` | módulo 2 | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L10078) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L10203) | clásico 7, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10795) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 | módulo 1 | función/objeto |
-| `obtenerRetosIds` | módulo 2 | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 | módulo 2 | función/objeto |
+| `handleIframeError` | clásico 5 (L95) | clásico 8 | función/objeto |
+| `handleIframeLoad` | clásico 5 (L168) | clásico 8 | función/objeto |
+| `actualizarVisibilidadSelectorMapa` | clásico 6 (L1554) | clásico 7, módulo 1, módulo 2, módulo 3 | función/objeto |
+| `cerrarChatSoporte` | clásico 6 (L1670) | módulo 2 | función/objeto |
+| `construirEstadoChat` | clásico 6 (L1673) | módulo 1 | función/objeto |
+| `cerrarImagenOverlay` | clásico 7 (L1792) | módulo 1, módulo 2 | función/objeto |
+| `mostrarIframeOverlay` | clásico 7 (L2272) | módulo 2 | función/objeto |
+| `mostrarImagenOverlay` | clásico 7 (L1768) | módulo 1, módulo 2 | función/objeto |
+| `mostrarVideoOverlay` | clásico 7 (L2109) | módulo 1, módulo 2 | función/objeto |
+| `rotationSuppressed` | clásico 7 (L1809) | módulo 1, módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3844) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5218) | clásico 13 | estado |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3832) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3831) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L6056) | clásico 13 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6728) | clásico 13 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3833) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6868) | clásico 13 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3835) | módulo 2 | función/objeto |
+| `__vv_PUZZLES` | módulo 1 (L3836) | módulo 2 | función/objeto |
+| `__vv_registroScript1` | módulo 1 (L3708) | módulo 2 | estado |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4900) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7637) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L9262) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9478) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L9383) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L4164) | módulo 2 | estado |
+| `_iniciarRecordatorioAudio` | módulo 1 (L9352) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9548) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9454) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L9358) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9556) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L9232) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5382) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6229) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3972) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3979) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4718) | clásico 6, módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8577) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8575) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8576) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L4071) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3966) | clásico 6, clásico 7, módulo 2, módulo 3, clásico 12, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3967) | módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4169) | clásico 6, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4518) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4316) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6632) | módulo 2 | función/objeto |
+| `hideParentLoadingOverlay` | módulo 1 (L2966) | módulo 2 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4719) | clásico 6, módulo 2, clásico 14 | función/objeto |
+| `limpiarDatosAventura` | módulo 1 (L3001) | módulo 2, clásico 14 | función/objeto |
+| `MODOS` | módulo 1 (L3964) | módulo 2, módulo 4 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8959) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L9028) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8882) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8735) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8778) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4385) | módulo 2 | función/objeto |
+| `registrarControlador` | módulo 1 (L3965) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5246) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5273) | clásico 6, módulo 2 | función/objeto |
+| `registrarIframeHijo` | módulo 1 (L3752) | clásico 6, módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L3007) | clásico 7, módulo 2 | función/objeto |
+| `resolverIdsParada` | módulo 1 (L2996) | módulo 2 | función/objeto |
+| `retryUntilAvailable` | módulo 1 (L2997) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6468) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6393) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6320) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6548) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6624) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6925) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6924) | módulo 2 | función/objeto |
+| `showParentLoadingOverlay` | módulo 1 (L2954) | módulo 2 | función/objeto |
+| `sleep` | módulo 1 (L2876) | módulo 2, módulo 3, módulo 4 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5993) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3963) | clásico 6, clásico 7, módulo 2, módulo 3, módulo 4 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L4142) | clásico 7, módulo 2 | función/objeto |
+| `TRADUCCIONES_SW_UPDATE` | módulo 1 (L3005) | clásico 14 | función/objeto |
+| `updateLoadingStatus` | módulo 1 (L2982) | módulo 2 | función/objeto |
+| `verificarTimeoutAventura` | módulo 1 (L3002) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8578) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9668) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14677) | clásico 13 | estado |
+| `_buscarParadaEnDatos` | módulo 2 (L11567) | módulo 1 | función/objeto |
+| `_configurarRetoBtn` | módulo 2 (L11841) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L14658) | clásico 6 | función/objeto |
+| `_iframesPreCargadosP14` | módulo 2 (L12896) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L13312) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L13346) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9716) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10594) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9855) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9937) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10413) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13578) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10476) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9975) | módulo 1 | función/objeto |
+| `obtenerRetosIds` | módulo 2 (L9992) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10468) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10441) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14749) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE_IFRAME` | módulo 3 (L14696) | clásico 12 | función/objeto |
 
 </details>
 
 <details>
-<summary><code>En-busca-del-tesoro.html</code> — 15 identificadores cruzados, de 36 expuestos (7 bloques) — clic para desplegar</summary>
+<summary><code>En-busca-del-tesoro.html</code> — 16 identificadores cruzados, de 33 expuestos (18 bloques) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
-| `_devCasaMode` | clásico 3 | módulo 2 | estado |
-| `_resetearFlagsContenido` | clásico 3 | módulo 2 | función/objeto |
-| `_setAventuraIniciando` | clásico 3 | módulo 2 | puente |
-| `_setAventuraSeleccionada` | clásico 3 | módulo 2 | **puente** |
-| `_setIdiomaSeleccionado` | clásico 3 | módulo 2 | **puente** |
-| `_setTimerProgresoCarga` | clásico 3 | módulo 2 | puente |
-| `mostrarMapaVintage` | clásico 3 | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 2 (L3127) | clásico 3 **solo vía su puente** | estado |
-| `enviarValoracion` | módulo 2 (L2427) | clásico 3 | función/objeto |
-| `idiomaSeleccionado` | módulo 2 | clásico 3 **solo vía su puente** | estado |
-| `seleccionarAventura` | módulo 2 | clásico 3 | función/objeto |
-| `TEXTOS_VALORACION` | módulo 2 | clásico 3 | función/objeto |
-| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 2 | clásico 3 | función/objeto |
-| `TRADUCCIONES_DESPEDIDA` | módulo 2 | clásico 3 | función/objeto |
-| `TRADUCCIONES_REANUDACION` | módulo 2 | clásico 3 | función/objeto |
+| `_devCasaMode` | clásico 3 (L1111) | módulo 7 | estado |
+| `_resetearFlagsContenido` | clásico 3 (L2506) | módulo 7 | función/objeto |
+| `_setAventuraIniciando` | clásico 3 (L2504) | módulo 7 | función/objeto |
+| `_setAventuraSeleccionada` | clásico 3 (L2503) | módulo 7 | función/objeto |
+| `_setTimerProgresoCarga` | clásico 3 (L2505) | módulo 7 | función/objeto |
+| `mostrarMapaVintage` | clásico 3 (L2525) | módulo 7 | función/objeto |
+| `x` | clásico 3 (L2498) | módulo 7 | estado |
+| `aventuraSeleccionada` | módulo 7 (L2961) | clásico 3 | función/objeto |
+| `enviarValoracion` | módulo 7 (L2551) | clásico 3 | función/objeto |
+| `idiomaSeleccionado` | módulo 7 (L2890) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 7 (L2957) | clásico 3 | función/objeto |
+| `TEXTOS_VALORACION` | módulo 7 (L2549) | clásico 3 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 7 (L2589) | clásico 3 | función/objeto |
+| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 7 (L2548) | clásico 3 | función/objeto |
+| `TRADUCCIONES_DESPEDIDA` | módulo 7 (L2547) | clásico 3 | función/objeto |
+| `TRADUCCIONES_REANUDACION` | módulo 7 (L2550) | clásico 3 | función/objeto |
 
 **Por qué los `_setX()` existen y no se pueden saltar.** Un `let` declarado en el `<script>` clásico **tapa** la propiedad del mismo nombre en `globalThis`: `globalThis.x = v` desde el módulo no cambia ese `let`, y las lecturas sin prefijo del clásico siguen viendo el valor viejo. Por eso todo estado que el módulo tenga que escribir y el clásico leer necesita su puente.
 
@@ -14025,12 +14006,13 @@ El fallo, cuando falta un puente, es **mudo**: la variable se queda en su valor 
 
 | Archivo | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|---|
-| `video-intro.html` | `JAIME_SCENES` | módulo 1 (L592) | clásico 2 | función/objeto |
-| `video-intro.html` | `reproducirVideoConBuffer` | módulo 1 (L593) | clásico 2 | función/objeto |
+| `video-intro.html` | `JAIME_SCENES` | módulo 1 (L594) | clásico 3 | función/objeto |
+| `video-intro.html` | `reproducirVideoConBuffer` | módulo 1 (L595) | clásico 3 | función/objeto |
+| `video-intro.html` | `TIPOS_MENSAJE` | módulo 1 (L610) | clásico 3 | función/objeto |
 | `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L409) | módulo 2 | función/objeto |
 | `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L418) | módulo 2 | función/objeto |
 | `retos-hijo4.html` | `ejecutarValidacion` | clásico 2 (L26) | módulo 1 | función/objeto |
-| `chat-hijo6.html` | `cerrarChatVentana` | clásico 2 | módulo 1 | función/objeto |
+| `chat-hijo6.html` | `cerrarChatVentana` | módulo 1 (L384) | módulo 2 | función/objeto |
 
 </details>
 
