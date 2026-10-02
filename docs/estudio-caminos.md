@@ -638,6 +638,7 @@ lleva pegado el comando de comprobación que cualquiera puede repetir con `grep`
 | handlers solo-log | de cada registro de handler del bus, si su función solo escribe en el log (`handlers-solo-log.cjs`, añadido al cerrar la tanda) | 140 registros: 136 analizados, 15 solo-log, 0 que además devuelvan un valor; residuo 4 (K-46) |
 | guía frente a código: fichas | la tabla de cobertura por hijo de §10.7 celda por celda frente a los handlers del código (sale con código 1 si no cuadra) y las filas «Emitido por» y «Handler en …» de las fichas de §10 junto a lo que registra y emite cada frame (`guia-fichas-mensaje.cjs`, añadido al cerrar la tanda; `ESTUDIO_GUIA` apunta a otra copia de la guía) | contra la guía anterior a G-43: 3 discrepancias en §10.7; contra la actual, 0 (G-43) |
 | guía frente a código: payloads | las claves de las celdas «Payload» de §7, §8 y §10 frente a las que mandan los emisores del código (`guia-payloads.cjs`, añadido al cerrar la tanda; necesita `payload.json`) | contra la guía anterior a G-43: 38 de 222 filas con claves que ningún emisor manda; contra la actual, 7 de 221, todas leídas a mano (cinco de emisor opaco —`datos` no literal—, `UI.CLOSE_MENUS` padre → hijo1, que no tiene emisor, y `CHAT.ESTADO_PADRE`) (G-43) |
+| guía frente a código: nombres citados | las funciones, handlers y globals propios que la guía cita entre backticks, buscados como token en los ficheros rastreados con código (`guia-nombres-citados.cjs`, añadido al cerrar la tanda; `ESTUDIO_GUIA` apunta a otra copia de la guía) | contra la guía anterior a G-44: 40 candidatos, 7 referencias a algo que no existe; contra la actual, 33, todos explicados (frases que dicen que el nombre no existe, nombres del arnés de tests o de `tools/`, patrones como `mostrarCartelXXX`) (G-44) |
 
 Además se han ejecutado las herramientas propias del repo que esta auditoría no había usado:
 `node tools/codigo-muerto.js`, `node tools/verificar-mensajeria.js`, `node tools/verificar-frames.js`.
@@ -2755,6 +2756,12 @@ Para que "no sale nada" no se confunda con "no se miró":
   17 `.html`: 193 distintos, ninguno repetido dentro de su documento. Y los 14 nombres de
   `globalThis` que leen los specs sin que producción los asigne, en K-32 (uno solo importa).
 
+- **Lo que la guía cita de la interfaz y del arranque (G-44).** Ids de DOM (`#x`), clases (`.x`), claves de `localStorage` y `sessionStorage`
+  (`vv_x`) y parámetros de URL (`?x=`) citados entre backticks, buscados como cadena en los ficheros rastreados con código: todos aparecen
+  (los dos que no, `.browserslistrc` y `.gitattributes`, son ficheros). Las frases «Script N» de la guía sobre funciones de `codigo-padre.html`
+  (55 comprobadas contra el bloque `<script type="module">` donde está cada definición): ninguna sitúa una función en otro bloque; las seis
+  que el script marcó nombran en la misma línea una función de otro bloque y son falsos positivos leídos a mano.
+
 ### R2.4 Las mediciones (hechas el 2026-10-02)
 
 Las doce mediciones que la ronda 2 dejó "POR MEDIR" (M-1 a M-12) y seis más que salieron al arreglar
@@ -2791,7 +2798,7 @@ después.
 
 La guía "se consulta siempre y no se cree nunca" (CLAUDE.md regla 8). Estas son las contradicciones que la ronda tropezó,
 cada una verificada contra el código. **Las 18 se corrigieron en la tanda de arreglos del 2026-10-02**, junto con las que la
-propia tanda fue encontrando (G-19 a G-43, tabla de estado más abajo); la tabla de aquí conserva lo que decían y lo que había:
+propia tanda fue encontrando (G-19 a G-44, tabla de estado más abajo); la tabla de aquí conserva lo que decían y lo que había:
 
 | # | Dónde | Dice | El código |
 |---|---|---|---|
@@ -2860,6 +2867,7 @@ código leído ese día; los hashes son de los commits locales (sin pushear).
 | G-41 | ✅ | `f151ca3`: §26.12.3 a §26.12.9: 33 handlers y 43 mensajes salientes que las tablas de la selección y los seis hijos no tenían, y 36 filas falsas o incompletas (hijo1 «se muestra o se oculta según el modo», hijo4 «oculta o muestra el reto», hijo5 al revés, `CONTROL.*` de hijo2 «muestra el iframe», `UI.ACCION_USUARIO` de hijo3 con un acuse que no manda, `IDIOMA_SELECCIONADO` en P3…); sección nueva §26.12.10 para los tres nietos |
 | G-42 | ✅ | `f151ca3`: §7.1, §7.2, §7.3 y §2.9: la selección «no participa en el ciclo de modos»; `#icono-temporizador` «solo en AVENTURA y se oculta en CASA» (nada lo oculta); hijo2 «cambia la clase CSS del body» en `CAMBIO_MODO` (solo la fija `PADRE_DATOS`: K-47, M-17) y «carga coordenadas desde `coordenadas-aventuras.js`» (las recibe del padre); hijo5 en AVENTURA «lista de paradas actualizada» (la ventana está oculta) |
 | G-43 | ✅ | `4ff98d5`: las fichas por mensaje de §10, las tablas de los siete frames de §7 y §8 y la tabla 10.7 repetían lo que §26.12 dice de cada handler y en varios puntos decían otra cosa. Modo: `CAMBIO_MODO` como `broadcast` con `aventura` e `idioma` y cinco handlers (son la orden al padre, `{ modo }`, y el aviso por hijo, `{ modo, mensajeId }`, y lo atienden siete frames); `EFECTUADO` sin la selección, hijo5 ni hijo6 y con una nota de que hijo6 no lo manda (lo manda); `APLICADO` en cuatro hijos y con efecto (seis frames, solo log). Fichas: `IDIOMA_SELECCIONADO` que «propaga a los hijos», `TERMINOS_ACEPTADOS` que «desbloquea el botón», `GPS.ACTIVAR` que llama a `revelarNavegacion`, `RETO.MOSTRADO` que toca `estado.retoActual`, `AUDIO.ERROR` que «no desbloquea flujo» (llama a `_marcarAudioNoDisponible`), `TEMPORIZADOR.TOGGLE` que pausa el temporizador, `HIJO_LISTO` que reenvía el modo, `SOLICITAR_DATOS_PARADAS` que lee `__vv_DATOS_AVENTURAS`, `MONITOREO.METRICA` mandada por cuatro hijos y guardada en un historial que no existe (la manda hijo2) y `UI.ACCION_USUARIO` mandada por hijo3 (la recibe). §8: `GPS.ERROR` y `GPS.ESTADO_ACTUALIZADO` de hijo2 que «muestran un overlay», `NOTIFICACION` de hijo4 que «limpia el reto», `SISTEMA.ERROR` de hijo5 que «reintenta», `CAMBIO_MODO` de hijo6 «sin acción» y el de hijo2 que «cambia la clase del body» (K-47). §7: hijo1 no manda `MONITOREO.METRICA`. §10.7: ❌ a hijo5 en `APLICADO`, ✅ a hijo4 en `RETO.OCULTAR` (lo manda, no lo atiende) y — a hijo2 en `RESPUESTA_DATOS_PARADAS`. Y 31 filas de payload con claves que ningún emisor manda (`HIJO_PREPARADO` y `HIJO_LISTO` con `componenteId`, `version` o `iframeId` que no llevan todos, `HEARTBEAT_RESPONSE` con `componente`, `AUDIO.*` con `parada_id` y `duracion`, `UI.ACCION_USUARIO` con `accion: 'video'`, `MOSTRAR_MAPA_VINTAGE` con `url` y `paradaActual`…). M-18 y K-48: hijo5 marca la parada con una clase sin estilo |
+| G-44 | ✅ | `bddb51c`: siete nombres que la guía citaba como existentes y no están en ningún fichero del código: `_hijoListo_sincronizarModoCriticos` (dos sitios: nada manda `CAMBIO_MODO` al quedar listo un hijo; el modo inicial lo llevan `PADRE_DATOS` y el `modoInicial` de `PADRE_CONFIRMA_HIJO_LISTO`), `cargarIframeSecuencial` «alias» de `cargarIframeSoloSeleccion`, `_broadcastActivacion`, `cargarVideoIntro()` (que además daba la pantalla del vídeo como P8, «placeholder»: es P4 y carga `video-intro.html`), `maxFallidos` (es `MAX_LATIDOS_SIN_RESPUESTA`), `registrarControladorScript2Seguro` (es `registrarControladorSeguro`) y `paradaIdActual` de hijo4 (es `estado.padreIdActual`) |
 
 ### R2.6 Censo de frames (regla 3b)
 
@@ -3034,6 +3042,8 @@ pegado para repetir cada comprobación, es del usuario.
 | `70ec0a5` | guía: §37.3 regenerada tras retirar el handler de `SISTEMA.HEARTBEAT` del padre | K-35 |
 | `4ff98d5` | guía: fichas de §10, tablas de §7 y §8 y tabla 10.7 contrastadas con el código | G-43 (M-18) |
 | `524669d` | `guia-fichas-mensaje` y `guia-payloads`; `guia-handlers-por-frame` mira también §7 y §8; `extract-payload` y `extract-discriminadores` sin `TIPOS_MENSAJE_VALIDOS` | K-34, G-43 |
+| `bddb51c` | guía: siete nombres citados que no existen en el código | G-44 |
+| `38bed4d` | `guia-nombres-citados` | G-44 |
 
 **Resultado por entrada.**
 
