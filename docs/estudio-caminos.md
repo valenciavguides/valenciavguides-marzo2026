@@ -46,7 +46,7 @@ por impecable que parezca encadenado.
 **Ronda 2 (2026-10-01).** La metodología de arriba es la de la ronda 1 (`grep` e inventario). La
 ronda 2, al final de este documento, repite el barrido con parser real (`acorn`) y con el residuo
 de cada instrumento a la vista: desmiente siete afirmaciones de este texto (erratas E1-E7, con una
-nota fechada en cada sección afectada) y añade 44 entradas (K-01 a K-44) para su estudio
+nota fechada en cada sección afectada), corrige dos de la propia ronda (E8 y E9) y añade 47 entradas (K-01 a K-47) para su estudio
 individual. Léase junto con ella: lo que aquí se dio por cerrado o limpio puede no estarlo.
 
 **No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
@@ -634,6 +634,8 @@ lleva pegado el comando de comprobación que cualquiera puede repetir con `grep`
 | recursos locales | cadenas JS, atributos HTML, `url()`, `sw.js` y `manifest.json` que apuntan a ficheros locales, frente al disco | 491 referencias en 50 ficheros, 81 nombres sueltos resueltos por nombre base, 1 inexistente, 16 con `${…}` sin resolver (K-44) |
 | listeners duplicados | `addEventListener` sobre `window`/`document` agrupados por (objetivo, evento) dentro del cierre de ficheros de cada frame | 12 pares con varios sitios en el padre, 1 en la selección, 2 en el puzzle; 4 deciden lo mismo dos veces (R2.3, K-04, K-11, K-40); residuo 3 eventos no literales |
 | contratos menores | cadenas de respaldo con `\|\|`/`??` y varias fuentes de un mismo dato; handlers registrados dos veces en un frame; parámetros de URL leídos frente a escritos | 152 cadenas (12 con varias fuentes); 144 receptores sin duplicados; 7 parámetros leídos y 12 escritos (R2.3, K-36) |
+| guía frente a código | por cada frame (padre, selección, hijo1 a hijo6): los tipos que el código registra y emite frente a las filas de las tablas de handlers y de salientes de §26.12 y a los tipos que mencionan §7 y §8 (`guia-handlers-por-frame.cjs`, añadido al cerrar la tanda: mide contra `HEAD`) | antes de G-34 a G-42: 48 handlers de 62 en el padre, y 4 de 9, 4 de 9, 10 de 18, 8 de 10, 8 de 16, 5 de 9 y 5 de 6 en la selección y los hijos; después, tantos en la guía como en el código en los ocho frames (K-46, G-34 a G-42) |
+| handlers solo-log | de cada registro de handler del bus, si su función solo escribe en el log (`handlers-solo-log.cjs`, añadido al cerrar la tanda) | 140 registros: 136 analizados, 15 solo-log, 0 que además devuelvan un valor; residuo 4 (K-46) |
 
 Además se han ejecutado las herramientas propias del repo que esta auditoría no había usado:
 `node tools/codigo-muerto.js`, `node tools/verificar-mensajeria.js`, `node tools/verificar-frames.js`.
@@ -726,6 +728,13 @@ en cada una apuntando aquí. Todas están comprobadas leyendo las líneas.
   `contentWindow` en el padre: una lectura de propiedad ajena y los usos de `iframe.contentWindow` como destino de
   `postMessage` y como comprobación de existencia. Es una lectura de mismo origen dentro de un `try`; no cambia la
   conclusión (el bus es el único camino de datos), pero la frase literal no se sostiene.
+- **E9 — K-37: «Dos únicos sitios usan un tipo de mensaje como literal» es falso.** Son 8, en 4 ficheros: la selección
+  (`En-busca-del-tesoro.html:1256`, `:1659`, `:1793` y `:2471`: los cuatro envíos de su script clásico, que no puede importar
+  `constants.js` y manda por `globalThis.mensajeria`), el padre (`codigo-padre.html:1628`, `CHAT.ESTADO_PADRE`, y `:14761`,
+  `SISTEMA.HEARTBEAT`: respaldos detrás de `globalThis.TIPOS_MENSAJE…?.X ||`), `js/mensajeria.js:1224` y `js/utils.js:375`.
+  Método: búsqueda desnuda de cada uno de los 94 valores entre comillas en `*.html`, `js/*.js` y `sw.js`: 11 apariciones, de las
+  que 3 no son el tipo de un mensaje (dos `contexto:` de hijo5, `:1005` y `:1063`, y un comentario de `utils.js:347`). No cambia la
+  conclusión de K-37 —son los mismos valores del mismo contrato y lo recomendado es dejarlos—, sí la cifra.
 
 ### R2.2 Catálogo de hallazgos
 
@@ -1800,6 +1809,12 @@ Mientras no se haga, citar su salida como evidencia exige comprobarla a mano, co
   impedían que `no-undef` avisara (`2ed1658`); `coordinarAccion` (`218c0ae`); y los otros 11 fantasmas
   (`24ec574`); `npm run lint` sigue sin ningún aviso. La «decisión pendiente» de esta entrada se resuelve
   por la primera opción: se corrigen los dos verificadores, no se retiran sus columnas.
+- **Una pasada más sobre `verificar-mensajeria` (2026-10-02, `e3a9cff`).** El instrumento daba por alcanzable en todos los frames, el
+  padre incluido, cualquier envío `broadcast` o de destino dinámico que contiene `js/mensajeria.js` (lo cargan los once), y con eso
+  daba por vivo un handler del padre que no lo estaba (K-35, M-16): un `broadcast` no llega nunca al frame que lo emite, y el único
+  emisor de ese tipo es el padre. Ahora parte del emisor real (`EMISOR_DE_BROADCAST`) y lista 2 handlers inalcanzables, los dos de K-35
+  que siguen abiertos. Dos extractores nuevos en `tools/estudio-caminos/`: `guia-handlers-por-frame.cjs` (filas de las tablas de §26.12
+  sin respaldo en el código y tipos de cada frame que la guía no cuenta: de ahí salen G-34 a G-42) y `handlers-solo-log.cjs` (K-46).
 
 #### Familia J — Contrato del bus y constantes compartidas
 
@@ -1862,6 +1877,15 @@ fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las c
   `{ timestamp }`* — **recomendada**: deja el único sentido que existe. *B) conectar el sentido que falta*
   (que el padre mande `CLOSE_MENUS` a hijo1 al abrir su desplegable de audio): cambia lo que ve el usuario
   (exclusión mutua de los dos menús), así que es decisión de producto.
+- **Ampliación (2026-10-02, `e3a9cff`): un tercer handler sin emisor, en el padre.** `_hdl_SISTEMA_HEARTBEAT` (Script 1 de
+  `codigo-padre.html`, 45 líneas con su registro) contestaba `HEARTBEAT_RESPONSE` a un `SISTEMA.HEARTBEAT` entrante. El único frame que
+  manda ese tipo es el propio padre —`iniciarHeartbeat` y el aviso de `visibilitychange`—, siempre hacia sus iframes, y el bus no se
+  envía a sí mismo (`enviarMensaje` rechaza `destino === componenteId`): ningún emisor lo alcanzaba. Se escapó a este documento y al
+  instrumento (K-34). **M-16:** con el padre cargado, 0 `SISTEMA.HEARTBEAT` entrantes ni despachados con `despacharLocal` durante el
+  arranque, la carga de los hijos, el paso a AVENTURA y a CASA y un `visibilitychange`, con 18 `HEARTBEAT_RESPONSE` de control en la
+  misma ventana. Retirado, con su mención en el comentario que listaba los controladores de Script 1 (que además incluía uno, `ESTADO`,
+  que no existe) y con las frases de la guía que lo describían (G-37); el MC-7b del spec 09 pasa a afirmar lo que hay: el padre atiende
+  `HEARTBEAT_RESPONSE` y no registra `HEARTBEAT`.
 
 ##### K-36 — Contrato de la carga útil: claves y valores que solo existen en un lado — ✅ (alcance 🔎)
 
@@ -2024,7 +2048,7 @@ fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las c
   o una constante (140 `destino: 'padre'`; ningún hijo ni nieto importa `MODOS`). *A) dejarlos* —
   **recomendada**: son los mismos dos valores y el mismo destino del contrato del bus, sin ningún fallo
   demostrado, y *B) importar `MODOS` en los siete hijos y la selección* toca once ficheros por una ganancia
-  solo de legibilidad.
+  solo de legibilidad. (Errata E9: los sitios que escriben un tipo como literal son 8, no dos; la decisión no cambia.)
 
 #### Familia K — Nombres de `globalThis` que nadie define, y un frame que no publica lo que los demás
 
@@ -2567,6 +2591,68 @@ Un barrido más, hecho al cerrar la tanda de arreglos: lo encontró un spec que 
   acordeón: evita el colapso, pero es un cambio mayor en el único frame que ya tuvo una avería por tener dos
   caminos casi iguales (el chat en español).
 
+#### Familia Q — Handlers que existen y no hacen lo que su descripción dice
+
+Un barrido más, hecho al contrastar las tablas de handlers de la guía (§26.12) con el código, frame por frame: dos extractores nuevos
+(`guia-handlers-por-frame.cjs` y `handlers-solo-log.cjs`) y la lectura de cada handler dieron estas dos entradas y las discrepancias
+G-34 a G-42.
+
+##### K-46 — Handlers del bus que solo escriben en el log — ✅ (decisión abierta)
+
+- **Método.** `node tools/estudio-caminos/handlers-solo-log.cjs` (necesita el `mensajes.json` de `extract-mensajes.cjs`): de cada uno
+  de los 140 registros de handler localiza la función con `acorn` y la clasifica como «solo log» cuando no hace ninguna llamada que no
+  sea de log, ninguna asignación que no sea a una variable local y ningún `return` con valor. Analiza 136; el residuo son 4 registros
+  cuya función no localiza (`PUZZLE.COMPLETADO` y `PUZZLE.TIMEOUT` en la selección, `MAPA_COMPLETO.DATOS` y `MAPA_COMPLETO.VISIBLE` en
+  `mapa-completo.html`), leídos a mano: ninguno es solo-log. «Solo log y devuelve valor» (el valor viaja en el acuse): 0. Los 15 que
+  salen se leyeron uno a uno.
+- **Los 15.**
+  - `SISTEMA.CAMBIO_MODO_APLICADO` ×6 (selección `:2869`, hijo1 `:520`, hijo2 `:1780`, hijo3 `:1432`, hijo4 `:1462`, hijo5 `:951`):
+    escriben «cambio de modo aplicado globalmente» y nada más. Es la 4.ª fase del protocolo de modo: el padre la manda tras esperar el
+    `CAMBIO_MODO_EFECTUADO` de todos (hasta 10 s) y no espera respuesta. hijo6 no registra un handler de este tipo.
+  - `RETO.CONFIRMADO` (hijo4 `:1664`): la fase 3 de `RETO.MOSTRAR → RETO.MOSTRADO → RETO.CONFIRMADO`; el padre contesta y hijo4 solo lo
+    anota. `DATOS.TEXTOS_CARGADOS` (padre, registro en `:12770`): hijo2 confirma la carga de los textos y el padre solo lo anota.
+    (`DATOS.COORDENADAS_CARGADAS`, su par, no sale en la lista porque asigna `estado.seleccion.coordenadasCargadas`, un campo que
+    ningún código lee: K-41.)
+  - `SISTEMA.ERROR` ×3 (hijo2 `:2319`, hijo4 `:1653`, hijo5 `:1106`) y `SISTEMA.NACK` (hijo4 `:1643`): lo que el padre les manda —por
+    ejemplo `gps_activar_restringido` a hijo2, o el `NACK` de `_hdl_RETO_SOLICITAR` cuando faltan los datos— solo se anota. hijo3, que
+    también pide retos, no registra `SISTEMA.NACK`.
+  - `SISTEMA.NOTIFICACION` (hijo4 `:1599`): deliberado; su comentario lo explica (acusar recibo sin tocar el reto abierto, que antes se
+    borraba).
+  - En el padre: `AVENTURA.FINALIZADA` (`:13858`, sin emisor: K-35) y `SELECCION.CODIGO_VALIDADO` (`:13364`, que la guía ya daba por
+    no-op: la carga real la dispara `SELECCION.P14_MOSTRADA`).
+- **Estado en la guía.** Tras `c40ecd0` y `f151ca3` cada fila de §26.12 dice del handler que solo escribe en el log; antes algunas
+  prometían efectos que el código no tiene (G-34, G-41).
+- **Pendiente: decisión de diseño** (ninguna cambia lo que ve el usuario). *A) dejarlos, ya documentados* — **recomendada para
+  `CAMBIO_MODO_APLICADO`, `SISTEMA.ERROR`, `SISTEMA.NACK`, `SISTEMA.NOTIFICACION` y `CODIGO_VALIDADO`**: son el cierre visible de un
+  protocolo, un diagnóstico o un aviso que se quiere conservar, no cuestan nada y retirarlos toca el protocolo de modo de once frames
+  (regla 1) o quita una traza útil. *B) retirar los dos viajes de ida y vuelta que no consumen nada* — **recomendada para
+  `RETO.MOSTRADO` → `RETO.CONFIRMADO` y `DATOS.TEXTOS_CARGADOS`**: el padre no usa la respuesta, y cada uno es un mensaje, un handler y
+  una fila de la guía que no sostienen ninguna decisión. *C) retirar la 4.ª fase del modo entera* (el envío del padre, los seis
+  handlers, la constante y lo que cubren los specs `09`): un protocolo de tres fases; solo si se quiere ese cambio.
+
+##### K-47 — hijo2 no cambia la clase del body al cambiar de modo, y hijo3 y hijo4 sí — ✅ (medido: M-17; decisión abierta)
+
+- **Dónde.** `coordenadas-hijo2.html:1556`: `` document.body.className = `modo-${modoSeguro} hijo2-container` ``, dentro de
+  `_procesarDatosPadre` (`:1549`), que solo llama el handler de `SISTEMA.PADRE_DATOS` (`:1571`). El cambio de modo
+  (`SISTEMA.CAMBIO_MODO`, `:1696-1774`, y `_resetarEstadoParaModo`, `:1646`) actualiza `estadoComponente.modo` y los botones y no toca la
+  clase; `PADRE_CONFIRMA_HIJO_LISTO` (`:1591`) tampoco (aplica `modoInicial` al estado y a los botones). El `<body>` arranca con
+  `modo-casa` (`:333`). hijo3 (`sincronizarSeekPorModo`, `audio-hijo3.html:1108-1115`, llamada en `:1185`, `:1269` y `:1402`) y hijo4
+  (`sincronizarEstadoModo`, `retos-hijo4.html:1193-1204`, llamada en `:1247`, `:1306` y `:1428`) reescriben la clase en el
+  `PADRE_DATOS`, en el `PADRE_CONFIRMA_HIJO_LISTO` y en cada `CAMBIO_MODO`.
+- **Un solo lector de la clase.** La regla `.modo-aventura #btn-avanzar.activo { animation: pulse 1.5s infinite }`
+  (`coordenadas-hijo2.html:214`). Búsqueda desnuda de `modo-aventura` y `modo-casa` en el frame: el `<body>`, esa regla y la escritura de
+  `:1556`, nada más.
+- **Medido (M-17).** Con el padre y los hijos reales: tras el arranque, `hijo2` = `modo-casa hijo2-container`, `hijo3` =
+  `hijo3-container modo-casa` y `hijo4` = `modo-casa`; tras pasar a AVENTURA, `hijo2` **sigue** en `modo-casa` y `hijo3` y `hijo4` pasan
+  a `modo-aventura`; tras volver a CASA y de nuevo a AVENTURA, igual: hijo2 no se mueve de `modo-casa`.
+- **Consecuencia.** La animación `pulse` del botón de avanzar activo solo se aplicaría si hijo2 recibiera un `PADRE_DATOS` con modo
+  AVENTURA (por ejemplo, tras recargarse por el latido en mitad de una aventura); en el camino normal, activar la aventura desde CASA, no
+  se aplica nunca. Es el mismo hecho, «en qué modo estoy», en dos sitios con ciclos de vida distintos —`estadoComponente.modo`, que sí se
+  actualiza, y la clase del body— y la guía lo describía como si el cambio de modo la actualizara (G-42).
+- **Pendiente: decisión** (la opción A cambia lo que ve el usuario). *A) escribir la clase también en `_resetarEstadoParaModo`* (una
+  línea, igual que hijo3 y hijo4): el botón de avanzar activo pulsaría en AVENTURA, como la regla preveía. *B) retirar la regla y la
+  clase de hijo2* — **recomendada**: no cambia nada de lo que se ve hoy y deja una sola fuente del modo, `estadoComponente.modo`.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -2639,8 +2725,8 @@ Para que "no sale nada" no se confunda con "no se miró":
 
 ### R2.4 Las mediciones (hechas el 2026-10-02)
 
-Las doce mediciones que la ronda 2 dejó "POR MEDIR" (M-1 a M-12) y tres más que salieron al arreglar
-(M-13, M-14 y M-15) se ejecutaron el 2026-10-02, salvo M-8, que es de campo. Se hicieron con el OK del
+Las doce mediciones que la ronda 2 dejó "POR MEDIR" (M-1 a M-12) y cinco más que salieron al arreglar
+(M-13 a M-17) se ejecutaron el 2026-10-02, salvo M-8, que es de campo. Se hicieron con el OK del
 usuario ("ok a todo, revisa y arregla"), sin nada más corriendo (regla 5) y con specs desechables en
 chromium sobre la app real (el padre con el stub de MapLibre y los hijos reales). Los specs de medición
 no se versionan: cada fila dice qué se hizo, que es lo que hay que repetir. Donde la medición pedía una
@@ -2665,12 +2751,14 @@ después.
 | M-13 | K-24 | (nueva, no estaba en las doce originales) Idioma de los textos propios de hijo4 | `idiomaActual` es `undefined` en hijo4 (`__vv_idiomaActual` no se asigna nunca allí); el placeholder sale en español («Escriba su respuesta aquí...»), igual que la entrada `es` de la tabla; la tabla tiene los 12 idiomas; el aviso «Este reto no está disponible en este momento.» también sale en español. ✅ |
 | M-14 | K-36 | (nueva, salió al arreglar K-36) Claves reales de `datos` en cada `SISTEMA.PADRE_DATOS`, con cada frame escuchando en captura sus propios `message` | `["modo","timestamp"]` para la selección, hijo1, hijo2, hijo3, hijo4 y hijo5; hijo6-chat recibe además `aventura`, `idioma`, `paradaActualNombre`, `paradasRestantes`, `rescate` y `siguienteParadaNombre`. Ninguna lleva `paradas` ni `paradaActual`. ✅ |
 | M-15 | K-45 | (nueva, salió al cerrar la tanda) Primera y segunda apertura del asistente: construcciones del FAQ de hijo6, llegada del estado del padre y `error` de rescate | 1.ª apertura: dos construcciones (a los 27 y a los 61 ms de cargar el iframe), `SISTEMA.PADRE_DATOS` a los 61 ms con 8 claves y `rescate`, **un** `error` «El padre no ha mandado el estado del rescate» y 47 botones de pregunta. 2.ª apertura: ningún `error` nuevo y una reconstrucción completa, al llegar `CHAT.ESTADO_PADRE`. ✅ |
+| M-16 | K-35 | (nueva, salió al cerrar) ¿Recibe el padre algún `SISTEMA.HEARTBEAT`? Con el padre y los hijos reales, un `message` en captura en el padre para todo `SISTEMA.HEARTBEAT` que llegue de otra ventana y un espía de `despacharLocal`, durante el arranque, la carga de los hijos, el paso a AVENTURA y a CASA y un `visibilitychange` | `entrantes: []` y `locales: 0`; 18 `SISTEMA.HEARTBEAT_RESPONSE` en la misma ventana, como control de que el oyente ve lo que llega de los hijos. ✅ confirmada y corregida (`e3a9cff`) |
+| M-17 | K-47 | (nueva, salió al cerrar) Clase del `body` de hijo2, hijo3 y hijo4 tras el arranque, tras pasar a AVENTURA, tras volver a CASA y de nuevo a AVENTURA (el padre cambia el modo con `despacharLocal`) | `hijo2`: `modo-casa hijo2-container` las cuatro veces; `hijo3` y `hijo4` siguen el modo (`modo-casa`, `modo-aventura`, `modo-casa`, `modo-aventura`). ✅ confirmada; decisión abierta |
 
 ### R2.5 Discrepancias entre la guía (o comentarios de código) y el código — para decidir
 
 La guía "se consulta siempre y no se cree nunca" (CLAUDE.md regla 8). Estas son las contradicciones que la ronda tropezó,
 cada una verificada contra el código. **Las 18 se corrigieron en la tanda de arreglos del 2026-10-02**, junto con las que la
-propia tanda fue encontrando (G-19 a G-33, tabla de estado más abajo); la tabla de aquí conserva lo que decían y lo que había:
+propia tanda fue encontrando (G-19 a G-42, tabla de estado más abajo); la tabla de aquí conserva lo que decían y lo que había:
 
 | # | Dónde | Dice | El código |
 |---|---|---|---|
@@ -2729,6 +2817,15 @@ código leído ese día; los hashes son de los commits locales (sin pushear).
 | G-31 | ✅ | `94007e9`: tres sitios describían un «confirmListener» por frame que filtra por `event.data.idOriginal` y un adaptador `messagingAdapter` de hijo2 que no existen en ningún fichero; la correlación la hace el bus (`confirmacionesPendientes`), como dice §10.17; el glosario daba `messagingAdapter` como presente en hijo2, hijo3 y hijo4 |
 | G-32 | ✅ | `94007e9`: el glosario de CAMBIO_MODO citaba `_listenerRegistry.clear()` (solo existe en dos comentarios) y §32.1 contaba «10 frames» donde hablan por el bus once |
 | G-33 | ✅ | `3d41dd6`: el árbol del repo de la guía (§20) y `docs/README.md` no listaban `docs/estudio-caminos.md` (documento de autoridad en la regla 1b de `CLAUDE.md`), ni `tools/estudio-caminos/`, ni dos documentos de seguimiento versionados (`contraste-textos-mapa.md`, `imagenes-referencias-pendientes.md`) |
+| G-34 | ✅ | `c40ecd0`: §26.12.1 (handlers del padre) daba por falsas o incompletas 25 filas —entre otras, `GPS.RESTRINGIDO` como «permiso denegado» (es el aviso de distancia fuera de rango), `SISTEMA.HIJO_LISTO`, `CAMBIO_MODO_ENTENDIDO`/`EFECTUADO` y `HEARTBEAT_RESPONSE`— y no tenía 13 handlers (`SISTEMA.CAMBIO_MODO`, `SISTEMA.ERROR`, `GPS.DENTRO_DE_RANGO`, `PRECISION_INSUFICIENTE`/`RECUPERADA`, `RESPUESTA_COORDENADAS`, `SUPRIMIR_ROTACION`, `P14_MOSTRADA`, `REINICIAR`, `VV:PARADAS:READY`, `RESCATE_SOLICITADO`, `SOLICITAR_TEXTOS`, `MAPA_COMPLETO.SOLICITAR_DATOS`); el padre tiene ahora 61 handlers en el código y 61 en la guía |
+| G-35 | ✅ | `c40ecd0`: §26.12.2 (mensajes salientes del padre): 6 filas corregidas (entre ellas `CONTROL.HABILITAR`/`DESHABILITAR`, que seguían diciendo «activar el iframe» tras G-18) y 14 mensajes que no estaban |
+| G-36 | ✅ | `c40ecd0`: §8.3 (catálogo de tipos): 10 filas corregidas (`SISTEMA.HIJO_FALLIDO` iba al revés, `APLICACION_INICIALIZADA` no es un broadcast, `PREPARAR_HIJOS` no precarga nada, `UI.ACCION_USUARIO` también viene de hijo1, `NAVEGAR_PANTALLA` va del padre a la selección…) y los 11 tipos que no listaba: ya están los 94 |
+| G-37 | ✅ | `c40ecd0`: el handler de `SISTEMA.HEARTBEAT` del padre (retirado en `e3a9cff`, K-35 y M-16): su fila de §2.8, el «Handler en padre» y el «bidireccional» de §10.5 y las listas de handlers de Script 1 |
+| G-38 | ✅ | `c40ecd0`: `SELECCION.DEV_MODE_TOGGLE` descrito como un IIFE de Script 1 «que no pasa por `registrarControladorSeguro`» (§6, §7.1, §8.3, §26.12.1, el diagrama y la tabla de §24): lo atiende `_hdl_SELECCION_DEV_MODE_TOGGLE`, registrado en Script 2. Fuera de §24 solo queda el qué, con «(ver §24)» |
+| G-39 | ✅ | `c40ecd0`: números de línea que ya no cuadraban: las dos tablas de §2.8 (la columna «Línea» pasa a «Script» y «Ubicación»), §10.22, §29.1, 13 citas en prosa y los rangos de los cinco scripts del padre (§36.2 y `CLAUDE.md`) |
+| G-40 | ✅ | `c40ecd0`: el recuento de handlers con `permanente: true` (57 = 52 + 2 + 3) no cuadraba con el árbol: 60 = 55 + 2 + 3; y §10 decía que `RESPUESTA_COORDENADAS` «resuelve la promesa pendiente de `enviarMensajeConConfirmacion`», cuando guarda las coordenadas en `estadoMapa.datosRecopilados` y completa el cambio de parada |
+| G-41 | ✅ | `f151ca3`: §26.12.3 a §26.12.9: 33 handlers y 43 mensajes salientes que las tablas de la selección y los seis hijos no tenían, y 36 filas falsas o incompletas (hijo1 «se muestra o se oculta según el modo», hijo4 «oculta o muestra el reto», hijo5 al revés, `CONTROL.*` de hijo2 «muestra el iframe», `UI.ACCION_USUARIO` de hijo3 con un acuse que no manda, `IDIOMA_SELECCIONADO` en P3…); sección nueva §26.12.10 para los tres nietos |
+| G-42 | ✅ | `f151ca3`: §7.1, §7.2, §7.3 y §2.9: la selección «no participa en el ciclo de modos»; `#icono-temporizador` «solo en AVENTURA y se oculta en CASA» (nada lo oculta); hijo2 «cambia la clase CSS del body» en `CAMBIO_MODO` (solo la fija `PADRE_DATOS`: K-47, M-17) y «carga coordenadas desde `coordenadas-aventuras.js`» (las recibe del padre); hijo5 en AVENTURA «lista de paradas actualizada» (la ventana está oculta) |
 
 ### R2.6 Censo de frames (regla 3b)
 
@@ -2755,7 +2852,7 @@ que la tanda de arreglos tocó, y lo que no, está debajo de la tabla.
 
 | Frame | ¿Tocado? | Commits | Qué se hizo |
 |---|---|---|---|
-| `codigo-padre.html` | sí | `2ed1658`, `8806429`, `6c152ab`, `0fe5b3f`, `f6ab460`, `c7c7b1a`, `6538bba`, `a4644e5` | arranques del latido y limpiezas de `pagehide` sin efecto, contadores, lecturas de `Config`, globals sin lector, `getPadreId`, reinicio de la brújula en «Vuelta rápida», comentarios contrastados con el código |
+| `codigo-padre.html` | sí | `2ed1658`, `8806429`, `6c152ab`, `0fe5b3f`, `f6ab460`, `c7c7b1a`, `6538bba`, `a4644e5`, `e3a9cff` | arranques del latido y limpiezas de `pagehide` sin efecto, contadores, lecturas de `Config`, globals sin lector, `getPadreId`, reinicio de la brújula en «Vuelta rápida», comentarios contrastados con el código, el handler de `SISTEMA.HEARTBEAT` sin emisor (M-16) |
 | `En-busca-del-tesoro.html` | sí | `8daa6db`, `545323b`, `a4644e5`, `dae5bf2` | avisos `UI_VISIBLE`, respaldo del puzzle de introducción, lectura de `paradaActual`, parámetros de la URL del puzzle |
 | `extrainfo-hijo1.html` | sí | `8daa6db`, `0fe5b3f` | avisos `UI_VISIBLE`; `_reflow` |
 | `coordenadas-hijo2.html` | sí | `8806429`, `8daa6db`, `a4644e5` | contador, `UI_VISIBLE` y `reto_abierto`, lectura de `paradas`/`paradaActual` |
@@ -2788,6 +2885,8 @@ Módulos de `js/` tocados (11): `app.js`, `config.js`, `constants.js`, `device-d
 | M — Lo que se publica y nadie usa | K-42 | 1 por estudiar: 27 exports muertos (12 ya tratados en otras entradas, 15 nuevos), 3 que solo usan specs, 25 exportados sin que nadie los pida y 5 `export default` sin importador |
 | N — Identificadores con varios nombres | K-43 | 1 familia de copias: `paradaId`, `parada_id`, `padreId` y `padreid` en el mismo mensaje y dos resolutores (`resolverIdsParada` y lecturas a mano) |
 | O — Recursos locales | K-44 | 1 confirmada: 491 referencias comprobadas contra el disco y una ruta que nunca existió (respaldo del puzzle de introducción) |
+| P — Orden de llegada de los datos de un frame | K-45 | 1 confirmada (medida: M-15), con decisión abierta: el FAQ de hijo6 se construye dos veces al abrirse y la primera escribe un `error` aunque todo vaya bien |
+| Q — Handlers que no hacen lo que su descripción dice | K-46, K-47 | 2 confirmadas: 15 handlers que solo escriben en el log (K-46) y la clase del `body` de hijo2, que no sigue al modo (K-47, M-17) |
 
 **Total tal como lo dejó el barrido: 44 entradas — 19 confirmadas, 2 por medir, 5 documentadas, 10
 familias de copias, 4 por estudiar y 4 limpias o mixtas; 12 mediciones pendientes repartidas entre
@@ -2795,8 +2894,8 @@ ellas (R2.4).** Lo que más pesaba, sin ánimo de ordenarlo por urgencia: lo que
 usuario (K-24, K-25), lo que puede dejar un estado equivocado (K-07, K-11, K-19), lo que hace que una
 configuración, una constante o un contador no mande ni cuente (K-01 a K-03, K-37, K-38) y las ramas del
 contrato del bus que ningún emisor alcanza, algunas descritas por la guía como caminos vivos (K-35,
-K-36, G-9 a G-11). **Tras la tanda de arreglos son 45 entradas** (K-45 se encontró al cerrar): se
-hicieron las 14 mediciones posibles (M-8 es de campo), K-07 y K-32 dejan de estar «por medir», y el
+K-36, G-9 a G-11). **Tras la tanda de arreglos son 47 entradas** (K-45 a K-47 se encontraron al cerrar): se
+hicieron las 16 mediciones posibles (M-8 es de campo), K-07 y K-32 dejan de estar «por medir», y el
 resultado por entrada y las decisiones que siguen abiertas están en R2.8.
 
 **Límites de esta ronda — qué no garantiza:**
@@ -2832,8 +2931,13 @@ resultado por entrada y las decisiones que siguen abiertas están en R2.8.
 - El barrido de recursos locales no resuelve los literales con `${…}` (16) ni mira los módulos de
   datos; el de i18n compara forma, marcadores y vacías, no la calidad ni la corrección de cada
   traducción (eso es trabajo de revisión nativa).
-- Se ejecutaron 14 de las 15 mediciones de R2.4; M-8, el reintento de señal con el GPS en frío, es una
+- Se ejecutaron 16 de las 17 mediciones de R2.4; M-8, el reintento de señal con el GPS en frío, es una
   prueba de campo y queda sin medir.
+- `handlers-solo-log.cjs` cuenta como efecto cualquier llamada a una función que no sea de log, aunque esa función no haga nada (falso
+  negativo), y como solo-log un handler cuyo único efecto es no estar registrado; lo que lista se confirma leyendo el handler (K-46).
+- `guia-handlers-por-frame.cjs` compara por tipo y por frame los handlers y los mensajes del código con las filas de §26.12; no mira el
+  contenido de las filas: eso se leyó a mano contra el handler de cada una (G-34 a G-42). Fuera de §26.12, la deriva entre el texto de la
+  guía y el código solo se barrió en lo que tocaron esas correcciones.
 - `_hdl_SISTEMA_CAMBIO_MODO` se leyó entero en la pasada final (K-15); de `manejarCambioModo` solo se siguió la
   validación y la actualización optimista (`js/app.js:512-640`).
 - Los extractores de la ronda están versionados en `tools/estudio-caminos/`; los specs desechables de
@@ -2879,6 +2983,10 @@ pegado para repetir cada comprobación, es del usuario.
 | `dae5bf2` | la URL del puzzle de P6 sin `aventura` ni `noOverlay` | K-36, G-29 |
 | `94007e9` | guía: restos de la mensajería anterior al bus único y claves de `PADRE_DATOS` de hijo6 | G-30, G-31, G-32 |
 | `3d41dd6` | los extractores de la ronda pasan a `tools/estudio-caminos/` (rutas relativas, salida fuera del repo, README con las cifras sobre `ffe9bfc`); la guía (§18.2 y el árbol de §20) y `docs/README.md` los listan, y también este documento | K-34, G-33 |
+| `6df2800` | el cierre de la ronda en este documento: notas «Estado final» por entrada, K-45, M-14 y M-15, G-28 a G-33, el censo tras la tanda y R2.8 | todas |
+| `e3a9cff` | el padre sin el handler de `SISTEMA.HEARTBEAT` que ningún emisor alcanzaba (con su spec); `verificar-mensajeria` modela el broadcast desde el emisor real; dos extractores nuevos | K-35, K-34 (M-16) |
+| `c40ecd0` | guía: el catálogo del padre (§8.3, §26.12.1, §26.12.2) contrastado con el código; el padre sin `SISTEMA.HEARTBEAT`; columnas y citas de línea desfasadas; los rangos de los scripts en `CLAUDE.md` | G-34 a G-40 |
+| `f151ca3` | guía: §26.12.3 a §26.12.9 contrastadas con el código y §26.12.10 para los tres nietos; correcciones de §7.1, §7.2, §7.3 y §2.9 | G-41, G-42 (M-17) |
 
 **Resultado por entrada.**
 
@@ -2886,7 +2994,7 @@ pegado para repetir cada comprobación, es del usuario.
 |---|---|
 | Corregidas y cerradas | K-01, K-03, K-13, K-23, K-32, K-34, K-36, K-38, K-39, K-44 |
 | Corregidas, con una decisión abierta al lado | K-02, K-04, K-07, K-11, K-12, K-19, K-28, K-35, K-37, K-42 |
-| Medidas, con decisión abierta y sin código tocado | K-17, K-20, K-24, K-25, K-40, K-41, K-43, K-45 |
+| Medidas, con decisión abierta y sin código tocado | K-17, K-20, K-24, K-25, K-40, K-41, K-43, K-45, K-46, K-47 |
 | Documentadas, sin cambios (copias, intencional, limpio) | K-05, K-06, K-08, K-09, K-10, K-14, K-15, K-16, K-18, K-21, K-22, K-26, K-27, K-29, K-30, K-31, K-33 |
 
 **Decisiones abiertas — para el estudio individual del usuario.** Cada una tiene su nota «Estado final» en R2.2, con la comprobación pegada. «Cambia lo que ve el usuario» dice si la opción recomendada se nota en la pantalla; las que sí se notan son las que no se han tocado a propósito.
@@ -2912,5 +3020,7 @@ pegado para repetir cada comprobación, es del usuario.
 | K-42 | cadena `gpsPendientes` y 19 exports de uso interno | **A) retirar la cadena**; B) conectar un productor | no |
 | K-43 | cuatro nombres para el id de parada | A) un nombre y un resolutor; **B) dejarlo y hacer A al tocar el contrato de `CAMBIO_PARADA`** | no |
 | K-45 | `error` en el camino normal de hijo6 | A) no construir el FAQ hasta tener el estado (descartada); **B) `debug` hasta el primer estado**; C) actualizar solo lo que cambia | no (log) |
+| K-46 | handlers que solo escriben en el log | **A) dejar, documentados, `CAMBIO_MODO_APLICADO`, `SISTEMA.ERROR`, `SISTEMA.NACK`, `SISTEMA.NOTIFICACION` y `CODIGO_VALIDADO`**; **B) retirar `RETO.MOSTRADO` → `RETO.CONFIRMADO` y `DATOS.TEXTOS_CARGADOS`**; C) retirar la 4.ª fase del modo entera | no |
+| K-47 | clase del `body` de hijo2 | A) escribirla también al cambiar de modo; **B) retirar la regla y la clase de hijo2** | A sí (el botón de avanzar activo pulsa en AVENTURA); B no |
 
-**Límites residuales** (los de R2.7 siguen valiendo). M-8 es de campo y no se midió. M-14 y M-15 se midieron en chromium con el stub de MapLibre y recorren el arranque y la apertura del asistente, no todos los flujos de la aventura; que `PADRE_DATOS` tiene solo dos emisores lo dice la búsqueda desnuda, no la medición. El efecto de K-24 con una aventura no española en vivo no se midió: se deduce de las tres líneas de código. Cada borrado se apoya en búsqueda desnuda y lectura del llamador; un acceso por clave computada (`obj['nombre']`) no lo ve ninguna de las dos (límite del instrumento de exports, K-42). Los verificadores corregidos en K-34 imprimen su residuo, pero siguen siendo análisis estático.
+**Límites residuales** (los de R2.7 siguen valiendo). M-8 es de campo y no se midió. M-14 a M-17 se midieron en chromium con el stub de MapLibre y recorren el arranque, la apertura del asistente y los cambios de modo, no todos los flujos de la aventura; que `PADRE_DATOS` tiene solo dos emisores lo dice la búsqueda desnuda, no la medición. El efecto de K-24 con una aventura no española en vivo no se midió: se deduce de las tres líneas de código. Cada borrado se apoya en búsqueda desnuda y lectura del llamador; un acceso por clave computada (`obj['nombre']`) no lo ve ninguna de las dos (límite del instrumento de exports, K-42). Los verificadores corregidos en K-34 imprimen su residuo, pero siguen siendo análisis estático.
