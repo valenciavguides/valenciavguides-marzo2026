@@ -32,7 +32,10 @@ function objectsOf(n, localDecl) {
 
 (async () => {
   const mod = await import(pathToFileURL(path.join(ROOT, 'js/constants.js')).href);
-  const T = mod.TIPOS_MENSAJE; const validos = new Set(mod.TIPOS_MENSAJE_VALIDOS);
+  const T = mod.TIPOS_MENSAJE;
+  // `TIPOS_MENSAJE_VALIDOS` (la lista plana que exportaba el commit base de la ronda) ya no existe: los valores válidos salen de las hojas de TIPOS_MENSAJE.
+  const hojas = (o) => Object.values(o).flatMap((v) => (v && typeof v === 'object' ? hojas(v) : [v]));
+  const validos = new Set(mod.TIPOS_MENSAJE_VALIDOS || hojas(T));
   function resolvePath(p, aliases) { if (!p) return null; let head = p[0], rest = p.slice(1); if (aliases[head]) { rest = aliases[head].concat(rest); head = 'TIPOS_MENSAJE'; } if (!/^TIPOS_MENSAJE/.test(head) && head !== 'TIPOS') return null; let cur = T; for (const k of rest) { if (cur && typeof cur === 'object' && k in cur) cur = cur[k]; else return null; } return typeof cur === 'string' ? cur : null; }
   const emisores = {}; // tipo -> [{rel,line,keys,spread,opaque}]
   const lectores = {}; // tipo -> [{rel,line,keys,dyn,handler}]

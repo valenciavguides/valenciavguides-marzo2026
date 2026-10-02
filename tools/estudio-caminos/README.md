@@ -18,6 +18,9 @@ node tools/estudio-caminos/<script>.cjs
 - `NODE_NO_WARNINGS=1` silencia el aviso de Node por importar un módulo ES (`js/constants.js`, `js/config.js`) sin `"type"` en
   `package.json`; no cambia ningún resultado.
 - `globals-sin-lector.cjs` y `tipos-citados.cjs` usan además `tools/lib/analisis-js.js`.
+- Los tres que comparan la guía con el código (`guia-handlers-por-frame`, `guia-fichas-mensaje`, `guia-payloads`) leen `docs/GUIA-COMPLETA.md`,
+  o la copia que diga la variable `ESTUDIO_GUIA` (`git show <commit>:docs/GUIA-COMPLETA.md > copia.md`): ejecutados contra la guía de un
+  commit anterior son el control de que detectan lo que dicen detectar.
 
 ## Orden y dependencias
 
@@ -26,7 +29,8 @@ Un script de la primera columna deja un fichero que leen los de la segunda; el r
 | Primero | Después | Qué mide |
 |---|---|---|
 | `extract-functions` → `funciones.json` | `analiza-funciones`, `clones-mismo-fichero`, `extract-tests` | funciones, homónimos entre ficheros, clones |
-| `extract-mensajes` → `mensajes.json` | `reporte-mensajes`, `destinos`, `destinos-inverso`, `handlers-duplicados`, `handlers-solo-log`, `guia-handlers-por-frame` | emisores y receptores de cada tipo del bus; emisiones al vacío; handlers que ninguna emisión alcanza; handlers cuyo cuerpo solo escribe en el log; filas de las tablas de §26.12 de la guía sin respaldo en el código y tipos de cada frame que la guía no cuenta |
+| `extract-mensajes` → `mensajes.json` | `reporte-mensajes`, `destinos`, `destinos-inverso`, `handlers-duplicados`, `handlers-solo-log`, `guia-handlers-por-frame`, `guia-fichas-mensaje` | emisores y receptores de cada tipo del bus; emisiones al vacío; handlers que ninguna emisión alcanza; handlers cuyo cuerpo solo escribe en el log; filas de las tablas de §26.12, §7 y §8 de la guía sin respaldo en el código y tipos de cada frame que la guía no cuenta; la tabla de cobertura por hijo de §10.7 celda por celda y las filas «Emitido por» / «Handler en …» de las fichas de §10 junto a lo que hace el código |
+| `extract-mensajes` + `extract-payload` → `mensajes.json` y `payload.json` | `guia-payloads` | claves de payload que la guía da por enviadas en §7, §8 y §10 y que ningún emisor del código manda |
 | `extract-globals` → `globals.json` | `extract-tests` | `globalThis.X` escritos por frame y sus escritores |
 | `extract-constantes` → `constantes.json` | `analiza-const` | declaraciones, comparaciones y plazos con valor numérico |
 | `extract-recursos` → `recursos.json` | `analiza-recursos` | `setInterval`, listeners, observers, `map.on` y su pareja de parada |
@@ -72,7 +76,8 @@ de instrumentos de R2.0:
 Sobre `HEAD` los números cambian, y es lo esperable: la tanda de arreglos (R2.8) retiró código y la guía. Por ejemplo, 1955
 funciones, 162 exports (28 sin mención: 6, 3 y 19), 94 hojas de `TIPOS_MENSAJE` y solo 4 objetos exportados por `constants.js`.
 Los scripts que dependían de lo retirado se ajustaron para leer lo que exista (`barrido-constants` filtra los objetos que
-`constants.js` ya no exporta; `extract-mensajes` deriva los tipos válidos de `TIPOS_MENSAJE` y no de la lista plana que ya no hay).
+`constants.js` ya no exporta; `extract-mensajes`, `extract-payload` y `extract-discriminadores` derivan los tipos válidos de `TIPOS_MENSAJE` y no de
+la lista plana que ya no hay: con el conjunto vacío no resolvían ningún tipo escrito como literal y `extract-payload` no emitía informe).
 
 Hay dos verificadores del repo que dan las mismas cifras por otro camino y son el contraste: `tools/verificar-mensajeria.js` frente a
 `extract-mensajes`, y `node tools/codigo-muerto.js` (categoría 5) frente a `exports-tokens`.
