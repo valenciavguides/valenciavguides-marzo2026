@@ -3611,10 +3611,10 @@
                         } catch (e) { (globalThis.logger || console).debug('[PADRE] Error cambiando modo de cámara', e && e.message); }
                     }
 
-                    // Expuesto para que ejecutarElegirOtra() (fuera de este cierre — diálogo de
-                    // reanudación de sesión) pueda resetear el modo de cámara al elegir otra
-                    // aventura sin recargar la página, mismo sitio donde ya se resetean
-                    // estado.tiempoRestante y el resto de globals de la aventura abandonada.
+                    // Expuesto para que las dos vías de "elegir otra aventura" que no recargan la página
+                    // —ejecutarElegirOtra() (diálogo de reanudación de sesión) y _elegirOtra() (diálogo de vuelta
+                    // rápida), ambas fuera de este cierre— puedan resetear el modo de cámara, mismo sitio donde ya
+                    // se resetean estado.tiempoRestante y el resto de globals de la aventura abandonada.
                     globalThis._resetBrujulaModo = () => {
                         globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
                         _brujulaModoActivo = 'brujula-modo-norte';
@@ -4849,6 +4849,10 @@
                     // elige la misma aventura de nuevo, todas sus paradas aparecerían ya
                     // completadas desde el primer momento.
                     estado.paradasCompletadas = new Map();
+                    // Mismo motivo que en ejecutarElegirOtra(): este camino tampoco recarga la página y reutiliza
+                    // el module scope de funciones-mapa.js; sin esto, el modo de cámara ("Seguir mi rumbo"/"Norte
+                    // fijo") de la aventura abandonada seguiría activo en la siguiente.
+                    globalThis._resetBrujulaModo?.();
                     // Esta aventura SÍ estaba realmente activa (por eso mostrarDialogoVueltaRapida
                     // se disparó) — hijo2/hijo3/chat/selector están visibles de verdad y hay que
                     // ocultarlos al volver a selección, ver _ocultarUIActivada().

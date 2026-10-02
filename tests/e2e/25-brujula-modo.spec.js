@@ -41,6 +41,8 @@
  *         plazo de gracia — el guard compara contra `_brujulaModoSeguimientoActivacionId`, no solo
  *         contra el modo activo. Verificado contando cuántas veces se invoca
  *         `desactivarSeguimientoRumbo()`, no por ningún icono.
+ *   BR-10 "Vuelta rápida → Elegir otra aventura" (`_elegirOtra`, que tampoco recarga la página) también devuelve
+ *         el menú a "Norte fijo": invoca `desactivarSeguimientoRumbo()`, igual que `ejecutarElegirOtra()` (BR-8).
  */
 'use strict';
 
@@ -291,5 +293,31 @@ test.describe('BR — Menú de modo de cámara', () => {
     await page.waitForTimeout(800);
     const trasTimeoutNuevo = await page.evaluate(() => globalThis.__vv_llamadasDesactivar);
     expect(trasTimeoutNuevo, 'El timeout de la elección más reciente sí debe revertir, cumplido su propio plazo').toBe(1);
+  });
+
+  test('BR-10. "Vuelta rápida → Elegir otra aventura" también devuelve el menú a "Norte fijo"', async ({ page }) => {
+    await page.waitForFunction(
+      () => typeof globalThis._mostrarDialogoVueltaRapida === 'function' && typeof globalThis.estado === 'object' && globalThis.estado !== null && typeof globalThis.funcionesMapa === 'object',
+      null, { timeout: 20000 });
+
+    await page.evaluate(() => {
+      document.getElementById('brujula-modo').style.display = 'flex';
+      globalThis.funcionesMapa.activarSeguimientoRumbo = () => {};
+      globalThis.funcionesMapa.desactivarSeguimientoRumbo = () => { globalThis.__vv_llamadasDesactivar = (globalThis.__vv_llamadasDesactivar || 0) + 1; };
+      // Brújula "viva": sin esto el menú revierte solo a los 1500 ms (BR-7) y el test mediría esa reversión, no el diálogo.
+      globalThis.funcionesMapa.brujulaEstaActiva = () => true;
+      document.querySelector('#brujula-modo > div:first-child').click(); // abrir
+      document.querySelectorAll('#brujula-modo > div:last-child > div')[1].click(); // "Seguir mi rumbo"
+      globalThis.__vv_llamadasDesactivar = 0;
+      // El overlay de carga no se oculta solo en este entorno (ver 19-tiempo-restante-reset.spec.js) y tapa el botón.
+      if (typeof globalThis.hideParentLoadingOverlay === 'function') globalThis.hideParentLoadingOverlay();
+      globalThis.__testDialogoPromise = globalThis._mostrarDialogoVueltaRapida('es');
+    });
+    await page.waitForSelector('#btn-vuelta-elegir-otra', { timeout: 10000 });
+    await page.click('#btn-vuelta-elegir-otra');
+    await page.waitForFunction(() => document.getElementById('btn-vuelta-elegir-otra') === null, null, { timeout: 5000 });
+
+    const llamadas = await page.evaluate(() => globalThis.__vv_llamadasDesactivar);
+    expect(llamadas, 'Elegir otra aventura desde la vuelta rápida debe devolver el menú de cámara a Norte fijo (desactivarSeguimientoRumbo)').toBeGreaterThanOrEqual(1);
   });
 });
