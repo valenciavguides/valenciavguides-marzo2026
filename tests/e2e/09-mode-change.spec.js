@@ -188,7 +188,7 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
       return {
         fnExists: typeof fn === 'function',
         // Si el modo fue actualizado en estadoPadre, lo capturamos
-        modoActual: globalThis.estadoPadre?.modoActual || globalThis.estadoPadre?.modo?.actual || null,
+        modoActual: globalThis.estadoPadre?.modo?.actual || null,
       };
     });
 
@@ -242,19 +242,16 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
   // el modo a AVENTURA.
 
   test('MC-7a. En modo CASA (inicial), el heartbeat no está activo', async ({ page }) => {
-    const info = await page.evaluate(() => {
-      // Indicadores de heartbeat activo
-      const tieneInterval = typeof globalThis.__heartbeatInterval !== 'undefined' &&
-                            globalThis.__heartbeatInterval !== null;
-      const tieneFlag = globalThis.__heartbeatActivo === true ||
-                        globalThis.__vv_heartbeatActivo === true;
-      const modoActual = globalThis.estadoPadre?.modoActual ||
-                         globalThis.estadoPadre?.modo?.actual ||
-                         null;
-      return { tieneInterval, tieneFlag, modoActual };
+    // El estado real del latido vive en el state-manager (`getHeartbeat()`): `activo` y el id del intervalo.
+    // Antes se leían tres globals (__heartbeatInterval, __heartbeatActivo, __vv_heartbeatActivo) que ningún
+    // fichero de producción asigna, así que el test no podía fallar.
+    const hb = await page.evaluate(async () => {
+      const h = await globalThis.__vv_stateManager.getHeartbeat();
+      return { activo: h.activo, tieneIntervalo: !!h.intervalo, modoActual: globalThis.estadoPadre?.modo?.actual ?? null };
     });
     // En modo CASA (estado inicial) el heartbeat no debe estar corriendo
-    expect(info.tieneInterval || info.tieneFlag).toBe(false);
+    expect(hb.activo, 'el latido no puede estar activo en el estado inicial').toBe(false);
+    expect(hb.tieneIntervalo, 'ni tener un intervalo armado').toBe(false);
   });
 
   test('MC-7b. HEARTBEAT y HEARTBEAT_RESPONSE están en __CONTROLADOR_REGISTRADOS', async ({ page }) => {
