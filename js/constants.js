@@ -23,45 +23,17 @@ export const MODOS = {
 };
 
 /**
- * Configuración de TTL (Time To Live) para limpieza automática de memoria
- * Optimizado por tipo de dispositivo para mejorar rendimiento
- * ✅ PROBLEMA 26: Centralización de TTLs para evitar duplicación
+ * TTL (Time To Live) de la limpieza automática de mensajería según el tipo de dispositivo: en móvil
+ * se limpia con más frecuencia y se guarda menos historial (batería y CPU); en desktop, al revés.
+ * Lo lee `js/mensajeria.js` con `esMovil()`.
  */
 export const TTL_LIMPIEZA = {
-    /* Configuración de TTL (Time To Live) para limpieza automática de memoria
-     * Optimizado por tipo de dispositivo para mejorar rendimiento y consumo de recursos.
-     *
-     * - En MÓVIL: Se mantiene menos historial y la limpieza es menos frecuente (para ahorrar batería y CPU).
-     * - En DESKTOP: Se mantiene más historial y la limpieza es más frecuente (más recursos disponibles).
-     *
-     * Ejemplo:
-     *   LOGGER: MÓVIL = 5min (menos frecuente, menos historial), DESKTOP = 1min (más frecuente, más historial)
-     *   SUPPRESS: MÓVIL = 2min, DESKTOP = 5min
-     * ✅ PROBLEMA 26: Centralización de TTLs para evitar duplicación
-     */
     // Mensajería: limpieza de mensajes procesados y promesas pendientes
     MENSAJERIA: {
         MOVIL: 30000,      // 30 segundos (móvil necesita limpieza agresiva)
         DESKTOP: 60000     // 60 segundos (1 minuto)
-    },
-
-    // Logger: limpieza de historial de logs
-    LOGGER: {
-        MOVIL: 60000,      // 1 minuto (móvil limpia más frecuentemente, menos memoria)
-        DESKTOP: 300000    // 5 minutos (desktop conserva más historial)
-    },
-
-    // Suppress Warnings: limpieza de mensajes de error
-    SUPPRESS: {
-        MOVIL: 120000,     // 2 minutos
-        DESKTOP: 300000    // 5 minutos
     }
 };
-
-// Make TTL_LIMPIEZA available to legacy scripts that expect a global variable
-if (globalThis.window !== undefined) {
-    try { globalThis.TTL_LIMPIEZA = TTL_LIMPIEZA; } catch (_e) { /* ignore in restricted environments */ } // NOSONAR
-}
 
 /**
  * Tipos de mensajes para la comunicación entre iframes
@@ -217,132 +189,6 @@ export const TIPOS_MENSAJE = {
     NAVEGACION_PANTALLA: 'NAVEGAR_PANTALLA'
 };
 
-/**
- * Códigos de error estandarizados
- */
-export const ERRORES = {
-    VALIDACION: {
-        DATOS_INVALIDOS: { codigo: 1000, mensaje: 'Los datos proporcionados no son válidos', nivel: 'error' },
-        PARAMETROS_FALTANTES: { codigo: 1001, mensaje: 'Faltan parámetros requeridos', nivel: 'error' },
-        TIPO_MENSAJE_INVALIDO: { codigo: 1002, mensaje: 'Tipo de mensaje no válido', nivel: 'warning' },
-        MENSAJE_INVALIDO: { codigo: 1003, mensaje: 'El formato del mensaje no es válido', nivel: 'error' },
-        DESTINO_INVALIDO: { codigo: 1004, mensaje: 'El destino especificado no es válido', nivel: 'error' },
-        IMPORTACION_FALLIDA: { codigo: 1005, mensaje: 'Fallo en la importación de módulo', nivel: 'error' }
-    },
-    INICIALIZACION: {
-        MENSAJERIA: { codigo: 1100, mensaje: 'Error al inicializar el sistema de mensajería', nivel: 'error' },
-        MAPA: { codigo: 1101, mensaje: 'Error al inicializar el mapa', nivel: 'error' },
-        COMPONENTE: { codigo: 1102, mensaje: 'Error al inicializar el componente', nivel: 'error' }
-    },
-    COMUNICACION: {
-        TIEMPO_ESPERA: { codigo: 1200, mensaje: 'Tiempo de espera agotado', nivel: 'error' },
-        DESTINO_NO_DISPONIBLE: { codigo: 1201, mensaje: 'El destino no está disponible', nivel: 'warning' },
-        MENSAJE_NO_ENTREGADO: { codigo: 1202, mensaje: 'No se pudo entregar el mensaje', nivel: 'error' }
-    },
-    AUTENTICACION: {
-        NO_AUTORIZADO: { codigo: 201, mensaje: 'No autorizado para realizar esta acción' }
-    },
-    RECURSO: {
-        NO_ENCONTRADO: { codigo: 301, mensaje: 'Recurso no encontrado' },
-        YA_EXISTE: { codigo: 302, mensaje: 'El recurso ya existe' }
-    },
-    SISTEMA: {
-        ERROR_INTERNO: { codigo: 500, mensaje: 'Error interno del servidor' },
-        NO_IMPLEMENTADO: { codigo: 501, mensaje: 'Funcionalidad no implementada' },
-        SERVICIO_NO_DISPONIBLE: { codigo: 503, mensaje: 'Servicio no disponible temporalmente' }
-    }
-};
-
-/**
- * Estados de la aplicación
- */
-export const ESTADOS = {
-    INICIALIZANDO: 'inicializando',
-    LISTO: 'listo',
-    ERROR: 'error'
-};
-
-/**
- * Códigos de error
- */
-export const CODIGOS_ERROR = {
-    INICIALIZACION: 'ERROR_INICIALIZACION',
-    MENSAJERIA: 'ERROR_MENSAJERIA',
-    MAPA: 'ERROR_MAPA',
-    AUDIO: 'ERROR_AUDIO',
-    MONITOREO: {
-        INICIALIZACION: 'ERROR_MONITOREO_INICIALIZACION',
-        EVENTO_INVALIDO: 'ERROR_EVENTO_INVALIDO',
-        METRICA_INVALIDA: 'ERROR_METRICA_INVALIDA',
-        INFORME_FALLIDO: 'ERROR_INFORME_FALLIDO',
-        DIAGNOSTICO_FALLIDO: 'ERROR_DIAGNOSTICO_FALLIDO',
-        ALTA_LATENCIA: 'ADVERTENCIA_ALTA_LATENCIA',
-        ALTA_MEMORIA: 'ADVERTENCIA_ALTA_MEMORIA',
-        TASA_ERROR_ELEVADA: 'ADVERTENCIA_TASA_ERROR_ELEVADA'
-    },
-    RETO: 'ERROR_RETO',
-    NAVEGACION: 'ERROR_NAVEGACION'
-};
-
-/**
- * Destinos para mensajería
- */
-export const DESTINOS = {
-    PADRE: 'padre',
-    TODOS: 'todos'
-};
-
-/**
- * Clases CSS para los diferentes modos
- */
-export const CSS_CLASES = {
-    MODO_CASA: 'modo-casa',
-    MODO_AVENTURA: 'modo-aventura',
-    HIJO3_CONTAINER: 'hijo3-container'
-};
-
-/**
- * Construcción programática de la lista de tipos válidos.
- */
-function _flattenTipos(obj) {
-    const out = [];
-    const seen = new Set();
-    const recurse = (v) => {
-        if (!v && v !== 0) return;
-        if (typeof v === 'string') {
-            if (!seen.has(v)) { seen.add(v); out.push(v); }
-            return;
-        }
-        if (Array.isArray(v)) return v.forEach(recurse);
-        if (typeof v === 'object') return Object.values(v).forEach(recurse);
-    }
-    recurse(obj);
-    return out;
-}
-
-export const TIPOS_MENSAJE_VALIDOS = _flattenTipos(TIPOS_MENSAJE);
-
-export default {
-    LOG_LEVELS,
-    MODOS,
-    TIPOS_MENSAJE,
-    ESTADOS,
-    CODIGOS_ERROR,
-    DESTINOS,
-    CSS_CLASES
-};
-
-// Exponer globalmente para compatibilidad con código que espera globalThis.constants
 if (globalThis.window !== undefined) {
-    globalThis.constants = {
-        LOG_LEVELS,
-        MODOS,
-        TIPOS_MENSAJE,
-        ESTADOS,
-        CODIGOS_ERROR,
-        DESTINOS,
-        CSS_CLASES,
-        TIPOS_MENSAJE_VALIDOS
-    };
     (globalThis.logger || console).debug('✅ constants.js cargado');
 }
