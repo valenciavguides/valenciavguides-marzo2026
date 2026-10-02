@@ -1524,8 +1524,6 @@
                     const padreId = resolved.padreId;
                     const paradaId = resolved.paradaId;
                     logger.info(`${logPrefix} Cambio de parada recibido: ${padreId || paradaId}`);
-                // Actualizar estado local para audio si corresponde
-                if (paradaId) globalThis.__hijo3_paradaActual = paradaId;
                 // Resetear botón retos al cambiar de parada
                 if (retosBtn) retosBtn.classList.remove('activo');
                 _resetSpinRetosBtn();

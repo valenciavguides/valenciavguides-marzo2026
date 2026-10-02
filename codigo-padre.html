@@ -8603,7 +8603,6 @@ await _comprobarReanudacionAventura(logPrefix);
         // Exponer funciones a window para debugging
         globalThis.cargarIframeSoloSeleccion = cargarIframeSoloSeleccion;
         globalThis.cargarRestoDeiframes = cargarRestoDeiframes;
-        globalThis.cargarIframeSecuencial = cargarIframeSoloSeleccion; // Backward compatibility
         globalThis.cargarHijoCasa = cargarHijoCasa;
         globalThis.waitForMapLibreAndInitialize = waitForMapLibreAndInitialize;
 
@@ -14140,7 +14139,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 clearTimeout(timeoutSeguridad);
 
                 // ℹ️ NOTA: El overlay se removerá DESPUÉS de cargar todos los iframes
-                // (ver waitForMapLibreAndInitialize() donde se llama a cargarIframeSecuencial())
+                // (ver waitForMapLibreAndInitialize() donde se llama a cargarIframeSoloSeleccion())
 
             } catch (error) {
                 (globalThis.logger || console).error('[SCRIPT2][SINCRONIZACIÓN] Error en finalización:', error);
@@ -15010,7 +15009,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
     <!-- ============================================================ -->
     <!-- NOTA: La carga de iframes se realiza en Script 1 mediante    -->
-    <!-- cargarIframeSecuencial() que espera HIJO_LISTO de cada uno.  -->
+    <!-- cargarIframeSoloSeleccion() y cargarRestoDeiframes(), que    -->
+    <!-- esperan HIJO_LISTO de cada uno.                              -->
     <!-- NO duplicar aquí para evitar doble carga.                    -->
     <!-- ============================================================ -->
 

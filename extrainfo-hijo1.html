@@ -792,7 +792,7 @@
 
                     // Spin ruleta
                     masOpcionesBtn.classList.remove('spinning');
-                    globalThis._reflow = masOpcionesBtn.offsetWidth; // fuerza reflow para reiniciar animación
+                    void masOpcionesBtn.offsetWidth; // fuerza reflow para reiniciar animación
                     masOpcionesBtn.classList.add('spinning');
 
                     const resultado = await toggleMenu();

@@ -194,9 +194,6 @@ function exponerAPIGlobal() {
         // Utilidades
         generarIdMensaje: () => generarIdUnico('msg')
     };
-
-    // Alias para compatibilidad
-    globalThis.__vv_mensajeria = globalThis.mensajeria;
 }
 
 // =====================================================
