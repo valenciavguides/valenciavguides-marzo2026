@@ -1656,7 +1656,7 @@ Padre                                Hijo
 **Notas de implementación:**
 
 - El padre no contesta `HIJO_PREPARADO` con un mensaje propio (no existe un `SISTEMA.ACK`): el handshake sigue con `PADRE_DATOS`. El acuse de recepción, si el emisor lo pide, es el del bus (`SISTEMA.CONFIRMACION`, §10.17).
-- `PADRE_DATOS` del handshake lleva `{ modo, timestamp }` para todos los hijos. Los datos completos de la aventura (idioma, coordenadas) **no viajan en este mensaje** — llegan mediante mensajes específicos (`DATOS.CARGAR_COORDENADAS`, `NAVEGACION.RESPUESTA_DATOS_PARADAS`, etc.) después de que el hijo ya está listo. Audio y retos no se distribuyen en el handshake en absoluto — se resuelven parada a parada (ver §16). **Única excepción: `hijo6-chat`** — su `PADRE_DATOS` añade además `idioma`, `aventura`, `paradaActualNombre`, `siguienteParadaNombre` y `paradasRestantes` (`globalThis.construirEstadoChat()`, expuesto por el IIFE de apertura del chat para que `_hdl_SISTEMA_HIJO_PREPARADO` — otro scope — pueda leerlo). Es la vía por la que el chat conoce el idioma en su primera apertura: sin ese añadido construiría su FAQ con el `'es'` por defecto en vez del idioma real seleccionado. Que el payload sea correcto no basta — este mensaje solo llega si `hijo6-chat` está registrado en `iframesRegistrados`, cosa que `abrirChat()` hace antes de asignarle `src`; ver §7.7 para el detalle de por qué el registro condiciona la entrega.
+- `PADRE_DATOS` del handshake lleva `{ modo, timestamp }` para todos los hijos. Los datos completos de la aventura (idioma, coordenadas) **no viajan en este mensaje** — llegan mediante mensajes específicos (`DATOS.CARGAR_COORDENADAS`, `NAVEGACION.RESPUESTA_DATOS_PARADAS`, etc.) después de que el hijo ya está listo. Audio y retos no se distribuyen en el handshake en absoluto — se resuelven parada a parada (ver §16). **Única excepción: `hijo6-chat`** — su `PADRE_DATOS` añade además `idioma`, `aventura`, `paradaActualNombre`, `siguienteParadaNombre`, `paradasRestantes` y `rescate` —el estado del rescate, §25.19— (`globalThis.construirEstadoChat()`, expuesto por el IIFE de apertura del chat para que `_hdl_SISTEMA_HIJO_PREPARADO` — otro scope — pueda leerlo). Es la vía por la que el chat conoce el idioma en su primera apertura: sin ese añadido construiría su FAQ con el `'es'` por defecto en vez del idioma real seleccionado. Que el payload sea correcto no basta — este mensaje solo llega si `hijo6-chat` está registrado en `iframesRegistrados`, cosa que `abrirChat()` hace antes de asignarle `src`; ver §7.7 para el detalle de por qué el registro condiciona la entrega.
 - Hay un segundo emisor de `PADRE_DATOS`: `mostrarHijo4()`, si hijo4 aún no tiene `src`, carga el iframe con `cargarIframeConDatos()` y manda `PADRE_DATOS` con `datos: {}` en cuanto el iframe dispara `load`. El handler de hijo4 es el mismo: sin `modo` no aplica nada y envía `HIJO_LISTO` si aún no lo había enviado.
 - El padre registra los handlers `HIJO_PREPARADO` y `HIJO_LISTO` en Script 1 **antes de asignar `src` a ningún iframe** — esto garantiza que los mensajes tempranos nunca se pierdan.
 - Diseño intencional: el timeout de 30 s en `state-manager.js` es el último recurso si el hijo se cuelga antes de enviar `HIJO_LISTO` (crash total), no como mecanismo normal de espera. El heartbeat continuo detecta hijos caídos tras arrancar y permite reenviar `CAMBIO_MODO` pendiente si llega un `HIJO_LISTO` tardío.
@@ -3301,7 +3301,7 @@ El estado que `CHAT.ESTADO_PADRE` entrega (`paradaActualNombre`, `siguienteParad
 
 | Controlador | Qué hace |
 |---|---|
-| `SISTEMA.PADRE_DATOS` | Recibe `{ modo, timestamp, idioma, aventura, paradaActualNombre, siguienteParadaNombre, paradasRestantes }` — única excepción entre los hijos: el padre añade aquí el resultado de `construirEstadoChat()` (ver nota debajo de la tabla del handshake general, §6). Actualiza `estadoPadre`; si `idioma` está presente, llama `actualizarIdioma()`, que reconstruye el título y el FAQ con el idioma real; envía `HIJO_LISTO` (con reintentos cada 1s, máx 30s) |
+| `SISTEMA.PADRE_DATOS` | Recibe `{ modo, timestamp, idioma, aventura, paradaActualNombre, siguienteParadaNombre, paradasRestantes, rescate }` — única excepción entre los hijos: el padre añade aquí el resultado de `construirEstadoChat()` (ver nota debajo de la tabla del handshake general, §6). Actualiza `estadoPadre`; si `idioma` está presente, llama `actualizarIdioma()`, que reconstruye el título y el FAQ con el idioma real; envía `HIJO_LISTO` (con reintentos cada 1s, máx 30s) |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Cancela el timer de reintentos de `HIJO_LISTO` |
 | `CHAT.ESTADO_PADRE` | Actualiza `estadoPadre` interno; si cambia el idioma → `actualizarIdioma()` → reconstruye FAQ |
 | `SISTEMA.CAMBIO_MODO` | Envía `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO { exito: true }` al padre |
@@ -3690,7 +3690,7 @@ sequenceDiagram
 **Detalles del handshake**:
 
 - `HIJO_PREPARADO` — el hijo lo envía nada más terminar su inicialización JS, antes de recibir datos.
-- `PADRE_DATOS` — contiene `{ modo, timestamp }` para todos los hijos. Salvo `hijo6-chat`, los hijos solo leen `modo`; los datos de la aventura llegan por mensajes posteriores (`DATOS.CARGAR_*`, `CHAT.ESTADO_PADRE`). **Excepción: `hijo6-chat`** recibe además `idioma`/`aventura`/`paradaActualNombre`/`siguienteParadaNombre`/`paradasRestantes` en este mismo mensaje — ver la nota de `hijo6-chat` en §6 y el detalle completo en §7.7.
+- `PADRE_DATOS` — contiene `{ modo, timestamp }` para todos los hijos. Salvo `hijo6-chat`, los hijos solo leen `modo`; los datos de la aventura llegan por mensajes posteriores (`DATOS.CARGAR_*`, `CHAT.ESTADO_PADRE`). **Excepción: `hijo6-chat`** recibe además `idioma`/`aventura`/`paradaActualNombre`/`siguienteParadaNombre`/`paradasRestantes`/`rescate` en este mismo mensaje — ver la nota de `hijo6-chat` en §6 y el detalle completo en §7.7.
 - `HIJO_LISTO` — el hijo confirma que ha procesado los datos. En el padre desencadena `marcarHijoListo(hijoId)`, que resuelve la Promise de `crearPromiseHijoListo(hijoId)`.
 - `PADRE_CONFIRMA_HIJO_LISTO` — señal para que el hijo muestre su UI. Hasta recibirlo la interfaz permanece oculta.
 - **Fallback de 30 s**: si `PADRE_CONFIRMA_HIJO_LISTO` no llega, los hijos críticos muestran su UI igualmente (ver §5 — invariante `_normalizarSetHijos`).
@@ -7657,7 +7657,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 | Capa | Qué hace | Dónde |
 |------|---------|--------|
 | **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`. Todos los receptores verifican `event.origin` antes de procesar. El bus central (`js/mensajeria.js`) exige en `manejarMensajeEntrante` que `event.origin` sea exactamente el propio y nada más —el protocolo `file://` no se contempla, porque los módulos ES no cargan ahí—, y en `_fuenteAutorizada` solo admite como fuente a su padre, a un iframe que él mismo haya registrado, o a sí mismo (auto-mensajes). No hay ninguna escucha de `message` fuera del bus: buscar `addEventListener('message'` en los diez frames deja una sola coincidencia, la de `navigator.serviceWorker` en `codigo-padre.html`, que no es tráfico entre iframes. Sobre esa validación de fuente, el bus comprueba además la identidad declarada: un iframe registrado solo habla con su nombre de registro (§26.8). | `js/mensajeria.js`, `codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` |
-| **confirmListener por ID único** | Cada mensaje con confirmación genera un `idMensaje` único; el listener filtra por `event.data.idOriginal === idMensaje` para evitar resoluciones cruzadas | `js/mensajeria.js` |
+| **Acuse correlacionado por ID** | Cada mensaje con confirmación lleva un `id` único; el bus guarda su promesa en `confirmacionesPendientes` bajo ese `id` y el acuse la resuelve por `idOriginal`, así que dos mensajes concurrentes del mismo tipo no se cruzan | `js/mensajeria.js` |
 | **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3), `imagenes/imagenes-aventuras/` (fotos), `videos-aventuras/` (vídeos), `backend/` — todos son contenido de pago. **`js/aventuras-ID-padre.js` no está en la lista, y es deliberado**: contiene el itinerario y los ids, no el contenido (ver §2.2). Que se vea el orden de las paradas no compromete nada; lo que hay detrás de cada `texto_id`/`audio_id`/`reto_id` sí está protegido. | `js/server.js` |
 | **Path traversal** | Rechaza cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) | `js/server.js` |
 | **CORS** | Cabeceras `Access-Control-Allow-Origin: *` en el servidor estático. Deberá restringirse al dominio en producción. | `js/server.js` |
@@ -9030,11 +9030,11 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | **Handshake** | Protocolo de saludo al arrancar, en cuatro pasos: el hijo envía `HIJO_PREPARADO`, el padre responde `PADRE_DATOS` con el modo, el hijo confirma con `HIJO_LISTO` y el padre cierra con `PADRE_CONFIRMA_HIJO_LISTO` — solo entonces el hijo hace visible su UI (§5). Los datos de aventura e idioma llegan después, en mensajes aparte |
 | **HIJO_LISTO** | Tercer paso del handshake: el hijo lo envía cuando ya ha procesado el `PADRE_DATOS` que recibió. No es el primer mensaje que manda — ese es `HIJO_PREPARADO` |
 | **CAMBIO_PARADA** | El mensaje más central de la app. Lo envía el padre a todos los hijos cada vez que el usuario avanza a un nuevo elemento (parada o tramo), con los datos del nuevo elemento |
-| **CAMBIO_MODO** | Mensaje que notifica a todos los hijos el cambio entre modo CASA y modo AVENTURA. Cada hijo adapta su interfaz y responde `ENTENDIDO` y `EFECTUADO` (§9.7). **Lo que no hace ninguno es limpiar sus handlers**: `_listenerRegistry.clear()` solo puede llamarse en `pagehide`, y hacerlo en un cambio de modo dejaría al iframe permanentemente sordo (§28, §32.1) |
+| **CAMBIO_MODO** | Mensaje que notifica a todos los hijos el cambio entre modo CASA y modo AVENTURA. Cada hijo adapta su interfaz y responde `ENTENDIDO` y `EFECTUADO` (§9.7). **Lo que no hace ninguno es quitar sus handlers**: el bus pone un solo listener por frame para toda su vida y los handlers se registran una vez (§28.1, §32.1); quitarlos en un cambio de modo dejaría al iframe sordo |
 | **Heartbeat** | Ping periódico del padre a los hijos (`SISTEMA.HEARTBEAT`) para verificar que siguen activos; los hijos responden con `SISTEMA.HEARTBEAT_RESPONSE` |
 | **ACK** | Confirmación de que un mensaje fue recibido correctamente |
 | **registrarControladorSeguro** | Función que registra un handler de `postMessage` con gestión de errores y soporte de cleanup. Punto de entrada estándar para todos los iframes |
-| **messagingAdapter** | Copia propia de la mensajería que llevan los hijos **todavía sin migrar** (hijo2, hijo3 y hijo4). Mantiene un `_listenerRegistry` para soltar sus handlers en `pagehide`. Los frames que hablan por `js/mensajeria.js` (hijo1, hijo5 y la pantalla de selección) no lo tienen: el bus pone un solo listener y lo gestiona él. hijo6 tampoco lo tiene, pero por otro motivo: no usa ninguno de los dos caminos |
+| **messagingAdapter** | Nombre de una capa de mensajería propia de cada hijo; no existe en ningún fichero de producción: todos los frames hablan por el bus único `js/mensajeria.js` (§10.25, §28.1), que pone un solo listener por frame y lo gestiona él. `tools/verificar-frames.js` lo busca como señal de que un frame conserva una capa privada |
 
 ### Mapa y GPS
 
@@ -10924,15 +10924,15 @@ enviarMensajeConConfirmacion('NAVEGACION.SOLICITAR_DATOS_PARADAS', {}, { timeout
 
 La promesa queda en `confirmacionesPendientes`. El receptor detecta `requiereConfirmacion: true` y envía `SISTEMA.CONFIRMACION` con `idOriginal`. Si el timeout (5 s por defecto, 10 s para operaciones lentas) expira sin confirmación, la promesa rechaza.
 
-#### Filtrado por ID en confirmListener de hijos
+#### Correlación del acuse por ID
 
-Cada llamada a `enviarMensajeConConfirmacion` en los hijos genera un `idMensaje` único **antes** del timeout y filtra la confirmación con:
+Cada llamada a `enviarMensajeConConfirmacion` toma el `id` único del mensaje (`generarIdUnico('msg')`) **antes** de armar el timeout y guarda su promesa en `confirmacionesPendientes` bajo esa clave. El acuse llega con `idOriginal` igual a ese `id`, y `manejarConfirmacion()` resuelve solo esa promesa:
 
 ```javascript
-&& event.data.idOriginal === idMensaje
+const pendiente = confirmacionesPendientes.get(mensaje.idOriginal);
 ```
 
-Esto evita que dos mensajes concurrentes del mismo tipo resuelvan el listener del otro. Todos los puntos del código que comparan `event.data.tipo` para el ACK de confirmación usan `TIPOS_MENSAJE.SISTEMA.CONFIRMACION` (la constante, no el string `'SISTEMA.CONFIRMACION'`) — incluyendo el adapter interno de `coordenadas-hijo2.html` (`enviarMensajeConConfirmacion` y `messagingAdapter`), que comparten el mismo `import` de `TIPOS_MENSAJE` que el resto del archivo.
+Esto evita que dos mensajes concurrentes del mismo tipo resuelvan la promesa del otro. Ningún hijo tiene un listener propio de acuses: todos los frames usan el bus (§10.25), que reconoce el acuse con la constante `TIPOS_MENSAJE.SISTEMA.CONFIRMACION`, no con el string `'SISTEMA.CONFIRMACION'`.
 
 #### Sin handler no hay acuse, a propósito
 
@@ -11224,7 +11224,7 @@ El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-compl
 **Lo que funciona bien:**
 
 - **Origen estricto**: todos los `postMessage` usan `globalThis.location.origin`; todos los receptores validan `event.origin`. Sin wildcards.
-- **IDs únicos por mensaje**: `generarIdUnico('msg')` → timestamp + random. Las confirmaciones usan `idOriginal` para correlacionar. Los `confirmListener` en hijos filtran por `event.data.idOriginal === idMensaje`, evitando resoluciones cruzadas.
+- **IDs únicos por mensaje**: `generarIdUnico('msg')` → timestamp + random. Las confirmaciones usan `idOriginal` para correlacionar. El bus resuelve solo la promesa guardada bajo ese id en `confirmacionesPendientes`, evitando resoluciones cruzadas.
 - **Protocolo bidireccional de modo**: 4 fases (CAMBIO_MODO → ENTENDIDO → EFECTUADO → APLICADO) con timeouts independientes y Maps de módulo compartidos. Evita duplicación de handlers.
 - **State-manager con mutex**: serializa escrituras concurrentes en estado compartido.
 - **Cola de mensajes**: mensajes que llegan antes de que el destino esté registrado esperan y se procesan en orden.
@@ -11981,7 +11981,7 @@ De ahí que las dos operaciones que un chat conversacional sí necesitaría — 
 
 ### 28.1 Estado actual
 
-**No existe ningún registro de listeners por-hijo que limpiar.** El bus (`js/mensajeria.js`) registra un único `addEventListener('message', manejarMensajeEntrante)` por frame, en `inicializarMensajeria()`, para toda la vida de ese frame — nunca se añade ni se retira uno nuevo por tipo de mensaje. `messagingAdapter` y su `_listenerRegistry` (el patrón que describía esta sección) no existen en ningún fichero de producción: eran de una copia de mensajería previa a la unificación en un solo bus (opción A), y no sobrevivieron a esa migración.
+**No existe ningún registro de listeners por-hijo que limpiar.** El bus (`js/mensajeria.js`) registra un único `addEventListener('message', manejarMensajeEntrante)` por frame, en `inicializarMensajeria()`, para toda la vida de ese frame — nunca se añade ni se retira uno nuevo por tipo de mensaje. `messagingAdapter` y su `_listenerRegistry` no existen en ningún fichero de producción: el bus único (opción A) es el único camino de mensajería de todos los frames.
 
 ### 28.2 Qué limpia cada `pagehide`, y qué no hace falta limpiar
 
@@ -12537,7 +12537,7 @@ Esta sección documenta restricciones de diseño que no deben violarse. Son inva
 
 ### 32.1 Registro de handlers y limpieza en `pagehide`
 
-Los 10 frames (padre, los 6 hijos y los 3 nietos) hablan por el mismo `js/mensajeria.js`: ninguno
+Los once frames (el padre, la pantalla de selección, los seis hijos y los tres nietos) hablan por el mismo `js/mensajeria.js`: ninguno
 mantiene su propia capa de envío o de registro. Para saber desde fuera si un frame ya escucha un
 tipo está `tieneControlador(tipo)`, la introspección pública del bus — no hay estructura interna
 que inspeccionar.
