@@ -1612,7 +1612,7 @@
           // Registrar ANTES del `src`: el bus solo acepta mensajes de un iframe registrado,
           // y el puzzle avisa en cuanto el usuario termina.
           globalThis.mensajeria.registrarIframe('puzzle', iframe);
-          iframe.src = `puzzle.html?aventura=INTRO&id=${puzzleIntro.id}&noOverlay=1&imagen=${encodeURIComponent(imagenPuzzle)}`;
+          iframe.src = `puzzle.html?id=${puzzleIntro.id}&imagen=${encodeURIComponent(imagenPuzzle)}`;
           _log.info('[SELECCION] Puzzle cargado:', puzzleIntro.id, imagenPuzzle);
           // Los tipos salen del puente `globalThis.TIPOS_MENSAJE` que publica el
           // <script type="module"> de abajo: este bloque es un <script> clásico y no puede

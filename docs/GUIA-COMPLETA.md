@@ -2328,10 +2328,10 @@ const iframe = document.getElementById('puzzle-iframe');
 const modulo = await import('./js/puzzles-aventuras.js');
 const puzzleIntro = modulo.PUZZLES_AVENTURAS?.INTRO?.['puzzle.html']?.puzzle_id?.find(p => p.id === 'PZ-intro');
 const imagenPuzzle = puzzleIntro.imagen || 'imagenes/imagenes-aplicación/logo-luna.png';
-iframe.src = `puzzle.html?aventura=INTRO&id=${puzzleIntro.id}&noOverlay=1&imagen=${encodeURIComponent(imagenPuzzle)}`;
+iframe.src = `puzzle.html?id=${puzzleIntro.id}&imagen=${encodeURIComponent(imagenPuzzle)}`;
 ```
 
-`imagen` es el único parámetro que `puzzle.html` necesita además de `id` — `aventura` y `noOverlay` viajan en la URL pero la página no los lee (§13). Esta pantalla ya tenía resuelto el puzzle para comprobar que su imagen existe, así que pasarla cuesta cero y ahorra que `puzzle.html` importe `puzzles-aventuras.js` por su cuenta (§22.12).
+`imagen` es el único parámetro que `puzzle.html` necesita además de `id`. Esta pantalla ya tenía resuelto el puzzle para comprobar que su imagen existe, así que pasarla cuesta cero y ahorra que `puzzle.html` importe `puzzles-aventuras.js` por su cuenta (§22.12).
 
 La selección es el contenedor de su puzzle y lo atiende por el bus: `cargarPuzzle()` registra el iframe con el id `'puzzle'` antes de darle `src`, y registra una sola vez (flag `globalThis._puzzleEscuchado`, porque a esta pantalla se puede volver y el bus rechaza un segundo handler del mismo tipo) los handlers de `PUZZLE.COMPLETADO` (al resolverlo o al saltarlo) y `PUZZLE.TIMEOUT` (al agotarse el tiempo), los dos con `_mostrarContinuarPuzzle`. Con cualquiera de los dos aparece `#btn-continuar-puzzle` — un timeout cuenta como completado. Los tipos salen del puente `globalThis.TIPOS_MENSAJE`, porque este bloque es un `<script>` clásico; si el puente faltara, el botón se muestra igualmente y se registra un error en el log, para que la pantalla no se quede sin salida. Ver detalles completos en §7.8.
 
@@ -3371,7 +3371,7 @@ El destino real (URL de envío, campo de destino) vive únicamente en las consta
 
 ```text
 puzzle.html?id=PZ-01&imagen=imagenes%2Fpuzzles%2F...
-puzzle.html?aventura=INTRO&id=PZ-intro&noOverlay=1&imagen=imagenes%2Fpuzzles%2F...
+puzzle.html?id=PZ-intro&imagen=imagenes%2Fpuzzles%2F...
 ```
 
 **`puzzle.html` lee exactamente dos parámetros**, y no importa ningún módulo de datos:
@@ -3393,7 +3393,7 @@ Esos son los dos únicos campos que la página necesita, y coinciden con lo úni
 - **desde hijo4** — el padre añade `reto.imagenPuzzle` al resolver el reto, y `retos-hijo4.html` la concatena al `reto.src` que trae `js/retos-aventuras.js` (`puzzle.html?id=PZ-01`);
 - **desde P6** — `En-busca-del-tesoro.html` ya la tiene para comprobar que el fichero existe, y la pone en la URL.
 
-> **`aventura` y `noOverlay` viajan en la URL de P6 pero `puzzle.html` no los lee.** No hay ningún `urlParams.get()` para ellos. Son dos parámetros inertes.
+> `puzzle.html` ignora cualquier parámetro de la URL que no sea `id` o `imagen`: no hay ningún `urlParams.get()` para otro nombre.
 
 **Si falta `imagen`** (`puzzleConfigValido = false`): se muestra `#errorMsg` con el texto del error. La lógica específica del puzzle (imagen, canvas, piezas, temporizador, listeners de `#restartBtn`/`#pauseBtn`) queda encapsulada en `if (puzzleConfigValido) {...}`, así que el resto del script sigue ejecutándose con normalidad y los botones quedan con su listener registrado — ver más abajo, §13 "Saltar un reto o puzzle roto".
 
@@ -3448,10 +3448,10 @@ pauseBtn.addEventListener('click', () => {
 
 ```mermaid
 sequenceDiagram
-    participant PADRE as seleccion.html (P9) o hijo4.html
+    participant PADRE as seleccion.html (P6) o hijo4.html
     participant PZ as puzzle.html (sub-iframe)
 
-    PADRE->>PZ: asigna src = puzzle.html?id=PZ-intro&aventura=INTRO
+    PADRE->>PZ: asigna src = puzzle.html?id=PZ-intro&imagen=...
     PZ->>PZ: init() — genera grid, asigna timer, shuffle piezas
     Note over PZ: usuario arrastra piezas...
     alt todas las piezas colocadas
@@ -4846,7 +4846,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f85ecf33ec58'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-ccfdfa0a38d4'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6095,7 +6095,7 @@ Los parámetros URL son un canal de comunicación de un solo sentido: el compone
 | Parámetro | Archivo que lo lee | Línea | Cadena de prioridad / default |
 |-----------|-------------------|-------|-------------------------------|
 | `?id=` | `puzzle.html` | 156 | Obligatorio — sin él no hay puzzle |
-| `?imagen=` | `puzzle.html` | 172 | La imagen ya resuelta por quien lo invoca — `puzzle.html` no la busca (§16). **No lee `?aventura=`** |
+| `?imagen=` | `puzzle.html` | 172 | La imagen ya resuelta por quien lo invoca — `puzzle.html` no la busca (§16). |
 | `?aventura=` | `mapa-completo.html` | 178 | URL → `'Aventura1'` (default) |
 | `?despedida=1` | `En-busca-del-tesoro.html` | — | Activa `modoDespedida`, salta a P17 (agradecimientos), ejecuta `limpiarDatosAventura` + pausa 2 s + `location.replace('codigo-padre.html')` (P1) al pulsar botón verde. No recarga: la misma dirección con `?despedida=1` volvería a mostrar P17 |
 | `?vv_debug=1` | `js/proteccion.js` | 25 | Flag booleano — desactiva bloqueos de seguridad |
@@ -6105,8 +6105,8 @@ Los parámetros URL son un canal de comunicación de un solo sentido: el compone
 **Emisores internos** (quién construye estas URLs):
 
 - `coordenadas-hijo2.html` construye `mapa-completo.html?aventura=…` al abrir el mapa completo.
-- `En-busca-del-tesoro.html` construye `puzzle.html?aventura=INTRO&id=…&imagen=…` al lanzar el puzzle de introducción.
-- El padre construye las URLs de los iframes hijos al cargarlos (sin parámetros — los hijos leen `padreId` de `sessionStorage`).
+- `En-busca-del-tesoro.html` construye `puzzle.html?id=…&imagen=…` al lanzar el puzzle de introducción.
+- El padre construye las URLs de los iframes hijos al cargarlos, sin parámetros.
 
 ---
 
@@ -8081,7 +8081,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-f85ecf33ec58'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-ccfdfa0a38d4'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8819,7 +8819,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-f85ecf33ec58';
+const CACHE_VERSION = 'v-ccfdfa0a38d4';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12175,7 +12175,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-f85ecf33ec58';
+const CACHE_VERSION = 'v-ccfdfa0a38d4';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

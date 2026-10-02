@@ -61,10 +61,10 @@ test.describe('PZ — puzzle.html: botón de saltar (⏩)', () => {
 
   test('PZ-1. Puzzle válido: saltar monta las piezas y avisa al padre', async ({ page }) => {
     // La imagen va en la URL: puzzle.html ya no importa puzzles-aventuras.js. Quien abre el
-    // puzzle la pone — hijo4 desde reto.imagenPuzzle, o P9 en En-busca-del-tesoro.html
+    // puzzle la pone — hijo4 desde reto.imagenPuzzle, o P6 en En-busca-del-tesoro.html
     // (§22.12). Aquí se reproduce esa invocación real.
     const imagen = encodeURIComponent('imagenes/imagenes-aplicación/logo-luna.png');
-    const puzzle = await abrirPuzzle(page, `id=PZ-intro&aventura=Aventura1&imagen=${imagen}`);
+    const puzzle = await abrirPuzzle(page, `id=PZ-intro&imagen=${imagen}`);
 
     await puzzle.click('#skipBtn');
     await expect.poll(async () => (await avisosDelPuzzle(page)).length).toBeGreaterThan(0);
@@ -93,7 +93,7 @@ test.describe('PZ — puzzle.html: botón de saltar (⏩)', () => {
 
     // Sin parámetro `imagen`: es el caso "puzzle roto" — quien lo abre no supo resolverlo,
     // así que la página no recibe configuración.
-    const puzzle = await abrirPuzzle(page, 'id=PZ-NO-EXISTE&aventura=Aventura1');
+    const puzzle = await abrirPuzzle(page, 'id=PZ-NO-EXISTE');
     await expect(puzzle.locator('#errorMsg')).toBeVisible();
 
     await puzzle.click('#skipBtn');
