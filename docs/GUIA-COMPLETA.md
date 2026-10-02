@@ -11958,9 +11958,9 @@ Padre recibe CHAT.CERRAR:
 
 ---
 
-### Namespace CHAT.* (en constants.js L204-207)
+### Namespace CHAT.* (en constants.js)
 
-Los tipos del namespace CHAT están en `TIPOS_MENSAJE.CHAT` (`js/constants.js` L204-207): `CERRAR` y `ESTADO_PADRE`. El código los accede via `globalThis.TIPOS_MENSAJE?.CHAT?.CERRAR` y `?.CHAT?.ESTADO_PADRE` con un string literal como fallback defensivo. Los tipos en uso son:
+Los tipos del namespace CHAT están en `TIPOS_MENSAJE.CHAT` (`js/constants.js`): `CERRAR` y `ESTADO_PADRE`. El código los accede via `globalThis.TIPOS_MENSAJE?.CHAT?.CERRAR` y `?.CHAT?.ESTADO_PADRE` con un string literal como fallback defensivo. Los tipos en uso son:
 
 | Tipo | Dirección | Cuándo |
 | --- | --- | --- |
