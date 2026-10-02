@@ -2376,14 +2376,14 @@ flowchart TD
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace visible la UI (aquí visible desde el inicio) |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 | `SISTEMA.CAMBIO_MODO` | Responde con `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO` |
-| `SISTEMA.CAMBIO_MODO_APLICADO` | Confirma que el modo ha sido completamente aplicado |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | Solo escribe en el log que el modo se aplicó (4.ª fase del protocolo de modo, §26.6) |
 
 #### Mensajes que envía al padre
 
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
-| `SISTEMA.HIJO_PREPARADO` | Al cargarse | `{ componenteId, version, capacidades[], timestamp }` |
-| `SISTEMA.HIJO_LISTO` | Tras recibir `PADRE_DATOS` | `{ componenteId, iframeId, timestamp }` |
+| `SISTEMA.HIJO_PREPARADO` | Al cargarse | `{ version, tipo: 'SELECCION', capacidades: ['seleccion','idioma','aventura'], timestamp }` |
+| `SISTEMA.HIJO_LISTO` | Tras recibir `PADRE_DATOS` | `{ componenteId, capacidades: ['seleccion','idioma','aventura'], timestamp }` |
 | `SISTEMA.HIJO_FALLIDO` | Si la inicialización falla | `{ error, stack, timestamp }` |
 | `SELECCION.IDIOMA_SELECCIONADO` | Elige el idioma en P2 (click en una bandera) | `{ idioma }` |
 | `SELECCION.TERMINOS_ACEPTADOS` | Acepta términos en P10 | `{ timestamp }` |
@@ -2486,7 +2486,7 @@ Mensajes del temporizador:
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `UI.CLOSE_MENUS` | Cierra iconos desplegados (respeta `datos.except`). Ningún emisor lo manda hoy: el padre no envía este tipo; hijo1 lo envía al padre al abrir su panel |
 | `SISTEMA.CAMBIO_MODO` | En CASA: detiene y resetea el temporizador; responde `CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO` (un modo que no es `casa` ni `aventura` recibe `SISTEMA.NACK`) |
-| `SISTEMA.CAMBIO_MODO_APLICADO` | Confirma aplicación del modo |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | Solo escribe en el log que el modo se aplicó (4.ª fase del protocolo de modo, §26.6) |
 | `AVENTURA.INICIADA` | Inicia la cuenta atrás con el tiempo recibido |
 | `AVENTURA.FINALIZADA` | Detiene el temporizador |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
@@ -2497,12 +2497,11 @@ Mensajes del temporizador:
 |------|--------|-------------------|
 | `SISTEMA.HIJO_PREPARADO` / `HIJO_LISTO` | Handshake estándar | — |
 | `UI.NAVEGACION_EXTERNA` | Click en cualquier icono con URL | `{ url: 'gastronomia.html' }` |
-| `TEMPORIZADOR.TOGGLE` | Click en `#icono-temporizador` (sin gesto multi-tap) | `{ visible: true/false }` |
+| `TEMPORIZADOR.TOGGLE` | Click en `#icono-temporizador` (sin gesto multi-tap) | `{ tiempoRestante, tiempoTotal, estado, modoAventura, tiempoFormateado, timestamp }` |
 | `PARADAS.LISTADO_TOGGLE` | Click en `#icono-listado-paradas` | `{ timestamp }` |
 | `CONTROL.DEV_CINCO_TOQUES` | Gesto oculto de activación del modo DEV (Factor 2 — detalle en §24) | `{ timestamp }` — el padre abre modal de código DEV |
 | `AVENTURA.TIEMPO_ACTUALIZADO` | Cada 1 s mientras corre el temporizador | `{ tiempoRestante, porcentajeRestante, tiempoFormateado }` |
 | `AVENTURA.TIEMPO_AGOTADO` | Cuando el contador llega a 0 | `{ mensaje, redirigir }` |
-| `MONITOREO.METRICA` | Si hay errores de geolocalización detectados | `{ tipo, mensaje }` |
 | `SISTEMA.HEARTBEAT_RESPONSE` / `CAMBIO_MODO_ENTENDIDO` / `CAMBIO_MODO_EFECTUADO` | Estándar | — |
 
 ```mermaid
@@ -2663,8 +2662,8 @@ Las pantallas de aviso (imágenes, cuenta atrás, botón de reintento) viven en 
 | `NAVEGACION.CAMBIO_PARADA` | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea `distanciaAlDestino` y `_llegadaNotificada`; llama `actualizarEstadoBotones()` y `_resetSpinsAventura()` |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Con `control: 'btnAvanzar'`: habilita (una `razon` de completado real lo deja habilitado hasta el siguiente elemento) o deshabilita el botón de avanzar. Sin `control` (p. ej. `motivo: 'reto_cerrado'` o `'vista_cerrada'`): recalcula los botones del mapa según las reglas GPS |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
-| `SISTEMA.CAMBIO_MODO_APLICADO` | Confirma que el modo ha sido completamente aplicado |
-| `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Recibe actualizaciones de estado del GPS desde el padre (activo/inactivo/error) |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | Solo escribe en el log que el modo se aplicó (4.ª fase del protocolo de modo, §26.6) |
+| `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | En CASA deja el botón de ubicación rojo y deshabilitado (título «Ubicación no disponible en modo casa»); en AVENTURA no hace nada: el botón lo decide la distancia |
 | `NAVEGACION.SOLICITAR_COORDENADAS` | Responde con coordenadas de la parada solicitada; recibe `{ paradaId, tipoConsulta:'COORDENADAS' }` |
 
 #### Mensajes que envía al padre
@@ -2676,8 +2675,8 @@ Las pantallas de aviso (imágenes, cuenta atrás, botón de reintento) viven en 
 | `NAVEGACION.USUARIO_FUERA_RANGO` | Tras la gracia de la franja (0-15 min según franja, ver §31.4/§25.7) en cualquiera de las 4 franjas (>15m parada / `toleranciaGPS` tramo — mismo umbral que `GPS.RESTRINGIDO`) | `{ distancia, franja, elementoMasCercano, timestamp }` |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Click en `#btn-ubicacion`; solicita al padre (funciones-mapa.js) dibujar polyline desde posición actual hasta el destino activo | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Click en `#btn-mapa-completo` | `{ formato: 'html', url: 'mapa-completo.html?aventura=X', aventura }` |
-| `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Click en `#btn-mapa-jpg` | `{ formato: 'jpg', url, aventura, paradaActual }` |
-| `UI.ACCION_USUARIO` | Click en `#btn-video` o `#btn-imagen` | `{ accion: 'video'/'imagen', paradaId }` |
+| `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Click en `#btn-mapa-jpg` | `{ accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura }` — la URL del JPG la resuelve el padre |
+| `UI.ACCION_USUARIO` | Click en `#btn-imagen` o `#btn-video` | `{ accion: 'mostrar-imagen', paradaActual, urlImagen, nombre, sinContenido, mensajeError, textoParada, imagenes, tipo, mapa_numero }`; el de vídeo, en un tramo, `{ accion: 'reproducir-video', paradaActual, urlVideo, nombre, sinContenido, mensajeError }` |
 | `DATOS.COORDENADAS_CARGADAS` | Tras cargar coordenadas de `DATOS.CARGAR_COORDENADAS` (éxito o error) | `{ exito, aventura, idioma, totalCargadas, timestamp }` |
 | `DATOS.TEXTOS_CARGADOS` | Tras cargar textos de `DATOS.CARGAR_TEXTOS` (éxito o error) | `{ exito, aventura, idioma, totalCargados, timestamp }` |
 | Estándar | Handshake + heartbeat + modo | — |
@@ -2701,7 +2700,7 @@ sequenceDiagram
 ```
 
 **Modo AVENTURA**: GPS activo (toggle via `#btn-avanzar`), detección de proximidad en marcha, `#btn-avanzar` resaltado cuando GPS está activado.  
-**Modo CASA**: detección de proximidad desactivada (clase CSS `modo-casa`); botones siguen visibles pero GPS no está activo; `#btn-avanzar` no lanza watchPosition.
+**Modo CASA**: detección de proximidad desactivada (guarda de modo en el controlador de `NAVEGACION.ACTUALIZAR_ESTADO`); botones siguen visibles y `#btn-avanzar` queda desactivado (`_actualizarBotonGps` lo fuerza en CASA).
 
 ---
 
@@ -2796,7 +2795,7 @@ hijo3 no contesta un comando ejecutado con éxito: la reproducción se refleja p
 | `CONTROL.HABILITAR` | Si `datos.control === 'retosBtn'`: `disabled = false` |
 | `CONTROL.DESHABILITAR` | Si `datos.control === 'retosBtn'`: `disabled = true` |
 | `NAVEGACION.CAMBIO_PARADA` | Quita clase `.activo` del `#retosBtn` y resetea spin si hay animación activa |
-| `SISTEMA.CAMBIO_MODO` | Cambia clase CSS `modo-casa`/`modo-aventura` en body |
+| `SISTEMA.CAMBIO_MODO` | Pausa y resetea el audio en curso (`currentTime=0`, barra a 0 %) y olvida el audio actual; actualiza `estado.modo.actual` y llama a `sincronizarSeekPorModo(modo)` (clase `modo-casa`/`modo-aventura` del body y habilitación de la barra de progreso); responde `CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO` |
 | `UI.ACCION_USUARIO` | `accion:'audio_control'` → controla `<audio>` via comandos (`play/pause/stop/replay`) |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 
@@ -2804,10 +2803,10 @@ hijo3 no contesta un comando ejecutado con éxito: la reproducción se refleja p
 
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
-| `AUDIO.FIN_REPRODUCCION` | Evento `ended` del audio | `{ parada_id, duracion, tiempoReproducido, completado: true, timestamp }` |
-| `AUDIO.ESTADO_ACTUALIZADO` | Cualquier cambio (play/pause/stop/error) | `{ estado: 'playing'/'paused'/'stopped', parada_id, timestamp }` |
-| `AUDIO.ERROR` | Si el archivo no carga | `{ error, url, parada_id }` |
-| `RETO.SOLICITAR_RETO` | Click en `#retosBtn` (habilitado) | `{ parada_id, timestamp }` |
+| `AUDIO.FIN_REPRODUCCION` | Evento `ended` del audio | `{ audioId, estado: 'finalizado' }` |
+| `AUDIO.ESTADO_ACTUALIZADO` | Eventos `play` y `pause` del audio | `{ audioId, estado: 'reproduciendo'/'pausado' }` |
+| `AUDIO.ERROR` | Si el archivo no carga | `{ audioId, error }` |
+| `RETO.SOLICITAR_RETO` | Click en `#retosBtn` (habilitado) | `{ contexto: 'manual', audioId }` |
 | Estándar | Handshake + heartbeat + modo | — |
 
 ```mermaid
@@ -3009,7 +3008,7 @@ camino con acuse de uno sin él.
 | `RETO.HABILITAR` | Muestra `#botonRetos-wrapper` y habilita `#botonRetos` (`disabled=false`, quita clase `deshabilitado`) |
 | `RETO.ESTADO_CASA` | Modo CASA: gestiona habilitación del panel según tipo de elemento activo |
 | `RETO.CONFIRMADO` | Padre confirma recepción de `RETO.MOSTRADO` — fase 3 del protocolo RETO |
-| `SISTEMA.CAMBIO_MODO` | Cambia clase CSS del body |
+| `SISTEMA.CAMBIO_MODO` | Si no hay un reto en curso, limpia el estado del reto y su interfaz; aplica el modo (`sincronizarEstadoModo`: `estado.modo.actual` y clase del body); responde `CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO` |
 | `NAVEGACION.CAMBIO_PARADA` | No precarga el reto (comentario propio en el código: "placeholder") — solo actualiza `estado.retoActualId`/`paradaIdActual`. El reto real llega después vía `RETO.MOSTRAR`, disparado por `RETO.SOLICITAR_RETO` |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 
@@ -3170,9 +3169,9 @@ wrap.classList.add('marquee');
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); confirma recepción enviando `HIJO_LISTO`; **no** sincroniza el botón GPS |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Sincroniza el estado visual del `#gps-casa-btn` vía campo `modoInicial` → `_sincronizarBotonConModo()`; hace la UI visible; desencadena `SOLICITAR_DATOS_PARADAS` |
 | `SISTEMA.CAMBIO_MODO` | Sincroniza el estado visual del `#gps-casa-btn` (ON/OFF); muestra/oculta `#paradas-window` |
-| `SISTEMA.CAMBIO_MODO_APLICADO` | Confirmación de modo completamente aplicado |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | Solo escribe en el log que el modo se aplicó (4.ª fase del protocolo de modo, §26.6) |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Recibe la lista de paradas del padre → `generarBotonesParadas()` |
-| `NAVEGACION.CAMBIO_PARADA` | Marca el botón correspondiente con clase `.activo` |
+| `NAVEGACION.CAMBIO_PARADA` | Pone la clase `activa` al botón de esa parada o tramo (`_resaltarBotonParada`) y se la quita a los demás; ninguna regla CSS estila `activa`: el resalte visible es la clase `actual`, que ponen el click del propio botón y la generación de los botones (si hay `paradaActualIndex`); `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` solo la quita |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 | `SISTEMA.ERROR` | Recibe errores del sistema del padre |
 
@@ -3724,7 +3723,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SISTEMA.CAMBIO_MODO` | Bidireccional | Solicitud / ejecución de cambio CASA↔AVENTURA |
 | | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Hijo → Padre | ACK semántico: "entendido el cambio" |
 | | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Hijo → Padre | "Cambio aplicado en mi UI" |
-| | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre → Hijos | Broadcast de confirmación global del modo |
+| | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre → Hijos | 4.ª fase del protocolo de modo: un mensaje a cada hijo inicializado, cuando el padre ha recogido los `EFECTUADO`; quien lo atiende solo lo escribe en el log |
 | | `SISTEMA.HEARTBEAT` | Padre → Hijos | Latido "¿sigues vivo?" (solo AVENTURA) |
 | | `SISTEMA.HEARTBEAT_RESPONSE` | Hijo → Padre | "Sigo activo" |
 | | `SISTEMA.NACK` | Cualquiera | Rechazo de mensaje |
@@ -3859,8 +3858,8 @@ sequenceDiagram
 | `SELECCION.CODIGO_VALIDADO` | P13 (prod) | `{ aventura, idioma, email, timestamp }` | Handler vacío — registra con log que el código fue validado; GPS, iframes y datos se activan en P14. Dev mode: no se envía. |
 | `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `cargarRestoDeiframes()` + `cargarHijoCasa()` + `_fase2CargarDatos()` en paralelo → `_iframesPreCargadosP14 = true` → `activarGPS()` siempre, en prod y en dev |
 | `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Fast-path si `_iframesPreCargadosP14` (salta recarga); si no: normaliza hijos, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo, espera `HIJO_LISTO`; distribuye datos y muestra UI |
-| `SISTEMA.HIJO_PREPARADO` | Arranque | `{ componenteId, version, capacidades:[], timestamp }` | Handshake estándar (la pantalla también hace handshake) |
-| `SISTEMA.HIJO_LISTO` | Tras PADRE_DATOS | `{ componenteId, iframeId }` | Handshake estándar |
+| `SISTEMA.HIJO_PREPARADO` | Arranque | `{ version, tipo:'SELECCION', capacidades:['seleccion','idioma','aventura'], timestamp }` | Handshake estándar (la pantalla también hace handshake) |
+| `SISTEMA.HIJO_LISTO` | Tras PADRE_DATOS | `{ componenteId, capacidades:['seleccion','idioma','aventura'], timestamp }` | Handshake estándar |
 
 **Mensajes recibidos por En-busca-del-tesoro.html**:
 
@@ -3869,7 +3868,7 @@ sequenceDiagram
 | `SISTEMA.PADRE_DATOS` | Padre | Recibe `{ modo, timestamp }` — handshake estándar |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Completa el handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Responde con `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO` |
-| `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Acuse de recibo de que el modo fue aplicado globalmente |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Solo escribe en el log que el modo se aplicó |
 | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html (sub-iframe activo de P4, ver §35) | Recibido por un listener genérico de `message` en `En-busca-del-tesoro.html`, que llama `mostrar(5)` directamente. No reenvía al padre. |
 
 > La pantalla de selección no recibe `CAMBIO_PARADA`. Sí recibe `SISTEMA.HEARTBEAT` desde el momento en que su cargador la añade a `iframesRegistrados` — el handler de heartbeat de la pantalla responde correctamente. No está marcada `recuperable`: si dejara de contestar, el bus avisa pero no la recarga (§2.7a).
@@ -3882,7 +3881,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 
 | Dirección | Mensaje | Payload clave | Cuándo |
 |-----------|---------|---------------|--------|
-| **→ padre** | `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, capacidades:['opciones','configuracion'], timestamp }` | Al arrancar |
+| **→ padre** | `SISTEMA.HIJO_PREPARADO` | `{ version, tipo:'EXTRAINFO', capacidades:['opciones','configuracion'], timestamp }` | Al arrancar |
 | **→ padre** | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | **→ padre** | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, mensajeId }` | Al recibir SISTEMA.CAMBIO_MODO |
 | **→ padre** | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar cambio de modo en UI |
@@ -3899,7 +3898,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 | **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Cambio CASA↔AVENTURA |
 | **padre →** | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Confirmación global del modo |
 | **padre →** | `AVENTURA.INICIADA` | `{ aventuraId, tiempoEstimado, idioma, timestamp }` | Inicia el temporizador con la duración configurada |
-| **padre →** | `AVENTURA.FINALIZADA` | `{ }` | Detiene el temporizador, muestra estadísticas |
+| **padre →** | `AVENTURA.FINALIZADA` | `{ }` | Detiene el temporizador y manda sus estadísticas al padre (`AVENTURA.ESTADISTICAS_TIEMPO`) |
 | **padre →** | `AVENTURA.DETENER` | `{ motivo, aventuraAnterior, aventuraNueva }` | Cancela el temporizador antes de cambiar de aventura |
 | **padre →** | `UI.CLOSE_MENUS` | `{ except }` | Handler registrado (colapsa el menú si `except !== 'mas-opciones'`) que ningún mensaje alcanza: el padre no envía este tipo |
 
@@ -3917,24 +3916,24 @@ Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `dis
 
 | Mensaje | Payload clave | Cuándo |
 |---------|---------------|--------|
-| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, capacidades:['navegacion','coordenadas'], timestamp }` | Al arrancar |
+| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, coordenadasDisponibles, tipo:'COORDENADAS', capacidades:['navegacion','coordenadas'], timestamp }` | Al arrancar |
 | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, mensajeId }` | Al recibir CAMBIO_MODO |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar modo en UI |
-| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
+| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, estado:'activo'/'inicializando', gpsActivo, paradaActual, coordenadasCargadas }` | Al recibir HEARTBEAT |
 | `NAVEGACION.GPS.ACTIVAR` | `{ activar:bool, idParada, distancia }` | Toggle GPS — click en `#btn-avanzar` |
 | `NAVEGACION.GPS.RESTRINGIDO` | `{ idParada, distancia, rangoMaximo, timestampSalioDeRango }` | GPS fuera de rango — solo se envía si `idParadaActual !== null` (guard: evitar envío con ID nulo antes del primer `ACTUALIZAR_ESTADO`) |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | `{ distancia, franja, elementoMasCercano, timestamp }` | Usuario salió del radio de la parada activa, gracia de su franja ya expirada (§31.4/§25.7) |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` | Click en `#btn-ubicacion` — solicita polyline de retorno al destino |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | `{ formato: 'html', url: 'mapa-completo.html?aventura=X', aventura }` | Usuario pulsa `#btn-mapa-completo` |
-| `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | `{ formato: 'jpg', url, aventura, paradaActual }` | Usuario pulsa `#btn-mapa-jpg` |
+| `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | `{ accion:'mostrar-mapa-vintage', formato:'jpg', aventura }` | Usuario pulsa `#btn-mapa-jpg`; la URL del JPG la resuelve el padre |
 | `NAVEGACION.LLEGADA_DETECTADA` | `{ paradaId, parada_id, distancia, tipoParada: 'parada'\|'tramo', timestamp }` | **Solo AVENTURA** — GPS detecta entrada en radio ≤15 m (`radioLlegada`), el mismo en parada y en tramo |
 | `NAVEGACION.RESPUESTA_COORDENADAS` | `{ coordenadas, paradaId }` | Respuesta a `SOLICITAR_COORDENADAS` |
 | `DATOS.SOLICITAR_TEXTOS` | `{ motivo:'datos_no_recibidos', timestamp }` | Si no recibió `DATOS.CARGAR_TEXTOS` en 3 s — solicita fallback al padre |
-| `DATOS.SOLICITAR_COORDENADAS` | `{ aventura }` | Si no recibió `DATOS.CARGAR_COORDENADAS` — padre responde reenviando `DATOS.CARGAR_COORDENADAS` |
+| `DATOS.SOLICITAR_COORDENADAS` | `{ motivo:'datos_no_recibidos', timestamp }` | Si no recibió `DATOS.CARGAR_COORDENADAS` — padre responde reenviando `DATOS.CARGAR_COORDENADAS` |
 | `DATOS.COORDENADAS_CARGADAS` | `{ exito, aventura, idioma, totalCargadas }` | Tras procesar `DATOS.CARGAR_COORDENADAS` — fase 2 del protocolo 3 fases |
 | `DATOS.TEXTOS_CARGADOS` | `{ exito, aventura, idioma, totalCargados }` | Tras procesar `DATOS.CARGAR_TEXTOS` — fase 2 del protocolo 3 fases |
-| `UI.ACCION_USUARIO` | `{ accion:'video'/'imagen', paradaId }` | Usuario pulsa `#btn-video` o `#btn-imagen` |
+| `UI.ACCION_USUARIO` | `{ accion:'mostrar-imagen', paradaActual, urlImagen, nombre, sinContenido, mensajeError, textoParada, imagenes, tipo, mapa_numero }` o, en un tramo, `{ accion:'reproducir-video', paradaActual, urlVideo, nombre, sinContenido, mensajeError }` | Usuario pulsa `#btn-imagen` o `#btn-video` |
 
 #### Mensajes que hijo2 recibe del padre
 
@@ -3942,21 +3941,21 @@ Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `dis
 |---------|---------------|----------------|------|----------|
 | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Init estado y UI | ✓ | ✓ |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Muestra UI | ✓ | ✓ |
-| `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Cambia clase CSS body (`modo-casa`/`modo-aventura`); en CASA desactiva detección de proximidad | ✓ | ✓ |
+| `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Reinicia su estado (`_resetarEstadoParaModo`) y recalcula los botones; no cambia la clase del body (solo `PADRE_DATOS` la fija); la detección de proximidad solo corre en AVENTURA | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` | Almacena en `globalThis.__vv_coordenadasAventura`; envía `COORDENADAS_CARGADAS` | ✓ | ✓ |
 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` | Almacena descripciones de paradas | ✓ | ✓ |
-| `DATOS.COORDENADAS_PARADAS_REQUEST` | `{ paradaId?, incluirRutas?, actualizarMapa?, contexto? }` | Devuelve coordenadas filtradas (o todas si no hay `paradaId`) por acuse automático, sin mensaje de vuelta explícito | ✓ | ✓ |
+| `DATOS.COORDENADAS_PARADAS_REQUEST` | `{ paradaId?, incluirRutas?, contexto? }` | Devuelve coordenadas filtradas (o todas si no hay `paradaId`) por acuse automático, sin mensaje de vuelta explícito | ✓ | ✓ |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, nombre, tipo, imagen, video, coordenadas, timestamp }` | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea estado GPS/llegada; llama `actualizarEstadoBotones()` | ✓ | ✓ |
-| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], estadisticas }` | Actualiza lista interna de paradas | ✓ | ✓ |
+| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], timestamp, aventura }` | Actualiza lista interna de paradas | ✓ | ✓ |
 | `NAVEGACION.SOLICITAR_COORDENADAS` | `{ paradaId }` | Devuelve coordenadas de esa parada | ✓ | ✓ |
-| `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | `{ activo, permisos, precision }` | Actualiza overlay GPS | ✓ | ✓ |
-| `NAVEGACION.GPS.ERROR` | `{ codigo, mensaje }` | Muestra error GPS en overlay | ✓ | ✓ |
+| `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | `{ activo, permisos, precision }` | En CASA deja el botón de ubicación rojo y deshabilitado; en AVENTURA no hace nada (el botón lo decide la distancia) | ✓ | ✓ |
+| `NAVEGACION.GPS.ERROR` | `{ codigo, mensaje, contexto }` | Deja el error en el log y manda una métrica (`MONITOREO.METRICA { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } }`); no muestra nada | ✓ | ✓ |
 | `CONTROL.HABILITAR` | `{ control:'btnAvanzar', razon:'parada_completada' }` | Activa botón "avanzar" | — | ✓ |
 | `CONTROL.DESHABILITAR` | `{ control:'btnAvanzar', razon:'parada_pendiente_completar' }` | Bloquea botón "avanzar" | — | ✓ |
 | `CONTROL.HABILITAR` | `{ motivo:'reto_cerrado'/'vista_cerrada' }` | Rehabilita todos los botones de mapa (sin `control` explícito — hijo2 decide qué re-habilitar según `motivo`) | ✓ | ✓ |
 | `NAVEGACION.ACTUALIZAR_ESTADO` | `{ distanciaAlDestino, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng }` | Almacena posición en `posicionActualUsuario`; detecta llegada; activa lógica fuera-de-rango (instantánea) | — | ✓ |
-| `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global (no-op informativo) | ✓ | ✓ |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Solo escribe en el log que el modo se aplicó | ✓ | ✓ |
 | `SISTEMA.NOTIFICACION` | `{ evento }` | Notificaciones informativas del sistema | ✓ | ✓ |
 
 ---
@@ -3973,7 +3972,7 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, mensajeId }` | Al recibir CAMBIO_MODO |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar modo |
-| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
+| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp }` | Al recibir HEARTBEAT |
 | `AUDIO.ESTADO_ACTUALIZADO` | `{ audioId, estado:'reproduciendo'/'pausado' }` | Al hacer play/pause |
 | `AUDIO.FIN_REPRODUCCION` | `{ audioId, estado:'finalizado' }` | Audio termina de forma natural |
 | `AUDIO.ERROR` | `{ audioId, error }` | Error durante reproducción |
@@ -3987,7 +3986,7 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 |---------|---------------|----------------|------|----------|
 | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Init | ✓ | ✓ |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Muestra UI | ✓ | ✓ |
-| `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Actualiza clase CSS `modo-casa`/`modo-aventura` en body | ✓ | ✓ |
+| `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Pausa y resetea el audio en curso y olvida el audio actual; actualiza el modo y llama a `sincronizarSeekPorModo(modo)` (clase del body y habilitación de la barra de progreso) | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `AUDIO.REPRODUCIR_REQUEST` | `{ audioId, audioData:{id,title,file}, autoplay:false }` | Guarda `audioData` en la caché local acotada (máx. 2 ids: parada actual + 1 anterior); asigna `audio.src`; resetea la barra de progreso a 0 (`_resetearProgresoVisual()`, también se llama al terminar el audio anterior — ver §7.4); el padre siempre envía `autoplay:false` — el usuario reproduce desde los controles del padre. Si `audioData` viene ausente (p. ej. respuesta a `SOLICITAR_AUDIOS` desde `js/controladores-padre.js`, que sí lo incluye) o el id no está en caché, pide `DATOS.SOLICITAR_AUDIOS` | ✓ (manual) | ✓ (automático al entrar en parada) |
 | `CONTROL.HABILITAR` | `{ control:'retosBtn' }` | `retosBtn.disabled=false`, opacity 1 | ✓ inmediato si reto_id | ✓ tras FIN_REPRODUCCION |
@@ -3996,7 +3995,7 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `CONTROL.DESHABILITAR` | `{ control:'progressBar', razon }` | `_seekHabilitadoPorPadre=false` → si además no está en modo CASA, añade `deshabilitado` (no arrastrable, rojo) | Sin efecto visible — CASA fuerza habilitado igualmente | ✓ cuando no hay audio activo o está fuera de rango |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId }` | Reset spin + quita clase `.activo` del `#retosBtn` | ✓ | ✓ |
 | `UI.ACCION_USUARIO` | `{ accion:'audio_control', comando, audioId }` | Controles de audio del overlay del padre (play/pause/stop/replay) | ✓ | ✓ |
-| `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Solo escribe en el log que el modo se aplicó | ✓ | ✓ |
 
 > **Protección pasiva por parada** (ver §16): hijo3 nunca recibe la aventura completa. `AUDIO.REPRODUCIR_REQUEST` trae el audio de una sola parada en cada mensaje, y la caché local descarta el id más antiguo en cuanto llega un tercero.
 >
@@ -4015,7 +4014,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, capacidades:['retos','preguntas','validacion'], timestamp }` | Al arrancar |
 | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO/EFECTUADO` | `{ modo, mensajeId }` | Gestión de cambio de modo |
-| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
+| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp }` | Al recibir HEARTBEAT |
 | `RETO.SOLICITAR_RETO` | `{ contexto:'hijo4-botonRetos' }` | Usuario pulsa `#botonRetos` en hijo4 (igual que `#retosBtn` en hijo3 pero sin `audioId`) |
 | `RETO.COMPLETADO` | `{ retoId, correcto:bool }` | Usuario responde el reto |
 | `RETO.OCULTAR` | `{ retoId }` | Usuario pulsa "siguiente" / cierra el reto |
@@ -4029,7 +4028,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 |---------|---------------|----------------|------|----------|
 | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Init | ✓ | ✓ |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Muestra UI | ✓ | ✓ |
-| `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Actualiza modo interno | ✓ | ✓ |
+| `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Si no hay un reto en curso, limpia el estado del reto y su interfaz; aplica el modo (`sincronizarEstadoModo`: `estado.modo.actual` y clase del body) | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, retoId }` | Actualiza estado interno de parada activa (no precarga el reto — ver nota abajo); responde con `CAMBIO_PARADA_CONFIRMADO` | ✓ | ✓ |
 | `RETO.MOSTRAR` | `{ retoId, retosArray:[reto] }` | Guarda el reto en la caché local acotada (máx. 2 ids); renderiza el reto, muestra overlay; responde con `RETO.MOSTRADO`. Si `retosArray` viene vacío y el id no está en caché, pide `DATOS.SOLICITAR_RETOS` | ✓ | ✓ |
@@ -4037,8 +4036,8 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `RETO.HABILITAR` | `{ paradaId, razon:'audio_escuchado_1vez'/'sin_audio' }` | Muestra y habilita `#botonRetos-wrapper` | — | ✓ |
 | `RETO.ESTADO_CASA` | `{ tipo:'parada'/'tramo', habilitado:bool }` | Muestra/oculta `#botonRetos-wrapper` según posición | ✓ | — |
 | `RETO.LIMPIAR_ESTADO` | `{ retoId, retoSigueActivo }` | Limpia siempre el estado interno del reto; restaura `#botonRetos-wrapper` en modo CASA solo si `retoSigueActivo !== false` (padre envía este mensaje justo después de recibir `RETO.OCULTAR` de este mismo hijo4 — direcciones opuestas, tipos distintos a propósito) | ✓ | ✓ |
-| `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
-| `SISTEMA.NOTIFICACION` | `{ evento }` | Detecta `AVENTURA_ACTIVADA` para limpiar estado de reto anterior | ✓ | ✓ |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Solo escribe en el log que el modo se aplicó | ✓ | ✓ |
+| `SISTEMA.NOTIFICACION` | `{ evento }` | Con `evento: 'PENDING_INICIADO'` para la parada activa solo lo anota en el log: no toca el reto abierto | ✓ | ✓ |
 
 > **Protección pasiva por parada** (ver §16): hijo4 nunca recibe la aventura completa. `RETO.MOSTRAR` trae el reto de una sola parada en cada mensaje, y la caché local descarta el id más antiguo en cuanto llega un tercero.
 
@@ -4064,7 +4063,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, capacidades:['modo-selector','paradas-list'], timestamp }` | Al arrancar |
 | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO/EFECTUADO` | `{ modo, mensajeId }` | Gestión de cambio de modo |
-| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
+| `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componenteId, estado:{ inicializado, modo, paradasCargadas } }` | Al recibir HEARTBEAT |
 | `SISTEMA.CAMBIO_MODO` | `{ modo, timestamp, origen:'boton-gps' }` | Usuario pulsa botón GPS 🛰️ |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, origen:'hijo5' }` | Usuario pulsa un botón de parada |
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `{ incluirTramos, incluirInicio, incluirMetadatos, ubicacionUsuario }` | Al arrancar o al necesitar actualizar la lista |
@@ -4079,11 +4078,11 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje, modoInicial }` | Sincroniza `#gps-casa-btn` vía `modoInicial`; muestra UI; desencadena `SOLICITAR_DATOS_PARADAS` | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Actualiza botón GPS (rojo OFF / verde ON), modo UI | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
-| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], estadisticas }` | Actualiza/regenera botones de paradas | ✓ | ✓ |
-| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, exito }` | Marca la parada activa visualmente | ✓ | ✓ |
+| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], timestamp, aventura }` | Actualiza/regenera botones de paradas | ✓ | ✓ |
+| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, … }` | Pone la clase `activa` al botón de esa parada o tramo y se la quita a los demás, salvo que `exito` sea `false`; ninguna regla CSS estila `activa` (el resalte visible es la clase `actual`) | ✓ | ✓ |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | `{ paradaId, audio, reto }` | Confirmación final con metadatos | ✓ | ✓ |
-| `SISTEMA.ERROR` | `{ error, contexto, mensajeOriginal }` | Reintenta `SOLICITAR_DATOS_PARADAS` si es ese error | ✓ | ✓ |
-| `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
+| `SISTEMA.ERROR` | `{ error, contexto, mensajeOriginal }` | Solo escribe en el log el `error`, el `contexto` y el `mensajeOriginal` | ✓ | ✓ |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Solo escribe en el log que el modo se aplicó | ✓ | ✓ |
 
 ---
 
@@ -4097,10 +4096,10 @@ Panel FAQ de solo lectura. Se carga de forma **lazy** — su `src` es vacío has
 | **→ padre** | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | **→ padre** | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, estado:'activo'/'inicializando' }` | Al recibir HEARTBEAT |
 | **→ padre** | `CHAT.CERRAR` | `{ }` | Usuario pulsa el botón de cerrar |
-| **padre →** | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Handshake init — idioma llega vía `CHAT.ESTADO_PADRE` |
+| **padre →** | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` más el resultado de `construirEstadoChat()` (idioma, aventura, parada actual y siguiente, paradas restantes, rescate) | Mezcla los datos en `estadoPadre`, reconstruye el acordeón con el idioma recibido y arranca el handshake `HIJO_LISTO` |
 | **padre →** | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Handshake OK |
 | **padre →** | `SISTEMA.HEARTBEAT` | `{ timestamp }` | hijo6 recibe el pulso cuando está cargado (su cargador lo registra en `iframesRegistrados` al abrir el chat; no está marcado `recuperable`, ver §2.7a) |
-| **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo }` | Handler presente pero sin acción (no-op) |
+| **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo }` | Contesta el protocolo (`CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO`) y nada más: no cambia nada visible |
 | **padre →** | `CHAT.ESTADO_PADRE` | `{ idioma, ...estadoPadre }` | Si cambió el idioma, reconstruye el acordeón; el resto de campos (parada, aventura) solo queda disponible como contexto del buzón de sugerencias |
 
 > hijo6 se carga lazy: no recibe `PADRE_DATOS` ni hace handshake hasta que el usuario abre el chat por primera vez. Tampoco recibe `DATOS.CARGAR_*` ni participa en el flujo de paradas.
@@ -4913,7 +4912,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Todos los hijos (hijo1, hijo2, hijo3, hijo4, hijo5, hijo6) |
+| Emitido por | La pantalla de selección y los seis hijos (hijo1 a hijo6) |
 | Destino | `padre` |
 | Payload | `{ componenteId, version, capacidades[], timestamp }` |
 | Handler en padre | `_hdl_SISTEMA_HIJO_PREPARADO` (codigo-padre.html) |
@@ -4934,11 +4933,11 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Todos los hijos (tras recibir PADRE_DATOS) |
+| Emitido por | La pantalla de selección y los seis hijos (tras recibir PADRE_DATOS) |
 | Destino | `padre` |
 | Payload | `{ componenteId, iframeId, timestamp }` |
 | Handler en padre | `_hdl_SISTEMA_HIJO_LISTO` (codigo-padre.html) |
-| Acción | Añade hijo a `estado.hijosInicializados`, desbloquea flujos pendientes, reenvía CAMBIO_MODO si ya activo, envía PADRE_CONFIRMA_HIJO_LISTO |
+| Acción | Añade al hijo a `estado.hijosInicializados` y lo marca listo; le envía `PADRE_CONFIRMA_HIJO_LISTO` (con `modoInicial`); si el hijo se había recargado por el latido, le devuelve su estado (`_vv_afterHijoListo`); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` y a hijo3 le reconfigura `retosBtn`; con hijo2, hijo3 e hijo4 listos, marca `estado.todosHijosListos` (§26.12.1) |
 
 ##### SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 
@@ -4947,7 +4946,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 | Emitido por | Padre (tras HIJO_LISTO) |
 | Destino | El hijo confirmado |
 | Payload | `{ timestamp, mensaje: 'Hijo confirmado como listo', modoInicial: 'casa'/'aventura' }` — `modoInicial` va a TODOS los hijos; hijo5 lo usa para sincronizar `#gps-casa-btn` |
-| Handler en hijos | hijo1, hijo2, hijo3, hijo4, hijo5, hijo6 |
+| Handler en hijos | pantalla de selección, hijo1, hijo2, hijo3, hijo4, hijo5, hijo6 |
 | Acción | Hijo cancela reintentos, muestra UI definitiva. Hijo5 además llama `_sincronizarBotonConModo(modoInicial)` |
 
 ##### SISTEMA.HIJO_FALLIDO
@@ -4971,8 +4970,8 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 | Campo | Valor |
 |-------|-------|
 | Emitido por (normal) | Padre (intervalo periódico) → todos (broadcast) |
-| Payload | `{ timestamp, secuencia }` |
-| Handler en hijos | hijo1, hijo2, hijo3, hijo4, **hijo5**, hijo6 |
+| Payload | `{ timestamp }`; el del `visibilitychange` añade `razon: 'visibilitychange'` |
+| Handler en hijos | pantalla de selección, hijo1, hijo2, hijo3, hijo4, hijo5, hijo6 |
 | Acción hijo | Responde `SISTEMA.HEARTBEAT_RESPONSE`. Quien lleva la cuenta es el padre: `js/mensajeria.js` actualiza el `Map` `ultimoHeartbeat` del estado al recibir la respuesta |
 | Handler en padre | Ninguno: el padre solo emite este mensaje. Ningún emisor se lo manda (el bus no se envía a sí mismo y los hijos no lo emiten), así que no registra handler |
 | Emitido en visibilitychange | Script 3 de `codigo-padre.html` (bloque `<script type="module">` de reconexión de iframes) — al restaurar visibilidad de la pestaña, `globalThis.mensajeria.enviarMensaje({ tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT, destino: 'broadcast', datos: { timestamp, razon:'visibilitychange' } })`, por el bus. Llega a los mismos iframes que recorría el bucle manual: todos los que tienen `name` en la marca estática se registran en el bus antes de poder recibir nada útil. |
@@ -4984,7 +4983,7 @@ El ciclo de `SISTEMA.HEARTBEAT` se arranca/detiene con una llamada directa a `in
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Todos los hijos |
+| Emitido por | La pantalla de selección y los seis hijos |
 | Destino | `padre` |
 | Handler en padre | Callback anónimo registrado con `registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_RESPONSE, ...)` en el Script 1 de `codigo-padre.html` — no es una función `_hdl_*` con nombre |
 | Acción | Actualiza el `Map` `ultimoHeartbeat` del estado (`js/mensajeria.js`) con el instante de la respuesta |
@@ -5003,7 +5002,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 | Destino | `padre` |
 | Payload | `{ idioma }` |
 | Handler en padre | `_hdl_SELECCION_IDIOMA_SELECCIONADO` |
-| Acción | Actualiza `globalThis.idiomaSeleccionado`, propaga a hijos vía CAMBIO_MODO |
+| Acción | Guarda el idioma en `estado.seleccion.idioma`, en `globalThis.idiomaSeleccionado` y en `localStorage` (`vv_idioma`); no propaga nada a los hijos |
 
 **SELECCION.TERMINOS_ACEPTADOS** (seleccion → padre)
 
@@ -5011,7 +5010,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ aceptados: true, timestamp }` |
 | Handler en padre | `_hdl_SELECCION_TERMINOS_ACEPTADOS` |
-| Acción | Desbloquea el botón de inicio en el selector |
+| Acción | Guarda `aceptados` en `estado.seleccion.terminosAceptados` y lo anota en el log; no carga nada ni toca la pantalla de selección |
 
 **SELECCION.AVENTURA_SELECCIONADA** (seleccion → padre)
 
@@ -5076,7 +5075,7 @@ Cuando el padre tiene aventura e idioma, distribuye los datos a cada hijo.
 |-------|-------|
 | Payload | `{ audioId, audioData:{id,title,file}, autoplay:false, contexto }` |
 | Handler en hijo3 | `registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, ...)` |
-| Acción | Guarda `audioData` en la caché local acotada (máx. 2 ids); reproduce el audio de esa única parada |
+| Acción | Guarda `audioData` en la caché local acotada (máx. 2 ids) y carga el audio de esa única parada; no lo reproduce: lo arranca el usuario con los controles del padre |
 | Cuándo se envía | Por cada parada activada, dentro de `_hdl_NAVEGACION_CAMBIO_PARADA` → `_solicitarAudioParaParada()` → `_resolverAudioData()` (resuelve vía `cargarAudios()`) — no hay un mensaje "cargar toda la aventura" |
 
 **RETO.MOSTRAR** (padre → hijo4) — protección pasiva por parada, ver §16
@@ -5113,7 +5112,7 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 | Campo | Valor |
 |-------|-------|
 | Handler en padre | `codigo-padre.html`, Script 1 (busca `NAVEGACION.SOLICITAR_DATOS_PARADAS`) |
-| Acción | Lee `globalThis.__vv_DATOS_AVENTURAS`, transforma al formato `{ id:'padre-P-X', parada_id, tipo, nombre, coordenadas }`, responde con RESPUESTA_DATOS_PARADAS |
+| Acción | Normaliza `DATOS_PADRE[aventura][idioma].elementosIDpadre` (`normalizarParadas_S1`) y responde a quien preguntó con `RESPUESTA_DATOS_PARADAS { paradas, aventura, timestamp }`; sin aventura elegida, o sin datos para ella, responde con la lista vacía (y un `warn` si faltan los datos) |
 | Respuesta | `NAVEGACION.RESPUESTA_DATOS_PARADAS` → al solicitante (hijo5). hijo2 también recibe RESPUESTA_DATOS_PARADAS pero de forma proactiva (sin solicitarla), vía `_hijoListo_enviarDatosHijo2` tras su handshake |
 | Handler en hijo2 | el controlador de `RESPUESTA_DATOS_PARADAS` — almacena paradas normalizadas en `estadoComponente.arrayParadasLocal` para cálculos de proximidad GPS |
 
@@ -5121,20 +5120,22 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 
 #### FASE 6 — Cambio de modo (CASA ↔ AVENTURA)
 
-**SISTEMA.CAMBIO_MODO** (padre → todos)
+**SISTEMA.CAMBIO_MODO** (la orden llega al padre; el padre avisa a cada hijo)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre (al activar GPS, restaurar sesión, seleccionar aventura) |
-| Destino | `todos` (broadcast) |
-| Payload | `{ modo: 'casa'\|'aventura', aventura, idioma, restaurado?, timestamp }` |
-| Handler en hijos | hijo1, hijo2, hijo3, hijo4, hijo6 — **todos los hijos** ✅ |
-| Acción hijo | Actualiza UI para el modo, envía CAMBIO_MODO_ENTENDIDO, luego CAMBIO_MODO_EFECTUADO |
+| Emitido por | **La orden**: el propio padre, por `despacharLocal`, al activar la aventura, al reanudar una sesión guardada y al activar el modo de desarrollo (ver §24); y hijo5, por el bus, al pulsar su botón de GPS. **El aviso a los hijos**: `actualizarInterfazModo` (`js/app.js`), cuando el padre acepta la orden |
+| Destino | La orden: el propio padre (`_hdl_SISTEMA_CAMBIO_MODO`). El aviso: cada hijo de `estado.hijosInicializados`, un mensaje por hijo (`destino: hijoId`) — no es un `broadcast` |
+| Payload | La orden: `{ modo }`; la reanudación de sesión añade `restaurado: true` y `timestampCompra`, y la de hijo5 `timestamp` y `origen: 'boton-gps'`. El aviso: `{ modo, mensajeId }` |
+| Handler en padre | `_hdl_SISTEMA_CAMBIO_MODO` (Script 1): atiende la orden y llama a `manejarCambioModo` (`js/app.js`), que llama a `actualizarInterfazModo` |
+| Handler en hijos | pantalla de selección, hijo1, hijo2, hijo3, hijo4, hijo5, hijo6 — los siete frames hijos |
+| Acción hijo | Cada uno envía `CAMBIO_MODO_ENTENDIDO` y después `CAMBIO_MODO_EFECTUADO`; lo que hace entre los dos depende del frame (§26.12.3 a §26.12.9): la selección y hijo6 no cambian nada, y hijo1, en CASA, pone a cero el temporizador |
 
 **SISTEMA.CAMBIO_MODO_ENTENDIDO** (hijo → padre)
 
 | Campo | Valor |
 |-------|-------|
+| Emitido por | La pantalla de selección y los seis hijos, nada más recibir el aviso `SISTEMA.CAMBIO_MODO` |
 | Handler en padre | `js/app.js` `_registrarHandlersModo()` |
 | Acción | Registra la respuesta en `_respuestasEntendidoActual` y escribe una línea en el log; no contesta al hijo |
 
@@ -5142,18 +5143,18 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo1 (en su cambio de modo), hijo2, hijo3, hijo4 |
+| Emitido por | La pantalla de selección y los seis hijos (hijo1 a hijo6), después de su `CAMBIO_MODO_ENTENDIDO` |
 | Handler en padre | `js/app.js`, registrado en `_registrarHandlersModo()` |
 | Acción | Registra la respuesta en `_respuestasEfectuadoActual` y escribe una línea en el log; no contesta al hijo |
-| Nota | hijo6 NO envía CAMBIO_MODO_EFECTUADO — no tiene flujo de efectuado |
+| Nota | hijo6 también lo envía: sin su respuesta el padre esperaría los 15 s de las dos fases en cada cambio de modo (§26.12.9) |
 
 **SISTEMA.CAMBIO_MODO_APLICADO** (padre → todos)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre (tras recoger todos los EFECTUADO) |
-| Handler en hijos | hijo2, hijo3, hijo4, hijo1 |
-| Acción | Confirmación final — hijos completan transición de modo |
+| Emitido por | Padre (`actualizarInterfazModo`, tras esperar los `EFECTUADO`): un mensaje a cada hijo de `estado.hijosInicializados` |
+| Handler en hijos | pantalla de selección, hijo1, hijo2, hijo3, hijo4, hijo5 (hijo6 no tiene) |
+| Acción | Cierra la 4.ª fase del protocolo: los seis handlers solo escriben una línea en el log, ningún frame hace nada más al recibirlo |
 
 ---
 
@@ -5185,13 +5186,15 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 | Handler en hijo4 | prepara estado del reto para la parada |
 | Handler en hijo5 | recibe vía `_notificarCambioParadaHijos` |
 
-**NAVEGACION.CAMBIO_PARADA_CONFIRMADO** (hijo → padre)
+**NAVEGACION.CAMBIO_PARADA_CONFIRMADO** (hijo3 y hijo4 → padre; padre → hijo5)
 
 | Campo | Valor |
 |-------|-------|
 | Emitido por | hijo3 (tras actualizar reproductor), hijo4 (tras actualizar estado del reto). hijo2 **no** envía este mensaje. |
 | Handler en padre | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO` |
 | Acción | Solo logging/diagnóstico — no bloquea ningún flujo |
+| Hacia hijo5 | `completarCambioParada()` (`js/funciones-mapa.js`) lo envía, al terminar un cambio de parada, al frame que lo pidió (hijo5), con `{ paradaId, parada_id, padreId, padreid, mensajeOriginalId, coordenadas, audio, reto }`; si lo despachó el propio padre no se envía |
+| Handler en hijo5 | Compara el `data-padreid` de cada botón `.parada-tramo-btn` con la parada confirmada: pone `actual` al que coincide y se la quita a los demás. Ningún código asigna `data-padreid` a los botones, así que no coincide ninguno y el efecto es quitar `actual` a todos, también al que acaba de resaltar el click; `audio` y `reto` solo van al log |
 
 **NAVEGACION.SOLICITAR_COORDENADAS** (padre → hijo2) / **RESPUESTA_COORDENADAS** (hijo2 → padre)
 
@@ -5229,7 +5232,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 | Campo | Valor |
 |-------|-------|
 | Emitido por | Padre vía `enviarMensaje_S1({destino:'hijo2',...})` |
-| Payload | `{ codigo, mensaje, timestamp }` |
+| Payload | `{ codigo, mensaje, contexto }` |
 | Handler | Solo hijo2 — hijo1/hijo3/hijo4 no tienen handler |
 
 **NAVEGACION.GPS.ACTIVAR** (hijo2 → padre)
@@ -5239,7 +5242,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 | Emitido por | hijo2 (`#btnAvanzar` click) — hijo5 **no** envía este mensaje |
 | Destino | `padre` |
 | Handler en padre | `_hdl_NAVEGACION_GPS_ACTIVAR` |
-| Acción | Llama `progresarSiguienteElemento()` o `revelarNavegacion()`, luego `activarGPS()` |
+| Acción | Solo en modo AVENTURA (en otro modo contesta con `SISTEMA.ERROR`, `contexto: 'gps_activar_restringido'`); si `estado.paradaListaParaAvanzar`, llama antes a `progresarSiguienteElemento()`; en todos los casos termina con `activarGPS()` |
 
 ##### NAVEGACION.GPS.RESTRINGIDO
 
@@ -5298,8 +5301,8 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido por | `btn-mapa-jpg` en `coordenadas-hijo2.html` |
 | Handler en padre | `_hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE` |
-| Payload | `{ formato: 'jpg', url: <urlMapaVintage>, aventura, paradaActual }` |
-| Acción | Llama directamente `mostrarImagenOverlay` con la URL del JPG vintage de la aventura. Sin detección de tipo — este canal es exclusivamente para imágenes. |
+| Payload | `{ accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura }` |
+| Acción | Resuelve la URL en `__vv_MAPAS_VINTAGE[aventura]` (la `aventura` del mensaje o, si falta, la seleccionada); sin mapa para esa aventura devuelve `{ exito: false }` y no abre nada; con mapa, suprime el aviso de girar mientras está abierto y llama a `mostrarImagenOverlay`. Sin detección de tipo — este canal es exclusivamente para imágenes. |
 
 ---
 
@@ -5328,8 +5331,8 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo3 (al cambiar estado: cargando/listo/reproduciendo/pausado/finalizado) |
-| Payload | `{ audioId, estado, duracion?, timestamp }` |
+| Emitido por | hijo3, en los eventos `play` y `pause` de su `<audio>` |
+| Payload | `{ audioId, estado: 'reproduciendo'/'pausado' }` |
 | Handler en padre | `_hdl_AUDIO_ESTADO_ACTUALIZADO` |
 | Acción | Actualiza `estado.audioActual`, refresca controles de audio del padre |
 
@@ -5340,7 +5343,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Emitido por | hijo3 (al completar reproducción) |
-| Payload | `{ audioId, duracion, timestamp }` |
+| Payload | `{ audioId, estado: 'finalizado' }` |
 | Handler en padre | `_hdl_AUDIO_FIN_REPRODUCCION` |
 | Acción | Actualiza estado, llama `_procesarFinAudioElemento` → habilita botón retos (si hay reto), o marca `pending.audio=true` y, si ya se cumplen las demás condiciones, habilita btnAvanzar vía `marcarParadaCompletada()` (parada y tramo por igual — el GPS nunca avanza por sí solo, ver §4.7d) |
 
@@ -5349,7 +5352,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Handler en padre | `_hdl_AUDIO_ERROR` |
-| Acción | Log de error, no desbloquea flujo |
+| Acción | Registra el error en el log y en el evento `AUDIO_ERROR`, pone `estado.audioActual.estado = 'error'` si el `audioId` es el activo y llama a `_marcarAudioNoDisponible()`: marca `pending.audio = true`, habilita el reto si procede y ofrece el botón de saltar (§25.5f); sin conexión, muestra el aviso de internet |
 
 ---
 
@@ -5362,7 +5365,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Emitido por | (1) `_configurarRetoBtn`: cuando la parada tiene reto pero **sin audio** (`razon:'sin_audio'`) — durante CAMBIO_PARADA pipeline. (2) `_procesarFinAudioElemento`: cuando el audio finaliza y había reto pendiente (`razon:'audio_escuchado_1vez'`). En ambos casos también envía `CONTROL.HABILITAR { control:'retosBtn' }` a hijo3 |
 | Payload | `{ paradaId, razon }` |
 | Handler en hijo4 | sí |
-| Acción | Activa el reto de la parada |
+| Acción | Solo con `razon: 'audio_escuchado_1vez'` o `'sin_audio'`: muestra `#botonRetos-wrapper` y habilita `#botonRetos`; con otra `razon`, nada |
 
 **RETO.MOSTRAR** (padre → hijo4)
 
@@ -5380,7 +5383,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Emitido por | hijo4 — tras `mostrarReto()` completar sin error |
 | Payload | `{ retoId }` |
 | Handler en padre | `_hdl_RETO_MOSTRADO` (registrado en `_regCtrl_Reto`) |
-| Acción | Actualiza `estado.retoActual.disponible = true`; responde con `RETO.CONFIRMADO` |
+| Acción | Escribe en el log que hijo4 mostró el reto y le contesta `RETO.CONFIRMADO { retoId }` |
 
 **RETO.CONFIRMADO** (padre → hijo4)
 
@@ -5422,7 +5425,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Emitido por | hijo4 (usuario responde correctamente) |
-| Payload | `{ retoId, correcto: bool }` |
+| Payload | `{ retoId, correcto: true }` |
 | Handler en padre | `_hdl_RETO_COMPLETADO` |
 | Acción | Marca `pending.reto = true`, incrementa `retosCompletadosCount`, llama `intentarCompletarElemento` |
 
@@ -5450,13 +5453,14 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Handler en hijo3 | — gestiona retosBtn y progressBar (thumb de la barra de progreso, §7.4) |
 | Handler en hijo4 | |
 
-**UI.ACCION_USUARIO** (hijo2 → padre / hijo3 → padre)
+**UI.ACCION_USUARIO** (hijo1 y hijo2 → padre; padre → hijo3)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo2, hijo3 (al pulsar botones de avance, GPS, etc.) |
+| Emitido por | hijo2 (`accion: 'mostrar-imagen'` al pulsar el botón de imagen, `'reproducir-video'` al pulsar el de vídeo de un tramo); hijo1 (`accion: 'audio_control'`, `comando: 'pause'`, al pulsar un icono con enlace externo, antes de abrirlo); y el padre a hijo3, con `accion: 'audio_control'` (los controles del desplegable de audio y el reenvío de la pausa de hijo1) |
 | Handler en padre | `_hdl_UI_ACCION_USUARIO` |
-| Acción | Según `accion`: progresa aventura, activa GPS, avanza parada |
+| Acción | Según `accion`: `mostrar-imagen` abre el overlay de imagen, `reproducir-video` el del vídeo y `audio_control` reenvía el comando a hijo3 (con `reenviadoDe`); cualquier otra se anota en el log como no manejada |
+| Handler en hijo3 | `audio_control`: ejecuta `play`, `pause`, `stop` o `replay` sobre su `<audio>` (`_manejarAudioControl`; si el comando falla, manda `SISTEMA.ERROR` con `codigo: 'AUDIO_CONTROL_FALLIDO'`); cualquier otra `accion` se anota con un `warn` |
 
 **UI.CLOSE_MENUS** (hijo1 → padre)
 
@@ -5531,7 +5535,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Handler en padre | `_hdl_TEMPORIZADOR_TOGGLE` |
-| Acción | Pausa/reanuda el temporizador |
+| Acción | Crea (si no existe) y alterna la ventana `#ventana-temporizador-padre`; al mostrarla la rellena con el `tiempoFormateado` y el color que trae el mensaje. No pausa ni reanuda el temporizador de hijo1 |
 
 **PARADAS.LISTADO_TOGGLE** (hijo1 → padre)
 
@@ -5560,13 +5564,13 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 #### FASE 14 — Monitoreo
 
-**MONITOREO.METRICA** (cualquier hijo → padre)
+**MONITOREO.METRICA** (hijo2 → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo1, hijo2, hijo3, hijo4 (eventos de rendimiento) |
+| Emitido por | hijo2, al recibir `NAVEGACION.GPS.ERROR`: `{ nombre: 'gps_error_code', valor: 1, metadatos: { codigo } }`. Ningún otro frame lo envía |
 | Handler en padre | `_hdl_MONITOREO_METRICA` |
-| Acción | Agrega métrica a `estado.monitoreo.historial.metricas` |
+| Acción | Escribe una línea de log y pasa la métrica a `__vv_monitoreo.registrarMetrica(nombre, valor, { origen, ...metadatos })` (`js/monitoreo.js`), que para `gps_error_code` solo actualiza la hora de la última actividad |
 
 ---
 
@@ -5664,25 +5668,27 @@ hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel d
 | PADRE_DATOS | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | PADRE_CONFIRMA_HIJO_LISTO | ✅ | ✅ | ✅ | ✅ | ✅ (+ sync GPS btn) | ✅ |
 | CAMBIO_MODO | ✅ | ✅ | ✅ | ✅ | ✅ (muestra/oculta #paradas-window) | ✅ |
-| CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| CAMBIO_PARADA | ❌ | ✅ | ✅ | ✅ | ✅ (marca botón .activo) | ❌ |
+| CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| CAMBIO_PARADA | ❌ | ✅ | ✅ | ✅ | ✅ (clase `activa`, sin estilo) | ❌ |
 | HEARTBEAT | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | GPS.ESTADO_ACTUALIZADO | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | GPS.ERROR | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | CARGAR_COORDENADAS | — | ✅ | — | — | — | — |
 | CARGAR_TEXTOS | — | ✅ | — | — | — | — |
 | AUDIO.REPRODUCIR_REQUEST | — | — | ✅ | — | — | — |
-| RETO.MOSTRAR/OCULTAR | — | — | — | ✅ | — | — |
+| RETO.MOSTRAR | — | — | — | ✅ | — | — |
 | RETO.HABILITAR | — | — | — | ✅ | — | — |
 | RETO.ESTADO_CASA | — | — | — | ✅ | — | — |
 | CONTROL.HABILITAR/DESHABILITAR | — | ✅ | ✅ | — | — | — |
 | AVENTURA.INICIADA/FINALIZADA | ✅ | — | — | — | — | — |
-| RESPUESTA_DATOS_PARADAS | — | — | — | — | ✅ (genera botones) | — |
+| RESPUESTA_DATOS_PARADAS | — | ✅ (guarda las paradas) | — | — | ✅ (genera botones) | — |
 | CHAT.ESTADO_PADRE | — | — | — | — | — | ✅ |
 
 **Leyenda**: ✅ handler presente · ❌ ausente (potencial gap) · — no aplica al rol de ese hijo
 
 > ℹ️ **GPS (ESTADO_ACTUALIZADO / ERROR)**: solo **hijo2** tiene handlers para estos tipos. El GPS real llega directamente a hijo2 vía `enviarMensaje_S1` — los demás hijos no procesan eventos GPS.
+
+> ℹ️ **RETO.OCULTAR**: no es un handler de ningún hijo: hijo4 lo envía al padre (`_hdl_RETO_OCULTAR`).
 
 ---
 
@@ -11595,8 +11601,8 @@ Herramienta de desarrollo. El iframe arranca oculto (`display:none; visibility:h
 | `SISTEMA.CAMBIO_MODO` | Padre | Valida el mensaje (sin `origen` lo ignora; sin `datos` manda `SISTEMA.ERROR`; con un modo inválido manda `SISTEMA.NACK { error, valoresValidos }`); manda `ENTENDIDO`; guarda el modo y actualiza su interfaz (`_actualizarUIParaModo`: en `casa` muestra la ventana de paradas `#paradas-window` y regenera los botones, en `aventura` la oculta, y el botón GPS pasa a OFF o a ON); en `aventura` pide las paradas al padre (forzado); manda `EFECTUADO`. Si falla, manda `SISTEMA.ERROR { error, tipo: 'CAMBIO_MODO_FALLIDO' }` | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | La lista de paradas solo se ve en CASA |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre | Valida y transforma las paradas (`estado.aventuraParadas`) y, si el modo no es AVENTURA, renderiza los botones de parada/tramo con emoji, código corto y nombre completo (efecto marquee si el nombre no cabe); si algo falla, manda `SISTEMA.ERROR` | (ninguna) | — | Poblar la barra con los botones navegables de la aventura |
-| `NAVEGACION.CAMBIO_PARADA` | Padre (`{ paradaId, parada_id, padreId, padreid, … }`; no lo recibe si el cambio lo originó el propio hijo5) | Resalta el botón de esa parada o tramo (`_resaltarBotonParada`), salvo que `exito` sea `false` | (ninguna) | — | Reflejar en la barra la parada activa |
-| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Padre (`{ paradaId, audio, reto, … }`) | Marca como `actual` el botón de esa parada y quita la marca a los demás; `audio` y `reto` solo los escribe en el log | (ninguna) | — | Confirmar visualmente la parada activa |
+| `NAVEGACION.CAMBIO_PARADA` | Padre (`{ paradaId, parada_id, padreId, padreid, … }`; no lo recibe si el cambio lo originó el propio hijo5) | Pone la clase `activa` al botón de esa parada o tramo (`_resaltarBotonParada`; ninguna regla CSS la estila), salvo que `exito` sea `false` | (ninguna) | — | Reflejar en la barra la parada activa |
+| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Padre (`{ paradaId, audio, reto, … }`) | Compara el `data-padreid` de cada botón con la parada: pone `actual` al que coincide y se la quita a los demás — nadie asigna `data-padreid`, así que no coincide ninguno y quita `actual` a todos; `audio` y `reto` solo los escribe en el log | (ninguna) | — | Confirmar visualmente la parada activa |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Solo escribe en el log que el modo se aplicó | (ninguna) | — | 4.ª fase del protocolo de modo (§26.6) |
 | `SISTEMA.ERROR` | Padre | Escribe en el log (`error`) el `error`, el `contexto` y el `mensajeOriginal` | (ninguna) | — | Dejar rastro de los errores que le comunica el padre (§10.17) |
 
