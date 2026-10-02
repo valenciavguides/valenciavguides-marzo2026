@@ -1188,7 +1188,8 @@ if (typeof document !== 'undefined') {
  * @returns {boolean} True si la inicialización fue exitosa.
  */
 export function inicializarServicioMapa(mapaInstance, opciones = {}) {
-    // Si se proporciona una instancia válida, usarla directamente
+    // La instancia la crea codigo-padre.html (con las capas base de los tres modos ya definidas): este módulo
+    // no crea mapas. Sin ella devuelve false y quien llama reintenta.
     if (mapaInstance) {
         _mapaInstance = mapaInstance;
         _mapaOpciones = { ...opciones };
@@ -1200,56 +1201,7 @@ export function inicializarServicioMapa(mapaInstance, opciones = {}) {
         return true;
     }
 
-    // Intentar crear la instancia internamente si MapLibre GL ya está disponible
-    if (typeof maplibregl !== 'undefined' && maplibregl.Map) {
-        try {
-            const containerId = opciones?.containerId || 'mapa';
-            const container = document.getElementById(containerId);
-            if (!container) {
-                logger.warn(`[MAPA] Contenedor #${containerId} no encontrado; no se puede crear mapa internamente`);
-                return false;
-            }
-
-            const centro = CONFIG.MAPA?.CENTER || [39.4699, -0.3763]; // [lat, lng]
-            const mapa = new maplibregl.Map({
-                container: containerId,
-                style: {
-                    version: 8,
-                    sources: {
-                        'osm-src': {
-                            type: 'raster',
-                            tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                            tileSize: 256,
-                            attribution: '© OpenStreetMap contributors',
-                        },
-                    },
-                    layers: [{ id: 'osm-layer', type: 'raster', source: 'osm-src' }],
-                },
-                center: [centro[1], centro[0]], // MapLibre usa [lng, lat]
-                zoom: CONFIG.MAPA?.ZOOM || 13,
-                minZoom: CONFIG.MAPA?.MIN_ZOOM || 12,
-                maxZoom: CONFIG.MAPA?.MAX_ZOOM || 18,
-            });
-
-            _mapaInstance = mapa;
-            _mapaOpciones = { ...opciones };
-            arrayParadasLocal = normalizarParadas(globalThis.AVENTURA_PARADAS || []);
-            registrarListenerZoom(); // Habilitar escalado dinámico según zoom
-        _registrarSeguimientoCamara(); // Pausar seguimiento de cámara al arrastrar el mapa a mano
-        _registrarSeguimientoRumbo(); // Pausar seguimiento de rumbo al girar el mapa a mano
-
-            logger.info('Servicio de mapa inicializado correctamente (instancia creada internamente)');
-            return true;
-        } catch (error) {
-            logger.error('[MAPA] Error creando instancia del mapa internamente:', error);
-            return false;
-        }
-    }
-
-    // Si no se puede crear la instancia ahora, emitir advertencia y devolver false.
-    // Esto evita lanzar un error en tiempo de inicialización externo y permite que
-    // el llamador reintente cuando la API/instancia esté disponible.
-    logger.warn('No se proporcionó instancia del mapa y MapLibre GL no está listo; espere a volver a llamar con la instancia');
+    logger.warn('No se proporcionó instancia del mapa; espere a volver a llamar con la instancia');
     return false;
 }
 
