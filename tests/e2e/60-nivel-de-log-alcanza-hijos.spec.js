@@ -81,13 +81,16 @@ test.describe('NH — El nivel de log alcanza a los hijos', () => {
     for (const [id, v] of medidos) expect(`${id}=${v}`).toBe(`${id}=obedece`);
   });
 
-  test('NH-3. puzzle.html y video-intro.html tambien publican el logger real', async ({ page }) => {
+  test('NH-3. puzzle.html, video-intro.html y mapa-completo.html tambien publican el logger real', async ({ page }) => {
     // Son sub-iframes (de seleccion / hijo4), no hijos directos del padre: se cargan a mano
     // en una ventana suelta para poder medirlos. Sus `(globalThis.logger || console).x`
     // eslint NO los marca —el objeto va envuelto en el `||`— asi que sin este test nada
     // avisaria si volvieran a quedarse sin logger.
+    // mapa-completo.html lo abre el padre en un overlay; aqui tambien se carga suelto, sin padre: el logger se
+    // publica antes de que la pagina decida si tiene a quien hablar.
     const r = {};
-    for (const url of ['puzzle.html?id=PZ-intro&imagen=imagenes%2Ffotos-botones%2Flogo-luna.jpg', 'video-intro.html']) {
+    const imagenPuzzle = encodeURIComponent('imagenes/imagenes-aplicación/logo-luna.png');
+    for (const url of [`puzzle.html?id=PZ-intro&imagen=${imagenPuzzle}`, 'video-intro.html', 'mapa-completo.html']) {
       const p2 = await page.context().newPage();
       try {
         await p2.goto('http://localhost:8080/' + url, { waitUntil: 'load' });

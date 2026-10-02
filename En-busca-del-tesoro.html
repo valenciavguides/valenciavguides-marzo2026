@@ -1162,7 +1162,7 @@
         const modulo = await import('./js/puzzles-aventuras.js');
         PUZZLES_DATOS = modulo.PUZZLES_AVENTURAS;
         const puzzleIntro = PUZZLES_DATOS?.INTRO?.['puzzle.html']?.puzzle_id?.find(p => p.id === 'PZ-intro');
-        const imagenPuzzle = puzzleIntro?.imagen || 'fotos-botones/logo-luna.jpg';
+        const imagenPuzzle = puzzleIntro?.imagen || 'imagenes/imagenes-aplicación/logo-luna.png';
         if (!await verificarImagenExiste(imagenPuzzle)) {
           _log.warn('[SELECCION] Imagen del puzzle no encontrada:', imagenPuzzle, '- Saltando');
           return false;
@@ -1607,7 +1607,7 @@
         PUZZLES_DATOS = modulo.PUZZLES_AVENTURAS;
         const puzzleIntro = PUZZLES_DATOS?.INTRO?.['puzzle.html']?.puzzle_id?.find(p => p.id === 'PZ-intro');
         if (puzzleIntro) {
-          const imagenPuzzle = puzzleIntro.imagen || 'fotos-botones/logo-luna.jpg';
+          const imagenPuzzle = puzzleIntro.imagen || 'imagenes/imagenes-aplicación/logo-luna.png';
           // La imagen se pasa por URL: puzzle.html ya no importa puzzles-aventuras.js.
           // Registrar ANTES del `src`: el bus solo acepta mensajes de un iframe registrado,
           // y el puzzle avisa en cuanto el usuario termina.

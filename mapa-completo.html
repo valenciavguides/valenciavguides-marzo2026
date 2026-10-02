@@ -164,6 +164,14 @@
      */
     import * as bus from './js/mensajeria.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
+    import logger from './js/logger.js';
+
+    // Publica el logger en el globalThis de ESTA ventana. Cada iframe tiene el suyo, y el
+    // `globalThis.logger = ...` de codigo-padre.html solo alcanza al del padre: sin esta
+    // linea, los `(globalThis.logger || console).x` de los modulos compartidos que este frame
+    // arrastra (constants.js, utils.js) caen al console crudo y se saltan el nivel de log
+    // (ver GUIA-COMPLETA.md §26.3).
+    globalThis.logger = logger;
 
     // Este frame habla por el mismo bus que el padre y que los seis hijos. Es hijo directo
     // del padre —el overlay cuelga de él—, asi que le basta el papel de hijo: ni registra
