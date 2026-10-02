@@ -7757,6 +7757,13 @@ test de navegador: es más rápido, no depende del reloj y se puede meter en cua
 | `npm run verificar-docs` | Qué secciones de esta guía menciona cada fichero cambiado, para no dar por revisado lo que nadie miró |
 | `npm run sync:master-test` | Regenera el catálogo de `tests/master-test.html` leyéndolo del disco; con `-- --check` sale con código 1 si está desfasado |
 
+`tools/estudio-caminos/` guarda los extractores con los que se midió la aplicación para `docs/estudio-caminos.md`, el catálogo de
+los mecanismos que tienen más de un camino para la misma decisión. Parsean con `acorn`, imprimen su residuo (lo que dejaron sin casar)
+y escriben sus informes fuera del repo (`ESTUDIO_SALIDA`, por defecto la carpeta temporal del sistema). Se lanzan con
+`node tools/estudio-caminos/<script>.cjs`, no tienen comando de `npm`, y su `README.md` da el orden de ejecución y las cifras que
+deben dar sobre el commit base del estudio. `verifica-tablas.cjs` comprueba el propio documento —tablas bien formadas, entradas K,
+mediciones M, discrepancias G y erratas E consecutivas, referencias que existan— y sale con código 1 si algo falla.
+
 Ninguno está en el hook de pre-commit: el hook solo recalcula `CACHE_VERSION` (§21.1). Hay que
 lanzarlos a mano.
 
@@ -8313,6 +8320,7 @@ proyecto/
 │   ├── verificar-mensajeria.js       ← Emisores y receptores por tipo con parser real, envíos al vacío y handlers inalcanzables; genera la tabla de §37.3
 │   ├── codigo-muerto.js              ← Cinco categorías: funciones sin llamador, campos solo-escritura, constantes sin uso, contenedores que solo se rellenan y exports sin uso fuera de su módulo
 │   ├── lib/analisis-js.js            ← Piezas comunes de las herramientas que leen el código con acorn: bloques de `<script>`, comentarios, identificadores, exports y cierre de imports de cada página
+│   ├── estudio-caminos/              ← Los extractores con los que se midió la aplicación para `docs/estudio-caminos.md`, con su README (§18.2)
 │   ├── inventario-timers.js         ← Los setTimeout/setInterval/watchPosition de producción (`npm run inventory:timers`)
 │   └── ...                           (verificar-frames, verificar-media, verificar-docs, verificar-esperas, verificar-totales-indice, renumber-pantallas, generar-guiones-aventuras, generar-tramos-para-videos, watch-sw)
 │
@@ -8323,7 +8331,10 @@ proyecto/
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
-    ├── README.md
+    ├── README.md                     ← Índice de la documentación
+    ├── estudio-caminos.md            ← Catálogo de los mecanismos que tienen más de un camino para la misma decisión, con su estado y las decisiones abiertas (regla 1b de `CLAUDE.md`)
+    ├── contraste-textos-mapa.md      ← Contraste entre el número de mapa que dice el texto y el del recorrido
+    ├── imagenes-referencias-pendientes.md ← Seguimiento de las fotos de las referencias que faltan por emparejar
     ├── fonetica.md
     ├── plan-produccion-infraestructura.md
     └── aventuras_ordenado/           ← Guiones legibles por aventura + parrafos_ordenados.md y tramos-para-videos.md — generados, no se editan a mano (ver §21)

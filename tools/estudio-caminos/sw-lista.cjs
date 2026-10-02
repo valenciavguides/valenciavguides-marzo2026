@@ -1,0 +1,14 @@
+const path=require('path'),fs=require('fs');
+const { ROOT, salida } = require('./lib.cjs');
+process.chdir(ROOT);
+const b=require(path.join(ROOT,'tools/build-sw.js'));
+const shell=b.ficherosDelShell().map(f=>String(f).split(path.sep).join('/'));
+const sw=fs.readFileSync(path.join(ROOT,'sw.js'),'utf8');
+const m=/const APP_SHELL = \[([\s\S]*?)\];/.exec(sw);
+const app=[...m[1].matchAll(/'(\/[^']+)'/g)].map(x=>x[1].replace(/^\//,''));
+const setApp=new Set(app), setSh=new Set(shell);
+console.log('APP_SHELL:',app.length,' ficherosDelShell (hash):',shell.length);
+console.log('\nEn el hash (shell) pero NO en APP_SHELL (no se precachean):');
+for(const f of shell) if(!setApp.has(f)) console.log('  ',f);
+console.log('\nEn APP_SHELL pero NO en el hash:');
+for(const f of app) if(!setSh.has(f)) console.log('  ',f);
