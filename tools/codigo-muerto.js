@@ -7,7 +7,7 @@
  * `tramoAudioPendiente` (se escribe en dos sitios y no lo lee nadie), `solicitarDatosAHijo`
  * y `getInfoDispositivo` (documentados como si existieran, sin definición en ninguna parte).
  *
- * Este script busca tres cosas distintas:
+ * Este script busca cinco cosas distintas:
  *
  *   1. FUNCIONES SIN LLAMADOR — definidas y nunca invocadas, ni por nombre ni por referencia
  *      (pasar la función como valor a registrarControlador, addEventListener, etc. cuenta).
@@ -17,20 +17,35 @@
  *   4. CONTENEDORES QUE SOLO SE RELLENAN — `Map`/`Set` que se mutan (`.set`/`.add`) y nunca
  *      se consultan (`.get`/`.has`/`.size`/iteración). La categoría 2 no los ve: busca
  *      `objeto.campo = …` y un contenedor no se reasigna nunca, solo se muta.
+ *   5. EXPORTS SIN USO FUERA DE SU MÓDULO — cada `export` de `js/*.js` cuyo nombre no aparece
+ *      como identificador (con el parser: sin comentarios ni cadenas) en ningún otro fichero de
+ *      producción. Es la única categoría que ve un export nunca importado: las cuatro de arriba
+ *      buscan el nombre en el texto, y cualquier mención —un comentario, una cadena, el
+ *      `export` del propio módulo— lo cuenta como uso. Se separan tres grupos: muertos del
+ *      todo, solo nombrados por los specs y con uso solo interno (se exportan sin que nadie de
+ *      fuera los pida). Sobreaproxima el uso: un identificador igual en otro sitio cuenta, así
+ *      que lo que sale es ausencia casi segura. NO ve accesos por cadena (`obj['nombre']`).
  *
  * NO decide nada: imprime candidatos para revisarlos UNO A UNO. Tiene falsos positivos
  * conocidos y esperables — nombres alcanzados por string (`globalThis[nombre]`), APIs
  * pensadas para los tests, handlers registrados por tabla. Verificar antes de borrar.
  *
+ * Límites medidos (las categorías 1 a 4 buscan por texto): no ven una función que solo llama
+ * un test, una rama sin llamadores dentro de una función viva, ni un campo que solo se lee a sí
+ * mismo (un historial cuya única lectura es la que lo cuenta). Para saber si algo se EJECUTA, no
+ * basta esta lista: se lee el llamador, o se mide en la app (cobertura de Playwright).
+ *
  * Uso:
- *   node tools/codigo-muerto.js              → las cuatro categorías
+ *   node tools/codigo-muerto.js              → las cinco categorías
  *   node tools/codigo-muerto.js --funciones  → solo funciones sin llamador
  *   node tools/codigo-muerto.js --campos     → solo campos solo-escritura
  *   node tools/codigo-muerto.js --constantes → solo constantes sin uso
  *   node tools/codigo-muerto.js --contenedores → solo Map/Set que nadie consulta
+ *   node tools/codigo-muerto.js --exports    → solo exports sin uso fuera de su módulo
  */
 const fs = require('fs');
 const path = require('path');
+const L = require('./lib/analisis-js');
 
 const RAIZ = path.resolve(__dirname, '..');
 const ARGS = process.argv.slice(2);
@@ -218,6 +233,43 @@ function contenedoresSoloEscritura() {
     return muertos;
 }
 
+// ── 5. Exports sin uso fuera de su módulo ──────────────────────────────────
+//
+// Para cada `export` con nombre de `js/*.js`: cuántas veces aparece su nombre como identificador
+// en los demás ficheros de producción (páginas y módulos) y en los specs.
+function exportsSinUso() {
+    const produccion = [...L.paginas(), ...L.modulos()];
+    const specs = fs.readdirSync(path.join(RAIZ, 'tests', 'e2e'))
+        .filter((f) => f.endsWith('.js'))
+        .map((f) => 'tests/e2e/' + f);
+    const ident = new Map();
+    const sinTokens = [];
+    for (const rel of [...produccion, ...specs]) {
+        const c = L.identificadoresDeFichero(rel);
+        if (c) ident.set(rel, c); else sinTokens.push(rel);
+    }
+    const muertos = [], soloSpecs = [], internos = [];
+    let total = 0;
+    for (const mod of L.modulos()) {
+        const exps = L.exportsDe(mod);
+        if (!exps) { sinTokens.push(mod); continue; }
+        const claves = L.clavesDeObjeto(mod);
+        for (const { nombre, linea, base } of exps) {
+            total++;
+            let fuera = 0, enSpecs = 0;
+            for (const f of produccion) if (f !== mod) fuera += ident.get(f)?.get(nombre) || 0;
+            for (const f of specs) enSpecs += ident.get(f)?.get(nombre) || 0;
+            if (fuera > 0) continue;
+            const propios = (ident.get(mod)?.get(nombre) || 0) - base - (claves[nombre] || 0);
+            const fila = { nombre, donde: `${mod}:${linea}` };
+            if (propios > 0) internos.push({ ...fila, nota: `${propios} uso(s) en su propio módulo` });
+            else if (enSpecs > 0) soloSpecs.push({ ...fila, nota: `${enSpecs} mención(es) en specs` });
+            else muertos.push(fila);
+        }
+    }
+    return { total, muertos, soloSpecs, internos, sinTokens };
+}
+
 function imprimir(titulo, filas, formato) {
     console.log(`\n${'─'.repeat(78)}\n${titulo}\n${'─'.repeat(78)}`);
     if (!filas.length) { console.log('  (ninguno)'); return; }
@@ -242,6 +294,16 @@ if (!SOLO || SOLO === 'contenedores') {
 if (!SOLO || SOLO === 'constantes') {
     const k = constantesSinUso().sort((a, b) => a.nombre.localeCompare(b.nombre));
     imprimir('3. CONSTANTES SIN USO', k, (x) => `${x.nombre.padEnd(42)} ${x.donde.join(', ')}`);
+}
+if (!SOLO || SOLO === 'exports') {
+    const e = exportsSinUso();
+    const porNombre = (a, b) => a.nombre.localeCompare(b.nombre);
+    const formato = (x) => `${x.nombre.padEnd(34)} ${x.donde}${x.nota ? '  (' + x.nota + ')' : ''}`;
+    console.log(`\n${'─'.repeat(78)}\n5. EXPORTS SIN USO FUERA DE SU MÓDULO (${e.total} exports analizados)\n${'─'.repeat(78)}`);
+    imprimir('5a. MUERTOS DEL TODO (el nombre solo aparece en su declaración y su export)', e.muertos.sort(porNombre), formato);
+    imprimir('5b. SOLO LOS NOMBRAN LOS SPECS', e.soloSpecs.sort(porNombre), formato);
+    imprimir('5c. USO SOLO INTERNO (se exportan sin que nadie de fuera los pida)', e.internos.sort(porNombre), formato);
+    console.log(`\n  Residuo: ${e.sinTokens.length} fichero(s) sin tokenizar${e.sinTokens.length ? ' — ' + e.sinTokens.join(', ') : ''}`);
 }
 console.log('\nEste script NO decide: son candidatos. Falsos positivos esperables — nombres');
 console.log('alcanzados por string, APIs para tests, handlers registrados por tabla.\n');

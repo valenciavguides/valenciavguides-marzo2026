@@ -1,163 +1,380 @@
 #!/usr/bin/env node
 /**
- * verificar-mensajeria.js — Cruza cada tipo de TIPOS_MENSAJE con quién lo emite
- * y quién lo escucha, para detectar tipos huérfanos (EJE 4 / EJE 13 de la
+ * verificar-mensajeria.js — Cruza cada tipo de TIPOS_MENSAJE con quién lo emite y quién lo
+ * escucha, y comprueba que lo emitido llega a un frame que lo atiende (EJE 4 / EJE 13 de la
  * metodología de auditoría, ver docs/GUIA-COMPLETA.md §36.4 y §36.13).
  *
  * Uso:
  *   node tools/verificar-mensajeria.js            → informe completo
- *   node tools/verificar-mensajeria.js --quiet     → solo huérfanos (para CI)
- *   node tools/verificar-mensajeria.js --todos     → tabla markdown de los 100 tipos, emisor(es) → receptor(es)
+ *   node tools/verificar-mensajeria.js --quiet    → solo huérfanos y envíos al vacío (para CI)
+ *   node tools/verificar-mensajeria.js --todos    → tabla markdown de todos los tipos, emisor(es) → receptor(es)
  *
- * Qué hace:
- *   1. Aplana TIPOS_MENSAJE de js/constants.js (incluye categorías anidadas
- *      como NAVEGACION.GPS.*).
- *   2. Para cada tipo, busca en todo el proyecto (js/**\/*.js y *.html raíz)
- *      referencias por ruta de propiedad (.CATEGORIA.NOMBRE) y por valor
- *      literal, clasificando cada aparición como emisor o receptor según el
- *      keyword de mensajería más cercano hacia atrás en el mismo archivo.
- *   3. Reporta tipos con emisor pero sin receptor, con receptor pero sin
- *      emisor, y sin ninguno de los dos.
+ * QUÉ HACE
  *
- * Limitación conocida: la heurística de proximidad no detecta emisión/
- * recepción indirecta (p.ej. `const tipo = TIPOS_MENSAJE.X.Y; enviarMensaje({
- * tipo })` en líneas separadas, o un handler definido antes de registrarse
- * con addEventListener más abajo). Todo lo que este script marca como
- * "huérfano" debe verificarse leyendo el código antes de actuar — no borrar
- * nada solo por esta salida. Ver feedback-audit-no-agents en la memoria del
- * proyecto: los hallazgos automáticos son candidatos a revisar, no hechos.
+ *   1. Importa TIPOS_MENSAJE de js/constants.js y lo aplana (incluye categorías anidadas como
+ *      NAVEGACION.GPS.*).
+ *   2. Parsea cada página y cada js/*.js con acorn (tools/lib/analisis-js.js) y encuentra:
+ *        · EMISORES — un objeto con `tipo` que se pasa a una llamada de envío (`enviar…`,
+ *          `despachar…`, `postMessage`) o que lleva `destino`/`datos`.
+ *        · RECEPTORES — `registrarControlador`, `registrarControladorSeguro`,
+ *          `registrarSiNoExiste` y el `registrar` local de js/app.js.
+ *      El tipo se resuelve por el valor, sea cual sea el camino: `TIPOS_MENSAJE.X.Y`,
+ *      `globalThis.TIPOS_MENSAJE?.X?.Y`, un alias de import (`TIPOS_MENSAJE as TIPOS_MENSAJE_S1`),
+ *      una constante local (`const tipo = …`, ámbito de bloque) o el literal `'X.Y'`.
+ *   3. Asigna cada hallazgo a los frames que ejecutan ese fichero (el cierre de imports de cada
+ *      página): un módulo compartido cuenta para todos los frames que lo cargan.
+ *   4. Informa de:
+ *        · tipos emitidos sin ningún receptor, y receptores sin ningún emisor;
+ *        · EMISIONES AL VACÍO — destino literal cuyo frame no registra un handler de ese tipo;
+ *        · HANDLERS INALCANZABLES — handler que ninguna emisión alcanza (ni destino literal, ni
+ *          broadcast, ni destino dinámico, ni `despacharLocal` en el mismo frame);
+ *        · el RESIDUO: sitios que parecen emisor o receptor y no se pudieron resolver a un tipo.
+ *
+ * QUÉ NO VE
+ *
+ *   - Un destino que no es un literal (`mensaje.origen`, una variable): se da por bueno, así que
+ *     "al vacío" es un mínimo, no el total.
+ *   - Un tipo montado a trozos o leído de una tabla.
+ *   - `'padre'` significa "la ventana de arriba": para puzzle, video-intro y mapa-completo el
+ *     anfitrión se toma de ANFITRION (abajo); si cambia quién los embebe hay que actualizarlo.
+ *   - Lo que se registre con otro nombre de función que los cuatro de arriba.
+ *
+ * Todo lo que marca es un candidato: se verifica leyendo emisor y receptor antes de actuar.
  */
+'use strict';
 
-const fs = require('fs');
-const path = require('path');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
+const L = require('./lib/analisis-js');
 
-const ROOT = path.resolve(__dirname, '..');
-const QUIET = process.argv.slice(2).includes('--quiet');
-const TODOS = process.argv.slice(2).includes('--todos');
+const ARGS = process.argv.slice(2);
+const QUIET = ARGS.includes('--quiet');
+const TODOS = ARGS.includes('--todos');
 
-function walk(dir, exts, exclude, out = []) {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-        const full = path.join(dir, entry.name);
-        const rel = path.relative(ROOT, full);
-        if (exclude.some(ex => rel.startsWith(ex))) continue;
-        if (entry.isDirectory()) walk(full, exts, exclude, out);
-        else if (exts.includes(path.extname(entry.name))) out.push(full);
-    }
-    return out;
-}
+/** Nombre corto de cada frame del censo (regla 3b de CLAUDE.md). */
+const ETIQUETA = {
+    'codigo-padre.html': 'padre',
+    'En-busca-del-tesoro.html': 'seleccion',
+    'extrainfo-hijo1.html': 'hijo1',
+    'coordenadas-hijo2.html': 'hijo2',
+    'audio-hijo3.html': 'hijo3',
+    'retos-hijo4.html': 'hijo4',
+    'boton-casa-hijo5.html': 'hijo5',
+    'chat-hijo6.html': 'hijo6',
+    'mapa-completo.html': 'mapa-completo',
+    'puzzle.html': 'puzzle',
+    'video-intro.html': 'video-intro',
+};
 
-function readNoBom(p) {
-    let t = fs.readFileSync(p, 'utf8');
-    if (t.charCodeAt(0) === 0xFEFF) t = t.slice(1);
-    return t;
-}
+/** Dónde vive cada frame anidado: a quién llega un `destino: 'padre'` que sale de él. */
+const ANFITRION = {
+    puzzle: ['hijo4', 'seleccion'],
+    'video-intro': ['seleccion', 'hijo6'],
+    'mapa-completo': ['padre'],
+};
 
-// ── Cargar TIPOS_MENSAJE de constants.js (transformación mínima ESM→CJS) ────
-function cargarTiposMensaje() {
-    let src = readNoBom(path.join(ROOT, 'js/constants.js'));
-    src = src.replace(/^export\s+default\s+\{[\s\S]*?\n\};?\s*$/m, '');
-    src = src.replace(/^export\s+(const|function|async function)/gm, '$1');
-    src += '\nmodule.exports.TIPOS_MENSAJE = TIPOS_MENSAJE;';
-    const mod = { exports: {} };
-    new Function('module', 'exports', 'require', src)(mod, mod.exports, require);
-    return mod.exports.TIPOS_MENSAJE;
-}
+/** Ids del bus que no coinciden con la etiqueta del frame. */
+const ID_A_FRAME = { 'hijo1-opciones': 'hijo1', 'hijo6-chat': 'hijo6' };
 
-function aplanarTipos(obj, prefijo = []) {
+/**
+ * Tipos que el propio bus atiende en todo frame que lo carga, sin handler registrado: los errores
+ * de un frame de abajo suben hasta el padre (js/mensajeria.js, "Los errores de un frame de abajo
+ * suben hasta el padre de todos"). Un `SISTEMA.ERROR` con `destino: 'padre'` que sale de un frame
+ * anidado llega al anfitrión y el bus lo reenvía: no cae "al vacío" aunque el anfitrión no
+ * registre nada. `SISTEMA.CONFIRMACION` y `SISTEMA.NACK` NO están aquí: el bus solo atiende los
+ * acuses con `idOriginal`, y los envíos sueltos sí caen en "sin handler".
+ */
+const RELEVOS_DEL_BUS = new Set(['SISTEMA.ERROR']);
+
+const RECEPTOR = /(^|\.)(registrarControlador(Seguro)?|registrarSiNoExiste|registrar)$/;
+const EMISION = /enviar|despachar|postMessage|emit|bus\./i;
+
+function aplanar(obj, prefijo = []) {
     const out = [];
     for (const [k, v] of Object.entries(obj)) {
-        if (typeof v === 'string') out.push({ dotPath: [...prefijo, k].join('.'), value: v });
-        else if (typeof v === 'object' && v !== null) out.push(...aplanarTipos(v, [...prefijo, k]));
+        if (typeof v === 'string') out.push({ ruta: [...prefijo, k].join('.'), valor: v });
+        else if (v && typeof v === 'object') out.push(...aplanar(v, [...prefijo, k]));
     }
     return out;
 }
 
-const EMIT_KEYWORDS = ['enviarMensajeConConfirmacion', 'enviarMensaje', 'postMessage'];
-const RECV_KEYWORDS = ['registrarControladorSeguro', 'registrarControlador', "addEventListener('message'", 'addEventListener("message"'];
-
-function nearestKeywordBefore(text, idx, keywords) {
-    let best = null, bestPos = -1;
-    for (const kw of keywords) {
-        const pos = text.lastIndexOf(kw, idx);
-        if (pos > bestPos) { bestPos = pos; best = kw; }
+async function cargarTipos() {
+    // js/constants.js es un módulo ES sin "type": "module" en package.json: Node avisa de que lo
+    // reinterpreta, y el módulo escribe una línea `debug` al cargarse. Ninguna de las dos cosas
+    // es de interés aquí.
+    process.removeAllListeners('warning');
+    process.on('warning', (w) => { if (w.code !== 'MODULE_TYPELESS_PACKAGE_JSON') console.warn(w.stack || w); });
+    const debug = console.debug;
+    console.debug = () => {};
+    try {
+        const m = await import(pathToFileURL(path.join(L.RAIZ, 'js', 'constants.js')).href);
+        return m.TIPOS_MENSAJE;
+    } finally {
+        console.debug = debug;
     }
-    if (bestPos === -1 || idx - bestPos > 400) return null;
-    return best;
 }
 
-function main() {
-    const files = walk(ROOT, ['.js', '.html'], ['node_modules', 'tests', 'docs', '.git'], []);
-    const TIPOS_MENSAJE = cargarTiposMensaje();
-    const tipos = aplanarTipos(TIPOS_MENSAJE);
+/** Los frames que ejecutan cada fichero (el cierre de imports de cada página), y el residuo. */
+function framesPorFichero() {
+    const por = new Map();
+    const residuo = [];
+    for (const pagina of L.paginas()) {
+        const { ficheros, residuo: r } = L.cierreDeFrame(pagina);
+        residuo.push(...r);
+        const usaBus = ficheros.has('js/mensajeria.js');
+        if (usaBus && !ETIQUETA[pagina]) residuo.push(`${pagina}: carga el bus y no tiene etiqueta en ETIQUETA`);
+        const etiqueta = ETIQUETA[pagina] || pagina;
+        for (const f of ficheros) {
+            if (!por.has(f)) por.set(f, new Set());
+            por.get(f).add(etiqueta);
+        }
+    }
+    return { por, residuo };
+}
 
-    const contents = files.map(f => ({ file: path.relative(ROOT, f).replace(/\\/g, '/'), text: readNoBom(f) }));
+/**
+ * Los emisores y receptores de un fichero.
+ * Los alias de TIPOS_MENSAJE se resuelven por ámbito de bloque: un mismo nombre (`tipo`) puede
+ * apuntar a tipos distintos en funciones distintas del mismo fichero.
+ */
+function analizar(rel, T, valoresValidos) {
+    const emisores = [];
+    const receptores = [];
+    const sinResolver = [];
 
-    const report = new Map();
-    for (const t of tipos) report.set(t.dotPath, { emitters: new Set(), receivers: new Set(), value: t.value });
+    for (const { code, lineaBase } of L.bloques(rel)) {
+        const p = L.parsear(code);
+        if (!p) { sinResolver.push({ rel, linea: 0, que: 'bloque sin parsear' }); continue; }
 
-    for (const { file, text } of contents) {
-        for (const t of tipos) {
-            const leafParts = t.dotPath.split('.');
-            const propPattern = '\\.' + leafParts.join('\\.') + '\\b';
-            const patterns = [
-                new RegExp(propPattern, 'g'),
-                new RegExp(`['"]${t.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`, 'g'),
-            ];
-            for (const re of patterns) {
-                let m;
-                while ((m = re.exec(text))) {
-                    const kwE = nearestKeywordBefore(text, m.index, EMIT_KEYWORDS);
-                    const kwR = nearestKeywordBefore(text, m.index, RECV_KEYWORDS);
-                    const entry = report.get(t.dotPath);
-                    if (kwR && (!kwE || text.lastIndexOf(kwR, m.index) > text.lastIndexOf(kwE, m.index))) {
-                        entry.receivers.add(file);
-                    } else if (kwE) {
-                        entry.emitters.add(file);
+        // --- 1. raíces y alias (con ámbito)
+        const raices = new Set(['TIPOS_MENSAJE']);
+        const esRaiz = (nombre) => raices.has(nombre) || /^TIPOS_MENSAJE/.test(nombre);
+        const declaraciones = []; // { nombre, ruta, bloque, inicio }
+        const ambito = (padres) => {
+            for (let i = padres.length - 1; i >= 0; i--) {
+                const t = padres[i].type;
+                if (t === 'BlockStatement' || t === 'Program' || t === 'StaticBlock') return padres[i];
+            }
+            return null;
+        };
+        L.recorrer(p.ast, (n, padres) => {
+            if (n.type === 'ImportSpecifier' && n.imported.name === 'TIPOS_MENSAJE') raices.add(n.local.name);
+            if (n.type !== 'VariableDeclarator' || !n.init) return;
+            let init = n.init;
+            if (init.type === 'AwaitExpression') init = init.argument;
+            // const { TIPOS_MENSAJE: X } = await import('./js/constants.js')
+            if (n.id.type === 'ObjectPattern' && init.type === 'ImportExpression') {
+                for (const pr of n.id.properties) {
+                    if (pr.type === 'Property' && pr.key.name === 'TIPOS_MENSAJE' && pr.value.type === 'Identifier') raices.add(pr.value.name);
+                }
+                return;
+            }
+            const ruta = L.rutaDe(init);
+            if (!ruta || !esRaiz(ruta[0])) return;
+            const blk = ambito(padres);
+            if (ruta.length === 1 && n.id.type === 'Identifier') { raices.add(n.id.name); return; }
+            if (n.id.type === 'Identifier') {
+                declaraciones.push({ nombre: n.id.name, ruta: ruta.slice(1), bloque: blk, inicio: n.start });
+            } else if (n.id.type === 'ObjectPattern') {
+                for (const pr of n.id.properties) {
+                    if (pr.type === 'Property' && pr.value.type === 'Identifier' && pr.key.name) {
+                        declaraciones.push({ nombre: pr.value.name, ruta: ruta.slice(1).concat(pr.key.name), bloque: blk, inicio: n.start });
                     }
                 }
             }
-        }
+        });
+
+        const resolver = (ruta, padres, uso) => {
+            if (!ruta) return null;
+            let resto = null;
+            if (esRaiz(ruta[0])) {
+                resto = ruta.slice(1);
+            } else {
+                // el alias declarado en el bloque más cercano que contiene el uso, el último antes de él
+                const bloques = padres.filter((x) => x.type === 'BlockStatement' || x.type === 'Program' || x.type === 'StaticBlock').reverse();
+                for (const b of bloques) {
+                    const d = declaraciones.filter((x) => x.nombre === ruta[0] && x.bloque === b && x.inicio <= uso).pop();
+                    if (d) { resto = d.ruta.concat(ruta.slice(1)); break; }
+                }
+            }
+            if (!resto) return null;
+            let cur = T;
+            for (const k of resto) {
+                if (cur && typeof cur === 'object' && k in cur) cur = cur[k]; else return null;
+            }
+            return typeof cur === 'string' ? cur : null;
+        };
+
+        const candidatos = (valor, padres, uso) => {
+            const out = [];
+            (function recoger(x) {
+                if (!x) return;
+                if (x.type === 'ConditionalExpression') { recoger(x.consequent); recoger(x.alternate); return; }
+                if (x.type === 'LogicalExpression') { recoger(x.left); recoger(x.right); return; }
+                if (x.type === 'ChainExpression') { recoger(x.expression); return; }
+                if (x.type === 'Literal' && typeof x.value === 'string') {
+                    out.push({ crudo: JSON.stringify(x.value), tipo: valoresValidos.has(x.value) ? x.value : null });
+                    return;
+                }
+                const ruta = L.rutaDe(x);
+                out.push({ crudo: ruta ? ruta.join('.') : x.type, tipo: ruta ? resolver(ruta, padres, uso) : null });
+            })(valor);
+            return out;
+        };
+
+        // --- 2. emisores y receptores
+        L.recorrer(p.ast, (n, padres) => {
+            const linea = n.loc.start.line + lineaBase;
+            if (n.type === 'ObjectExpression') {
+                const prop = (nombre) => n.properties.find((q) => q.type === 'Property' && !q.computed && (q.key.name === nombre || q.key.value === nombre));
+                const tipoProp = prop('tipo');
+                if (!tipoProp) return;
+                const padre = padres[padres.length - 1];
+                const llamada = padre && (padre.type === 'CallExpression' || padre.type === 'NewExpression') && padre.arguments.includes(n)
+                    ? L.textoDe(padre.callee.type === 'ChainExpression' ? padre.callee.expression : padre.callee) : null;
+                const destProp = prop('destino');
+                if (!(llamada && EMISION.test(llamada)) && !destProp && !prop('datos')) return;
+                let destino = null; // null = sin destino (envío local o dinámico)
+                let destinoLiteral = false;
+                if (destProp) {
+                    const dv = destProp.value;
+                    if (dv.type === 'Literal' && typeof dv.value === 'string') { destino = dv.value; destinoLiteral = true; }
+                    else destino = '<dinámico>';
+                }
+                // Solo `despacharLocal` sin destino se queda en el propio frame. Un literal sin
+                // `destino` que se pasa a otra función (`enviarMensajeIframe('hijo2', payload)`)
+                // lleva el destino fuera del objeto: se da por dinámico.
+                const local = destino === null && /despacharLocal/.test(llamada || '');
+                for (const c of candidatos(tipoProp.value, padres, n.start)) {
+                    const reg = { rel, linea, llamada, crudo: c.crudo, tipo: c.tipo, destino, destinoLiteral, local };
+                    if (c.tipo) emisores.push(reg); else sinResolver.push({ rel, linea, que: `emisor ${c.crudo}` });
+                }
+            }
+            if (n.type === 'CallExpression') {
+                const nombre = L.textoDe(n.callee.type === 'ChainExpression' ? n.callee.expression : n.callee);
+                if (!RECEPTOR.test(nombre) || !n.arguments[0]) return;
+                for (const c of candidatos(n.arguments[0], padres, n.start)) {
+                    if (c.tipo) receptores.push({ rel, linea, llamada: nombre, crudo: c.crudo, tipo: c.tipo });
+                    else sinResolver.push({ rel, linea, que: `receptor ${nombre}(${c.crudo})` });
+                }
+            }
+        });
+    }
+    return { emisores, receptores, sinResolver };
+}
+
+async function main() {
+    const T = await cargarTipos();
+    const tipos = aplanar(T);
+    const validos = new Set(tipos.map((t) => t.valor));
+    const { por: frames, residuo: residuoFrames } = framesPorFichero();
+
+    const ficheros = [...L.paginas(), ...L.modulos({ conDatos: false })];
+    const emisores = [];
+    const receptores = [];
+    const sinResolver = [];
+    for (const rel of ficheros) {
+        const r = analizar(rel, T, validos);
+        emisores.push(...r.emisores);
+        receptores.push(...r.receptores);
+        sinResolver.push(...r.sinResolver);
     }
 
-    const sinReceptor = [...report.entries()].filter(([, e]) => e.emitters.size > 0 && e.receivers.size === 0);
-    const sinEmisor = [...report.entries()].filter(([, e]) => e.receivers.size > 0 && e.emitters.size === 0);
-    const sinNinguno = [...report.entries()].filter(([, e]) => e.emitters.size === 0 && e.receivers.size === 0);
+    const framesDe = (rel) => [...(frames.get(rel) || [rel])];
+    const porTipo = new Map(tipos.map((t) => [t.valor, { ruta: t.ruta, emisores: [], receptores: [] }]));
+    for (const e of emisores) porTipo.get(e.tipo).emisores.push(e);
+    for (const r of receptores) porTipo.get(r.tipo).receptores.push(r);
+
+    const lista = (arr) => [...new Set(arr.map((x) => `${x.rel}:${x.linea}`))].join(', ');
+    const sinReceptor = [...porTipo].filter(([, e]) => e.emisores.length && !e.receptores.length);
+    const sinEmisor = [...porTipo].filter(([, e]) => e.receptores.length && !e.emisores.length);
+    const sinNinguno = [...porTipo].filter(([, e]) => !e.emisores.length && !e.receptores.length);
     const conAmbos = tipos.length - sinReceptor.length - sinEmisor.length - sinNinguno.length;
-
-    if (!QUIET) {
-        console.log(`Archivos analizados: ${files.length}`);
-        console.log(`Tipos de mensaje totales: ${tipos.length} (${conAmbos} con emisor y receptor detectados)\n`);
-    }
 
     if (TODOS) {
         console.log('| Tipo | Emisor(es) | Receptor(es) |');
         console.log('|---|---|---|');
-        for (const [dotPath, e] of [...report.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-            const em = [...e.emitters].sort().join(', ') || '*(ninguno detectado)*';
-            const re = [...e.receivers].sort().join(', ') || '*(ninguno detectado)*';
-            console.log(`| \`${dotPath}\` | ${em} | ${re} |`);
+        for (const [valor, e] of [...porTipo].sort((a, b) => a[0].localeCompare(b[0]))) {
+            const em = [...new Set(e.emisores.map((x) => x.rel))].sort().join(', ') || '*(ninguno detectado)*';
+            const re = [...new Set(e.receptores.map((x) => x.rel))].sort().join(', ') || '*(ninguno detectado)*';
+            console.log(`| \`${valor}\` | ${em} | ${re} |`);
         }
         return;
     }
 
-    console.log('=== Tipos SIN receptor detectado (se emiten pero nadie escucha) ===');
-    for (const [dotPath, e] of sinReceptor) {
-        console.log(`  ${dotPath} (${e.value})  emisores: ${[...e.emitters].join(', ')}`);
+    // --- emisiones al vacío y handlers inalcanzables
+    const framesConHandler = new Map(); // tipo -> Set(frames)
+    for (const r of receptores) {
+        if (!framesConHandler.has(r.tipo)) framesConHandler.set(r.tipo, new Set());
+        for (const f of framesDe(r.rel)) framesConHandler.get(r.tipo).add(f);
     }
-    console.log('\n=== Tipos SIN emisor detectado (hay handler pero nadie lo emite) ===');
-    for (const [dotPath, e] of sinEmisor) {
-        console.log(`  ${dotPath} (${e.value})  receptores: ${[...e.receivers].join(', ')}`);
+    for (const tipo of RELEVOS_DEL_BUS) {
+        if (!framesConHandler.has(tipo)) framesConHandler.set(tipo, new Set());
+        for (const f of framesDe('js/mensajeria.js')) framesConHandler.get(tipo).add(f);
     }
-    if (!QUIET) {
-        console.log('\n=== Tipos SIN ninguna referencia detectada (candidatos a tipo muerto o falso positivo de la heurística) ===');
-        for (const [dotPath, e] of sinNinguno) {
-            console.log(`  ${dotPath} (${e.value})`);
+    const destinosDe = (e, frame) => {
+        if (e.destino === 'padre') return ANFITRION[frame] || (frame === 'padre' ? [] : ['padre']);
+        return [ID_A_FRAME[e.destino] || e.destino];
+    };
+    const alVacio = [];
+    for (const e of emisores) {
+        if (!e.destinoLiteral || e.destino === 'broadcast') continue;
+        const tiene = framesConHandler.get(e.tipo) || new Set();
+        const malos = new Set();
+        for (const f of framesDe(e.rel)) {
+            const objetivos = destinosDe(e, f);
+            if (objetivos.length && !objetivos.some((o) => tiene.has(o))) malos.add(`${f}→${objetivos.join('|')}`);
+        }
+        if (malos.size) alVacio.push({ ...e, malos: [...malos] });
+    }
+    const inalcanzables = [];
+    const vistos = new Set();
+    for (const r of receptores) {
+        const emisoresDelTipo = porTipo.get(r.tipo).emisores;
+        for (const f of framesDe(r.rel)) {
+            const clave = `${r.tipo}|${f}|${r.rel}:${r.linea}`;
+            if (vistos.has(clave)) continue;
+            vistos.add(clave);
+            const alcanza = emisoresDelTipo.some((e) => {
+                if (e.local) return framesDe(e.rel).includes(f); // despacharLocal: solo el propio frame
+                if (!e.destinoLiteral) return true;              // dinámico: alcanza a cualquiera
+                if (e.destino === 'broadcast') return true;
+                return framesDe(e.rel).some((origen) => destinosDe(e, origen).includes(f));
+            });
+            if (!alcanza) inalcanzables.push({ ...r, frame: f, emisores: emisoresDelTipo });
         }
     }
 
-    console.log(`\nIMPORTANTE: verifica cada hallazgo leyendo el código real antes de actuar.`);
-    console.log(`Esta heurística tiene falsos positivos conocidos (indirección vía variable,`);
-    console.log(`handler registrado en una línea posterior a su definición). Ver cabecera del script.`);
+    if (!QUIET) {
+        console.log(`Páginas y módulos analizados: ${ficheros.length}`);
+        console.log(`Tipos de mensaje totales: ${tipos.length} (${conAmbos} con emisor y receptor)`);
+        console.log(`Emisores resueltos: ${emisores.length}; receptores resueltos: ${receptores.length}; sin resolver: ${sinResolver.length}\n`);
+    }
+
+    console.log('=== Tipos SIN receptor (se emiten pero ningún frame registra handler) ===');
+    for (const [valor, e] of sinReceptor) console.log(`  ${valor}  emisores: ${lista(e.emisores)}`);
+    console.log('\n=== Tipos SIN emisor (hay handler pero nadie lo emite) ===');
+    for (const [valor, e] of sinEmisor) console.log(`  ${valor}  receptores: ${lista(e.receptores)}`);
+    console.log('\n=== Tipos SIN ninguna referencia (candidatos a tipo muerto) ===');
+    for (const [valor] of sinNinguno) console.log(`  ${valor}`);
+
+    console.log(`\n=== EMISIONES AL VACÍO — destino literal cuyo frame no registra handler de ese tipo (${alVacio.length}) ===`);
+    for (const e of alVacio) console.log(`  ${e.tipo}  ${e.rel}:${e.linea}  (${e.malos.join(', ')})`);
+
+    console.log(`\n=== HANDLERS INALCANZABLES — ninguna emisión los alcanza (${inalcanzables.length}) ===`);
+    for (const r of inalcanzables) {
+        const quien = [...new Set(r.emisores.map((e) => `${framesDe(e.rel).join('+')}→${e.local ? 'local' : (e.destino ?? 'sin destino en el literal')}`))].join(', ') || '(ningún emisor)';
+        console.log(`  ${r.tipo}  handler en ${r.frame} (${r.rel}:${r.linea})  emisores: ${quien}`);
+    }
+
+    console.log(`\n=== RESIDUO — lo que parece emisor/receptor y no se resolvió a un tipo (${sinResolver.length + residuoFrames.length}) ===`);
+    for (const s of sinResolver) console.log(`  ${s.rel}:${s.linea}  ${s.que}`);
+    for (const s of residuoFrames) console.log(`  ${s}`);
+
+    if (!QUIET) {
+        console.log('\nIMPORTANTE: cada hallazgo es un candidato. Se verifica leyendo emisor y receptor');
+        console.log('antes de actuar; los destinos dinámicos se dan por buenos (ver cabecera del script).');
+    }
 }
 
-main();
+main().catch((e) => { console.error(e); process.exit(2); });

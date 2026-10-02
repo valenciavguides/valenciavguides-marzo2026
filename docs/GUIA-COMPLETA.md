@@ -7776,7 +7776,7 @@ test de navegador: es más rápido, no depende del reloj y se puede meter en cua
 | `npm run lint` | ESLint sobre `js/**/*.js` y los `*.html` de la raíz: logger centralizado, sin variables muertas, sin espacios al final de línea |
 | `npm run verificar-datos` | Integridad de los datos de las 7 aventuras: exportaciones, extensiones de imagen y vídeo, ids repetidos, coordenadas en rango, campos de cada tipo de reto, y que lo que el índice marca disponible exista |
 | `npm run verificar-totales` | Que los totales precalculados del índice cuadren con los datos |
-| `npm run verificar-mensajeria` | Cruza cada tipo de `TIPOS_MENSAJE` con quién lo emite y quién lo escucha, para cazar tipos huérfanos |
+| `npm run verificar-mensajeria` | Cruza cada tipo de `TIPOS_MENSAJE` con quién lo emite y quién lo escucha, y comprueba que lo emitido llega a un frame que lo atiende |
 | `npm run verificar-citas` | Que las citas por número de línea de esta guía apunten a donde dicen |
 | `npm run verificar-esperas` | Trinquete contra las esperas ciegas (`waitForTimeout`) nuevas en los specs |
 | `npm run verificar-media` | Tamaño, bitrate y perfil de imágenes, audio y vídeo |
@@ -8336,10 +8336,11 @@ proyecto/
 │   ├── install-hooks.js              ← Instala el hook de pre-commit que dispara build-sw.js
 │   ├── inventory.js                  ← Inventario de funciones del proyecto (`npm run inventory`)
 │   ├── inventory-conexiones.js       ← Genera las tablas de §37.2 y §37.4
-│   ├── verificar-mensajeria.js       ← Genera la tabla de §37.3 (emisores/receptores por tipo)
-│   ├── codigo-muerto.js              ← Cuatro categorías: funciones sin llamador, campos solo-escritura, constantes sin uso y contenedores que solo se rellenan
+│   ├── verificar-mensajeria.js       ← Emisores y receptores por tipo con parser real, envíos al vacío y handlers inalcanzables; genera la tabla de §37.3
+│   ├── codigo-muerto.js              ← Cinco categorías: funciones sin llamador, campos solo-escritura, constantes sin uso, contenedores que solo se rellenan y exports sin uso fuera de su módulo
+│   ├── lib/analisis-js.js            ← Piezas comunes de las herramientas que leen el código con acorn: bloques de `<script>`, comentarios, identificadores, exports y cierre de imports de cada página
 │   ├── inventario-timers.js         ← Los setTimeout/setInterval/watchPosition de producción (`npm run inventory:timers`)
-│   └── ...                           (verificar-media, verificar-docs, verificar-esperas, verificar-totales-indice, renumber-pantallas, generar-guiones-aventuras, generar-tramos-para-videos, watch-sw)
+│   └── ...                           (verificar-frames, verificar-media, verificar-docs, verificar-esperas, verificar-totales-indice, renumber-pantallas, generar-guiones-aventuras, generar-tramos-para-videos, watch-sw)
 │
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
@@ -8407,8 +8408,8 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 | `npm run verificar-media` | Comprueba tamaño, bitrate y perfil de imágenes, audios y vídeos antes de subirlos (`tools/verificar-media.js`) — obligatorio antes de añadir cualquier fichero de media, ver §15 |
 | `npm run verificar-esperas` | Trinquete contra las esperas ciegas de los tests E2E: cuenta los `page.waitForTimeout(n)` y falla si suben respecto a la base de `tools/esperas-base.json` (`tools/verificar-esperas.js`, EJE 23) |
 | `npm run verificar-totales` | Comprueba que los totales precalculados de `js/indice-aventuras.js` (paradas, tramos, retos, monumentos, audios de las 7 aventuras) siguen coincidiendo con los ficheros de datos reales (`tools/verificar-totales-indice.js`) |
-| `npm run verificar-mensajeria` | Detecta tipos de `TIPOS_MENSAJE` sin emisor, sin receptor, o sin ninguna referencia (`tools/verificar-mensajeria.js`) — tiene falsos positivos documentados, verificar cada hallazgo en el código real |
-| `npm run verificar-frames` | Matriz de frames × patrones (`tools/verificar-frames.js`): una fila por página del proyecto, una columna por cada patrón que debería ser igual en todas — ocultado del body, uso del bus, capa privada, escuchas y envíos crudos, registro de iframes, acceso a otro frame. Es la herramienta para la pregunta **"¿quién *no* lo tiene?"**: un `grep` por nombre devuelve la lista de quien sí lo tiene, y quien no lo tiene no aparece en ninguna parte. Aquí las filas salen del disco y la ausencia es una casilla vacía que se ve |
+| `npm run verificar-mensajeria` | Detecta tipos de `TIPOS_MENSAJE` sin emisor, sin receptor o sin ninguna referencia, envíos con destino literal que caen en un frame sin handler de ese tipo y handlers que ninguna emisión alcanza (`tools/verificar-mensajeria.js`). Lee el código con un parser, resuelve alias, `?.` y constantes locales por ámbito e imprime su residuo; los destinos que no son literales se dan por buenos. Cada hallazgo se verifica leyendo emisor y receptor |
+| `npm run verificar-frames` | Matriz de frames × patrones (`tools/verificar-frames.js`): una fila por página del proyecto, una columna por cada patrón que debería ser igual en todas — ocultado del body, uso del bus, capa privada, escuchas y envíos crudos, registro de iframes, acceso a otro frame (cualquier propiedad de `parent` o de `contentWindow` salvo `postMessage`, llamada o lectura, con `?.` incluido; los comentarios no cuentan; `-- --detalle` lista cada coincidencia con su línea y, debajo de la matriz, salen los `js/*.js` compartidos que lo hacen). Es la herramienta para la pregunta **"¿quién *no* lo tiene?"**: un `grep` por nombre devuelve la lista de quien sí lo tiene, y quien no lo tiene no aparece en ninguna parte. Aquí las filas salen del disco y la ausencia es una casilla vacía que se ve |
 | `npm run verificar-docs` | Señala qué secciones de esta guía mencionan ficheros HTML/JS/CSS cambiados en la sesión/rama actual (`tools/verificar-docs.js`) — no verifica que el texto sea correcto, solo evita el fallo de no pararse a mirar. Admite `--since=REF` para comparar contra un punto concreto |
 | `npm run build:sw` | Recalcula `CACHE_VERSION` a mano desde el working tree (`tools/build-sw.js`) — normalmente no hace falta, el hook de pre-commit ya lo hace solo |
 | `npm run dev:watch` | Vigila `sw.js` y los ficheros del shell y recalcula `CACHE_VERSION` en vivo mientras se desarrolla (`tools/watch-sw.js`) |
@@ -11254,7 +11255,7 @@ El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-compl
 - **Registro de handlers con fallbacks en cadena**: `registrarControlador_S1` → `sm.registrarManejador` es la vía primaria; si mensajería no está lista, cae a `__vv_manejadoresLocales` y encola en `__CONTROLADORES_PENDIENTES`, que se drena garantizadamente tras `mensajeriaReady`. El Set `__CONTROLADOR_REGISTRADOS` evita dobles registros. Diseño defensivo intencional, no una duplicación accidental.
 - **`NAVEGACION.SOLICITAR_DATOS_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia.
 - **Logging centralizado y verificado**: toda llamada de log en `js/**/*.js` y en los `<script>` de los HTML de producción pasa por `js/logger.js` (import directo donde el módulo lo permite, o el patrón `(globalThis.logger || console).X(...)` en scripts clásicos/pre-módulo). **`no-console` en verde no prueba que los logs lleguen a ninguna parte**: un envoltorio cuyos métodos sean no-ops (`Function.prototype`, `() => {}`) satisface la regla perfectamente y tira todos los mensajes. Lo que lo prueba es medir salida real en consola — `62-log-seleccion-no-es-mudo.spec.js` lo hace para el envoltorio `_log` de `En-busca-del-tesoro.html`. La regla ESLint `no-console` (en `eslint.config.js`, cubre tanto `js/**/*.js` como `*.html` desde `npm run lint`) impide que se cuele una llamada directa a `console.*` fuera de las excepciones documentadas por archivo (`js/logger.js`, `js/server.js`, `js/vendor/**`, `js/suppress-warnings.js`, y los scripts clásicos pre-módulo de los hijos, cada uno con su comentario explicando por qué el logger no está disponible ahí). `js/suppress-warnings.js` filtra ruido conocido sobrescribiendo `console.warn/error/debug` de forma global y muy temprana (antes de que cargue cualquier módulo) — como `logger.js` llama a esos mismos métodos de `console` internamente, el filtrado aplica también a los logs que pasan por el logger, sin necesidad de duplicar esa lógica.
-- **Verificación automática de emisor/receptor**: `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) cruza cada tipo de `TIPOS_MENSAJE` contra quién lo emite y quién lo escucha en todo el proyecto, señalando tipos sin receptor, sin emisor, o sin ninguno de los dos. Es una heurística con falsos positivos conocidos (indirección vía variable, handlers registrados en una línea posterior a su definición) — cada hallazgo debe verificarse leyendo el código antes de actuar, tal como exige la metodología de auditoría (§35).
+- **Verificación automática de emisor/receptor**: `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) cruza cada tipo de `TIPOS_MENSAJE` contra quién lo emite y quién lo escucha en todo el proyecto, señalando tipos sin receptor, sin emisor o sin ninguno de los dos, los envíos con destino literal que caen en un frame sin handler de ese tipo y los handlers que ninguna emisión alcanza. Lee el código con un parser (acorn) y resuelve alias, `?.` y constantes locales; los destinos dinámicos se dan por buenos y lo que no logra resolver sale en su residuo. Cada hallazgo debe verificarse leyendo el código antes de actuar, tal como exige la metodología de auditoría (§35).
 - **Verificación automática de documentación desactualizada**: `npm run verificar-docs` (`tools/verificar-docs.js`) calcula qué ficheros HTML/JS/CSS cambiaron (working tree + commits sin empujar, o un rango con `--since=REF`) y señala, agrupadas por sección, las menciones de esos ficheros en esta guía — incluye ficheros borrados que sigan mencionados (p.ej., un fichero eliminado que siga citado en el árbol de carpetas de §20 varias ediciones después de borrarse). Busca por nombre de fichero, no por función/mensaje concreto, y no verifica que el texto sea correcto — solo evita el fallo de no pararse a mirar. Pensado para correr antes de cada `git push` que toque código de producción.
 
 ---
@@ -13178,7 +13179,7 @@ Esto no es un paso más del protocolo — es lo que se recorre en la cabeza, en 
 
 1. Ejecuta `npm run inventory` para tener el inventario de funciones actualizado y `npm run inventory:dupes` para detectar duplicados de nombre.
 2. Ejecuta `npm run test:e2e` (Playwright) y anota qué specs pasan y cuáles fallan. Usa el resultado como base para EJE 22 y para no re-auditar a mano lo que la suite ya cubre y confirma (EJE 5 ↔ `01-fase1-boot`, EJE 6 ↔ `09-mode-change`, EJE 8 ↔ `06-race-conditions`, EJE 18 ↔ `08-children-handshake`).
-3. Ejecuta `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) como punto de partida para EJE 4 y EJE 13 — señala tipos de `TIPOS_MENSAJE` sin receptor, sin emisor o sin ninguno de los dos. Tiene falsos positivos conocidos (indirección vía variable, handler registrado en una línea posterior a su definición): cada hallazgo se verifica leyendo el código real, nunca se actúa solo con esta salida.
+3. Ejecuta `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) como punto de partida para EJE 4 y EJE 13 — señala tipos de `TIPOS_MENSAJE` sin receptor, sin emisor o sin ninguno de los dos, envíos con destino literal a un frame sin handler y handlers que ninguna emisión alcanza. Los destinos dinámicos los da por buenos: cada hallazgo se verifica leyendo el código real, nunca se actúa solo con esta salida.
 
 **Herramienta transversal — la cronología con marca de tiempo.** Para cualquier síntoma de "se queda colgado", "tarda mucho" o "a veces no llega", captura la consola completa con un sello de tiempo por línea y busca **huecos**: tramos de varios segundos sin una sola línea. Un hueco es una espera bloqueada, y su duración suele identificar al culpable por sí sola, porque coincide con el plazo de algún temporizador del código (5 s, 15 s, 30 s...). Es más rápido y más concluyente que leer el log de arriba abajo, porque el problema no está en lo que el log dice sino justo en lo que no dice. Filtrar el log por palabras clave antes de mirarlo puede ocultar precisamente el hueco — conviene medir primero sobre la captura entera y filtrar después.
 
@@ -13793,7 +13794,7 @@ El proyecto se desarrolla actualmente en local, sin el flujo de pago implementad
 1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 28 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
 2. **`npm run lint` sin errores** sobre `js/**/*.js` y `*.html` — incluye la regla `no-console` (todo log pasa por el logger centralizado o tiene su excepción documentada en `eslint.config.js`).
 3. **`npm run test:e2e` en verde en los 4 proyectos de Playwright** (chromium, firefox, pixel5, iphone12), no solo chromium. **Ejecutarlos de uno en uno** (`--project=<nombre>`), no los cuatro en la misma invocación: los 1256 tests seguidos agotan los recursos de proceso de Windows y los workers empiezan a morir con `worker process exited unexpectedly (code=3221225794)` — `0xC0000142`, el proceso no llega a arrancar. Se manifiesta como el primer test de **cada** fichero fallando a partir de cierto punto, con el resto marcado "did not run": patrón de arnés agotado, no de regresión. `workers: 1` ya está fijado en `playwright.config.js` y no lo evita, porque el agotamiento es acumulativo.
-4. **`npm run verificar-mensajeria` sin huérfanos sin revisar** — todo tipo de `TIPOS_MENSAJE` marcado como sin emisor o sin receptor por la herramienta ha sido verificado a mano y clasificado (huérfano real → eliminado; falso positivo de la heurística → descartado con motivo).
+4. **`npm run verificar-mensajeria` sin huérfanos sin revisar** — todo tipo de `TIPOS_MENSAJE` marcado por la herramienta como sin emisor o sin receptor, todo envío al vacío y todo handler inalcanzable se verifican a mano y se clasifican (huérfano real → se elimina; falso positivo del instrumento → se descarta con motivo).
 5. **`npm run inventory:dupes` sin duplicados sin resolver** — cada nombre duplicado tiene una decisión explícita (una versión es la única real y la otra se eliminó, o ambas coexisten por una razón documentada).
 6. Contraste guía vs. código (EJE 20) ejecutado sobre la totalidad de `docs/GUIA-COMPLETA.md`, no solo sobre las secciones tocadas en la última ronda de cambios.
 7. **`npm run verificar-docs` revisado** — cada fichero que aparece en su salida se ha comprobado a mano en la guía; las secciones que necesitaban actualizarse ya lo están.
@@ -14052,10 +14053,10 @@ El fallo, cuando falta un puente, es **mudo**: la variable se queda en su valor 
 
 ### 37.3 Mensajes (`TIPOS_MENSAJE`) — emisor(es) → receptor(es)
 
-Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje totales. `*(ninguno detectado)*` no significa necesariamente huérfano — es un falso negativo conocido de la heurística de proximidad (variable intermedia entre el tipo y `enviarMensaje`/`registrarControlador`, alias `TIPOS_MENSAJE_S1..S5` del padre, `globalThis.` de por medio, o un operador ternario/`||` entre `tipo:` y el valor) casi siempre que aparece — verificar leyendo el código antes de actuar sobre cualquiera de ellos. El único caso de esta tabla confirmado como huérfano real (no falso negativo) es `NAVEGACION.GPS.DESACTIVAR`: nada en el proyecto lo emite ni lo escucha — el propio código (`codigo-padre.html`, junto a `_regCtrl_GPS`) lo deja dicho y conserva la constante a propósito, por si algún día un hijo necesita pedir la desactivación de verdad. Correcciones verificadas sobre las demás celdas `*(ninguno detectado)*` de esta tabla, debajo.
+Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje. La herramienta lee el código con un parser (acorn) y resuelve cada tipo por su valor —alias de import (`TIPOS_MENSAJE_S1`), `globalThis.TIPOS_MENSAJE?.X?.Y`, constantes locales con ámbito de bloque, literales—; cuenta como emisor un objeto con `tipo` que se pasa a un envío o que lleva `destino`/`datos`, y como receptor una llamada a `registrarControlador`, `registrarControladorSeguro`, `registrarSiNoExiste` o al `registrar` local de `js/app.js`. `*(ninguno detectado)*` significa que ningún fichero cumple esa condición. El único caso de esta tabla es `NAVEGACION.GPS.DESACTIVAR`: nada en el proyecto lo emite ni lo escucha — el propio código (`codigo-padre.html`, junto a `_regCtrl_GPS`) lo deja dicho y conserva la constante a propósito, por si algún día un hijo necesita pedir la desactivación de verdad. Sin `--todos`, la herramienta imprime además los envíos con destino literal que caen en un frame sin handler de ese tipo, los handlers que ninguna emisión alcanza y el residuo (lo que parece emisor o receptor y no se resolvió a un tipo).
 
 <details>
-<summary>Tabla completa (100 filas) — clic para desplegar</summary>
+<summary>Tabla completa (94 filas) — clic para desplegar</summary>
 
 | Tipo | Emisor(es) | Receptor(es) |
 |---|---|---|
@@ -14071,7 +14072,7 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje t
 | `AVENTURA.TIEMPO_AGOTADO` | extrainfo-hijo1.html | codigo-padre.html |
 | `CHAT.CERRAR` | chat-hijo6.html | codigo-padre.html |
 | `CHAT.ESTADO_PADRE` | codigo-padre.html | chat-hijo6.html |
-| `CHAT.RESCATE_SOLICITADO` | chat-hijo6.html, js/constants.js | codigo-padre.html |
+| `CHAT.RESCATE_SOLICITADO` | chat-hijo6.html | codigo-padre.html |
 | `CONTROL.DESHABILITAR` | codigo-padre.html | audio-hijo3.html, coordenadas-hijo2.html, retos-hijo4.html |
 | `CONTROL.DEV_CINCO_TOQUES` | extrainfo-hijo1.html | codigo-padre.html |
 | `CONTROL.HABILITAR` | codigo-padre.html | audio-hijo3.html, coordenadas-hijo2.html, retos-hijo4.html |
@@ -14088,32 +14089,31 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje t
 | `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo.html | codigo-padre.html |
 | `MAPA_COMPLETO.VISIBLE` | codigo-padre.html | mapa-completo.html |
 | `MONITOREO.METRICA` | coordenadas-hijo2.html | codigo-padre.html |
-| `NAVEGACION_PANTALLA` | codigo-padre.html | En-busca-del-tesoro.html, tools/renumber-pantallas.js |
 | `NAVEGACION.ACTUALIZAR_ESTADO` | codigo-padre.html, js/funciones-mapa.js, js/mensajeria.js | coordenadas-hijo2.html |
-| `NAVEGACION.CAMBIO_PARADA` | boton-casa-hijo5.html, codigo-padre.html | audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
+| `NAVEGACION.CAMBIO_PARADA` | boton-casa-hijo5.html, codigo-padre.html, js/app.js | audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | audio-hijo3.html, js/funciones-mapa.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html |
 | `NAVEGACION.GPS.ACTIVAR` | coordenadas-hijo2.html, js/funciones-mapa.js | codigo-padre.html |
 | `NAVEGACION.GPS.DENTRO_DE_RANGO` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.GPS.DESACTIVAR` | *(ninguno detectado)* | *(ninguno detectado)* |
-| `NAVEGACION.GPS.ERROR` | *(ninguno detectado)* †1 | coordenadas-hijo2.html |
+| `NAVEGACION.GPS.ERROR` | codigo-padre.html | coordenadas-hijo2.html |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | codigo-padre.html | coordenadas-hijo2.html |
 | `NAVEGACION.GPS.PRECISION_INSUFICIENTE` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.GPS.PRECISION_RECUPERADA` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.GPS.RESTRINGIDO` | coordenadas-hijo2.html | codigo-padre.html |
-| `NAVEGACION.LLEGADA_DETECTADA` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGACION.LLEGADA_DETECTADA` | coordenadas-hijo2.html, js/funciones-mapa.js | codigo-padre.html |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.RESPUESTA_COORDENADAS` | coordenadas-hijo2.html | js/funciones-mapa.js |
-| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | boton-casa-hijo5.html, codigo-padre.html | boton-casa-hijo5.html, coordenadas-hijo2.html |
+| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | codigo-padre.html | boton-casa-hijo5.html, coordenadas-hijo2.html |
 | `NAVEGACION.SOLICITAR_COORDENADAS` | js/funciones-mapa.js | coordenadas-hijo2.html |
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | boton-casa-hijo5.html | codigo-padre.html |
-| `NAVEGACION.SUPRIMIR_ROTACION` | *(ninguno detectado)* †2 | codigo-padre.html |
+| `NAVEGACION.SUPRIMIR_ROTACION` | En-busca-del-tesoro.html | codigo-padre.html |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGAR_PANTALLA` | codigo-padre.html | En-busca-del-tesoro.html |
 | `PARADAS.LISTADO_TOGGLE` | extrainfo-hijo1.html | codigo-padre.html |
-| `PARADAS.READY` | boton-casa-hijo5.html | codigo-padre.html |
-| `PUZZLE.COMPLETADO` | puzzle.html | retos-hijo4.html |
-| `PUZZLE.TIMEOUT` | puzzle.html | retos-hijo4.html |
+| `PUZZLE.COMPLETADO` | puzzle.html | En-busca-del-tesoro.html, retos-hijo4.html |
+| `PUZZLE.TIMEOUT` | puzzle.html | En-busca-del-tesoro.html, retos-hijo4.html |
 | `RETO.COMPLETADO` | retos-hijo4.html | codigo-padre.html |
 | `RETO.CONFIRMADO` | codigo-padre.html | retos-hijo4.html |
 | `RETO.ESTADO_CASA` | codigo-padre.html | retos-hijo4.html |
@@ -14121,7 +14121,7 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje t
 | `RETO.LIMPIAR_ESTADO` | codigo-padre.html | retos-hijo4.html |
 | `RETO.MOSTRADO` | retos-hijo4.html | codigo-padre.html |
 | `RETO.MOSTRAR` | codigo-padre.html, js/controladores-padre.js | retos-hijo4.html |
-| `RETO.OCULTAR` | retos-hijo4.html | codigo-padre.html |
+| `RETO.OCULTAR` | codigo-padre.html, retos-hijo4.html | codigo-padre.html |
 | `RETO.SOLICITAR_RETO` | audio-hijo3.html, retos-hijo4.html | codigo-padre.html |
 | `SELECCION.AVENTURA_ACTIVADA` | En-busca-del-tesoro.html | codigo-padre.html |
 | `SELECCION.AVENTURA_SELECCIONADA` | En-busca-del-tesoro.html | codigo-padre.html |
@@ -14132,15 +14132,15 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje t
 | `SELECCION.PREPARAR_HIJOS` | En-busca-del-tesoro.html | codigo-padre.html |
 | `SELECCION.REINICIAR` | En-busca-del-tesoro.html | codigo-padre.html |
 | `SELECCION.TERMINOS_ACEPTADOS` | En-busca-del-tesoro.html | codigo-padre.html |
-| `SELECCION.VIDEO_INTRO_TERMINADO` | *(ninguno detectado)* †3 | En-busca-del-tesoro.html, chat-hijo6.html, tools/renumber-pantallas.js |
-| `SISTEMA.APLICACION_INICIALIZADA` | *(ninguno detectado)* †4 | codigo-padre.html |
-| `SISTEMA.CAMBIO_MODO` | boton-casa-hijo5.html, js/app.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
+| `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html | En-busca-del-tesoro.html, chat-hijo6.html |
+| `SISTEMA.APLICACION_INICIALIZADA` | codigo-padre.html | codigo-padre.html |
+| `SISTEMA.CAMBIO_MODO` | boton-casa-hijo5.html, codigo-padre.html, js/app.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | js/app.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
-| `SISTEMA.CAMBIO_MODO_EFECTUADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | *(ninguno detectado)* †5 |
-| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | En-busca-del-tesoro.html, chat-hijo6.html, extrainfo-hijo1.html | boton-casa-hijo5.html, js/app.js |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | js/app.js |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | js/app.js |
 | `SISTEMA.CONFIRMACION` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | boton-casa-hijo5.html |
 | `SISTEMA.ERROR` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, js/funciones-mapa.js, js/mensajeria.js, js/utils.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
-| `SISTEMA.HEARTBEAT` | boton-casa-hijo5.html, codigo-padre.html, js/mensajeria.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
+| `SISTEMA.HEARTBEAT` | codigo-padre.html, js/mensajeria.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `SISTEMA.HEARTBEAT_RESPONSE` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
 | `SISTEMA.HIJO_FALLIDO` | En-busca-del-tesoro.html, extrainfo-hijo1.html | codigo-padre.html |
 | `SISTEMA.HIJO_LISTO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
@@ -14153,19 +14153,7 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje t
 | `UI.ACCION_USUARIO` | codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html | audio-hijo3.html, codigo-padre.html |
 | `UI.CLOSE_MENUS` | extrainfo-hijo1.html | codigo-padre.html, extrainfo-hijo1.html |
 | `UI.NAVEGACION_EXTERNA` | extrainfo-hijo1.html | codigo-padre.html |
-
-†1 Emisor real: `codigo-padre.html` (`_hdl_NAVEGACION_GPS_ACTIVAR`, error de timeout/denegado) — la
-heurística no ve el `enviarMensaje` porque el `tipo` llega por una variable armada unas líneas antes.
-†2 Emisor real: `En-busca-del-tesoro.html` (`_avisarRotacion()`) — `tipo` es una constante
-(`const tipo = globalThis.TIPOS_MENSAJE?.NAVEGACION?.SUPRIMIR_ROTACION`) usada como propiedad
-abreviada (`{ tipo, destino, datos }`), no como `tipo: TIPOS_MENSAJE...` en la misma expresión.
-†3 Emisor real: `video-intro.html` (`globalThis._continuarVideo`) — mismo patrón de propiedad
-abreviada que †2.
-†4 Emisor real: `codigo-padre.html`, mensaje a sí mismo por `despacharLocal` (Script 1, alias
-`TIPOS_MENSAJE_S1`) — la heurística no reconoce ese alias como el mismo objeto.
-†5 Receptor real: `js/app.js` (`_registrarHandlersModo()`) — el registro pasa por una variable
-local (`const registrar = globalThis.registrarControladorSeguro || ...`), no por el nombre literal
-`registrarControladorSeguro(...)` que busca la heurística.
+| `VV:PARADAS:READY` | boton-casa-hijo5.html | codigo-padre.html |
 
 </details>
 
