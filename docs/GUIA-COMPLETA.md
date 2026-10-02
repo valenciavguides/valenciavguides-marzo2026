@@ -14243,8 +14243,8 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje. 
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | js/app.js |
 | `SISTEMA.CONFIRMACION` | js/mensajeria.js | js/mensajeria.js |
 | `SISTEMA.ERROR` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, js/funciones-mapa.js, js/mensajeria.js, js/utils.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, js/mensajeria.js, retos-hijo4.html |
-| `SISTEMA.HEARTBEAT` | codigo-padre.html, js/mensajeria.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/mensajeria.js, retos-hijo4.html |
-| `SISTEMA.HEARTBEAT_RESPONSE` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html, js/mensajeria.js |
+| `SISTEMA.HEARTBEAT` | codigo-padre.html, js/mensajeria.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/mensajeria.js, retos-hijo4.html |
+| `SISTEMA.HEARTBEAT_RESPONSE` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html, js/mensajeria.js |
 | `SISTEMA.HIJO_FALLIDO` | En-busca-del-tesoro.html, extrainfo-hijo1.html | codigo-padre.html |
 | `SISTEMA.HIJO_LISTO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
 | `SISTEMA.HIJO_PREPARADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
