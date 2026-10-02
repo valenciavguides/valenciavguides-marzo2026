@@ -133,7 +133,7 @@ modo: {
 
 **Cómo leer el modo con tres estados.** Un binario del tipo `if (modo !== MODOS.CASA)` o un `else` sin condición mete `null` en la rama de AVENTURA. La forma correcta en cualquier punto que vaya a ejecutar lógica de aventura es exigir el modo confirmado (`=== MODOS.AVENTURA`); para lógica de CASA, `=== MODOS.CASA`. Un `|| MODOS.CASA` al leer es válido solo donde "sin decidir" y "en casa" deban tratarse igual a propósito — es el caso del pre-warm (`iniciarPrewarmEnCasa()`) y del `modoInicial` que viaja en `PADRE_CONFIRMA_HIJO_LISTO`.
 
-**Los hijos nunca ven `null`.** `actualizarInterfazModo()` propaga siempre un modo ya canonicalizado, y la sincronización inicial de `_hijoListo_sincronizarModoCriticos()` usa `|| MODOS.CASA`. El tercer estado es interno del padre.
+**Los hijos nunca ven `null`.** `actualizarInterfazModo()` propaga siempre un modo ya canonicalizado, y los dos envíos iniciales —el `modo` de `PADRE_DATOS` (`_hdl_SISTEMA_HIJO_PREPARADO`) y el `modoInicial` de `PADRE_CONFIRMA_HIJO_LISTO` (`_hijoListo_confirmarAlHijo`)— usan `|| MODOS.CASA`. El tercer estado es interno del padre.
 
 **`estadoMapa.modo` (`js/funciones-mapa.js`) sí arranca en `'casa'`, y es correcto que difiera** del padre durante esa ventana: `actualizarMarcadorUsuario()` elige el icono con `estadoMapa.modo === MODOS.CASA ? 'casa' : 'aventura'`, así que un `null` ahí pintaría la flecha ▲ de AVENTURA en lugar del 🛸 antes de que haya modo. Sus dos únicos escritores (`manejarCambioModoMapa()` y `sincronizarModoMapa()`) rechazan cualquier valor que no sea `'casa'`/`'aventura'`, de modo que `null` es inalcanzable en esa variable.
 
@@ -1736,7 +1736,7 @@ sequenceDiagram
     Note over H6: hijo6-chat: src="" en HTML<br/>Se carga al primer click en btn-chat-soporte<br/>(apertura lazy)
 ```
 
-> **Carga en paralelo:** `cargarRestoDeiframes()` usa `Promise.all` sobre hijo1-opciones/hijo2/hijo3/hijo4 (cada uno vía `_cargarUnIframeHijo`, que espera su `HIJO_LISTO`), tolerando fallos individuales: los que fallan se acumulan en `hijosFallidos` sin abortar el resto. hijo5 va aparte en `cargarHijoCasa()`, y ambas se lanzan juntas con `await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])`. La pantalla de selección se carga antes y por separado en `cargarIframeSoloSeleccion()` — `cargarIframeSecuencial` es solo un alias suyo por compatibilidad. `_hdl_SELECCION_AVENTURA_ACTIVADA` carga los 5 hijos (hijo1-5 incluyendo hijo4) vía `_cargarSoloIframeActivacion`. `_fase2CargarDatos()` precarga módulos JS cuando P14 se muestra (`SELECCION.P14_MOSTRADA`), de modo que AVENTURA_ACTIVADA puede distribuir datos sin esperar imports adicionales.
+> **Carga en paralelo:** `cargarRestoDeiframes()` usa `Promise.all` sobre hijo1-opciones/hijo2/hijo3/hijo4 (cada uno vía `_cargarUnIframeHijo`, que espera su `HIJO_LISTO`), tolerando fallos individuales: los que fallan se acumulan en `hijosFallidos` sin abortar el resto. hijo5 va aparte en `cargarHijoCasa()`, y ambas se lanzan juntas con `await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])`. La pantalla de selección se carga antes y por separado en `cargarIframeSoloSeleccion()`. `_hdl_SELECCION_AVENTURA_ACTIVADA` carga los 5 hijos (hijo1-5 incluyendo hijo4) vía `_cargarSoloIframeActivacion`. `_fase2CargarDatos()` precarga módulos JS cuando P14 se muestra (`SELECCION.P14_MOSTRADA`), de modo que AVENTURA_ACTIVADA puede distribuir datos sin esperar imports adicionales.
 
 ### Diagrama de arquitectura global
 
@@ -3009,7 +3009,7 @@ camino con acuse de uno sin él.
 | `RETO.ESTADO_CASA` | Modo CASA: gestiona habilitación del panel según tipo de elemento activo |
 | `RETO.CONFIRMADO` | Padre confirma recepción de `RETO.MOSTRADO` — fase 3 del protocolo RETO |
 | `SISTEMA.CAMBIO_MODO` | Si no hay un reto en curso, limpia el estado del reto y su interfaz; aplica el modo (`sincronizarEstadoModo`: `estado.modo.actual` y clase del body); responde `CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO` |
-| `NAVEGACION.CAMBIO_PARADA` | No precarga el reto (comentario propio en el código: "placeholder") — solo actualiza `estado.retoActualId`/`paradaIdActual`. El reto real llega después vía `RETO.MOSTRAR`, disparado por `RETO.SOLICITAR_RETO` |
+| `NAVEGACION.CAMBIO_PARADA` | No precarga el reto (comentario propio en el código: "placeholder") — solo actualiza `estado.retoActualId`/`estado.padreIdActual`. El reto real llega después vía `RETO.MOSTRAR`, disparado por `RETO.SOLICITAR_RETO` |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 
 #### Mensajes que envía al padre
@@ -4396,7 +4396,7 @@ sequenceDiagram
     Note over P: despacharLocal(SISTEMA.CAMBIO_MODO, _modoInicio) — ver nota debajo
 ```
 
-**`_modoInicio` decide directamente el modo final, sin pasar por hijo5:** `const _modoInicio = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA`. En producción (`_devModeActivo` falso, el caso normal para cualquier usuario real) `_modoInicio` es `AVENTURA` — el padre despacha `SISTEMA.CAMBIO_MODO(MODOS.AVENTURA)` con `despacharLocal` de forma fire-and-forget inmediatamente después de `_broadcastActivacion`, sin esperar ninguna pulsación de botón: el usuario entra directo en modo AVENTURA (GPS con validaciones, hijo5 oculto). El botón GPS de hijo5 (§9.7) nunca interviene en este camino — es exclusivamente la vía manual del modo DEV (ver §24), donde `_modoInicio` es `CASA` y el padre sí espera (`await`) a que ese `despacharLocal(SISTEMA.CAMBIO_MODO(MODOS.CASA))` complete antes de ocultar el overlay de carga.
+**`_modoInicio` decide directamente el modo final, sin pasar por hijo5:** `const _modoInicio = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA`. En producción (`_devModeActivo` falso, el caso normal para cualquier usuario real) `_modoInicio` es `AVENTURA` — el padre despacha `SISTEMA.CAMBIO_MODO(MODOS.AVENTURA)` con `despacharLocal` de forma fire-and-forget inmediatamente después de `_mostrarUIActivada()`, sin esperar ninguna pulsación de botón: el usuario entra directo en modo AVENTURA (GPS con validaciones, hijo5 oculto). El botón GPS de hijo5 (§9.7) nunca interviene en este camino — es exclusivamente la vía manual del modo DEV (ver §24), donde `_modoInicio` es `CASA` y el padre sí espera (`await`) a que ese `despacharLocal(SISTEMA.CAMBIO_MODO(MODOS.CASA))` complete antes de ocultar el overlay de carga.
 
 **`_normalizarSetHijos`** elimina de `estado.hijosInicializados` los IDs de los iframes que se van a recargar, para que `_esperarHijosCargados` no resuelva prematuramente con el estado anterior. Solo se llama en la ruta normal.
 
@@ -5436,7 +5436,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Emitido por | hijo3 (botón de reto del reproductor), hijo4 (botón de reto) |
 | Destino | `padre` |
 | Payload | `{ contexto }` |
-| Handler en padre | `_hdl_RETO_SOLICITAR` — registrado vía `registrarControladorScript2Seguro` |
+| Handler en padre | `_hdl_RETO_SOLICITAR` — registrado vía `registrarControladorSeguro` en `_regCtrl_Reto` |
 | Acción | Busca `estado.retoActual`, envía `RETO.MOSTRAR` a hijo4 si el reto está disponible |
 
 ---
@@ -5625,7 +5625,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 #### `RETO.SOLICITAR_RETO` — handler en Script 2
 
 - hijo3 y hijo4 envían `RETO.SOLICITAR_RETO` → padre.
-- Handler `_hdl_RETO_SOLICITAR` en padre, registrado vía `registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR)`. El handler está en Script 2, separado del resto; una búsqueda limitada a Script 1 no lo encontrará.
+- Handler `_hdl_RETO_SOLICITAR` en padre, registrado vía `registrarControladorSeguro(TIPOS_MENSAJE.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR, { permanente: true })` en `_regCtrl_Reto`. El handler está en Script 2, separado del resto; una búsqueda limitada a Script 1 no lo encontrará.
 
 #### `DATOS.SOLICITAR_COORDENADAS` en `constants.js`
 
@@ -7297,8 +7297,8 @@ videos-aventuras/
 
 ### Cómo se usan
 
-**Vídeo introductorio (P8 de `En-busca-del-tesoro.html`):**  
-Vídeo de apertura que se muestra antes de empezar la aventura. Actualmente es un placeholder ("Próximamente"). Se carga desde la función `cargarVideoIntro()`.
+**Vídeo introductorio (P4 de `En-busca-del-tesoro.html`):**  
+La pantalla carga `video-intro.html` en un iframe (`cargarVideoIntroIframe()`): la secuencia de escenas de §35, con el clip `video_intro_ejemplo.mp4` en `sceneVid`. Al terminar avisa con `SELECCION.VIDEO_INTRO_TERMINADO` y la pantalla pasa a P5.
 
 **Vídeos de paradas/tramos (overlay del padre, botón dron de hijo2):**  
 Cada tramo puede tener un vídeo asociado mediante el campo `video` en `coordenadas-aventuras.js` — es una vista previa del camino (inicio→waypoints→fin) que el usuario recorrerá a continuación, pensada para verse antes de empezar a andar el tramo, no a mitad. El botón `#btn-video` de `coordenadas-hijo2.html` (icono dron) se activa cuando el tramo está activo y, al pulsarlo, lee ese campo y pide al padre `UI.ACCION_USUARIO { accion: 'reproducir-video', urlVideo }`; el padre lo reproduce en su **overlay de vídeo** (`globalThis.mostrarVideoOverlay()`, elemento `<video controls preload="auto">` dentro de un overlay flotante, sin `autoplay`), no en `En-busca-del-tesoro.html`. Actualmente el campo `video` está vacío (`""`) en todas las paradas de todas las aventuras — el botón muestra el mensaje de "sin contenido" (`_mostrarVideoSinUrl`) porque todavía no hay ningún vídeo de dron cargado en producción, pero toda la tubería (botón, mensaje, overlay, precarga — ver más abajo) ya está construida y funcionando en espera de que el campo deje de estar vacío.
@@ -11822,7 +11822,7 @@ Los pasos 3 a 5 son el cuerpo del handler de `PADRE_DATOS`. Sin el paso 2 no ocu
 
 #### Qué problema resuelve
 
-El sistema de heartbeat (`js/mensajeria.js`) puede forzar el reload de un iframe si pierde `maxFallidos` heartbeats consecutivos (`intentarReconectarHijo`: self-assign de `iframe.src`). Tras el reload, el iframe pasa por el handshake normal (HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO → PADRE_CONFIRMA_HIJO_LISTO). El problema es que el estado dinámico de la aventura en ese iframe se pierde: el temporizador de hijo1 se reinicia, el audio de hijo3 se corta, el reto visible en hijo4 desaparece.
+El sistema de heartbeat (`js/mensajeria.js`) puede forzar el reload de un iframe si lleva `MAX_LATIDOS_SIN_RESPUESTA` (3) latidos sin contestar (`intentarReconectarHijo`: self-assign de `iframe.src`). Tras el reload, el iframe pasa por el handshake normal (HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO → PADRE_CONFIRMA_HIJO_LISTO). El problema es que el estado dinámico de la aventura en ese iframe se pierde: el temporizador de hijo1 se reinicia, el audio de hijo3 se corta, el reto visible en hijo4 desaparece.
 
 #### Arquitectura del snapshot
 
@@ -12749,7 +12749,7 @@ Cuando hijo4 se carga por primera vez durante una sesión de retos, la secuencia
 2. hijo4 envía `HIJO_LISTO` → padre lo añade a `hijosInicializados` (operación síncrona)
 3. `_esperarHijo4` (polling 100 ms) detecta la entrada y desbloquea la cadena de solicitud
 4. Padre envía `RETO.MOSTRAR` → hijo4 crea el iframe del puzzle (`PZ-xx`)
-5. En paralelo, `_hijoListo_sincronizarModoCriticos` envía `CAMBIO_MODO` a hijo2 → hijo3 → hijo4 (en serie, con `await` entre cada uno)
+5. Si en ese momento cambia el modo, `actualizarInterfazModo` envía `CAMBIO_MODO` a todos los hijos inicializados, en paralelo, hijo4 incluido
 6. `CAMBIO_MODO` llega a hijo4 después de que el iframe del puzzle ya existe
 
 Si `_onCambioModo` limpia `retoDiv.innerHTML` en el paso 6, el iframe del puzzle se destruye antes de que el usuario lo haya visto. Los retos de tipo opción múltiple o reflexión no se ven afectados porque son HTML inline; los retos tipo puzzle (`PZ-xx`) sí, porque el iframe tarda en cargar su módulo JS.
