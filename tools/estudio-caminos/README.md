@@ -18,7 +18,7 @@ node tools/estudio-caminos/<script>.cjs
 - `NODE_NO_WARNINGS=1` silencia el aviso de Node por importar un módulo ES (`js/constants.js`, `js/config.js`) sin `"type"` en
   `package.json`; no cambia ningún resultado.
 - `globals-sin-lector.cjs` y `tipos-citados.cjs` usan además `tools/lib/analisis-js.js`.
-- Los tres que comparan la guía con el código (`guia-handlers-por-frame`, `guia-fichas-mensaje`, `guia-payloads`) leen `docs/GUIA-COMPLETA.md`,
+- Los cuatro que comparan la guía con el código (`guia-handlers-por-frame`, `guia-fichas-mensaje`, `guia-payloads`, `guia-nombres-citados`) leen `docs/GUIA-COMPLETA.md`,
   o la copia que diga la variable `ESTUDIO_GUIA` (`git show <commit>:docs/GUIA-COMPLETA.md > copia.md`): ejecutados contra la guía de un
   commit anterior son el control de que detectan lo que dicen detectar.
 
@@ -31,6 +31,9 @@ Un script de la primera columna deja un fichero que leen los de la segunda; el r
 | `extract-functions` → `funciones.json` | `analiza-funciones`, `clones-mismo-fichero`, `extract-tests` | funciones, homónimos entre ficheros, clones |
 | `extract-mensajes` → `mensajes.json` | `reporte-mensajes`, `destinos`, `destinos-inverso`, `handlers-duplicados`, `handlers-solo-log`, `guia-handlers-por-frame`, `guia-fichas-mensaje` | emisores y receptores de cada tipo del bus; emisiones al vacío; handlers que ninguna emisión alcanza; handlers cuyo cuerpo solo escribe en el log; filas de las tablas de §26.12, §7 y §8 de la guía sin respaldo en el código y tipos de cada frame que la guía no cuenta; la tabla de cobertura por hijo de §10.7 celda por celda y las filas «Emitido por» / «Handler en …» de las fichas de §10 junto a lo que hace el código |
 | `extract-mensajes` + `extract-payload` → `mensajes.json` y `payload.json` | `guia-payloads` | claves de payload que la guía da por enviadas en §7, §8 y §10 y que ningún emisor del código manda |
+
+`guia-nombres-citados` no necesita ninguno: busca como token, en los ficheros rastreados con código, cada función, handler o global propio que la
+guía cita entre backticks, y lista los que no aparecen (candidatos: se confirman leyendo la frase).
 | `extract-globals` → `globals.json` | `extract-tests` | `globalThis.X` escritos por frame y sus escritores |
 | `extract-constantes` → `constantes.json` | `analiza-const` | declaraciones, comparaciones y plazos con valor numérico |
 | `extract-recursos` → `recursos.json` | `analiza-recursos` | `setInterval`, listeners, observers, `map.on` y su pareja de parada |
