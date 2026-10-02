@@ -123,7 +123,6 @@ module.exports = [
         TIPOS_MENSAJE: "readonly",
         CONFIG_PADRE: "readonly",
         CONFIG_HIJO: "readonly",
-        CONFIG: "readonly",
         MODOS: "readonly",
         DATOS_PADRE: "readonly",
         IMAGENES_AVENTURAS: "readonly",
@@ -131,25 +130,18 @@ module.exports = [
 
         // ── Globals propios — estado global ──────────────────────────────
         estado: "readonly",
-        estadoMapa: "readonly",
         aventuraSeleccionada: "readonly",
         idiomaSeleccionado: "readonly",
-        idPadre: "readonly",
-        overlay: "readonly",
 
         // ── Globals propios — funciones de mensajería ─────────────────────
         enviarMensaje: "readonly",
-        enviarMensaje_S1: "readonly",
         enviarMensajeConConfirmacion: "readonly",
         registrarControladorSeguro: "readonly",
-        registrarIframe_S1: "readonly",
 
         // ── Globals propios — funciones de utilidad ───────────────────────
         logger: "readonly",
         getPadreId: "readonly",
-        generarIdUnico: "readonly",
         getEstadoSafe: "readonly",
-        ajustarTimeoutPorConexion_S1: "readonly",
         ajustarTimeoutPorConexionSafe: "readonly",
         findIndexByPadreIdOrId: "readonly",
         persistProgressState: "readonly",
@@ -178,9 +170,6 @@ module.exports = [
         hideGpsPrecisionOverlay: "readonly",
         toggleRotationMessage: "readonly",
         updateLoadingStatus: "readonly",
-        btnTop: "readonly",
-        codigo: "readonly",
-        notifError: "readonly",
 
         // ── Globals propios — funciones de mapa/GPS ──────────────────────
         activarGPS: "readonly",
