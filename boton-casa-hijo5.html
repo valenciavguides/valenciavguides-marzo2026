@@ -812,19 +812,12 @@
 
                 // ✅ PROCESAR DATOS INICIALES DEL PADRE
                 if (mensaje.datos) {
-                    const { modo, paradas, paradaActual } = mensaje.datos;
+                    // PADRE_DATOS trae como mucho { modo, timestamp }: el padre no manda más claves en este mensaje.
+                    const { modo } = mensaje.datos;
 
                     if (modo) {
                         logger.debug(`${logPrefix} Modo inicial: ${modo}`);
                         // Procesar modo si necesario
-                    }
-
-                    if (paradas) {
-                        logger.debug(`${logPrefix} Paradas recibidas: ${paradas.length}`);
-                    }
-
-                    if (paradaActual) {
-                        logger.debug(`${logPrefix} Parada actual: ${paradaActual}`);
                     }
                 }
 

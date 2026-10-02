@@ -1177,21 +1177,12 @@
 
                 // ✅ PROCESAR DATOS INICIALES DEL PADRE
                 if (mensaje.datos) {
-                    const { modo, paradas, paradaActual } = mensaje.datos;
+                    // PADRE_DATOS trae como mucho { modo, timestamp }: el padre no manda más claves en este mensaje.
+                    const { modo } = mensaje.datos;
 
                     if (modo) {
                         logger.info(`${logPrefix} Procesando modo inicial del padre: ${modo}`);
                         sincronizarSeekPorModo(modo);
-                    }
-
-                    if (paradas) {
-                        logger.debug(`${logPrefix} Paradas recibidas: ${paradas.length}`);
-                        // Procesar paradas si necesario
-                    }
-
-                    if (paradaActual) {
-                        logger.debug(`${logPrefix} Parada actual: ${paradaActual}`);
-                        // Procesar parada actual si necesario
                     }
                 }
 

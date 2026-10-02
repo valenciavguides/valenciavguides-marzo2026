@@ -14760,8 +14760,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 const yaCargado = hijo4.src && hijo4.src !== '' && hijo4.src !== 'about:blank';
                 if (!yaCargado) {
                     // globalThis.__vv_DATOS_PADRE no se asigna en NINGUN sitio del repo: esto
-                    // enviaba siempre {}. Y aunque existiera tampoco encajaria — hijo4 espera
-                    // { modo, paradas, paradaActual } y DATOS_PADRE es aventura->idioma->elementos.
+                    // enviaba siempre {}. Y aunque existiera tampoco encajaria — hijo4 solo lee `modo`
+                    // de PADRE_DATOS y DATOS_PADRE es aventura->idioma->elementos.
                     // Se manda {} explicito: el modo real llega despues por SISTEMA.CAMBIO_MODO.
                     await cargarIframeConDatos('hijo4', 'retos-hijo4.html', {});
                 }

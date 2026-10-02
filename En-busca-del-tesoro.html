@@ -2742,9 +2742,7 @@
             }
             logger.info(`${controladorPrefix} Datos del padre recibidos desde ${mensaje.origen}`);
             const modo = mensaje.datos?.modo;
-            const paradaActual = mensaje.datos?.paradaActual;
             if (modo) { logger.debug(`${controladorPrefix} Modo inicial: ${modo}`); }
-            if (paradaActual) { logger.debug(`${controladorPrefix} Parada actual: ${paradaActual}`); }
             if (estadoComponente.hijoListoEnviado) {
                 logger.debug(`${controladorPrefix} HIJO_LISTO ya enviado previamente, omitiendo duplicado`);
                 return;

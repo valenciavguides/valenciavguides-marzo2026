@@ -1547,7 +1547,8 @@ try {
     }
 
     function _procesarDatosPadre(datos, logPrefix) {
-        const { modo, paradas, paradaActual } = datos;
+        // PADRE_DATOS trae como mucho { modo, timestamp }: el padre no manda más claves en este mensaje.
+        const { modo } = datos;
         if (modo) {
             const modoSeguro = (modo === 'casa' || modo === 'aventura') ? modo : '';
             logger.info(`${logPrefix} Procesando modo inicial del padre:`, { original: modo, normalizado: modoSeguro });
@@ -1556,8 +1557,6 @@ try {
             actualizarEstadoBotones();
             actualizarEstado(`Modo inicial: ${modoSeguro || modo}`, 'info');
         }
-        if (paradas) logger.debug(`${logPrefix} Paradas recibidas: ${paradas.length}`);
-        if (paradaActual) logger.debug(`${logPrefix} Parada actual: ${paradaActual}`);
     }
 
     registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_DATOS, async (mensaje) => {

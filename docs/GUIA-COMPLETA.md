@@ -1640,7 +1640,6 @@ Padre                                Hijo
   │<─── HIJO_PREPARADO ───────────────│  { componenteId, version, capacidades[], timestamp }
   │                                    │  "mi HTML está cargado"
   │                                    │
-  │──── ACK (best-effort) ────────────>│  { tipoMensajeOriginal: 'SISTEMA.HIJO_PREPARADO' }
   │──── PADRE_DATOS ──────────────────>│  { modo, timestamp }
   │                                    │  "aquí tienes el modo actual"
   │                                    │
@@ -1656,8 +1655,9 @@ Padre                                Hijo
 
 **Notas de implementación:**
 
-- El ACK es **best-effort**: solo se envía si `enviarMensaje_S1` ya está disponible. No es crítico para la funcionalidad — PADRE_DATOS sigue igualmente.
+- El padre no contesta `HIJO_PREPARADO` con un mensaje propio (no existe un `SISTEMA.ACK`): el handshake sigue con `PADRE_DATOS`. El acuse de recepción, si el emisor lo pide, es el del bus (`SISTEMA.CONFIRMACION`, §10.17).
 - `PADRE_DATOS` del handshake lleva `{ modo, timestamp }` para todos los hijos. Los datos completos de la aventura (idioma, coordenadas) **no viajan en este mensaje** — llegan mediante mensajes específicos (`DATOS.CARGAR_COORDENADAS`, `NAVEGACION.RESPUESTA_DATOS_PARADAS`, etc.) después de que el hijo ya está listo. Audio y retos no se distribuyen en el handshake en absoluto — se resuelven parada a parada (ver §16). **Única excepción: `hijo6-chat`** — su `PADRE_DATOS` añade además `idioma`, `aventura`, `paradaActualNombre`, `siguienteParadaNombre` y `paradasRestantes` (`globalThis.construirEstadoChat()`, expuesto por el IIFE de apertura del chat para que `_hdl_SISTEMA_HIJO_PREPARADO` — otro scope — pueda leerlo). Es la vía por la que el chat conoce el idioma en su primera apertura: sin ese añadido construiría su FAQ con el `'es'` por defecto en vez del idioma real seleccionado. Que el payload sea correcto no basta — este mensaje solo llega si `hijo6-chat` está registrado en `iframesRegistrados`, cosa que `abrirChat()` hace antes de asignarle `src`; ver §7.7 para el detalle de por qué el registro condiciona la entrega.
+- Hay un segundo emisor de `PADRE_DATOS`: `mostrarHijo4()`, si hijo4 aún no tiene `src`, carga el iframe con `cargarIframeConDatos()` y manda `PADRE_DATOS` con `datos: {}` en cuanto el iframe dispara `load`. El handler de hijo4 es el mismo: sin `modo` no aplica nada y envía `HIJO_LISTO` si aún no lo había enviado.
 - El padre registra los handlers `HIJO_PREPARADO` y `HIJO_LISTO` en Script 1 **antes de asignar `src` a ningún iframe** — esto garantiza que los mensajes tempranos nunca se pierdan.
 - Diseño intencional: el timeout de 30 s en `state-manager.js` es el último recurso si el hijo se cuelga antes de enviar `HIJO_LISTO` (crash total), no como mecanismo normal de espera. El heartbeat continuo detecta hijos caídos tras arrancar y permite reenviar `CAMBIO_MODO` pendiente si llega un `HIJO_LISTO` tardío.
 
@@ -2486,7 +2486,7 @@ Mensajes del temporizador:
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `UI.CLOSE_MENUS` | Cierra iconos desplegados (respeta `datos.except`). Ningún emisor lo manda hoy: el padre no envía este tipo; hijo1 lo envía al padre al abrir su panel |
-| `SISTEMA.CAMBIO_MODO` | En CASA: detiene y resetea el temporizador; responde con ACK estándar |
+| `SISTEMA.CAMBIO_MODO` | En CASA: detiene y resetea el temporizador; responde `CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO` (un modo que no es `casa` ni `aventura` recibe `SISTEMA.NACK`) |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Confirma aplicación del modo |
 | `AVENTURA.INICIADA` | Inicia la cuenta atrás con el tiempo recibido |
 | `AVENTURA.FINALIZADA` | Detiene el temporizador |
@@ -3690,7 +3690,7 @@ sequenceDiagram
 **Detalles del handshake**:
 
 - `HIJO_PREPARADO` — el hijo lo envía nada más terminar su inicialización JS, antes de recibir datos.
-- `PADRE_DATOS` — contiene `{ modo, timestamp }` para todos los hijos. Los hijos comprueban defensivamente otros campos (`paradas`, `paradaActual`, `idioma`) pero el padre no los envía en esta fase; esos datos llegan por mensajes posteriores (`DATOS.CARGAR_*`, `CHAT.ESTADO_PADRE`). **Excepción: `hijo6-chat`** recibe además `idioma`/`aventura`/`paradaActualNombre`/`siguienteParadaNombre`/`paradasRestantes` en este mismo mensaje — ver la nota de `hijo6-chat` en §6 y el detalle completo en §7.7.
+- `PADRE_DATOS` — contiene `{ modo, timestamp }` para todos los hijos. Salvo `hijo6-chat`, los hijos solo leen `modo`; los datos de la aventura llegan por mensajes posteriores (`DATOS.CARGAR_*`, `CHAT.ESTADO_PADRE`). **Excepción: `hijo6-chat`** recibe además `idioma`/`aventura`/`paradaActualNombre`/`siguienteParadaNombre`/`paradasRestantes` en este mismo mensaje — ver la nota de `hijo6-chat` en §6 y el detalle completo en §7.7.
 - `HIJO_LISTO` — el hijo confirma que ha procesado los datos. En el padre desencadena `marcarHijoListo(hijoId)`, que resuelve la Promise de `crearPromiseHijoListo(hijoId)`.
 - `PADRE_CONFIRMA_HIJO_LISTO` — señal para que el hijo muestre su UI. Hasta recibirlo la interfaz permanece oculta.
 - **Fallback de 30 s**: si `PADRE_CONFIRMA_HIJO_LISTO` no llega, los hijos críticos muestran su UI igualmente (ver §5 — invariante `_normalizarSetHijos`).
@@ -4846,7 +4846,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-665fd0c35fd8'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f85ecf33ec58'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4894,7 +4894,7 @@ Cuando un iframe hijo carga, ejecuta este protocolo:
 
 ```text
 hijo → padre   SISTEMA.HIJO_PREPARADO
-padre → hijo   SISTEMA.PADRE_DATOS        (ACK + datos iniciales)
+padre → hijo   SISTEMA.PADRE_DATOS        (datos iniciales: el modo)
 hijo → padre   SISTEMA.HIJO_LISTO         (confirma recepción)
 padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 ```
@@ -4916,9 +4916,9 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 |-------|-------|
 | Emitido por | Padre (en respuesta a HIJO_PREPARADO) |
 | Destino | El hijo que envió HIJO_PREPARADO |
-| Payload | `{ modo, timestamp }` |
-| Handler en hijos | hijo2, hijo3, hijo4, hijo1, hijo6 |
-| Acción | Hijo almacena datos iniciales, activa UI, envía HIJO_LISTO |
+| Payload | `{ modo, timestamp }`; para `hijo6-chat` se añade el resultado de `construirEstadoChat()`; `{}` en el envío de `cargarIframeConDatos()` (hijo4 sin cargar aún) |
+| Handler en hijos | pantalla de selección, hijo1, hijo2, hijo3, hijo4, hijo5, hijo6 |
+| Acción | El hijo toma el `modo` (hijo2, hijo3 y hijo4 lo reflejan en la clase del body; hijo1, hijo5 y la selección solo lo escriben en el log; hijo6 fusiona el payload en `estadoPadre` y reconstruye el FAQ) y envía `HIJO_LISTO` — con reintentos hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`, salvo la selección, que lo envía una sola vez. La UI se hace visible al recibir `PADRE_CONFIRMA_HIJO_LISTO` |
 
 ##### SISTEMA.HIJO_LISTO
 
@@ -5126,7 +5126,7 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 | Campo | Valor |
 |-------|-------|
 | Handler en padre | `js/app.js` `_registrarHandlersModo()` |
-| Acción | Registra en `_respuestasEntendidoActual`, envía ACK cosmético |
+| Acción | Registra la respuesta en `_respuestasEntendidoActual` y escribe una línea en el log; no contesta al hijo |
 
 **SISTEMA.CAMBIO_MODO_EFECTUADO** (hijo → padre)
 
@@ -5134,7 +5134,7 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 |-------|-------|
 | Emitido por | hijo1 (en su cambio de modo), hijo2, hijo3, hijo4 |
 | Handler en padre | `js/app.js`, registrado en `_registrarHandlersModo()` |
-| Acción | Registra en `_respuestasEfectuadoActual`, envía ACK cosmético |
+| Acción | Registra la respuesta en `_respuestasEfectuadoActual` y escribe una línea en el log; no contesta al hijo |
 | Nota | hijo6 NO envía CAMBIO_MODO_EFECTUADO — no tiene flujo de efectuado |
 
 **SISTEMA.CAMBIO_MODO_APLICADO** (padre → todos)
@@ -8081,7 +8081,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-665fd0c35fd8'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-f85ecf33ec58'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8819,7 +8819,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-665fd0c35fd8';
+const CACHE_VERSION = 'v-f85ecf33ec58';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10735,7 +10735,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
               (no espera a que todos estén listos — handshake por hijo)
 
 ~650 ms  Cada hijo recibe PADRE_DATOS:
-         → Procesa aventura, idioma y configuración
+         → Procesa el modo (`{ modo, timestamp }`)
          → Envía SISTEMA.HIJO_LISTO al padre
 
 ~700 ms  Padre recibe HIJO_LISTO de cada hijo:
@@ -10980,7 +10980,7 @@ Cada 5 segundos el padre envía `SISTEMA.HEARTBEAT` a todos los iframes de `ifra
                 │
 2. Esperar CAMBIO_MODO_ENTENDIDO de cada hijo           (timeout 5 s)
    Cada hijo confirma que recibió la orden.
-   El padre responde con ACK a cada ENTENDIDO.
+   El padre anota cada ENTENDIDO (`_respuestasEntendidoActual`); no lo contesta.
                 │
 3. Esperar CAMBIO_MODO_EFECTUADO de cada hijo           (timeout 10 s)
    Cada hijo confirma que ya aplicó el cambio visualmente.
@@ -11115,7 +11115,7 @@ El iframe más complejo. Gestiona las pantallas del flujo de incorporación (sel
 | Dirección | Tipo de mensaje | Cuándo |
 |-----------|----------------|--------|
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al cargarse |
-| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Con aventura e idioma disponibles |
+| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — `{ modo, timestamp }`; el idioma y la aventura salen de la propia pantalla (`SELECCION.IDIOMA_SELECCIONADO`, `SELECCION.AVENTURA_SELECCIONADA`) |
 | Hijo → Padre | `SELECCION.IDIOMA_SELECCIONADO` | Al confirmar idioma |
 | Hijo → Padre | `SELECCION.AVENTURA_SELECCIONADA` | P7: al elegir aventura (padre solo almacena estado) |
 | Hijo → Padre | `SELECCION.PREPARAR_HIJOS` | P9: al confirmar aventura (padre almacena estado) |
@@ -11131,7 +11131,7 @@ Panel lateral con un botón "Más opciones" que despliega iconos flotantes de ac
 | Dirección | Tipo de mensaje | Cuándo |
 |-----------|----------------|--------|
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al cargarse |
-| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Con idioma y aventura activa |
+| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — `{ modo, timestamp }`; el panel solo registra el modo en el log |
 | Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Muestra en AVENTURA, oculta en CASA |
 | Hijo → Padre | (toggle temporizador) | Al pulsar `#icono-temporizador` |
 
@@ -11142,7 +11142,7 @@ Controla la detección de proximidad GPS, los 6 botones de acción (avanzar, ima
 | Dirección | Tipo de mensaje | Cuándo |
 |-----------|----------------|--------|
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al cargarse |
-| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Con coordenadas de toda la aventura |
+| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — `{ modo, timestamp }`; las coordenadas llegan después, en `DATOS.CARGAR_COORDENADAS` |
 | Hijo → Padre | `DATOS.SOLICITAR_COORDENADAS` | Solicita el array completo de elementos del recorrido |
 | Padre → Hijo | `DATOS.CARGAR_COORDENADAS` | Entrega el array de paradas, tramos y referencias |
 | Hijo → Padre | `NAVEGACION.GPS.ACTIVAR` | Al pulsar el botón GPS (`#btnAvanzar`) |
@@ -11185,7 +11185,7 @@ Iframe transparente anclado a la franja superior (`top:3px; height:22vh; width:9
 | Dirección | Tipo de mensaje | Cuándo |
 |-----------|----------------|--------|
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al cargarse |
-| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Con la lista de paradas y sus nombres |
+| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — `{ modo, timestamp }`; el hijo pide la lista de paradas después (`NAVEGACION.SOLICITAR_DATOS_PARADAS`) y llega en `NAVEGACION.RESPUESTA_DATOS_PARADAS` |
 | Padre → Hijo | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Datos detallados de todas las paradas |
 | Hijo → Padre | `NAVEGACION.CAMBIO_PARADA` | Al pulsar una parada en la lista |
 | Hijo → Padre | `SISTEMA.CAMBIO_MODO` | Al pulsar el botón 🏠 OFF (volver a CASA) |
@@ -11304,7 +11304,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 
 | Mensaje (`TIPOS_MENSAJE.*`) | Va a | Cuándo se envía | Propósito |
 |---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Hijo específico | En respuesta a `HIJO_PREPARADO` (handshake) | Entregar el paquete de datos inicial a cada hijo |
+| `SISTEMA.PADRE_DATOS` | Hijo específico | En respuesta a `HIJO_PREPARADO` (handshake) | Entregar el modo inicial (`{ modo, timestamp }`) a cada hijo |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hijo específico | En respuesta a `HIJO_LISTO` | Confirmar que el padre tomó nota de que el hijo está listo |
 | `SISTEMA.CAMBIO_MODO` | Todos los hijos | Cuando el usuario cambia de modo (CASA/AVENTURA — los únicos dos que existen, `MODOS.CASA`/`MODOS.AVENTURA` en `js/constants.js`) | Iniciar el protocolo de cambio de modo; los hijos deben adaptar su interfaz |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | **Todos los hijos** (broadcast) | Cuando el último hijo confirma `CAMBIO_MODO_EFECTUADO` | Cerrar la 4.ª fase del protocolo de modo en todos los hijos simultáneamente |
@@ -11328,7 +11328,7 @@ Primera pantalla visible para el usuario. Cubre toda la ventana (`z-index:2000`)
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre (handshake) | Recibe configuración inicial; prepara las 17 pantallas con el idioma por defecto | `SISTEMA.HIJO_LISTO` | Padre | Sin este paquete no puede cargar textos ni aventuras correctamente |
+| `SISTEMA.PADRE_DATOS` | Padre (handshake) | Recibe `{ modo, timestamp }`; escribe el modo en el log y envía `HIJO_LISTO` una sola vez (un `PADRE_DATOS` repetido se omite) | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el idioma y la aventura los elige la propia pantalla |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; la pantalla queda lista para interacción del usuario | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Cumple el protocolo (sin efecto visual — esta pantalla gestiona su visibilidad propia) | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Participar en el ciclo de vida del modo aunque no cambie de pantalla internamente |
 | `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
@@ -11358,7 +11358,7 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre (handshake) | Guarda el idioma y la aventura activa; inicializa el botón y los iconos | `SISTEMA.HIJO_LISTO` | Padre | Recibir el contexto para mostrar los iconos correctos |
+| `SISTEMA.PADRE_DATOS` | Padre (handshake) | Recibe `{ modo, timestamp }`; escribe el modo en el log y envía `HIJO_LISTO` con reintentos | `SISTEMA.HIJO_LISTO` | Padre | Handshake |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; el botón queda interactivo | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | En modo `AVENTURA` se muestra; en `CASA` se oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | El panel solo tiene sentido durante la aventura |
 | `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
@@ -11368,7 +11368,7 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 | Mensaje | Va a | Cuándo | Propósito |
 |---|---|---|---|
 | `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
-| `SISTEMA.HIJO_LISTO` | Padre | Tras inicializarse | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras recibir `PADRE_DATOS` (se reenvía cada segundo, hasta 30 veces, mientras no llegue `PADRE_CONFIRMA_HIJO_LISTO`) | Handshake |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
@@ -11383,8 +11383,8 @@ Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y 
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre | Guarda configuración; solicita `DATOS.SOLICITAR_COORDENADAS`; inicializa el estado de los 6 botones | `SISTEMA.HIJO_LISTO` | Padre | Sin datos de coordenadas no puede calcular proximidad |
-| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Libera el confirmListener; el componente queda listo para interacción | (ninguna) | — | Finalizar handshake |
+| `SISTEMA.PADRE_DATOS` | Padre | Recibe `{ modo, timestamp }`; normaliza el modo (`casa`/`aventura`), lo guarda en `estadoComponente.modo`, pone al body la clase `modo-X hijo2-container` y refresca los 6 botones; envía `HIJO_LISTO` con reintentos | `SISTEMA.HIJO_LISTO` | Padre | Handshake — las coordenadas llegan después, en `DATOS.CARGAR_COORDENADAS` |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Cancela el reintento de `HIJO_LISTO`, aplica `modoInicial` si viene (y refresca los botones), muestra la UI y, si a los 3 s las coordenadas o los textos de la aventura no han llegado, los solicita al padre | `DATOS.SOLICITAR_COORDENADAS` / `DATOS.SOLICITAR_TEXTOS` (solo si faltan) | Padre | Finalizar handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Adapta el estado de los botones al modo | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Ajustar comportamiento de botones según modo AVENTURA/CASA |
 | `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
 | `NAVEGACION.CAMBIO_PARADA` | Padre | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea estado de llegada y distancia; refresca el estado de los 6 botones (`actualizarEstadoBotones`) | (ninguna directa) | — | Actualizar el elemento vigilado por los detectores de proximidad GPS |
@@ -11399,11 +11399,11 @@ Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y 
 | Mensaje | Va a | Cuándo | Propósito |
 |---|---|---|---|
 | `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
-| `SISTEMA.HIJO_LISTO` | Padre | Tras procesar datos de coordenadas | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras procesar `PADRE_DATOS` (se reenvía cada segundo, hasta 30 veces, mientras no llegue `PADRE_CONFIRMA_HIJO_LISTO`) | Handshake |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
-| `DATOS.SOLICITAR_COORDENADAS` | Padre | Tras recibir `PADRE_DATOS` | Pedir datos del recorrido |
+| `DATOS.SOLICITAR_COORDENADAS` | Padre | A los 3 s de `PADRE_CONFIRMA_HIJO_LISTO`, solo si `__vv_coordenadasAventura` sigue vacío | Pedir datos del recorrido |
 | `NAVEGACION.GPS.ACTIVAR` | Padre | Al pulsar el botón `#btnAvanzar` | Solicitar al padre que active la progresión y el GPS; el padre gestiona GPS nativo |
 | `NAVEGACION.GPS.RESTRINGIDO` | Padre | Cuando la API de geolocalización devuelve error de permiso | Notificar al padre que GPS fue denegado por el usuario |
 | `NAVEGACION.LLEGADA_DETECTADA` | Padre | Para **paradas**: distancia ≤ `RADIO_PARADA=15 m` (hardcodeado en `_detectarLlegadaParada()`). Para **tramos**: distancia ≤ `radioLlegada` = 15 m — el mismo radio que una parada **y** que el círculo naranja que el usuario ve — **y** `recorridoSuficiente`. El mensaje incluye `tipoParada: 'parada'/'tramo'`. | Marcar `pending.llegada=true` en el padre para habilitar la condición de completado de la parada/tramo (requiere llegada + audio + reto) |
@@ -11418,7 +11418,7 @@ Gestiona la reproducción del audio de guía de cada parada. Invisible para el u
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre | Guarda datos de aventura; prepara el elemento `<audio>` | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el audio en sí llega después, parada a parada |
+| `SISTEMA.PADRE_DATOS` | Padre | Recibe `{ modo, timestamp }`; con el modo llama a `sincronizarSeekPorModo(modo)` (clase del body y habilitación de la barra de progreso) y envía `HIJO_LISTO` con reintentos | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el audio en sí llega después, parada a parada |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Pausa y resetea el audio en curso (`currentTime=0`, barra a 0%) **siempre que hay reproducción activa, sea cual sea el modo destino** — no solo al entrar en CASA; actualiza `estado.modo.actual` y llama a `sincronizarSeekPorModo(modo)` (clase CSS del body + recalcula si se puede arrastrar la barra de progreso) | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Ningún audio a medias sobrevive un cambio de modo, en cualquier dirección — el usuario siempre lo retoma desde cero |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
@@ -11446,7 +11446,7 @@ Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuabl
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre | Guarda datos; prepara la UI | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el reto en sí llega después, parada a parada |
+| `SISTEMA.PADRE_DATOS` | Padre | Recibe `{ modo, timestamp }` (o `{}`, si lo manda `cargarIframeConDatos()`); con el modo llama a `sincronizarEstadoModo(modo)` (`estado.modo.actual` y clase del body) y envía `HIJO_LISTO` con reintentos | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el reto en sí llega después, parada a parada |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Oculta/muestra el reto según el modo | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Adaptar la visibilidad del reto al modo activo |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
@@ -11476,8 +11476,8 @@ Herramienta de desarrollo. El iframe arranca oculto (`display:none; visibility:h
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre | Guarda configuración; envía `NAVEGACION.SOLICITAR_DATOS_PARADAS` al padre para obtener la lista de paradas; inicializa la barra | `SISTEMA.HIJO_LISTO` | Padre | Sin los datos de paradas no puede renderizar los botones de navegación |
-| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; la barra queda interactiva | (ninguna) | — | Handshake |
+| `SISTEMA.PADRE_DATOS` | Padre | Recibe `{ modo, timestamp }`; escribe el modo en el log (no sincroniza el botón GPS) y envía `HIJO_LISTO` con reintentos; si se agotan, muestra la UI como último recurso | `SISTEMA.HIJO_LISTO` | Padre | Handshake — las paradas se piden después, al recibir `PADRE_CONFIRMA_HIJO_LISTO` |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Cancela el reintento de `HIJO_LISTO`, sincroniza el botón GPS con `modoInicial`, muestra la UI y pide las paradas al padre | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Padre | Finalizar handshake y poblar la barra |
 | `SISTEMA.CAMBIO_MODO` | Padre | En `AVENTURA` muestra la barra; en `CASA` la oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | La barra solo es visible durante la aventura |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre | Renderiza los botones de parada/tramo con emoji, código corto y nombre completo; activa el efecto marquee si el nombre no cabe | (ninguna) | — | Poblar la barra con los botones navegables de la aventura |
@@ -11487,11 +11487,11 @@ Herramienta de desarrollo. El iframe arranca oculto (`display:none; visibility:h
 | Mensaje | Va a | Cuándo | Propósito |
 |---|---|---|---|
 | `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
-| `SISTEMA.HIJO_LISTO` | Padre | Tras recibir datos y renderizar los botones | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras recibir `PADRE_DATOS` (se reenvía cada segundo, hasta 30 veces, mientras no llegue `PADRE_CONFIRMA_HIJO_LISTO`) | Handshake |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
-| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Padre | Tras `PADRE_DATOS` | Pedir la lista completa de paradas para renderizar botones |
+| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Padre | Al recibir `PADRE_CONFIRMA_HIJO_LISTO`, al recibir `CAMBIO_MODO` a `aventura` (forzada) y al volver la pestaña a primer plano si aún no hay botones; sin forzar, en `aventura` sin ubicación de usuario se omite | Pedir la lista completa de paradas para renderizar botones |
 | `NAVEGACION.CAMBIO_PARADA` | Padre | Al pulsar un botón de parada o tramo | Ordenar al padre que cambie la parada activa |
 | `SISTEMA.CAMBIO_MODO` | Padre | Al pulsar el botón 🏠 GPS-OFF | Solicitar vuelta al modo `CASA` |
 | `VV:PARADAS:READY` | Padre | Cuando el contenedor de paradas está en el DOM | El padre inyecta estilos directamente para mantener la transparencia del iframe |
@@ -11586,7 +11586,7 @@ Cada hijo mantiene su UI con `display: none` hasta recibir `PADRE_CONFIRMA_HIJO_
 Los hijos reenvían `HIJO_LISTO` periódicamente hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`:
 
 - **Reintentos activos:** el hijo solicita confirmación de forma activa, no espera pasivamente
-- **El hijo ya tiene datos:** cuando envía `HIJO_LISTO` ya recibió `PADRE_DATOS` con aventura e idioma
+- **El hijo ya tiene el modo:** cuando envía `HIJO_LISTO` ya recibió `PADRE_DATOS` (`{ modo, timestamp }`); los datos de la aventura llegan después, por mensajes específicos
 - **Funciona en dispositivos lentos:** reintenta hasta recibir respuesta, sin límite de tiempo arbitrario
 - **Fallback de seguridad:** después de 30 reintentos (30 segundos) muestra la UI como último recurso
 
@@ -12175,7 +12175,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-665fd0c35fd8';
+const CACHE_VERSION = 'v-f85ecf33ec58';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13975,10 +13975,10 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_setTimerProgresoCarga` | clásico 3 (L2505) | módulo 7 | función/objeto |
 | `mostrarMapaVintage` | clásico 3 (L2525) | módulo 7 | función/objeto |
 | `x` | clásico 3 (L2498) | módulo 7 | estado |
-| `aventuraSeleccionada` | módulo 7 (L2961) | clásico 3 | función/objeto |
+| `aventuraSeleccionada` | módulo 7 (L2959) | clásico 3 | función/objeto |
 | `enviarValoracion` | módulo 7 (L2551) | clásico 3 | función/objeto |
-| `idiomaSeleccionado` | módulo 7 (L2890) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 7 (L2957) | clásico 3 | función/objeto |
+| `idiomaSeleccionado` | módulo 7 (L2888) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 7 (L2955) | clásico 3 | función/objeto |
 | `TEXTOS_VALORACION` | módulo 7 (L2549) | clásico 3 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 7 (L2589) | clásico 3 | función/objeto |
 | `TRADUCCIONES_ACCESO_ERRONEO` | módulo 7 (L2548) | clásico 3 | función/objeto |
