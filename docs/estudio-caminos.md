@@ -1706,6 +1706,12 @@ propósito". Método: `ficherosDelShell()` contra el literal de `APP_SHELL`.
   nadie asigna. El spec 38 PB-2 tampoco podía fallar (K-23, `b6affee`). El spec 71 OB-3 tenía una carrera
   propia con la reconstrucción del FAQ de hijo6 (reproducida también sobre `origin/main`), corregida en
   `5c52038` con mutación como prueba (K-45).
+  El spec `114` (modo de datos por capacidad, el `page.route` de `**/api/health` de la lista de arriba) era rojo en firefox y en
+  webkit y ciego en ellos (M-19): en local `sw.js` contesta cada GET con un `fetch` propio y `page.route` no ve lo que pide un service
+  worker fuera de chromium, así que el `/api/health` interceptado no llegaba a la página y contestaba el servidor real (502 del proxy):
+  MD-2 recibía `false` y MD-5 seguía verde con el corte de 2,5 s cambiado a 20 s. Con `test.use({ serviceWorkers: 'block' })`, como
+  ya hacía el spec `89`, pasa 20 de 20 en los cuatro proyectos y cada rotura de `js/data-loader.js` pone en rojo su caso en los
+  cuatro (`03408b7`; la guía lo anota en §36.26).
 
 ##### K-33 — CSS, DOM y redirecciones — ➖ con restos 🔎
 
@@ -2764,8 +2770,8 @@ Para que "no sale nada" no se confunda con "no se miró":
 
 ### R2.4 Las mediciones (hechas el 2026-10-02)
 
-Las doce mediciones que la ronda 2 dejó "POR MEDIR" (M-1 a M-12) y seis más que salieron al arreglar
-(M-13 a M-18) se ejecutaron el 2026-10-02, salvo M-8, que es de campo. Se hicieron con el OK del
+Las doce mediciones que la ronda 2 dejó "POR MEDIR" (M-1 a M-12) y siete más que salieron al arreglar
+(M-13 a M-19) se ejecutaron el 2026-10-02 —M-19, pasada la medianoche, el 2026-10-03—, salvo M-8, que es de campo. Se hicieron con el OK del
 usuario ("ok a todo, revisa y arregla"), sin nada más corriendo (regla 5) y con specs desechables en
 chromium sobre la app real (el padre con el stub de MapLibre y los hijos reales). Los specs de medición
 no se versionan: cada fila dice qué se hizo, que es lo que hay que repetir. Donde la medición pedía una
@@ -2793,6 +2799,7 @@ después.
 | M-16 | K-35 | (nueva, salió al cerrar) ¿Recibe el padre algún `SISTEMA.HEARTBEAT`? Con el padre y los hijos reales, un `message` en captura en el padre para todo `SISTEMA.HEARTBEAT` que llegue de otra ventana y un espía de `despacharLocal`, durante el arranque, la carga de los hijos, el paso a AVENTURA y a CASA y un `visibilitychange` | `entrantes: []` y `locales: 0`; 18 `SISTEMA.HEARTBEAT_RESPONSE` en la misma ventana, como control de que el oyente ve lo que llega de los hijos. ✅ confirmada y corregida (`e3a9cff`) |
 | M-17 | K-47 | (nueva, salió al cerrar) Clase del `body` de hijo2, hijo3 y hijo4 tras el arranque, tras pasar a AVENTURA, tras volver a CASA y de nuevo a AVENTURA (el padre cambia el modo con `despacharLocal`) | `hijo2`: `modo-casa hijo2-container` las cuatro veces; `hijo3` y `hijo4` siguen el modo (`modo-casa`, `modo-aventura`, `modo-casa`, `modo-aventura`). ✅ confirmada; decisión abierta |
 | M-18 | K-48 | (nueva, salió al cerrar) En hijo5 con tres botones de parada: clases y estilo calculado del botón tras un `NAVEGACION.CAMBIO_PARADA` del padre, tras un click real y tras un `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` con la forma de `completarCambioParada()` (`paradaId` con y sin prefijo `padre-`) | `CAMBIO_PARADA`: el botón 2 gana la clase `activa` y su estilo calculado no cambia; click: el botón 3 gana `actual` y su estilo cambia; `CAMBIO_PARADA_CONFIRMADO`: `actual` desaparece y el estilo vuelve al anterior, con las dos formas del id; ningún botón tiene `data-padreid`. ✅ confirmada; decisión abierta |
+| M-19 | K-32 | (nueva, salió de la tanda de cuatro navegadores) El spec `114` antes (el de `HEAD`) y después de bloquear el service worker, con tres roturas de `js/data-loader.js` provocadas una a una (`return resp.ok` → `return false`, → `return true`, corte de 2500 → 20000 ms; el módulo se restaura siempre y `git diff --quiet` da 0), en chromium, firefox, pixel5 e iphone12 con un solo worker | Antes: sin rotura, MD-2 rojo en firefox e iphone12 (recibe `false`); `→ false`, MD-2 rojo en los cuatro; `→ true`, MD-3 y MD-4 rojos en los cuatro y MD-5 también en firefox e iphone12; corte de 20000, MD-5 rojo solo en chromium y pixel5 (en firefox e iphone12 sigue verde). Después: sin rotura, 20 de 20; `→ false`, MD-2 rojo en los cuatro; `→ true`, MD-3 y MD-4 rojos en los cuatro; corte de 20000, MD-5 rojo en los cuatro. ✅ confirmada y corregida (`03408b7`) |
 
 ### R2.5 Discrepancias entre la guía (o comentarios de código) y el código — para decidir
 
@@ -2939,7 +2946,7 @@ usuario (K-24, K-25), lo que puede dejar un estado equivocado (K-07, K-11, K-19)
 configuración, una constante o un contador no mande ni cuente (K-01 a K-03, K-37, K-38) y las ramas del
 contrato del bus que ningún emisor alcanza, algunas descritas por la guía como caminos vivos (K-35,
 K-36, G-9 a G-11). **Tras la tanda de arreglos son 48 entradas** (K-45 a K-48 se encontraron al cerrar): se
-hicieron las 17 mediciones posibles (M-8 es de campo), K-07 y K-32 dejan de estar «por medir», y el
+hicieron las 18 mediciones posibles (M-8 es de campo), K-07 y K-32 dejan de estar «por medir», y el
 resultado por entrada y las decisiones que siguen abiertas están en R2.8.
 
 **Límites de esta ronda — qué no garantiza:**
@@ -2975,7 +2982,7 @@ resultado por entrada y las decisiones que siguen abiertas están en R2.8.
 - El barrido de recursos locales no resuelve los literales con `${…}` (16) ni mira los módulos de
   datos; el de i18n compara forma, marcadores y vacías, no la calidad ni la corrección de cada
   traducción (eso es trabajo de revisión nativa).
-- Se ejecutaron 17 de las 18 mediciones de R2.4; M-8, el reintento de señal con el GPS en frío, es una
+- Se ejecutaron 18 de las 19 mediciones de R2.4; M-8, el reintento de señal con el GPS en frío, es una
   prueba de campo y queda sin medir.
 - `handlers-solo-log.cjs` cuenta como efecto cualquier llamada a una función que no sea de log, aunque esa función no haga nada (falso
   negativo), y como solo-log un handler cuyo único efecto es no estar registrado; lo que lista se confirma leyendo el handler (K-46).
@@ -3044,6 +3051,10 @@ pegado para repetir cada comprobación, es del usuario.
 | `524669d` | `guia-fichas-mensaje` y `guia-payloads`; `guia-handlers-por-frame` mira también §7 y §8; `extract-payload` y `extract-discriminadores` sin `TIPOS_MENSAJE_VALIDOS` | K-34, G-43 |
 | `bddb51c` | guía: siete nombres citados que no existen en el código | G-44 |
 | `38bed4d` | `guia-nombres-citados` | G-44 |
+| `7f9deff` | este documento: G-44, el instrumento de nombres citados y las clases de la interfaz y de los scripts barridas sin hallazgo | G-44 |
+| `03408b7` | spec `114` sin service worker (`serviceWorkers: 'block'`); la guía anota el caso en §36.26 | K-32 (M-19) |
+
+**Tandas completas al cierre.** chromium: 532 de 532 (9,8 min). Cuatro proyectos (chromium, firefox, pixel5, iphone12): 2125 de 2128 (49 min). Los tres rojos: el spec `114` MD-2 en firefox y en iphone12 —determinista, un solo worker, del arnés y no del código: `page.route` no ve lo que pide el service worker (K-32, M-19)— y el spec `30` CM-6 en firefox, un `page.evaluate` que agotó los 60 s: aislado pasa 3 de 3 en firefox y en esa franja el registro del sistema no tiene eventos de suspensión (`Kernel-Power`), así que no se ha establecido la causa.
 
 **Resultado por entrada.**
 
@@ -3081,4 +3092,4 @@ pegado para repetir cada comprobación, es del usuario.
 | K-47 | clase del `body` de hijo2 | A) escribirla también al cambiar de modo; **B) retirar la regla y la clase de hijo2** | A sí (el botón de avanzar activo pulsa en AVENTURA); B no |
 | K-48 | resalte de la parada activa en hijo5 | **A) una sola función que marque `actual`, llamada por el click, la generación y los dos handlers**; B) dejar solo el click y la generación y retirar los dos handlers de marcado; C) dejarlo | A y B sí, solo en la herramienta de desarrollo (hijo5); C no |
 
-**Límites residuales** (los de R2.7 siguen valiendo). M-8 es de campo y no se midió. M-14 a M-18 se midieron en chromium con el stub de MapLibre y recorren el arranque, la apertura del asistente y los cambios de modo, no todos los flujos de la aventura; que `PADRE_DATOS` tiene solo dos emisores lo dice la búsqueda desnuda, no la medición. El efecto de K-24 con una aventura no española en vivo no se midió: se deduce de las tres líneas de código. Cada borrado se apoya en búsqueda desnuda y lectura del llamador; un acceso por clave computada (`obj['nombre']`) no lo ve ninguna de las dos (límite del instrumento de exports, K-42). Los verificadores corregidos en K-34 imprimen su residuo, pero siguen siendo análisis estático.
+**Límites residuales** (los de R2.7 siguen valiendo). M-8 es de campo y no se midió. M-14 a M-18 se midieron en chromium con el stub de MapLibre (M-19, en los cuatro proyectos) y recorren el arranque, la apertura del asistente y los cambios de modo, no todos los flujos de la aventura; que `PADRE_DATOS` tiene solo dos emisores lo dice la búsqueda desnuda, no la medición. El efecto de K-24 con una aventura no española en vivo no se midió: se deduce de las tres líneas de código. Cada borrado se apoya en búsqueda desnuda y lectura del llamador; un acceso por clave computada (`obj['nombre']`) no lo ve ninguna de las dos (límite del instrumento de exports, K-42). Los verificadores corregidos en K-34 imprimen su residuo, pero siguen siendo análisis estático.
