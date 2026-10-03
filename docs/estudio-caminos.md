@@ -2812,6 +2812,12 @@ Para que "no sale nada" no se confunda con "no se miró":
   (los dos que no, `.browserslistrc` y `.gitattributes`, son ficheros). Las frases «Script N» de la guía sobre funciones de `codigo-padre.html`
   (55 comprobadas contra el bloque `<script type="module">` donde está cada definición): ninguna sitúa una función en otro bloque; las seis
   que el script marcó nombran en la misma línea una función de otro bloque y son falsos positivos leídos a mano.
+- **Lo que la guía da como valor de una constante (barrido de cierre).** Las constantes en `MAYUSCULAS_CON_GUION_BAJO` que la guía cita entre backticks, fuera de los bloques
+  de código, con un número a continuación (`(3)`, `= 15`, `20 s`, `10.000ms`): 24 menciones de 21 constantes. Búsqueda del identificador desnudo en `*.html` y `js/*.js` y
+  lectura de su declaración: las 15 que son plazos, radios y contadores coinciden con el código (`MAX_LATIDOS_SIN_RESPUESTA` 3, `PLAZO_MAX_HANDLER` 20 000,
+  `RADIO_PARADA` y `RADIO_LLEGADA_PARADA_M` 15, los `RECORDATORIO_*` 10 000, 20 000 y 2 000, `MAX_INTENTOS_AVISO_PROGRESO` 5, `MAX_REINTENTOS_GPS` 3, `INTERVALO_METRICAS`
+  30 000 ms, `MAX_REINTENTOS_ENVIO_AUDIO` 2) y las seis `TRADUCCIONES_*` dicen 12, que es lo que tienen (`js/traducciones-ui.js:396, 418, 448, 463, 530, 681`,
+  contadas con el parser). Límite: solo ve el valor escrito junto al nombre; un umbral citado sin su nombre («50 m») no se compara.
 
 ### R2.4 Las mediciones (hechas el 2026-10-02)
 
