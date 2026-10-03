@@ -42,6 +42,14 @@ de JavaScript de las páginas, de `js/*.js` y de `sw.js`, contra el código sin 
 no aparecen: son candidatos, se confirman leyendo la frase o el comentario (un comentario que cuenta lo que se retiró es legítimo; uno que lo da
 por vivo no).
 
+`guia-narracion` tampoco necesita ninguno y es la excepción de este directorio: **busca por patrón, no con `acorn`**. Lista las frases de la guía que
+cuentan un cambio en vez de describir lo que hay («ya no …», «antes … ahora …», «se retiró», imperfectos de incidente, «reporte de campo», fechas,
+enlaces a la memoria privada). Tiene una familia dura y una blanda (cualquier imperfecto, «antes» sin «de», «ahora», «sigue siendo»: casi todo flujo
+legítimo, y donde se esconde lo que las duras no ven). Lo que lista son candidatos que se leen uno a uno, y que una frase no salga no prueba que no
+cuente un cambio. Por eso lleva `--autoprueba` (casos que deben casar y casos que no, sale con 1 si alguno falla: es lo que atrapó que `\b` no es
+frontera tras una vocal acentuada seguida de espacio, y con él «se retiró», «se eliminó» y «se añadió» no salían nunca), `--solo-duras` para la guía
+entera y `--desde=HEAD` para revisar solo lo que se acaba de escribir.
+
 Independientes: `extract-storage`, `extract-payload`, `extract-discriminadores`, `extract-idiomas`, `barrido-constants`,
 `barrido-i18n`, `i18n-completitud`, `paginas-idiomas`, `barrido-css-dom`, `barrido-clases`, `ids-duplicados`, `api-keys`,
 `estado-solo-escritura`, `exports-sin-uso`, `exports-tokens`, `globals-fantasma`, `globals-fantasma-lecturas`, `globals-por-frame`,
