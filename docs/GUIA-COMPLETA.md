@@ -6100,6 +6100,8 @@ Como en el resto de la capa `fetch`, el navegador bloquea la lectura de la respu
 
 El destino real de cada envío (URL, identificadores de campo) vive únicamente en las constantes internas del propio fichero — no se reproduce en esta guía por ser un documento público (§22.15); cualquier cambio de destino se hace editando ese módulo directamente.
 
+Mientras no exista el backend (§16), estos dos formularios son el único camino de entrega de las sugerencias y las valoraciones. Con el backend, los dos envíos pasan a una ruta `/api/...` del mismo origen —como `data-loader.js` y `api-client.js`— y `https://docs.google.com` deja de hacer falta en el `connect-src` de la CSP de `codigo-padre.html` (§26.8, §22.0 tarea 21).
+
 ---
 
 ### 10.22 Parámetros URL como canal de configuración
@@ -7435,6 +7437,7 @@ La carpeta `backend/` **no existe todavía**. El backend con API REST autenticad
 - Express (framework web)
 - JWT para proteger acceso a datos de aventuras
 - Validación de código de activación
+- Recogida de las sugerencias y valoraciones que hoy van a dos Google Forms (§10.21)
 
 **Los endpoints no son una lista a inventar: el frontend ya los pide.** `js/api-client.js` construye estas 17 rutas, y `js/data-loader.js` una más que aquel no cubre. Un backend que solo sirva «coordenadas, retos, textos y audios» se queda corto desde el primer arranque:
 
@@ -8526,6 +8529,7 @@ Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌
 | 18 | Fusionar las dos rutas de red: `data-loader.js` debe usar `fetchWithRetry()` de `api-client.js` en vez de su propio `fetch` sin reintento ni timeout. Decidir antes la forma de la respuesta de éxito (`data.exito` vs `!data.error`) | §16.1b | ⏳ pendiente |
 | 19 | El botón "Actualizar" no puede forzar la versión nueva: el borde descarta la query string y la copia dura 10 min | §19 (cache-busting) | ✅ **restricción aceptada** — medido y asumido |
 | 20 | Ningún test carga los hijos como **iframes reales** dentro de `codigo-padre.html`: todos los cargan como página de nivel superior con `postMessage` sintético. Es posible hoy en local —`_hdl_SELECCION_P14_MOSTRADA` es un handler normal y basta con enviarle el mensaje— pero está sin escribir | §7.1 (modelo P14) | ⏳ pendiente |
+| 21 | Pasar las sugerencias y valoraciones de los dos Google Forms al backend propio —ruta `/api/...` del mismo origen— y quitar `https://docs.google.com` del `connect-src` de la CSP de `codigo-padre.html` | §10.21, §26.8 | ❌ bloqueada — sin backend no hay quien reciba los envíos |
 
 ---
 
@@ -11161,8 +11165,8 @@ Un mensaje de una página externa maliciosa es descartado sin dejar rastro. Cada
 `codigo-padre.html` incluye una cabecera Content-Security-Policy que:
 
 - Solo permite scripts de `'self'` (`script-src 'self' 'unsafe-inline'`) — sin orígenes externos
-- Solo permite estilos de `'self'` y Google Fonts (`fonts.googleapis.com`)
-- `connect-src` restringido a `'self'` más una lista explícita de destinos concretos: los proveedores de teselas del mapa (`tiles.openfreemap.org`, `server.arcgisonline.com`, `*.tile.openstreetmap.org`) y `docs.google.com` (envíos de §10.21 — buzón de sugerencias y valoraciones). Nada más está permitido; añadir un nuevo destino de red desde `codigo-padre.html` requiere sumarlo aquí explícitamente o el navegador lo bloquea en silencio.
+- Solo permite estilos y fuentes de `'self'` (los estilos en línea, por `'unsafe-inline'`; §22.2) — sin orígenes externos
+- `connect-src` restringido a `'self'` más una lista explícita de destinos concretos: los proveedores de teselas del mapa (`tiles.openfreemap.org`, `server.arcgisonline.com`, `*.tile.openstreetmap.org`) y `docs.google.com` (envíos de §10.21 — buzón de sugerencias y valoraciones; ese destino sale de la lista cuando los envíos pasen al backend propio, §22.0 tarea 21). Nada más está permitido; añadir un nuevo destino de red desde `codigo-padre.html` requiere sumarlo aquí explícitamente o el navegador lo bloquea en silencio.
 - Convierte HTTP → HTTPS (`upgrade-insecure-requests`)
 
 > **Sin CDN de librerías:** MapLibre GL (el único motor de mapas que usa `codigo-padre.html` — no carga Leaflet) se sirve desde `js/vendor/`, lo que permite que `script-src` y `style-src` no necesiten `https://unpkg.com` ni `https://cdnjs.cloudflare.com`, reduciendo la superficie de ataque de supply-chain. Esos dos orígenes sí los usan `mapa-completo.html` y `video-intro.html` para su propio Leaflet — pero ninguno de los dos tiene cabecera CSP propia, así que no aplica. `connect-src` sí necesita destinos externos concretos (teselas de mapa, formularios) — ver punto anterior.
