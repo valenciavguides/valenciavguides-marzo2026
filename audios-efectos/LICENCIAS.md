@@ -17,4 +17,4 @@ Los cuatro efectos de esta carpeta proceden de Pixabay (<https://pixabay.com/>),
 
 ## Modificaciones
 
-Recodificados a 128 kbps CBR (MPEG-1 Capa III) con `ffmpeg -i entrada.mp3 -c:a libmp3lame -b:a 128k salida.mp3`. Misma frecuencia de muestreo, mismos canales y misma duración que los originales; sin recortes. `sonido_eleccion_respuesta_reto.mp3` lleva además 5 dB de ganancia (`-af volume=5dB`) para acercarse al nivel de los otros tres; los otros tres conservan el nivel de su original. Ver la guía, §12, «Efectos de sonido».
+Recodificados a 128 kbps CBR (MPEG-1 Capa III) con `ffmpeg -i entrada.mp3 -c:a libmp3lame -b:a 128k salida.mp3`. Misma frecuencia de muestreo, mismos canales y misma duración que los originales; sin recortes. `sonido_eleccion_respuesta_reto.mp3` lleva además compresión suave y ganancia para quedar a la altura de los otros tres (`-af "acompressor=threshold=0.05:ratio=3:attack=2:release=120:makeup=6.5,alimiter=limit=0.944:attack=1:release=30:level=0"`, aplicado sobre el original de 256 kbps); los otros tres conservan el nivel de su original. Ver la guía, §12, «Efectos de sonido».
