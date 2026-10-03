@@ -7618,12 +7618,12 @@
                     globalThis._detenerRecordatorioAudio?.();
                     globalThis._detenerRecordatorioSaltarAudio?.();
                     globalThis._detenerRecordatorioReto?.();
-                    // Mismo motivo: los carteles de "fuera de rango" (gps-out-of-range-overlay,
-                    // foto-fuera-rango-overlay, foto-lejos-overlay) pudieron quedar en pantalla
-                    // desde AVENTURA — nada los cierra solos al cambiar de modo, así que si
-                    // seguían visibles se quedaban pegados en CASA indefinidamente (reporte de
-                    // uso real 2026-08-10). estado.usuarioFueraRango también se resetea, para
-                    // que no se reactiven controles/mensajes basados en un fuera-de-rango que
+                    // Mismo motivo: los seis carteles de distancia y precisión GPS (gps-out-of-range-overlay,
+                    // foto-perdido-overlay, foto-lejos-overlay, foto-desviado-overlay, foto-fuera-rango-overlay
+                    // y gps-precision-overlay) pudieron quedar en pantalla desde AVENTURA — nada los cierra
+                    // solos al cambiar de modo, así que si seguían visibles se quedaban pegados en CASA
+                    // indefinidamente (reporte de uso real 2026-08-10). estado.usuarioFueraRango también se
+                    // resetea, para que no se reactiven controles/mensajes basados en un fuera-de-rango que
                     // ya no aplica en modo libre.
                     try { globalThis._ocultarTodasPantallasDistanciaGPS?.(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     estado.usuarioFueraRango = { activo: false, distancia: null, franja: null, elementoMasCercano: null, timestamp: null };

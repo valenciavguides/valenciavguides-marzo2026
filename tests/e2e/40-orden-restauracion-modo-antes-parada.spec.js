@@ -18,7 +18,7 @@
  *
  * _activarModoRest() ahora se llama ANTES que _restaurarProgresoRest() — con el modo
  * ya aplicado cuando se procesa el CAMBIO_PARADA restaurado, en vez de con el modo
- * aún en su valor de arranque (CASA). Como efecto secundario, el CAMBIO_MODO que
+ * aún en su valor de arranque (null). Como efecto secundario, el CAMBIO_MODO que
  * _activarModoRest() difunde a los hijos también llega antes que el CAMBIO_PARADA:
  * en hijo2 esto significa que _resetarEstadoParaModo() limpia el estado antes de que
  * lleguen los datos reales de la parada restaurada, en vez de después (lo que
@@ -66,7 +66,7 @@ test.describe('OR — Orden modo/parada en la restauración de sesión', () => {
     });
   });
 
-  test('OR-1. Con el modo aún en CASA (valor de arranque) en el momento del CAMBIO_PARADA, el recordatorio de audio NO arranca solo', async ({ page }) => {
+  test('OR-1. Con el modo todavía sin aplicar AVENTURA (aquí, en CASA) en el momento del CAMBIO_PARADA, el recordatorio de audio NO arranca solo', async ({ page }) => {
     const modoEnElMomento = await page.evaluate(async ({ p0 }) => {
       globalThis.estado.modo = { actual: 'casa', anterior: null };
       await globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: p0.id } });
