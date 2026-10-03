@@ -137,51 +137,81 @@ test.describe('CM — Nada de AVENTURA se ejecuta de verdad estando en modo CASA
     expect(resultado.capturados, 'No debe enviarse ningún ACTUALIZAR_ESTADO a hijo2 en modo CASA').toBe(0);
   });
 
-  test('CM-6. _hdl_SISTEMA_CAMBIO_MODO(CASA) cierra los overlays de distancia GPS si estaban visibles', async ({ page, context }) => {
-    // Un CAMBIO_MODO a 'aventura' dispara _gestionarGpsSegunModo → activarGPS(),
-    // que llama a navigator.geolocation.watchPosition() de verdad — a diferencia de
-    // CM-1/CM-2 (que inyectan coordenadas sintéticas directo en funcionesMapa, sin
-    // tocar la API real). Sin permiso de geolocalización concedido en el contexto,
-    // Chromium/WebKit invocan el callback de error con PERMISSION_DENIED enseguida,
-    // pero Firefox no invoca NINGÚN callback (ni éxito ni error) — watchPosition()
-    // se queda colgado para siempre, sin timeout propio. Diagnosticado en vivo con
-    // logs de consola: el último log antes del cuelgue es "Iniciando watchPosition...";
-    // confirmado también reproducible con git stash sobre HEAD (no es un bug de esta
-    // sesión) y con el timeout del test subido a 150s (sigue sin resolver — cuelgue
-    // real, no solo lento). No es un bug de producción: en un navegador real, el
-    // usuario ve el diálogo nativo de permiso y responde, resolviendo el callback
-    // en ambos sentidos. Fix: conceder el permiso y fijar una posición antes de
-    // disparar el cambio de modo, igual que un usuario que ya concedió GPS.
-    await context.grantPermissions(['geolocation']);
-    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+  // CM-6 lleva su propio describe porque concede la geolocalización en las opciones del contexto,
+  // antes de navegar (el porqué, en el comentario del test).
+  test.describe('con la geolocalización concedida desde el contexto', () => {
+    test.use({ permissions: ['geolocation'], geolocation: { latitude: 39.47876, longitude: -0.37626 } });
 
-    const disponible = await page.evaluate(() => globalThis.mensajeria?.tieneControlador?.('SISTEMA.CAMBIO_MODO') === true);
-    test.skip(!disponible, 'sin handler de SISTEMA.CAMBIO_MODO');
+    // Los carteles de distancia/precisión GPS: los cinco de franja (perdido, lejos, desviado, fuera de rango y precisión) y el de bloqueo
+    // anti-piratería. Son los mismos seis que cierra _ocultarOtrasPantallasDistanciaGPS.
+    const CARTELES_DISTANCIA_GPS = [
+      'gps-out-of-range-overlay', 'foto-perdido-overlay', 'foto-lejos-overlay',
+      'foto-desviado-overlay', 'foto-fuera-rango-overlay', 'gps-precision-overlay',
+    ];
 
-    // Crear un overlay "fuera de rango" visible de verdad (clase .show, mismo mecanismo
-    // real que usa el propio código — no basta con existir en el DOM, tiene que tener
-    // la clase que lo hace visible, ver _ocultarOtrasPantallasDistanciaGPS).
-    await page.evaluate(() => {
-      const el = document.createElement('div');
-      el.id = 'gps-out-of-range-overlay';
-      el.classList.add('show');
-      el.textContent = 'overlay de prueba';
-      document.body.appendChild(el);
+    test('CM-6. _hdl_SISTEMA_CAMBIO_MODO(CASA) cierra los overlays de distancia GPS si estaban visibles', async ({ page }) => {
+      // Un CAMBIO_MODO a 'aventura' dispara _gestionarGpsSegunModo → activarGPS(),
+      // que llama a navigator.geolocation.watchPosition() de verdad — a diferencia de
+      // CM-1/CM-2 (que inyectan coordenadas sintéticas directo en funcionesMapa, sin
+      // tocar la API real). Sin permiso de geolocalización concedido en el contexto,
+      // Chromium/WebKit invocan el callback de error con PERMISSION_DENIED enseguida,
+      // pero Firefox no invoca NINGÚN callback (ni éxito ni error) — watchPosition()
+      // se queda colgado para siempre, sin timeout propio. Diagnosticado en vivo con
+      // logs de consola: el último log antes del cuelgue es "Iniciando watchPosition...";
+      // confirmado también reproducible con git stash sobre HEAD (no es un bug de esta
+      // sesión) y con el timeout del test subido a 150s (sigue sin resolver — cuelgue
+      // real, no solo lento). No es un bug de producción: en un navegador real, el
+      // usuario ve el diálogo nativo de permiso y responde, resolviendo el callback
+      // en ambos sentidos.
+      //
+      // El permiso viene en las opciones del contexto (test.use de este describe), no de
+      // context.grantPermissions() con la página ya cargada. Medido en firefox, 15 pares de
+      // ejecuciones intercaladas del mismo escenario: concedido con la página ya cargada,
+      // navigator.permissions.query() devolvía 'prompt' justo después de grantPermissions() en 7 de
+      // 15 y esas 7 se quedaron colgadas (último log: «Iniciando watchPosition...», hasta el aviso
+      // del bus de que el handler de SISTEMA.CAMBIO_MODO llevaba 20000 ms sin terminar); en las otras
+      // 8 devolvía 'granted' y terminaron. Concedido desde el contexto: 'granted' en 15 de 15 y
+      // ninguna se colgó.
+      //
+      // Los seis carteles, no solo gps-out-of-range-overlay: a ese lo cierra también
+      // _gestionarGpsOverlays (rama CASA de _gestionarGpsSegunModo), y con ese único cartel el test
+      // seguía en verde aunque se quitara de la rama CASA del handler la llamada a
+      // _ocultarTodasPantallasDistanciaGPS (medido en los cuatro proyectos); los otros cinco solo
+      // los cierra esa llamada. Se muestran DESPUÉS de entrar en AVENTURA, como los deja el GPS
+      // allí, para que el test no dependa de que entrar en AVENTURA los deje en paz.
+
+      const disponible = await page.evaluate(() => globalThis.mensajeria?.tieneControlador?.('SISTEMA.CAMBIO_MODO') === true);
+      test.skip(!disponible, 'sin handler de SISTEMA.CAMBIO_MODO');
+
+      // Entrar en AVENTURA de verdad: si ya estábamos en 'casa' (arranque por defecto del harness),
+      // el segundo trigger sería un no-op y no ejercitaría la rama CASA.
+      await page.evaluate(async () => {
+        await globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } });
+      });
+
+      // Dejar los seis carteles visibles de verdad (clase .show, mismo mecanismo real que usa el
+      // propio código — no basta con existir en el DOM, tiene que tener la clase que lo hace
+      // visible, ver _ocultarOtrasPantallasDistanciaGPS).
+      await page.evaluate((ids) => {
+        for (const id of ids) {
+          const el = document.getElementById(id) ?? Object.assign(document.createElement('div'), { id, textContent: 'overlay de prueba' });
+          el.classList.add('show');
+          if (!el.isConnected) document.body.appendChild(el);
+        }
+      }, CARTELES_DISTANCIA_GPS);
+      const visibles = () => page.evaluate(
+        (ids) => ids.filter((id) => document.getElementById(id)?.classList.contains('show')),
+        CARTELES_DISTANCIA_GPS,
+      );
+      expect(await visibles(), 'Precondición: los seis carteles están visibles antes de entrar en CASA').toEqual(CARTELES_DISTANCIA_GPS);
+
+      await page.evaluate(async () => {
+        await globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'casa' } });
+      });
+      await page.waitForTimeout(300);
+
+      expect(await visibles(), 'Ningún cartel de distancia/precisión GPS debe seguir visible (clase "show") al entrar en CASA').toEqual([]);
     });
-    let visibleAntes = await page.evaluate(() => document.getElementById('gps-out-of-range-overlay')?.classList.contains('show'));
-    expect(visibleAntes).toBe(true);
-
-    // Forzar explícitamente el CASA branch: si ya estábamos en 'casa' (arranque por
-    // defecto del harness), pasar primero por 'aventura' para que el segundo trigger sea
-    // un cambio real de verdad, no un no-op.
-    await page.evaluate(async () => {
-      await globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } });
-      await globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'casa' } });
-    });
-    await page.waitForTimeout(300);
-
-    const visibleDespues = await page.evaluate(() => document.getElementById('gps-out-of-range-overlay')?.classList.contains('show'));
-    expect(visibleDespues, 'El overlay de fuera de rango debe perder la clase "show" al entrar en CASA').toBe(false);
   });
 });
 
