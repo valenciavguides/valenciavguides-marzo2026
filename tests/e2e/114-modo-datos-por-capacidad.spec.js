@@ -32,6 +32,14 @@
  * interceptan `/api/health` para ponerla en cada entorno. Nada de reimplementar aquí su lógica:
  * una copia local pasaría en verde aunque el módulo cambiara debajo.
  *
+ * SIN SERVICE WORKER, A PROPÓSITO: en local el `sw.js` contesta a cada GET con un `fetch` propio,
+ * y `page.route` no ve lo que pide un service worker salvo en chromium. En firefox y webkit el
+ * `/api/health` interceptado no llegaba nunca a la página —contestaba el servidor real, con el 502
+ * del proxy—: MD-2 daba `false` aunque el módulo fuera correcto, y MD-5 no podía enterarse de un
+ * corte más largo (con el de 2,5 s cambiado a 20 s seguía verde: la petición «colgada» no se
+ * colgaba), medido. Con `serviceWorkers: 'block'` la interceptación vale en los cuatro proyectos
+ * y las cuatro roturas de la tabla de abajo ponen en rojo su caso en cada uno.
+ *
  * QUÉ ATRAPA CADA UNO — cada rotura se ha provocado en `js/data-loader.js` y el caso se pone
  * en rojo; los demás siguen verdes, así que ninguno se apoya en otro:
  *
@@ -72,6 +80,8 @@ async function detectaBackend(page, responder) {
 }
 
 test.describe('MD — el modo de datos se decide por capacidad', () => {
+  test.use({ serviceWorkers: 'block' });
+
   test('MD-1. Con el freno puesto (BACKEND_READY=false) el modo es local y no se pregunta nada', async ({ page }) => {
     const preguntas = [];
     page.on('request', (r) => { if (r.url().includes('/api/health')) preguntas.push(r.url()); });
