@@ -1655,13 +1655,15 @@ Instrumento de recursos (517 sitios), cruzado con la ronda 1 (categoría 2).
   un solo llamador de producción, `:3647`): ➖.
 - **`requestAnimationFrame` 22 / `cancelAnimationFrame` 0:** animaciones de puzzle y video-intro y
   el `_zoomRAF` de `funciones-mapa.js:940`: no se han revisado una a una — 🔎.
-- **Un observer y tres `Audio` en `puzzle.html`** sin parada explícita: viven lo que la página.
+- **Un observer en `puzzle.html` y los reproductores de `js/efectos-sonido.js`** (uno por efecto y por
+  frame): viven lo que la página. `detenerEfectos()` los pausa, y el observer del puzzle lo llama cuando
+  su contenedor deja de verse.
 
 ##### K-31 — Las dos listas del Service Worker difieren a propósito — 📌
 
-`APP_SHELL` en `sw.js:26` (56 entradas) y `ficherosDelShell()` en `tools/build-sw.js:132` (53, lo
+`APP_SHELL` en `sw.js:26` (61 entradas) y `ficherosDelShell()` en `tools/build-sw.js:132` (54, lo
 que entra en el hash de `CACHE_VERSION`). Difieren en `debug-brujula.html` (está en el hash, no en
-`APP_SHELL`) y en cuatro imágenes (están en `APP_SHELL`, no en el hash). `sw.js:94-96` lo declara:
+`APP_SHELL`) y en cuatro imágenes y cuatro MP3 de `audios-efectos/` (están en `APP_SHELL`, no en el hash). `sw.js:94-96` lo declara:
 "APP_SHELL dice qué se PRECARGA para uso offline; el hash dice qué cuenta … Son cosas distintas a
 propósito". Método: `ficherosDelShell()` contra el literal de `APP_SHELL`.
 
@@ -2803,7 +2805,7 @@ Para que "no sale nada" no se confunda con "no se miró":
   `estadoPadre.modo.actual` (`:7351`), `aventuraSeleccionada`/`estado.seleccion.aventura` (`:11623`,
   K-41), `__vv_coordenadasAventura`/`AVENTURA_PARADAS` (`:5443`, K-38) y `estadoPadre`/
   `estadoScript2` (`:9909`, K-38). Las tres últimas ya están en sus entradas.
-- **`APP_SHELL` y ids.** `sw.js`: 56 entradas, las 56 existen en disco y ninguna se repite (un 404
+- **`APP_SHELL` y ids.** `sw.js`: 61 entradas, las 61 existen en disco y ninguna se repite (un 404
   en esa lista haría fallar el `addAll` de la instalación del service worker). Ids estáticos de los
   17 `.html`: 193 distintos, ninguno repetido dentro de su documento. Y los 14 nombres de
   `globalThis` que leen los specs sin que producción los asigne, en K-32 (uno solo importa).

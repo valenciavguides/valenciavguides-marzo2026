@@ -2884,6 +2884,19 @@ click 2: classList.remove('mostrado') // #respuestaCorrectaTexto oculto
 | `texto` | `<input type="text" id="respuestaTexto">` | **Ninguna: siempre correcta** (`esCorrecto = true` en `verificar()`) — pregunta de reflexión libre, ver §13 | Borde del input |
 | `puzzle` | `<iframe id="puzzleIframe">` (en `body.puzzle-mode` ocupa todo el alto disponible: `flex:1; height:100%`) | `PUZZLE.COMPLETADO` o `PUZZLE.TIMEOUT` recibido por el bus: los dos cuentan como reto cumplido | Borde verde al resolverlo, rojo y vibración al agotarse el tiempo |
 
+#### Sonidos del reto
+
+`retos-hijo4.html` precarga `ELECCION_RESPUESTA`, `RETO_COMPLETADO` y `TIEMPO_ACABADO` al arrancar (`precargarEfectos`, §12, «Efectos de sonido»); el primer gesto en la página los desbloquea para iOS (§12, punto 6):
+
+| Momento | Efecto | Dónde |
+|---|---|---|
+| Cada pulsación sobre una opción de un reto `opcion` u `opcion-multiple`, también al desmarcar una casilla o repetir una opción ya elegida | `ELECCION_RESPUESTA` | listener `click` de cada `input[name="op"]`, creado en `mostrarReto()` |
+| Respuesta correcta (opción, opción múltiple, texto libre) o ⏩ | `RETO_COMPLETADO` | `_marcarRetoComoCompletado()`, que comparten `verificar()` y `#btnSaltarReto` |
+| Respuesta incorrecta de un reto de opciones | `TIEMPO_ACABADO` | rama «incorrecto» de `verificar()`, junto a `vibrar()` |
+| Pulsar `#btnNextAfterReto`, o recibir `RETO.LIMPIAR_ESTADO` | corta todos los efectos en curso (`detenerEfectos()`) | inicio del listener de `#btnNextAfterReto` y del handler de `RETO.LIMPIAR_ESTADO` |
+
+El texto libre no suena al escribir: escribir no es elegir una opción. El ⏩ marca la respuesta correcta con `.checked` desde código, sin pulsar nada, así que no suena `ELECCION_RESPUESTA`. El clic sobre `#btnNextAfterReto` corta el efecto de inmediato (la fanfarria dura 7,65 s) y no espera al cierre real de la ventana, que llega después del acuse del padre; `RETO.LIMPIAR_ESTADO` cubre cualquier otro cierre. En un reto `puzzle` los sonidos los reproduce `puzzle.html` (§7.8): `_cerrarPuzzleConResultado()` no reproduce ninguno.
+
 #### Sub-iframe puzzle.html en modo reto
 
 hijo4 es el contenedor del puzzle: registra el iframe en su bus con el id `'puzzle'` **antes** de darle `src` (el bus solo acepta mensajes de un iframe registrado, y el puzzle avisa en cuanto el usuario termina) y lo da de baja al salir de `puzzle-mode`. El puzzle avisa por el bus con `PUZZLE.COMPLETADO` (resuelto, o saltado con su ⏩) o `PUZZLE.TIMEOUT` (tiempo agotado); hijo4 los atiende con dos handlers que llaman a la misma función:
@@ -3438,9 +3451,17 @@ pauseBtn.addEventListener('click', () => {
 
 | Resultado | Borde | Efecto | Sonido |
 |-----------|-------|--------|--------|
-| ✅ Completado | Verde | `runFireworks()` — 15 explosiones × 30 chispas de colores | Google Sound Library: clang_and_wobble.ogg |
-| ❌ Timeout | Rojo | `runConfetti()` — confeti cayendo | Google Sound Library: concussive_hit_guitar_boing.ogg |
-| Pieza colocada (durante juego) | — | Scale 1.0 → 1.1 → 1.0 (20 frames @ 60fps) | wood_plank_flicks.ogg |
+| ✅ Completado | Verde | `runFireworks()` — 15 explosiones × 30 chispas de colores | `RETO_COMPLETADO` |
+| ❌ Timeout | Rojo | `runConfetti()` — confeti cayendo | `TIEMPO_ACABADO` |
+| Pieza colocada (durante juego) | — | Scale 1.0 → 1.1 → 1.0 (20 frames @ 60fps) | `PIEZA_COLOCADA` |
+
+Los sonidos son los efectos de `js/efectos-sonido.js` (§12, «Efectos de sonido»), nombrados aquí por su constante de `EFECTOS`. Los reproduce `puzzle.html` en sus dos contextos (el reto de hijo4 y P6 de la selección), así que suenan igual en los dos; ningún contenedor los repite. `precargarEfectos` los crea al arrancar la página, fuera del `if (puzzleConfigValido)`: el ⏩ de un puzzle roto también suena. El primer gesto en la página desbloquea los tres reproductores para iOS (§12, punto 6).
+
+1. Cada pieza que queda dentro de la tolerancia en `onPointerUp` suena `PIEZA_COLOCADA`. Una pieza soltada fuera de la tolerancia no suena.
+2. Al colocar la última pieza suenan juntos `PIEZA_COLOCADA` y `RETO_COMPLETADO` (efectos distintos, reproductores distintos).
+3. `#skipBtn` (⏩) suena `RETO_COMPLETADO`: con el puzzle cargado, vía `endPuzzle(true)`; con el puzzle roto, directamente. No suena ninguna `PIEZA_COLOCADA`.
+4. Si el tiempo llega a 0, `endPuzzle(false)` suena `TIEMPO_ACABADO` y no `RETO_COMPLETADO`. `endPuzzle(false)` solo lo llama el temporizador.
+5. Cuando el `IntersectionObserver` de `#puzzleWrapper` deja de ver el contenedor (hijo4 cierra la ventana del reto, la selección pasa de pantalla), llama a `detenerEfectos()`: la fanfarria de `RETO_COMPLETADO` dura 7,65 s y se corta con el contenedor.
 
 ```mermaid
 sequenceDiagram
@@ -5516,7 +5537,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido en hijo1 | `tiempoAgotado()` → `enviarMensaje`, tipo — cuando `tiempoRestante <= 0` |
 | Handler en padre | `_hdl_AVENTURA_TIEMPO_AGOTADO` — también expuesta como `globalThis.mostrarModalTiempoAgotado` para dos disparadores más que no pasan por este mensaje (ver §25.12) |
-| Acción | Termina la aventura por tiempo. Muestra `#modal-tiempo-agotado` — modal adaptado del de fin de aventura (imagen `caballero_llorando.png` + título/cuerpo de `TRADUCCIONES_TIEMPO_AGOTADO` + botones `btn_otra`/`btn_terminar` de `TRADUCCIONES_FINALIZACION`, ambos en `js/traducciones-ui.js`, 12 idiomas). Arma además la red de seguridad por abandono (ver §25.12 y §25.13). Ver detalle en §25.12 |
+| Acción | Termina la aventura por tiempo. Muestra `#modal-tiempo-agotado` — modal adaptado del de fin de aventura (imagen `caballero_llorando.png` + título/cuerpo de `TRADUCCIONES_TIEMPO_AGOTADO` + botones `btn_otra`/`btn_terminar` de `TRADUCCIONES_FINALIZACION`, ambos en `js/traducciones-ui.js`, 12 idiomas). Reproduce el efecto `TIEMPO_ACABADO` (§12). Arma además la red de seguridad por abandono (ver §25.12 y §25.13). Ver detalle en §25.12 |
 
 **AVENTURA.ESTADISTICAS_TIEMPO** (hijo1 → padre)
 
@@ -6884,6 +6905,43 @@ Se usa CBR en vez de VBR porque el tamaño resultante es predecible de antemano,
 
 Con docenas de paradas × 7 aventuras × 12 idiomas por grabar, el audio es el mayor riesgo de peso total del proyecto si se codifica a 320 kbps — mayor que el de las imágenes. Ver checklist completa (aplica a imagen/audio/vídeo) y `npm run verificar-media` en §15.
 
+### Efectos de sonido (`audios-efectos/`)
+
+Cuatro efectos propios en `audios-efectos/`, que reproduce `js/efectos-sonido.js`. No viven en `audios-aventuras/`: esa ruta no la intercepta el Service Worker y el servidor la protege como contenido de pago, y los efectos suenan antes de pagar.
+
+| Efecto (`EFECTOS.*`) | Fichero | Suena cuando | Lo pide |
+|---|---|---|---|
+| `ELECCION_RESPUESTA` | `sonido_eleccion_respuesta_reto.mp3` | cada pulsación sobre una opción de un reto de opción o de opción múltiple, también al desmarcar una casilla o repetir una opción ya elegida: una vez por pulsación | `retos-hijo4.html` |
+| `PIEZA_COLOCADA` | `sonido_pieza_colocada.mp3` | cada pieza del puzzle que queda bien colocada | `puzzle.html` |
+| `RETO_COMPLETADO` | `sonido_reto_completado.mp3` | un reto se completa: el puzzle a tiempo, y los retos de opción, opción múltiple y texto con respuesta correcta; también al saltarlo con ⏩ | `puzzle.html`, `retos-hijo4.html` |
+| `TIEMPO_ACABADO` | `sonido_tiempo_acabado.mp3` | se acaba el tiempo del puzzle; se agota el temporizador de hijo1 (60 h o 150 h); se supera el plazo de la aventura con la app cerrada (ventana de compra o 7 días); se responde mal a un reto de opciones | `puzzle.html`, `retos-hijo4.html`, `codigo-padre.html` |
+
+Los cuatro duran 1,70 s, 1,85 s, 7,65 s y 3,11 s, en el orden de la tabla. El módulo exporta `EFECTOS`, `precargarEfectos(lista)`, `reproducirEfecto(efecto)` y `detenerEfectos()`:
+
+1. **Un reproductor `Audio` por efecto y por frame**, reutilizado: se crea la primera vez que se nombra (`precargarEfectos` lo hace al arrancar el frame; `reproducirEfecto` lo crea si falta). El Service Worker sirve estos ficheros con el shell (Network First, sin caché HTTP), así que un `new Audio(url)` nuevo en cada pulsación sería una petición de red por pulsación.
+2. `reproducirEfecto` rebobina el reproductor (`currentTime = 0`) y reproduce: una segunda pulsación sobre el mismo efecto lo reinicia en vez de superponerlo, y efectos distintos suenan a la vez.
+3. Un fallo del sonido no se propaga: un `play()` rechazado (autoplay bloqueado, fichero ausente) o una excepción al crear el reproductor se dicen con `logger.warn`, y quien pide el efecto —el cierre de un puzzle, el clic sobre una opción, el modal de tiempo agotado— sigue su camino. Las tres funciones exportadas (`precargarEfectos`, `reproducirEfecto`, `detenerEfectos`) lo cumplen.
+4. `detenerEfectos()` pausa y rebobina todos los efectos del frame. Lo llaman `retos-hijo4.html` (al pulsar `#btnNextAfterReto` y al recibir `RETO.LIMPIAR_ESTADO`) y `puzzle.html` (cuando su contenedor deja de verse).
+5. Las rutas se resuelven respecto al propio módulo (`new URL('../audios-efectos/…', import.meta.url)`), no respecto al documento que lo importa.
+6. **Desbloqueo para iOS.** La guía de Apple para Safari en iOS documenta que `play()` y `load()` solo actúan dentro de un gesto del usuario y que `preload` está desactivado. En el primer gesto de la página (`touchend`, `pointerup`, `click` o `keydown`, escuchados en captura sobre `document`), cada reproductor que aún no ha sonado se arranca y se para en el mismo instante: queda desbloqueado para sonar después sin gesto —el fin de tiempo del puzzle, el modal de tiempo agotado— y el navegador ya ha pedido el fichero, así que el primer sonido de verdad no llega tarde.
+   - Un `NotAllowedError` deja el reproductor pendiente para el gesto siguiente; el `AbortError` que provoca parar enseguida no cuenta como rechazo.
+   - Un reproductor que está sonando no se toca, y uno que ya sonó por un gesto no se vuelve a desbloquear.
+   - Cada frame desbloquea los suyos con sus propios gestos: `puzzle.html` y `retos-hijo4.html` crean los suyos al arrancar; el padre crea el de `TIEMPO_ACABADO` en el Script 2 (`precargarEfectos`), para que cualquier gesto en el padre lo desbloquee.
+   - El arranque y la parada del desbloqueo llevan `audio._desbloqueando = true` mientras duran, para que quien observe `play()` y `pause()` (el spec 115) los distinga de un sonido.
+7. Un arranque en frío, sin ningún gesto previo en la página, no se puede desbloquear: el modal de tiempo agotado se muestra igual y el sonido depende de la política de autoplay del navegador.
+
+**Codificación:** los cuatro son MPEG-1 Capa III a 128 kbps CBR, con la frecuencia de muestreo y los canales de origen (44,1 o 48 kHz, estéreo) y sin recortes. `sonido_eleccion_respuesta_reto.mp3` lleva 5 dB de ganancia sobre su original (pico −0,5 dBFS, sonoridad −17 LUFS) para acercarse al nivel de los otros tres (entre −12 y −13,5 LUFS); estos conservan el nivel de su original. El spec 116 comprueba los 128 kbps del primer fotograma. `npm run verificar-media` recorre `audios-efectos/` como el resto del audio. `sw.js` precarga el módulo y los cuatro MP3 en `APP_SHELL`. El origen y la licencia de cada fichero están en `audios-efectos/LICENCIAS.md`.
+
+**Cómo añadir o sustituir un efecto:** el MP3 a 128 kbps en `audios-efectos/`; su entrada en `EFECTOS` y en `FICHEROS` de `js/efectos-sonido.js`; su ruta en `APP_SHELL` de `sw.js`; su fila en `LICENCIAS.md`; y su fila en las tablas de este apartado.
+
+### Volumen: siempre al máximo
+
+La PWA no tiene control de volumen ni de silencio propio. El sonido lo regula el usuario con los botones de volumen de su dispositivo, y la PWA lo entrega siempre al máximo. Vale para todo lo que suena: las narraciones de las aventuras (`audios-aventuras/`, que reproduce el `<audio id="audioPlayer">` de `audio-hijo3.html`), el audio de introducción (`#audio-intro-player` de `En-busca-del-tesoro.html`) y los efectos (`audio.volume = 1` en `js/efectos-sonido.js`). Los dos `<audio>` arrancan con `volume` 1 y sin silenciar, y nada los modifica después.
+
+Ningún fichero de producción asigna a `volume` otro valor que 1. Ningún vídeo de la PWA lleva pista de audio —el de la introducción y los de los tramos se suben sin ella, y el comando de codificación de §15 lleva `-an`—, y solo `video-intro.html` toca `muted`: su `muted = true` permite que el vídeo arranque sin gesto previo. Los specs 116 (EF-5, EF-6) y 115 (todo `play()` lleva `volume` 1 y `muted` false) vigilan esta regla.
+
+En iOS, según la guía de Apple para Safari, la propiedad `volume` de un elemento multimedia no se puede modificar desde la página y su lectura devuelve siempre 1: el nivel de cada sonido es el de su fichero, así que cualquier ajuste de nivel se hace en el propio MP3.
+
 ### El fichero de metadatos
 
 `js/audios-aventuras.js` exporta `AUDIOS_AVENTURAS`, que tiene una entrada por cada parada y tramo de cada aventura, para los 12 idiomas. Cada entrada:
@@ -7042,7 +7100,7 @@ Los puzzles son retos visuales donde el usuario debe recomponer una imagen. Cada
 }
 ```
 
-La lógica del puzzle (cortar la imagen, detectar posición correcta) está en `puzzle.html`.
+La lógica del puzzle (cortar la imagen, detectar posición correcta) está en `puzzle.html`. Sus sonidos —pieza colocada, reto completado, tiempo acabado— y los de los retos de opciones están en §12, «Efectos de sonido».
 
 #### Layout del puzzle: pantalla completa
 
@@ -7282,7 +7340,7 @@ npm run verificar-media          # informe completo
 npm run verificar-media -- --quiet   # solo lo que excede el límite (para CI)
 ```
 
-Recorre **todas** las subcarpetas de `imagenes/` más `audios-aventuras/` y `videos-aventuras/`, comparando cada archivo contra un límite de tamaño de referencia (imagen: 1,5 MB; audio: 8 MB; vídeo: 12 MB — deliberadamente generosos, para señalar solo el caso claro de "esto no pasó por la checklist"). Si `ffmpeg` está en el `PATH` (no es una dependencia permanente del proyecto — instalar puntualmente si hace falta), añade una comprobación más precisa: bitrate real de audio y perfil H.264/fotogramas de referencia de vídeo, detectando también archivos que están *por debajo* del límite de tamaño pero mal codificados igualmente (p. ej. un MP3 pequeño codificado a 320kbps en vez de los 128kbps del estándar). No bloquea nada automáticamente — es un informe para revisar antes de dar un archivo por bueno, no un hook de commit. Las carpetas de imágenes **se descubren solas** (`readdirSync` sobre `imagenes/`), no hay lista fija: una carpeta nueva de contenido queda cubierta sin tocar el script. Es deliberado — una lista escrita a mano deja de cubrir lo que se añade después **en silencio**, y un informe que sale sin haber mirado la mitad de los ficheros es peor que no tener herramienta, porque aparenta una revisión que no ha ocurrido.
+Recorre **todas** las subcarpetas de `imagenes/` más `audios-aventuras/`, `audios-efectos/` y `videos-aventuras/`, comparando cada archivo contra un límite de tamaño de referencia (imagen: 1,5 MB; audio: 8 MB; vídeo: 12 MB — deliberadamente generosos, para señalar solo el caso claro de "esto no pasó por la checklist"). Si `ffmpeg` está en el `PATH` (no es una dependencia permanente del proyecto — instalar puntualmente si hace falta), añade una comprobación más precisa: bitrate real de audio y perfil H.264/fotogramas de referencia de vídeo, detectando también archivos que están *por debajo* del límite de tamaño pero mal codificados igualmente (p. ej. un MP3 pequeño codificado a 320kbps en vez de los 128kbps del estándar). No bloquea nada automáticamente — es un informe para revisar antes de dar un archivo por bueno, no un hook de commit. Las carpetas de imágenes **se descubren solas** (`readdirSync` sobre `imagenes/`), no hay lista fija: una carpeta nueva de contenido queda cubierta sin tocar el script. Es deliberado — una lista escrita a mano deja de cubrir lo que se añade después **en silencio**, y un informe que sale sin haber mirado la mitad de los ficheros es peor que no tener herramienta, porque aparenta una revisión que no ha ocurrido.
 
 ### Ubicación
 
@@ -7337,6 +7395,8 @@ ffmpeg -i entrada.mp4 -vf "scale=ANCHOxALTO" \
   -c:v libx264 -profile:v main -level 3.1 -refs 1 -bf 0 \
   -preset medium -crf 27 -an -movflags +faststart salida.mp4
 ```
+
+`-an` quita la pista de audio: ningún vídeo de la PWA lleva sonido. El de la introducción y los de los tramos se suben así.
 
 Verificado con `ffmpeg -bsf:v trace_headers`: `profile_idc=77` (Main, no High), `max_num_ref_frames=1`.
 
@@ -7916,6 +7976,8 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `112-identidad-resto-en-los-hijos.spec.js` | 3 | La firma del `CAMBIO_MODO_ENTENDIDO` la pone el bus, no el hijo (§26.8, segunda capa): sin `CONFIG_HIJO.IFRAME_ID`, hijo3 sigue contestando el ENTENDIDO firmado como `hijo3` (RI-1) y hijo4 igual (RI-2); por la vía normal, sin tocar nada, hijo3 contesta el ENTENDIDO firmado como `hijo3` (RI-3, control). Solo hijo3 y hijo4 publican `globalThis.CONFIG_HIJO`, así que son los únicos a los que un test puede quitarle el campo desde fuera. |
 | `113-api-mismo-origen-local-y-produccion.spec.js` | 3 | La API vive en el mismo origen que la página, en local y en producción (§22.4): `js/server.js` hace de proxy inverso de `/api/*` hacia el backend, como Caddy en producción, y los dos clientes de red (`js/api-client.js` y `js/data-loader.js`) usan una ruta relativa. AO-1: una llamada `fetch` a `/api/...` desde la página llega y el CSP no la bloquea (se mide desde dentro de la página, no con `curl`, que no pasa por el CSP); AO-2: sin backend detrás, el proxy contesta 502 con un código legible; AO-3: los dos clientes apuntan a ruta relativa y no a un puerto fijo. |
 | `114-modo-datos-por-capacidad.spec.js` | 5 | El modo de datos se decide preguntando por capacidad y no por el hostname (§17): `hayBackendDisponible()` y `asegurarModo()` de `js/data-loader.js`, con `/api/health` interceptado como en cada entorno. MD-1: con `BACKEND_READY=false` el modo es `'local'` y no se pregunta nada; MD-2: un 200 indica que hay backend; MD-3: un 404 (GitHub Pages) indica que no lo hay y el sitio sigue con los ficheros locales; MD-4: un 502 (local sin backend: el del proxy de `js/server.js`) indica que no lo hay; MD-5: si la petición se cuelga, la comprobación corta por tiempo y no espera indefinidamente. Se abre sin service worker (`serviceWorkers: 'block'`) para que `page.route` intercepte en los cuatro proyectos. |
+| `115-efectos-de-sonido-cada-uno-en-su-momento.spec.js` | 24 | Los efectos de sonido suenan cada uno en su momento y solo entonces (§12), con `play()` y `pause()` espiados en todos los frames. En el puzzle: una pieza bien colocada suena `pieza_colocada` y una soltada lejos no suena (PZ-S1, PZ-S2); el puzzle completado a tiempo suena nueve piezas y un `reto_completado`, en ese orden (PZ-S3); el ⏩, con el puzzle cargado o roto, suena `reto_completado` (PZ-S4); sin tiempo suena `tiempo_acabado` y no `reto_completado` (PZ-S5); ocultar el contenedor corta el efecto en curso (PZ-S6). En hijo4: cada pulsación sobre una opción suena `eleccion_respuesta_reto`, también al desmarcar o repetir (RT-S1, RT-S2); la respuesta incorrecta suena `tiempo_acabado` (RT-S3); la correcta suena `reto_completado` en opción, opción múltiple y texto, y el texto no suena al escribir (RT-S4); el ⏩ suena `reto_completado` y ninguna elección (RT-S5); «Siguiente» y `RETO.LIMPIAR_ESTADO` cortan el efecto (RT-S6); un puzzle dentro de hijo4 suena una sola vez, desde el puzzle (RT-S7). En el padre: el modal de tiempo agotado suena `tiempo_acabado` con la ventana de compra superada (TA-1) y con `AVENTURA.TIEMPO_AGOTADO` (TA-2), y una sesión reanudable no suena nada (TA-3). El primer gesto desbloquea los reproductores del puzzle, de hijo4 y del padre, una sola vez y antes del sonido que provoca, y el desbloqueo no cuenta como sonido (DB-1 a DB-4). Todo `play()` lleva `volume` 1 y `muted` false. |
+| `116-efectos-de-sonido-ficheros-y-volumen.spec.js` | 6 | Los ficheros de los efectos y el volumen (§12): `audios-efectos/` contiene exactamente los MP3 que nombra `js/efectos-sonido.js` (EF-1), cada uno MPEG-1 Capa III a 128 kbps (EF-2), y `sw.js` precarga el módulo y los cuatro en `APP_SHELL` (EF-3); ningún sonido de la producción viene de otro origen, y `new Audio(` solo vive en el módulo (EF-4); nadie fija `volume` a otro valor que 1 y solo `video-intro.html` toca `muted` (EF-5); el `<audio>` de narración de hijo3 arranca con `volume` 1 y sin silenciar (EF-6). |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8016,7 +8078,7 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 
 #### Estrategia detallada
 
-**Network First (shell):** intenta la red; si falla, sirve desde caché. El shell (HTML/JS) siempre recibe la versión más reciente cuando hay conexión.
+**Network First (shell):** intenta la red; si falla, sirve desde caché. El shell (HTML/JS) siempre recibe la versión más reciente cuando hay conexión. `APP_SHELL` incluye los cuatro MP3 de `audios-efectos/` (§12, «Efectos de sonido»), que se sirven con esta estrategia y no con la de media.
 
 **Cache First con LRU (media, sin vídeos ni audios):** busca primero en caché local (rápido, sin consumir datos). Si no está, lo descarga y lo guarda. Si hay más de 100 entradas, elimina las más antiguas. Esto permite uso offline de las imágenes ya vistas. **Vídeos y audios quedan fuera de esta estrategia a propósito**: `esMedia()` (`sw.js`) incluye textualmente `/videos-aventuras/` y `/audios-aventuras/` en su lista, pero es código inerte para ambos casos — el `fetch` handler tiene un `return` explícito para esas dos rutas *antes* de consultar `esMedia()`, así que nunca llega a esa lógica. Vídeos y audios siempre van directos a red, sin caché SW en absoluto — para vídeo, ver §15 (`reproducirVideoConBuffer`, que gestiona el buffering en el propio `<video>`); para audio, la razón es la misma que para vídeo (evitar bugs de caché con peticiones Range/206 parciales), y además ya está aceptado que el audio requiere conexión en el momento de reproducirse (§25.17) — esta exclusión lo hace cierto siempre, sin la excepción oculta de una parada que ya se hubiera cacheado antes por casualidad.
 
@@ -8281,7 +8343,7 @@ proyecto/
 ├── paginas-oficiales-valencia.html
 │
 ├── manifest.json                     ← Configuración PWA (iconos, shortcuts, categorías)
-├── sw.js                             ← Service Worker: caché shell (Network First) + media (Cache First LRU-100, sin vídeos ni audios — esos van siempre directos a red)
+├── sw.js                             ← Service Worker: caché shell (Network First) + media (Cache First LRU-100, sin vídeos ni audios de aventura — esos van siempre directos a red; los efectos de `audios-efectos/` viajan en el shell)
 ├── version.json                      ← `{ "version": "v-..." }` — la única fuente consultable de qué CACHE_VERSION hay desplegada (§19)
 ├── CNAME                             ← Dominio para GitHub Pages (valenciavguides.es)
 ├── video-intro.html                  ← Pantalla de entrada de la PWA: cómic animado de Jaime I y María (§35)
@@ -8315,6 +8377,7 @@ proyecto/
 │   ├── traducciones-ui.js            ← Textos de interfaz en 12 idiomas (JAIME_SCENES, modales, FAQ del chat, etc.)
 │   ├── reciclaje-digital.js          ← Limpieza total al finalizar aventura (localStorage, caché, SW)
 │   ├── video-playback-utils.js       ← reproducirVideoConBuffer() — espera buffer suficiente antes de reproducir cualquier <video>, sirve para clips de segundos o minutos (ver §15)
+│   ├── efectos-sonido.js             ← Los cuatro efectos de sonido (`audios-efectos/`): un reproductor por efecto y por frame, siempre a volumen 1 (ver §12)
 │   │
 │   ├── ── DATOS ──
 │   ├── data-loader.js                ← Cargador de datos (modo 'local' actual / 'api' futuro)
@@ -8363,6 +8426,8 @@ proyecto/
 │   ├── japones/
 │   └── ...                           (aleman, chino, polaco, portugues, ruso, ucraniano)
 │
+├── audios-efectos/                   ← Los cuatro efectos de sonido (MP3 a 128 kbps) y `LICENCIAS.md`. Los precarga el SW (`APP_SHELL`) y no están protegidos (ver §12)
+│
 ├── videos-aventuras/                 ← Vídeos MP4 de dron. Hoy solo `video_intro_ejemplo.mp4`; las carpetas por aventura se crearán al grabarlos (§15)
 │
 ├── imagenes/                         ← Imágenes estáticas
@@ -8387,7 +8452,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 111 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 113 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8530,6 +8595,8 @@ Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌
 | 19 | El botón "Actualizar" no puede forzar la versión nueva: el borde descarta la query string y la copia dura 10 min | §19 (cache-busting) | ✅ **restricción aceptada** — medido y asumido |
 | 20 | Ningún test carga los hijos como **iframes reales** dentro de `codigo-padre.html`: todos los cargan como página de nivel superior con `postMessage` sintético. Es posible hoy en local —`_hdl_SELECCION_P14_MOSTRADA` es un handler normal y basta con enviarle el mensaje— pero está sin escribir | §7.1 (modelo P14) | ⏳ pendiente |
 | 21 | Pasar las sugerencias y valoraciones de los dos Google Forms al backend propio —ruta `/api/...` del mismo origen— y quitar `https://docs.google.com` del `connect-src` de la CSP de `codigo-padre.html` | §10.21, §26.8 | ❌ bloqueada — sin backend no hay quien reciba los envíos |
+| 22 | Comprobar en un iPhone real el desbloqueo de los efectos de sonido (§12, punto 6): que tras un gesto en el puzzle, en hijo4 y en el padre suenan después, sin gesto, el fin de tiempo del puzzle y el modal de tiempo agotado por el temporizador de hijo1; que `pieza_colocada` y `reto_completado` suenan a la vez al colocar la última pieza (la guía de Apple para Safari dice que iOS no admite varias reproducciones simultáneas: se anota cuál sobrevive); y cuánto tarda el primer sonido | §12, §25.12 | ⏳ pendiente — el desbloqueo está hecho; solo se comprueba en un dispositivo, porque Playwright no reproduce la política de audio de iOS |
+| 23 | Consultar las licencias de los recursos de terceros antes de vender la PWA, empezando por los cuatro efectos de sonido de Pixabay (`audios-efectos/LICENCIAS.md`): su licencia prohíbe distribuirlos sueltos, y los ficheros del repositorio público son descargables uno a uno | §12 | ⏳ pendiente — sin prisa mientras solo los usa su autor; se resuelve al publicar la PWA para su venta |
 
 ---
 
@@ -10184,6 +10251,8 @@ Antes de tocar nada, `limpiarDatosAventura()` levanta `globalThis.__VV_RECICLAND
 
 Los tres disparadores muestran el mismo modal y dejan la decisión (y la limpieza real) en manos del usuario.
 
+El sonido `TIEMPO_ACABADO` suena justo después de mostrar el modal, una vez cada vez que se muestra, también en los disparadores 2 y 3. En un arranque en frío (disparador 2) la página no ha recibido ningún gesto antes del sonido, y un navegador que exige un gesto para reproducir (iOS, según la guía de Apple para Safari) no lo deja sonar: el modal se muestra igual (§12, «Efectos de sonido», punto 7). Si el usuario ha tocado el padre, el reproductor está desbloqueado y suena (§12, punto 6).
+
 **Caso 2, particularidad de idioma:** en un arranque en frío, el usuario aún no ha pasado por ninguna pantalla de selección, así que `globalThis.idiomaSeleccionado` (de donde el modal lee su idioma) puede no estar definido todavía. `_comprobarReanudacionAventura()` lo rellena con `datosGuardados.idioma` (el idioma de la aventura abandonada) justo antes de llamar al modal, solo si no hay ya un valor. El caso 3 no necesita este paso: `ejecutarRestauracionAventura()` (§9.10) ya fija `globalThis.idiomaSeleccionado` al principio de la restauración, mucho antes de que `_restoreCheckTimeout()` se ejecute.
 
 **Los disparadores 2 y 3 son defensivos:** si `globalThis.mostrarModalTiempoAgotado` no estuviera disponible por algún motivo (Script 2 aún no ha corrido su código de nivel superior), cada uno cae a la limpieza directa, con un `logger.error` que marca que el usuario se queda sin aviso. En el arranque normal, Script 2 expone esta función de forma síncrona en su nivel superior, mucho antes de que estos dos puntos (ambos tardíos en la secuencia de arranque) lleguen a ejecutarse — la guarda es solo higiene defensiva, no una carrera real observada.
@@ -10195,7 +10264,8 @@ hijo1: tiempoRestante <= 0 → tiempoAgotado() → enviarMensaje(AVENTURA.TIEMPO
   → padre: _hdl_AVENTURA_TIEMPO_AGOTADO()
       1. Bloquea iframes (hijo2, hijo3, hijo1-opciones, hijo5): pointer-events:none, opacity:0.5
       2. Crea y muestra #modal-tiempo-agotado
-      3. estado.seleccion.iniciada = false
+      3. Reproduce el efecto TIEMPO_ACABADO (EFECTOS_S2.TIEMPO_ACABADO)
+      4. estado.seleccion.iniciada = false
 ```
 
 Los disparadores 2 y 3 llaman a la misma función directamente (`await globalThis.mostrarModalTiempoAgotado()`), sin pasar por ningún mensaje — el bloqueo de iframes en el paso 1 no tiene efecto visible ahí porque, en ambos casos, los iframes de aventura (hijo2/hijo3/hijo1-opciones) aún no están cargados o no son relevantes en ese punto del arranque; el modal se muestra igual.
@@ -10855,6 +10925,7 @@ Nota de arquitectura: el audio está centralizado en el padre; `audio-hijo3.html
 | `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo, métricas. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. El intervalo de monitoreo de memoria se guarda en `globalThis.__vv_intervaloMemoria` con guard contra doble inicialización. | `actualizarInterfazModo()`, `manejarCambioModo()`, `iniciarPrewarmEnCasa()` |
 | `funciones-mapa.js` | El módulo más grande. Recibe la instancia MapLibre ya creada en `codigo-padre.html` (con las capas base de los tres modos ya definidas) y la registra mediante `inicializarServicioMapa(mapInstance)`. Gestiona: (1) **marcador GPS del usuario** (`actualizarMarcadorUsuario()`): triángulo azul `#4285F4` estilo Google Maps (sin punto central — el triángulo solo ya representa posición y rumbo) que rota con la brújula en tiempo real vía `DeviceOrientationEvent`; en modo CASA aparece como 🛸. Los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul) llevan cada uno `transform: translate(-50%,-50%)` antes de su pequeño offset de sombreado — con la técnica CSS de bordes (`width:0;height:0;border-*`), un triángulo se renderiza con su vértice en la esquina superior izquierda de su caja, no en el centro; sin ese `-50%/-50%` el vértice queda anclado en el punto GPS real y el resto del triángulo cuelga hacia abajo, así que al rotar `.gps-arrow-heading` la flecha entera orbita alrededor del punto en vez de girar sobre sí misma. El HTML de este marcador lo construye una única función, `_htmlMarcadorUsuario(modo)`, compartida por la creación y por `reescalarMarcadorUsuario()` (el reescalado por zoom, §4.6) para que ambos momentos no puedan divergir. `actualizarMarcadorUsuario()` destruye y recrea el marcador entero en cada posición GPS (hace falta para reposicionarlo — no hay un `setLatLng` barato para un marcador HTML completo), y el ángulo inicial del elemento nuevo sale **siempre** del ángulo acumulado de la brújula (`_flechaGpsAnguloAcumulado`): es la única fuente del rumbo de la flecha (§4.5). La firma `actualizarMarcadorUsuario(lat, lng, accuracy, modo)` no incluye ningún rumbo, precisamente para que no pueda entrar otro por ahí. (2) **Cámara siguiendo al usuario** (§4.6b): `actualizarMarcadorUsuario()` centra la cámara en cada posición GPS real (`_camaraSiguiendoUsuario`), salvo mientras un `flyTo` de cambio de parada/tramo está en curso o tras un arrastre manual del mapa (`_registrarSeguimientoCamara()`, escucha `'dragstart'`) — retomado por `reactivarSeguimientoCamara()`, el botón de recentrar. (3) Brújula en tiempo real (`activarBrujula()`/`desactivarBrujula()`). (4) Polylines de ruta, con auto-reparación si el estilo del mapa aún no cargó (§4.6a). Calcula `calcularToleranciaGPS()`: `RADIO_LLEGADA_PARADA_M` (15 m) para paradas e inicios, dinámica con suelo de 35 m para tramos; y `radioLlegada()`, el radio con el que se declara una llegada, que es el del círculo naranja que ve el usuario (§4.5). El efecto de pulso de llegada usa `_pulseTimeout` (módulo) con `clearTimeout` para evitar acumulación si llegan confirmaciones consecutivas. | `invalidarTamañoMapa()`, `diagnosticarMapa()`, `isMapInitialized()` |
 | `proteccion.js` | IIFE de protección anti-inspección. Se ejecuta antes que cualquier módulo. Cuatro capas: teclas DevTools, clic derecho, arrastre de media, detector por timing/resize. Borra `globalThis.RETOS_AVENTURAS` y coordenadas si detecta ≥2 intentos de debugger o ≥3 de resize. | — |
+| `efectos-sonido.js` | Los cuatro efectos de sonido de `audios-efectos/`: un reproductor por efecto y por frame, siempre a volumen 1, que el primer gesto del usuario desbloquea para iOS (§12, «Efectos de sonido»). Lo importan `puzzle.html`, `retos-hijo4.html` y el Script 2 de `codigo-padre.html`. | `EFECTOS`, `precargarEfectos`, `reproducirEfecto`, `detenerEfectos` |
 
 #### Ficheros de datos (sin lógica)
 
