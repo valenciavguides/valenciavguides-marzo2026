@@ -639,6 +639,7 @@ lleva pegado el comando de comprobación que cualquiera puede repetir con `grep`
 | guía frente a código: fichas | la tabla de cobertura por hijo de §10.7 celda por celda frente a los handlers del código (sale con código 1 si no cuadra) y las filas «Emitido por» y «Handler en …» de las fichas de §10 junto a lo que registra y emite cada frame (`guia-fichas-mensaje.cjs`, añadido al cerrar la tanda; `ESTUDIO_GUIA` apunta a otra copia de la guía) | contra la guía anterior a G-43: 3 discrepancias en §10.7; contra la actual, 0 (G-43) |
 | guía frente a código: payloads | las claves de las celdas «Payload» de §7, §8 y §10 frente a las que mandan los emisores del código (`guia-payloads.cjs`, añadido al cerrar la tanda; necesita `payload.json`) | contra la guía anterior a G-43: 38 de 222 filas con claves que ningún emisor manda; contra la actual, 7 de 221, todas leídas a mano (cinco de emisor opaco —`datos` no literal—, `UI.CLOSE_MENUS` padre → hijo1, que no tiene emisor, y `CHAT.ESTADO_PADRE`) (G-43) |
 | guía frente a código: nombres citados | las funciones, handlers y globals propios que la guía cita entre backticks, buscados como token en los ficheros rastreados con código (`guia-nombres-citados.cjs`, añadido al cerrar la tanda; `ESTUDIO_GUIA` apunta a otra copia de la guía) | contra la guía anterior a G-44: 40 candidatos, 7 referencias a algo que no existe; contra la actual, 33, todos explicados (frases que dicen que el nombre no existe, nombres del arnés de tests o de `tools/`, patrones como `mostrarCartelXXX`) (G-44) |
+| comentarios frente a código: nombres citados | los identificadores que citan los comentarios de JavaScript de las páginas, de `js/*.js` y de `sw.js` (camelCase, `_nombre`, `nombre()` y las constantes con puntos de `TIPOS_MENSAJE`, por su último segmento), buscados como token en el código sin comentarios de esos ficheros y de los specs (`comentarios-nombres-citados.cjs`, añadido al cerrar la tanda; validado con un comentario inyectado que cita dos nombres inventados y uno que existe: lista los dos primeros y no el tercero) | 6781 comentarios de 38 ficheros, 0 bloques sin parsear; 44 candidatos, triados uno a uno: 5 daban por vivo algo que no existe (G-45) y 39 no son erratas —cuentan lo que se retiró, que es el «porqué» que vive en los comentarios, o son nombres de APIs externas, patrones o ejemplos—; tras G-45, 39 |
 
 Además se han ejecutado las herramientas propias del repo que esta auditoría no había usado:
 `node tools/codigo-muerto.js`, `node tools/verificar-mensajeria.js`, `node tools/verificar-frames.js`.
@@ -2700,7 +2701,7 @@ y G-43.
 
 ##### K-49 — Al entrar en CASA, los carteles de distancia GPS se cierran por dos caminos, cada uno con una parte, y el test que lo vigilaba no veía ninguno — ✅ (medido: M-20; decisión abierta)
 
-- **Dónde.** `codigo-padre.html`, `_hdl_SISTEMA_CAMBIO_MODO` (`:7571`). Al pasar a CASA el handler cierra los carteles de distancia y precisión GPS
+- **Dónde.** `codigo-padre.html` (líneas de `066833e`), `_hdl_SISTEMA_CAMBIO_MODO` (`:7571`). Al pasar a CASA el handler cierra los carteles de distancia y precisión GPS
   por dos sitios. (a) La rama CASA (`:7610-7647`) llama a `globalThis._ocultarTodasPantallasDistanciaGPS?.()` (`:7628`), que es
   `_ocultarOtrasPantallasDistanciaGPS(null)` —quita la clase `show` a `gps-out-of-range-overlay`, `foto-perdido-overlay`, `foto-lejos-overlay`,
   `foto-desviado-overlay`, `foto-fuera-rango-overlay` y `gps-precision-overlay`, `:6219-6227`— más `_limpiarSnoozeOverlaysDistancia()` (`:6229-6232`).
@@ -2851,7 +2852,7 @@ después.
 
 La guía "se consulta siempre y no se cree nunca" (CLAUDE.md regla 8). Estas son las contradicciones que la ronda tropezó,
 cada una verificada contra el código. **Las 18 se corrigieron en la tanda de arreglos del 2026-10-02**, junto con las que la
-propia tanda fue encontrando (G-19 a G-44, tabla de estado más abajo); la tabla de aquí conserva lo que decían y lo que había:
+propia tanda fue encontrando (G-19 a G-45, tabla de estado más abajo); la tabla de aquí conserva lo que decían y lo que había:
 
 | # | Dónde | Dice | El código |
 |---|---|---|---|
@@ -2921,6 +2922,7 @@ código leído ese día; los hashes son de los commits locales (sin pushear).
 | G-42 | ✅ | `f151ca3`: §7.1, §7.2, §7.3 y §2.9: la selección «no participa en el ciclo de modos»; `#icono-temporizador` «solo en AVENTURA y se oculta en CASA» (nada lo oculta); hijo2 «cambia la clase CSS del body» en `CAMBIO_MODO` (solo la fija `PADRE_DATOS`: K-47, M-17) y «carga coordenadas desde `coordenadas-aventuras.js`» (las recibe del padre); hijo5 en AVENTURA «lista de paradas actualizada» (la ventana está oculta) |
 | G-43 | ✅ | `4ff98d5`: las fichas por mensaje de §10, las tablas de los siete frames de §7 y §8 y la tabla 10.7 repetían lo que §26.12 dice de cada handler y en varios puntos decían otra cosa. Modo: `CAMBIO_MODO` como `broadcast` con `aventura` e `idioma` y cinco handlers (son la orden al padre, `{ modo }`, y el aviso por hijo, `{ modo, mensajeId }`, y lo atienden siete frames); `EFECTUADO` sin la selección, hijo5 ni hijo6 y con una nota de que hijo6 no lo manda (lo manda); `APLICADO` en cuatro hijos y con efecto (seis frames, solo log). Fichas: `IDIOMA_SELECCIONADO` que «propaga a los hijos», `TERMINOS_ACEPTADOS` que «desbloquea el botón», `GPS.ACTIVAR` que llama a `revelarNavegacion`, `RETO.MOSTRADO` que toca `estado.retoActual`, `AUDIO.ERROR` que «no desbloquea flujo» (llama a `_marcarAudioNoDisponible`), `TEMPORIZADOR.TOGGLE` que pausa el temporizador, `HIJO_LISTO` que reenvía el modo, `SOLICITAR_DATOS_PARADAS` que lee `__vv_DATOS_AVENTURAS`, `MONITOREO.METRICA` mandada por cuatro hijos y guardada en un historial que no existe (la manda hijo2) y `UI.ACCION_USUARIO` mandada por hijo3 (la recibe). §8: `GPS.ERROR` y `GPS.ESTADO_ACTUALIZADO` de hijo2 que «muestran un overlay», `NOTIFICACION` de hijo4 que «limpia el reto», `SISTEMA.ERROR` de hijo5 que «reintenta», `CAMBIO_MODO` de hijo6 «sin acción» y el de hijo2 que «cambia la clase del body» (K-47). §7: hijo1 no manda `MONITOREO.METRICA`. §10.7: ❌ a hijo5 en `APLICADO`, ✅ a hijo4 en `RETO.OCULTAR` (lo manda, no lo atiende) y — a hijo2 en `RESPUESTA_DATOS_PARADAS`. Y 31 filas de payload con claves que ningún emisor manda (`HIJO_PREPARADO` y `HIJO_LISTO` con `componenteId`, `version` o `iframeId` que no llevan todos, `HEARTBEAT_RESPONSE` con `componente`, `AUDIO.*` con `parada_id` y `duracion`, `UI.ACCION_USUARIO` con `accion: 'video'`, `MOSTRAR_MAPA_VINTAGE` con `url` y `paradaActual`…). M-18 y K-48: hijo5 marca la parada con una clase sin estilo |
 | G-44 | ✅ | `bddb51c`: siete nombres que la guía citaba como existentes y no están en ningún fichero del código: `_hijoListo_sincronizarModoCriticos` (dos sitios: nada manda `CAMBIO_MODO` al quedar listo un hijo; el modo inicial lo llevan `PADRE_DATOS` y el `modoInicial` de `PADRE_CONFIRMA_HIJO_LISTO`), `cargarIframeSecuencial` «alias» de `cargarIframeSoloSeleccion`, `_broadcastActivacion`, `cargarVideoIntro()` (que además daba la pantalla del vídeo como P8, «placeholder»: es P4 y carga `video-intro.html`), `maxFallidos` (es `MAX_LATIDOS_SIN_RESPUESTA`), `registrarControladorScript2Seguro` (es `registrarControladorSeguro`) y `paradaIdActual` de hijo4 (es `estado.padreIdActual`) |
+| G-45 | ✅ | `f52627b`: cinco comentarios de código que citaban como vivo algo que no existe (los dejó `comentarios-nombres-citados.cjs`, 44 candidatos triados uno a uno): `_manejarSimularClick` (el comentario de `_hdl_SISTEMA_ERROR` del padre la daba como emisor de `ELEMENTO_NO_ENCONTRADO`; la retiró `8daa6db`), `_hdl_NAVEGACION_GPS_DESACTIVAR` (`js/funciones-mapa.js:2705`; `GPS.DESACTIVAR` no tiene handler), `_solicitarRetoParaParada` (padre `:9837`; el reto de cada parada lo manda `_enviarRetoMostrar`), `autoReconectar` (el `@param` de `marcarHijoDesconectado`, `js/mensajeria.js:1115`, que solo recibe `hijoId`) y `setView` (`js/funciones-mapa.js:1315`: es de Leaflet y el mapa es MapLibre). Solo cambia texto de comentario y ninguno cambia el número de líneas de su fichero |
 
 ### R2.6 Censo de frames (regla 3b)
 
@@ -2947,7 +2949,7 @@ que la tanda de arreglos tocó, y lo que no, está debajo de la tabla.
 
 | Frame | ¿Tocado? | Commits | Qué se hizo |
 |---|---|---|---|
-| `codigo-padre.html` | sí | `2ed1658`, `8806429`, `6c152ab`, `0fe5b3f`, `f6ab460`, `c7c7b1a`, `6538bba`, `a4644e5`, `e3a9cff` | arranques del latido y limpiezas de `pagehide` sin efecto, contadores, lecturas de `Config`, globals sin lector, `getPadreId`, reinicio de la brújula en «Vuelta rápida», comentarios contrastados con el código, el handler de `SISTEMA.HEARTBEAT` sin emisor (M-16) |
+| `codigo-padre.html` | sí | `2ed1658`, `8806429`, `6c152ab`, `0fe5b3f`, `f6ab460`, `c7c7b1a`, `6538bba`, `a4644e5`, `e3a9cff`, `f52627b` | arranques del latido y limpiezas de `pagehide` sin efecto, contadores, lecturas de `Config`, globals sin lector, `getPadreId`, reinicio de la brújula en «Vuelta rápida», comentarios contrastados con el código, el handler de `SISTEMA.HEARTBEAT` sin emisor (M-16), dos comentarios que citaban algo que no existe (G-45) |
 | `En-busca-del-tesoro.html` | sí | `8daa6db`, `545323b`, `a4644e5`, `dae5bf2` | avisos `UI_VISIBLE`, respaldo del puzzle de introducción, lectura de `paradaActual`, parámetros de la URL del puzzle |
 | `extrainfo-hijo1.html` | sí | `8daa6db`, `0fe5b3f` | avisos `UI_VISIBLE`; `_reflow` |
 | `coordenadas-hijo2.html` | sí | `8806429`, `8daa6db`, `a4644e5` | contador, `UI_VISIBLE` y `reto_abierto`, lectura de `paradas`/`paradaActual` |
@@ -2959,7 +2961,7 @@ que la tanda de arreglos tocó, y lo que no, está debajo de la tabla.
 | `puzzle.html` | **no** | — | `git diff --quiet` = 0 y 0 commits: solo lee `id` e `imagen`; el arreglo de K-36 estaba en quien lo invoca (la selección) |
 | `video-intro.html` | **no** | — | `git diff --quiet` = 0 y 0 commits: sin hallazgos que arreglar (K-28, las copias de `createParticle`/`loop`, es coste de mantenimiento) |
 
-Los commits posteriores a `e3a9cff` (el último que toca un frame, el padre) no cambian ninguno de los once: `git diff --quiet e3a9cff HEAD -- <fichero>` da 0 y `git log --oneline e3a9cff..HEAD -- <fichero>` no da nada para cada uno de los once; tampoco cambian `js/`, `sw.js` ni `tests/`.
+Los commits posteriores a `e3a9cff` (el último que cambia el código de un frame, el padre) no cambian ninguno de los diez frames restantes: `git diff --quiet e3a9cff HEAD -- <fichero>` da 0 y `git log --oneline e3a9cff..HEAD -- <fichero>` no da nada para cada uno de los diez. Del padre, `f52627b` cambia solo texto de comentario (siete líneas: tres en el padre, tres en `js/funciones-mapa.js` y una en `js/mensajeria.js`, G-45); `sw.js` y `version.json` cambian por la versión de caché, que recalcula el hook de pre-commit; y `tests/` cambia en los specs `114` (`03408b7`) y `30` (`066833e`).
 
 Módulos de `js/` tocados (11): `app.js`, `config.js`, `constants.js`, `device-detection.js`, `funciones-mapa.js`, `mensajeria.js`, `monitoreo.js`, `reciclaje-digital.js`, `state-manager.js`, `utils.js` y `validacion.js`. No tocados (21; `git diff --quiet` = 0): `api-client.js`, `controladores-padre.js`, `data-loader.js`, `feedback-forms.js`, `logger.js`, `proteccion.js`, `server.js`, `suppress-warnings.js`, `video-playback-utils.js` y los módulos de datos (`*-aventuras.js`, `indice-aventuras.js`, `normativa-cumplimiento.js`, `traducciones-ui.js`).
 
@@ -3039,6 +3041,9 @@ resultado por entrada y las decisiones que siguen abiertas están en R2.8.
   de las filas («qué hace»): eso se leyó a mano contra el handler de cada una (G-34 a G-43). Fuera de esos catálogos —las narrativas
   de §2, §4, §9, §25 y §31, por ejemplo— la deriva entre el texto de la guía y el código solo se barrió en lo que tocaron las
   correcciones.
+- `comentarios-nombres-citados.cjs` solo lee los comentarios de JavaScript (no los de HTML ni los de CSS) y da por existente un nombre que aparezca en el código sin
+  comentarios de cualquier fichero de producción o de cualquier spec, también dentro de una cadena: no ve un comentario que describe mal lo que hace un nombre que
+  sí existe, ni uno que cita un nombre homónimo de otra cosa. Lo que lista se tría leyendo el comentario, porque uno que cuenta lo que se retiró es legítimo (K-34).
 - Un extractor que lee un export de `js/` se rompe en silencio cuando el export se retira: `extract-payload` y `extract-discriminadores`
   imprimían «tipos analizados: 0» desde que K-37 retiró `TIPOS_MENSAJE_VALIDOS` y nadie los volvió a ejecutar hasta G-43. Los extractores
   se vuelven a ejecutar contra `HEAD` cuando cambia lo que leen, y lo primero que hay que mirar es su recuento.
@@ -3102,6 +3107,9 @@ pegado para repetir cada comprobación, es del usuario.
 | `03408b7` | spec `114` sin service worker (`serviceWorkers: 'block'`); la guía anota el caso en §36.26 | K-32 (M-19) |
 | `6c980b0` | este documento: M-19, la nota de K-32 sobre el spec `114` y las tandas completas | K-32 (M-19) |
 | `066833e` | spec `30`: CM-6 concede la geolocalización desde el contexto y comprueba los seis carteles de distancia/precisión | K-32 (M-21), K-49 (M-20) |
+| `17fd7f1` | este documento: K-49, M-20 y M-21, la nota de K-32 sobre el permiso de geolocalización y los recuentos | K-49, K-32 (M-20, M-21) |
+| `7e0116a` | guía: §36.26 punto 6 sin narrar casos corregidos; §18.2 y §20 en presente; dos filas sin la cita a K-35 | guía |
+| `f52627b` | cinco comentarios de código que citaban como vivo algo que no existe | G-45 |
 
 **Tandas completas al cierre.** chromium: 532 de 532 (9,8 min). Cuatro proyectos (chromium, firefox, pixel5, iphone12), dos veces: 2125 de 2128 (49 min) y 2127 de 2128 (42,9 min). Los rojos: el spec `114` MD-2 en firefox y en iphone12 (primera tanda) —del arnés y no del código: `page.route` no ve lo que pide el service worker (K-32, M-19), corregido en `03408b7`— y el spec `30` CM-6 en firefox, en las dos tandas —el permiso de geolocalización, concedido con la página ya cargada, no llegaba a la página en parte de las ejecuciones (K-32, M-21), corregido en `066833e`—.
 
