@@ -8343,7 +8343,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 66 specs; ver §18.3 para el listado completo y `npm run test:e2e:chromium` para el recuento actual
+│   └── e2e/                          ← Tests Playwright — 111 specs; `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`), §18.3 describe lo que verifica cada spec que tiene fila y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
