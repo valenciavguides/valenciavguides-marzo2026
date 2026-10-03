@@ -457,11 +457,17 @@
 
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
+    import { EFECTOS, precargarEfectos, reproducirEfecto, detenerEfectos } from './js/efectos-sonido.js';
     // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
     // `globalThis.logger = ...` de codigo-padre.html solo alcanza al del padre: sin esta
     // linea, los `(globalThis.logger || console).x` de este fichero caian al console crudo
     // y se saltaban el nivel de log (ver GUIA-COMPLETA.md §26.3).
     globalThis.logger = logger;
+
+    // Los efectos de este frame, cargados desde el arranque: el primer `play()` tiene que caer
+    // dentro del gesto del usuario (iOS). El sonido de pieza colocada y el de reto completado
+    // del puzzle los reproduce puzzle.html, que es otro frame.
+    precargarEfectos([EFECTOS.ELECCION_RESPUESTA, EFECTOS.RETO_COMPLETADO, EFECTOS.TIEMPO_ACABADO]);
 
     // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
     // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
@@ -811,6 +817,9 @@
                     input.name = "op";
                     input.value = opcion;
                     input.id = "opcion" + i;
+                    // Un sonido por cada pulsación, también al desmarcar una casilla o repetir una opción ya
+                    // elegida: por eso `click` y no `change`. El ⏩ marca `.checked` sin pulsar nada y no suena.
+                    input.addEventListener("click", () => reproducirEfecto(EFECTOS.ELECCION_RESPUESTA));
                     divOpcion.appendChild(input);
 
                     const label = document.createElement("label");
@@ -884,6 +893,7 @@
             retoDiv.classList.add("correct");
             retoDiv.classList.remove("incorrect");
             fuegosArtificiales(); // Llama a la animación
+            reproducirEfecto(EFECTOS.RETO_COMPLETADO); // respuesta correcta o ⏩: es la misma función
 
             // Cambiar btnEnviar a 👍 verde
             ocultarControles();
@@ -994,6 +1004,7 @@
             } else {
                 retoDiv.classList.add("incorrect");
                 vibrar();
+                reproducirEfecto(EFECTOS.TIEMPO_ACABADO); // respuesta incorrecta
                 btnEnviar.textContent = "👎";
                 btnEnviar.style.backgroundColor = "#ED2100";
                 btnEnviar.disabled = true;
@@ -1054,6 +1065,9 @@
         */
         if (btnNext) {
             btnNext.addEventListener("click", async () => {
+            // Corta de inmediato el efecto en curso (la fanfarria de reto completado dura 7,65 s): el
+            // cierre real de la ventana llega después del acuse del padre.
+            detenerEfectos();
             // Si hay una compleción pendiente (respuesta ya verificada correcta, ver
             // verificar()), es AHORA cuando se confirma al padre — no antes.
             if (_pendienteCompletado) {
@@ -1475,6 +1489,9 @@
             // de recibir RETO.OCULTAR de este mismo hijo4 — direcciones distintas, tipos distintos)
             registrarControladorSeguro(TIPOS_MENSAJE.RETO.LIMPIAR_ESTADO, async (mensaje) => {
                 logger.info(`[hijo4] RETO.LIMPIAR_ESTADO recibido - limpiando estado`);
+
+                // Cualquier cierre de la ventana del reto acaba aquí: ningún efecto sigue sonando sin ella.
+                detenerEfectos();
 
                 // Limpiar estado local del reto
                 estado.retoActualId = null;

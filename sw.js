@@ -63,6 +63,7 @@ const APP_SHELL = [
   '/js/feedback-forms.js',
   '/js/data-loader.js',
   '/js/video-playback-utils.js',
+  '/js/efectos-sonido.js',
   // Librerías de terceros que el shell carga como código (<script>/<link>):
   // MapLibre desde codigo-padre.html, page-flip desde video-intro.html.
   '/js/vendor/maplibre-gl-csp.js',
@@ -85,6 +86,12 @@ const APP_SHELL = [
   '/imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg',
   '/imagenes/imagenes-aplicación/logo-splash-192.png',
   '/imagenes/imagenes-aplicación/logo-splash-512.png',
+  // Efectos de sonido (js/efectos-sonido.js). No son /audios-aventuras/: esa ruta no la intercepta
+  // el SW y el servidor la protege como contenido de pago, y estos suenan antes de pagar.
+  '/audios-efectos/sonido_eleccion_respuesta_reto.mp3',
+  '/audios-efectos/sonido_pieza_colocada.mp3',
+  '/audios-efectos/sonido_reto_completado.mp3',
+  '/audios-efectos/sonido_tiempo_acabado.mp3',
 ];
 
 // ─── CACHE_VERSION: Auto-generada en pre-commit ──────────────────────────────
@@ -98,7 +105,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell actualiza la versión de caché
 // automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-5dd295360f6a';
+const CACHE_VERSION = 'v-783611c847f2';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';

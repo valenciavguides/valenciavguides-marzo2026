@@ -59,6 +59,7 @@ function carpetasDeImagenes() {
 const CARPETAS = [
     ...carpetasDeImagenes(),
     { dir: 'audios-aventuras', tipo: 'audio', ext: ['.mp3', '.wav', '.m4a'] },
+    { dir: 'audios-efectos', tipo: 'audio', ext: ['.mp3', '.wav', '.m4a'] },
     { dir: 'videos-aventuras', tipo: 'video', ext: ['.mp4', '.webm', '.mov'] },
 ];
 
