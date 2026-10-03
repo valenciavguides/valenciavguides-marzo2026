@@ -1112,7 +1112,7 @@ async function enviarHeartbeatAHijos() {
 /**
  * Marca un hijo como desconectado
  * @param {string} hijoId - ID del hijo
- * @param {boolean} autoReconectar - Si debe intentar reconectar automáticamente
+ * @returns {Promise<void>}
  */
 async function marcarHijoDesconectado(hijoId) {
     const sm = obtenerStateManager();

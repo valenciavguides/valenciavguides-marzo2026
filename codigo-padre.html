@@ -9834,7 +9834,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // (ver §16 GUIA-COMPLETA.md). _hdl_NAVEGACION_CAMBIO_PARADA resuelve y envía
                 // el audio/reto de cada parada individualmente en el momento en que se activa
                 // (parada inicial, avance GPS/manual, o reanudación de sesión), vía
-                // _solicitarAudioParaParada()/_solicitarRetoParaParada().
+                // _solicitarAudioParaParada()/_enviarRetoMostrar().
 
                 // 3. Enviar textos procesados a hijo2
                 // Los textos NO estan en ningun global: textos-aventuras.js ya no se carga en
@@ -12679,8 +12679,8 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        // SISTEMA.ERROR es un tipo genérico de error usado por varios hijos (p.ej. también
-        // 'ELEMENTO_NO_ENCONTRADO' desde _manejarSimularClick en audio-hijo3.html) — este
+        // SISTEMA.ERROR es un tipo genérico de error usado por varios frames (la selección y
+        // hijo5 mandan además `datos.tipo: 'CAMBIO_MODO_FALLIDO'`) — este
         // handler no cubre cada código posible, solo evita que el mensaje se pierda sin
         // ningún rastro y da feedback visible al usuario en el caso que sí se conoce hoy
         // (AUDIO_CONTROL_FALLIDO, ver _manejarAudioControl en audio-hijo3.html, §7.4).

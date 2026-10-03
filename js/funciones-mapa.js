@@ -1312,7 +1312,7 @@ export async function setMapView(center, zoom, opciones = {}) {
                 try { finalZoom = _mapaInstance ? _mapaInstance.getZoom() : finalZoom; } catch (_e) { /* ignore */ } // NOSONAR
             }
 
-            // Si aún no tenemos un zoom válido, dejar que setView lo gestione (o usar 15 como fallback)
+            // Si aún no tenemos un zoom válido, se usa 15 como fallback
             if (finalZoom === undefined || finalZoom === null || !Number.isFinite(finalZoom)) {
                 finalZoom = opciones?.zoom ? Number(opciones.zoom) : 15;
             }
@@ -2702,8 +2702,8 @@ export function registrarManejadoresMensajes() {
             }
         });
         // GPS handlers NO se registran aquí — los registra Script 2 de codigo-padre.html
-        // con _hdl_NAVEGACION_GPS_ACTIVAR/_DESACTIVAR (verifican modo AVENTURA,
-        // gestionan paradaListaParaAvanzar y revelarNavegacion).
+        // con _hdl_NAVEGACION_GPS_ACTIVAR (verifica modo AVENTURA, gestiona
+        // paradaListaParaAvanzar y revelarNavegacion; GPS.DESACTIVAR no tiene handler).
         // Si se registrasen aquí primero, state-manager bloquearía el registro de Script 2
         // por "Controlador duplicado" y el handler incompleto de funciones-mapa ganaría.
 
