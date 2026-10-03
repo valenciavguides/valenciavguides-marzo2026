@@ -46,7 +46,7 @@ por impecable que parezca encadenado.
 **Ronda 2 (2026-10-01).** La metodología de arriba es la de la ronda 1 (`grep` e inventario). La
 ronda 2, al final de este documento, repite el barrido con parser real (`acorn`) y con el residuo
 de cada instrumento a la vista: desmiente siete afirmaciones de este texto (erratas E1-E7, con una
-nota fechada en cada sección afectada), corrige dos de la propia ronda (E8 y E9) y añade 48 entradas (K-01 a K-48) para su estudio
+nota fechada en cada sección afectada), corrige dos de la propia ronda (E8 y E9) y añade 49 entradas (K-01 a K-49) para su estudio
 individual. Léase junto con ella: lo que aquí se dio por cerrado o limpio puede no estarlo.
 
 **No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
@@ -1712,6 +1712,12 @@ propósito". Método: `ficherosDelShell()` contra el literal de `APP_SHELL`.
   MD-2 recibía `false` y MD-5 seguía verde con el corte de 2,5 s cambiado a 20 s. Con `test.use({ serviceWorkers: 'block' })`, como
   ya hacía el spec `89`, pasa 20 de 20 en los cuatro proyectos y cada rotura de `js/data-loader.js` pone en rojo su caso en los
   cuatro (`03408b7`; la guía lo anota en §36.26).
+  El spec `30` CM-6 era rojo a ratos en firefox (M-21): concedía el permiso de geolocalización con la página ya cargada y, en 10 de 27 ejecuciones
+  intercaladas, la página seguía viendo `prompt` justo después de `grantPermissions()`, con lo que el cambio de modo a AVENTURA se quedaba esperando. Con el permiso en
+  las opciones del contexto (`test.use`), 0 de 27; concediéndolo antes de navegar, 0 de 12, que es el orden de los otros 29 puntos de la suite que conceden el permiso
+  (clasificados con un script: en los 29 la concesión precede a `gotoAndWaitForFase1` dentro de la misma función; en los dos de `44`, a través de
+  `prepararPadreConAventura`, que lo llama en su línea 49). La misma comprobación en rojo mostró que CM-6 no veía la rotura de lo que dice vigilar (M-20, K-49).
+  Los dos arreglos, en `066833e`.
 
 ##### K-33 — CSS, DOM y redirecciones — ➖ con restos 🔎
 
@@ -2692,6 +2698,44 @@ y G-43.
   el envío de `CAMBIO_PARADA` a hijo5 de `_notificarCambioParadaHijos`): el resalte lo pone el click y se queda. *C) dejarlo*, si hijo5
   se retira o no se usa.
 
+##### K-49 — Al entrar en CASA, los carteles de distancia GPS se cierran por dos caminos, cada uno con una parte, y el test que lo vigilaba no veía ninguno — ✅ (medido: M-20; decisión abierta)
+
+- **Dónde.** `codigo-padre.html`, `_hdl_SISTEMA_CAMBIO_MODO` (`:7571`). Al pasar a CASA el handler cierra los carteles de distancia y precisión GPS
+  por dos sitios. (a) La rama CASA (`:7610-7647`) llama a `globalThis._ocultarTodasPantallasDistanciaGPS?.()` (`:7628`), que es
+  `_ocultarOtrasPantallasDistanciaGPS(null)` —quita la clase `show` a `gps-out-of-range-overlay`, `foto-perdido-overlay`, `foto-lejos-overlay`,
+  `foto-desviado-overlay`, `foto-fuera-rango-overlay` y `gps-precision-overlay`, `:6219-6227`— más `_limpiarSnoozeOverlaysDistancia()` (`:6229-6232`).
+  (b) Al final de la secuencia, y solo si el cambio de modo tuvo éxito, `_gestionarGpsSegunModo` (`:7745`; definida en `:7562-7569`) llama a
+  `_gestionarGpsOverlays` (`:7552-7560`), que en CASA ejecuta `hideNextEntityOverlay()` (`:7175-7183`, que a su vez llama a `hideGpsOutOfRangeOverlay()` si existe
+  `#gps-next-entity-overlay`) y `hideGpsOutOfRangeOverlay()` (`:6145-6160`): para el temporizador `__VV_GPS_OVERLAY_TIMER` —la cuenta atrás de 15 s
+  del botón de reintento, `:6059-6060`—, vacía la cuenta atrás, rehabilita `#gps-error-action`, quita `show` al cartel de bloqueo y oculta
+  `#gps-next-entity-overlay`.
+- **Lo que no cuadra.** Los dos caminos se solapan en un solo cartel, `gps-out-of-range-overlay`, y cada uno hace algo que el otro no. (a) cierra los
+  otros cinco y borra el snooze, pero del cartel de bloqueo solo quita `show` (lo único que hace `_ocultarOtrasPantallasDistanciaGPS`): la cuenta atrás de su
+  botón, si estaba en marcha, sigue y termina sola en 15 s como máximo (`_startOverlayCountdown`, `:6641-6655`, que rehabilita el botón al llegar a cero). (b) para
+  esa cuenta atrás y rehabilita el botón al instante, y oculta el cartel de siguiente entidad, pero no toca los otros cinco. Es el mismo hecho, «qué se cierra
+  al entrar en CASA», repartido en dos mecanismos parciales: quien retire uno creyendo que el otro basta deja algo sin cerrar según cuál. La guía describe los
+  dos pasos (§2.5, el diagrama de AVENTURA → CASA, y la fila de CASA de la tabla de modos), así que no hay discrepancia con ella.
+- **El test que lo vigilaba era ciego.** `tests/e2e/30-casa-no-fuga-aventura.spec.js` CM-6 comprobaba un solo cartel, `gps-out-of-range-overlay` —justo el que
+  cierran los dos caminos—, y seguía en verde con la llamada (a) quitada de `codigo-padre.html`: 4 passed en los cuatro proyectos. «El segundo camino esconde
+  que el primero está roto», aplicado a un test.
+- **Medido (M-20).** (1) Sonda desechable en chromium: con el cartel de bloqueo visible, AVENTURA → CASA llama dos veces a `classList.remove('show')` sobre él, una
+  desde `_ocultarOtrasPantallasDistanciaGPS` (la llamada explícita) y otra desde `hideGpsOutOfRangeOverlay` (`_gestionarGpsOverlays`); con la llamada explícita
+  neutralizada lo cierra igualmente la segunda. Con los seis carteles visibles tras entrar en AVENTURA, y ambos caminos activos, no queda ninguno visible
+  (los otros cinco se cierran una vez, por (a)); con (a) neutralizada quedan abiertos cinco: `foto-perdido`, `foto-lejos`, `foto-desviado`, `foto-fuera-rango` y
+  `gps-precision`. Entrar en AVENTURA no cierra el cartel de bloqueo. (2) Con CM-6 de seis carteles (`066833e`) y roturas de `codigo-padre.html` provocadas una a una, en
+  los cuatro proyectos: sin rotura 4 passed; sin la llamada (a) 4 failed; sin `_gestionarGpsOverlays` en CASA (un `return;` tras su log) 4 passed —el otro camino
+  cubre los seis y nada ve esa pérdida—.
+- **Consecuencia.** Hoy no hay efecto visible: los dos caminos se ejecutan y todo se cierra. El riesgo está en el mantenimiento: cada camino es parcial, la pérdida
+  del segundo no la detecta ningún test y, si alguien deja solo uno, queda algo sin cerrar según cuál (cinco de los seis carteles si se deja solo (b); si se deja
+  solo (a), la cuenta atrás del botón del cartel de bloqueo seguiría hasta 15 s con el cartel ya oculto). El test sí está corregido: CM-6 comprueba los seis
+  carteles, mostrados después de entrar en AVENTURA, y se pone en rojo si falta (a).
+- **Pendiente: decisión** (código del padre; si se hace bien no cambia lo que ve el usuario, y la guía §2.5 cambiaría). *A) una sola función que cierre
+  los seis carteles, borre el snooze, pare la cuenta atrás, rehabilite el botón del cartel de bloqueo y oculte el de siguiente entidad*, llamada desde un solo
+  sitio —la rama CASA del handler, que corre al empezar y no depende de que la propagación a los hijos tenga éxito—; `_gestionarGpsOverlays` se queda con el
+  log — **recomendada**: un camino, y el test de seis carteles pasa a vigilarlo entero. *B) dejar los dos*,
+  como describe la guía. *C) dejar solo `_gestionarGpsOverlays` y ampliarlo a los seis carteles y al snooze*: el cierre pasaría a ocurrir al final de la secuencia
+  y solo si el cambio tiene éxito.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -2770,8 +2814,8 @@ Para que "no sale nada" no se confunda con "no se miró":
 
 ### R2.4 Las mediciones (hechas el 2026-10-02)
 
-Las doce mediciones que la ronda 2 dejó "POR MEDIR" (M-1 a M-12) y siete más que salieron al arreglar
-(M-13 a M-19) se ejecutaron el 2026-10-02 —M-19, pasada la medianoche, el 2026-10-03—, salvo M-8, que es de campo. Se hicieron con el OK del
+Las doce mediciones que la ronda 2 dejó "POR MEDIR" (M-1 a M-12) y nueve más que salieron al arreglar
+(M-13 a M-21) se ejecutaron el 2026-10-02 —M-19 a M-21, pasada la medianoche, el 2026-10-03—, salvo M-8, que es de campo. Se hicieron con el OK del
 usuario ("ok a todo, revisa y arregla"), sin nada más corriendo (regla 5) y con specs desechables en
 chromium sobre la app real (el padre con el stub de MapLibre y los hijos reales). Los specs de medición
 no se versionan: cada fila dice qué se hizo, que es lo que hay que repetir. Donde la medición pedía una
@@ -2800,6 +2844,8 @@ después.
 | M-17 | K-47 | (nueva, salió al cerrar) Clase del `body` de hijo2, hijo3 y hijo4 tras el arranque, tras pasar a AVENTURA, tras volver a CASA y de nuevo a AVENTURA (el padre cambia el modo con `despacharLocal`) | `hijo2`: `modo-casa hijo2-container` las cuatro veces; `hijo3` y `hijo4` siguen el modo (`modo-casa`, `modo-aventura`, `modo-casa`, `modo-aventura`). ✅ confirmada; decisión abierta |
 | M-18 | K-48 | (nueva, salió al cerrar) En hijo5 con tres botones de parada: clases y estilo calculado del botón tras un `NAVEGACION.CAMBIO_PARADA` del padre, tras un click real y tras un `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` con la forma de `completarCambioParada()` (`paradaId` con y sin prefijo `padre-`) | `CAMBIO_PARADA`: el botón 2 gana la clase `activa` y su estilo calculado no cambia; click: el botón 3 gana `actual` y su estilo cambia; `CAMBIO_PARADA_CONFIRMADO`: `actual` desaparece y el estilo vuelve al anterior, con las dos formas del id; ningún botón tiene `data-padreid`. ✅ confirmada; decisión abierta |
 | M-19 | K-32 | (nueva, salió de la tanda de cuatro navegadores) El spec `114` antes (el de `HEAD`) y después de bloquear el service worker, con tres roturas de `js/data-loader.js` provocadas una a una (`return resp.ok` → `return false`, → `return true`, corte de 2500 → 20000 ms; el módulo se restaura siempre y `git diff --quiet` da 0), en chromium, firefox, pixel5 e iphone12 con un solo worker | Antes: sin rotura, MD-2 rojo en firefox e iphone12 (recibe `false`); `→ false`, MD-2 rojo en los cuatro; `→ true`, MD-3 y MD-4 rojos en los cuatro y MD-5 también en firefox e iphone12; corte de 20000, MD-5 rojo solo en chromium y pixel5 (en firefox e iphone12 sigue verde). Después: sin rotura, 20 de 20; `→ false`, MD-2 rojo en los cuatro; `→ true`, MD-3 y MD-4 rojos en los cuatro; corte de 20000, MD-5 rojo en los cuatro. ✅ confirmada y corregida (`03408b7`) |
+| M-20 | K-49 | (nueva, salió de la comprobación en rojo de CM-6) (1) Una sonda desechable en chromium que envuelve `classList.remove` de los carteles y neutraliza o no `globalThis._ocultarTodasPantallasDistanciaGPS`: con el cartel `gps-out-of-range-overlay` visible y con los seis carteles visibles tras entrar en AVENTURA, AVENTURA → CASA. (2) El CM-6 de antes (un cartel) y el de ahora (seis) con roturas de `codigo-padre.html` provocadas una a una —quitar la llamada explícita de la rama CASA (`void 0`), o cortar `_gestionarGpsOverlays` en CASA con un `return;`; el fichero se restaura siempre y `git diff --quiet` da 0—, en chromium, firefox, pixel5 e iphone12 | (1) Con el cartel de bloqueo, `classList.remove('show')` se llama dos veces sobre él: desde `_ocultarOtrasPantallasDistanciaGPS` (llamada explícita) y desde `hideGpsOutOfRangeOverlay` (`_gestionarGpsOverlays`); con la explícita neutralizada lo cierra igualmente el segundo; entrar en AVENTURA no lo cierra. Con los seis visibles: ninguno queda visible tras CASA, el de bloqueo cerrado dos veces y los otros cinco una; con la explícita neutralizada quedan abiertos `foto-perdido`, `foto-lejos`, `foto-desviado`, `foto-fuera-rango` y `gps-precision`. (2) Antes: sin rotura 4 passed; sin la llamada explícita 4 passed (el test no ve la rotura). Después: sin rotura 4 passed; sin la llamada explícita 4 failed; sin `_gestionarGpsOverlays` en CASA 4 passed (el otro camino cubre los seis y nada ve esa pérdida). ✅ confirmada; test corregido (`066833e`), decisión de producto abierta |
+| M-21 | K-32 | (nueva, salió de la tanda de cuatro navegadores) El spec `30` CM-6 en firefox. (1) Un escenario mínimo desechable —cambio de modo real a AVENTURA y a CASA con el padre real, un `getCurrentPosition` y `navigator.permissions.query` antes y después—, en ejecuciones intercaladas de tres formas de dar el permiso: con la página ya cargada (`context.grantPermissions()` + `setGeolocation()`, como hacía CM-6), con las mismas llamadas antes de navegar (como los otros 29 puntos de la suite) y en las opciones del contexto (`test.use`). (2) El spec `30` con `01-fase1-boot` y `02-global-variables` delante, que es donde fallaba, antes y después del arreglo | (1) Con la página ya cargada: 10 de 27 rojos (7 de 15 y 3 de 12). En los 10, `navigator.permissions.query` devolvía `prompt` justo después de `grantPermissions()` y seguía en `prompt` 32 s después; el cambio de modo se quedaba en «Iniciando watchPosition...» hasta el aviso de 20 s del bus y un `getCurrentPosition` directo con `timeout: 8000` no volvía en 12 s; en los 17 verdes, `granted`. Antes de navegar: 0 de 12. En el contexto: 0 de 27 (15 + 12), más 0 de 6 en una tanda previa sin intercalar. (2) Antes: 4 de 6 rojos (el spec solo: 1 de 6); después: 0 de 16 (10 con el permiso en el contexto y 6 con, además, el CM-6 de seis carteles). ✅ confirmada y corregida (`066833e`) |
 
 ### R2.5 Discrepancias entre la guía (o comentarios de código) y el código — para decidir
 
@@ -2938,6 +2984,7 @@ Módulos de `js/` tocados (11): `app.js`, `config.js`, `constants.js`, `device-d
 | O — Recursos locales | K-44 | 1 confirmada: 491 referencias comprobadas contra el disco y una ruta que nunca existió (respaldo del puzzle de introducción) |
 | P — Orden de llegada de los datos de un frame | K-45 | 1 confirmada (medida: M-15), con decisión abierta: el FAQ de hijo6 se construye dos veces al abrirse y la primera escribe un `error` aunque todo vaya bien |
 | Q — Handlers que no hacen lo que su descripción dice | K-46, K-47, K-48 | 3 confirmadas: 15 handlers que solo escriben en el log (K-46), la clase del `body` de hijo2, que no sigue al modo (K-47, M-17), y el resalte de la parada activa de hijo5, que marca con una clase sin estilo y borra lo que marca el click (K-48, M-18) |
+| R — Un mismo cierre por dos caminos parciales, y el test que no ve ninguno | K-49 | 1 confirmada (medida: M-20) con decisión abierta: al entrar en CASA los carteles de distancia GPS se cierran por dos mecanismos que se solapan en uno solo de ellos, y CM-6 no veía la rotura del primero |
 
 **Total tal como lo dejó el barrido: 44 entradas — 19 confirmadas, 2 por medir, 5 documentadas, 10
 familias de copias, 4 por estudiar y 4 limpias o mixtas; 12 mediciones pendientes repartidas entre
@@ -2945,8 +2992,8 @@ ellas (R2.4).** Lo que más pesaba, sin ánimo de ordenarlo por urgencia: lo que
 usuario (K-24, K-25), lo que puede dejar un estado equivocado (K-07, K-11, K-19), lo que hace que una
 configuración, una constante o un contador no mande ni cuente (K-01 a K-03, K-37, K-38) y las ramas del
 contrato del bus que ningún emisor alcanza, algunas descritas por la guía como caminos vivos (K-35,
-K-36, G-9 a G-11). **Tras la tanda de arreglos son 48 entradas** (K-45 a K-48 se encontraron al cerrar): se
-hicieron las 18 mediciones posibles (M-8 es de campo), K-07 y K-32 dejan de estar «por medir», y el
+K-36, G-9 a G-11). **Tras la tanda de arreglos son 49 entradas** (K-45 a K-49 se encontraron al cerrar): se
+hicieron las 20 mediciones posibles (M-8 es de campo), K-07 y K-32 dejan de estar «por medir», y el
 resultado por entrada y las decisiones que siguen abiertas están en R2.8.
 
 **Límites de esta ronda — qué no garantiza:**
@@ -2982,7 +3029,7 @@ resultado por entrada y las decisiones que siguen abiertas están en R2.8.
 - El barrido de recursos locales no resuelve los literales con `${…}` (16) ni mira los módulos de
   datos; el de i18n compara forma, marcadores y vacías, no la calidad ni la corrección de cada
   traducción (eso es trabajo de revisión nativa).
-- Se ejecutaron 18 de las 19 mediciones de R2.4; M-8, el reintento de señal con el GPS en frío, es una
+- Se ejecutaron 20 de las 21 mediciones de R2.4; M-8, el reintento de señal con el GPS en frío, es una
   prueba de campo y queda sin medir.
 - `handlers-solo-log.cjs` cuenta como efecto cualquier llamada a una función que no sea de log, aunque esa función no haga nada (falso
   negativo), y como solo-log un handler cuyo único efecto es no estar registrado; lo que lista se confirma leyendo el handler (K-46).
@@ -3053,8 +3100,10 @@ pegado para repetir cada comprobación, es del usuario.
 | `38bed4d` | `guia-nombres-citados` | G-44 |
 | `7f9deff` | este documento: G-44, el instrumento de nombres citados y las clases de la interfaz y de los scripts barridas sin hallazgo | G-44 |
 | `03408b7` | spec `114` sin service worker (`serviceWorkers: 'block'`); la guía anota el caso en §36.26 | K-32 (M-19) |
+| `6c980b0` | este documento: M-19, la nota de K-32 sobre el spec `114` y las tandas completas | K-32 (M-19) |
+| `066833e` | spec `30`: CM-6 concede la geolocalización desde el contexto y comprueba los seis carteles de distancia/precisión | K-32 (M-21), K-49 (M-20) |
 
-**Tandas completas al cierre.** chromium: 532 de 532 (9,8 min). Cuatro proyectos (chromium, firefox, pixel5, iphone12): 2125 de 2128 (49 min). Los tres rojos: el spec `114` MD-2 en firefox y en iphone12 —determinista, un solo worker, del arnés y no del código: `page.route` no ve lo que pide el service worker (K-32, M-19)— y el spec `30` CM-6 en firefox, un `page.evaluate` que agotó los 60 s: aislado pasa 3 de 3 en firefox y en esa franja el registro del sistema no tiene eventos de suspensión (`Kernel-Power`), así que no se ha establecido la causa.
+**Tandas completas al cierre.** chromium: 532 de 532 (9,8 min). Cuatro proyectos (chromium, firefox, pixel5, iphone12), dos veces: 2125 de 2128 (49 min) y 2127 de 2128 (42,9 min). Los rojos: el spec `114` MD-2 en firefox y en iphone12 (primera tanda) —del arnés y no del código: `page.route` no ve lo que pide el service worker (K-32, M-19), corregido en `03408b7`— y el spec `30` CM-6 en firefox, en las dos tandas —el permiso de geolocalización, concedido con la página ya cargada, no llegaba a la página en parte de las ejecuciones (K-32, M-21), corregido en `066833e`—.
 
 **Resultado por entrada.**
 
@@ -3062,7 +3111,7 @@ pegado para repetir cada comprobación, es del usuario.
 |---|---|
 | Corregidas y cerradas | K-01, K-03, K-13, K-23, K-32, K-34, K-36, K-38, K-39, K-44 |
 | Corregidas, con una decisión abierta al lado | K-02, K-04, K-07, K-11, K-12, K-19, K-28, K-35, K-37, K-42 |
-| Medidas, con decisión abierta y sin código tocado | K-17, K-20, K-24, K-25, K-40, K-41, K-43, K-45, K-46, K-47, K-48 |
+| Medidas, con decisión abierta y sin código tocado | K-17, K-20, K-24, K-25, K-40, K-41, K-43, K-45, K-46, K-47, K-48, K-49 |
 | Documentadas, sin cambios (copias, intencional, limpio) | K-05, K-06, K-08, K-09, K-10, K-14, K-15, K-16, K-18, K-21, K-22, K-26, K-27, K-29, K-30, K-31, K-33 |
 
 **Decisiones abiertas — para el estudio individual del usuario.** Cada una tiene su nota «Estado final» en R2.2, con la comprobación pegada. «Cambia lo que ve el usuario» dice si la opción recomendada se nota en la pantalla; las que sí se notan son las que no se han tocado a propósito.
@@ -3091,5 +3140,6 @@ pegado para repetir cada comprobación, es del usuario.
 | K-46 | handlers que solo escriben en el log | **A) dejar, documentados, `CAMBIO_MODO_APLICADO`, `SISTEMA.ERROR`, `SISTEMA.NACK`, `SISTEMA.NOTIFICACION` y `CODIGO_VALIDADO`**; **B) retirar `RETO.MOSTRADO` → `RETO.CONFIRMADO` y `DATOS.TEXTOS_CARGADOS`**; C) retirar la 4.ª fase del modo entera | no |
 | K-47 | clase del `body` de hijo2 | A) escribirla también al cambiar de modo; **B) retirar la regla y la clase de hijo2** | A sí (el botón de avanzar activo pulsa en AVENTURA); B no |
 | K-48 | resalte de la parada activa en hijo5 | **A) una sola función que marque `actual`, llamada por el click, la generación y los dos handlers**; B) dejar solo el click y la generación y retirar los dos handlers de marcado; C) dejarlo | A y B sí, solo en la herramienta de desarrollo (hijo5); C no |
+| K-49 | cierre de los carteles de distancia GPS al entrar en CASA | **A) una sola función que cierre los seis carteles, borre el snooze, pare la cuenta atrás, rehabilite el botón del cartel de bloqueo y oculte el de siguiente entidad, llamada desde un solo sitio (la rama CASA del handler)**; B) dejar los dos, como describe la guía; C) dejar solo `_gestionarGpsOverlays` y ampliarlo | no (si se hace bien); la guía §2.5 cambia |
 
-**Límites residuales** (los de R2.7 siguen valiendo). M-8 es de campo y no se midió. M-14 a M-18 se midieron en chromium con el stub de MapLibre (M-19, en los cuatro proyectos) y recorren el arranque, la apertura del asistente y los cambios de modo, no todos los flujos de la aventura; que `PADRE_DATOS` tiene solo dos emisores lo dice la búsqueda desnuda, no la medición. El efecto de K-24 con una aventura no española en vivo no se midió: se deduce de las tres líneas de código. Cada borrado se apoya en búsqueda desnuda y lectura del llamador; un acceso por clave computada (`obj['nombre']`) no lo ve ninguna de las dos (límite del instrumento de exports, K-42). Los verificadores corregidos en K-34 imprimen su residuo, pero siguen siendo análisis estático.
+**Límites residuales** (los de R2.7 siguen valiendo). M-8 es de campo y no se midió. M-14 a M-18 y la sonda de M-20 se midieron en chromium con el stub de MapLibre (las roturas de M-20 y M-19, en los cuatro proyectos; M-21, en firefox) y recorren el arranque, la apertura del asistente y los cambios de modo, no todos los flujos de la aventura; que `PADRE_DATOS` tiene solo dos emisores lo dice la búsqueda desnuda, no la medición. El efecto de K-24 con una aventura no española en vivo no se midió: se deduce de las tres líneas de código. Cada borrado se apoya en búsqueda desnuda y lectura del llamador; un acceso por clave computada (`obj['nombre']`) no lo ve ninguna de las dos (límite del instrumento de exports, K-42). Los verificadores corregidos en K-34 imprimen su residuo, pero siguen siendo análisis estático.
