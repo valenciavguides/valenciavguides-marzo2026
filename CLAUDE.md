@@ -59,14 +59,14 @@ viven aquí.
    pasar por el catálogo, ni siquiera uno pequeño.
 2. **Antes de escribir en `docs/GUIA-COMPLETA.md`**, leer `feedback_guia_es_manifiesto`,
    `feedback_guia_detalle` y `feedback_guia_encoding` de la memoria. La guía describe lo que
-   existe, en presente: prohibidas las fechas, el "antes/ahora", "se eliminó" y cualquier verbo
-   en pasado sobre el proyecto. El porqué de una decisión va en los comentarios del código. Al
-   cerrar cualquier tanda de ediciones: `grep -n "2026-0[0-9]-[0-9]\{2\}" docs/GUIA-COMPLETA.md`
-   (fechas) y, contra corrupción de encoding real: `grep -c $'\xef\xbf\xbd' docs/GUIA-COMPLETA.md`
+   existe, en presente — «la pared es azul», nunca «era roja y se cambió a azul»: prohibidas las fechas, el "antes/ahora", el "ya no", "se eliminó/arregló/añadió" y cualquier verbo
+   en pasado o imperfecto sobre el proyecto, también al corregir la propia guía. El porqué de una decisión va en los comentarios del código. Al
+   cerrar cualquier tanda de ediciones: `grep -n "20[0-9][0-9]-[0-9][0-9]" docs/GUIA-COMPLETA.md`
+   (fechas; el patrón de un año y un mes fijos dejó pasar «2026-08») y, contra corrupción de encoding real: `grep -c $'\xef\xbf\xbd' docs/GUIA-COMPLETA.md`
    (U+FFFD) más `grep -c $'\x14' docs/GUIA-COMPLETA.md` (carácter de control invisible donde
    debería ir un guion largo) — los tres deben dar 0. Esto no lo atrapa ningún lint: si una frase
    no cuadra gramaticalmente sin motivo aparente, inspeccionar los códigos de carácter uno a uno,
-   no solo releer el texto por encima.
+   no solo releer el texto por encima. Y contra la narración de cambios: `node tools/estudio-caminos/guia-narracion.cjs --desde=HEAD`, leyendo **cada línea** que marque (son candidatos, no un veredicto: lo que no marque tampoco está demostrado limpio; `--autoprueba` comprueba el instrumento).
 3. **Un inventario que salga de un `grep` por nombre no es un inventario**: devuelve a quien tiene
    la cosa, nunca a quien le falta. Para "¿quién no lo tiene?" usar `npm run verificar-frames` o
    enumerar las ausencias a mano, fichero por fichero.
