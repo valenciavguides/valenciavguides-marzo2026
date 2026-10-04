@@ -2062,7 +2062,7 @@ Los handlers de datos de aventuras están extraídos en el módulo `js/controlad
 |---------|----------------|--------------|
 | Un audio concreto (cache-miss en hijo3) | `DATOS.SOLICITAR_AUDIOS { audioId }` | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` — resuelve solo ese id vía `cargarAudios()`, no reenvía la aventura |
 | Textos narrativos | `DATOS.SOLICITAR_TEXTOS` | `DATOS.CARGAR_TEXTOS` |
-| Un reto concreto (cache-miss en hijo4) | `DATOS.SOLICITAR_RETOS { retoId }` | `RETO.MOSTRAR { retoId, retosArray: [reto] }` — resuelve solo ese id vía `cargarRetos()`, no reenvía la aventura |
+| Un reto concreto (cache-miss en hijo4) | `DATOS.SOLICITAR_RETOS { retoId }` | `RETO.MOSTRAR { retoId, retosArray: [reto], idioma }` — resuelve solo ese id vía `cargarRetos()`, no reenvía la aventura |
 
 Los tres handlers resuelven bajo demanda con `js/data-loader.js` — `cargarTextos()`, `cargarAudios()`, `cargarRetos()` — sin precargar ningún array bulk (protección pasiva por parada, ver §16). El de textos (`DATOS.SOLICITAR_TEXTOS`, en `js/controladores-padre.js`) importa `data-loader.js` de forma dinámica y llama a `cargarTextos(aventura, idioma)`: no hay ningún global de textos del que leer. `controladores-padre.js` también contiene una entrada para `SOLICITAR_DATOS_PARADAS`, pero es **dead code**: Script 1 la registra primero (ver §6 handshake) y `registrarControladorSeguro` deduplicates — la de controladores-padre.js se ignora. El handler activo de `SOLICITAR_DATOS_PARADAS` está en Script 1: lee de `DATOS_PADRE[av][id].elementosIDpadre` con `normalizarParadas_S1`, usando `globalThis.aventuraSeleccionada` e `idiomaSeleccionado || 'es'`. Responde solo a `hijo5`.
 
@@ -2818,7 +2818,7 @@ sequenceDiagram
     Note over H3: retosBtn.disabled = false
     Note over H3: Usuario pulsa retosBtn
     H3-->>P: RETO.SOLICITAR_RETO { parada_id }
-    P->>H4: RETO.MOSTRAR { retoId, retosArray: [reto] }
+    P->>H4: RETO.MOSTRAR { retoId, retosArray: [reto], idioma }
 
     Note over P,H3: Al cambiar de parada (modo CASA)
     P->>H3: CONTROL.HABILITAR { control: 'retosBtn' }
@@ -3009,7 +3009,7 @@ camino con acuse de uno sin él.
 |---|---|
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); actualiza interfaz según modo; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
-| `RETO.MOSTRAR` | Si trae `retosArray` en línea, añade su(s) reto(s) a la caché acotada (máx. 2 ids); renderiza el reto; muestra el overlay; deshabilita `#btnNextAfterReto`. Si el id no está en caché, pide `DATOS.SOLICITAR_RETOS { retoId }` al padre |
+| `RETO.MOSTRAR` | Toma `idioma` para sus dos textos propios (el marcador del campo de texto y el aviso de reto no disponible) y lo guarda en `globalThis.__vv_idiomaActual`; si trae `retosArray` en línea, añade su(s) reto(s) a la caché acotada (máx. 2 ids); renderiza el reto; muestra el overlay; deshabilita `#btnNextAfterReto`. Si el id no está en caché, pide `DATOS.SOLICITAR_RETOS { retoId }` al padre |
 | `RETO.LIMPIAR_ESTADO` | El padre lo envía justo después de recibir `RETO.OCULTAR` de este mismo hijo4 (direcciones opuestas, tipos distintos a propósito). Oculta el overlay y limpia el contenido; restaura `#botonRetos-wrapper` en CASA solo si `retoSigueActivo !== false` |
 | `RETO.HABILITAR` | Muestra `#botonRetos-wrapper` y habilita `#botonRetos` (`disabled=false`, quita clase `deshabilitado`) |
 | `RETO.ESTADO_CASA` | Modo CASA: gestiona habilitación del panel según tipo de elemento activo |
@@ -3039,7 +3039,7 @@ sequenceDiagram
 
     Note over P,H4: Flujo completo de un reto
     H3-->>P: RETO.SOLICITAR_RETO { parada_id }
-    P->>H4: RETO.MOSTRAR { retoId, retosArray: [reto] }
+    P->>H4: RETO.MOSTRAR { retoId, retosArray: [reto], idioma }
     H4->>H4: guarda el reto en caché local acotada; renderiza; deshabilita btnNextAfterReto
 
     alt tipo = 'puzzle'
@@ -4040,7 +4040,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Si no hay un reto en curso, limpia el estado del reto y su interfaz; aplica el modo (`sincronizarEstadoModo`: `estado.modo.actual` y clase del body) | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, retoId }` | Actualiza estado interno de parada activa (no precarga el reto — ver nota abajo); responde con `CAMBIO_PARADA_CONFIRMADO` | ✓ | ✓ |
-| `RETO.MOSTRAR` | `{ retoId, retosArray:[reto] }` | Guarda el reto en la caché local acotada (máx. 2 ids); renderiza el reto, muestra overlay; responde con `RETO.MOSTRADO`. Si `retosArray` viene vacío y el id no está en caché, pide `DATOS.SOLICITAR_RETOS` | ✓ | ✓ |
+| `RETO.MOSTRAR` | `{ retoId, retosArray:[reto], idioma }` | Guarda el reto en la caché local acotada (máx. 2 ids); renderiza el reto, muestra overlay; responde con `RETO.MOSTRADO`. Si `retosArray` viene vacío y el id no está en caché, pide `DATOS.SOLICITAR_RETOS` | ✓ | ✓ |
 | `RETO.CONFIRMADO` | `{ retoId }` | Padre confirma recepción de `RETO.MOSTRADO` — fase 3 del protocolo RETO | ✓ | ✓ |
 | `RETO.HABILITAR` | `{ paradaId, razon:'audio_escuchado_1vez'/'sin_audio' }` | Muestra y habilita `#botonRetos-wrapper` | — | ✓ |
 | `RETO.ESTADO_CASA` | `{ tipo:'parada'/'tramo', habilitado:bool }` | Muestra/oculta `#botonRetos-wrapper` según posición | ✓ | — |
@@ -4528,7 +4528,7 @@ sequenceDiagram
 
     Note over H3,H4: Usuario pulsa #retosBtn (hijo3) o #botonRetos (hijo4)
     H3->>P: RETO.SOLICITAR_RETO { parada_id }
-    P->>H4: RETO.MOSTRAR { retoId, retosArray }
+    P->>H4: RETO.MOSTRAR { retoId, retosArray, idioma }
     H4-->>P: RETO.MOSTRADO { retoId }
     P->>H4: RETO.CONFIRMADO { retoId }
 
@@ -4864,7 +4864,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-39547ffb64dc'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-304f5e3e42dd'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5091,7 +5091,7 @@ Cuando el padre tiene aventura e idioma, distribuye los datos a cada hijo.
 
 | Campo | Valor |
 |-------|-------|
-| Payload | `{ retoId, retosArray:[reto], contexto }` |
+| Payload | `{ retoId, retosArray:[reto], contexto, idioma }` |
 | Handler en hijo4 | `registrarControladorSeguro(TIPOS_MENSAJE.RETO.MOSTRAR, ...)` |
 | Acción | Añade el reto a la caché local acotada (máx. 2 ids); renderiza el reto |
 | Cuándo se envía | Cuando hijo4 pide el reto activo (`RETO.SOLICITAR_RETO`) o al completar un reto con más en cola — siempre resuelto vía `cargarRetos()`, nunca con la aventura completa |
@@ -5381,7 +5381,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Emitido por | Padre en `_hdl_RETO_SOLICITAR`, al avanzar al siguiente reto de una cola, y en `js/controladores-padre.js` como respuesta a un cache-miss (`DATOS.SOLICITAR_RETOS`) |
-| Payload | `{ retoId, retosArray:[retoData] }` — `retoData` resuelto vía `cargarRetos()`, protección pasiva por parada (ver §16) |
+| Payload | `{ retoId, retosArray:[retoData], idioma }` — `retoData` resuelto vía `cargarRetos()`, protección pasiva por parada (ver §16) |
 | Handler en hijo4 | sí |
 | Acción | Guarda el reto en su caché local acotada (máx. 2 ids); muestra el panel de reto al usuario |
 
@@ -7039,7 +7039,7 @@ El audio es el requisito de entrada, cuando existe audio en esa parada:
 3. El audio termina → hijo3 envía `AUDIO.FIN_REPRODUCCION` a padre.
 4. Padre habilita `retosBtn` en hijo3 (`CONTROL.HABILITAR`) y envía `RETO.HABILITAR` a hijo4 con `{ razon: 'audio_escuchado_1vez' }` → hijo4 muestra y habilita `#botonRetos`.
 5. Usuario pulsa `retosBtn` (hijo3) o `#botonRetos` (hijo4) → se envía `RETO.SOLICITAR_RETO` a padre.
-6. Padre localiza el `retoId` para esa parada, llama `mostrarHijo4()`, envía `RETO.MOSTRAR` con `{ retoId, retosArray }`.
+6. Padre localiza el `retoId` para esa parada, llama `mostrarHijo4()`, envía `RETO.MOSTRAR` con `{ retoId, retosArray, idioma }`.
 7. hijo4 renderiza el reto, oculta `#botonRetos`.
 8. Usuario responde → si correcto: `RETO.COMPLETADO` a padre → si hay cola, padre envía el siguiente `RETO.MOSTRAR`; si la cola se agota, padre avanza el flujo.
 9. Usuario pulsa `#btnNextAfterReto` → hijo4 envía `RETO.OCULTAR` a padre → padre oculta hijo4.
@@ -7129,7 +7129,7 @@ Junto a los controles normales de cada reto hay un botón ⏩: da el reto/puzzle
 **Robustez de fondo — ambos archivos siguen funcionando aunque el reto/puzzle no cargue:**
 
 - `puzzle.html`: si el puzzle no se encuentra (`puzzleConfigValido = false`), se muestra `#errorMsg` con el error dentro del recuadro, y el resto del script — incluidos los listeners de `#restartBtn`/`#pauseBtn`/`#skipBtn` — se registra con normalidad. La lógica específica del puzzle (imagen, canvas, piezas, temporizador) queda encapsulada en `if (puzzleConfigValido) {...}`, así que nunca se ejecuta con datos indefinidos.
-- `retos-hijo4.html`: si `mostrarReto()` no encuentra el reto, limpia `#reto`, resetea `#btnNextAfterReto`/`_pendienteCompletado`, y muestra el aviso `MSG_RETO_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas) mientras reintenta en segundo plano vía `DATOS.SOLICITAR_RETOS`. Si ese reintento del padre (`js/controladores-padre.js`) tampoco encuentra el dato, no responde nada — hueco pendiente, no bloquea el rescate visible del botón ⏩, que sigue disponible en ese estado.
+- `retos-hijo4.html`: si `mostrarReto()` no encuentra el reto, limpia `#reto`, resetea `#btnNextAfterReto`/`_pendienteCompletado`, y muestra el aviso `MSG_RETO_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas, en el idioma que lleva `RETO.MOSTRAR`) mientras reintenta en segundo plano vía `DATOS.SOLICITAR_RETOS`. Si ese reintento del padre (`js/controladores-padre.js`) tampoco encuentra el dato, no responde nada — hueco pendiente, no bloquea el rescate visible del botón ⏩, que sigue disponible en ese estado.
 - `estado.retoActualId` se fija antes de llamar a `mostrarReto()`, no después: `mostrarReto()` puede tardar esperando la respuesta del padre a `DATOS.SOLICITAR_RETOS` antes de devolver el control, así que fijarlo antes es lo que garantiza que el botón de saltar siempre sepa qué reto saltar, incluso mientras esa espera está en curso.
 
 **Los botones:**
@@ -7961,6 +7961,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `117-efectos-de-sonido-no-esenciales.spec.js` | 6 | Los efectos de sonido no son esenciales (§12): con la petición de `js/efectos-sonido.js` abortada, el padre termina Script 2 y marca `script2Listo` (EN-P), hijo4 registra su handler de cambio de modo (EN-H) y el puzzle inicializa su bus (EN-Z), y en los tres el log lleva el aviso «No se pudo cargar js/efectos-sonido.js»; con el módulo normal, las tres señales existen y no hay aviso (el control de cada uno). |
 | `118-mas-opciones-cierra-el-desplegable-de-audio.spec.js` | 3 | «Más opciones» de hijo1 cierra el desplegable de control de audio del padre con `UI.CLOSE_MENUS`: con el desplegable abierto, pulsar el botón en hijo1 lo cierra (CM-1); el mensaje lleva solo `timestamp` (CM-2); el tipo tiene un solo receptor, el padre, y hijo1 no registra handler (CM-3). |
 | `119-hijo5-marca-la-parada-actual.spec.js` | 4 | hijo5 marca la parada actual con una sola función (ver §24): un click deja marcado solo el botón pulsado (PA-1); `NAVEGACION.CAMBIO_PARADA` del padre marca el botón de esa parada (PA-2); `NAVEGACION.CAMBIO_PARADA_CONFIRMADO`, con y sin el prefijo `padre-`, no quita la marca (PA-3); un cambio de parada que no empieza en hijo5 sustituye a la marca del click (PA-4). |
+| `120-hijo4-habla-el-idioma-de-la-aventura.spec.js` | 4 | Los dos textos propios de hijo4 salen en el idioma de la aventura, que llega en `RETO.MOSTRAR` (`datos.idioma`): hijo4 pinta el marcador del campo de texto en el idioma del mensaje (ID-1) y en español si el mensaje no lo trae (ID-2); el padre lo manda en la progresión y en la reposición tras recargar hijo4 (ID-3) y al contestar a `DATOS.SOLICITAR_RETOS` (ID-4). |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8193,7 +8194,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-39547ffb64dc'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-304f5e3e42dd'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8435,7 +8436,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 116 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 117 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8941,7 +8942,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-39547ffb64dc';
+const CACHE_VERSION = 'v-304f5e3e42dd';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11387,7 +11388,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `NAVEGACION.GPS.RESTRINGIDO` | Hijo 2 (en cada posición en que el usuario está fuera del rango real del elemento activo; `{ idParada, distancia, rangoMaximo, timestampSalioDeRango }`) | `_hdl_NAVEGACION_GPS_RESTRINGIDO`: con la `distancia` del mensaje elige la pantalla de aviso —más de 2000 m, «perdido»; más de 150 m, «lejos»; más de 50 m, «desviado»; el resto, «fuera de rango», con `rangoMaximo`— y la muestra; se repite en cada posición mientras el usuario sigue fuera de rango | (ninguna) | — | Que la pantalla de aviso del padre muestre la distancia real |
 | `DATOS.SOLICITAR_COORDENADAS` | Hijo 2 (a los 3 s de `PADRE_CONFIRMA_HIJO_LISTO`, solo si aún no tiene las coordenadas) | `_hdl_DATOS_SOLICITAR_COORDENADAS`: lee `__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas`; sin aventura elegida o sin coordenadas no responde | `DATOS.CARGAR_COORDENADAS` (`{ aventura, idioma, coordenadas, total, timestamp }`: paradas, tramos y referencias) | Hijo 2 | Respaldo: hijo2 no tiene datos propios y los pide al padre si no le han llegado |
 | `DATOS.SOLICITAR_AUDIOS` | Hijo 3, cuando `cargarYReproducirAudio()` no encuentra un `audioId` en su caché local acotada (miss — parada visitada hace más de 1 salto, o el `AUDIO.REPRODUCIR_REQUEST` original no incluyó `audioData`) | `js/controladores-padre.js`: resuelve ese `audioId` concreto vía `cargarAudios(aventura, idioma)` — no reenvía la aventura completa | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` — el mismo mensaje que usa el flujo normal, no un tipo aparte | Hijo 3 | Recuperación puntual de un audio fuera de la caché de 2 entradas, sin reexponer el resto de la aventura |
-| `DATOS.SOLICITAR_RETOS` | Hijo 4, cuando `mostrarReto()` no encuentra un `retoId` en su caché local acotada | `js/controladores-padre.js`: resuelve ese `retoId` concreto vía `cargarRetos(aventura, idioma)` | `RETO.MOSTRAR { retoId, retosArray: [reto] }` — el mismo mensaje que usa el flujo normal | Hijo 4 | Ídem para retos |
+| `DATOS.SOLICITAR_RETOS` | Hijo 4, cuando `mostrarReto()` no encuentra un `retoId` en su caché local acotada | `js/controladores-padre.js`: resuelve ese `retoId` concreto vía `cargarRetos(aventura, idioma)` | `RETO.MOSTRAR { retoId, retosArray: [reto], idioma }` — el mismo mensaje que usa el flujo normal | Hijo 4 | Ídem para retos |
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo 5 | Lee la lista completa de paradas con sus nombres localizados | `NAVEGACION.RESPUESTA_DATOS_PARADAS` (array de paradas con nombre, número y estado) | Hijo 5 | Hijo 5 necesita los nombres de las paradas para renderizar los botones de la barra de navegación |
 | `CHAT.CERRAR` | Hijo 6 (asistente) | `_hdl_CHAT_CERRAR`: oculta el iframe del asistente con `cerrarChatSoporte()` y devuelve `true`; si esa función no existe, deja un `error` en el log y devuelve `false` | (ninguna) | — | El usuario pulsó el botón de cerrar dentro del iframe de soporte |
 | `UI.NAVEGACION_EXTERNA` | Hijo 1 (al abrir un enlace externo desde su panel; `{ url, icono, timestamp }`) | `_hdl_UI_NAVEGACION_EXTERNA`: registra en el log la URL (y el `titulo`, que hijo1 no manda) y pone `globalThis.__vv_salidaEnlaceExterno` a `true`, para que el `visibilitychange` del padre muestre el diálogo de vuelta rápida al volver a la pestaña | (ninguna) | — | Trazabilidad de la navegación externa y aviso de que el usuario ha salido de la app |
@@ -11654,7 +11655,7 @@ Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuabl
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Cancela el reintento de `HIJO_LISTO`, aplica `modoInicial` con `sincronizarEstadoModo` y muestra la UI | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Valida el modo (si es inválido, `SISTEMA.NACK`); manda `ENTENDIDO`; si no hay reto en curso (`retoActual` y `estado.retoActualId` vacíos; `NAVEGACION.CAMBIO_PARADA` fija este último con el reto de la parada), limpia el estado del reto y su interfaz (`ocultarControles`); si lo hay, no lo toca y lo avisa en el log; aplica el modo (`sincronizarEstadoModo`) y manda `EFECTUADO`. Si falla, manda `SISTEMA.ERROR { error, tipo: 'CAMBIO_MODO_FALLIDO' }` y `SISTEMA.NACK` | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Que un cambio de modo limpie el reto ya terminado; un reto en curso no se toca |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
-| `RETO.MOSTRAR` | Padre (al activar cada parada vía `_hdl_NAVEGACION_CAMBIO_PARADA`; cuando el usuario solicita el reto pulsando el botón, en respuesta a `RETO.SOLICITAR_RETO`; también al avanzar al siguiente reto de una cola) | Recibe `{ retoId, retosArray:[retoData] }` con el objeto reto ya resuelto; lo guarda en su caché local acotada (máx. 2 ids: parada actual + 1 anterior); renderiza pregunta y opciones — el reto queda interactivo en este punto. Si `retosArray` llega vacío y el id no está en caché, pide `DATOS.SOLICITAR_RETOS` | `RETO.MOSTRADO` | Padre | Protección pasiva por parada (§16): entregar solo el reto de la parada activa, no la aventura completa |
+| `RETO.MOSTRAR` | Padre (al activar cada parada vía `_hdl_NAVEGACION_CAMBIO_PARADA`; cuando el usuario solicita el reto pulsando el botón, en respuesta a `RETO.SOLICITAR_RETO`; también al avanzar al siguiente reto de una cola) | Recibe `{ retoId, retosArray:[retoData], idioma }` con el objeto reto ya resuelto; toma `idioma` para sus dos textos propios; lo guarda en su caché local acotada (máx. 2 ids: parada actual + 1 anterior); renderiza pregunta y opciones — el reto queda interactivo en este punto. Si `retosArray` llega vacío y el id no está en caché, pide `DATOS.SOLICITAR_RETOS` | `RETO.MOSTRADO` | Padre | Protección pasiva por parada (§16): entregar solo el reto de la parada activa, no la aventura completa |
 | `RETO.HABILITAR` | Padre (tras `FIN_REPRODUCCION` en modo AVENTURA, solo si la parada tiene retos) | Solo con `razon: 'audio_escuchado_1vez'` o `'sin_audio'`: muestra `#botonRetos-wrapper` y habilita `#botonRetos`; con otra `razon`, nada | (ninguna) | — | El botón de retos solo se activa después de escuchar el audio completo y solo en paradas con reto |
 | `RETO.ESTADO_CASA` | Padre (en `_hdl_NAVEGACION_CAMBIO_PARADA`) | Muestra y habilita `#botonRetos` si `habilitado: true` (parada con reto); lo oculta si `habilitado: false` (tramo o parada sin reto) | (ninguna) | — | Controla la visibilidad del botón de retos en modo CASA según si el elemento actual tiene reto o no |
 | `RETO.LIMPIAR_ESTADO` | Padre (`_hdl_RETO_OCULTAR`, justo tras recibir `RETO.OCULTAR` de este mismo hijo) | Limpia su estado interno del reto (caché de la pregunta activa, respuesta seleccionada) y, solo si `retoSigueActivo !== false`, restaura `#botonRetos-wrapper` en modo CASA | (ninguna) | — | Tipo distinto de `RETO.OCULTAR` a propósito: mismo nombre de concepto, direcciones opuestas y efectos distintos (ver §25, protocolo detallado) |
@@ -11957,7 +11958,7 @@ _hdl_SISTEMA_HIJO_LISTO(mensaje)     [codigo-padre.html Script 1]
 | `hijo1` | `AVENTURA.INICIADA { tiempoEstimado: tiempoRestante, pausado: false }` | `tiempoRestante !== undefined` y modo aventura |
 | `hijo2` | `NAVEGACION.CAMBIO_PARADA { paradaActual }` | `paradaActual` definida y modo aventura |
 | `hijo3` | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData, contexto, autoplay }` | `audioActual !== null` y modo aventura |
-| `hijo4` | `RETO.MOSTRAR { retoId, contexto, retosArray }` | `retoActual !== null` y modo aventura |
+| `hijo4` | `RETO.MOSTRAR { retoId, contexto, retosArray, idioma }` | `retoActual !== null` y modo aventura |
 
 Si el modo no es aventura al momento del reload, el snapshot se descarta sin enviar nada (en modo CASA no hay estado que restaurar).
 
@@ -12423,7 +12424,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-39547ffb64dc';
+const CACHE_VERSION = 'v-304f5e3e42dd';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

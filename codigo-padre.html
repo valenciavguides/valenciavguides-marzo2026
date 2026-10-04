@@ -9675,7 +9675,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // hijo1 sin temporizador que restaurar en cuanto no la hubiera tocado.
         const _snapshotRecuperacion = {
             audioActual: null,         // { audioId, contexto } del último REPRODUCIR_REQUEST
-            retoActual: null           // { retoId, contexto, retosArray } del último RETO.MOSTRAR
+            retoActual: null           // { retoId, contexto, retosArray, idioma } del último RETO.MOSTRAR
         };
         const _reloadsPendientes = {}; // { [hijoId]: snapshot } — limpiado tras restaurar
 
@@ -10740,14 +10740,18 @@ await _comprobarReanudacionAventura(logPrefix);
 
         async function _enviarRetoMostrar(retoIdToUsar, _retosArray, logPrefix, contexto = 'manual') {
             // Tracking para snapshot de reload
-            _snapshotRecuperacion.retoActual = { retoId: retoIdToUsar, contexto, retosArray: _retosArray };
+            // El idioma de la aventura viaja con el reto: hijo4 lo usa para sus dos textos propios (la reposición tras recargar
+            // hijo4 sale de este mismo snapshot, así que lo lleva también).
+            const idioma = globalThis.idiomaSeleccionado;
+            _snapshotRecuperacion.retoActual = { retoId: retoIdToUsar, contexto, retosArray: _retosArray, idioma };
             const _retoMostrarMsg = {
                 tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
                 destino: 'hijo4',
                 datos: {
                     retoId: retoIdToUsar,
                     contexto,
-                    retosArray: _retosArray
+                    retosArray: _retosArray,
+                    idioma
                 }
             };
             (globalThis.logger || console).info(`${logPrefix} Enviando RETO.MOSTRAR a hijo4 con retoId: ${retoIdToUsar} (incluyendo ${_retosArray.length} retos como respaldo)`);

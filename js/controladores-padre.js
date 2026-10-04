@@ -141,7 +141,7 @@ export function registrarControladoresDatos({
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
                 destino: mensaje.origen,
-                datos: { retoId, retosArray: [encontrado], contexto: 'solicitud_hijo' }
+                datos: { retoId, retosArray: [encontrado], contexto: 'solicitud_hijo', idioma }
             });
             logger.info(`${logPrefix} ✅ Reto ${retoId} reenviado a ${mensaje.origen}`);
         } catch (error) {

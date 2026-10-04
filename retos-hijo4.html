@@ -1344,7 +1344,10 @@
                         logger.warn('[hijo4] RETO.MOSTRAR recibido sin datos, ignorando');
                         return;
                     }
-                    const { retoId, retosArray } = mensaje.datos;
+                    const { retoId, retosArray, idioma } = mensaje.datos;
+                    // El idioma de la aventura llega con cada reto: es el de los dos textos propios de este frame (el marcador
+                    // del campo de texto y el aviso de reto no disponible). Sin él, se queda el que había, y al empezar el español.
+                    if (idioma) globalThis.__vv_idiomaActual = idioma;
                     logger.info(`[hijo4][DEBUG] RETO.MOSTRAR handler — retoId="${retoId}", retosArray recibido=${retosArray?.length || 0}, caché local=${globalThis.__vv_retoCache?.size || 0}`);
                     logger.info(`[hijo4] RETO.MOSTRAR recibido para reto: ${retoId}`);
 
