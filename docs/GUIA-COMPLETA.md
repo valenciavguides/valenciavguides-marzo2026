@@ -2575,7 +2575,7 @@ sequenceDiagram
 
 **Importante**: hijo2 **no tiene `watchPosition` propio** — cero referencias a `geolocation` en todo el fichero. Los únicos `navigator.geolocation.watchPosition()` de la app están bajo `activarGPS()` en `codigo-padre.html`. Las posiciones GPS van: padre → `funciones-mapa.js` → calcula Haversine → envía `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, lat, lng }` a hijo2. `_aplicarDatosEstado()` almacena `{ lat, lng }` en `estadoComponente.posicionActualUsuario`, lo que activa `verificarDistanciaYActualizarBotones()` para decidir el botón ubicación y notificar al padre qué pantalla de distancia mostrar (§31.4).
 
-**Inicialización**: pre-cargado por `cargarRestoDeiframes()`, oculto. Body arranca con clase `modo-casa hijo2-container`.
+**Inicialización**: pre-cargado por `cargarRestoDeiframes()`, oculto. Body arranca con clase `hijo2-container`.
 
 #### Botones y estados
 
@@ -2652,7 +2652,7 @@ Las pantallas de aviso (imágenes, cuenta atrás, botón de reintento) viven en 
 | `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe `distanciaAlDestino` (ya calculada por `funciones-mapa.js`), `idParada`, `toleranciaGPS` (botones y fuera de rango), `radioLlegada` (15 m, solo para declarar la llegada), `lat`, `lng`; actualiza `estadoComponente.posicionActualUsuario`; **solo si `estadoComponente.modo === 'aventura'`**, habilita `#btn-avanzar` y envía `LLEGADA_DETECTADA` si en rango, y llama `verificarDistanciaYActualizarBotones()` para decidir el botón ubicación y notificar al padre la distancia real respecto a la parada que toca (§31.4) — en CASA, `idParada` puede ser un elemento que el usuario solo está "viendo" con hijo5, no uno visitado de verdad, así que ninguna de estas dos acciones se ejecuta |
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); actualiza clase CSS del body; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
-| `SISTEMA.CAMBIO_MODO` | Reinicia su estado (`_resetarEstadoParaModo`: parada actual, distancia, posición, reto activo, franjas de fuera de rango) y recalcula los botones; no cambia la clase del body, que solo se fija con `PADRE_DATOS`; la detección de proximidad solo corre en AVENTURA (guarda de modo en `NAVEGACION.ACTUALIZAR_ESTADO`) |
+| `SISTEMA.CAMBIO_MODO` | Reinicia su estado (`_resetarEstadoParaModo`: parada actual, distancia, posición, reto activo, franjas de fuera de rango) y recalcula los botones; la detección de proximidad solo corre en AVENTURA (guarda de modo en `NAVEGACION.ACTUALIZAR_ESTADO`) |
 | `DATOS.CARGAR_COORDENADAS` | Guarda en `globalThis.__vv_coordenadasAventura` el array de elementos que manda el padre y lo confirma con `DATOS.COORDENADAS_CARGADAS` |
 | `DATOS.CARGAR_TEXTOS` | Guarda en `globalThis.__vv_textosAventura` los textos descriptivos que manda el padre y lo confirma con `DATOS.TEXTOS_CARGADOS` |
 | `DATOS.COORDENADAS_PARADAS_REQUEST` | Responde con datos de coordenadas |
@@ -3962,7 +3962,7 @@ Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `dis
 |---------|---------------|----------------|------|----------|
 | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Init estado y UI | ✓ | ✓ |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Muestra UI | ✓ | ✓ |
-| `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Reinicia su estado (`_resetarEstadoParaModo`) y recalcula los botones; no cambia la clase del body (solo `PADRE_DATOS` la fija); la detección de proximidad solo corre en AVENTURA | ✓ | ✓ |
+| `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Reinicia su estado (`_resetarEstadoParaModo`) y recalcula los botones; la detección de proximidad solo corre en AVENTURA | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` | Almacena en `globalThis.__vv_coordenadasAventura`; envía `COORDENADAS_CARGADAS` | ✓ | ✓ |
 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` | Almacena descripciones de paradas | ✓ | ✓ |
@@ -4876,7 +4876,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-cedd3489b6fc'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c40f0855f660'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4948,7 +4948,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 | Destino | El hijo que envió HIJO_PREPARADO |
 | Payload | `{ modo, timestamp }`; para `hijo6-chat` se añade el resultado de `construirEstadoChat()`; `{}` en el envío de `cargarIframeConDatos()` (hijo4 sin cargar aún) |
 | Handler en hijos | pantalla de selección, hijo1, hijo2, hijo3, hijo4, hijo5, hijo6 |
-| Acción | El hijo toma el `modo` (hijo2, hijo3 y hijo4 lo reflejan en la clase del body; hijo1, hijo5 y la selección solo lo escriben en el log; hijo6 fusiona el payload en `estadoPadre` y reconstruye el FAQ) y envía `HIJO_LISTO` — con reintentos hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`, salvo la selección, que lo envía una sola vez. La UI se hace visible al recibir `PADRE_CONFIRMA_HIJO_LISTO` |
+| Acción | El hijo toma el `modo` (hijo3 y hijo4 lo reflejan en la clase del body; hijo2 lo guarda en su estado y recalcula sus botones; hijo1, hijo5 y la selección solo lo escriben en el log; hijo6 fusiona el payload en `estadoPadre` y reconstruye el FAQ) y envía `HIJO_LISTO` — con reintentos hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`, salvo la selección, que lo envía una sola vez. La UI se hace visible al recibir `PADRE_CONFIRMA_HIJO_LISTO` |
 
 ##### SISTEMA.HIJO_LISTO
 
@@ -8212,7 +8212,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-cedd3489b6fc'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c40f0855f660'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8960,7 +8960,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-cedd3489b6fc';
+const CACHE_VERSION = 'v-c40f0855f660';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11579,7 +11579,7 @@ Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y 
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre | Recibe `{ modo, timestamp }`; normaliza el modo (`casa`/`aventura`), lo guarda en `estadoComponente.modo`, pone al body la clase `modo-X hijo2-container` y refresca los 6 botones; envía `HIJO_LISTO` con reintentos | `SISTEMA.HIJO_LISTO` | Padre | Handshake — las coordenadas llegan después, en `DATOS.CARGAR_COORDENADAS` |
+| `SISTEMA.PADRE_DATOS` | Padre | Recibe `{ modo, timestamp }`; normaliza el modo (`casa`/`aventura`), lo guarda en `estadoComponente.modo` y refresca los 6 botones; envía `HIJO_LISTO` con reintentos | `SISTEMA.HIJO_LISTO` | Padre | Handshake — las coordenadas llegan después, en `DATOS.CARGAR_COORDENADAS` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Cancela el reintento de `HIJO_LISTO`, aplica `modoInicial` si viene (y refresca los botones), muestra la UI y, si a los 3 s las coordenadas o los textos de la aventura no han llegado, los solicita al padre | `DATOS.SOLICITAR_COORDENADAS` / `DATOS.SOLICITAR_TEXTOS` (solo si faltan) | Padre | Finalizar handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Valida el modo (si es inválido, `SISTEMA.NACK { error, modoRecibido }`); manda `ENTENDIDO`; reinicia su estado (`_resetarEstadoParaModo`: modo, parada actual, distancia, posición, bloqueos del padre, reto activo, franjas de fuera de rango y avisos de señal) y recalcula los botones (en CASA, el de ubicación queda rojo y deshabilitado); manda `EFECTUADO`. Si falla, manda `SISTEMA.ERROR { error, tipo: 'CAMBIO_MODO_FALLIDO' }` | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Ajustar comportamiento de botones según modo AVENTURA/CASA |
 | `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente con `{ timestamp, estado: 'activo' o 'inicializando', gpsActivo, paradaActual, coordenadasCargadas }` | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
@@ -12444,7 +12444,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-cedd3489b6fc';
+const CACHE_VERSION = 'v-c40f0855f660';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

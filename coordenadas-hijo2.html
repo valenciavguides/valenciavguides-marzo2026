@@ -209,11 +209,6 @@
             pointer-events: none;
         }
 
-        /* Estilos para el cambio de modo - Simplificados */
-        .modo-aventura #btn-avanzar.activo {
-            animation: pulse 1.5s infinite;
-        }
-
         /* ── Glow animations (AVENTURA) ── */
         /* Sin "inset": el <img> del botón cubre el 103% de su área (ver .boton img más
            abajo) y un box-shadow inset se pinta por debajo de ese <img> opaco — invisible
@@ -329,7 +324,7 @@
            (#foto-fuera-rango-overlay), no en este iframe — ver GUIA-COMPLETA §31. */
     </style>
 </head>
-<body class="modo-casa hijo2-container">
+<body class="hijo2-container">
     <!-- Contenedor columna vertical con 6 botones -->
     <div class="container">
         <button id="btn-mapa-completo" class="boton" title="Mostrar Mapa Completo">
@@ -1552,7 +1547,6 @@ try {
             const modoSeguro = (modo === 'casa' || modo === 'aventura') ? modo : '';
             logger.info(`${logPrefix} Procesando modo inicial del padre:`, { original: modo, normalizado: modoSeguro });
             estadoComponente.modo = modoSeguro || modo;
-            if (modoSeguro) document.body.className = `modo-${modoSeguro} hijo2-container`;
             actualizarEstadoBotones();
             actualizarEstado(`Modo inicial: ${modoSeguro || modo}`, 'info');
         }
