@@ -114,11 +114,12 @@ export async function inicializarMensajeria(opciones = {}) {
     // En el padre, state-manager.js se inicializa (await) antes de que se llame aquí,
     // por lo que sm siempre se pasa como parámetro y este bloque no se ejecuta.
     // En hijos, no hay state-manager — se trabaja con __vv_manejadoresLocales (fallback previsto).
+    // Por eso el aviso de abajo es solo del padre: en los demás frames el almacén local es el camino normal.
     // Si por alguna razón sm es null y globalThis.__vv_stateManager tampoco está disponible,
     // obtenerStateManager() lo encontrará dinámicamente en cada operación posterior.
     if (!stateManager && globalThis.window !== undefined) {
         stateManager = globalThis.__vv_stateManager || globalThis.__stateManager;
-        if (!stateManager) {
+        if (!stateManager && id === 'padre') {
             logger.warn('[mensajeria] ⚠️ state-manager no disponible en init — se usará fallback local. obtenerStateManager() lo buscará dinámicamente en cada operación.');
         }
     }
