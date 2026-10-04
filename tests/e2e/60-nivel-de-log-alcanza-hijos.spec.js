@@ -110,7 +110,7 @@ test.describe('NH — El nivel de log alcanza a los hijos', () => {
   test('NH-4. El nivel del padre alcanza a selección, hijo1, hijo3, hijo4 e hijo5, que no tienen copia propia de CONFIG', async ({ page }) => {
     // Una sola fuente del nivel: estos cinco leen `__vv_config` de la ventana padre porque ninguno carga `config.js`. Con una
     // copia propia el logger mira la suya y un cambio en el padre no le llega. hijo2 queda fuera: importa `config.js` para
-    // `CONFIG.GPS` y tiene la suya (docs/estudio-caminos.md, K-55).
+    // `CONFIG.GPS` y tiene la suya (docs/estudio-caminos.md, K-56).
     const ids = ['seleccion', 'hijo1-opciones', 'hijo3', 'hijo4', 'hijo5'];
     await page.waitForFunction(
       (lista) => lista.every((id) => document.getElementById(id)?.contentWindow?.logger),
