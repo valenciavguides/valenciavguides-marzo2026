@@ -336,74 +336,6 @@
             });
 
             // ============================================================
-            // CONTROLADOR 2: UI.CLOSE_MENUS
-            // ============================================================
-            /**
-             * Maneja solicitud de cierre de menús desde el padre
-             * @param {Object} mensaje - Mensaje con parámetros de cierre
-             * @returns {Object} Estado de la operación
-             */
-            registrarControladorSeguro(TIPOS_MENSAJE.UI.CLOSE_MENUS, async (mensaje) => {
-                const controladorPrefix = `${CONFIG_HIJO.LOG_PREFIX}[CLOSE_MENUS]`;
-
-                try {
-                    // 1. Validación de origen
-                    if (!mensaje || !mensaje.origen) {
-                        logger.error(`${controladorPrefix} Mensaje sin origen válido`, mensaje);
-                        throw new Error('Mensaje sin origen válido');
-                    }
-
-                    logger.debug(`${controladorPrefix} Recibido de ${mensaje.origen}`);
-
-                    // 2. Validación de datos
-                    const datos = mensaje.datos || {};
-                    const { except } = datos;
-
-                    if (except && typeof except !== 'string') {
-                        logger.warn(`${controladorPrefix} Parámetro 'except' no es string:`, except);
-                    }
-
-                    logger.debug(`${controladorPrefix} Parámetro except=${except}`);
-
-                    // 3. Cerrar menú si no está exceptuado
-                    if (except === 'mas-opciones') {
-                        logger.debug(`${controladorPrefix} Menú exceptuado, no se cierra`);
-
-                        return {
-                            exito: true,
-                            menuCerrado: false,
-                            razon: 'exceptuado',
-                            timestamp: Date.now()
-                        };
-                    } else {
-                        const resultado = ocultarTodos();
-
-                        if (resultado.exito) {
-                            logger.info(`${controladorPrefix} Menú cerrado exitosamente`);
-                        } else {
-                            logger.warn(`${controladorPrefix} Problemas al cerrar menú:`, resultado);
-                        }
-
-                        return {
-                            exito: true,
-                            menuCerrado: true,
-                            estadoAnterior: estadoMenu.abierto,
-                            timestamp: Date.now()
-                        };
-                    }
-
-                } catch (error) {
-                    logger.error(`${controladorPrefix} Error en controlador:`, error);
-
-                    return {
-                        exito: false,
-                        error: error.message,
-                        timestamp: Date.now()
-                    };
-                }
-            });
-
-            // ============================================================
             // CONTROLADOR 2: SISTEMA.HEARTBEAT
             // ============================================================
             /**
@@ -707,7 +639,6 @@
                     destino: 'padre',
                     tipo: TIPOS_MENSAJE.UI.CLOSE_MENUS,
                     datos: {
-                        except: 'mas-opciones',
                         timestamp: Date.now()
                     }
                 });

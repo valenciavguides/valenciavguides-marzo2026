@@ -12344,14 +12344,11 @@ await _comprobarReanudacionAventura(logPrefix);
             globalThis.__vv_salidaEnlaceExterno = true;
         }
 
-        function _hdl_UI_CLOSE_MENUS_PADRE(mensaje) {
+        function _hdl_UI_CLOSE_MENUS_PADRE() {
             // hijo1 envía este mensaje para que el padre cierre sus propios desplegables
             // antes de abrir el panel de más-opciones (evita solapamiento visual)
-            const except = mensaje?.datos?.except;
-            if (except !== 'audio-control') {
-                const overlay = document.getElementById('audio-control-overlay');
-                if (overlay) overlay.classList.remove('open');
-            }
+            const overlay = document.getElementById('audio-control-overlay');
+            if (overlay) overlay.classList.remove('open');
         }
 
         function _regCtrl_NavegacionEventos(TIPOS_MENSAJE) {

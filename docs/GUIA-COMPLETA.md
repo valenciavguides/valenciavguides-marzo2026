@@ -2478,7 +2478,6 @@ Mensajes del temporizador:
 |---|---|
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
-| `UI.CLOSE_MENUS` | Cierra iconos desplegados (respeta `datos.except`). Ningún emisor lo manda hoy: el padre no envía este tipo; hijo1 lo envía al padre al abrir su panel |
 | `SISTEMA.CAMBIO_MODO` | En CASA: detiene y resetea el temporizador; responde `CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO` (un modo que no es `casa` ni `aventura` recibe `SISTEMA.NACK`) |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Solo escribe en el log que el modo se aplicó (4.ª fase del protocolo de modo, §26.6) |
 | `AVENTURA.INICIADA` | Inicia la cuenta atrás con el tiempo recibido |
@@ -3799,7 +3798,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `RETO.HABILITAR` | Padre → Hijo4 | Habilitar panel de retos (solo AVENTURA) |
 | | `RETO.ESTADO_CASA` | Padre → Hijo4 | Estado del panel según posición (solo CASA) |
 | **UI** | `UI.ACCION_USUARIO` | Bidireccional | Hijo2 → Padre: acción en el mapa (`accion: 'mostrar-imagen'` o `'reproducir-video'`) · Hijo1 → Padre: pausa del audio antes de abrir un enlace externo (`accion: 'audio_control'`; el padre la reenvía a hijo3) · Padre → Hijo3: órdenes de audio (`accion: 'audio_control'`) |
-| | `UI.CLOSE_MENUS` | Hijo1 → Padre | hijo1 abre su panel de opciones: el padre cierra su desplegable de control de audio. El handler de hijo1 para el sentido inverso no tiene emisor |
+| | `UI.CLOSE_MENUS` | Hijo1 → Padre | hijo1 abre su panel de opciones: el padre cierra su desplegable de control de audio |
 | | `UI.NAVEGACION_EXTERNA` | Hijo1 → Padre | Apertura de enlace externo |
 | **AVENTURA** | `AVENTURA.INICIADA` | Padre → Hijo1 | Iniciar temporizador con `tiempoEstimado` |
 | | `AVENTURA.FINALIZADA` | Padre → Hijo1 | Detener temporizador, mostrar estadísticas |
@@ -3897,7 +3896,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 | **→ padre** | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, mensajeId }` | Al recibir SISTEMA.CAMBIO_MODO |
 | **→ padre** | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar cambio de modo en UI |
 | **→ padre** | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
-| **→ padre** | `UI.CLOSE_MENUS` | `{ except:'mas-opciones' }` | Usuario pulsa botón "más opciones" |
+| **→ padre** | `UI.CLOSE_MENUS` | `{ timestamp }` | Usuario pulsa botón "más opciones" |
 | **→ padre** | `UI.NAVEGACION_EXTERNA` | `{ url, icono }` | Usuario pulsa enlace externo |
 | **→ padre** | `TEMPORIZADOR.TOGGLE` | `{ tiempoRestante, tiempoTotal, estado, modoAventura, tiempoFormateado }` | Usuario activa/pausa el temporizador |
 | **→ padre** | `PARADAS.LISTADO_TOGGLE` | `{ timestamp }` | Usuario abre/cierra la ventana de listado de paradas (ver §7.2) |
@@ -3911,7 +3910,6 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 | **padre →** | `AVENTURA.INICIADA` | `{ aventuraId, tiempoEstimado, idioma, timestamp }` | Inicia el temporizador con la duración configurada |
 | **padre →** | `AVENTURA.FINALIZADA` | `{ }` | Detiene el temporizador y manda sus estadísticas al padre (`AVENTURA.ESTADISTICAS_TIEMPO`) |
 | **padre →** | `AVENTURA.DETENER` | `{ motivo, aventuraAnterior, aventuraNueva }` | Cancela el temporizador antes de cambiar de aventura |
-| **padre →** | `UI.CLOSE_MENUS` | `{ except }` | Handler registrado (colapsa el menú si `except !== 'mas-opciones'`) que ningún mensaje alcanza: el padre no envía este tipo |
 
 > hijo1 recibe `SISTEMA.HEARTBEAT` desde el momento en que su cargador lo registra en `iframesRegistrados` (tiene el handler y responde). Está marcado `recuperable`: si deja de contestar tres latidos, el bus recarga su iframe y el padre le devuelve el tiempo restante (§2.7a). Ni `DATOS.CARGAR_*`, ni participa en el flujo de paradas.
 >
@@ -4866,7 +4864,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-15ad0b986079'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7d6aa07960d4'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5477,9 +5475,8 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo1, al abrir su panel de opciones (`toggleMenu`), con `datos: { except: 'mas-opciones' }` |
-| Handler en padre | `_hdl_UI_CLOSE_MENUS_PADRE` (Script 2): cierra el desplegable de control de audio (`#audio-control-overlay`) salvo que `datos.except` sea `'audio-control'` (§34.1) |
-| padre → hijo1 | No hay emisor: hijo1 registra un handler (cierra su menú si `except !== 'mas-opciones'`) que ningún mensaje alcanza |
+| Emitido por | hijo1, al abrir su panel de opciones (`toggleMenu`), con `datos: { timestamp }` |
+| Handler en padre | `_hdl_UI_CLOSE_MENUS_PADRE` (Script 2): cierra el desplegable de control de audio (`#audio-control-overlay`) (§34.1) |
 
 **UI.NAVEGACION_EXTERNA** (hijo1 → padre)
 
@@ -5668,7 +5665,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 #### `UI.CLOSE_MENUS` hijo1 → padre
 
-hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel de opciones. El padre tiene `_hdl_UI_CLOSE_MENUS_PADRE` en Script 2 que cierra el overlay `#audio-control-overlay` (ver §34.1).
+hijo1 envía `UI.CLOSE_MENUS` al abrir su panel de opciones. El padre tiene `_hdl_UI_CLOSE_MENUS_PADRE` en Script 2 que cierra el overlay `#audio-control-overlay` (ver §34.1).
 
 ---
 
@@ -7962,6 +7959,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `115-efectos-de-sonido-cada-uno-en-su-momento.spec.js` | 24 | Los efectos de sonido suenan cada uno en su momento y solo entonces (§12), con `play()` y `pause()` espiados en todos los frames. En el puzzle: una pieza bien colocada suena `pieza_colocada` y una soltada lejos no suena (PZ-S1, PZ-S2); el puzzle completado a tiempo suena nueve piezas y un `reto_completado`, en ese orden (PZ-S3); el ⏩, con el puzzle cargado o roto, suena `reto_completado` (PZ-S4); sin tiempo suena `tiempo_acabado` y no `reto_completado` (PZ-S5); ocultar el contenedor corta el efecto en curso (PZ-S6). En hijo4: cada pulsación sobre una opción suena `eleccion_respuesta_reto`, también al desmarcar o repetir (RT-S1, RT-S2); la respuesta incorrecta suena `tiempo_acabado` (RT-S3); la correcta suena `reto_completado` en opción, opción múltiple y texto, y el texto no suena al escribir (RT-S4); el ⏩ suena `reto_completado` y ninguna elección (RT-S5); «Siguiente» y `RETO.LIMPIAR_ESTADO` cortan el efecto (RT-S6); un puzzle dentro de hijo4 suena una sola vez, desde el puzzle (RT-S7). En el padre: el modal de tiempo agotado suena `tiempo_acabado` con la ventana de compra superada (TA-1) y con `AVENTURA.TIEMPO_AGOTADO` (TA-2), y una sesión reanudable no suena nada (TA-3). El primer gesto desbloquea los reproductores del puzzle, de hijo4 y del padre, una sola vez y antes del sonido que provoca, y el desbloqueo no cuenta como sonido (DB-1 a DB-4). Todo `play()` lleva `volume` 1 y `muted` false. |
 | `116-efectos-de-sonido-ficheros-y-volumen.spec.js` | 6 | Los ficheros de los efectos y el volumen (§12): `audios-efectos/` contiene exactamente los MP3 que nombra `js/efectos-sonido.js` (EF-1), cada uno MPEG-1 Capa III a 128 kbps (EF-2), y `sw.js` precarga el módulo y los cuatro en `APP_SHELL` (EF-3); ningún sonido de la producción viene de otro origen, y `new Audio(` solo vive en el módulo (EF-4); nadie fija `volume` a otro valor que 1 y solo `video-intro.html` toca `muted` (EF-5); el `<audio>` de narración de hijo3 arranca con `volume` 1 y sin silenciar (EF-6). |
 | `117-efectos-de-sonido-no-esenciales.spec.js` | 6 | Los efectos de sonido no son esenciales (§12): con la petición de `js/efectos-sonido.js` abortada, el padre termina Script 2 y marca `script2Listo` (EN-P), hijo4 registra su handler de cambio de modo (EN-H) y el puzzle inicializa su bus (EN-Z), y en los tres el log lleva el aviso «No se pudo cargar js/efectos-sonido.js»; con el módulo normal, las tres señales existen y no hay aviso (el control de cada uno). |
+| `118-mas-opciones-cierra-el-desplegable-de-audio.spec.js` | 3 | «Más opciones» de hijo1 cierra el desplegable de control de audio del padre con `UI.CLOSE_MENUS`: con el desplegable abierto, pulsar el botón en hijo1 lo cierra (CM-1); el mensaje lleva solo `timestamp` (CM-2); el tipo tiene un solo receptor, el padre, y hijo1 no registra handler (CM-3). |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8194,7 +8192,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-15ad0b986079'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-7d6aa07960d4'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8436,7 +8434,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 114 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 115 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8942,7 +8940,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-15ad0b986079';
+const CACHE_VERSION = 'v-7d6aa07960d4';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11409,7 +11407,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `TEMPORIZADOR.TOGGLE` | Hijo 1 (click en `#icono-temporizador` sin gesto multi-tap) | `_hdl_TEMPORIZADOR_TOGGLE`: crea (si no existe) y alterna la ventana `#ventana-temporizador-padre`; al mostrarla la rellena con el `tiempoFormateado` y el color que traiga el mensaje (en CASA, `000:00:00` en verde) | (ninguna) | — | El padre dibuja la ventana del temporizador; hijo1 solo avisa del click |
 | `PARADAS.LISTADO_TOGGLE` | Hijo 1 (click en `#icono-listado-paradas`) | `_hdl_PARADAS_LISTADO_TOGGLE`: crea/alterna `#ventana-listado-paradas-padre`; al mostrarla, construye las filas (paradas + puentes) cruzando `coordenadas-aventuras.js` con `estado.paradasCompletadas` | (ninguna) | — | El progreso de la aventura solo vive en el padre (`estado.paradasCompletadas`); hijo1 no necesita conocer el contenido, solo dispara el toggle |
 | `UI.ACCION_USUARIO` | Hijo 2 (botones de imagen y de vídeo) o Hijo 1 (pausa del audio antes de abrir un enlace externo) | `_hdl_UI_ACCION_USUARIO`, según `datos.accion`: `'mostrar-imagen'` → abre el overlay de imagen; `'reproducir-video'` → abre el reproductor; `'audio_control'` → reenvía a hijo3 el mismo `UI.ACCION_USUARIO` (`comando`, `contexto`, `reenviadoDe`), porque un hijo no escribe a otro hijo; cualquier otra → `debug` | `UI.ACCION_USUARIO` → Hijo 3 (solo `audio_control`) | Hijo 3 (condicional) | El padre gestiona todos los overlays y es quien reenvía entre hijos |
-| `UI.CLOSE_MENUS` | Hijo 1 → Padre | `_hdl_UI_CLOSE_MENUS_PADRE`: cierra el desplegable de control de audio (`#audio-control-overlay`) salvo que `datos.except` sea `'audio-control'` | (ninguna) | — | Evitar solapamiento visual cuando hijo1 abre su panel de opciones |
+| `UI.CLOSE_MENUS` | Hijo 1 → Padre | `_hdl_UI_CLOSE_MENUS_PADRE`: cierra el desplegable de control de audio (`#audio-control-overlay`) | (ninguna) | — | Evitar solapamiento visual cuando hijo1 abre su panel de opciones |
 | `SISTEMA.HIJO_FALLIDO` | La pantalla de selección o hijo1, si su inicialización falla (`{ error, stack, timestamp }`) | Escribe en el log, como `error`, que el hijo reportó un fallo de inicialización; si está en `estado.estadoHijos`, lo marca `activo: false` y `fallido: true` | (ninguna) | — | Dejar constancia de un fallo de arranque de un iframe |
 | `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: solo registra el evento. No activa ninguna aventura (ver §10.14) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: apunta cada confirmación en `estado.paradasConfirmaciones[padreId]` y la registra en el log. No habilita nada ni desbloquea ningún flujo (§10.7) | (ninguna) | — | Garantizar que audio y retos están listos antes de que el usuario pueda avanzar |
@@ -11528,7 +11526,6 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 | `AVENTURA.INICIADA` | Padre (`{ aventuraId, tiempoEstimado, idioma, timestamp }`; al restaurar el temporizador, `{ tiempoEstimado, pausado, timestamp }`) | Si trae `tiempoEstimado`, arranca la cuenta atrás (`iniciarTemporizador`: un tick por segundo) y devuelve `{ exito: true }`; si no, devuelve `{ exito: false, error: 'Sin tiempoEstimado' }` | `AVENTURA.TIEMPO_ACTUALIZADO`, cada segundo | Padre | Arrancar el temporizador de la aventura |
 | `AVENTURA.FINALIZADA` | Padre (`{ aventuraId, idioma, motivo, timestamp }`) | Detiene el temporizador (`detenerTemporizador`) y manda sus estadísticas | `AVENTURA.ESTADISTICAS_TIEMPO` (`{ tiempoTotal, tiempoRestante, tiempoUsado, completado }`) | Padre | Cerrar el cronometraje al terminar la aventura |
 | `AVENTURA.DETENER` | Padre (`{ motivo, aventuraAnterior, aventuraNueva, timestamp }`) | Detiene el temporizador sin mandar estadísticas | (ninguna) | — | Cancelar el temporizador anterior al cambiar de aventura |
-| `UI.CLOSE_MENUS` | Ningún emisor: hijo1 manda este tipo al padre y nadie se lo manda a él | Cierra el menú (`ocultarTodos`) salvo que `except` sea `'mas-opciones'`; devuelve `{ exito, menuCerrado, … }` | (ninguna) | — | Handler sin emisor |
 
 **Mensajes salientes de Hijo 1:**
 
@@ -11541,7 +11538,7 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
 | `TEMPORIZADOR.TOGGLE` | Padre | Al pulsar `#icono-temporizador` (`{ tiempoRestante, tiempoTotal, estado, modoAventura, tiempoFormateado, timestamp }`) | El padre muestra/oculta la ventana del temporizador |
 | `PARADAS.LISTADO_TOGGLE` | Padre | Al pulsar `#icono-listado-paradas` | El padre muestra/oculta la ventana de listado de paradas (ver §7.2) |
-| `UI.CLOSE_MENUS` | Padre | Cada vez que el usuario pulsa «más opciones» (`toggleMenu`: `{ except: 'mas-opciones', timestamp }`) | Que el padre cierre su desplegable de control de audio para que no se solapen |
+| `UI.CLOSE_MENUS` | Padre | Cada vez que el usuario pulsa «más opciones» (`toggleMenu`: `{ timestamp }`) | Que el padre cierre su desplegable de control de audio para que no se solapen |
 | `UI.ACCION_USUARIO` | Padre | Al pulsar un icono con enlace externo, antes de abrirlo (`{ accion: 'audio_control', comando: 'pause', contexto: 'enlace_externo' }`) | Pausar el audio; el padre se lo reenvía a hijo3 (un hijo no escribe a otro) |
 | `UI.NAVEGACION_EXTERNA` | Padre | Al abrir el enlace en otra pestaña (`{ url, icono, timestamp }`) | Que el padre sepa que el usuario sale de la app |
 | `AVENTURA.TIEMPO_ACTUALIZADO` | Padre | Cada segundo mientras corre el temporizador (`{ tiempoRestante, tiempoTotal, porcentajeRestante, estado, tiempoFormateado, timestamp }`) | Mantener al día el contador del padre |
@@ -12425,7 +12422,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-15ad0b986079';
+const CACHE_VERSION = 'v-7d6aa07960d4';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13065,15 +13062,12 @@ await sm.atomicUpdateHeartbeat(s => {
 
 **Archivos:** `codigo-padre.html` Script 2, función `_hdl_UI_CLOSE_MENUS_PADRE`
 
-Cuando hijo1 abre su panel "más-opciones", envía `UI.CLOSE_MENUS` con `except: 'mas-opciones'` para que el padre cierre sus propios desplegables y evite solapamiento visual. El padre tiene handler registrado en Script 2 cerca de `_regCtrl_NavegacionEventos`:
+Cuando hijo1 abre su panel "más-opciones", envía `UI.CLOSE_MENUS` para que el padre cierre sus propios desplegables y evite solapamiento visual. El padre tiene handler registrado en Script 2 cerca de `_regCtrl_NavegacionEventos`:
 
 ```js
-function _hdl_UI_CLOSE_MENUS_PADRE(mensaje) {
-    const except = mensaje?.datos?.except;
-    if (except !== 'audio-control') {
-        const overlay = document.getElementById('audio-control-overlay');
-        if (overlay) overlay.classList.remove('open');
-    }
+function _hdl_UI_CLOSE_MENUS_PADRE() {
+    const overlay = document.getElementById('audio-control-overlay');
+    if (overlay) overlay.classList.remove('open');
 }
 globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.CLOSE_MENUS, _hdl_UI_CLOSE_MENUS_PADRE, { permanente: true });
 ```
@@ -14359,7 +14353,7 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje. 
 | `SISTEMA.PADRE_DATOS` | codigo-padre.html | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `TEMPORIZADOR.TOGGLE` | extrainfo-hijo1.html | codigo-padre.html |
 | `UI.ACCION_USUARIO` | codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html | audio-hijo3.html, codigo-padre.html |
-| `UI.CLOSE_MENUS` | extrainfo-hijo1.html | codigo-padre.html, extrainfo-hijo1.html |
+| `UI.CLOSE_MENUS` | extrainfo-hijo1.html | codigo-padre.html |
 | `UI.NAVEGACION_EXTERNA` | extrainfo-hijo1.html | codigo-padre.html |
 | `VV:PARADAS:READY` | boton-casa-hijo5.html | codigo-padre.html |
 
