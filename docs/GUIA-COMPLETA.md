@@ -3177,7 +3177,7 @@ wrap.classList.add('marquee');
 | `SISTEMA.CAMBIO_MODO` | Sincroniza el estado visual del `#gps-casa-btn` (ON/OFF); muestra/oculta `#paradas-window` |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Solo escribe en el log que el modo se aplicó (4.ª fase del protocolo de modo, §26.6) |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Recibe la lista de paradas del padre → `generarBotonesParadas()` |
-| `NAVEGACION.CAMBIO_PARADA` | Pone la clase `activa` al botón de esa parada o tramo (`_resaltarBotonParada`) y se la quita a los demás; ninguna regla CSS estila `activa`: el resalte visible es la clase `actual`, que ponen el click del propio botón y la generación de los botones (si hay `paradaActualIndex`); `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` solo la quita |
+| `NAVEGACION.CAMBIO_PARADA` | Marca como actual (clase `actual`) el botón de esa parada o tramo y se la quita a los demás: `_resaltarBotonParada` resuelve su índice en `estado.aventuraParadas` y llama a `_marcarBotonActual`, la única función que pone la clase, que llaman también el click del propio botón y la generación de los botones (si hay `paradaActualIndex`); `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` marca el mismo botón |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 | `SISTEMA.ERROR` | Recibe errores del sistema del padre |
 
@@ -4088,7 +4088,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Actualiza botón GPS (rojo OFF / verde ON), modo UI | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], timestamp, aventura }` | Actualiza/regenera botones de paradas | ✓ | ✓ |
-| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, … }` | Pone la clase `activa` al botón de esa parada o tramo y se la quita a los demás, salvo que `exito` sea `false`; ninguna regla CSS estila `activa` (el resalte visible es la clase `actual`) | ✓ | ✓ |
+| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, … }` | Marca como actual el botón de esa parada o tramo y se lo quita a los demás, salvo que `exito` sea `false` | ✓ | ✓ |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | `{ paradaId, audio, reto }` | Confirmación final con metadatos | ✓ | ✓ |
 | `SISTEMA.ERROR` | `{ error, contexto, mensajeOriginal }` | Solo escribe en el log el `error`, el `contexto` y el `mensajeOriginal` | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Solo escribe en el log que el modo se aplicó | ✓ | ✓ |
@@ -4864,7 +4864,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7d6aa07960d4'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-39547ffb64dc'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5203,7 +5203,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 | Handler en padre | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO` |
 | Acción | Solo logging/diagnóstico — no bloquea ningún flujo |
 | Hacia hijo5 | `completarCambioParada()` (`js/funciones-mapa.js`) lo envía, al terminar un cambio de parada, al frame que lo pidió (hijo5), con `{ paradaId, parada_id, padreId, padreid, mensajeOriginalId, coordenadas, audio, reto }`; si lo despachó el propio padre no se envía |
-| Handler en hijo5 | Compara el `data-padreid` de cada botón `.parada-tramo-btn` con la parada confirmada: pone `actual` al que coincide y se la quita a los demás. Ningún código asigna `data-padreid` a los botones, así que no coincide ninguno y el efecto es quitar `actual` a todos, también al que acaba de resaltar el click; `audio` y `reto` solo van al log |
+| Handler en hijo5 | Marca como actual el botón de la parada confirmada (`_resaltarBotonParada`, la misma función que el cambio de parada) y se la quita a los demás; `audio` y `reto` solo van al log |
 
 **NAVEGACION.SOLICITAR_COORDENADAS** (padre → hijo2) / **RESPUESTA_COORDENADAS** (hijo2 → padre)
 
@@ -5677,7 +5677,7 @@ hijo1 envía `UI.CLOSE_MENUS` al abrir su panel de opciones. El padre tiene `_hd
 | PADRE_CONFIRMA_HIJO_LISTO | ✅ | ✅ | ✅ | ✅ | ✅ (+ sync GPS btn) | ✅ |
 | CAMBIO_MODO | ✅ | ✅ | ✅ | ✅ | ✅ (muestra/oculta #paradas-window) | ✅ |
 | CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| CAMBIO_PARADA | ❌ | ✅ | ✅ | ✅ | ✅ (clase `activa`, sin estilo) | ❌ |
+| CAMBIO_PARADA | ❌ | ✅ | ✅ | ✅ | ✅ (clase `actual`) | ❌ |
 | HEARTBEAT | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | GPS.ESTADO_ACTUALIZADO | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | GPS.ERROR | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
@@ -7960,6 +7960,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `116-efectos-de-sonido-ficheros-y-volumen.spec.js` | 6 | Los ficheros de los efectos y el volumen (§12): `audios-efectos/` contiene exactamente los MP3 que nombra `js/efectos-sonido.js` (EF-1), cada uno MPEG-1 Capa III a 128 kbps (EF-2), y `sw.js` precarga el módulo y los cuatro en `APP_SHELL` (EF-3); ningún sonido de la producción viene de otro origen, y `new Audio(` solo vive en el módulo (EF-4); nadie fija `volume` a otro valor que 1 y solo `video-intro.html` toca `muted` (EF-5); el `<audio>` de narración de hijo3 arranca con `volume` 1 y sin silenciar (EF-6). |
 | `117-efectos-de-sonido-no-esenciales.spec.js` | 6 | Los efectos de sonido no son esenciales (§12): con la petición de `js/efectos-sonido.js` abortada, el padre termina Script 2 y marca `script2Listo` (EN-P), hijo4 registra su handler de cambio de modo (EN-H) y el puzzle inicializa su bus (EN-Z), y en los tres el log lleva el aviso «No se pudo cargar js/efectos-sonido.js»; con el módulo normal, las tres señales existen y no hay aviso (el control de cada uno). |
 | `118-mas-opciones-cierra-el-desplegable-de-audio.spec.js` | 3 | «Más opciones» de hijo1 cierra el desplegable de control de audio del padre con `UI.CLOSE_MENUS`: con el desplegable abierto, pulsar el botón en hijo1 lo cierra (CM-1); el mensaje lleva solo `timestamp` (CM-2); el tipo tiene un solo receptor, el padre, y hijo1 no registra handler (CM-3). |
+| `119-hijo5-marca-la-parada-actual.spec.js` | 4 | hijo5 marca la parada actual con una sola función (ver §24): un click deja marcado solo el botón pulsado (PA-1); `NAVEGACION.CAMBIO_PARADA` del padre marca el botón de esa parada (PA-2); `NAVEGACION.CAMBIO_PARADA_CONFIRMADO`, con y sin el prefijo `padre-`, no quita la marca (PA-3); un cambio de parada que no empieza en hijo5 sustituye a la marca del click (PA-4). |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8192,7 +8193,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-7d6aa07960d4'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-39547ffb64dc'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8434,7 +8435,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 115 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 116 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8940,7 +8941,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-7d6aa07960d4';
+const CACHE_VERSION = 'v-39547ffb64dc';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11696,8 +11697,8 @@ Herramienta de desarrollo. El iframe arranca oculto (`display:none; visibility:h
 | `SISTEMA.CAMBIO_MODO` | Padre | Valida el mensaje (sin `origen` lo ignora; sin `datos` manda `SISTEMA.ERROR`; con un modo inválido manda `SISTEMA.NACK { error, valoresValidos }`); manda `ENTENDIDO`; guarda el modo y actualiza su interfaz (`_actualizarUIParaModo`: en `casa` muestra la ventana de paradas `#paradas-window` y regenera los botones, en `aventura` la oculta, y el botón GPS pasa a OFF o a ON); en `aventura` pide las paradas al padre (forzado); manda `EFECTUADO`. Si falla, manda `SISTEMA.ERROR { error, tipo: 'CAMBIO_MODO_FALLIDO' }` | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | La lista de paradas solo se ve en CASA |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre | Valida y transforma las paradas (`estado.aventuraParadas`) y, si el modo no es AVENTURA, renderiza los botones de parada/tramo con emoji, código corto y nombre completo (efecto marquee si el nombre no cabe); si algo falla, manda `SISTEMA.ERROR` | (ninguna) | — | Poblar la barra con los botones navegables de la aventura |
-| `NAVEGACION.CAMBIO_PARADA` | Padre (`{ paradaId, parada_id, padreId, padreid, … }`; no lo recibe si el cambio lo originó el propio hijo5) | Pone la clase `activa` al botón de esa parada o tramo (`_resaltarBotonParada`; ninguna regla CSS la estila), salvo que `exito` sea `false` | (ninguna) | — | Reflejar en la barra la parada activa |
-| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Padre (`{ paradaId, audio, reto, … }`) | Compara el `data-padreid` de cada botón con la parada: pone `actual` al que coincide y se la quita a los demás — nadie asigna `data-padreid`, así que no coincide ninguno y quita `actual` a todos; `audio` y `reto` solo los escribe en el log | (ninguna) | — | Confirmar visualmente la parada activa |
+| `NAVEGACION.CAMBIO_PARADA` | Padre (`{ paradaId, parada_id, padreId, padreid, … }`; no lo recibe si el cambio lo originó el propio hijo5) | Marca como actual el botón de esa parada o tramo (`_resaltarBotonParada`), salvo que `exito` sea `false` | (ninguna) | — | Reflejar en la barra la parada activa |
+| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Padre (`{ paradaId, audio, reto, … }`) | Marca como actual el botón de la parada (`_resaltarBotonParada`) y se lo quita a los demás; `audio` y `reto` solo los escribe en el log | (ninguna) | — | Confirmar visualmente la parada activa |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Solo escribe en el log que el modo se aplicó | (ninguna) | — | 4.ª fase del protocolo de modo (§26.6) |
 | `SISTEMA.ERROR` | Padre | Escribe en el log (`error`) el `error`, el `contexto` y el `mensajeOriginal` | (ninguna) | — | Dejar rastro de los errores que le comunica el padre (§10.17) |
 
@@ -12422,7 +12423,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-7d6aa07960d4';
+const CACHE_VERSION = 'v-39547ffb64dc';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

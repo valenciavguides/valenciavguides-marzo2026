@@ -387,15 +387,14 @@
         });
     }
 
-    function _crearOnclickHandler(punto, btn, titulo, index, logPrefix) {
+    function _crearOnclickHandler(punto, titulo, index, logPrefix) {
         return async () => {
             const clickPrefix = `${logPrefix}[click-${titulo}]`;
             const idPadre = punto.padreid || `padre-${punto.parada_id || punto.id}`;
             try {
                 logger.info(`${clickPrefix} Click en botón de parada/tramo`);
-                document.querySelectorAll('.parada-tramo-btn').forEach(b => b.classList.remove('actual'));
-                btn.classList.add('actual');
                 estado.paradaActualIndex = index;
+                _marcarBotonActual(index);
                 logger.info(`${clickPrefix} Botón marcado como activo visualmente`);
                 const idSinPrefijo = typeof idPadre === 'string' && idPadre.startsWith('padre-')
                     ? idPadre.substring(6)
@@ -456,7 +455,7 @@
             btn.dataset.puntoIndex = index;
             btn.dataset.puntoTipo = punto.tipo;
             btn.dataset.puntoId = num || 0;
-            btn.onclick = _crearOnclickHandler(punto, btn, titulo, index, logPrefix);
+            btn.onclick = _crearOnclickHandler(punto, titulo, index, logPrefix);
             lista.appendChild(btn);
             return true;
         } catch (e) {
@@ -560,19 +559,26 @@
         return null;
     }
 
+    // La ÚNICA función que pone la clase `actual`: la llaman el click de un botón, la generación de la lista, el cambio de
+    // parada del padre y su confirmación. Marca el botón de ese índice de `estado.aventuraParadas` (el que lleva en
+    // `data-punto-index`, no su posición entre los botones: una parada omitida no los desplaza) y se lo quita a los demás.
+    function _marcarBotonActual(index) {
+        document.querySelectorAll('.parada-tramo-btn').forEach(b => b.classList.remove('actual'));
+        const btn = document.querySelector(`.parada-tramo-btn[data-punto-index="${index}"]`);
+        if (!btn) return false;
+        btn.classList.add('actual');
+        return true;
+    }
+
+    // Marca el botón de la parada que indica un mensaje del padre: resuelve su índice y lo guarda como parada actual, para que
+    // una lista que se vuelva a pintar conserve la marca.
     function _resaltarBotonParada(paradaId, padreId, logPrefix) {
-        const botones = document.querySelectorAll('.parada-tramo-btn');
-        botones.forEach(btn => btn.classList.remove('activa'));
         const idx = (estado.aventuraParadas || []).findIndex(p =>
             p.padreid === padreId || p.parada_id === paradaId || p.id === padreId
         );
-        if (idx >= 0) {
-            const botonActual = botones[idx];
-            if (botonActual) {
-                botonActual.classList.add('activa');
-                logger.debug(`${logPrefix} Botón de parada ${paradaId} resaltado (index: ${idx})`);
-            }
-        }
+        if (idx < 0) return;
+        estado.paradaActualIndex = idx;
+        if (_marcarBotonActual(idx)) logger.debug(`${logPrefix} Botón de parada ${paradaId} resaltado (index: ${idx})`);
     }
 
     function _validarMensajeParadas(mensaje, logPrefix) {
@@ -640,10 +646,7 @@
 
         logger.info(`${logPrefix} ${botonesGenerados} botones generados exitosamente`);
 
-        if (estado.paradaActualIndex !== null) {
-            const btnActual = lista.querySelector(`[data-punto-index="${estado.paradaActualIndex}"]`);
-            if (btnActual) btnActual.classList.add('actual');
-        }
+        if (estado.paradaActualIndex !== null) _marcarBotonActual(estado.paradaActualIndex);
 
         // El padre estila la ventana de paradas cuando este aviso llega; por eso se manda
         // al terminar de generarlos, no antes.
@@ -1150,16 +1153,8 @@
 
                 logger.info(`${logPrefix} Cambio de parada confirmado: ${paradaId}`);
 
-                // Aquí se podría actualizar UI: resaltar botón, mostrar indicadores de audio/reto disponibles
-                // Por ejemplo, agregar clase 'activo' al botón correspondiente
-                const botones = document.querySelectorAll('.parada-tramo-btn');
-                botones.forEach(btn => {
-                    if (btn.dataset.padreid === paradaId) {
-                        btn.classList.add('actual');
-                    } else {
-                        btn.classList.remove('actual');
-                    }
-                });
+                // El botón de la parada confirmada es el actual: la misma marca que pone el cambio de parada.
+                _resaltarBotonParada(paradaId, resolved.padreId || mensaje.datos?.padreId || mensaje.datos?.padreid || null, logPrefix);
 
                 if (audio) {
                     logger.debug(`${logPrefix} Audio disponible para ${paradaId}`);
