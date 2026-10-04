@@ -12982,6 +12982,9 @@ await _comprobarReanudacionAventura(logPrefix);
             }
             for (const _idR of idsRecargados) {
                 estado.hijosInicializados.delete(_idR);
+                // El state-manager lleva su propio conjunto, y crearPromiseHijoListo resuelve al instante para un id que ya
+                // contiene: se vacía a la vez, o la espera de _esperarHijosCargados no espera al HIJO_LISTO nuevo.
+                if (typeof globalThis.__stateManager?.olvidarHijoListo === 'function') globalThis.__stateManager.olvidarHijoListo(_idR);
             }
             // Resetear para que _hijoListo_onTodosListos pueda disparar de nuevo tras recarga de iframes
             estado.todosHijosListos = false;

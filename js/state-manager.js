@@ -165,6 +165,13 @@ export function marcarHijoListo(hijoId) {
   }
 }
 
+// Inverso de marcarHijoListo. El padre vacía su propio conjunto de hijos listos cuando recarga un iframe
+// (_normalizarSetHijos); si este conjunto conserva el id, crearPromiseHijoListo resuelve al instante y la espera de
+// un HIJO_LISTO nuevo no espera.
+export function olvidarHijoListo(hijoId) {
+  state.estadoPadre.hijosInicializados?.delete(hijoId);
+}
+
 function _deepCopy(obj) {
   if (obj === null || typeof obj !== 'object') return obj;
   if (obj instanceof Set) return new Set(obj);
@@ -333,6 +340,7 @@ export async function inicializarStateManager() {
       // Sistema de eventos para HIJO_LISTO
       crearPromiseHijoListo,
       marcarHijoListo,
+      olvidarHijoListo,
 
       // Diagnóstico
       diagnosticar: diagnosticarStateManager,

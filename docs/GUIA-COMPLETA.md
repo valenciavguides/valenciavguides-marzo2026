@@ -1586,11 +1586,11 @@ Un iframe es una "ventana dentro de otra ventana" en una página web. La aplicac
 
 ### Espera de HIJO_LISTO: sistema de eventos centralizado
 
-El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises** resueltas por eventos: `crearPromiseHijoListo(hijoId)` crea la Promise; `marcarHijoListo(hijoId)` la resuelve al recibir `HIJO_LISTO`. Ambas funciones viven en `js/state-manager.js` (timeout de 30 s como límite de seguridad). Si `state-manager` no está disponible, el fallback usa polling con `setTimeout(check, 200)` hasta que `hijosInicializados.has(hijoId)` sea `true`.
+El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises** resueltas por eventos: `crearPromiseHijoListo(hijoId)` crea la Promise; `marcarHijoListo(hijoId)` la resuelve al recibir `HIJO_LISTO` y `olvidarHijoListo(hijoId)` quita al hijo del conjunto de listos cuando el padre lo recarga, para que la siguiente `crearPromiseHijoListo` espere el `HIJO_LISTO` nuevo en vez de resolver al instante. Las tres funciones viven en `js/state-manager.js` (timeout de 30 s como límite de seguridad). Si `state-manager` no está disponible, el fallback usa polling con `setTimeout(check, 200)` hasta que `hijosInicializados.has(hijoId)` sea `true`.
 
 > **Invariante crítico — `_normalizarSetHijos` antes de asignar `src`:** en `_hdl_SELECCION_AVENTURA_ACTIVADA`, `_normalizarSetHijos` debe llamarse **antes** de `_cargarSoloIframeActivacion`. Si se llama después, existe una ventana donde un hijo puede enviar `HIJO_LISTO`, ser añadido a `hijosInicializados`, y luego ser borrado por `_normalizarSetHijos` — dejando `_esperarHijosCargados` esperando un segundo `HIJO_LISTO` que nunca llega (timeout a los 30 s, AVENTURA_ACTIVADA queda bloqueada). El orden correcto: eliminar entradas → asignar src → esperar HIJO_LISTO.
 >
-> Para el detalle técnico completo de la implementación (código de `crearPromiseHijoListo`, `marcarHijoListo`, fallbacks) ver **§30.3**.
+> Para el detalle técnico completo de la implementación (código de `crearPromiseHijoListo`, `marcarHijoListo`, `olvidarHijoListo`, fallbacks) ver **§30.3**.
 
 ### Los hijos principales
 
@@ -2087,7 +2087,7 @@ El estado compartido del padre se guarda en un único lugar: `js/state-manager.j
 | Campo | Tipo | Mutex | Contenido |
 | --- | --- | --- | --- |
 | `script2Listo` | `boolean` | `script2Listo` | Flag de sincronización entre Script 1 y Script 2 del padre. Lo escribe `marcarScript2Listo()` de `js/mensajeria.js` (con `setScript2Listo`) y lo leen los tests con `getScript2Listo()` |
-| `estadoPadre` | `object` | `estadoPadre` | Copia profunda de `globalThis.estadoPadre`, tomada al arrancar con `setEstadoPadre`; de ella solo `hijosInicializados` se mantiene al día (`marcarHijoListo`). El estado vivo es `globalThis.estadoPadre` |
+| `estadoPadre` | `object` | `estadoPadre` | Copia profunda de `globalThis.estadoPadre`, tomada al arrancar con `setEstadoPadre`; de ella solo `hijosInicializados` se mantiene al día (`marcarHijoListo` y `olvidarHijoListo`). El estado vivo es `globalThis.estadoPadre` |
 | `controladores` | `Map` | `controladores` | Handlers registrados con `registrarControladorCentral`: id → `{ handler, opciones, registradoEn, activo, fingerprint }`; rechaza un id repetido y un handler lógicamente duplicado (mismo tipo y mismo código) |
 | `heartbeat` | `object` | `heartbeat` | Estado del heartbeat: `activo`, `intervalo`, `userPaused`, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados` |
 | `hijosListosPromises` | `Map` | ninguno | Promesas de carga de cada hijo (resueltas por `marcarHijoListo`) |
@@ -2096,7 +2096,7 @@ El estado compartido del padre se guarda en un único lugar: `js/state-manager.j
 
 > **Nota:** `hijosListosPromises` no tiene mutex; el comentario del código, junto a `crearPromiseHijoListo`, lo aclara: *"Sin mutex: el browser es single-threaded; Map/Set ops son atómicas en este contexto"*.
 
-**Accesores.** Cada lectura o escritura de un campo con mutex tiene la forma mecánica `mutexes.campo.runExclusive(() => …)`: `getScript2Listo()`/`setScript2Listo(valor)`, `getEstadoPadre()`/`setEstadoPadre(valor)` (copia profunda al leer y al escribir), `getHeartbeat()` (copia profunda), `updateHeartbeat(parcial)` (mezcla en profundidad) y `atomicUpdateHeartbeat(fn)` (lectura-modificación-escritura dentro de una sola adquisición del mutex, §33.3). Para los controladores: `registrarControladorCentral(id, handler, opciones)` (con su alias `registrarManejador`), `getControladoresRegistrados()`, `getControladoresPorTipo(tipo)` y `getMapaControladoresSync()` — el mapa tipo → handler que lee `js/mensajeria.js` con su alias `getManejadores()`, sin mutex. `crearPromiseHijoListo(id)` y `marcarHijoListo(id)` (§30.3) trabajan sobre `hijosListosPromises`.
+**Accesores.** Cada lectura o escritura de un campo con mutex tiene la forma mecánica `mutexes.campo.runExclusive(() => …)`: `getScript2Listo()`/`setScript2Listo(valor)`, `getEstadoPadre()`/`setEstadoPadre(valor)` (copia profunda al leer y al escribir), `getHeartbeat()` (copia profunda), `updateHeartbeat(parcial)` (mezcla en profundidad) y `atomicUpdateHeartbeat(fn)` (lectura-modificación-escritura dentro de una sola adquisición del mutex, §33.3). Para los controladores: `registrarControladorCentral(id, handler, opciones)` (con su alias `registrarManejador`), `getControladoresRegistrados()`, `getControladoresPorTipo(tipo)` y `getMapaControladoresSync()` — el mapa tipo → handler que lee `js/mensajeria.js` con su alias `getManejadores()`, sin mutex. `crearPromiseHijoListo(id)`, `marcarHijoListo(id)` y `olvidarHijoListo(id)` (§30.3) trabajan sobre `hijosListosPromises` y sobre `hijosInicializados` de la copia de `estadoPadre`.
 
 `esperarRegistrosPendientes()` resuelve cuando han terminado todos los registros de controladores lanzados hasta ese momento. Registrar un controlador no es inmediato —cada `registrarControladorCentral` escribe en el mapa dentro del mutex `controladores`, esperando al anterior— y el Script 2 del padre lanza decenas de registros sin `await`. Como `SimpleMutex` es FIFO, esta espera se encola detrás de todos ellos y no espera a los que se lancen después de llamarla.
 
@@ -4405,9 +4405,9 @@ sequenceDiagram
 
 **`_modoInicio` decide directamente el modo final, sin pasar por hijo5:** `const _modoInicio = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA`. En producción (`_devModeActivo` falso, el caso normal para cualquier usuario real) `_modoInicio` es `AVENTURA` — el padre despacha `SISTEMA.CAMBIO_MODO(MODOS.AVENTURA)` con `despacharLocal` de forma fire-and-forget inmediatamente después de `_mostrarUIActivada()`, sin esperar ninguna pulsación de botón: el usuario entra directo en modo AVENTURA (GPS con validaciones, hijo5 oculto). El botón GPS de hijo5 (§9.7) nunca interviene en este camino — es exclusivamente la vía manual del modo DEV (ver §24), donde `_modoInicio` es `CASA` y el padre sí espera (`await`) a que ese `despacharLocal(SISTEMA.CAMBIO_MODO(MODOS.CASA))` complete antes de ocultar el overlay de carga.
 
-**`_normalizarSetHijos`** elimina de `estado.hijosInicializados` los IDs de los iframes que se van a recargar, para que `_esperarHijosCargados` no resuelva prematuramente con el estado anterior. Solo se llama en la ruta normal.
+**`_normalizarSetHijos`** elimina de `estado.hijosInicializados` los IDs de los iframes que se van a recargar y los olvida también en el state-manager (`olvidarHijoListo`), para que `_esperarHijosCargados` espere el `HIJO_LISTO` nuevo de cada uno en vez de resolver con el estado anterior. Solo se llama en la ruta fallback de `SELECCION.AVENTURA_ACTIVADA`.
 
-**`_esperarHijosCargados`** usa `globalThis.__stateManager.crearPromiseHijoListo(id)` (event-driven) con fallback a polling de 200 ms vía `retryUntilAvailable()` (`js/utils.js`, ver §11 "Patrón `retryUntilAvailable()`") — acotado a 150 intentos (30 s); si se agota, la promesa correspondiente rechaza y queda registrada como error en el `Promise.all`, en vez de colgarse para siempre. Solo se llama en la ruta normal.
+**`_esperarHijosCargados`** usa `globalThis.__stateManager.crearPromiseHijoListo(id)` (event-driven) con fallback a polling de 200 ms vía `retryUntilAvailable()` (`js/utils.js`, ver §11 "Patrón `retryUntilAvailable()`") — acotado a 150 intentos (30 s); si se agota, la promesa correspondiente rechaza y queda registrada como error en el `Promise.all`, en vez de colgarse para siempre. Solo se llama en la ruta fallback de `SELECCION.AVENTURA_ACTIVADA`.
 
 **Guard `_aventuraEnProceso`**: variable de módulo booleana compartida entre `_hdl_SELECCION_AVENTURA_SELECCIONADA` y `_hdl_SELECCION_AVENTURA_ACTIVADA`. Si llega cualquiera de los dos mientras el otro está en curso, el segundo handler aborta inmediatamente. Se resetea en el bloque `finally` de cada uno.
 
@@ -4862,7 +4862,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-2115271a17be'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-39c428eb94d9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7942,6 +7942,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `118-mas-opciones-cierra-el-desplegable-de-audio.spec.js` | 3 | «Más opciones» de hijo1 cierra el desplegable de control de audio del padre con `UI.CLOSE_MENUS`: con el desplegable abierto, pulsar el botón en hijo1 lo cierra (CM-1); el mensaje lleva solo `timestamp` (CM-2); el tipo tiene un solo receptor, el padre, y hijo1 no registra handler (CM-3). |
 | `119-hijo5-marca-la-parada-actual.spec.js` | 4 | hijo5 marca la parada actual con una sola función (ver §24): un click deja marcado solo el botón pulsado (PA-1); `NAVEGACION.CAMBIO_PARADA` del padre marca el botón de esa parada (PA-2); `NAVEGACION.CAMBIO_PARADA_CONFIRMADO`, con y sin el prefijo `padre-`, no quita la marca (PA-3); un cambio de parada que no empieza en hijo5 sustituye a la marca del click (PA-4). |
 | `120-hijo4-habla-el-idioma-de-la-aventura.spec.js` | 4 | Los dos textos propios de hijo4 salen en el idioma de la aventura, que llega en `RETO.MOSTRAR` (`datos.idioma`): hijo4 pinta el marcador del campo de texto en el idioma del mensaje (ID-1) y en español si el mensaje no lo trae (ID-2); el padre lo manda en la progresión y en la reposición tras recargar hijo4 (ID-3) y al contestar a `DATOS.SOLICITAR_RETOS` (ID-4). |
+| `121-ruta-fallback-espera-al-hijo-listo-nuevo.spec.js` | 3 | En la ruta fallback de `SELECCION.AVENTURA_ACTIVADA`, `_esperarHijosCargados` espera el `HIJO_LISTO` de cada hijo recargado: cada una de sus cinco esperas resuelve cuando ya ha llegado el `HIJO_LISTO` de su hijo (HL-1), y en esa ruta llega uno de cada uno de los cinco (HL-2, control); en el state-manager, `crearPromiseHijoListo` de un id olvidado con `olvidarHijoListo` espera a `marcarHijoListo`, y olvidar un id desconocido no lanza (HL-3). |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8174,7 +8175,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-2115271a17be'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-39c428eb94d9'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8415,7 +8416,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 117 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 118 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8921,7 +8922,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-2115271a17be';
+const CACHE_VERSION = 'v-39c428eb94d9';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12370,7 +12371,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-2115271a17be';
+const CACHE_VERSION = 'v-39c428eb94d9';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12379,7 +12380,7 @@ El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js`
 
 **Archivo:** `codigo-padre.html` (~L5874 y ~L6399)
 
-El handler `_hdl_SISTEMA_HIJO_LISTO` añade el hijo a `estado.hijosInicializados` y llama a `globalThis.__stateManager.marcarHijoListo(hijoId)`. La función `_esperarHijoListo(iframeId)` usa el sistema de eventos de `state-manager.js` con fallback por timeout:
+El handler `_hdl_SISTEMA_HIJO_LISTO` añade el hijo a `estado.hijosInicializados` y llama a `globalThis.__stateManager.marcarHijoListo(hijoId)`; `_normalizarSetHijos` hace lo inverso al recargar los iframes de la ruta fallback: borra al hijo de `estado.hijosInicializados` y llama a `globalThis.__stateManager.olvidarHijoListo(hijoId)`, que lo quita del conjunto del state-manager (con el id dentro, `crearPromiseHijoListo` resolvería al instante para un hijo que ya avisó una vez). La función `_esperarHijoListo(iframeId)` usa el sistema de eventos de `state-manager.js` con fallback por timeout:
 
 ```javascript
 function _esperarHijoListo(iframeId) {
