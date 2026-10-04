@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const m = JSON.parse(fs.readFileSync(salida('mensajes.json'), 'utf8'));
 const FRAME = rel => {
-  if (/^(codigo-padre\.html|js\/app\.js|js\/funciones-mapa\.js|js\/controladores-padre\.js|js\/state-manager\.js|js\/monitoreo\.js)$/.test(rel)) return 'padre';
+  if (/^(codigo-padre\.html|js\/app\.js|js\/funciones-mapa\.js|js\/controladores-padre\.js|js\/state-manager\.js)$/.test(rel)) return 'padre';
   const mp = { 'coordenadas-hijo2.html': 'hijo2', 'audio-hijo3.html': 'hijo3', 'retos-hijo4.html': 'hijo4', 'boton-casa-hijo5.html': 'hijo5', 'chat-hijo6.html': 'hijo6', 'extrainfo-hijo1.html': 'hijo1', 'En-busca-del-tesoro.html': 'seleccion', 'mapa-completo.html': 'mapa', 'puzzle.html': 'puzzle', 'video-intro.html': 'video' };
   return mp[rel] || rel;
 };

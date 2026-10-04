@@ -45,8 +45,6 @@ mensajeriaReadyPromise.then(() => {
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import logger from './logger.js';
 import { generarIdUnico, canonicalizarModo, retryUntilAvailable } from './utils.js';
-import { promesasPendientes, registrarMetrica as registrarMetricaMonitoreo } from './monitoreo.js';
-import { esMovil } from './device-detection.js';
 
 
 // Access global mensajeria functions - ahora esperan a que esté lista
@@ -125,22 +123,6 @@ export async function registrarControladoresApp() {
 }
 
 // Estado global en codigo-padre.html
-
-// Función para limpiar promesas pendientes expiradas
-function limpiarPromesasPendientes() {
-    const ttl = 60000; // Ajustado a 60 segundos
-    const now = Date.now();
-    for (const [id, promise] of promesasPendientes) {
-        if (now - promise.timestamp > ttl) {
-            promesasPendientes.delete(id);
-        }
-    }
-}
-
-// Intervalo separado para limpiar promesas pendientes cada 30s (sincronizado)
-const intervaloLimpiezaPromesas = setInterval(() => {
-    limpiarPromesasPendientes();
-}, 30000);  // Sincronizado con mensajeria.js
 
 // ==================== FUNCIONES AUXILIARES ====================
 
@@ -914,7 +896,7 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
 }
 
 /**
- * Función para registrar un evento personalizado en el sistema de monitoreo
+ * Función para registrar un evento en el log
  * @param {string} tipo - Tipo de evento
  * @param {Object} datos - Datos del evento
  * @param {string} [nivel='info'] - Nivel de severidad ('debug', 'info', 'warn', 'error')
@@ -937,37 +919,13 @@ function registrarEvento(tipo, datos = {}, nivel = 'info') {
     }
 }
 
-// Reexportar registrarMetrica(nombre, valor, tags = {}) desde el módulo central `monitoreo`: una implementación canónica única
-export const registrarMetrica = registrarMetricaMonitoreo;
-
-// Inicializar monitoreo de memoria si está disponible (optimized for mobile)
-if (globalThis.performance?.memory && !globalThis.__vv_intervaloMemoria) {
-    const intervaloMemoria = esMovil() ? 300000 : 60000; // 5 min móvil, 1 min desktop
-    globalThis.__vv_intervaloMemoria = setInterval(() => {
-        const { memory } = globalThis.performance;
-        const usoMemoria = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
-        // Preferir `globalThis.registrarMetrica` cuando esté disponible (scripts globales)
-        (globalThis.registrarMetrica ?? registrarMetrica)(
-            'uso_memoria', usoMemoria, { unidad: '%' }
-        );
-    }, intervaloMemoria);
-}
-
-// Exponer funciones de monitoreo globalmente
 // registrarEvento NO se expone aquí — codigo-padre.html Script 1 ya define su propia
-// globalThis.registrarEvento (superconjunto: además guarda historial en
-// estado.monitoreo.historial.eventos). Exponer también la de aquí sobrescribía la del
-// padre en cuanto este módulo se importaba (auditoría 2026-08-03) — las 3 llamadas
-// internas de este fichero usan (globalThis.registrarEvento ?? registrarEvento) para
-// preferir la del padre cuando ya está disponible, igual que registrarMetrica más abajo.
-if (globalThis.window !== undefined) {
-    globalThis.registrarMetrica = registrarMetrica;
+// globalThis.registrarEvento (con el prefijo [PADRE]). Exponer también la de aquí
+// sobrescribía la del padre en cuanto este módulo se importaba (auditoría 2026-08-03) —
+// las llamadas internas de este fichero usan (globalThis.registrarEvento ?? registrarEvento)
+// para preferir la del padre cuando ya está disponible.
 
-    // Evento de inicialización app se registra en el DOMContentLoaded unificado del padre
-    // (eliminado listener duplicado - ver codigo-padre.html línea ~1185)
-}
-
-// Inicializar monitoreo de eventos de navegación usando solo la API moderna
+// Tiempo que tardó la carga de la página, con la API de navegación moderna
 function obtenerTiempoCargaPagina() {
     if (performance.getEntriesByType) {
         const [nav] = performance.getEntriesByType('navigation');
@@ -979,15 +937,7 @@ function obtenerTiempoCargaPagina() {
 }
 
 globalThis.addEventListener('load', () => {
-    if (globalThis.performance?.memory) {
-        const { memory } = globalThis.performance;
-        const usoMemoria = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
-        (globalThis.registrarMetrica ?? registrarMetrica)('uso_memoria', usoMemoria, { unidad: '%' });
-    }
     const tiempoCarga = obtenerTiempoCargaPagina();
-    if (typeof tiempoCarga === 'number' && !Number.isNaN(tiempoCarga)) {
-        (globalThis.registrarMetrica ?? registrarMetrica)('tiempo_carga_pagina', tiempoCarga);
-    }
     (globalThis.registrarEvento ?? registrarEvento)('pagina_cargada', {
         tiempoCarga,
         url: globalThis.location.href,
@@ -1025,25 +975,10 @@ if (globalThis.window !== undefined) {
             return;
         }
         try {
-            // Verificar promesas pendientes antes de limpiar
-            if (promesasPendientes.size > 0) {
-                logger.warn(`Hay ${promesasPendientes.size} promesas pendientes al descargar la página`);
-                // Limpiar promesas pendientes
-                promesasPendientes.clear();
-            }
             // Limpiar globales de la aplicación agresivamente
             // registrarEvento no se borra aquí — no es de este módulo (ver nota más arriba,
             // donde se deja de exponer); borrarlo aquí borraría la del padre por error.
-            if (globalThis.registrarMetrica) delete globalThis.registrarMetrica;
-
-            // Limpiar estado global de la aplicación
             if (globalThis.estado) delete globalThis.estado;
-
-            // Limpiar promesas pendientes
-            promesasPendientes.clear();
-
-            // Limpiar intervalos
-            clearInterval(intervaloLimpiezaPromesas);
 
             logger.info('Limpieza agresiva de globales de la aplicación completada');
         } catch (error) {

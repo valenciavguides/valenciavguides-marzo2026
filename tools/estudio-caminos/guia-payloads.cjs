@@ -32,11 +32,11 @@ const g = fs.readFileSync(GUIA, 'utf8').split(/\r?\n/);
 const COMPARTIDOS = ['js/utils.js'];
 const FRAMES = [
   ['selección', /^### 7\.1 /, /^### 8\.4 /, ['En-busca-del-tesoro.html', ...COMPARTIDOS]],
-  ['hijo1', /^### 7\.2 /, /^### 8\.5 /, ['extrainfo-hijo1.html', ...COMPARTIDOS, 'js/monitoreo.js']],
+  ['hijo1', /^### 7\.2 /, /^### 8\.5 /, ['extrainfo-hijo1.html', ...COMPARTIDOS]],
   ['hijo2', /^### 7\.3 /, /^### 8\.6 /, ['coordenadas-hijo2.html', ...COMPARTIDOS]],
   ['hijo3', /^### 7\.4 /, /^### 8\.7 /, ['audio-hijo3.html', ...COMPARTIDOS]],
   ['hijo4', /^### 7\.5 /, /^### 8\.8 /, ['retos-hijo4.html', ...COMPARTIDOS]],
-  ['hijo5', /^### 7\.6 /, /^### 8\.9 /, ['boton-casa-hijo5.html', ...COMPARTIDOS, 'js/monitoreo.js']],
+  ['hijo5', /^### 7\.6 /, /^### 8\.9 /, ['boton-casa-hijo5.html', ...COMPARTIDOS]],
   ['hijo6', /^### 7\.7 /, /^### 8\.10 /, ['chat-hijo6.html', ...COMPARTIDOS]],
 ];
 const FICHEROS_PADRE = ['codigo-padre.html', 'js/app.js', 'js/funciones-mapa.js', 'js/controladores-padre.js', 'js/mensajeria.js', 'js/state-manager.js', 'js/utils.js'];

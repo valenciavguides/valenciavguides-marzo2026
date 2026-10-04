@@ -341,8 +341,7 @@ export function puntoMasCercanoEnLinea(punto, puntosLinea) {
 /* ─── Reporte automático de errores no controlados (hijo → padre) ─────────────
  *
  * Un error no capturado dentro de un iframe hijo se quedaba solo en su propia consola:
- * `js/monitoreo.js` los recoge en un array local, pero de ese módulo solo sale el
- * heartbeat. El padre no se enteraba de que a un hijo le había explotado algo.
+ * el padre no se enteraba de que a un hijo le había explotado algo.
  *
  * Esto lo conecta al canal que YA existe y funciona, `SISTEMA.ERROR`, con un código
  * más — no un tipo de mensaje nuevo ni un handler nuevo. `_hdl_SISTEMA_ERROR` en
@@ -350,9 +349,8 @@ export function puntoMasCercanoEnLinea(punto, puntosLinea) {
  * los códigos que tienen acción asociada. `ERROR_NO_CONTROLADO` no la tiene a
  * propósito: un fallo interno no es accionable por el usuario, no se le saca cartel.
  *
- * Vive aquí, en utils.js, porque es el único módulo que cargan los SEIS hijos —
- * `monitoreo.js` solo lo cargan hijo1 y hijo5, y ponerlo ahí cubriría 2 de 6
- * pareciendo que cubre todo.
+ * Vive aquí, en utils.js, porque es el único módulo que cargan los SEIS hijos:
+ * ponerlo en uno que solo cargan dos cubriría 2 de 6 pareciendo que cubre todo.
  *
  * Se instala solo al cargarse el módulo. No hace falta llamar a nada: si dependiera de
  * que alguien se acuerde en seis ficheros, bastaría un olvido para dejarlo mudo.

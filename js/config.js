@@ -151,23 +151,6 @@ export const CONFIG = {
 
         /** Duración de animación de vuelo (ms) */
         DURACION_VUELO: 1500
-    },
-
-    /**
-     * Configuración de monitoreo
-     */
-    MONITOREO: {
-        /** Habilitar métricas */
-        METRICAS_HABILITADAS: true,
-
-        /** Intervalo de recolección de métricas (ms) */
-        INTERVALO_METRICAS: 30000,
-
-        /** Umbral de memoria para alertas (bytes) */
-        UMBRAL_MEMORIA: 52428800, // 50MB
-
-        /** Umbral de mensajes pendientes para alertas */
-        UMBRAL_MENSAJES_PENDIENTES: 50
     }
 };
 

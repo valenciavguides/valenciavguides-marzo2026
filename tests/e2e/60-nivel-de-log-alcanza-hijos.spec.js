@@ -11,6 +11,8 @@
  * padre y `undefined` en los seis iframes.
  *
  * ROJO ANTES QUE VERDE: NH-1 falla sin la linea `globalThis.logger = logger` de cada hijo.
+ * NH-4 falla si uno de los cinco hijos que leen el nivel del padre carga `config.js`: su logger pasa a leer la copia
+ * propia y el cambio del padre no le llega (NH-2 no lo ve: toca la copia que el logger vaya a mirar).
  */
 const { test, expect } = require('@playwright/test');
 const path = require('path');
@@ -103,5 +105,34 @@ test.describe('NH — El nivel de log alcanza a los hijos', () => {
       } finally { await p2.close(); }
     }
     for (const [k, v] of Object.entries(r)) expect(`${k}=${v}`).toBe(`${k}=logger`);
+  });
+
+  test('NH-4. El nivel del padre alcanza a selección, hijo1, hijo3, hijo4 e hijo5, que no tienen copia propia de CONFIG', async ({ page }) => {
+    // Una sola fuente del nivel: estos cinco leen `__vv_config` de la ventana padre porque ninguno carga `config.js`. Con una
+    // copia propia el logger mira la suya y un cambio en el padre no le llega. hijo2 queda fuera: importa `config.js` para
+    // `CONFIG.GPS` y tiene la suya (docs/estudio-caminos.md, K-55).
+    const ids = ['seleccion', 'hijo1-opciones', 'hijo3', 'hijo4', 'hijo5'];
+    await page.waitForFunction(
+      (lista) => lista.every((id) => document.getElementById(id)?.contentWindow?.logger),
+      ids, { timeout: 30000 }
+    );
+    const r = await page.evaluate(async (lista) => {
+      const { LOG_LEVELS } = await import('./js/constants.js');
+      const cfg = globalThis.__vv_config;
+      const original = cfg.DEBUG.NIVEL_LOG;
+      const out = {};
+      try {
+        cfg.DEBUG.NIVEL_LOG = LOG_LEVELS.NONE;
+        for (const id of lista) {
+          const w = document.getElementById(id).contentWindow;
+          const copia = typeof w.__vv_config === 'undefined' ? 'sin copia' : 'COPIA PROPIA';
+          const nivel = w.logger.getNivel() === LOG_LEVELS.NONE ? 'obedece' : 'ignora';
+          out[id] = `${copia}, ${nivel}`;
+        }
+      } finally { cfg.DEBUG.NIVEL_LOG = original; }
+      return out;
+    }, ids);
+    expect(Object.keys(r)).toEqual(ids); // el arnes midio los cinco, no los que hubiera cargado
+    for (const id of ids) expect(`${id}=${r[id]}`).toBe(`${id}=sin copia, obedece`);
   });
 });

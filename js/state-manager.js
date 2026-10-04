@@ -49,28 +49,6 @@ const state = {
       error: null,
       ultimaUbicacion: null
     },
-    monitoreo: {
-      metricas: {
-        mensajesRecibidos: 0,
-        errores: 0,
-        tiempoRespuestaPromedio: 0,
-        usoMemoria: 0,
-        usoCPU: 0
-      },
-      config: {
-        umbralAlerta: {
-          usoMemoria: 80,
-          usoCPU: 90,
-          tiempoRespuesta: 5000
-        },
-        maxItems: 100
-      },
-      historial: {
-        eventos: [],
-        metricas: [],
-        errores: []
-      }
-    },
     sistema: {
       prewarmIniciado: false,
       prewarmPausado: false,

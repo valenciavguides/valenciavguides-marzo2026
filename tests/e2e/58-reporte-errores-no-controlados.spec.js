@@ -1,9 +1,8 @@
 /**
  * 58-reporte-errores-no-controlados.spec.js
  *
- * Un error no capturado dentro de un iframe hijo se queda solo en su consola:
- * `js/monitoreo.js` los recoge en un array local y de ese módulo solo sale el heartbeat.
- * `instalarReporteErroresAlPadre()` (js/utils.js) los conecta al canal que ya existe,
+ * Un error no capturado dentro de un iframe hijo se queda solo en su consola: el padre
+ * no se entera. `instalarReporteErroresAlPadre()` (js/utils.js) los conecta al canal que ya existe,
  * `SISTEMA.ERROR`, con el código `ERROR_NO_CONTROLADO`.
  *
  * Vive en utils.js porque es el único módulo que cargan los seis hijos, y se instala solo

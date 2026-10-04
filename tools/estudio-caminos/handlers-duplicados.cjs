@@ -2,7 +2,7 @@
 // Parte del extractor de mensajes (mensajes.json: recv = receptores con fichero, línea y tipo canónico).
 const { ROOT, salida } = require('./lib.cjs');
 const j = JSON.parse(require('fs').readFileSync(salida('mensajes.json'), 'utf8'));
-const PADRE = new Set(['codigo-padre.html', 'js/app.js', 'js/funciones-mapa.js', 'js/controladores-padre.js', 'js/mensajeria.js', 'js/state-manager.js', 'js/monitoreo.js', 'js/utils.js']);
+const PADRE = new Set(['codigo-padre.html', 'js/app.js', 'js/funciones-mapa.js', 'js/controladores-padre.js', 'js/mensajeria.js', 'js/state-manager.js', 'js/utils.js']);
 const frameDe = (rel) => PADRE.has(rel) ? 'padre' : rel;
 const g = {};
 for (const r of j.recv) (g[frameDe(r.rel) + '|' + r.canon] ||= []).push(r);

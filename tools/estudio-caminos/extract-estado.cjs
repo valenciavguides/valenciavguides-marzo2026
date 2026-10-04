@@ -5,7 +5,7 @@ const path = require('path');
 const { ROOT, salida } = require('./lib.cjs');
 const acorn = require(path.join(ROOT, 'node_modules/acorn'));
 const ROOTS = new Set(['estado', 'estadoPadre', 'estadoScript1', 'est', 'estadoMapa', 'estadoComponente', 'estadoRetos', 'estadoMenu', 'estadoTemporizador', 'estadoAudio', 'estadoGPS']);
-function listFiles() { const o = []; for (const f of fs.readdirSync(ROOT)) if (f.endsWith('.html')) o.push(f); for (const f of ['funciones-mapa.js', 'app.js', 'state-manager.js', 'mensajeria.js', 'controladores-padre.js', 'monitoreo.js']) o.push('js/' + f); return o; }
+function listFiles() { const o = []; for (const f of fs.readdirSync(ROOT)) if (f.endsWith('.html')) o.push(f); for (const f of ['funciones-mapa.js', 'app.js', 'state-manager.js', 'mensajeria.js', 'controladores-padre.js']) o.push('js/' + f); return o; }
 function blocksOf(rel, src) {
   if (!rel.endsWith('.html')) return [{ code: src, off: 0 }];
   const b = []; const clean = src.replace(/<!--[\s\S]*?-->/g, c => c.replace(/[^\n]/g, ' ')).replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi, (a, o, c, e) => o + c.replace(/[^\n]/g, ' ') + e);

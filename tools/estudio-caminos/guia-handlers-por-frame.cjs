@@ -33,13 +33,13 @@ const guia = fs.readFileSync(GUIA, 'utf8').split(/\r?\n/);
 const COMPARTIDOS_HIJOS = ['js/utils.js'];
 const TRANSVERSALES = new Set(['SISTEMA.ERROR', 'SISTEMA.NACK', 'SISTEMA.HEARTBEAT', 'SISTEMA.HEARTBEAT_RESPONSE', 'SISTEMA.CAMBIO_MODO_APLICADO', 'SISTEMA.NOTIFICACION', 'SISTEMA.HIJO_FALLIDO', 'SISTEMA.CONFIRMACION']);
 const FRAMES = [
-  { clave: 'padre', s26: /^#### 26\.12\.1 /, salientes: /^#### 26\.12\.2 /, ficheros: ['codigo-padre.html', 'js/app.js', 'js/funciones-mapa.js', 'js/controladores-padre.js', 'js/mensajeria.js', 'js/state-manager.js', 'js/monitoreo.js', 'js/utils.js'] },
+  { clave: 'padre', s26: /^#### 26\.12\.1 /, salientes: /^#### 26\.12\.2 /, ficheros: ['codigo-padre.html', 'js/app.js', 'js/funciones-mapa.js', 'js/controladores-padre.js', 'js/mensajeria.js', 'js/state-manager.js', 'js/utils.js'] },
   { clave: 'selección', s7: /^### 7\.1 /, s8: /^### 8\.4 /, s26: /^#### 26\.12\.3 /, ficheros: ['En-busca-del-tesoro.html', ...COMPARTIDOS_HIJOS] },
-  { clave: 'hijo1', s7: /^### 7\.2 /, s8: /^### 8\.5 /, s26: /^#### 26\.12\.4 /, ficheros: ['extrainfo-hijo1.html', ...COMPARTIDOS_HIJOS, 'js/monitoreo.js'] },
+  { clave: 'hijo1', s7: /^### 7\.2 /, s8: /^### 8\.5 /, s26: /^#### 26\.12\.4 /, ficheros: ['extrainfo-hijo1.html', ...COMPARTIDOS_HIJOS] },
   { clave: 'hijo2', s7: /^### 7\.3 /, s8: /^### 8\.6 /, s26: /^#### 26\.12\.5 /, ficheros: ['coordenadas-hijo2.html', ...COMPARTIDOS_HIJOS] },
   { clave: 'hijo3', s7: /^### 7\.4 /, s8: /^### 8\.7 /, s26: /^#### 26\.12\.6 /, ficheros: ['audio-hijo3.html', ...COMPARTIDOS_HIJOS] },
   { clave: 'hijo4', s7: /^### 7\.5 /, s8: /^### 8\.8 /, s26: /^#### 26\.12\.7 /, ficheros: ['retos-hijo4.html', ...COMPARTIDOS_HIJOS] },
-  { clave: 'hijo5', s7: /^### 7\.6 /, s8: /^### 8\.9 /, s26: /^#### 26\.12\.8 /, ficheros: ['boton-casa-hijo5.html', ...COMPARTIDOS_HIJOS, 'js/monitoreo.js'] },
+  { clave: 'hijo5', s7: /^### 7\.6 /, s8: /^### 8\.9 /, s26: /^#### 26\.12\.8 /, ficheros: ['boton-casa-hijo5.html', ...COMPARTIDOS_HIJOS] },
   { clave: 'hijo6', s7: /^### 7\.7 /, s8: /^### 8\.10 /, s26: /^#### 26\.12\.9 /, ficheros: ['chat-hijo6.html', ...COMPARTIDOS_HIJOS] },
 ];
 

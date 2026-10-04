@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { ROOT, salida } = require('./lib.cjs');
 const acorn = require(path.join(ROOT, 'node_modules/acorn'));
-const ROOTS = new Set(['estado', 'estadoPadre', 'estadoScript1', 'est', 'estadoMapa', 'estadoComponente', 'estadoRetos', 'estadoMenu', 'estadoTemporizador', 'estadoAudio', 'estadoGPS', 'estadoMonitoreo', 'estadoCoordinacion']);
+const ROOTS = new Set(['estado', 'estadoPadre', 'estadoScript1', 'est', 'estadoMapa', 'estadoComponente', 'estadoRetos', 'estadoMenu', 'estadoTemporizador', 'estadoAudio', 'estadoGPS', 'estadoCoordinacion']);
 const MUT = new Set(['set', 'push', 'add', 'delete', 'clear', 'splice', 'pop', 'shift', 'unshift']);
 const files = [];
 for (const f of fs.readdirSync(ROOT)) if (f.endsWith('.html')) files.push(f);

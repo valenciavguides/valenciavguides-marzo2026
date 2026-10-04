@@ -1849,7 +1849,7 @@ El archivo `codigo-padre.html` (unas 15.500 líneas) es el **orquestador** de to
 | **Script 1** | ~2716 | Orquestador de arranque: FASE 1 infra → FASE 2 datos → FASE 3 iframes. Registra los handlers del ciclo de vida y del arranque: `SISTEMA.HIJO_PREPARADO`, `SISTEMA.HIJO_LISTO`, `NAVEGACION.SOLICITAR_DATOS_PARADAS`, `SISTEMA.CAMBIO_MODO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_FALLIDO`, `UI.ACCION_USUARIO`, `SISTEMA.APLICACION_INICIALIZADA`. Contiene también la reanudación de sesión (`ejecutarRestauracionAventura`) y los carteles. Al final carga `js/controladores-padre.js`. |
 | **Script 2** | ~9727 | Handlers de dominio: todos los `NAVEGACION.*` (GPS, CAMBIO_PARADA, LLEGADA_DETECTADA…), `RETO.*`, `SELECCION.*`, `AUDIO.*`, `UI.NAVEGACION_EXTERNA`. Contiene `distribuirDatosAventura`, `marcarParadaCompletada` y `_iniciarTemporizadorAventura`. |
 | **Script 3** | ~14216 | Gestión de visibilidad de iframes (`mostrarHijo4`) y reconexión en `visibilitychange`. |
-| **Script 4** | ~14381 | "Migración de controladores y diagnóstico GPS": registra los controladores de `js/app.js` (`registrarControladoresApp`), `js/monitoreo.js` y `js/utils.js`; arranca el heartbeat. **No llega hasta el final del archivo.** |
+| **Script 4** | ~14381 | "Migración de controladores y diagnóstico GPS": registra los controladores de `js/app.js` (`registrarControladoresApp`) y define el diagnóstico de consola `globalThis.diagnosticarGPS()`. **No llega hasta el final del archivo.** |
 | **Script 5** | ~14896 | Panel de logs en pantalla (gesto de 7 toques, ver §24). Último bloque del documento, autocontenido. |
 
 > **Por qué Script 1 registra solo los handlers del ciclo de vida y Script 2 el resto:** Script 1 debe completar el registro de `HIJO_PREPARADO` / `HIJO_LISTO` / `CAMBIO_MODO` **antes** de asignar `src` a cualquier iframe. Los handlers de dominio (`NAVEGACION.*`, `RETO.*`, `SELECCION.*`) solo son necesarios una vez que los iframes están cargados, por lo que pueden vivir en Script 2 sin riesgo de llegar tarde.
@@ -1871,7 +1871,7 @@ Los módulos de infraestructura se cargan en un orden estricto por dependencias:
 | 1 | `state-manager.js` (secuencial) | `mensajeria.js` necesita `__vv_stateManager` ya disponible |
 | 2 | `mensajeria.js` (secuencial) | Debe existir antes de registrar cualquier handler |
 | 3 | `validacion.js` + `funciones-mapa.js` (secuencial) | Otros módulos los importan como dependencia estática |
-| 4 | `constants.js`, `utils.js`, `device-detection.js`, `logger.js`, `config.js`, `monitoreo.js`, `app.js` — `Promise.all` | Sin dependencias cruzadas entre ellos |
+| 4 | `constants.js`, `utils.js`, `device-detection.js`, `logger.js`, `config.js`, `app.js` — `Promise.all` | Sin dependencias cruzadas entre ellos |
 
 #### FASE 2 — Datos de aventura
 
@@ -2119,7 +2119,6 @@ La estructura del estado (`state`) tiene dos niveles diferenciados:
         mapaInicializado, paradas: [], inicializacionPromises: Map,
         todosHijosListos,
         gps: { activo, watchId, posicionUsuario, permisos, precision, error, ultimaUbicacion },
-        monitoreo: { metricas, config, historial },
         sistema: { prewarmIniciado, prewarmPausado, cambiandoModo },
         retoActivo, audioActivo, ubicacionActiva,
         tramoActual, elementoActual,
@@ -3817,7 +3816,6 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `MAPA_COMPLETO.VISIBLE` | Padre → mapa-completo | El overlay del mapa ya es visible: el mapa recalcula su vista, al momento y a los 300 ms |
 | **PUZZLE** | `PUZZLE.COMPLETADO` | Iframe puzzle → su contenedor (Hijo4 o Selección) | Puzzle resuelto o saltado con ⏩ |
 | | `PUZZLE.TIMEOUT` | Iframe puzzle → su contenedor (Hijo4 o Selección) | Puzzle sin resolver por tiempo |
-| **MONITOREO** | `MONITOREO.METRICA` | Hijo → Padre | Telemetría interna |
 | **OTROS** | `NAVEGAR_PANTALLA` | Padre → Tesoro | Pide a la pantalla de selección que muestre la pantalla `{ pantalla }`; el padre manda `{ pantalla: 1 }` cuando el usuario elige «otra aventura» |
 
 ---
@@ -3959,7 +3957,7 @@ Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `dis
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], timestamp, aventura }` | Actualiza lista interna de paradas | ✓ | ✓ |
 | `NAVEGACION.SOLICITAR_COORDENADAS` | `{ paradaId }` | Devuelve coordenadas de esa parada | ✓ | ✓ |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | `{ activo, permisos, precision }` | En CASA deja el botón de ubicación rojo y deshabilitado; en AVENTURA no hace nada (el botón lo decide la distancia) | ✓ | ✓ |
-| `NAVEGACION.GPS.ERROR` | `{ codigo, mensaje, contexto }` | Deja el error en el log y manda una métrica (`MONITOREO.METRICA { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } }`); no muestra nada | ✓ | ✓ |
+| `NAVEGACION.GPS.ERROR` | `{ codigo, mensaje, contexto }` | Deja el error en el log; no muestra nada | ✓ | ✓ |
 | `CONTROL.HABILITAR` | `{ control:'btnAvanzar', razon:'parada_completada' }` | Activa botón "avanzar" | — | ✓ |
 | `CONTROL.DESHABILITAR` | `{ control:'btnAvanzar', razon:'parada_pendiente_completar' }` | Bloquea botón "avanzar" | — | ✓ |
 | `CONTROL.HABILITAR` | `{ motivo:'reto_cerrado'/'vista_cerrada' }` | Rehabilita todos los botones de mapa (sin `control` explícito — hijo2 decide qué re-habilitar según `motivo`) | ✓ | ✓ |
@@ -4762,7 +4760,7 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P6 se c
 >
 > **Archivos con comunicación (verificados):**
 >
-> - *Bus / postMessage entre componentes*: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/monitoreo.js`, `js/utils.js`
+> - *Bus / postMessage entre componentes*: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/utils.js`
 > - *SW lifecycle*: `sw.js`, `index.html`
 > - *HTTP fetch / API backend*: `js/api-client.js`, `js/data-loader.js`
 > - *localStorage / sessionStorage*: `js/api-client.js` (token sesión), `En-busca-del-tesoro.html` (lee `vv_idioma` en modo despedida), `js/suppress-warnings.js` (flag debug), `js/reciclaje-digital.js` (clear total + caché SW)
@@ -4864,7 +4862,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-304f5e3e42dd'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-02b3cfbdc258'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5570,18 +5568,6 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 ---
 
-#### FASE 14 — Monitoreo
-
-**MONITOREO.METRICA** (hijo2 → padre)
-
-| Campo | Valor |
-|-------|-------|
-| Emitido por | hijo2, al recibir `NAVEGACION.GPS.ERROR`: `{ nombre: 'gps_error_code', valor: 1, metadatos: { codigo } }`. Ningún otro frame lo envía |
-| Handler en padre | `_hdl_MONITOREO_METRICA` |
-| Acción | Escribe una línea de log y pasa la métrica a `__vv_monitoreo.registrarMetrica(nombre, valor, { origen, ...metadatos })` (`js/monitoreo.js`), que para `gps_error_code` solo actualiza la hora de la última actividad |
-
----
-
 ### 10.6 Comportamientos notables del sistema de mensajería
 
 #### El despachador serializa por tipo de mensaje
@@ -5972,7 +5958,7 @@ no hay acuse.
 
 Un error no capturado o una promesa rechazada sin capturar dentro de un hijo viajan al padre por `SISTEMA.ERROR` con el código `ERROR_NO_CONTROLADO`. No hay tipo de mensaje propio ni handler propio: `_hdl_SISTEMA_ERROR` despacha por `codigo` y este es uno de ellos.
 
-`instalarReporteErroresAlPadre()` (`js/utils.js`) engancha las escuchas globales `error` y `unhandledrejection`. Se instala sola al cargarse el módulo, y `utils.js` es el único que cargan los seis hijos: `js/monitoreo.js` lo cargan hijo1, hijo5 y el propio padre.
+`instalarReporteErroresAlPadre()` (`js/utils.js`) engancha las escuchas globales `error` y `unhandledrejection`. Se instala sola al cargarse el módulo, y `utils.js` es el único que cargan los seis hijos.
 
 **Payload:**
 
@@ -7912,7 +7898,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `63-es-id-de-tramo.spec.js` | 3 | `esIdDeTramo()` (`js/utils.js`) es la única autoridad sobre "¿este id es de un tramo?". Reconoce las formas reales y rechaza paradas, referencias y lo que no sea cadena (TR-1); recorre las 846 entradas de `coordenadas-aventuras.js` y comprueba que el helper coincide con su campo `.tipo` en **todas**, y que **ninguna** empieza por `TR`, así que `startsWith('TR-')` no reconoce ningún tramo real (TR-2); y un tramo cuyo filtro no encuentra entrada se clasifica igualmente como tramo, por su id (TR-3) |
 | `62-log-seleccion-no-es-mudo.spec.js` | 3 | El envoltorio `_log` de `En-busca-del-tesoro.html` escribe de verdad —se mide **salida en consola**, no que el objeto exista, porque un envoltorio no-op también existe y también tiene los cuatro métodos (LS-1)—, obedece a `CONFIG.DEBUG.NIVEL_LOG` en las dos direcciones (LS-2), y su `.log` va a `.info` porque `console` tiene `.log` y el logger no (LS-3) |
 | `61-puzzle-p10-tipos-desde-constants.spec.js` | 4 | El puzzle de P10 (`En-busca-del-tesoro.html`) reconoce los mensajes por `TIPOS_MENSAJE.PUZZLE`, no por cadenas escritas a mano: el bloque module publica el puente `globalThis.TIPOS_MENSAJE` y el `<script>` clásico lo lee (PZ-1); un `PUZZLE.COMPLETADO`/`TIMEOUT` tipado saca el botón de continuar (PZ-2) y el formato legacy también (PZ-3); y un mensaje ajeno **sin** campo `tipo` no lo saca (PZ-4) — sin el puente, comparar contra los campos de un objeto inexistente sería comparar `undefined` con `undefined` |
-| `60-nivel-de-log-alcanza-hijos.spec.js` | 3 | El nivel alcanza también a los iframes: cada hijo publica el logger real en su propio `globalThis` — comprobado por la presencia de `setNivel`/`getNivel`, que `console` no tiene, no por que el objeto exista (NH-1); y bajar `NIVEL_LOG` a `NONE` cambia el nivel que devuelve el logger **de dentro del iframe**, no solo el del padre (NH-2). `puzzle.html`, `video-intro.html` y `mapa-completo.html` —que el arnés de este spec no carga junto con los hijos— se abren en una ventana suelta y se comprueba lo mismo (NH-3): eslint no puede vigilarlos, porque el patrón `(globalThis.logger \|\| console)` no es literalmente `console`, así que este test es lo único que avisaría si volvieran a quedarse sin logger |
+| `60-nivel-de-log-alcanza-hijos.spec.js` | 4 | El nivel alcanza también a los iframes: cada hijo publica el logger real en su propio `globalThis` — comprobado por la presencia de `setNivel`/`getNivel`, que `console` no tiene, no por que el objeto exista (NH-1); y bajar `NIVEL_LOG` a `NONE` cambia el nivel que devuelve el logger **de dentro del iframe**, no solo el del padre (NH-2). `puzzle.html`, `video-intro.html` y `mapa-completo.html` —que el arnés de este spec no carga junto con los hijos— se abren en una ventana suelta y se comprueba lo mismo (NH-3): eslint no puede vigilarlos, porque el patrón `(globalThis.logger \|\| console)` no es literalmente `console`, así que este test es lo único que avisaría si volvieran a quedarse sin logger. El nivel del padre alcanza a selección, hijo1, hijo3, hijo4 e hijo5, que no cargan `config.js` y por eso no tienen copia propia de `CONFIG`: con el padre en `NONE`, el logger de cada uno devuelve `NONE` (NH-4) |
 | `68-fin-audio-solo-del-elemento-actual.spec.js` | 2 | El fin de audio solo toca el pending (`estado.pendingCompleciones`) de su propio elemento activo (§10.16): un `AUDIO.FIN_REPRODUCCION` del audio de un elemento que no es el actual no crea ningún pending (FA-1); el del elemento actual crea el suyo y marca `audio: true` (FA-2, control). En CASA, hijo5 salta de parada con el audio sonando y el fin llega con otro elemento activo; los pending no se borran al pasar a AVENTURA. |
 | `69-hijo6-auto-confirmacion.spec.js` | 3 | El asistente (hijo6) contesta a los mensajes que piden acuse con la regla del bus (§10.6a): si alguien procesó el mensaje se contesta, devuelva lo que devuelva el handler —con valor, y el valor viaja dentro (AC-1); sin valor, también (AC-2)—; si nadie lo escucha no se contesta y el bus lo anota en el log, de modo que el emisor agota su plazo (AC-3). El arnés registra su handler con `mensajeria.registrarControlador`, la API pública del bus. |
 | `74-reiniciar-seleccion-llega-al-padre.spec.js` | 2 | Responder «no» en el reto R2 (P15) avisa al padre: la selección vuelve a P1 y manda `SELECCION.REINICIAR` para que el padre baje `_codigoValidadoP13` e `_iframesPreCargadosP14`, y el aviso lleva `origen` (el bus del padre descarta todo mensaje sin él). RE-1, control: el mismo mensaje con `origen`, enviado desde el iframe de la selección, baja las dos banderas. RE-2, camino real: abrir P15, marcar la respuesta negativa y pulsar el botón hace que el padre ejecute su handler y baje las dos banderas. |
@@ -8194,7 +8180,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-304f5e3e42dd'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-02b3cfbdc258'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8344,7 +8330,6 @@ proyecto/
 │   ├── mensajeria.js                 ← Sistema postMessage padre↔hijos
 │   ├── controladores-padre.js        ← Handlers de mensajes del padre
 │   ├── funciones-mapa.js             ← Lógica del mapa de aventura — MapLibre GL (rutas, marcadores, GPS visual)
-│   ├── monitoreo.js                  ← Métricas y alertas (sin latido propio)
 │   │
 │   ├── ── CONFIGURACIÓN ──
 │   ├── config.js                     ← Parámetros globales (GPS, timeouts, umbrales)
@@ -8942,7 +8927,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-304f5e3e42dd';
+const CACHE_VERSION = 'v-02b3cfbdc258';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10885,11 +10870,11 @@ Nota de arquitectura: el audio está centralizado en el padre; `audio-hijo3.html
 
 | Módulo | Rol | Expone |
 |--------|-----|--------|
-| `constants.js` | Los tipos de mensaje y las constantes compartidas. Define `TIPOS_MENSAJE` (árbol jerárquico de 94 tipos), `MODOS`, `LOG_LEVELS` y `TTL_LIMPIEZA` (solo la parte de mensajería: el TTL de limpieza en móvil y en desktop). | `globalThis.TIPOS_MENSAJE` (copia global para scripts no-módulo) |
+| `constants.js` | Los tipos de mensaje y las constantes compartidas. Define `TIPOS_MENSAJE` (árbol jerárquico de 93 tipos), `MODOS`, `LOG_LEVELS` y `TTL_LIMPIEZA` (solo la parte de mensajería: el TTL de limpieza en móvil y en desktop). | `globalThis.TIPOS_MENSAJE` (copia global para scripts no-módulo) |
 | `state-manager.js` | Estado compartido del padre, con acceso serializado: un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por cada uno de los cuatro campos que se leen o escriben desde fuera —`script2Listo`, `estadoPadre`, `controladores` (el Map de handlers) y `heartbeat`—, más `hijosListosPromises`, sin mutex. Solo lo carga el padre. Detalle en «El state-manager (gestor de estado)». | `globalThis.__vv_stateManager` (y `globalThis.__stateManager`) |
 | `logger.js` | Logging centralizado con los cinco niveles de `LOG_LEVELS` (`constants.js`): DEBUG, INFO, WARN, ERROR y NONE. El nivel efectivo sale de `CONFIG.DEBUG.NIVEL_LOG`, que `logger.js` lee **en cada llamada**: primero de `globalThis.__vv_config` y, si su ventana no lo tiene, del `__vv_config` de la ventana padre. No lo importa, porque `logger.js` y `config.js` van en el mismo `Promise.all` de la FASE 1 sin orden garantizado entre ellos, y resolverlo una sola vez dejaría el nivel clavado si el primer log ocurriera antes que `config.js`. **El salto a la ventana padre es lo que hace que el nivel alcance a los hijos**: cada iframe tiene su propio `globalThis` y solo `coordenadas-hijo2.html` importa `config.js`, así que sin él los otros cinco seguirían logueándolo todo. Mirar hacia arriba en vez de importar `config.js` en cada hijo deja además **una sola fuente del nivel para toda la app**. `setNivel()` permite forzarlo en runtime y, desde esa llamada, gana sobre `CONFIG`. Con `NONE` no sale nada, ni los errores. Cada página que loguea publica su logger en su propio `globalThis` justo tras importarlo — los siete hijos más `puzzle.html`, `video-intro.html` y `mapa-completo.html`. Sin esa línea, sus `(globalThis.logger \|\| console).x` caen al `console` crudo y se saltan el nivel, y **eslint no lo detecta**: su regla `no-console` no marca ese patrón porque el objeto va envuelto en el `\|\|`. Las únicas llamadas a `console` que quedan son seis en scripts clásicos pre-módulo, donde `logger.js` aún no se ha importado; llevan su `// eslint-disable-line no-console` con el motivo, según la convención de `eslint.config.js`. Cubierto por `tests/e2e/59-nivel-de-log.spec.js` y `60-nivel-de-log-alcanza-hijos.spec.js`. Buffer en memoria de 500 entradas (FIFO — elimina la entrada más antigua cuando se llena). **Sin limpieza periódica por TTL** — `TTL_LIMPIEZA.LOGGER` está definido en `constants.js` pero `logger.js` no lo importa ni lo usa. Colorea la consola por nivel. | `default export logger` |
 | `utils.js` | Funciones compartidas: `generarIdUnico(prefijo)` → `prefijo_timestamp_aleatorio`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `normalizarParadas()`, `esIdDeTramo()`, `resolverIdsParada()`, `ajustarTimeoutPorConexion()`, `retryUntilAvailable()`, `debounce()`, `sleep()`, `calcularDistancia()` y `puntoMasCercanoEnLinea()`. Al cargarse instala, solo en los frames que tienen padre, el reporte de errores no controlados hacia el padre (`instalarReporteErroresAlPadre()`, §10.17). | Named exports |
-| `device-detection.js` | Detecta tipo de dispositivo analizando `userAgent`. Resultados cacheados en el primer acceso. Solo exporta `esMovil()` (usada en `mensajeria.js` para elegir el TTL de limpieza de mensajes, `TTL_LIMPIEZA.MENSAJERIA.MOVIL`/`.DESKTOP`, definido en `constants.js`; en `funciones-mapa.js`, para los umbrales de la limpieza de recursos inactivos; y en `app.js`, para el periodo del monitoreo de memoria) y `esTelefonoMovil()` (usada en `codigo-padre.html` para el aviso de "gira el móvil" en horizontal). No expone ninguna otra detección (tablet/iOS/Android/navegador/táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA instalada) — ningún caller en todo el proyecto las necesita, y no hay ningún agregador de debug alrededor. | `esMovil()`, `esTelefonoMovil()` |
+| `device-detection.js` | Detecta tipo de dispositivo analizando `userAgent`. Resultados cacheados en el primer acceso. Solo exporta `esMovil()` (usada en `mensajeria.js` para elegir el TTL de limpieza de mensajes, `TTL_LIMPIEZA.MENSAJERIA.MOVIL`/`.DESKTOP`, definido en `constants.js`; y en `funciones-mapa.js`, para los umbrales de la limpieza de recursos inactivos) y `esTelefonoMovil()` (usada en `codigo-padre.html` para el aviso de "gira el móvil" en horizontal). No expone ninguna otra detección (tablet/iOS/Android/navegador/táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA instalada) — ningún caller en todo el proyecto las necesita, y no hay ningún agregador de debug alrededor. | `esMovil()`, `esTelefonoMovil()` |
 | `validacion.js` | Solo exporta `validarCoordenadas()` (usada en `funciones-mapa.js`) — sin validación por tipo con soporte de opciones, validación de mensajes, validación de paradas, validación por schema, sanitización XSS de strings/objetos, ni registro de validadores personalizados; el módulo no tiene nada de eso. | `validarCoordenadas()` |
 | `suppress-warnings.js` | Silencia advertencias de consola de librerías de terceros (patrón `mapbox-gl` — MapLibre GL hereda mensajes internos de su origen como fork de Mapbox GL —, fuentes, cookies de terceros, DevTools/source maps, extensiones del navegador). Se carga con `defer` justo tras `proteccion.js`. | — |
 
@@ -10900,13 +10885,12 @@ Nota de arquitectura: el audio está centralizado en el padre; `audio-hijo3.html
 | `mensajeria.js` | Bus central de comunicación padre↔hijos. Registro de handlers, envío dirigido o broadcast, cola de mensajes pendientes, sistema ACK/timeout, limpieza periódica por TTL. Delega al `state-manager` para almacenar handlers; fallback a mapa local si no está disponible. | `globalThis.mensajeria` |
 | `api-client.js` | Cliente HTTP para el backend. Usa la ruta **relativa** `/api`, igual en local (proxy de `js/server.js`) que en el VPS (proxy inverso): un solo origen, sin CORS y cubierto por el `connect-src 'self'` del CSP (§22.4). Implementa `TokenManager` (JWT en memoria + `sessionStorage`). | `globalThis.TokenManager`, `globalThis.ApiClient`, `globalThis.API_CONFIG` |
 | `data-loader.js` | Carga datos con doble modo: `'local'` (import JS directo) o `'api'` (backend + token) — el modo lo resuelve `asegurarModo()` preguntando a `/api/health`, y se queda en `'local'` mientras `BACKEND_READY=false` (ver §17). Cache interna (`Map`) para evitar peticiones repetidas. | `cargarCoordenadas()`, `cargarTextos()`, `cargarAudios()`, `cargarRetos()` |
-| `monitoreo.js` | Métricas de rendimiento y alertas (memoria, tiempo de respuesta, errores por minuto; ver §26.4). Estado propio del módulo (`estadoMonitoreo`); `promesasPendientes` compartido con `app.js`. | `inicializarMonitoreo()`, `registrarMetrica()`, `getEstadoMonitoreo()`, `promesasPendientes` (y `globalThis.__vv_monitoreo`) |
 
 #### Módulos de aplicación
 
 | Módulo | Rol | Expone |
 |--------|-----|--------|
-| `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo, métricas. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. El intervalo de monitoreo de memoria se guarda en `globalThis.__vv_intervaloMemoria` con guard contra doble inicialización. | `actualizarInterfazModo()`, `manejarCambioModo()`, `iniciarPrewarmEnCasa()` |
+| `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. | `actualizarInterfazModo()`, `manejarCambioModo()`, `iniciarPrewarmEnCasa()` |
 | `funciones-mapa.js` | El módulo más grande. Recibe la instancia MapLibre ya creada en `codigo-padre.html` (con las capas base de los tres modos ya definidas) y la registra mediante `inicializarServicioMapa(mapInstance)`. Gestiona: (1) **marcador GPS del usuario** (`actualizarMarcadorUsuario()`): triángulo azul `#4285F4` estilo Google Maps (sin punto central — el triángulo solo ya representa posición y rumbo) que rota con la brújula en tiempo real vía `DeviceOrientationEvent`; en modo CASA aparece como 🛸. Los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul) llevan cada uno `transform: translate(-50%,-50%)` antes de su pequeño offset de sombreado — con la técnica CSS de bordes (`width:0;height:0;border-*`), un triángulo se renderiza con su vértice en la esquina superior izquierda de su caja, no en el centro; sin ese `-50%/-50%` el vértice queda anclado en el punto GPS real y el resto del triángulo cuelga hacia abajo, así que al rotar `.gps-arrow-heading` la flecha entera orbita alrededor del punto en vez de girar sobre sí misma. El HTML de este marcador lo construye una única función, `_htmlMarcadorUsuario(modo)`, compartida por la creación y por `reescalarMarcadorUsuario()` (el reescalado por zoom, §4.6) para que ambos momentos no puedan divergir. `actualizarMarcadorUsuario()` destruye y recrea el marcador entero en cada posición GPS (hace falta para reposicionarlo — no hay un `setLatLng` barato para un marcador HTML completo), y el ángulo inicial del elemento nuevo sale **siempre** del ángulo acumulado de la brújula (`_flechaGpsAnguloAcumulado`): es la única fuente del rumbo de la flecha (§4.5). La firma `actualizarMarcadorUsuario(lat, lng, accuracy, modo)` no incluye ningún rumbo, precisamente para que no pueda entrar otro por ahí. (2) **Cámara siguiendo al usuario** (§4.6b): `actualizarMarcadorUsuario()` centra la cámara en cada posición GPS real (`_camaraSiguiendoUsuario`), salvo mientras un `flyTo` de cambio de parada/tramo está en curso o tras un arrastre manual del mapa (`_registrarSeguimientoCamara()`, escucha `'dragstart'`) — retomado por `reactivarSeguimientoCamara()`, el botón de recentrar. (3) Brújula en tiempo real (`activarBrujula()`/`desactivarBrujula()`). (4) Polylines de ruta, con auto-reparación si el estilo del mapa aún no cargó (§4.6a). Calcula `calcularToleranciaGPS()`: `RADIO_LLEGADA_PARADA_M` (15 m) para paradas e inicios, dinámica con suelo de 35 m para tramos; y `radioLlegada()`, el radio con el que se declara una llegada, que es el del círculo naranja que ve el usuario (§4.5). El efecto de pulso de llegada usa `_pulseTimeout` (módulo) con `clearTimeout` para evitar acumulación si llegan confirmaciones consecutivas. | `invalidarTamañoMapa()`, `diagnosticarMapa()`, `isMapInitialized()` |
 | `proteccion.js` | IIFE de protección anti-inspección. Se ejecuta antes que cualquier módulo. Cuatro capas: teclas DevTools, clic derecho, arrastre de media, detector por timing/resize. Borra `globalThis.RETOS_AVENTURAS` y coordenadas si detecta ≥2 intentos de debugger o ≥3 de resize. | — |
 | `efectos-sonido.js` | Los cuatro efectos de sonido de `audios-efectos/`: un reproductor por efecto y por frame, siempre a volumen 1, que el primer gesto del usuario desbloquea para iOS (§12, «Efectos de sonido»). Lo cargan, con un `import()` que captura el fallo, `puzzle.html`, `retos-hijo4.html` y el Script 2 de `codigo-padre.html`. | `EFECTOS`, `precargarEfectos`, `reproducirEfecto`, `detenerEfectos` |
@@ -10926,41 +10910,20 @@ Nota de arquitectura: el audio está centralizado en el padre; `audio-hijo3.html
 
 ---
 
-### 26.4 El sistema de monitoreo (`monitoreo.js`)
+### 26.4 El registro de eventos (`registrarEvento`)
 
-`monitoreo.js` se inicializa en Script 1 de `codigo-padre.html` y recoge métricas cada **30 segundos**. Cuando una métrica supera su umbral registra una alerta en la consola con el prefijo `[monitoreo]`.
+`registrarEvento(tipo, datos, nivel)` escribe una línea en el log por el logger centralizado (§26.3), en el nivel pedido: `'debug'`, `'info'` (el de por defecto), `'warn'` o `'error'`. Un nivel distinto de esos cuatro no escribe nada. No guarda historial, no cuenta nada y no devuelve nada: lo que queda es la línea de log, que pasa por `CONFIG.DEBUG.NIVEL_LOG` como cualquier otra.
 
-#### Alertas y umbrales
+Hay dos implementaciones, y en el padre manda la suya:
 
-| Alerta | Qué mide | Umbral | Fuente |
-|--------|----------|--------|--------|
-| `MEMORIA_ALTA` | `performance.memory.usedJSHeapSize` (heap JS del proceso) | **150 MB** (`UMBRALES.MEMORIA_MB`, constante de `js/monitoreo.js`) | Chrome-only; no disponible en Safari/Firefox |
-| `TIEMPO_RESPUESTA_ALTO` | Promedio de las últimas 100 métricas `tiempo_respuesta` | **1 000 ms** (`UMBRALES.TIEMPO_RESPUESTA_MS`) | Solo se alimenta con `registrarMetrica('tiempo_respuesta', ms)`, y ningún código de producción la emite: el promedio se queda en 0 y la alerta no llega a dispararse |
-| `ERRORES_FRECUENTES` | Número de errores registrados en el último minuto | **10 errores/min** (`UMBRALES.ERRORES_POR_MINUTO`) | `historialErrores` de `monitoreo.js` (conserva cinco minutos), alimentado por los listeners `error` y `unhandledrejection` |
+| Implementación | Dónde | Línea que escribe |
+|----------------|-------|-------------------|
+| `globalThis.registrarEvento` | Script 1 de `codigo-padre.html` | `[PADRE] Evento: <tipo>, Nivel: <nivel>`, con `datos` como segundo argumento del logger |
+| `registrarEvento` (local) | `js/app.js`, sin exponer en `globalThis` | `Evento: <tipo>, Nivel: <nivel>, Datos: <JSON de datos>` |
 
-Los umbrales son constantes locales de `js/monitoreo.js` (`UMBRALES`). De `CONFIG.MONITOREO` solo se lee `INTERVALO_METRICAS` (30 000 ms, el periodo de la recogida); `UMBRAL_MEMORIA`, `UMBRAL_MENSAJES_PENDIENTES` y `METRICAS_HABILITADAS` de `config.js` no los lee ningún código, y `UMBRALES.MENSAJES_PENDIENTES` tampoco.
+`js/app.js` la llama como `(globalThis.registrarEvento ?? registrarEvento)(…)`: en el padre gana la global, y la local no se expone para no pisarla.
 
-#### Sobre `MEMORIA_ALTA`
-
-La API `performance.memory` solo existe en Chrome/Chromium. En Safari y Firefox la métrica no se recoge y la alerta nunca se dispara.
-
-El umbral está fijado en **150 MB** (`UMBRALES.MEMORIA_MB` en `js/monitoreo.js`); la alerta es indicativa, no crítica.
-
-Si aparece `MEMORIA_ALTA` de forma sostenida (varias mediciones consecutivas, no solo una), los focos habituales son:
-
-- Listeners de `message` registrados sin eliminarlos al recargar iframes.
-- Arrays de historial (errores, métricas) que crecen sin límite de tamaño.
-- Referencias a iframes ya descargados que impiden que el GC libere su memoria.
-
-#### Historial y acceso en runtime
-
-`monitoreo.js` guarda sus métricas y alertas en un objeto propio del módulo, `estadoMonitoreo`, y el historial de errores de los últimos cinco minutos en `historialErrores`. Se leen desde la consola con:
-
-```javascript
-globalThis.__vv_monitoreo.getEstadoMonitoreo()
-```
-
-Devuelve una copia con `inicializado`, `intervaloMetricas`, `metricas` (`mensajesEnviados`, `mensajesRecibidos`, `errores`, `tiempoRespuestaPromedio`, `tiemposRespuesta`, `ultimaActividad`), `alertas` (las 50 últimas) y `componentesActivos`. El bloque `monitoreo` de `globalThis.estadoPadre` es otra estructura: este módulo no la escribe.
+La llaman el padre —`TODOS_HIJOS_LISTOS`, `APLICACION_INICIALIZADA` y los cuatro `GPS_*`—, su Script 2 por el alias local `registrarEventoScript2` (`AUDIO_ESTADO_CAMBIADO`, `AUDIO_SALTADO`, `AUDIO_FINALIZADO` y `AUDIO_ERROR`) y `js/app.js` (`CAMBIO_MODO`).
 
 ---
 
@@ -10994,7 +10957,6 @@ El papel de cada frame **no viaja en el mensaje**: el bus lo deduce (es hijo si 
 | `AUDIO` | `REPRODUCIR_REQUEST`, `FIN_REPRODUCCION`, `ESTADO_ACTUALIZADO` |
 | `RETO` | `MOSTRAR`, `COMPLETADO`, `SOLICITAR_RETO`, `OCULTAR`, `HABILITAR` |
 | `UI` | Notificaciones visuales, navegación externa |
-| `MONITOREO` | Métricas y eventos internos |
 | `TEMPORIZADOR` | Control del temporizador de aventura (TOGGLE) |
 | `CONTROL` | `HABILITAR`, `DESHABILITAR` de controles concretos en cada hijo |
 | `PARADAS` | `READY`, `LISTADO_TOGGLE` |
@@ -11421,7 +11383,6 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `AUDIO.ERROR` | Hijo 3 (error durante reproducción) | `_hdl_AUDIO_ERROR`: registra en log; habilita el reto igualmente si la parada tiene reto (el audio no es bloqueante ante error) | `RETO.HABILITAR` condicional | Hijo 4 | El error de audio no debe impedir al usuario completar el reto |
 | `DATOS.COORDENADAS_CARGADAS` | Hijo 2 (confirmación de carga) | `_hdl_DATOS_COORDENADAS_CARGADAS`: escribe en el log el total cargado (o el error que reporta hijo2) y pone `estado.seleccion.coordenadasCargadas` a `true`/`false`, campo que ningún código lee | (ninguna) | — | Dejar constancia de que hijo2 recibió las coordenadas |
 | `DATOS.TEXTOS_CARGADOS` | Hijo 2 (confirmación de carga de textos descriptivos) | `_hdl_DATOS_TEXTOS_CARGADOS`: solo escribe en el log el total cargado (o el error que reporta hijo2) | (ninguna) | — | Dejar constancia de que hijo2 recibió los textos |
-| `MONITOREO.METRICA` | Hijo 2 (al recibir un error de GPS manda `nombre: 'gps_error_code'`) | `_hdl_MONITOREO_METRICA`: escribe una línea de log y pasa la métrica a `__vv_monitoreo.registrarMetrica(nombre, valor, { origen, ...metadatos })` (`js/monitoreo.js`); sin reenvío | (ninguna) | — | Telemetría interna de calidad de GPS |
 | `SISTEMA.CAMBIO_MODO` | Hijo 5 (botón de cambio de modo), o el propio padre con `despacharLocal` (activación de la aventura, reanudación de sesión con `restaurado: true`, vuelta a CASA) | `_hdl_SISTEMA_CAMBIO_MODO`: único guard de cambio de modo de la app (`estado.sistema.cambiandoModo`: un segundo cambio mientras otro sigue en curso se rechaza con `{ exito: false }`). Al entrar en CASA congela el progreso real (`estado.paradaRealCongelada`), apaga los recordatorios de audio, de saltar el audio y de reto, oculta los carteles de distancia, limpia la polyline de navegación y reinicia `estado.retoActual`. Actualiza el mapa (`manejarCambioModoMapa`; en una reanudación, solo `sincronizarModoMapa`), delega el protocolo con los hijos en `manejarCambioModo` (`js/app.js`, §26.6) y, si sale bien, sincroniza el modo en `vv_aventura_iniciada`, restaura el progreso real congelado al volver a AVENTURA, arranca (AVENTURA) o pausa (CASA) el latido del padre y comprueba el GPS, que no se detiene en ningún modo (§2.4, §2.5) | `SISTEMA.CAMBIO_MODO` a los hijos, que manda `manejarCambioModo`; el handler devuelve `{ exito, modoActual }` o `{ exito: false, error }` | Todos los hijos inicializados | Un solo camino para cambiar de modo (§26.6) |
 | `SISTEMA.ERROR` | Cualquier frame: códigos propios (`AUDIO_CONTROL_FALLIDO`, de hijo3) y `ERROR_NO_CONTROLADO`, que manda la captura automática de errores de `js/utils.js` | `_hdl_SISTEMA_ERROR`: escribe en el log (`warn`) el `codigo`, el `mensaje` y, si viene, el `comando`; con `AUDIO_CONTROL_FALLIDO` llama además a `_marcarAudioNoDisponible()` para activar el botón de saltar (§25.5f) | (ninguna) | — | Recoger los errores que un frame no puede resolver solo (§10.17) |
 | `NAVEGACION.GPS.DENTRO_DE_RANGO` | Hijo 2 (el usuario vuelve a estar dentro de rango tras haber salido; `{ timestamp }`) | `_hdl_NAVEGACION_GPS_DENTRO_DE_RANGO`: oculta las pantallas de distancia, pone `estado.usuarioFueraRango` a `{ activo: false }` y reaplica las reglas normales del audio y de `retosBtn` (`actualizarEstadoControlesAudioPadre`, `_configurarRetoBtn`) | (ninguna) | — | Contrapartida de `NAVEGACION.USUARIO_FUERA_RANGO` |
@@ -11572,7 +11533,7 @@ Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y 
 | `DATOS.CARGAR_TEXTOS` | Padre (`{ aventura, idioma, textos, total, timestamp }`) | Guarda los textos en `globalThis.__vv_textosAventura` y confirma con `DATOS.TEXTOS_CARGADOS { exito: true, aventura, idioma, totalCargados }` (o `{ exito: false, error }`) | `DATOS.TEXTOS_CARGADOS` | Padre | El texto de cada parada, que acompaña a la imagen cuando se pulsa su botón |
 | `NAVEGACION.ACTUALIZAR_ESTADO` | Padre (en cada posición GPS en AVENTURA: `{ distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, … }`; y puntualmente `{ retoActivo }` o `{ ubicacionActiva }`) | Guarda cada campo que llega (`_aplicarDatosEstado`); en AVENTURA, si la precisión de la lectura es peor que `CONFIG.GPS.PRECISION_MINIMA`, avisa de señal no fiable y no sigue; si no, detecta la llegada (`_detectarLlegadaTramo` o `_detectarLlegadaParada`), refresca los botones y comprueba la distancia al rango real (`verificarDistanciaYActualizarBotones`) | `NAVEGACION.LLEGADA_DETECTADA`, `NAVEGACION.GPS.RESTRINGIDO`, `NAVEGACION.USUARIO_FUERA_RANGO`, `NAVEGACION.GPS.DENTRO_DE_RANGO`, `NAVEGACION.GPS.PRECISION_INSUFICIENTE` o `PRECISION_RECUPERADA`, según el caso | Padre | La distancia real manda sobre los botones y las pantallas de aviso |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Padre (`{ activo, permisos, precision, error }`) | En CASA deja el botón de ubicación rojo y deshabilitado («Ubicación no disponible en modo casa»); en AVENTURA no hace nada: el botón lo decide la distancia | (ninguna) | — | Mantener el botón de ubicación coherente con el modo |
-| `NAVEGACION.GPS.ERROR` | Padre (`{ codigo, mensaje, contexto }`) | Deja el error en el log con el código descrito (`PERMISSION_DENIED`, `POSITION_UNAVAILABLE` o `TIMEOUT`) y manda una métrica | `MONITOREO.METRICA { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } }` | Padre | Telemetría de errores del GPS |
+| `NAVEGACION.GPS.ERROR` | Padre (`{ codigo, mensaje, contexto }`) | Deja el error en el log con el código descrito (`PERMISSION_DENIED`, `POSITION_UNAVAILABLE` o `TIMEOUT`) | (ninguna) | — | Dejar constancia del error de GPS en el log |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre (`{ paradas, … }`) | Normaliza y guarda las paradas (`arrayParadasLocal`) y marca `datosRecibidos`; si trae `paradaActual`, la fija como elemento vigilado; refresca los botones. Tras la carga inicial ignora un segundo envío masivo (más de 5 paradas) | (ninguna) | — | Datos de las paradas desde el arranque |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Solo escribe en el log que el modo se aplicó | (ninguna) | — | 4.ª fase del protocolo de modo (§26.6) |
 | `SISTEMA.NOTIFICACION` | Padre (`{ evento: 'PENDING_INICIADO', padreId, ttlMs }`) | Con `PENDING_INICIADO` para el elemento vigilado, desactiva el botón de ubicación y anota «Pendiente creado: esperando condiciones»; con cualquier otro `evento`, nada | (ninguna) | — | Aviso del inicio del plazo de pendientes (§10.16) |
@@ -11603,7 +11564,6 @@ Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y 
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Padre | Al pulsar el botón de mapa completo (`{ accion, formato: 'html', url: 'mapa-completo.html?aventura=…', aventura, mostrarTodo }`) | Que el padre abra `mapa-completo.html` en un overlay |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Padre | Al pulsar el botón de mapa vintage (`{ accion, formato: 'jpg', aventura }`) | Que el padre resuelva y muestre el mapa vintage |
 | `UI.ACCION_USUARIO` | Padre | Al pulsar el botón de imagen (`accion: 'mostrar-imagen'`: `{ paradaActual, urlImagen, nombre, sinContenido, mensajeError, textoParada, imagenes, tipo, mapa_numero }`) o el de vídeo en un tramo (`accion: 'reproducir-video'`: `{ paradaActual, urlVideo, nombre, sinContenido, mensajeError }`); sin parada o sin contenido manda `sinContenido: true` con un `mensajeError` | Que el padre abra el overlay correspondiente |
-| `MONITOREO.METRICA` | Padre | Al recibir `NAVEGACION.GPS.ERROR` (`{ nombre: 'gps_error_code', valor: 1, metadatos: { codigo } }`) | Telemetría de errores del GPS |
 | `SISTEMA.NACK` | Padre | Cuando `SISTEMA.CAMBIO_MODO` trae un modo inválido (`{ error: 'Modo inválido', modoRecibido }`) | Rechazar el mensaje (§10.11) |
 | `SISTEMA.ERROR` | Padre | Si falla el handler de `CAMBIO_MODO` (`{ error, tipo: 'CAMBIO_MODO_FALLIDO' }`) | Avisar al padre de un error propio (§10.17) |
 
@@ -12424,7 +12384,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-304f5e3e42dd';
+const CACHE_VERSION = 'v-02b3cfbdc258';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12456,7 +12416,7 @@ function _esperarHijoListo(iframeId) {
 
 ### 30.6 Cada dependencia cross-script necesita su propio wait explícito
 
-**El riesgo:** Script 1 tiene varios `await` tempranos antes de llegar a la línea que define `globalThis.registrarControladorSeguro` (`inicializarStateManager_S1()`, varios `import()`, `inicializarMonitoreo_S1()`). En local/CI esos imports son consistentemente rápidos y Script 1 siempre gana la carrera contra los `await import()`, más cortos, de Script 4 — pero con latencia de red real esa relación de velocidad puede invertirse, dejando que Script 4 llegue a la línea que llama `registrarControladorSeguro` antes de que Script 1 la haya definido. Esperar a `globalThis.mensajeria` no cubre este caso: son dos globals distintos expuestos en momentos distintos del top-level de Script 1, y cada uno necesita su propio wait.
+**El riesgo:** Script 1 tiene varios `await` tempranos antes de llegar a la línea que define `globalThis.registrarControladorSeguro` (`inicializarStateManager_S1()` y varios `import()`). En local/CI esos imports son consistentemente rápidos y Script 1 siempre gana la carrera contra los `await import()`, más cortos, de Script 4 — pero con latencia de red real esa relación de velocidad puede invertirse, dejando que Script 4 llegue a la línea que llama `registrarControladorSeguro` antes de que Script 1 la haya definido. Esperar a `globalThis.mensajeria` no cubre este caso: son dos globals distintos expuestos en momentos distintos del top-level de Script 1, y cada uno necesita su propio wait.
 
 **Efecto en cascada si no se espera:** un `TypeError` no capturado en esa línea abortaría el resto del bloque `<script>` de Script 4 — `registrarControladoresApp()` (importado de `js/app.js`, que llama a `registrarControladorSeguro`) no llegaría a ejecutarse, y esos controladores se quedarían sin registrar.
 
@@ -14257,10 +14217,10 @@ El fallo, cuando falta un puente, es **mudo**: la variable se queda en su valor 
 
 ### 37.3 Mensajes (`TIPOS_MENSAJE`) — emisor(es) → receptor(es)
 
-Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje. La herramienta lee el código con un parser (acorn) y resuelve cada tipo por su valor —alias de import (`TIPOS_MENSAJE_S1`), `globalThis.TIPOS_MENSAJE?.X?.Y`, constantes locales con ámbito de bloque, literales—; cuenta como emisor un objeto con `tipo` que se pasa a un envío o que lleva `destino`/`datos`, y como receptor una llamada a `registrarControlador`, `registrarControladorSeguro`, `registrarSiNoExiste` o al `registrar` local de `js/app.js`. `*(ninguno detectado)*` significa que ningún fichero cumple esa condición. El único caso de esta tabla es `NAVEGACION.GPS.DESACTIVAR`: nada en el proyecto lo emite ni lo escucha — el propio código (`codigo-padre.html`, junto a `_regCtrl_GPS`) lo deja dicho y conserva la constante a propósito, por si algún día un hijo necesita pedir la desactivación de verdad. `js/mensajeria.js` aparece como emisor o receptor de los tipos que el propio bus construye o atiende sin handler registrado: el acuse `SISTEMA.CONFIRMACION`, el latido y el reenvío de `SISTEMA.ERROR`. Sin `--todos`, la herramienta imprime además los envíos con destino literal que caen en un frame sin handler de ese tipo, los handlers que ninguna emisión alcanza y el residuo (lo que parece emisor o receptor y no se resolvió a un tipo).
+Generado con `node tools/verificar-mensajeria.js --todos`. 93 tipos de mensaje. La herramienta lee el código con un parser (acorn) y resuelve cada tipo por su valor —alias de import (`TIPOS_MENSAJE_S1`), `globalThis.TIPOS_MENSAJE?.X?.Y`, constantes locales con ámbito de bloque, literales—; cuenta como emisor un objeto con `tipo` que se pasa a un envío o que lleva `destino`/`datos`, y como receptor una llamada a `registrarControlador`, `registrarControladorSeguro`, `registrarSiNoExiste` o al `registrar` local de `js/app.js`. `*(ninguno detectado)*` significa que ningún fichero cumple esa condición. El único caso de esta tabla es `NAVEGACION.GPS.DESACTIVAR`: nada en el proyecto lo emite ni lo escucha — el propio código (`codigo-padre.html`, junto a `_regCtrl_GPS`) lo deja dicho y conserva la constante a propósito, por si algún día un hijo necesita pedir la desactivación de verdad. `js/mensajeria.js` aparece como emisor o receptor de los tipos que el propio bus construye o atiende sin handler registrado: el acuse `SISTEMA.CONFIRMACION`, el latido y el reenvío de `SISTEMA.ERROR`. Sin `--todos`, la herramienta imprime además los envíos con destino literal que caen en un frame sin handler de ese tipo, los handlers que ninguna emisión alcanza y el residuo (lo que parece emisor o receptor y no resuelve a un tipo).
 
 <details>
-<summary>Tabla completa (94 filas) — clic para desplegar</summary>
+<summary>Tabla completa (93 filas) — clic para desplegar</summary>
 
 | Tipo | Emisor(es) | Receptor(es) |
 |---|---|---|
@@ -14292,7 +14252,6 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje. 
 | `MAPA_COMPLETO.DATOS` | codigo-padre.html | mapa-completo.html |
 | `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo.html | codigo-padre.html |
 | `MAPA_COMPLETO.VISIBLE` | codigo-padre.html | mapa-completo.html |
-| `MONITOREO.METRICA` | coordenadas-hijo2.html | codigo-padre.html |
 | `NAVEGACION.ACTUALIZAR_ESTADO` | codigo-padre.html, js/funciones-mapa.js, js/mensajeria.js | coordenadas-hijo2.html |
 | `NAVEGACION.CAMBIO_PARADA` | boton-casa-hijo5.html, codigo-padre.html, js/app.js | audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | audio-hijo3.html, js/funciones-mapa.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html |

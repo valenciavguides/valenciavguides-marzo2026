@@ -140,7 +140,6 @@
                                                 setTimeout(applyStylingOnce, 250);
                                                 return false;
                                             }
-                                            try { const regFail = (globalThis.registrarMetrica || (globalThis.parent && globalThis.parent.registrarMetrica)); if (typeof regFail === 'function') regFail('hijo5.applyStyling', 0, { applied: false, attempts: attempts }); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                                             return false;
                                         }
                                         candidates.forEach(function(el){
@@ -153,7 +152,6 @@
                                             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                                         });
                                         Array.prototype.slice.call(document.querySelectorAll('button,a,[role="button"]')).forEach(function(b){ try{ b.style.pointerEvents = 'auto'; }catch(e){ (globalThis.logger || console).debug('[VV]:', e?.message); } }); // NOSONAR
-                                        try { const reg = (globalThis.registrarMetrica || (globalThis.parent && globalThis.parent.registrarMetrica)); if (typeof reg === 'function') reg('hijo5.applyStyling', candidates.length, { applied: true, attempts: attempts }); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                                     } catch (e) {
                                         (globalThis.logger || console).warn('[PADRE] applyStylingOnce fallo:', e && e.message);
                                     }
@@ -3765,8 +3763,8 @@
 
         // =====================================================================
         // FASE 1: MÓDULOS CRÍTICOS (todos los módulos con lógica e imports cruzados)
-        // NOTA: validacion.js y monitoreo.js DEBEN estar aquí porque app.js y
-        // funciones-mapa.js los importan estáticamente
+        // NOTA: validacion.js DEBE estar aquí porque app.js y
+        // funciones-mapa.js la importan estáticamente
         // =====================================================================
         (globalThis.logger || console).info('[PADRE][FASE1] � Cargando 9 módulos en paralelo...');
 
@@ -3786,8 +3784,6 @@
 
           { CONFIG: CONFIG_S1 },
 
-          { inicializarMonitoreo: inicializarMonitoreo_S1 },
-
           { manejarCambioModo: manejarCambioModo_S1 },
 
         ] = await Promise.all([
@@ -3802,8 +3798,6 @@
 
           import('./js/config.js'),
 
-          import('./js/monitoreo.js'),
-
           import('./js/app.js'),
 
         ]);
@@ -3813,8 +3807,8 @@
 
         const fase1ModulosFin = performance.now();
         const fase1TotalTiempo = Math.round(fase1ModulosFin - fase1GlobalInicio);
-        (globalThis.logger || console).info(`%c[PADRE][FASE1] ✅ FASE 1 COMPLETADA - 11 módulos cargados (${fase1TotalTiempo}ms)`, 'color: #00ff00; font-weight: bold');
-        (globalThis.logger || console).info('[PADRE][FASE1] ✅ Módulos: state-manager, mensajeria, constants, utils, device-detection, validacion, logger, config, monitoreo, app, funciones-mapa');
+        (globalThis.logger || console).info(`%c[PADRE][FASE1] ✅ FASE 1 COMPLETADA - 10 módulos cargados (${fase1TotalTiempo}ms)`, 'color: #00ff00; font-weight: bold');
+        (globalThis.logger || console).info('[PADRE][FASE1] ✅ Módulos: state-manager, mensajeria, constants, utils, device-detection, validacion, logger, config, app, funciones-mapa');
 
         // =====================================================================
         // DATOS CENTRALIZADOS DE AVENTURAS - CARGA DIFERIDA (Fase 2)
@@ -4054,7 +4048,6 @@
         // NOTA: inicializarServicioMapa se llama desde initializeMap() con la instancia del mapa
         // No llamar aquí para evitar doble inicialización del contenedor del mapa
         // NOTA: inicializarMensajeria ya se llamó en línea 1862, no duplicar
-        await inicializarMonitoreo_S1();
 
         (globalThis.logger || console).info('Todos los módulos inicializados correctamente');        // ============================================================
 
@@ -4203,38 +4196,6 @@
                 proximidadReal: false, // Distancia real ≤50m al destino activo (funciones-mapa.js) — a diferencia de visualActivo, nunca se activa solo por revelarse el trazado
             },
 
-            monitoreo: {
-                metricas: {
-                    mensajesEnviados: 0,
-                    mensajesRecibidos: 0,
-                    tiempoRespuestaPromedio: 0,
-                    tiempoTotalRespuesta: 0,
-                    solicitudes: 0,
-                    usoMemoria: 0,
-                    eventos: [],
-                    errores: []
-                },
-                config: {
-                    habilitado: true,
-                    nivelLog: 'info',
-                    rastrearRendimiento: true,
-                    rastrearErrores: true,
-                    rastrearEventos: true,
-                    maxEventos: 1000,
-                    maxErrores: 100,
-                    umbralAlerta: {
-                        tiempoRespuesta: 1000,
-                        usoMemoria: 85,
-                        tasaError: 0.1
-                    }
-                },
-                historial: {
-                    eventos: [],
-                    metricas: [],
-                    errores: [],
-                    maxItems: esMovil ? 25 : 100
-                }
-            },
             coordinacion: {
                 cacheTTL: esMovil ? 15000 : 30000
             },
@@ -5278,7 +5239,7 @@
         // ============================================================
 
         /**
-         * Registra un evento en el sistema de monitoreo local
+         * Registra un evento en el log (prefijo [PADRE], nivel y datos)
          */
         globalThis.registrarEvento = function(tipo, datos = {}, nivel = 'info') {
             const mensaje = `[PADRE] Evento: ${tipo}, Nivel: ${nivel}`;
@@ -5296,26 +5257,6 @@
                 case 'error':
                     (globalThis.logger || console).error(mensaje, datos);
                     break;
-            }
-
-            if (estado.monitoreo?.config?.habilitado && estado.monitoreo?.config?.rastrearEventos) {
-                try {
-                    const evento = {
-                        tipo,
-                        datos,
-                        nivel,
-                        timestamp: new Date().toISOString(),
-                        timestampMs: Date.now()
-                    };
-
-                    estado.monitoreo.historial.eventos.push(evento);
-
-                    if (estado.monitoreo.historial.eventos.length > estado.monitoreo.config.maxEventos) {
-                        estado.monitoreo.historial.eventos = estado.monitoreo.historial.eventos.slice(-estado.monitoreo.config.maxEventos);
-                    }
-                } catch (error) {
-                    (globalThis.logger || console).error('[PADRE] Error registrando evento:', error);
-                }
             }
         };
 
@@ -9640,7 +9581,6 @@ await _comprobarReanudacionAventura(logPrefix);
         const { DATOS_PADRE } = await import('./js/aventuras-ID-padre.js');
 
         const loggerScript2 = (await import('./js/logger.js')).default;
-        // inicializarMonitoreo ya importado en Script 1 como inicializarMonitoreo_S1
         await import('./js/config.js');
         const { TRADUCCIONES_TIEMPO_AGOTADO, TRADUCCIONES_FINALIZACION } = await import('./js/traducciones-ui.js');
         const { armarRedDeSeguridad: armarRedDeSeguridad_S2 } = await import('./js/reciclaje-digital.js');
@@ -12680,11 +12620,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     origen: mensaje.origen
                 }, 'error');
 
-                // Incrementar contador de errores en monitoreo
-                if (estado.monitoreo?.metricas) {
-                    estado.monitoreo.metricas.errores++;
-                }
-
                 // Este audioId ya falló de verdad — hijo3 solo envía AUDIO.ERROR tras agotar
                 // sus propios reintentos (ver audio-hijo3.html).
                 await _marcarAudioNoDisponible(audioId, logPrefix);
@@ -12799,28 +12734,8 @@ await _comprobarReanudacionAventura(logPrefix);
             await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS, destino: mensaje.origen, datos: { aventura: av, idioma: id, coordenadas: coords, total: coords.length, timestamp: Date.now() } });
         }
 
-        async function _hdl_MONITOREO_METRICA(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[METRICA]`;
-
-            try {
-                const { nombre, valor, metadatos } = mensaje.datos || {};
-                (globalThis.logger || console).debug(`${logPrefix} Métrica de ${mensaje.origen}: ${nombre}=${valor}`);
-
-                if (globalThis.__vv_monitoreo && typeof globalThis.__vv_monitoreo.registrarMetrica === 'function') {
-                    globalThis.__vv_monitoreo.registrarMetrica(nombre, valor, { origen: mensaje.origen, ...metadatos });
-                }
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando métrica:`, error);
-            }
-        }
-
         function _regCtrl_DatosSolicitudes(TIPOS_MENSAJE) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_COORDENADAS, _hdl_DATOS_SOLICITAR_COORDENADAS, { permanente: true });
-
-
-
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.MONITOREO.METRICA, _hdl_MONITOREO_METRICA, { permanente: true });
         }
 
         async function _hdl_SELECCION_IDIOMA_SELECCIONADO(mensaje) {

@@ -1989,8 +1989,8 @@ try {
 
     /**
      * Controlador: SISTEMA.HEARTBEAT
-     * Descripción: Responde a pings de monitoreo del padre para verificar que el componente está activo
-     * Origen esperado: padre (monitoreo.js)
+     * Descripción: Responde al latido del bus del padre para verificar que el componente está activo
+     * Origen esperado: padre (js/mensajeria.js)
      * Respuesta: SISTEMA.HEARTBEAT_RESPONSE
      *
      * Datos recibidos: { timestamp: number }
@@ -2208,8 +2208,6 @@ try {
             let details;
             try { details = JSON.stringify({ codigo, codeDesc, mensaje: errorMensaje, contexto }, null, 2); } catch (error_) { details = `codigo=${codigo} mensaje=${String(errorMensaje)} contexto=${String(contexto)}`; logger.debug('[hijo2][GPS.ERROR] Error serializando detalles:', error_?.message); }
             logger.error(`[hijo2][GPS.ERROR] Error GPS recibido: ${details}`);
-            // Enviar métrica a monitoreo (si mensajería disponible)
-            try { if (typeof enviarMensaje === 'function') { enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, destino: 'padre', datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(e => logger.warn('[hijo2][GPS.ERROR] Error enviando métrica:', e && e.message)); } } catch (error_) { logger.warn('[hijo2][GPS.ERROR] Error enviando métrica GPS:', error_ && error_.message); }
             return { exito: true };
         } catch (e) {
             logger.error('[hijo2][GPS.ERROR] Error en handler no-op:', e);

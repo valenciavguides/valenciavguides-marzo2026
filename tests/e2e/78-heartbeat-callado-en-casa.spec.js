@@ -4,7 +4,7 @@
  * POR QUE EXISTE
  *
  * En CASA el bus pausa su heartbeat a proposito (`pausarHeartbeat`), y es el unico latido
- * periodico que debe haber. `js/monitoreo.js` tenia otro que mandaba `SISTEMA.HEARTBEAT` a todos
+ * periodico que debe haber. Un modulo de monitoreo (retirado) tenia otro que mandaba `SISTEMA.HEARTBEAT` a todos
  * los iframes cada 5 s, no se paraba nunca y anulaba esa pausa: los hijos contestaban cada vez.
  * El bus es el único latido periódico legítimo mientras dura la pausa de CASA.
  *
