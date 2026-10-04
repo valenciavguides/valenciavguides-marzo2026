@@ -2,8 +2,9 @@
  * @fileoverview Configuración centralizada para ValenciaVGuides
  * @version 2.0.0
  *
- * Define todas las constantes de configuración del sistema,
- * incluyendo timeouts, URLs, límites y parámetros de comportamiento.
+ * Solo lleva los parámetros que algún código lee: el nivel de log, el timeout de
+ * confirmación del bus, la precisión mínima del GPS y la vista por defecto del mapa.
+ * Un valor que no esté aquí no se configura desde este fichero.
  */
 
 import { LOG_LEVELS } from './constants.js';
@@ -14,58 +15,20 @@ import { LOG_LEVELS } from './constants.js';
  */
 export const CONFIG = {
     /**
-     * Configuración de versión
-     */
-    VERSION: '2.0.0',
-    BUILD_DATE: '2024-01-15',
-
-    /**
      * Configuración de debugging
      */
     DEBUG: {
-        HABILITADO: true,
-        NIVEL_LOG: LOG_LEVELS.DEBUG,
-        MOSTRAR_TIMESTAMPS: true,
-        MOSTRAR_CONTEXTO: true,
-        PERSISTIR_LOGS: false
+        /** Nivel de log mínimo: lo lee js/logger.js en cada llamada, a través de globalThis.__vv_config */
+        NIVEL_LOG: LOG_LEVELS.DEBUG
     },
 
     /**
      * Configuración del sistema de mensajería
      */
     MENSAJERIA: {
-        /** Timeout por defecto para mensajes con confirmación (ms) */
-        TIMEOUT_CONFIRMACION: 5000,
-
-        /** Timeout extendido para operaciones complejas (ms) */
-        TIMEOUT_EXTENDIDO: 10000,
-
-        /** Timeout rápido para operaciones simples (ms) */
-        TIMEOUT_RAPIDO: 2000,
-
-        /** Número máximo de reintentos para mensajes */
-        MAX_REINTENTOS: 3,
-
-        /** Intervalo base entre reintentos (ms) */
-        INTERVALO_REINTENTO: 1000,
-
-        /** Factor de backoff exponencial */
-        BACKOFF_FACTOR: 1.5,
-
-        /** Tamaño máximo del buffer de mensajes pendientes */
-        MAX_BUFFER_MENSAJES: 100,
-
-        /** TTL por defecto para mensajes en cola (ms) */
-        TTL_MENSAJE: 30000,
-
-        /** Intervalo de limpieza de mensajes expirados (ms) */
-        INTERVALO_LIMPIEZA: 10000,
-
-        /** Alias TIMEOUTS para compatibilidad con codigo-padre.html */
         TIMEOUTS: {
-            CONFIRMACION: 5000,
-            EXTENDIDO: 10000,
-            RAPIDO: 2000
+            /** Timeout por defecto para mensajes con confirmación (ms): lo lee codigo-padre.html */
+            CONFIRMACION: 5000
         }
     },
 
@@ -73,55 +36,8 @@ export const CONFIG = {
      * Configuración del GPS y localización
      */
     GPS: {
-        /** Habilitar alta precisión */
-        ALTA_PRECISION: true,
-
-        /** Timeout para obtener posición (ms) */
-        TIMEOUT: 30000,
-
-        /** Edad máxima de posición en caché (ms) */
-        MAX_EDAD_CACHE: 5000,
-
-        /** Intervalo de actualización de posición (ms) */
-        INTERVALO_ACTUALIZACION: 7000,
-
-        /** Distancia mínima para considerar movimiento (metros) */
-        DISTANCIA_MINIMA: 5,
-
-        /** Radio de proximidad para puntos de interés (metros) */
-        RADIO_PROXIMIDAD: 20,
-
-        /** Radio extendido para búsqueda amplia (metros) */
-        RADIO_EXTENDIDO: 50,
-
-        /** Precisión mínima aceptable (metros) */
-        PRECISION_MINIMA: 50,
-
-        /** Número de muestras para promediar posición */
-        MUESTRAS_PROMEDIO: 3
-    },
-
-    /**
-     * Configuración de audio
-     */
-    AUDIO: {
-        /** Volumen por defecto (0-1) */
-        VOLUMEN_DEFECTO: 0.8,
-
-        /** Duración de fade in/out (ms) */
-        DURACION_FADE: 500,
-
-        /** Intervalo de actualización de progreso (ms) */
-        INTERVALO_PROGRESO: 250,
-
-        /** Precargar audios al inicio */
-        PRECARGA: true,
-
-        /** Número máximo de audios en caché */
-        MAX_CACHE: 10,
-
-        /** Formatos soportados en orden de preferencia */
-        FORMATOS: ['mp3', 'ogg', 'wav']
+        /** Precisión mínima aceptable (metros): la lee coordenadas-hijo2.html */
+        PRECISION_MINIMA: 50
     },
 
     /**
@@ -131,26 +47,14 @@ export const CONFIG = {
         /** Zoom inicial */
         ZOOM_INICIAL: 15,
 
-        /** Zoom mínimo permitido */
-        ZOOM_MIN: 12,
-
         /** Zoom máximo permitido */
         ZOOM_MAX: 19,
-
-        /** Zoom para centrar en punto */
-        ZOOM_CENTRADO: 17,
 
         /** Centro por defecto (Valencia) */
         CENTRO_DEFECTO: {
             lat: 39.4699,
             lng: -0.3763
-        },
-
-        /** Mostrar control de zoom en el mapa */
-        ZOOM_CONTROL: true,
-
-        /** Duración de animación de vuelo (ms) */
-        DURACION_VUELO: 1500
+        }
     }
 };
 

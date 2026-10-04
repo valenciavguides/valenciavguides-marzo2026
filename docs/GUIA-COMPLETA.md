@@ -4862,7 +4862,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-02b3cfbdc258'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-2115271a17be'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6799,17 +6799,11 @@ Distinto — muestra la imagen (`ref.imagen`) y compone el número+nombre en `#m
 
 ### Configuración del GPS (`js/config.js` → `CONFIG.GPS`)
 
+`CONFIG.GPS` tiene un único parámetro. Los demás valores del GPS (tiempos de espera, caché de posición, radios de llegada, reintentos) son literales de `codigo-padre.html`, `coordenadas-hijo2.html` y `js/funciones-mapa.js`: §25.5 recoge los radios y §25.16, los valores técnicos de referencia.
+
 | Parámetro | Valor | Descripción |
 | --- | --- | --- |
-| `ALTA_PRECISION` | `true` | Usa GPS real en vez de triangulación WiFi |
-| `TIMEOUT` | 30.000 ms | Tiempo máximo de espera para obtener posición |
-| `MAX_EDAD_CACHE` | 5.000 ms | Edad máxima de posición en caché para aceptarla como válida |
-| `INTERVALO_ACTUALIZACION` | 7.000 ms | Frecuencia de actualización de posición |
-| `DISTANCIA_MINIMA` | 5 m | Movimiento mínimo para considerar que el usuario se ha movido |
-| `RADIO_PROXIMIDAD` | 20 m | **No leído por el runtime.** `_detectarLlegadaParada()` en hijo2 usa su propia constante local, `const RADIO_PARADA = 15` — un valor distinto de este de `config.js` (20 m); esta entrada es una constante muerta, sin ningún efecto en el comportamiento real. |
-| `RADIO_EXTENDIDO` | 50 m | **No leído por el runtime.** El overlay GPS (`#gps-out-of-range-overlay`) se activa por distancia real (>2.000m del objetivo o >5km de la ruta), no por precisión. |
 | `PRECISION_MINIMA` | 50 m | **Leída por el runtime.** `coordenadas-hijo2.html` la compara contra `accuracy` de cada lectura, ANTES de calcular franja o confirmar llegada (§31.4/§25.7) — no descarta la posición, pero sí evita sacar ninguna conclusión de distancia mientras la precisión sea peor que este valor. Ninguna posición se descarta por su precisión al procesar distancia/llegada — ver §25.5, «Precisión GPS: se procesa siempre, la llegada se confirma por repetición» (eso sigue igual, es un mecanismo aparte). |
-| `MUESTRAS_PROMEDIO` | 3 | Número de muestras para promediar la posición GPS |
 
 ### Rendimiento del zoom (`js/funciones-mapa.js`)
 
@@ -8180,7 +8174,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-02b3cfbdc258'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-2115271a17be'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8332,7 +8326,7 @@ proyecto/
 │   ├── funciones-mapa.js             ← Lógica del mapa de aventura — MapLibre GL (rutas, marcadores, GPS visual)
 │   │
 │   ├── ── CONFIGURACIÓN ──
-│   ├── config.js                     ← Parámetros globales (GPS, timeouts, umbrales)
+│   ├── config.js                     ← Parámetros que algún código lee: nivel de log, timeout de confirmación del bus, precisión GPS mínima y vista por defecto del mapa
 │   ├── constants.js                  ← Tipos de mensaje, modos, constantes
 │   ├── server.js                     ← Servidor estático local (puerto 8080)
 │   │
@@ -8927,7 +8921,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-02b3cfbdc258';
+const CACHE_VERSION = 'v-2115271a17be';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9687,7 +9681,7 @@ Tras la activación (P16 — pantalla de logos), el turista real pasa **directo 
 
 En el instante en que el sistema pasa a modo AVENTURA (automáticamente para el turista real, o al pulsar el botón de hijo5 en modo DEV), ocurren varias cosas simultáneamente:
 
-- **Se activa el GPS.** El navegador pide permiso de geolocalización (si no lo tenía ya). Se usa `watchPosition` con alta precisión (`enableHighAccuracy: true`), sin caché (`maximumAge: 0`) y un timeout de 35 segundos. Las posiciones llegan con cada actualización del dispositivo — no hay intervalo fijo (`INTERVALO_ACTUALIZACION` está definido en `config.js` pero `watchPosition` no acepta parámetro de intervalo).
+- **Se activa el GPS.** El navegador pide permiso de geolocalización (si no lo tiene ya). Se usa `watchPosition` con alta precisión (`enableHighAccuracy: true`), sin caché (`maximumAge: 0`) y un timeout de 35 segundos. Las posiciones llegan con cada actualización del dispositivo — no hay intervalo fijo: `watchPosition` no acepta parámetro de intervalo.
 
 - **Se inicia el heartbeat.** Cada **5 segundos** el padre envía un "latido" a **todo componente que haya completado su handshake** — medido: `seleccion`, `hijo1-opciones`, `hijo2`, `hijo3`, `hijo4` y `hijo5`, más `hijo6-chat` en cuanto se abre el chat (§5). El padre rastrea `heartbeatsFallidos` (`Map`) por hijo; **al tercer latido seguido sin respuesta** lo marca como desconectado y recarga su iframe por self-assign del `src`. Esa recarga es una sola, sin reintentos ni backoff — el 3 es el umbral de fallos, no un contador de intentos.
 
@@ -9756,9 +9750,6 @@ Cuando el usuario está **dentro del radio de acción** de la parada o tramo act
 | `rangoMaximo` parada (hardcoded en hijo2) | **15 m** | `_actualizarGpsEnModoAventura()` / `verificarDistanciaYActualizarBotones()` en hijo2 | Controla el botón GPS y el punto donde arrancan las 4 franjas de aviso por distancia del padre (§31.4). Sale del rango → aviso. Entra → se oculta. |
 | `rangoMaximo` tramo (hijo2, recibido de padre) | **dinámico, mín. 35 m** | `toleranciaGPS` de `calcularToleranciaGPS()` en funciones-mapa.js | Botones y arranque de las franjas de aviso en tramos — **no** la llegada, que usa `radioLlegada`. Ancho a propósito: absorbe el ruido del GPS sin dar falsas alarmas. |
 | `PRECISION_MINIMA` (config.js) | **50 m** | **Leída por el runtime** (hijo2, ver §31.4/§25.7) | Umbral de accuracy por encima del cual hijo2 no calcula franja ni confirma llegada — no descarta la posición, solo desconfía de la distancia calculada con ella. |
-| `RADIO_EXTENDIDO` (config.js) | **50 m** | Solo definición — **no leído por el runtime** | Coincide numéricamente con otros umbrales que sí existen (`PRECISION_MINIMA`, el de limpieza de la polyline manual) pero no controla ninguna lógica de la aplicación. |
-| `RADIO_PROXIMIDAD` (config.js) | **20 m** | Solo definición — **no leído por el runtime** | No coincide con `RADIO_PARADA` ni con el `rangoMaximo` de parada, que son 15 m. Constante muerta: cambiarla no altera nada. |
-| `DISTANCIA_MINIMA` (config.js) | **5 m** | Solo definición — **no leída por el runtime** | No hay filtro de movimiento mínimo en el flujo GPS de producción. |
 
 #### Precisión GPS: se procesa siempre, la llegada se confirma por ventana deslizante
 
@@ -10470,11 +10461,8 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 | Franjas de aviso por distancia (padre) | 4 franjas: rango real–50 m / 50–150 m / 150–2.000 m / >2.000 m | `_hdl_NAVEGACION_GPS_RESTRINGIDO` en `codigo-padre.html` — ver §31.4 |
 | Tolerancia de llegada a tramo | dinámica, mín. 35 m (distancia máx. entre waypoints + 20 m buffer, con suelo) | `calcularToleranciaGPS()` en `funciones-mapa.js` — dispara `LLEGADA_DETECTADA` al final del tramo; también exige `recorridoSuficiente` (≥40% de la longitud real del camino recorrida, ver más abajo) |
 | Confirmación de llegada por ventana deslizante | 2 de las últimas 4 lecturas dentro de radio | `estadoMapa._llegadaVentana` en funciones-mapa.js / `estadoComponente._llegadaVentana` en hijo2 — sustituye a un filtro de precisión (ver §25.5) |
-| `RADIO_EXTENDIDO` / `RADIO_PROXIMIDAD` / `DISTANCIA_MINIMA` | — | `config.js` — **no leídas por el runtime** (constantes muertas). `PRECISION_MINIMA` no forma parte de este grupo: sí se lee, ver fila de arriba. |
-| Frecuencia actualización GPS | 7 s | `INTERVALO_ACTUALIZACION` en `config.js` |
 | Frecuencia heartbeat | 5 s | valor por defecto de `iniciarHeartbeat()` en `js/mensajeria.js` |
-| Timeout GPS | 30 s | `TIMEOUT` en `config.js` |
-| Timeout watchPosition | 35 s, con `enableHighAccuracy: true` | `activarGPS()` en `codigo-padre.html`. El camino de reintento (`_gpsDoRetryWatch()`) reabre el watch con otras opciones: `enableHighAccuracy: false` y timeout `CONFIG.GPS.TIMEOUT × 2^(intento-1)` con techo de 60 s — es decir, tras un fallo de GPS la precisión que llega es peor, lo que sube el umbral de ruido del acumulador de distancia recorrida |
+| Timeout watchPosition | 35 s, con `enableHighAccuracy: true` | `activarGPS()` en `codigo-padre.html`. El camino de reintento (`_gpsDoRetryWatch()`) reabre el watch con otras opciones: `enableHighAccuracy: false` y timeout de 15 s × 2^(intento-1) con techo de 60 s (literales de `_gpsDoRetrySetup()`) — es decir, tras un fallo de GPS la precisión que llega es peor, lo que sube el umbral de ruido del acumulador de distancia recorrida |
 | Habilitación de ubicación en las 4 franjas (rango real-50m / 50-150m / 150-2.000m / >2.000m) | Inmediata en las 4, sin esperar la gracia | `verificarDistanciaYActualizarBotones` en `coordenadas-hijo2.html` |
 | Gracia antes de restringir vídeo/avanzar/audio/reto (franjas "fuera"/"desviado") | 7 min / 15 min — 0 en "lejos"/"perdido" | `_GRACIA_FUERA_DE_RANGO_MS` en `coordenadas-hijo2.html` |
 | Latidos sin respuesta antes de dar por caído | 3 | `MAX_LATIDOS_SIN_RESPUESTA` en `js/mensajeria.js` |
@@ -12243,10 +12231,8 @@ Esta sección documenta los cambios implementados para las restricciones GPS y e
 
 | Parámetro | Valor | Archivo | Línea |
 |-----------|-------|---------|-------|
-| `PRECISION_MINIMA` | 50 m — **leída por el runtime** (§31.4/§25.7); no confundir con el mecanismo de §25.5, que no descarta posiciones por precisión | `js/config.js` | 98 |
-| `INTERVALO_ACTUALIZACION` | 7.000 ms | `js/config.js` | 86 |
-| `TIMEOUT` | 30.000 ms | `js/config.js` | 80 |
-| `watchPosition timeout` | 35.000 ms | `codigo-padre.html` | ~5949 |
+| `PRECISION_MINIMA` | 50 m — **leída por el runtime** (§31.4/§25.7); no confundir con el mecanismo de §25.5, que no descarta posiciones por precisión | `js/config.js` | 40 |
+| `watchPosition timeout` | 35.000 ms | `codigo-padre.html` | ~5896 |
 
 ### 29.2 Nuevos tipos de mensaje
 
@@ -12336,7 +12322,7 @@ Estado de botones por hijo en modo CASA:
 
 ### 29.10 Archivos con lógica de restricciones GPS
 
-1. **js/config.js**: Parámetros GPS
+1. **js/config.js**: Precisión GPS mínima (`PRECISION_MINIMA`)
 2. **codigo-padre.html**: Estado GPS, lógica de botones de avance y retos
 3. **js/constants.js**: Tipos de mensaje RETO.HABILITAR, RETO.ESTADO_CASA
 4. **js/funciones-mapa.js**: Estado GPS visual y sincronización interna
@@ -12384,7 +12370,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-02b3cfbdc258';
+const CACHE_VERSION = 'v-2115271a17be';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
