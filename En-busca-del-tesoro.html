@@ -1724,7 +1724,7 @@
     // backend rechaza.
     function _mostrarErrorAccesoP13() {
       if (document.getElementById('_p13-error-overlay')) return;
-      const idioma = idiomaSeleccionado || localStorage.getItem('vv_idioma') || 'es';
+      const idioma = idiomaSeleccionado || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })() || 'es';
       const dic = globalThis.TRADUCCIONES_ACCESO_ERRONEO || {};
       const t = dic[idioma] || dic.es || { titulo: 'Código o email incorrectos', cuerpo: 'Revise los datos introducidos e inténtelo de nuevo.' };
       const overlay = document.createElement('div');
@@ -1867,7 +1867,7 @@
       if (_desarmarAbandonoP17) { _desarmarAbandonoP17(); _desarmarAbandonoP17 = null; }
 
       // Capturar idioma ANTES de limpiar localStorage
-      const idioma = idiomaSeleccionado || localStorage.getItem('vv_idioma') || 'es';
+      const idioma = idiomaSeleccionado || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })() || 'es';
       const _despedida = globalThis.TRADUCCIONES_DESPEDIDA || {};
       const txt = _despedida[idioma] || _despedida['es'];
 
@@ -2690,7 +2690,7 @@
             // Recuperar idioma de localStorage ANTES de mostrar P17, para que
             // cargarAgradecimientosOverlay() lo use en vez de caer al fallback 'es'
             if (!idiomaSeleccionado) {
-                idiomaSeleccionado = localStorage.getItem('vv_idioma') || 'es';
+                idiomaSeleccionado = (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })() || 'es';
             }
             logger.info(`${logPrefix} Modo despedida activo → mostrando P17 agradecimientos (idioma: ${idiomaSeleccionado})`);
             void mostrar(17);

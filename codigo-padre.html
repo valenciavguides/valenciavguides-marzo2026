@@ -4428,7 +4428,14 @@
         function _restoreLoadFromStorage(logPrefix) {
             const raw = localStorage.getItem('vv_progreso');
             if (!raw) { (globalThis.logger || console).debug(`${logPrefix} No hay progreso persistido`); return null; }
-            return JSON.parse(raw) || null;
+            try {
+                return JSON.parse(raw) || null;
+            } catch (e) {
+                // Un vv_progreso que no se puede leer no se va a poder leer nunca: se descarta, para que el aviso no se repita en cada arranque.
+                (globalThis.logger || console).warn(`${logPrefix} vv_progreso corrupto, descartando`, e?.message);
+                localStorage.removeItem('vv_progreso');
+                return null;
+            }
         }
 
         // Un solo valor para el TTL de progreso/sesion guardada — antes se repetia como
