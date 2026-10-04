@@ -501,7 +501,7 @@ Solo activo en **MODO AVENTURA**. Detecta hijos colgados o desconectados.
 
 1. En cada tick del `setInterval` de 5s, por cada iframe registrado: se envía `SISTEMA.HEARTBEAT` y, en la misma operación atómica (`sm.atomicUpdateHeartbeat`, evita condición de carrera con la respuesta llegando en paralelo), se incrementa `heartbeatsFallidos[hijoId]` en 1 — el envío en sí ya cuenta como "posible fallo" antes de saber si habrá respuesta.
 2. Si el contador alcanza `MAX_LATIDOS_SIN_RESPUESTA` (3) tras el incremento, se llama `marcarHijoDesconectado(hijoId)` inmediatamente, en ese mismo tick.
-3. Si llega `SISTEMA.HEARTBEAT_RESPONSE` del hijo (`procesarHeartbeatResponse()`) — para cualquier heartbeat previo, no solo el último — el contador de ese hijo se pone a **0** de golpe (no se decrementa) y `ultimoHeartbeat[hijoId]` se actualiza. Si el hijo estaba en `hijosDesconectados`, se quita del set; si era `hijo2`, además se reenvían los mensajes GPS pendientes (`reenviarMensajesGPSAPendientes`).
+3. Si llega `SISTEMA.HEARTBEAT_RESPONSE` del hijo (`procesarHeartbeatResponse()`) — para cualquier heartbeat previo, no solo el último — el contador de ese hijo se pone a **0** de golpe (no se decrementa) y `ultimoHeartbeat[hijoId]` se actualiza. Si el hijo figura en `hijosDesconectados`, se quita del set.
 
 Efecto neto: 3 ticks seguidos (15s) sin ninguna respuesta marcan al hijo como desconectado — una sola respuesta en cualquier punto de esa ventana reinicia la cuenta desde cero.
 
@@ -2090,16 +2090,13 @@ El estado compartido del padre se guarda en un único lugar: `js/state-manager.j
 | `estadoPadre` | `object` | `estadoPadre` | Copia profunda de `globalThis.estadoPadre`, tomada al arrancar con `setEstadoPadre`; de ella solo `hijosInicializados` se mantiene al día (`marcarHijoListo`). El estado vivo es `globalThis.estadoPadre` |
 | `controladores` | `Map` | `controladores` | Handlers registrados con `registrarControladorCentral`: id → `{ handler, opciones, registradoEn, activo, fingerprint }`; rechaza un id repetido y un handler lógicamente duplicado (mismo tipo y mismo código) |
 | `heartbeat` | `object` | `heartbeat` | Estado del heartbeat: `activo`, `intervalo`, `userPaused`, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados` |
-| `gpsPendientes` | `array` | `heartbeat` (compartido) | Mensajes GPS encolados mientras hijo2 está desconectado, con un máximo de 50 |
 | `hijosListosPromises` | `Map` | ninguno | Promesas de carga de cada hijo (resueltas por `marcarHijoListo`) |
 
 `aventuraSeleccionada`/`idiomaSeleccionado` (la aventura e idioma activos) son datos reales de la app, pero fuera de `state-manager.js` — viven como variables `globalThis.aventuraSeleccionada`/`globalThis.idiomaSeleccionado` en `codigo-padre.html`, sin mutex propio.
 
-> **Nota:** `gpsPendientes` es un campo propio del estado, no del objeto `heartbeat`, pero se protege con el mutex de `heartbeat` — no tiene mutex propio.
->
 > **Nota:** `hijosListosPromises` no tiene mutex; el comentario del código, junto a `crearPromiseHijoListo`, lo aclara: *"Sin mutex: el browser es single-threaded; Map/Set ops son atómicas en este contexto"*.
 
-**Accesores.** Cada lectura o escritura de un campo con mutex tiene la forma mecánica `mutexes.campo.runExclusive(() => …)`: `getScript2Listo()`/`setScript2Listo(valor)`, `getEstadoPadre()`/`setEstadoPadre(valor)` (copia profunda al leer y al escribir), `getHeartbeat()` (copia profunda), `updateHeartbeat(parcial)` (mezcla en profundidad) y `atomicUpdateHeartbeat(fn)` (lectura-modificación-escritura dentro de una sola adquisición del mutex, §33.3), `getGpsPendientes()`, `agregarMensajeGPSAPendientes(datos)` y `limpiarGpsPendientes()`. Para los controladores: `registrarControladorCentral(id, handler, opciones)` (con su alias `registrarManejador`), `getControladoresRegistrados()`, `getControladoresPorTipo(tipo)` y `getMapaControladoresSync()` — el mapa tipo → handler que lee `js/mensajeria.js` con su alias `getManejadores()`, sin mutex. `crearPromiseHijoListo(id)` y `marcarHijoListo(id)` (§30.3) trabajan sobre `hijosListosPromises`.
+**Accesores.** Cada lectura o escritura de un campo con mutex tiene la forma mecánica `mutexes.campo.runExclusive(() => …)`: `getScript2Listo()`/`setScript2Listo(valor)`, `getEstadoPadre()`/`setEstadoPadre(valor)` (copia profunda al leer y al escribir), `getHeartbeat()` (copia profunda), `updateHeartbeat(parcial)` (mezcla en profundidad) y `atomicUpdateHeartbeat(fn)` (lectura-modificación-escritura dentro de una sola adquisición del mutex, §33.3). Para los controladores: `registrarControladorCentral(id, handler, opciones)` (con su alias `registrarManejador`), `getControladoresRegistrados()`, `getControladoresPorTipo(tipo)` y `getMapaControladoresSync()` — el mapa tipo → handler que lee `js/mensajeria.js` con su alias `getManejadores()`, sin mutex. `crearPromiseHijoListo(id)` y `marcarHijoListo(id)` (§30.3) trabajan sobre `hijosListosPromises`.
 
 `esperarRegistrosPendientes()` resuelve cuando han terminado todos los registros de controladores lanzados hasta ese momento. Registrar un controlador no es inmediato —cada `registrarControladorCentral` escribe en el mapa dentro del mutex `controladores`, esperando al anterior— y el Script 2 del padre lanza decenas de registros sin `await`. Como `SimpleMutex` es FIFO, esta espera se encola detrás de todos ellos y no espera a los que se lancen después de llamarla.
 
@@ -2138,7 +2135,6 @@ La estructura del estado (`state`) tiene dos niveles diferenciados:
         ultimoHeartbeat: Map,             // hijo → timestamp
         hijosDesconectados: []
     },
-    gpsPendientes: [],                    // dentro del mutex 'heartbeat'
 
     // Promesas de carga de hijos (sin mutex)
     hijosListosPromises: Map              // id → { promise, resolve, reject, timeout }
@@ -3625,7 +3621,7 @@ La comunicación entre `codigo-padre.html` y todos sus iframes usa la API nativa
 | `adelantarLatido()` | Fuerza un latido inmediato **respetando la pausa**: si el latido está parado en CASA, no hace nada. Ningún código de producción la llama: al volver a la pestaña, el `visibilitychange` del padre manda por su cuenta un `SISTEMA.HEARTBEAT` en `broadcast`, sin mirar la pausa — con el latido pausado, los seis hijos registrados lo contestan y el padre anota su `ultimoHeartbeat`, sin tocar `activo` ni `userPaused`. La función la ejercita `BC-12c` |
 | `iniciarHeartbeat(intervalo=5000)` | Inicia el latido: envía `SISTEMA.HEARTBEAT` cada `intervalo` ms a **todos los iframes registrados**, sin lista fija ni reserva. El estado (intervalId, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados`) vive en el state-manager. Tras `MAX_LATIDOS_SIN_RESPUESTA` (3) latidos consecutivos sin `HEARTBEAT_RESPONSE`, `marcarHijoDesconectado()` lo apunta en `hijosDesconectados` y pone su contador a 0 para no repetir la recarga mientras esta ocurre; **solo si el iframe está marcado `recuperable`**, `intentarReconectarHijo()` avisa a `globalThis._vv_beforeHijoReload(hijoId)` para que el padre tome un snapshot del estado y recarga el iframe por self-assign (`iframe.elemento.src = iframe.elemento.src`). Si no lo está, queda el aviso en el log y nada más |
 | `pausarHeartbeat()` | Pausa el latido via state-manager (`sm.updateHeartbeat({ activo:false, intervalo:null })`); libera el `setInterval` |
-| `procesarHeartbeatResponse(mensaje)` | Resetea `heartbeatsFallidos` a 0 para el hijo que responde; si estaba marcado como desconectado, lo elimina de `hijosDesconectados` y reenvía mensajes GPS pendientes (`sm.getGpsPendientes()` → `NAVEGACION.ACTUALIZAR_ESTADO`) |
+| `procesarHeartbeatResponse(mensaje)` | Resetea `heartbeatsFallidos` a 0 para el hijo que responde; si figura como desconectado, lo elimina de `hijosDesconectados` |
 
 **Los hijos** envían siempre con `globalThis.parent.postMessage(mensaje, location.origin)`.
 **El padre** envía con `iframe.contentWindow.postMessage(mensaje, location.origin)` para destinos concretos — siempre con `destino: 'hijoX'` explícito (ver §10.18).
@@ -3676,12 +3672,6 @@ sequenceDiagram
         Note over P: handshake completo; hijo reconectado
         H->>P: SISTEMA.HEARTBEAT_RESPONSE (siguiente tick)
         P->>SM: hijosDesconectados.delete(hijoId)
-        alt Hay mensajes GPS pendientes (solo hijo2)
-            P->>SM: getGpsPendientes()
-            SM-->>P: [ { tipo, datos }... ]
-            P->>H: NAVEGACION.ACTUALIZAR_ESTADO (× N)
-            P->>SM: limpiarGpsPendientes()
-        end
     end
 ```
 
@@ -4876,7 +4866,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-14d90e1bf94c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-28ff95fe20c0'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6428,18 +6418,9 @@ actualizar el estado para calcular el flag correctamente. **No confundirla con
 > **Nota de diseño — hub + adaptador, no duplicación.**
 > `activarGPS()` en `codigo-padre.html` es el **hub**: la única implementación real que abre un `navigator.geolocation.watchPosition` (él mismo, y su reintento por timeout, que reemplaza al anterior). `manejarGPSActivar()` en `funciones-mapa.js` es el **adaptador**: detecta si está en el padre (`globalThis.parent === globalThis.window`) y delega al hub, o si está en un iframe, envía postMessage al padre para que el hub actúe. `manejarCambioModoMapa()` lo llama al entrar en AVENTURA — como red de seguridad, ya que el GPS normalmente ya está activo desde P14 (ver «Cuándo se activa el GPS por primera vez», arriba). No hay lógica duplicada — hay un único punto de ejecución real con una capa de enrutamiento. No existe adaptador de desactivación porque no existe desactivación: el sensor vive lo que vive el documento (nunca vía mensaje — no hay handler para `NAVEGACION.GPS.DESACTIVAR`) — no hay ningún caso de uso hoy en que un iframe necesite pedir la desactivación, y el GPS está diseñado para no apagarse nunca al cambiar de modo (ver tabla de comportamiento por modo, §2.6).
 
-### Infraestructura GPS pendiente — preparada, sin feeder activo
+### Envío del estado GPS a hijo2
 
-Existe infraestructura para reintentar envíos GPS fallidos, pero **el alimentador nunca se llama** desde el código activo:
-
-| Componente | Archivo | Estado |
-|-----------|---------|--------|
-| `gpsPendientes` array + `agregarMensajeGPSAPendientes()` | `js/state-manager.js` | ✅ existe — nunca llamada |
-| `reenviarMensajesGPSAPendientes(hijoId)` | `js/mensajeria.js` | ✅ existe — se llama en `procesarHeartbeatResponse` cuando hijo2 se reconecta, pero la cola siempre está vacía |
-
-**Flujo GPS real:** `funciones-mapa.js:procesarPosicionGPSParaAventura()` → `enviarMensaje({destino:'hijo2', tipo: ACTUALIZAR_ESTADO})` — envío directo sin confirmación ni cola. Si hijo2 no responde, el mensaje se pierde silenciosamente.
-
-La infraestructura de cola está preparada y no está conectada al emisor real.
+**Flujo:** `funciones-mapa.js:procesarPosicionGPSParaAventura()` → `enviarMensaje({destino:'hijo2', tipo: ACTUALIZAR_ESTADO})`: un envío directo por lectura GPS, sin confirmación; si hijo2 no responde, ese mensaje no se repite.
 
 > **Hijo2 no tiene `watchPosition` propio.** `funciones-mapa.js` incluye `lat` y `lng` en cada `ACTUALIZAR_ESTADO`; `_aplicarDatosEstado()` los almacena en `estadoComponente.posicionActualUsuario`. En **modo CASA** los botones se deshabilitan directamente y no se llama a `verificarDistanciaYActualizarBotones()`. En **modo AVENTURA** sí se llama, y con `posicionActualUsuario` ya poblado, decide el botón ubicación y notifica al padre la distancia real (§31.4).
 
@@ -8212,7 +8193,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-14d90e1bf94c'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-28ff95fe20c0'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8960,7 +8941,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-14d90e1bf94c';
+const CACHE_VERSION = 'v-28ff95fe20c0';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10904,7 +10885,7 @@ Nota de arquitectura: el audio está centralizado en el padre; `audio-hijo3.html
 | Módulo | Rol | Expone |
 |--------|-----|--------|
 | `constants.js` | Los tipos de mensaje y las constantes compartidas. Define `TIPOS_MENSAJE` (árbol jerárquico de 94 tipos), `MODOS`, `LOG_LEVELS` y `TTL_LIMPIEZA` (solo la parte de mensajería: el TTL de limpieza en móvil y en desktop). | `globalThis.TIPOS_MENSAJE` (copia global para scripts no-módulo) |
-| `state-manager.js` | Estado compartido del padre, con acceso serializado: un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por cada uno de los cuatro campos que se leen o escriben desde fuera —`script2Listo`, `estadoPadre`, `controladores` (el Map de handlers) y `heartbeat` (con `gpsPendientes`)—, más `hijosListosPromises`, sin mutex. Solo lo carga el padre. Detalle en «El state-manager (gestor de estado)». | `globalThis.__vv_stateManager` (y `globalThis.__stateManager`) |
+| `state-manager.js` | Estado compartido del padre, con acceso serializado: un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por cada uno de los cuatro campos que se leen o escriben desde fuera —`script2Listo`, `estadoPadre`, `controladores` (el Map de handlers) y `heartbeat`—, más `hijosListosPromises`, sin mutex. Solo lo carga el padre. Detalle en «El state-manager (gestor de estado)». | `globalThis.__vv_stateManager` (y `globalThis.__stateManager`) |
 | `logger.js` | Logging centralizado con los cinco niveles de `LOG_LEVELS` (`constants.js`): DEBUG, INFO, WARN, ERROR y NONE. El nivel efectivo sale de `CONFIG.DEBUG.NIVEL_LOG`, que `logger.js` lee **en cada llamada**: primero de `globalThis.__vv_config` y, si su ventana no lo tiene, del `__vv_config` de la ventana padre. No lo importa, porque `logger.js` y `config.js` van en el mismo `Promise.all` de la FASE 1 sin orden garantizado entre ellos, y resolverlo una sola vez dejaría el nivel clavado si el primer log ocurriera antes que `config.js`. **El salto a la ventana padre es lo que hace que el nivel alcance a los hijos**: cada iframe tiene su propio `globalThis` y solo `coordenadas-hijo2.html` importa `config.js`, así que sin él los otros cinco seguirían logueándolo todo. Mirar hacia arriba en vez de importar `config.js` en cada hijo deja además **una sola fuente del nivel para toda la app**. `setNivel()` permite forzarlo en runtime y, desde esa llamada, gana sobre `CONFIG`. Con `NONE` no sale nada, ni los errores. Cada página que loguea publica su logger en su propio `globalThis` justo tras importarlo — los siete hijos más `puzzle.html`, `video-intro.html` y `mapa-completo.html`. Sin esa línea, sus `(globalThis.logger \|\| console).x` caen al `console` crudo y se saltan el nivel, y **eslint no lo detecta**: su regla `no-console` no marca ese patrón porque el objeto va envuelto en el `\|\|`. Las únicas llamadas a `console` que quedan son seis en scripts clásicos pre-módulo, donde `logger.js` aún no se ha importado; llevan su `// eslint-disable-line no-console` con el motivo, según la convención de `eslint.config.js`. Cubierto por `tests/e2e/59-nivel-de-log.spec.js` y `60-nivel-de-log-alcanza-hijos.spec.js`. Buffer en memoria de 500 entradas (FIFO — elimina la entrada más antigua cuando se llena). **Sin limpieza periódica por TTL** — `TTL_LIMPIEZA.LOGGER` está definido en `constants.js` pero `logger.js` no lo importa ni lo usa. Colorea la consola por nivel. | `default export logger` |
 | `utils.js` | Funciones compartidas: `generarIdUnico(prefijo)` → `prefijo_timestamp_aleatorio`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `normalizarParadas()`, `esIdDeTramo()`, `resolverIdsParada()`, `ajustarTimeoutPorConexion()`, `retryUntilAvailable()`, `debounce()`, `sleep()`, `calcularDistancia()` y `puntoMasCercanoEnLinea()`. Al cargarse instala, solo en los frames que tienen padre, el reporte de errores no controlados hacia el padre (`instalarReporteErroresAlPadre()`, §10.17). | Named exports |
 | `device-detection.js` | Detecta tipo de dispositivo analizando `userAgent`. Resultados cacheados en el primer acceso. Solo exporta `esMovil()` (usada en `mensajeria.js` para elegir el TTL de limpieza de mensajes, `TTL_LIMPIEZA.MENSAJERIA.MOVIL`/`.DESKTOP`, definido en `constants.js`; en `funciones-mapa.js`, para los umbrales de la limpieza de recursos inactivos; y en `app.js`, para el periodo del monitoreo de memoria) y `esTelefonoMovil()` (usada en `codigo-padre.html` para el aviso de "gira el móvil" en horizontal). No expone ninguna otra detección (tablet/iOS/Android/navegador/táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA instalada) — ningún caller en todo el proyecto las necesita, y no hay ningún agregador de debug alrededor. | `esMovil()`, `esTelefonoMovil()` |
@@ -12443,7 +12424,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-14d90e1bf94c';
+const CACHE_VERSION = 'v-28ff95fe20c0';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

@@ -1192,51 +1192,9 @@ export async function procesarHeartbeatResponse(mensaje) {
 
         if (estabaDesconectado) {
             logger.info(`[mensajeria] Hijo ${hijoId} reconectado`);
-            if (hijoId === 'hijo2') {
-                await reenviarMensajesGPSAPendientes(hijoId);
-            }
         }
     } catch (error) {
         logger.error('[mensajeria] Error procesando heartbeat response:', error);
-    }
-}
-
-/**
- * Reenvía mensajes GPS pendientes a un hijo reconectado
- * @param {string} hijoId - ID del hijo
- */
-export async function reenviarMensajesGPSAPendientes(hijoId) {
-    const sm = obtenerStateManager();
-    if (!sm) return;
-
-    try {
-        const pendientes = await sm.getGpsPendientes();
-        if (pendientes.length === 0) {
-            logger.debug(`[mensajeria] No hay mensajes GPS pendientes para ${hijoId}`);
-            return;
-        }
-
-        logger.info(`[mensajeria] Reenviando ${pendientes.length} mensajes GPS pendientes a ${hijoId}`);
-
-        let reenviados = 0;
-        for (const mensaje of pendientes) {
-            try {
-                await enviarMensaje({
-                    tipo: mensaje.tipo || 'NAVEGACION.ACTUALIZAR_ESTADO',
-                    destino: hijoId,
-                    datos: mensaje.datos
-                });
-                reenviados++;
-            } catch (error) {
-                logger.warn(`[mensajeria] Error reenviando mensaje GPS pendiente a ${hijoId}:`, error);
-            }
-        }
-
-        // Limpiar cola después de reenviar
-        await sm.limpiarGpsPendientes();
-        logger.info(`[mensajeria] Reenviados ${reenviados}/${pendientes.length} mensajes GPS pendientes a ${hijoId}`);
-    } catch (error) {
-        logger.error(`[mensajeria] Error reenviando mensajes GPS pendientes a ${hijoId}:`, error);
     }
 }
 
