@@ -39,7 +39,6 @@ const state = {
     mapaInicializado: false,
     paradas: [],
     inicializacionPromises: new Map(),
-    conectado: true,
     todosHijosListos: false,
     gps: {
       activo: false,

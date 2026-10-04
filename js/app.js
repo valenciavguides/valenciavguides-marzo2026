@@ -1001,31 +1001,6 @@ globalThis.addEventListener('load', () => {
 // Quien avisa de que un hijo esta listo es SISTEMA.HIJO_PREPARADO; su handler vive en
 // codigo-padre.html. En este fichero no hay ningun handler de inicializacion.
 
-// Logica para la perdida de conexion
-/**
- * Maneja la pérdida de conexión
- * @param {Object} estado - Estado global de la aplicación
- */
-function manejarPerdidaConexion(estado) {
-    estado.conectado = false;
-    logger.warn('Conexión perdida, pausando operaciones');
-    // Pause operations, e.g., stop sending messages
-}
-
-/**
- * Maneja la reconexión
- * @param {Object} estado - Estado global de la aplicación
- */
-function manejarReconexion(estado) {
-    estado.conectado = true;
-    logger.info('Conexión restablecida, reanudando operaciones');
-    // Resume operations
-}
-
-// Detectar pérdida de conexión (ejemplo simplificado)
-globalThis.addEventListener('offline', () => manejarPerdidaConexion(globalThis.estadoPadre));
-globalThis.addEventListener('online', () => manejarReconexion(globalThis.estadoPadre));
-
 // ADVERTENCIA IMPORTANTE:
 // No usar globalThis.addEventListener('unload', ...) ni globalThis.addEventListener('beforeunload', ...)
 // en ningún archivo propio ni de terceros. Estos eventos están obsoletos y bloqueados por políticas modernas de navegador.
