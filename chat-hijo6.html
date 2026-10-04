@@ -473,6 +473,9 @@
   let estadoPadre = {};
   let hijoListoEnviado = false;
   let inicializado = false;
+  // Pasa a true cuando llega el primer estado del padre (PADRE_DATOS o CHAT.ESTADO_PADRE). Antes de eso
+  // falta el estado del rescate por construcción: la construcción inicial del FAQ corre sin él.
+  let estadoPadreRecibido = false;
   let _reintentosHijoListo = 0;
   const MAX_REINTENTOS_HIJO_LISTO = 30; // 30 intentos × 1s = 30 segundos máximo
   const INTERVALO_REINTENTO = 1000; // 1 segundo entre reintentos
@@ -533,10 +536,16 @@
       for (const clave of preguntasActivas) {
         // Sin el estado del padre, la pregunta del atasco no se pinta: su texto dice
         // "dispone de {total} rescates" y ese hueco solo lo puede rellenar el padre. Antes
-        // que enseñar la llave en crudo, se retira la pregunta entera — y se avisa, porque
-        // que falte significa que algo se ha roto antes.
+        // que enseñar la llave en crudo, se retira la pregunta entera y se avisa: a nivel error
+        // si el padre ya mandó su estado (PADRE_DATOS o CHAT.ESTADO_PADRE), porque entonces que
+        // falte significa que algo se ha roto; a nivel debug si no, porque la construcción inicial
+        // corre antes de que llegue ese estado y ahí que falte es lo normal.
         if (clave === 'UBIC_ATASCADO_TRAMO' && !rescate) {
-          logger.error('[hijo6] El padre no ha mandado el estado del rescate: la pregunta del atasco no se muestra');
+          if (estadoPadreRecibido) {
+            logger.error('[hijo6] El padre no ha mandado el estado del rescate: la pregunta del atasco no se muestra');
+          } else {
+            logger.debug('[hijo6] Construcción inicial sin el estado del rescate: la pregunta del atasco llega con el primer estado del padre');
+          }
           continue;
         }
         const textoPregunta = PREGUNTAS_CHAT[clave]?.[idioma] || PREGUNTAS_CHAT[clave]?.es || '';
@@ -718,6 +727,7 @@
   registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_DATOS, async (mensaje) => {
     logger.info('[hijo6][PADRE_DATOS] Datos del padre recibidos');
     if (mensaje.datos) {
+      estadoPadreRecibido = true;
       estadoPadre = { ...estadoPadre, ...mensaje.datos };
       if (mensaje.datos.idioma) actualizarIdioma(mensaje.datos.idioma);
       else construirFAQ();
@@ -784,6 +794,7 @@
   registrarControladorSeguro(TIPOS_MENSAJE.CHAT.ESTADO_PADRE, async (mensaje) => {
     logger.debug('[hijo6] CHAT.ESTADO_PADRE recibido — actualizando estado');
     if (mensaje.datos) {
+      estadoPadreRecibido = true;
       estadoPadre = { ...estadoPadre, ...mensaje.datos };
       // El `else` es la red de seguridad, y aquí importa más que en PADRE_DATOS: este
       // mensaje llega en CADA apertura del asistente y es el que trae el estado del rescate
