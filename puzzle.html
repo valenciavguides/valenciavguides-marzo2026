@@ -140,7 +140,17 @@
 import * as bus from './js/mensajeria.js';
 import { TIPOS_MENSAJE } from './js/constants.js';
 import logger from './js/logger.js';
-import { EFECTOS, precargarEfectos, reproducirEfecto, detenerEfectos } from './js/efectos-sonido.js';
+// Los efectos de sonido no son esenciales: si el módulo no carga, el puzzle sigue sin ellos y lo dice en el log.
+// Un `import` estático impediría ejecutar el módulo entero (sin bus ni botones).
+let EFECTOS = {};
+let precargarEfectos = () => {};
+let reproducirEfecto = () => {};
+let detenerEfectos = () => {};
+try {
+    ({ EFECTOS, precargarEfectos, reproducirEfecto, detenerEfectos } = await import('./js/efectos-sonido.js'));
+} catch (e) {
+    logger.warn('[puzzle] No se pudo cargar js/efectos-sonido.js; el puzzle sigue sin efectos de sonido', e?.message);
+}
 // Publica el logger en el globalThis de ESTA ventana. Sin esta linea, los
 // `(globalThis.logger || console).x` de mas abajo caian al console crudo y se
 // saltaban el nivel de log. eslint NO los marca —el objeto no es literalmente

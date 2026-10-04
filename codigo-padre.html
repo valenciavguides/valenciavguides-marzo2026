@@ -9644,7 +9644,16 @@ await _comprobarReanudacionAventura(logPrefix);
         await import('./js/config.js');
         const { TRADUCCIONES_TIEMPO_AGOTADO, TRADUCCIONES_FINALIZACION } = await import('./js/traducciones-ui.js');
         const { armarRedDeSeguridad: armarRedDeSeguridad_S2 } = await import('./js/reciclaje-digital.js');
-        const { EFECTOS: EFECTOS_S2, precargarEfectos: precargarEfectos_S2, reproducirEfecto: reproducirEfecto_S2 } = await import('./js/efectos-sonido.js');
+        // Los efectos de sonido no son esenciales: si el módulo no carga, el padre sigue sin ellos y lo dice en el log.
+        // Un `await import()` fuera de `try` detendría Script 2 entero (sin handlers de reto, audio ni parada).
+        let EFECTOS_S2 = {};
+        let precargarEfectos_S2 = () => {};
+        let reproducirEfecto_S2 = () => {};
+        try {
+            ({ EFECTOS: EFECTOS_S2, precargarEfectos: precargarEfectos_S2, reproducirEfecto: reproducirEfecto_S2 } = await import('./js/efectos-sonido.js'));
+        } catch (e) {
+            loggerScript2.warn('[PADRE] No se pudo cargar js/efectos-sonido.js; el padre sigue sin efectos de sonido', e?.message);
+        }
         // El reproductor de TIEMPO_ACABADO existe desde el arranque: el primer gesto en el padre lo desbloquea (iOS)
         // y así puede sonar cuando el aviso llega sin gesto (temporizador de hijo1).
         precargarEfectos_S2([EFECTOS_S2.TIEMPO_ACABADO]);

@@ -457,17 +457,28 @@
 
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
-    import { EFECTOS, precargarEfectos, reproducirEfecto, detenerEfectos } from './js/efectos-sonido.js';
+    // Los efectos de sonido no son esenciales: si el módulo no carga, este frame sigue sin ellos y lo dice en el log.
+    // Un `import` estático impediría ejecutar el módulo entero (sin handshake ni handlers). Y la carga no se espera con
+    // `await`: los handlers se registran dentro de un `DOMContentLoaded`, y un `await` que espere a la red deja pasar ese
+    // evento antes de que se añada el listener, así que no se registraría ninguno.
+    let EFECTOS = {};
+    let precargarEfectos = () => {};
+    let reproducirEfecto = () => {};
+    let detenerEfectos = () => {};
+    import('./js/efectos-sonido.js').then((modulo) => {
+        ({ EFECTOS, precargarEfectos, reproducirEfecto, detenerEfectos } = modulo);
+        // Los efectos de este frame, cargados desde el arranque: el primer `play()` tiene que caer
+        // dentro del gesto del usuario (iOS). El sonido de pieza colocada y el de reto completado
+        // del puzzle los reproduce puzzle.html, que es otro frame.
+        precargarEfectos([EFECTOS.ELECCION_RESPUESTA, EFECTOS.RETO_COMPLETADO, EFECTOS.TIEMPO_ACABADO]);
+    }).catch((e) => {
+        logger.warn('[hijo4] No se pudo cargar js/efectos-sonido.js; este frame sigue sin efectos de sonido', e?.message);
+    });
     // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
     // `globalThis.logger = ...` de codigo-padre.html solo alcanza al del padre: sin esta
     // linea, los `(globalThis.logger || console).x` de este fichero caian al console crudo
     // y se saltaban el nivel de log (ver GUIA-COMPLETA.md §26.3).
     globalThis.logger = logger;
-
-    // Los efectos de este frame, cargados desde el arranque: el primer `play()` tiene que caer
-    // dentro del gesto del usuario (iOS). El sonido de pieza colocada y el de reto completado
-    // del puzzle los reproduce puzzle.html, que es otro frame.
-    precargarEfectos([EFECTOS.ELECCION_RESPUESTA, EFECTOS.RETO_COMPLETADO, EFECTOS.TIEMPO_ACABADO]);
 
     // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
     // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
