@@ -13550,14 +13550,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         // _mensaje no se usa en el cuerpo de la función, así que es igual de válida sin él.
         globalThis.mostrarModalTiempoAgotado = _hdl_AVENTURA_TIEMPO_AGOTADO;
 
-        async function _hdl_AVENTURA_FINALIZADA(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[AVENTURA_FINALIZADA]`;
-            const motivo = mensaje?.datos?.motivo || 'completada';
-            // La limpieza se gestiona desde el modal de finalización (btn Terminar) o desde
-            // En-busca-del-tesoro.html?despedida=1 (botón verde P5). No limpiar aquí.
-            (globalThis.logger || console).info(`${logPrefix} AVENTURA.FINALIZADA recibido (motivo: ${motivo}) — esperando acción del usuario en modal`);
-        }
-
         async function _hdl_AVENTURA_TIEMPO_ACTUALIZADO(mensaje) {
             // Recordar el tiempo restante en el estado del padre — independiente de si la
             // ventana del temporizador está visible — para que sobreviva a un retorno desde
@@ -13868,8 +13860,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.ESTADISTICAS_TIEMPO, _hdl_AVENTURA_ESTADISTICAS_TIEMPO, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.TIEMPO_AGOTADO, _hdl_AVENTURA_TIEMPO_AGOTADO, { permanente: true });
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.FINALIZADA, _hdl_AVENTURA_FINALIZADA, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.TIEMPO_ACTUALIZADO, _hdl_AVENTURA_TIEMPO_ACTUALIZADO, { permanente: true });
 
