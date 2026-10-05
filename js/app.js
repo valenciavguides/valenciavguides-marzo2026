@@ -552,14 +552,7 @@ export async function manejarCambioModo(estado, mensaje) {
         // OPTIMISTIC UPDATE: actualizar estado de modo inmediatamente (normalizado)
         try {
             estado.modo = estado.modo || {};
-            estado.modo.anterior = modoActual;
             estado.modo.actual = modoNormalized;
-            estado.modo.ultimoCambio = {
-                timestamp,
-                origen: mensaje.origen,
-                motivo,
-                opciones
-            };
         } catch (e) {
             logger.warn(`${logPrefix} No se pudo aplicar optimistic update:`, e?.message);
         }
@@ -584,14 +577,7 @@ export async function manejarCambioModo(estado, mensaje) {
 
             // (Estado ya actualizado de forma optimista antes) - asegurar campos mínimos
             estado.modo = estado.modo || {};
-            estado.modo.anterior = estado.modo.anterior || modoActual;
             estado.modo.actual = estado.modo.actual || modoNormalized;
-            estado.modo.ultimoCambio = estado.modo.ultimoCambio || {
-                timestamp,
-                origen: mensaje.origen,
-                motivo,
-                opciones
-            };
 
             // 10. Actualizar interfaz según el modo (no bloquear>5s por interfaz)
             const hijosInicializados = estado.hijosInicializados ? Array.from(estado.hijosInicializados) : [];
@@ -773,7 +759,6 @@ async function limpiarRecursosPorModo(estado, modo, opciones = {}, restaurado = 
 
         // Resetear selecciones previas
         estado.paradaActual = null;
-        estado.tramoActual = null;
         estado.elementoActual = null;
 
         // Resetear estado GPS — NUNCA tocar aquí estado.gps.activo ni estado.gps.watchId.
@@ -878,7 +863,6 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
     // Restaurar el modo anterior
     if (estado.modo) {
         estado.modo.actual = modoAnterior;
-        estado.modo.anterior = modoFallido;
     }
 
     // Lo muerto (paso 9 de la lavadora): aquí se mandaba un
