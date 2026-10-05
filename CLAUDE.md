@@ -120,6 +120,12 @@ viven aquí.
    hallazgo (dentro o fuera de una auditoría formal), repasar `docs/GUIA-COMPLETA.md` §36.0 —
    la tabla de 30 segundos, una fila por tipo de afirmación. Detalle y más casos en §36.27.7.
 
+## Convenciones de código (una sola forma por decisión)
+
+Cada decisión de código tiene una sola forma. Esta lista recoge las ya decididas, una línea cada una; las que faltan se deciden familia a familia (`docs/estudio-caminos.md`, R2.10) y se añaden aquí al cerrarse. Antes de escribir código nuevo, mirar si la decisión ya figura aquí.
+
+- **Specs, `goto`:** en `tests/`, todo `goto` recibe una ruta que empieza por `/` (se resuelve contra el `baseURL` de `playwright.config.js`): ni el origen escrito a mano ni una ruta sin barra.
+
 ## Documentación de autoridad
 
 `docs/GUIA-COMPLETA.md` es la fuente de verdad de la arquitectura. Mantenla actualizada con cada cambio significativo. No usar lenguaje de "diario de cambios" — describir el estado actual, no el historial.
