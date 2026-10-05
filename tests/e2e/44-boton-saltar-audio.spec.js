@@ -300,7 +300,7 @@ test.describe('BSA-D — _hdl_AUDIO_ERROR: fallo runtime confirmado también ofr
 
 test.describe('BSA-E — audio-hijo3.html: reintentos de stalled/waiting/error', () => {
   test('E-1. stalled dispara un reintento silencioso de play() tras ~300ms', async ({ page }) => {
-    await page.goto('audio-hijo3.html');
+    await page.goto('/audio-hijo3.html');
     await page.waitForLoadState('domcontentloaded');
 
     const llamadas = await page.evaluate(async () => {
@@ -321,7 +321,7 @@ test.describe('BSA-E — audio-hijo3.html: reintentos de stalled/waiting/error',
   });
 
   test('E-2. error nativo reintenta recargar con backoff hasta MAX_REINTENTOS_AUDIO (2) antes de dejar de reintentar', async ({ page }) => {
-    await page.goto('audio-hijo3.html');
+    await page.goto('/audio-hijo3.html');
     await page.waitForLoadState('domcontentloaded');
 
     const resultado = await page.evaluate(async () => {
@@ -343,7 +343,7 @@ test.describe('BSA-E — audio-hijo3.html: reintentos de stalled/waiting/error',
 
   test('E-3. stalled/waiting consecutivos sin recuperar superan el límite y se registra el aviso', async ({ page }) => {
     const logs = [];
-    await page.goto('audio-hijo3.html');
+    await page.goto('/audio-hijo3.html');
     page.on('console', (msg) => logs.push(msg.text()));
     await page.waitForLoadState('domcontentloaded');
 
@@ -375,7 +375,7 @@ test.describe('BSA-E — audio-hijo3.html: reintentos de stalled/waiting/error',
 
   test('E-4. Un evento playing entre medias resetea el contador — nunca escala si siempre se recupera antes del límite', async ({ page }) => {
     const logs = [];
-    await page.goto('audio-hijo3.html');
+    await page.goto('/audio-hijo3.html');
     page.on('console', (msg) => logs.push(msg.text()));
     await page.waitForLoadState('domcontentloaded');
 

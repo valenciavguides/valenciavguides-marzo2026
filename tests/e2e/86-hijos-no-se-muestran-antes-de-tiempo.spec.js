@@ -56,7 +56,7 @@ const { test, expect } = require('@playwright/test');
  * exactamente sus casos y ninguno más.
  */
 
-const MARCO = 'tests/e2e/helpers/marco-vacio.html';
+const MARCO = '/tests/e2e/helpers/marco-vacio.html';
 
 const HIJOS = [
   { id: 'hijo1-opciones', fichero: 'extrainfo-hijo1.html', exigeOrigen: true },

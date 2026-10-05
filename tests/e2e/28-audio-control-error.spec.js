@@ -70,7 +70,7 @@ test.describe('AC — _manejarAudioControl() no confirma éxito ni pierde el fal
     const logs = [];
     page.on('console', (msg) => logs.push(msg.text()));
 
-    await page.goto('audio-hijo3.html');
+    await page.goto('/audio-hijo3.html');
     await page.waitForLoadState('domcontentloaded');
 
     await enviarComandoPlayYEsperar(page);

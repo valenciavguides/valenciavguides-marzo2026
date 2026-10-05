@@ -35,8 +35,8 @@ const { test, expect } = require('@playwright/test');
  * `#pantalla5` con la clase `visible`, y `#chat-modal-overlay` sin ella.
  */
 
-const MARCO = 'tests/e2e/helpers/marco-vacio.html';
-const HIJO6 = 'chat-hijo6.html';
+const MARCO = '/tests/e2e/helpers/marco-vacio.html';
+const HIJO6 = '/chat-hijo6.html';
 const AVISO = { tipo: 'SELECCION.VIDEO_INTRO_TERMINADO', origen: 'video-intro' };
 const OTRO_ORIGEN = 'https://otro-sitio.example';
 

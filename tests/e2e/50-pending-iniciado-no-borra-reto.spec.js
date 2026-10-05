@@ -103,7 +103,7 @@ async function estadoBotones(page) {
 
 test.describe('PI — PENDING_INICIADO no debe borrar el reto abierto', () => {
   test('PI-1. Reto de texto libre: los botones siguen usables tras PENDING_INICIADO', async ({ page }) => {
-    await page.goto('retos-hijo4.html');
+    await page.goto('/retos-hijo4.html');
     await page.waitForLoadState('domcontentloaded');
     await fijarParadaActual(page, PADRE_ID, RETO_TEXTO.id);
     await enviarRetoMostrarYEsperar(page, { retoId: RETO_TEXTO.id, retosArray: [RETO_TEXTO] }, '#respuestaTexto');
@@ -123,7 +123,7 @@ test.describe('PI — PENDING_INICIADO no debe borrar el reto abierto', () => {
   });
 
   test('PI-2. Reto de opción: mismo comportamiento (el handler no distingue tipo)', async ({ page }) => {
-    await page.goto('retos-hijo4.html');
+    await page.goto('/retos-hijo4.html');
     await page.waitForLoadState('domcontentloaded');
     await fijarParadaActual(page, PADRE_ID, RETO_OPCION.id);
     await enviarRetoMostrarYEsperar(page, { retoId: RETO_OPCION.id, retosArray: [RETO_OPCION] }, 'input[name="op"]');
@@ -137,7 +137,7 @@ test.describe('PI — PENDING_INICIADO no debe borrar el reto abierto', () => {
   });
 
   test('PI-3. Saltar sigue funcionando tras PENDING_INICIADO (retoActualId intacto)', async ({ page }) => {
-    await page.goto('retos-hijo4.html');
+    await page.goto('/retos-hijo4.html');
     await page.waitForLoadState('domcontentloaded');
     await fijarParadaActual(page, PADRE_ID, RETO_OPCION.id);
     await enviarRetoMostrarYEsperar(page, { retoId: RETO_OPCION.id, retosArray: [RETO_OPCION] }, 'input[name="op"]');
@@ -150,7 +150,7 @@ test.describe('PI — PENDING_INICIADO no debe borrar el reto abierto', () => {
   });
 
   test('PI-4. PENDING_INICIADO de otra parada tampoco toca la UI', async ({ page }) => {
-    await page.goto('retos-hijo4.html');
+    await page.goto('/retos-hijo4.html');
     await page.waitForLoadState('domcontentloaded');
     await fijarParadaActual(page, PADRE_ID, RETO_TEXTO.id);
     await enviarRetoMostrarYEsperar(page, { retoId: RETO_TEXTO.id, retosArray: [RETO_TEXTO] }, '#respuestaTexto');

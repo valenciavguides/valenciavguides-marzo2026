@@ -95,7 +95,7 @@ test.describe('NH — El nivel de log alcanza a los hijos', () => {
     for (const url of [`puzzle.html?id=PZ-intro&imagen=${imagenPuzzle}`, 'video-intro.html', 'mapa-completo.html']) {
       const p2 = await page.context().newPage();
       try {
-        await p2.goto('http://localhost:8080/' + url, { waitUntil: 'load' });
+        await p2.goto('/' + url, { waitUntil: 'load' });
         await p2.waitForFunction(() => typeof globalThis.logger === 'object' && globalThis.logger !== null,
           null, { timeout: 15000 }).catch(() => {});
         r[url.split('?')[0]] = await p2.evaluate(() => {
