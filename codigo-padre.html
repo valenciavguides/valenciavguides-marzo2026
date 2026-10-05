@@ -4670,8 +4670,6 @@
                     globalThis.idiomaSeleccionado = null;
                     if (estado.seleccion) {
                         estado.seleccion.aventura = null;
-                        estado.seleccion.idioma = null;
-                        estado.seleccion.iniciada = false;
                     }
                     // El tiempo restante es de ESTA aventura — sin resetearlo, la próxima
                     // aventura seleccionada arrancaría su temporizador con el tiempo que le
@@ -4785,8 +4783,6 @@
                     globalThis.idiomaSeleccionado = null;
                     if (estado.seleccion) {
                         estado.seleccion.aventura = null;
-                        estado.seleccion.idioma = null;
-                        estado.seleccion.iniciada = false;
                     }
                     // El tiempo restante es de ESTA aventura — sin resetearlo, la próxima
                     // aventura seleccionada arrancaría su temporizador con el tiempo que le
@@ -5092,8 +5088,6 @@
                 globalThis.idiomaSeleccionado = datosGuardados.idioma || 'es';
                 if (!estado.seleccion) estado.seleccion = {};
                 estado.seleccion.aventura = datosGuardados.aventura;
-                estado.seleccion.idioma = datosGuardados.idioma || 'es';
-                estado.seleccion.iniciada = true;
 
                 _mostrarInterfazReanudacion();
 
@@ -12645,8 +12639,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 if (exito) {
                     (globalThis.logger || console).success(`${logPrefix} ✅ hijo2 confirmó: ${totalCargadas} coordenadas cargadas (${aventura}/${idioma})`);
-                    if (!estado.seleccion) estado.seleccion = {};
-                    estado.seleccion.coordenadasCargadas = true;
 
                     // 🔥 CRÍTICO: Dibujar marcadores y polylines ahora que tenemos los datos
                     try {
@@ -12659,8 +12651,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     }
                 } else {
                     (globalThis.logger || console).error(`${logPrefix} ⚠️ hijo2 reportó error: ${errorMsg}`);
-                    if (!estado.seleccion) estado.seleccion = {};
-                    estado.seleccion.coordenadasCargadas = false;
                 }
                 // Lo muerto (paso 9 de la lavadora): aquí se mandaba además un
                 // DATOS.CARGADOS_RECIBIDO a hijo2 — confirmación de la confirmación. Su
@@ -12716,10 +12706,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).debug(`${logPrefix} DEBUG estado:`, typeof estado, estado);
                 (globalThis.logger || console).debug(`${logPrefix} DEBUG globalThis.estadoPadre:`, typeof globalThis.estadoPadre, !!globalThis.estadoPadre);
 
-                // Almacenar idioma en estado global
-                if (!estado.seleccion) estado.seleccion = {};
-                estado.seleccion.idioma = idioma;
-
                 // Exponer globalmente para otros componentes
                 globalThis.idiomaSeleccionado = idioma;
                 try { localStorage.setItem('vv_idioma', idioma); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
@@ -12772,7 +12758,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 if (!estado.seleccion) estado.seleccion = {};
                 estado.seleccion.aventura = aventura;
-                estado.seleccion.idioma = idioma || estado.seleccion.idioma;
                 globalThis.aventuraSeleccionada = aventura;
                 globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado || 'es';
                 try {
@@ -12802,7 +12787,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 if (!estado.seleccion) estado.seleccion = {};
                 if (aventura) estado.seleccion.aventura = aventura;
-                if (idioma) estado.seleccion.idioma = idioma;
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando pre-selección:`, error, error?.stack);
                 (globalThis.logger || console).error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, !!estado);
@@ -13005,7 +12989,7 @@ await _comprobarReanudacionAventura(logPrefix);
             }
             _aventuraEnProceso = true;
             try {
-                const { aventura, idioma, terminosAceptados, timestamp } = mensaje.datos || {};
+                const { aventura, idioma } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} ✅ Aventura activada: ${aventura} (idioma: ${idioma}) — modo CASA mantenido`);
 
                 if (!aventura) { (globalThis.logger || console).error(`${logPrefix} No se especificó aventura`); _aventuraEnProceso = false; return; }
@@ -13014,14 +12998,9 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 if (!estado.seleccion) estado.seleccion = {};
                 estado.seleccion.aventura = aventura;
-                estado.seleccion.idioma = idioma || 'es';
-                estado.seleccion.terminosAceptados = terminosAceptados;
                 estado.seleccion.activada = true;
-                estado.seleccion.iniciada = false;
                 globalThis.aventuraSeleccionada = aventura;
                 globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado || 'es';
-
-                estado.seleccion.timestampInicio = timestamp;
 
                 if (globalThis._iframesPreCargadosP14) {
                     // Iframes cargados desde P14 — saltamos recarga para no destruir su estado
@@ -13184,10 +13163,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
                 // DEBUG: Verificar estado
                 (globalThis.logger || console).debug(`${logPrefix} DEBUG estado disponible:`, !!estado, typeof estado);
-
-                // Almacenar en estado
-                if (!estado.seleccion) estado.seleccion = {};
-                estado.seleccion.terminosAceptados = aceptados;
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando aceptación de términos:`, error, error?.stack);
@@ -13409,11 +13384,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 reproducirEfecto_S2(EFECTOS_S2.TIEMPO_ACABADO);
 
                 (globalThis.logger || console).info(`${logPrefix} Modal de tiempo agotado mostrado`);
-
-                // 3. Resetear estado de selección
-                if (estado.seleccion) {
-                    estado.seleccion.iniciada = false;
-                }
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error manejando tiempo agotado:`, error);

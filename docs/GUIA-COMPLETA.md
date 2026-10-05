@@ -1702,12 +1702,12 @@ sequenceDiagram
     Note over SEL: Usuario completa P1→P7<br/>(idioma, video-intro.html, puzzle, elección aventura...)
 
     SEL->>S1: SELECCION.AVENTURA_SELECCIONADA (P7)
-    Note over S1: Solo almacena { aventura, idioma } en estado.seleccion<br/>Resetea _codigoValidadoP13 = false
+    Note over S1: Solo almacena aventura en estado.seleccion y aventura e idioma en globalThis<br/>Resetea _codigoValidadoP13 = false
 
     Note over SEL: Usuario completa P8→P9<br/>(reto R-1 + confirmación aventura)
 
     SEL->>S1: SELECCION.PREPARAR_HIJOS (P9)
-    Note over S1: Solo almacena { idioma, aventura, timestamp }<br/>en estado.seleccion — no carga iframes
+    Note over S1: Solo almacena aventura<br/>en estado.seleccion — no carga iframes
 
     Note over SEL: Usuario completa P10-P12<br/>(términos, audio intro, pago)
 
@@ -1896,8 +1896,8 @@ Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` desp
 
 Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el flujo de onboarding:
 
-- `SELECCION.AVENTURA_SELECCIONADA` (P7) → solo almacena `{ aventura, idioma }` en `estado.seleccion`; resetea flags `_codigoValidadoP13` y `_iframesPreCargadosP14`; **no carga iframes ni activa GPS**
-- `SELECCION.PREPARAR_HIJOS` (P9) → solo almacena `{ idioma, aventura, timestamp }` en `estado.seleccion`; **no carga iframes**
+- `SELECCION.AVENTURA_SELECCIONADA` (P7) → solo almacena `aventura` en `estado.seleccion` y `{ aventura, idioma }` en `globalThis`; resetea flags `_codigoValidadoP13` y `_iframesPreCargadosP14`; **no carga iframes ni activa GPS**
+- `SELECCION.PREPARAR_HIJOS` (P9) → solo almacena `aventura` en `estado.seleccion` (el `idioma` solo se escribe en el log); **no carga iframes**
 - `SELECCION.CODIGO_VALIDADO` (P13, solo prod) → handler vacío — registra con un log que el código fue validado; nada más
 - `SELECCION.P14_MOSTRADA` (P14) → en paralelo: `_fase2CargarDatos()` + `cargarRestoDeiframes()` + `cargarHijoCasa()`; en cuanto eso termina marca `_iframesPreCargadosP14 = true`; **después**: `activarGPS()` siempre, en prod y en dev; si GPS deniega → overlay + abort, pero el flag ya está puesto y el abort no lo deshace
 - `SELECCION.AVENTURA_ACTIVADA` (P15/P16) → fast-path si `_iframesPreCargadosP14` (salta recarga); si no, carga hijo1-5 como fallback; siempre distribuye datos; el modo final depende de `_devModeActivo` — CASA solo en modo DEV, AVENTURA directo en cualquier otro caso (el real en producción, ver §9.5)
@@ -3733,7 +3733,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SISTEMA.APLICACION_INICIALIZADA` | Padre → Padre (`despacharLocal`) | App completamente lista: el padre se lo despacha a sí mismo cuando hijo2, hijo3 e hijo4 han declarado `HIJO_LISTO`; su handler solo registra el evento |
 | **SELECCION** | `SELECCION.IDIOMA_SELECCIONADO` | Tesoro → Padre | Usuario eligió idioma (P2) |
 | | `SELECCION.AVENTURA_SELECCIONADA` | Tesoro → Padre | Usuario eligió aventura (P7) |
-| | `SELECCION.PREPARAR_HIJOS` | Tesoro → Padre | Preselección de idioma y aventura al confirmar la aventura (P9): el padre solo la anota en `estado.seleccion`; los iframes se cargan con `SELECCION.P14_MOSTRADA` |
+| | `SELECCION.PREPARAR_HIJOS` | Tesoro → Padre | Preselección de idioma y aventura al confirmar la aventura (P9): el padre solo anota la aventura en `estado.seleccion`; los iframes se cargan con `SELECCION.P14_MOSTRADA` |
 | | `SELECCION.AVENTURA_ACTIVADA` | Tesoro → Padre | Confirma inicio de aventura (P15) |
 | | `SELECCION.TERMINOS_ACEPTADOS` | Tesoro → Padre | Usuario aceptó términos (P10) |
 | | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro → su contenedor (Tesoro o Hijo6) | video-intro.html completó todas las escenas; lo atienden la pantalla de selección (sub-iframe activo de P4, ver §35: pasa a P5) y hijo6 (el vídeo de su modal: lo cierra); no llega al padre |
@@ -3853,7 +3853,7 @@ sequenceDiagram
 |---------|----------|---------|------------------------|
 | `SELECCION.IDIOMA_SELECCIONADO` | P2 | `{ idioma:'es'/'en'/... }` | Guarda idioma en `estado.idioma` |
 | `SELECCION.AVENTURA_SELECCIONADA` | P7 | `{ aventura, idioma }` | Almacena estado; resetea `_codigoValidadoP13`; no carga iframes |
-| `SELECCION.PREPARAR_HIJOS` | P9 | `{ idioma, aventura, timestamp }` | Almacena `estado.seleccion`; no carga iframes |
+| `SELECCION.PREPARAR_HIJOS` | P9 | `{ idioma, aventura, timestamp }` | Anota `aventura` en `estado.seleccion`; no carga iframes |
 | `SELECCION.CODIGO_VALIDADO` | P13 (prod) | `{ aventura, idioma, email, timestamp }` | Handler vacío — registra con log que el código fue validado; GPS, iframes y datos se activan en P14. Dev mode: no se envía. |
 | `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `cargarRestoDeiframes()` + `cargarHijoCasa()` + `_fase2CargarDatos()` en paralelo → `_iframesPreCargadosP14 = true` → `activarGPS()` siempre, en prod y en dev |
 | `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Fast-path si `_iframesPreCargadosP14` (salta recarga); si no: normaliza hijos, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo, espera `HIJO_LISTO`; distribuye datos y muestra UI |
@@ -4317,7 +4317,7 @@ sequenceDiagram
 
     U->>S: Toca bandera de idioma (P2) → confirmar (P3)
     S->>P: SELECCION.IDIOMA_SELECCIONADO { idioma }
-    P-->>P: estado.seleccion.idioma = idioma
+    P-->>P: globalThis.idiomaSeleccionado = idioma
 
     Note over S,VI: P4 — cargarVideoIntroIframe() crea el iframe
     VI->>VI: run() — 20 escenas automáticas (usuario puede saltar con #btn-skip)
@@ -4349,7 +4349,7 @@ sequenceDiagram
 
 Cuando el padre recibe `SELECCION.AVENTURA_SELECCIONADA`, el handler `_hdl_SELECCION_AVENTURA_SELECCIONADA` ejecuta:
 
-1. Almacena `aventura` e `idioma` en `estado.seleccion` y `globalThis`
+1. Almacena `aventura` en `estado.seleccion` y `aventura` e `idioma` en `globalThis`
 2. Persiste en `localStorage` (`vv_aventura`, `vv_idioma`)
 3. Resetea `globalThis._codigoValidadoP13 = false`
 
@@ -4853,7 +4853,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-3ad86c4803ea'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-8b44a78ca13d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5000,7 +5000,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 | Destino | `padre` |
 | Payload | `{ idioma }` |
 | Handler en padre | `_hdl_SELECCION_IDIOMA_SELECCIONADO` |
-| Acción | Guarda el idioma en `estado.seleccion.idioma`, en `globalThis.idiomaSeleccionado` y en `localStorage` (`vv_idioma`); no propaga nada a los hijos |
+| Acción | Guarda el idioma en `globalThis.idiomaSeleccionado` y en `localStorage` (`vv_idioma`); no propaga nada a los hijos |
 
 **SELECCION.TERMINOS_ACEPTADOS** (seleccion → padre)
 
@@ -5008,7 +5008,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ aceptados: true, timestamp }` |
 | Handler en padre | `_hdl_SELECCION_TERMINOS_ACEPTADOS` |
-| Acción | Guarda `aceptados` en `estado.seleccion.terminosAceptados` y lo anota en el log; no carga nada ni toca la pantalla de selección |
+| Acción | Anota `aceptados` en el log; no lo guarda en el estado, no carga nada ni toca la pantalla de selección |
 
 **SELECCION.AVENTURA_SELECCIONADA** (seleccion → padre)
 
@@ -5024,7 +5024,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ aventura, idioma, timestamp }` |
 | Handler en padre | `_hdl_SELECCION_PREPARAR_HIJOS` |
-| Acción | Almacena `{ idioma, aventura, timestamp }` en `estado.seleccion`; no carga iframes |
+| Acción | Almacena `aventura` en `estado.seleccion`; no carga iframes |
 
 **SELECCION.CODIGO_VALIDADO** (seleccion → padre)
 
@@ -5048,7 +5048,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 
 | Campo | Valor |
 |-------|-------|
-| Payload | `{ aventura, idioma, terminosAceptados, timestamp }` |
+| Payload | `{ aventura, idioma, terminosAceptados, timestamp }` — el padre solo lee `aventura` e `idioma` |
 | Handler en padre | `_hdl_SELECCION_AVENTURA_ACTIVADA` |
 | Acción | Fast-path si `_iframesPreCargadosP14 === true` (iframes ya cargados desde P14): salta recarga, distribuye datos y activa el modo final (`_modoInicio` — AVENTURA en producción, CASA solo en dev, ver §9.5). Fallback si no: normaliza `hijosInicializados`, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo (`Promise.all`), espera `HIJO_LISTO`, luego distribuye datos y activa ese mismo modo final. |
 
@@ -8166,7 +8166,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-3ad86c4803ea'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-8b44a78ca13d'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8913,7 +8913,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-3ad86c4803ea';
+const CACHE_VERSION = 'v-8b44a78ca13d';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10217,7 +10217,6 @@ hijo1: tiempoRestante <= 0 → tiempoAgotado() → enviarMensaje(AVENTURA.TIEMPO
       1. Bloquea iframes (hijo2, hijo3, hijo1-opciones, hijo5): pointer-events:none, opacity:0.5
       2. Crea y muestra #modal-tiempo-agotado
       3. Reproduce el efecto TIEMPO_ACABADO (EFECTOS_S2.TIEMPO_ACABADO)
-      4. estado.seleccion.iniciada = false
 ```
 
 Los disparadores 2 y 3 llaman a la misma función directamente (`await globalThis.mostrarModalTiempoAgotado()`), sin pasar por ningún mensaje — el bloqueo de iframes en el paso 1 no tiene efecto visible ahí porque, en ambos casos, los iframes de aventura (hijo2/hijo3/hijo1-opciones) aún no están cargados o no son relevantes en ese punto del arranque; el modal se muestra igual.
@@ -11337,9 +11336,9 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SELECCION.CODIGO_VALIDADO` | Pantalla de selección (P13 — **solo prod**; en modo DEV, ver §24, P13 se salta y este mensaje nunca se envía) | `_hdl_SELECCION_CODIGO_VALIDADO`: handler vacío — registra con log que el código fue validado; no carga iframes ni activa GPS (todo delegado a `P14_MOSTRADA`). | (ninguna) | — | Registro de que el usuario completó P13; la carga real la dispara P14_MOSTRADA |
 | `SELECCION.DEV_MODE_TOGGLE` | Pantalla de selección (modo desarrollador, ver §24) | `_hdl_SELECCION_DEV_MODE_TOGGLE`: activa el modo desarrollador (ver §24) | (ninguna) | — | Modo desarrollador (ver §24) |
 | `CONTROL.DEV_CINCO_TOQUES` | Hijo 1 (gesto del modo desarrollador, ver §24) | `_hdl_CONTROL_DEV_CINCO_TOQUES`: activa el modo desarrollador (ver §24) | (ninguna directa) | — | Modo desarrollador (ver §24) |
-| `SELECCION.IDIOMA_SELECCIONADO` | Pantalla de selección (P2, al pulsar una bandera) | `_hdl_SELECCION_IDIOMA_SELECCIONADO`: guarda el idioma en `estado.seleccion.idioma`, en `globalThis.idiomaSeleccionado` y en `localStorage` (`vv_idioma`); no propaga nada a los hijos | (ninguna) | — | Mantener el idioma sincronizado en el estado global del padre |
-| `SELECCION.AVENTURA_SELECCIONADA` | Pantalla de selección (P7) | `_hdl_SELECCION_AVENTURA_SELECCIONADA`: guarda `aventura` e `idioma` en `estado.seleccion`, en `globalThis.aventuraSeleccionada`/`idiomaSeleccionado` y en `localStorage` (`vv_aventura`, `vv_idioma`), y pone `_codigoValidadoP13` e `_iframesPreCargadosP14` a `false`; ignora el mensaje si ya hay otro en curso (`_aventuraEnProceso`); no carga nada | (ninguna) | — | Registrar la aventura elegida antes de que el usuario complete el onboarding |
-| `SELECCION.PREPARAR_HIJOS` | Pantalla de selección (P9) | `_hdl_SELECCION_PREPARAR_HIJOS`: recibe `{ idioma, aventura, timestamp }` y los guarda en `estado.seleccion`; no carga nada (los iframes y los datos se cargan en `SELECCION.P14_MOSTRADA`) | (ninguna) | — | Anotar la preselección de idioma y aventura al confirmar P9 |
+| `SELECCION.IDIOMA_SELECCIONADO` | Pantalla de selección (P2, al pulsar una bandera) | `_hdl_SELECCION_IDIOMA_SELECCIONADO`: guarda el idioma en `globalThis.idiomaSeleccionado` y en `localStorage` (`vv_idioma`); no propaga nada a los hijos | (ninguna) | — | Mantener el idioma sincronizado en el estado global del padre |
+| `SELECCION.AVENTURA_SELECCIONADA` | Pantalla de selección (P7) | `_hdl_SELECCION_AVENTURA_SELECCIONADA`: guarda `aventura` en `estado.seleccion`, `aventura` e `idioma` en `globalThis.aventuraSeleccionada`/`idiomaSeleccionado` y en `localStorage` (`vv_aventura`, `vv_idioma`), y pone `_codigoValidadoP13` e `_iframesPreCargadosP14` a `false`; ignora el mensaje si ya hay otro en curso (`_aventuraEnProceso`); no carga nada | (ninguna) | — | Registrar la aventura elegida antes de que el usuario complete el onboarding |
+| `SELECCION.PREPARAR_HIJOS` | Pantalla de selección (P9) | `_hdl_SELECCION_PREPARAR_HIJOS`: recibe `{ idioma, aventura, timestamp }` y guarda `aventura` en `estado.seleccion` (el idioma solo se escribe en el log); no carga nada (los iframes y los datos se cargan en `SELECCION.P14_MOSTRADA`) | (ninguna) | — | Anotar la aventura preseleccionada al confirmar P9 |
 | `SELECCION.AVENTURA_ACTIVADA` | Pantalla de selección (P15 — reto R-2 afirmativo) | `_hdl_SELECCION_AVENTURA_ACTIVADA`: si iframes ya listos → fast-path (sincroniza modo); si no → completa carga; `_modoInicio = _devModeActivo ? MODOS.CASA : MODOS.AVENTURA`; si `_devModeActivo` (modo DEV, ver §24) → `await despacharLocal(CAMBIO_MODO, MODOS.CASA)`; si no (producción) → `despacharLocal(CAMBIO_MODO, MODOS.AVENTURA)` directamente, fire-and-forget (ver §9.5) | `SISTEMA.CAMBIO_MODO` broadcast | Todos los hijos | Lanzar la aventura tras confirmación final del usuario |
 | `SELECCION.TERMINOS_ACEPTADOS` | Pantalla de selección (P10) | `_hdl_SELECCION_TERMINOS_ACEPTADOS`: registra aceptación en `estado`; sin efecto en carga de iframes | (ninguna) | — | Trazabilidad legal; el flujo puede continuar sin este ACK |
 | `RETO.SOLICITAR_RETO` | Hijo 3 (click en `#retosBtn`) o Hijo 4 (click en `#botonRetos`) | `_hdl_RETO_SOLICITAR`: llama `mostrarReto(estado.paradaActual)` → envía `RETO.MOSTRAR` a hijo4 con los datos del reto | `RETO.MOSTRAR` | Hijo 4 | El padre es el árbitro de qué reto mostrar; hijos no acceden directamente a los datos |
@@ -11361,7 +11360,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Hijo 2 (botón de mapa vintage) | `_hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE`: muestra imagen JPG del mapa vintage en overlay | (ninguna) | — | Vista alternativa del mapa con estética histórica |
 | `AUDIO.ESTADO_ACTUALIZADO` | Hijo 3 (cambio de estado play/pause/stop) | `_hdl_AUDIO_ESTADO_ACTUALIZADO`: guarda `{ id, estado, timestamp, origen }` en `estado.audioActual`, refresca los controles de audio del padre (`actualizarEstadoControlesAudioPadre`) y registra el evento `AUDIO_ESTADO_CAMBIADO`; sin reenvío | (ninguna) | — | Tracking del estado de reproducción para lógica de pending |
 | `AUDIO.ERROR` | Hijo 3 (error durante reproducción) | `_hdl_AUDIO_ERROR`: registra en log; habilita el reto igualmente si la parada tiene reto (el audio no es bloqueante ante error) | `RETO.HABILITAR` condicional | Hijo 4 | El error de audio no debe impedir al usuario completar el reto |
-| `DATOS.COORDENADAS_CARGADAS` | Hijo 2 (confirmación de carga) | `_hdl_DATOS_COORDENADAS_CARGADAS`: escribe en el log el total cargado (o el error que reporta hijo2) y pone `estado.seleccion.coordenadasCargadas` a `true`/`false`, campo que ningún código lee | (ninguna) | — | Dejar constancia de que hijo2 recibió las coordenadas |
+| `DATOS.COORDENADAS_CARGADAS` | Hijo 2 (confirmación de carga) | `_hdl_DATOS_COORDENADAS_CARGADAS`: escribe en el log el total cargado (o el error que reporta hijo2) | (ninguna) | — | Dejar constancia de que hijo2 recibió las coordenadas |
 | `DATOS.TEXTOS_CARGADOS` | Hijo 2 (confirmación de carga de textos descriptivos) | `_hdl_DATOS_TEXTOS_CARGADOS`: solo escribe en el log el total cargado (o el error que reporta hijo2) | (ninguna) | — | Dejar constancia de que hijo2 recibió los textos |
 | `SISTEMA.CAMBIO_MODO` | Hijo 5 (botón de cambio de modo), o el propio padre con `despacharLocal` (activación de la aventura, reanudación de sesión con `restaurado: true`, vuelta a CASA) | `_hdl_SISTEMA_CAMBIO_MODO`: único guard de cambio de modo de la app (`estado.sistema.cambiandoModo`: un segundo cambio mientras otro sigue en curso se rechaza con `{ exito: false }`). Al entrar en CASA congela el progreso real (`estado.paradaRealCongelada`), apaga los recordatorios de audio, de saltar el audio y de reto, oculta los carteles de distancia, limpia la polyline de navegación y reinicia `estado.retoActual`. Actualiza el mapa (`manejarCambioModoMapa`; en una reanudación, solo `sincronizarModoMapa`), delega el protocolo con los hijos en `manejarCambioModo` (`js/app.js`, §26.6) y, si sale bien, sincroniza el modo en `vv_aventura_iniciada`, restaura el progreso real congelado al volver a AVENTURA, arranca (AVENTURA) o pausa (CASA) el latido del padre y comprueba el GPS, que no se detiene en ningún modo (§2.4, §2.5) | `SISTEMA.CAMBIO_MODO` a los hijos, que manda `manejarCambioModo`; el handler devuelve `{ exito, modoActual }` o `{ exito: false, error }` | Todos los hijos inicializados | Un solo camino para cambiar de modo (§26.6) |
 | `SISTEMA.ERROR` | Cualquier frame: códigos propios (`AUDIO_CONTROL_FALLIDO`, de hijo3) y `ERROR_NO_CONTROLADO`, que manda la captura automática de errores de `js/utils.js` | `_hdl_SISTEMA_ERROR`: escribe en el log (`warn`) el `codigo`, el `mensaje` y, si viene, el `comando`; con `AUDIO_CONTROL_FALLIDO` llama además a `_marcarAudioNoDisponible()` para activar el botón de saltar (§25.5f) | (ninguna) | — | Recoger los errores que un frame no puede resolver solo (§10.17) |
@@ -12362,7 +12361,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-3ad86c4803ea';
+const CACHE_VERSION = 'v-8b44a78ca13d';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
