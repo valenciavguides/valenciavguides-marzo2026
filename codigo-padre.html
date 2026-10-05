@@ -4202,7 +4202,6 @@
             retoActual: {
                 id: null,
                 disponible: false,
-                completado: false,
                 // Cola multi-reto: lista ordenada de IDs y set de completados
                 cola: [],           // ["R7-Av1-es", "PZ-01"] — todos los retos de la parada
                 colaCompletados: new Set()  // IDs completados correctamente
@@ -7564,11 +7563,11 @@
                     // protege al cliente real durante la ventana de P14, sin seguir
                     // interfiriendo una vez se sabe con certeza que estamos en CASA.
                     globalThis._codigoValidadoP13 = false;
-                    // estado.retoActual (id/disponible/completado/cola) es del elemento de
+                    // estado.retoActual (id/disponible/cola) es del elemento de
                     // AVENTURA que se dejó atrás — nada lo reseteaba al cambiar de modo (mismo
                     // patrón que idParadaActual en hijo2, reporte de uso real 2026-08-17). Se
                     // reconstruye limpio al volver a AVENTURA, vía la restauración de más abajo.
-                    estado.retoActual = { id: null, disponible: false, completado: false, cola: [], colaCompletados: new Set() };
+                    estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
                 }
 
                 // Ocultar hijo5 inmediatamente al cambiar a AVENTURA, sin esperar el await
@@ -8160,7 +8159,7 @@
             if (!globalThis.estadoPadre.hijosPreparados) globalThis.estadoPadre.hijosPreparados = new Set();
 if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = new Map();
             if (!globalThis.estadoPadre.retoActual) {
-                globalThis.estadoPadre.retoActual = { id: null, disponible: false, completado: false, cola: [], colaCompletados: new Set() };
+                globalThis.estadoPadre.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
             }
 
             // Verificar que enviarMensaje_S1 también esté disponible (alias usado en iframes)
@@ -10089,7 +10088,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 estado.retoActual = {
                     id: retosIds[0] || null,
                     disponible: false,
-                    completado: false,
                     cola: retosIds,
                     colaCompletados: new Set()
                 };
@@ -10228,7 +10226,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                     if (modoActual === MODOS.CASA) {
                         // Modo casa: limpiar estado del reto, no avanzar — usuario elige via hijo5
-                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], colaCompletados: new Set() };
+                        estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA: estado limpiado, usuario elige siguiente parada via hijo5`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
@@ -10716,7 +10714,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Guard: inicializar retoActual si no existe (puede ocurrir si estadoPadre
                 // fue recreado con el fallback mínimo sin incluir retoActual)
                 if (!estado.retoActual) {
-                    estado.retoActual = { id: null, disponible: false, completado: false, cola: [], colaCompletados: new Set() };
+                    estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
                 }
 
                 // Determinar qué reto mostrar: el siguiente no completado de la cola
@@ -10743,7 +10741,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 estado.retoActual.id = retoIdToUsar;
                 estado.retoActual.disponible = true;
-                estado.retoActual.completado = false;
 
                 // Mostrar el iframe de hijo4 antes de enviar el reto
                 await mostrarHijo4();
@@ -10910,7 +10907,6 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         async function _retoColaCompletada(retoId, completados, estado, logPrefix) {
-            estado.retoActual.completado = true;
             (globalThis.logger || console).info(`${logPrefix} Todos los retos de la cola completados (${completados.size}/${(estado.retoActual.cola || []).length}) -> marcando pending.reto`);
             const modoActual = estado.modo?.actual;
             try {
@@ -10929,7 +10925,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     // Sin clave: fallback — respetar modo
                     if (modoActual === MODOS.CASA) {
-                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], colaCompletados: new Set() };
+                        estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
@@ -10960,7 +10956,6 @@ await _comprobarReanudacionAventura(logPrefix);
             if (siguienteRetoEnCola) {
                 (globalThis.logger || console).info(`${logPrefix} Reto ${retoId} completado, mostrando siguiente en cola: ${siguienteRetoEnCola}`);
                 estado.retoActual.id = siguienteRetoEnCola;
-                estado.retoActual.completado = false;
                 try {
                     // Protección pasiva por parada: resolver solo este reto, no la aventura completa.
                     const _aventuraSec = globalThis.aventuraSeleccionada;
@@ -11006,9 +11001,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 // estado.retosCompletados retirado entero (no solo sus campos):
                 // era un Map que nadie leía con .get() — decisión del usuario, "no
                 // necesito estadísticas de ningún tipo en esta PWA".
-
-                // Actualizar estado del reto actual
-                estado.retoActual.completado = correcto;
 
                 // 📤 Notificar a hijo2 que reto terminó (para rehabilitar botones)
                 try {
@@ -11694,14 +11686,14 @@ await _comprobarReanudacionAventura(logPrefix);
                     // Con audio: el botón se habilita solo tras terminar el audio (_procesarFinAudioElemento).
                     // TODO: cuando toda la app tenga audios, este será el único camino en aventura —
                     //       eliminar la rama sin audio y habilitar únicamente desde el audio-finish path.
-                    estado.retoActual = { id: retosDeParada[0], disponible: false, completado: false, cola: retosDeParada, colaCompletados: new Set() };
+                    estado.retoActual = { id: retosDeParada[0], disponible: false, cola: retosDeParada, colaCompletados: new Set() };
                     await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'esperar_fin_audio_aventura' }
                     });
                 } else if (tieneReto) {
-                    estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, colaCompletados: new Set() };
+                    estado.retoActual = { id: retosDeParada[0], disponible: true, cola: retosDeParada, colaCompletados: new Set() };
                     await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
                         destino: 'hijo3',
@@ -11721,7 +11713,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
             } else {
                 if (tieneReto) {
-                    estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, colaCompletados: new Set() };
+                    estado.retoActual = { id: retosDeParada[0], disponible: true, cola: retosDeParada, colaCompletados: new Set() };
                     await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
                         destino: 'hijo3',
@@ -12350,7 +12342,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     // Sin clave: fallback directo, respetar modo
                     if (modoActual === MODOS.CASA) {
-                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], colaCompletados: new Set() };
+                        estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         // Tramo y parada se tratan igual aquí también — habilitar btnAvanzar y
@@ -12379,7 +12371,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).info(`${logPrefix} Audio finalizado en modo aventura, habilitando botón de retos para ${retosDelElemento.length} reto(s): ${retosDelElemento.join(', ')}`);
                 estado.retoActual.id = retosDelElemento[0];
                 estado.retoActual.disponible = true;
-                estado.retoActual.completado = false;
                 estado.retoActual.cola = retosDelElemento;
                 estado.retoActual.colaCompletados = new Set();
                 await enviarMensaje_S2({
@@ -12400,14 +12391,12 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).warn(`${logPrefix} Audio finalizado en modo aventura, ${retosDelElemento.length} reto(s) disponible(s) pero hijo4 no está listo - botón no habilitado`);
                 estado.retoActual.id = retosDelElemento[0];
                 estado.retoActual.disponible = true;
-                estado.retoActual.completado = false;
                 estado.retoActual.cola = retosDelElemento;
                 estado.retoActual.colaCompletados = new Set();
             } else if (tieneRetos) {
                 (globalThis.logger || console).info(`${logPrefix} Audio finalizado en modo casa, ${retosDelElemento.length} reto(s) disponible(s) pero no habilitado automáticamente`);
                 estado.retoActual.id = retosDelElemento[0];
                 estado.retoActual.disponible = true;
-                estado.retoActual.completado = false;
                 estado.retoActual.cola = retosDelElemento;
                 estado.retoActual.colaCompletados = new Set();
             } else {
