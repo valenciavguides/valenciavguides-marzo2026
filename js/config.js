@@ -58,7 +58,9 @@ export const CONFIG = {
     }
 };
 
-// Hacer CONFIG disponible globalmente: lo lee js/logger.js (CONFIG.DEBUG.NIVEL_LOG) en cada llamada, en cada ventana
-if (globalThis.window !== undefined) {
+// Hacer CONFIG disponible globalmente: lo lee js/logger.js (CONFIG.DEBUG.NIVEL_LOG) en cada llamada. Solo la ventana de arriba la
+// publica: un iframe que importe este módulo (hijo2, para CONFIG.GPS) tendría una copia propia, el logger la preferiría a la del padre y
+// el nivel de log dejaría de tener una única fuente; los iframes miran hacia arriba (js/logger.js).
+if (globalThis.window !== undefined && globalThis.parent === globalThis) {
     globalThis.__vv_config = CONFIG;
 }

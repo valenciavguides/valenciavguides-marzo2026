@@ -11,8 +11,8 @@
  * padre y `undefined` en los seis iframes.
  *
  * ROJO ANTES QUE VERDE: NH-1 falla sin la linea `globalThis.logger = logger` de cada hijo.
- * NH-4 falla si uno de los cinco hijos que leen el nivel del padre carga `config.js`: su logger pasa a leer la copia
- * propia y el cambio del padre no le llega (NH-2 no lo ve: toca la copia que el logger vaya a mirar).
+ * NH-4 falla si un iframe publica su propia copia de `__vv_config` (solo la ventana de arriba la publica): su logger pasa a leer la
+ * copia propia y el cambio del padre no le llega (NH-2 no lo ve: toca la copia que el logger vaya a mirar).
  */
 const { test, expect } = require('@playwright/test');
 const path = require('path');
@@ -107,11 +107,11 @@ test.describe('NH — El nivel de log alcanza a los hijos', () => {
     for (const [k, v] of Object.entries(r)) expect(`${k}=${v}`).toBe(`${k}=logger`);
   });
 
-  test('NH-4. El nivel del padre alcanza a selección, hijo1, hijo3, hijo4 e hijo5, que no tienen copia propia de CONFIG', async ({ page }) => {
-    // Una sola fuente del nivel: estos cinco leen `__vv_config` de la ventana padre porque ninguno carga `config.js`. Con una
-    // copia propia el logger mira la suya y un cambio en el padre no le llega. hijo2 queda fuera: importa `config.js` para
-    // `CONFIG.GPS` y tiene la suya (docs/estudio-caminos.md, K-56).
-    const ids = ['seleccion', 'hijo1-opciones', 'hijo3', 'hijo4', 'hijo5'];
+  test('NH-4. El nivel del padre alcanza a selección, hijo1, hijo2, hijo3, hijo4 e hijo5, que no publican `__vv_config` en su ventana', async ({ page }) => {
+    // Una sola fuente del nivel: estos seis leen `__vv_config` de la ventana padre porque solo la ventana de arriba la publica. hijo2
+    // importa `config.js` para `CONFIG.GPS`, pero ese módulo no publica en un iframe. Con una copia propia el logger mira la suya y un
+    // cambio en el padre no le llega.
+    const ids = ['seleccion', 'hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5'];
     await page.waitForFunction(
       (lista) => lista.every((id) => document.getElementById(id)?.contentWindow?.logger),
       ids, { timeout: 30000 }
