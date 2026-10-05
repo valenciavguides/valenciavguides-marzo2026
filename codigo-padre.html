@@ -5163,12 +5163,6 @@
             }
         }
 
-        // === INICIALIZACIONES ADICIONALES DE SEGURIDAD Y CORRELACIÓN ===
-        // Garantizar mapas/sets compartidos antes de que otros scripts los usen
-        if (!globalThis.estadoPadre.hijosFallidos) {
-            globalThis.estadoPadre.hijosFallidos = new Set();
-        }
-
         // Guards/flags globales para evitar doble inicialización/registro
         globalThis.__MENSAJERIA_INICIADA = globalThis.__MENSAJERIA_INICIADA || false;
         globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
@@ -8354,7 +8348,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Se cargan en _hdl_SELECCION_P14_MOSTRADA, tras validación del código en P13.
 
                 // 5. Marcar sistema como inicializado
-                globalThis.estadoPadre.sistemaInicializado = true;
                 globalThis.sistemaInicializado = true;
                 (globalThis.logger || console).success(`${logPrefix} ✅ Sistema completo inicializado correctamente`);
 
