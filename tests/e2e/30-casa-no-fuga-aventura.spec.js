@@ -233,7 +233,7 @@ test.describe('CM — hijo2: detección de llegada no se dispara mirando una par
           resolve(true);
         }, { once: true });
         iframe.addEventListener('error', () => resolve(false), { once: true });
-        iframe.src = 'coordenadas-hijo2.html';
+        iframe.src = '/coordenadas-hijo2.html';
         document.body.appendChild(iframe);
       });
     });

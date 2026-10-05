@@ -47,7 +47,7 @@ async function cargarHijo2Real(page) {
         try { globalThis.mensajeria.registrarIframe('hijo2', iframe); } catch (_e) { /* reportado por el propio test si falla luego */ }
         resolve(true);
       }, { once: true });
-      iframe.src = 'coordenadas-hijo2.html';
+      iframe.src = '/coordenadas-hijo2.html';
       document.body.appendChild(iframe);
     });
   });

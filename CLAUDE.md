@@ -125,6 +125,7 @@ viven aquí.
 Cada decisión de código tiene una sola forma. Esta lista recoge las ya decididas, una línea cada una; las que faltan se deciden familia a familia (`docs/estudio-caminos.md`, R2.10) y se añaden aquí al cerrarse. Antes de escribir código nuevo, mirar si la decisión ya figura aquí.
 
 - **Specs, `goto`:** en `tests/`, todo `goto` recibe una ruta que empieza por `/` (se resuelve contra el `baseURL` de `playwright.config.js`): ni el origen escrito a mano ni una ruta sin barra.
+- **Specs, `src` de un iframe:** el `src` de un iframe que inyecta un spec empieza por `/` (se resuelve contra el documento anfitrión, no contra `baseURL`).
 
 ## Documentación de autoridad
 
