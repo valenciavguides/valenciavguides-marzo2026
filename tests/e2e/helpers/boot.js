@@ -224,7 +224,7 @@ async function getMensajeriaReadySnapshot(page) {
   return snapshot;
 }
 
-const MARCO_VACIO = 'tests/e2e/helpers/marco-vacio.html';
+const MARCO_VACIO = '/tests/e2e/helpers/marco-vacio.html';
 
 /**
  * Abre un hijo dentro de `marco-vacio.html`, que le hace de padre sin mandarle nada.
