@@ -14053,97 +14053,97 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarVideoOverlay` | clásico 7 (L2092) | módulo 1, módulo 2 | función/objeto |
 | `rotationSuppressed` | clásico 7 (L1792) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 (L3823) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5174) | clásico 13 | estado |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5161) | clásico 13 | estado |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3811) | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3810) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5992) | clásico 13 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6664) | clásico 13 | estado |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5979) | clásico 13 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6651) | clásico 13 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3812) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6804) | clásico 13 | estado |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6791) | clásico 13 | estado |
 | `__vv_MAPAS_VINTAGE` | módulo 1 (L3814) | módulo 2 | función/objeto |
 | `__vv_PUZZLES` | módulo 1 (L3815) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3691) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4856) | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 (L7573) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L9153) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L9369) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L9274) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4851) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7559) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L9138) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9354) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L9259) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L4142) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L9243) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9439) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9345) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L9249) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9447) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L9123) | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5318) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6165) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L9228) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9424) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9330) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L9234) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9432) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L9108) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5305) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6152) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3951) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 (L3958) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4670) | clásico 6, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8468) | clásico 5, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8466) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8467) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4669) | clásico 6, módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8453) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8451) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8452) | módulo 2 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L4049) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3945) | clásico 6, clásico 7, módulo 2, módulo 3, clásico 12, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3946) | módulo 2 | función/objeto |
 | `estadoPadre` | módulo 1 (L4147) | clásico 6, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4470) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4261) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6568) | módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4469) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4260) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6555) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2949) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4671) | clásico 6, módulo 2, clásico 14 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4670) | clásico 6, módulo 2, clásico 14 | función/objeto |
 | `limpiarDatosAventura` | módulo 1 (L2984) | módulo 2, clásico 14 | función/objeto |
 | `MODOS` | módulo 1 (L3943) | módulo 2, módulo 4 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8850) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8919) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8773) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8626) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8669) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4330) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8835) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L8904) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8758) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8611) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8654) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4329) | módulo 2 | función/objeto |
 | `registrarControlador` | módulo 1 (L3944) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5202) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5229) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5189) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5216) | módulo 2 | función/objeto |
 | `registrarIframeHijo` | módulo 1 (L3735) | clásico 6, módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2990) | clásico 7, módulo 2 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2979) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2980) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6404) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6329) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6256) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6484) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6560) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6861) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6860) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6391) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6316) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6243) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6471) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6547) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6848) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6847) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2937) | módulo 2 | función/objeto |
 | `sleep` | módulo 1 (L2859) | módulo 2, módulo 3, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5929) | módulo 2 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5916) | módulo 2 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L3942) | clásico 6, clásico 7, módulo 2, módulo 3, módulo 4 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L4120) | clásico 7, módulo 2 | función/objeto |
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2988) | clásico 14 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2965) | módulo 2 | función/objeto |
 | `verificarTimeoutAventura` | módulo 1 (L2985) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8469) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9559) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14553) | clásico 13 | estado |
-| `_buscarParadaEnDatos` | módulo 2 (L11474) | módulo 1 | función/objeto |
-| `_configurarRetoBtn` | módulo 2 (L11748) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L14534) | clásico 6 | función/objeto |
-| `_iframesPreCargadosP14` | módulo 2 (L12775) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L13194) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L13228) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9619) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10497) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9758) | clásico 6, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9840) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10316) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13464) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10379) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9878) | módulo 1 | función/objeto |
-| `obtenerRetosIds` | módulo 2 (L9895) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10371) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10344) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14625) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE_IFRAME` | módulo 3 (L14572) | clásico 12 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8454) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9544) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14504) | clásico 13 | estado |
+| `_buscarParadaEnDatos` | módulo 2 (L11452) | módulo 1 | función/objeto |
+| `_configurarRetoBtn` | módulo 2 (L11726) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L14485) | clásico 6 | función/objeto |
+| `_iframesPreCargadosP14` | módulo 2 (L12742) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L13154) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L13184) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9604) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10481) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9743) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9825) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10300) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13415) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10363) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9863) | módulo 1 | función/objeto |
+| `obtenerRetosIds` | módulo 2 (L9880) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10355) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10328) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14576) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE_IFRAME` | módulo 3 (L14523) | clásico 12 | función/objeto |
 
 </details>
 
