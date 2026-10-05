@@ -925,26 +925,6 @@ function registrarEvento(tipo, datos = {}, nivel = 'info') {
 // las llamadas internas de este fichero usan (globalThis.registrarEvento ?? registrarEvento)
 // para preferir la del padre cuando ya está disponible.
 
-// Tiempo que tardó la carga de la página, con la API de navegación moderna
-function obtenerTiempoCargaPagina() {
-    if (performance.getEntriesByType) {
-        const [nav] = performance.getEntriesByType('navigation');
-        if (nav && typeof nav.loadEventEnd === 'number') {
-            return nav.loadEventEnd - nav.startTime;
-        }
-    }
-    return null;
-}
-
-globalThis.addEventListener('load', () => {
-    const tiempoCarga = obtenerTiempoCargaPagina();
-    (globalThis.registrarEvento ?? registrarEvento)('pagina_cargada', {
-        tiempoCarga,
-        url: globalThis.location.href,
-        userAgent: navigator.userAgent
-    });
-});
-
 // Controladores AUDIO implementados en audio-hijo3.html (hijo3)
 // Controladores NAVEGACIóN en funciones-mapa.js
 

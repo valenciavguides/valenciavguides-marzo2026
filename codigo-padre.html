@@ -1520,21 +1520,6 @@
                 (globalThis.logger || console).info('#mapa container created successfully during early initialization');
             }
 
-
-            // 2. Registrar evento de inicialización app (desde js/app.js)
-            if (typeof globalThis.registrarEvento === 'function') {
-                try {
-                    globalThis.registrarEvento('app_inicializada', {
-                        version: '1.0.0',
-                        userAgent: navigator.userAgent,
-                        url: globalThis.location.href,
-                        timestamp: new Date().toISOString()
-                    }, 'info');
-                } catch (e) {
-                    (globalThis.logger || console).warn('[PADRE] Error registrando evento app_inicializada:', e);
-                }
-            }
-
             function esVisible(el) {
                 if (!el) return false;
                 let style = globalThis.getComputedStyle(el);
