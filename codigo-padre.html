@@ -7192,7 +7192,6 @@
                 const estadoHijo = globalThis.estadoPadre.estadoHijos.get(hijoId) || {};
                 globalThis.estadoPadre.estadoHijos.set(hijoId, {
                     ...estadoHijo,
-                    preparado: true,
                     version
                 });
 
@@ -7307,7 +7306,7 @@
                 const { version = '1.0.0', capacidades = [], tiempoInicializacion = 0 } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} Hijo listo: ${hijoId}`, { version, capacidades: capacidades.length, tiempoInicializacion });
                 const estadoHijo = estado.estadoHijos.get(hijoId) || {};
-                estado.estadoHijos.set(hijoId, { ...estadoHijo, activo: true, listo: true, fallosConsecutivos: 0, version, tiempoInicializacion });
+                estado.estadoHijos.set(hijoId, { ...estadoHijo, activo: true, fallosConsecutivos: 0, version, tiempoInicializacion });
                 (globalThis.logger || console).info(`${logPrefix} ✅ ${hijoId} listo y estado actualizado.`);
                 await _hijoListo_confirmarAlHijo(hijoId, logPrefix);
                 // Hook de recuperación: si el hijo fue recargado por heartbeat, restaurar su estado

@@ -4853,7 +4853,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-ca86ff8f2d07'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-3ff1ce48794d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8166,7 +8166,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-ca86ff8f2d07'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-3ff1ce48794d'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8913,7 +8913,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ca86ff8f2d07';
+const CACHE_VERSION = 'v-3ff1ce48794d';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11318,7 +11318,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta el padre | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
 | `SISTEMA.HIJO_PREPARADO` | Cualquier hijo al cargarse | Registra al hijo en `hijosPreparados`; envía PADRE_DATOS inmediatamente (no espera a los demás hijos) | `SISTEMA.PADRE_DATOS { modo, timestamp }` | El hijo que envió la señal | Arrancar el handshake de inicialización |
-| `SISTEMA.HIJO_LISTO` | Cualquier hijo tras procesar `PADRE_DATOS` | `_hdl_SISTEMA_HIJO_LISTO`: añade al hijo a `hijosInicializados`, avisa al state-manager (`marcarHijoListo`) y lo marca `activo` y `listo` en `estado.estadoHijos`; le contesta `PADRE_CONFIRMA_HIJO_LISTO`; si el hijo se había recargado por el latido, `_vv_afterHijoListo` le devuelve su estado (§2.7a); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` (solo si la aventura y el idioma ya están elegidos y hay datos para ellos) y a hijo3 le reconfigura `retosBtn`; cuando hijo2, hijo3 e hijo4 están listos llama `_hijoListo_onTodosListos()`, que marca `estado.todosHijosListos`, registra `TODOS_HIJOS_LISTOS` y se despacha `SISTEMA.APLICACION_INICIALIZADA` | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` (`{ timestamp, mensaje, modoInicial }`) | El hijo que envió la señal | Completar la fase de handshake; saber cuándo la app está 100% operativa |
+| `SISTEMA.HIJO_LISTO` | Cualquier hijo tras procesar `PADRE_DATOS` | `_hdl_SISTEMA_HIJO_LISTO`: añade al hijo a `hijosInicializados`, avisa al state-manager (`marcarHijoListo`) y lo marca `activo` en `estado.estadoHijos`; le contesta `PADRE_CONFIRMA_HIJO_LISTO`; si el hijo se había recargado por el latido, `_vv_afterHijoListo` le devuelve su estado (§2.7a); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` (solo si la aventura y el idioma ya están elegidos y hay datos para ellos) y a hijo3 le reconfigura `retosBtn`; cuando hijo2, hijo3 e hijo4 están listos llama `_hijoListo_onTodosListos()`, que marca `estado.todosHijosListos`, registra `TODOS_HIJOS_LISTOS` y se despacha `SISTEMA.APLICACION_INICIALIZADA` | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` (`{ timestamp, mensaje, modoInicial }`) | El hijo que envió la señal | Completar la fase de handshake; saber cuándo la app está 100% operativa |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Anota en un `Map` interno (`_respuestasEntendidoActual`, `js/app.js`) que ese hijo recibió el cambio de modo; `actualizarInterfazModo` espera hasta 5 s a los de todos los hijos y sigue aunque falte alguno (lo avisa en el log) | (ninguna) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Anota en un `Map` interno (`_respuestasEfectuadoActual`, `js/app.js`) que el hijo aplicó el modo; no envía nada: `actualizarInterfazModo` espera hasta 10 s a los de todos los hijos y, aunque falte alguno (lo avisa en el log), pasa a la fase siguiente | (ninguna; `SISTEMA.CAMBIO_MODO_APLICADO` lo manda `actualizarInterfazModo`, no este handler) | — | 3.ª fase del protocolo: confirmar que cada hijo aplicó el modo antes de cerrar la 4.ª |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat (hijo5 la manda además por su cuenta al volver la pestaña a primer plano) | Pone `fallosConsecutivos` a 0 y `activo` a `true` en `estado.estadoHijos` (o da de alta al hijo) y llama a `mensajeria.procesarHeartbeatResponse()`, que reinicia `heartbeatsFallidos`, anota `ultimoHeartbeat` y, si el hijo estaba desconectado, lo da por reconectado | (ninguna) | — | Confirmar que el hijo está vivo; si el contador supera `MAX_LATIDOS_SIN_RESPUESTA=3` (`js/mensajeria.js`), el padre recarga el iframe |
@@ -12362,7 +12362,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-ca86ff8f2d07';
+const CACHE_VERSION = 'v-3ff1ce48794d';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
