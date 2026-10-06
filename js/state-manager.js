@@ -64,10 +64,7 @@ const state = {
   heartbeat: {
     activo: false,
     intervalo: null,
-    userPaused: false,
-    heartbeatsFallidos: new Map(),
-    ultimoHeartbeat: new Map(),
-    hijosDesconectados: []
+    userPaused: false
   },
   hijosListosPromises: new Map(),
 };
@@ -121,14 +118,6 @@ export async function updateHeartbeat(updates) {
   });
 }
 
-export async function atomicUpdateHeartbeat(fn) {
-  await mutexes.heartbeat.runExclusive(async () => {
-    const snapshot = _deepCopy(state.heartbeat);
-    const updates = await fn(snapshot);
-    if (updates !== undefined) _deepMerge(state.heartbeat, updates);
-  });
-}
-
 // Sistema de eventos para HIJO_LISTO
 // Sin mutex: el browser es single-threaded; Map/Set ops son atómicas en este contexto.
 export function crearPromiseHijoListo(hijoId) {
@@ -164,11 +153,18 @@ export function marcarHijoListo(hijoId) {
   }
 }
 
-// Inverso de marcarHijoListo. El padre vacía su propio conjunto de hijos listos cuando recarga un iframe
-// (_normalizarSetHijos); si este conjunto conserva el id, crearPromiseHijoListo resuelve al instante y la espera de
-// un HIJO_LISTO nuevo no espera.
+// Inverso de marcarHijoListo. Quien recarga un iframe vacía su constancia de que estaba listo: el padre su propio conjunto
+// (_normalizarSetHijos) y el supervisor del bus la de este (recargarIframe). Si este conjunto conserva el id,
+// crearPromiseHijoListo resuelve al instante y la espera de un HIJO_LISTO nuevo no espera, y el supervisor seguiría dando
+// por hecho el apretón de manos de un iframe que acaba de empezar a cargar.
 export function olvidarHijoListo(hijoId) {
   state.estadoPadre.hijosInicializados?.delete(hijoId);
+}
+
+// ¿Ha hecho este hijo el apretón de manos (HIJO_LISTO) desde que se cargó por última vez? Es la pregunta con que el
+// bus decide qué se le exige a cada iframe supervisado: latido si lo hizo, gracia de arranque si no.
+export function hijoEstaListo(hijoId) {
+  return state.estadoPadre.hijosInicializados?.has(hijoId) === true;
 }
 
 function _deepCopy(obj) {
@@ -334,12 +330,12 @@ export async function inicializarStateManager() {
       esperarRegistrosPendientes,
       getHeartbeat,
       updateHeartbeat,
-      atomicUpdateHeartbeat,
 
       // Sistema de eventos para HIJO_LISTO
       crearPromiseHijoListo,
       marcarHijoListo,
       olvidarHijoListo,
+      hijoEstaListo,
 
       // Diagnóstico
       diagnosticar: diagnosticarStateManager,

@@ -17,7 +17,7 @@
     const nieto = document.createElement('iframe');
     nieto.id = 'nieto';
     nieto.name = 'nieto';
-    bus.registrarIframe('nieto', nieto, { recuperable: false });
+    bus.registrarIframe('nieto', nieto);
     document.body.appendChild(nieto);
     nieto.src = 'nieto.html';
 

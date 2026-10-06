@@ -6,6 +6,15 @@
 </head>
 <body>
   <!-- Iframe registrado que nunca contesta al latido (tests/e2e/79): sirve para comprobar qué
-       se recarga y qué no. -->
+       se recarga y qué no. Apunta cada latido que recibe, porque lo que se mide es también a quién NO le llega. -->
+  <script>
+    // En localStorage y no en una variable: el supervisor lo recarga y una variable se perdería con la recarga.
+    // `name` es el nombre del iframe en el arnés.
+    addEventListener('message', (e) => {
+      if (e.source !== parent || e.data?.tipo !== 'SISTEMA.HEARTBEAT') return;
+      const clave = `latidos:${name}`;
+      localStorage.setItem(clave, String(Number(localStorage.getItem(clave) || 0) + 1));
+    });
+  </script>
 </body>
 </html>

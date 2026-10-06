@@ -1,31 +1,30 @@
 /**
- * 80 — La red de seguridad: un hijo que deja de contestar se recupera
+ * 80 — La red de seguridad: un hijo que deja de estar sano se recupera
  *
  * POR QUE EXISTE
  *
- * El bus vigila a todos los iframes registrados y, tras `MAX_LATIDOS_SIN_RESPUESTA` latidos sin
- * respuesta, recarga **solo** los marcados como `recuperable`. Recargar a ciegas un frame que no
- * sabe retomar lo que estaba haciendo le hace perder el sitio al usuario, que es peor que el
- * cuelgue; por eso la marca existe.
+ * El bus supervisa a todos los iframes que hacen el apretón de manos (HIJO_PREPARADO → HIJO_LISTO) y
+ * contestan al latido, y recarga al que deja de estar sano. Son todos los hijos por igual: la pantalla de
+ * selección y de hijo1 a hijo6. No lo son los iframes que no hacen ese apretón (mapa completo, puzzle, vídeo):
+ * no tienen nada que contestar, y supervisarlos los daría por caídos siempre.
  *
- * Quien puede llevar la marca no es una opinion: son exactamente los cuatro que
- * `_vv_afterHijoListo` (codigo-padre.html) sabe restaurar tras la recarga — hijo1 su temporizador,
- * hijo2 su parada, hijo3 su audio, hijo4 su reto. La pantalla de seleccion, hijo5 y el chat no
- * tienen restauracion, asi que no se recargan.
+ * El contrato del bus (spec 79, BC-12) prueba el mecanismo con un arnés que pasa `supervisado` a mano.
+ * Eso deja dos huecos: si la PWA real no se lo pasa a un hijo, o si un hijo no contesta al latido por el
+ * camino de vuelta, BC-12 sigue verde y la red de seguridad no existe — o recarga a un hijo sano cada
+ * pocos segundos. Esta spec cubre justo esos huecos, contra la aplicación de verdad.
  *
- * El contrato del bus (spec 79, BC-12b) prueba el mecanismo con un arnes que pasa la marca a mano.
- * Eso deja un hueco: si la PWA real no se la pasa a nadie, BC-12b sigue verde y la red de
- * seguridad no existe. Esta spec cubre justo ese hueco, contra la aplicacion de verdad.
+ *   RC-1  Control: tras la carga, los hijos están registrados en el bus y se puede leer si están supervisados.
+ *         Sin esto, un RC-2 en verde podría deberse a que no hay nada que mirar.
+ *   RC-2  Todos los hijos registrados están supervisados, y ninguno de los que no hacen el apretón lo está.
+ *   RC-3  La restauración de hijo1 llega a hijo1: el snapshot se dirige al id con el que el hijo
+ *         está registrado (`hijo1-opciones`), no a un `hijo1` que no existe en la mensajería.
+ *   RC-4  Cada hijo contesta al latido y su respuesta llega a la cuenta del bus: un hijo con latidos sin
+ *         responder vuelve a cero al contestar. Es el viaje de vuelta de cada hijo hasta el supervisor.
  *
- *   RC-1  Control: tras la carga, los hijos estan registrados en el bus y se puede leer su marca.
- *         Sin esto, un RC-2 en verde podria deberse a que no hay nada que mirar.
- *   RC-2  Los cuatro que saben restaurarse estan marcados, y los que no, no lo estan.
- *   RC-3  La restauracion de hijo1 llega a hijo1: el snapshot se dirige al id con el que el hijo
- *         esta registrado (`hijo1-opciones`), no a un `hijo1` que no existe en la mensajeria.
- *
- * ROJO ANTES QUE VERDE: RC-2 falla si nadie pasa `{ recuperable: true }` al registrar, y RC-3 falla
- * si la restauracion se dirige a un id que la mensajeria no conoce — en ambos casos la recarga
- * automatica queda muerta sin que ningun otro test lo note.
+ * ROJO ANTES QUE VERDE: RC-2 falla si nadie pasa `{ supervisado: true }` al registrar, RC-3 falla si la
+ * restauración se dirige a un id que la mensajería no conoce, y RC-4 falla si un hijo no contesta o su
+ * respuesta no llega — en los tres casos la recarga automática queda muerta, o recarga a un hijo sano, sin
+ * que ningún otro test lo note.
  */
 'use strict';
 
@@ -35,27 +34,37 @@ const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./help
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
-/** Los que `_vv_afterHijoListo` sabe restaurar. Cualquier cambio aqui exige cambiarlo alli. */
-const RECUPERABLES = ['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4'];
 /**
- * Registrado a proposito SIN marca: no tiene restauracion que aplicar tras una recarga.
- * hijo5 y hijo6-chat no salen aqui porque en esta pantalla todavia no estan registrados — cada uno
- * entra en la mensajeria en su propio cargador (hijo5 al elegir aventura, el chat al abrirlo). La
- * comprobacion de que tampoco ellos llevan marca la hace RC-2 exigiendo que el conjunto marcado sea
- * EXACTAMENTE el de arriba, aparezca quien aparezca.
+ * Los hijos que hacen el apretón de manos. hijo5 y hijo6-chat no salen en RC-1 porque en esta pantalla todavía
+ * no están registrados — cada uno entra en la mensajería en su propio cargador (hijo5 al elegir aventura, el chat
+ * al abrirlo). RC-2 les exige la marca igualmente, aparezcan cuando aparezcan.
  */
-const NO_RECUPERABLES = ['seleccion'];
+const HIJOS = ['seleccion', 'hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5', 'hijo6-chat'];
+/** Los que se cargan en el beforeEach. */
+const HIJOS_CARGADOS = ['seleccion', 'hijo1-opciones', 'hijo2', 'hijo3', 'hijo4'];
+/** Registrados en el bus pero sin apretón de manos: ni los vigila el reloj ni tienen nada que contestar. */
+const SIN_APRETON = ['mapa-completo', 'puzzle', 'video-intro'];
 
 const frame = (page, nombre) => page.frames().find((f) => f.name() === nombre);
 
-/** { id: recuperable } de todo lo que el bus tiene registrado ahora mismo. */
-const marcasDeRecuperacion = (page) => page.evaluate(() => {
+/** { id: supervisado } de todo lo que el bus tiene registrado ahora mismo. */
+const supervision = (page) => page.evaluate(() => {
   const registrados = globalThis.mensajeria?.getIframesRegistrados?.();
   if (!registrados) return null;
   const salida = {};
-  for (const [id, info] of registrados) salida[id] = info?.recuperable === true;
+  for (const [id, info] of registrados) salida[id] = info?.supervisado === true;
   return salida;
 });
+
+/** Abre el asistente por el camino real —pulsando su botón— y espera a que su bus esté vivo. */
+async function abrirAsistente(page) {
+  await page.waitForFunction(() => !!document.getElementById('btn-chat-soporte'), null, { timeout: 25_000 });
+  await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
+  await page.waitForFunction(
+    () => globalThis.estadoPadre?.hijosInicializados?.has('hijo6-chat'),
+    null, { timeout: 30_000 },
+  );
+}
 
 test.describe('RC — Un hijo caido se recupera', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -70,9 +79,9 @@ test.describe('RC — Un hijo caido se recupera', () => {
   });
 
   test('RC-1. Control: los hijos estan registrados en el bus y su marca es legible', async ({ page }) => {
-    const marcas = await marcasDeRecuperacion(page);
+    const marcas = await supervision(page);
     expect(marcas, 'el bus debe exponer los iframes registrados').not.toBeNull();
-    for (const id of [...RECUPERABLES, ...NO_RECUPERABLES]) {
+    for (const id of HIJOS_CARGADOS) {
       expect(
         Object.prototype.hasOwnProperty.call(marcas, id),
         `${id} tiene que estar registrado en la mensajeria; si no, el padre no puede ni escribirle ni vigilarlo. Registrados: ${Object.keys(marcas).join(', ') || '(ninguno)'}`,
@@ -80,28 +89,24 @@ test.describe('RC — Un hijo caido se recupera', () => {
     }
   });
 
-  test('RC-2. Solo los que saben restaurarse estan marcados como recuperables', async ({ page }) => {
-    const marcas = await marcasDeRecuperacion(page);
-    const marcados = Object.keys(marcas).filter((id) => marcas[id]).sort();
+  test('RC-2. Todos los hijos estan supervisados, y los que no hacen el apretón de manos no', async ({ page }) => {
+    const marcas = await supervision(page);
 
-    for (const id of RECUPERABLES) {
+    for (const id of HIJOS_CARGADOS) {
       expect(
         marcas[id],
-        `${id} sabe restaurar su estado tras una recarga (_vv_afterHijoListo lo contempla), asi que el bus debe poder recargarlo cuando deje de contestar. Marcados ahora: ${marcados.join(', ') || '(ninguno)'}`,
+        `${id} hace el apretón de manos y contesta al latido: el bus tiene que supervisarlo, como a los demás. Supervisados ahora: ${Object.keys(marcas).filter((i) => marcas[i]).join(', ') || '(ninguno)'}`,
       ).toBe(true);
     }
-    for (const id of NO_RECUPERABLES) {
-      expect(
-        marcas[id],
-        `${id} no tiene restauracion: recargarlo a ciegas le haria perder el sitio al usuario`,
-      ).toBe(false);
-    }
-    // Ni uno de mas: si manana alguien marca hijo5 o el chat, el bus los recargaria sin que nadie
-    // sepa devolverles su estado.
+    // Ni uno de más: lo supervisado son los hijos. Un iframe sin apretón de manos daría un caído falso cada
+    // vuelta del reloj, y el bus lo recargaría para siempre.
     expect(
-      marcados,
-      'solo pueden llevar marca los que _vv_afterHijoListo sabe restaurar',
-    ).toEqual(RECUPERABLES.filter((id) => id in marcas).sort());
+      Object.keys(marcas).filter((id) => marcas[id]).sort(),
+      'solo pueden estar supervisados los hijos que hacen el apretón de manos',
+    ).toEqual(Object.keys(marcas).filter((id) => HIJOS.includes(id)).sort());
+    for (const id of SIN_APRETON) {
+      if (id in marcas) expect(marcas[id], `${id} no hace el apretón de manos: no puede estar supervisado`).toBe(false);
+    }
   });
 
   test('RC-3. La restauracion de hijo1 llega a hijo1', async ({ page }) => {
@@ -156,5 +161,37 @@ test.describe('RC — Un hijo caido se recupera', () => {
     await expect
       .poll(() => hijo1.evaluate(() => globalThis.__restauraciones.length), { timeout: 8_000 })
       .toBeGreaterThan(0);
+  });
+
+  test('RC-4. Cada hijo contesta al latido y su respuesta llega a la cuenta del bus', async ({ page }) => {
+    test.setTimeout(90_000);
+    await abrirAsistente(page);
+    const ids = [...HIJOS_CARGADOS, 'hijo6-chat'];
+    await page.waitForFunction(
+      (lista) => lista.every((id) => globalThis.estadoPadre?.hijosInicializados?.has(id)),
+      ids, { timeout: 30_000 },
+    );
+
+    // Cada hijo parte de «dos latidos sin contestar» y se le manda uno: lo único que puede dejar su cuenta
+    // a cero es que conteste y que su respuesta llegue por el handler del padre hasta el bus.
+    await page.evaluate((lista) => {
+      for (const id of lista) {
+        globalThis.mensajeria.getIframesRegistrados().get(id).latidosSinRespuesta = 2;
+        globalThis.mensajeria.enviarMensaje({
+          tipo: globalThis.TIPOS_MENSAJE.SISTEMA.HEARTBEAT,
+          destino: id,
+          datos: { timestamp: Date.now() },
+        });
+      }
+    }, ids);
+
+    await expect
+      .poll(() => page.evaluate((lista) => Object.fromEntries(
+        lista.map((id) => [id, globalThis.mensajeria.getIframesRegistrados().get(id).latidosSinRespuesta]),
+      ), ids), {
+        timeout: 8_000,
+        message: 'un hijo que no contesta al latido, o cuya respuesta no llega, seguiría con latidos sin responder: el bus lo recargaría aunque esté sano',
+      })
+      .toEqual(Object.fromEntries(ids.map((id) => [id, 0])));
   });
 });

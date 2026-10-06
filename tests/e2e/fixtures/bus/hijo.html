@@ -10,12 +10,15 @@
     import * as bus from '/js/mensajeria.js';
 
     await bus.inicializarMensajeria({ id: 'hijo' });
+
+    // Como un hijo real: contesta al latido del padre.
+    await bus.registrarControlador('SISTEMA.HEARTBEAT', () => bus.enviarMensaje({ destino: 'padre', tipo: 'SISTEMA.HEARTBEAT_RESPONSE', datos: {} }));
     globalThis.__arnes = { recibidos: {} };
 
     const nieto = document.createElement('iframe');
     nieto.id = 'nieto';
     nieto.name = 'nieto';
-    bus.registrarIframe('nieto', nieto, { recuperable: false });
+    bus.registrarIframe('nieto', nieto);
     document.body.appendChild(nieto);
     nieto.src = 'nieto.html';
 

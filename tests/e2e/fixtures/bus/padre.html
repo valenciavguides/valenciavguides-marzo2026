@@ -7,32 +7,44 @@
 <body>
   <script type="module">
     // Arnés del contrato del bus (tests/e2e/79). Monta padre → hijo → nieto con el bus real
-    // (js/mensajeria.js) y nada de la app. Carga el state-manager porque el latido guarda ahí
-    // su estado, igual que en codigo-padre.html.
-    import { inicializarStateManager } from '/js/state-manager.js';
+    // (js/mensajeria.js) y nada de la app. Carga el state-manager porque ahí se apunta quién ha hecho el
+    // apretón de manos y el latido guarda su estado, igual que en codigo-padre.html.
+    import { inicializarStateManager, marcarHijoListo } from '/js/state-manager.js';
     import * as bus from '/js/mensajeria.js';
 
     await inicializarStateManager();
     await bus.inicializarMensajeria({ id: 'padre' });
 
-    globalThis.__arnes = { recibidos: {}, cargas: {} };
+    // Como el padre real: la respuesta de un hijo al latido llega a la cuenta del bus por este handler.
+    await bus.registrarControlador('SISTEMA.HEARTBEAT_RESPONSE', (m) => bus.procesarHeartbeatResponse(m));
 
+    globalThis.__arnes = { recibidos: {}, cargas: {}, cargasT: {} };
+
+    // `opciones`: `supervisado` (el reloj lo vigila) y `listo` (ya hizo el apretón de manos). `null`: sin registrar.
     function crearIframe(id, src, opciones) {
       const el = document.createElement('iframe');
       el.id = id;
       el.name = id;
       globalThis.__arnes.cargas[id] = 0;
-      el.addEventListener('load', () => { globalThis.__arnes.cargas[id] += 1; });
+      globalThis.__arnes.cargasT[id] = [];
+      el.addEventListener('load', () => {
+        globalThis.__arnes.cargas[id] += 1;
+        globalThis.__arnes.cargasT[id].push(Date.now());
+      });
       // Registrar ANTES de asignar src: es la regla que evita que el hijo hable antes de que
       // el padre pueda contestarle.
-      if (opciones) bus.registrarIframe(id, el, opciones);
+      if (opciones) {
+        bus.registrarIframe(id, el, opciones);
+        if (opciones.listo) marcarHijoListo(id);
+      }
       document.body.appendChild(el);
       el.src = src;
     }
 
-    crearIframe('hijo', 'hijo.html', { recuperable: false });
-    crearIframe('mudo-recuperable', 'mudo.html', { recuperable: true });
-    crearIframe('mudo-fijo', 'mudo.html', { recuperable: false });
+    crearIframe('hijo', 'hijo.html', { supervisado: true, listo: true });          // sano: contesta al latido
+    crearIframe('mudo-listo', 'mudo.html', { supervisado: true, listo: true });    // hizo el apretón y luego se calló
+    crearIframe('mudo-arranque', 'mudo.html', { supervisado: true });              // nunca llega a hacer el apretón
+    crearIframe('mudo-sin-supervisar', 'mudo.html', {});                           // registrado, fuera de la supervisión
     crearIframe('intruso', 'intruso.html', null); // sin registrar, a propósito
 
     globalThis.__arnesListo = true;

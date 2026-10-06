@@ -6,8 +6,8 @@
  * La app va a pasar a un solo bus para todos los frames: padre, hijos y nietos
  * Este spec fija su contrato ANTES de
  * construirlo, con el bus real y nada de la app: el arnés de tests/e2e/fixtures/bus monta
- * padre → hijo → nieto, un iframe intruso sin registrar y dos iframes mudos que no contestan
- * al latido.
+ * padre → hijo → nieto, un iframe intruso sin registrar y tres iframes mudos que no contestan
+ * al latido: uno que ya hizo el apretón de manos, uno que nunca lo hace y uno sin supervisar.
  *
  * Cada test mide desde el lado que falla por el motivo que describe, no por otro fallo que se
  * le cruce: por ejemplo, el acuse se prueba del padre al hijo, porque del hijo al padre fallaría
@@ -26,9 +26,14 @@
  *   BC-9   La fila de un tipo sobrevive a un fallo sin objeto de error.
  *   BC-10  despacharLocal pasa por la misma fila que los mensajes que llegan.
  *   BC-11  Un error sin capturar en el nieto llega al padre, con el nombre del nieto.
- *   BC-12a El latido vigila todos los iframes registrados.
- *   BC-12b Tras tres fallos se recarga solo el recuperable; el otro, aviso.
+ *   BC-12a El latido llega a los supervisados que ya hicieron el apretón de manos, y a nadie más.
+ *   BC-12b Un iframe listo que deja de contestar se recarga tras tres latidos; la consola dice cuál y por qué.
  *   BC-12c adelantarLatido respeta la pausa y, activo, late al momento.
+ *   BC-12d Un iframe que no hace el apretón no recibe latidos: se recarga al agotarse su gracia.
+ *   BC-12e Cada recarga seguida duplica la gracia, hasta 4×, y no más.
+ *   BC-12f Quien contesta estando listo vuelve a la gracia base; una respuesta rezagada de un no listo, no.
+ *   BC-12g Al volver la red, el iframe que ya falló se reintenta al momento, sin contar como recarga seguida.
+ *   BC-12h Al volver la red no se reintenta a quien todavía no ha fallado.
  *   BC-15  El `origen` lo pone el bus: el que pasa quien envía se ignora (enviarMensaje y
  *          despacharLocal).
  *   BC-16  Al recibir de un iframe registrado, su `origen` tiene que ser su nombre de registro:
@@ -83,6 +88,42 @@ const conAcuse = (frame, mensaje) => frame.evaluate(async (m) => {
   }
 }, mensaje);
 const avisos = (logs, patron) => logs.filter((l) => (l.tipo === 'warning' || l.tipo === 'error') && patron.test(l.texto));
+
+/** Latidos que ha recibido un iframe mudo del arnés: mudo.html los apunta en localStorage, que sobrevive a las recargas. */
+const latidosDe = (padre, id) => padre.evaluate((i) => Number(localStorage.getItem(`latidos:${i}`) || 0), id);
+/** Instantes (Date.now) de cada carga de un iframe del arnés. */
+const cargasDe = (padre, id) => padre.evaluate((i) => [...globalThis.__arnes.cargasT[i]], id);
+/** Recargas seguidas que lleva un iframe registrado, tal como las cuenta el bus. */
+const recargasDe = (padre, id) => padre.evaluate((i) => globalThis.mensajeria.getIframesRegistrados().get(i)?.recargas ?? null, id);
+
+/**
+ * Cargas de cada iframe del arnés una vez que dejan de subir. Insertar un iframe dispara dos (la página en blanco
+ * y la real), sin que nada lo recargue: la cuenta base tiene que tomarse cuando ya no suben. Que el número sea 2
+ * no se da por supuesto: se mira que deje de moverse.
+ */
+async function cargasEstables(page, padre) {
+  await page.waitForFunction(() => Object.values(globalThis.__arnes.cargas).every((n) => n >= 1), null, { timeout: 5_000 });
+  let anterior = -1;
+  await expect.poll(async () => {
+    const ahora = await padre.evaluate(() => Object.values(globalThis.__arnes.cargas).reduce((a, b) => a + b, 0));
+    const quieto = ahora === anterior;
+    anterior = ahora;
+    return quieto;
+  }, { timeout: 10_000, intervals: [250] }).toBe(true);
+  return padre.evaluate(() => ({ ...globalThis.__arnes.cargas }));
+}
+
+/**
+ * Arranca la supervisión con la gracia de arranque medida desde ahora: vuelve a registrar el iframe que no hace el
+ * apretón, que reinicia su reloj de carga (al montar el arnés ya lleva registrado más tiempo que la gracia de
+ * estos tests, y la primera vuelta lo recargaría de inmediato). Devuelve el instante del arranque.
+ */
+const arrancarSupervision = (padre, intervalo) => padre.evaluate((ms) => {
+  globalThis.mensajeria.registrarIframe('mudo-arranque', document.getElementById('mudo-arranque'), { supervisado: true });
+  const t0 = Date.now();
+  globalThis.mensajeria.iniciarHeartbeat(ms);
+  return t0;
+}, intervalo);
 
 test.describe('BC — Contrato del bus único', () => {
   test('BC-0. Control: el arnés monta con el bus real y la jerarquía correcta', async ({ page }) => {
@@ -338,47 +379,48 @@ test.describe('BC — Contrato del bus único', () => {
       .toEqual([{ origen: 'hijo', reenviadoDe: 'nieto', codigo: 'ERROR_NO_CONTROLADO' }]);
   });
 
-  test('BC-12a. El latido vigila todos los iframes registrados', async ({ page }) => {
+  test('BC-12a. El latido llega a los supervisados que ya hicieron el apretón de manos, y a nadie más', async ({ page }) => {
     const { padre, hijo } = await montar(page);
+    await cargasEstables(page, padre);
     await hijo.evaluate(() => {
       globalThis.__arnes.latidos = 0;
       globalThis.addEventListener('message', (e) => { if (e.source === globalThis.parent && e.data?.tipo === 'SISTEMA.HEARTBEAT') globalThis.__arnes.latidos += 1; });
     });
     await padre.evaluate(() => globalThis.mensajeria.iniciarHeartbeat(150));
     await expect.poll(() => hijo.evaluate(() => globalThis.__arnes.latidos), {
-      timeout: 2_000,
-      message: 'un iframe registrado recibe latidos aunque no esté en ninguna lista escrita a mano',
-    }).toBeGreaterThan(0);
+      timeout: 3_000,
+      message: 'un iframe supervisado que ya hizo el apretón recibe latidos aunque no esté en ninguna lista escrita a mano',
+    }).toBeGreaterThanOrEqual(3);
+    expect(await latidosDe(padre, 'mudo-listo'), 'al que hizo el apretón y luego se calla también se le manda: se le exige contestar')
+      .toBeGreaterThan(0);
+    // VENTANA-OBSERVACION: lo que se mide es que NO llega nada. Con tres vueltas del reloj ya dadas, si el
+    // latido le llegara a quien no debe estaría aquí. Es el control de la regla de las dos mitades: sin
+    // apretón no hay nada que contestar, y sin supervisar no se le pide.
+    expect(await latidosDe(padre, 'mudo-arranque'), 'a un supervisado que todavía no hizo el apretón no se le manda latido').toBe(0);
+    expect(await latidosDe(padre, 'mudo-sin-supervisar'), 'a un iframe registrado sin supervisar no se le manda latido').toBe(0);
   });
 
-  test('BC-12b. Tras tres fallos se recarga solo el recuperable; el otro, aviso', async ({ page }) => {
+  test('BC-12b. Un iframe listo que deja de contestar se recarga tras tres latidos, y la consola dice cuál y por qué', async ({ page }) => {
     const { padre, logs } = await montar(page);
-    // Se mide la DIFERENCIA desde que empieza el latido: al insertar un iframe el navegador ya
-    // dispara dos cargas (la página en blanco inicial y la real), sin que nada lo recargue.
-    await page.waitForFunction(() => globalThis.__arnes.cargas['mudo-recuperable'] >= 1
-      && globalThis.__arnes.cargas['mudo-fijo'] >= 1, null, { timeout: 5_000 });
-    // Se espera a que las cargas iniciales PAREN, no un tiempo: insertar un iframe dispara dos
-    // (la pagina en blanco y la real) y la cuenta base tiene que tomarse cuando ya no suben.
-    // Que el numero sea 2 no se da por supuesto: se mira que deje de moverse.
-    {
-      let anterior = -1;
-      await expect.poll(async () => {
-        const ahora = await padre.evaluate(() => Object.values(globalThis.__arnes.cargas).reduce((a, b) => a + b, 0));
-        const quieto = ahora === anterior;
-        anterior = ahora;
-        return quieto;
-      }, { timeout: 10_000, intervals: [250] }).toBe(true);
-    }
-    const base = await padre.evaluate(() => ({ ...globalThis.__arnes.cargas }));
+    const base = await cargasEstables(page, padre);
 
     await padre.evaluate(() => globalThis.mensajeria.iniciarHeartbeat(150));
-    await expect.poll(() => padre.evaluate(() => globalThis.__arnes.cargas['mudo-recuperable']), {
+    await expect.poll(() => padre.evaluate(() => globalThis.__arnes.cargas['mudo-listo']), {
       timeout: 4_000,
-      message: 'el iframe recuperable que no contesta se recarga',
-    }).toBeGreaterThan(base['mudo-recuperable']);
-    expect(await padre.evaluate(() => globalThis.__arnes.cargas['mudo-fijo']), 'el no recuperable no se recarga')
-      .toBe(base['mudo-fijo']);
-    expect(avisos(logs, /mudo-fijo/).length, 'pero se avisa').toBeGreaterThan(0);
+      message: 'el iframe listo que no contesta se recarga',
+    }).toBeGreaterThan(base['mudo-listo']);
+
+    const errores = logs.filter((l) => l.tipo === 'error' && /mudo-listo/.test(l.texto));
+    expect(errores.length, 'la consola lo dice como error, con el nombre del iframe').toBeGreaterThan(0);
+    expect(errores[0].texto, 'y dice por qué: dejó de contestar al latido').toMatch(/dejó de contestar al latido/);
+    expect(await padre.evaluate(() => globalThis.__stateManager.hijoEstaListo('mudo-listo')),
+      'recargado, vuelve a no estar listo: su apretón de manos empieza de nuevo').toBe(false);
+
+    // Controles: lo que no debe recargarse no se recarga.
+    expect(await padre.evaluate(() => globalThis.__arnes.cargas['hijo']), 'el que contesta no se recarga').toBe(base['hijo']);
+    expect(await padre.evaluate(() => globalThis.__arnes.cargas['mudo-sin-supervisar']), 'el que no está supervisado no se recarga aunque no conteste')
+      .toBe(base['mudo-sin-supervisar']);
+    expect(avisos(logs, /mudo-sin-supervisar/).length, 'ni se le avisa: no es de la supervisión').toBe(0);
   });
 
   test('BC-12c. adelantarLatido respeta la pausa y, activo, late al momento', async ({ page }) => {
@@ -398,6 +440,111 @@ test.describe('BC — Contrato del bus único', () => {
     // Con intervalo de 5 s, un latido en menos de medio segundo solo puede venir de adelantarLatido.
     await padre.evaluate(async () => { await globalThis.mensajeria.reanudarHeartbeat(5_000); globalThis.mensajeria.adelantarLatido(); });
     await expect.poll(() => hijo.evaluate(() => globalThis.__arnes.latidos), { timeout: 500 }).toBeGreaterThan(0);
+  });
+
+  test('BC-12d. Un iframe que no hace el apretón no recibe latidos: se recarga al agotarse su gracia, y la consola lo dice', async ({ page }) => {
+    const { padre, logs } = await montar(page);
+    const base = await cargasEstables(page, padre);
+
+    const t0 = await arrancarSupervision(padre, 100); // gracia base: 6 latidos × 100 ms
+    await expect.poll(() => padre.evaluate(() => globalThis.__arnes.cargas['mudo-arranque']), {
+      timeout: 4_000,
+      message: 'el iframe que no llega a hacer el apretón se recarga cuando se le agota la gracia',
+    }).toBeGreaterThan(base['mudo-arranque']);
+
+    const carga = (await cargasDe(padre, 'mudo-arranque'))[base['mudo-arranque']];
+    expect(carga - t0, 'no se recarga antes de que se le agote la gracia (6 latidos × 100 ms)').toBeGreaterThanOrEqual(550);
+    expect(carga - t0, 'y se recarga en cuanto se agota, no mucho después').toBeLessThan(1_500);
+    expect(await latidosDe(padre, 'mudo-arranque'), 'durante toda la gracia no se le manda ningún latido').toBe(0);
+
+    const errores = logs.filter((l) => l.tipo === 'error' && /mudo-arranque/.test(l.texto));
+    expect(errores.length, 'la consola lo dice como error, con el nombre del iframe').toBeGreaterThan(0);
+    expect(errores[0].texto, 'y dice en qué fase falló: no completó el apretón de manos').toMatch(/no completó el apretón de manos/);
+    expect(await recargasDe(padre, 'mudo-arranque'), 'y cuántas recargas seguidas lleva').toBe(1);
+  });
+
+  test('BC-12e. Cada recarga seguida duplica la gracia, hasta 4×, y no más', async ({ page }) => {
+    test.setTimeout(40_000);
+    const { padre } = await montar(page);
+    const base = await cargasEstables(page, padre);
+    const n0 = base['mudo-arranque'];
+
+    const t0 = await arrancarSupervision(padre, 100); // gracias: 600, 1200, 2400, 2400 ms
+    await expect.poll(() => padre.evaluate(() => globalThis.__arnes.cargas['mudo-arranque']), {
+      timeout: 25_000,
+      message: 'cuatro recargas seguidas',
+    }).toBeGreaterThanOrEqual(n0 + 4);
+
+    const t = await cargasDe(padre, 'mudo-arranque');
+    const huecos = [t[n0] - t0, t[n0 + 1] - t[n0], t[n0 + 2] - t[n0 + 1], t[n0 + 3] - t[n0 + 2]];
+    // Se mide un suelo y un techo por hueco: el suelo prueba que la gracia crece (no se recarga antes), el techo
+    // que no crece de más. Entre el suelo y el techo caben la vuelta del reloj (100 ms) y la carga del iframe.
+    const esperado = [600, 1_200, 2_400, 2_400];
+    huecos.forEach((hueco, i) => {
+      expect(hueco, `hueco ${i + 1} (esperado ${esperado[i]} ms; huecos medidos: ${huecos.join(', ')})`).toBeGreaterThanOrEqual(esperado[i] - 100);
+      expect(hueco, `hueco ${i + 1} no supera con mucho su gracia (huecos medidos: ${huecos.join(', ')})`).toBeLessThan(esperado[i] + 500);
+    });
+  });
+
+  test('BC-12f. Quien contesta estando listo vuelve a la gracia base; una respuesta rezagada de un no listo, no', async ({ page }) => {
+    test.setTimeout(30_000);
+    const { padre } = await montar(page);
+    await cargasEstables(page, padre);
+
+    await arrancarSupervision(padre, 100);
+    await expect.poll(() => recargasDe(padre, 'mudo-arranque'), { timeout: 10_000, message: 'dos recargas seguidas' }).toBeGreaterThanOrEqual(2);
+
+    // Todo en una sola evaluación: sin ningún await por medio el reloj no puede recargarlo entre un paso y otro.
+    const r = await padre.evaluate(() => {
+      const bus = globalThis.mensajeria;
+      const sm = globalThis.__stateManager;
+      const registro = bus.getIframesRegistrados().get('mudo-arranque');
+      const antes = registro.recargas;
+      bus.procesarHeartbeatResponse({ origen: 'mudo-arranque' });
+      const trasRespuestaRezagada = registro.recargas;
+      sm.marcarHijoListo('mudo-arranque');
+      bus.procesarHeartbeatResponse({ origen: 'mudo-arranque' });
+      return { antes, trasRespuestaRezagada, trasRespuestaDeSano: registro.recargas };
+    });
+    expect(r.antes, 'precondición: ya llevaba recargas seguidas').toBeGreaterThanOrEqual(2);
+    expect(r.trasRespuestaRezagada, 'una respuesta que llega sin que el iframe haya hecho el apretón no demuestra que esté sano').toBe(r.antes);
+    expect(r.trasRespuestaDeSano, 'una respuesta de un iframe que ya hizo el apretón: sano, y la gracia vuelve a su base').toBe(0);
+  });
+
+  test('BC-12g. Al volver la red, el iframe que ya falló se reintenta al momento, sin contar como recarga seguida', async ({ page }) => {
+    test.setTimeout(30_000);
+    const { padre, logs } = await montar(page);
+    const base = await cargasEstables(page, padre);
+    const n0 = base['mudo-arranque'];
+
+    await arrancarSupervision(padre, 100); // primera recarga a los 600 ms; la siguiente gracia sería de 1200 ms
+    await expect.poll(() => padre.evaluate(() => globalThis.__arnes.cargas['mudo-arranque']), { timeout: 4_000 }).toBe(n0 + 1);
+
+    await padre.evaluate(() => globalThis.dispatchEvent(new Event('online')));
+    // La gracia de 1200 ms no ha podido agotarse: una segunda carga a menos de 500 ms solo viene de la red que vuelve.
+    await expect.poll(() => padre.evaluate(() => globalThis.__arnes.cargas['mudo-arranque']), {
+      timeout: 500,
+      message: 'al volver la red se reintenta sin esperar a que se agote la gracia',
+    }).toBe(n0 + 2);
+    expect(await recargasDe(padre, 'mudo-arranque'), 'volver la red no es un fallo del iframe: no cuenta como recarga seguida').toBe(1);
+    expect(avisos(logs, /mudo-arranque.*vuelve la conexión/).length, 'y la consola lo dice').toBeGreaterThan(0);
+  });
+
+  test('BC-12h. Al volver la red no se reintenta a quien todavía no ha fallado', async ({ page }) => {
+    const { padre } = await montar(page);
+    const base = await cargasEstables(page, padre);
+
+    // Intervalo largo: el reloj está activo (si no, el control pasaría porque nada vigila) pero no llega a dar ninguna vuelta.
+    await padre.evaluate(async () => { await globalThis.mensajeria.iniciarHeartbeat(60_000); });
+    expect(await padre.evaluate(async () => (await globalThis.__stateManager.getHeartbeat()).activo), 'precondición: el reloj está activo').toBe(true);
+
+    await padre.evaluate(() => globalThis.dispatchEvent(new Event('online')));
+    // Una recarga por el evento sería inmediata (sale del `.then` de la lectura del reloj): 500 ms sobran para verla.
+    // VENTANA-OBSERVACION: lo que se mide es que NO se recarga nada.
+    await page.waitForTimeout(500);
+    expect(await padre.evaluate(() => ({ ...globalThis.__arnes.cargas })), 'ningún iframe se recarga: ninguno había fallado todavía').toEqual(base);
+    // Y el reloj sigue activo: el control no pasó por haberlo parado.
+    expect(await padre.evaluate(async () => (await globalThis.__stateManager.getHeartbeat()).activo), 'el reloj sigue activo').toBe(true);
   });
 
   test('BC-14. Un handler que no termina nunca no deja su tipo parado para siempre', async ({ page }) => {

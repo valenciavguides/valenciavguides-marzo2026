@@ -22,7 +22,7 @@
  *   H1-3  Camino real: un error lanzado dentro de hijo1 llega al padre por la captura
  *         automatica de utils.js, sin que nadie lo reenvie a mano.
  *   H1-4  hijo1 contesta al latido Y la respuesta LLEGA al padre. No basta con que conteste:
- *         un hijo marcado `recuperable` cuya respuesta no llega al padre se da por caido a los
+ *         un hijo supervisado cuya respuesta no llega al padre se da por caido a los
  *         tres latidos y el bus le recarga el iframe — cada 15 s, indefinidamente, sin error.
  *         Ningun otro spec cubria el viaje de vuelta.
  *
@@ -32,7 +32,7 @@
  *
  * OJO al migrar los demas hijos: que un hijo conteste no basta, la respuesta tiene que LLEGAR.
  * Este viaje de vuelta no lo cubria ningun spec, y su fallo es mudo: el padre da al hijo por
- * caido a los 3 latidos y, si esta marcado `recuperable`, le recarga el iframe cada 15 s.
+ * caido a los 3 latidos y le recarga el iframe cada 15 s.
  */
 'use strict';
 
@@ -145,7 +145,7 @@ test.describe('H1 — hijo1 habla por el bus', () => {
       .poll(() => page.evaluate(() => globalThis.__latidosDeVuelta.length), {
         timeout: 8_000,
         message: 'sin esta respuesta el padre da a hijo1 por caido a los 3 latidos y, al estar '
-          + 'marcado recuperable, le recarga el iframe cada 15 s sin que nada lo denuncie',
+          + 'supervisado, le recarga el iframe cada 15 s',
       })
       .toBeGreaterThan(0);
   });

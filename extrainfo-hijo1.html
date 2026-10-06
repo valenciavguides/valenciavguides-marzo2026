@@ -51,7 +51,7 @@
     const _displayOriginalBody = (document.body && document.body.style && document.body.style.display) || '';
     if (document.body) document.body.style.display = 'none';
 
-    // El MISMO id con el que el padre registra este iframe (`HIJOS_RECUPERABLES` y los cargadores
+    // El MISMO id con el que el padre registra este iframe (los cargadores
     // de codigo-padre.html). Si no coinciden, el padre le escribe a un sitio y este frame se
     // presenta como otro, y ninguno de los dos se entera.
     await bus.inicializarMensajeria({ id: 'hijo1-opciones' });

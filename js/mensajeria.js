@@ -15,6 +15,17 @@ import { esMovil } from './device-detection.js';
 const MAX_LATIDOS_SIN_RESPUESTA = 3;
 
 /**
+ * Latidos que un iframe tiene, desde que empieza a cargar, para completar el apretón de manos (HIJO_LISTO).
+ *
+ * Se cuenta en latidos y no en segundos para que el plazo escale con el intervalo del reloj, que el padre ya
+ * ajusta a la conexión: con 5 s de intervalo son 30 s.
+ */
+const LATIDOS_DE_GRACIA = 6;
+
+/** Cada recarga seguida que no consigue un hijo sano duplica la gracia, hasta este múltiplo. */
+const MULTIPLO_MAX_GRACIA = 4;
+
+/**
  * Plazo tras el cual la fila de un tipo avanza aunque su handler siga sin terminar.
  *
  * Muy por encima de cualquier handler legítimo: el propio bus rechaza a los 5 s una petición
@@ -73,6 +84,9 @@ const confirmacionesPendientes = new Map();
 
 /** Guard síncrono para evitar doble inicio de heartbeat */
 let _heartbeatIniciando = false;
+
+/** Intervalo del reloj del latido, en ms: la unidad en que se mide la gracia de arranque. */
+let intervaloLatidoMs = 5000;
 
 /**
  * Cola de mensajes pendientes mientras no hay conexión
@@ -844,8 +858,13 @@ function enviarConfirmacion(mensajeOriginal, contenido, destino) {
 
 /**
  * Registra un iframe
+ *
+ * `supervisado: true` es para el iframe que hace el apretón de manos (HIJO_PREPARADO → HIJO_LISTO) y contesta al
+ * latido: el reloj lo vigila y, si deja de estar sano, lo recarga. El que no hace ese apretón (mapa completo,
+ * puzzle, vídeo) se registra sin supervisar: no tiene nada que contestar y vigilarlo lo daría por caído siempre.
  * @param {string} id - ID del iframe
  * @param {HTMLIFrameElement} iframe - Elemento iframe
+ * @param {{supervisado?: boolean}} [opciones]
  * @returns {boolean} True si se registró
  */
 export function registrarIframe(id, iframe, opciones = {}) {
@@ -856,15 +875,20 @@ export function registrarIframe(id, iframe, opciones = {}) {
 
     // Sin guardar `contentWindow`: la ventana se lee del elemento en cada envío, porque
     // recargar un iframe la sustituye y la guardada se queda vieja.
+    //
+    // `cargaDesde` es el momento en que el iframe empezó a cargar: de ahí corre la gracia de arranque.
+    // `latidosSinRespuesta` y `recargas` son del iframe, no del reloj: viven aquí y no en el state-manager
+    // porque nadie más los lee.
     iframesRegistrados.set(id, {
         id,
         elemento: iframe,
-        recuperable: opciones.recuperable === true,
-        estado: 'registrado',
-        timestamp: Date.now()
+        supervisado: opciones.supervisado === true,
+        cargaDesde: Date.now(),
+        latidosSinRespuesta: 0,
+        recargas: 0
     });
 
-    logger.info(`[mensajeria] Iframe registrado: ${id}${opciones.recuperable === true ? ' (recuperable)' : ''}`);
+    logger.info(`[mensajeria] Iframe registrado: ${id}${opciones.supervisado === true ? ' (supervisado)' : ''}`);
     return true;
 }
 
@@ -955,9 +979,10 @@ export async function iniciarHeartbeat(intervalo = 5000) {
         }
 
         await sm.updateHeartbeat({ activo: true });
+        intervaloLatidoMs = intervalo;
 
         const intervalId = setInterval(async () => {
-            await enviarHeartbeatAHijos();
+            await supervisarHijos();
         }, intervalo);
 
         await sm.updateHeartbeat({ intervalo: intervalId });
@@ -1022,7 +1047,7 @@ export function adelantarLatido() {
     sm.getHeartbeat()
         .then((estado) => {
             if (!estado?.activo || estado?.userPaused) return;
-            return enviarHeartbeatAHijos();
+            return supervisarHijos();
         })
         .catch((error) => logger.debug('[mensajeria] No se pudo adelantar el latido:', error?.message));
     return true;
@@ -1066,13 +1091,18 @@ export async function pausarHeartbeat() {
 }
 
 /**
- * Manda un latido a cada iframe registrado.
+ * Una vuelta del reloj: vigila a cada iframe supervisado según el punto de su vida en que está.
  *
- * La lista son los iframes registrados, no una escrita a mano: con una lista fija, un frame que
- * no estuviera en ella podía colgarse sin que nadie lo notara, y uno que ya no existiera se
- * seguía vigilando.
+ * Para cada punto hay una sola regla:
+ *  - Ya hizo el apretón de manos (HIJO_LISTO): se le manda un latido, y si pasan `MAX_LATIDOS_SIN_RESPUESTA`
+ *    vueltas sin que conteste, está caído.
+ *  - Todavía no lo hizo: no se le manda latido, porque aún no tiene nada que contestar. Tiene una gracia
+ *    desde que empezó a cargar, y si se agota está caído.
+ *
+ * La lista son los iframes registrados como supervisados, no una escrita a mano: con una lista fija, un frame
+ * que no estuviera en ella podía colgarse sin que nadie lo notara, y uno que ya no existiera se seguía vigilando.
  */
-async function enviarHeartbeatAHijos() {
+async function supervisarHijos() {
     const sm = obtenerStateManager();
     if (!sm) return;
 
@@ -1080,122 +1110,118 @@ async function enviarHeartbeatAHijos() {
         const estado = await sm.getHeartbeat();
         if (!estado?.activo) return;
 
-        for (const hijoId of [...iframesRegistrados.keys()]) {
+        for (const registro of [...iframesRegistrados.values()]) {
+            if (!registro.supervisado) continue;
             try {
-                enviarMensaje({
-                    tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT,
-                    destino: hijoId,
-                    datos: { timestamp: Date.now() }
-                });
-
-                // Incrementar contador de fallidos de forma atómica (evita race con procesarHeartbeatResponse)
-                let nuevosFailidos_count = 0;
-                await sm.atomicUpdateHeartbeat(s => {
-                    const fallidos = s.heartbeatsFallidos?.get(hijoId) || 0;
-                    nuevosFailidos_count = fallidos + 1;
-                    const nuevosFallidos = new Map(s.heartbeatsFallidos || []);
-                    nuevosFallidos.set(hijoId, nuevosFailidos_count);
-                    return { heartbeatsFallidos: nuevosFallidos };
-                });
-
-                if (nuevosFailidos_count >= MAX_LATIDOS_SIN_RESPUESTA) {
-                    await marcarHijoDesconectado(hijoId);
-                }
+                if (sm.hijoEstaListo(registro.id)) vigilarLatido(registro);
+                else vigilarArranque(registro);
             } catch (error) {
-                logger.warn(`[mensajeria] Error enviando heartbeat a ${hijoId}:`, error);
+                logger.warn(`[mensajeria] Error supervisando a ${registro.id}:`, error);
             }
         }
     } catch (error) {
-        logger.error('[mensajeria] Error en enviarHeartbeatAHijos:', error);
+        logger.error('[mensajeria] Error en supervisarHijos:', error);
+    }
+}
+
+/** Iframe que ya hizo el apretón de manos: un latido por vuelta. */
+function vigilarLatido(registro) {
+    enviarMensaje({
+        tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT,
+        destino: registro.id,
+        datos: { timestamp: Date.now() }
+    });
+
+    // La respuesta llega después de esta línea y deja el contador a cero (procesarHeartbeatResponse):
+    // solo llega al máximo quien no contesta a ninguno.
+    registro.latidosSinRespuesta += 1;
+    if (registro.latidosSinRespuesta >= MAX_LATIDOS_SIN_RESPUESTA) {
+        recuperarHijo(registro, `dejó de contestar al latido (${MAX_LATIDOS_SIN_RESPUESTA} seguidos sin respuesta)`);
     }
 }
 
 /**
- * Marca un hijo como desconectado
- * @param {string} hijoId - ID del hijo
- * @returns {Promise<void>}
+ * Iframe que todavía no hizo el apretón de manos: no se le manda nada, se le deja la gracia. Cada recarga seguida
+ * la duplica (30 s, 60 s, 120 s con el intervalo de 5 s) hasta `MULTIPLO_MAX_GRACIA`, para no recargar a quien
+ * tarda porque la conexión es mala una y otra vez antes de que le dé tiempo a terminar. Vuelve a la base en cuanto
+ * el hijo contesta un latido (procesarHeartbeatResponse).
  */
-async function marcarHijoDesconectado(hijoId) {
+function vigilarArranque(registro) {
+    const gracia = LATIDOS_DE_GRACIA * intervaloLatidoMs * Math.min(2 ** registro.recargas, MULTIPLO_MAX_GRACIA);
+    const transcurrido = Date.now() - registro.cargaDesde;
+    if (transcurrido >= gracia) {
+        recuperarHijo(registro, `no completó el apretón de manos (HIJO_LISTO) en ${Math.round(transcurrido / 1000)} s desde que empezó a cargar`);
+    }
+}
+
+/**
+ * La única acción ante un hijo que no está sano: dejarlo dicho en consola y recargarle el iframe.
+ *
+ * Sin tope de recargas: un hijo que no llega a arrancar deja a la aplicación sin una pieza, y rendirse con él es
+ * peor que seguir intentándolo. Lo que sí se modera es el ritmo (la gracia de `vigilarArranque`).
+ * Es un error y no un aviso porque es un fallo de la aplicación o de la conexión: el usuario no ve nada de esto,
+ * pero quien lea la consola tiene que saber qué hijo falló, en qué fase y cuántas veces seguidas.
+ */
+function recuperarHijo(registro, motivo) {
+    registro.recargas += 1;
+    logger.error(`[mensajeria] ${registro.id}: ${motivo}. Se recarga su iframe (recarga seguida n.º ${registro.recargas}).`);
+    recargarIframe(registro);
+}
+
+/**
+ * Recarga el iframe de un hijo y lo deja como recién cargado: vuelve a no estar listo (su apretón de manos empieza
+ * de nuevo, y hasta que lo termine rige la gracia de arranque, no el latido) y la cuenta de latidos y de tiempo
+ * parte de cero.
+ */
+function recargarIframe(registro) {
+    obtenerStateManager()?.olvidarHijoListo?.(registro.id);
+    registro.cargaDesde = Date.now();
+    registro.latidosSinRespuesta = 0;
+
+    // Aviso al padre para que tome el snapshot del estado antes de recargar. Si falla, la recarga sigue:
+    // lo que no puede pasar es que un hijo caído se quede sin recargar por un fallo del aviso.
+    try {
+        if (typeof globalThis._vv_beforeHijoReload === 'function') globalThis._vv_beforeHijoReload(registro.id);
+    } catch (error) {
+        logger.warn(`[mensajeria] El aviso previo a recargar ${registro.id} falló; se recarga igualmente:`, error);
+    }
+    registro.elemento.src = registro.elemento.src; // NOSONAR — auto-asignar el src fuerza la recarga del iframe
+}
+
+/**
+ * Vuelve la conexión: un iframe que no ha conseguido arrancar (ya se recargó al menos una vez, sin red) no espera a
+ * que se le agote una gracia que a estas alturas puede ser de minutos: se reintenta al momento. No cuenta como
+ * recarga seguida, porque no es un fallo suyo. Respeta que el reloj esté parado, igual que `adelantarLatido`.
+ */
+function reintentarArranquesPorRed() {
     const sm = obtenerStateManager();
     if (!sm) return;
-
-    try {
-        await sm.atomicUpdateHeartbeat(s => {
-            const desconectados = new Set(s?.hijosDesconectados || []);
-            desconectados.add(hijoId);
-            // Resetear contador para evitar reloads repetidos durante la recarga
-            const nuevosFallidos = new Map(s?.heartbeatsFallidos || []);
-            nuevosFallidos.set(hijoId, 0);
-            return { hijosDesconectados: Array.from(desconectados), heartbeatsFallidos: nuevosFallidos };
-        });
-        logger.warn(`[mensajeria] ${hijoId} lleva ${MAX_LATIDOS_SIN_RESPUESTA} latidos sin contestar`);
-
-        // Solo se recarga lo que sabe retomar lo que estaba haciendo. Recargar a ciegas un frame
-        // que no se restaura le hace perder el sitio al usuario, que es peor que el cuelgue.
-        if (iframesRegistrados.get(hijoId)?.recuperable) {
-            await intentarReconectarHijo(hijoId);
-        } else {
-            logger.warn(`[mensajeria] ${hijoId} no se recarga: no está marcado como recuperable`);
-        }
-    } catch (error) {
-        logger.error('[mensajeria] Error marcando hijo como desconectado:', error);
-    }
-}
-
-/**
- * Intenta reconectar un hijo recargando su iframe
- * @param {string} hijoId - ID del hijo
- */
-async function intentarReconectarHijo(hijoId) {
-    try {
-        logger.info(`[mensajeria] Intentando reconectar ${hijoId}`);
-
-        const iframe = iframesRegistrados.get(hijoId);
-        if (iframe?.elemento) {
-            // Notificar al padre para que tome snapshot de estado antes del reload
-            if (typeof globalThis._vv_beforeHijoReload === 'function') {
-                globalThis._vv_beforeHijoReload(hijoId);
+    sm.getHeartbeat()
+        .then((estado) => {
+            if (!estado?.activo) return;
+            for (const registro of [...iframesRegistrados.values()]) {
+                if (!registro.supervisado || registro.recargas === 0 || sm.hijoEstaListo(registro.id)) continue;
+                logger.warn(`[mensajeria] ${registro.id}: vuelve la conexión; se reintenta su carga sin esperar a que se agote la gracia.`);
+                recargarIframe(registro);
             }
-            iframe.elemento.src = iframe.elemento.src; // NOSONAR — self-assign fuerza reload del iframe
-            logger.info(`[mensajeria] Iframe ${hijoId} recargado`);
-        } else {
-            logger.warn(`[mensajeria] Iframe ${hijoId} no encontrado para reconectar`);
-        }
-    } catch (error) {
-        logger.error(`[mensajeria] Error reconectando ${hijoId}:`, error);
-    }
+        })
+        .catch((error) => logger.debug('[mensajeria] No se pudieron reintentar los arranques al volver la red:', error?.message));
 }
 
+if (globalThis.window !== undefined) globalThis.addEventListener('online', reintentarArranquesPorRed);
+
 /**
- * Procesa una respuesta de heartbeat de un hijo
+ * Procesa una respuesta de heartbeat de un hijo: la cuenta de latidos sin respuesta vuelve a cero y, como quien
+ * contesta ya hizo el apretón de manos y está vivo, está sano: la gracia vuelve a su base.
  * @param {Object} mensaje - Mensaje HEARTBEAT_RESPONSE
  */
-export async function procesarHeartbeatResponse(mensaje) {
-    const sm = obtenerStateManager();
-    if (!sm) return;
+export function procesarHeartbeatResponse(mensaje) {
+    const registro = iframesRegistrados.get(mensaje?.origen);
+    if (!registro) return;
 
-    try {
-        const hijoId = mensaje.origen;
-
-        // Resetear fallidos, actualizar último heartbeat y reconectar — todo en una sola operación atómica
-        let estabaDesconectado = false;
-        await sm.atomicUpdateHeartbeat(s => {
-            const nuevosFallidos = new Map(s?.heartbeatsFallidos || []);
-            nuevosFallidos.set(hijoId, 0);
-            const nuevosUltimos = new Map(s?.ultimoHeartbeat || []);
-            nuevosUltimos.set(hijoId, Date.now());
-            const desconectados = new Set(s?.hijosDesconectados || []);
-            estabaDesconectado = desconectados.has(hijoId);
-            if (estabaDesconectado) desconectados.delete(hijoId);
-            return { heartbeatsFallidos: nuevosFallidos, ultimoHeartbeat: nuevosUltimos, hijosDesconectados: Array.from(desconectados) };
-        });
-
-        if (estabaDesconectado) {
-            logger.info(`[mensajeria] Hijo ${hijoId} reconectado`);
-        }
-    } catch (error) {
-        logger.error('[mensajeria] Error procesando heartbeat response:', error);
-    }
+    registro.latidosSinRespuesta = 0;
+    // Una respuesta rezagada, de la carga anterior a una recarga, no demuestra que el iframe nuevo esté sano.
+    if (obtenerStateManager()?.hijoEstaListo(registro.id)) registro.recargas = 0;
 }
 
 // =====================================================

@@ -3722,18 +3722,12 @@
             registrarIframe: registrarIframe_S1
         } = mensajeriaModule;
 
-        // Quién sabe retomar lo que estaba haciendo tras una recarga: exactamente los cuatro que
-        // `_vv_afterHijoListo` (Script 2) restaura — hijo1 su temporizador, hijo2 su parada,
-        // hijo3 su audio, hijo4 su reto. El bus vigila a todos los registrados pero solo recarga
-        // a los marcados: recargar a ciegas un frame que no sabe restaurarse le hace perder el
-        // sitio al usuario, que es peor que el cuelgue. Añadir a alguien aquí sin darle su rama
-        // en `_vv_afterHijoListo` deja al usuario en blanco tras la recarga.
-        const HIJOS_RECUPERABLES = new Set(['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4']);
-
-        // Único punto de registro de iframes hijo: los cinco cargadores pasan por aquí, para que
-        // la marca se decida en un solo sitio y no en cada llamada.
+        // Único punto de registro de iframes hijo: los cargadores pasan por aquí, para que la supervisión se decida en un
+        // solo sitio y no en cada llamada. Un hijo hace el apretón de manos (HIJO_PREPARADO → HIJO_LISTO) y contesta al
+        // latido, así que el reloj del bus lo vigila y lo recarga si deja de estar sano; todos por igual. Los iframes que
+        // no hacen ese apretón (mapa completo, puzzle, vídeo) se registran sin pasar por aquí.
         globalThis.registrarIframeHijo = function (id, elemento) {
-            return registrarIframe_S1(id, elemento, { recuperable: HIJOS_RECUPERABLES.has(id) });
+            return registrarIframe_S1(id, elemento, { supervisado: true });
         };
 
         // Verificar que globalThis.mensajeria existe (creado por mensajeria.js)
@@ -9575,7 +9569,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // SISTEMA DE SNAPSHOT — recuperación de estado tras heartbeat reload
         // Cuando mensajeria.js fuerza el reload de un iframe por heartbeat perdido,
         // el padre toma un snapshot del estado activo y lo restaura tras el re-handshake.
-        // Flujo: intentarReconectarHijo → _vv_beforeHijoReload (snapshot) → reload →
+        // Flujo: recargarIframe (bus) → _vv_beforeHijoReload (snapshot) → reload →
         //        HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO → _vv_afterHijoListo (restaurar)
         // ============================================================
         // El tiempo restante NO se guarda aquí: vive en `estado.tiempoRestante`, que
@@ -9598,7 +9592,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 retoActual: _snapshotRecuperacion.retoActual,
                 paradaActual: globalThis.estadoPadre?.paradaActual
             };
-            logger.warn(`[PADRE][SNAPSHOT] Snapshot tomado para ${hijoId} antes de reload (modo: ${modoActual}, tiempoRestante: ${estado?.tiempoRestante})`);
+            logger.warn(`[PADRE][SNAPSHOT] Snapshot tomado para ${hijoId} antes de reload (modo: ${modoActual}, parada: ${globalThis.estadoPadre?.paradaActual}, tiempoRestante: ${estado?.tiempoRestante})`);
         };
 
         globalThis._vv_afterHijoListo = async function(hijoId) {
