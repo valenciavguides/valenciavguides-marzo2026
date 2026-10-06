@@ -2,16 +2,16 @@
  * 121-ruta-fallback-espera-al-hijo-listo-nuevo.spec.js
  *
  * La ruta fallback de `SELECCION.AVENTURA_ACTIVADA` (la que deja `SELECCION.REINICIAR`: `_iframesPreCargadosP14` falso)
- * recarga a los cinco hijos con el cargador único (`cargarHijo`), que borra a cada uno del conjunto del padre y espera «un
+ * recarga a los seis hijos con el cargador único (`cargarHijo`), que borra a cada uno del conjunto del padre y espera «un
  * HIJO_LISTO nuevo» suyo. Esa espera la hace `crearPromiseHijoListo` del state-manager, que resuelve al instante para
  * un id que ya está en SU conjunto. Si el padre vacía el suyo y el state-manager no, la espera no espera.
  *
- *   HL-1  las cinco esperas de la ruta resuelven cuando llega el HIJO_LISTO nuevo de su hijo, no antes
- *   HL-2  control: en esa ruta llega de verdad un HIJO_LISTO nuevo de cada uno de los cinco (HL-1 no es vacío)
+ *   HL-1  las seis esperas de la ruta resuelven cuando llega el HIJO_LISTO nuevo de su hijo, no antes
+ *   HL-2  control: en esa ruta llega de verdad un HIJO_LISTO nuevo de cada uno de los seis (HL-1 no es vacío)
  *   HL-3  state-manager: tras `olvidarHijoListo(id)`, `crearPromiseHijoListo(id)` espera a `marcarHijoListo(id)`
  *   HL-4  state-manager: esa espera no tiene plazo propio (no arma ningún temporizador): el que no llega lo recupera el supervisor
  *
- * ROJO ANTES QUE VERDE: con el código anterior HL-1 cae (las cinco esperas resuelven en el mismo instante en que se
+ * ROJO ANTES QUE VERDE: con el código anterior HL-1 cae (las esperas resuelven en el mismo instante en que se
  * piden, cientos de milisegundos antes de que llegue ningún HIJO_LISTO nuevo) y HL-3 cae (no hay `olvidarHijoListo`).
  * HL-2 pasa antes y después.
  */
@@ -22,7 +22,7 @@ const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
-const CINCO = ['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5'];
+const HIJOS = ['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5', 'hijo6-chat'];
 
 test.use({ permissions: ['geolocation'], geolocation: { latitude: 39.47876, longitude: -0.37626 } });
 
@@ -35,7 +35,7 @@ async function prepararPadreConHijosCargados(page) {
   await page.evaluate(async () => { await Promise.all([globalThis.cargarRestoDeiframes?.(), globalThis.cargarHijoCasa?.()]); });
   await page.waitForFunction(
     (ids) => ids.every((id) => globalThis.estadoPadre?.hijosInicializados?.has(id)),
-    CINCO, { timeout: 60_000 }
+    HIJOS, { timeout: 60_000 }
   );
 }
 
@@ -68,17 +68,17 @@ test.describe('HL — la ruta fallback espera al HIJO_LISTO nuevo', () => {
           globalThis.location.origin
         );
       });
-      // Los cinco HIJO_LISTO nuevos y las cinco esperas resueltas
+      // Los seis HIJO_LISTO nuevos y las seis esperas resueltas
       await page.waitForFunction(
         (ids) => ids.every((id) => globalThis.__hl.marcados.some((m) => m.id === id) && globalThis.__hl.esperas.some((e) => e.id === id && e.resuelta !== null)),
-        CINCO, { timeout: 30_000 }
+        HIJOS, { timeout: 30_000 }
       );
       return page.evaluate(() => globalThis.__hl);
     }
 
-    test('HL-1. Las cinco esperas de la ruta resuelven cuando llega el HIJO_LISTO nuevo de su hijo, no antes', async ({ page }) => {
+    test('HL-1. Las seis esperas de la ruta resuelven cuando llega el HIJO_LISTO nuevo de su hijo, no antes', async ({ page }) => {
       const hl = await activarPorRutaFallback(page);
-      for (const id of CINCO) {
+      for (const id of HIJOS) {
         const espera = hl.esperas.find((e) => e.id === id); // la primera que se pide en la ruta
         const nuevo = hl.marcados.find((m) => m.id === id); // el primer HIJO_LISTO tras recargar
         expect(espera, `se pidió la espera de ${id}`).toBeTruthy();
@@ -90,9 +90,9 @@ test.describe('HL — la ruta fallback espera al HIJO_LISTO nuevo', () => {
       }
     });
 
-    test('HL-2. Control: en la ruta llega un HIJO_LISTO nuevo de cada uno de los cinco hijos', async ({ page }) => {
+    test('HL-2. Control: en la ruta llega un HIJO_LISTO nuevo de cada uno de los seis hijos', async ({ page }) => {
       const hl = await activarPorRutaFallback(page);
-      for (const id of CINCO) {
+      for (const id of HIJOS) {
         expect(hl.marcados.filter((m) => m.id === id).length, `HIJO_LISTO nuevo de ${id}`).toBeGreaterThanOrEqual(1);
       }
     });
