@@ -3619,3 +3619,169 @@ El orden es el de menos conflicto (criterio del usuario, 2026-10-05): primero lo
 - **Control de la sonda:** la misma sonda comparando contra otra página cae en los 5 specs (21: 5 de 5, 22: 1 de 9, 30: 1 de 6, 32: 4 de 4, 33: 3 de 3) con el error esperado: la sonda se ejecuta y detecta diferencias.
 - **Con Playwright** (chromium, los 5 specs): 27 tests antes y 27 después, todos esperados, y la lista test por test es idéntica.
 - **Ninguno de los cinco specs vigila el `src`:** con la ruta rota (`/coordenadas-hijo2-NO-EXISTE.html`) los 27 tests siguen en verde. Los cinco son exactamente los que definen `cargarHijo2Real`, que da el iframe por cargado en su evento `load` (un solo `addEventListener('load')` cada uno) y no lee nada del documento que cargó; un iframe que no carga también dispara `load` (K-58). A diferencia del spec 86, que comprueba que el documento cargado es el hijo y no una página de error. Registrado, sin tocar.
+
+### R2.11 Lo que hay que decidir: qué es cada cosa, para qué sirve y si puede sobrar (2026-10-06)
+
+**Para qué es.** El usuario pidió (2026-10-06) un estudio corto que diga, de cada cosa que tiene que elegir: qué es, por qué hay que elegir, cuál es su función, si hay otra herramienta que cubra esa sección hoy, si puede ser código muerto, para qué es importante en la PWA y por qué debe seguir en ella. La lista es la de las filas de R2.9.4 sin «hecha», más K-61, la revisión de K-07, las familias de R2.10 y un fichero sin lector. **Este apartado no recomienda nada nuevo**: cuando una ficha ya recomendaba una opción se cita como tal, y lo que falta por comprobar se dice (regla 9).
+
+**Método y límites.** Cada respuesta a «¿puede ser código muerto?» es una búsqueda desnuda del nombre en `codigo-padre.html`, `js/*.js`, los `.html` de la raíz y `tests/` (sin `docs/`), hecha el 2026-10-06 sobre `8755186`; «tiene llamador» no demuestra que la rama se alcance (no se ha ejecutado cada una), y «sin llamador» sí es «sin lector». Se citan funciones y no números de línea, que se desplazan con cada edición. Lo que no se ha comprobado va marcado «no comprobado».
+
+#### R2.11.1 GPS y carteles de distancia
+
+**K-17 B — los seis `getCurrentPosition` del padre**
+- **Qué es y por qué hay que elegir.** Seis sitios piden una posición suelta (no el seguimiento): `_gpsIntentarPosicion`, `_finalizarActivacionGPS`, el botón de reintento de `_ensureGpsOverlay` (cartel de precisión), `_gpsReintentarDesdeOverlayDistancia`, el de `_ensureGpsSignalOverlay` (cartel de señal) y `_obtenerUbicacionUsuario`. Tienen tres políticas de posproceso y plazos distintos (5000 ajustado por la conexión y 15000 literal). Hay que elegir entre una función común con el plazo como parámetro o dejarlas, porque lo que decide si el plazo largo importa (M-8, GPS en frío) solo se mide en campo.
+- **Función.** Las lecturas de la activación del GPS (los intentos con reintento y la final), la acción de los cinco botones «reintentar ubicación» de los carteles de distancia y precisión, la del cartel de señal y la de «mostrar mi ubicación» en el mapa.
+- **¿Otra herramienta lo cubre?** El seguimiento continuo (`watchPosition`) también entrega posiciones y nunca se detiene; que pueda sustituir a una lectura que pide un botón o la activación, no comprobado.
+- **¿Puede ser código muerto?** No por búsqueda desnuda: `_gpsIntentarPosicion` 1 llamador, `_finalizarActivacionGPS` 1, `_gpsReintentarDesdeOverlayDistancia` 5 (los cinco botones de carteles), `_obtenerUbicacionUsuario` 1, `_ensureGpsOverlay` 2 y `_ensureGpsSignalOverlay` 1.
+- **Por qué importa y por qué debe seguir.** Son la acción de botones que el usuario ve y el paso de activación del GPS; sin ellas el usuario con el seguimiento mudo no tendría un «reintentar» (inferido de que son los llamadores de esos botones). Lo que se decide no es si siguen, sino si comparten código.
+- **Opciones (de la ficha).** A) una función «pedir una posición puntual» con el plazo como parámetro; B) dejarlas hasta M-8.
+
+**K-49 A — el cierre de los carteles de distancia al entrar en CASA**
+- **Qué es y por qué hay que elegir.** Al pasar a CASA los carteles de GPS se cierran por dos caminos parciales: `_ocultarTodasPantallasDistanciaGPS` (rama CASA de `_hdl_SISTEMA_CAMBIO_MODO`: quita `show` a seis carteles y borra el snooze) y `_gestionarGpsOverlays` al final del cambio de modo (`hideNextEntityOverlay` y `hideGpsOutOfRangeOverlay`: para la cuenta atrás de 15 s del botón de reintento y oculta el cartel de siguiente entidad). Cada uno hace algo que el otro no y hoy todo se cierra (M-20). Quien retire uno deja algo abierto y ningún test lo vería: sin `_gestionarGpsOverlays` el spec 30 CM-6 sigue en verde.
+- **Función.** Que al pasar a CASA no quede ningún cartel de GPS de aventura encima, ni su cuenta atrás en marcha.
+- **¿Otra herramienta lo cubre?** Los dos caminos se cubren a medias entre sí; no hay un tercero. `_ocultarTodasPantallasDistanciaGPS` la llaman además dos flujos de AVENTURA (`_hdl_NAVEGACION_GPS_DENTRO_DE_RANGO` y `_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE`).
+- **¿Puede ser código muerto?** No: `_gestionarGpsOverlays` 1 llamador y `_ocultarTodasPantallasDistanciaGPS` 3. Lo redundante es solapar dos mecanismos sobre un mismo cartel, no ninguna de las dos funciones entera.
+- **Por qué importa y por qué debe seguir.** Es lo que deja la pantalla de CASA limpia. Debe seguir el cierre; lo que se decide es dejarlo en un solo sitio.
+- **Opciones (de la ficha).** A) una sola función que cierre los seis carteles, borre el snooze, pare la cuenta atrás, rehabilite el botón y oculte el panel de siguiente entidad, llamada desde la rama CASA (la ficha la recomienda); con dos lecturas: A1) una función nueva solo para CASA, que deja dos funciones casi iguales; A2) ampliar `_ocultarTodasPantallasDistanciaGPS`, lo que cambia también sus dos flujos de AVENTURA (`DENTRO_DE_RANGO` y `MOSTRAR_UBICACION_POLYLINE`: al volver a rango o pulsar ubicación se cortaría además la cuenta atrás y se ocultaría el panel que el usuario abrió desde el botón del cartel de bloqueo) y ningún spec ejercita `DENTRO_DE_RANGO` con un cartel abierto. B) dejar los dos. C) dejar solo `_gestionarGpsOverlays`, ampliado a los seis carteles y al snooze.
+
+#### R2.11.2 Abandonar, caducar y reanudar una aventura
+
+**K-19 A y K-50 — «Elegir otra aventura» (se deciden en la misma función)**
+- **Qué es y por qué hay que elegir.** Existe en dos diálogos casi idénticos: `ejecutarElegirOtra` (diálogo de reanudación, botón `#btn-confirmar-otra`) y `_elegirOtra` (diálogo de «vuelta rápida», botón `#btn-vuelta-elegir-otra`). Ya hubo un fallo por corregir una sola copia (la brújula, M-5). Además ninguna de las dos reinicia `estado.modo`, `paradaActual`, `elementoActual`, `indiceProgreso` ni `retoActual` (K-50): en producción la aventura nueva arranca con la parada de la anterior (M-22: `Av1-P-0` no está en las 67 paradas de la nueva y hijo2 no recibe ningún `CAMBIO_PARADA`). Hay que elegir cómo se corrige (reiniciar esos campos en una función común, o dejar `estado.modo` sin decidir para que corra la limpieza de un cambio real de modo), porque cada vía arrastra cosas distintas y cambia lo que ve el usuario.
+- **Función.** Devolver al usuario a la selección con la aventura guardada borrada y el estado en memoria reiniciado, sin recargar la página.
+- **¿Otra herramienta lo cubre?** `limpiarDatosAventura` (`js/reciclaje-digital.js`) borra todo, pero no devuelve a la selección sin recargar (sus llamadores recargan después, K-20); la llaman el tiempo agotado y otros dos sitios del padre y la finalización de la selección. La limpieza de `limpiarRecursosPorModo` (`js/app.js`) sí reinicia la parada y corre en un cambio real de modo (la usa el otro camino de activación).
+- **¿Puede ser código muerto?** No: cada una tiene su botón (`addEventListener('click', …)`) y `mostrarDialogoVueltaRapida` se llama desde dos sitios. `ejecutarElegirOtra` no la pulsa ningún spec (`btn-confirmar-otra` no aparece en `tests/`); los specs 19 y 25 pulsan el otro botón.
+- **Por qué importa y por qué debe seguir.** Es el camino de producción para cambiar de aventura y el estudio midió en él un fallo real (K-50). Debe seguir; se decide cómo se limpia.
+- **Opciones (de las fichas).** K-19: A) una función común de «abandonar la aventura» (la ficha la recomienda; antes hace falta un spec de caracterización de `ejecutarElegirOtra`); B) dejar las dos copias con un comentario cruzado. K-50: A) reiniciar los cuatro campos en la función común; B) dejar `estado.modo` sin decidir. La ficha de K-50 no recomienda ninguna mientras no se lea qué más depende de que `estado.modo` valga `null` entre aventuras.
+
+**K-20 A — la rama «sin modal» al reanudar**
+- **Qué es y por qué hay que elegir.** Borrar la sesión guardada se hace de cinco formas sin código común (las dos de «elegir otra» borran 5 claves; `_transicionarAModoCasa` 3; la rama «sin modal» de `_comprobarReanudacionAventura` 2; `_restoreCheckStale` y `_restoreCheckMismatch` solo `vv_progreso`; `limpiarDatosAventura` todo). La decisión concreta es si la rama «sin modal» llama también a `limpiarDatosAventura('timeout')`: hoy deja vivas `vv_aventura`, `vv_idioma` y `vv_paradas_completadas` (M-9), y con A vaciaría además `localStorage`, `sessionStorage`, las cachés y el service worker sin avisar.
+- **Función.** Que una sesión caducada no reaparezca al abrir la app.
+- **¿Otra herramienta lo cubre?** Su gemela `_restoreCheckTimeout` ya llama a `limpiarDatosAventura('timeout')`, y `mostrarModalTiempoAgotado` es el camino normal; la rama «sin modal» es el respaldo cuando esa función no existe aún.
+- **¿Puede ser código muerto?** No es inalcanzable: se alcanza por la carrera de K-54 (Script 1 comprueba la reanudación antes de que Script 2 defina `mostrarModalTiempoAgotado`); esa carrera no está medida.
+- **Por qué importa y por qué debe seguir.** Es la salida de una sesión caducada cuando no hay modal; por eso K-20 se decide con K-54: si allí se elige esperar a `mostrarModalTiempoAgotado` en vez de decidir qué hace el degradado, K-20 A deja de ser la respuesta (R2.9.5).
+- **Opciones (de la ficha).** A) llamar a `limpiarDatosAventura('timeout')` (la ficha la recomendó antes de R2.9; la corrección de R2.9 la deja condicionada a K-54); B) dejarla.
+
+**K-54 — Script 1 usa funciones que define Script 2**
+- **Qué es y por qué hay que elegir.** `_comprobarReanudacionAventura` (Script 1) usa `mostrarModalTiempoAgotado` (definida en Script 2) sin esperar a que exista: una carrera por tiempo. Es el único uso automático de ese tipo entre los 22 nombres medidos por análisis. Hay que elegir entre hacer que espere o dejarlo porque la carrera es de milisegundos en una máquina ociosa (no medida).
+- **Función.** Mostrar el aviso de «aventura caducada» al reabrir una sesión vencida.
+- **¿Otra herramienta lo cubre?** `retryUntilAvailable` (`js/utils.js`, 8 sitios) es la herramienta de espera acotada que ya usa el proyecto; la ficha la propone para esto.
+- **¿Puede ser código muerto?** No: `mostrarModalTiempoAgotado` se usa en dos sitios del padre (`typeof … === 'function'` y la llamada) y se define en Script 2.
+- **Por qué importa y por qué debe seguir.** Es el aviso al usuario de que su aventura terminó. Medirlo exige retrasar Script 2 con `page.route`, como el spec 89 (S2-4).
+- **Opciones (de la ficha).** A) esperar con `retryUntilAvailable`; B) dejarlo.
+
+**K-51 — el progreso guardado no lleva versión de los datos**
+- **Qué es y por qué hay que elegir.** `persistProgressState` guarda el progreso sin versión ni huella de los datos de la aventura y `_restoreApplyState` asigna `paradaActual` e `indiceProgreso` sin comprobar que existan. Si los ids cambian dentro de la ventana de la sesión (60 o 150 h), el `CAMBIO_PARADA` devuelve `exito:false` con un `warn` y la sesión queda sin parada activa (leído, no medido). Es una decisión de producto: renumerar paradas es mantenimiento que ya se hace (Av34km).
+- **Función.** Reanudar al usuario donde estaba tras cerrar la app.
+- **¿Otra herramienta lo cubre?** El TTL de 7 días (`TTL_PROGRESO_GUARDADO_MS`) y `verificarTimeoutAventura()` acotan la vida de lo guardado, pero no detectan que los datos hayan cambiado.
+- **¿Puede ser código muerto?** No: `persistProgressState` se llama desde varios puntos y `_restoreApplyState` desde la restauración.
+- **Por qué importa y por qué debe seguir.** Es la reanudación de sesión, parte del flujo normal de una aventura de uno o dos días.
+- **Opciones (de la ficha, sin recomendar).** A) guardar una versión o huella y descartar o recolocar si no coincide; B) validar los ids al restaurar y caer a la parada por defecto con aviso ruidoso; C) dejarlo si no se renumera contenido con sesiones vivas.
+
+#### R2.11.3 Arranque y carga
+
+**K-53, resto — imports no esenciales en posición fatal**
+- **Qué es y por qué hay que elegir.** Un `import` estático (o un `await import()` fuera de `try`) que falla detiene el script entero sin error visible. Siguen así: `feedback-forms.js` (padre Script 1, selección, hijo6), `video-playback-utils.js` (padre Script 1, video-intro), `reciclaje-digital.js` (padre Script 1) y `suppress-warnings.js` (padre). `efectos-sonido.js` ya está resuelto. Hay que elegir si se pasan a `import()` dentro de `try` con respaldo inerte y `warn`, o se dejan apoyándose en el precacheo.
+- **Función.** Valoraciones y sugerencias, reproducción de vídeo con buffer, borrado de la sesión y silenciado de avisos de librerías.
+- **¿Otra herramienta lo cubre?** El `APP_SHELL` los precachea todos (cobertura comprobada en R2.9) y el shell se sirve con red primero y caché de respaldo. No se midió ningún fallo de carga de ninguno.
+- **¿Puede ser código muerto?** No: los cuatro módulos tienen usos en los frames que los importan.
+- **Por qué importa y por qué debe seguir.** Un fallo en el padre dejaría sin handlers de reto, audio y parada si afecta a Script 2. Que sigan es seguro; lo que se decide es si un fallo de uno debe tumbar al frame.
+- **Opciones (de la ficha).** A) `import()` en `try` con respaldo inerte (la ficha lo recomendó para `efectos-sonido.js`, que es el caso hecho; para los demás «es la misma pregunta, no comprobada módulo a módulo»); B) dejarlos.
+
+**K-61 — el pre-warm de `js/app.js`**
+- **Qué es y por qué hay que elegir.** `iniciarPrewarmEnCasa` ya no precalienta nada: solo pone `prewarmIniciado` y `prewarmPausado` a `true`. Esas banderas deciden si, al entrar en AVENTURA, `_reanudarSubsistemasTrasPrewarm` llama a `_activarParadaDefectoAventura`. A la vez `_activarAventura` del padre llama a `ensureDefaultParada`. Son dos caminos que eligen la parada por defecto con reglas distintas; medido: dan la misma parada en las 84 combinaciones aventura × idioma, y desde la segunda entrada en AVENTURA el de `app.js` despacha una activación de más antes de la restauración del progreso real (con el progreso en otra parada: `Av1-P-0` y 117 ms después `Av1-TR-1`).
+- **Función.** Fijar la primera parada al entrar en AVENTURA.
+- **¿Otra herramienta lo cubre?** Sí: `ensureDefaultParada` cubre las dos entradas (en la primera activa la parada por defecto; en la segunda sale porque la restauración ya fijó `paradaActual`).
+- **¿Puede ser código muerto?** En parte: fuera de `js/app.js`, las banderas solo las declara `js/state-manager.js`; `iniciarPrewarmEnCasa` solo las escribe y `_reanudarSubsistemasTrasPrewarm` solo las lee. No es muerto del todo: se ejecuta, y es lo que activa la parada de más. No comprobado: qué reciben los hijos con esa activación de más y qué pasa en la reanudación (`restaurado: true`), donde `_activarAventura` se salta `ensureDefaultParada`.
+- **Por qué importa y por qué debe seguir.** La parada por defecto debe existir al entrar en AVENTURA; lo que se decide es cuál de los dos caminos se queda.
+- **Opciones (de la ficha, sin recomendar).** A) solo `ensureDefaultParada` y retirar el pre-warm entero (`_activarParadaDefectoAventura`, `_reanudarSubsistemasTrasPrewarm`, `_prewarmAventura`, `_flujoPrewarmModo`, `iniciarPrewarmEnCasa`, su auto-run y las dos banderas); B) solo `_activarParadaDefectoAventura`; C) dejarlo. La ficha anota que lo medido apunta a A y que falta medir la reanudación antes de recomendarla.
+
+**K-07, revisión — dos conjuntos de «hijo listo»**
+- **Qué es y por qué hay que elegir.** `estadoPadre.hijosInicializados` (del padre) y el conjunto del state-manager son dos objetos distintos (medido). `cargarHijo` vacía los dos al cargar un iframe, pero el supervisor del bus, al recargar, vacía solo el del state-manager: durante la recuperación el padre sigue viendo al hijo como listo. Lo que ocurre en esa ventana en cada lector no está medido.
+- **Función.** El del state-manager lo usan `crearPromiseHijoListo` (la espera de `cargarHijo`), `hijoEstaListo` (el supervisor y `abrirChat`); el del padre lo leen ocho sitios: la comprobación de «todos los críticos listos», `distribuirDatosAventura` (hijo2 y hijo5), `_configurarRetoBtn` (hijo3), la notificación de `CAMBIO_PARADA` a hijo4, el fin de un audio con retos, un sondeo de espera de hijo2 y `js/app.js` (dos).
+- **¿Otra herramienta lo cubre?** Cada uno cubre a sus lectores; no hay un tercero. La ficha de «hijo listo» con varias casas está en K-41.
+- **¿Puede ser código muerto?** Ninguno de los dos: los dos tienen lectores (lista anterior).
+- **Por qué importa y por qué debe seguir.** El «listo» es lo que impide mandar datos a un iframe que todavía no tiene handlers.
+- **Opciones (de la ficha, sin recomendar).** A) que el supervisor avise al padre (como ya hace con `_vv_beforeHijoReload`) para que vacíe el suyo; B) un solo conjunto; C) dejarlo.
+
+#### R2.11.4 Contrato de mensajes y literales
+
+**K-43 B — el id de parada con cuatro nombres**
+- **Qué es y por qué hay que elegir.** `NAVEGACION.CAMBIO_PARADA` lleva el mismo id con cuatro nombres (`paradaId`, `parada_id`, `padreId`, `padreid`; el censo de R2.10 cuenta cinco) en once emisores. `resolverIdsParada` (`js/utils.js`) lo resuelve en el padre, hijo3, hijo5 y `js/funciones-mapa.js`; hijo2 e hijo4 lo leen a mano con precedencia opuesta. Hoy no se observa ningún efecto en producción (los emisores del padre mandan `paradaId` y `parada_id` iguales). Hay que elegir entre dejarlo o unificar el contrato, que toca once emisores, dos receptores y los specs del cambio de parada.
+- **Función.** Avisar a todos los frames de qué parada o tramo está activo.
+- **¿Otra herramienta lo cubre?** Sí: `resolverIdsParada`, que ya normaliza los cuatro nombres y el prefijo `padre-`.
+- **¿Puede ser código muerto?** En parte: `SISTEMA.NOTIFICACION` lee `padreid` y nadie lo manda (K-36); los demás nombres tienen emisor y lector.
+- **Por qué importa y por qué debe seguir.** Sin el id de parada no hay audio, retos ni mapa de la parada activa; es el mensaje central de la aventura.
+- **Opciones (de la ficha).** A) un único `paradaId` sin prefijo (a medio plazo, una tanda propia); B) dejarlo, con el coste de que cada emisor nuevo recuerde los cuatro nombres (la ficha recomienda B ahora y A al tocar el contrato).
+
+**K-46 B — los acuses que nadie consume**
+- **Qué es y por qué hay que elegir.** Handlers del bus que solo escriben en el log. Para dos viajes de ida y vuelta la ficha propone retirar: `RETO.MOSTRADO` (hijo4 → padre) con su respuesta `RETO.CONFIRMADO` (padre → hijo4) y `DATOS.TEXTOS_CARGADOS` (hijo2 → padre). Hoy siguen emitiéndose y atendiéndose. Retirarlos cambia el contrato del bus (regla 1) y la cifra de tipos y las fichas de la guía.
+- **Función.** Acusar recibo y anotarlo; el padre no usa la respuesta de `RETO.MOSTRADO` y `TEXTOS_CARGADOS` solo anota (su rama de error es el único aviso que recibe el padre si hijo2 no pudo cargar los textos).
+- **¿Otra herramienta lo cubre?** El bus tiene mensajes con confirmación (`enviarMensajeConConfirmacion`, 6 usos); que algo distinto del log sustituya a estos acuses, no comprobado.
+- **¿Puede ser código muerto?** Sí en el sentido de que no hacen nada más que anotar: tienen emisor y receptor, pero ningún efecto observable (ningún spec nombra `RETO.MOSTRADO` ni `RETO.CONFIRMADO`; `DATOS.TEXTOS_CARGADOS` solo aparece en un comentario del spec 106).
+- **Por qué importa y por qué debe seguir.** No sostienen ninguna decisión; son diagnóstico. Para `CAMBIO_MODO_APLICADO`, `SISTEMA.ERROR`, `SISTEMA.NACK`, `SISTEMA.NOTIFICACION` y `SELECCION.CODIGO_VALIDADO` la ficha recomienda dejarlos.
+- **Opciones (de la ficha).** A) dejarlos; B) retirar los dos viajes (recomendada para esos dos); C) retirar la cuarta fase del protocolo de modo entera.
+
+**K-37 A — literales `'casa'`, `'aventura'` y `destino: 'padre'` en los hijos**
+- **Qué es y por qué hay que elegir.** `MODOS` de `js/constants.js` lo lee el padre (y `funciones-mapa.js` y `app.js`) pero ningún hijo ni nieto; los hijos escriben los literales (unos 130 `destino: 'padre'`, 140 al medir K-37, y los dos valores de modo). Hay que elegir entre dejarlos o importar `MODOS` en siete hijos y la selección (once ficheros) por una ganancia de legibilidad.
+- **Función.** Nombrar el modo y el destino del bus.
+- **¿Otra herramienta lo cubre?** `MODOS` en `js/constants.js`; las demás constantes sin lector (`DESTINOS`, `ESTADOS`, `ERRORES`…) ya se retiraron.
+- **¿Puede ser código muerto?** No aplica a los literales; lo que no se leía ya se retiró.
+- **Por qué importa y por qué debe seguir.** Son los valores del contrato del bus; no han dado ningún fallo demostrado.
+- **Opciones (de la ficha).** A) dejarlos (recomendada); B) importar `MODOS` en los siete hijos y la selección.
+
+#### R2.11.5 Textos y reservas
+
+**K-25 A — textos de usuario fuera de `traducciones-ui.js`**
+- **Qué es y por qué hay que elegir.** Hay textos visibles en español fijo fuera de `traducciones-ui.js`: los tres `alert()` de hijo4 («Por favor, seleccione una opción.» sale pulsando Enviar sin elegir en un reto de opción: caso normal, M-6), los mensajes de fallo de la selección y, en hijo4, el botón 🆘❓ y «🧩 Iniciar reto»; más `alt`/`title`/`aria-label` del padre y de hijo2 (B) y cuatro páginas estáticas de contenido (C). Es una decisión de producto: textos en 12 idiomas con el registro formal de usted.
+- **Función.** Avisar al usuario de lo que ocurre en su idioma.
+- **¿Otra herramienta lo cubre?** Sí: `traducciones-ui.js` (12 idiomas), que hijo4 ya importa.
+- **¿Puede ser código muerto?** Una parte: el tercer `alert()` de hijo4 es inalcanzable según la ficha, y `ejecutarValidacion` es un stub siempre verdadero: el del padre no tiene ningún llamador (búsqueda desnuda: solo su definición), y el de hijo4 tiene una llamada cuya rama de fallo solo se alcanza si lo anterior lanza.
+- **Por qué importa y por qué debe seguir.** La regla del proyecto es «botones en 12 idiomas»; los `alert()` de hijo4 se ven en el flujo normal.
+- **Opciones (de la ficha).** A) mover los tres `alert()` de hijo4 y los mensajes de fallo de la selección (la ficha la recomienda como mínimo defendible; la revisión de R2.9 añade que hijo4 tiene otros textos en español que A no cubre); B) además los `alt`/`title`/`aria-label`; C) las páginas estáticas. K-24 (hecha) es previa para la parte de hijo4.
+
+**K-52 — reservas mudas a `'Aventura1'`**
+- **Qué es y por qué hay que elegir.** Doce sitios sustituyen una aventura ausente por `'Aventura1'`: el padre (`_hdl_NAVEGACION_CAMBIO_PARADA`), ocho de la selección, hijo2 (el único que avisa con `warn`), `mapa-completo.html` y `js/api-client.js` (parámetro por defecto de `activar`). Si el dato falta, la app sigue con una aventura inventada y nada lo delata. Hay que elegir sitio por sitio; la ficha solo leyó el del padre.
+- **Función.** Que la app no se detenga si falta el nombre de la aventura.
+- **¿Otra herramienta lo cubre?** No: el dato es `aventuraSeleccionada`; el respaldo de `vv_aventura` solo está en el padre.
+- **¿Puede ser código muerto?** No: son ramas de reserva alcanzables en estados concretos; la del padre, tras `_elegirOtra` (K-50). No medido.
+- **Por qué importa y por qué debe seguir.** Es el segundo camino silencioso del estudio; lo que se decide es qué hacer cuando falta el dato.
+- **Opciones (de la ficha).** Para el padre: A) no resolver contra una aventura inventada y dar un error visible en el log; B) dejarlo. No se recomienda nada para los demás sitios hasta leerlos uno a uno.
+
+#### R2.11.6 Service worker
+
+**K-60 — el Network First del shell sin plazo ni caída a la caché ante un error**
+- **Qué es y por qué hay que elegir.** El bloque «Shell y módulos JS: Network First» de `sw.js` pide a la red con `cache: 'no-store'`, guarda las respuestas válidas y solo sirve la caché si el `fetch` rechaza. Medido con el SW en modo producción: un corte limpio de red está contemplado (`hijo3` se recarga desde la caché); una respuesta 503 se devuelve tal cual en vez de la copia en caché; una petición que nunca contesta no tiene plazo (sin apretón en 22 s; la petición colgada se emuló con `context.route`). Cambiarlo toca `sw.js` (`CACHE_VERSION` y la lista del shell).
+- **Función.** Servir el shell de la app fresco cuando hay red y desde la caché cuando no.
+- **¿Otra herramienta lo cubre?** El precache de `APP_SHELL` en la instalación, el overlay de «sin conexión» (según lo leído en K-57, se activa con `navigator.onLine === false`) y el aviso de actualización; ninguno mira una petición colgada ni una respuesta de error.
+- **¿Puede ser código muerto?** No: es la rama de `fetch` del shell, la que sirve la app.
+- **Por qué importa y por qué debe seguir.** Es lo que hace que la PWA arranque sin red y que recargue un hijo caído desde la caché (K-57).
+- **Opciones (de la ficha, sin recomendar).** A) un plazo en el camino de red tras el cual se sirve la caché; B) servir la caché también ante una respuesta no 2xx; C) dejarlo.
+
+#### R2.11.7 Copias y homogeneidad
+
+**K-28 B — las familias de copias**
+- **Qué es y por qué hay que elegir.** El mismo algoritmo escrito varias veces: `enviarHijoListoConReintento` (6 copias, una por hijo), escapar HTML (8 o 9 copias, todas en el padre), `sleep` (padre y `js/utils.js`), `mostrarFraseAleatoria` (2), detección de móvil (3 listas distintas), `_displayOriginalBody` (5), los modales de entrada de código (3) y otras. Es coste de mantenimiento, no una avería; cada una pide su decisión (extraer a `js/` o aceptar la copia). La que más rinde, según la ficha, es `enviarHijoListoConReintento`, porque una corrección hay que repetirla en seis sitios.
+- **Función.** Cada copia es un ayudante que su frame necesita (reintentar `HIJO_LISTO`, escapar HTML, esperar, detectar móvil…).
+- **¿Otra herramienta lo cubre?** Donde ya hay módulo compartido: `js/utils.js` exporta `sleep` (lo importa `js/api-client.js`; el padre usa el suyo, idéntico) y `resolverIdsParada`; la detección de móvil tiene `js/device-detection.js` frente a otras dos listas.
+- **¿Puede ser código muerto?** Alguna sí: `debug-brujula.html` copia el algoritmo de la orientación de la flecha y no la carga ningún fichero de producción (búsqueda desnuda: solo la guía y `eslint.config.js`), pero es una herramienta manual de diagnóstico en un móvil real (guía), no código muerto. Las demás copias están en uso (por ejemplo `sleep` del padre tiene al menos siete llamadores).
+- **Por qué importa y por qué debe seguir.** Cada hijo necesita su apretón de manos y los ayudantes citados; lo que se decide es cuántas veces está escrito.
+- **Opciones (de la ficha).** A) extraer a `js/` o aceptar la copia, familia a familia; B) dejarlas (la ficha lo dejó así).
+
+**R2.10 — las familias de homogeneidad de la PWA (13) y las de herramientas y tests**
+- **Qué es y por qué hay que elegir.** Para cada decisión que el código toma, el censo cuenta cuántas formas hay; hay que decidir **unificar o aceptar**, y hacia qué forma, familia a familia. Decididas hasta ahora (solo en los specs): `goto` con ruta que empieza por `/` y `src` de un iframe inyectado con ruta que empieza por `/`. **Abiertas (la PWA; cifras del censo del 2026-10-05):** escribir en el log (925 `(globalThis.logger || console).x` y 924 `logger.x` con import estático, de 1905); registrar un handler (130 con `registrarControladorSeguro`, de 142); enviar un mensaje (132 `enviarMensaje` y 62 por alias `_S1`/`_S2`, de 232); destino de un mensaje (130 `'padre'` literal, de 220); esperas y plazos (106 `setTimeout`, de 173); qué hace un `catch` (182 con un solo log de error y 47 vacíos, de 654); almacenamiento (43 de 52 con `try`); `import()` dinámico (39 de 90 sin protección); mostrar y ocultar (131 `style.display`, tres vocabularios de clase); eventos del DOM (225 `addEventListener`, 41 atributos `on*`, 30 propiedades); estado del padre (440 `estado.x` y 64 `globalThis.estadoPadre.x`, de 506); copias de un mismo algoritmo (K-28); `postMessage` (7 sitios, ya cuadra con K-16: sin decisión que tomar).
+- **Función.** Que cada decisión del código tenga una sola forma (regla de «un solo camino por decisión» de `CLAUDE.md`).
+- **¿Otra herramienta lo cubre?** La mayoría de las formas mayoritarias ya son la herramienta compartida (`registrarControladorSeguro`, `enviarMensaje`, `logger`, `retryUntilAvailable` para esperas acotadas, 8 usos); la decisión es acercar los sitios que se desvían.
+- **¿Puede ser código muerto?** No aplica: son formas de escribir lo mismo, no código aparte. (Los 47 `catch` vacíos y los 9 accesos al almacenamiento sin `try` se leyeron como candidatos, no se comprobó cuáles pueden fallar en producción.)
+- **Por qué importa y por qué debe seguir.** Es la consistencia que pidió el usuario (2026-10-05); cada familia se estudia con la lupa de R2.9 antes de proponer nada, y el censo no mide el comportamiento ante el fallo.
+- **Opciones.** Por familia: unificar hacia la forma mayoritaria, hacia otra, o aceptar la copia. Fuera de la PWA (R2.10.4): herramientas (77 ficheros; `.js` y `.cjs` como dos extensiones para lo mismo, 6 de 76 usan la librería compartida del analizador) y tests (esperas de cuatro formas, los diez `*.test.js` sin ejecutor).
+
+#### R2.11.8 Un fichero sin lector
+
+**`tests/flujo_bidireccional_exhaustivo.json`**
+- **Qué es y por qué hay que elegir.** Un informe de 24 KB titulado «Análisis exhaustivo de flujo de comunicación bidireccional» (versión 2.0.0, generado el 2025-01-08, desde el primer commit del repositorio): flujos por familia de mensajes, problemas, controladores huérfanos y recomendaciones. Búsqueda desnuda de su nombre en todo el repositorio: solo `docs/estudio-caminos.md` (que lo nombra a propósito). Nombra al menos tres tipos de mensaje que no existen hoy en `js/constants.js` (`GPS.UBICACION_ACTUALIZADA`, `NAVEGACION.ENVIAR_PARADA_COMPLETADA`, `SISTEMA.HEARTBEAT_START`) y `estadoHijos.ultimoPing`. Hay que elegir si se conserva como documento histórico, se actualiza o se retira.
+- **Función.** Ninguna en tiempo de ejecución ni en la suite: nada lo lee.
+- **¿Otra herramienta lo cubre?** Sí: `npm run verificar-mensajeria` (emisores y receptores de cada tipo, contra el código) y la tabla de mensajes de la guía (§37.3 y las fichas de §26.12), que se regeneran del código.
+- **¿Puede ser código muerto?** Sí: no es código, pero no tiene ningún lector y está desfasado respecto al bus.
+- **Por qué importa y por qué debe seguir.** No hay función en la PWA que lo requiera; solo conserva un análisis de enero de 2025 que ya no coincide con el código.
+- **Opciones.** Conservarlo, actualizarlo con las herramientas actuales o retirarlo; la decisión es del usuario y no cambia nada de la PWA.
