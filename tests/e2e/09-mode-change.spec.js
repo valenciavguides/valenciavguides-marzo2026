@@ -150,7 +150,6 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
     await page.evaluate(() => {
       if (!globalThis.estadoPadre) globalThis.estadoPadre = {};
       if (!globalThis.estadoPadre.hijosInicializados) globalThis.estadoPadre.hijosInicializados = new Set();
-      if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = new Map();
     });
 
     const tipoCambioModo = await page.evaluate(() => {

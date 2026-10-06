@@ -175,22 +175,8 @@
             }
 
         } catch (error) {
+            // Sin HIJO_PREPARADO el padre no da a este hijo por listo y el supervisor del bus lo recarga.
             logger.error(`${logPrefix} Error crítico durante inicialización:`, error);
-
-            // Enviar HIJO_FALLIDO al padre
-            try {
-                await enviarMensaje({
-                    destino: 'padre',
-                    tipo: TIPOS_MENSAJE.SISTEMA.HIJO_FALLIDO,
-                    datos: {
-                        error: error.message,
-                        stack: error.stack,
-                        timestamp: Date.now()
-                    }
-                });
-            } catch (notifyError) {
-                logger.error(`${logPrefix} Error notificando fallo al padre:`, notifyError);
-            }
         }
     }
 

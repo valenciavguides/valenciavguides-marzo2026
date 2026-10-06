@@ -8,7 +8,7 @@
  * `globalThis.diagnosticarHijo4()` era una herramienta de consola sin ningún llamador en el
  * proyecto (`grep` global → 0 referencias fuera de su propia definición). Su paso 3 reasignaba
  * `hijo4Element.src` directamente para "arreglar" un hijo4 sin cargar — un segundo camino de
- * carga, distinto de `_cargarSingleIframe()`/`_cargarUnIframeHijo()`/`_cargarSoloIframeActivacion()`,
+ * carga, distinto del cargador único de hijos (`cargarHijo()`),
  * que **no llamaba a `registrarIframe()`**. Medido antes del arreglo: tras invocarla, hijo4
  * cargaba de verdad (su `src` cambiaba a la URL real) pero `mensajeria.getIframesRegistrados()`
  * no lo incluía — quedaba mudo para el bus, exactamente el síntoma que

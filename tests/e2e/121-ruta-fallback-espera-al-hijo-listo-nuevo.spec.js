@@ -2,13 +2,14 @@
  * 121-ruta-fallback-espera-al-hijo-listo-nuevo.spec.js
  *
  * La ruta fallback de `SELECCION.AVENTURA_ACTIVADA` (la que deja `SELECCION.REINICIAR`: `_iframesPreCargadosP14` falso)
- * borra a los cinco hijos del conjunto del padre, recarga sus iframes y espera «un HIJO_LISTO nuevo de cada uno»
- * (`_esperarHijosCargados`). Esa espera la hace `crearPromiseHijoListo` del state-manager, que resuelve al instante para
+ * recarga a los cinco hijos con el cargador único (`cargarHijo`), que borra a cada uno del conjunto del padre y espera «un
+ * HIJO_LISTO nuevo» suyo. Esa espera la hace `crearPromiseHijoListo` del state-manager, que resuelve al instante para
  * un id que ya está en SU conjunto. Si el padre vacía el suyo y el state-manager no, la espera no espera.
  *
  *   HL-1  las cinco esperas de la ruta resuelven cuando llega el HIJO_LISTO nuevo de su hijo, no antes
  *   HL-2  control: en esa ruta llega de verdad un HIJO_LISTO nuevo de cada uno de los cinco (HL-1 no es vacío)
  *   HL-3  state-manager: tras `olvidarHijoListo(id)`, `crearPromiseHijoListo(id)` espera a `marcarHijoListo(id)`
+ *   HL-4  state-manager: esa espera no tiene plazo propio (no arma ningún temporizador): el que no llega lo recupera el supervisor
  *
  * ROJO ANTES QUE VERDE: con el código anterior HL-1 cae (las cinco esperas resuelven en el mismo instante en que se
  * piden, cientos de milisegundos antes de que llegue ningún HIJO_LISTO nuevo) y HL-3 cae (no hay `olvidarHijoListo`).
@@ -124,5 +125,23 @@ test.describe('HL — la ruta fallback espera al HIJO_LISTO nuevo', () => {
     expect(r.trasOlvidar, 'un id olvidado vuelve a esperar').toBe('pendiente');
     expect(r.trasMarcarDeNuevo, 'y se resuelve al llegar su HIJO_LISTO').toBe('resuelta');
     expect(r.idDesconocido, 'olvidar un id que no estaba no es un error').toBe('sin error');
+  });
+
+  test('HL-4. La espera de HIJO_LISTO no tiene plazo propio: crearla no arma ningún temporizador', async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+    const pedidos = await page.evaluate(() => {
+      const sm = globalThis.__stateManager;
+      const plazos = [];
+      const original = globalThis.setTimeout;
+      globalThis.setTimeout = function (fn, ms, ...resto) { plazos.push(Number(ms) || 0); return original.call(this, fn, ms, ...resto); };
+      try { sm.crearPromiseHijoListo('hijo-hl4'); } finally { globalThis.setTimeout = original; }
+      return plazos;
+    });
+    // Quien espera a un hijo lo espera hasta que esté listo: si no llega, lo recupera el supervisor del bus, y un plazo aquí
+    // dejaría a quien espera sin su hijo mientras el supervisor aún lo está recuperando.
+    expect(pedidos, 'una espera sin plazo no arma ningún temporizador').toEqual([]);
   });
 });

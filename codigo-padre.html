@@ -104,9 +104,8 @@
         // El aviso de hijo5 "ya tengo mis botones" (PARADAS.READY) NO se escucha aquí: lo
         // atiende _hdl_PARADAS_READY, en Script 2, como un handler más del bus. Aquí hubo un
         // listener suelto pre-módulos por miedo a llegar tarde, pero hijo5 no puede avisar
-        // antes de que el bus exista: su iframe no recibe `src` hasta cargarHijoCasa() —o la
-        // rama de activación—, las dos dentro de módulos, y las dos lo registran en la
-        // mensajería ANTES de asignárselo.
+        // antes de que el bus exista: su iframe no recibe `src` hasta cargarHijoCasa(), dentro de
+        // un módulo, que lo registra en la mensajería ANTES de asignárselo.
 
         function _handleHijo5IframeLoad(doc) {
             try {
@@ -4187,7 +4186,6 @@
             coordinacion: {
                 cacheTTL: esMovil ? 15000 : 30000
             },
-            estadoHijos: new Map(),
 
             // Estado de progreso de aventura
             // indiceProgreso: integer index into elementosIDpadre array or null if unknown
@@ -4882,29 +4880,6 @@
             if (fondoEl) fondoEl.style.display = 'block';
             if (fondoInferiorEl) fondoInferiorEl.style.display = 'block';
         }
-        async function _esperarHijosCriticosRest(logPrefix) {
-            const hijosCriticos = ['hijo2', 'hijo3', 'hijo4'];
-            const promesas = hijosCriticos.map(id => {
-                if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
-                    return globalThis.__stateManager.crearPromiseHijoListo(id);
-                }
-                // Fallback a polling, bounded via retryUntilAvailable() (js/utils.js) —
-                // antes era check()/setTimeout(check,200) sin límite, hallazgo de la
-                // auditoría 2026-08-15 (ver docs/GUIA-COMPLETA.md §11, "Patrón retryUntilAvailable()").
-                return retryUntilAvailable(
-                    () => estado.hijosInicializados.has(id),
-                    { maxIntentos: 150, intervalo: 200, mensaje: `[Hijos] ${id} listo (fallback polling)` }
-                ).then((listo) => {
-                    if (!listo) throw new Error(`Hijo ${id} no confirmó HIJO_LISTO tras 30s (fallback polling)`);
-                });
-            });
-            try {
-                await Promise.all(promesas);
-                (globalThis.logger || console).info(`${logPrefix} ✅ Hijos críticos listos (sistema de eventos)`);
-            } catch (error) {
-                (globalThis.logger || console).warn(`${logPrefix} ⚠️ Error esperando hijos críticos:`, error);
-            }
-        }
         async function _distribuirDatosRest(logPrefix, datosGuardados) {
             try {
                 if (typeof globalThis.distribuirDatosAventura !== 'function') {
@@ -5116,15 +5091,10 @@
                 // La restauración de sesión nunca pasa por P14 — _hdl_SELECCION_P14_MOSTRADA
                 // es el ÚNICO otro sitio que carga hijo1-5 (los iframes hijo contienen lógica
                 // de pago y no se cargan antes). Sin esto, ningún iframe tiene src asignado
-                // aquí y _esperarHijosCriticosRest() esperaría para siempre a que confirmen
-                // HIJO_LISTO sin que nadie les haya dicho que carguen — un interbloqueo
-                // determinista en cualquier reapertura de la app con una aventura guardada.
-                // cargarRestoDeiframes()/cargarHijoCasa() son idempotentes (comprueban el
-                // src actual antes de reasignarlo), así que no interfieren si algún iframe
-                // ya estuviera cargado por otra vía.
+                // aquí y nadie les diría que carguen. Los cargadores no terminan hasta que cada
+                // hijo completa el apretón de manos (sin plazo: lo recupera el supervisor del
+                // bus), así que al seguir los cinco están listos.
                 await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()]);
-
-                await _esperarHijosCriticosRest(logPrefix);
                 await _distribuirDatosRest(logPrefix, datosGuardados);
                 await _enviarRespuestaParadasHijosRest(logPrefix, datosGuardados);
                 // _activarModoRest() antes que _restaurarProgresoRest(): esta última dispara
@@ -7188,12 +7158,6 @@
                 globalThis.estadoPadre.hijosPreparados = globalThis.estadoPadre.hijosPreparados || new Set();
                 globalThis.estadoPadre.hijosPreparados.add(hijoId);
 
-                const estadoHijo = globalThis.estadoPadre.estadoHijos.get(hijoId) || {};
-                globalThis.estadoPadre.estadoHijos.set(hijoId, {
-                    ...estadoHijo,
-                    version
-                });
-
                 (globalThis.logger || console).success(`${logPrefix} ✅ ${hijoId} marcado como preparado`);
 
                 // El handshake sigue con PADRE_DATOS. Aqui habia un ACK al HIJO_PREPARADO que
@@ -7304,9 +7268,7 @@
                 }
                 const { version = '1.0.0', capacidades = [], tiempoInicializacion = 0 } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} Hijo listo: ${hijoId}`, { version, capacidades: capacidades.length, tiempoInicializacion });
-                const estadoHijo = estado.estadoHijos.get(hijoId) || {};
-                estado.estadoHijos.set(hijoId, { ...estadoHijo, activo: true, fallosConsecutivos: 0, version, tiempoInicializacion });
-                (globalThis.logger || console).info(`${logPrefix} ✅ ${hijoId} listo y estado actualizado.`);
+                (globalThis.logger || console).info(`${logPrefix} ✅ ${hijoId} listo.`);
                 await _hijoListo_confirmarAlHijo(hijoId, logPrefix);
                 // Hook de recuperación: si el hijo fue recargado por heartbeat, restaurar su estado
                 if (typeof globalThis._vv_afterHijoListo === 'function') {
@@ -7676,26 +7638,6 @@
                     return;
                 }
 
-                // Silenciado: Solo loguear en modo debug explícito
-                // (globalThis.logger || console).debug(`${logPrefix} Respuesta heartbeat de ${mensaje.origen}`);
-
-                if (estado.estadoHijos.has(mensaje.origen)) {
-                    const hijoEstado = estado.estadoHijos.get(mensaje.origen);
-                    hijoEstado.fallosConsecutivos = 0;
-                    hijoEstado.activo = true;
-
-                    // Silenciado: Solo loguear en modo debug explícito
-                    // (globalThis.logger || console).debug(`${logPrefix} Estado de ${mensaje.origen} actualizado`);
-                } else {
-                    estado.estadoHijos.set(mensaje.origen, {
-                        activo: true,
-                        fallosConsecutivos: 0
-                    });
-
-                    // Mantener este log porque es importante saber cuando un hijo nuevo se registra
-                    (globalThis.logger || console).info(`${logPrefix} Nuevo hijo registrado: ${mensaje.origen}`);
-                }
-
                 // Procesar heartbeat response en mensajeria.js (detección de hijos caídos)
                 if (globalThis.mensajeria && typeof globalThis.mensajeria.procesarHeartbeatResponse === 'function') {
                     await globalThis.mensajeria.procesarHeartbeatResponse(mensaje);
@@ -7708,24 +7650,6 @@
 
         // NOTA: Los handlers de CAMBIO_MODO_ENTENDIDO y CAMBIO_MODO_EFECTUADO
         // se registran en app.js (actualizarInterfazModo) para que el protocolo
-
-        // CONTROLADOR: SISTEMA.HIJO_FALLIDO
-        // Recibe notificaciones de hijos que no pudieron inicializar correctamente
-        registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HIJO_FALLIDO, async (mensaje) => {
-            const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[HIJO_FALLIDO]`;
-            try {
-                const { componenteId, error: errorHijo } = mensaje.datos || {};
-                (globalThis.logger || console).error(`${logPrefix} ${mensaje.origen || componenteId} reportó fallo de inicialización: ${errorHijo || 'sin detalle'}`);
-
-                if (estado.estadoHijos.has(mensaje.origen)) {
-                    const hijoEstado = estado.estadoHijos.get(mensaje.origen);
-                    hijoEstado.activo = false;
-                    hijoEstado.fallido = true;
-                }
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando HIJO_FALLIDO:`, error);
-            }
-        }, { permanente: true });
         // bidireccional pueda rastrear qué hijos respondieron. Registrarlos aquí
         // bloquearía los de app.js debido a la dedup por tipo en registrarControladorSeguro,
         // provocando timeouts de 15s en cada cambio de modo.
@@ -7877,76 +7801,67 @@
 
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} ✅ Controladores CRÍTICOS registrados (Script 1)`);
 
-        // Función para carga secuencial de iframes
         // ============================================================
-        // FUNCIÓN: CARGAR SOLO IFRAME DE SELECCIÓN
-        // Se llama durante startup - carga SOLO En-busca-del-tesoro.html
+        // CARGADOR DE HIJOS: el único
+        // Lo usan la selección (cargarIframeSoloSeleccion), hijo5 (cargarHijoCasa) y los demás hijos de la aventura
+        // (cargarRestoDeiframes); y esas tres, a su vez, todos los flujos que cargan hijos: el arranque, P14, la reanudación de
+        // sesión y la ruta fallback de SELECCION.AVENTURA_ACTIVADA.
         // ============================================================
 
-        function _esperarCargaIframe(iframeEl, iframeId, src) {
-            return new Promise((resolve) => {
-                const timeoutFallback = setTimeout(() => {
-                    (globalThis.logger || console).warn(`${CONFIG_PADRE.LOG_PREFIX} ⚠️ Timeout de carga para ${iframeId}, continuando...`);
-                    resolve();
-                }, ajustarTimeoutPorConexion_S1(10000));
-                const cleanup = () => { clearTimeout(timeoutFallback); iframeEl.removeEventListener('load', onLoad); iframeEl.removeEventListener('error', onError); };
-                const onLoad = () => { cleanup(); (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} ✅ ${iframeId} cargado (evento onload)`); resolve(); };
-                const onError = (err) => { cleanup(); (globalThis.logger || console).error(`${CONFIG_PADRE.LOG_PREFIX} ❌ Error de carga para ${iframeId}:`, err); resolve(); };
-                iframeEl.addEventListener('load', onLoad, { once: true });
-                iframeEl.addEventListener('error', onError, { once: true });
-                (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Asignando src a ${iframeId}: ${src}`);
-                iframeEl.src = src;
-            });
+        // Un iframe que empieza a cargar no está listo, ni para el padre ni para el state-manager. Si alguno de los dos conservara la
+        // constancia de la carga anterior, `crearPromiseHijoListo` resolvería al instante en vez de esperar al HIJO_LISTO nuevo, y el
+        // supervisor del bus le exigiría latidos a un iframe que aún está arrancando en vez de darle la gracia de arranque.
+        // (Por `globalThis.estadoPadre` y no por `estado`: este cargador corre en el arranque, antes de que se evalúe la `const estado` del final del Script 1.)
+        function _olvidarHijoListo(iframeId) {
+            globalThis.estadoPadre.hijosInicializados.delete(iframeId);
+            globalThis.__stateManager.olvidarHijoListo(iframeId);
+            globalThis.estadoPadre.todosHijosListos = false;
         }
 
-        function _esperarHijoListo(iframeId) {
-            if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
-                return globalThis.__stateManager.crearPromiseHijoListo(iframeId);
-            }
-            // Fallback simple sin sleep (solo verificar estado actual)
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    if (globalThis.estadoPadre.hijosInicializados.has(iframeId)) {
-                        resolve();
-                    } else {
-                        reject(new Error(`Timeout esperando HIJO_LISTO de ${iframeId}`));
-                    }
-                }, ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION));
-            });
-        }
-
-        // Espera el HIJO_LISTO de un hijo SIN plazo. Mientras no llegue, quien lo recupera es el supervisor del bus (recarga el
-        // iframe con una gracia creciente y lo dice por consola), así que aquí no hay nada a lo que rendirse. `crearPromiseHijoListo`
-        // rechaza a los 30 s: se vuelve a esperar hasta que resuelva.
-        async function _esperarHijoListoSinPlazo(iframeId) {
-            for (;;) {
-                try {
-                    await _esperarHijoListo(iframeId);
-                    return;
-                } catch (e) {
-                    (globalThis.logger || console).debug(`${CONFIG_PADRE.LOG_PREFIX} ${iframeId} sigue sin HIJO_LISTO; se sigue esperando (lo recupera el supervisor): ${e?.message}`);
-                }
-            }
-        }
-
-        // Carga la pantalla de selección y espera a que esté lista, sin plazo: si no llega, la recarga el supervisor del bus
-        // (gracia creciente, indefinidamente, con un error por consola en cada intento) y la aplicación se queda en su pantalla
-        // de carga hasta entonces, en vez de enseñar una selección que no ha arrancado.
-        async function cargarIframeSoloSeleccion() {
-            if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = new Map();
-            const iframe = { id: 'seleccion', src: 'En-busca-del-tesoro.html' };
-            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Cargando el iframe de selección...`);
+        // Carga el iframe de un hijo y no termina hasta que completa el apretón de manos (HIJO_LISTO). SIN plazo: si no llega, lo
+        // recupera el supervisor del bus (js/mensajeria.js recarga el iframe con una gracia creciente, indefinidamente y con un error
+        // por consola en cada intento), así que aquí no hay nada a lo que rendirse. Cada hijo se muestra en cuanto está listo, sin
+        // esperar a los demás.
+        //
+        // Se registra en la mensajería ANTES de asignarle el `src`: `enviarMensaje` (js/mensajeria.js) busca todo destino padre→hijo en
+        // `iframesRegistrados`, y un iframe que no esté ahí es inalcanzable: el PADRE_DATOS que el padre responde a su HIJO_PREPARADO se
+        // descartaría y el hijo no llegaría nunca a HIJO_LISTO.
+        //
+        // Reasignar el `src` recarga el iframe aunque ya tuviera ese mismo: la ruta fallback de SELECCION.AVENTURA_ACTIVADA recarga a los
+        // cinco y necesita un HIJO_LISTO nuevo de cada uno.
+        //
+        // visibilidad:
+        //   'al-estar-listo'      oculto mientras carga y visible al estar listo (los hijos de la aventura)
+        //   'desde-el-principio'  visible ya mientras carga (la selección: es lo primero que ve el usuario)
+        //   'no-tocar'            ni se oculta ni se muestra (hijo5, herramienta de desarrollo, ver §24: la muestra quien la usa)
+        async function cargarHijo(iframe, { visibilidad = 'al-estar-listo' } = {}) {
             const iframeEl = document.getElementById(iframe.id);
             if (!iframeEl) throw new Error(`Iframe ${iframe.id} no encontrado en DOM`);
+            _olvidarHijoListo(iframe.id);
             globalThis.registrarIframeHijo(iframe.id, iframeEl);
-            iframeEl.style.display = 'block';
-            iframeEl.style.visibility = 'visible';
-            await _esperarCargaIframe(iframeEl, iframe.id, iframe.src);
-            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Esperando HIJO_LISTO de ${iframe.id}...`);
-            await _esperarHijoListoSinPlazo(iframe.id);
+            if (visibilidad !== 'no-tocar') {
+                const visible = visibilidad === 'desde-el-principio';
+                iframeEl.style.display = visible ? 'block' : 'none';
+                iframeEl.style.visibility = visible ? 'visible' : 'hidden';
+            }
+            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Asignando src a ${iframe.id}: ${iframe.src}`);
+            iframeEl.src = iframe.src;
+            await globalThis.__stateManager.crearPromiseHijoListo(iframe.id);
+            if (visibilidad !== 'no-tocar') {
+                iframeEl.style.display = '';
+                iframeEl.style.visibility = 'visible';
+            }
             (globalThis.logger || console).success(`${CONFIG_PADRE.LOG_PREFIX} ✅ ${iframe.id} listo y confirmado.`);
-            iframeEl.style.display = '';
-            iframeEl.style.visibility = 'visible';
+        }
+
+        // ============================================================
+        // FUNCIÓN: CARGAR SOLO IFRAME DE SELECCIÓN
+        // Se llama durante startup - carga SOLO En-busca-del-tesoro.html y espera a que esté lista: la aplicación se queda en su
+        // pantalla de carga hasta entonces, en vez de enseñar una selección que no ha arrancado.
+        // ============================================================
+        async function cargarIframeSoloSeleccion() {
+            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Cargando el iframe de selección...`);
+            await cargarHijo({ id: 'seleccion', src: 'En-busca-del-tesoro.html' }, { visibilidad: 'desde-el-principio' });
 
             if (globalThis.__pendingDistribucion && typeof enviarMensaje_S1 === 'function') {
                 const { aventura, idioma } = globalThis.__pendingDistribucion;
@@ -8033,7 +7948,6 @@
             // Asegurar propiedades mínimas sin destruir el objeto existente
             if (!globalThis.estadoPadre.hijosInicializados) globalThis.estadoPadre.hijosInicializados = new Set();
             if (!globalThis.estadoPadre.hijosPreparados) globalThis.estadoPadre.hijosPreparados = new Set();
-if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = new Map();
             if (!globalThis.estadoPadre.retoActual) {
                 globalThis.estadoPadre.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
             }
@@ -8053,23 +7967,6 @@ if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = ne
         // ============================================================
         // HELPERS: INICIALIZACIÓN AUTOMÁTICA
         // ============================================================
-
-        async function _cargarUnIframeHijo(iframe, logPrefix) {
-            const iframeEl = document.getElementById(iframe.id);
-            if (!iframeEl) throw new Error(`Iframe hijo ${iframe.id} no encontrado en DOM`);
-            globalThis.registrarIframeHijo(iframe.id, iframeEl);
-            (globalThis.logger || console).debug(`${logPrefix} Iframe hijo ${iframe.id} registrado en mensajería`);
-            iframeEl.style.display = 'none';
-            iframeEl.style.visibility = 'hidden';
-            await _esperarCargaIframe(iframeEl, iframe.id, iframe.src);
-            (globalThis.logger || console).info(`${logPrefix} Esperando HIJO_LISTO de hijo ${iframe.id}...`);
-            await _esperarHijoListo(iframe.id);
-            (globalThis.logger || console).success(`${logPrefix} ✅ Hijo ${iframe.id} listo y confirmado.`);
-            if (iframe.id !== 'hijo5') {
-                iframeEl.style.display = '';
-                iframeEl.style.visibility = 'visible';
-            }
-        }
 
         async function _procesarDistribucionPendiente(logPrefix) {
             if (!globalThis.__pendingDistribucion) return;
@@ -8243,90 +8140,28 @@ await _comprobarReanudacionAventura(logPrefix);
          * Se ejecuta solo cuando el usuario ha completado la selección
          */
         async function cargarHijoCasa() {
-            const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[CARGAR_HIJO_CASA]`;
-            try {
-                (globalThis.logger || console).info(`${logPrefix} 🚀 Verificando hijo5 después de selección de aventura...`);
-                const iframeCasa = { id: 'hijo5', src: 'boton-casa-hijo5.html' };
-                const iframeEl = document.getElementById(iframeCasa.id);
-                if (!iframeEl) throw new Error(`Iframe ${iframeCasa.id} no encontrado en DOM`);
-
-                // Registrar en la mensajería ANTES de las dos ramas de abajo, igual que hacen los
-                // otros cargadores. `enviarMensaje` (js/mensajeria.js) resuelve todo destino
-                // padre→hijo buscándolo en `iframesRegistrados`: un iframe que no esté ahí es
-                // inalcanzable desde el padre y cada mensaje dirigido a él se descarta con un warn.
-                //
-                // Sin este registro, la cadena era: PADRE_DATOS se descarta → hijo5 nunca envía
-                // su HIJO_LISTO (lo emite desde dentro de ese handler) → _esperarHijoListo()
-                // agota su timeout y el catch se lo traga → hijo5 no entra en
-                // hijosInicializados (el cambio de modo llegaba a 5 hijos, no a 6) → sin
-                // PADRE_CONFIRMA_HIJO_LISTO su mostrarUI() hace return y su propio document.body
-                // se queda en display:none. El iframe estaba visible y vacío.
-                //
-                // El sentido hijo→padre nunca dependió de esto: es un postMessage directo a
-                // window.parent, por eso su HIJO_PREPARADO sí llegaba. Mismo fallo y misma
-                // forma que el de hijo6-chat, en otro cargador.
-                //
-                // Estuvo tapado: la rama fallback de AVENTURA_ACTIVADA usa
-                // _cargarSoloIframeActivacion, que sí registra, y esa rama se disparaba siempre
-                // porque _iframesPreCargadosP14 esperaba al GPS. Al arreglar aquello, el parche
-                // accidental desapareció y hijo5 dejó de aparecer en pantalla.
-                globalThis.registrarIframeHijo(iframeCasa.id, iframeEl);
-                (globalThis.logger || console).debug(`${logPrefix} Iframe ${iframeCasa.id} registrado en mensajería`);
-
-                if (iframeEl.src?.includes(iframeCasa.src)) {
-                    (globalThis.logger || console).info(`${logPrefix} ✅ hijo5 ya está cargado (se mostrará en AVENTURA_SELECCIONADA)`);
-                    await _esperarHijoListo(iframeCasa.id);
-                    (globalThis.logger || console).success(`${logPrefix} ✅ hijo5 listo y confirmado`);
-                    return;
-                }
-
-                (globalThis.logger || console).info(`${logPrefix} ⏳ hijo5 no está cargado, asignando src y esperando...`);
-                await _esperarCargaIframe(iframeEl, iframeCasa.id, iframeCasa.src);
-                await _esperarHijoListo(iframeCasa.id);
-                (globalThis.logger || console).success(`${logPrefix} ✅ hijo5 listo y confirmado después de selección de aventura`);
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} ❌ Error en cargarHijoCasa:`, error);
-            }
+            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX}[CARGAR_HIJO_CASA] 🚀 Cargando hijo5 después de selección de aventura...`);
+            await cargarHijo({ id: 'hijo5', src: 'boton-casa-hijo5.html' }, { visibilidad: 'no-tocar' });
         }
 
         // ============================================================
         // FUNCIÓN: CARGAR RESTO DE IFRAMES
         // Se llama después de AVENTURA_SELECCIONADA
-        // Carga todos excepto 'seleccion' e 'hijo5' (que se carga con cargarHijoCasa)
+        // Carga todos excepto 'seleccion' (ya cargado en el arranque) e 'hijo5' (que se carga con cargarHijoCasa)
         // ============================================================
         async function cargarRestoDeiframes() {
             const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[CARGAR_RESTO]`;
             (globalThis.logger || console).info(`${logPrefix} 🚀 Iniciando carga de iframes restantes...`);
 
-            if (!globalThis.estadoPadre.estadoHijos) {
-                globalThis.estadoPadre.estadoHijos = new Map();
-            }
-
             const iframes = [
-                // Cargar todos EXCEPTO seleccion (ya está cargado) e hijo5 (se carga con cargarHijoCasa)
                 { id: 'hijo1-opciones', src: 'extrainfo-hijo1.html' },
                 { id: 'hijo2', src: 'coordenadas-hijo2.html' },
                 { id: 'hijo3', src: 'audio-hijo3.html' },
                 { id: 'hijo4', src: 'retos-hijo4.html' }
             ];
 
-            const hijosFallidos = [];
-
-            await Promise.all(iframes.map(iframe => {
-                (globalThis.logger || console).info(`${logPrefix} Cargando iframe: ${iframe.id}`);
-                return _cargarUnIframeHijo(iframe, logPrefix)
-                    .then(() => (globalThis.logger || console).success(`${logPrefix} ✅ ${iframe.id} listo y confirmado`))
-                    .catch(error => {
-                        (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando ${iframe.id}: ${error.message}`);
-                        hijosFallidos.push({ id: iframe.id, error: error.message });
-                    });
-            }));
-
-            if (hijosFallidos.length > 0) {
-                (globalThis.logger || console).warn(`${logPrefix} ⚠️ ${hijosFallidos.length} iframes fallaron:`, hijosFallidos);
-            } else {
-                (globalThis.logger || console).success(`${logPrefix} ✅ Todos los iframes cargados correctamente`);
-            }
+            await Promise.all(iframes.map(iframe => cargarHijo(iframe)));
+            (globalThis.logger || console).success(`${logPrefix} ✅ Todos los iframes cargados correctamente`);
         }
 
         // Exponer funciones a window para debugging
@@ -10498,7 +10333,7 @@ await _comprobarReanudacionAventura(logPrefix);
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Inicializando controladores del padre...`);
         inicializarControlesAudioPadre();
 
-        // Controladores SISTEMA registrados en Script 1: HIJO_PREPARADO, HIJO_LISTO, CAMBIO_MODO, HEARTBEAT_RESPONSE, HIJO_FALLIDO, APLICACION_INICIALIZADA
+        // Controladores SISTEMA registrados en Script 1: HIJO_PREPARADO, HIJO_LISTO, CAMBIO_MODO, HEARTBEAT_RESPONSE, APLICACION_INICIALIZADA
 
         function _encontrarParadaEnElementos(elementosIDpadre, paradaId, idSinPrefijo) {
             return elementosIDpadre.find(p =>
@@ -12736,96 +12571,6 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        function _cargarIframeConTimeout(iframeEl, iframeConfig, logPrefix) {
-            return new Promise((resolve) => {
-                const timeout = setTimeout(() => {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ Timeout cargando ${iframeConfig.id}`);
-                    resolve(false);
-                }, 8000);
-                const onLoad = () => {
-                    clearTimeout(timeout);
-                    iframeEl.removeEventListener('load', onLoad);
-                    iframeEl.removeEventListener('error', onError);
-                    (globalThis.logger || console).info(`${logPrefix} ✅ ${iframeConfig.id} cargado`);
-                    resolve(true);
-                };
-                const onError = () => {
-                    clearTimeout(timeout);
-                    iframeEl.removeEventListener('load', onLoad);
-                    iframeEl.removeEventListener('error', onError);
-                    (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando ${iframeConfig.id}`);
-                    resolve(false);
-                };
-                // NO hacer esto idempotente. Reasignar el src destruye y reconstruye el
-                // iframe, sí — pero eso es justo lo que esta rama necesita: _normalizarSetHijos()
-                // acaba de borrar a los cinco de hijosInicializados, y _esperarHijosCargados()
-                // (más abajo) espera un HIJO_LISTO NUEVO de cada uno. Un iframe que no se
-                // recarga no lo emite, y la espera se cuelga 30 s con AVENTURA_ACTIVADA
-                // bloqueada — el mismo fallo que documenta el invariante de _normalizarSetHijos.
-                // La forma correcta de que esta rama no destruya nada es que no llegue a
-                // dispararse: para eso _iframesPreCargadosP14 se marca en cuanto los iframes
-                // están, sin esperar al GPS (ver _hdl_SELECCION_P14_MOSTRADA).
-                iframeEl.addEventListener('load', onLoad, { once: true });
-                iframeEl.addEventListener('error', onError, { once: true });
-                iframeEl.src = iframeConfig.src;
-            });
-        }
-
-        async function _cargarSoloIframeActivacion(iframeConfig, logPrefix) {
-            const iframeEl = document.getElementById(iframeConfig.id);
-            if (!iframeEl) {
-                (globalThis.logger || console).warn(`${logPrefix} Iframe ${iframeConfig.id} no encontrado en DOM`);
-                return false;
-            }
-            globalThis.registrarIframeHijo(iframeConfig.id, iframeEl);
-            return _cargarIframeConTimeout(iframeEl, iframeConfig, logPrefix);
-        }
-
-        async function _esperarHijosCargados(idsRecargados, estado, logPrefix) {
-            const inicioTotal = Date.now();
-            if (!idsRecargados || idsRecargados.length === 0) {
-                (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay hijos para esperar`);
-                return;
-            }
-            const promesas = idsRecargados.map(id => {
-                if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
-                    return globalThis.__stateManager.crearPromiseHijoListo(id);
-                }
-                // Fallback a polling, bounded via retryUntilAvailable() (js/utils.js) —
-                // antes era check()/setTimeout(check,200) sin límite, hallazgo de la
-                // auditoría 2026-08-15 (ver docs/GUIA-COMPLETA.md §11, "Patrón retryUntilAvailable()").
-                return globalThis.retryUntilAvailable(
-                    () => estado.hijosInicializados.has(id),
-                    { maxIntentos: 150, intervalo: 200, mensaje: `[Hijos] ${id} listo (fallback polling)` }
-                ).then((listo) => {
-                    if (!listo) throw new Error(`Hijo ${id} no confirmó HIJO_LISTO tras 30s (fallback polling)`);
-                });
-            });
-            try {
-                await Promise.all(promesas);
-                const tiempoTotal = Date.now() - inicioTotal;
-                (globalThis.logger || console).info(`${logPrefix} ✅ Hijos cargados (sistema de eventos), ${tiempoTotal}ms`);
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} ❌ Error esperando hijos:`, error);
-            }
-        }
-
-        function _normalizarSetHijos(estado, idsRecargados, logPrefix) {
-            if (!(estado.hijosInicializados instanceof Set)) {
-                const _prev = Array.isArray(estado.hijosInicializados) ? estado.hijosInicializados : [];
-                estado.hijosInicializados = new Set(_prev);
-                (globalThis.logger || console).warn(`${logPrefix} hijosInicializados no era Set; re-inicializado para evitar bloqueo en activación`);
-            }
-            for (const _idR of idsRecargados) {
-                estado.hijosInicializados.delete(_idR);
-                // El state-manager lleva su propio conjunto, y crearPromiseHijoListo resuelve al instante para un id que ya
-                // contiene: se vacía a la vez, o la espera de _esperarHijosCargados no espera al HIJO_LISTO nuevo.
-                if (typeof globalThis.__stateManager?.olvidarHijoListo === 'function') globalThis.__stateManager.olvidarHijoListo(_idR);
-            }
-            // Resetear para que _hijoListo_onTodosListos pueda disparar de nuevo tras recarga de iframes
-            estado.todosHijosListos = false;
-        }
-
         function _mostrarUIActivada(logPrefix) {
             const iframeSeleccion = document.getElementById('seleccion');
             if (iframeSeleccion) iframeSeleccion.style.display = 'none';
@@ -12894,21 +12639,11 @@ await _comprobarReanudacionAventura(logPrefix);
                     globalThis._iframesPreCargadosP14 = false;
                     updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
                 } else {
-                    // Ruta fallback: reanudación de sesión o P14 no disparó (normalizar + recargar todo)
+                    // Ruta fallback: reanudación de sesión o P14 no disparó (recargar todo)
                     (globalThis.logger || console).info(`${logPrefix} 📦 Cargando iframes hijos (ruta fallback)...`);
-                    const iframesHijos = [
-                        { id: 'hijo1-opciones', src: 'extrainfo-hijo1.html' },
-                        { id: 'hijo2', src: 'coordenadas-hijo2.html' },
-                        { id: 'hijo3', src: 'audio-hijo3.html' },
-                        { id: 'hijo4', src: 'retos-hijo4.html' },
-                        { id: 'hijo5', src: 'boton-casa-hijo5.html' }
-                    ];
-                    const _idsRecargados = iframesHijos.map(c => c.id);
-                    _normalizarSetHijos(estado, _idsRecargados, logPrefix);
-                    await Promise.all(iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix)));
+                    await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()]);
                     (globalThis.logger || console).success(`${logPrefix} ✅ Iframes hijos cargados`);
                     updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
-                    await _esperarHijosCargados(_idsRecargados, estado, logPrefix);
                 }
                 updateLoadingStatus('Hijos sincronizados', 'Distribuyendo datos de aventura', 62);
 

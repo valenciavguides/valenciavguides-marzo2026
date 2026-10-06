@@ -119,6 +119,9 @@ export async function updateHeartbeat(updates) {
 
 // Sistema de eventos para HIJO_LISTO
 // Sin mutex: el browser es single-threaded; Map/Set ops son atómicas en este contexto.
+// La espera NO tiene plazo: dura lo que tarde el hijo en completar el apretón de manos. Si no llega, lo recupera el supervisor del
+// bus (js/mensajeria.js recarga su iframe), y un plazo aquí solo dejaría sin su hijo a quien espera mientras el supervisor aún lo
+// está recuperando. Quien necesite acotar la espera la acota por fuera, con Promise.race (esperarHijosListos).
 export function crearPromiseHijoListo(hijoId) {
   if (state.estadoPadre.hijosInicializados && state.estadoPadre.hijosInicializados.has(hijoId)) {
     return Promise.resolve();
@@ -127,13 +130,8 @@ export function crearPromiseHijoListo(hijoId) {
     return state.hijosListosPromises.get(hijoId).promise;
   }
   const entry = {};
-  entry.promise = new Promise((resolve, reject) => {
+  entry.promise = new Promise((resolve) => {
     entry.resolve = resolve;
-    entry.reject = reject;
-    entry.timeout = setTimeout(() => {
-      state.hijosListosPromises.delete(hijoId);
-      reject(new Error(`Timeout esperando HIJO_LISTO de ${hijoId}`));
-    }, 30000);
   });
   state.hijosListosPromises.set(hijoId, entry);
   return entry.promise;
@@ -146,14 +144,13 @@ export function marcarHijoListo(hijoId) {
   state.estadoPadre.hijosInicializados.add(hijoId);
   const entry = state.hijosListosPromises.get(hijoId);
   if (entry) {
-    clearTimeout(entry.timeout);
     state.hijosListosPromises.delete(hijoId);
     entry.resolve();
   }
 }
 
 // Inverso de marcarHijoListo. Quien recarga un iframe vacía su constancia de que estaba listo: el padre su propio conjunto
-// (_normalizarSetHijos) y el supervisor del bus la de este (recargarIframe). Si este conjunto conserva el id,
+// (`_olvidarHijoListo`, en `cargarHijo`) y el supervisor del bus la de este (recargarIframe). Si este conjunto conserva el id,
 // crearPromiseHijoListo resuelve al instante y la espera de un HIJO_LISTO nuevo no espera, y el supervisor seguiría dando
 // por hecho el apretón de manos de un iframe que acaba de empezar a cargar.
 export function olvidarHijoListo(hijoId) {

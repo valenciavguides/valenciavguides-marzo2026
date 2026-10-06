@@ -12,8 +12,6 @@
  *     aparecen en globalThis.estadoPadre.hijosInicializados.
  *   - El padre envía PADRE_DATOS / PADRE_CONFIRMA_HIJO_LISTO a cada hijo
  *     (se comprueba que los helpers internos existen y son funcionales).
- *   - La reconexión de un hijo fallido: el mecanismo de hijosFallidos +
- *     intentarReconectarHijosFallidos está expuesto y es invocable.
  *
  * NOTA: En el entorno de test no se cargan los iframes reales (las páginas hijas
  * no son servibles desde el servidor estático con todos sus módulos). Por eso los
@@ -30,7 +28,6 @@
  *         inyectando un mensaje HIJO_PREPARADO sintético vía postMessage)
  *   HD-5  ACK: el controlador HIJO_LISTO actualiza estadoPadre.hijosInicializados
  *         (lógica verificable inyectando HIJO_LISTO sintético)
- *   HD-6  Función intentarReconectarHijosFallidos está expuesta en window
  */
 'use strict';
 
@@ -107,14 +104,12 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
       return {
         hasHijosInicializados: ep.hijosInicializados instanceof Set,
         hasHijosPreparados: ep.hijosPreparados instanceof Set || ep.hijosPreparados == null,
-        hasEstadoHijos: ep.estadoHijos instanceof Map,
         hasModoActual: typeof ep.modoActual === 'string' || ep.modoActual == null,
         hasGps: typeof ep.gps === 'object',
       };
     });
     expect(info).not.toBeNull();
     expect(info.hasHijosInicializados).toBe(true);
-    expect(info.hasEstadoHijos).toBe(true);
   });
 
   test('HD-2b. estadoPadre.hijosInicializados comienza vacío antes de cargar iframes', async ({ page }) => {
@@ -125,18 +120,6 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
     });
     // En entorno de test sin iframes reales debe ser 0
     expect(size).toBe(0);
-  });
-
-  test('HD-2c. estadoPadre.estadoHijos es un Map (aunque vacío inicialmente)', async ({ page }) => {
-    const info = await page.evaluate(() => {
-      const m = globalThis.estadoPadre?.estadoHijos;
-      return {
-        isMap: m instanceof Map,
-        size: m instanceof Map ? m.size : -1,
-      };
-    });
-    expect(info.isMap).toBe(true);
-    expect(info.size).toBeGreaterThanOrEqual(0);
   });
 
   // ── HD-3: Funciones de carga expuestas ───────────────────────────────
@@ -162,11 +145,10 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
   // que el padre actualiza estadoPadre.hijosPreparados correctamente.
 
   test('HD-4. Mensaje HIJO_PREPARADO sintético actualiza estadoPadre.hijosPreparados', async ({ page }) => {
-    // Asegurarnos de que hijosPreparados y estadoHijos están inicializados
+    // Asegurarnos de que hijosPreparados y hijosInicializados están inicializados
     await page.evaluate(() => {
       if (!globalThis.estadoPadre) globalThis.estadoPadre = {};
       globalThis.estadoPadre.hijosPreparados = globalThis.estadoPadre.hijosPreparados || new Set();
-      globalThis.estadoPadre.estadoHijos = globalThis.estadoPadre.estadoHijos || new Map();
       globalThis.estadoPadre.hijosInicializados = globalThis.estadoPadre.hijosInicializados || new Set();
     });
 
@@ -206,7 +188,6 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
     await page.evaluate(() => {
       if (!globalThis.estadoPadre) globalThis.estadoPadre = {};
       globalThis.estadoPadre.hijosInicializados = globalThis.estadoPadre.hijosInicializados || new Set();
-      globalThis.estadoPadre.estadoHijos = globalThis.estadoPadre.estadoHijos || new Map();
     });
 
     const hijoId = 'hijo3';
@@ -234,36 +215,6 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
     }, hijoId);
 
     expect(inicializado).toBe(true);
-  });
-
-  // ── HD-6: Función de reconexión ──────────────────────────────────────
-
-  test('HD-6a. globalThis.intentarReconectarHijosFallidos no está expuesta (es función interna)', async ({ page }) => {
-    // La función de reconexión es interna al script; el padre la llama
-    // internamente en cargarIframeSoloSeleccion. No debe estar expuesta en globalThis.
-    // Este test documenta el comportamiento esperado.
-    const tipo = await page.evaluate(() => typeof globalThis.intentarReconectarHijosFallidos);
-    // Puede ser 'function' (si el padre la expone) o 'undefined' (si es interna)
-    // Ambos son aceptables — lo importante es que la infraestructura existe
-    expect(['function', 'undefined']).toContain(tipo);
-  });
-
-  test('HD-6b. El mecanismo de registro de hijos fallidos usa estadoHijos.set()', async ({ page }) => {
-    // Verificar que estadoHijos puede usarse para rastrear fallos
-    const ok = await page.evaluate(() => {
-      const m = globalThis.estadoPadre?.estadoHijos;
-      if (!(m instanceof Map)) return false;
-      // Simular el registro de un hijo fallido (igual que lo hace el padre)
-      m.set('test-hijo', {
-        activo: false,
-        fallosConsecutivos: 1,
-        ultimoError: 'test'
-      });
-      const entry = m.get('test-hijo');
-      m.delete('test-hijo');
-      return entry?.fallosConsecutivos === 1;
-    });
-    expect(ok).toBe(true);
   });
 
   // ── HD-7: Tipos HIJO_PREPARADO y HIJO_LISTO disponibles en el contexto ─

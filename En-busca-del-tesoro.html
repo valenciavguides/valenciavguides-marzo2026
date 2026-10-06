@@ -2655,18 +2655,6 @@
         }
     }
 
-    async function _enviarHijoFallido(logPrefix, error) {
-        try {
-            await enviarMensaje({
-                destino: 'padre',
-                tipo: TIPOS_MENSAJE.SISTEMA.HIJO_FALLIDO,
-                datos: { error: error.message, stack: error.stack, timestamp: Date.now() }
-            });
-        } catch (notifyError) {
-            logger.error(`${logPrefix} Error notificando fallo al padre:`, notifyError);
-        }
-    }
-
     async function init() {
         const logPrefix = `${CONFIG_HIJO.LOG_PREFIX}[init]`;
         try {
@@ -2679,7 +2667,7 @@
             _checkUrlParams(logPrefix);
         } catch (error) {
             logger.error(`${logPrefix} Error crítico durante inicialización:`, error);
-            await _enviarHijoFallido(logPrefix, error);
+            // Sin HIJO_PREPARADO el padre no da a esta pantalla por lista y el supervisor del bus la recarga.
         }
     }
 

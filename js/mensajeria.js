@@ -991,7 +991,7 @@ export async function iniciarHeartbeat(intervalo = 5000) {
     }
 }
 
-// Espera a que todos los iframes registrados hayan completado el handshake HIJO_LISTO.
+// Espera a que todos los iframes registrados hayan completado el handshake HIJO_LISTO, como mucho `timeout` ms.
 // Se usa como optimización pre-aventura; si el SM no está disponible o no hay iframes,
 // resuelve inmediatamente igual que el fallback de app.js.
 export async function esperarHijosListos(timeout = 5000) {
@@ -999,12 +999,10 @@ export async function esperarHijosListos(timeout = 5000) {
     if (!sm || typeof sm.crearPromiseHijoListo !== 'function') return { ready: true };
     const ids = [...iframesRegistrados.keys()];
     if (ids.length === 0) return { ready: true };
-    try {
-        await Promise.race([
-            Promise.all(ids.map(id => sm.crearPromiseHijoListo(id).catch(() => {}))),
-            new Promise(resolve => setTimeout(resolve, timeout))
-        ]);
-    } catch (_) { /* timeouts individuales ignorados */ }
+    await Promise.race([
+        Promise.all(ids.map(id => sm.crearPromiseHijoListo(id))),
+        new Promise(resolve => setTimeout(resolve, timeout))
+    ]);
     return { ready: true };
 }
 

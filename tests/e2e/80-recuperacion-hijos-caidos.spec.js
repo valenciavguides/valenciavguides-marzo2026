@@ -23,12 +23,15 @@
  *   RC-5  Arranque con la selección rota: sin apretón de manos no arranca la aplicación (la pantalla de carga sigue, sin alert),
  *         el supervisor la recarga y la aplicación arranca sola cuando la selección ya puede completarlo.
  *   RC-6  Sin red, la recarga de un hijo enseña el overlay de sin conexión aunque aún no haya modo, y se va solo con `online`.
+ *   RC-7  Un hijo se muestra al estar listo, también si lo recupera el supervisor pasada la gracia: el cargador no se rinde antes.
+ *   RC-8  La recuperación es una sola: no hay un segundo registro del estado de los hijos ni una señal propia de fallo.
  *
  * ROJO ANTES QUE VERDE: RC-2 falla si nadie pasa `{ supervisado: true }` al registrar, RC-3 falla si la
  * restauración se dirige a un id que la mensajería no conoce, y RC-4 falla si un hijo no contesta o su
  * respuesta no llega — en los tres casos la recarga automática queda muerta, o recarga a un hijo sano, sin
  * que ningún otro test lo note. RC-5 falla si la selección vuelve a tener su propio plazo y su propio aviso al usuario (un alert)
- * en vez de esperar al supervisor; RC-6 falla si el overlay vuelve a depender del modo para un hijo caído sin red.
+ * en vez de esperar al supervisor; RC-6 falla si el overlay vuelve a depender del modo para un hijo caído sin red; RC-7 falla si un
+ * cargador se rinde a los 30 s y deja oculto a un hijo que el supervisor recupera después; RC-8 falla si vuelve un segundo camino.
  */
 'use strict';
 
@@ -247,6 +250,8 @@ test.describe('RC-5 — Arranque con la selección que no llega a estar lista', 
     await page.waitForTimeout(8_000);
     expect(await page.evaluate(() => globalThis.sistemaInicializado === true), 'sin la selección lista el sistema no se da por inicializado').toBe(false);
     expect(await pantallaDeCargaVisible(page), 'y la pantalla de carga sigue a la vista').toBe(true);
+    // La selección ya está a la vista mientras carga, sin esperar a estar lista (es lo primero que ve el usuario): lo que la tapa es la pantalla de carga.
+    expect(await page.evaluate(() => { const s = document.getElementById('seleccion'); return { display: s.style.display, visibility: s.style.visibility }; }), 'la selección no espera a estar lista para estar a la vista').toEqual({ display: 'block', visibility: 'visible' });
 
     // Se le deja de tragar el apretón antes de que se agote su gracia (30 s con el intervalo de 5 s): la recarga que le haga el
     // supervisor ya podrá completarlo.
@@ -292,5 +297,103 @@ test.describe('RC-6 — Sin red, un hijo recargado deja ver el overlay de sin co
     // Vuelve la red: se oculta solo
     await context.setOffline(false);
     await expect.poll(overlayVisible, { timeout: 5_000, message: 'con el evento `online` el overlay se va' }).toBe(false);
+  });
+});
+
+/**
+ * ¿Qué se ve de cada iframe? Lo que dice su estilo en línea, que es lo que fija el cargador: `display: none` mientras no está
+ * listo y vacío (decide la hoja de estilos) al estarlo.
+ */
+const estiloEnLinea = (page, ids) => page.evaluate((lista) => Object.fromEntries(lista.map((id) => {
+  const el = document.getElementById(id);
+  return [id, el ? { display: el.style.display, visibility: el.style.visibility } : null];
+})), ids);
+
+test.describe('RC-7 — Un hijo se muestra al estar listo, también si lo recupera el supervisor', () => {
+  test.beforeEach(async ({ page, context }) => {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    // El mismo cebo que RC-5: mientras la bandera esté puesta, los iframes se tragan el PADRE_DATOS del padre y no completan el
+    // apretón de manos, pero siguen vivos. Aquí la bandera la pone el test, no el arranque.
+    await page.addInitScript(() => {
+      if (globalThis === globalThis.top) return;
+      globalThis.addEventListener('message', (e) => {
+        if (e.source === globalThis.parent && e.data && e.data.tipo === 'SISTEMA.PADRE_DATOS' && localStorage.getItem('vvtest:sin-apreton') === '1') {
+          e.stopImmediatePropagation();
+        }
+      }, true);
+    });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+    await page.waitForFunction(() => globalThis.sistemaInicializado === true, null, { timeout: 60_000 });
+  });
+
+  test('RC-7. Sin apretón de manos no se ve ninguno; los recarga el supervisor y se ven al estar listos, pasada la gracia de 30 s', async ({ page }) => {
+    test.setTimeout(150_000);
+    const CINCO = ['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5'];
+    const DE_LA_AVENTURA = CINCO.filter((id) => id !== 'hijo5');
+    const errores = [];
+    page.on('console', (m) => {
+      if (m.type() === 'error' && /no completó el apretón de manos/.test(m.text())) errores.push(m.text());
+    });
+
+    await page.evaluate(() => localStorage.setItem('vvtest:sin-apreton', '1'));
+    // hijo5 ya a la vista, como lo deja la interfaz de la reanudación en desarrollo: el cargador ni lo oculta al cargarlo ni lo
+    // muestra al darlo por listo.
+    await page.evaluate(() => {
+      const h5 = document.getElementById('hijo5');
+      h5.style.display = 'block';
+      h5.style.visibility = 'visible';
+      globalThis.__carga = { terminada: false };
+      Promise.all([globalThis.cargarRestoDeiframes(), globalThis.cargarHijoCasa()]).then(() => { globalThis.__carga.terminada = true; });
+    });
+
+    // Mientras no completan el apretón de manos la carga no termina y ninguno de los cuatro hijos de la aventura se ve.
+    // VENTANA-OBSERVACION: lo que se mide es que NO pasa nada en esos 8 s.
+    await page.waitForTimeout(8_000);
+    expect(await page.evaluate(() => globalThis.__carga.terminada), 'sin apretón de manos la carga no termina').toBe(false);
+    const durante = await estiloEnLinea(page, CINCO);
+    for (const id of DE_LA_AVENTURA) expect(durante[id].display, `${id} no se ve mientras no está listo`).toBe('none');
+    expect(durante.hijo5, 'hijo5 queda como estaba').toEqual({ display: 'block', visibility: 'visible' });
+
+    // Se les deja de tragar el apretón antes de que se agote la gracia (30 s con el intervalo de 5 s): la recarga que les haga el
+    // supervisor ya podrá completarlo. El cargador no se ha rendido a los 30 s: espera hasta entonces y más allá.
+    await page.evaluate(() => localStorage.removeItem('vvtest:sin-apreton'));
+    await expect.poll(() => page.evaluate(() => globalThis.__carga.terminada), {
+      timeout: 100_000,
+      intervals: [1_000],
+      message: 'el supervisor recarga a los cinco y la carga termina sola',
+    }).toBe(true);
+    await page.waitForFunction((ids) => ids.every((id) => globalThis.estadoPadre?.hijosInicializados?.has(id)), CINCO, { timeout: 30_000 });
+
+    // Cada uno se ve en cuanto está listo, aunque haya sido por la recarga del supervisor.
+    await expect.poll(() => estiloEnLinea(page, DE_LA_AVENTURA), {
+      timeout: 5_000,
+      message: 'los hijos ya listos se ven; un cargador que se hubiera rendido antes los dejaría ocultos para siempre',
+    }).toEqual(Object.fromEntries(DE_LA_AVENTURA.map((id) => [id, { display: '', visibility: 'visible' }])));
+    expect((await estiloEnLinea(page, ['hijo5'])).hijo5, 'hijo5 sigue como estaba').toEqual({ display: 'block', visibility: 'visible' });
+    expect(errores.length, 'el supervisor lo dijo por consola, con el hijo y la fase').toBeGreaterThanOrEqual(1);
+  });
+});
+
+test.describe('RC-8 — La recuperación de un hijo es una sola', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+  });
+
+  test('RC-8. No hay un segundo registro del estado de los hijos ni una señal propia de fallo: la recuperación es la del supervisor', async ({ page }) => {
+    const r = await page.evaluate(() => ({
+      estadoHijos: globalThis.estadoPadre?.estadoHijos,
+      tipo: globalThis.TIPOS_MENSAJE?.SISTEMA?.HIJO_FALLIDO,
+      handler: globalThis.mensajeria?.tieneControlador?.('SISTEMA.HIJO_FALLIDO') === true,
+    }));
+    expect(r.estadoHijos, 'quién está listo lo dicen hijosInicializados y el registro de iframes del bus, no un segundo Map').toBeUndefined();
+    expect(r.tipo, 'un hijo roto no avisa: lo detecta el supervisor').toBeUndefined();
+    expect(r.handler, 'el padre no escucha ninguna señal de fallo de un hijo').toBe(false);
   });
 });
