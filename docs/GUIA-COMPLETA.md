@@ -145,7 +145,7 @@ modo: { actual: 'casa' | 'aventura' }
 **Condiciones de estado en MODO CASA**:
 
 - **GPS**: `watchPosition` puede estar activo pero las validaciones de distancia están desactivadas. Los overlays de "fuera de rango" y "siguiente parada" están ocultos.
-- **Heartbeat**: detenido. El padre pausa el suyo con una llamada directa a `pausarHeartbeat()` — es un latido propio del padre, sin mensaje a los hijos: el pulso `SISTEMA.HEARTBEAT` que sí llega a cada hijo (§2.7a) se calla solo, porque nace de este mismo intervalo.
+- **Heartbeat**: encendido, igual que en AVENTURA. El supervisor de hijos (§2.7) vigila a cada iframe en cualquier modo y el cambio de modo no lo toca: los hijos que ya completaron su apretón de manos reciben `SISTEMA.HEARTBEAT` cada intervalo (~5 s, ajustado por la conexión).
 - **Retos**: habilitados o deshabilitados por posición. Padre envía `RETO.ESTADO_CASA` a hijo4 con `{ tipo: 'parada', habilitado: true }` (parada → habilitado) o `{ tipo: 'tramo', habilitado: false }` (tramo → deshabilitado).
 - **Navegación**: manual. El usuario selecciona paradas desde hijo5.
 - **Audio**: reproducción bajo demanda, no automática.
@@ -170,7 +170,7 @@ flowchart TD
 
 ### 2.2. MODO AVENTURA
 
-**Definición**: modo activo de juego. El GPS rastrea la posición del usuario en tiempo real, el heartbeat monitoriza que todos los hijos estén vivos, y el contenido se habilita automáticamente según la posición detectada.
+**Definición**: modo activo de juego. El GPS rastrea la posición del usuario en tiempo real y el contenido se habilita automáticamente según la posición detectada.
 
 **Cuándo está activo**:
 
@@ -179,7 +179,7 @@ flowchart TD
 **Condiciones de estado en MODO AVENTURA**:
 
 - **GPS**: `watchPosition` activo con `enableHighAccuracy: true`, `timeout: 35000ms`, `maximumAge: 0`. Validaciones de distancia activas: radio de 15m por defecto para detectar llegada a una parada.
-- **Heartbeat**: activo. Intervalo de 5000ms. Si un hijo falla 3 heartbeats consecutivos, se marca como desconectado y se intenta reconectar automáticamente.
+- **Heartbeat**: encendido, como en cualquier modo (§2.7). Intervalo de 5000 ms ajustado por la conexión. Un hijo que lleva 3 latidos seguidos sin contestar se recarga, y también uno que no completa su apretón de manos dentro de su gracia de arranque.
 - **Retos**: habilitados tras escuchar el audio de la parada (o inmediatamente si la parada no tiene audio). Padre envía `RETO.HABILITAR` a hijo4 con `{ razon: 'audio_escuchado_1vez' }` o `{ razon: 'sin_audio' }`.
 - **Navegación**: `CAMBIO_PARADA` para el SIGUIENTE elemento nunca lo dispara el GPS por sí solo — solo se envía cuando el usuario pulsa `btn-avanzar` (`progresarSiguienteElemento()`, ver §25.7/§26.7). El GPS solo confirma que el usuario ha llegado al elemento **ya activo** (`NAVEGACION.LLEGADA_DETECTADA`, marca `pending.llegada=true`) — llegada, audio y reto (si lo hay) son tres condiciones independientes que, una vez completas TODAS, habilitan `btn-avanzar` y muestran el cartel de transición; nunca avanzan la aventura sin esa pulsación explícita. Parada y tramo se comportan exactamente igual en esto: ambos esperan la pulsación.
 - **Audio**: la petición se envía automáticamente al activarse un elemento (`AUDIO.REPRODUCIR_REQUEST` a hijo3, con `autoplay:false` siempre — el usuario debe pulsar play, ver §7.4). "Automático" aquí es solo la solicitud, nunca la reproducción.
@@ -242,7 +242,7 @@ flowchart TD
     P13 --> P14[P14: normativa mostrada\n_accionPantalla15() → P14_MOSTRADA\ncarga hijo1-5 + datos en paralelo → activa GPS siempre]
     BYPASS --> P14
     P14 --> P15[P15: Reto R-2\nSÍ → AVENTURA_ACTIVADA]
-    P15 --> J([Sistema en MODO CASA\nhijo5 visible si modo DEV · heartbeat inactivo\nUsuario ve mapa y controles])
+    P15 --> J([Sistema en MODO CASA\nhijo5 visible si modo DEV · heartbeat activo\nUsuario ve mapa y controles])
     D --> J
 ```
 
@@ -260,7 +260,7 @@ flowchart TD
 2. Llama directamente a `globalThis.funcionesMapa.manejarCambioModoMapa(mensaje)` (no como handler registrado — competiría con este mismo handler por el orden de inserción en `getMapaControladoresSync`) para actualizar `estadoMapa.modo`, ejecutar `limpiarPorEstado` y resetear la vista.
 3. Llama `manejarCambioModo(estado, mensaje)` de `js/app.js`, que actualiza `estado.modo.actual = 'aventura'` (optimistic update) y llama `actualizarInterfazModo()` — envía `SISTEMA.CAMBIO_MODO` a todos los hijos y espera ENTENDIDO+EFECTUADO de cada uno (timeout 5s+10s).
 4. Si el cambio tuvo éxito y existe `estado.paradaRealCongelada` (progreso real guardado al entrar en CASA, ver §2.5): restaura ese progreso despachando `NAVEGACION.CAMBIO_PARADA` con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos: { paradaId: estado.paradaRealCongelada } })`, y limpia el flag. Esto deshace cualquier navegación "de solo mirar" que el usuario haya hecho en CASA vía hijo5 — sin esta restauración, mapa/hijo2 se quedarían apuntando a lo último que se miró en CASA en vez del progreso real de la aventura.
-5. Inicia heartbeat (`_gestionarHeartbeatSegunModo`) y `_gestionarGpsSegunModo` comprueba el GPS — normalmente ya está activo desde P14 (no hace nada); si por algún motivo se hubiera desactivado, llama a `activarGPS()` como red de seguridad.
+5. `_gestionarSesionSegunModo` llama a `_activarAventura`, que fija la parada por defecto con `ensureDefaultParada()` (salvo en una reanudación, §9.10) y (re)inicia el temporizador de hijo1 (`_iniciarTemporizadorAventura`); después `_gestionarGpsSegunModo` comprueba el GPS — normalmente ya está activo desde P14 (no hace nada); si por algún motivo se hubiera desactivado, llama a `activarGPS()` como red de seguridad. El latido no interviene: ya está encendido (§2.7).
 
 **Payload original de hijo5** (enviado al padre al pulsar el botón):
 
@@ -304,8 +304,8 @@ sequenceDiagram
     H4-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
     H5-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
     H5--)P: SOLICITAR_DATOS_PARADAS (fire-and-forget tras recibir CAMBIO_MODO aventura)
-    Note over P: manejarCambioModo completa → heartbeat + GPS
-    P->>P: iniciarHeartbeat(intervalo: 5000ms) — llamada directa, sin mensaje
+    Note over P: manejarCambioModo completa → sesión + GPS
+    P->>P: _activarAventura → ensureDefaultParada + temporizador de hijo1
     P->>P: _gestionarGpsSegunModo → ocultar overlays + activarGPS() si !estado.gps.activo
 ```
 
@@ -317,7 +317,7 @@ sequenceDiagram
 
 **Secuencia real** (`_hdl_SISTEMA_CAMBIO_MODO()`, rama `modo === 'casa'` — el orden real difiere del que
 parecería intuitivo: el mapa y la congelación de progreso se resuelven **antes** de propagar `CAMBIO_MODO`
-a los hijos; localStorage/heartbeat/overlays se resuelven **después**, solo si la propagación tuvo éxito):
+a los hijos; localStorage/overlays se resuelven **después**, solo si la propagación tuvo éxito):
 
 ```mermaid
 sequenceDiagram
@@ -346,7 +346,6 @@ sequenceDiagram
     HH-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
     Note over P: Solo si el cambio tuvo éxito, continúa:
     P->>P: _transicionarAModoCasa(): borra vv_aventura_iniciada + vv_progreso<br/>+ vv_paradas_completadas de localStorage (salvo modo dev)
-    P->>P: pausarHeartbeat() local → detiene setInterval
     P->>P: _gestionarGpsOverlays: oculta overlays GPS<br/>(hideNextEntityOverlay + hideGpsOutOfRangeOverlay)
     Note over P,HH: GPS watchPosition sigue activo<br/>pero sin validar distancias ni emitir CAMBIO_PARADA
     P->>P: finally: estado.sistema.cambiandoModo = false
@@ -405,7 +404,7 @@ aventura (ver §2.2). El progreso visual (`paradasCompletadas`) se mantiene desd
 
 **Un tercer mecanismo, `ensureDefaultParada()` (`codigo-padre.html`, no `_activarParadaDefectoAventura()`
 de `js/app.js` — nombres parecidos, funciones distintas), se llama también en cada entrada a AVENTURA
-desde `_activarHeartbeatAventura()`** (después de los dos pasos de arriba). A diferencia de los otros
+desde `_activarAventura()`** (después de los dos pasos de arriba). A diferencia de los otros
 dos, tiene su propio guard: `if (estado.paradaActual) return` — es un no-op en cualquier retorno
 posterior a la primera activación, porque `estado.paradaActual` ya tiene un valor real. Solo hace
 algo cuando no existe progreso previo en memoria (primera activación de la sesión, sin que el
@@ -475,26 +474,38 @@ Los dos caminos de `LLEGADA_DETECTADA` (funciones-mapa y hijo2) son sensores red
 
 ---
 
-### 2.7. Heartbeat: monitorización de hijos
+### 2.7. Heartbeat: supervisión de hijos
 
-Solo activo en **MODO AVENTURA**. Detecta hijos colgados o desconectados.
+El latido es el **supervisor de los hijos** y está siempre encendido, en cualquier modo (CASA, AVENTURA o sin modo decidido). El padre lo enciende una sola vez, al cargar (Script 1 de `codigo-padre.html`, justo después de marcar `__MENSAJERIA_INICIADA`), con `globalThis.mensajeria.iniciarHeartbeat(ajustarTimeoutPorConexion_S1(5000))`. `iniciarHeartbeat()` es idempotente y el bus no ofrece ninguna forma de pausarlo ni de adelantarlo: ni el cambio de modo ni el `visibilitychange` lo tocan. Detecta hijos colgados y hijos que no llegan a arrancar, y les recarga el iframe.
 
 **Configuración** (`js/mensajeria.js`):
 
-- Intervalo: **5000 ms** (5 segundos) — valor por defecto de `iniciarHeartbeat()`; `js/app.js` lo arranca sin pasar intervalo
-- Máximo de latidos seguidos sin respuesta antes de dar a un iframe por caído: **3** — constante `MAX_LATIDOS_SIN_RESPUESTA`
+- Intervalo: **5000 ms** ajustado por la calidad de la conexión (`ajustarTimeoutPorConexion`, `js/utils.js`): el padre pasa el valor ya ajustado a `iniciarHeartbeat()`, cuyo valor por defecto es 5000.
+- Latidos seguidos sin respuesta antes de dar por caído a un iframe que ya completó el apretón de manos: **3** — constante `MAX_LATIDOS_SIN_RESPUESTA`.
+- Gracia de arranque de un iframe que todavía no completó el apretón de manos: **6 latidos** (`LATIDOS_DE_GRACIA`) desde que empieza a cargar, es decir 30 s con el intervalo de 5 s. Se multiplica por 2 por cada recarga seguida hasta **4×** (`MULTIPLO_MAX_GRACIA`): 30 s, 60 s, 120 s, 120 s…
 
-**A quién vigila:** a **todos los iframes registrados** (`iframesRegistrados`), sin lista fija ni categorías. Registrar un iframe es lo que lo hace alcanzable desde el padre y, por lo mismo, lo que lo pone bajo vigilancia: son la misma cosa, no dos registros que haya que mantener sincronizados.
+**A quién supervisa:** a los iframes registrados con `{ supervisado: true }`: los hijos que hacen el apretón de manos (`HIJO_PREPARADO` → `HIJO_LISTO`) y contestan al latido — `seleccion`, `hijo1-opciones`, `hijo2`, `hijo3`, `hijo4`, `hijo5` y `hijo6-chat`, todos por igual. Los iframes que no hacen ese apretón (`mapa-completo`, `puzzle` y `video-intro`) se registran sin supervisar: no tienen nada que contestar y vigilarlos los daría por caídos siempre. Los hijos se registran por un único punto (§2.7a).
 
-**A quién recarga:** solo a los marcados `recuperable` al registrarse. Recargar a ciegas un frame que no sabe retomar lo que estaba haciendo le hace perder el sitio al usuario, que es peor que el cuelgue. Ver §2.7a.
+**Dos reglas, una por cada punto de la vida de un hijo** (`supervisarHijos()`, una vuelta por cada tick del `setInterval`; para cada iframe supervisado, según `hijoEstaListo(id)` del state-manager):
 
-**Algoritmo real del contador de fallos** (`enviarHeartbeatAHijos()`/`procesarHeartbeatResponse()`, `js/mensajeria.js`) — no es "esperar el timeout y entonces contar un fallo", es incrementar de forma optimista en el envío y resetear por completo en cualquier respuesta:
+1. **Ya completó el apretón de manos** (`vigilarLatido`): se le envía `SISTEMA.HEARTBEAT { timestamp }` y su contador `latidosSinRespuesta` sube en 1; si llega a 3, está caído. El contador baja a **0** de golpe (no se decrementa) cuando llega su `SISTEMA.HEARTBEAT_RESPONSE` (`procesarHeartbeatResponse()`), para cualquier latido previo y no solo el último: 3 ticks seguidos (15 s) sin ninguna respuesta lo dan por caído, y una sola respuesta en cualquier punto de esa ventana reinicia la cuenta.
+2. **Todavía no lo completó** (`vigilarArranque`): no se le envía ningún latido, porque aún no tiene nada que contestar. Tiene la gracia de arranque, medida desde `cargaDesde` (el instante en que empezó a cargar): si se agota, está caído.
 
-1. En cada tick del `setInterval` de 5s, por cada iframe registrado: se envía `SISTEMA.HEARTBEAT` y, en la misma operación atómica (`sm.atomicUpdateHeartbeat`, evita condición de carrera con la respuesta llegando en paralelo), se incrementa `heartbeatsFallidos[hijoId]` en 1 — el envío en sí ya cuenta como "posible fallo" antes de saber si habrá respuesta.
-2. Si el contador alcanza `MAX_LATIDOS_SIN_RESPUESTA` (3) tras el incremento, se llama `marcarHijoDesconectado(hijoId)` inmediatamente, en ese mismo tick.
-3. Si llega `SISTEMA.HEARTBEAT_RESPONSE` del hijo (`procesarHeartbeatResponse()`) — para cualquier heartbeat previo, no solo el último — el contador de ese hijo se pone a **0** de golpe (no se decrementa) y `ultimoHeartbeat[hijoId]` se actualiza. Si el hijo figura en `hijosDesconectados`, se quita del set.
+**Una sola acción** (`recuperarHijo()` → `recargarIframe()`), ante un caído por cualquiera de las dos reglas:
 
-Efecto neto: 3 ticks seguidos (15s) sin ninguna respuesta marcan al hijo como desconectado — una sola respuesta en cualquier punto de esa ventana reinicia la cuenta desde cero.
+1. `recargas` (las recargas seguidas del iframe) sube en 1.
+2. `logger.error` lo dice en consola, con quién y por qué: `[mensajeria] <id>: <motivo>. Se recarga su iframe (recarga seguida n.º N).`, con motivo `dejó de contestar al latido (3 seguidos sin respuesta)` o `no completó el apretón de manos (HIJO_LISTO) en N s desde que empezó a cargar`. Salvo el overlay de «sin conexión» (más abajo), no hay ningún aviso al usuario.
+3. `olvidarHijoListo(id)` en el state-manager: el iframe deja de estar listo y su apretón empieza de nuevo bajo la regla 2. `cargaDesde` pasa a ser el instante de la recarga y `latidosSinRespuesta` vuelve a 0.
+4. `globalThis._vv_beforeHijoReload(id)`: el padre toma la foto del estado (§2.7a, §26.14). Si falla, la recarga sigue igualmente.
+5. `elemento.src = elemento.src` fuerza la recarga.
+
+No hay tope de recargas: un hijo que no llega a arrancar se reintenta indefinidamente, con la gracia creciente de arriba. `recargas` vuelve a 0 cuando el iframe, estando listo, contesta un latido; una respuesta rezagada de la carga anterior, con el iframe todavía sin estar listo, no lo hace.
+
+**Al volver la red** (evento `online`): los iframes supervisados que no están listos y llevan al menos una recarga (`recargas > 0`) se recargan al momento, sin esperar a que se agote una gracia que a estas alturas puede ser de minutos. Esa recarga no cuenta como recarga seguida y la consola lo dice (`vuelve la conexión; se reintenta su carga`). Solo actúa con el reloj encendido.
+
+**Sin conexión:** si `navigator.onLine` es `false` cuando se recarga un hijo, `_vv_beforeHijoReload` enseña el overlay de «sin conexión» con `showInternetOverlay({ forzar: true })` (§31.1), aunque aún no haya modo. El overlay se oculta solo con el evento `online`.
+
+El estado del reloj (`activo`, `intervalo`) vive en el state-manager (`getHeartbeat()`); los contadores de cada iframe (`latidosSinRespuesta`, `recargas`, `cargaDesde`) viven en su registro dentro de `js/mensajeria.js` (`getIframesRegistrados()` devuelve los registros vivos).
 
 **Mensajes del heartbeat** (`js/constants.js`):
 
@@ -503,31 +514,29 @@ Efecto neto: 3 ticks seguidos (15s) sin ninguna respuesta marcan al hijo como de
 | `SISTEMA.HEARTBEAT` | padre → hijo | Latido — "¿sigues vivo?" |
 | `SISTEMA.HEARTBEAT_RESPONSE` | hijo → padre | "Sigo vivo" |
 
-El ciclo se arranca/detiene con una llamada directa a `iniciarHeartbeat()`/`pausarHeartbeat()` al cambiar de modo — no hay mensaje que lo active ni lo pause; ver "Flujo del heartbeat" más abajo.
+El ciclo lo enciende el padre una vez al cargar (`iniciarHeartbeat()`, llamada directa: no hay mensaje que lo active ni que lo pause).
 
 **Flujo del heartbeat**:
 
 ```mermaid
 sequenceDiagram
-    participant P as Padre (setInterval 5s)
-    participant H as Iframe registrado
+    participant P as Padre (setInterval, siempre encendido)
+    participant H as Iframe supervisado
 
-    loop Cada 5 segundos (solo en MODO AVENTURA)
-        P->>H: SISTEMA.HEARTBEAT { timestamp }
-        alt Hijo responde a tiempo
-            H-->>P: SISTEMA.HEARTBEAT_RESPONSE
-            P->>P: Reset contador fallos[hijo] = 0
-        else Hijo no responde
-            P->>P: fallos[hijo]++
-            alt fallos < 3
-                Note over P: Esperar siguiente tick
-            else fallos >= 3
-                P->>P: Marcar hijo como desconectado
-                alt Marcado recuperable
-                    P->>H: Recargar iframe y restaurar su estado
-                else No recuperable
-                    Note over P: Solo aviso — no se recarga
-                end
+    loop Cada intervalo (5 s ajustado por la conexión), en cualquier modo
+        alt El iframe ya completó el apretón de manos
+            P->>H: SISTEMA.HEARTBEAT { timestamp }
+            P->>P: latidosSinRespuesta[hijo]++
+            alt Responde
+                H-->>P: SISTEMA.HEARTBEAT_RESPONSE
+                P->>P: latidosSinRespuesta[hijo] = 0 y recargas[hijo] = 0
+            else latidosSinRespuesta >= 3
+                P->>P: recuperarHijo: error en consola y recarga del iframe
+            end
+        else Todavía no lo completó
+            Note over P,H: Sin latido. Gracia de 6 latidos × 2^recargas (máximo 4×) desde que empezó a cargar
+            alt Gracia agotada
+                P->>P: recuperarHijo: error en consola y recarga del iframe
             end
         end
     end
@@ -535,25 +544,21 @@ sequenceDiagram
 
 ---
 
-### 2.7a. Qué se recarga y qué no
+### 2.7a. Qué se supervisa y qué se devuelve tras recargar
 
-El bus recarga **solo** los iframes registrados con `{ recuperable: true }`. El criterio no es una opinión: son exactamente los cuatro cuyo estado el padre sabe devolver tras la recarga, en `_vv_afterHijoListo()` (`codigo-padre.html`).
+El bus supervisa y recarga a **todos los hijos por igual**: ninguno está exento ni lleva marca propia. Lo único que cambia de uno a otro es lo que el padre le devuelve tras la recarga, en `_vv_afterHijoListo()` (`codigo-padre.html`), y solo si el modo es AVENTURA:
 
-| Iframe | ¿Recuperable? | Qué se le devuelve tras recargar |
-|--------|---------------|----------------------------------|
-| `hijo1-opciones` | Sí | `AVENTURA.INICIADA` con el tiempo restante (`estado.tiempoRestante`) |
-| `hijo2` | Sí | `NAVEGACION.CAMBIO_PARADA` con `parada_id` = la parada actual |
-| `hijo3` | Sí | `AUDIO.REPRODUCIR_REQUEST` con el audio que sonaba |
-| `hijo4` | Sí | `RETO.MOSTRAR` con el reto que estaba a la vista |
-| `seleccion` | No | — |
-| `hijo5` | No | — |
-| `hijo6-chat` | No | — (recargarlo perdería la conversación) |
+| Iframe | Qué se le devuelve tras recargar |
+|--------|----------------------------------|
+| `hijo1-opciones` | `AVENTURA.INICIADA` con el tiempo restante (`estado.tiempoRestante`) |
+| `hijo2` | `NAVEGACION.CAMBIO_PARADA` (por `despacharLocal`) con `paradaId` = la parada actual |
+| `hijo3` | `AUDIO.REPRODUCIR_REQUEST` con el audio en curso |
+| `hijo4` | `RETO.MOSTRAR` con el reto a la vista |
+| `seleccion`, `hijo5`, `hijo6-chat` | Nada: vuelven a su primera pantalla (la selección a P1) |
 
-**Un solo punto de registro.** Los cinco cargadores de iframes del padre llaman a `globalThis.registrarIframeHijo(id, elemento)` (Script 1 de `codigo-padre.html`), que es quien consulta `HIJOS_RECUPERABLES` y pasa la marca a `registrarIframe()`. Ningún cargador decide por su cuenta.
+**Un solo punto de registro.** Los cargadores de iframes del padre (`cargarIframeSoloSeleccion`, `_cargarUnIframeHijo`, `_cargarSoloIframeActivacion`, `cargarHijoCasa` y `abrirChat`) llaman a `globalThis.registrarIframeHijo(id, elemento)` (Script 1 de `codigo-padre.html`), que registra con `{ supervisado: true }`. Ningún cargador decide por su cuenta.
 
-**Qué pasa si se añade un iframe a `HIJOS_RECUPERABLES` sin darle su rama en `_vv_afterHijoListo()`:** se recargaría y el usuario se quedaría en blanco. El test RC-2 (`tests/e2e/80-recuperacion-hijos-caidos.spec.js`) exige que el conjunto marcado sea exactamente el de la tabla, ni uno de más.
-
-**Antes de recargar**, `intentarReconectarHijo()` llama a `globalThis._vv_beforeHijoReload(hijoId)`, que toma la foto del estado; la restauración ocurre después, cuando el hijo recargado vuelve a mandar su `HIJO_LISTO`.
+**Antes de recargar**, `recargarIframe()` llama a `globalThis._vv_beforeHijoReload(hijoId)`, que toma la foto del estado (modo, parada, tiempo restante, audio y reto actuales) y la apunta en consola (`[PADRE][SNAPSHOT] Snapshot tomado para <id> antes de reload (modo: …, parada: …, tiempoRestante: …)`). La restauración ocurre después, cuando el hijo recargado vuelve a mandar su `HIJO_LISTO`.
 
 ---
 
@@ -564,7 +569,7 @@ El bus recarga **solo** los iframes registrados con `{ recuperable: true }`. El 
 | Controlador | Script | Tipo de mensaje | Qué hace |
 |-------------|-------|-----------------|----------|
 | `_hdl_SISTEMA_CAMBIO_MODO` | Script 1 | `SISTEMA.CAMBIO_MODO` | Congela/restaura `paradaRealCongelada`, actualiza el mapa directamente y delega en `manejarCambioModo()` — detalle completo en §2.4/§2.5, no es un simple delegador |
-| `HEARTBEAT_RESPONSE` handler | Script 1 | `SISTEMA.HEARTBEAT_RESPONSE` | Resetea contador de fallos del hijo |
+| `HEARTBEAT_RESPONSE` handler | Script 1 | `SISTEMA.HEARTBEAT_RESPONSE` | Pasa la respuesta al bus (`procesarHeartbeatResponse()`): pone a 0 los latidos sin respuesta del hijo y, si ya completó el apretón de manos, sus recargas seguidas |
 | `_hdl_NAVEGACION_GPS_ACTIVAR` | Script 2 | `NAVEGACION.GPS.ACTIVAR` | Activa watchPosition en modo AVENTURA |
 
 **Funciones internas clave**:
@@ -572,9 +577,9 @@ El bus recarga **solo** los iframes registrados con `{ recuperable: true }`. El 
 | Función | Ubicación | Qué hace |
 |---------|-------|----------|
 | `manejarCambioModo(estado, mensaje)` | `js/app.js` | Orquesta la secuencia completa |
-| `_gestionarHeartbeatSegunModo()` | Script 1 | Inicia o pausa heartbeat según el modo |
-| `_activarHeartbeatAventura()` | Script 1 | Llama a `iniciarHeartbeat()` directamente; (re)inicia el temporizador de hijo1 |
-| `_transicionarAModoCasa()` | Script 1 | Limpia localStorage de progreso (salvo en modo dev —ver §24— o al reanudar una sesión guardada) y pausa el heartbeat del padre |
+| `_gestionarSesionSegunModo()` | Script 1 | Según el modo: `_activarAventura()` (AVENTURA) o `_transicionarAModoCasa()` (CASA) |
+| `_activarAventura()` | Script 1 | Fija la parada por defecto con `ensureDefaultParada()` (salvo en una reanudación) y (re)inicia el temporizador de hijo1 |
+| `_transicionarAModoCasa()` | Script 1 | Limpia localStorage de progreso (salvo en modo dev —ver §24— o al reanudar una sesión guardada) |
 | `_gestionarGpsSegunModo()` | Script 1 | Gestiona overlays GPS según modo; si modo=AVENTURA y `!estado.gps.activo` llama `activarGPS()` |
 | `activarGPS()` | Script 1 | Inicia `watchPosition` (con mutex anti-duplicado) |
 | `ejecutarRestauracionAventura()` | Script 1 | Restaura sesión desde `localStorage` |
@@ -606,7 +611,7 @@ El bus recarga **solo** los iframes registrados con `{ recuperable: true }`. El 
 | hijo5 | `SISTEMA.CAMBIO_MODO` | `SISTEMA.CAMBIO_MODO` |
 | hijo6 | `SISTEMA.CAMBIO_MODO` | `SISTEMA.CAMBIO_MODO` |
 
-> El heartbeat es dinámico: `enviarHeartbeatAHijos()` en `mensajeria.js` recorre `iframesRegistrados`, el mismo Map por el que el padre resuelve a quién escribe. Todos los hijos — incluidos hijo1, hijo6 y la pantalla de selección — reciben el pulso desde que su cargador los registra. Arrancar o pausar ese ciclo (al cambiar de modo) es una llamada directa a `iniciarHeartbeat()`/`pausarHeartbeat()`, sin mensaje a ningún hijo.
+> El heartbeat es dinámico: `supervisarHijos()` en `mensajeria.js` recorre `iframesRegistrados`, el mismo Map por el que el padre resuelve a quién escribe, y manda el pulso a los supervisados que ya están listos. Todos los hijos — incluidos hijo1, hijo6 y la pantalla de selección — lo reciben desde que completan su apretón de manos (§2.7). El ciclo es uno solo, está siempre encendido y ningún cambio de modo lo arranca ni lo pausa, ni se manda ningún mensaje a ningún hijo para ello.
 
 ---
 
@@ -681,7 +686,7 @@ flowchart TD
     P13V --> E[P14_MOSTRADA -> padre carga iframes + datos en paralelo\nluego activa GPS (solo prod) mientras usuario lee normativa]
     E --> F[Handshake HIJO_LISTO\nde cada hijo]
     F --> G[Padre distribuye coordenadas y textos\naudios/retos se resuelven por parada, no en bloque]
-    G --> H([MODO CASA\nUsuario ve mapa · GPS activo sin validaciones · heartbeat inactivo])
+    G --> H([MODO CASA\nUsuario ve mapa · GPS activo sin validaciones · heartbeat activo])
     C --> H
 
     H --> I[Usuario inicia aventura\n→ SISTEMA.CAMBIO_MODO aventura]
@@ -713,7 +718,7 @@ La app arranca **sin modo decidido** (`estado.modo.actual === null`, ver §2), a
 | | Modo CASA | Modo AVENTURA |
 |--|-----------|---------------|
 | **GPS** | Activo (`watchPosition` continuo), sin validaciones de distancia | Activo (`watchPosition` continuo) + validaciones de distancia activas |
-| **Heartbeat** | Pausado | Activo cada ~5 s |
+| **Heartbeat** | Activo cada ~5 s | Activo cada ~5 s |
 | **Quién cambia de parada** | El usuario — pulsa una parada en hijo5 | El usuario — pulsa `btn-avanzar` una vez llegada GPS + audio (+ reto) están completos. El GPS nunca envía `CAMBIO_PARADA` por sí solo (§2.2) |
 | **`retosBtn` al llegar a una parada** | Se habilita **inmediatamente** si la parada tiene reto | Arranca **deshabilitado** — se habilita solo cuando termina el audio |
 | **Botón vídeo/dron (`#btn-video`)** | Habilitado si el elemento es tramo y no hay reto activo | Igual que en CASA: `_actualizarBotonVideo()` (hijo2) no recibe el modo, aplica la misma regla en los dos |
@@ -1571,7 +1576,7 @@ Un iframe es una "ventana dentro de otra ventana" en una página web. La aplicac
 ### ¿Por qué usar iframes?
 
 - **Aislamiento de estado**: cada hijo tiene su propio contexto JS. Un crash en hijo4 (retos) no corrompe el estado de hijo2 (mapa).
-- **Recarga independiente**: el heartbeat puede recargar solo el iframe caído sin tocar el resto de la sesión.
+- **Recarga independiente**: el supervisor del bus (§2.7) recarga solo el iframe caído sin tocar el resto de la sesión.
 - **Organización de responsabilidades**: cada hijo se encarga de un único dominio (mapa, audio, retos…). El padre no mezcla UI con lógica de otros dominios.
 - **Comunicación explícita**: toda interacción entre componentes pasa por `postMessage` documentado. No hay acceso directo al DOM ajeno ni variables compartidas entre iframes.
 
@@ -1595,13 +1600,13 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 | Hijo 5 | `hijo5` | `boton-casa-hijo5.html` | No | `SELECCION.P14_MOSTRADA` → `cargarHijoCasa()`, que **lo registra en la mensajería antes de las dos ramas** y luego espera `HIJO_LISTO` (si ya está cargado, solo espera) | **Solo desarrollo — no aparece en la PWA final.** Herramienta de prueba para simular el modo CASA desde escritorio. Contiene el botón GPS (🛰️) que envía `SISTEMA.CAMBIO_MODO` al padre para alternar entre modos CASA y AVENTURA. Visible solo cuando el modo DEV está activo (`globalThis._devModeActivo = true`, ver §24); permanece oculto (`display:none`) en todo momento normal. |
 | Hijo 6 | `hijo6-chat` | `chat-hijo6.html` | No | **Lazy** — `src=""` en HTML; se asigna al primer click en `#btn-chat-soporte` | Asistente de soporte FAQ en acordeón. Accesible desde un botón flotante propio del padre. |
 
-> **Quién recibe heartbeat: todo iframe registrado, no una lista fija.** `enviarHeartbeatAHijos()` (`js/mensajeria.js`) recorre `[...iframesRegistrados.keys()]`, sin lista de reserva ni categorías. Ese `Map` lo puebla `registrarIframe()`, que los cargadores del padre llaman **antes de asignar el `src`** a través del punto único `globalThis.registrarIframeHijo()`. Estar registrado es a la vez lo que hace a un iframe alcanzable desde el padre y lo que lo pone bajo vigilancia: no son dos listas que haya que mantener a la par. Entran los siete, también `seleccion`, `hijo1-opciones` y `hijo6-chat`, cada uno cuando su cargador lo registra (`hijo5` al elegir aventura, el chat al abrirlo).
+> **Quién recibe heartbeat: todo iframe supervisado que ya completó su apretón de manos, no una lista fija.** `supervisarHijos()` (`js/mensajeria.js`) recorre `[...iframesRegistrados.values()]`, sin lista de reserva ni categorías, y se queda con los registrados con `supervisado: true`. Ese `Map` lo puebla `registrarIframe()`, que los cargadores del padre llaman **antes de asignar el `src`** a través del punto único `globalThis.registrarIframeHijo()` (que registra con `supervisado: true`). Estar registrado es a la vez lo que hace a un iframe alcanzable desde el padre y lo que lo pone bajo vigilancia: no son dos listas que haya que mantener a la par. Entran los siete, también `seleccion`, `hijo1-opciones` y `hijo6-chat`, cada uno cuando su cargador lo registra (`hijo5` al elegir aventura, el chat al abrirlo). El latido solo se le manda al que `hijoEstaListo(id)` (state-manager) da por listo; al que aún no completó el apretón de manos se le deja la gracia de arranque (§2.7).
 >
-> Medido tras cargar los iframes: el registro contiene `seleccion` (SELECCION), `hijo1-opciones` (EXTRAINFO), `hijo2` (COORDENADAS), `hijo3` (AUDIO), `hijo4` (RETO) y `hijo5` (CASA) — y `hijo6-chat` en cuanto se abre el chat, que se carga en diferido. Los seis aparecen tanto en `heartbeatsFallidos` como en `ultimoHeartbeat`, es decir: reciben el latido **y lo contestan**. Los siete tienen su controlador de `SISTEMA.HEARTBEAT` y responden `SISTEMA.HEARTBEAT_RESPONSE`, así que ninguno acumula fallos por no estar previsto.
+> Con los siete cargados, cada uno recibe y contesta un latido por vuelta: el registro contiene `seleccion` (SELECCION), `hijo1-opciones` (EXTRAINFO), `hijo2` (COORDENADAS), `hijo3` (AUDIO), `hijo4` (RETO) y `hijo5` (CASA) — y `hijo6-chat` en cuanto se abre el chat, que se carga en diferido —, todos con `supervisado: true`. En 45 s con el modo AVENTURA activo, cada uno recibió 9 latidos y devolvió 9 respuestas, con `latidosSinRespuesta` y `recargas` a 0. Los siete tienen su controlador de `SISTEMA.HEARTBEAT` y responden `SISTEMA.HEARTBEAT_RESPONSE`, así que ninguno acumula latidos sin respuesta por no estar previsto.
 >
-> **De los iframes fijos no se da de baja a nadie.** `desregistrarIframe(id)` existe y lo usan los nietos que van y vienen (el puzzle se crea y se destruye en cada reto, el mapa completo cambia de página en cada apertura), pero ninguno de los siete iframes del padre se retira: una vez registrado, se queda en el ciclo del latido para el resto de la sesión — también `seleccion`, que el padre oculta al activarse la aventura pero cuyo JS sigue vivo y sigue contestando. Es inofensivo porque **ningún iframe se retira nunca del DOM**: si alguno se retirara, su entrada quedaría huérfana y acumularía fallos hasta provocar una recarga inútil. Medido sobre la app cargada con `seleccion` ya oculta: 40 latidos seguidos, los seis contadores de fallo en 0, cero desconectados y cero recargas de iframe.
+> **De los iframes fijos no se da de baja a nadie.** `desregistrarIframe(id)` existe y lo usan los nietos que van y vienen (el puzzle se crea y se destruye en cada reto, el mapa completo cambia de página en cada apertura), pero ninguno de los siete iframes del padre se retira: una vez registrado, se queda bajo el supervisor para el resto de la sesión — también `seleccion`, que el padre oculta al activarse la aventura pero cuyo JS sigue vivo y sigue contestando. Es inofensivo porque **ningún iframe se retira nunca del DOM**: si alguno se retirara, su entrada quedaría huérfana, acumularía latidos sin respuesta y provocaría una recarga inútil. Medido sobre la app cargada con `seleccion` ya oculta: 9 latidos y 9 respuestas por hijo en 45 s, y cero recargas de iframe.
 >
-> Cadencia y castigo: cada 5 s en MODO AVENTURA (valor por defecto de `iniciarHeartbeat()`); si uno no responde 3 veces seguidas (`MAX_LATIDOS_SIN_RESPUESTA`, constante de `js/mensajeria.js`), `marcarHijoDesconectado()` lo anota y, **solo si está marcado `recuperable`**, `intentarReconectarHijo()` recarga su iframe; si no lo está, queda el aviso y nada más (§2.7a). Es el **único** latido periódico: se pausa en CASA.
+> Cadencia y recarga: un latido por intervalo (5 s ajustados por la conexión; valor por defecto de `iniciarHeartbeat()`), en cualquier modo. Si un iframe que ya completó el apretón de manos no responde 3 veces seguidas (`MAX_LATIDOS_SIN_RESPUESTA`, constante de `js/mensajeria.js`), o si uno que no lo completó agota su gracia de arranque, `recuperarHijo()` lo dice por consola y le recarga el iframe: a todos por igual (§2.7). Es el **único** latido periódico y no se pausa.
 >
 > **"Crítico" significa otra cosa y no hay que confundirlo con esto:** los tres hijos críticos (`hijo2`, `hijo3`, `hijo4`) son los que bloquean `_esperarHijosCargados` y disparan `_hijoListo_onTodosListos`. Recibir heartbeat y ser crítico son propiedades independientes.
 
@@ -1647,7 +1652,7 @@ Padre                                Hijo
 - `PADRE_DATOS` del handshake lleva `{ modo, timestamp }` para todos los hijos. Los datos completos de la aventura (idioma, coordenadas) **no viajan en este mensaje** — llegan mediante mensajes específicos (`DATOS.CARGAR_COORDENADAS`, `NAVEGACION.RESPUESTA_DATOS_PARADAS`, etc.) después de que el hijo ya está listo. Audio y retos no se distribuyen en el handshake en absoluto — se resuelven parada a parada (ver §16). **Única excepción: `hijo6-chat`** — su `PADRE_DATOS` añade además `idioma`, `aventura`, `paradaActualNombre`, `siguienteParadaNombre`, `paradasRestantes` y `rescate` —el estado del rescate, §25.19— (`globalThis.construirEstadoChat()`, expuesto por el IIFE de apertura del chat para que `_hdl_SISTEMA_HIJO_PREPARADO` — otro scope — pueda leerlo). Es la vía por la que el chat conoce el idioma en su primera apertura: sin ese añadido construiría su FAQ con el `'es'` por defecto en vez del idioma real seleccionado. Que el payload sea correcto no basta — este mensaje solo llega si `hijo6-chat` está registrado en `iframesRegistrados`, cosa que `abrirChat()` hace antes de asignarle `src`; ver §7.7 para el detalle de por qué el registro condiciona la entrega.
 - Hay un segundo emisor de `PADRE_DATOS`: `mostrarHijo4()`, si hijo4 aún no tiene `src`, carga el iframe con `cargarIframeConDatos()` y manda `PADRE_DATOS` con `datos: {}` en cuanto el iframe dispara `load`. El handler de hijo4 es el mismo: sin `modo` no aplica nada y envía `HIJO_LISTO` si aún no lo había enviado.
 - El padre registra los handlers `HIJO_PREPARADO` y `HIJO_LISTO` en Script 1 **antes de asignar `src` a ningún iframe** — esto garantiza que los mensajes tempranos nunca se pierdan.
-- Diseño intencional: el timeout de 30 s en `state-manager.js` es el último recurso si el hijo se cuelga antes de enviar `HIJO_LISTO` (crash total), no como mecanismo normal de espera. El heartbeat continuo detecta hijos caídos tras arrancar y permite reenviar `CAMBIO_MODO` pendiente si llega un `HIJO_LISTO` tardío.
+- Diseño intencional: el timeout de 30 s en `state-manager.js` es el último recurso si el hijo se cuelga antes de enviar `HIJO_LISTO` (crash total), no como mecanismo normal de espera. El supervisor del bus (§2.7) recarga a los hijos que no llegan a enviar `HIJO_LISTO` dentro de su gracia de arranque y a los que dejan de contestar tras arrancar; el `PADRE_CONFIRMA_HIJO_LISTO` de cada `HIJO_LISTO` —también el de un hijo recargado— lleva el modo vigente (`modoInicial`).
 
 ### Acciones adicionales tras HIJO_LISTO (por hijo)
 
@@ -1725,7 +1730,7 @@ sequenceDiagram
     Note over H6: hijo6-chat: src="" en HTML<br/>Se carga al primer click en btn-chat-soporte<br/>(apertura lazy)
 ```
 
-> **Carga en paralelo:** `cargarRestoDeiframes()` usa `Promise.all` sobre hijo1-opciones/hijo2/hijo3/hijo4 (cada uno vía `_cargarUnIframeHijo`, que espera su `HIJO_LISTO`), tolerando fallos individuales: los que fallan se acumulan en `hijosFallidos` sin abortar el resto. hijo5 va aparte en `cargarHijoCasa()`, y ambas se lanzan juntas con `await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])`. La pantalla de selección se carga antes y por separado en `cargarIframeSoloSeleccion()`. `_hdl_SELECCION_AVENTURA_ACTIVADA` carga los 5 hijos (hijo1-5 incluyendo hijo4) vía `_cargarSoloIframeActivacion`. `_fase2CargarDatos()` precarga módulos JS cuando P14 se muestra (`SELECCION.P14_MOSTRADA`), de modo que AVENTURA_ACTIVADA puede distribuir datos sin esperar imports adicionales.
+> **Carga en paralelo:** `cargarRestoDeiframes()` usa `Promise.all` sobre hijo1-opciones/hijo2/hijo3/hijo4 (cada uno vía `_cargarUnIframeHijo`, que espera su `HIJO_LISTO`), tolerando fallos individuales: los que fallan se acumulan en `hijosFallidos` sin abortar el resto. hijo5 va aparte en `cargarHijoCasa()`, y ambas se lanzan juntas con `await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])`. La pantalla de selección se carga antes y por separado en `cargarIframeSoloSeleccion()`, que espera su `HIJO_LISTO` sin plazo (si no llega, la recarga el supervisor y la aplicación se queda en su pantalla de carga hasta entonces). `_hdl_SELECCION_AVENTURA_ACTIVADA` carga los 5 hijos (hijo1-5 incluyendo hijo4) vía `_cargarSoloIframeActivacion`. `_fase2CargarDatos()` precarga módulos JS cuando P14 se muestra (`SELECCION.P14_MOSTRADA`), de modo que AVENTURA_ACTIVADA puede distribuir datos sin esperar imports adicionales.
 
 ### Diagrama de arquitectura global
 
@@ -1824,12 +1829,12 @@ El archivo `codigo-padre.html` (unas 15.500 líneas) es el **orquestador** de to
 
 ### Responsabilidades del padre
 
-1. **Gestión de iframes**: carga, muestra, oculta y reconecta los hijos según el contexto.
+1. **Gestión de iframes**: carga, muestra y oculta los hijos según el contexto; si uno cae, el supervisor del bus lo recarga (§2.7).
 2. **Estado centralizado**: guarda aventura seleccionada, idioma, parada actual, modo y estado GPS en `js/state-manager.js`.
 3. **Mensajería**: recibe mensajes de todos los hijos y les responde a través de `js/mensajeria.js`.
 4. **GPS**: es el único fichero de la app que llama a `navigator.geolocation.watchPosition()` — dos veces, y siempre bajo `activarGPS()`: el watch principal y el que lo sustituye en un reintento por timeout (§29.1). Nunca hay dos watches vivos a la vez: el reintento hace `clearWatch()` del anterior antes de abrir el suyo. `funciones-mapa.js` solo actúa como adaptador — delega a `globalThis.activarGPS()` del padre. Las posiciones se distribuyen a hijo2 vía `NAVEGACION.ACTUALIZAR_ESTADO`. hijo2 no tiene `watchPosition` propio.
 5. **Navegación**: decide cuándo cambiar de parada, cuándo mostrar un reto, cuándo reproducir un audio.
-6. **Modos**: gestiona la transición entre `'casa'` y `'aventura'`, propagando `CAMBIO_MODO` a los hijos críticos y coordinando heartbeat y GPS.
+6. **Modos**: gestiona la transición entre `'casa'` y `'aventura'`, propagando `CAMBIO_MODO` a los hijos críticos y coordinando el GPS. El latido no depende del modo (§2.7).
 
 ### Estructura interna: los cinco scripts module
 
@@ -1837,11 +1842,11 @@ El archivo `codigo-padre.html` (unas 15.500 líneas) es el **orquestador** de to
 
 | Script | Empieza en (aprox., se desplaza con cada edición — `grep -n '<script type="module">' codigo-padre.html` da el número exacto) | Rol principal |
 |--------|--------|--------------|
-| **Script 1** | ~2716 | Orquestador de arranque: FASE 1 infra → FASE 2 datos → FASE 3 iframes. Registra los handlers del ciclo de vida y del arranque: `SISTEMA.HIJO_PREPARADO`, `SISTEMA.HIJO_LISTO`, `NAVEGACION.SOLICITAR_DATOS_PARADAS`, `SISTEMA.CAMBIO_MODO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_FALLIDO`, `UI.ACCION_USUARIO`, `SISTEMA.APLICACION_INICIALIZADA`. Contiene también la reanudación de sesión (`ejecutarRestauracionAventura`) y los carteles. Al final carga `js/controladores-padre.js`. |
-| **Script 2** | ~9727 | Handlers de dominio: todos los `NAVEGACION.*` (GPS, CAMBIO_PARADA, LLEGADA_DETECTADA…), `RETO.*`, `SELECCION.*`, `AUDIO.*`, `UI.NAVEGACION_EXTERNA`. Contiene `distribuirDatosAventura`, `marcarParadaCompletada` y `_iniciarTemporizadorAventura`. |
-| **Script 3** | ~14216 | Gestión de visibilidad de iframes (`mostrarHijo4`) y reconexión en `visibilitychange`. |
-| **Script 4** | ~14381 | "Migración de controladores y diagnóstico GPS": registra los controladores de `js/app.js` (`registrarControladoresApp`) y define el diagnóstico de consola `globalThis.diagnosticarGPS()`. **No llega hasta el final del archivo.** |
-| **Script 5** | ~14896 | Panel de logs en pantalla (gesto de 7 toques, ver §24). Último bloque del documento, autocontenido. |
+| **Script 1** | ~2842 | Orquestador de arranque: FASE 1 infra → FASE 2 datos → FASE 3 iframes. Registra los handlers del ciclo de vida y del arranque: `SISTEMA.HIJO_PREPARADO`, `SISTEMA.HIJO_LISTO`, `NAVEGACION.SOLICITAR_DATOS_PARADAS`, `SISTEMA.CAMBIO_MODO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_FALLIDO`, `UI.ACCION_USUARIO`, `SISTEMA.APLICACION_INICIALIZADA`. Enciende el reloj del supervisor (`iniciarHeartbeat`) en cuanto marca la mensajería iniciada. Contiene también la reanudación de sesión (`ejecutarRestauracionAventura`) y los carteles. Al final carga `js/controladores-padre.js`. |
+| **Script 2** | ~9420 | Handlers de dominio: todos los `NAVEGACION.*` (GPS, CAMBIO_PARADA, LLEGADA_DETECTADA…), `RETO.*`, `SELECCION.*`, `AUDIO.*`, `UI.NAVEGACION_EXTERNA`. Contiene `distribuirDatosAventura`, `marcarParadaCompletada` y `_iniciarTemporizadorAventura`. |
+| **Script 3** | ~14401 | Gestión de visibilidad de iframes (`mostrarHijo4`). El `<script>` clásico que le sigue registra el listener de `visibilitychange` que revalida el tamaño del mapa al volver a la pestaña. |
+| **Script 4** | ~14560 | "Migración de controladores y diagnóstico GPS": registra los controladores de `js/app.js` (`registrarControladoresApp`) y define el diagnóstico de consola `globalThis.diagnosticarGPS()`. **No llega hasta el final del archivo.** |
+| **Script 5** | ~14945 | Panel de logs en pantalla (gesto de 7 toques, ver §24). Último bloque del documento, autocontenido. |
 
 > **Por qué Script 1 registra solo los handlers del ciclo de vida y Script 2 el resto:** Script 1 debe completar el registro de `HIJO_PREPARADO` / `HIJO_LISTO` / `CAMBIO_MODO` **antes** de asignar `src` a cualquier iframe. Los handlers de dominio (`NAVEGACION.*`, `RETO.*`, `SELECCION.*`) solo son necesarios una vez que los iframes están cargados, por lo que pueden vivir en Script 2 sin riesgo de llegar tarde.
 >
@@ -1885,7 +1890,7 @@ Por el mismo motivo `mapa-vintage-aventuras.js` y `puzzles-aventuras.js` sí est
 
 Necesita FASE 2 completa. Ocurre dentro de `ejecutarInicializacionAutomatica()`, antes de cualquier interacción del usuario, y **carga un solo iframe**:
 
-1. `cargarIframeSoloSeleccion()` — asigna `src` a `seleccion` y espera su handshake.
+1. `cargarIframeSoloSeleccion()` — registra `seleccion` como supervisado, le asigna el `src` y espera su `HIJO_LISTO` **sin plazo**: si no llega, la recarga el supervisor (§2.7) y la aplicación se queda en su pantalla de carga (`sistemaInicializado` sigue en `false`) mientras no esté lista, sin ningún aviso al usuario.
 2. Marca `sistemaInicializado`, procesa las distribuciones pendientes y retira el overlay de carga.
 
 > **Los iframes hijo (hijo1–hijo5) NO se cargan en el arranque, y esa es la regla, no un detalle.** Contienen contenido de pago, así que su `src` no se asigna hasta que el usuario ha validado su código en P13. Solo dos sitios en toda la app los cargan: `_hdl_SELECCION_P14_MOSTRADA` (el camino normal, con `cargarRestoDeiframes()` + `cargarHijoCasa()`) y `ejecutarRestauracionAventura()` (la reanudación de sesión, que nunca pasa por P14 — sin esa llamada ningún iframe tendría `src` y `_esperarHijosCriticosRest()` esperaría un `HIJO_LISTO` que nadie ha pedido: un interbloqueo determinista en cualquier reapertura con aventura guardada). Las dos funciones son idempotentes: comprueban el `src` actual antes de reasignarlo, así que no interfieren entre sí. Ver §17 para el modelo de seguridad completo.
@@ -1953,8 +1958,8 @@ Todos los handlers del padre se registran mediante `globalThis.registrarControla
 
 La aplicación tiene dos modos, cuyos valores corresponden a las constantes `MODOS.CASA = 'casa'` y `MODOS.AVENTURA = 'aventura'` de `js/constants.js`:
 
-- **`'casa'`**: menú principal — selección de aventura, vídeos, consejos. Heartbeat pausado; localStorage de progreso limpiado (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`) — **excepto en modo dev** (`globalThis._devModeActivo === true`, ver §24), donde no se borra nada, porque la propia activación entra en CASA como paso de bootstrap, no como abandono real. Ver §9.9.
-- **`'aventura'`**: recorrido activo — mapa, GPS, retos. Heartbeat activo cada ~5 s (ajustado por calidad de conexión vía `ajustarTimeoutPorConexion`).
+- **`'casa'`**: menú principal — selección de aventura, vídeos, consejos. localStorage de progreso limpiado (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`) — **excepto en modo dev** (`globalThis._devModeActivo === true`, ver §24), donde no se borra nada, porque la propia activación entra en CASA como paso de bootstrap, no como abandono real. Ver §9.9.
+- **`'aventura'`**: recorrido activo — mapa, GPS, retos. El latido no depende del modo (§2.7).
 
 **Quién inicia un cambio de modo:**
 
@@ -1996,9 +2001,8 @@ sequenceDiagram
     HC-->>APP: CAMBIO_MODO_ENTENDIDO
     HC-->>APP: CAMBIO_MODO_EFECTUADO
     alt modo === 'aventura'
-        P->>P: iniciarHeartbeat(intervalo: ~5000 ms) — llamada directa
+        P->>P: _activarAventura (parada por defecto + temporizador de hijo1)
     else modo === 'casa'
-        P->>P: pausarHeartbeat() — llamada directa
         P->>P: limpiar localStorage de progreso
     end
 ```
@@ -2012,7 +2016,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 | Elemento | Modo CASA (`'casa'`) | Modo AVENTURA (`'aventura'`) |
 |----------|---------------------|------------------------------|
 | **GPS** | Activo — `watchPosition` continuo; modo CASA se superpone al GPS: no se detectan llegadas automáticas porque el usuario elige libremente cada parada o tramo | Activo — `watchPosition` continuo; posición del usuario se actualiza en mapa; llegadas detectadas automáticamente por proximidad |
-| **Heartbeat** | Pausado — no se envía `SISTEMA.HEARTBEAT` a los hijos críticos | Activo cada ~5 s (ajustado por calidad de conexión vía `ajustarTimeoutPorConexion`) |
+| **Heartbeat** | Encendido: los hijos que ya completaron su apretón de manos reciben `SISTEMA.HEARTBEAT` cada ~5 s (ajustado por calidad de conexión vía `ajustarTimeoutPorConexion`) | Igual: el latido no depende del modo |
 | **`retosBtn` (hijo3)** | Se envía `CONTROL.HABILITAR { control: 'retosBtn' }` **de inmediato** al entrar en parada con `reto_id` (sin condición de audio) | Arranca con `CONTROL.DESHABILITAR { control: 'retosBtn', razon: 'esperar_fin_audio_aventura' }`; se habilita solo cuando llega `AUDIO.FIN_REPRODUCCION` para esa parada |
 | **`btnAvanzar` (hijo2)** | No se gestiona — en CASA el usuario elige libremente cada parada o tramo (sin avance automático por GPS) | Se deshabilita al entrar en el elemento: `CONTROL.DESHABILITAR { control: 'btnAvanzar', razon: 'parada_pendiente_completar' }`; se habilita cuando `marcarParadaCompletada()` confirma llegada GPS + audio (+ reto si es parada) — nunca solo audio+reto |
 | **Audio al cambiar de parada** | `_solicitarAudioParaParada()` — mismo camino unificado que en AVENTURA; resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` (el usuario arranca el audio manualmente en ambos modos) | `_solicitarAudioParaParada()` — resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` |
@@ -2057,17 +2061,15 @@ Los handlers de datos de aventuras están extraídos en el módulo `js/controlad
 
 Los tres handlers resuelven bajo demanda con `js/data-loader.js` — `cargarTextos()`, `cargarAudios()`, `cargarRetos()` — sin precargar ningún array bulk (protección pasiva por parada, ver §16). El de textos (`DATOS.SOLICITAR_TEXTOS`, en `js/controladores-padre.js`) importa `data-loader.js` de forma dinámica y llama a `cargarTextos(aventura, idioma)`: no hay ningún global de textos del que leer. `controladores-padre.js` también contiene una entrada para `SOLICITAR_DATOS_PARADAS`, pero es **dead code**: Script 1 la registra primero (ver §6 handshake) y `registrarControladorSeguro` deduplicates — la de controladores-padre.js se ignora. El handler activo de `SOLICITAR_DATOS_PARADAS` está en Script 1: lee de `DATOS_PADRE[av][id].elementosIDpadre` con `normalizarParadas_S1`, usando `globalThis.aventuraSeleccionada` e `idiomaSeleccionado || 'es'`. Responde solo a `hijo5`.
 
-### Reconexión de hijos fallidos
+### Recuperación de hijos que no arrancan
 
-Cuando un hijo no completa el handshake durante la carga inicial, el padre activa `_reconectarHijoIndividual()`:
+Un hijo que no completa su apretón de manos durante la carga (no llega a enviar `HIJO_LISTO`) lo recupera el supervisor del bus, igual que a uno que se cuelga después (§2.7). Los cargadores no llevan reconexión propia:
 
-1. Oculta el iframe (`display:none; visibility:hidden`)
-2. Reasigna el `src` para forzar recarga completa del iframe
-3. Espera el handshake completo (`_esperarHijoListo(id)`)
-4. **Máximo 3 intentos** con backoff: espera `2 s × intento` antes del siguiente intento — solo si no es el último (intento 1 → espera 2 s, intento 2 → espera 4 s, intento 3 → sin espera)
-5. Si los 3 fallan: marca `activo: false` en su entrada de `estadoHijos` — la app continúa con funcionalidad reducida
-
-Esta reconexión es **solo para fallos de carga inicial**. Los fallos de heartbeat durante la aventura (3 heartbeats fallidos consecutivos) se gestionan por separado en `js/mensajeria.js`.
+1. Cada cargador registra el iframe con `registrarIframeHijo(id, elemento)` **antes** de asignarle el `src`; desde ese momento corre su gracia de arranque (`cargaDesde`).
+2. Si el `HIJO_LISTO` no llega dentro de la gracia (30 s con el intervalo de 5 s; 60 s y 120 s tras recargas seguidas), `recuperarHijo()` lo dice por consola y recarga el iframe: el apretón de manos empieza de nuevo. No hay tope de intentos.
+3. Al volver la red (`online`), el iframe que lleva una recarga y sigue sin estar listo se recarga al momento.
+4. La pantalla de selección es la única que se espera sin plazo (`cargarIframeSoloSeleccion()` → `_esperarHijoListoSinPlazo`): mientras no esté lista, la pantalla de carga sigue a la vista y la aplicación no se da por inicializada (`globalThis.sistemaInicializado` sigue en `false`). No hay `alert` ni se oculta el iframe.
+5. Los demás cargadores (`cargarRestoDeiframes`, `cargarHijoCasa` y `_cargarSoloIframeActivacion`) esperan el `HIJO_LISTO` con un plazo (`crearPromiseHijoListo`, 30 s) y, si vence, lo anotan en consola y siguen: el supervisor continúa recuperando al iframe.
 
 ### El state-manager (gestor de estado)
 
@@ -2080,14 +2082,14 @@ El estado compartido del padre se guarda en un único lugar: `js/state-manager.j
 | `script2Listo` | `boolean` | `script2Listo` | Flag de sincronización entre Script 1 y Script 2 del padre. Lo escribe `marcarScript2Listo()` de `js/mensajeria.js` (con `setScript2Listo`) y lo leen los tests con `getScript2Listo()` |
 | `estadoPadre` | `object` | `estadoPadre` | Copia profunda de `globalThis.estadoPadre`, tomada al arrancar con `setEstadoPadre`; de ella solo `hijosInicializados` se mantiene al día (`marcarHijoListo` y `olvidarHijoListo`). El estado vivo es `globalThis.estadoPadre` |
 | `controladores` | `Map` | `controladores` | Handlers registrados con `registrarControladorCentral`: id → `{ handler, opciones, registradoEn, activo, fingerprint }`; rechaza un id repetido y un handler lógicamente duplicado (mismo tipo y mismo código) |
-| `heartbeat` | `object` | `heartbeat` | Estado del heartbeat: `activo`, `intervalo`, `userPaused`, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados` |
+| `heartbeat` | `object` | `heartbeat` | Estado del reloj del supervisor: `activo` e `intervalo` (el id del `setInterval`). Los contadores de cada iframe (`latidosSinRespuesta`, `recargas`, `cargaDesde`) viven en su registro dentro de `js/mensajeria.js`, no aquí |
 | `hijosListosPromises` | `Map` | ninguno | Promesas de carga de cada hijo (resueltas por `marcarHijoListo`) |
 
 `aventuraSeleccionada`/`idiomaSeleccionado` (la aventura e idioma activos) son datos reales de la app, pero fuera de `state-manager.js` — viven como variables `globalThis.aventuraSeleccionada`/`globalThis.idiomaSeleccionado` en `codigo-padre.html`, sin mutex propio.
 
 > **Nota:** `hijosListosPromises` no tiene mutex; el comentario del código, junto a `crearPromiseHijoListo`, lo aclara: *"Sin mutex: el browser es single-threaded; Map/Set ops son atómicas en este contexto"*.
 
-**Accesores.** Cada lectura o escritura de un campo con mutex tiene la forma mecánica `mutexes.campo.runExclusive(() => …)`: `getScript2Listo()`/`setScript2Listo(valor)`, `getEstadoPadre()`/`setEstadoPadre(valor)` (copia profunda al leer y al escribir), `getHeartbeat()` (copia profunda), `updateHeartbeat(parcial)` (mezcla en profundidad) y `atomicUpdateHeartbeat(fn)` (lectura-modificación-escritura dentro de una sola adquisición del mutex, §33.3). Para los controladores: `registrarControladorCentral(id, handler, opciones)` (con su alias `registrarManejador`), `getControladoresRegistrados()`, `getControladoresPorTipo(tipo)` y `getMapaControladoresSync()` — el mapa tipo → handler que lee `js/mensajeria.js` con su alias `getManejadores()`, sin mutex. `crearPromiseHijoListo(id)`, `marcarHijoListo(id)` y `olvidarHijoListo(id)` (§30.3) trabajan sobre `hijosListosPromises` y sobre `hijosInicializados` de la copia de `estadoPadre`.
+**Accesores.** Cada lectura o escritura de un campo con mutex tiene la forma mecánica `mutexes.campo.runExclusive(() => …)`: `getScript2Listo()`/`setScript2Listo(valor)`, `getEstadoPadre()`/`setEstadoPadre(valor)` (copia profunda al leer y al escribir), `getHeartbeat()` (copia profunda) y `updateHeartbeat(parcial)` (mezcla en profundidad, §33.3). Para los controladores: `registrarControladorCentral(id, handler, opciones)` (con su alias `registrarManejador`), `getControladoresRegistrados()`, `getControladoresPorTipo(tipo)` y `getMapaControladoresSync()` — el mapa tipo → handler que lee `js/mensajeria.js` con su alias `getManejadores()`, sin mutex. `crearPromiseHijoListo(id)`, `marcarHijoListo(id)`, `olvidarHijoListo(id)` y `hijoEstaListo(id)` (§30.3) trabajan sobre `hijosListosPromises` y sobre `hijosInicializados` de la copia de `estadoPadre`.
 
 `esperarRegistrosPendientes()` resuelve cuando han terminado todos los registros de controladores lanzados hasta ese momento. Registrar un controlador no es inmediato —cada `registrarControladorCentral` escribe en el mapa dentro del mutex `controladores`, esperando al anterior— y el Script 2 del padre lanza decenas de registros sin `await`. Como `SimpleMutex` es FIFO, esta espera se encola detrás de todos ellos y no espera a los que se lancen después de llamarla.
 
@@ -2118,12 +2120,9 @@ La estructura del estado (`state`) tiene dos niveles diferenciados:
 
     controladores: Map,                   // mutex controladores: handlers de mensajes
 
-    // Heartbeat + GPS pendientes (mutex compartido 'heartbeat')
+    // Reloj del supervisor (mutex 'heartbeat')
     heartbeat: {
-        activo, intervalo, userPaused,
-        heartbeatsFallidos: Map,          // hijo → nº de fallos
-        ultimoHeartbeat: Map,             // hijo → timestamp
-        hijosDesconectados: []
+        activo, intervalo
     },
 
     // Promesas de carga de hijos (sin mutex)
@@ -2419,11 +2418,11 @@ Al pulsar cualquier icono con URL, hijo1 pide al padre pausar el audio (`UI.ACCI
 
 El temporizador es una cuenta atrás autónoma dentro de hijo1. El tiempo total se recibe via `AVENTURA.INICIADA` como `tiempoEstimado` **en segundos** (definido en `js/indice-aventuras.js`): 216 000 s (60 h) para Aventuras 1–5 y Fallas, 540 000 s (150 h) para Aventura34km. Actualiza su display cada 1 s con `setInterval` en formato `HH:MM:SS`.
 
-**Quién envía `AVENTURA.INICIADA` y cuándo:** `_iniciarTemporizadorAventura()` (`codigo-padre.html`, Script 2, expuesta a `globalThis` para que Script 1 pueda llamarla) tiene **un único llamador**: `_activarHeartbeatAventura()`, dentro de `_hdl_SISTEMA_CAMBIO_MODO`. Ese único punto cubre los tres casos en que el reloj debe arrancar — activación inicial de la aventura, retorno a AVENTURA tras haber estado en CASA (ambos en la misma sesión) y reanudación tras cerrar y reabrir la PWA —, porque la reanudación pasa por ese mismo handler marcada con `restaurado:true` (§9.10). Antes de nada, la función comprueba `globalThis._devModeActivo`: si está activo, no envía nada y termina — el temporizador cuenta tiempo de compra real, y en modo dev no hay compra que cronometrar (ver §24). Solo si no es dev mode comprueba el modo (`estado.modo?.actual !== MODOS.AVENTURA` → tampoco hace nada), así que es seguro llamarla siempre en esa transición sin comprobar nada antes.
+**Quién envía `AVENTURA.INICIADA` y cuándo:** `_iniciarTemporizadorAventura()` (`codigo-padre.html`, Script 2, expuesta a `globalThis` para que Script 1 pueda llamarla) tiene **un único llamador**: `_activarAventura()`, dentro de `_hdl_SISTEMA_CAMBIO_MODO`. Ese único punto cubre los tres casos en que el reloj debe arrancar — activación inicial de la aventura, retorno a AVENTURA tras haber estado en CASA (ambos en la misma sesión) y reanudación tras cerrar y reabrir la PWA —, porque la reanudación pasa por ese mismo handler marcada con `restaurado:true` (§9.10). Antes de nada, la función comprueba `globalThis._devModeActivo`: si está activo, no envía nada y termina — el temporizador cuenta tiempo de compra real, y en modo dev no hay compra que cronometrar (ver §24). Solo si no es dev mode comprueba el modo (`estado.modo?.actual !== MODOS.AVENTURA` → tampoco hace nada), así que es seguro llamarla siempre en esa transición sin comprobar nada antes.
 
 **Por qué hijo1 necesita que le recuerden el tiempo restante en cada entrada a AVENTURA:** `resetearTemporizador()` (`extrainfo-hijo1.html`) pone `tiempoRestante` a 0 cada vez que el modo pasa a CASA — hijo1 no recuerda nada por su cuenta entre visitas a CASA. `_iniciarTemporizadorAventura(aventura, idioma, estado, logPrefix, tiempoRestanteOverride, timestampInicioRest)` cubre esto con dos parámetros opcionales, uno por escenario:
 
-- **Retorno a AVENTURA en la misma sesión** (`_activarHeartbeatAventura`, 5º parámetro `tiempoRestanteOverride`): envía `estado.tiempoRestante` tal cual — el último tick real recibido de hijo1, correcto porque la app nunca se cerró entre medias.
+- **Retorno a AVENTURA en la misma sesión** (`_activarAventura`, 5º parámetro `tiempoRestanteOverride`): envía `estado.tiempoRestante` tal cual — el último tick real recibido de hijo1, correcto porque la app nunca se cerró entre medias.
 - **Reanudación tras cerrar/reabrir la PWA** (`_activarModoRest`, 6º parámetro `timestampInicioRest` = `datosGuardados.timestamp` de `vv_aventura_iniciada`): el tiempo comprado corre en tiempo real desde la compra, esté la app abierta o cerrada — igual que `verificarTimeoutAventura()` (`js/reciclaje-digital.js`), que ya corta el acceso con esta misma cuenta. Por eso este caso **no** reenvía `estado.tiempoRestante` (el último tick conocido antes de cerrar, que pausaría el reloj visible durante todo el tiempo que la PWA estuvo cerrada) — recalcula `tiempoEstimado - (Date.now() - timestampInicioRest)` y envía ese resultado.
 
 Si ninguno de los dos parámetros aplica (arranque nuevo de una aventura), se envía el `tiempoEstimado` completo.
@@ -3230,11 +3229,11 @@ if (!chatCargado) {
 }
 ```
 
-> **Los cuatro cargadores de iframes registran su iframe, sin excepción.** `_cargarSingleIframe()`, `_cargarUnIframeHijo()`, `_cargarSoloIframeActivacion()` y `cargarHijoCasa()` llaman a `registrarIframe_S1(id, elemento)` **antes** de asignar el `src`. Cualquier cargador nuevo debe hacer lo mismo: es el requisito, no un detalle.
+> **Los cargadores de iframes registran su iframe, sin excepción.** `cargarIframeSoloSeleccion()`, `_cargarUnIframeHijo()`, `_cargarSoloIframeActivacion()`, `cargarHijoCasa()` y `abrirChat()` llaman a `globalThis.registrarIframeHijo(id, elemento)` (que registra con `registrarIframe_S1(id, elemento, { supervisado: true })`) **antes** de asignar el `src`. Cualquier cargador nuevo debe hacer lo mismo: es el requisito, no un detalle.
 
 > **El registro en la mensajería es obligatorio, no decorativo.** `enviarMensaje()` (`js/mensajeria.js`) resuelve todo destino padre→hijo buscándolo en el Map `iframesRegistrados`; un iframe que no esté ahí **no es alcanzable desde el padre** y cualquier mensaje dirigido a él se descarta devolviendo `false`, con un único `logger.warn("Iframe no encontrado o sin contentWindow: …")` como rastro. El sentido contrario (hijo→padre) nunca depende de este Map: es un `postMessage` directo a `globalThis.parent`, así que un hijo sin registrar sí consigue entregar su `HIJO_PREPARADO` — y ese es justo el modo de fallo confuso, porque el handshake parece arrancar bien y solo la respuesta se pierde.
 >
-> Un iframe sin registrar produce un fallo confuso. En `hijo6-chat` se ve como un chat siempre en español. En **hijo5** la cadena es: `PADRE_DATOS` descartado → hijo5 nunca envía su `HIJO_LISTO` (lo emite desde dentro de ese handler) → `_esperarHijoListo()` agota su timeout y el `catch` de `cargarHijoCasa()` se lo traga → hijo5 no entra en `hijosInicializados`, así que el cambio de modo llega a 5 hijos en vez de 6 → sin `PADRE_CONFIRMA_HIJO_LISTO`, su `mostrarUI()` hace `return` y su propio `document.body` se queda en `display:none`. **El iframe queda visible y vacío.** Para `hijo6-chat` la consecuencia concreta es doble: no le llega el `SISTEMA.PADRE_DATOS` que transporta el idioma (§6, "única excepción"), con lo que el FAQ se construye con el `'es'` por defecto sea cual sea `idiomaSeleccionado`; y al no completar `HIJO_LISTO` nunca entra en `hijosInicializados`, lo que deja también sin efecto la vía de refresco `CHAT.ESTADO_PADRE` de las aperturas siguientes (que se condiciona precisamente a esa comprobación). Por eso el registro se hace **antes** de asignar `src`, en el mismo punto y con el mismo criterio que los tres cargadores de iframes del padre (`_cargarSingleIframe()`, `_cargarUnIframeHijo()`, `_cargarSoloIframeActivacion()`). Cubierto por `tests/e2e/47-reescalado-marcador-usuario-y-chat.spec.js` (grupo CH).
+> Un iframe sin registrar produce un fallo confuso. En `hijo6-chat` se ve como un chat siempre en español. En **hijo5** la cadena es: `PADRE_DATOS` descartado → hijo5 nunca envía su `HIJO_LISTO` (lo emite desde dentro de ese handler) → `_esperarHijoListo()` agota su timeout y el `catch` de `cargarHijoCasa()` se lo traga → hijo5 no entra en `hijosInicializados`, así que el cambio de modo llega a 5 hijos en vez de 6 → sin `PADRE_CONFIRMA_HIJO_LISTO`, su `mostrarUI()` hace `return` y su propio `document.body` se queda en `display:none`. **El iframe queda visible y vacío.** Para `hijo6-chat` la consecuencia concreta es doble: no le llega el `SISTEMA.PADRE_DATOS` que transporta el idioma (§6, "única excepción"), con lo que el FAQ se construye con el `'es'` por defecto sea cual sea `idiomaSeleccionado`; y al no completar `HIJO_LISTO` nunca entra en `hijosInicializados`, lo que deja también sin efecto la vía de refresco `CHAT.ESTADO_PADRE` de las aperturas siguientes (que se condiciona precisamente a esa comprobación). Por eso el registro se hace **antes** de asignar `src`, en el mismo punto y con el mismo criterio que los tres cargadores de iframes del padre (`cargarIframeSoloSeleccion()`, `_cargarUnIframeHijo()`, `_cargarSoloIframeActivacion()`). Cubierto por `tests/e2e/47-reescalado-marcador-usuario-y-chat.spec.js` (grupo CH).
 
 #### Estructura del acordeón FAQ
 
@@ -3604,13 +3603,11 @@ La comunicación entre `codigo-padre.html` y todos sus iframes usa la API nativa
 | `enviarMensaje({ tipo, datos?, destino })` | Envío estándar — solo acepta formato objeto, sin formato posicional (ver nota más abajo). `destino` es obligatorio: `'padre'`, el nombre de un iframe registrado, o `'broadcast'` para todos los del propio frame; sin él (o con cualquier otro valor) no se envía. Devuelve `Promise<boolean>` — `false` si `tipo` falta, si no hay `destino`, o si el destino no existe; nunca lanza de forma síncrona |
 | `enviarMensajeConConfirmacion(tipoOrMensaje, datos?, opciones?)` | Envío con espera de `SISTEMA.CONFIRMACION`; a diferencia de `enviarMensaje`, sigue aceptando formato dual — objeto `({tipo, datos, destino, ...})` o posicional `(tipo, datos, opciones)` — implementación independiente, no delega en `enviarMensaje`; timeout configurable; añade campo `id` al mensaje para rastrear la confirmación |
 | `registrarControlador(tipo, handler, opciones={})` | Registra un handler para un tipo de mensaje entrante; delega al state-manager si está disponible, o cae en `__vv_manejadoresLocales` |
-| `registrarIframe(id, elemento, opciones={})` | Registra un iframe por su ID para que `enviarMensaje` lo resuelva y el latido lo vigile. `opciones.recuperable === true` es lo único que autoriza al bus a recargarlo cuando deje de contestar (§2.7a). No guarda el `contentWindow`: lo lee del elemento en cada envío, porque recargar un iframe lo sustituye |
+| `registrarIframe(id, elemento, opciones={})` | Registra un iframe por su ID para que `enviarMensaje` lo resuelva. `opciones.supervisado === true` lo pone bajo el supervisor del latido (§2.7): se vigila y, si no está sano, se recarga; los iframes que no hacen el apretón de manos (mapa completo, puzzle, vídeo) se registran sin ello. El registro guarda `{ id, elemento, supervisado, cargaDesde, latidosSinRespuesta, recargas }`. No guarda el `contentWindow`: lo lee del elemento en cada envío, porque recargar un iframe lo sustituye |
 | `desregistrarIframe(id)` | Da de baja un iframe: deja de recibírsele y sus mensajes dejan de aceptarse. Para los que van y vienen (el puzzle de cada reto, el mapa completo) |
 | `despacharLocal(mensaje)` | Entrega un mensaje a los handlers de **este mismo frame**, por la misma fila que los que llegan de fuera. Es la única forma correcta de que un frame se mande algo a sí mismo: `enviarMensaje` no puede, porque uno no está entre sus propios iframes registrados |
-| `adelantarLatido()` | Fuerza un latido inmediato **respetando la pausa**: si el latido está parado en CASA, no hace nada. Ningún código de producción la llama: al volver a la pestaña, el `visibilitychange` del padre manda por su cuenta un `SISTEMA.HEARTBEAT` en `broadcast`, sin mirar la pausa — con el latido pausado, los seis hijos registrados lo contestan y el padre anota su `ultimoHeartbeat`, sin tocar `activo` ni `userPaused`. La función la ejercita `BC-12c` |
-| `iniciarHeartbeat(intervalo=5000)` | Inicia el latido: envía `SISTEMA.HEARTBEAT` cada `intervalo` ms a **todos los iframes registrados**, sin lista fija ni reserva. El estado (intervalId, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados`) vive en el state-manager. Tras `MAX_LATIDOS_SIN_RESPUESTA` (3) latidos consecutivos sin `HEARTBEAT_RESPONSE`, `marcarHijoDesconectado()` lo apunta en `hijosDesconectados` y pone su contador a 0 para no repetir la recarga mientras esta ocurre; **solo si el iframe está marcado `recuperable`**, `intentarReconectarHijo()` avisa a `globalThis._vv_beforeHijoReload(hijoId)` para que el padre tome un snapshot del estado y recarga el iframe por self-assign (`iframe.elemento.src = iframe.elemento.src`). Si no lo está, queda el aviso en el log y nada más |
-| `pausarHeartbeat()` | Pausa el latido via state-manager (`sm.updateHeartbeat({ activo:false, intervalo:null })`); libera el `setInterval` |
-| `procesarHeartbeatResponse(mensaje)` | Resetea `heartbeatsFallidos` a 0 para el hijo que responde; si figura como desconectado, lo elimina de `hijosDesconectados` |
+| `iniciarHeartbeat(intervalo=5000)` | Enciende el reloj del supervisor, una vez por sesión (idempotente; el padre lo llama al cargar y no se apaga). Cada `intervalo` ms, `supervisarHijos()` recorre los iframes registrados con `supervisado: true`: al que `hijoEstaListo` da por listo le envía `SISTEMA.HEARTBEAT` y cuenta un latido sin respuesta; al que no, le deja su gracia de arranque (`LATIDOS_DE_GRACIA` × intervalo × 2^recargas, con un máximo de 4×). Si un listo suma `MAX_LATIDOS_SIN_RESPUESTA` (3) latidos seguidos sin `HEARTBEAT_RESPONSE`, o a un no listo se le agota la gracia, `recuperarHijo()` lo dice por consola (`logger.error`) y `recargarIframe()` olvida su apretón de manos (`olvidarHijoListo`), avisa a `globalThis._vv_beforeHijoReload(hijoId)` para que el padre tome un snapshot del estado y recarga el iframe por self-assign (`elemento.src = elemento.src`). El estado del reloj (`activo`, `intervalo`) vive en el state-manager |
+| `procesarHeartbeatResponse(mensaje)` | Pone a 0 los `latidosSinRespuesta` del iframe que responde y, si ya completó el apretón de manos (`hijoEstaListo`), también sus `recargas` seguidas |
 
 **Los hijos** envían siempre con `globalThis.parent.postMessage(mensaje, location.origin)`.
 **El padre** envía con `iframe.contentWindow.postMessage(mensaje, location.origin)` para destinos concretos — siempre con `destino: 'hijoX'` explícito (ver §10.18).
@@ -3633,35 +3630,38 @@ La comunicación entre `codigo-padre.html` y todos sus iframes usa la API nativa
 }
 ```
 
-**Ciclo de heartbeat y reconexión automática**:
+**Ciclo de heartbeat y recarga automática**:
 
 ```mermaid
 sequenceDiagram
     participant P as Padre (mensajeria.js)
     participant SM as StateManager
-    participant H as Hijo crítico (hijo2/3/4/5)
+    participant H as Hijo supervisado
 
-    Note over P: setInterval cada 5 s (AVENTURA)
+    Note over P: setInterval cada 5 s, siempre encendido
 
-    P->>H: SISTEMA.HEARTBEAT { timestamp }
-    P->>SM: heartbeatsFallidos[hijoId]++
+    P->>SM: hijoEstaListo(hijoId)
 
-    alt Hijo responde (camino feliz)
-        H->>P: SISTEMA.HEARTBEAT_RESPONSE { timestamp, componente, estado }
-        P->>SM: heartbeatsFallidos[hijoId] = 0
-        P->>SM: ultimoHeartbeat[hijoId] = Date.now()
-    else Hijo no responde (fallo × MAX_LATIDOS_SIN_RESPUESTA = 3)
-        Note over P: heartbeatsFallidos[hijoId] >= 3
-        P->>SM: hijosDesconectados.add(hijoId)
-        Note over P: intentarReconectarHijo(hijoId)
-        P->>H: iframe.src = iframe.src  (self-assign → reload)
-        Note over H: iframe recarga desde cero
-        H->>P: SISTEMA.HIJO_PREPARADO { componenteId, version, capacidades }
-        H->>P: SISTEMA.HIJO_LISTO { componenteId, iframeId }
-        Note over P: handshake completo; hijo reconectado
-        H->>P: SISTEMA.HEARTBEAT_RESPONSE (siguiente tick)
-        P->>SM: hijosDesconectados.delete(hijoId)
+    alt Listo
+        P->>H: SISTEMA.HEARTBEAT { timestamp }
+        Note over P: latidosSinRespuesta[hijoId]++
+        alt Hijo responde (camino feliz)
+            H->>P: SISTEMA.HEARTBEAT_RESPONSE { timestamp, componente, estado }
+            Note over P: latidosSinRespuesta[hijoId] = 0 y recargas[hijoId] = 0
+        else latidosSinRespuesta[hijoId] >= MAX_LATIDOS_SIN_RESPUESTA (3)
+            Note over P: recuperarHijo(hijoId)
+        end
+    else No listo
+        Note over P: Sin latido. Si se agota la gracia de arranque: recuperarHijo(hijoId)
     end
+
+    Note over P: recuperarHijo: logger.error en consola
+    P->>SM: olvidarHijoListo(hijoId)
+    P->>H: iframe.src = iframe.src  (self-assign → reload)
+    Note over H: iframe recarga desde cero
+    H->>P: SISTEMA.HIJO_PREPARADO { componenteId, version, capacidades }
+    H->>P: SISTEMA.HIJO_LISTO { componenteId, iframeId }
+    Note over P: handshake completo; el hijo vuelve a estar listo y recibe latidos
 ```
 
 ---
@@ -3695,7 +3695,7 @@ sequenceDiagram
 
 **Campos declarados por cada hijo en `HIJO_PREPARADO`** (`datos.tipo` + `datos.capacidades[]`):
 
-El campo `tipo` es **informativo**: el padre lo registra en el log de `_hdl_SISTEMA_HIJO_PREPARADO` y nada más. Quién entra en el ciclo del latido no depende de lo que el hijo declare de sí mismo, sino de estar en `iframesRegistrados` — y ahí lo mete su cargador antes incluso de que el iframe empiece a cargar. Añadir un hijo nuevo no requiere cambios en `mensajeria.js`: basta con que su cargador lo registre.
+El campo `tipo` es **informativo**: el padre lo registra en el log de `_hdl_SISTEMA_HIJO_PREPARADO` y nada más. Quién entra bajo el supervisor del latido no depende de lo que el hijo declare de sí mismo, sino de que su cargador lo registre en `iframesRegistrados` con `supervisado: true` — y ahí lo mete antes incluso de que el iframe empiece a cargar (`registrarIframeHijo`). Añadir un hijo nuevo no requiere cambios en `mensajeria.js`: basta con que su cargador lo registre por ese punto.
 
 | Hijo | `tipo` | `capacidades[]` |
 |------|--------|-----------------|
@@ -3724,7 +3724,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Hijo → Padre | ACK semántico: "entendido el cambio" |
 | | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Hijo → Padre | "Cambio aplicado en mi UI" |
 | | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre → Hijos | 4.ª fase del protocolo de modo: un mensaje a cada hijo inicializado, cuando el padre ha recogido los `EFECTUADO`; quien lo atiende solo lo escribe en el log |
-| | `SISTEMA.HEARTBEAT` | Padre → Hijos | Latido "¿sigues vivo?" (solo AVENTURA) |
+| | `SISTEMA.HEARTBEAT` | Padre → Hijos | Latido "¿sigues vivo?" |
 | | `SISTEMA.HEARTBEAT_RESPONSE` | Hijo → Padre | "Sigo activo" |
 | | `SISTEMA.NACK` | Cualquiera | Rechazo de mensaje |
 | | `SISTEMA.CONFIRMACION` | Receptor → emisor | ACK de `enviarMensajeConConfirmacion` (lo construye el bus con `idOriginal`) |
@@ -3870,7 +3870,7 @@ sequenceDiagram
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Solo escribe en el log que el modo se aplicó |
 | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html (sub-iframe activo de P4, ver §35) | Recibido por un listener genérico de `message` en `En-busca-del-tesoro.html`, que llama `mostrar(5)` directamente. No reenvía al padre. |
 
-> La pantalla de selección no recibe `CAMBIO_PARADA`. Sí recibe `SISTEMA.HEARTBEAT` desde el momento en que su cargador la añade a `iframesRegistrados` — el handler de heartbeat de la pantalla responde correctamente. No está marcada `recuperable`: si dejara de contestar, el bus avisa pero no la recarga (§2.7a).
+> La pantalla de selección no recibe `CAMBIO_PARADA`. Sí recibe `SISTEMA.HEARTBEAT` desde que su cargador la registra y completa su apretón de manos — el handler de heartbeat de la pantalla responde correctamente. Está supervisada como cualquier hijo: si deja de contestar tres latidos, o no completa su apretón dentro de su gracia de arranque, el bus la recarga y vuelve a su primera pantalla (§2.7); el padre no le devuelve nada tras recargar (§2.7a).
 
 ---
 
@@ -3900,7 +3900,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 | **padre →** | `AVENTURA.FINALIZADA` | `{ }` | Detiene el temporizador y manda sus estadísticas al padre (`AVENTURA.ESTADISTICAS_TIEMPO`) |
 | **padre →** | `AVENTURA.DETENER` | `{ motivo, aventuraAnterior, aventuraNueva }` | Cancela el temporizador antes de cambiar de aventura |
 
-> hijo1 recibe `SISTEMA.HEARTBEAT` desde el momento en que su cargador lo registra en `iframesRegistrados` (tiene el handler y responde). Está marcado `recuperable`: si deja de contestar tres latidos, el bus recarga su iframe y el padre le devuelve el tiempo restante (§2.7a). Ni `DATOS.CARGAR_*`, ni participa en el flujo de paradas.
+> hijo1 recibe `SISTEMA.HEARTBEAT` desde que su cargador lo registra y completa su apretón de manos (tiene el handler y responde). Si deja de contestar tres latidos, el bus recarga su iframe y el padre le devuelve el tiempo restante (§2.7a). Ni `DATOS.CARGAR_*`, ni participa en el flujo de paradas.
 >
 > **ID real del iframe**: `hijo1-opciones` (no `hijo1`). Todos los mensajes dirigidos a este hijo usan `destino:'hijo1-opciones'`.
 
@@ -4096,7 +4096,7 @@ Panel FAQ de solo lectura. Se carga de forma **lazy** — su `src` es vacío has
 | **→ padre** | `CHAT.CERRAR` | `{ }` | Usuario pulsa el botón de cerrar |
 | **padre →** | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` más el resultado de `construirEstadoChat()` (idioma, aventura, parada actual y siguiente, paradas restantes, rescate) | Mezcla los datos en `estadoPadre`, reconstruye el acordeón con el idioma recibido y arranca el handshake `HIJO_LISTO` |
 | **padre →** | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Handshake OK |
-| **padre →** | `SISTEMA.HEARTBEAT` | `{ timestamp }` | hijo6 recibe el pulso cuando está cargado (su cargador lo registra en `iframesRegistrados` al abrir el chat; no está marcado `recuperable`, ver §2.7a) |
+| **padre →** | `SISTEMA.HEARTBEAT` | `{ timestamp }` | hijo6 recibe el pulso cuando está cargado y ha completado su apretón de manos (su cargador lo registra en `iframesRegistrados` al abrir el chat); si dejara de contestar, se recarga como cualquier otro hijo (§2.7a) |
 | **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo }` | Contesta el protocolo (`CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO`) y nada más: no cambia nada visible |
 | **padre →** | `CHAT.ESTADO_PADRE` | `{ idioma, ...estadoPadre }` | Si cambió el idioma, reconstruye el acordeón; el resto de campos (parada, aventura) solo queda disponible como contexto del buzón de sugerencias |
 
@@ -4156,7 +4156,7 @@ Los mensajes que se comportan distinto según el modo activo:
 | `RETO.HABILITAR` → hijo4 | **No se envía** | Enviado tras audio (`razon:'audio_escuchado_1vez'`) o sin audio (`razon:'sin_audio'`) |
 | `CONTROL.HABILITAR { control:'btnAvanzar' }` | **No se gestiona** (botón sin función en CASA) | Enviado cuando parada está completa (audio + reto) |
 | `CONTROL.DESHABILITAR { control:'btnAvanzar' }` | **No se gestiona** | Enviado al entrar en cada nueva parada |
-| `SISTEMA.HEARTBEAT` | **No se envía** (heartbeat pausado) | Enviado a hijos críticos cada ~5 s |
+| `SISTEMA.HEARTBEAT` | Enviado a los hijos listos cada ~5 s | Enviado a los hijos listos cada ~5 s |
 | `SISTEMA.CAMBIO_MODO` — origen externo | hijo5 (usuario pulsa GPS OFF) | hijo5 (usuario pulsa GPS ON) |
 
 ---
@@ -4186,8 +4186,8 @@ flowchart LR
 
 | Modo | GPS | Heartbeat | Validación distancias | Overlays |
 |------|-----|-----------|-----------------------|----------|
-| SELECCIÓN (`modo.actual === null`) | ✗ hasta P14, ✅ **desde P14** | ✗ | ✗ | iframe seleccion |
-| CASA | ✅ activo | ✗ | ✗ (emoji 🛸) | `hideNextEntityOverlay()`, `hideGpsOutOfRangeOverlay()` |
+| SELECCIÓN (`modo.actual === null`) | ✗ hasta P14, ✅ **desde P14** | ✅ cada 5 s | ✗ | iframe seleccion |
+| CASA | ✅ activo | ✅ cada 5 s | ✗ (emoji 🛸) | `hideNextEntityOverlay()`, `hideGpsOutOfRangeOverlay()` |
 | AVENTURA | ✅ activo | ✅ cada 5 s | ✅ llegada y franjas de lejanía | nextEntity + outOfRange visibles |
 
 **El GPS se enciende antes de que exista un modo.** `_hdl_SELECCION_P14_MOSTRADA` llama a `activarGPS()` mientras `estado.modo.actual` sigue valiendo `null` (§2, modo tri-estado): el modo no se fija hasta `AVENTURA_ACTIVADA`, en P15/P16. Así que durante el tramo final de la selección — normativa y reto R-2 — el sensor ya está corriendo aunque la app no esté todavía ni en CASA ni en AVENTURA.
@@ -4454,8 +4454,7 @@ sequenceDiagram
     H5->>P: SISTEMA.CAMBIO_MODO { modo: 'aventura', origen: 'boton-gps' }
     P-->>P: manejarCambioModo → actualizarInterfazModo() → CAMBIO_MODO a todos los hijos (ENTENDIDO+EFECTUADO+APLICADO)
 
-    P-->>P: _gestionarHeartbeatSegunModo('aventura')
-    P->>P: iniciarHeartbeat(intervalo: ~5000ms) — llamada directa
+    P-->>P: _gestionarSesionSegunModo('aventura') → _activarAventura
     P-->>P: ensureDefaultParada() → activa primera parada
 
     P-->>P: _gestionarGpsSegunModo() — gestiona overlays GPS según modo
@@ -4613,20 +4612,20 @@ flowchart TD
 
 ---
 
-### 9.9 Gestión del heartbeat
+### 9.9 Qué hace el cambio de modo con la sesión
 
-El heartbeat solo está activo en modo AVENTURA. Se gestiona en `_gestionarHeartbeatSegunModo` (`codigo-padre.html`, Script 1):
+El latido no depende del modo: el padre lo enciende una vez al cargar y está siempre encendido (§2.7). El cambio de modo, en `_gestionarSesionSegunModo` (`codigo-padre.html`, Script 1), solo actúa sobre la sesión:
 
 | Evento | Acción |
 |--------|--------|
-| Modo → AVENTURA | `_activarHeartbeatAventura`: llama `globalThis.mensajeria.iniciarHeartbeat(intervalo)` directamente; llama `ensureDefaultParada()`; y llama `globalThis._iniciarTemporizadorAventura()` (expuesta por Script 2) para (re)iniciar el temporizador de hijo1 — ver §7.2 |
-| Modo → CASA | `_transicionarAModoCasa`: si `globalThis._devModeActivo` es `false` (modo DEV, ver §24), limpia `localStorage` de progreso (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`); llama `globalThis.mensajeria.pausarHeartbeat()` directamente |
+| Modo → AVENTURA | `_activarAventura`: llama `ensureDefaultParada()` (salvo en una reanudación, §9.10); y llama `globalThis._iniciarTemporizadorAventura()` (expuesta por Script 2) para (re)iniciar el temporizador de hijo1 — ver §7.2 |
+| Modo → CASA | `_transicionarAModoCasa`: si `globalThis._devModeActivo` es `false` (modo DEV, ver §24) y el cambio no es una reanudación, limpia `localStorage` de progreso (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`) |
 
-El intervalo se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s, ajustado por calidad de conexión. El pulso `SISTEMA.HEARTBEAT` se envía a todos los iframes de `iframesRegistrados` (Map dinámico de `mensajeria.js`, poblado conforme cada hijo envía `HIJO_PREPARADO`); arrancar o parar ese ciclo es una llamada directa, sin ningún mensaje de por medio, ni al propio padre ni a los hijos.
+El intervalo del latido se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s, ajustado por calidad de conexión — y se fija al encenderlo, una sola vez. El pulso `SISTEMA.HEARTBEAT` se envía a los iframes supervisados de `iframesRegistrados` que ya completaron su apretón de manos (Map dinámico de `mensajeria.js`, poblado por los cargadores antes de asignar el `src`); encenderlo es una llamada directa, sin ningún mensaje de por medio, ni al propio padre ni a los hijos.
 
-**Por qué la llamada directa (no self-message):** el padre arranca y pausa su propio latido llamando a `globalThis.mensajeria.iniciarHeartbeat()` / `globalThis.mensajeria.pausarHeartbeat()` — sin mensaje y sin destino que resolver. Un auto-mensaje aquí no serviría: el bus exige `destino` y rechaza el envío sin lanzar excepción (§21.2), así que un `catch` alrededor no se enteraría del fallo.
+**Por qué la llamada directa (no self-message):** el padre enciende su propio latido llamando a `globalThis.mensajeria.iniciarHeartbeat()` — sin mensaje y sin destino que resolver. Un auto-mensaje aquí no serviría: el bus exige `destino` y rechaza el envío sin lanzar excepción (§21.2), así que un `catch` alrededor no se enteraría del fallo.
 
-Cuando el modo vuelve a CASA, `_transicionarAModoCasa` elimina `localStorage['vv_aventura_iniciada']`, `['vv_progreso']` y `['vv_paradas_completadas']` antes de pausar el heartbeat — con **dos excepciones**, y basta con que se dé una para que no borre nada: en modo dev (`globalThis._devModeActivo === true`, ver §24) y cuando el cambio de modo viene marcado como reanudación de sesión (`mensaje.datos.restaurado === true`, §9.10) — reanudar no es abandonar, y sin ese segundo guard una sesión guardada en CASA sin dev se borraría a sí misma en el instante de restaurarse. Razón: la propia activación en dev entra en CASA como paso de bootstrap (atajo para saltar pago/código), no como abandono real — sin esta excepción, el progreso recién guardado se autoborraría en el instante de activar, y una recarga posterior nunca ofrecería el modal de reanudación. El flujo real de abandono/fin (`limpiarDatosAventura()`, `js/reciclaje-digital.js`) es independiente de esto y sigue limpiando todo por completo, en dev o no.
+Cuando el modo vuelve a CASA, `_transicionarAModoCasa` elimina `localStorage['vv_aventura_iniciada']`, `['vv_progreso']` y `['vv_paradas_completadas']` — con **dos excepciones**, y basta con que se dé una para que no borre nada: en modo dev (`globalThis._devModeActivo === true`, ver §24) y cuando el cambio de modo viene marcado como reanudación de sesión (`mensaje.datos.restaurado === true`, §9.10) — reanudar no es abandonar, y sin ese segundo guard una sesión guardada en CASA sin dev se borraría a sí misma en el instante de restaurarse. Razón: la propia activación en dev entra en CASA como paso de bootstrap (atajo para saltar pago/código), no como abandono real — sin esta excepción, el progreso recién guardado se autoborraría en el instante de activar, y una recarga posterior nunca ofrecería el modal de reanudación. El flujo real de abandono/fin (`limpiarDatosAventura()`, `js/reciclaje-digital.js`) es independiente de esto y sigue limpiando todo por completo, en dev o no.
 
 ---
 
@@ -4661,10 +4660,10 @@ Si la sesión sigue viva y el usuario elige **continuar**, se ejecuta `ejecutarR
    | # | Qué cambia | Por qué |
    |---|---|---|
    | 1 | `sincronizarModoMapa(modo)` en lugar de `manejarCambioModoMapa(mensaje)` | Evita el `setMapView()` a la vista por defecto: el elemento restaurado se dibuja en el paso 9 con su propio `flyTo`, y resetear la cámara aquí solo mete un salto visible entre medias. Las capas se limpian igualmente vía `limpiarRecursosPorModo()` (§11) |
-   | 2 | No se llama a `ensureDefaultParada()` dentro de `_activarHeartbeatAventura()` | En una reanudación este punto se alcanza con `estado.paradaActual` todavía a `null` (el paso 9 aún no ha corrido), así que su guard `if (estado.paradaActual) return` no lo frenaría: activaría el elemento `'inicio'` y enviaría un `CAMBIO_PARADA` completo, audio incluido, para la parada equivocada |
+   | 2 | No se llama a `ensureDefaultParada()` dentro de `_activarAventura()` | En una reanudación este punto se alcanza con `estado.paradaActual` todavía a `null` (el paso 9 aún no ha corrido), así que su guard `if (estado.paradaActual) return` no lo frenaría: activaría el elemento `'inicio'` y enviaría un `CAMBIO_PARADA` completo, audio incluido, para la parada equivocada |
    | 3 | `_transicionarAModoCasa()` no borra `vv_aventura_iniciada`/`vv_progreso`/`vv_paradas_completadas` | Reanudar no es abandonar. Sin este guard, restaurar en CASA con el modo dev desactivado borraría en el acto los datos que la propia restauración acaba de leer |
 
-   El reloj de compra de hijo1 lo arranca `_activarHeartbeatAventura()` con el 6º parámetro `timestampCompra` (la fecha real de compra), de modo que el tiempo enviado es `tiempoEstimado − tiempo real transcurrido`, no el máximo de la aventura ni el último tick conocido antes de cerrar — ver "Temporizador" en §7.2 y `tests/e2e/41-temporizador-compra-real-y-devmode.spec.js`. Contrato completo del paso 8 en `tests/e2e/46-reanudacion-un-solo-camino.spec.js`.
+   El reloj de compra de hijo1 lo arranca `_activarAventura()` con el 6º parámetro `timestampCompra` (la fecha real de compra), de modo que el tiempo enviado es `tiempoEstimado − tiempo real transcurrido`, no el máximo de la aventura ni el último tick conocido antes de cerrar — ver "Temporizador" en §7.2 y `tests/e2e/41-temporizador-compra-real-y-devmode.spec.js`. Contrato completo del paso 8 en `tests/e2e/46-reanudacion-un-solo-camino.spec.js`.
 9. `_restaurarProgresoRest` — lee `indiceProgreso` y `paradaActual` directamente de `localStorage['vv_progreso']` (no recalcula desde `paradasCompletadas`). Llama internamente a `restoreProgressFromStorage()`, que antes de aplicar nada pasa por sus propios guards: `_restoreCheckTimeout()` (si `verificarTimeoutAventura()` indica que la aventura ya excedió su duración estimada, ejecuta `limpiarDatosAventura('timeout')` y aborta la restauración — el timeout de la aventura tiene prioridad sobre reanudarla), `_restoreLoadFromStorage()` (lee y parsea `vv_progreso`; si no se puede parsear, lo descarta con un `warn`), `_restoreCheckStale()` (mismo TTL de 7 días que `vv_aventura_iniciada`, pero aplicado al propio payload de progreso — puede haber sobrevivido uno y caducado el otro si se editan por separado) y `_restoreCheckMismatch()` (descarta `vv_progreso` si su `aventura` o `idioma` no coincide con los ya seleccionados — progreso de una sesión distinta no debe aplicarse a la actual). Si los cuatro pasan, `_restoreApplyState()` aplica el estado (también restaura `estado.tiempoRestante` si el payload lo trae, ver §7.2) → `_restoreBroadcast()`, que dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado. Este paso va **después** del 8, no antes: la lógica de `_hdl_NAVEGACION_CAMBIO_PARADA` que depende de `estado.modo?.actual === MODOS.AVENTURA` (recordatorio de audio, botón GPS en tramos, deshabilitar `btnAvanzar` hasta completar) necesita el modo ya fijado para activarse correctamente — con el orden invertido, se procesaría con el modo todavía en su valor de arranque (`null`). Verificado en `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
 9b. **Inicialización de `estado.paradaRealCongelada` para restauraciones en CASA** — solo si `estado.modo.actual === MODOS.CASA` (y `estado.paradaActual` existe tras el paso 9): se asigna `estado.paradaRealCongelada = estado.paradaActual`. Hace falta aunque el paso 8 ya pase por `_hdl_SISTEMA_CAMBIO_MODO` (que es el otro sitio que lo asigna, al entrar en CASA, §2.5): en el paso 8 `estado.paradaActual` todavía es `null` — el progreso no se restaura hasta el paso 9 —, así que allí se congela `null`. Este paso lo rellena con el valor real ya restaurado. Sin él, el primer cambio CASA→AVENTURA de la sesión restaurada ejecutaría `limpiarRecursosPorModo()` (que borra `estado.paradaActual = null`) pero la condición `if (modo===AVENTURA && paradaRealCongelada)` sería falsa → no se despacharía `NAVEGACION.CAMBIO_PARADA` → mapa vacío y `paradaActual` null para el resto de la sesión. CASA solo es alcanzable en dev mode, así que en una PWA real este escenario no puede ocurrirle a un usuario final.
 10. `_solicitarRecursosRest` — solicita coordenadas a hijo2 vía S2 para el elemento actual. El audio ya llegó en el paso 9 vía `_restoreBroadcast` → pipeline CAMBIO_PARADA.
@@ -4935,7 +4934,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 | Destino | `padre` |
 | Payload | `{ componenteId, iframeId, timestamp }` |
 | Handler en padre | `_hdl_SISTEMA_HIJO_LISTO` (codigo-padre.html) |
-| Acción | Añade al hijo a `estado.hijosInicializados` y lo marca listo; le envía `PADRE_CONFIRMA_HIJO_LISTO` (con `modoInicial`); si el hijo se había recargado por el latido, le devuelve su estado (`_vv_afterHijoListo`); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` y a hijo3 le reconfigura `retosBtn`; con hijo2, hijo3 e hijo4 listos, marca `estado.todosHijosListos` (§26.12.1) |
+| Acción | Añade al hijo a `estado.hijosInicializados` y lo marca listo; le envía `PADRE_CONFIRMA_HIJO_LISTO` (con `modoInicial`); tras una recarga del supervisor del latido, le devuelve su estado (`_vv_afterHijoListo`, solo en modo AVENTURA); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` y a hijo3 le reconfigura `retosBtn`; con hijo2, hijo3 e hijo4 listos, marca `estado.todosHijosListos` (§26.12.1) |
 
 ##### SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 
@@ -4955,27 +4954,26 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 | Destino | `padre` |
 | Payload | `{ error, stack, timestamp }` (el padre complementa con `mensaje.origen` para identificar al hijo; el campo `componenteId` que el handler intenta leer de `datos` no lo envían los hijos actuales) |
 | Handler en padre | Inline — log del fallo, marca `hijoEstado.activo = false` y `hijoEstado.fallido = true` en `estado.estadoHijos` |
-| Impacto | Cubierto: padre registra el fallo. Sin reintento automático ni alerta al usuario. |
+| Impacto | El padre registra el fallo; el supervisor del bus recarga al hijo cuando se agota su gracia de arranque (§2.7). Sin alerta al usuario. |
 
 ---
 
 #### FASE 3 — Heartbeat
 
-El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen activos.
+El padre enciende un ciclo de heartbeat al cargar, para supervisar que los hijos siguen activos y recargar al que no lo está (§2.7).
 
 **SISTEMA.HEARTBEAT** (padre → hijos)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por (normal) | Padre (intervalo periódico) → todos (broadcast) |
-| Payload | `{ timestamp }`; el del `visibilitychange` añade `razon: 'visibilitychange'` |
+| Emitido por | Padre (intervalo periódico, siempre encendido) → cada iframe supervisado que ya completó su apretón de manos, uno a uno por el bus |
+| Payload | `{ timestamp }` |
 | Handler en hijos | pantalla de selección, hijo1, hijo2, hijo3, hijo4, hijo5, hijo6 |
-| Acción hijo | Responde `SISTEMA.HEARTBEAT_RESPONSE`. Quien lleva la cuenta es el padre: `js/mensajeria.js` actualiza el `Map` `ultimoHeartbeat` del estado al recibir la respuesta |
+| Acción hijo | Responde `SISTEMA.HEARTBEAT_RESPONSE`. Quien lleva la cuenta es el padre: `procesarHeartbeatResponse()` (`js/mensajeria.js`) pone a 0 los `latidosSinRespuesta` del iframe en su registro |
 | Handler en padre | Ninguno: el padre solo emite este mensaje. Ningún emisor se lo manda (el bus no se envía a sí mismo y los hijos no lo emiten), así que no registra handler |
-| Emitido en visibilitychange | Script 3 de `codigo-padre.html` (bloque `<script type="module">` de reconexión de iframes) — al restaurar visibilidad de la pestaña, `globalThis.mensajeria.enviarMensaje({ tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT, destino: 'broadcast', datos: { timestamp, razon:'visibilitychange' } })`, por el bus. Llega a los mismos iframes que recorría el bucle manual: todos los que tienen `name` en la marca estática se registran en el bus antes de poder recibir nada útil. |
 | hijo5 en visibilitychange | `boton-casa-hijo5.html` — además del handler normal, hijo5 envía proactivamente `SISTEMA.HEARTBEAT_RESPONSE` al padre cuando la pestaña vuelve a ser visible (`razon:'visibilitychange'`), sin esperar un HEARTBEAT entrante |
 
-El ciclo de `SISTEMA.HEARTBEAT` se arranca/detiene con una llamada directa a `iniciarHeartbeat()`/`pausarHeartbeat()` al cambiar de modo (§9.9): no hay ningún mensaje de por medio para arrancarlo ni pararlo.
+El ciclo de `SISTEMA.HEARTBEAT` se enciende una vez, con una llamada directa a `iniciarHeartbeat()` al cargar el padre (§2.7): no hay ningún mensaje de por medio para encenderlo, y ni el cambio de modo ni el `visibilitychange` del padre lo tocan.
 
 **SISTEMA.HEARTBEAT_RESPONSE** (hijo → padre)
 
@@ -4984,7 +4982,7 @@ El ciclo de `SISTEMA.HEARTBEAT` se arranca/detiene con una llamada directa a `in
 | Emitido por | La pantalla de selección y los seis hijos |
 | Destino | `padre` |
 | Handler en padre | Callback anónimo registrado con `registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_RESPONSE, ...)` en el Script 1 de `codigo-padre.html` — no es una función `_hdl_*` con nombre |
-| Acción | Actualiza el `Map` `ultimoHeartbeat` del estado (`js/mensajeria.js`) con el instante de la respuesta |
+| Acción | Pasa la respuesta al bus: `procesarHeartbeatResponse()` (`js/mensajeria.js`) pone a 0 los `latidosSinRespuesta` del iframe y, si ya completó su apretón de manos, sus `recargas` seguidas |
 
 ---
 
@@ -5620,7 +5618,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 #### `SISTEMA.HIJO_FALLIDO` — handler en padre
 
 - hijo1 (`extrainfo-hijo1.html`) y seleccion (`En-busca-del-tesoro.html`) envían `SISTEMA.HIJO_FALLIDO` si su inicialización falla.
-- Padre tiene handler inline registrado con `registrarControladorSeguro`. Marca `hijoEstado.activo = false` + `hijoEstado.fallido = true` en `estado.estadoHijos`. No hay reintento automático ni alerta al usuario; el fallo queda registrado en el log.
+- Padre tiene handler inline registrado con `registrarControladorSeguro`. Marca `hijoEstado.activo = false` + `hijoEstado.fallido = true` en `estado.estadoHijos`. El padre solo lo anota en el log; la recuperación la hace el supervisor del bus (§2.7): un hijo cuya inicialización falla no llega a enviar `HIJO_LISTO`, y al agotarse su gracia de arranque se le recarga el iframe. No hay alerta al usuario.
 
 #### Patrón: `enviarMensaje({destino: padreId})` no funciona
 
@@ -5849,13 +5847,13 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 
 `DATOS.SOLICITAR_RETOS { retoId }` — hijo4 pide un reto concreto que no encontró en su caché local acotada. El padre resuelve solo ese id vía `cargarRetos()` y responde `RETO.MOSTRAR { retoId, retosArray:[reto] }` — nunca reenvía la aventura completa (protección pasiva por parada, ver §16). **Flujo activo.**
 
-#### Diagnóstico del heartbeat: consultarHeartbeat / _testHeartbeatPauseResume
+#### Diagnóstico del heartbeat: consultarHeartbeat
 
-`iniciarHeartbeat()`, `pausarHeartbeat()` y la lectura de `state-manager.getHeartbeat()` son llamadas directas: el padre gobierna su latido sin mandarse mensajes a sí mismo (ver §32.3).
+`iniciarHeartbeat()` y la lectura de `state-manager.getHeartbeat()` son llamadas directas: el padre gobierna su latido sin mandarse mensajes a sí mismo (ver §32.3).
 
-`globalThis.consultarHeartbeat()` (definido dentro de `globalThis.diagnosticarGPS()`, disponible solo tras invocar esa función una vez desde la consola) llama a `state-manager.getHeartbeat()` directamente y devuelve `{ estado: { activo, userPaused, intervaloActivo } }` — es una herramienta de diagnóstico para desarrolladores, no algo que el usuario final vea. `globalThis._testHeartbeatPauseResume()` (misma ubicación) ejercita el ciclo pausa/reanudación completo con `console.assert`, disparando `SISTEMA.CAMBIO_MODO` por `despacharLocal` (el único camino del modo) y llamando a `iniciarHeartbeat()` directamente para el intento fuera de secuencia.
+`globalThis.consultarHeartbeat()` (definido dentro de `globalThis.diagnosticarGPS()`, disponible solo tras invocar esa función una vez desde la consola) llama a `state-manager.getHeartbeat()` directamente y devuelve `{ estado: { activo, intervaloActivo } }` — es una herramienta de diagnóstico para desarrolladores, no algo que el usuario final vea.
 
-**`userPaused`** — campo de `state.heartbeat` en `state-manager.js`. Se pone a `true` en `pausarHeartbeat()` (llamado desde `_pausarHeartbeatCasa` en `app.js` al entrar en modo CASA) y bloquea `iniciarHeartbeat()`: si `userPaused` es `true`, un intento de arrancar el heartbeat se ignora (log + `return false`) en vez de reiniciarlo. Solo `preiniciarHeartbeat()` y `reanudarHeartbeat()` (las vías legítimas de reanudación, llamadas desde `app.js` al entrar en modo AVENTURA) limpian `userPaused` antes de arrancar. Esto evita que una llamada a `iniciarHeartbeat()` fuera de secuencia reactive el heartbeat mientras la app sigue en modo CASA.
+El estado del latido no guarda ninguna pausa: `state.heartbeat` solo tiene `activo` e `intervalo`, y el bus no ofrece pausar el latido ni reanudarlo (§2.7). Los contadores de cada iframe se leen en `globalThis.mensajeria.getIframesRegistrados()` (`supervisado`, `latidosSinRespuesta`, `recargas`, `cargaDesde`).
 
 ---
 
@@ -6185,7 +6183,7 @@ export const MAPEO_IDIOMAS = {
 
 Todo lo anterior de esta sección describe mensajes concretos; esto describe el bus mismo — lo
 que cualquier mensaje, de cualquier tipo, puede dar por hecho. Las 21 garantías (BC-0 a BC-20,
-con BC-12 en tres partes) son lo primero que se rompería si alguien tocara `js/mensajeria.js` sin
+con BC-12 en ocho partes) son lo primero que se rompería si alguien tocara `js/mensajeria.js` sin
 volver a leer este apartado.
 
 **Enrutamiento**
@@ -6235,9 +6233,14 @@ volver a leer este apartado.
 
 | Caso | Garantía |
 |---|---|
-| BC-12a | El latido vigila TODOS los iframes registrados, no una lista aparte |
-| BC-12b | Tras tres fallos de latido seguidos, se recarga solo el hijo marcado `recuperable`; el resto, solo aviso |
-| BC-12c | `adelantarLatido()` respeta la pausa (no late si está pausado) y, si está activo, late al instante en vez de esperar al intervalo |
+| BC-12a | El latido llega a los iframes supervisados que ya completaron su apretón de manos, y a nadie más: ni a uno sin supervisar ni a uno que todavía no lo completó |
+| BC-12b | Un iframe listo que deja de contestar se recarga tras tres latidos seguidos sin respuesta; la consola lo dice (`logger.error`, con el nombre del iframe y el motivo) y el iframe vuelve a no estar listo. El que contesta no se recarga, y el que no está supervisado ni se recarga ni da aviso |
+| BC-12c | El reloj es uno: el bus no ofrece ninguna forma de pausar ni de adelantar el latido, y el estado del latido no guarda ninguna pausa |
+| BC-12d | Un iframe supervisado que no hace el apretón de manos no recibe latidos: se recarga al agotarse su gracia de arranque y la consola lo dice |
+| BC-12e | Cada recarga seguida duplica la gracia de arranque, hasta 4×, y no más |
+| BC-12f | Quien contesta estando listo vuelve a la gracia base (sus `recargas` a 0); una respuesta rezagada de un iframe que no está listo no lo hace |
+| BC-12g | Al volver la red (`online`), el iframe que ya falló y no está listo se reintenta al momento, sin contar como recarga seguida |
+| BC-12h | Al volver la red no se reintenta a quien todavía no ha fallado |
 
 Control: BC-0 monta el arnés con el bus real y la jerarquía correcta (padre → hijo → nieto) —
 si BC-0 falla, ninguno de los otros 20 casos es fiable, porque el problema está en el montaje,
@@ -6282,15 +6285,14 @@ No hay ninguna pausa fija (`sleep`) en este punto de la cadena: la única espera
 
 **Un sexto sitio hace su propio polling y no está acotado del todo:** `_gpsEsperarHijosListos()` (activación de GPS) envuelve su espera en `Promise.race([..., timeout 5000ms])`, así que **el `await` sí termina**; pero el `check()`/`setTimeout(check, 200)` que corre dentro **no lleva contador**, y si `hijo2` nunca aparece en `hijosInicializados` esa cadena de temporizadores sigue reprogramándose después de que la carrera haya resuelto. Solo entra por ahí cuando el state manager no está disponible (sin él usa `sm.crearPromiseHijoListo('hijo2')`, que sí tiene su propio límite de 30 s). `limpiarRecursosPorModo()` (`js/app.js`) tiene exactamente la misma forma: `Promise` con timeout de 5 s por fuera y `setTimeout(checkMap, 100)` sin contador por dentro.
 
-**`_avisarFalloCargaAppUnaVez()` (`codigo-padre.html`, Script 1) — aviso de último recurso compartido por tres fallos de infraestructura reales, no solo `waitForMapLibreAndInitialize()`:**
+**`_avisarFalloCargaAppUnaVez()` (`codigo-padre.html`, Script 1) — aviso de último recurso compartido por dos fallos de infraestructura reales, no solo `waitForMapLibreAndInitialize()`:**
 
 | Origen | Qué falla | Efecto sin este aviso |
 |---|---|---|
 | `waitForMapLibreAndInitialize()` (esta tabla) | MapLibre no carga en 15s | El mapa nunca aparece, sin ninguna explicación |
 | `_distribuirDatosRest()` / bloque `__pendingDistribucion` (ambos, mismo motivo) | `distribuirDatosAventura` no está disponible tras 10-30s de espera (fallo de módulos de Script 2) | Los datos de la aventura nunca llegan a los iframes hijo, app en estado roto |
-| `intentarReconectarHijosFallidos()` | Un iframe (típicamente `seleccion`, `En-busca-del-tesoro.html`) falla al cargar y agota sus reintentos de reconexión | El usuario se queda con una pantalla en blanco donde debería estar el flujo de selección/aventura |
 
-Los tres son fallos genuinamente raros (requieren un fallo real de carga de módulos o red, no una condición que ocurra en uso normal). `_avisarFalloCargaAppUnaVez()` usa `alert()` nativo del navegador (ver §4.7f/§10.19/§10.21) con el mensaje ya traducido de `MSG_ERROR_CARGA_APP` (`js/traducciones-ui.js`, 12 idiomas), pidiendo recargar la página. Un `alert()` bloquea toda la interacción hasta que el usuario lo cierra — deliberado aquí: los tres casos son fallos de arranque/fondo, no reacciones a una acción directa del usuario, así que no hay nada que interrumpir, y conviene garantizar que el aviso se vea de verdad en vez de un toast sutil que podría pasar desapercibido. Guarda de una sola vez por sesión (`_avisoFalloCargaAppMostrado`) — si el origen es compartido (un despliegue roto podría disparar más de uno de los tres a la vez), no tiene sentido apilar varios `alert()` seguidos por el mismo motivo de fondo. Expuesta en `globalThis` para pruebas.
+Los dos son fallos genuinamente raros (requieren un fallo real de carga de módulos o red, no una condición que ocurra en uso normal). `_avisarFalloCargaAppUnaVez()` usa `alert()` nativo del navegador (ver §4.7f/§10.19/§10.21) con el mensaje ya traducido de `MSG_ERROR_CARGA_APP` (`js/traducciones-ui.js`, 12 idiomas), pidiendo recargar la página. Un `alert()` bloquea toda la interacción hasta que el usuario lo cierra — deliberado aquí: los dos casos son fallos de arranque/fondo, no reacciones a una acción directa del usuario, así que no hay nada que interrumpir, y conviene garantizar que el aviso se vea de verdad en vez de un toast sutil que podría pasar desapercibido. Guarda de una sola vez por sesión (`_avisoFalloCargaAppMostrado`) — si el origen es compartido (un despliegue roto podría disparar más de uno de los dos a la vez), no tiene sentido apilar varios `alert()` seguidos por el mismo motivo de fondo. Expuesta en `globalThis` para pruebas.
 
 **Riesgo real en tests con reloj simulado (`page.clock.install()`) que no estabilizan MapLibre:** `waitForMapLibreAndInitialize()` espera MapLibre real con `retryUntilAvailable()` (150 intentos × 100ms = 15s). Un test que instala `page.clock.install()` sin `page.addInitScript({path: MAPLIBRE_STUB})` hace que esa espera corra sobre el MISMO reloj simulado que el test avanza a mano — si el test acumula más de 15s de `page.clock.runFor(...)`, cruza el umbral y `_avisarFalloCargaAppUnaVez()` dispara un `alert()` real a mitad de test, que puede desincronizar cualquier temporizador que el test esté verificando en ese momento (sin el stub, `34-recordatorio-reto.spec.js` RR-3 acumularía 32s de reloj simulado — 10s + 22s — y cruzaría el umbral; `29-recordatorio-audio.spec.js` tendría el mismo hueco, con un test que acumula 60s, aunque ahí no rompería ninguna aserción). Los tres archivos que arrancan `codigo-padre.html` con reloj simulado (`29-recordatorio-audio.spec.js`, `34-recordatorio-reto.spec.js`, `35-guardian-anti-solape-carteles.spec.js`) llevan el stub. Otros cuatro archivos sin el stub (`18-boton-deshabilitado-color.spec.js`, `26-reto-completado-boton-verde.spec.js`, `31-sincronizar-modo-ambas-direcciones.spec.js`, `43-saltar-reto-puzzle-roto.spec.js`) no lo necesitan — cargan una página hijo suelta con `page.goto()` directo (`coordenadas-hijo2.html`/`retos-hijo4.html`/`puzzle.html`), nunca `codigo-padre.html`, así que nunca llaman a `waitForMapLibreAndInitialize()`. Cualquier test nuevo que combine `page.clock.install()` con `gotoAndWaitForFase1()` debe incluir `MAPLIBRE_STUB` (patrón ya usado en la mayoría de la suite, ver `tests/e2e/helpers/maplibre-stub.js`) para no heredar este riesgo.
 
@@ -7820,11 +7822,11 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `02-global-variables.spec.js` | 13 | Variables globales expuestas tras FASE 1: TIPOS_MENSAJE, MODOS, enviarMensaje, CONFIG_PADRE… |
 | `03-handler-registration.spec.js` | 7 | Handlers registrados en state-manager (no en el fallback local) |
 | `04-iframe-dom.spec.js` | 17 | Datos diferidos nulos antes de selección (`__vv_DATOS/AUDIOS/RETOS_AVENTURAS`); `__cargarDatosAventuraDiferidos` expuesta |
-| `05-queues-draining.spec.js` | 7 | Colas drenadas tras boot; heartbeat inactivo en modo CASA inicial |
+| `05-queues-draining.spec.js` | 3 | Colas drenadas tras el arranque: ni `__pendingDistribucion` ni `__pendingBroadcast` existen sin aventura seleccionada, y el bus del padre está inicializado, se identifica y es el frame de arriba |
 | `06-race-conditions.spec.js` | 10 | 5 condiciones de carrera: doble registro, inicialización concurrente, stub de mapa, estado idempotente |
 | `07-performance-baseline.spec.js` | 4 | Baseline de tiempo de arranque (< umbrales definidos) y conteo de handlers |
 | `08-children-handshake.spec.js` | 14 | Infraestructura del handshake: HIJO_PREPARADO/HIJO_LISTO en registro, estadoPadre, mensajes sintéticos |
-| `09-mode-change.spec.js` | 17 | Protocolo CAMBIO_MODO↔ENTENDIDO↔EFECTUADO; unicidad de handlers; heartbeat solo en AVENTURA |
+| `09-mode-change.spec.js` | 16 | Protocolo CAMBIO_MODO↔ENTENDIDO↔EFECTUADO; unicidad de handlers; el latido está encendido desde el arranque, sin modo decidido (MC-7a), y el padre atiende `HEARTBEAT_RESPONSE` sin registrar `HEARTBEAT` (MC-7b) |
 | `10-controladores-padre.spec.js` | 8 | Handlers extraídos a `js/controladores-padre.js`; smoke tests de SOLICITAR_AUDIOS/TEXTOS/RETOS/COORDENADAS |
 | `11-constants-integrity.spec.js` | 8 | Integridad de TIPOS_MENSAJE: constantes GPS funcionales, eliminación de handlers huérfanos GPS.VISUAL_*, presencia de CHAT.ESTADO_PADRE, exposición de reciclaje-digital |
 | `12-carga-por-parada.spec.js` | 3 | Protección pasiva por parada: audio/reto se resuelven en línea por elemento activado, sin broadcast masivo |
@@ -7860,7 +7862,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `43-saltar-reto-puzzle-roto.spec.js` | 4 (WebKit omite 2 de puzzle) | Botón ⏩ (§13, "Saltar un reto o puzzle roto"): en `puzzle.html`, un puzzle válido se salta montando las piezas de verdad y avisando `PUZZLE.COMPLETADO` (PZ-1); uno roto/no encontrado hace lo mismo sin excepciones (PZ-2); en `retos-hijo4.html`, un reto de opción válido se salta marcando la respuesta correcta en el selector y habilita el mundo verde, que sí intenta el envío de `RETO.COMPLETADO` al pulsarlo (RT-1); un reto roto/no encontrado deja el botón de saltar habilitado (a diferencia del resto de controles) y también habilita el mundo verde (RT-2) |
 | `44-boton-saltar-audio.spec.js` | 27 | Botón ⏩ de saltar audio no disponible (`#audio-action-skip`, §25.5f): cubre el caso "la parada o el tramo tiene `audio_id` asignado pero el fichero real no existe" —hoy la norma en 11 de los 12 idiomas mientras no se termine de grabar— y también un fallo de reproducción en runtime. |
 | `45-texto-intro-fallback-idioma.spec.js` | 6 | P11 (`En-busca-del-tesoro.html`, §7.1) — grupo TI, `cargarTextoIntro()`: un fallo real de red cargando los párrafos del idioma elegido muestra el fallback traducido en ESE idioma, nunca español fijo (TI-1); sin fallo, sigue mostrando el texto real de la aventura (TI-2). Grupo AI, `cargarAudioIntro()`: sin fichero real de audio (inglés), `#btn-siguiente-audio-intro` se habilita directamente en vez de quedar bloqueado esperando un evento `play` que nunca llega (AI-1); con fichero real (español), el botón sigue exigiendo el `play` real como siempre (AI-2). `En-busca-del-tesoro.html` se inserta como `<iframe>` real en el arnés — navegarlo directamente dispara su guardia de redirección a `codigo-padre.html` |
-| `46-reanudacion-un-solo-camino.spec.js` | 9 | La reanudación de sesión usa el mismo camino que cualquier cambio de modo (§9.10 paso 8). Grupo RU: el modo arranca sin decidir (`null`), no en CASA (RU-0); reanudar aplica el modo persistido pasando por `_hdl_SISTEMA_CAMBIO_MODO` — verificado por un efecto que solo produce el handler, el arranque del heartbeat (`getHeartbeat().activo`, el estado real del state-manager), no por el mero valor del modo (RU-1); el flag `dev` se restaura del campo persistido, de modo que dev+AVENTURA es representable (RU-2) y dev+CASA deja `#hijo5` visible (RU-2b); **reanudar en CASA sin dev no borra la sesión que está restaurando** (RU-3, el caso que `_transicionarAModoCasa()` destruiría sin su guard); un cambio a CASA que no es reanudación sí limpia el progreso, o sea que el guard no desactiva el abandono real (RU-4); y "ya estoy en ese modo" reenvía la propagación a los hijos en vez de devolver `exito:true` sin que nadie se entere (RU-5). Grupo RC, por arranque real con `localStorage` sembrado: una sesión de Aventura1 con 61 h (ventana de compra 60 h) no se ofrece para reanudar (RC-1) y una de 2 h sí (RC-2) |
+| `46-reanudacion-un-solo-camino.spec.js` | 9 | La reanudación de sesión usa el mismo camino que cualquier cambio de modo (§9.10 paso 8). Grupo RU: el modo arranca sin decidir (`null`), no en CASA (RU-0); reanudar aplica el modo persistido pasando por `_hdl_SISTEMA_CAMBIO_MODO` — verificado por un efecto que solo produce el handler, la sincronización del mapa de su rama `restaurado:true` (`sincronizarModoMapa`), no por el mero valor del modo, y con el latido —que es del bus y no depende del modo— encendido (RU-1); el flag `dev` se restaura del campo persistido, de modo que dev+AVENTURA es representable (RU-2) y dev+CASA deja `#hijo5` visible (RU-2b); **reanudar en CASA sin dev no borra la sesión que está restaurando** (RU-3, el caso que `_transicionarAModoCasa()` destruiría sin su guard); un cambio a CASA que no es reanudación sí limpia el progreso, o sea que el guard no desactiva el abandono real (RU-4); y "ya estoy en ese modo" reenvía la propagación a los hijos en vez de devolver `exito:true` sin que nadie se entere (RU-5). Grupo RC, por arranque real con `localStorage` sembrado: una sesión de Aventura1 con 61 h (ventana de compra 60 h) no se ofrece para reanudar (RC-1) y una de 2 h sí (RC-2) |
 | `47-reescalado-marcador-usuario-y-chat.spec.js` | 6 | Dos contratos que comparten arranque. Grupo MU (§4.6, escalado dinámico): con una única lectura de GPS y el zoom cambiado después, el marcador de posición propia se reescala, y encoge al acercar como corresponde a su familia — se ejercita disparando el evento de zoom del mapa, no llamando a `reescalarMarcadorUsuario()` a mano, porque el fallo que cubre no es que esa función no funcione sino que nadie la invoque (MU-1); y ese reescalado conserva `.gps-arrow-heading`, el div que `actualizarRotacionFlechaGPS()` busca en cada lectura de brújula — sin él la flecha dejaría de girar en silencio (MU-2); y el invariante de fondo de todo el sistema de escalado — al acercar el zoom, la polyline ENGORDA y el icono ENCOGE, cada familia en su sentido — medido sobre los valores reales con los que nacen (MU-3, el que cae si alguien intenta "unificar" las dos curvas). Y los 📌/🎯 de ruta reaccionan al zoom, disparando el pipeline real de cambio de parada (`NAVEGACION.CAMBIO_PARADA` despachado con `despacharLocal`, el mismo que usa el botón avanzar) en vez de fabricar el marcador a mano (MU-4). **MU-4 solo puede fallar porque `tests/e2e/helpers/maplibre-stub.js` reproduce las clases que el MapLibre real añade a cada `Marker`**: sin ellas, una comparación estricta de `className` funciona en el arnés y falla en producción, así que ninguna prueba puede detectar ese fallo por mucho que lo intente. Grupo CH (§7.7): al pulsar `#btn-chat-soporte` (camino real del usuario, no una llamada a `abrirChat()`), `hijo6-chat` queda en `iframesRegistrados` (CH-1) y un envío del padre a ese destino no resuelve `false` por destino desconocido (CH-2). El arnés envuelve `maplibregl.Map`/`Marker` del stub para poder cambiar el zoom y leer el elemento real del marcador — el `addTo()` del stub es un no-op y el elemento nunca llega al documento |
 | `48-precarga-video-no-pisa-abierto.spec.js` | 3 | `_precargarVideoParada()` (§15). El `<video>` que precarga y el que reproduce son EL MISMO elemento, así que precargar el vídeo del tramo siguiente no puede pisar uno que el usuario tenga abierto. |
 | `49-escalera-espera-imagen.spec.js` | 5 | La escalera de espera de imágenes (`_escaleraCargaImagen()`) y la precarga que la hace innecesaria casi siempre (`_precargarImagenParada()`), §25.18: 4 s de gracia en silencio → spinner mientras reintenta → rendición. |
@@ -7890,10 +7892,10 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `75-errores-hijo-llegan-al-padre.spec.js` | 2 | Un error no controlado dentro de un hijo llega al padre (§10.17): `js/utils.js` instala en cada iframe una captura de `error` y `unhandledrejection` que avisa con `SISTEMA.ERROR { codigo: 'ERROR_NO_CONTROLADO' }` por el bus del propio frame. EH-1, control: un `SISTEMA.ERROR` enviado desde la selección llega a la ventana del padre; EH-2, camino real: un error lanzado dentro de la selección llega al padre por la captura automática. Se mira la llegada del mensaje a la ventana del padre y no los logs, porque la consola la comparten todos los frames. |
 | `76-pausa-audio-enlace-externo.spec.js` | 2 | Abrir una página informativa pausa el audio (§34.2): al pulsar Gastronomía, Información, Historia o Páginas oficiales, hijo1 pide la pausa al padre con `UI.ACCION_USUARIO { accion: 'audio_control', comando: 'pause' }` y el padre la reenvía a hijo3. PA-1, control: el padre manda la pausa por el bus y hijo3 pausa (se espía `pause()` del `<audio>`, que su handler llama sin condiciones, así que no hace falta que suene nada). PA-2, camino real: pulsar el icono de Gastronomía en hijo1 pausa el audio de hijo3. |
 | `77-volver-atras-desde-despedida.spec.js` | 2 | Restaurada desde la caché de atrás (bfcache), la app conserva sus iframes y sigue hablando con ellos (§28.3): tras `pagehide(persisted)` y `pageshow(persisted)` el padre mantiene sus iframes (VA-1) y sigue hablando con sus hijos (VA-2). Los cuatro navegadores de Playwright no restauran nunca desde la caché de atrás, así que se disparan a mano los dos eventos que lanza el navegador al guardar y restaurar la página, con `persisted: true`; el spec no dice si un navegador concreto guardaría esta página. |
-| `78-heartbeat-callado-en-casa.spec.js` | 2 | En CASA, con el heartbeat pausado, los hijos no reciben latidos (§2.7): el bus es el único latido periódico mientras dura la pausa de CASA. HC-1, control: un latido enviado por el bus a hijo2 llega a su escucha. HC-2, camino real: tras entrar en CASA (heartbeat del bus pausado), durante 12 s hijo2 no recibe ningún latido del padre, y el mensaje de fallo dice quién late (`origen`). |
-| `79-bus-contrato.spec.js` | 23 | El contrato del bus único `js/mensajeria.js` (§10.25), medido con el bus real y un arnés de padre → hijo → nieto, un iframe intruso sin registrar y dos iframes mudos que no contestan al latido. BC-0, control del arnés; BC-1, envío arriba, abajo y «a todos», que no sube ni llega a los nietos; BC-2, un iframe sin registrar no llega a ningún handler; BC-3, un mensaje sin `origen` se descarta y se avisa; BC-4, el acuse resuelve con lo devuelto y rechaza diciendo por qué (`fallo-handler`, `sin-respuesta`, `no-enviado`); BC-5, sin handler no se contesta y el emisor agota su plazo; BC-6, registrar un tipo dos veces es un error ruidoso y se queda el primero; BC-7, un frame sin padre ni iframes no envía y lo avisa una sola vez; BC-8, `desregistrarIframe` corta el envío y la recepción; BC-9, la fila de un tipo sobrevive a un fallo sin objeto de error; BC-10, `despacharLocal` pasa por la misma fila que los mensajes que llegan; BC-11, un error sin capturar en el nieto llega al padre con el nombre del nieto; BC-12a/b/c, el latido vigila todos los iframes registrados, tras tres fallos recarga solo el recuperable (el otro, aviso) y `adelantarLatido` respeta la pausa y, activo, late al momento; BC-13 y BC-14, un handler roto no deja una promesa rechazada sin dueño y uno que no termina nunca no deja su tipo parado; BC-15 y BC-16, el `origen` lo pone el bus y se comprueba al recibir (un iframe registrado que dice ser otro se descarta y se avisa); BC-17, con el bus importado pero sin inicializar no se envía nada; BC-18, enviarse algo a uno mismo no sale y avisa, para eso está `despacharLocal`; BC-19, un envío sin `destino` no sale y avisa; BC-20, `destino: 'todos'` no es sinónimo de `'broadcast'` y se descarta como destino desconocido. |
-| `80-recuperacion-hijos-caidos.spec.js` | 3 | Un hijo que deja de contestar se recupera por la red de seguridad del bus (§2.7, §26.14): tras `MAX_LATIDOS_SIN_RESPUESTA` latidos sin respuesta el bus recarga solo los iframes marcados `recuperable`, que son los cuatro que `_vv_afterHijoListo` sabe restaurar —hijo1 su temporizador, hijo2 su parada, hijo3 su audio y hijo4 su reto—; la selección, hijo5 y el chat no se recargan. RC-1, control: tras la carga los hijos están registrados en el bus y su marca se puede leer; RC-2, los cuatro que saben restaurarse están marcados y los demás no; RC-3, la restauración de hijo1 llega a hijo1: el snapshot se dirige a `hijo1-opciones`, el id con el que está registrado. El spec 79 (BC-12b) prueba el mecanismo con un arnés; este lo prueba contra la aplicación real. |
-| `81-hijo1-habla-por-el-bus.spec.js` | 4 | hijo1 habla por el bus del propio frame (`globalThis.mensajeria`) y no por envoltorios propios (§10.17). H1-1, control: un `SISTEMA.ERROR` enviado a mano desde hijo1 llega a la ventana del padre; H1-2, hijo1 tiene el bus montado y se identifica con el id con el que está registrado; H1-3, camino real: un error lanzado dentro de hijo1 llega al padre por la captura automática de `js/utils.js`; H1-4, hijo1 contesta al latido y la respuesta llega al padre (un hijo `recuperable` cuya respuesta no llega se da por caído a los tres latidos y el bus le recarga el iframe). |
+| `78-latido-unico-siempre-encendido.spec.js` | 4 | El latido es uno solo y no se apaga (§2.7). HC-1, control: un latido enviado por el bus a hijo2 llega a su escucha. HC-2, camino real: el reloj está encendido desde el arranque, antes de que haya modo, y sigue encendido al pasar a CASA y a AVENTURA, sin estado de pausa. HC-3, camino real: en CASA, durante tres intervalos y medio, hijo2 recibe un latido por vuelta del reloj, todos del bus y sin ningún hueco más corto que el intervalo: no hay un segundo emisor. HC-4: volver a la pestaña (`visibilitychange`) no manda ningún latido, pero sigue revalidando el tamaño del mapa. |
+| `79-bus-contrato.spec.js` | 28 | El contrato del bus único `js/mensajeria.js` (§10.25), medido con el bus real y un arnés de padre → hijo → nieto, un iframe intruso sin registrar y tres iframes mudos que no contestan al latido (uno ya listo, uno que nunca hace el apretón de manos y uno sin supervisar). BC-0, control del arnés; BC-1, envío arriba, abajo y «a todos», que no sube ni llega a los nietos; BC-2, un iframe sin registrar no llega a ningún handler; BC-3, un mensaje sin `origen` se descarta y se avisa; BC-4, el acuse resuelve con lo devuelto y rechaza diciendo por qué (`fallo-handler`, `sin-respuesta`, `no-enviado`); BC-5, sin handler no se contesta y el emisor agota su plazo; BC-6, registrar un tipo dos veces es un error ruidoso y se queda el primero; BC-7, un frame sin padre ni iframes no envía y lo avisa una sola vez; BC-8, `desregistrarIframe` corta el envío y la recepción; BC-9, la fila de un tipo sobrevive a un fallo sin objeto de error; BC-10, `despacharLocal` pasa por la misma fila que los mensajes que llegan; BC-11, un error sin capturar en el nieto llega al padre con el nombre del nieto; BC-12a a BC-12h, el latido llega solo a los supervisados que ya hicieron el apretón de manos (a), un listo que no contesta se recarga tras tres latidos y la consola dice cuál y por qué (b), el reloj no se puede parar ni adelantar (c), un iframe sin apretón no recibe latidos y se recarga al agotarse su gracia (d), que se duplica por recarga seguida hasta 4× (e), vuelve a la base cuando contesta estando listo (f), al volver la red se reintenta al momento sin contar como recarga seguida (g) y no se reintenta a quien no ha fallado (h); BC-13 y BC-14, un handler roto no deja una promesa rechazada sin dueño y uno que no termina nunca no deja su tipo parado; BC-15 y BC-16, el `origen` lo pone el bus y se comprueba al recibir (un iframe registrado que dice ser otro se descarta y se avisa); BC-17, con el bus importado pero sin inicializar no se envía nada; BC-18, enviarse algo a uno mismo no sale y avisa, para eso está `despacharLocal`; BC-19, un envío sin `destino` no sale y avisa; BC-20, `destino: 'todos'` no es sinónimo de `'broadcast'` y se descarta como destino desconocido. |
+| `80-recuperacion-hijos-caidos.spec.js` | 6 | El supervisor del bus recupera a un hijo que deja de estar sano (§2.7, §26.14), contra la aplicación real: supervisa a todos los hijos por igual y a ninguno de los iframes que no hacen el apretón de manos. RC-1, control: tras la carga los hijos están registrados en el bus y se puede leer si están supervisados; RC-2, todos los hijos registrados están supervisados y los iframes sin apretón no; RC-3, la restauración de hijo1 llega a hijo1: el snapshot se dirige a `hijo1-opciones`, el id con el que está registrado; RC-4, cada hijo contesta al latido y su respuesta llega a la cuenta del bus; RC-5, con la selección sin apretón de manos la aplicación no arranca (la pantalla de carga sigue, sin `alert`), el supervisor la recarga y la aplicación arranca sola cuando ya puede completarlo; RC-6, sin red, la recarga de un hijo enseña el overlay de sin conexión aunque aún no haya modo, y se va solo con `online`. El spec 79 (BC-12) prueba el mecanismo con un arnés; este lo prueba contra la aplicación real. |
+| `81-hijo1-habla-por-el-bus.spec.js` | 4 | hijo1 habla por el bus del propio frame (`globalThis.mensajeria`) y no por envoltorios propios (§10.17). H1-1, control: un `SISTEMA.ERROR` enviado a mano desde hijo1 llega a la ventana del padre; H1-2, hijo1 tiene el bus montado y se identifica con el id con el que está registrado; H1-3, camino real: un error lanzado dentro de hijo1 llega al padre por la captura automática de `js/utils.js`; H1-4, hijo1 contesta al latido y la respuesta llega al padre (un hijo supervisado cuya respuesta no llega se da por caído a los tres latidos y el bus le recarga el iframe). |
 | `82-seleccion-usa-la-aventura-elegida.spec.js` | 2 | La pantalla de selección usa la aventura que el usuario eligió. `En-busca-del-tesoro.html` tiene dos ámbitos, un `<script>` clásico con la lógica de pantallas y un `<script type="module">` con la mensajería, y la elección llega del módulo al clásico por el puente `_setAventuraSeleccionada` (un `let` del script clásico tapa la propiedad del mismo nombre en `globalThis`). SA-1, control: el módulo recibe la aventura elegida; SA-2, el mapa vintage que se muestra es el de la aventura elegida y no el de la primera. |
 | `83-hijo5-habla-por-el-bus.spec.js` | 4 | hijo5 habla por el bus del propio frame (§10.17). H5-1, control: un `SISTEMA.ERROR` enviado a mano desde hijo5 llega a la ventana del padre; H5-2, hijo5 tiene el bus montado y se identifica con el id con el que está registrado; H5-3, hijo5 contesta al latido y la respuesta llega al padre; H5-5, camino real: un error lanzado dentro de hijo5 llega al padre por la captura automática de `js/utils.js`. El modo le llega por un solo camino, que cubre el spec 84 (CM-hijo5). |
 | `84-el-modo-llega-por-un-camino.spec.js` | 7 | El modo llega a cada frame por un solo camino (§26.6): un `CAMBIO_MODO` que el padre manda por el bus se aplica exactamente una vez —un ENTENDIDO, un EFECTUADO y ningún NACK— en los seis frames que tienen modo: la selección, hijo1-opciones, hijo2, hijo3, hijo4 y hijo5 (CM-seleccion, CM-hijo1-opciones, CM-hijo2, CM-hijo3, CM-hijo4, CM-hijo5). Y al quedar listos hijo2, hijo3 y hijo4 el padre no les reenvía el modo: cada uno queda en el modo del padre solo con el `modoInicial` del handshake (CM-arranque; el estado se mide por lo que ve el usuario: la clase del modo en hijo3 y hijo4 y el botón de ubicación de hijo2, que en CASA está siempre apagado). |
@@ -7908,7 +7910,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `93-nadie-se-hace-pasar-por-otro.spec.js` | 7 | Ningún frame puede hacerse pasar por otro ante el padre (§10.25, BC-15 a BC-18): cada frame que el padre registra —la selección, hijo1-opciones, hijo2, hijo3, hijo4, hijo6-chat y mapa-completo (SU-seleccion, SU-hijo1-opciones, SU-hijo2, SU-hijo3, SU-hijo4, SU-hijo6-chat, SU-mapa-completo)— manda al padre un mensaje firmado como `'hijo5'`: el padre no lo procesa y avisa; el mismo mensaje, por el mismo camino, firmado con el nombre de registro del frame, sí llega (control dentro de cada caso). El chat y el mapa completo solo se cargan al abrirlos, y el spec los abre. El tipo del mensaje es uno propio del test, registrado en el padre solo en el spec, así que ningún handler de la app actúa y lo único que se mide es si llega. |
 | `94-mensajes-a-si-mismo.spec.js` | 2 | Lo que el padre se dice a sí mismo pasa por el bus (§32.3): el padre no publica en `globalThis` atajos hacia sus handlers —quien necesita que el padre haga algo se lo despacha con `despacharLocal`, por la misma fila por tipo que los mensajes que llegan de fuera— (AE-1) y no se hace `postMessage` a sí mismo en todo el arranque, hasta que avisa a los hijos de que la aplicación está lista (AE-2). |
 | `95-audio-estado-pausado-llega-al-padre.spec.js` | 2 | El estado del audio de hijo3 llega al padre (§25.5c): el evento nativo `play` del reproductor manda `AUDIO.ESTADO_ACTUALIZADO` con `destino: 'padre'` y `estado: 'reproduciendo'` (AP-1, control) y el evento `pause` manda el mismo tipo con `estado: 'pausado'`, también a `destino: 'padre'` (AP-2), de modo que `estado.audioActual.estado` refleja la pausa y el recordatorio «pulse play» la ve. Se activa el audio por el camino real (`AUDIO.REPRODUCIR_REQUEST`) y se disparan los eventos nativos del `<audio>` con `dispatchEvent`; el fichero de audio no necesita existir. |
-| `96-heartbeat-y-recuperacion-un-solo-camino.spec.js` | 3 | El latido y la recuperación pasan por los caminos normales (§2.7, §26.14): un `CAMBIO_MODO` real, a CASA y a AVENTURA, no manda a hijo2 mensajes de arranque ni de pausa del latido, porque lo gobierna el bus del padre (LH-1); el heartbeat del padre arranca en AVENTURA (`getHeartbeat()` da `activo: true` y `userPaused: false`, LH-2, control); y la recuperación de hijo2 tras una recarga (`_vv_afterHijoListo('hijo2')`) repite la entrega normal de su parada: llama a `despacharLocal(NAVEGACION.CAMBIO_PARADA)` y no manda un `CAMBIO_PARADA` directo al iframe, de modo que corre `_hdl_NAVEGACION_CAMBIO_PARADA` entero —estado de parada del padre, marcadores del mapa, audio y precargas— (RC2-1, se espía `despacharLocal`). |
+| `96-heartbeat-y-recuperacion-un-solo-camino.spec.js` | 3 | El latido y la recuperación pasan por los caminos normales (§2.7, §26.14): un `CAMBIO_MODO` real, a CASA y a AVENTURA, no manda a hijo2 mensajes de arranque ni de pausa del latido, porque lo gobierna el bus del padre (LH-1); el heartbeat del padre sigue encendido al entrar en AVENTURA (`getHeartbeat()` da `activo: true`, LH-2, control); y la recuperación de hijo2 tras una recarga (`_vv_afterHijoListo('hijo2')`) repite la entrega normal de su parada: llama a `despacharLocal(NAVEGACION.CAMBIO_PARADA)` y no manda un `CAMBIO_PARADA` directo al iframe, de modo que corre `_hdl_NAVEGACION_CAMBIO_PARADA` entero —estado de parada del padre, marcadores del mapa, audio y precargas— (RC2-1, se espía `despacharLocal`). |
 | `97-coordenadas-un-solo-camino-de-respuesta.spec.js` | 2 | Las coordenadas de una parada se piden por un solo camino (§10.5): `solicitarCoordenadasHijo` resuelve con los datos reales de hijo2 (CO-1, control) y hijo2 contesta a `DATOS.COORDENADAS_PARADAS_REQUEST` solo con el acuse —el `return` de su handler, que entrega el resultado a quien pidió—, sin un mensaje de respuesta aparte (CO-2). |
 | `98-paradas-hijo5-una-fuente.spec.js` | 1 | La lista de paradas de hijo5 tiene una sola fuente (§10.12): el empuje de `distribuirDatosAventura()` no manda entradas `tipo: "referencia"` a hijo5, porque sale de `normalizarParadas_S1(DATOS_PADRE[aventura][idioma].elementosIDpadre)`, la misma fuente que el camino de petición `SOLICITAR_DATOS_PARADAS` (PD-1). |
 | `99-actualizar-estado-una-vez-por-lectura.spec.js` | 1 | Una lectura GPS a ≤ 50 m del destino activo produce un solo `NAVEGACION.ACTUALIZAR_ESTADO` en hijo2 (§11, AE-1). |
@@ -7919,7 +7921,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `104-audio-respuesta-un-solo-camino.spec.js` | 2 | `AUDIO.REPRODUCIR_REQUEST` se contesta una sola vez, por el acuse (§10.5): hijo3 contesta con el valor de retorno de su handler —el acuse de `enviarMensajeConConfirmacion`, con el que `_enviarAudioRequestConReintento()` sabe que el mensaje llegó— y no manda ningún mensaje de respuesta aparte al padre, ni en la rama de éxito (RR-1) ni en el `catch` por `audioId` ausente (RR-2). |
 | `105-avisos-error-nack-escuchados.spec.js` | 4 | Los avisos de error y NACK que el padre manda al hijo que pidió algo tienen quién los escuche (§10.17): hijo4 registra un handler para `SISTEMA.NACK` (NE-1) y otro para `SISTEMA.ERROR` (NE-2), hijo2 para `SISTEMA.ERROR` (NE-3), y hijo4 no rompe al recibir un `SISTEMA.NACK` real y sigue respondiendo después (NE-4). El padre los manda cuando una petición no puede atenderse: un «pedir reto» sin datos que mostrar, el `catch` de `_hdl_RETO_COMPLETADO` o una activación de GPS rechazada. |
 | `106-cargados-recibido-muerto.spec.js` | 1 | `distribuirDatosAventura()` hace que hijo2 confirme las coordenadas y los textos cargados (`DATOS.COORDENADAS_CARGADAS` y `DATOS.TEXTOS_CARGADOS`) y el padre no contesta a ninguna de las dos confirmaciones con otro mensaje (§10.5, CR-1 y CR-2). |
-| `107-diagnosticarhijo4-muerto.spec.js` | 1 | hijo4 solo se carga por los cargadores de iframes del padre (`_cargarSingleIframe()`, `_cargarUnIframeHijo()` y `_cargarSoloIframeActivacion()`), que registran el iframe en el bus: el padre no publica en `globalThis` ninguna herramienta de diagnóstico que lo cargue por otro camino y lo deje sin registrar (MH-1). |
+| `107-diagnosticarhijo4-muerto.spec.js` | 1 | hijo4 solo se carga por los cargadores de iframes del padre (`cargarIframeSoloSeleccion()`, `_cargarUnIframeHijo()` y `_cargarSoloIframeActivacion()`), que registran el iframe en el bus: el padre no publica en `globalThis` ninguna herramienta de diagnóstico que lo cargue por otro camino y lo deje sin registrar (MH-1). |
 | `108-app-funciones-mapa-persisted.spec.js` | 3 | `js/app.js` y `js/funciones-mapa.js`, que registran su propio `pagehide` en la ventana del padre, respetan `event.persisted` (§28.3): tras `pagehide(persisted)` y `pageshow(persisted)` siguen existiendo `globalThis.estado` (AJ-1) y `globalThis.funcionesMapa` (AJ-2); un `pagehide` sin `persisted` (cierre real) sigue limpiando los dos (AJ-3, control). Los cuatro navegadores de Playwright no restauran nunca desde la caché de atrás, así que se disparan los dos eventos con `persisted: true`. |
 | `109-esparadavalida-guarda-inalcanzable.spec.js` | 1 | `_esParadaValida()` de `boton-casa-hijo5.html` descarta una parada sin `id`/`padreid` ni `parada_id` y no descarta una sin nombre, porque `_transformarParadaPadre()` rellena siempre `nombre` y `ubicacion` con un valor por defecto: de tres paradas, una sin nombre y otra sin `id` ni `parada_id`, llegan exactamente dos al `count` de `PARADAS.READY` (EP-1). |
 | `110-cambio-modo-notificaciones-muertas.spec.js` | 1 | Un `CAMBIO_MODO` real no manda a ningún hijo avisos de inicio ni de fin del cambio por `SISTEMA.NOTIFICACION`: el cambio se anuncia con los mensajes del protocolo de modo (§26.6) (CI-1 y CI-2). |
@@ -9108,8 +9110,8 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 
 | Término | Significado |
 |---------|-------------|
-| **Modo CASA** | Estado neutro de la app: GPS activo (`watchPosition` corriendo igual que en AVENTURA, nunca se detiene entre modos) pero sin validaciones de distancia ni heartbeat — el usuario navega paradas manualmente, sin avance automático por posición |
-| **Modo AVENTURA** | Estado activo del recorrido: GPS encendido, heartbeat activo, audio y retos vinculados a la parada actual |
+| **Modo CASA** | Estado neutro de la app: GPS activo (`watchPosition` corriendo igual que en AVENTURA, nunca se detiene entre modos) pero sin validaciones de distancia — el usuario navega paradas manualmente, sin avance automático por posición |
+| **Modo AVENTURA** | Estado activo del recorrido: GPS encendido, audio y retos vinculados a la parada actual |
 | **Elemento** | Unidad mínima de la secuencia de una aventura: puede ser una **parada** o un **tramo**. El padre avanza de elemento en elemento via `CAMBIO_PARADA` |
 | **Parada** | Punto de interés (monumento, plaza…). El usuario debe llegar físicamente, escuchar el audio y superar el reto para completarla. IDs con formato `AvN-P-X` (`parada_id`) / `padre-PX` (`padreid`, sin guion antes del número) |
 | **Tramo** | Camino entre dos paradas. La polyline y sus marcadores 📌🎯 se revelan de inmediato al activarse, sin condición — se ocultan únicamente al pulsar `btn-ubicacion` (ver §4.7d). IDs con formato `AvN-TR-X` (`tramo_id`) / `padre-TRX` (`padreid`) |
@@ -9125,7 +9127,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | **HIJO_LISTO** | Tercer paso del handshake: el hijo lo envía cuando ya ha procesado el `PADRE_DATOS` que recibió. No es el primer mensaje que manda — ese es `HIJO_PREPARADO` |
 | **CAMBIO_PARADA** | El mensaje más central de la app. Lo envía el padre a todos los hijos cada vez que el usuario avanza a un nuevo elemento (parada o tramo), con los datos del nuevo elemento |
 | **CAMBIO_MODO** | Mensaje que notifica a todos los hijos el cambio entre modo CASA y modo AVENTURA. Cada hijo adapta su interfaz y responde `ENTENDIDO` y `EFECTUADO` (§9.7). **Lo que no hace ninguno es quitar sus handlers**: el bus pone un solo listener por frame para toda su vida y los handlers se registran una vez (§28.1, §32.1); quitarlos en un cambio de modo dejaría al iframe sordo |
-| **Heartbeat** | Ping periódico del padre a los hijos (`SISTEMA.HEARTBEAT`) para verificar que siguen activos; los hijos responden con `SISTEMA.HEARTBEAT_RESPONSE` |
+| **Heartbeat** | Ping periódico del padre a los hijos (`SISTEMA.HEARTBEAT`), siempre encendido, para verificar que siguen activos y recargar al que no lo está; los hijos responden con `SISTEMA.HEARTBEAT_RESPONSE` |
 | **ACK** | Confirmación de que un mensaje fue recibido correctamente |
 | **registrarControladorSeguro** | Función que registra un handler de `postMessage` con gestión de errores y soporte de cleanup. Punto de entrada estándar para todos los iframes |
 
@@ -9248,7 +9250,7 @@ flowchart TD
     HDL --> CODE2{¿código DEV correcto?}
     CODE2 -- No --> HDL
     CODE2 -- Sí --> SET2["globalThis._devModeActivo = true\nhijo5: display:block · visibility:visible\ndespacharLocal(CAMBIO_MODO, MODOS.CASA)"]
-    SET2 --> CAMBIO["_hdl_SISTEMA_CAMBIO_MODO(CASA)\nheartbeat pausado\nlocalStorage progreso limpiado\nhijos notificados CAMBIO_MODO"]
+    SET2 --> CAMBIO["_hdl_SISTEMA_CAMBIO_MODO(CASA)\nlocalStorage progreso limpiado\nhijos notificados CAMBIO_MODO"]
     CAMBIO --> CASA2([MODO CASA\nhijo5 visible · GPS sin validaciones])
 ```
 
@@ -9295,7 +9297,7 @@ El botón GPS de hijo5 pasa la app a modo AVENTURA y oculta hijo5, pero **no des
 ```mermaid
 flowchart TD
     CASA_DEV([MODO CASA dev activo\nhijo5 visible]) --> BTN["Desarrollador pulsa 🛰️ ON en hijo5\nhijo5 envía SISTEMA.CAMBIO_MODO\nmodo: 'aventura' · datos.origen: 'boton-gps'"]
-    BTN --> HDLAV["padre: _hdl_SISTEMA_CAMBIO_MODO(AVENTURA)\nhijo5:display:none (_devModeActivo NO se toca, sigue true)\nfuncionesMapa.manejarCambioModoMapa() — estado mapa · limpiarPorEstado · reset vista\nmanejarCambioModo (app.js) — coordina hijos\n_gestionarHeartbeatSegunModo: heartbeat activado\n_gestionarGpsSegunModo: red de seguridad — activarGPS() solo si !estado.gps.activo (normalmente ya está activo desde P14)"]
+    BTN --> HDLAV["padre: _hdl_SISTEMA_CAMBIO_MODO(AVENTURA)\nhijo5:display:none (_devModeActivo NO se toca, sigue true)\nfuncionesMapa.manejarCambioModoMapa() — estado mapa · limpiarPorEstado · reset vista\nmanejarCambioModo (app.js) — coordina hijos\n_gestionarSesionSegunModo → _activarAventura: parada por defecto + temporizador de hijo1\n_gestionarGpsSegunModo: red de seguridad — activarGPS() solo si !estado.gps.activo (normalmente ya está activo desde P14)"]
     HDLAV --> AVENTURA([MODO AVENTURA\nGPS watchPosition activo desde P14, sin interrupción\nvalidaciones de proximidad activas\n_devModeActivo sigue true — el desarrollador puede volver a CASA sin perder la sesión])
 ```
 
@@ -9472,8 +9474,7 @@ Cuando el desarrollador está listo para probar la navegación real, pulsa el bo
    - `procesarPosicionGPSParaAventura` procesa posiciones: el guard `estadoMapa.modo !== MODOS.AVENTURA` pasa a `false` y la proximidad está activa
    - El `watchPosition` nunca paró — las posiciones GPS siguen llegando sin interrupción
    - Si GPS pierde señal, el overlay de error sí aparece (modo AVENTURA)
-   - El heartbeat de hijos se activa
-   - El temporizador de compra de hijo1 (§7.2) **no arranca**: `_activarHeartbeatAventura()` llama a `_iniciarTemporizadorAventura()`, que corta en seco nada más entrar si `globalThis._devModeActivo` está activo — el reloj de compra cuenta tiempo real desde que se paga la aventura, y aquí no hay ninguna compra que cronometrar. `#icono-temporizador` en hijo1 sigue visible y pulsable, pero no hay ninguna cuenta atrás corriendo detrás
+   - El temporizador de compra de hijo1 (§7.2) **no arranca**: `_activarAventura()` llama a `_iniciarTemporizadorAventura()`, que corta en seco nada más entrar si `globalThis._devModeActivo` está activo — el reloj de compra cuenta tiempo real desde que se paga la aventura, y aquí no hay ninguna compra que cronometrar. `#icono-temporizador` en hijo1 sigue visible y pulsable, pero no hay ninguna cuenta atrás corriendo detrás
 
 ---
 
@@ -9675,7 +9676,7 @@ En el instante en que el sistema pasa a modo AVENTURA (automáticamente para el 
 
 - **Se activa el GPS.** El navegador pide permiso de geolocalización (si no lo tiene ya). Se usa `watchPosition` con alta precisión (`enableHighAccuracy: true`), sin caché (`maximumAge: 0`) y un timeout de 35 segundos. Las posiciones llegan con cada actualización del dispositivo — no hay intervalo fijo: `watchPosition` no acepta parámetro de intervalo.
 
-- **Se inicia el heartbeat.** Cada **5 segundos** el padre envía un "latido" a **todo componente que haya completado su handshake** — medido: `seleccion`, `hijo1-opciones`, `hijo2`, `hijo3`, `hijo4` y `hijo5`, más `hijo6-chat` en cuanto se abre el chat (§5). El padre rastrea `heartbeatsFallidos` (`Map`) por hijo; **al tercer latido seguido sin respuesta** lo marca como desconectado y recarga su iframe por self-assign del `src`. Esa recarga es una sola, sin reintentos ni backoff — el 3 es el umbral de fallos, no un contador de intentos.
+- **El heartbeat ya está encendido** (§2.7). Cada **5 segundos** el padre envía un "latido" a **todo componente supervisado que haya completado su handshake** — medido: `seleccion`, `hijo1-opciones`, `hijo2`, `hijo3`, `hijo4` y `hijo5`, más `hijo6-chat` en cuanto se abre el chat (§5). El padre cuenta los `latidosSinRespuesta` de cada hijo en su registro; **al tercer latido seguido sin respuesta**, y también si un hijo no completa su handshake dentro de su gracia de arranque, lo dice por consola (`logger.error`) y recarga su iframe por self-assign del `src`. La recarga no tiene tope de intentos: se repite mientras el hijo no esté sano, con una gracia que se duplica hasta 4× — el 3 es el umbral de latidos sin respuesta, no un contador de intentos.
 
 - **Se establece la parada por defecto.** Si hay progreso guardado de una sesión anterior, se restaura. Si no, se posiciona en la primera parada (P-0 — Torres de Serranos en la Aventura 1).
 
@@ -10037,7 +10038,7 @@ En cualquier momento durante el desarrollo, se puede pulsar el botón 🛰 **ON*
 
 1. Se envía `SISTEMA.CAMBIO_MODO` con modo `casa` al padre.
 2. El padre **limpia el estado persistido**: elimina `vv_aventura_iniciada`, `vv_progreso` y `vv_paradas_completadas` del `localStorage` — **pero solo si `_devModeActivo === false`** (ver §24). Como CASA solo es alcanzable en dev mode, en la práctica este borrado nunca ocurre: `_transicionarAModoCasa()` tiene el guard explícito `if (!globalThis._devModeActivo) { borrar todo }`.
-3. Se pausa el heartbeat para ahorrar batería.
+3. El heartbeat sigue encendido: el latido no depende del modo (§2.7).
 4. El GPS **sigue activo** — `watchPosition` nunca se detiene al cambiar de modo (ver §2.6); solo deja de validar distancias y de detectar llegadas.
 5. Los iframes de juego (hijo2/3/4) **siguen visibles** — CASA no es una pantalla distinta, es el mismo mapa con otro comportamiento. Lo que cambia de visibilidad es hijo5 (vuelve a mostrarse) y la polyline manual del botón ubicación (se limpia si estaba dibujada); hijo5 muestra la lista de paradas para navegar libremente.
 6. Se detienen los dos recordatorios periódicos (§25.5c/d) y se resetea `estado.retoActual` — nada de eso tiene sentido fuera de un elemento activo en AVENTURA. En hijo2, `_resetarEstadoParaModo()` limpia también `idParadaActual`/`btnAvanzarCompletadoPorPadre` y el resto del estado de progreso del elemento anterior (detalle completo en §24, Paso 8, y §29.6).
@@ -10551,7 +10552,7 @@ Cuando la app necesita un recurso que aún no tiene, hay tres respuestas posible
 
 **El spinner no es un cartel: mientras se ve, hay un reintento real en curso.** Un spinner sin nada detrás miente al usuario, que espera creyendo que la app trabaja.
 
-El escalón «no hay internet de verdad» no forma parte de esta escalera: lo cubre `#internet-overlay` (§30.1), que el evento `offline` del navegador dispara por su cuenta.
+El escalón «no hay internet de verdad» no forma parte de esta escalera: lo cubre `#internet-overlay` (§31.1), que se enseña por el evento `offline` del navegador, por un audio fallido sin conexión y, cuando se recarga un hijo sin red, por el supervisor (§2.7).
 
 #### Implementación para imágenes de parada
 
@@ -11034,7 +11035,7 @@ ha terminado de cargar (`_enviarAudioRequestConReintento()`, §31.7). El acuse s
 
 #### El heartbeat
 
-Cada 5 segundos el padre envía `SISTEMA.HEARTBEAT` a todos los iframes de `iframesRegistrados` (`mensajeria.js`). El registro se puebla al cargar: cada cargador llama a `globalThis.registrarIframeHijo()` antes de asignar el `src` — no se necesita cambio de código en el bus para añadir nuevos hijos. Cada hijo responde con `SISTEMA.HEARTBEAT_RESPONSE`. Si uno no responde en 3 latidos consecutivos (`MAX_LATIDOS_SIN_RESPUESTA` en `js/mensajeria.js`), el padre apunta el fallo en `heartbeatsFallidos` (Map) y, **solo si ese iframe está marcado `recuperable`**, lo recarga y le devuelve su estado (§2.7a).
+El padre enciende el reloj del supervisor una vez, al cargar, y cada 5 segundos (ajustados por la conexión), en cualquier modo, envía `SISTEMA.HEARTBEAT` a los iframes supervisados de `iframesRegistrados` (`mensajeria.js`) que ya completaron su apretón de manos. El registro se puebla al cargar: cada cargador llama a `globalThis.registrarIframeHijo()` antes de asignar el `src` — no se necesita cambio de código en el bus para añadir nuevos hijos. Cada hijo responde con `SISTEMA.HEARTBEAT_RESPONSE`. Si uno no responde en 3 latidos consecutivos (`MAX_LATIDOS_SIN_RESPUESTA` en `js/mensajeria.js`), o si uno que aún no completó su apretón agota su gracia de arranque, el bus lo dice por consola (`logger.error`) y lo recarga —a todos por igual—, y el padre le devuelve su estado (§2.7, §2.7a).
 
 ---
 
@@ -11295,7 +11296,7 @@ El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-compl
 - **Protocolo bidireccional de modo**: 4 fases (CAMBIO_MODO → ENTENDIDO → EFECTUADO → APLICADO) con timeouts independientes y Maps de módulo compartidos. Evita duplicación de handlers.
 - **State-manager con mutex**: serializa escrituras concurrentes en estado compartido.
 - **Cola de mensajes**: mensajes que llegan antes de que el destino esté registrado esperan y se procesan en orden.
-- **Heartbeat**: el padre detecta hijos sin respuesta y puede recargar el iframe.
+- **Heartbeat**: el padre detecta hijos sin respuesta y recarga su iframe.
 - **Registro de handlers con fallbacks en cadena**: `registrarControlador_S1` → `sm.registrarManejador` es la vía primaria; si mensajería no está lista, cae a `__vv_manejadoresLocales` y encola en `__CONTROLADORES_PENDIENTES`, que se drena garantizadamente tras `mensajeriaReady`. El Set `__CONTROLADOR_REGISTRADOS` evita dobles registros. Diseño defensivo intencional, no una duplicación accidental.
 - **`NAVEGACION.SOLICITAR_DATOS_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia.
 - **Logging centralizado y verificado**: toda llamada de log en `js/**/*.js` y en los `<script>` de los HTML de producción pasa por `js/logger.js` (import directo donde el módulo lo permite, o el patrón `(globalThis.logger || console).X(...)` en scripts clásicos/pre-módulo). **`no-console` en verde no prueba que los logs lleguen a ninguna parte**: un envoltorio cuyos métodos sean no-ops (`Function.prototype`, `() => {}`) satisface la regla perfectamente y tira todos los mensajes. Lo que lo prueba es medir salida real en consola — `62-log-seleccion-no-es-mudo.spec.js` lo hace para el envoltorio `_log` de `En-busca-del-tesoro.html`. La regla ESLint `no-console` (en `eslint.config.js`, cubre tanto `js/**/*.js` como `*.html` desde `npm run lint`) impide que se cuele una llamada directa a `console.*` fuera de las excepciones documentadas por archivo (`js/logger.js`, `js/server.js`, `js/vendor/**`, `js/suppress-warnings.js`, y los scripts clásicos pre-módulo de los hijos, cada uno con su comentario explicando por qué el logger no está disponible ahí). `js/suppress-warnings.js` filtra ruido conocido sobrescribiendo `console.warn/error/debug` de forma global y muy temprana (antes de que cargue cualquier módulo) — como `logger.js` llama a esos mismos métodos de `console` internamente, el filtrado aplica también a los logs que pasan por el logger, sin necesidad de duplicar esa lógica.
@@ -11320,7 +11321,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.HIJO_LISTO` | Cualquier hijo tras procesar `PADRE_DATOS` | `_hdl_SISTEMA_HIJO_LISTO`: añade al hijo a `hijosInicializados`, avisa al state-manager (`marcarHijoListo`) y lo marca `activo` en `estado.estadoHijos`; le contesta `PADRE_CONFIRMA_HIJO_LISTO`; si el hijo se había recargado por el latido, `_vv_afterHijoListo` le devuelve su estado (§2.7a); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` (solo si la aventura y el idioma ya están elegidos y hay datos para ellos) y a hijo3 le reconfigura `retosBtn`; cuando hijo2, hijo3 e hijo4 están listos llama `_hijoListo_onTodosListos()`, que marca `estado.todosHijosListos`, registra `TODOS_HIJOS_LISTOS` y se despacha `SISTEMA.APLICACION_INICIALIZADA` | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` (`{ timestamp, mensaje, modoInicial }`) | El hijo que envió la señal | Completar la fase de handshake; saber cuándo la app está 100% operativa |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Anota en un `Map` interno (`_respuestasEntendidoActual`, `js/app.js`) que ese hijo recibió el cambio de modo; `actualizarInterfazModo` espera hasta 5 s a los de todos los hijos y sigue aunque falte alguno (lo avisa en el log) | (ninguna) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Anota en un `Map` interno (`_respuestasEfectuadoActual`, `js/app.js`) que el hijo aplicó el modo; no envía nada: `actualizarInterfazModo` espera hasta 10 s a los de todos los hijos y, aunque falte alguno (lo avisa en el log), pasa a la fase siguiente | (ninguna; `SISTEMA.CAMBIO_MODO_APLICADO` lo manda `actualizarInterfazModo`, no este handler) | — | 3.ª fase del protocolo: confirmar que cada hijo aplicó el modo antes de cerrar la 4.ª |
-| `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat (hijo5 la manda además por su cuenta al volver la pestaña a primer plano) | Pone `fallosConsecutivos` a 0 y `activo` a `true` en `estado.estadoHijos` (o da de alta al hijo) y llama a `mensajeria.procesarHeartbeatResponse()`, que reinicia `heartbeatsFallidos`, anota `ultimoHeartbeat` y, si el hijo estaba desconectado, lo da por reconectado | (ninguna) | — | Confirmar que el hijo está vivo; si el contador supera `MAX_LATIDOS_SIN_RESPUESTA=3` (`js/mensajeria.js`), el padre recarga el iframe |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat (hijo5 la manda además por su cuenta al volver la pestaña a primer plano) | Pone `fallosConsecutivos` a 0 y `activo` a `true` en `estado.estadoHijos` (o da de alta al hijo) y llama a `mensajeria.procesarHeartbeatResponse()`, que pone a 0 los `latidosSinRespuesta` del iframe en su registro y, si ya completó su apretón de manos, sus `recargas` seguidas | (ninguna) | — | Confirmar que el hijo está vivo; si sus latidos sin respuesta llegan a `MAX_LATIDOS_SIN_RESPUESTA=3` (`js/mensajeria.js`), el bus recarga el iframe |
 | `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (lista de paradas) — o internamente despachado con `despacharLocal` (progresión automática / restauración) | Actualiza `estadoActual.paradaActual` en state-manager; calcula el índice; solicita coords a hijo2 (`DATOS.COORDENADAS_PARADAS_REQUEST`); resuelve el `audio_id` de la parada vía `cargarAudios()` (`_solicitarAudioParaParada` → `_resolverAudioData`, protección pasiva por parada, ver §16); fan-out `CAMBIO_PARADA` a hijo5 (si el cambio no lo originó él), hijo2, hijo3 y hijo4 (si ya está inicializado) | `NAVEGACION.CAMBIO_PARADA` → Hijo 5 (si origen ≠ 'hijo5'), Hijo 2, Hijo 3, Hijo 4 (si ya está inicializado); `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` → Hijo 3 (mismo camino en CASA y AVENTURA); `CONTROL.HABILITAR`/`DESHABILITAR` `retosBtn` → Hijo 3 | Hijo 2, Hijo 3, Hijo 4, Hijo 5 (condicional) | Orquestar la transición completa a una nueva parada, incluida la entrega del audio de esa parada — no de la aventura completa |
 | `AUDIO.FIN_REPRODUCCION` | Hijo 3 al terminar el audio | Actualiza los controles de audio del padre y delega en `_procesarFinAudioElemento`, que es quien resuelve `pending.audio` del elemento y decide si habilitar el reto | `RETO.HABILITAR` → Hijo 4 (solo en AVENTURA y solo si la parada tiene retos, vía `_procesarFinAudioElemento`) | Hijo 4 (condicional) | El reto solo se puede intentar después de escuchar el audio de la parada y únicamente si esa parada tiene reto |
 | `RETO.COMPLETADO` | Hijo 4 cuando el usuario resuelve el reto | Actualiza el progreso en state-manager; marca `pending.reto=true`; si llegada + audio (+ reto) ya están todas a `true`, `marcarParadaCompletada()` habilita `btnAvanzar` (nunca envía `CAMBIO_PARADA` directamente, ver §2.2); si es la última parada, dispara el flujo de fin de aventura | (múltiples acciones internas; no hay un único mensaje de respuesta) | — | Avanzar el estado del recorrido tras superar el reto |
@@ -11386,7 +11387,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hijo específico | En respuesta a `HIJO_LISTO` | Confirmar que el padre tomó nota de que el hijo está listo |
 | `SISTEMA.CAMBIO_MODO` | Todos los hijos | Cuando el usuario cambia de modo (CASA/AVENTURA — los únicos dos que existen, `MODOS.CASA`/`MODOS.AVENTURA` en `js/constants.js`) | Iniciar el protocolo de cambio de modo; los hijos deben adaptar su interfaz |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | **Todos los hijos inicializados** (en paralelo) | Cuando `actualizarInterfazModo` termina de esperar `CAMBIO_MODO_EFECTUADO` de todos los hijos (hasta 10 s; si alguno falta, lo avisa en el log y sigue) | Cerrar la 4.ª fase del protocolo de modo; los frames que lo atienden (la selección y hijo1 a hijo5) solo lo escriben en el log |
-| `SISTEMA.HEARTBEAT` | Todos los iframes registrados | Cada 5 s en modo AVENTURA (valor por defecto de `iniciarHeartbeat()`); en CASA, ninguno — el ciclo se arranca/detiene con una llamada directa a `iniciarHeartbeat()`/`pausarHeartbeat()`, sin mensaje. Además, uno en `broadcast` cada vez que la pestaña vuelve a ser visible, también en CASA | Verificar que todos los hijos siguen vivos y respondiendo |
+| `SISTEMA.HEARTBEAT` | Cada iframe supervisado que ya completó su apretón de manos | Cada 5 s (valor por defecto de `iniciarHeartbeat()`, ajustado por la conexión), en cualquier modo — el ciclo lo enciende el padre una vez con una llamada directa a `iniciarHeartbeat()`, sin mensaje, y no se pausa | Verificar que todos los hijos siguen vivos y respondiendo |
 | `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (si el cambio no lo originó él), Hijo 2, Hijo 3 y Hijo 4 (si ya está inicializado) | Cada vez que cambia la parada o el tramo activo (por una orden de hijo5 o por un despacho dentro del padre: progresión, restauración de sesión, vuelta a AVENTURA) | Informar a cada hijo del elemento activo: a hijo2 con sus coordenadas, imagen y vídeo; a hijo4 con sus retos; a hijo3 y hijo5 con los identificadores |
 | `AUDIO.REPRODUCIR_REQUEST` | Hijo 3 | Al cambiar de parada | Ordenar a hijo 3 que cargue y reproduzca el audio de la nueva parada |
 | `RETO.MOSTRAR` | Hijo 4 | Cuando el usuario pulsa el botón de retos (`RETO.SOLICITAR_RETO`), o al avanzar al siguiente reto de una cola | Renderizar el reto en hijo 4 para que el usuario lo resuelva |
@@ -11858,18 +11859,20 @@ Los pasos 3 a 5 son el cuerpo del handler de `PADRE_DATOS`. Sin el paso 2 no ocu
 
 #### Qué problema resuelve
 
-El sistema de heartbeat (`js/mensajeria.js`) puede forzar el reload de un iframe si lleva `MAX_LATIDOS_SIN_RESPUESTA` (3) latidos sin contestar (`intentarReconectarHijo`: self-assign de `iframe.src`). Tras el reload, el iframe pasa por el handshake normal (HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO → PADRE_CONFIRMA_HIJO_LISTO). El problema es que el estado dinámico de la aventura en ese iframe se pierde: el temporizador de hijo1 se reinicia, el audio de hijo3 se corta, el reto visible en hijo4 desaparece.
+El supervisor del latido (`js/mensajeria.js`) fuerza el reload de un iframe si lleva `MAX_LATIDOS_SIN_RESPUESTA` (3) latidos sin contestar o si no completa su apretón de manos dentro de su gracia de arranque (`recargarIframe`: self-assign de `iframe.src`). Tras el reload, el iframe pasa por el handshake normal (HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO → PADRE_CONFIRMA_HIJO_LISTO). El problema es que el estado dinámico de la aventura en ese iframe se pierde: el temporizador de hijo1 se reinicia, el audio de hijo3 se corta, el reto visible en hijo4 desaparece.
 
 #### Arquitectura del snapshot
 
 El sistema usa dos hooks globales + un objeto de estado en Script 2:
 
 ```text
-intentarReconectarHijo(hijoId)       [js/mensajeria.js]
-  ↓ llama globalThis._vv_beforeHijoReload(hijoId)
+recargarIframe(registro)             [js/mensajeria.js]
+  ↓ olvidarHijoListo(id) en el state-manager
+  ↓ llama globalThis._vv_beforeHijoReload(id)
       → toma snapshot de _snapshotRecuperacion + paradaActual
-      → guarda en _reloadsPendientes[hijoId]
-  ↓ iframe.src = iframe.src (reload)
+      → guarda en _reloadsPendientes[id]
+      → si navigator.onLine === false: showInternetOverlay({ forzar: true })
+  ↓ registro.elemento.src = registro.elemento.src (reload)
 
 ... el iframe se recarga y hace handshake normal ...
 
@@ -11907,7 +11910,7 @@ El reenvío a hijo2 (`paradaActual`, fila de la tabla de arriba) apunta siempre 
 
 #### Dónde vive cada pieza
 
-- `js/mensajeria.js` — `intentarReconectarHijo()`: llama `globalThis._vv_beforeHijoReload(hijoId)` antes del reload
+- `js/mensajeria.js` — `recargarIframe()`: llama `globalThis._vv_beforeHijoReload(hijoId)` antes del reload
 - `codigo-padre.html` Script 1 — `_hdl_SISTEMA_HIJO_LISTO`: llama `globalThis._vv_afterHijoListo(hijoId)` tras `_hijoListo_confirmarAlHijo`
 - `codigo-padre.html` Script 2 — `_snapshotRecuperacion`, `_reloadsPendientes`, `_vv_beforeHijoReload`, `_vv_afterHijoListo` declarados tras imports (antes del wait de mensajería); tracking en `_hdl_AVENTURA_TIEMPO_ACTUALIZADO`, `_solicitarAudioParaParada`, `solicitarAudioAHijo3`, `_enviarRetoMostrar` y `_hdl_RETO_COMPLETADO`
 
@@ -12370,7 +12373,7 @@ El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js`
 
 **Archivo:** `codigo-padre.html` (~L5874 y ~L6399)
 
-El handler `_hdl_SISTEMA_HIJO_LISTO` añade el hijo a `estado.hijosInicializados` y llama a `globalThis.__stateManager.marcarHijoListo(hijoId)`; `_normalizarSetHijos` hace lo inverso al recargar los iframes de la ruta fallback: borra al hijo de `estado.hijosInicializados` y llama a `globalThis.__stateManager.olvidarHijoListo(hijoId)`, que lo quita del conjunto del state-manager (con el id dentro, `crearPromiseHijoListo` resolvería al instante para un hijo que ya avisó una vez). La función `_esperarHijoListo(iframeId)` usa el sistema de eventos de `state-manager.js` con fallback por timeout:
+El handler `_hdl_SISTEMA_HIJO_LISTO` añade el hijo a `estado.hijosInicializados` y llama a `globalThis.__stateManager.marcarHijoListo(hijoId)`; `_normalizarSetHijos` hace lo inverso al recargar los iframes de la ruta fallback: borra al hijo de `estado.hijosInicializados` y llama a `globalThis.__stateManager.olvidarHijoListo(hijoId)`, que lo quita del conjunto del state-manager (con el id dentro, `crearPromiseHijoListo` resolvería al instante para un hijo que ya avisó una vez). El supervisor del bus la llama también al recargar un hijo caído (§2.7), y `hijoEstaListo(id)` dice si el hijo ha completado el apretón de manos desde su última carga. La función `_esperarHijoListo(iframeId)` usa el sistema de eventos de `state-manager.js` con fallback por timeout:
 
 ```javascript
 function _esperarHijoListo(iframeId) {
@@ -12413,9 +12416,9 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 
 ### 31.1 Sin internet
 
-**Qué ocurre:** el dispositivo pierde la conexión a internet durante la aventura. Se detecta de dos formas complementarias: al instante, vía el evento `offline` del navegador (`globalThis.addEventListener('offline', showInternetOverlay)`, registrado incondicionalmente — `showInternetOverlay()` ya filtra por modo AVENTURA internamente); y de forma reactiva, como red de seguridad, cuando una petición real (p. ej. un audio) falla con `!navigator.onLine` — por si `offline` no llegara a dispararse en algún dispositivo.
+**Qué ocurre:** el dispositivo pierde la conexión a internet durante la aventura. Se detecta de tres formas complementarias: al instante, vía el evento `offline` del navegador (`globalThis.addEventListener('offline', showInternetOverlay)`, registrado incondicionalmente — `showInternetOverlay()` ya filtra por modo AVENTURA internamente); y de forma reactiva, como red de seguridad, cuando una petición real (p. ej. un audio) falla con `!navigator.onLine` — por si `offline` no llegara a dispararse en algún dispositivo; y por el supervisor de hijos (§2.7), que al recargar un hijo con `navigator.onLine === false` pide el overlay con `showInternetOverlay({ forzar: true })`, lo que salta el filtro de modo AVENTURA: así sale también al arrancar, con la aplicación aún sin modo decidido, cuando un hijo —típicamente la pantalla de selección— no llega a cargar.
 
-**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-internet.png`. En la parte inferior centrada, botón de reintento sin texto: 🌐🔄. Botón de cierre ✗ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha — cerrarlo manualmente no soluciona la falta de conexión, solo oculta el aviso; si la conexión sigue caída, el overlay puede volver a aparecer en el siguiente fallo de red.
+**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-internet.png` (el `<img>` se crea, y la imagen se pide, la primera vez que se enseña el overlay: sin red solo se ve si está ya en caché, y el service worker guarda en su caché cada respuesta del shell que obtiene con red, entre ellas la que provoca `video-intro.html` al cargarla en su segunda escena). En la parte inferior centrada, botón de reintento sin texto: 🌐🔄. Botón de cierre ✗ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha — cerrarlo manualmente no soluciona la falta de conexión, solo oculta el aviso; si la conexión sigue caída, el overlay puede volver a aparecer en el siguiente fallo de red.
 
 **Comportamiento del botón:**
 
@@ -12438,7 +12441,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 - Carga de nuevos MP3 si no están en caché del SW → `FIN_REPRODUCCION` nunca llega — no deja la parada bloqueada indefinidamente: hijo3 reintenta el audio y, si sigue sin poder, el padre ofrece saltarlo (ver §31.7, §25.5f)
 - Cualquier llamada a la API del backend
 
-**Estado de implementación:** ✅ implementado. El overlay se muestra vía `showInternetOverlay()` / se oculta vía `hideInternetOverlay()` en `codigo-padre.html`; se autooculta además con el evento `online` del navegador sin necesidad de que el usuario pulse nada.
+**Estado de implementación:** ✅ implementado. El overlay se muestra vía `showInternetOverlay({ forzar = false })` / se oculta vía `hideInternetOverlay()` en `codigo-padre.html` (sin `forzar` solo actúa en modo AVENTURA); se autooculta además con el evento `online` del navegador sin necesidad de que el usuario pulse nada.
 
 ---
 
@@ -12645,7 +12648,7 @@ En los tres casos el resultado es el mismo: la parada no queda bloqueada, y todo
 
 | # | Problema | Imagen | Detectado por | Estado |
 |---|---|---|---|---|
-| 31.1 | Sin internet | `imagen-no-internet.png` | `AUDIO.ERROR` + `!navigator.onLine` → `showInternetOverlay()` | ⚠️ parcial — overlay implementado; recuperación auto via evento `online` ✅ |
+| 31.1 | Sin internet | `imagen-no-internet.png` | `offline` (AVENTURA), `AUDIO.ERROR` + `!navigator.onLine` y la recarga de un hijo sin red (`{ forzar: true }`) → `showInternetOverlay()` | ⚠️ parcial — overlay implementado; recuperación auto via evento `online` ✅ |
 | 31.2 | GPS sin señal (codes 2/3) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(code)` | ✅ implementado |
 | 31.3 | GPS sin permiso (code 1) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(1)` (botón 🛰️→🌐→⚙️) | ✅ implementado |
 | 31.4a | Fuera de rango: rango real-50m (gracia 7 min) | `foto-rango-fuera.png` | `verificarDistanciaYActualizarBotones` en hijo2 → `GPS.RESTRINGIDO` → padre | ✅ implementado |
@@ -12827,23 +12830,17 @@ No se lanza ninguna excepción. El `return false` es el único indicador — y s
 
 **Regla:** Para cualquier función de `mensajeria.js` que el padre necesite invocar sobre sí mismo, usar `globalThis.mensajeria` directamente.
 
-**Patrón correcto** para heartbeat desde `codigo-padre.html`:
+**Patrón correcto** para encender el heartbeat desde `codigo-padre.html`:
 
 ```javascript
-// Activar heartbeat en padre (en _activarHeartbeatAventura)
-const hbFn = globalThis.mensajeria?.iniciarHeartbeat;
-if (typeof hbFn === 'function') {
-    await hbFn(intervalo);
-}
-
-// Pausar heartbeat en padre (en _transicionarAModoCasa)
-const pausarFn = globalThis.mensajeria?.pausarHeartbeat;
-if (typeof pausarFn === 'function') {
-    await pausarFn();
+// Encender el reloj del supervisor, una vez, al cargar el padre (Script 1)
+const intervalo = ajustarTimeoutPorConexion_S1(5000);
+if (await globalThis.mensajeria.iniciarHeartbeat(intervalo)) {
+    // reloj encendido
 }
 ```
 
-El estado del latido (`activo`, `userPaused`, `intervalo`) vive solo en el state-manager (`getHeartbeat()`): el padre no lleva una bandera global paralela.
+El estado del latido (`activo`, `intervalo`) vive solo en el state-manager (`getHeartbeat()`): el padre no lleva una bandera global paralela.
 
 Este patrón aplica a cualquier función de mensajería que el padre necesite llamar sobre sí mismo: nunca `enviarMensaje({ destino: CONFIG_PADRE.ID })`, siempre `globalThis.mensajeria.funcionX()`.
 
@@ -12959,37 +12956,27 @@ Ahora mismo `opciones.permanente` no lo lee ningún código de la app — no hay
 
 ---
 
-### 33.3 Operaciones atómicas en heartbeat (`atomicUpdateHeartbeat`)
+### 33.3 Estado del heartbeat en el state-manager
 
 **Archivos:** `js/state-manager.js`, `js/mensajeria.js`
 
-Las operaciones de read-modify-write sobre el estado heartbeat requieren atomicidad. `atomicUpdateHeartbeat` en `state-manager.js` garantiza que toda la secuencia ocurre dentro de una única adquisición del mutex:
+El state-manager guarda solo el estado del reloj del supervisor: `state.heartbeat = { activo, intervalo }`, protegido por el mutex `heartbeat`. Se lee con `getHeartbeat()` (copia profunda) y se escribe con `updateHeartbeat(parcial)` (mezcla en profundidad), cada uno dentro de una única adquisición del mutex:
 
 ```js
-export async function atomicUpdateHeartbeat(fn) {
-  await mutexes.heartbeat.runExclusive(async () => {
-    const snapshot = _deepCopy(state.heartbeat);
-    const updates = await fn(snapshot);
-    if (updates !== undefined) _deepMerge(state.heartbeat, updates);
+export async function getHeartbeat() {
+  return await mutexes.heartbeat.runExclusive(() => _deepCopy(state.heartbeat));
+}
+
+export async function updateHeartbeat(updates) {
+  await mutexes.heartbeat.runExclusive(() => {
+    _deepMerge(state.heartbeat, updates);
   });
 }
 ```
 
-La función recibe un callback que opera sobre un snapshot y devuelve los cambios. Tres funciones de `mensajeria.js` usan este patrón:
+`iniciarHeartbeat()` (`js/mensajeria.js`) los usa: lee `activo` para ser idempotente y escribe `{ activo: true }` y después `{ intervalo: <id del setInterval> }`; `supervisarHijos()` lee `activo` en cada vuelta.
 
-1. **`enviarHeartbeatAHijos`:** El incremento del contador de fallidos es atómico. La variable `nuevosFailidos_count` se captura dentro del callback y se lee fuera para decidir si desconectar al hijo.
-
-2. **`marcarHijoDesconectado`:** Usa una sola llamada a `atomicUpdateHeartbeat` en lugar de `getHeartbeat` + `updateHeartbeat` separados.
-
-3. **`procesarHeartbeatResponse`:** Resetear fallidos, actualizar `ultimoHeartbeat` y quitar al hijo de desconectados ocurre en una sola operación. `estabaDesconectado` se captura dentro del callback y se lee fuera para disparar la lógica de reconexión:
-
-```js
-let estabaDesconectado = false;
-await sm.atomicUpdateHeartbeat(s => {
-    estabaDesconectado = desconectados.has(hijoId);
-    return { heartbeatsFallidos: ..., ultimoHeartbeat: ..., hijosDesconectados: ... };
-});
-```
+Los contadores de cada iframe (`latidosSinRespuesta`, `recargas`, `cargaDesde`) no pasan por el state-manager: viven en el registro del iframe dentro de `js/mensajeria.js`, que el bus actualiza de forma síncrona (`vigilarLatido`, `vigilarArranque`, `procesarHeartbeatResponse`, `recargarIframe`), sin ningún `await` entre leer y escribir, así que no necesitan mutex. Lo único del supervisor que el state-manager responde es si un hijo ha completado el apretón de manos (`hijoEstaListo(id)`, sobre `hijosInicializados` de la copia de `estadoPadre`).
 
 ---
 
@@ -13397,7 +13384,7 @@ Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
 El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estado.modo.actual` (en `js/state-manager.js`), `modoActual` (variable local en cada hijo) y las constantes `MODOS.AVENTURA = 'aventura'` / `MODOS.CASA = 'casa'` de `js/constants.js`.
 
 1. Para cada bloque `if (modo === MODOS.AVENTURA)` o `if (modoActual === MODOS.CASA)`: verifica que lee de la fuente correcta para ese contexto (padre vs. hijo).
-2. Transición **CASA→AVENTURA**: verifica que se muestra el mapa, se activa GPS, se oculta hijo5 (`display:none`), y se inicia heartbeat.
+2. Transición **CASA→AVENTURA**: verifica que se muestra el mapa, se activa GPS y se oculta hijo5 (`display:none`).
 3. Transición **AVENTURA→CASA**: verifica limpieza de overlays, detención del GPS, pausa del audio, reset del estado de cada hijo.
 4. En cada hijo: ¿de dónde recibe el modo? ¿Lo persiste en su `estado.modo`? ¿Responde correctamente con ENTENDIDO y EFECTUADO al padre?
 5. Verifica que el modo se propaga a todos los hijos antes de que cada uno lo necesite para actuar.
@@ -13523,7 +13510,7 @@ El elemento ya está activo (`_hdl_NAVEGACION_CAMBIO_PARADA` disparado antes, al
 Todas las paradas completadas → `globalThis.mostrarModalFinalizacion()` → modal celebrativo en 12 idiomas → "otra aventura" (vuelve a P2 sin limpiar SW) O "terminar" (`?despedida=1` → página de despedida P5 → `limpiarDatosAventura()`). Tiempo agotado (por cualquiera de sus tres disparadores, ver §25.12) sigue el mismo patrón de botones pero con `globalThis.mostrarModalTiempoAgotado()` — un modal distinto, sin tono celebrativo, porque no hay nada que celebrar cuando la aventura termina por falta de tiempo en vez de por completarse.
 
 **Flujo D — Cambio a modo CASA:**
-`CAMBIO_MODO(CASA)` → cada hijo responde ENTENDIDO → aplica ocultamiento propio → responde EFECTUADO → padre confirma con `CAMBIO_MODO_APLICADO` → heartbeat se pausa (`_transicionarAModoCasa`, localStorage de progreso limpiado salvo en modo dev, ver §24) → GPS **sigue activo** — `watchPosition` nunca se detiene al cambiar de modo (ver §2.6) — solo deja de validar distancias.
+`CAMBIO_MODO(CASA)` → cada hijo responde ENTENDIDO → aplica ocultamiento propio → responde EFECTUADO → padre confirma con `CAMBIO_MODO_APLICADO` → `_transicionarAModoCasa` limpia el localStorage de progreso (salvo en modo dev, ver §24), sin tocar el latido → GPS **sigue activo** — `watchPosition` nunca se detiene al cambiar de modo (ver §2.6) — solo deja de validar distancias.
 
 **Flujo E — Error GPS:**
 GPS denegado por usuario → `verificarPermisosGPS()` devuelve `false` → `activarGPS()` lanza antes de iniciar `watchPosition` → `catch` en `activarGPS` llama `showGpsSignalOverlay(1)` → usuario ve imagen de error + instrucciones → overlay persiste hasta que el usuario concede permisos o recarga.
@@ -13579,7 +13566,7 @@ Veredictos:
 
 ### 36.18 EJE 18 — Re-registro de handlers en iframes recargados
 
-Cuando el heartbeat detecta que un iframe no responde, resetea su `src` para recargarlo. El iframe ejecuta de nuevo su `init()` y re-registra todos sus handlers con `registrarControladorSeguro`.
+Cuando el supervisor del latido (§2.7) da a un iframe por caído, resetea su `src` para recargarlo. El iframe ejecuta de nuevo su `init()` y re-registra todos sus handlers con `registrarControladorSeguro`.
 
 Verificar:
 
@@ -14036,7 +14023,7 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **127 en total**. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 104 identificadores cruzados, de 153 expuestos (20 bloques &lt;script&gt; inline: 5 módulo + 15 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 103 identificadores cruzados, de 152 expuestos (20 bloques &lt;script&gt; inline: 5 módulo + 15 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14052,98 +14039,97 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarImagenOverlay` | clásico 7 (L1751) | módulo 1, módulo 2 | función/objeto |
 | `mostrarVideoOverlay` | clásico 7 (L2092) | módulo 1, módulo 2 | función/objeto |
 | `rotationSuppressed` | clásico 7 (L1792) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3823) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5161) | clásico 13 | estado |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3811) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3810) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5979) | clásico 13 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6651) | clásico 13 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3812) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6791) | clásico 13 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3814) | módulo 2 | función/objeto |
-| `__vv_PUZZLES` | módulo 1 (L3815) | módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3817) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5164) | clásico 13 | estado |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3805) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3804) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5982) | clásico 13 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6654) | clásico 13 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3806) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6794) | clásico 13 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3808) | módulo 2 | función/objeto |
+| `__vv_PUZZLES` | módulo 1 (L3809) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3691) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4851) | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 (L7559) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L9138) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L9354) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L9259) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L4142) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L9228) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9424) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9330) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L9234) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9432) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L9108) | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5305) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6152) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3951) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3958) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4669) | clásico 6, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8453) | clásico 5, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8451) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8452) | módulo 2 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L4049) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3945) | clásico 6, clásico 7, módulo 2, módulo 3, clásico 12, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3946) | módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L4147) | clásico 6, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4469) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4260) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6555) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4854) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7542) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L9020) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9236) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L9141) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L4145) | módulo 2 | estado |
+| `_iniciarRecordatorioAudio` | módulo 1 (L9110) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9306) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9212) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L9116) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9314) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8990) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5308) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6155) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3945) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3952) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4672) | clásico 6, módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8335) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8333) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8334) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L4052) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3939) | clásico 6, clásico 7, módulo 2, módulo 3, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3940) | módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4150) | clásico 6, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4472) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4263) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6558) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2949) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4670) | clásico 6, módulo 2, clásico 14 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4673) | clásico 6, módulo 2, clásico 14 | función/objeto |
 | `limpiarDatosAventura` | módulo 1 (L2984) | módulo 2, clásico 14 | función/objeto |
-| `MODOS` | módulo 1 (L3943) | módulo 2, módulo 4 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8835) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8904) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8758) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8611) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8654) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4329) | módulo 2 | función/objeto |
-| `registrarControlador` | módulo 1 (L3944) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5189) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5216) | módulo 2 | función/objeto |
-| `registrarIframeHijo` | módulo 1 (L3735) | clásico 6, módulo 2 | función/objeto |
+| `MODOS` | módulo 1 (L3937) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8717) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L8786) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8640) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8493) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8536) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4332) | módulo 2 | función/objeto |
+| `registrarControlador` | módulo 1 (L3938) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5192) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5219) | módulo 2 | función/objeto |
+| `registrarIframeHijo` | módulo 1 (L3729) | clásico 6, módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2990) | clásico 7, módulo 2 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2979) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2980) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6391) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6316) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6243) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6471) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6547) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6848) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6847) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6394) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6319) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6246) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6474) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6550) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6854) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6853) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2937) | módulo 2 | función/objeto |
 | `sleep` | módulo 1 (L2859) | módulo 2, módulo 3, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5916) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3942) | clásico 6, clásico 7, módulo 2, módulo 3, módulo 4 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L4120) | clásico 7, módulo 2 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5919) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3936) | clásico 6, clásico 7, módulo 2, módulo 3 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L4123) | clásico 7, módulo 2 | función/objeto |
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2988) | clásico 14 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2965) | módulo 2 | función/objeto |
 | `verificarTimeoutAventura` | módulo 1 (L2985) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8454) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9544) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14504) | clásico 13 | estado |
-| `_buscarParadaEnDatos` | módulo 2 (L11452) | módulo 1 | función/objeto |
-| `_configurarRetoBtn` | módulo 2 (L11726) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L14485) | clásico 6 | función/objeto |
-| `_iframesPreCargadosP14` | módulo 2 (L12742) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L13154) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L13184) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9604) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10481) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9743) | clásico 6, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9825) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10300) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13415) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10363) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9863) | módulo 1 | función/objeto |
-| `obtenerRetosIds` | módulo 2 (L9880) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10355) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10328) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14576) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE_IFRAME` | módulo 3 (L14523) | clásico 12 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8336) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9426) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14390) | clásico 13 | estado |
+| `_buscarParadaEnDatos` | módulo 2 (L11338) | módulo 1 | función/objeto |
+| `_configurarRetoBtn` | módulo 2 (L11612) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L14371) | clásico 6 | función/objeto |
+| `_iframesPreCargadosP14` | módulo 2 (L12628) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L13040) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L13070) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9490) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10367) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9629) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9711) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10186) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13301) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10249) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9749) | módulo 1 | función/objeto |
+| `obtenerRetosIds` | módulo 2 (L9766) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10241) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10214) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14462) | módulo 2 | función/objeto |
 
 </details>
 
@@ -14229,7 +14215,7 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 93 tipos de mensaje. 
 | `MAPA_COMPLETO.DATOS` | codigo-padre.html | mapa-completo.html |
 | `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo.html | codigo-padre.html |
 | `MAPA_COMPLETO.VISIBLE` | codigo-padre.html | mapa-completo.html |
-| `NAVEGACION.ACTUALIZAR_ESTADO` | codigo-padre.html, js/funciones-mapa.js, js/mensajeria.js | coordenadas-hijo2.html |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | codigo-padre.html, js/funciones-mapa.js | coordenadas-hijo2.html |
 | `NAVEGACION.CAMBIO_PARADA` | boton-casa-hijo5.html, codigo-padre.html, js/app.js | audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | audio-hijo3.html, js/funciones-mapa.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html |
 | `NAVEGACION.GPS.ACTIVAR` | coordenadas-hijo2.html, js/funciones-mapa.js | codigo-padre.html |
@@ -14280,7 +14266,7 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 93 tipos de mensaje. 
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | js/app.js |
 | `SISTEMA.CONFIRMACION` | js/mensajeria.js | js/mensajeria.js |
 | `SISTEMA.ERROR` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, js/funciones-mapa.js, js/mensajeria.js, js/utils.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, js/mensajeria.js, retos-hijo4.html |
-| `SISTEMA.HEARTBEAT` | codigo-padre.html, js/mensajeria.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/mensajeria.js, retos-hijo4.html |
+| `SISTEMA.HEARTBEAT` | js/mensajeria.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/mensajeria.js, retos-hijo4.html |
 | `SISTEMA.HEARTBEAT_RESPONSE` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html, js/mensajeria.js |
 | `SISTEMA.HIJO_FALLIDO` | En-busca-del-tesoro.html, extrainfo-hijo1.html | codigo-padre.html |
 | `SISTEMA.HIJO_LISTO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
