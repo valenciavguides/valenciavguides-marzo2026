@@ -25,6 +25,9 @@
  *   RC-6  Sin red, la recarga de un hijo enseña el overlay de sin conexión aunque aún no haya modo, y se va solo con `online`.
  *   RC-7  Un hijo se muestra al estar listo, también si lo recupera el supervisor pasada la gracia: el cargador no se rinde antes.
  *   RC-8  La recuperación es una sola: no hay un segundo registro del estado de los hijos ni una señal propia de fallo.
+ *   RC-9  El asistente (hijo6) se ve al estar listo, como cualquier hijo: pulsar su botón lo carga, y mientras no esté listo no se ve.
+ *   RC-10 hijo4 recibe el reto cuando está listo: con hijo4 recuperándose, la petición espera y hijo4 no se muestra antes.
+ *   RC-11 Cargar el asistente con los tres hijos críticos ya listos no despacha otra vez APLICACION_INICIALIZADA.
  *
  * ROJO ANTES QUE VERDE: RC-2 falla si nadie pasa `{ supervisado: true }` al registrar, RC-3 falla si la
  * restauración se dirige a un id que la mensajería no conoce, y RC-4 falla si un hijo no contesta o su
@@ -43,8 +46,8 @@ const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 /**
  * Los hijos que hacen el apretón de manos. hijo5 y hijo6-chat no salen en RC-1 porque en esta pantalla todavía
- * no están registrados — cada uno entra en la mensajería en su propio cargador (hijo5 al elegir aventura, el chat
- * al abrirlo). RC-2 les exige la marca igualmente, aparezcan cuando aparezcan.
+ * no están registrados: los registra `cargarHijo` cuando los carga (hijo5 al elegir aventura, el asistente al pulsar
+ * su botón). RC-2 les exige la marca igualmente, aparezcan cuando aparezcan.
  */
 const HIJOS = ['seleccion', 'hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5', 'hijo6-chat'];
 /** Los que se cargan en el beforeEach. */
@@ -395,5 +398,158 @@ test.describe('RC-8 — La recuperación de un hijo es una sola', () => {
     expect(r.estadoHijos, 'quién está listo lo dicen hijosInicializados y el registro de iframes del bus, no un segundo Map').toBeUndefined();
     expect(r.tipo, 'un hijo roto no avisa: lo detecta el supervisor').toBeUndefined();
     expect(r.handler, 'el padre no escucha ninguna señal de fallo de un hijo').toBe(false);
+  });
+});
+
+test.describe('RC-9 — El asistente (hijo6) se ve al estar listo, como cualquier hijo', () => {
+  test.beforeEach(async ({ page, context }) => {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    // El mismo cebo que RC-5 y RC-7: mientras la bandera esté puesta, los iframes se tragan el PADRE_DATOS y no completan el apretón de manos.
+    await page.addInitScript(() => {
+      if (globalThis === globalThis.top) return;
+      globalThis.addEventListener('message', (e) => {
+        if (e.source === globalThis.parent && e.data && e.data.tipo === 'SISTEMA.PADRE_DATOS' && localStorage.getItem('vvtest:sin-apreton') === '1') {
+          e.stopImmediatePropagation();
+        }
+      }, true);
+    });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+    await page.waitForFunction(() => globalThis.sistemaInicializado === true && !!document.getElementById('btn-chat-soporte'), null, { timeout: 60_000 });
+  });
+
+  test('RC-9. Pulsar el botón carga el asistente, que no se ve mientras no está listo; un segundo toque no lo recarga; al estar listo se ve', async ({ page }) => {
+    test.setTimeout(90_000);
+    const estiloChat = () => page.evaluate(() => {
+      const c = document.getElementById('hijo6-chat');
+      return { display: c.style.display, visibility: c.style.visibility };
+    });
+    await page.evaluate(() => localStorage.setItem('vvtest:sin-apreton', '1'));
+    await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
+    await page.waitForFunction(() => globalThis.mensajeria.getIframesRegistrados().has('hijo6-chat'), null, { timeout: 15_000 });
+
+    // Cargado, pero sin apretón de manos: no se ve. VENTANA-OBSERVACION: lo que se mide es que NO pasa nada en esos 4 s.
+    await page.waitForTimeout(4_000);
+    expect(await estiloChat(), 'el asistente cargado pero sin apretón de manos no se ve').toEqual({ display: 'none', visibility: 'hidden' });
+
+    // Un segundo toque mientras carga ni lo abre ni reinicia su carga.
+    const cargaDesde = () => page.evaluate(() => globalThis.mensajeria.getIframesRegistrados().get('hijo6-chat').cargaDesde);
+    const antes = await cargaDesde();
+    await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
+    await page.waitForTimeout(500); // VENTANA-OBSERVACION: lo que se mide es que NO pasa nada tras el segundo toque
+    expect(await cargaDesde(), 'el segundo toque no reinicia la carga').toBe(antes);
+    expect(await estiloChat(), 'ni lo abre').toEqual({ display: 'none', visibility: 'hidden' });
+
+    // Se le entrega el PADRE_DATOS que se había tragado: completa el apretón de manos y, al estar listo, se ve.
+    await page.evaluate(() => {
+      localStorage.removeItem('vvtest:sin-apreton');
+      globalThis.mensajeria.enviarMensaje({
+        tipo: globalThis.TIPOS_MENSAJE.SISTEMA.PADRE_DATOS,
+        destino: 'hijo6-chat',
+        datos: { modo: globalThis.estadoPadre?.modo?.actual || 'casa', ...globalThis.construirEstadoChat() },
+      });
+    });
+    await page.waitForFunction(() => globalThis.estadoPadre?.hijosInicializados?.has('hijo6-chat'), null, { timeout: 15_000 });
+    await expect.poll(estiloChat, { timeout: 10_000, message: 'listo el asistente, se ve' }).toEqual({ display: 'block', visibility: 'visible' });
+
+    // Si después lo recarga el supervisor (deja de estar listo), pulsar el botón no reinicia esa carga.
+    await page.evaluate(() => globalThis.__stateManager.olvidarHijoListo('hijo6-chat'));
+    const trasRecarga = await cargaDesde();
+    await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
+    await page.waitForTimeout(500); // VENTANA-OBSERVACION: lo que se mide es que NO pasa nada tras ese toque
+    expect(await cargaDesde(), 'el botón no reinicia la recuperación de un asistente que ya estaba cargado').toBe(trasRecarga);
+  });
+});
+
+test.describe('RC-10 — hijo4 recibe el reto cuando está listo, como cualquier hijo', () => {
+  test.beforeEach(async ({ page, context }) => {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+    await page.waitForFunction(() => globalThis.sistemaInicializado === true, null, { timeout: 60_000 });
+  });
+
+  test('RC-10. Pedir un reto con hijo4 recuperándose espera a que esté listo, sin mostrarlo antes, y entonces lo muestra', async ({ page }) => {
+    test.setTimeout(90_000);
+    const post = (tipo, datos) => page.evaluate(([t, d]) => document.getElementById('seleccion').contentWindow.parent.postMessage(
+      { tipo: t, origen: 'seleccion', datos: d }, globalThis.location.origin), [tipo, datos]);
+    await page.evaluate(() => { globalThis.aventuraSeleccionada = 'Aventura1'; globalThis.idiomaSeleccionado = 'es'; });
+    await post('SELECCION.P14_MOSTRADA', { timestamp: Date.now() });
+    await page.waitForFunction(() => globalThis._iframesPreCargadosP14 === true, null, { timeout: 60_000 });
+    await post('SELECCION.AVENTURA_ACTIVADA', { aventura: 'Aventura1', idioma: 'es', terminosAceptados: true, timestamp: Date.now() });
+    await page.waitForFunction(() => globalThis.estadoPadre?.modo?.actual === 'aventura', null, { timeout: 60_000 });
+
+    // Una parada con reto, como la activa el progreso real.
+    const parada = await page.evaluate(() => {
+      const els = globalThis.DATOS_PADRE.Aventura1.es.elementosIDpadre;
+      const conReto = els.find((p) => p.reto_id);
+      return conReto ? { padreId: conReto.padreid } : null;
+    });
+    expect(parada, 'la aventura de prueba tiene una parada con reto').not.toBeNull();
+    await page.evaluate((p) => globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: p.padreId, padreId: p.padreId } }), parada);
+    await expect.poll(() => page.evaluate(() => globalThis.estadoPadre?.paradaActual), { timeout: 10_000 }).not.toBeNull();
+
+    // hijo4 «se está recuperando»: para el state-manager (que es de quien se fía el bus) ya no está listo.
+    await page.evaluate(() => {
+      globalThis.__stateManager.olvidarHijoListo('hijo4');
+      globalThis.__reto = { terminado: false, resultado: null };
+      globalThis.mensajeria.despacharLocal({ tipo: 'RETO.SOLICITAR_RETO', origen: 'hijo3', datos: {} })
+        .then((r) => { globalThis.__reto = { terminado: true, resultado: r }; });
+    });
+    const hijo4Visible = () => page.evaluate(() => document.getElementById('hijo4').classList.contains('visible'));
+    // VENTANA-OBSERVACION: lo que se mide es que NO pasa nada en esos 2 s.
+    await page.waitForTimeout(2_000);
+    expect(await hijo4Visible(), 'mientras hijo4 no está listo no se muestra').toBe(false);
+    expect(await page.evaluate(() => globalThis.__reto.terminado), 'y la petición del reto espera').toBe(false);
+
+    // Vuelve a estar listo.
+    await page.evaluate(() => globalThis.__stateManager.marcarHijoListo('hijo4'));
+    await expect.poll(hijo4Visible, { timeout: 10_000, message: 'listo hijo4, se muestra' }).toBe(true);
+    await expect.poll(() => page.evaluate(() => globalThis.__reto.terminado), { timeout: 10_000, message: 'y la petición del reto sigue adelante' }).toBe(true);
+    expect((await page.evaluate(() => globalThis.__reto.resultado))?.exito, 'con el reto servido').toBe(true);
+  });
+});
+
+test.describe('RC-11 — Cargar el asistente no vuelve a armar «todos los hijos listos»', () => {
+  test.beforeEach(async ({ page, context }) => {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+    await page.waitForFunction(() => globalThis.sistemaInicializado === true && !!document.getElementById('btn-chat-soporte'), null, { timeout: 60_000 });
+  });
+
+  test('RC-11. Con los tres hijos críticos ya listos, cargar el asistente no despacha otra vez APLICACION_INICIALIZADA', async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.evaluate(() => {
+      globalThis.__aplicacionInicializada = 0;
+      const bus = globalThis.mensajeria;
+      const original = bus.despacharLocal;
+      bus.despacharLocal = function (m) {
+        if (m && m.tipo === 'SISTEMA.APLICACION_INICIALIZADA') globalThis.__aplicacionInicializada += 1;
+        return original.apply(this, arguments);
+      };
+      globalThis.aventuraSeleccionada = 'Aventura1';
+      globalThis.idiomaSeleccionado = 'es';
+    });
+    // Los hijos se cargan por el camino de P14; cuando hijo2, hijo3 y hijo4 están listos se despacha una vez.
+    await page.evaluate(() => document.getElementById('seleccion').contentWindow.parent.postMessage(
+      { tipo: 'SELECCION.P14_MOSTRADA', origen: 'seleccion', datos: { timestamp: Date.now() } }, globalThis.location.origin));
+    await page.waitForFunction(() => globalThis._iframesPreCargadosP14 === true, null, { timeout: 60_000 });
+    await expect.poll(() => page.evaluate(() => globalThis.__aplicacionInicializada), { timeout: 10_000, message: 'con los tres críticos listos se despacha una vez' }).toBe(1);
+
+    // El asistente se carga y completa su apretón de manos: ya hay un `HIJO_LISTO` más con los tres críticos listos, y no puede armarlo de nuevo.
+    await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
+    await page.waitForFunction(() => globalThis.estadoPadre?.hijosInicializados?.has('hijo6-chat'), null, { timeout: 30_000 });
+    await page.waitForTimeout(1_500); // VENTANA-OBSERVACION: lo que se mide es que NO se despacha nada más tras el HIJO_LISTO del asistente
+    expect(await page.evaluate(() => globalThis.__aplicacionInicializada), 'cargar al asistente no despacha APLICACION_INICIALIZADA otra vez').toBe(1);
   });
 });

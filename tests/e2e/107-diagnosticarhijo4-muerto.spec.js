@@ -17,6 +17,7 @@
  * estado peor si alguna vez se usaba de verdad.
  *
  * MH-1  `globalThis.diagnosticarHijo4` ya no existe.
+ * MH-2  `mostrarHijo4` solo muestra a hijo4: si no está cargado no lo carga por su cuenta (lo carga únicamente `cargarHijo`).
  *
  * ROJO ANTES DEL ARREGLO: medido con un spec desechable (no committeado) que invocaba la función
  * y confirmaba `getIframesRegistrados().has('hijo4') === false` tras la carga.
@@ -36,4 +37,26 @@ test('MH-1. diagnosticarHijo4 ya no existe (segundo cargador sin registrar, reti
 
   const existe = await page.evaluate(() => typeof globalThis.diagnosticarHijo4);
   expect(existe).toBe('undefined');
+});
+
+test('MH-2. mostrarHijo4 solo muestra a hijo4: si no está cargado no lo carga por su cuenta', async ({ page }) => {
+  await page.addInitScript({ path: MAPLIBRE_STUB });
+  await injectInitSpy(page);
+  await stubCDNResources(page);
+  await gotoAndWaitForFase1(page);
+
+  const estado = () => page.evaluate(() => ({
+    src: document.getElementById('hijo4').getAttribute('src'),
+    registrados: [...globalThis.mensajeria.getIframesRegistrados().keys()],
+  }));
+  const antes = await estado();
+  expect(antes.src, 'precondición: hijo4 todavía sin cargar').toBeFalsy();
+
+  await page.evaluate(() => globalThis.mostrarHijo4());
+
+  // hijo4 lo carga solo el cargador único (`cargarHijo`), que lo registra en el bus y espera su HIJO_LISTO. Un segundo camino de carga
+  // dentro de `mostrarHijo4` lo cargaría sin ninguna de las dos cosas.
+  const despues = await estado();
+  expect(despues.src, 'mostrarHijo4 no le asigna el src').toBeFalsy();
+  expect(despues.registrados, 'ni lo registra en el bus por su cuenta').not.toContain('hijo4');
 });

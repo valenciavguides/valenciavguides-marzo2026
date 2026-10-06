@@ -1559,13 +1559,11 @@
                 if (brujulaModo) brujulaModo.style.display = hayVentanaActiva ? 'none' : 'flex';
             };
 
-            // 3. Chat de soporte (hijo6) — apertura lazy + cierre por mensaje
+            // 3. Asistente de soporte (hijo6) — se abre con su botón y se cierra por mensaje
             (function() {
                 let btnChat    = document.getElementById('btn-chat-soporte');
                 let iframeChat = document.getElementById('hijo6-chat');
                 if (!btnChat || !iframeChat) return;
-
-                let chatCargado = false;
 
                 // El asistente necesita DOS cosas del rescate, y las dos salen de la misma
                 // consulta: cuántos hay en esta aventura —el texto aprobado dice "dispone de
@@ -1601,42 +1599,40 @@
                     };
                 }
 
-                function abrirChat() {
-                    if (chatCargado) {
-                        // Solo refrescar estado si hijo6 ya completó handshake (HIJO_LISTO recibido)
-                        const chatListoParaMensajes = globalThis.estadoPadre?.hijosInicializados?.has('hijo6-chat');
-                        if (chatListoParaMensajes) {
-                            globalThis.mensajeria.enviarMensaje({
-                                tipo: globalThis.TIPOS_MENSAJE?.CHAT?.ESTADO_PADRE || 'CHAT.ESTADO_PADRE',
-                                destino: 'hijo6-chat',
-                                datos: construirEstadoChat()
-                            });
-                        }
-                        // Si aún no está listo, el handshake HIJO_PREPARADO→PADRE_DATOS entregará el estado
-                    } else {
-                        chatCargado = true;
-                        // Registrar el iframe en la mensajería ANTES de asignarle src, igual que
-                        // hacen los otros cargadores. `enviarMensaje`
-                        // (js/mensajeria.js) resuelve el destino buscándolo en `iframesRegistrados`:
-                        // un iframe que no esté ahí no es alcanzable desde el padre, y todo mensaje
-                        // dirigido a él se descarta con un simple warn. Sin este registro, el
-                        // El SISTEMA.PADRE_DATOS que el padre responde al
-                        // HIJO_PREPARADO de hijo6 se pierden — y como hijo6 espera PADRE_DATOS para
-                        // conocer el idioma y para enviar su HIJO_LISTO, el chat se construía
-                        // siempre en español y nunca entraba en `hijosInicializados` (lo que además
-                        // dejaba muerta la vía de refresco de `chatListoParaMensajes`, arriba).
-                        // El sentido hijo→padre nunca dependió de esto: es un postMessage directo
-                        // a `window.parent`, por eso el HIJO_PREPARADO sí llegaba.
-                        try {
-                            globalThis.registrarIframeHijo('hijo6-chat', iframeChat);
-                        } catch (e) { (globalThis.logger || console).warn('[PADRE] No se pudo registrar hijo6-chat en la mensajería', e && e.message); }
-                        iframeChat.src = 'chat-hijo6.html';
-                        // Estado inicial se transmite vía handshake HIJO_PREPARADO → PADRE_DATOS
-                    }
+                // El asistente (hijo6) es un hijo más: lo carga el cargador único (cargarHijo), la primera vez que se pulsa su botón, y
+                // como cualquier hijo no se ve hasta que está listo. Un asistente que no ha llegado a cargar no se ve nunca, así que quien lo
+                // encuentra roto no necesita ninguna salida: el supervisor del bus lo recupera (§2.7).
+                let _chatCargando = false;
+
+                function _mostrarChat() {
                     iframeChat.style.display     = 'block';
                     iframeChat.style.visibility  = 'visible';
                     if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
                         globalThis.actualizarVisibilidadSelectorMapa();
+                    }
+                }
+
+                async function abrirChat() {
+                    if (globalThis.__stateManager.hijoEstaListo('hijo6-chat')) {
+                        // Ya cargado: se le entrega el estado de ahora (parada, rescate) antes de enseñarlo
+                        globalThis.mensajeria.enviarMensaje({
+                            tipo: globalThis.TIPOS_MENSAJE?.CHAT?.ESTADO_PADRE || 'CHAT.ESTADO_PADRE',
+                            destino: 'hijo6-chat',
+                            datos: construirEstadoChat()
+                        });
+                        _mostrarChat();
+                        return;
+                    }
+                    // Sin estar listo: o es la primera apertura (el iframe no tiene `src`) y se carga, o ya se está cargando o recuperando y el
+                    // botón no hace nada hasta que esté listo.
+                    if (_chatCargando || iframeChat.getAttribute('src')) return;
+                    _chatCargando = true;
+                    try {
+                        // El estado inicial viaja en el handshake (HIJO_PREPARADO → PADRE_DATOS): al abrirlo por primera vez no hace falta refrescarlo.
+                        await globalThis.cargarHijo({ id: 'hijo6-chat', src: 'chat-hijo6.html' }, { visibilidad: 'no-tocar' });
+                        _mostrarChat();
+                    } finally {
+                        _chatCargando = false;
                     }
                 }
 
@@ -2751,7 +2747,7 @@
     <!-- #brujula-modo ya no existe como <button> estático — se crea por completo en JS
          dentro de initializeMap(), junto a #selector-tipo-mapa (mismo patrón). -->
 
-    <!-- Overlay del chat de soporte (hijo6) — carga lazy al primer uso -->
+    <!-- Overlay del asistente de soporte (hijo6): lo carga cargarHijo la primera vez que se pulsa su botón y no se ve hasta que está listo -->
     <iframe id="hijo6-chat" name="hijo6-chat" src=""
         title="Asistente de soporte"
         aria-label="Chat de soporte operativo"
@@ -7202,6 +7198,9 @@
         // ============================================================
         // IMPORTANTE: Se registra AQUÍ (Script 1) ANTES de cargar iframes
         // para garantizar que esté activo cuando los hijos envíen sus mensajes
+        // Los hijos sin los que la aplicación no se da por inicializada: cuando los tres están listos se despacha SISTEMA.APLICACION_INICIALIZADA
+        // (_hijoListo_onTodosListos). Recargar a uno de ellos con cargarHijo lo vuelve a armar; recargar a los demás no lo toca.
+        const HIJOS_CRITICOS = ['hijo2', 'hijo3', 'hijo4'];
         async function _hijoListo_confirmarAlHijo(hijoId, logPrefix) {
             try {
                 if (typeof enviarMensaje_S1 === 'function') {
@@ -7296,7 +7295,7 @@
                         (globalThis.logger || console).warn(`${logPrefix} Funciones de Script 2 (retosBtn) aún no disponibles; se omite reconfiguración tras hijo3 listo`);
                     }
                 }
-                const hijosCriticos = ['hijo2', 'hijo3', 'hijo4'];
+                const hijosCriticos = HIJOS_CRITICOS;
                 const todosListos = hijosCriticos.every(id => estado.hijosInicializados && estado.hijosInicializados.has(id));
                 if (todosListos && !estado.todosHijosListos) { await _hijoListo_onTodosListos(logPrefix, hijosCriticos, timestamp); }
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error procesando hijo listo:`, error); }
@@ -7815,7 +7814,7 @@
         function _olvidarHijoListo(iframeId) {
             globalThis.estadoPadre.hijosInicializados.delete(iframeId);
             globalThis.__stateManager.olvidarHijoListo(iframeId);
-            globalThis.estadoPadre.todosHijosListos = false;
+            if (HIJOS_CRITICOS.includes(iframeId)) globalThis.estadoPadre.todosHijosListos = false;
         }
 
         // Carga el iframe de un hijo y no termina hasta que completa el apretón de manos (HIJO_LISTO). SIN plazo: si no llega, lo
@@ -8168,6 +8167,7 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.cargarIframeSoloSeleccion = cargarIframeSoloSeleccion;
         globalThis.cargarRestoDeiframes = cargarRestoDeiframes;
         globalThis.cargarHijoCasa = cargarHijoCasa;
+        globalThis.cargarHijo = cargarHijo;
         globalThis.waitForMapLibreAndInitialize = waitForMapLibreAndInitialize;
 
         // ============================================================
@@ -10354,20 +10354,6 @@ await _comprobarReanudacionAventura(logPrefix);
             return null;
         }
 
-        async function _esperarHijo4(estado, logPrefix) {
-            let intentos = 0;
-            while ((!estado.hijosInicializados || !estado.hijosInicializados.has('hijo4')) && intentos < 50) {
-                await sleep(100);
-                intentos++;
-            }
-            const listo = estado.hijosInicializados && estado.hijosInicializados.has('hijo4');
-            if (!listo) {
-                (globalThis.logger || console).warn(`${logPrefix} ⚠️ Hijo4 no en hijosInicializados tras 5s, pero intentando enviar RETO.MOSTRAR de todos modos`);
-                (globalThis.logger || console).error(`[PADRE][DEBUG-RETO] hijosInicializados NO tiene hijo4. Set actual:`, Array.from(estado.hijosInicializados || []));
-            }
-            return listo;
-        }
-
         async function _enviarRetoMostrar(retoIdToUsar, _retosArray, logPrefix, contexto = 'manual') {
             // Tracking para snapshot de reload
             // El idioma de la aventura viaja con el reto: hijo4 lo usa para sus dos textos propios (la reposición tras recargar
@@ -10457,15 +10443,10 @@ await _comprobarReanudacionAventura(logPrefix);
                 estado.retoActual.id = retoIdToUsar;
                 estado.retoActual.disponible = true;
 
-                // Mostrar el iframe de hijo4 antes de enviar el reto
+                // hijo4 se muestra y recibe el reto cuando está listo, como cualquier hijo: si se está recuperando (lo recarga el supervisor del
+                // bus, §2.7) se espera sin plazo a su HIJO_LISTO nuevo.
+                await globalThis.__stateManager.crearPromiseHijoListo('hijo4');
                 await mostrarHijo4();
-
-                // Verificar que hijo4 esté listo antes de enviar el mensaje
-                const _hijo4Listo = estado.hijosInicializados && estado.hijosInicializados.has('hijo4');
-                if (!_hijo4Listo) {
-                    (globalThis.logger || console).warn(`${logPrefix} Hijo4 no está en hijosInicializados, esperando hasta 5s...`);
-                    await _esperarHijo4(estado, logPrefix);
-                }
 
                 // Protección pasiva por parada: resolver solo el reto que se va a mostrar,
                 // no la aventura completa (ver docs/GUIA-COMPLETA.md §16).
@@ -14143,55 +14124,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         // try/catch y no enviaba ni un heartbeat: fallaba en silencio (EJE 26).
         globalThis.TIPOS_MENSAJE_IFRAME = TIPOS_MENSAJE_IFRAME;
         await import('./js/config.js');
-        const loggerIframe = (await import('./js/logger.js')).default;
-        const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
-        // mensajeria.js ya importado en Script 1 - esperar a que esté disponible antes de destructurar
-        let _waitMs3 = 0;
-        while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function') {
-            if (++_waitMs3 > 200) { (globalThis.logger || console).error('[PADRE Script3] mensajeria no disponible tras 10s'); break; }
-            await sleep(50);
-        }
-        // Ver la nota equivalente en Script 2: la espera de arriba puede agotarse.
-        if (!globalThis.mensajeria?.enviarMensaje) {
-            throw new Error('[PADRE Script3] mensajeria no disponible tras 10s — Script 3 abortado: los iframes hijo no se cargan');
-        }
-        const { enviarMensaje: enviarMensajeIframe } = globalThis.mensajeria;
-
-        // Función utilitaria para cargar iframes y enviar PADRE_DATOS solo después de onload real
-        async function cargarIframeConDatos(iframeId, src, datosPadre) {
-            return new Promise((resolve, reject) => {
-                const iframe = document.getElementById(iframeId);
-                if (!iframe) return reject(new Error(`No se encontró el iframe ${iframeId}`));
-                let enviado = false;
-                // Si el iframe ya tiene src, solo esperar onload
-                if (!iframe.src || iframe.src === '' || iframe.src === 'about:blank') {
-                    iframe.src = src;
-                }
-                // Eliminar cualquier handler previo para evitar duplicados
-                iframe.onload = null;
-                iframe.addEventListener('load', async function onLoadReal() {
-                    if (enviado) return; // Evitar duplicados
-                    enviado = true;
-                    try {
-                        // Esperar a que contentWindow esté realmente disponible
-                        if (!iframe.contentWindow) {
-                            // Esperar brevemente si el navegador tarda en asignar contentWindow
-                            await sleep(50);
-                        }
-                        await enviarMensajeIframe({
-                            tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.PADRE_DATOS,
-                            datos: datosPadre,
-                            destino: iframeId
-                        }, iframe.contentWindow);
-                        loggerIframe.info(`[PADRE] PADRE_DATOS enviado a ${iframeId} tras onload real`);
-                        resolve();
-                    } catch (err) {
-                        loggerIframe.error(`[PADRE] Error enviando PADRE_DATOS a ${iframeId}:`, err);
-                        reject(err);
-                    }
-                }, { once: true });
-            });
-        }
 
         // Functions to manage hijo4 visibility through the centralized messaging system
         globalThis.mostrarHijo4 = async function() {
@@ -14199,16 +14131,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             const backdrop = document.getElementById('backdrop');
 
             if (hijo4 && backdrop) {
-                // Solo cargar iframe si no tiene src asignado (primera vez).
-                // Si ya está cargado (FASE 3 lo carga al inicio), saltar directamente a mostrarlo.
-                const yaCargado = hijo4.src && hijo4.src !== '' && hijo4.src !== 'about:blank';
-                if (!yaCargado) {
-                    // globalThis.__vv_DATOS_PADRE no se asigna en NINGUN sitio del repo: esto
-                    // enviaba siempre {}. Y aunque existiera tampoco encajaria — hijo4 solo lee `modo`
-                    // de PADRE_DATOS y DATOS_PADRE es aventura->idioma->elementos.
-                    // Se manda {} explicito: el modo real llega despues por SISTEMA.CAMBIO_MODO.
-                    await cargarIframeConDatos('hijo4', 'retos-hijo4.html', {});
-                }
+                // hijo4 lo carga cargarHijo, con los demás hijos (cargarRestoDeiframes): aquí solo se muestra.
 
                 // 🔧 FIX: Forzar TODAS las propiedades de visibilidad via inline styles
                 // para evitar cualquier conflicto CSS, transiciones o specificity issues
