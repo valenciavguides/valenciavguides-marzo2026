@@ -310,6 +310,18 @@ if ('IntersectionObserver' in globalThis) {
     observer.observe(puzzleWrapper);
 }
 
+// Segunda señal de «el contenedor se ha ocultado»: ninguna vale en los tres motores. El IntersectionObserver de arriba avisa en chromium y
+// webkit, pero firefox deja de dibujar un documento cuyo iframe contenedor tiene `display:none` y, sin dibujar, no avisa nunca; ahí los
+// temporizadores siguen corriendo y el tablero se queda sin layout (`getClientRects()` vacío), cosa que webkit no hace. La acción es la misma
+// y no se repite el efecto: `detenerEfectos()` pausa y rebobina lo que haya.
+const OCULTACION_CHEQUEO_MS = 250;
+let tableroConLayout = puzzleWrapper.getClientRects().length > 0;
+setInterval(() => {
+    const conLayout = puzzleWrapper.getClientRects().length > 0;
+    if (tableroConLayout && !conLayout) detenerEfectos();
+    tableroConLayout = conLayout;
+}, OCULTACION_CHEQUEO_MS);
+
 function resizePieces() {
     const w = puzzleWrapper.clientWidth;
     const h = puzzleWrapper.clientHeight;

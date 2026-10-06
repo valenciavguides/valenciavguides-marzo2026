@@ -69,7 +69,11 @@ async function espiarSonidos(page, opciones = {}) {
     HTMLMediaElement.prototype.play = function () { registrar(this._desbloqueando ? 'desbloqueo' : 'play', this); return Promise.resolve(); };
     HTMLMediaElement.prototype.pause = function () { if (!this._desbloqueando) registrar('pause', this); };
 
-    if (globalThis.location.pathname.endsWith('/puzzle.html')) {
+    // Firefox ejecuta este script en el iframe cuando todavía está en blanco (`location.href` vale ''), antes de que cargue el puzzle:
+    // el filtro por URL no lo reconocería y `azarCero` y `relojRapido` no se aplicarían. En blanco, el único marco que no es la ventana
+    // de arriba es el que abre `abrirHijoEnMarco`.
+    const enBlanco = globalThis !== raiz && ['', 'about:blank'].includes(globalThis.location.href);
+    if (enBlanco || globalThis.location.pathname.endsWith('/puzzle.html')) {
       if (op.azarCero) Math.random = () => 0;
       if (op.relojRapido) {
         const original = globalThis.setInterval.bind(globalThis);

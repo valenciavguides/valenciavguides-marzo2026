@@ -3443,7 +3443,7 @@ Los sonidos son los efectos de `js/efectos-sonido.js` (§12, «Efectos de sonido
 2. Al colocar la última pieza suenan juntos `PIEZA_COLOCADA` y `RETO_COMPLETADO` (efectos distintos, reproductores distintos).
 3. `#skipBtn` (⏩) suena `RETO_COMPLETADO`: con el puzzle cargado, vía `endPuzzle(true)`; con el puzzle roto, directamente. No suena ninguna `PIEZA_COLOCADA`.
 4. Si el tiempo llega a 0, `endPuzzle(false)` suena `TIEMPO_ACABADO` y no `RETO_COMPLETADO`. `endPuzzle(false)` solo lo llama el temporizador.
-5. Cuando el `IntersectionObserver` de `#puzzleWrapper` deja de ver el contenedor (hijo4 cierra la ventana del reto, la selección pasa de pantalla), llama a `detenerEfectos()`: la fanfarria de `RETO_COMPLETADO` dura 7,65 s y se corta con el contenedor.
+5. Cuando el contenedor de `#puzzleWrapper` se oculta (hijo4 cierra la ventana del reto, la selección pasa de pantalla), el puzzle llama a `detenerEfectos()`: la fanfarria de `RETO_COMPLETADO` dura 7,65 s y se corta con el contenedor. Lo detectan dos señales, porque ninguna vale en los tres motores: el `IntersectionObserver` de `#puzzleWrapper` (avisa en chromium y WebKit; firefox deja de dibujar un documento cuyo iframe contenedor tiene `display:none` y no avisa nunca) y un temporizador de 250 ms (`OCULTACION_CHEQUEO_MS`) que mira si el tablero pasa de tener layout a no tenerlo (`getClientRects()` queda vacío en chromium y firefox; WebKit conserva el layout). Las dos llaman a `detenerEfectos()`, que pausa y rebobina lo que haya.
 
 ```mermaid
 sequenceDiagram
@@ -4843,7 +4843,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a44d28db0144'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f9fbcc65454b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6847,7 +6847,7 @@ Los cuatro duran 1,70 s, 1,85 s, 7,65 s y 3,11 s, en el orden de la tabla. El m�
 1. **Un reproductor `Audio` por efecto y por frame**, reutilizado: se crea la primera vez que se nombra (`precargarEfectos` lo hace al arrancar el frame; `reproducirEfecto` lo crea si falta). El Service Worker sirve estos ficheros con el shell (Network First, sin caché HTTP), así que un `new Audio(url)` nuevo en cada pulsación sería una petición de red por pulsación.
 2. `reproducirEfecto` rebobina el reproductor (`currentTime = 0`) y reproduce: una segunda pulsación sobre el mismo efecto lo reinicia en vez de superponerlo, y efectos distintos suenan a la vez.
 3. Un fallo del sonido no se propaga: un `play()` rechazado (autoplay bloqueado, fichero ausente) o una excepción al crear el reproductor se dicen con `logger.warn`, y quien pide el efecto —el cierre de un puzzle, el clic sobre una opción, el modal de tiempo agotado— sigue su camino. Las tres funciones exportadas (`precargarEfectos`, `reproducirEfecto`, `detenerEfectos`) lo cumplen. Lo mismo vale para la carga del módulo: `puzzle.html`, `retos-hijo4.html` y el Script 2 de `codigo-padre.html` lo cargan con un `import()` que captura el fallo (el padre y el puzzle dentro de un `try`; hijo4 sin esperarlo, porque registra sus handlers dentro de un `DOMContentLoaded` que una espera a la red dejaría pasar), y si no llega, el frame arranca igual con las tres funciones inertes y lo dice con un `logger.warn` («No se pudo cargar js/efectos-sonido.js»).
-4. `detenerEfectos()` pausa y rebobina todos los efectos del frame. Lo llaman `retos-hijo4.html` (al pulsar `#btnNextAfterReto` y al recibir `RETO.LIMPIAR_ESTADO`) y `puzzle.html` (cuando su contenedor deja de verse).
+4. `detenerEfectos()` pausa y rebobina todos los efectos del frame. Lo llaman `retos-hijo4.html` (al pulsar `#btnNextAfterReto` y al recibir `RETO.LIMPIAR_ESTADO`) y `puzzle.html` (cuando su contenedor deja de verse: lo detectan el `IntersectionObserver` y un temporizador sobre el layout del tablero).
 5. Las rutas se resuelven respecto al propio módulo (`new URL('../audios-efectos/…', import.meta.url)`), no respecto al documento que lo importa.
 6. **Desbloqueo para iOS.** La guía de Apple para Safari en iOS documenta que `play()` y `load()` solo actúan dentro de un gesto del usuario y que `preload` está desactivado. En el primer gesto de la página (`touchend`, `pointerup`, `click` o `keydown`, escuchados en captura sobre `document`), cada reproductor que aún no ha sonado se arranca y se para en el mismo instante: queda desbloqueado para sonar después sin gesto —el fin de tiempo del puzzle, el modal de tiempo agotado— y el navegador ya ha pedido el fichero, así que el primer sonido de verdad no llega tarde.
    - Un `NotAllowedError` deja el reproductor pendiente para el gesto siguiente; el `AbortError` que provoca parar enseguida no cuenta como rechazo.
@@ -8141,7 +8141,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-a44d28db0144'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-f9fbcc65454b'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8888,7 +8888,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-a44d28db0144';
+const CACHE_VERSION = 'v-f9fbcc65454b';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12331,7 +12331,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-a44d28db0144';
+const CACHE_VERSION = 'v-f9fbcc65454b';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
