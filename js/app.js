@@ -333,23 +333,7 @@ async function _activarParadaDefectoAventura() {
     }
 }
 
-function _preiniciarHeartbeatSiNecesario(estado, promises) {
-    if (estado.sistema?.prewarmIniciado && estado.sistema?.prewarmPausado) {
-        logger.debug('[APP][CAMBIO_MODO] Pre-warm detectado (iniciado en CASA), se reanudará en lugar de reiniciarse');
-    } else {
-        if (globalThis.mensajeria && typeof globalThis.mensajeria.preiniciarHeartbeat === 'function') {
-            promises.push(globalThis.mensajeria.preiniciarHeartbeat());
-            logger.debug('[APP][CAMBIO_MODO] Pre-iniciando heartbeat en background (no estaba pre-iniciado)');
-        }
-        logger.debug('[APP][CAMBIO_MODO] GPS warmup disabled; skipping GPS prewarm');
-    }
-}
-
 async function _reanudarSubsistemasTrasPrewarm(estado) {
-    if (globalThis.mensajeria && typeof globalThis.mensajeria.reanudarHeartbeat === 'function') {
-        globalThis.mensajeria.reanudarHeartbeat();
-        logger.debug('[APP][CAMBIO_MODO] Heartbeat reanudado tras pre-warm');
-    }
     if (!(estado.sistema?.prewarmIniciado && estado.sistema?.prewarmPausado)) {
         await _activarParadaDefectoAventura();
         estado.sistema.prewarmIniciado = true;
@@ -358,13 +342,8 @@ async function _reanudarSubsistemasTrasPrewarm(estado) {
 }
 
 async function _prewarmAventura(estado) {
-    // 10 s de espera a los hijos tras el pre-warm. CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION (5 s) no se lee aquí: ver docs/estudio-caminos.md (K-01).
+    // 10 s de espera a los hijos antes de seguir. CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION (5 s) no se lee aquí: ver docs/estudio-caminos.md (K-01).
     const cfgConfirmTimeout = 10000;
-    const promises = [];
-
-    try {
-        _preiniciarHeartbeatSiNecesario(estado, promises);
-    } catch (prewarmError) { logger.warn('[APP][CAMBIO_MODO] Error lanzando prewarm inicial:', prewarmError); }
 
     const hijosPromise = (globalThis.mensajeria && typeof globalThis.mensajeria.esperarHijosListos === 'function')
         ? globalThis.mensajeria.esperarHijosListos(cfgConfirmTimeout)
@@ -372,14 +351,14 @@ async function _prewarmAventura(estado) {
 
     try {
         const race = await Promise.race([
-            (async () => { await Promise.allSettled(promises); return hijosPromise; })(),
+            hijosPromise,
             new Promise(resolve => setTimeout(() => resolve({ timeout: true }), cfgConfirmTimeout * 2))
         ]);
 
         if (race?.timeout) {
-            logger.info('[APP][CAMBIO_MODO] Pre-warm / HIJO_LISTO timed out; proceeding anyway');
+            logger.info('[APP][CAMBIO_MODO] HIJO_LISTO timed out; proceeding anyway');
         } else {
-            logger.info('[APP][CAMBIO_MODO] Pre-warm and/or HIJO_LISTO completed or settled');
+            logger.info('[APP][CAMBIO_MODO] HIJO_LISTO completed or settled');
         }
 
         try {
@@ -390,26 +369,12 @@ async function _prewarmAventura(estado) {
     }
 }
 
-function _pausarHeartbeatCasa(estado) {
-    try {
-        if (globalThis.mensajeria && typeof globalThis.mensajeria.pausarHeartbeat === 'function') {
-            globalThis.mensajeria.pausarHeartbeat();
-            logger.debug('[APP][CAMBIO_MODO] Heartbeat pausado al cambiar a CASA');
-        }
-    } catch (e) { logger.warn('[APP][CAMBIO_MODO] Error pausando heartbeat al cambiar a CASA:', e); }
-
-    estado.sistema.prewarmPausado = estado.sistema.prewarmPausado || false;
-}
-
 async function _flujoPrewarmModo(estado, modoKey, modoNormalized) {
     const esAventura = (modoKey === 'AVENTURA') || (modoNormalized === MODOS.AVENTURA);
-    const esCasa = (modoKey === 'CASA') || (modoNormalized === MODOS.CASA);
 
     try {
         if (esAventura) {
             await _prewarmAventura(estado);
-        } else if (esCasa) {
-            _pausarHeartbeatCasa(estado);
         }
     } catch (e) {
         logger.warn('[APP][CAMBIO_MODO] Error en flujo de pre-warm:', e);
@@ -660,8 +625,8 @@ export async function manejarCambioModo(estado, mensaje) {
 
 /**
  * Inicia (idempotente) el pre-warm de subsistemas cuando la app está en modo CASA.
- * Pre-inicia (inicializa en background) GPS y Heartbeat pero los deja en estado pausado.
- * Esto permite reanudar rápidamente al cambiar a AVENTURA.
+ * Ya no precalienta nada: el latido es del bus y lo enciende el padre una vez, al arrancar. Lo que queda son las banderas
+ * `prewarmIniciado`/`prewarmPausado`, que solo deciden si al entrar en AVENTURA se activa la parada por defecto.
  */
 export async function iniciarPrewarmEnCasa(estado = globalThis.estadoPadre) {
     try {
@@ -675,20 +640,7 @@ export async function iniciarPrewarmEnCasa(estado = globalThis.estadoPadre) {
             return { iniciado: true, motivo: 'ya_iniciado' };
         }
 
-        // GPS warmup removed: only pre-initialize heartbeat here
-
-        // Pre-iniciar heartbeat (preparado pero pausado)
-        try {
-            if (globalThis.mensajeria && typeof globalThis.mensajeria.preiniciarHeartbeat === 'function') {
-                await withTimeout(globalThis.mensajeria.preiniciarHeartbeat(), 5000, 'preiniciarHeartbeat');
-                if (typeof globalThis.mensajeria.pausarHeartbeat === 'function') {
-                    globalThis.mensajeria.pausarHeartbeat();
-                }
-                logger.info('[APP][PREWARM] Heartbeat pre-iniciado y pausado');
-            }
-        } catch (e) {
-            logger.warn('[APP][PREWARM] Fallback: preiniciarHeartbeat falló, continuando sin prewarm', e?.message);
-        }
+        // Nada que precalentar: ni el GPS ni el latido (que ya está encendido desde que arrancó el padre).
 
         estado.sistema.prewarmIniciado = true;
         estado.sistema.prewarmPausado = true;

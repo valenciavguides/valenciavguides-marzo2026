@@ -78,20 +78,16 @@ test.describe('RU — La reanudación usa el mismo camino que cualquier cambio d
       if (globalThis.funcionesMapa) {
         globalThis.funcionesMapa.sincronizarModoMapa = (m) => { vistos.push(m); return real?.call(globalThis.funcionesMapa, m); };
       }
-      // El estado real del latido vive en el state-manager (activo / userPaused / intervalo).
-      const antes = await globalThis.__vv_stateManager.getHeartbeat();
+      // El estado real del latido vive en el state-manager (activo / intervalo).
       await globalThis._activarModoRest('[TEST]', datos);
       const despues = await globalThis.__vv_stateManager.getHeartbeat();
-      return { modo: globalThis.estado.modo?.actual, vistos, heartbeatAntes: antes?.activo === true, heartbeat: despues?.activo === true };
+      return { modo: globalThis.estado.modo?.actual, vistos, heartbeat: despues?.activo === true };
     }, sesion({ modo: 'aventura', dev: false }));
 
-    expect(r.heartbeatAntes, 'precondición: el latido no estaba activo antes de reanudar').toBe(false);
     expect(r.modo, 'el modo restaurado debe quedar aplicado en el estado').toBe('aventura');
     expect(r.vistos, 'la rama restaurado:true del handler único debe haber sincronizado el mapa').toContain('aventura');
-    // El heartbeat es la prueba fuerte de que se pasó por el handler: la reanudación
-    // antigua fijaba el modo por su cuenta y NUNCA lo arrancaba, así que una sesión
-    // restaurada en AVENTURA se quedaba sin supervisión de hijos toda la sesión.
-    expect(r.heartbeat, 'restaurar en AVENTURA debe arrancar el heartbeat, como cualquier otra entrada en AVENTURA').toBe(true);
+    // El latido es del bus y no depende del modo (spec 78): reanudar en AVENTURA lo deja encendido, ni lo apaga ni lo reinicia.
+    expect(r.heartbeat, 'restaurar en AVENTURA deja el latido encendido').toBe(true);
   });
 
   test('RU-2. El flag dev se restaura del campo persistido, no se deduce del modo (dev + AVENTURA es representable)', async ({ page }) => {

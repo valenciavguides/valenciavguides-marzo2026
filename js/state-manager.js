@@ -63,8 +63,7 @@ const state = {
   controladores: new Map(),
   heartbeat: {
     activo: false,
-    intervalo: null,
-    userPaused: false
+    intervalo: null
   },
   hijosListosPromises: new Map(),
 };

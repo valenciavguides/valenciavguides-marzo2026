@@ -3957,9 +3957,9 @@
             };
         }
 
-        // Aviso de último recurso, compartido por los 3 fallos de infraestructura que
+        // Aviso de último recurso, compartido por los 2 fallos de infraestructura que
         // pueden dejar la app rota sin ninguna explicación (distribuirDatosAventura no
-        // disponible ×2 más abajo, iframe permanentemente caído tras reconexión, MapLibre
+        // disponible ×2 más abajo, MapLibre
         // no carga) — alert() nativo, para no depender de la misma maquinaria que puede
         // haber fallado (ver §4.7f/§10.19/§10.21).
         // Una sola vez por sesión: si el origen es compartido (p. ej. un despliegue roto),
@@ -4030,13 +4030,22 @@
 
         (globalThis.logger || console).info('Todos los módulos inicializados correctamente');        // ============================================================
 
-        // Marcar mensajería como iniciada. El latido no arranca aquí: lo arranca el cambio de modo
-        // a AVENTURA (_activarHeartbeatAventura, por llamada directa a
-        // globalThis.mensajeria.iniciarHeartbeat) y lo pausa la vuelta a CASA.
+        // Marcar mensajería como iniciada y encender el reloj del supervisor. Es el único latido y no se apaga:
+        // el bus vigila a cada hijo desde que se registra, en cualquier modo (CASA, AVENTURA o sin decidir).
         try {
             globalThis.__MENSAJERIA_INICIADA = true;
         } catch (e) {
             (globalThis.logger || console).warn('[PADRE] Error marcando mensajería iniciada:', e && e.message);
+        }
+        try {
+            const _intervaloLatido = ajustarTimeoutPorConexion_S1(5000);
+            if (await globalThis.mensajeria.iniciarHeartbeat(_intervaloLatido)) {
+                (globalThis.logger || console).info(`[PADRE] Latido del supervisor encendido (intervalo: ${_intervaloLatido}ms)`);
+            } else {
+                (globalThis.logger || console).warn('[PADRE] El latido del supervisor no se pudo encender: ningún hijo se vigilará');
+            }
+        } catch (e) {
+            (globalThis.logger || console).error('[PADRE] Error encendiendo el latido del supervisor:', e);
         }
         // CONFIGURACIÓN DEL COMPONENTE PADRE (compartida con Script 2)
         // ============================================================
@@ -5009,7 +5018,7 @@
                 }
                 // El payload lleva solo lo que alguien lee de verdad: `modo`, que usa
                 // manejarCambioModo(); `restaurado` y `timestampCompra`, el propio handler y
-                // _activarHeartbeatAventura(). No se incluyen aventura/idioma/timestamp: ningún
+                // _activarAventura(). No se incluyen aventura/idioma/timestamp: ningún
                 // receptor los consulta en un CAMBIO_MODO (actualizarInterfazModo construye su
                 // propio payload para los hijos), y arrastrarlos solo aparenta un contrato que no
                 // existe. Por el bus, con despacharLocal: el handler contesta con su resultado.
@@ -6811,10 +6820,13 @@
             }, { once: false });
         }
 
-        function showInternetOverlay() {
+        // El evento `offline` y el audio fallido lo piden sin más, y solo actúan en AVENTURA. El supervisor de hijos lo pide con
+        // `forzar`: un hijo que no carga sin red se da también al arrancar, cuando aún no hay modo, y el usuario tiene que ver por qué
+        // la aplicación no avanza.
+        function showInternetOverlay({ forzar = false } = {}) {
             try {
                 const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
-                if (modoActual !== MODOS.AVENTURA) return;
+                if (!forzar && modoActual !== MODOS.AVENTURA) return;
                 _ensureInternetOverlay();
                 const el = document.getElementById('internet-overlay');
                 if (!el) return;
@@ -7379,19 +7391,7 @@
         // ============================================================
 
         // CONTROLADOR: SISTEMA.CAMBIO_MODO
-        async function _activarHeartbeatAventura(mensaje, logPrefix) {
-            try {
-                // padre no está en iframesRegistrados — enviarMensaje a sí mismo no funciona.
-                // Llamar directamente a iniciarHeartbeat a través de globalThis.mensajeria.
-                const intervalo = (typeof ajustarTimeoutPorConexion_S1 === 'function') ? ajustarTimeoutPorConexion_S1(5000) : 5000;
-                const hbFn = globalThis.mensajeria?.iniciarHeartbeat;
-                if (typeof hbFn === 'function') {
-                    await hbFn(intervalo);
-                    (globalThis.logger || console).info(`${logPrefix} Heartbeat iniciado en padre (intervalo: ${intervalo}ms)`);
-                } else {
-                    (globalThis.logger || console).warn(`${logPrefix} iniciarHeartbeat no disponible en padre`);
-                }
-            } catch (e) { (globalThis.logger || console).error(`${logPrefix} Error iniciando heartbeat en padre:`, e); }
+        async function _activarAventura(mensaje, logPrefix) {
             const _restaurando = mensaje?.datos?.restaurado === true;
             // Excepción 2 de 3 de la reanudación: no fijar la parada por defecto. En una
             // reanudación este punto se alcanza ANTES de _restaurarProgresoRest(), con
@@ -7417,7 +7417,7 @@
             } catch (err) { (globalThis.logger || console).warn(`${logPrefix} Error iniciando temporizador de aventura:`, err); }
         }
 
-        async function _transicionarAModoCasa(mensaje, logPrefix) {
+        async function _transicionarAModoCasa(mensaje) {
             // En modo dev, la propia activación entra en CASA como paso de bootstrap
             // (atajo para saltar pago/código) — no es un abandono real, así que no debe
             // borrar el progreso. El flujo de abandono/fin real (limpiarDatosAventura(),
@@ -7436,28 +7436,17 @@
                     localStorage.removeItem('vv_paradas_completadas');
                 } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
             }
-            try {
-                // padre no está en iframesRegistrados — enviarMensaje a sí mismo no funciona.
-                // Llamar directamente a pausarHeartbeat a través de globalThis.mensajeria.
-                const pausarFn = globalThis.mensajeria?.pausarHeartbeat;
-                if (typeof pausarFn === 'function') {
-                    await pausarFn();
-                    (globalThis.logger || console).info(`${logPrefix} Heartbeat pausado en padre`);
-                } else {
-                    (globalThis.logger || console).warn(`${logPrefix} pausarHeartbeat no disponible en padre`);
-                }
-            } catch (e) { (globalThis.logger || console).error(`${logPrefix} Error pausando heartbeat en padre:`, e); }
         }
 
-        async function _gestionarHeartbeatSegunModo(modo, mensaje, logPrefix) {
+        async function _gestionarSesionSegunModo(modo, mensaje, logPrefix) {
             try {
                 if (modo === 'aventura') {
-                    await _activarHeartbeatAventura(mensaje, logPrefix);
+                    await _activarAventura(mensaje, logPrefix);
                 } else if (modo === 'casa') {
-                    await _transicionarAModoCasa(mensaje, logPrefix);
+                    await _transicionarAModoCasa(mensaje);
                 }
             } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error propagando heartbeat control a hijos criticos:`, error);
+                (globalThis.logger || console).error(`${logPrefix} Error gestionando la sesión según el modo:`, error);
             }
         }
 
@@ -7653,7 +7642,7 @@
                     }
                     if (modo === MODOS.AVENTURA) estado.paradaRealCongelada = null;
 
-                    await _gestionarHeartbeatSegunModo(modo, mensaje, logPrefix);
+                    await _gestionarSesionSegunModo(modo, mensaje, logPrefix);
                     await _gestionarGpsSegunModo(modo, origen, mensaje, logPrefix);
                 } else {
                     (globalThis.logger || console).error(`${logPrefix} Error en cambio de modo:`, resultado.error);
@@ -7926,66 +7915,39 @@
             });
         }
 
-        function _registrarHijoFallido(iframeId, error) {
-            if (globalThis.estadoPadre.estadoHijos.has(iframeId)) {
-                const estadoHijo = globalThis.estadoPadre.estadoHijos.get(iframeId);
-                if (estadoHijo) { estadoHijo.fallosConsecutivos = (estadoHijo.fallosConsecutivos || 0) + 1; estadoHijo.ultimoError = error.message; }
-            } else {
-                globalThis.estadoPadre.estadoHijos.set(iframeId, { activo: false, fallosConsecutivos: 1, ultimoError: error.message });
-            }
-        }
-
-        function _logDebugHijoListo(logPrefix) {
-            (async () => {
+        // Espera el HIJO_LISTO de un hijo SIN plazo. Mientras no llegue, quien lo recupera es el supervisor del bus (recarga el
+        // iframe con una gracia creciente y lo dice por consola), así que aquí no hay nada a lo que rendirse. `crearPromiseHijoListo`
+        // rechaza a los 30 s: se vuelve a esperar hasta que resuelva.
+        async function _esperarHijoListoSinPlazo(iframeId) {
+            for (;;) {
                 try {
-                    if (globalThis.__vv_stateManager && typeof globalThis.__vv_stateManager.getControladoresPorTipo === 'function') {
-                        const central = await globalThis.__vv_stateManager.getControladoresPorTipo(TIPOS_MENSAJE.SISTEMA.HIJO_LISTO);
-                        (globalThis.logger || console).info(`${logPrefix} [DEBUG] Controladores centralizados para HIJO_LISTO:`, central.map(c => c.id));
-                    }
-                    (globalThis.logger || console).info(`${logPrefix} [DEBUG] estadoPadre.hijosInicializados:`, Array.from(globalThis.estadoPadre.hijosInicializados || new Set()));
-                } catch (e) { (globalThis.logger || console).debug(`${logPrefix} [DEBUG] Error en diagnóstico:`, e?.message); }
-            })();
-        }
-
-        async function _cargarSingleIframe(iframe, logPrefix) {
-            (globalThis.logger || console).info(`${logPrefix} Cargando iframe: ${iframe.id}`);
-            try {
-                const iframeEl = document.getElementById(iframe.id);
-                if (!iframeEl) throw new Error(`Iframe ${iframe.id} no encontrado en DOM`);
-                globalThis.registrarIframeHijo(iframe.id, iframeEl);
-                (globalThis.logger || console).debug(`${logPrefix} Iframe ${iframe.id} registrado en mensajería`);
-                iframeEl.style.display = iframe.mostrarInicial ? 'block' : 'none';
-                iframeEl.style.visibility = iframe.mostrarInicial ? 'visible' : 'hidden';
-                await _esperarCargaIframe(iframeEl, iframe.id, iframe.src);
-                (globalThis.logger || console).info(`${logPrefix} Esperando HIJO_LISTO de ${iframe.id}...`);
-                await _esperarHijoListo(iframe.id);
-                (globalThis.logger || console).success(`${logPrefix} ✅ ${iframe.id} listo y confirmado.`);
-                iframeEl.style.display = '';
-                iframeEl.style.visibility = 'visible';
-                return null;
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando ${iframe.id}: ${error.message}`);
-                (globalThis.logger || console).warn(`${logPrefix} Continuando con siguiente hijo...`);
-                _logDebugHijoListo(logPrefix);
-                return error;
-            }
-        }
-
-        async function cargarIframeSoloSeleccion() {
-            if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = new Map();
-            const iframes = [{ id: 'seleccion', src: 'En-busca-del-tesoro.html', mostrarInicial: true }];
-            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Iniciando carga secuencial de iframes...`);
-            const hijosFallidos = [];
-
-            for (const iframe of iframes) {
-                const error = await _cargarSingleIframe(iframe, CONFIG_PADRE.LOG_PREFIX);
-                if (error) {
-                    hijosFallidos.push({ id: iframe.id, src: iframe.src, error: error.message, timestamp: Date.now() });
-                    _registrarHijoFallido(iframe.id, error);
+                    await _esperarHijoListo(iframeId);
+                    return;
+                } catch (e) {
+                    (globalThis.logger || console).debug(`${CONFIG_PADRE.LOG_PREFIX} ${iframeId} sigue sin HIJO_LISTO; se sigue esperando (lo recupera el supervisor): ${e?.message}`);
                 }
             }
+        }
 
-            (globalThis.logger || console).success(`${CONFIG_PADRE.LOG_PREFIX} ✅ Carga secuencial completada`);
+        // Carga la pantalla de selección y espera a que esté lista, sin plazo: si no llega, la recarga el supervisor del bus
+        // (gracia creciente, indefinidamente, con un error por consola en cada intento) y la aplicación se queda en su pantalla
+        // de carga hasta entonces, en vez de enseñar una selección que no ha arrancado.
+        async function cargarIframeSoloSeleccion() {
+            if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = new Map();
+            const iframe = { id: 'seleccion', src: 'En-busca-del-tesoro.html' };
+            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Cargando el iframe de selección...`);
+            const iframeEl = document.getElementById(iframe.id);
+            if (!iframeEl) throw new Error(`Iframe ${iframe.id} no encontrado en DOM`);
+            globalThis.registrarIframeHijo(iframe.id, iframeEl);
+            iframeEl.style.display = 'block';
+            iframeEl.style.visibility = 'visible';
+            await _esperarCargaIframe(iframeEl, iframe.id, iframe.src);
+            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Esperando HIJO_LISTO de ${iframe.id}...`);
+            await _esperarHijoListoSinPlazo(iframe.id);
+            (globalThis.logger || console).success(`${CONFIG_PADRE.LOG_PREFIX} ✅ ${iframe.id} listo y confirmado.`);
+            iframeEl.style.display = '';
+            iframeEl.style.visibility = 'visible';
+
             if (globalThis.__pendingDistribucion && typeof enviarMensaje_S1 === 'function') {
                 const { aventura, idioma } = globalThis.__pendingDistribucion;
                 (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} 🔄 Procesando distribución pendiente de aventura ${aventura} (${idioma}) después de carga de iframes...`);
@@ -7997,80 +7959,6 @@
                     (globalThis.logger || console).error(`${CONFIG_PADRE.LOG_PREFIX} ❌ Error en distribución pendiente después de carga de iframes:`, error);
                 }
             }
-            if (hijosFallidos.length > 0) {
-                (globalThis.logger || console).warn(`${CONFIG_PADRE.LOG_PREFIX} 🔄 Detectados ${hijosFallidos.length} hijos fallidos, iniciando reconexión...`);
-                await intentarReconectarHijosFallidos(hijosFallidos);
-            } else {
-                (globalThis.logger || console).success(`${CONFIG_PADRE.LOG_PREFIX} ✅ Todos los iframes conectados exitosamente`);
-            }
-        }
-
-        /**
-         * Intenta reconectar hijos que fallaron durante la carga inicial
-         * Implementa reintentos secuenciales con límite de 3 intentos por hijo
-         * @param {Array} hijosFallidos - Lista de hijos que fallaron inicialmente
-         */
-        async function _gestionarFalloIntento(id, intento, MAX_REINTENTOS, error) {
-            (globalThis.logger || console).warn(`${CONFIG_PADRE.LOG_PREFIX} ⚠️ ${id} - Intento ${intento} falló: ${error.message}`);
-            const estadoHijo = globalThis.estadoPadre.estadoHijos.get(id);
-            if (estadoHijo) estadoHijo.fallosConsecutivos++;
-            if (intento < MAX_REINTENTOS) {
-                const espera = 2000 * intento;
-                (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} ⏳ Esperando ${espera/1000}s antes del siguiente intento...`);
-                await sleep(espera);
-            }
-        }
-
-        async function _reconectarHijoIndividual(hijoFallido) {
-            const MAX_REINTENTOS = 3;
-            const { id, src } = hijoFallido;
-            let reconectado = false;
-            (globalThis.logger || console).warn(`${CONFIG_PADRE.LOG_PREFIX} 🔄 Intentando reconectar: ${id}`);
-            for (let intento = 1; intento <= MAX_REINTENTOS && !reconectado; intento++) {
-                (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} 🔄 ${id} - Intento ${intento}/${MAX_REINTENTOS}`);
-                try {
-                    const iframeElement = document.getElementById(id);
-                    if (!iframeElement) {
-                        (globalThis.logger || console).error(`${CONFIG_PADRE.LOG_PREFIX} ❌ ${id} - Elemento iframe no encontrado en DOM`);
-                        break;
-                    }
-                    try { iframeElement.style.display = 'none'; iframeElement.style.visibility = 'hidden'; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                    await _esperarCargaIframe(iframeElement, id, src);
-                    await _esperarHijoListo(id);
-                    reconectado = true;
-                    (globalThis.logger || console).success(`${CONFIG_PADRE.LOG_PREFIX} ✅ ${id} RECONECTADO en intento ${intento}`);
-                    const estadoHijo = globalThis.estadoPadre.estadoHijos.get(id);
-                    if (estadoHijo) {
-                        estadoHijo.activo = true;
-                        estadoHijo.fallosConsecutivos = 0;
-                        estadoHijo.ultimoError = null;
-                    }
-                } catch (error) {
-                    await _gestionarFalloIntento(id, intento, MAX_REINTENTOS, error);
-                }
-            }
-            if (!reconectado) {
-                (globalThis.logger || console).error(`${CONFIG_PADRE.LOG_PREFIX} ❌ ${id} - RECONEXIÓN FALLIDA después de ${MAX_REINTENTOS} intentos`);
-                (globalThis.logger || console).error(`${CONFIG_PADRE.LOG_PREFIX} ⚠️ La aplicación continuará sin ${id} - Funcionalidad reducida`);
-                const estadoHijo = globalThis.estadoPadre.estadoHijos.get(id);
-                if (estadoHijo) { estadoHijo.activo = false; }
-            }
-        }
-
-        async function intentarReconectarHijosFallidos(hijosFallidos) {
-            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} 🔄 SISTEMA DE RECONEXIÓN ACTIVADO`);
-            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Hijos a reconectar: ${hijosFallidos.map(h => h.id).join(', ')}`);
-            for (const hijoFallido of hijosFallidos) {
-                await _reconectarHijoIndividual(hijoFallido);
-            }
-            const reconectados = hijosFallidos.filter(h => globalThis.estadoPadre?.hijosInicializados?.has(h.id));
-            const fallidos = hijosFallidos.filter(h => !globalThis.estadoPadre?.hijosInicializados?.has(h.id));
-            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} 📊 REPORTE: ✅ Reconectados: ${reconectados.length}/${hijosFallidos.length}`);
-            if (fallidos.length > 0) {
-                (globalThis.logger || console).error(`${CONFIG_PADRE.LOG_PREFIX}    ❌ Fallos permanentes: ${fallidos.map(h => h.id).join(', ')}`);
-                await _avisarFalloCargaAppUnaVez();
-            }
-            (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} 🏁 Sistema de reconexión finalizado`);
         }
 
         // Wait for MapLibre GL to load and initialize map
@@ -9593,6 +9481,10 @@ await _comprobarReanudacionAventura(logPrefix);
                 paradaActual: globalThis.estadoPadre?.paradaActual
             };
             logger.warn(`[PADRE][SNAPSHOT] Snapshot tomado para ${hijoId} antes de reload (modo: ${modoActual}, parada: ${globalThis.estadoPadre?.paradaActual}, tiempoRestante: ${estado?.tiempoRestante})`);
+            // Sin conexión, el fallo de un hijo casi seguro es la red: se enseña el overlay de sin conexión (se oculta solo con `online`).
+            if (navigator.onLine === false) {
+                try { globalThis.showInternetOverlay?.({ forzar: true }); } catch (e) { logger.debug('[VV]:', e?.message); } // NOSONAR
+            }
         };
 
         globalThis._vv_afterHijoListo = async function(hijoId) {
@@ -13139,7 +13031,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error iniciando temporizador:`, temporizadorError);
             }
         }
-        // Expuesta para Script 1 — un único llamador: _activarHeartbeatAventura, dentro de
+        // Expuesta para Script 1 — un único llamador: _activarAventura, dentro de
         // _hdl_SISTEMA_CAMBIO_MODO. Cubre los tres casos por igual (activación inicial,
         // retorno desde CASA en la misma sesión, y reanudación tras cerrar/reabrir la PWA),
         // porque la reanudación pasa por ese mismo handler con restaurado:true — de ahí
@@ -14613,18 +14505,13 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
     </script>
 
-    <!-- Reconectar iframes tras cambio de pestaña -->
+    <!-- Revalidar el mapa al volver a la pestaña -->
     <script>
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) return;
-        (globalThis.logger || console).info('[PADRE] Pestaña visible de nuevo, enviando heartbeat a hijos');
+        // Invalidar tamaño de mapa (puede haberse desincronizado al estar oculta la pestaña).
+        // No se adelanta ningún latido: el reloj del bus sigue su ritmo y recarga a quien deje de contestar.
         try {
-            globalThis.mensajeria.enviarMensaje({
-                tipo: globalThis.TIPOS_MENSAJE_IFRAME?.SISTEMA?.HEARTBEAT || 'SISTEMA.HEARTBEAT',
-                destino: 'broadcast',
-                datos: { timestamp: Date.now(), razon: 'visibilitychange' }
-            });
-            // Invalidar tamaño de mapa (puede haberse desincronizado al estar oculta la pestaña)
             if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.invalidarTamañoMapa === 'function') {
                 globalThis.funcionesMapa.invalidarTamañoMapa().catch(e => (globalThis.logger || console).warn('[PADRE] Error invalidando tamaño de mapa:', e));
             }
@@ -14696,8 +14583,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         if (!globalThis.mensajeria?.enviarMensaje) {
             throw new Error('[PADRE Script4] mensajeria no disponible tras 10s — Script 4 abortado: migración de controladores y diagnóstico GPS sin registrar');
         }
-        const { TIPOS_MENSAJE: TIPOS_MENSAJE_S4, MODOS: MODOS_S4 } = await import('./js/constants.js');
-
         // Migrar controladores registrados tempranamente en módulos al sistema de mensajería
         try {
             const { registrarControladoresApp } = await import('./js/app.js');
@@ -14709,9 +14594,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         // Los handlers HEARTBEAT_START/PAUSE/ESTADO que vivían aquí solo servían a auto-mensajes
         // del propio padre con destino:CONFIG_PADRE_S4.ID — CONFIG.ID nunca se asigna en
         // js/config.js, así que ese destino siempre era undefined y el bus lo descartaba. El
-        // latido lo gobierna el cambio de modo (_activarHeartbeatAventura y
-        // _transicionarAModoCasa, en Script 1): llamada directa a
-        // globalThis.mensajeria.iniciarHeartbeat/pausarHeartbeat, sin auto-mensaje.
+        // latido no se gobierna por mensajes: lo enciende el padre una vez al arrancar (Script 1,
+        // globalThis.mensajeria.iniciarHeartbeat) y no se para.
 
         // Función de diagnóstico GPS para debugging desde consola
         globalThis.diagnosticarGPS = async function() {
@@ -14740,41 +14624,12 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     try {
                         const sm = globalThis.__stateManager || globalThis.__vv_stateManager;
                         const hb = (sm && typeof sm.getHeartbeat === 'function') ? await sm.getHeartbeat() : null;
-                        const respuesta = { estado: { activo: !!hb?.activo, userPaused: !!hb?.userPaused, intervaloActivo: !!hb?.intervalo } };
+                        const respuesta = { estado: { activo: !!hb?.activo, intervaloActivo: !!hb?.intervalo } };
                         (globalThis.logger || console).info('[PADRE] Estado heartbeat:', respuesta);
                         return respuesta;
                     } catch (e) {
                         (globalThis.logger || console).error('[PADRE] Error consultando estado heartbeat:', e);
                         throw e;
-                    }
-                };
-
-                // Test helper: Pausar y reanudar heartbeat y comprobar estado
-                globalThis._testHeartbeatPauseResume = async function() {
-                    try {
-                        (globalThis.logger || console).info('[PADRE][TEST] Iniciando prueba pause/restart heartbeat');
-                        // Pausar mediante cambio de modo
-                        await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE_S4.SISTEMA.CAMBIO_MODO, datos: { modo: MODOS_S4.CASA } });
-                        await sleep(150);
-                        let estado = await globalThis.consultarHeartbeat();
-                        console.assert(estado?.estado?.userPaused === true, 'expected userPaused true after CASA');
-                        console.assert(estado?.estado?.activo === false, 'expected activo false after CASA');
-
-                        // Intentar iniciar: debe ignorarse por userPaused
-                        await globalThis.mensajeria.iniciarHeartbeat(3000);
-                        await sleep(150);
-                        estado = await globalThis.consultarHeartbeat();
-                        console.assert(estado?.estado?.userPaused === true && estado?.estado?.activo === false, 'expected no change when starting while userPaused');
-
-                        // Reanudar mediante cambio de modo a aventura
-                        await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE_S4.SISTEMA.CAMBIO_MODO, datos: { modo: MODOS_S4.AVENTURA } });
-                        await sleep(200);
-                        estado = await globalThis.consultarHeartbeat();
-                        console.assert(estado?.estado?.userPaused === false, 'expected userPaused false after AVENTURA');
-                        console.assert(estado?.estado?.activo === true, 'expected activo true after AVENTURA');
-                        (globalThis.logger || console).info('[PADRE][TEST] Prueba heartbeat pause/restart completada');
-                    } catch (e) {
-                        (globalThis.logger || console).error('[PADRE][TEST] Error durante prueba heartbeat:', e);
                     }
                 };
 

@@ -20,11 +20,15 @@
  *         está registrado (`hijo1-opciones`), no a un `hijo1` que no existe en la mensajería.
  *   RC-4  Cada hijo contesta al latido y su respuesta llega a la cuenta del bus: un hijo con latidos sin
  *         responder vuelve a cero al contestar. Es el viaje de vuelta de cada hijo hasta el supervisor.
+ *   RC-5  Arranque con la selección rota: sin apretón de manos no arranca la aplicación (la pantalla de carga sigue, sin alert),
+ *         el supervisor la recarga y la aplicación arranca sola cuando la selección ya puede completarlo.
+ *   RC-6  Sin red, la recarga de un hijo enseña el overlay de sin conexión aunque aún no haya modo, y se va solo con `online`.
  *
  * ROJO ANTES QUE VERDE: RC-2 falla si nadie pasa `{ supervisado: true }` al registrar, RC-3 falla si la
  * restauración se dirige a un id que la mensajería no conoce, y RC-4 falla si un hijo no contesta o su
  * respuesta no llega — en los tres casos la recarga automática queda muerta, o recarga a un hijo sano, sin
- * que ningún otro test lo note.
+ * que ningún otro test lo note. RC-5 falla si la selección vuelve a tener su propio plazo y su propio aviso al usuario (un alert)
+ * en vez de esperar al supervisor; RC-6 falla si el overlay vuelve a depender del modo para un hijo caído sin red.
  */
 'use strict';
 
@@ -172,11 +176,12 @@ test.describe('RC — Un hijo caido se recupera', () => {
       ids, { timeout: 30_000 },
     );
 
-    // Cada hijo parte de «dos latidos sin contestar» y se le manda uno: lo único que puede dejar su cuenta
-    // a cero es que conteste y que su respuesta llegue por el handler del padre hasta el bus.
+    // Cada hijo parte de «un latido sin contestar» y se le manda otro: lo único que puede dejar su cuenta a cero es que conteste
+    // y que su respuesta llegue por el handler del padre hasta el bus. Se parte de 1 y se espera menos de dos vueltas del reloj
+    // (que va encendido y cuenta por su cuenta): un hijo mudo no puede llegar a 3 y recargarse (y volver a 0) dentro de la espera.
     await page.evaluate((lista) => {
       for (const id of lista) {
-        globalThis.mensajeria.getIframesRegistrados().get(id).latidosSinRespuesta = 2;
+        globalThis.mensajeria.getIframesRegistrados().get(id).latidosSinRespuesta = 1;
         globalThis.mensajeria.enviarMensaje({
           tipo: globalThis.TIPOS_MENSAJE.SISTEMA.HEARTBEAT,
           destino: id,
@@ -189,9 +194,103 @@ test.describe('RC — Un hijo caido se recupera', () => {
       .poll(() => page.evaluate((lista) => Object.fromEntries(
         lista.map((id) => [id, globalThis.mensajeria.getIframesRegistrados().get(id).latidosSinRespuesta]),
       ), ids), {
-        timeout: 8_000,
+        timeout: 3_000,
         message: 'un hijo que no contesta al latido, o cuya respuesta no llega, seguiría con latidos sin responder: el bus lo recargaría aunque esté sano',
       })
       .toEqual(Object.fromEntries(ids.map((id) => [id, 0])));
+  });
+});
+
+/** ¿Se ve la pantalla de carga del padre? Se oculta con `display: none` medio segundo después de dar el sistema por listo. */
+const pantallaDeCargaVisible = (page) => page.evaluate(() => {
+  const el = document.getElementById('loading-overlay');
+  return !!el && getComputedStyle(el).display !== 'none';
+});
+
+test.describe('RC-5 — Arranque con la selección que no llega a estar lista', () => {
+  test.beforeEach(async ({ page, context }) => {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    // Bandera, puesta una sola vez desde el documento de arriba: mientras esté, los iframes se tragen el PADRE_DATOS que el padre les
+    // manda. Sin él un hijo no completa el apretón de manos (no manda HIJO_LISTO), pero sigue vivo y contesta al latido.
+    await page.addInitScript(() => {
+      if (globalThis !== globalThis.top) return;
+      try { localStorage.setItem('vvtest:sin-apreton', '1'); } catch (_) { /* sin almacenamiento no hay prueba */ }
+    });
+    await page.addInitScript(() => {
+      if (globalThis === globalThis.top) return;
+      globalThis.addEventListener('message', (e) => {
+        if (e.source === globalThis.parent && e.data && e.data.tipo === 'SISTEMA.PADRE_DATOS' && localStorage.getItem('vvtest:sin-apreton') === '1') {
+          e.stopImmediatePropagation();
+        }
+      }, true);
+    });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+  });
+
+  test('RC-5. La selección sin apretón no deja arrancar la aplicación ni avisa con un alert; el supervisor la recarga y arranca sola', async ({ page }) => {
+    test.setTimeout(120_000);
+    const dialogos = [];
+    page.on('dialog', async (d) => { dialogos.push(d.message()); await d.dismiss(); });
+    const errores = [];
+    page.on('console', (m) => {
+      if (m.type() === 'error' && /seleccion: no completó el apretón de manos/.test(m.text())) errores.push(m.text());
+    });
+
+    await gotoAndWaitForFase1(page);
+    await page.waitForFunction(() => globalThis.mensajeria?.getIframesRegistrados?.().has('seleccion'), null, { timeout: 30_000 });
+
+    // Mientras la selección no esté lista, la aplicación no se da por arrancada y la pantalla de carga sigue a la vista.
+    // VENTANA-OBSERVACION: lo que se mide es que NO pasa nada en esos 8 s.
+    await page.waitForTimeout(8_000);
+    expect(await page.evaluate(() => globalThis.sistemaInicializado === true), 'sin la selección lista el sistema no se da por inicializado').toBe(false);
+    expect(await pantallaDeCargaVisible(page), 'y la pantalla de carga sigue a la vista').toBe(true);
+
+    // Se le deja de tragar el apretón antes de que se agote su gracia (30 s con el intervalo de 5 s): la recarga que le haga el
+    // supervisor ya podrá completarlo.
+    await page.evaluate(() => localStorage.removeItem('vvtest:sin-apreton'));
+    await expect.poll(() => page.evaluate(() => globalThis.sistemaInicializado === true), {
+      timeout: 70_000,
+      message: 'el supervisor recarga la selección y la aplicación arranca sola, sin que nadie la toque',
+    }).toBe(true);
+    await expect.poll(() => pantallaDeCargaVisible(page), { timeout: 5_000, message: 'y la pantalla de carga se va' }).toBe(false);
+
+    expect(errores.length, 'el supervisor lo dijo por consola, con el nombre de la selección y la fase').toBeGreaterThanOrEqual(1);
+    expect(dialogos, 'sin ningún alert al usuario').toEqual([]);
+  });
+});
+
+test.describe('RC-6 — Sin red, un hijo recargado deja ver el overlay de sin conexión', () => {
+  test.beforeEach(async ({ page, context }) => {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+  });
+
+  test('RC-6. Con la recarga de un hijo y sin red el overlay sale aunque aún no haya modo, y se va solo al volver la red', async ({ page, context }) => {
+    const overlayVisible = () => page.evaluate(() => document.getElementById('internet-overlay')?.classList.contains('show') === true);
+    expect(await page.evaluate(() => globalThis.estadoPadre?.modo?.actual ?? null), 'precondición: todavía no hay modo decidido').toBeNull();
+
+    // Control 1: con red, recargar un hijo no enseña nada
+    await page.evaluate(() => globalThis._vv_beforeHijoReload('hijo2'));
+    expect(await overlayVisible(), 'con red no se enseña el overlay').toBe(false);
+
+    // Control 2: sin red pero sin que se recargue ningún hijo, el evento `offline` solo actúa en AVENTURA
+    await context.setOffline(true);
+    await expect.poll(() => page.evaluate(() => navigator.onLine), { timeout: 5_000 }).toBe(false);
+    expect(await overlayVisible(), 'el evento offline por sí solo no lo enseña mientras no haya modo AVENTURA').toBe(false);
+
+    // Sin red y con un hijo recargándose: sí
+    await page.evaluate(() => globalThis._vv_beforeHijoReload('hijo2'));
+    expect(await overlayVisible(), 'sin red, la recarga de un hijo enseña el overlay de sin conexión').toBe(true);
+
+    // Vuelve la red: se oculta solo
+    await context.setOffline(false);
+    await expect.poll(overlayVisible, { timeout: 5_000, message: 'con el evento `online` el overlay se va' }).toBe(false);
   });
 });

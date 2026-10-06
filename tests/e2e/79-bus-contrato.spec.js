@@ -28,7 +28,7 @@
  *   BC-11  Un error sin capturar en el nieto llega al padre, con el nombre del nieto.
  *   BC-12a El latido llega a los supervisados que ya hicieron el apretón de manos, y a nadie más.
  *   BC-12b Un iframe listo que deja de contestar se recarga tras tres latidos; la consola dice cuál y por qué.
- *   BC-12c adelantarLatido respeta la pausa y, activo, late al momento.
+ *   BC-12c El reloj es uno y no se puede parar ni adelantar.
  *   BC-12d Un iframe que no hace el apretón no recibe latidos: se recarga al agotarse su gracia.
  *   BC-12e Cada recarga seguida duplica la gracia, hasta 4×, y no más.
  *   BC-12f Quien contesta estando listo vuelve a la gracia base; una respuesta rezagada de un no listo, no.
@@ -423,23 +423,20 @@ test.describe('BC — Contrato del bus único', () => {
     expect(avisos(logs, /mudo-sin-supervisar/).length, 'ni se le avisa: no es de la supervisión').toBe(0);
   });
 
-  test('BC-12c. adelantarLatido respeta la pausa y, activo, late al momento', async ({ page }) => {
-    const { padre, hijo } = await montar(page);
-    await hijo.evaluate(() => {
-      globalThis.__arnes.latidos = 0;
-      globalThis.addEventListener('message', (e) => { if (e.source === globalThis.parent && e.data?.tipo === 'SISTEMA.HEARTBEAT') globalThis.__arnes.latidos += 1; });
+  test('BC-12c. El reloj es uno y no se puede parar ni adelantar', async ({ page }) => {
+    const { padre } = await montar(page);
+    const r = await padre.evaluate(async () => {
+      const m = globalThis.mensajeria;
+      const hb = await globalThis.__stateManager.getHeartbeat();
+      return {
+        sobrantes: ['pausarHeartbeat', 'reanudarHeartbeat', 'preiniciarHeartbeat', 'adelantarLatido'].filter((n) => typeof m[n] === 'function'),
+        iniciar: typeof m.iniciarHeartbeat,
+        tienePausa: 'userPaused' in hb,
+      };
     });
-    const existe = await padre.evaluate(() => typeof globalThis.mensajeria.adelantarLatido === 'function');
-    expect(existe, 'adelantarLatido existe').toBe(true);
-
-    await padre.evaluate(async () => { await globalThis.mensajeria.pausarHeartbeat(); globalThis.mensajeria.adelantarLatido(); });
-    // VENTANA-OBSERVACION: con el latido en pausa no puede latir
-    await page.waitForTimeout(600);
-    expect(await hijo.evaluate(() => globalThis.__arnes.latidos), 'en pausa, volver a la pestaña no hace latir').toBe(0);
-
-    // Con intervalo de 5 s, un latido en menos de medio segundo solo puede venir de adelantarLatido.
-    await padre.evaluate(async () => { await globalThis.mensajeria.reanudarHeartbeat(5_000); globalThis.mensajeria.adelantarLatido(); });
-    await expect.poll(() => hijo.evaluate(() => globalThis.__arnes.latidos), { timeout: 500 }).toBeGreaterThan(0);
+    expect(r.iniciar, 'el bus sigue ofreciendo encender el reloj').toBe('function');
+    expect(r.sobrantes, 'pausar, reanudar, preiniciar o adelantar el latido serían un segundo camino: el supervisor tiene que vigilar siempre').toEqual([]);
+    expect(r.tienePausa, 'y el estado del latido no guarda ninguna pausa').toBe(false);
   });
 
   test('BC-12d. Un iframe que no hace el apretón no recibe latidos: se recarga al agotarse su gracia, y la consola lo dice', async ({ page }) => {

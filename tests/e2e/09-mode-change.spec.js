@@ -23,7 +23,7 @@
  *   MC-6  El guard _modoHandlersRegistrados impide doble registro (Race #3):
  *         tras el boot, los handlers CAMBIO_MODO_ENTENDIDO y CAMBIO_MODO_EFECTUADO
  *         solo aparecen UNA vez en __CONTROLADOR_REGISTRADOS
- *   MC-7  HEARTBEAT_START se lanza en modo AVENTURA
+ *   MC-7  El latido está encendido desde el arranque, sin esperar a ningún modo; el padre atiende HEARTBEAT_RESPONSE
  *   (MC-8 probaba la cola de reenvíos `pendingModeChanges`, que ya no existe: el modo llega por
  *   un solo camino y lo cubre 84-el-modo-llega-por-un-camino.spec.js.)
  */
@@ -235,23 +235,20 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
     expect(ok).toBe(true);
   });
 
-  // ── MC-7: HEARTBEAT — no arranca en modo CASA ─────────────────────────
+  // ── MC-7: HEARTBEAT — encendido desde el arranque ─────────────────────
   //
-  // Escenario 1h (partial): verificar que en modo CASA (estado inicial tras FASE 1)
-  // el heartbeat no se ha iniciado. El heartbeat solo debe iniciarse tras cambiar
-  // el modo a AVENTURA.
+  // El latido es el supervisor de los hijos y vigila desde que el padre arranca, antes de que haya modo
+  // (spec 78). Que esté apagado en el estado inicial dejaría sin recuperación a un hijo caído al arrancar.
 
-  test('MC-7a. En modo CASA (inicial), el heartbeat no está activo', async ({ page }) => {
+  test('MC-7a. En el estado inicial, sin modo decidido, el latido ya está activo', async ({ page }) => {
     // El estado real del latido vive en el state-manager (`getHeartbeat()`): `activo` y el id del intervalo.
-    // Antes se leían tres globals (__heartbeatInterval, __heartbeatActivo, __vv_heartbeatActivo) que ningún
-    // fichero de producción asigna, así que el test no podía fallar.
     const hb = await page.evaluate(async () => {
       const h = await globalThis.__vv_stateManager.getHeartbeat();
       return { activo: h.activo, tieneIntervalo: !!h.intervalo, modoActual: globalThis.estadoPadre?.modo?.actual ?? null };
     });
-    // En modo CASA (estado inicial) el heartbeat no debe estar corriendo
-    expect(hb.activo, 'el latido no puede estar activo en el estado inicial').toBe(false);
-    expect(hb.tieneIntervalo, 'ni tener un intervalo armado').toBe(false);
+    expect(hb.modoActual, 'precondición: todavía no hay modo decidido').toBeNull();
+    expect(hb.activo, 'el latido está activo desde que arranca el padre').toBe(true);
+    expect(hb.tieneIntervalo, 'con su intervalo armado').toBe(true);
   });
 
   test('MC-7b. El padre atiende HEARTBEAT_RESPONSE y no registra HEARTBEAT (el latido sale de él, no entra)', async ({ page }) => {

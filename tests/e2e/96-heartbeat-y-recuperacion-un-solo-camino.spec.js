@@ -61,12 +61,12 @@ test.describe('LH/RC2 — Latido sin auto-mensajes muertos; recuperación por el
     expect(recibidos, `hijo2 no debe recibir HEARTBEAT_START/PAUSE: ${JSON.stringify(recibidos)}`).toEqual([]);
   });
 
-  test('LH-2. El heartbeat del padre arranca igual en AVENTURA (control: el auto-mensaje muerto no era lo que lo encendía)', async ({ page }) => {
+  test('LH-2. El heartbeat del padre sigue encendido al entrar en AVENTURA (el cambio de modo no lo toca)', async ({ page }) => {
     await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } }));
     await expect.poll(() => page.evaluate(async () => {
       const hb = await globalThis.__vv_stateManager?.getHeartbeat?.();
-      return hb ? { activo: !!hb.activo, userPaused: !!hb.userPaused } : null;
-    }), { timeout: 5_000 }).toMatchObject({ activo: true, userPaused: false });
+      return hb ? { activo: !!hb.activo } : null;
+    }), { timeout: 5_000 }).toMatchObject({ activo: true });
   });
 
   test('RC2-1. La recuperación de hijo2 pasa por despacharLocal(NAVEGACION.CAMBIO_PARADA), no por un envío directo', async ({ page }) => {

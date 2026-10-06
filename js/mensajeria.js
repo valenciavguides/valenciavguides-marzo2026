@@ -190,10 +190,6 @@ function exponerAPIGlobal() {
 
         // Funciones de heartbeat
         iniciarHeartbeat,
-        preiniciarHeartbeat,
-        reanudarHeartbeat,
-        pausarHeartbeat,
-        adelantarLatido,
         procesarHeartbeatResponse,
         esperarHijosListos,
 
@@ -949,9 +945,12 @@ export function marcarScript2Listo() {
 // =====================================================
 
 /**
- * Inicia el heartbeat para detectar hijos caídos
- * @param {number} intervalo - Intervalo en ms (default: 5000)
- * @returns {Promise<boolean>} True si se inició correctamente
+ * Enciende el reloj del supervisor (ver `supervisarHijos`). Una vez por sesión, en cuanto el padre arranca, y no se apaga.
+ *
+ * Es el único latido: sin pausa en CASA ni arranque propio de AVENTURA, porque un hijo puede caerse en cualquier modo y
+ * hay un iframe que vigilar desde que el padre carga la pantalla de selección. Idempotente: si ya está encendido no hace nada.
+ * @param {number} intervalo - Intervalo en ms (por defecto 5000). La gracia de arranque se mide en vueltas de este reloj.
+ * @returns {Promise<boolean>} True si el reloj queda encendido
  */
 export async function iniciarHeartbeat(intervalo = 5000) {
     if (_heartbeatIniciando) {
@@ -969,10 +968,6 @@ export async function iniciarHeartbeat(intervalo = 5000) {
 
     try {
         const estado = await sm.getHeartbeat();
-        if (estado?.userPaused) {
-            logger.debug('[mensajeria] Heartbeat en pausa (modo CASA) — no se reinicia. Usar reanudarHeartbeat()/preiniciarHeartbeat() para reanudar explícitamente.');
-            return false;
-        }
         if (estado?.activo) {
             logger.debug('[mensajeria] Heartbeat ya está activo');
             return true;
@@ -996,26 +991,6 @@ export async function iniciarHeartbeat(intervalo = 5000) {
     }
 }
 
-// Pre-warm: inicia el heartbeat antes de que empiece la aventura.
-// app.js lo llama en modo CASA para tenerlo listo; pausarHeartbeat() lo pausa a continuación.
-// Reanudación explícita: limpia userPaused antes de arrancar, porque es una intención
-// activa de tener el heartbeat listo, no un reinicio accidental durante una pausa.
-export async function preiniciarHeartbeat(intervalo) {
-    const sm = obtenerStateManager();
-    if (sm) await sm.updateHeartbeat({ userPaused: false });
-    return iniciarHeartbeat(intervalo);
-}
-
-// Reanuda el heartbeat tras una pausa (llamado desde _reanudarSubsistemasTrasPrewarm
-// al completar la transición a modo AVENTURA). Limpia userPaused por el mismo motivo
-// que preiniciarHeartbeat: es una reanudación intencional, no debe quedar bloqueada
-// por la guarda de userPaused en iniciarHeartbeat().
-export async function reanudarHeartbeat(intervalo) {
-    const sm = obtenerStateManager();
-    if (sm) await sm.updateHeartbeat({ userPaused: false });
-    return iniciarHeartbeat(intervalo);
-}
-
 // Espera a que todos los iframes registrados hayan completado el handshake HIJO_LISTO.
 // Se usa como optimización pre-aventura; si el SM no está disponible o no hay iframes,
 // resuelve inmediatamente igual que el fallback de app.js.
@@ -1031,63 +1006,6 @@ export async function esperarHijosListos(timeout = 5000) {
         ]);
     } catch (_) { /* timeouts individuales ignorados */ }
     return { ready: true };
-}
-
-/**
- * Adelanta un latido, sin esperar al siguiente del reloj: sirve al volver a la pestaña, para
- * saber cuanto antes si algún frame se ha quedado por el camino.
- *
- * Si el latido está en pausa (modo CASA) no hace nada: la pausa es una decisión, y saltársela
- * fue exactamente el fallo de tener dos latidos.
- * @returns {boolean} true si se ha pedido el adelanto
- */
-export function adelantarLatido() {
-    const sm = obtenerStateManager();
-    if (!sm) return false;
-    sm.getHeartbeat()
-        .then((estado) => {
-            if (!estado?.activo || estado?.userPaused) return;
-            return supervisarHijos();
-        })
-        .catch((error) => logger.debug('[mensajeria] No se pudo adelantar el latido:', error?.message));
-    return true;
-}
-
-/**
- * Pausa el heartbeat
- * @returns {Promise<boolean>} True si se pausó correctamente
- */
-export async function pausarHeartbeat() {
-    const sm = obtenerStateManager();
-    if (!sm) {
-        logger.warn('[mensajeria] State-manager no disponible para pausar heartbeat');
-        return false;
-    }
-
-    try {
-        const estado = await sm.getHeartbeat();
-        if (!estado?.activo) {
-            // Ya estaba inactivo, pero igualmente se marca userPaused=true: quien llama a
-            // pausarHeartbeat() expresa la intención de que el heartbeat NO debe reiniciarse
-            // solo, sin pasar por reanudarHeartbeat()/preiniciarHeartbeat().
-            await sm.updateHeartbeat({ userPaused: true });
-            logger.debug('[mensajeria] Heartbeat ya estaba pausado; userPaused confirmado');
-            return true;
-        }
-
-        // Limpiar intervalo
-        if (estado?.intervalo) {
-            clearInterval(estado.intervalo);
-        }
-
-        // Marcar como inactivo y bloquear reinicios accidentales (ver iniciarHeartbeat)
-        await sm.updateHeartbeat({ activo: false, intervalo: null, userPaused: true });
-        logger.debug('[mensajeria] Heartbeat pausado');
-        return true;
-    } catch (error) {
-        logger.error('[mensajeria] Error pausando heartbeat:', error);
-        return false;
-    }
 }
 
 /**
@@ -1191,7 +1109,7 @@ function recargarIframe(registro) {
 /**
  * Vuelve la conexión: un iframe que no ha conseguido arrancar (ya se recargó al menos una vez, sin red) no espera a
  * que se le agote una gracia que a estas alturas puede ser de minutos: se reintenta al momento. No cuenta como
- * recarga seguida, porque no es un fallo suyo. Respeta que el reloj esté parado, igual que `adelantarLatido`.
+ * recarga seguida, porque no es un fallo suyo. Solo actúa con el reloj ya encendido.
  */
 function reintentarArranquesPorRed() {
     const sm = obtenerStateManager();
