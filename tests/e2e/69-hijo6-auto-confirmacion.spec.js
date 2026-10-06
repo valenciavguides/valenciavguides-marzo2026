@@ -39,6 +39,8 @@ async function abrirAsistente(page) {
       && !!document.getElementById('btn-chat-soporte'),
     null, { timeout: 25_000 },
   );
+  // Los hijos se cargan juntos, el asistente entre ellos (como en P14); su botón solo lo enseña.
+  await page.evaluate(() => globalThis.cargarRestoDeiframes());
   await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
   await page.waitForFunction(
     () => {

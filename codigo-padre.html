@@ -1599,11 +1599,9 @@
                     };
                 }
 
-                // El asistente (hijo6) es un hijo más: lo carga el cargador único (cargarHijo), la primera vez que se pulsa su botón, y
-                // como cualquier hijo no se ve hasta que está listo. Un asistente que no ha llegado a cargar no se ve nunca, así que quien lo
-                // encuentra roto no necesita ninguna salida: el supervisor del bus lo recupera (§2.7).
-                let _chatCargando = false;
-
+                // El asistente (hijo6) es un hijo más: lo carga cargarRestoDeiframes con los demás hijos y, como cualquiera, no se ve hasta
+                // que está listo. Un asistente que no ha llegado a cargar no se ve nunca, así que quien lo encuentra roto no necesita ninguna
+                // salida: el supervisor del bus lo recupera (§2.7) y el botón no hace nada hasta entonces.
                 function _mostrarChat() {
                     iframeChat.style.display     = 'block';
                     iframeChat.style.visibility  = 'visible';
@@ -1612,28 +1610,15 @@
                     }
                 }
 
-                async function abrirChat() {
-                    if (globalThis.__stateManager.hijoEstaListo('hijo6-chat')) {
-                        // Ya cargado: se le entrega el estado de ahora (parada, rescate) antes de enseñarlo
-                        globalThis.mensajeria.enviarMensaje({
-                            tipo: globalThis.TIPOS_MENSAJE?.CHAT?.ESTADO_PADRE || 'CHAT.ESTADO_PADRE',
-                            destino: 'hijo6-chat',
-                            datos: construirEstadoChat()
-                        });
-                        _mostrarChat();
-                        return;
-                    }
-                    // Sin estar listo: o es la primera apertura (el iframe no tiene `src`) y se carga, o ya se está cargando o recuperando y el
-                    // botón no hace nada hasta que esté listo.
-                    if (_chatCargando || iframeChat.getAttribute('src')) return;
-                    _chatCargando = true;
-                    try {
-                        // El estado inicial viaja en el handshake (HIJO_PREPARADO → PADRE_DATOS): al abrirlo por primera vez no hace falta refrescarlo.
-                        await globalThis.cargarHijo({ id: 'hijo6-chat', src: 'chat-hijo6.html' }, { visibilidad: 'no-tocar' });
-                        _mostrarChat();
-                    } finally {
-                        _chatCargando = false;
-                    }
+                function abrirChat() {
+                    if (!globalThis.__stateManager.hijoEstaListo('hijo6-chat')) return;
+                    // Se le entrega el estado de ahora (parada, rescate) antes de enseñarlo: el que recibió al cargarse es el de P14
+                    globalThis.mensajeria.enviarMensaje({
+                        tipo: globalThis.TIPOS_MENSAJE?.CHAT?.ESTADO_PADRE || 'CHAT.ESTADO_PADRE',
+                        destino: 'hijo6-chat',
+                        datos: construirEstadoChat()
+                    });
+                    _mostrarChat();
                 }
 
                 function cerrarChat() {
@@ -2747,7 +2732,7 @@
     <!-- #brujula-modo ya no existe como <button> estático — se crea por completo en JS
          dentro de initializeMap(), junto a #selector-tipo-mapa (mismo patrón). -->
 
-    <!-- Overlay del asistente de soporte (hijo6): lo carga cargarHijo la primera vez que se pulsa su botón y no se ve hasta que está listo -->
+    <!-- Overlay del asistente de soporte (hijo6): lo carga cargarRestoDeiframes con los demás hijos y no se ve hasta que está listo y se pulsa su botón -->
     <iframe id="hijo6-chat" name="hijo6-chat" src=""
         title="Asistente de soporte"
         aria-label="Chat de soporte operativo"
@@ -7198,9 +7183,6 @@
         // ============================================================
         // IMPORTANTE: Se registra AQUÍ (Script 1) ANTES de cargar iframes
         // para garantizar que esté activo cuando los hijos envíen sus mensajes
-        // Los hijos sin los que la aplicación no se da por inicializada: cuando los tres están listos se despacha SISTEMA.APLICACION_INICIALIZADA
-        // (_hijoListo_onTodosListos). Recargar a uno de ellos con cargarHijo lo vuelve a armar; recargar a los demás no lo toca.
-        const HIJOS_CRITICOS = ['hijo2', 'hijo3', 'hijo4'];
         async function _hijoListo_confirmarAlHijo(hijoId, logPrefix) {
             try {
                 if (typeof enviarMensaje_S1 === 'function') {
@@ -7295,7 +7277,7 @@
                         (globalThis.logger || console).warn(`${logPrefix} Funciones de Script 2 (retosBtn) aún no disponibles; se omite reconfiguración tras hijo3 listo`);
                     }
                 }
-                const hijosCriticos = HIJOS_CRITICOS;
+                const hijosCriticos = ['hijo2', 'hijo3', 'hijo4'];
                 const todosListos = hijosCriticos.every(id => estado.hijosInicializados && estado.hijosInicializados.has(id));
                 if (todosListos && !estado.todosHijosListos) { await _hijoListo_onTodosListos(logPrefix, hijosCriticos, timestamp); }
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error procesando hijo listo:`, error); }
@@ -7814,7 +7796,7 @@
         function _olvidarHijoListo(iframeId) {
             globalThis.estadoPadre.hijosInicializados.delete(iframeId);
             globalThis.__stateManager.olvidarHijoListo(iframeId);
-            if (HIJOS_CRITICOS.includes(iframeId)) globalThis.estadoPadre.todosHijosListos = false;
+            globalThis.estadoPadre.todosHijosListos = false;
         }
 
         // Carga el iframe de un hijo y no termina hasta que completa el apretón de manos (HIJO_LISTO). SIN plazo: si no llega, lo
@@ -7832,7 +7814,7 @@
         // visibilidad:
         //   'al-estar-listo'      oculto mientras carga y visible al estar listo (los hijos de la aventura)
         //   'desde-el-principio'  visible ya mientras carga (la selección: es lo primero que ve el usuario)
-        //   'no-tocar'            ni se oculta ni se muestra (hijo5, herramienta de desarrollo, ver §24: la muestra quien la usa)
+        //   'no-tocar'            ni se oculta ni se muestra (hijo5, herramienta de desarrollo, ver §24, y hijo6, el asistente: los muestra quien los usa)
         async function cargarHijo(iframe, { visibilidad = 'al-estar-listo' } = {}) {
             const iframeEl = document.getElementById(iframe.id);
             if (!iframeEl) throw new Error(`Iframe ${iframe.id} no encontrado en DOM`);
@@ -8146,7 +8128,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // ============================================================
         // FUNCIÓN: CARGAR RESTO DE IFRAMES
         // Se llama después de AVENTURA_SELECCIONADA
-        // Carga todos excepto 'seleccion' (ya cargado en el arranque) e 'hijo5' (que se carga con cargarHijoCasa)
+        // Carga hijo1-4 y el asistente (hijo6): todos excepto 'seleccion' (ya cargado en el arranque) e 'hijo5' (que se carga con cargarHijoCasa)
         // ============================================================
         async function cargarRestoDeiframes() {
             const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[CARGAR_RESTO]`;
@@ -8156,10 +8138,12 @@ await _comprobarReanudacionAventura(logPrefix);
                 { id: 'hijo1-opciones', src: 'extrainfo-hijo1.html' },
                 { id: 'hijo2', src: 'coordenadas-hijo2.html' },
                 { id: 'hijo3', src: 'audio-hijo3.html' },
-                { id: 'hijo4', src: 'retos-hijo4.html' }
+                { id: 'hijo4', src: 'retos-hijo4.html' },
+                // hijo6 (el asistente de soporte, un FAQ) se carga con los demás, pero lo abre su botón: el cargador no lo muestra
+                { id: 'hijo6-chat', src: 'chat-hijo6.html', visibilidad: 'no-tocar' }
             ];
 
-            await Promise.all(iframes.map(iframe => cargarHijo(iframe)));
+            await Promise.all(iframes.map(iframe => cargarHijo(iframe, { visibilidad: iframe.visibilidad })));
             (globalThis.logger || console).success(`${logPrefix} ✅ Todos los iframes cargados correctamente`);
         }
 
@@ -8167,7 +8151,6 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.cargarIframeSoloSeleccion = cargarIframeSoloSeleccion;
         globalThis.cargarRestoDeiframes = cargarRestoDeiframes;
         globalThis.cargarHijoCasa = cargarHijoCasa;
-        globalThis.cargarHijo = cargarHijo;
         globalThis.waitForMapLibreAndInitialize = waitForMapLibreAndInitialize;
 
         // ============================================================

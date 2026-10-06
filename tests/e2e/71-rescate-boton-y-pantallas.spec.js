@@ -65,6 +65,8 @@ async function prepararAventura(page, { tipo = 'tramo', gastados = 0 } = {}) {
  * construcción; la pregunta del atasco ("dispone de N rescates") solo desde la segunda.
  */
 async function abrirAsistente(page) {
+  // Los hijos se cargan juntos, el asistente entre ellos (como en P14); su botón solo lo enseña.
+  await page.evaluate(() => globalThis.cargarRestoDeiframes());
   await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
   await page.waitForFunction(
     () => [...(globalThis.mensajeria?.getIframesRegistrados?.() || new Map()).keys()].includes('hijo6-chat'),

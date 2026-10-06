@@ -223,7 +223,7 @@ Al arrancar `codigo-padre.html`:
    - Si no existe → la app queda en MODO CASA esperando que el usuario complete el flujo de incorporación.
 3. En el flujo de incorporación, el padre no carga iframes ni activa GPS hasta P14 (`SELECCION.P14_MOSTRADA`). Los HTML de los iframes hijo contienen lógica de pago y no se sirven antes de que el usuario valide su código en P13. Antes de P14, el padre solo anota idioma y aventura en el estado interno. **Excepción modo DEV (Factor 1, ver §24):** si `_devModeActivo` es `true`, `mostrar()` intercepta P12 y P13 y redirige directamente a P14 sin validar código. El GPS **sí** se activa en P14 en modo DEV, igual que en producción — `_hdl_SELECCION_P14_MOSTRADA` llama a `activarGPS()` incondicionalmente. Encenderlo ya en P14 evita el coste de reingresar GPS más tarde (`watchPosition` nunca se detiene al cambiar de modo — ver §2.6); el filtro CASA/AVENTURA no está en si el GPS está encendido, sino en si sus posiciones fuerzan avance automático (`estadoMapa.modo !== MODOS.AVENTURA` en `funciones-mapa.js:procesarPosicionGPSParaAventura`).
 4. Cuando `SELECCION.CODIGO_VALIDADO` llega (P13, solo prod): el handler está vacío — solo registra que el código fue validado con un log. GPS, iframes y datos de aventura se activan en P14.
-5. Cuando `SELECCION.P14_MOSTRADA` llega: carga hijo1-5 (`cargarRestoDeiframes` + `cargarHijoCasa`) y datos (`_fase2CargarDatos`) en paralelo, marca `_iframesPreCargadosP14 = true` en cuanto eso termina, y **después** activa GPS, en prod y en dev por igual. En prod, el orden garantiza que hijo2 ya está en modo CASA cuando llegan las primeras posiciones GPS — la proximidad no avanza la aventura hasta que el modo cambia a AVENTURA. Cuando `SELECCION.AVENTURA_ACTIVADA` llega (P16): fast-path si `_iframesPreCargadosP14 === true` (salta recarga); si no, carga iframes como fallback.
+5. Cuando `SELECCION.P14_MOSTRADA` llega: carga hijo1-6 (`cargarRestoDeiframes` + `cargarHijoCasa`) y datos (`_fase2CargarDatos`) en paralelo, marca `_iframesPreCargadosP14 = true` en cuanto eso termina, y **después** activa GPS, en prod y en dev por igual. En prod, el orden garantiza que hijo2 ya está en modo CASA cuando llegan las primeras posiciones GPS — la proximidad no avanza la aventura hasta que el modo cambia a AVENTURA. Cuando `SELECCION.AVENTURA_ACTIVADA` llega (P16): fast-path si `_iframesPreCargadosP14 === true` (salta recarga); si no, carga iframes como fallback.
 
 > **Antes de P14 no se descarga ningún dato de aventura.** La carga la dispara únicamente `SELECCION.P14_MOSTRADA`: ni la secuencia de arranque ni `SELECCION.CODIGO_VALIDADO` la provocan. Con `aventuraSeleccionada` vacía no hay en memoria ni coordenadas, ni audios, ni índice, ni mapas vintage, ni puzzles — y tampoco GPS ni iframes hijo.
 >
@@ -239,7 +239,7 @@ flowchart TD
     C --> DEV{¿_devModeActivo?\nFactor 1 activado antes de P12}
     DEV -- Sí\nmodo DEV --> BYPASS["mostrar() intercepta P12 y P13\nredirige id=14 directamente\nsin CODIGO_VALIDADO — GPS sí se activa en P14"]
     DEV -- No --> P13[P13: usuario introduce código de compra\nseleccion envía CODIGO_VALIDADO · padre solo registra]
-    P13 --> P14[P14: normativa mostrada\n_accionPantalla15() → P14_MOSTRADA\ncarga hijo1-5 + datos en paralelo → activa GPS siempre]
+    P13 --> P14[P14: normativa mostrada\n_accionPantalla15() → P14_MOSTRADA\ncarga hijo1-6 + datos en paralelo → activa GPS siempre]
     BYPASS --> P14
     P14 --> P15[P15: Reto R-2\nSÍ → AVENTURA_ACTIVADA]
     P15 --> J([Sistema en MODO CASA\nhijo5 visible si modo DEV · heartbeat activo\nUsuario ve mapa y controles])
@@ -556,7 +556,7 @@ El bus supervisa y recarga a **todos los hijos por igual**: ninguno está exento
 | `hijo4` | `RETO.MOSTRAR` con el reto a la vista |
 | `seleccion`, `hijo5`, `hijo6-chat` | Nada: vuelven a su primera pantalla (la selección a P1) |
 
-**Un solo punto de registro.** El cargador de iframes del padre, `cargarHijo` (el único: `abrirChat` carga al asistente con él), llama a `globalThis.registrarIframeHijo(id, elemento)` (Script 1 de `codigo-padre.html`), que registra con `{ supervisado: true }`. Ningún cargador decide por su cuenta.
+**Un solo punto de registro.** El cargador de iframes del padre, `cargarHijo` (el único), llama a `globalThis.registrarIframeHijo(id, elemento)` (Script 1 de `codigo-padre.html`), que registra con `{ supervisado: true }`. Ningún cargador decide por su cuenta.
 
 **Antes de recargar**, `recargarIframe()` llama a `globalThis._vv_beforeHijoReload(hijoId)`, que toma la foto del estado (modo, parada, tiempo restante, audio y reto actuales) y la apunta en consola (`[PADRE][SNAPSHOT] Snapshot tomado para <id> antes de reload (modo: …, parada: …, tiempoRestante: …)`). La restauración ocurre después, cuando el hijo recargado vuelve a mandar su `HIJO_LISTO`.
 
@@ -645,7 +645,7 @@ El padre es el único que tiene visión global del sistema. Conoce el modo actua
 
 - `hijo3` (audio) nunca es visible — existe solo para reproducir audio en segundo plano.
 - `hijo4` (retos) solo se hace visible cuando el padre llama `mostrarHijo4()` al recibir `RETO.SOLICITAR_RETO`. Al cerrarse el reto vuelve a `display:none`.
-- `hijo6` (chat) se carga de forma lazy — solo se inicializa la primera vez que el usuario lo abre.
+- `hijo6` (asistente) se carga con los demás hijos y solo se ve al pulsar su botón, estando listo.
 - `hijo5` es una herramienta de desarrollo exclusiva; no forma parte de la PWA real.
 
 ### 3.2. Arquitectura de comunicación
@@ -1596,11 +1596,11 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 | Hijo 1 | `hijo1-opciones` | `extrainfo-hijo1.html` | No | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Panel lateral izquierdo con botón "Más opciones". Despliega iconos de acceso a contenido complementario (temporizador, vídeos, etc.). |
 | Hijo 2 | `hijo2` | `coordenadas-hijo2.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Gestiona 6 botones de navegación. Recibe `distanciaAlDestino` de `funciones-mapa.js` (el Haversine lo hace el padre), compara contra umbral, envía `LLEGADA_DETECTADA` y gestiona overlay "fuera de rango". Sin mapa propio — lo renderiza `codigo-padre.html` vía `funciones-mapa.js`. |
 | Hijo 3 | `hijo3` | `audio-hijo3.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Reproductor de audio. Recibe del padre qué audio reproducir y lo controla. |
-| Hijo 4 | `hijo4` | `retos-hijo4.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()`. En la ruta fallback de `AVENTURA_ACTIVADA` (sin pre-carga en P14) lo recarga el mismo `Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])` que a los demás (hijo1-hijo5, ver §9.11) | Muestra retos (preguntas de opción múltiple, texto libre, puzzles) y valida las respuestas. |
+| Hijo 4 | `hijo4` | `retos-hijo4.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()`. En la ruta fallback de `AVENTURA_ACTIVADA` (sin pre-carga en P14) lo recarga el mismo `Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])` que a los demás (hijo1-hijo6, ver §9.11) | Muestra retos (preguntas de opción múltiple, texto libre, puzzles) y valida las respuestas. |
 | Hijo 5 | `hijo5` | `boton-casa-hijo5.html` | No | `SELECCION.P14_MOSTRADA` → `cargarHijoCasa()`, que lo carga con `cargarHijo`: lo registra en la mensajería, le asigna el `src` y espera su `HIJO_LISTO`, sin ocultarlo ni mostrarlo | **Solo desarrollo — no aparece en la PWA final.** Herramienta de prueba para simular el modo CASA desde escritorio. Contiene el botón GPS (🛰️) que envía `SISTEMA.CAMBIO_MODO` al padre para alternar entre modos CASA y AVENTURA. Visible solo cuando el modo DEV está activo (`globalThis._devModeActivo = true`, ver §24); permanece oculto (`display:none`) en todo momento normal. |
-| Hijo 6 | `hijo6-chat` | `chat-hijo6.html` | No | **Lazy** — `src=""` en HTML; se asigna al primer click en `#btn-chat-soporte` | Asistente de soporte FAQ en acordeón. Accesible desde un botón flotante propio del padre. |
+| Hijo 6 | `hijo6-chat` | `chat-hijo6.html` | No | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` (`src=""` en el HTML; el cargador no lo muestra: lo enseña su botón `#btn-chat-soporte`, estando listo) | Asistente de soporte FAQ en acordeón. Accesible desde un botón flotante propio del padre. |
 
-> **Quién recibe heartbeat: todo iframe supervisado que ya completó su apretón de manos, no una lista fija.** `supervisarHijos()` (`js/mensajeria.js`) recorre `[...iframesRegistrados.values()]`, sin lista de reserva ni categorías, y se queda con los registrados con `supervisado: true`. Ese `Map` lo puebla `registrarIframe()`, que los cargadores del padre llaman **antes de asignar el `src`** a través del punto único `globalThis.registrarIframeHijo()` (que registra con `supervisado: true`). Estar registrado es a la vez lo que hace a un iframe alcanzable desde el padre y lo que lo pone bajo vigilancia: no son dos listas que haya que mantener a la par. Entran los siete, también `seleccion`, `hijo1-opciones` y `hijo6-chat`, cada uno cuando su cargador lo registra (`hijo5` al elegir aventura, el chat al abrirlo). El latido solo se le manda al que `hijoEstaListo(id)` (state-manager) da por listo; al que aún no completó el apretón de manos se le deja la gracia de arranque (§2.7).
+> **Quién recibe heartbeat: todo iframe supervisado que ya completó su apretón de manos, no una lista fija.** `supervisarHijos()` (`js/mensajeria.js`) recorre `[...iframesRegistrados.values()]`, sin lista de reserva ni categorías, y se queda con los registrados con `supervisado: true`. Ese `Map` lo puebla `registrarIframe()`, que los cargadores del padre llaman **antes de asignar el `src`** a través del punto único `globalThis.registrarIframeHijo()` (que registra con `supervisado: true`). Estar registrado es a la vez lo que hace a un iframe alcanzable desde el padre y lo que lo pone bajo vigilancia: no son dos listas que haya que mantener a la par. Entran los siete, también `seleccion`, `hijo1-opciones` y `hijo6-chat`, cada uno cuando `cargarHijo` lo registra (`hijo5` al elegir aventura, el asistente con los demás hijos). El latido solo se le manda al que `hijoEstaListo(id)` (state-manager) da por listo; al que aún no completó el apretón de manos se le deja la gracia de arranque (§2.7).
 >
 > Con los siete cargados, cada uno recibe y contesta un latido por vuelta: el registro contiene `seleccion` (SELECCION), `hijo1-opciones` (EXTRAINFO), `hijo2` (COORDENADAS), `hijo3` (AUDIO), `hijo4` (RETO) y `hijo5` (CASA) — y `hijo6-chat` en cuanto se abre el chat, que se carga en diferido —, todos con `supervisado: true`. En 45 s con el modo AVENTURA activo, cada uno recibió 9 latidos y devolvió 9 respuestas, con `latidosSinRespuesta` y `recargas` a 0. Los siete tienen su controlador de `SISTEMA.HEARTBEAT` y responden `SISTEMA.HEARTBEAT_RESPONSE`, así que ninguno acumula latidos sin respuesta por no estar previsto.
 >
@@ -1649,7 +1649,7 @@ Padre                                Hijo
 **Notas de implementación:**
 
 - El padre no contesta `HIJO_PREPARADO` con un mensaje propio: el handshake sigue con `PADRE_DATOS`. El acuse de recepción, si el emisor lo pide, es el del bus (`SISTEMA.CONFIRMACION`, §10.17).
-- `PADRE_DATOS` del handshake lleva `{ modo, timestamp }` para todos los hijos. Los datos completos de la aventura (idioma, coordenadas) **no viajan en este mensaje** — llegan mediante mensajes específicos (`DATOS.CARGAR_COORDENADAS`, `NAVEGACION.RESPUESTA_DATOS_PARADAS`, etc.) después de que el hijo ya está listo. Audio y retos no se distribuyen en el handshake en absoluto — se resuelven parada a parada (ver §16). **Única excepción: `hijo6-chat`** — su `PADRE_DATOS` añade además `idioma`, `aventura`, `paradaActualNombre`, `siguienteParadaNombre`, `paradasRestantes` y `rescate` —el estado del rescate, §25.19— (`globalThis.construirEstadoChat()`, expuesto por el IIFE de apertura del chat para que `_hdl_SISTEMA_HIJO_PREPARADO` — otro scope — pueda leerlo). Es la vía por la que el chat conoce el idioma en su primera apertura: sin ese añadido construiría su FAQ con el `'es'` por defecto en vez del idioma real seleccionado. Que el payload sea correcto no basta — este mensaje solo llega si `hijo6-chat` está registrado en `iframesRegistrados`, cosa que `cargarHijo` hace antes de asignarle `src`; ver §7.7 para el detalle de por qué el registro condiciona la entrega.
+- `PADRE_DATOS` del handshake lleva `{ modo, timestamp }` para todos los hijos. Los datos completos de la aventura (idioma, coordenadas) **no viajan en este mensaje** — llegan mediante mensajes específicos (`DATOS.CARGAR_COORDENADAS`, `NAVEGACION.RESPUESTA_DATOS_PARADAS`, etc.) después de que el hijo ya está listo. Audio y retos no se distribuyen en el handshake en absoluto — se resuelven parada a parada (ver §16). **Única excepción: `hijo6-chat`** — su `PADRE_DATOS` añade además `idioma`, `aventura`, `paradaActualNombre`, `siguienteParadaNombre`, `paradasRestantes` y `rescate` —el estado del rescate, §25.19— (`globalThis.construirEstadoChat()`, expuesto por el IIFE de apertura del chat para que `_hdl_SISTEMA_HIJO_PREPARADO` — otro scope — pueda leerlo). Es la vía por la que el chat conoce el idioma al cargarse: sin ese añadido construiría su FAQ con el `'es'` por defecto en vez del idioma real seleccionado. Que el payload sea correcto no basta — este mensaje solo llega si `hijo6-chat` está registrado en `iframesRegistrados`, cosa que `cargarHijo` hace antes de asignarle `src`; ver §7.7 para el detalle de por qué el registro condiciona la entrega.
 - El padre registra los handlers `HIJO_PREPARADO` y `HIJO_LISTO` en Script 1 **antes de asignar `src` a ningún iframe** — esto garantiza que los mensajes tempranos nunca se pierdan.
 - Diseño intencional: la espera de `HIJO_LISTO` no tiene plazo: un hijo que se cuelga antes de enviarlo (crash total) no hace fallar a quien espera, porque lo recupera el supervisor del bus (§2.7), que recarga a los hijos que no llegan a enviar `HIJO_LISTO` dentro de su gracia de arranque y a los que dejan de contestar tras arrancar; el `PADRE_CONFIRMA_HIJO_LISTO` de cada `HIJO_LISTO` —también el de un hijo recargado— lleva el modo vigente (`modoInicial`).
 
@@ -1725,7 +1725,7 @@ sequenceDiagram
 
     Note over S1: hijo2 + hijo3 + hijo4 listos<br/>→ _hijoListo_onTodosListos()<br/>→ CAMBIO_MODO { razon:'sincronizacion_inicial' }
 
-    Note over H6: hijo6-chat: src="" en HTML<br/>Se carga al primer click en btn-chat-soporte<br/>(apertura lazy)
+    Note over H6: hijo6-chat: src="" en HTML<br/>Lo carga cargarRestoDeiframes con los demás hijos<br/>(su botón btn-chat-soporte lo enseña, ya listo)
 ```
 
 > **Carga en paralelo:** `cargarRestoDeiframes()` usa `Promise.all` sobre hijo1-opciones/hijo2/hijo3/hijo4 y `cargarHijoCasa()` carga hijo5; las dos se lanzan juntas con `await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])`, y las tres rutas que cargan hijos —P14, la reanudación de sesión y la ruta fallback de `_hdl_SELECCION_AVENTURA_ACTIVADA`— usan esa misma pareja. Cada hijo se carga con `cargarHijo`, que espera su `HIJO_LISTO` sin plazo (si no llega, lo recarga el supervisor del bus, §2.7) y lo muestra en cuanto está listo, sin esperar a los demás. La pantalla de selección se carga antes y por separado en `cargarIframeSoloSeleccion()`, también con `cargarHijo` (a la vista desde el principio): mientras no esté lista, la aplicación se queda en su pantalla de carga. `_fase2CargarDatos()` precarga módulos JS cuando P14 se muestra (`SELECCION.P14_MOSTRADA`), de modo que AVENTURA_ACTIVADA puede distribuir datos sin esperar imports adicionales.
@@ -1774,7 +1774,7 @@ graph TD
     style PZ fill:#e0e0e0,color:#555
 ```
 
-> `hijo5` (gris) — solo desarrollo, no aparece en la PWA final. `hijo6-chat` (azul claro) — carga lazy al primer uso. `puzzle.html` (gris claro) — no es hijo directo del padre; es sub-iframe interno de `seleccion`.
+> `hijo5` (gris) — solo desarrollo, no aparece en la PWA final. `hijo6-chat` (azul claro) — se carga con los demás hijos y lo enseña su botón. `puzzle.html` (gris claro) — no es hijo directo del padre; es sub-iframe interno de `seleccion`.
 
 ### Diagrama de secuencia — Reanudación de aventura
 
@@ -1891,7 +1891,7 @@ Necesita FASE 2 completa. Ocurre dentro de `ejecutarInicializacionAutomatica()`,
 1. `cargarIframeSoloSeleccion()` — carga `seleccion` con `cargarHijo` (la registra como supervisada, la deja a la vista, le asigna el `src` y espera su `HIJO_LISTO` **sin plazo**): si no llega, la recarga el supervisor (§2.7) y la aplicación se queda en su pantalla de carga (`sistemaInicializado` sigue en `false`) mientras no esté lista, sin ningún aviso al usuario.
 2. Marca `sistemaInicializado`, procesa las distribuciones pendientes y retira el overlay de carga.
 
-> **Los iframes hijo (hijo1–hijo5) NO se cargan en el arranque, y esa es la regla, no un detalle.** Contienen contenido de pago, así que su `src` no se asigna hasta que el usuario ha validado su código en P13. Solo dos sitios en toda la app los cargan: `_hdl_SELECCION_P14_MOSTRADA` (el camino normal, con `cargarRestoDeiframes()` + `cargarHijoCasa()`) y `ejecutarRestauracionAventura()` (la reanudación de sesión, que nunca pasa por P14 — sin esa llamada ningún iframe tendría `src` y la reanudación seguiría sin hijos). Las dos cargan con `cargarHijo`, que recarga el iframe aunque ya tenga ese `src`. Ver §17 para el modelo de seguridad completo.
+> **Los iframes hijo (hijo1–hijo6) NO se cargan en el arranque, y esa es la regla, no un detalle.** Contienen contenido de pago, así que su `src` no se asigna hasta que el usuario ha validado su código en P13. Solo dos sitios en toda la app los cargan: `_hdl_SELECCION_P14_MOSTRADA` (el camino normal, con `cargarRestoDeiframes()` + `cargarHijoCasa()`) y `ejecutarRestauracionAventura()` (la reanudación de sesión, que nunca pasa por P14 — sin esa llamada ningún iframe tendría `src` y la reanudación seguiría sin hijos). Las dos cargan con `cargarHijo`, que recarga el iframe aunque ya tenga ese `src`. Ver §17 para el modelo de seguridad completo.
 
 Cuando esos iframes sí se cargan, van en **paralelo** (`Promise.all`) y ocultos (`display:none`) hasta que cada uno está listo. El listener `load` de cada uno incluye una guardia `about:blank`: si `contentWindow.location.href === 'about:blank'` retorna sin llamar a `handleIframeLoad`, evitando un falso "loaded successfully" antes de que se asigne el `src` real.
 
@@ -1903,7 +1903,7 @@ Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el 
 - `SELECCION.PREPARAR_HIJOS` (P9) → solo almacena `aventura` en `estado.seleccion` (el `idioma` solo se escribe en el log); **no carga iframes**
 - `SELECCION.CODIGO_VALIDADO` (P13, solo prod) → handler vacío — registra con un log que el código fue validado; nada más
 - `SELECCION.P14_MOSTRADA` (P14) → en paralelo: `_fase2CargarDatos()` + `cargarRestoDeiframes()` + `cargarHijoCasa()`; en cuanto eso termina marca `_iframesPreCargadosP14 = true`; **después**: `activarGPS()` siempre, en prod y en dev; si GPS deniega → overlay + abort, pero el flag ya está puesto y el abort no lo deshace
-- `SELECCION.AVENTURA_ACTIVADA` (P15/P16) → fast-path si `_iframesPreCargadosP14` (salta recarga); si no, carga hijo1-5 como fallback; siempre distribuye datos; el modo final depende de `_devModeActivo` — CASA solo en modo DEV, AVENTURA directo en cualquier otro caso (el real en producción, ver §9.5)
+- `SELECCION.AVENTURA_ACTIVADA` (P15/P16) → fast-path si `_iframesPreCargadosP14` (salta recarga); si no, carga hijo1-6 como fallback; siempre distribuye datos; el modo final depende de `_devModeActivo` — CASA solo en modo DEV, AVENTURA directo en cualquier otro caso (el real en producción, ver §9.5)
 
 ```mermaid
 flowchart TD
@@ -1915,7 +1915,7 @@ flowchart TD
     SEL_P["PREPARAR_HIJOS (P9)\nsolo almacena { idioma, aventura, timestamp }\nno carga iframes"]
     SEL_CV["CODIGO_VALIDADO (P13 — solo prod)\nhandler vacío — registra con log"]
     SEL_P14["P14_MOSTRADA (P14)\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos en paralelo\n→ activarGPS siempre (prod y dev)"]
-    SEL_C["AVENTURA_ACTIVADA (P15→P16)\nfast-path si _iframesPreCargadosP14\nsi no: carga hijo1-5 + distribuirDatosAventura()"]
+    SEL_C["AVENTURA_ACTIVADA (P15→P16)\nfast-path si _iframesPreCargadosP14\nsi no: carga hijo1-6 + distribuirDatosAventura()"]
     F1 --> F2 --> F3A --> FIN
     FIN -.->|"más tarde:\nusuario completa\nonboarding"| SEL_A
     SEL_A --> SEL_P --> SEL_CV --> SEL_P14 --> SEL_C
@@ -2162,7 +2162,7 @@ graph TD
     H3["🔊 hijo3\naudio-hijo3.html\nreproductor audio + retosBtn"]
     H4["🧩 hijo4\nretos-hijo4.html\npantalla de retos"]
     H5["🛰️ hijo5\nboton-casa-hijo5.html\nnavegador CASA + toggle GPS"]
-    H6["💬 hijo6-chat\nchat-hijo6.html\nFAQ soporte (carga lazy)"]
+    H6["💬 hijo6-chat\nchat-hijo6.html\nFAQ soporte (lo enseña su botón)"]
     PZ["🧩 puzzle.html\n(sub-iframe de H4 y seleccion)"]
 
     P <-->|"handshake · CAMBIO_MODO\nDATOS.CARGAR_*"| SEL
@@ -2201,7 +2201,7 @@ graph TD
 
 **Rol en el sistema**: es el **punto de entrada único**. Ningún hijo de juego (hijo2, hijo3, hijo4) es visible hasta que `seleccion` completa su flujo y el padre recibe `SELECCION.AVENTURA_ACTIVADA`.
 
-**Inicialización**: es el **único** iframe que se carga al arrancar la app (FASE 3.1). Existe en el DOM desde el inicio con `display:none; visibility:hidden`, y el padre lo hace visible en cuanto confirma su handshake. **hijo1-hijo5 no se cargan aquí**: sus HTML contienen la lógica de pago, así que el modelo de seguridad de P14 (§5) los deja sin `src` hasta que llega `SELECCION.P14_MOSTRADA` — ni en el arranque ni en P13 (`SELECCION.CODIGO_VALIDADO`, que solo valida el código). En P14 se cargan hijo1-hijo4 con `cargarRestoDeiframes()` y hijo5 con `cargarHijoCasa()`, en paralelo con los datos de la aventura, mientras el usuario lee la normativa.
+**Inicialización**: es el **único** iframe que se carga al arrancar la app (FASE 3.1). Existe en el DOM desde el inicio con `display:none; visibility:hidden`, y el padre lo hace visible en cuanto confirma su handshake. **hijo1-hijo6 no se cargan aquí**: sus HTML contienen la lógica de pago, así que el modelo de seguridad de P14 (§5) los deja sin `src` hasta que llega `SELECCION.P14_MOSTRADA` — ni en el arranque ni en P13 (`SELECCION.CODIGO_VALIDADO`, que solo valida el código). En P14 se cargan hijo1-hijo4 con `cargarRestoDeiframes()` y hijo5 con `cargarHijoCasa()`, en paralelo con los datos de la aventura, mientras el usuario lee la normativa.
 
 **Después de la aventura**: el padre lo oculta de nuevo (`display:none; visibility:hidden`) cuando procesa `SELECCION.AVENTURA_ACTIVADA`. No se destruye — permanece en el DOM oculto.
 
@@ -3213,34 +3213,23 @@ sequenceDiagram
 
 **Propósito**: FAQ contextual en formato acordeón de dos niveles (tema → pregunta → respuesta). Se abre al pulsar el botón flotante `#btn-chat-soporte` del padre. No afecta la lógica de juego — es puramente informativo y contextual.
 
-**Inicialización**: **lazy** — `src=""` en el HTML; la primera vez que el usuario pulsa `#btn-chat-soporte`, `abrirChat()` lo carga con `cargarHijo`, como a cualquier hijo, y **no se ve hasta que está listo**: mientras no está listo el iframe tiene `display:none` y `visibility:hidden`. Un asistente que no ha llegado a cargar no se ve nunca, así que no necesita ninguna salida: si no arranca lo recupera el supervisor del bus (§2.7) y el botón no hace nada mientras tanto.
+**Inicialización**: `src=""` en el HTML; lo carga `cargarRestoDeiframes` con los demás hijos (P14, la reanudación y la ruta fallback) y **no se ve hasta que está listo y el usuario pulsa su botón** `#btn-chat-soporte`: mientras tanto el iframe tiene `display:none` y `visibility:hidden`, que el cargador no toca (`visibilidad: 'no-tocar'`). Un asistente que no ha llegado a cargar no se ve nunca, así que no necesita ninguna salida: si no arranca lo recupera el supervisor del bus (§2.7) y el botón no hace nada mientras tanto.
 
 ```javascript
 // En codigo-padre.html, abrirChat():
-async function abrirChat() {
-    if (globalThis.__stateManager.hijoEstaListo('hijo6-chat')) {
-        // Ya cargado: se le entrega el estado de ahora (CHAT.ESTADO_PADRE) y se muestra
-        globalThis.mensajeria.enviarMensaje({ tipo: TIPOS_MENSAJE.CHAT.ESTADO_PADRE, destino: 'hijo6-chat', datos: construirEstadoChat() });
-        _mostrarChat();   // display:block + visibility:visible
-        return;
-    }
-    // Sin estar listo: o es la primera apertura (el iframe no tiene `src`) y se carga, o ya se está cargando o recuperando y el botón no hace nada
-    if (_chatCargando || iframeChat.getAttribute('src')) return;
-    _chatCargando = true;
-    try {
-        await globalThis.cargarHijo({ id: 'hijo6-chat', src: 'chat-hijo6.html' }, { visibilidad: 'no-tocar' });
-        _mostrarChat();   // el estado inicial ya viajó en el handshake
-    } finally {
-        _chatCargando = false;
-    }
+function abrirChat() {
+    if (!globalThis.__stateManager.hijoEstaListo('hijo6-chat')) return;   // cargando o recuperándose: el botón no hace nada
+    // Se le entrega el estado de ahora (parada, rescate): el que recibió al cargarse es el de P14
+    globalThis.mensajeria.enviarMensaje({ tipo: TIPOS_MENSAJE.CHAT.ESTADO_PADRE, destino: 'hijo6-chat', datos: construirEstadoChat() });
+    _mostrarChat();   // display:block + visibility:visible
 }
 ```
 
-> **Los cargadores de iframes registran su iframe, sin excepción.** `cargarHijo()` (el cargador único de hijos, que usan `cargarIframeSoloSeleccion()`, `cargarHijoCasa()`, `cargarRestoDeiframes()` y `abrirChat()`) llama a `globalThis.registrarIframeHijo(id, elemento)` (que registra con `registrarIframe_S1(id, elemento, { supervisado: true })`) **antes** de asignar el `src`. Cualquier cargador nuevo debe hacer lo mismo: es el requisito, no un detalle.
+> **Los cargadores de iframes registran su iframe, sin excepción.** `cargarHijo()` (el cargador único de hijos, que usan `cargarIframeSoloSeleccion()`, `cargarHijoCasa()` y `cargarRestoDeiframes()`) llama a `globalThis.registrarIframeHijo(id, elemento)` (que registra con `registrarIframe_S1(id, elemento, { supervisado: true })`) **antes** de asignar el `src`. Cualquier cargador nuevo debe hacer lo mismo: es el requisito, no un detalle.
 
 > **El registro en la mensajería es obligatorio, no decorativo.** `enviarMensaje()` (`js/mensajeria.js`) resuelve todo destino padre→hijo buscándolo en el Map `iframesRegistrados`; un iframe que no esté ahí **no es alcanzable desde el padre** y cualquier mensaje dirigido a él se descarta devolviendo `false`, con un único `logger.warn("Iframe no encontrado o sin contentWindow: …")` como rastro. El sentido contrario (hijo→padre) nunca depende de este Map: es un `postMessage` directo a `globalThis.parent`, así que un hijo sin registrar sí consigue entregar su `HIJO_PREPARADO` — y ese es justo el modo de fallo confuso, porque el handshake parece arrancar bien y solo la respuesta se pierde.
 >
-> Un iframe sin registrar produce un fallo confuso. En `hijo6-chat` se ve como un chat siempre en español. En **hijo5** la cadena es: `PADRE_DATOS` descartado → hijo5 nunca envía su `HIJO_LISTO` (lo emite desde dentro de ese handler) → `cargarHijoCasa()` se queda esperando su `HIJO_LISTO` → hijo5 no entra en `hijosInicializados`, así que el cambio de modo llega a 5 hijos en vez de 6 → sin `PADRE_CONFIRMA_HIJO_LISTO`, su `mostrarUI()` hace `return` y su propio `document.body` se queda en `display:none`. **El iframe queda visible y vacío.** Para `hijo6-chat` la consecuencia concreta es doble: no le llega el `SISTEMA.PADRE_DATOS` que transporta el idioma (§6, "única excepción"), con lo que el FAQ se construye con el `'es'` por defecto sea cual sea `idiomaSeleccionado`; y al no completar `HIJO_LISTO` nunca entra en `hijosInicializados`, lo que deja también sin efecto la vía de refresco `CHAT.ESTADO_PADRE` de las aperturas siguientes (que se condiciona precisamente a esa comprobación). Por eso el registro se hace **antes** de asignar `src`, en el mismo punto y con el mismo criterio que el cargador único de hijos del padre (`cargarHijo()`). Cubierto por `tests/e2e/47-reescalado-marcador-usuario-y-chat.spec.js` (grupo CH).
+> Un iframe sin registrar produce un fallo confuso. En `hijo6-chat` se ve como un chat siempre en español. En **hijo5** la cadena es: `PADRE_DATOS` descartado → hijo5 nunca envía su `HIJO_LISTO` (lo emite desde dentro de ese handler) → `cargarHijoCasa()` se queda esperando su `HIJO_LISTO` → hijo5 no entra en `hijosInicializados`, así que el cambio de modo llega a 5 hijos en vez de 6 → sin `PADRE_CONFIRMA_HIJO_LISTO`, su `mostrarUI()` hace `return` y su propio `document.body` se queda en `display:none`. **El iframe queda visible y vacío.** Para `hijo6-chat` la consecuencia concreta es doble: no le llega el `SISTEMA.PADRE_DATOS` que transporta el idioma (§6, "única excepción"), con lo que el FAQ se construye con el `'es'` por defecto sea cual sea `idiomaSeleccionado`; y al no completar `HIJO_LISTO` nunca entra en `hijosInicializados`, lo que deja también sin efecto la vía de refresco `CHAT.ESTADO_PADRE` de cada apertura (que se condiciona a que el asistente esté listo). Por eso el registro se hace **antes** de asignar `src`, en el mismo punto y con el mismo criterio que el cargador único de hijos del padre (`cargarHijo()`). Cubierto por `tests/e2e/47-reescalado-marcador-usuario-y-chat.spec.js` (grupo CH).
 
 #### Estructura del acordeón FAQ
 
@@ -3862,7 +3851,7 @@ sequenceDiagram
 | `SELECCION.PREPARAR_HIJOS` | P9 | `{ idioma, aventura, timestamp }` | Anota `aventura` en `estado.seleccion`; no carga iframes |
 | `SELECCION.CODIGO_VALIDADO` | P13 (prod) | `{ aventura, idioma, email, timestamp }` | Handler vacío — registra con log que el código fue validado; GPS, iframes y datos se activan en P14. Dev mode: no se envía. |
 | `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `cargarRestoDeiframes()` + `cargarHijoCasa()` + `_fase2CargarDatos()` en paralelo → `_iframesPreCargadosP14 = true` → `activarGPS()` siempre, en prod y en dev |
-| `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Fast-path si `_iframesPreCargadosP14` (salta recarga); si no: normaliza hijos, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo, espera `HIJO_LISTO`; distribuye datos y muestra UI |
+| `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Fast-path si `_iframesPreCargadosP14` (salta recarga); si no: recarga los hijos (hijo1/hijo2/hijo3/hijo4/hijo5/hijo6) en paralelo con `cargarHijo`, espera `HIJO_LISTO`; distribuye datos y muestra UI |
 | `SISTEMA.HIJO_PREPARADO` | Arranque | `{ version, tipo:'SELECCION', capacidades:['seleccion','idioma','aventura'], timestamp }` | Handshake estándar (la pantalla también hace handshake) |
 | `SISTEMA.HIJO_LISTO` | Tras PADRE_DATOS | `{ componenteId, capacidades:['seleccion','idioma','aventura'], timestamp }` | Handshake estándar |
 
@@ -4092,7 +4081,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 
 ### 8.10 hijo6 — chat-hijo6.html (asistente de soporte FAQ)
 
-Panel FAQ de solo lectura. Se carga de forma **lazy** — su `src` es vacío hasta el primer clic en `#btn-chat-soporte`.
+Panel FAQ de solo lectura. Lo carga `cargarRestoDeiframes` con los demás hijos (su `src` es vacío en el HTML) y su botón `#btn-chat-soporte` lo enseña, estando listo.
 
 | Dirección | Mensaje | Payload clave | Cuándo |
 |-----------|---------|---------------|--------|
@@ -4106,7 +4095,7 @@ Panel FAQ de solo lectura. Se carga de forma **lazy** — su `src` es vacío has
 | **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo }` | Contesta el protocolo (`CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO`) y nada más: no cambia nada visible |
 | **padre →** | `CHAT.ESTADO_PADRE` | `{ idioma, ...estadoPadre }` | Si cambió el idioma, reconstruye el acordeón; el resto de campos (parada, aventura) solo queda disponible como contexto del buzón de sugerencias |
 
-> hijo6 se carga lazy: no recibe `PADRE_DATOS` ni hace handshake hasta que el usuario abre el chat por primera vez. Tampoco recibe `DATOS.CARGAR_*` ni participa en el flujo de paradas.
+> hijo6 hace el handshake como cualquier hijo al cargarse (recibe `PADRE_DATOS` con el estado de entonces) y se refresca con `CHAT.ESTADO_PADRE` cada vez que se abre. No recibe `DATOS.CARGAR_*` ni participa en el flujo de paradas.
 
 ---
 
@@ -4647,7 +4636,7 @@ Si la sesión sigue viva y el usuario elige **continuar**, se ejecuta `ejecutarR
 1. Restaura `globalThis.aventuraSeleccionada`, `idiomaSeleccionado`, `estado.seleccion`
 2. Restaura `estado.paradasCompletadas` desde `localStorage['vv_paradas_completadas']`
 3. Llama `globalThis.__cargarDatosAventuraDiferidos()`
-4. `await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])` — carga hijo1-5 de verdad (asigna `src`, espera `HIJO_LISTO` de cada uno). **Imprescindible**: la reanudación de sesión nunca pasa por P14 (`_hdl_SELECCION_P14_MOSTRADA` es el único otro sitio que carga estos iframes — contienen lógica de pago y no se sirven antes), así que sin este paso ningún iframe tendría `src` asignado al llegar al paso siguiente. Ambas cargan con `cargarHijo`, que recarga el iframe aunque ya tenga ese `src` y no termina hasta que el hijo completa el apretón de manos, así que al llegar al paso 6 los cinco están listos.
+4. `await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])` — carga hijo1-6 de verdad (asigna `src`, espera `HIJO_LISTO` de cada uno). **Imprescindible**: la reanudación de sesión nunca pasa por P14 (`_hdl_SELECCION_P14_MOSTRADA` es el único otro sitio que carga estos iframes — contienen lógica de pago y no se sirven antes), así que sin este paso ningún iframe tendría `src` asignado al llegar al paso siguiente. Ambas cargan con `cargarHijo`, que recarga el iframe aunque ya tenga ese `src` y no termina hasta que el hijo completa el apretón de manos, así que al llegar al paso 6 los cinco están listos.
 5. Sin llamada propia: el `await` del paso 4 no termina hasta que los cinco hijos han completado su `HIJO_LISTO`, sin plazo (si alguno no llega, lo recupera el supervisor del bus, §2.7).
 6. `_distribuirDatosRest` — redistribuye coordenadas/audios/retos/textos vía `distribuirDatosAventura()`
 7. `_enviarRespuestaParadasHijosRest` — envía `NAVEGACION.RESPUESTA_DATOS_PARADAS` a hijo2 (array normalizado de `elementosIDpadre`) y a hijo5 (array mapeado desde coordenadas)
@@ -4708,7 +4697,7 @@ Si el usuario elige **nueva aventura**, se limpia todo el localStorage, se reset
 
 ### 9.11 Por qué AVENTURA_ACTIVADA espera el handshake HIJO_LISTO
 
-Cuando el handler de `AVENTURA_ACTIVADA` recarga los iframes hijo1-hijo5, esperar el evento nativo `load` no es suficiente. El navegador emite `load` al terminar de parsear el HTML, pero los módulos ES se evalúan de forma asíncrona en microtasks posteriores. En conexiones lentas, mensajes como `CARGAR_COORDENADAS` o `AUDIO.REPRODUCIR_REQUEST` pueden llegar antes de que los receptores existan y se descartan silenciosamente.
+Cuando el handler de `AVENTURA_ACTIVADA` recarga los iframes hijo1-hijo6, esperar el evento nativo `load` no es suficiente. El navegador emite `load` al terminar de parsear el HTML, pero los módulos ES se evalúan de forma asíncrona en microtasks posteriores. En conexiones lentas, mensajes como `CARGAR_COORDENADAS` o `AUDIO.REPRODUCIR_REQUEST` pueden llegar antes de que los receptores existan y se descartan silenciosamente.
 
 Por eso, tras el `await Promise.all` de carga de iframes, el código:
 
@@ -4854,7 +4843,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-249ab87f4763'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a44d28db0144'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5030,7 +5019,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ timestamp }` |
 | Handler en padre | `_hdl_SELECCION_P14_MOSTRADA` |
-| Acción | En paralelo: `_fase2CargarDatos()` (precarga módulos JS) + `cargarRestoDeiframes()` (hijo1-4) + `cargarHijoCasa()` (hijo5). En cuanto ese `Promise.all` termina se marca `_iframesPreCargadosP14 = true`. Después: `activarGPS()` siempre, en prod y en dev por igual; si GPS deniega, `showGpsSignalOverlay(1)` y aborta — **el flag ya está puesto y así se queda**. Guard `_iframesPreCargadosP14` evita doble carga. |
+| Acción | En paralelo: `_fase2CargarDatos()` (precarga módulos JS) + `cargarRestoDeiframes()` (hijo1-4 y hijo6) + `cargarHijoCasa()` (hijo5). En cuanto ese `Promise.all` termina se marca `_iframesPreCargadosP14 = true`. Después: `activarGPS()` siempre, en prod y en dev por igual; si GPS deniega, `showGpsSignalOverlay(1)` y aborta — **el flag ya está puesto y así se queda**. Guard `_iframesPreCargadosP14` evita doble carga. |
 
 > **El flag se marca con los iframes, no con el GPS.** `_iframesPreCargadosP14` afirma exactamente lo que dice su nombre, y sus dos únicos lectores (el `return` temprano de `_hdl_SELECCION_P14_MOSTRADA` y el `if` de `_hdl_SELECCION_AVENTURA_ACTIVADA`) solo preguntan por los iframes. Marcarlo después del bloque del GPS lo convertiría en una afirmación falsa por dos vías, ambas con los iframes ya cargados: si el GPS tarda —su bucle de reintentos alcanza 48 s con el backoff exponencial— y el usuario acepta la normativa antes, o si el GPS se deniega, en cuyo caso el `return` saldría sin marcarlo **nunca**. Esta segunda vía no sería una carrera sino un determinismo: cualquier usuario que deniegue la ubicación entraría siempre por la rama fallback de `AVENTURA_ACTIVADA`, que reasigna el `src` de los cinco iframes ya cargados.
 
@@ -5040,7 +5029,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ aventura, idioma, terminosAceptados, timestamp }` — el padre solo lee `aventura` e `idioma` |
 | Handler en padre | `_hdl_SELECCION_AVENTURA_ACTIVADA` |
-| Acción | Fast-path si `_iframesPreCargadosP14 === true` (iframes ya cargados desde P14): salta recarga, distribuye datos y activa el modo final (`_modoInicio` — AVENTURA en producción, CASA solo en dev, ver §9.5). Fallback si no: normaliza `hijosInicializados`, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo (`Promise.all`), espera `HIJO_LISTO`, luego distribuye datos y activa ese mismo modo final. |
+| Acción | Fast-path si `_iframesPreCargadosP14 === true` (iframes ya cargados desde P14): salta recarga, distribuye datos y activa el modo final (`_modoInicio` — AVENTURA en producción, CASA solo en dev, ver §9.5). Fallback si no: recarga los hijos (hijo1/hijo2/hijo3/hijo4/hijo5/hijo6) en paralelo con `cargarHijo` (`Promise.all`; `cargarHijo` olvida y registra a cada uno), espera `HIJO_LISTO`, luego distribuye datos y activa ese mismo modo final. |
 
 ---
 
@@ -7847,7 +7836,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `44-boton-saltar-audio.spec.js` | 27 | Botón ⏩ de saltar audio no disponible (`#audio-action-skip`, §25.5f): cubre el caso "la parada o el tramo tiene `audio_id` asignado pero el fichero real no existe" —hoy la norma en 11 de los 12 idiomas mientras no se termine de grabar— y también un fallo de reproducción en runtime. |
 | `45-texto-intro-fallback-idioma.spec.js` | 6 | P11 (`En-busca-del-tesoro.html`, §7.1) — grupo TI, `cargarTextoIntro()`: un fallo real de red cargando los párrafos del idioma elegido muestra el fallback traducido en ESE idioma, nunca español fijo (TI-1); sin fallo, sigue mostrando el texto real de la aventura (TI-2). Grupo AI, `cargarAudioIntro()`: sin fichero real de audio (inglés), `#btn-siguiente-audio-intro` se habilita directamente en vez de quedar bloqueado esperando un evento `play` que nunca llega (AI-1); con fichero real (español), el botón sigue exigiendo el `play` real como siempre (AI-2). `En-busca-del-tesoro.html` se inserta como `<iframe>` real en el arnés — navegarlo directamente dispara su guardia de redirección a `codigo-padre.html` |
 | `46-reanudacion-un-solo-camino.spec.js` | 9 | La reanudación de sesión usa el mismo camino que cualquier cambio de modo (§9.10 paso 8). Grupo RU: el modo arranca sin decidir (`null`), no en CASA (RU-0); reanudar aplica el modo persistido pasando por `_hdl_SISTEMA_CAMBIO_MODO` — verificado por un efecto que solo produce el handler, la sincronización del mapa de su rama `restaurado:true` (`sincronizarModoMapa`), no por el mero valor del modo, y con el latido —que es del bus y no depende del modo— encendido (RU-1); el flag `dev` se restaura del campo persistido, de modo que dev+AVENTURA es representable (RU-2) y dev+CASA deja `#hijo5` visible (RU-2b); **reanudar en CASA sin dev no borra la sesión que está restaurando** (RU-3, el caso que `_transicionarAModoCasa()` destruiría sin su guard); un cambio a CASA que no es reanudación sí limpia el progreso, o sea que el guard no desactiva el abandono real (RU-4); y "ya estoy en ese modo" reenvía la propagación a los hijos en vez de devolver `exito:true` sin que nadie se entere (RU-5). Grupo RC, por arranque real con `localStorage` sembrado: una sesión de Aventura1 con 61 h (ventana de compra 60 h) no se ofrece para reanudar (RC-1) y una de 2 h sí (RC-2) |
-| `47-reescalado-marcador-usuario-y-chat.spec.js` | 6 | Dos contratos que comparten arranque. Grupo MU (§4.6, escalado dinámico): con una única lectura de GPS y el zoom cambiado después, el marcador de posición propia se reescala, y encoge al acercar como corresponde a su familia — se ejercita disparando el evento de zoom del mapa, no llamando a `reescalarMarcadorUsuario()` a mano, porque el fallo que cubre no es que esa función no funcione sino que nadie la invoque (MU-1); y ese reescalado conserva `.gps-arrow-heading`, el div que `actualizarRotacionFlechaGPS()` busca en cada lectura de brújula — sin él la flecha dejaría de girar en silencio (MU-2); y el invariante de fondo de todo el sistema de escalado — al acercar el zoom, la polyline ENGORDA y el icono ENCOGE, cada familia en su sentido — medido sobre los valores reales con los que nacen (MU-3, el que cae si alguien intenta "unificar" las dos curvas). Y los 📌/🎯 de ruta reaccionan al zoom, disparando el pipeline real de cambio de parada (`NAVEGACION.CAMBIO_PARADA` despachado con `despacharLocal`, el mismo que usa el botón avanzar) en vez de fabricar el marcador a mano (MU-4). **MU-4 solo puede fallar porque `tests/e2e/helpers/maplibre-stub.js` reproduce las clases que el MapLibre real añade a cada `Marker`**: sin ellas, una comparación estricta de `className` funciona en el arnés y falla en producción, así que ninguna prueba puede detectar ese fallo por mucho que lo intente. Grupo CH (§7.7): al pulsar `#btn-chat-soporte` (camino real del usuario, no una llamada a `abrirChat()`), `hijo6-chat` queda en `iframesRegistrados` (CH-1) y un envío del padre a ese destino no resuelve `false` por destino desconocido (CH-2). El arnés envuelve `maplibregl.Map`/`Marker` del stub para poder cambiar el zoom y leer el elemento real del marcador — el `addTo()` del stub es un no-op y el elemento nunca llega al documento |
+| `47-reescalado-marcador-usuario-y-chat.spec.js` | 6 | Dos contratos que comparten arranque. Grupo MU (§4.6, escalado dinámico): con una única lectura de GPS y el zoom cambiado después, el marcador de posición propia se reescala, y encoge al acercar como corresponde a su familia — se ejercita disparando el evento de zoom del mapa, no llamando a `reescalarMarcadorUsuario()` a mano, porque el fallo que cubre no es que esa función no funcione sino que nadie la invoque (MU-1); y ese reescalado conserva `.gps-arrow-heading`, el div que `actualizarRotacionFlechaGPS()` busca en cada lectura de brújula — sin él la flecha dejaría de girar en silencio (MU-2); y el invariante de fondo de todo el sistema de escalado — al acercar el zoom, la polyline ENGORDA y el icono ENCOGE, cada familia en su sentido — medido sobre los valores reales con los que nacen (MU-3, el que cae si alguien intenta "unificar" las dos curvas). Y los 📌/🎯 de ruta reaccionan al zoom, disparando el pipeline real de cambio de parada (`NAVEGACION.CAMBIO_PARADA` despachado con `despacharLocal`, el mismo que usa el botón avanzar) en vez de fabricar el marcador a mano (MU-4). **MU-4 solo puede fallar porque `tests/e2e/helpers/maplibre-stub.js` reproduce las clases que el MapLibre real añade a cada `Marker`**: sin ellas, una comparación estricta de `className` funciona en el arnés y falla en producción, así que ninguna prueba puede detectar ese fallo por mucho que lo intente. Grupo CH (§7.7): al cargar los hijos con `cargarRestoDeiframes()` (el camino de P14, la reanudación y la ruta fallback), `hijo6-chat` queda en `iframesRegistrados` (CH-1) y un envío del padre a ese destino no resuelve `false` por destino desconocido (CH-2). El arnés envuelve `maplibregl.Map`/`Marker` del stub para poder cambiar el zoom y leer el elemento real del marcador — el `addTo()` del stub es un no-op y el elemento nunca llega al documento |
 | `48-precarga-video-no-pisa-abierto.spec.js` | 3 | `_precargarVideoParada()` (§15). El `<video>` que precarga y el que reproduce son EL MISMO elemento, así que precargar el vídeo del tramo siguiente no puede pisar uno que el usuario tenga abierto. |
 | `49-escalera-espera-imagen.spec.js` | 5 | La escalera de espera de imágenes (`_escaleraCargaImagen()`) y la precarga que la hace innecesaria casi siempre (`_precargarImagenParada()`), §25.18: 4 s de gracia en silencio → spinner mientras reintenta → rendición. |
 | `50-pending-iniciado-no-borra-reto.spec.js` | 4 | `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` (§13) significa que el padre empieza a seguir la compleción de una parada, NO que el usuario haya salido del reto: hijo4 no borra `retoActualId` ni oculta sus controles al recibirlo. |
@@ -7878,7 +7867,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `77-volver-atras-desde-despedida.spec.js` | 2 | Restaurada desde la caché de atrás (bfcache), la app conserva sus iframes y sigue hablando con ellos (§28.3): tras `pagehide(persisted)` y `pageshow(persisted)` el padre mantiene sus iframes (VA-1) y sigue hablando con sus hijos (VA-2). Los cuatro navegadores de Playwright no restauran nunca desde la caché de atrás, así que se disparan a mano los dos eventos que lanza el navegador al guardar y restaurar la página, con `persisted: true`; el spec no dice si un navegador concreto guardaría esta página. |
 | `78-latido-unico-siempre-encendido.spec.js` | 4 | El latido es uno solo y no se apaga (§2.7). HC-1, control: un latido enviado por el bus a hijo2 llega a su escucha. HC-2, camino real: el reloj está encendido desde el arranque, antes de que haya modo, y sigue encendido al pasar a CASA y a AVENTURA, sin estado de pausa. HC-3, camino real: en CASA, durante tres intervalos y medio, hijo2 recibe un latido por vuelta del reloj, todos del bus y sin ningún hueco más corto que el intervalo: no hay un segundo emisor. HC-4: volver a la pestaña (`visibilitychange`) no manda ningún latido, pero sigue revalidando el tamaño del mapa. |
 | `79-bus-contrato.spec.js` | 28 | El contrato del bus único `js/mensajeria.js` (§10.25), medido con el bus real y un arnés de padre → hijo → nieto, un iframe intruso sin registrar y tres iframes mudos que no contestan al latido (uno ya listo, uno que nunca hace el apretón de manos y uno sin supervisar). BC-0, control del arnés; BC-1, envío arriba, abajo y «a todos», que no sube ni llega a los nietos; BC-2, un iframe sin registrar no llega a ningún handler; BC-3, un mensaje sin `origen` se descarta y se avisa; BC-4, el acuse resuelve con lo devuelto y rechaza diciendo por qué (`fallo-handler`, `sin-respuesta`, `no-enviado`); BC-5, sin handler no se contesta y el emisor agota su plazo; BC-6, registrar un tipo dos veces es un error ruidoso y se queda el primero; BC-7, un frame sin padre ni iframes no envía y lo avisa una sola vez; BC-8, `desregistrarIframe` corta el envío y la recepción; BC-9, la fila de un tipo sobrevive a un fallo sin objeto de error; BC-10, `despacharLocal` pasa por la misma fila que los mensajes que llegan; BC-11, un error sin capturar en el nieto llega al padre con el nombre del nieto; BC-12a a BC-12h, el latido llega solo a los supervisados que ya hicieron el apretón de manos (a), un listo que no contesta se recarga tras tres latidos y la consola dice cuál y por qué (b), el reloj no se puede parar ni adelantar (c), un iframe sin apretón no recibe latidos y se recarga al agotarse su gracia (d), que se duplica por recarga seguida hasta 4× (e), vuelve a la base cuando contesta estando listo (f), al volver la red se reintenta al momento sin contar como recarga seguida (g) y no se reintenta a quien no ha fallado (h); BC-13 y BC-14, un handler roto no deja una promesa rechazada sin dueño y uno que no termina nunca no deja su tipo parado; BC-15 y BC-16, el `origen` lo pone el bus y se comprueba al recibir (un iframe registrado que dice ser otro se descarta y se avisa); BC-17, con el bus importado pero sin inicializar no se envía nada; BC-18, enviarse algo a uno mismo no sale y avisa, para eso está `despacharLocal`; BC-19, un envío sin `destino` no sale y avisa; BC-20, `destino: 'todos'` no es sinónimo de `'broadcast'` y se descarta como destino desconocido. |
-| `80-recuperacion-hijos-caidos.spec.js` | 11 | El supervisor del bus recupera a un hijo que deja de estar sano (§2.7, §26.14), contra la aplicación real: supervisa a todos los hijos por igual y a ninguno de los iframes que no hacen el apretón de manos. RC-1, control: tras la carga los hijos están registrados en el bus y se puede leer si están supervisados; RC-2, todos los hijos registrados están supervisados y los iframes sin apretón no; RC-3, la restauración de hijo1 llega a hijo1: el snapshot se dirige a `hijo1-opciones`, el id con el que está registrado; RC-4, cada hijo contesta al latido y su respuesta llega a la cuenta del bus; RC-5, con la selección sin apretón de manos la aplicación no arranca (la pantalla de carga sigue y la selección está a la vista debajo de ella, sin `alert`), el supervisor la recarga y la aplicación arranca sola cuando ya puede completarlo; RC-6, sin red, la recarga de un hijo enseña el overlay de sin conexión aunque aún no haya modo, y se va solo con `online`; RC-7, un hijo se muestra al estar listo aunque lo recupere el supervisor pasada la gracia de 30 s: sin apretón de manos no se ve ninguno de los hijos de la aventura y la carga no termina, y al completarlo tras la recarga del supervisor se ven todos, mientras que hijo5 no cambia; RC-8, la recuperación de un hijo es una sola: quién está listo lo dicen `hijosInicializados` y el registro de iframes del bus, y ningún tipo de mensaje avisa del fallo de un hijo; RC-9, el asistente (hijo6) se ve al estar listo como cualquier hijo: pulsar su botón lo carga, mientras no esté listo no se ve, un segundo toque no reinicia su carga y, ya listo, se ve; RC-10, hijo4 recibe el reto cuando está listo: con hijo4 recuperándose la petición espera y hijo4 no se muestra mientras tanto; RC-11, cargar el asistente con los tres hijos críticos ya listos no despacha otra vez `SISTEMA.APLICACION_INICIALIZADA`. El spec 79 (BC-12) prueba el mecanismo con un arnés; este lo prueba contra la aplicación real. |
+| `80-recuperacion-hijos-caidos.spec.js` | 10 | El supervisor del bus recupera a un hijo que deja de estar sano (§2.7, §26.14), contra la aplicación real: supervisa a todos los hijos por igual y a ninguno de los iframes que no hacen el apretón de manos. RC-1, control: tras la carga los hijos están registrados en el bus y se puede leer si están supervisados; RC-2, todos los hijos registrados están supervisados y los iframes sin apretón no; RC-3, la restauración de hijo1 llega a hijo1: el snapshot se dirige a `hijo1-opciones`, el id con el que está registrado; RC-4, cada hijo contesta al latido y su respuesta llega a la cuenta del bus; RC-5, con la selección sin apretón de manos la aplicación no arranca (la pantalla de carga sigue y la selección está a la vista debajo de ella, sin `alert`), el supervisor la recarga y la aplicación arranca sola cuando ya puede completarlo; RC-6, sin red, la recarga de un hijo enseña el overlay de sin conexión aunque aún no haya modo, y se va solo con `online`; RC-7, un hijo se muestra al estar listo aunque lo recupere el supervisor pasada la gracia de 30 s: sin apretón de manos no se ve ninguno de los hijos de la aventura y la carga no termina, y al completarlo tras la recarga del supervisor se ven todos, mientras que hijo5 no cambia; RC-8, la recuperación de un hijo es una sola: quién está listo lo dicen `hijosInicializados` y el registro de iframes del bus, y ningún tipo de mensaje avisa del fallo de un hijo; RC-9, el asistente (hijo6) se carga con los demás hijos y se ve al estar listo como cualquier hijo: mientras no lo está no se ve, ni pulsando su botón, y ya listo su botón lo enseña; RC-10, hijo4 recibe el reto cuando está listo: con hijo4 recuperándose la petición espera y hijo4 no se muestra mientras tanto. El spec 79 (BC-12) prueba el mecanismo con un arnés; este lo prueba contra la aplicación real. |
 | `81-hijo1-habla-por-el-bus.spec.js` | 4 | hijo1 habla por el bus del propio frame (`globalThis.mensajeria`) y no por envoltorios propios (§10.17). H1-1, control: un `SISTEMA.ERROR` enviado a mano desde hijo1 llega a la ventana del padre; H1-2, hijo1 tiene el bus montado y se identifica con el id con el que está registrado; H1-3, camino real: un error lanzado dentro de hijo1 llega al padre por la captura automática de `js/utils.js`; H1-4, hijo1 contesta al latido y la respuesta llega al padre (un hijo supervisado cuya respuesta no llega se da por caído a los tres latidos y el bus le recarga el iframe). |
 | `82-seleccion-usa-la-aventura-elegida.spec.js` | 2 | La pantalla de selección usa la aventura que el usuario eligió. `En-busca-del-tesoro.html` tiene dos ámbitos, un `<script>` clásico con la lógica de pantallas y un `<script type="module">` con la mensajería, y la elección llega del módulo al clásico por el puente `_setAventuraSeleccionada` (un `let` del script clásico tapa la propiedad del mismo nombre en `globalThis`). SA-1, control: el módulo recibe la aventura elegida; SA-2, el mapa vintage que se muestra es el de la aventura elegida y no el de la primera. |
 | `83-hijo5-habla-por-el-bus.spec.js` | 4 | hijo5 habla por el bus del propio frame (§10.17). H5-1, control: un `SISTEMA.ERROR` enviado a mano desde hijo5 llega a la ventana del padre; H5-2, hijo5 tiene el bus montado y se identifica con el id con el que está registrado; H5-3, hijo5 contesta al latido y la respuesta llega al padre; H5-5, camino real: un error lanzado dentro de hijo5 llega al padre por la captura automática de `js/utils.js`. El modo le llega por un solo camino, que cubre el spec 84 (CM-hijo5). |
@@ -7891,7 +7880,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `90-escuchas-sueltas-del-padre.spec.js` | 4 | Los tres avisos que la selección y el asistente mandan al padre pasan por el bus y solo se atienden con `origen` (§26.12.1): la selección suprime el aviso de girar el dispositivo (`NAVEGACION.SUPRIMIR_ROTACION { value: true }`, que pone `rotationSuppressed`) y al cerrar el mapa lo devuelve (ES-1); la selección enciende el modo de desarrollo con `SELECCION.DEV_MODE_TOGGLE` (ver §24) (ES-2); el asistente pide con `CHAT.CERRAR` que se le cierre y el padre oculta su iframe (ES-3); sin `origen` no se atiende ninguno de los tres (ES-4). Se mira el efecto en el padre —`rotationSuppressed`, `_devModeActivo`, el iframe del chat oculto— y no que se haya llamado a nada. |
 | `91-puzzle-cierra-la-parada.spec.js` | 8 | El reto de puzzle cierra la parada igual que los demás retos (§13, §29.5): el padre da una parada por completada leyendo `correcto` de `RETO.COMPLETADO` (`_hdl_RETO_COMPLETADO`), y el puzzle lo manda como el resto. PC-0, control: un reto de opción acertado llega con `correcto: true`; PC-1, un puzzle resuelto manda `RETO.COMPLETADO` con `correcto: true`; PC-2, un puzzle con el tiempo agotado también (cuenta como reto cumplido, igual que resolverlo); PC-3, el botón verde del puzzle manda `RETO.COMPLETADO` con acuse y sigue por la rama de éxito; PC-5, lo mismo con el botón verde del reto de opción única, de varias respuestas y de texto libre; PC-4, si el padre no contesta, el reto se cierra igual (el `catch` no bloquea la ventana). Se mira el campo que lee el padre, no solo que el mensaje llegue. |
 | `92-despedida-vuelve-a-p1.spec.js` | 1 | Tras la despedida (P17 con `?despedida=1`) el usuario vuelve a P1 (§25.11): al pulsar el botón final de los agradecimientos la página sale de `?despedida=1` y carga `codigo-padre.html`, no vuelve a la despedida (DP-1). |
-| `93-nadie-se-hace-pasar-por-otro.spec.js` | 7 | Ningún frame puede hacerse pasar por otro ante el padre (§10.25, BC-15 a BC-18): cada frame que el padre registra —la selección, hijo1-opciones, hijo2, hijo3, hijo4, hijo6-chat y mapa-completo (SU-seleccion, SU-hijo1-opciones, SU-hijo2, SU-hijo3, SU-hijo4, SU-hijo6-chat, SU-mapa-completo)— manda al padre un mensaje firmado como `'hijo5'`: el padre no lo procesa y avisa; el mismo mensaje, por el mismo camino, firmado con el nombre de registro del frame, sí llega (control dentro de cada caso). El chat y el mapa completo solo se cargan al abrirlos, y el spec los abre. El tipo del mensaje es uno propio del test, registrado en el padre solo en el spec, así que ningún handler de la app actúa y lo único que se mide es si llega. |
+| `93-nadie-se-hace-pasar-por-otro.spec.js` | 7 | Ningún frame puede hacerse pasar por otro ante el padre (§10.25, BC-15 a BC-18): cada frame que el padre registra —la selección, hijo1-opciones, hijo2, hijo3, hijo4, hijo6-chat y mapa-completo (SU-seleccion, SU-hijo1-opciones, SU-hijo2, SU-hijo3, SU-hijo4, SU-hijo6-chat, SU-mapa-completo)— manda al padre un mensaje firmado como `'hijo5'`: el padre no lo procesa y avisa; el mismo mensaje, por el mismo camino, firmado con el nombre de registro del frame, sí llega (control dentro de cada caso). El mapa completo solo se carga al abrirlo, y el spec lo abre; el asistente se carga con los demás hijos (`cargarRestoDeiframes`). El tipo del mensaje es uno propio del test, registrado en el padre solo en el spec, así que ningún handler de la app actúa y lo único que se mide es si llega. |
 | `94-mensajes-a-si-mismo.spec.js` | 2 | Lo que el padre se dice a sí mismo pasa por el bus (§32.3): el padre no publica en `globalThis` atajos hacia sus handlers —quien necesita que el padre haga algo se lo despacha con `despacharLocal`, por la misma fila por tipo que los mensajes que llegan de fuera— (AE-1) y no se hace `postMessage` a sí mismo en todo el arranque, hasta que avisa a los hijos de que la aplicación está lista (AE-2). |
 | `95-audio-estado-pausado-llega-al-padre.spec.js` | 2 | El estado del audio de hijo3 llega al padre (§25.5c): el evento nativo `play` del reproductor manda `AUDIO.ESTADO_ACTUALIZADO` con `destino: 'padre'` y `estado: 'reproduciendo'` (AP-1, control) y el evento `pause` manda el mismo tipo con `estado: 'pausado'`, también a `destino: 'padre'` (AP-2), de modo que `estado.audioActual.estado` refleja la pausa y el recordatorio «pulse play» la ve. Se activa el audio por el camino real (`AUDIO.REPRODUCIR_REQUEST`) y se disparan los eventos nativos del `<audio>` con `dispatchEvent`; el fichero de audio no necesita existir. |
 | `96-heartbeat-y-recuperacion-un-solo-camino.spec.js` | 3 | El latido y la recuperación pasan por los caminos normales (§2.7, §26.14): un `CAMBIO_MODO` real, a CASA y a AVENTURA, no manda a hijo2 mensajes de arranque ni de pausa del latido, porque lo gobierna el bus del padre (LH-1); el heartbeat del padre sigue encendido al entrar en AVENTURA (`getHeartbeat()` da `activo: true`, LH-2, control); y la recuperación de hijo2 tras una recarga (`_vv_afterHijoListo('hijo2')`) repite la entrega normal de su parada: llama a `despacharLocal(NAVEGACION.CAMBIO_PARADA)` y no manda un `CAMBIO_PARADA` directo al iframe, de modo que corre `_hdl_NAVEGACION_CAMBIO_PARADA` entero —estado de parada del padre, marcadores del mapa, audio y precargas— (RC2-1, se espía `despacharLocal`). |
@@ -8152,7 +8141,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-249ab87f4763'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-a44d28db0144'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8899,7 +8888,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-249ab87f4763';
+const CACHE_VERSION = 'v-a44d28db0144';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9378,7 +9367,7 @@ Aparece un badge naranja `MODO DEV/CASA` en la esquina superior-derecha de P1-P5
 
 #### Paso 2 — P2 a P11: flujo normal
 
-El desarrollador navega como cualquier usuario: elige idioma, selecciona aventura, ve el vídeo intro, acepta los términos de uso, hace el reto R-1. Todo funciona con normalidad. Los iframes de aventura (hijo1-5) todavía no están cargados.
+El desarrollador navega como cualquier usuario: elige idioma, selecciona aventura, ve el vídeo intro, acepta los términos de uso, hace el reto R-1. Todo funciona con normalidad. Los iframes de aventura (hijo1-6) todavía no están cargados.
 
 ---
 
@@ -9394,7 +9383,7 @@ El desarrollador ve la pantalla de normativa. Es obligatoria incluso en modo DEV
 
 El padre ejecuta `_hdl_SELECCION_P14_MOSTRADA` en este orden:
 
-1. En paralelo: carga iframes hijo1–4 (`cargarRestoDeiframes()`), hijo5 (`cargarHijoCasa()`), y datos de aventura (`_fase2CargarDatos()`)
+1. En paralelo: carga iframes hijo1–4 y hijo6 (`cargarRestoDeiframes()`), hijo5 (`cargarHijoCasa()`), y datos de aventura (`_fase2CargarDatos()`)
 2. Setea `globalThis._iframesPreCargadosP14 = true` — en cuanto el paso 1 termina, porque es justo lo que el flag afirma. No espera al GPS (ver §9.11)
 3. Setea `globalThis._codigoValidadoP13 = true`
 3. Llama a `activarGPS()` — igual que en producción, `_devModeActivo` no cambia este paso. Encenderlo ya aquí evita el coste de reingresar GPS más tarde: una vez arrancado, `watchPosition` no se detiene al cambiar de modo (ver §2.6). Si GPS deniega, el overlay de señal perdida aparece igual que en producción — el desarrollador puede seguir en modo CASA (que no requiere GPS para nada) hasta resolverlo.
@@ -9638,7 +9627,7 @@ Actualmente todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponible
 
 Cuando el padre recibe `SELECCION.AVENTURA_ACTIVADA`:
 
-1. Si los iframes no se precargaron ya en P14 (`_iframesPreCargadosP14`), re-activa hijo1/hijo2/hijo3/**hijo4**/hijo5 en **paralelo** (`Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])`) — los cinco, hijo4 incluido (ver §5/§9.11). Si ya se precargaron en P14 (el caso común), este paso se salta entero para los cinco por igual.
+1. Si los iframes no se precargaron ya en P14 (`_iframesPreCargadosP14`), re-activa hijo1/hijo2/hijo3/**hijo4**/hijo5/hijo6 en **paralelo** (`Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])`) — los seis, hijo4 incluido (ver §5/§9.11). Si ya se precargaron en P14 (el caso común), este paso se salta entero para los seis por igual.
 
 > **`cargarHijo()` recarga el iframe aunque ya apunte al documento pedido, y debe hacerlo.** Reasignar el `src` destruye el documento y lo reconstruye desde cero. Aquí eso es lo correcto: `cargarHijo()` acaba de olvidar a cada hijo (`_olvidarHijoListo`) y espera a continuación un `HIJO_LISTO` **nuevo** de cada uno. Un iframe que no se recarga nunca lo emite, y la espera se quedaría pendiente con `AVENTURA_ACTIVADA` bloqueada. La forma de que esta rama no destruya trabajo ya hecho no es hacer el cargador idempotente, sino que **no llegue a dispararse**: por eso `_iframesPreCargadosP14` se marca en cuanto los iframes están, sin esperar al GPS.
 
@@ -11385,7 +11374,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `AVENTURA.INICIADA` | Hijo 1 | Al arrancar el temporizador de la aventura (`_iniciarTemporizadorAventura`: `{ aventuraId, tiempoEstimado, idioma, timestamp }`) y al restaurar el temporizador de un hijo1 recargado por el latido (`{ tiempoEstimado, pausado: false, timestamp }`) | Que hijo1 arranque o reanude el temporizador |
 | `AVENTURA.DETENER` | Hijo 1 | Al arrancar el temporizador, si en `vv_aventura_iniciada` hay otra aventura distinta guardada (`{ motivo: 'nueva_aventura_adquirida', aventuraAnterior, aventuraNueva, timestamp }`) | Cancelar el temporizador de la aventura anterior |
 | `AVENTURA.FINALIZADA` | Hijo 1 | Al terminar el último elemento en modo AVENTURA (`_handleFinDeAventura`: `{ aventuraId, idioma, motivo: 'completada', timestamp }`) | Que hijo1 detenga el temporizador y conteste con `AVENTURA.ESTADISTICAS_TIEMPO`, tras lo cual el padre muestra el modal de finalización |
-| `CHAT.ESTADO_PADRE` | Hijo 6 | Cada vez que el usuario abre el asistente si ya estaba cargado y completó el handshake (la primera vez, el mismo contenido viaja dentro de `PADRE_DATOS`): `{ idioma, aventura, paradaActualNombre, siguienteParadaNombre, paradasRestantes, rescate }` | Que hijo6 reconstruya su acordeón si cambió el idioma y conozca el contexto para el buzón de sugerencias y el botón de rescate |
+| `CHAT.ESTADO_PADRE` | Hijo 6 | Cada vez que el usuario abre el asistente, ya listo (al cargarse, el estado de entonces viaja dentro de `PADRE_DATOS`): `{ idioma, aventura, paradaActualNombre, siguienteParadaNombre, paradasRestantes, rescate }` | Que hijo6 reconstruya su acordeón si cambió el idioma y conozca el contexto para el buzón de sugerencias y el botón de rescate |
 | `DATOS.COORDENADAS_PARADAS_REQUEST` | Hijo 2 | Cuando el padre necesita las coordenadas o los datos de un elemento: al cambiar de parada (`_solicitarParadaAHijo2`, con acuse), al reanudar una sesión guardada (`solicitarCoordenadasAHijo2`, sin acuse), al completar los datos de una ficha pendiente, al dibujar la polyline de ubicación y, si no hay una posición GPS aceptable, como respaldo con las coordenadas de la parada de inicio | Obtener de hijo2 la entrada de coordenadas del elemento; hijo2 contesta en el acuse del bus (§10.17), no con otro mensaje |
 | `DATOS.CARGAR_TEXTOS` | Hijo 2 | Al distribuir los datos de la aventura (`distribuirDatosAventura`), si hay textos y hijo2 ya está inicializado, y en respuesta a `DATOS.SOLICITAR_TEXTOS` (`{ aventura, idioma, textos, total, timestamp }`) | Entregar a hijo2 los textos descriptivos de la aventura en el idioma elegido |
 | `MAPA_COMPLETO.VISIBLE` | mapa-completo | Una vez, al hacerse visible el overlay del mapa: tras el `load` de su iframe (en el siguiente fotograma) o, si no llega, a los 1500 ms | Que el mapa recalcule su vista cuando su contenedor ya tiene tamaño |
@@ -11653,7 +11642,7 @@ Panel FAQ de acordeón de dos niveles. No tiene lógica de aventura: salvo el ha
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Cancela el reintento de `HIJO_LISTO` | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Envía `CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO` al padre (igual que los demás hijos). El padre gestiona la visibilidad directamente via `display:none/block`, pero hijo6 debe participar en el protocolo para no causar timeouts de 15s en cada transición de modo. | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Participar en el protocolo de modo; sin respuesta el padre espera 15s antes de continuar |
 | `SISTEMA.HEARTBEAT` | Padre | Responde con `{ timestamp, estado: 'activo' o 'inicializando' }` | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
-| `CHAT.ESTADO_PADRE` | Padre (al reabrir el chat ya cargado) | Mezcla los datos en `estadoPadre` y reconstruye el acordeón con el idioma que traiga (sin idioma, lo reconstruye igual para refrescar el estado del rescate) | (ninguna) | — | Refrescar idioma sin recargar el iframe; el resto de `estadoPadre` solo sirve de contexto al buzón de sugerencias |
+| `CHAT.ESTADO_PADRE` | Padre (al abrir el asistente, ya listo) | Mezcla los datos en `estadoPadre` y reconstruye el acordeón con el idioma que traiga (sin idioma, lo reconstruye igual para refrescar el estado del rescate) | (ninguna) | — | Refrescar idioma sin recargar el iframe; el resto de `estadoPadre` solo sirve de contexto al buzón de sugerencias |
 | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro (el vídeo de introducción de su modal, que hijo6 registra al crearlo) | Cierra el modal (`cerrarModal`: da de baja el iframe `video-intro` y vacía el contenido) y devuelve `true` | (ninguna) | — | Cerrar el modal cuando termina el vídeo |
 
 **Mensajes salientes de Hijo 6:**
@@ -12033,7 +12022,7 @@ Fuente de verdad: `js/traducciones-ui.js` (`PREGUNTAS_CHAT` / `RESPUESTAS_CHAT`)
 
 ### Carga del iframe y apertura/cierre
 
-El iframe `#hijo6-chat` existe en el DOM del padre con `src=""` y `display:none` desde el inicio. Se carga en diferido (lazy): la primera vez que el usuario pulsa el botón de soporte, con `cargarHijo`, y no se ve hasta que está listo.
+El iframe `#hijo6-chat` existe en el DOM del padre con `src=""` y `display:none` desde el inicio. Lo carga `cargarRestoDeiframes` con los demás hijos y no se ve hasta que está listo y el usuario pulsa el botón de soporte.
 
 **Elemento iframe en `codigo-padre.html`:**
 
@@ -12052,27 +12041,15 @@ El iframe `#hijo6-chat` existe en el DOM del padre con `src=""` y `display:none`
 **Funciones de apertura y cierre en `codigo-padre.html`:**
 
 ```javascript
-async function abrirChat() {
-    if (globalThis.__stateManager.hijoEstaListo('hijo6-chat')) {
-        // Ya cargado: se le entrega el estado de ahora y se muestra
-        globalThis.mensajeria.enviarMensaje({
-            tipo: TIPOS_MENSAJE.CHAT.ESTADO_PADRE,
-            destino: 'hijo6-chat',
-            datos: construirEstadoChat()
-        });
-        _mostrarChat();
-        return;
-    }
-    // Sin estar listo: primera apertura (sin `src`) o ya cargando/recuperándose, y entonces no hace nada
-    if (_chatCargando || iframeChat.getAttribute('src')) return;
-    _chatCargando = true;
-    try {
-        // El estado inicial viaja en el handshake HIJO_PREPARADO → PADRE_DATOS
-        await globalThis.cargarHijo({ id: 'hijo6-chat', src: 'chat-hijo6.html' }, { visibilidad: 'no-tocar' });
-        _mostrarChat();
-    } finally {
-        _chatCargando = false;
-    }
+function abrirChat() {
+    if (!globalThis.__stateManager.hijoEstaListo('hijo6-chat')) return;
+    // Se le entrega el estado de ahora (parada, rescate) antes de enseñarlo
+    globalThis.mensajeria.enviarMensaje({
+        tipo: TIPOS_MENSAJE.CHAT.ESTADO_PADRE,
+        destino: 'hijo6-chat',
+        datos: construirEstadoChat()
+    });
+    _mostrarChat();
 }
 
 function _mostrarChat() {
@@ -12096,16 +12073,16 @@ El padre también escucha `CHAT.CERRAR` vía `addEventListener('message')` como 
 ### Flujo de comunicación completo
 
 ```text
-Usuario pulsa el botón de soporte (btn-chat-soporte)
-  └─ abrirChat():
-       - Si primera vez: lo carga con cargarHijo, espera su HIJO_LISTO y entonces lo muestra
-       - Si ya está listo: envía CHAT.ESTADO_PADRE con el estado actual y lo muestra; si se está cargando o recuperando, no hace nada
-
-chat-hijo6.html carga y ejecuta el handshake normal:
+El asistente se carga con los demás hijos y hace el handshake normal:
   └─ SISTEMA.HIJO_PREPARADO → padre
   └─ padre responde SISTEMA.PADRE_DATOS (con idioma, parada, aventura, etc.)
   └─ chat-hijo6.html recibe PADRE_DATOS → construye acordeón en el idioma recibido
   └─ SISTEMA.HIJO_LISTO → padre (confirma inicialización)
+
+Usuario pulsa el botón de soporte (btn-chat-soporte)
+  └─ abrirChat():
+       - Si el asistente está listo: envía CHAT.ESTADO_PADRE con el estado actual y lo muestra
+       - Si no (se está cargando o recuperando): no hace nada
 
 Usuario pulsa un tema (nivel 1) → se despliega la lista de preguntas
 Usuario pulsa una pregunta (nivel 2) → se muestra la respuesta
@@ -12128,10 +12105,10 @@ Los tipos del namespace CHAT están en `TIPOS_MENSAJE.CHAT` (`js/constants.js`):
 
 | Tipo | Dirección | Cuándo |
 | --- | --- | --- |
-| `CHAT.ESTADO_PADRE` | Padre → Hijo | Al reabrir el chat ya cargado: refresca idioma y estado |
+| `CHAT.ESTADO_PADRE` | Padre → Hijo | Cada vez que se abre el asistente, ya listo: refresca idioma y estado |
 | `CHAT.CERRAR` | Hijo → Padre | El usuario pulsa ✕ |
 
-El handshake principal sigue usando los tipos estándar `SISTEMA.*` (como todos los demás hijos). La `CHAT.ESTADO_PADRE` solo se usa en el path de reapertura; la primera carga usa el handshake `SISTEMA.HIJO_PREPARADO → SISTEMA.PADRE_DATOS`.
+El handshake principal sigue usando los tipos estándar `SISTEMA.*` (como todos los demás hijos). La `CHAT.ESTADO_PADRE` se envía cada vez que se abre el asistente, ya listo; al cargarse, el estado de entonces viaja en el handshake `SISTEMA.HIJO_PREPARADO → SISTEMA.PADRE_DATOS`.
 
 ---
 
@@ -12354,7 +12331,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-249ab87f4763';
+const CACHE_VERSION = 'v-a44d28db0144';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13999,7 +13976,7 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **127 en total**. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 102 identificadores cruzados, de 153 expuestos (20 bloques &lt;script&gt; inline: 5 módulo + 15 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 101 identificadores cruzados, de 152 expuestos (20 bloques &lt;script&gt; inline: 5 módulo + 15 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14008,105 +13985,105 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `handleIframeError` | clásico 5 (L95) | clásico 8 | función/objeto |
 | `handleIframeLoad` | clásico 5 (L165) | clásico 8 | función/objeto |
 | `actualizarVisibilidadSelectorMapa` | clásico 6 (L1536) | clásico 7, módulo 1, módulo 2, módulo 3 | función/objeto |
-| `cerrarChatSoporte` | clásico 6 (L1648) | módulo 2 | función/objeto |
-| `construirEstadoChat` | clásico 6 (L1651) | módulo 1 | función/objeto |
-| `cerrarImagenOverlay` | clásico 7 (L1770) | módulo 1, módulo 2 | función/objeto |
-| `mostrarIframeOverlay` | clásico 7 (L2250) | módulo 2 | función/objeto |
-| `mostrarImagenOverlay` | clásico 7 (L1746) | módulo 1, módulo 2 | función/objeto |
-| `mostrarVideoOverlay` | clásico 7 (L2087) | módulo 1, módulo 2 | función/objeto |
-| `rotationSuppressed` | clásico 7 (L1787) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3812) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5130) | clásico 13 | estado |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3800) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3799) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5948) | clásico 13 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6620) | clásico 13 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3801) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6760) | clásico 13 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3803) | módulo 2 | función/objeto |
-| `__vv_PUZZLES` | módulo 1 (L3804) | módulo 2 | función/objeto |
-| `__vv_registroScript1` | módulo 1 (L3686) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4848) | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 (L7503) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8855) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L9071) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8976) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L4140) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8945) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9141) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9047) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8951) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9149) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8825) | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5274) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6121) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3940) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3947) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4666) | clásico 6, módulo 2 | función/objeto |
-| `cargarHijo` | módulo 1 (L8170) | clásico 6, módulo 3 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8169) | clásico 5, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8167) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8168) | módulo 2, módulo 3 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L4047) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3934) | clásico 6, clásico 7, módulo 2, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3935) | módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L4145) | clásico 6, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4466) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4257) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6524) | módulo 2 | función/objeto |
-| `hideParentLoadingOverlay` | módulo 1 (L2944) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4667) | clásico 6, módulo 2, clásico 14 | función/objeto |
-| `limpiarDatosAventura` | módulo 1 (L2979) | módulo 2, clásico 14 | función/objeto |
-| `MODOS` | módulo 1 (L3932) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8552) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8621) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8475) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8328) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8371) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4326) | módulo 2 | función/objeto |
-| `registrarControlador` | módulo 1 (L3933) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5158) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5185) | módulo 2 | función/objeto |
+| `cerrarChatSoporte` | clásico 6 (L1633) | módulo 2 | función/objeto |
+| `construirEstadoChat` | clásico 6 (L1636) | módulo 1 | función/objeto |
+| `cerrarImagenOverlay` | clásico 7 (L1755) | módulo 1, módulo 2 | función/objeto |
+| `mostrarIframeOverlay` | clásico 7 (L2235) | módulo 2 | función/objeto |
+| `mostrarImagenOverlay` | clásico 7 (L1731) | módulo 1, módulo 2 | función/objeto |
+| `mostrarVideoOverlay` | clásico 7 (L2072) | módulo 1, módulo 2 | función/objeto |
+| `rotationSuppressed` | clásico 7 (L1772) | módulo 1, módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3797) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5115) | clásico 13 | estado |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3785) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3784) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5933) | clásico 13 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6605) | clásico 13 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3786) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6745) | clásico 13 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3788) | módulo 2 | función/objeto |
+| `__vv_PUZZLES` | módulo 1 (L3789) | módulo 2 | función/objeto |
+| `__vv_registroScript1` | módulo 1 (L3671) | módulo 2 | estado |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4833) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7485) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8838) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9054) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8959) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L4125) | módulo 2 | estado |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8928) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9124) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9030) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8934) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9132) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8808) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5259) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6106) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3925) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3932) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4651) | clásico 6, módulo 2 | función/objeto |
 
-| `reproducirVideoConBuffer` | módulo 1 (L2985) | clásico 7, módulo 2 | función/objeto |
-| `resolverIdsParada` | módulo 1 (L2974) | módulo 2 | función/objeto |
-| `retryUntilAvailable` | módulo 1 (L2975) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6360) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6285) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6212) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6440) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6516) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6820) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6819) | módulo 2 | función/objeto |
-| `showParentLoadingOverlay` | módulo 1 (L2932) | módulo 2 | función/objeto |
-| `sleep` | módulo 1 (L2854) | módulo 2, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5885) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3931) | clásico 6, clásico 7, módulo 2, módulo 3 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L4118) | clásico 7, módulo 2 | función/objeto |
-| `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2983) | clásico 14 | función/objeto |
-| `updateLoadingStatus` | módulo 1 (L2960) | módulo 2 | función/objeto |
-| `verificarTimeoutAventura` | módulo 1 (L2980) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8171) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9261) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14106) | clásico 13 | estado |
-| `_buscarParadaEnDatos` | módulo 2 (L11154) | módulo 1 | función/objeto |
-| `_configurarRetoBtn` | módulo 2 (L11428) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L14087) | clásico 6 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8153) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8151) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8152) | clásico 6, módulo 2, módulo 3 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L4032) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3919) | clásico 6, clásico 7, módulo 2, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3920) | módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4130) | clásico 6, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4451) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4242) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6509) | módulo 2 | función/objeto |
+| `hideParentLoadingOverlay` | módulo 1 (L2929) | módulo 2 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4652) | clásico 6, módulo 2, clásico 14 | función/objeto |
+| `limpiarDatosAventura` | módulo 1 (L2964) | módulo 2, clásico 14 | función/objeto |
+| `MODOS` | módulo 1 (L3917) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8535) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L8604) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8458) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8311) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8354) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4311) | módulo 2 | función/objeto |
+| `registrarControlador` | módulo 1 (L3918) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5143) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5170) | módulo 2 | función/objeto |
 
-| `_iniciarTemporizadorAventura` | módulo 2 (L12756) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12786) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9325) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10202) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9464) | clásico 6, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9546) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10021) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13017) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10084) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9584) | módulo 1 | función/objeto |
-| `obtenerRetosIds` | módulo 2 (L9601) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10076) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10049) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14129) | módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L2970) | clásico 7, módulo 2 | función/objeto |
+| `resolverIdsParada` | módulo 1 (L2959) | módulo 2 | función/objeto |
+| `retryUntilAvailable` | módulo 1 (L2960) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6345) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6270) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6197) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6425) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6501) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6805) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6804) | módulo 2 | función/objeto |
+| `showParentLoadingOverlay` | módulo 1 (L2917) | módulo 2 | función/objeto |
+| `sleep` | módulo 1 (L2839) | módulo 2, módulo 4 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5870) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3916) | clásico 6, clásico 7, módulo 2, módulo 3 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L4103) | clásico 7, módulo 2 | función/objeto |
+| `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2968) | clásico 14 | función/objeto |
+| `updateLoadingStatus` | módulo 1 (L2945) | módulo 2 | función/objeto |
+| `verificarTimeoutAventura` | módulo 1 (L2965) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8154) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9244) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14089) | clásico 13 | estado |
+| `_buscarParadaEnDatos` | módulo 2 (L11137) | módulo 1 | función/objeto |
+| `_configurarRetoBtn` | módulo 2 (L11411) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L14070) | clásico 6 | función/objeto |
+
+| `_iniciarTemporizadorAventura` | módulo 2 (L12739) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12769) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9308) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10185) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9447) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9529) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10004) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13000) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10067) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9567) | módulo 1 | función/objeto |
+| `obtenerRetosIds` | módulo 2 (L9584) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10059) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10032) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14112) | módulo 2 | función/objeto |
 
 </details>
 
@@ -14364,7 +14341,7 @@ A diferencia de las tres tablas anteriores, esta es curada a mano: no hay forma 
 | `background-image` vs `background-color` en botones | Un `style.backgroundColor` inline parece suficiente para forzar un color puntual | `background-image` (incluido un `linear-gradient()` de un único color) siempre pinta por encima de `background-color` — de ahí que todos los estados de color de botones usen `linear-gradient()`, nunca `background-color` | §4.8 |
 | `estado.paradaRealCongelada` | Parece una copia más del progreso, como cualquier otro campo de `estado` | Vive solo en memoria, nunca se persiste a `localStorage` — es lo que permite "ver" una parada en CASA sin mover el progreso real; persistirlo rompería esa separación | §25.10 |
 | `z-index` 1000005-1000030 (chrome de la app) | Un overlay nuevo de pantalla completa parece necesitar solo un z-index "alto" | Tiene que superar 1000030 en concreto, o usar uno de los 3 mecanismos de ocultado ya existentes — si no, queda tapado por elementos del chrome que deberían estar por debajo | Ver §3.1 |
-| Iframes hijo1-hijo5 | Parecen poder cargarse en cuanto el DOM esté listo, como cualquier iframe | Solo se cargan en P14_MOSTRADA — cargarlos antes (o en `CODIGO_VALIDADO`) rompe el modelo de seguridad de activación | §17 |
+| Iframes hijo1-hijo6 | Parecen poder cargarse en cuanto el DOM esté listo, como cualquier iframe | Solo se cargan en P14_MOSTRADA — cargarlos antes (o en `CODIGO_VALIDADO`) rompe el modelo de seguridad de activación | §17 |
 | `estado.modo.actual` | Parece un binario CASA/AVENTURA | Tiene **tres** estados: `null` (sin decidir), `'casa'`, `'aventura'`. Cualquier `!== MODOS.CASA` o `else` sin condición mete el `null` de arranque en la rama de AVENTURA — hay que exigir `=== MODOS.AVENTURA` en toda lógica de aventura | §2 |
 | `estadoMapa.modo` vs `estadoPadre.modo.actual` | Parecen la misma cosa duplicada, y lo lógico sería inicializarlas igual | Arrancan distinto **a propósito**: el padre en `null` y el mapa en `'casa'`. `actualizarMarcadorUsuario()` decide el icono con `=== MODOS.CASA ? 🛸 : ▲`, así que un `null` ahí pintaría la flecha de AVENTURA sin haber aventura | §2, §11 |
 | `_transicionarAModoCasa()` | Entrar en CASA parece siempre el momento de limpiar el progreso guardado | Entrar en CASA también ocurre **restaurando** una sesión guardada: sin el guard de `restaurado:true`, la reanudación borra los datos que acaba de leer | §9.9, §9.10 |

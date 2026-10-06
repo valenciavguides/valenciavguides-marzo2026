@@ -11,15 +11,15 @@
  * al tamaño anterior, mientras el círculo naranja de 15 m (geográfico, pegado al terreno)
  * sí crece — de ahí que la flecha parezca encoger dentro de su propio círculo.
  *
- * CH — El iframe del chat (hijo6-chat) queda registrado en la mensajería al abrirlo.
+ * CH — El iframe del chat (hijo6-chat) queda registrado en la mensajería al cargarse con los demás hijos.
  * `enviarMensaje` (js/mensajeria.js) resuelve el destino contra `iframesRegistrados`;
  * un iframe ausente de ese Map no es alcanzable desde el padre y todo mensaje dirigido a
  * él se descarta con un `logger.warn`, sin error. Es lo que dejaba sin entregar el
  * SISTEMA.PADRE_DATOS que lleva el idioma, con el FAQ construyéndose siempre en español
  * aunque `idiomaSeleccionado` fuera otro.
  *
- * Los dos casos se ejercitan por el camino real (posición GPS entrante, click en el botón
- * de chat) y no llamando a las funciones del arreglo: el fallo original nunca fue que esas
+ * Los dos casos se ejercitan por el camino real (posición GPS entrante, carga de los
+ * hijos) y no llamando a las funciones del arreglo: el fallo original nunca fue que esas
  * funciones no hicieran su trabajo, sino que nadie las invocaba en el momento que tocaba.
  * Un test que las llamara a mano habría pasado en verde con el bug delante.
  */
@@ -363,7 +363,7 @@ test.describe('MU — El marcador de posición propia sigue al zoom', () => {
 });
 
 test.describe('CH — El chat es alcanzable desde el padre', () => {
-  test('CH-1. Al abrir el chat, hijo6-chat queda registrado en la mensajería', async ({ page, context }) => {
+  test('CH-1. hijo6-chat queda registrado en la mensajería al cargarse con los demás hijos', async ({ page, context }) => {
     await arrancar(page, context);
     await page.waitForFunction(
       () => typeof globalThis.mensajeria?.getIframesRegistrados === 'function'
@@ -372,15 +372,11 @@ test.describe('CH — El chat es alcanzable desde el padre', () => {
     );
 
     const antes = await page.evaluate(() => [...globalThis.mensajeria.getIframesRegistrados().keys()]);
-    expect(antes, 'antes de abrirlo el chat no está cargado, así que tampoco registrado').not.toContain('hijo6-chat');
+    expect(antes, 'antes de cargar los hijos el asistente no está cargado, así que tampoco registrado').not.toContain('hijo6-chat');
 
-    // Camino real del usuario: pulsar el botón de chat.
-    await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
+    // Camino real: los hijos se cargan juntos (P14, la reanudación y la ruta fallback llaman a esta función), el asistente entre ellos.
+    await page.evaluate(() => globalThis.cargarRestoDeiframes());
 
-    await page.waitForFunction(
-      () => [...globalThis.mensajeria.getIframesRegistrados().keys()].includes('hijo6-chat'),
-      null, { timeout: 10000 }
-    );
     const despues = await page.evaluate(() => [...globalThis.mensajeria.getIframesRegistrados().keys()]);
     expect(
       despues,
@@ -394,12 +390,8 @@ test.describe('CH — El chat es alcanzable desde el padre', () => {
 
     await page.evaluate(() => {
       globalThis.idiomaSeleccionado = 'fr';
-      document.getElementById('btn-chat-soporte').click();
+      return globalThis.cargarRestoDeiframes();
     });
-    await page.waitForFunction(
-      () => [...(globalThis.mensajeria?.getIframesRegistrados?.() || new Map()).keys()].includes('hijo6-chat'),
-      null, { timeout: 10000 }
-    );
 
     // enviarMensaje resuelve false cuando no encuentra el iframe destino entre los registrados.
     const entregado = await page.evaluate(async () => globalThis.mensajeria.enviarMensaje({

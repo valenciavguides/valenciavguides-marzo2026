@@ -40,7 +40,7 @@ const FRAMES = [
   { id: 'hijo2', cargar: 'resto' },
   { id: 'hijo3', cargar: 'resto' },
   { id: 'hijo4', cargar: 'resto' },
-  { id: 'hijo6-chat', cargar: 'chat' },
+  { id: 'hijo6-chat', cargar: 'resto' },
   { id: 'mapa-completo', cargar: 'mapa' },
 ];
 
@@ -62,7 +62,6 @@ test.describe('SU — Ningún frame puede hacerse pasar por otro ante el padre',
       await gotoAndWaitForFase1(page);
 
       if (cargar === 'resto') await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
-      if (cargar === 'chat') await page.evaluate(() => document.getElementById('btn-chat-soporte').click());
       if (cargar === 'mapa') await page.evaluate(() => globalThis.mostrarIframeOverlay('mapa-completo.html?aventura=Aventura1'));
 
       // El frame tiene que tener su bus inicializado: si no, el control no probaría nada.
