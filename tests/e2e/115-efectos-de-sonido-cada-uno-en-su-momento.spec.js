@@ -10,7 +10,9 @@
  *   PZ-S3  puzzle completado a tiempo: nueve piezas y un reto_completado, en ese orden
  *   PZ-S4  ⏩ del puzzle (válido y roto): reto_completado y ninguna pieza_colocada
  *   PZ-S5  se acaba el tiempo del puzzle: tiempo_acabado y ningún reto_completado
- *   PZ-S6  ocultar el contenedor del puzzle corta el efecto en curso
+ *   PZ-S6  ocultar el iframe del puzzle corta el efecto en curso
+ *   PZ-S6b ocultar un contenedor del documento que aloja al puzzle (la pantalla de la selección) corta el efecto
+ *   PZ-S6c ocultar el iframe que aloja a ese documento (el padre con hijo4) corta el efecto
  *
  *   RT-S1  cada pulsación sobre una opción suena eleccion_respuesta_reto (opción única)
  *   RT-S2  ídem en opción múltiple, también al desmarcar
@@ -32,7 +34,7 @@
 const { test, expect } = require('@playwright/test');
 const path = require('path');
 const {
-  abrirHijoEnMarco, enviarAlHijo,
+  MARCO_VACIO, abrirHijoEnMarco, enviarAlHijo,
   injectInitSpy, stubCDNResources, gotoAndWaitForFase1,
 } = require('./helpers/boot');
 
@@ -101,13 +103,43 @@ const pausas = async (page, efecto) => (await registro(page)).filter((s) => s.ac
 // Puzzle
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
+// Listo = las piezas están dibujadas: el cronómetro ya trae un valor desde el HTML y no prueba nada.
+const esperarPiezasDibujadas = (puzzle) => puzzle.waitForFunction(() => {
+  const c = document.getElementById('puzzleCanvas');
+  try { return c.width > 0 && c.getContext('2d').getImageData(0, 0, c.width, c.height).data.some((v) => v !== 0); } catch (_e) { return false; }
+}, null, { timeout: 15_000 });
+
 const abrirPuzzle = async (page, query = `id=PZ-intro&imagen=${IMAGEN}`) => {
   const puzzle = await abrirHijoEnMarco(page, `puzzle.html?${query}`, { esperarPreparado: false });
-  // Listo = las piezas están dibujadas: el cronómetro ya trae un valor desde el HTML y no prueba nada.
-  await puzzle.waitForFunction(() => {
-    const c = document.getElementById('puzzleCanvas');
-    try { return c.width > 0 && c.getContext('2d').getImageData(0, 0, c.width, c.height).data.some((v) => v !== 0); } catch (_e) { return false; }
-  }, null, { timeout: 15_000 });
+  await esperarPiezasDibujadas(puzzle);
+  return puzzle;
+};
+
+/**
+ * El puzzle como lo aloja la aplicación, un nivel por debajo del marco (`#aloja-puzzle` es lo que se oculta):
+ *   'contenedor'  dentro de un <div> del marco, como la pantalla de la selección;
+ *   'iframe'      dentro de un iframe del marco, como el padre aloja a hijo4, que a su vez aloja al puzzle.
+ * PZ-S6 oculta el iframe del propio puzzle; estos dos ocultan lo que lo aloja.
+ */
+const abrirPuzzleAlojado = async (page, aloja) => {
+  await page.goto(MARCO_VACIO);
+  const src = `/puzzle.html?id=PZ-intro&imagen=${IMAGEN}`;
+  await page.evaluate(({ src, aloja }) => {
+    const caja = 'width:100vw;height:100vh;border:0;display:block;';
+    const html = `<iframe id="marco-puzzle" src="${src}" style="${caja}"></iframe>`;
+    if (aloja === 'contenedor') {
+      document.body.insertAdjacentHTML('beforeend', `<div id="aloja-puzzle" style="${caja}">${html}</div>`);
+    } else {
+      const iframe = document.createElement('iframe');
+      iframe.id = 'aloja-puzzle';
+      iframe.style.cssText = caja;
+      iframe.srcdoc = `<body style="margin:0">${html}</body>`;
+      document.body.appendChild(iframe);
+    }
+  }, { src, aloja });
+  await expect.poll(() => page.frames().some((f) => f.url().includes('puzzle.html')), { timeout: 15_000 }).toBe(true);
+  const puzzle = page.frames().find((f) => f.url().includes('puzzle.html'));
+  await esperarPiezasDibujadas(puzzle);
   return puzzle;
 };
 
@@ -193,13 +225,33 @@ test.describe('PZ-S — puzzle.html: cada efecto en su momento', () => {
     expect(await reproducidos(page)).toEqual(['tiempo_acabado']);
   });
 
-  test('PZ-S6. Ocultar el contenedor del puzzle corta el efecto en curso', async ({ page }) => {
+  test('PZ-S6. Ocultar el iframe del puzzle corta el efecto en curso', async ({ page }) => {
     await espiarSonidos(page);
     const puzzle = await abrirPuzzle(page);
     await puzzle.click('#skipBtn');
     await expect.poll(() => reproducidos(page)).toEqual(['reto_completado']);
     const antes = await pausas(page, 'reto_completado');
     await page.evaluate(() => { document.getElementById('marco-hijo').style.display = 'none'; });
+    await expect.poll(() => pausas(page, 'reto_completado'), { timeout: 10_000 }).toBeGreaterThan(antes);
+  });
+
+  test('PZ-S6b. Ocultar un contenedor del documento que aloja al puzzle corta el efecto en curso', async ({ page }) => {
+    await espiarSonidos(page);
+    const puzzle = await abrirPuzzleAlojado(page, 'contenedor');
+    await puzzle.click('#skipBtn');
+    await expect.poll(() => reproducidos(page)).toEqual(['reto_completado']);
+    const antes = await pausas(page, 'reto_completado');
+    await page.evaluate(() => { document.getElementById('aloja-puzzle').style.display = 'none'; });
+    await expect.poll(() => pausas(page, 'reto_completado'), { timeout: 10_000 }).toBeGreaterThan(antes);
+  });
+
+  test('PZ-S6c. Ocultar el iframe que aloja al puzzle corta el efecto en curso', async ({ page }) => {
+    await espiarSonidos(page);
+    const puzzle = await abrirPuzzleAlojado(page, 'iframe');
+    await puzzle.click('#skipBtn');
+    await expect.poll(() => reproducidos(page)).toEqual(['reto_completado']);
+    const antes = await pausas(page, 'reto_completado');
+    await page.evaluate(() => { document.getElementById('aloja-puzzle').style.display = 'none'; });
     await expect.poll(() => pausas(page, 'reto_completado'), { timeout: 10_000 }).toBeGreaterThan(antes);
   });
 });
