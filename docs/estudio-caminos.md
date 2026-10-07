@@ -48,6 +48,7 @@ ronda 2, al final de este documento, repite el barrido con parser real (`acorn`)
 de cada instrumento a la vista: desmiente siete afirmaciones de este texto (erratas E1-E7, con una
 nota fechada en cada sección afectada), corrige dos de la propia ronda (E8 y E9) y añade 49 entradas (K-01 a K-49) para su estudio
 individual. Léase junto con ella: lo que aquí se dio por cerrado o limpio puede no estarlo. R2.9 (2026-10-03) revisa las decisiones abiertas de R2.8 con otro método y otros ángulos, corrige varias entradas con una nota fechada en ellas y añade cinco más (K-50 a K-54, familia S).
+R2.12 (2026-10-07) vuelve a contrastar el estudio entero con el código: corrige una frase de R2.3 (E10) y tres entradas (K-57, K-54 y el cierre de K-01 y K-02) y añade once (K-62 a K-72, familia T).
 
 **No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
 `docs/GUIA-COMPLETA.md`: este documento se consulta siempre y no se cree nunca a ciegas. Una
@@ -740,6 +741,11 @@ en cada una apuntando aquí. Todas están comprobadas leyendo las líneas.
   Método: búsqueda desnuda de cada uno de los 94 valores entre comillas en `*.html`, `js/*.js` y `sw.js`: 11 apariciones, de las
   que 3 no son el tipo de un mensaje (dos `contexto:` de hijo5, `:1005` y `:1063`, y un comentario de `utils.js:347`). No cambia la
   conclusión de K-37 —son los mismos valores del mismo contrato y lo recomendado es dejarlos—, sí la cifra.
+- **E10 — R2.3: «Polling: un solo camino» solo vale para el helper.** Los llamadores de `retryUntilAvailable` (seis hoy) comparten
+  helper, pero el código tiene además doce bucles `while` que sondean hasta que algo exista o llegue (K-62), una promesa sin plazo
+  para la misma espera que dos de ellos (K-72) y dos esperas de «padre listo» que no esperaban nada (K-63, retiradas). R2.10 cuenta
+  seis de esos bucles entre las formas de «esperas y plazos». Método: censo de `while (` en el código de producción y lectura de
+  cada línea (R2.12).
 
 ### R2.2 Catálogo de hallazgos
 
@@ -2953,6 +2959,90 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **No medido.** Qué reciben los hijos (audio, retos) con esa activación de más (mi intento de medirlo envolviendo `enviarMensaje` no vio nada: los envíos no pasan por esa propiedad del bus); la reanudación (`restaurado: true`), donde `_activarAventura` se salta `ensureDefaultParada` y sí puede ejecutarse `_activarParadaDefectoAventura` según las banderas; cuánto retrasa el cambio de modo la espera de `_prewarmAventura` con hijos que no están listos.
 - **Pendiente: decisión, sin recomendar todavía** (regla 1b: se registra antes de tocar código). *A)* un solo camino, `ensureDefaultParada`, y retirar de `js/app.js` `_activarParadaDefectoAventura`, `_reanudarSubsistemasTrasPrewarm`, `_prewarmAventura`, `_flujoPrewarmModo`, `iniciarPrewarmEnCasa` con su auto-run y las dos banderas (en `estado.sistema` y en el state-manager); *B)* un solo camino, `_activarParadaDefectoAventura`, y quitar la llamada de `_activarAventura`; *C)* dejarlo. Lo medido apunta a la opción *A*: `ensureDefaultParada` cubre las dos entradas (en la primera activa la parada por defecto, en la segunda sale porque la restauración ya fijó `paradaActual`), y el camino de `app.js` solo añade una activación de más. Falta medir la reanudación antes de recomendarla.
 
+#### Familia T — Lo que encontró la re-verificación del 2026-10-07 (R2.12)
+
+##### K-62 — Esperas escritas a mano: doce bucles que sondean hasta que algo exista o llegue, además del helper `retryUntilAvailable` — ✅ (leído; decisión abierta)
+
+- **Dónde** (líneas de `4bea83e`). En el padre, nueve: el bloque de nivel superior del Script 1 que procesa `__pendingDistribucion` espera `distribuirDatosAventura` (40 × 250 ms, `:3967`; al agotarse escribe un `error`, avisa al usuario con `_avisarFalloCargaAppUnaVez` y cancela la distribución); `_distribuirDatosRest` espera la misma función —por la promesa `__distribuirReadyPromise` si existe (K-72) y, si no, con un sondeo de 120 × 250 ms (`:4867-4868`)— y reintenta la distribución esperando `sistemaInicializado` (`:4875`: tres intentos con plazo creciente y un `warn` al final); `validarMensajeriaFase1` espera `mensajeria.enviarMensaje` (20 × 200 ms, `:7910`, y lanza); el Script 2 espera `mensajeria` y `estadoPadre` (200 × 50 ms, `:9355`; al agotarse escribe un `error` y lanza si falta `mensajeria`); `_setupRegistrarControladores` espera `registrarControladorSeguro` (200 × 50 ms, `:10514`, y sigue con un `error`); el Script 4 espera `mensajeria` y `registrarControladorSeguro` (dos bucles de 200 × 50 ms, `:14210` y `:14219`; lanza si falta `mensajeria`); el Script 5 espera `__vv_logger` (200 × 50 ms, `:14590`, y sale). Fuera del padre, tres: `esperarRespuestas` de `js/app.js` sondea cada 100 ms los `ENTENDIDO` y `EFECTUADO` del cambio de modo hasta su plazo y, al agotarlo, escribe un `warn` con quién no contestó (`:235`); el botón de imagen de hijo2 espera las coordenadas (20 × 100 ms, `coordenadas-hijo2.html:1051`, y avisa con `warn`); y `completarCambioParada` espera la instancia del mapa (5000 ms en pasos de 100 ms, `js/funciones-mapa.js:2122`, y aborta con `warn`).
+- **La otra forma de lo mismo.** `retryUntilAvailable` (`js/utils.js:222`) tiene seis llamadores (`codigo-padre.html:3593`, `:5280`, `:7865`, `:13473`, `js/app.js:750` y `js/utils.js:392`); al agotarse resuelve `false` y escribe un `warn` si se le pasa `mensaje`. Los doce bucles también están acotados, por contador o por tiempo, y al agotarse lanzan, avisan o siguen con un aviso: son dos formas de escribir «espera acotada a que se cumpla X». Para `distribuirDatosAventura` hay una tercera, la promesa, que no tiene plazo (K-72).
+- **Método.** Censo de `while (` en el código de producción (`*.html` de la raíz, `js/*.js` y `sw.js`, sobre `4bea83e`): 20 líneas, de las que 6 no son esperas (dos recortes de caché, dos colas que se vacían, un recorrido del DOM y un desenvolver de nodos) y 2 son las de K-63; las otras 14 líneas con `while` son comentarios y textos en inglés. Lectura de cada bucle y de lo que hace al agotarse.
+- **Lo que este documento ya decía.** R2.10 cuenta seis de estos bucles, los que llevan un `setTimeout` dentro del `while` (cuatro de los doce y los dos de K-63), entre las formas de la familia «esperas y plazos», cuya decisión sigue abierta; K-54 leyó las dos esperas de `distribuirDatosAventura` como «espera acotada» (K-72 lo corrige); el EJE 2 pide una espera acotada para cada dependencia de Script 2 hacia Script 1. Ninguna entrada los trata como un segundo camino frente al helper, y R2.3 decía «Polling: un solo camino» (E10).
+- **Pendiente: decisión.** *A)* llevar los doce bucles a `retryUntilAvailable`, conservando el plazo, el mensaje y la salida de cada sitio (lanzar, seguir o abortar); *B)* dejarlos. Sin recomendar: el helper solo resuelve `false`, así que lo que cada sitio hace al agotarse habría que mantenerlo sitio a sitio. `distribuirDatosAventura` se decide en K-72.
+
+##### K-63 — La espera de «padre listo» de la selección y de hijo1 no esperaba nada — ✅ (medido; aplicada la opción A)
+
+- **Dónde** (`4bea83e`). La selección, en `_esperarPadre` (`En-busca-del-tesoro.html:2628-2643`, llamada desde `init`), e hijo1, en el paso 1 de `init` (`extrainfo-hijo1.html:126-144`): mientras `parent.postMessage` no sea una función, esperan en pasos de 100 ms hasta `CONFIG_HIJO.TIMEOUT_PARENT` (5000 ms); después anotan `estadoComponente.padreConectado = true` (selección) o `estadoMenu.parentReady = true` (hijo1) y escriben «Padre listo después de Nms».
+- **Por qué no espera nada.** En un navegador `parent.postMessage` es siempre una función (también con el padre en otro origen), así que el bucle no da ninguna vuelta. **Medido** (chromium, padre real con sus hijos, sonda en una copia): las dos escriben «Padre listo después de 0ms». Y lo que anotan no lo lee nadie: `padreConectado` solo viaja en la respuesta al latido de la selección y en un log de depuración de `iniciarAventura`, y `parentReady` en la respuesta al latido de hijo1; el handler de `SISTEMA.HEARTBEAT_RESPONSE` del padre pasa el mensaje a `procesarHeartbeatResponse` (`js/mensajeria.js`), que solo mira el `origen` (K-70). Búsqueda desnuda de `TIMEOUT_PARENT`, `padreConectado`, `parentReady` y `_esperarPadre` en todo el repositorio: solo esos sitios y dos filas de la guía; ningún spec ni herramienta los cita.
+- **Cómo lo sabe el resto.** Los siete frames que hablan con el padre (la selección e hijo1 a hijo6) saben que el padre está listo por el apretón de manos del bus (`HIJO_PREPARADO` → `PADRE_DATOS` → `HIJO_LISTO` → `PADRE_CONFIRMA_HIJO_LISTO`; recuento por fichero de los tres en los siete). hijo2 a hijo5 no tienen esta espera (`parent.postMessage` solo sale en un comentario que advierte de no usarlo) e hijo6, el padre, `mapa-completo`, el puzzle y `video-intro` tampoco (0 apariciones). Era una forma de más, solo en dos frames, para algo que los siete resuelven con el apretón.
+- **Corrección a K-57.** El apartado «El apretón, leído» dice que hijo1 «espera antes hasta 5 s a que el padre esté listo»: el bucle no daba ninguna vuelta.
+- **Decisión del usuario (2026-10-07): A**, quitar la espera de los dos frames con `TIMEOUT_PARENT`, `padreConectado`, `parentReady` y esas dos claves de la respuesta al latido. Las otras eran *B)* ponerla en todos los frames y *C)* dejarla.
+- **Aplicada la opción A (`fd367da`).** Salen de la selección `_esperarPadre` con su llamada en `init` (el JSDoc que tenía encima pasa a `init`), `CONFIG_HIJO.TIMEOUT_PARENT` y `estadoComponente.padreConectado`, también del log de depuración de `iniciarAventura`; de hijo1, el paso 1 de `init` (los dos siguientes se renumeran), `CONFIG_HIJO.TIMEOUT_PARENT` y `estadoMenu.parentReady`. Las dos respuestas al latido pierden esa clave. La guía describe las dos respuestas sin ella (§26.12.3 y §26.12.4), y §37.2 cita en su línea nueva las tres definiciones del módulo 7 de la selección que el cambio desplaza (`verificar-citas`: 83 bien, 44 sin resolver, como antes, y 0 mal). **Medido con la misma sonda antes y después** (chromium, padre real con sus hijos): desaparecen las dos líneas «Padre listo después de 0ms», los siete frames completan el apretón y las respuestas al latido llevan las claves que recoge K-70. Búsqueda desnuda de los cuatro nombres en todo el repositorio después del cambio: solo este documento. `npm run lint` sale con 0, y chromium entero, en verde: 598 tests en dos tandas (397 y los 205 de los specs 55 a 99).
+
+##### K-64 — Tres variables de `js/funciones-mapa.js` que nadie lee, y una frase de la guía sobre un efecto que no existe — ✅ (búsqueda desnuda)
+
+- **Dónde** (`4bea83e`). `_mapaOpciones` (`:385`): se escribe en `inicializarServicioMapa` (`:1195`) y se pone a `null` en `:3299`; nadie la lee. `_pulseTimeout` (`:386`, «Timeout del efecto de llegada (cancelable)»): ni se asigna ni se lee. `_elementosParaReescalar` (`:862`, «Lista de elementos a re-renderizar cuando cambie el zoom»): no se usa.
+- **Método.** `no-unused-vars` de ESLint con `vars: 'all'` y sin ignorar el prefijo `_` (el lint del proyecto no aplica la regla a `js/*.js`, y en los HTML ignora lo que empieza por `_`) y búsqueda desnuda de los tres nombres en todo el repositorio: 3, 1 y 1 apariciones en el código, las de arriba. Los dos únicos `clearTimeout` de `funciones-mapa.js` son de otros temporizadores (`:1953` y `:2177`), y el único pulso del marcador es el halo decorativo del 🛸 en CASA (`@keyframes gpsPulse`, `:3449` y `:3513`), que no es de llegada ni usa la variable.
+- **La guía** (fila de `funciones-mapa.js` del inventario de módulos) decía que el efecto de pulso de llegada usa `_pulseTimeout` con `clearTimeout` para no acumular confirmaciones seguidas (G-48).
+- **Pendiente: decisión.** *A)* retirar las tres; *B)* dejarlas.
+
+##### K-65 — `limpiar()` del bus no tiene ningún llamador — ✅ (búsqueda desnuda)
+
+- **Dónde.** `js/mensajeria.js:1150-1162`: exportada y fuera del objeto `globalThis.mensajeria`; rechaza las confirmaciones pendientes («Mensajería limpiada»), vacía la cola y escribe un log.
+- **Método.** Búsqueda del identificador `limpiar` en `*.html`, `js/*.js` y `tests/`, fuera de comentarios y cadenas: solo su definición y una función local homónima de `js/video-playback-utils.js:67`, sin relación. Por esa homónima `tools/codigo-muerto.js` no la marca (cuenta como uso un token igual en otro fichero, límite ya descrito en R2.7); `exports-tokens.cjs` y `exports-sin-uso.cjs` sí la listan.
+- **Pendiente: decisión** (toca el bus, regla 1). *A)* retirarla; *B)* dejarla.
+
+##### K-66 — `CONFIG_PADRE.COMPONENTE_ID`, `.VERSION` y `.DEBUG` siguen sin lector — ✅ (búsqueda desnuda)
+
+- **Dónde.** `codigo-padre.html:4034-4036` (`'PADRE-PRINCIPAL'`, `'3.0.0'` y `true`).
+- **Método.** Lecturas `CONFIG_PADRE.X` distintas de `LOG_PREFIX` e `ID` en `*.html` y `js/*.js`: ninguna; ninguna desestructuración ni clave computada de `CONFIG_PADRE`; el literal `PADRE-PRINCIPAL` solo aparece en su definición. Lo único que las toca es el test «1f. globalThis.CONFIG_PADRE existe con todas las claves requeridas» del spec `02-global-variables` (`:116`), que comprueba que existen y su tipo.
+- **Por qué siguen.** K-01 las dejó «para la decisión de K-02», y K-02 A vació `js/config.js` y no `CONFIG_PADRE`.
+- **Pendiente: decisión.** *A)* retirarlas y ajustar ese test del spec 02; *B)* dejarlas.
+
+##### K-67 — El objeto API del state-manager: tres funciones con dos nombres y cinco que solo usan los specs o nadie — ✅ (búsqueda desnuda)
+
+- **Dónde.** El objeto `stateManagerAPI` de `inicializarStateManager` (`js/state-manager.js`), publicado como `__stateManager` y `__vv_stateManager`. Dos nombres para la misma función: `registrarControladorCentral` y `registrarManejador`, `getMapaControladoresSync` y `getManejadores`, `diagnosticarStateManager` y `diagnosticar`. El bus usa los alias (`registrarManejador` en `js/mensajeria.js:254` y `:262`; `getManejadores` en `:286` y `:920`); de los otros tres nombres, solo el spec 20 usa `getMapaControladoresSync`.
+- **Sin llamador de producción.** `getEstadoPadre` (solo un `typeof` del spec 01, `:65`); `getScript2Listo` y `getControladoresPorTipo` (los usan specs como sonda: 117, 28 y `helpers/boot.js`; 28 y un comentario del 55); `getControladoresRegistrados` (solo la llama `diagnosticarStateManager`) y `diagnosticarStateManager` con su alias (nadie: herramienta de consola).
+- **Relacionado.** K-42 trató estos nombres como exports de uso interno o solo de specs, no como nombres duplicados del objeto API.
+- **Pendiente: decisión.** *A)* un nombre por función en el objeto API y retirar lo que no usa nadie (con el `typeof` del spec 01); *B)* dejarlo.
+
+##### K-68 — Guardas `!mensaje?.origen` que el bus hace inalcanzables: veintitrés en seis frames — ✅ (leídas una a una)
+
+- **Dónde** (`4bea83e`). Veintitrés guardas de la forma `!mensaje?.origen` o `!mensaje || !mensaje.origen` al principio de un handler, que escriben en el log y salen si el mensaje no trae `origen`: la selección 3 (`_onPadreDatos`, `_onPadreConfirmaHijoListo` y `_onHeartbeat`), hijo1 3 (los handlers de `PADRE_DATOS`, `PADRE_CONFIRMA_HIJO_LISTO` y `HEARTBEAT`), hijo2 2 e hijo3 2 (los dos handlers del apretón), hijo5 6 (los de `PADRE_DATOS`, `HEARTBEAT`, `NAVEGACION.CAMBIO_PARADA` y `SISTEMA.ERROR`, y los dos validadores que solo llaman sus handlers: `_validarCambioModo`, desde el de `CAMBIO_MODO`, y `_validarMensajeParadas`, desde el de `RESPUESTA_DATOS_PARADAS`) y el padre 7 (`HIJO_PREPARADO`, `HIJO_LISTO`, la respuesta al latido, `RETO.COMPLETADO` y tres de audio: `ESTADO_ACTUALIZADO`, `FIN_REPRODUCCION` y `ERROR`).
+- **Por qué no se alcanzan.** Un handler solo se ejecuta a través de `_encolarEjecucionHandler` (`js/mensajeria.js:560`), y a ella llegan dos caminos: `despacharLocal` (`:643`), que sella el `origen` con el del propio frame (`:650`), y el listener de `message`, que descarta antes todo mensaje sin `origen` (`:727`). Las funciones con nombre (las `_on*` de la selección y las `_hdl_*` del padre) solo aparecen en su registro, y los validadores de hijo5, en la llamada desde su handler.
+- **Método.** Búsqueda de las dos formas en los `.html` de la raíz y `js/*.js`: 25 líneas, las 23, la de `js/app.js:388` (decide si se contesta; no es una guarda de entrada) y la del propio bus; para cada una, el handler que la contiene; búsqueda desnuda de cada función con nombre en todo el repositorio; lectura de los dos caminos del bus hasta `_encolarEjecucionHandler`. Otras formas de escribir la misma guarda no se buscaron.
+- **Pendiente: decisión.** *A)* retirarlas; *B)* dejarlas como defensa redundante.
+
+##### K-69 — Variables y reglas CSS sin uso — 🔎
+
+- **Variables definidas que nadie usa** (`barrido-css-dom.cjs`): `--audio-action-scale` (padre), `--iframe-h` (hijo1, hijo2 e hijo6), `--progress-bg`, `--progress-color`, `--trapecio-height`, `--trapecio-radius` y `--trapecio-shadow` (hijo2 e hijo3). `--tx` y `--ty` se usan en `video-intro.html` sin definirse en ninguna regla (no comprobado si las pone el JavaScript en línea).
+- **Reglas cuya clase no aparece en el HTML ni en el JavaScript** (`barrido-clases.cjs`): unas 72 (`video-intro.html` 37, hijo2 14, el padre 6 —las `notification*`—, la selección 6, hijo3 3 e hijo5 2), y dos clases que el JavaScript pone sin regla ni lectura (`img-fallback` en el padre y `deshabilitado` en hijo4). K-33 ya avisaba de falsos positivos por nombres compuestos.
+- **Pendiente:** leerlas una a una antes de proponer nada.
+
+##### K-70 — La respuesta al latido tiene una forma distinta en cada frame y el padre no lee ninguna — ✅ (medido)
+
+- **Medido** (chromium, padre real con sus hijos, sonda en una copia: las claves de `datos` de cada `SISTEMA.HEARTBEAT_RESPONSE` que procesa el padre, por origen, con K-63 aplicada): la selección manda `{ aventuraSeleccionada, componente, estado, idiomaSeleccionado, inicializado, terminosAceptados, timestamp, ultimaInteraccion }`; hijo1 `{ componente, estado, inicializado, timestamp, ultimaInteraccion }`; hijo2 `{ coordenadasCargadas, estado, gpsActivo, paradaActual, timestamp }`; hijo3 e hijo4 `{ timestamp }`; hijo5 `{ componenteId, estado, timestamp }`; hijo6 `{ estado, timestamp }`. Y `estado` no tiene ni el mismo tipo (leído en cada emisor): es una cadena en la selección (`'activo'`), en hijo1 (`'abierto'` o `'cerrado'`) y en hijo2 e hijo6 (`'activo'` o `'inicializando'`), y un objeto en hijo5 (`{ inicializado, modo, paradasCargadas }`).
+- **hijo5 la manda también sin latido.** Al volver la página a primer plano (`visibilitychange`, `boton-casa-hijo5.html:1245`) manda por su cuenta un `SISTEMA.HEARTBEAT_RESPONSE` con `razon: 'visibilitychange'` (`:1259`) y después regenera sus botones o vuelve a pedir las paradas. Es el único frame que manda ese tipo sin haber recibido un `SISTEMA.HEARTBEAT`; la guía lo describe (la fase 3 del latido y los mensajes salientes de hijo5).
+- **Quién lo lee.** El handler del padre (`codigo-padre.html:7613`) pasa el mensaje a `procesarHeartbeatResponse` (`js/mensajeria.js:1134`), que del mensaje solo usa `origen`: pone a cero los latidos sin respuesta de ese hijo y, si ya completó el apretón de manos, también sus recargas. Ninguna clave de `datos` tiene lector en producción, y la respuesta de hijo5 al volver a primer plano cuenta para el supervisor como una respuesta más.
+- **Los specs.** Los que escuchan la respuesta al latido (77, 81, 83 y 85) solo miran `tipo` y `origen`; el 09 comprueba que el padre tiene el handler, y el arnés del bus (`tests/e2e/fixtures/bus/hijo.html`) contesta con `datos: {}`. Ninguno lee una clave de `datos` ni cubre la respuesta de hijo5 al volver a primer plano. Método: búsqueda de `HEARTBEAT_RESPONSE`, de cada clave y de `visibilitychange` en `tests/`.
+- **Pendiente: decisión** (regla 1: contrato del bus). *A)* una sola forma para todos (`{ timestamp }`, o sin `datos`); *B)* dejarlo. Aparte, la respuesta de hijo5 sin latido: *a)* quitarla; *b)* dejarla.
+
+##### K-71 — El círculo naranja lleva el radio de llegada escrito a mano — ✅ (leído; decisión abierta)
+
+- **Dónde** (`4bea83e`). `actualizarMarcadorUsuario` (`js/funciones-mapa.js:3551`) crea fuera de CASA el círculo naranja con `_crearCirculoGeografico({ lat, lng }, 15, …)` (`:3598`, la única llamada a esa función). El radio con el que se declara la llegada es `RADIO_LLEGADA_PARADA_M` (`:65`, 15), que devuelve `radioLlegada()` (`:87`) y que `funciones-mapa.js` manda a hijo2 en `NAVEGACION.ACTUALIZAR_ESTADO` (`:3062`). El comentario de ese envío (`:3055-3056`) y el de hijo2 (`coordenadas-hijo2.html:456`) dicen que es el radio del círculo naranja, y la guía también (§4.5 y la fila de `funciones-mapa.js`).
+- **Por qué es un segundo camino.** El valor coincide hoy (15 y 15), pero el círculo no lee la constante: cambiar `RADIO_LLEGADA_PARADA_M` dejaría al usuario viendo un círculo de 15 m que ya no sería la zona de llegada. La tabla de K-05 («Radio de llegada») cita los otros tres sitios del radio y no este.
+- **Método.** Búsqueda de `_crearCirculoGeografico` (una llamada) y lectura de su contexto; búsqueda en este documento de `circuloActivacion`, `_crearCirculoGeografico` y «círculo naranja»: ninguna aparición.
+- **Pendiente: decisión.** *A)* que el círculo tome su radio de `radioLlegada()`; *B)* dejarlo.
+
+##### K-72 — La reanudación espera `distribuirDatosAventura` por una promesa sin plazo — ✅ (medido; decisión abierta)
+
+- **Dónde** (`4bea83e`). `_distribuirDatosRest` (`codigo-padre.html:4864`), la distribución de la reanudación, a la que `ejecutarRestauracionAventura` llama (`:5079`) antes de mandar las paradas, activar el modo y restaurar el progreso, espera la función así: si existe `__distribuirReadyPromise`, la espera (`:4867`); si no, con un sondeo de 120 × 250 ms (`:4868`). Script 2 crea la promesa antes de su primer `await` (`:9244`; no tiene `import` estáticos, así que siempre llega ahí) y solo la resuelve después de publicar la función (`:9533`); entre las dos hay diez `await import(...)` fuera de `try` (`:9248-9256`, `:9371` y `:9372`) y el `throw` de `:9364`.
+- **Lo que dice el código.** Si Script 2 se corta en ese tramo, la promesa no se resuelve nunca y `_distribuirDatosRest` la espera sin plazo, con el resto de la reanudación detrás y sin escribir nada. El sondeo, en cambio, acaba a los 30 s llamando a una función que no existe, y su `catch` (`:4882-4884`) escribe un `warn` y llama a `_avisarFalloCargaAppUnaVez`, que muestra un `alert` con `MSG_ERROR_CARGA_APP` (`:3949-3957`). La rama del sondeo solo se toma si Script 2 no ha llegado a crear la promesa (por ejemplo, un error de sintaxis que le impide arrancar).
+- **Medido** (chromium, padre real con sus hijos, sonda en una copia: el padre se sirve con un `throw` en Script 2 y se reanuda una sesión guardada pulsando «Continuar»). Con el corte **después** de crear la promesa, la reanudación llega a esa espera a los 1,7 s de cargar la página y, 35 s después, no ha salido ningún diálogo, la pantalla de carga sigue visible y la restauración no ha escrito ni una línea más. Con el corte **antes** (el control), sale el `alert` de `MSG_ERROR_CARGA_APP` a los 31 s del clic y la reanudación sigue: reparte las paradas, termina y quita la pantalla de carga. El control demuestra que la sonda ve el aviso cuando sale.
+- **La guía** (§11, tabla del aviso de último recurso) dice que ese aviso cubre `_distribuirDatosRest()` cuando `distribuirDatosAventura` «no está disponible tras 10-30s de espera (fallo de módulos de Script 2)». Corregida en `db51b2d` (G-50): la fila separa los dos casos.
+- **Corrección a K-54.** K-54 da las dos esperas de `distribuirDatosAventura` (hoy `:3967` y `:4864-4868`) por «espera acotada (40 y 120 iteraciones): sin hallazgo»; la segunda tiene la rama de la promesa, sin plazo.
+- **Relacionado.** K-62 (las otras formas de esperar), K-53 (los imports en posición fatal, que son los que cortan Script 2) y K-54.
+- **Pendiente: decisión.** *A)* una sola forma de esperar la función, con plazo y con el aviso: el sondeo, o la promesa con un plazo; *B)* dejarlo.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -2966,6 +3056,8 @@ Para que "no sale nada" no se confunda con "no se miró":
   aplicación (`mensajeria.js`), más el canal del SW — K-16.
 - **Polling: un solo camino.** Los ocho llamadores de `retryUntilAvailable` comparten helper con
   parámetros por sitio (K-23 trata la rama muerta del helper, no un segundo helper).
+- **Corrección (2026-10-07, R2.12).** «Un solo camino» vale para los llamadores de `retryUntilAvailable` (seis hoy); fuera del
+  helper hay doce esperas escritas a mano (E10, K-62) y una promesa sin plazo (K-72).
 - **Atributos `on*="…"` de HTML (41, fuera del alcance del parser):** 36 en la selección y 5 en
   video-intro. Los 18 nombres de función de la selección y los 4 de video-intro existen y son
   globales (el script principal de la selección es clásico, `En-busca-del-tesoro.html:1058`;
@@ -3148,6 +3240,9 @@ código leído ese día; los hashes son de los commits locales (sin pushear).
 | G-45 | ✅ | `f52627b`: cinco comentarios de código que citaban como vivo algo que no existe (los dejó `comentarios-nombres-citados.cjs`, 44 candidatos triados uno a uno): `_manejarSimularClick` (el comentario de `_hdl_SISTEMA_ERROR` del padre la daba como emisor de `ELEMENTO_NO_ENCONTRADO`; la retiró `8daa6db`), `_hdl_NAVEGACION_GPS_DESACTIVAR` (`js/funciones-mapa.js:2705`; `GPS.DESACTIVAR` no tiene handler), `_solicitarRetoParaParada` (padre `:9837`; el reto de cada parada lo manda `_enviarRetoMostrar`), `autoReconectar` (el `@param` de `marcarHijoDesconectado`, `js/mensajeria.js:1115`, que solo recibe `hijoId`) y `setView` (`js/funciones-mapa.js:1315`: es de Leaflet y el mapa es MapLibre). Solo cambia texto de comentario y ninguno cambia el número de líneas de su fichero |
 | G-46 | ✅ | `514a774`, `a319ba9` y `dfa1ace`: dos listados de specs que no se mantenían solos. El árbol de §20 decía «66 specs» y daba §18.3 por «el listado completo»: en `tests/e2e` hay 111 y §18.3 describe 68. Los 43 sin fila —los números 68, 69 y 74 a 114— suman 153 de los 532 tests por proyecto. Sus filas se escriben en `dfa1ace`, en presente y por lo que cada spec comprueba (sus IDs con el invariante), sin contar los casos corregidos: lo que un spec vigila que no vuelva se describe por el invariante y no por el nombre de lo retirado (regla general de la guía, no solo de los seis specs `101`, `104`, `106`, `107`, `110` y `111`). El árbol de §20 dice que §18.3 describe cada uno; comprobado por script: 111 filas, una por spec, y 153 tests en las 43, como el listado de Playwright. Y el catálogo de `tests/master-test.html` (`npm run sync:master-test -- --check` salía con código 1) no tenía los specs 84 (renombrado) y 90 a 114 y listaba uno desechable que ya no existe; regenerado con la herramienta (26 líneas nuevas, 2 quitadas). La comprobación inversa —qué hay en el repo que la guía no menciona—, hecha por clase, no da nada más: 17 páginas, 32 módulos de `js/`, 6 ficheros de `docs/`, 3 ayudas de `tests/e2e/helpers`, 8 ficheros de configuración y 26 de los 27 scripts de `npm` aparecen (`postinstall` no); de las herramientas de `tools/` faltan por nombre de fichero `verificar-citas-guia.js` y `verificar-datos-aventuras.js` (se citan por su `npm run`) y `imagenes-referencias.js` |
 | G-47 | ✅ | `c6789e3` (guía), `01a12dc` (`guia-narracion.cjs`), `beff450` (código), `4c2716e` (`CLAUDE.md`) y `dfa1ace` (guía): la guía contaba cambios en vez de describir lo que hay («la pared es azul», nunca «era roja y se cambió»). Tres barridos a mano y uno con el instrumento nuevo reescribieron en presente unas 230 frases de 28 secciones (82 subsecciones): «ya no», «antes … ahora», «se retiró», «se arregló», «se añadió», imperfectos de incidente («saltaban de golpe», «la causa real detrás del bug donde …»), «reporte de campo», una fecha («2026-08», que el grep de fechas de `CLAUDE.md`, `2026-0[0-9]-[0-9]{2}`, no ve), referencias al proceso y enlaces a la memoria privada; los casos ya corregidos que se contaban como ejemplo (§14, §25.18, §36.10, §36.26, §36.27.7) se quitan o pasan a condicional. El instrumento tuvo su propio defecto, medido: `\b` no es frontera tras una vocal acentuada seguida de espacio, así que «se retiró», «se eliminó», «se añadió» y «se arregló» no salían (la autoprueba falla 10 de 36 con el `\b` crudo); y las reglas duras no veían la mayoría de las 118 ediciones de la última pasada, que salieron de leer las 129 oraciones con imperfecto, las 252 con pretérito, los 62 «antes» sin «de», los 20 «ahora» y los 70 «hoy/actualmente» («antes sí lo hacía», «Se eligió la posición superior», «imagen actualizada»). Al reescribir salieron tres afirmaciones que no cuadraban con el código, leído en cada fichero: §9.10 y §25.10 daban `casa` como valor de arranque de `estado.modo.actual` y es `null` (`codigo-padre.html:4180`, `js/state-manager.js:37`; §2 lo decía bien); §2 y §11 nombraban tres de los seis carteles que cierra `_ocultarTodasPantallasDistanciaGPS` (`codigo-padre.html:6219-6232`, y K-49 había dado por buena la guía); y el ejemplo de §36.10 daba 518×482 con el contenido pegado al borde para `brujula-seguimiento.png`, que mide 738×702 con el contenido al 62 % × 67 % del lienzo (medido decodificando el PNG). Dos textos de código repetían lo que la guía tenía mal y se corrigen en `beff450`: el comentario de `codigo-padre.html:7621-7623` nombra los seis carteles, y la cabecera del spec `40` dice `null` y el título de OR-1 deja de llamar «valor de arranque» al `casa` que fija el test (que vale igual con `null`); solo cambia texto y no se mueve ninguna línea (el hook subió `CACHE_VERSION`, porque el padre está en `APP_SHELL`). `CLAUDE.md` regla 2 lleva ahora el grep de fechas ancho (`20[0-9][0-9]-[0-9][0-9]`) y la comprobación de narración (`4c2716e`). Y la guía deja de nombrar lo que no existe para decir que no existe, en seis sitios (`dfa1ace`): `SISTEMA.ACK`, `getInfoDispositivo` y `__vv_deviceInfo`, `_propagarCambioModoAHijos` (dos sitios), `messagingAdapter` con `_listenerRegistry` y la fila del glosario de `messagingAdapter` |
+| G-48 | ✅ | `db51b2d`: la fila de `funciones-mapa.js` del inventario de módulos de la guía decía que el efecto de pulso de llegada usa `_pulseTimeout` (módulo) con `clearTimeout` para no acumular confirmaciones seguidas; `_pulseTimeout` no se asigna nunca y ningún efecto la usa (K-64). Sale la frase de la guía; la variable se decide en K-64 |
+| G-49 | ✅ | `db51b2d`: la misma fila decía que los tres triángulos de la flecha llevan `translate(-50%,-50%)`, con el porqué al revés, y contradecía a §4.5 de la propia guía; el código lleva `translate(-50%,0%)` en los tres (`js/funciones-mapa.js:3502`, `:3504` y `:3506`) y su comentario (`:3487-3497`) da la razón: así el vértice queda sobre el punto GPS, que es el pivote del giro. La fila dice ya lo mismo que §4.5 |
+| G-50 | ✅ | `db51b2d`: la tabla del aviso de último recurso (§11) daba el aviso por seguro en `_distribuirDatosRest()` «tras 10-30s de espera (fallo de módulos de Script 2)»; con Script 2 cortado después de crear `__distribuirReadyPromise`, la espera no tiene plazo y el aviso no sale (K-72, medido). La fila separa los dos casos |
 
 ### R2.6 Censo de frames (regla 3b)
 
@@ -3500,6 +3595,17 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 34 | 3 | K-58 | detectar el fallo de carga sin esperar 30 s y escalar ese plazo con la conexión | SPEC, MEDIR, VISIBLE (el tiempo hasta el aviso) | blanda: K-57 | **hecha (2026-10-06, `343126a`): la gracia escala con la conexión y ninguna espera de `HIJO_LISTO` tiene plazo propio; no se usa la señal del `contentDocument` ilegible** |
 | 35 | 3 | K-59 | que el chat roto no cubra la pantalla sin salida | SPEC, VISIBLE, GUÍA | blanda: K-57 | **hecha (2026-10-06, `2a88a77`): hijo6 se carga con `cargarHijo` y se ve al estar listo; sin salida que decidir** |
 | 36 | 3 | K-60 | plazo y caída a la caché en el Network First de `sw.js` | SPEC (SW real), MEDIR, GUÍA | toca `sw.js` (`CACHE_VERSION`, shell) | decisión |
+| 37 | 2 | K-63 A | quitar la espera de «padre listo» de la selección y de hijo1, con `TIMEOUT_PARENT`, `padreConectado`, `parentReady` y sus dos claves de la respuesta al latido — **hecha (2026-10-07, `fd367da`)** | GUÍA (§26.12.3, §26.12.4 y §37.2) | — | sí |
+| 38 | 3 | K-62 | doce esperas escritas a mano: llevarlas a `retryUntilAvailable` o dejarlas | una decisión por sitio | blanda: K-72 (las dos de `distribuirDatosAventura`) | sí |
+| 39 | 1 | K-64 | retirar tres variables muertas de `js/funciones-mapa.js` | — | — | sí |
+| 40 | 1 | K-65 | retirar `limpiar()` del bus | BUS | — | sí |
+| 41 | 2 | K-66 | retirar `COMPONENTE_ID`, `VERSION` y `DEBUG` de `CONFIG_PADRE` y ajustar el test del spec 02 que las pide | — | — | sí |
+| 42 | 3 | K-67 | un nombre por función en el objeto API del state-manager y retirar lo que no usa nadie | BUS (el bus usa dos alias); specs que lo usan de sonda | — | sí |
+| 43 | 3 | K-68 | retirar 23 guardas de `origen` inalcanzables, en seis frames | — | — | sí |
+| 44 | — | K-69 | CSS sin uso: leer cada caso antes de proponer (🔎) | — | — | — |
+| 45 | 4 | K-70 | una sola forma de la respuesta al latido, en los siete frames; aparte, la de hijo5 sin latido | BUS, GUÍA | — | sí |
+| 46 | 1 | K-71 | el círculo naranja toma su radio de `radioLlegada()` | — | blanda: K-05 (las constantes del radio) | sí |
+| 47 | 3 | K-72 | la reanudación espera `distribuirDatosAventura` con plazo y con el aviso | SPEC (Script 2 cortado), GUÍA | blanda: K-62, K-53 resto | sí |
 
 #### R2.9.5 Qué depende de qué
 
@@ -3785,3 +3891,133 @@ El orden es el de menos conflicto (criterio del usuario, 2026-10-05): primero lo
 - **¿Puede ser código muerto?** Sí: no es código, pero no tiene ningún lector y está desfasado respecto al bus.
 - **Por qué importa y por qué debe seguir.** No hay función en la PWA que lo requiera; solo conserva un análisis de enero de 2025 que ya no coincide con el código.
 - **Opciones.** Conservarlo, actualizarlo con las herramientas actuales o retirarlo; la decisión es del usuario y no cambia nada de la PWA.
+
+#### R2.11.9 Lo que añadió la re-verificación (R2.12)
+
+Mismo formato y mismo método que el resto de R2.11, sobre `4bea83e` y el 2026-10-07; cada «¿puede ser código muerto?» sale de la búsqueda de la ficha. K-69 no entra: antes de decidir hay que leer cada regla.
+
+**K-62 — doce esperas escritas a mano**
+
+- **Qué es y por qué hay que elegir.** Doce bucles `while` que sondean hasta que exista una función, un objeto o una respuesta —nueve en el padre, uno en `js/app.js`, uno en hijo2 y uno en `js/funciones-mapa.js`— conviven con `retryUntilAvailable`, el helper que hace lo mismo y tiene seis llamadores: dos formas de escribir la misma espera acotada.
+- **Función.** Que un script del padre no use lo que define otro antes de que exista (EJE 2), que el cambio de modo espere las respuestas de los hijos, que el botón de imagen de hijo2 espere las coordenadas y que el cambio de parada espere al mapa.
+- **¿Otra herramienta lo cubre?** `retryUntilAvailable` puede hacer la espera de los doce; lo que cada sitio hace al agotarse (lanzar, seguir con un aviso o abortar) se queda en el sitio.
+- **¿Puede ser código muerto?** No por búsqueda desnuda: cada bucle está en una función con llamador o en código de nivel superior que corre al cargar. Que la condición de alguno llegue a darse (por ejemplo, `__pendingDistribucion` cuando el Script 1 pasa por `:3962`) no está comprobado.
+- **Por qué importa y por qué debe seguir.** Las esperas evitan los fallos de orden entre los scripts del padre y entre el padre y los hijos; deben seguir. Lo que se decide es la forma.
+- **Opciones (de la ficha).** A) llevarlas al helper, sitio a sitio; B) dejarlas.
+
+**K-64 — tres variables muertas de `funciones-mapa.js`**
+
+- **Qué es y por qué hay que elegir.** `_mapaOpciones` se escribe y no se lee; `_pulseTimeout` y `_elementosParaReescalar` no se usan.
+- **Función.** Ninguna.
+- **¿Otra herramienta lo cubre?** El reescalado por zoom lo hacen `reescalarMarcadoresEmoji()` y `reescalarMarcadorUsuario()`, y no hay ningún efecto de pulso de llegada.
+- **¿Puede ser código muerto?** Sí: 3, 1 y 1 apariciones en todo el repositorio, ninguna lectura.
+- **Por qué importa y por qué debe seguir.** No tienen efecto; `_pulseTimeout` llevó a la guía a describir un efecto que no existe (G-48).
+- **Opciones (de la ficha).** A) retirarlas; B) dejarlas.
+
+**K-65 — `limpiar()` del bus**
+
+- **Qué es y por qué hay que elegir.** Una función exportada de `js/mensajeria.js` que rechaza las confirmaciones pendientes y vacía la cola; nadie la llama.
+- **Función.** Ninguna hoy.
+- **¿Otra herramienta lo cubre?** No se buscó: sin llamador, lo que se decide es si conviene tenerla preparada.
+- **¿Puede ser código muerto?** Sí: el identificador solo aparece en su definición (y en una homónima local de `js/video-playback-utils.js`, sin relación).
+- **Por qué importa y por qué debe seguir.** No tiene efecto; está en el bus (regla 1), así que retirarla pide el OK expreso.
+- **Opciones (de la ficha).** A) retirarla; B) dejarla.
+
+**K-66 — tres claves de `CONFIG_PADRE` sin lector**
+
+- **Qué es y por qué hay que elegir.** `COMPONENTE_ID`, `VERSION` y `DEBUG` (`codigo-padre.html:4034-4036`) no las lee nadie; `ID` y `LOG_PREFIX` sí.
+- **Función.** Ninguna; un test del spec 02 comprueba que existen y su tipo.
+- **¿Otra herramienta lo cubre?** El nivel de log lo da `__vv_config`, que publica `js/config.js` (K-56); el prefijo y el id, las dos claves que se leen.
+- **¿Puede ser código muerto?** Sí: ninguna lectura en `*.html` ni en `js/*.js`.
+- **Por qué importa y por qué debe seguir.** No tienen efecto; quedaron sin lector al cerrarse K-01 y K-02.
+- **Opciones (de la ficha).** A) retirarlas y ajustar el test; B) dejarlas.
+
+**K-67 — el objeto API del state-manager**
+
+- **Qué es y por qué hay que elegir.** Tres funciones con dos nombres cada una (el bus usa uno de los dos) y cinco nombres que solo usan los specs o nadie.
+- **Función.** El objeto es la puerta del bus al registro de handlers y al estado de los hijos; los nombres repetidos y los de diagnóstico no añaden función.
+- **¿Otra herramienta lo cubre?** Los nombres que usa el bus (`registrarManejador`, `getManejadores`) cubren a sus gemelos.
+- **¿Puede ser código muerto?** En parte: `getEstadoPadre` no tiene llamador (solo un `typeof` del spec 01), `diagnosticarStateManager` y `diagnosticar` tampoco (herramienta de consola), y `getScript2Listo` y `getControladoresPorTipo` solo los usan specs.
+- **Por qué importa y por qué debe seguir.** Lo que usa el bus debe seguir; lo demás es superficie que hay que mantener.
+- **Opciones (de la ficha).** A) un nombre por función y retirar lo que no usa nadie; B) dejarlo.
+
+**K-68 — veintitrés guardas de `origen` inalcanzables**
+
+- **Qué es y por qué hay que elegir.** Al principio de 21 handlers y de dos validadores de hijo5, una comprobación de que el mensaje trae `origen`; el bus ya descarta lo que llega sin él y sella el de los mensajes locales, así que la rama no se alcanza.
+- **Función.** Defensa por si un handler se llamara fuera del bus, cosa que hoy no ocurre.
+- **¿Otra herramienta lo cubre?** Sí: el descarte del listener del bus (`js/mensajeria.js:727`) y el sello de `despacharLocal` (`:650`).
+- **¿Puede ser código muerto?** Sí, por lectura: los handlers solo se ejecutan desde `_encolarEjecucionHandler`, y a ella no llega ningún mensaje sin `origen`.
+- **Por qué importa y por qué debe seguir.** No cambia nada visible; es redundancia.
+- **Opciones (de la ficha).** A) retirarlas; B) dejarlas como defensa redundante.
+
+**K-70 — la respuesta al latido**
+
+- **Qué es y por qué hay que elegir.** Cada frame contesta al latido con un `datos` distinto (de `{ timestamp }` a ocho claves, y `estado` como cadena o como objeto) y el padre no lee ninguna clave; hijo5 manda además esa respuesta sin latido cuando la página vuelve a primer plano.
+- **Función.** La respuesta es la señal de vida del supervisor; las claves no tienen función.
+- **¿Otra herramienta lo cubre?** El supervisor solo necesita el `origen` (`procesarHeartbeatResponse`).
+- **¿Puede ser código muerto?** Las claves de `datos`, sí: ninguna lectura en producción ni en los specs.
+- **Por qué importa y por qué debe seguir.** La respuesta debe seguir (sin ella el supervisor recarga el hijo); las claves, no.
+- **Opciones (de la ficha).** A) una sola forma para todos; B) dejarlo. Aparte, la respuesta de hijo5 sin latido: a) quitarla; b) dejarla.
+
+**K-71 — el radio del círculo naranja**
+
+- **Qué es y por qué hay que elegir.** El círculo naranja que ve el usuario se dibuja con 15 m escritos a mano, y el radio con el que se declara la llegada sale de `RADIO_LLEGADA_PARADA_M` (15) a través de `radioLlegada()`. Hoy coinciden; si cambia la constante, el círculo no la sigue.
+- **Función.** Enseñar al usuario la zona en la que se da por llegado.
+- **¿Otra herramienta lo cubre?** `radioLlegada()` ya es la fuente del radio que recibe hijo2.
+- **¿Puede ser código muerto?** No: el círculo se crea o se mueve en cada posición fuera de CASA (`actualizarMarcadorUsuario`).
+- **Por qué importa y por qué debe seguir.** El círculo debe seguir y tiene que ser la zona de verdad; lo que se decide es de dónde saca el número.
+- **Opciones (de la ficha).** A) que lo tome de `radioLlegada()`; B) dejarlo.
+
+**K-72 — la espera de la reanudación a `distribuirDatosAventura`**
+
+- **Qué es y por qué hay que elegir.** La reanudación espera la función de Script 2 de dos formas: por una promesa sin plazo, si Script 2 llegó a crearla, o por un sondeo de 30 s que acaba en el aviso al usuario si no. Si Script 2 se corta después de crear la promesa, la reanudación se queda esperando sin aviso. Medido: la pantalla de carga se queda y no sale nada; sin la promesa, el aviso sale a los 31 s.
+- **Función.** Que los datos de la aventura lleguen a los hijos al reanudar, o que el usuario sepa que no han llegado.
+- **¿Otra herramienta lo cubre?** `_avisarFalloCargaAppUnaVez` es el aviso; lo que falta es el camino hasta él.
+- **¿Puede ser código muerto?** No: la promesa es la rama que se toma siempre que Script 2 arranca; la del sondeo, solo si Script 2 no llega a arrancar.
+- **Por qué importa y por qué debe seguir.** Es un fallo raro, solo cuando Script 2 se rompe, pero entonces la reanudación no termina y no se le dice nada al usuario.
+- **Opciones (de la ficha).** A) una sola forma de esperar la función, con plazo y con el aviso; B) dejarlo.
+
+### R2.12 Re-verificación contra el código (2026-10-07)
+
+**Encargo.** El usuario pidió (2026-10-07) contrastar este estudio con el código de hoy sin dar por bueno nada de lo que marca como hecho, cerrado o limpio, y comprobar en la misma pasada que no queda código muerto y que cada proceso tiene un solo camino. La pasada fue de solo lectura; lo nuevo se registra aquí (familia T, de K-62 a K-72; E10; G-48 a G-50), y lo único que se tocó después es lo que el usuario decidió (K-63 A) y las frases de la guía que el código contradice (G-48 a G-50).
+
+**Método** (sobre `4bea83e`).
+
+- Se volvieron a ejecutar los extractores de `tools/estudio-caminos/` y once herramientas del repositorio (`verificar-mensajeria`, `verificar-frames` con y sin `--detalle`, `codigo-muerto` con y sin `--contenedores`, `inventory --duplicates`, `inventario-timers`, `verificar-esperas`, `verificar-docs`, `verificar-totales` y `verificar-datos`). Todos terminan, y donde este estudio da una cifra, la de hoy casa con su cierre: 92 tipos del bus (K-57), 60 entradas de `APP_SHELL`, todas en disco (K-04), ningún id pedido sin definir (R2.0) y ninguna referencia local a un fichero que no existe (K-44, que corrigió la única).
+- `no-unused-vars` de ESLint con `vars: 'all'` y sin ignorar el prefijo `_`, sobre 271 ficheros de `js/`, los HTML, `tests/` y `tools/` (el lint del proyecto no aplica la regla a `js/*.js`, y en los HTML ignora lo que empieza por `_`): en producción, cuatro avisos, uno falso (`_irANormativa`, que llama un `onclick`) y tres reales (K-64); en `tests/`, 12, y en `tools/`, 44, variables de páginas de prueba y de scripts de análisis.
+- Un censo propio, por línea, de cada mecanismo en el código de producción: transporte entre frames, carga y `src` de iframes, supervisor, modo, GPS, almacenamiento, navegación de página, red, temporizadores y bucles de espera, y los listeners del ciclo de vida de la página.
+- Para cada entrada dada por hecha, búsqueda desnuda de lo retirado en todo el repositorio y lectura del código que queda. Dos sondas de Playwright en una copia: la de K-63, antes y después (da también las cifras de K-70), y la de K-72.
+
+**Lo que se sostiene, comprobado en el código de hoy.**
+
+- Un solo transporte de mensajes entre frames: cuatro `postMessage` y un listener de `message` en `js/mensajeria.js`, más el canal propio del service worker (K-16). Fuera del bus solo están los dos inyectores del padre sobre el DOM de hijo5 (tabla de K-28), las lecturas de K-26 y de E8 y la comprobación `tienePadre` de `mapa-completo.html` (`:182`).
+- Un solo cargador de hijos, `cargarHijo`, al que llaman `cargarIframeSoloSeleccion`, `cargarHijoCasa` y `cargarRestoDeiframes`; los demás `src` de iframes son del overlay de navegación externa, de la limpieza de `pagehide`, de la recarga del supervisor y de los nietos, que cargan la selección (el puzzle y `video-intro`), hijo4 (el puzzle) e hijo6 (`video-intro`) (K-22, K-57).
+- Un solo reloj del supervisor (`iniciarHeartbeat`, con un llamador) y una sola acción de recuperación (`recuperarHijo` → `recargarIframe`, que también usa el reintento al volver la red) (K-11, K-57, K-58).
+- Un solo escritor del modo en el padre: `manejarCambioModo` (`js/app.js:428`, con un llamador, `codigo-padre.html:7539`) y su vuelta atrás, `restaurarEstadoModoAnterior` (`:814`, que solo llama ella). Se llega a él por un solo handler, `_hdl_SISTEMA_CAMBIO_MODO` (`codigo-padre.html:7415`), al que llegan los cuatro `despacharLocal(SISTEMA.CAMBIO_MODO)` del padre (`:4981`, `:12635`, `:12643` y `:12807`) y la petición del botón de hijo5, la herramienta de desarrollo (ver §24; `boton-casa-hijo5.html:682`). En los hijos, los espejos locales de hijo3 (`audio-hijo3.html:1400`) e hijo4 (`retos-hijo4.html:1225`).
+- Un solo `watchPosition` vivo: lo abre `activarGPS` (`codigo-padre.html:5819`) y lo vuelve a abrir, con los mismos handlers y un tope de 3, el reintento por `TIMEOUT` (`_gpsDoRetryWatch`, `:5470`); K-17 sigue con sus seis `getCurrentPosition` (decisión abierta).
+- Lo retirado por la lavadora de mensajería y por K-04, K-11, K-12, K-22, K-35, K-40, K-41, K-42, K-55 y K-57 a K-59 no aparece en producción (solo en comentarios que cuentan por qué no está), y lo que dejaron K-01, K-02, K-03, K-07 A, K-23, K-24, K-38, K-39, K-44, K-45, K-47, K-48, K-56 y la parte hecha de K-53 es lo que dicen sus fichas, salvo lo que corrigen K-63 (sobre K-57), K-66 (sobre K-01 y K-02) y K-72 (sobre K-54).
+- Las claves que algún handler lee y ningún emisor manda (`extract-payload`): 12 tipos con emisores literales y 4 con emisor opaco. Diez de los doce son los «de efecto benigno» que K-36 dejó a propósito (los otros dos de su lista, `SISTEMA.HIJO_FALLIDO`, retirado con K-57, y `SISTEMA.CONFIRMACION`, no salen hoy). `SISTEMA.PADRE_DATOS` (`idioma`) es un falso positivo del extractor, que no ve el `Object.assign` con el que el padre añade el estado del chat al mensaje de hijo6 (`codigo-padre.html:7161-7162`). `CONTROL.DESHABILITAR` (`motivo`) es lo que dejó la rama muerta 2 de K-36: hijo2 ya no compara `motivo` con nada, pero lo sigue escribiendo en su log (`coordenadas-hijo2.html:1463-1464`) y los emisores mandan `razon`; de efecto benigno, como los otros. Los cuatro de emisor opaco son los que K-36 leyó a mano, menos `PADRE_DATOS`, que ya tiene emisor literal; esa lectura no se repitió.
+
+**Lo que no se sostenía.** E10 (R2.3), la frase de K-57 sobre la espera de hijo1 (K-63), el cierre de K-01 y K-02, que dejó sin lector tres claves de `CONFIG_PADRE` (K-66), y la «espera acotada» de K-54 (K-72). En la guía, G-48 a G-50.
+
+**Nuevo** (familia T). K-62 (esperas escritas a mano), K-63 (la espera de «padre listo», decidida y aplicada), K-64 (tres variables muertas), K-65 (`limpiar()` del bus), K-66 (`CONFIG_PADRE`), K-67 (objeto API del state-manager), K-68 (guardas de `origen` inalcanzables), K-69 (CSS sin uso), K-70 (la respuesta al latido), K-71 (el radio del círculo naranja) y K-72 (la promesa sin plazo de la reanudación). Las decisiones que abren están en R2.11.9 y en R2.9.4 (filas 37 a 47).
+
+**Censo de frames (regla 3b).**
+
+| Frame | Entradas de la familia T | Mirado sin hallazgo nuevo |
+|---|---|---|
+| padre | K-62 (nueve esperas), K-66, K-68 (7), K-70 (su handler), K-72 | transporte, carga de hijos, supervisor, modo, GPS |
+| selección | K-63 (aplicada), K-68 (3), K-70 | carga del puzzle y de `video-intro` |
+| hijo1 | K-63 (aplicada), K-68 (3), K-70 | — |
+| hijo2 | K-62 (una espera), K-68 (2), K-70, K-71 (su comentario de `radioLlegada`) | el log de `motivo` de K-36 |
+| hijo3 | K-68 (2), K-70 | espejo del modo |
+| hijo4 | K-70 | espejo del modo; carga del puzzle |
+| hijo5 | K-68 (6), K-70 (y su respuesta sin latido) | petición de cambio de modo |
+| hijo6 | K-70 | carga de `video-intro`; el `idioma` de `PADRE_DATOS` |
+| mapa-completo | ninguna | `tienePadre` (`:182`) y el logger (`:174`, K-39) |
+| puzzle | ninguna | solo los censos de transporte, `src`, `while` y guardas |
+| video-intro | K-69 (37 reglas; `--tx` y `--ty`) | solo los censos |
+
+Fuera de los frames: `js/funciones-mapa.js` (K-62, K-64, K-71), `js/mensajeria.js` (K-65; el lado del bus de K-68 y K-70), `js/state-manager.js` (K-67) y `js/app.js` (K-62).
+
+**Límites.** No se repitieron las mediciones M-1 a M-22 ni se mutaron los arneses de K-32 y K-34. No se leyó el código de `video-intro.html`, `puzzle.html` ni `mapa-completo.html` más allá de los censos. Los 22 `requestAnimationFrame` sin `cancelAnimationFrame` siguen sin revisar uno a uno (K-30), y las reglas CSS de K-69 tampoco se leyeron una a una. El recorrido real con espía de mensajes (EJE 28) no se ha repetido desde K-57, que cambió el arranque y la recuperación de los hijos, y su instrumento hay que reconstruirlo.
