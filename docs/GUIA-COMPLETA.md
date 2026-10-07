@@ -4843,7 +4843,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f9fbcc65454b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-2aa48122c172'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8141,7 +8141,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-f9fbcc65454b'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-2aa48122c172'`, línea 101 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8888,7 +8888,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 101 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-f9fbcc65454b';
+const CACHE_VERSION = 'v-2aa48122c172';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11397,7 +11397,7 @@ Primera pantalla visible para el usuario. Cubre toda la ventana (`z-index:2000`)
 | `SISTEMA.PADRE_DATOS` | Padre (handshake) | Recibe `{ modo, timestamp }`; escribe el modo en el log y envía `HIJO_LISTO` una sola vez (un `PADRE_DATOS` repetido se omite) | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el idioma y la aventura los elige la propia pantalla |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | `_onPadreConfirmaHijoListo`: anota `modoInicial` en el log y llama a `_activarUI`, que ejecuta `inicializarLogicaSeleccion()` (solo escribe una línea de depuración); devuelve `{ exito: true, estado: 'confirmado', timestamp }`; si falla, manda `SISTEMA.ERROR { error, controlador, timestamp }` al padre y devuelve `{ exito: false, error }` | (ninguna; `SISTEMA.ERROR` si falla) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | `_onCambioModo`: si `modo` no es `casa` ni `aventura`, manda `SISTEMA.NACK { error: 'Modo inválido', modoRecibido }` y devuelve `{ exito: false }`; si lo es, manda `CAMBIO_MODO_ENTENDIDO` y enseguida `CAMBIO_MODO_EFECTUADO` y devuelve `{ exito: true }`. Sin efecto visual: esta pantalla gestiona su propia visibilidad. Si algo falla, manda `SISTEMA.ERROR { error, tipo: 'CAMBIO_MODO_FALLIDO' }` | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` (`SISTEMA.NACK` si el modo es inválido) | Padre | Participar en el ciclo de vida del modo aunque no cambie de pantalla internamente |
-| `SISTEMA.HEARTBEAT` | Padre | `_onHeartbeat`: responde inmediatamente con `{ timestamp, componente, estado: 'activo', inicializado, padreConectado, idiomaSeleccionado, aventuraSeleccionada, terminosAceptados, ultimaInteraccion }` | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
+| `SISTEMA.HEARTBEAT` | Padre | `_onHeartbeat`: responde inmediatamente con `{ timestamp, componente, estado: 'activo', inicializado, idiomaSeleccionado, aventuraSeleccionada, terminosAceptados, ultimaInteraccion }` | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | `_onCambioModoAplicado`: solo escribe en el log que el modo se aplicó | (ninguna) | — | 4.ª fase del protocolo de modo (§26.6) |
 | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro (el iframe de P4, que esta pantalla registra al crearlo) | Pasa a P5 (`mostrar(5)`) y devuelve `true` | (ninguna) | — | Seguir con la incorporación cuando termina el vídeo de introducción |
 | `PUZZLE.COMPLETADO` / `PUZZLE.TIMEOUT` | puzzle (el iframe de P6, que esta pantalla registra en `cargarPuzzle`; se atienden una sola vez por página) | `_mostrarContinuarPuzzle`: muestra `#btn-continuar-puzzle` y devuelve `true`; el botón lleva a P7 (`completarPuzzle`). Resuelto o con el tiempo agotado, el usuario siempre tiene salida | (ninguna) | — | Dejar continuar al terminar el puzzle de introducción |
@@ -11436,7 +11436,7 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 | `SISTEMA.PADRE_DATOS` | Padre (handshake) | Recibe `{ modo, timestamp }`; escribe el modo en el log y arranca la secuencia de `HIJO_LISTO` (una vez: cada segundo, hasta 30 veces, mientras no llegue `PADRE_CONFIRMA_HIJO_LISTO`; si se agotan, muestra la UI de todos modos) | `SISTEMA.HIJO_LISTO` | Padre | Handshake |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Cancela el reintento de `HIJO_LISTO`, anota `modoInicial` en el log, inicializa la lógica del menú (`inicializarLogicaMenu`) y muestra la UI (`mostrarUI`); devuelve `{ exito: true, estado: 'confirmado', timestamp }`; si falla, manda `SISTEMA.ERROR { error, controlador, timestamp }` | (ninguna; `SISTEMA.ERROR` si falla) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Comprueba que `modo` sea `casa` o `aventura` (si no, manda `SISTEMA.NACK { error, modoRecibido }`); en `casa` resetea el temporizador a 000:00:00 (`resetearTemporizador`); manda `CAMBIO_MODO_ENTENDIDO` y enseguida `CAMBIO_MODO_EFECTUADO` y devuelve `{ exito: true }`. No muestra ni oculta el panel | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Participar en el protocolo de modo; en CASA el temporizador vuelve a cero |
-| `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente con `{ timestamp, componente, estado: 'abierto' o 'cerrado' (el menú), inicializado, ultimaInteraccion, parentReady }` | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
+| `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente con `{ timestamp, componente, estado: 'abierto' o 'cerrado' (el menú), inicializado, ultimaInteraccion }` | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Solo escribe en el log que el modo se aplicó | (ninguna) | — | 4.ª fase del protocolo de modo (§26.6) |
 | `AVENTURA.INICIADA` | Padre (`{ aventuraId, tiempoEstimado, idioma, timestamp }`; al restaurar el temporizador, `{ tiempoEstimado, pausado, timestamp }`) | Si trae `tiempoEstimado`, arranca la cuenta atrás (`iniciarTemporizador`: un tick por segundo) y devuelve `{ exito: true }`; si no, devuelve `{ exito: false, error: 'Sin tiempoEstimado' }` | `AVENTURA.TIEMPO_ACTUALIZADO`, cada segundo | Padre | Arrancar el temporizador de la aventura |
 | `AVENTURA.FINALIZADA` | Padre (`{ aventuraId, idioma, motivo, timestamp }`) | Detiene el temporizador (`detenerTemporizador`) y manda sus estadísticas | `AVENTURA.ESTADISTICAS_TIEMPO` (`{ tiempoTotal, tiempoRestante, tiempoUsado, completado }`) | Padre | Cerrar el cronometraje al terminar la aventura |
@@ -12331,7 +12331,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 101
 
 ```js
-const CACHE_VERSION = 'v-f9fbcc65454b';
+const CACHE_VERSION = 'v-2aa48122c172';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14099,10 +14099,10 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_setTimerProgresoCarga` | clásico 3 (L2505) | módulo 7 | función/objeto |
 | `mostrarMapaVintage` | clásico 3 (L2525) | módulo 7 | función/objeto |
 | `x` | clásico 3 (L2498) | módulo 7 | estado |
-| `aventuraSeleccionada` | módulo 7 (L2947) | clásico 3 | función/objeto |
+| `aventuraSeleccionada` | módulo 7 (L2927) | clásico 3 | función/objeto |
 | `enviarValoracion` | módulo 7 (L2551) | clásico 3 | función/objeto |
-| `idiomaSeleccionado` | módulo 7 (L2876) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 7 (L2943) | clásico 3 | función/objeto |
+| `idiomaSeleccionado` | módulo 7 (L2856) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 7 (L2923) | clásico 3 | función/objeto |
 | `TEXTOS_VALORACION` | módulo 7 (L2549) | clásico 3 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 7 (L2589) | clásico 3 | función/objeto |
 | `TRADUCCIONES_ACCESO_ERRONEO` | módulo 7 (L2548) | clásico 3 | función/objeto |

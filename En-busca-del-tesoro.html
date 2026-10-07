@@ -2596,8 +2596,7 @@
         COMPONENTE_ID: 'SELECCION',
         VERSION: '1.0.0',
         DEBUG: true,
-        LOG_PREFIX: '[SELECCION]',
-        TIMEOUT_PARENT: 5000 // 5 segundos
+        LOG_PREFIX: '[SELECCION]'
     };
 
     // ============================================================
@@ -2605,7 +2604,6 @@
     // ============================================================
     const estadoComponente = {
         inicializado: false,
-        padreConectado: false,
         idiomaSeleccionado: null,
         aventuraSeleccionada: null,
         terminosAceptados: false,
@@ -2621,27 +2619,6 @@
     // ============================================================
     // FUNCIÓN DE INICIALIZACIÓN PRINCIPAL
     // ============================================================
-    /**
-     * Inicializa el componente de selección
-     * @returns {Promise<void>}
-     */
-    async function _esperarPadre(logPrefix) {
-        if (!globalThis.parent || globalThis.parent === globalThis) { return; }
-        logger.debug(`${logPrefix} Esperando a que el padre esté listo...`);
-        let attempts = 0;
-        const maxAttempts = CONFIG_HIJO.TIMEOUT_PARENT / 100;
-        while (attempts < maxAttempts && (!globalThis.parent.postMessage || typeof globalThis.parent.postMessage !== 'function')) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        if (attempts >= maxAttempts) {
-            logger.warn(`${logPrefix} Padre no listo después de ${CONFIG_HIJO.TIMEOUT_PARENT}ms`);
-        } else {
-            estadoComponente.padreConectado = true;
-            logger.info(`${logPrefix} Padre listo después de ${attempts * 100}ms`);
-        }
-    }
-
     async function _enviarHijoPreparado(logPrefix) {
         try {
             await enviarMensaje({
@@ -2655,11 +2632,14 @@
         }
     }
 
+    /**
+     * Inicializa el componente de selección
+     * @returns {Promise<void>}
+     */
     async function init() {
         const logPrefix = `${CONFIG_HIJO.LOG_PREFIX}[init]`;
         try {
             logger.info(`${logPrefix} Iniciando componente...`);
-            await _esperarPadre(logPrefix);
             registrarControladores();
             estadoComponente.inicializado = true;
             logger.info(`${logPrefix} Componente inicializado correctamente`);
@@ -2792,7 +2772,7 @@
             }
             const datosRespuesta = {
                 timestamp: Date.now(), componente: CONFIG_HIJO.COMPONENTE_ID, estado: 'activo',
-                inicializado: estadoComponente.inicializado, padreConectado: estadoComponente.padreConectado,
+                inicializado: estadoComponente.inicializado,
                 idiomaSeleccionado: estadoComponente.idiomaSeleccionado, aventuraSeleccionada: estadoComponente.aventuraSeleccionada,
                 terminosAceptados: estadoComponente.terminosAceptados, ultimaInteraccion: estadoComponente.ultimaInteraccion
             };
@@ -2981,8 +2961,7 @@
             logger.debug('🚀 [SELECCION] iniciarAventura() LLAMADA');
             logger.debug('🚀 [SELECCION] Estado:', JSON.stringify({
                 aventura: estadoComponente.aventuraSeleccionada,
-                idioma: estadoComponente.idiomaSeleccionado,
-                padreConectado: estadoComponente.padreConectado
+                idioma: estadoComponente.idiomaSeleccionado
             }));
 
             logger.info(`[SELECCION] Iniciando aventura: ${estadoComponente.aventuraSeleccionada} en idioma ${estadoComponente.idiomaSeleccionado}`);

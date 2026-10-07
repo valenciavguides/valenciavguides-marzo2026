@@ -78,8 +78,7 @@
         COMPONENTE_ID: 'MAS_OPCIONES',
         VERSION: '1.0.0',
         DEBUG: true,
-        LOG_PREFIX: '[HIJO1-OPCIONES]',
-        TIMEOUT_PARENT: 5000 // 5 segundos
+        LOG_PREFIX: '[HIJO1-OPCIONES]'
     };
 
     // ============================================================
@@ -89,7 +88,6 @@
         abierto: false,
         inicializado: false,
         ultimaInteraccion: null,
-        parentReady: false,
         hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
     };
 
@@ -123,31 +121,11 @@
         try {
             logger.info(`${logPrefix} Iniciando componente...`);
 
-            // 1. Esperar a que el padre esté listo (con timeout)
-            if (globalThis.parent && globalThis.parent !== globalThis) {
-                logger.debug(`${logPrefix} Esperando a que el padre esté listo...`);
-
-                let attempts = 0;
-                const maxAttempts = CONFIG_HIJO.TIMEOUT_PARENT / 100; // 50 intentos
-
-                while (attempts < maxAttempts && (!globalThis.parent.postMessage || typeof globalThis.parent.postMessage !== 'function')) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    attempts++;
-                }
-
-                if (attempts >= maxAttempts) {
-                    logger.warn(`${logPrefix} Padre no listo después de ${CONFIG_HIJO.TIMEOUT_PARENT}ms`);
-                } else {
-                    estadoMenu.parentReady = true;
-                    logger.info(`${logPrefix} Padre listo después de ${attempts * 100}ms`);
-                }
-            }
-
-            // 2. La interfaz sigue oculta hasta PADRE_CONFIRMA_HIJO_LISTO. Se oculto al principio
+            // 1. La interfaz sigue oculta hasta PADRE_CONFIRMA_HIJO_LISTO. Se oculto al principio
             //    del modulo, antes del await del bus, y el bus tambien se inicializo alli.
             globalThis._uiConfirmado = false;
 
-            // 3. Registrar controladores
+            // 2. Registrar controladores
             registrarControladores();
 
             // Nota: la lógica de menú (parte visible) se inicializa solo cuando el padre
@@ -344,8 +322,7 @@
                         componente: CONFIG_HIJO.COMPONENTE_ID,
                         estado: estadoMenu.abierto ? 'abierto' : 'cerrado',
                         inicializado: estadoMenu.inicializado,
-                        ultimaInteraccion: estadoMenu.ultimaInteraccion,
-                        parentReady: estadoMenu.parentReady
+                        ultimaInteraccion: estadoMenu.ultimaInteraccion
                     };
 
                     // 3. Enviar respuesta
