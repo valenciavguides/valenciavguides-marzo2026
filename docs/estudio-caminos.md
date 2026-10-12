@@ -49,7 +49,7 @@ de cada instrumento a la vista: desmiente siete afirmaciones de este texto (erra
 nota fechada en cada sección afectada), corrige dos de la propia ronda (E8 y E9) y añade 49 entradas (K-01 a K-49) para su estudio
 individual. Léase junto con ella: lo que aquí se dio por cerrado o limpio puede no estarlo. R2.9 (2026-10-03) revisa las decisiones abiertas de R2.8 con otro método y otros ángulos, corrige varias entradas con una nota fechada en ellas y añade cinco más (K-50 a K-54, familia S).
 R2.12 (2026-10-07) vuelve a contrastar el estudio entero con el código: corrige una frase de R2.3 (E10) y tres entradas (K-57, K-54 y el cierre de K-01 y K-02) y añade once (K-62 a K-72, familia T).
-R2.13 (2026-10-12) registra el recorrido real con espía (EJE 28) del 2026-10-07 y del 2026-10-12 y su relectura contra el código: corrige el cierre del candidato `LLEGADA_DETECTADA` (K-06), añade diez entradas (K-73 a K-82, familia U) y, al contrastar con el código las últimas frases de la guía, otras dos (K-83 y K-84, familia V); el arreglo de K-82, el 2026-10-13, deja cuatro entradas más al mirar el mismo error en los otros hijos (K-85 a K-88, familia W; K-85 y K-87 medidas, M-23 y M-24), y mide lo que K-61 y la revisión de K-07 dejaban sin medir.
+R2.13 (2026-10-12) registra el recorrido real con espía (EJE 28) del 2026-10-07 y del 2026-10-12 y su relectura contra el código: corrige el cierre del candidato `LLEGADA_DETECTADA` (K-06), añade diez entradas (K-73 a K-82, familia U) y, al contrastar con el código las últimas frases de la guía, otras dos (K-83 y K-84, familia V); el arreglo de K-82, el 2026-10-13, deja cuatro entradas más al mirar el mismo error en los otros hijos (K-85 a K-89, familia W; K-85 y K-87 medidas, M-23 y M-24), y mide lo que K-61 y la revisión de K-07 dejaban sin medir.
 
 **No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
 `docs/GUIA-COMPLETA.md`: este documento se consulta siempre y no se cree nunca a ciegas. Una
@@ -3175,6 +3175,7 @@ El error de K-82 tiene dos caras: un control que se enciende y se apaga desde va
 - **Es el mismo error que K-82, en el otro botón:** la activación decide «avanzar» sin mirar lo que el elemento ya tiene hecho.
 - **Relacionado.** K-82, K-07 (la recuperación de un hijo), K-51 (lo que se guarda), K-86, K-87.
 - **Pendiente: decisión.** *A)* que la activación mire si el elemento ya está completado y lo deje listo para avanzar; *B)* guardar y restaurar la ficha del elemento actual, que cubre también el audio terminado tras una recarga (K-82, «lo que no cubre»); *C)* dejarlo.
+- **Preparado, sin aplicar (2026-10-13; el usuario pide ver antes el cambio exacto).** Spec 123 (`tests/e2e/123-elemento-completado-sigue-completado.spec.js`, 7 tests, con el padre y los hijos reales), en rojo en chromium con el código actual: caen EC-1 (reactivar la parada completada manda `CONTROL.DESHABILITAR`, `parada_pendiente_completar`), EC-2 (recarga y reanudación real), EC-3 (recuperación de hijo2), EC-4 y RS-1 (K-87); pasan los dos controles (EC-5 y RS-2). EC-4 mide algo que solo estaba leído: sobre una parada completada, `_estadoRescate()` devuelve `puede: true`, así que el rescate se le ofrece. El cambio preparado: `_elementoCompletado(elemento)` como única pregunta por «completado» (`estado.paradasCompletadas`); la activación, con el elemento ya completado en AVENTURA, no le crea ficha, pone `paradaListaParaAvanzar` y manda a hijo2 `CONTROL.HABILITAR` (`parada_completada` o `tramo_completado`); `_estadoRescate()` devuelve `puede: false`, `motivo: 'ya-completado'`.
 
 ##### K-86 — «Avanzar» de hijo2 se enciende y se apaga desde seis sitios del padre, y un solo flag de hijo2 sirve a dos motivos — 🔎 (leído)
 
@@ -3193,6 +3194,7 @@ El error de K-82 tiene dos caras: un control que se enciende y se apaga desde va
 - **Método.** Lectura de las dos funciones. El spec 72 concede sobre un tramo, que no tiene retos. Medido después: M-24, con su control.
 - **Relacionado.** K-85, K-78 (la marca del rescate).
 - **Pendiente: decisión.** *A)* que el rescate deje también como hecho el estado del reto; *B)* que `marcarParadaCompletada` no espere al reto cuando la ficha ya lo trae hecho; *C)* dejarlo.
+- **Preparado, sin aplicar (2026-10-13).** Con K-85, en el spec 123 (RS-1 en rojo, RS-2 de control en verde). El cambio preparado es B: `marcarParadaCompletada` deja de preguntar por los retos a `estado.retoActual` (`:9914-9920`). Su única llamadora, `intentarCompletarElemento`, ya lo ha decidido con la ficha (`_paradaConditionsMet`), así que esa segunda pregunta solo podía discrepar de la primera, y solo lo hacía en el rescate. Al quitarla, `estado.retoActual.disponible` se queda sin ningún lector (búsqueda desnuda: esa era su única lectura); se escribe en once sitios de `codigo-padre.html` y lo comprueban los specs 39, 44 y 122.
 
 ##### K-88 — Lo que el padre no devuelve a un hijo recargado: la barra de progreso de hijo3 y el reto ya cerrado de hijo4 — 🔎 (leído; sin medir)
 
@@ -3202,6 +3204,17 @@ El error de K-82 tiene dos caras: un control que se enciende y se apaga desde va
 - **Censo (regla 3b).** Mirados para esto: padre, hijo1, hijo2 (K-85 y K-86), hijo3 y hijo4. No abiertos: hijo5 (solo desarrollo; K-48 A aplicada), hijo6, selección, mapa-completo, puzzle y video-intro. El padre no les manda ningún `CONTROL.*` (los ocho envíos de `control: '` van a hijo2 y a hijo3), pero no se ha leído qué otro estado suyo depende del padre.
 - **Método.** Lectura; sin ejecutar. El otro caso de hijo3 tras su recarga (`estado._audioFalloId` sigue puesto) está medido en R2.13 («K-07, revisión»).
 - **Pendiente: decisión.** *A)* que el `HIJO_LISTO` de cada hijo le devuelva su estado por el mismo sitio que lo decide (a hijo3, además del botón de retos, la barra; a hijo4, el reto solo si sigue abierto); *B)* dejarlo.
+
+##### K-89 — Lo hecho dentro del elemento actual no sobrevive a una recarga: la ficha no se guarda, y la escriben siete funciones — ✅ (medido: M-23; leído)
+
+- **Dónde.** `persistProgressState` (`codigo-padre.html:4247-4306`) guarda en `vv_progreso` el índice, el elemento, el tiempo y los rescates gastados; no guarda `estado.pendingCompleciones`. Al reanudar, la activación del elemento guardado crea su ficha de nuevo (`ensurePending`, `:11611`), a cero.
+- **Medido (M-23).** Tras recargar la página y reanudar, la ficha del elemento tiene la llegada, el audio y el reto a `false`.
+- **Lo que ve el usuario.** Si la app se recarga con la parada a medias, le pide otra vez lo que ya había hecho en ella: en español, escuchar el audio entero; en los otros once idiomas, saltarlo otra vez; y el reto, si ya lo había resuelto. La guía decía que «continúa exactamente donde lo dejó» (§25.10; G-66).
+- **Lo que hace falta para guardarla** (leído). La ficha se escribe directamente desde siete funciones: `_retoColaCompletada` (`:10585`), `_marcarPendingPorLlegada` (`:11836`), `_audioFinalizadoSinReto` (`:12044`), `_saltarAudioPulsado` (`:12126`), `_hdl_AUDIO_FIN_REPRODUCCION` (`:12200`), `_marcarAudioNoDisponible` (`:12247`) y `_concederRescate` (`:13944-13947`). `persistProgressState()` se llama al activarse un elemento (`:11456`), al completarse (`:9872`), al cobrar un rescate (`:13895`) y al fijar la parada por defecto (`:4479`): ninguna de esas siete escrituras la llama. Guardar la ficha pide, o llamarla tras cada escritura (siete sitios), o un solo sitio que escriba en la ficha y guarde.
+- **Lo que no hace falta** (leído). Los hijos no necesitan nada nuevo al reanudar con el audio ya terminado: el botón de retos sale de la ficha (K-82), la activación no arranca el recordatorio de un audio terminado, y hijo3 recibe el audio igual, sin reproducirlo solo. K-51 no lo bloquea: un campo nuevo en `vv_progreso` que falte en un progreso antiguo equivale a lo de hoy (ficha nueva), y la ficha guardada solo valdría para el mismo `elementoActualId`.
+- **Método.** Lectura, y búsqueda de las escrituras `.llegada`, `.audio`, `.reto` y `.retosCompletadosCount` en `codigo-padre.html` (las once líneas citadas) y de las llamadas a `persistProgressState()`. Con varios retos por parada, que hoy no hay en los datos, habría que guardar también `colaCompletados`.
+- **Relacionado.** K-85 (el elemento ya completado: se arregla aparte y antes), K-82, K-51, K-73 (quién crea fichas).
+- **Pendiente: decisión.** Qué se guarda: *A)* la ficha entera del elemento actual (llegada, audio, reto y su cuenta), por un solo sitio que escribe en la ficha y guarda; *B)* solo el audio terminado; *C)* nada: tras una recarga se repite lo del elemento actual. Si se guarda, dos detalles más: si el reloj del recordatorio de rescate sigue donde iba o empieza de nuevo, y si la llegada se guarda o se le vuelve a pedir al GPS.
 
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
@@ -3801,6 +3814,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 62 | 4 | K-86 | un solo sitio del padre para «avanzar», o un flag por motivo en hijo2 | SPEC, GUÍA | blanda: K-85, K-84 | sí |
 | 63 | 3 | K-87 | que el rescate deje el reto como hecho | SPEC, VISIBLE | blanda: K-85 | sí (medido: M-24) |
 | 64 | 3 | K-88 | que el `HIJO_LISTO` de hijo3 y de hijo4 les devuelva su estado por el sitio que lo decide | SPEC | blanda: K-07 (la recuperación de un hijo) | sí |
+| 65 | 4 | K-89 | guardar la ficha del elemento actual para que lo hecho en él sobreviva a una recarga, por un solo sitio que la escriba | SPEC, VISIBLE, GUÍA | dura: K-85 (antes); blanda: K-51, K-73 | sí |
 
 #### R2.9.5 Qué depende de qué
 
@@ -4318,6 +4332,14 @@ Mismo formato que el resto de R2.11, con lo medido en el recorrido del 2026-10-0
 - **¿Otra herramienta lo cubre?** No.
 - **¿Puede ser código muerto?** No.
 - **Opciones (de la ficha).** A) que el `HIJO_LISTO` de cada hijo le devuelva su estado por el sitio que lo decide; B) dejarlo.
+
+**K-89 — lo hecho en el elemento actual no sobrevive a una recarga**
+
+- **Qué es y por qué hay que elegir.** Al recargarse la app con una parada a medias, el audio escuchado o saltado y el reto resuelto se pierden y hay que repetirlos: la ficha del elemento no se guarda. Además la escriben siete funciones por separado, así que guardarla bien pide antes un solo sitio que la escriba.
+- **Función.** Que el usuario continúe donde lo dejó, como dice la guía.
+- **¿Otra herramienta lo cubre?** `vv_paradas_completadas` guarda los elementos completos; lo de dentro del elemento actual, nada.
+- **¿Puede ser código muerto?** No.
+- **Opciones (de la ficha).** A) guardar la ficha entera, por un solo sitio; B) guardar solo el audio terminado; C) no guardar nada. Con dos detalles a decidir si se guarda: el reloj del recordatorio de rescate y la llegada.
 
 **El ayudante `cargarHijosDelPadre` (arnés de tests, sin entrada K)**
 
