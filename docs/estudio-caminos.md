@@ -3347,6 +3347,7 @@ código leído ese día; los hashes son de los commits locales (sin pushear).
 | G-60 | ✅ | `44a76ec`: el latido no se pausa en CASA ni arranca al entrar en AVENTURA (§8, la fila de `CAMBIO_MODO` de §26.12.1 y §36.15): se enciende una vez (`codigo-padre.html:4022`) |
 | G-61 | ✅ | `44a76ec`: escuchas `message` que no existen. video-intro avisa por el bus (`video-intro.html:1964`), y la selección y el padre atienden con handlers del bus (§27, §35.4, §35.7). `CHAT.*` tiene tres tipos (`js/constants.js:159-171`), no dos (§27) |
 | G-62 | ✅ | `44a76ec`: sueltas. hijo1 no se muestra ni se oculta con el modo (§26.9); hijo2 no importa `funciones-mapa.js` (§37.1); `_hdl_AVENTURA_FINALIZADA` no existe y `RETO.MOSTRADO` solo se anota y se confirma (§10.15); los carteles son diez (§4.7m, §25.5e, §37.5; `codigo-padre.html:8376`); en §6 y §7, la entrada muerta de `controladores-padre.js`, la clase del body de hijo2, el «volumen», la clase `.activo` y el `postMessage` directo de hijo5 y la ventana flotante de hijo1; los totales de los botones de aventura salen de `js/indice-aventuras.js` (§9.12); `__vv_coordenadasAventura ||` (L6289); el flag de hijo2 tiene un lector (§28.2); `backend/` no existe (§36.22); §29, en presente y sin números de línea; y los números de línea de `sw.js` (107) y de los cinco scripts (también en `CLAUDE.md`) |
+| G-63 | ✅ | `73901e8`: lo que quedó sin tocar en `44a76ec`. El orden de los scripts (§26.2 contradecía a §30.6: un bloque `<script type="module">` no espera a que termine el anterior, y Script 2 y Script 4 llevan su espera explícita, `codigo-padre.html:9355`, `:14210` y `:14219`; el `DOMContentLoaded` medido en K-04 antes de que Script 1 acabe dice lo mismo); los flujos A, C y G de §36.15 (la carga en P14, las dos salidas del fin de aventura y las cuatro franjas con su gracia); la visibilidad de hijo6 (§26.13); las páginas de hijo1, en español; y la lista de menores: términos en P10 y puzzle en P6, el aviso de audio de P9 lleva a P10, «elegir otra» vuelve a P1, el `destino` del bus es obligatorio (`js/mensajeria.js:496`), hijo2 es la franja derecha en columna, el botón de imagen se apaga con un reto abierto y los de mapa no se apagan fuera de rango, P13, tres lecturas pasivas de la ventana de arriba (faltaba la de `js/logger.js:116`) y dos escrituras del padre en hijo5, tres `console` directos, iframes sin URL en `src`, `apple-touch-icon` frente a los iconos del manifest, audios por idioma (598 de 598 entradas con `file` en español, 0 en los otros once) y el mapa vintage de Av34km (en disco, sin enlazar) |
 
 ### R2.6 Censo de frames (regla 3b)
 
@@ -3720,6 +3721,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 55 | 3 | K-80 | hijo2 y el `PENDING_INICIADO`: retirar la rama que no corre, o que el aviso lleve el id que hijo2 conoce | BUS si se retira el envío, SPEC, GUÍA; VISIBLE y MEDIR si B | blanda: K-73 (el mismo aviso), K-78 y K-81 (la misma forma) | sí |
 | 56 | 1 | K-81 | retirar `_notificarParadaCompletada`, que no borra nada | — | blanda: K-78 (la misma función) | sí |
 | 57 | 4 | K-82 | que volver dentro de rango, o la recarga de hijo3, no apague el botón de retos con el audio ya resuelto | SPEC, VISIBLE (hoy bloquea la parada en los idiomas sin audio) | blanda: K-07 (la recarga de hijo3 llega a lo mismo) | sí |
+| 58 | 3 | — (arnés de tests) | el ayudante `cargarHijosDelPadre` en los specs que cargan los hijos del padre con un `page.evaluate`, y después la tanda de los cuatro navegadores | SPEC, GUÍA (un párrafo) | — | sí; la tanda pide el OK del usuario en ese momento |
 
 #### R2.9.5 Qué depende de qué
 
@@ -4186,6 +4188,15 @@ Mismo formato que el resto de R2.11, con lo medido en el recorrido del 2026-10-0
 - **¿Puede ser código muerto?** No.
 - **Por qué importa y por qué debe seguir.** Es lo más grave que ha encontrado el recorrido: con GPS real, cerca del borde del radio, el usuario se queda sin poder completar una parada, y la app le recuerda cada veinte segundos que pulse un botón apagado.
 - **Opciones (de la ficha).** A) que respete un audio ya resuelto cuando no es la activación del elemento; B) que volver dentro de rango y la recuperación de hijo3 no pasen por `_configurarRetoBtn`; C) dejarlo.
+
+**El ayudante `cargarHijosDelPadre` (arnés de tests, sin entrada K)**
+
+- **Qué es y por qué hay que elegir.** Los specs que cargan los hijos del padre lo hacen con un `page.evaluate` que dura lo que la carga. Con la máquina caliente ese `evaluate` falla alguna vez con «Execution context was destroyed» (entre el 0,1 % y el 0,3 % de las ejecuciones, sobre todo en pixel5; medido el 2026-10-06 y el 2026-10-07). La aplicación queda exonerada: un solo documento, ningún `navigate`, y el padre sigue vivo. El disparador natural no se ha hallado.
+- **Función.** Que la tanda de los cuatro navegadores no caiga por el arnés.
+- **¿Otra herramienta lo cubre?** No.
+- **¿Puede ser código muerto?** No aplica: es arnés que falta, no código que sobra.
+- **Estado.** El ayudante (`cargarHijosDelPadre(page, { resto, casa })`, un `waitForFunction` que dispara la carga una sola vez) está escrito y probado en una copia con el fallo inyectado de forma determinista. No está en el repositorio. El parche preparado toca 28 specs; una búsqueda por nombre de `cargarRestoDeiframes` y `cargarHijoCasa` da hoy 29 ficheros de `tests/e2e/`, sin leerlos uno a uno.
+- **Opciones.** A) aplicarlo a esos specs (con su párrafo en la guía y `npm run lint`) y correr la tanda de los cuatro navegadores; B) dejar los specs como están.
 
 ### R2.12 Re-verificación contra el código (2026-10-07)
 
