@@ -49,6 +49,7 @@ de cada instrumento a la vista: desmiente siete afirmaciones de este texto (erra
 nota fechada en cada sección afectada), corrige dos de la propia ronda (E8 y E9) y añade 49 entradas (K-01 a K-49) para su estudio
 individual. Léase junto con ella: lo que aquí se dio por cerrado o limpio puede no estarlo. R2.9 (2026-10-03) revisa las decisiones abiertas de R2.8 con otro método y otros ángulos, corrige varias entradas con una nota fechada en ellas y añade cinco más (K-50 a K-54, familia S).
 R2.12 (2026-10-07) vuelve a contrastar el estudio entero con el código: corrige una frase de R2.3 (E10) y tres entradas (K-57, K-54 y el cierre de K-01 y K-02) y añade once (K-62 a K-72, familia T).
+R2.13 (2026-10-12) registra el recorrido real con espía (EJE 28) del 2026-10-07 y del 2026-10-12 y su relectura contra el código: corrige el cierre del candidato `LLEGADA_DETECTADA` (K-06), añade diez entradas (K-73 a K-82, familia U) y mide lo que K-61 y la revisión de K-07 dejaban sin medir.
 
 **No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
 `docs/GUIA-COMPLETA.md`: este documento se consulta siempre y no se cree nunca a ciegas. Una
@@ -475,6 +476,10 @@ forma parte de la Parte II de este estudio.
   > **Verificado de nuevo en la ronda 2 (2026-10-01):** sigue cerrado (K-06): documentado en la guía
   > (L481) y en `funciones-mapa.js:3110-3111, 3143-3145, 3223-3231`. La ronda añade solo el coste de
   > mantenimiento: el algoritmo y tres constantes están copiados en dos ficheros.
+  >
+  > **Reabierto en R2.13, por medición:** lo de «idempotente» no se sostiene. Al cerrar un tramo, el segundo
+  > aviso de llegada (el de hijo2) vuelve a crear la ficha del tramo ya cerrado (K-73), y los dos sensores no son
+  > independientes: hijo2 decide sobre la distancia y el id que le manda `funciones-mapa.js`, y avisa siempre después (K-74).
 - `NAVEGACION.GPS.DESACTIVAR` — placeholder sin emisor ni handler, dejado a propósito por si un
   hijo necesita pedir la desactivación en el futuro. No hay dos caminos porque no hay ninguno.
 
@@ -997,6 +1002,9 @@ compartir el algoritmo:
   `funciones-mapa.js:3151-3158` dispara `mostrarCartelLlegadaParada` directamente.
 - **Veredicto:** decisión de diseño documentada. El estudio individual decide si compensa
   extraer el algoritmo (los dos frames no comparten módulo hoy: hijo2 no carga `funciones-mapa.js`).
+- **Medido en R2.13.** La idempotencia no se sostiene al cerrar un tramo: la segunda llegada vuelve a crear la
+  ficha del tramo ya cerrado (K-73). Y el sensor de `funciones-mapa.js` es el que llega primero; el de hijo2 decide sobre lo
+  que ese le manda (K-74).
 
 ##### K-07 — `hijosInicializados` y `estadoPadre` existen dos veces, con ciclos de vida distintos — ✅ (medido: M-4)
 
@@ -3043,6 +3051,90 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Relacionado.** K-62 (las otras formas de esperar), K-53 (los imports en posición fatal, que son los que cortan Script 2) y K-54.
 - **Pendiente: decisión.** *A)* una sola forma de esperar la función, con plazo y con el aviso: el sondeo, o la promesa con un plazo; *B)* dejarlo.
 
+#### Familia U — Lo que encontró el recorrido real con espía del 2026-10-07 (R2.13)
+
+##### K-73 — El aviso de llegada de hijo2, siempre el segundo, vuelve a crear la ficha de un tramo ya cerrado — ✅ (medido; corrige a K-06)
+
+- **Medido** (recorrido EJE 28, R2.13: pasadas `corto`, `variantes` y `aventura-terminar`, treinta tramos cerrados). En veintiocho, siempre el mismo orden; los otros dos lo confirman: TR-2 de `aventura-terminar` se cerró con un rescate, sin ninguna llegada, y en TR-18 el aviso de hijo2 llegó después de pulsar avanzar y el padre lo descartó como de un elemento anterior (K-74). El sensor de `js/funciones-mapa.js` se despacha `NAVEGACION.LLEGADA_DETECTADA` en el propio padre; el padre cierra el tramo y manda a hijo2 `CONTROL.HABILITAR` (`btnAvanzar`, `razon: 'tramo_completado'`) entre 5 y 36 ms después; la `LLEGADA_DETECTADA` de hijo2 llega entre 2 y 35 ms más tarde; y el padre, entre 7 y 75 ms después del cierre, manda `SISTEMA.NOTIFICACION` (`PENDING_INICIADO`) a hijo2 y a hijo4 para ese mismo tramo (y, como con toda ficha nueva, le pide a hijo2 sus coordenadas: `populatePendingCoords`, `codigo-padre.html:9620-9622`). Desde ahí, y hasta que el usuario pulsa avanzar, el padre tiene otra vez la ficha del tramo, con `llegada: true` y `audio: false`.
+- **Por qué** (leído). Al cerrar el elemento, `intentarCompletarElemento` borra su ficha (`codigo-padre.html:9724` y `:9728`; `_notificarParadaCompletada`, `:9814-9822`, no borra nada: K-81). El handler de `LLEGADA_DETECTADA` solo comprueba el modo y que el id sea el del elemento actual (`:11828-11842`), y el tramo sigue siendo el actual hasta pulsar avanzar; `_marcarPendingPorLlegada` llama a `ensurePending`, que crea la ficha si no existe (`:9615`) y se lo dice a hijo2 y a hijo4 (`:9627-9629`).
+- **En las paradas no pasa**: una parada se cierra con el audio y los retos, después de las dos llegadas (medido en P-0, P-1, P-2 y P-3).
+- **Efecto hoy: ninguno a la vista** (leído en cada consumidor). hijo2 no entra en la rama que apaga `btn-ubicacion` (`coordenadas-hijo2.html:2287-2290`), porque el `padreId` del aviso no casa nunca con su id (K-80), y el botón ya estaba apagado por `btnAvanzarCompletadoPorPadre` (`:713-723`); hijo4 solo lo anota (`retos-hijo4.html:1635-1660`); el barrido del recordatorio de rescate se salta una ficha con `llegada` (`codigo-padre.html:14046`); `_estadoRescate` contesta «ya-llegado» (`:13604`); la ficha se borra al pulsar avanzar (`:9762-9767`); y `persistProgressState` no guarda las fichas (`:4273-4290`).
+- **Lo que no se sostiene de K-06.** «Ambos solo marcan `pending.llegada`, idempotente»: el segundo crea estado nuevo sobre un elemento ya cerrado, y no hace daño porque ninguno de los consumidores de hoy mira esa ficha de otra forma. Tampoco son independientes: hijo2 decide sobre la distancia y el id que le manda `funciones-mapa.js` en `NAVEGACION.ACTUALIZAR_ESTADO` (`coordenadas-hijo2.html:1366-1402`), y llega siempre después (K-74; la guía, G-51).
+- **Pendiente: decisión.** *A)* que una llegada de un elemento ya completado no cree ficha; *B)* un solo sensor (con K-06); *C)* dejarlo, documentado.
+
+##### K-74 — Tras cada cambio de elemento, el mapa sigue midiendo el anterior hasta un segundo: hijo2 adopta ese elemento, el cartel de inicio vuelve a salir y el botón de vídeo se apaga — ✅ (medido)
+
+- **Medido** (pasadas `corto`, `variantes` y `aventura-terminar`: 76 avances con el botón de avanzar). Tras el `NAVEGACION.CAMBIO_PARADA` que el padre se despacha al avanzar, el siguiente `NAVEGACION.ACTUALIZAR_ESTADO` que `funciones-mapa.js` manda a hijo2 lleva todavía el `idParada` y el `tipoParada` del elemento anterior (en `corto` y `variantes`, de 100 a 983 ms después del cambio), y hijo2 contesta con una `LLEGADA_DETECTADA` de ese elemento. El padre la descarta con un aviso («Llegada detectada para Av1-P-0 pero elemento actual es Av1-TR-1»). En 73 de los 76; en los otros tres no hubo llegada rancia: al salir de TR-2 tras el rescate (el usuario no había llegado al final del tramo), al pasar de P-16 a TR-8, y en el último avance de `corto`, con el que acaba la pasada.
+- **Lo que ve el usuario.** *a)* Al avanzar desde el punto de inicio, el cartel «Ha llegado a la parada Torres de Serranos (start)…» vuelve a salir, ya con TR-1 activo: en `variantes` a los 501 ms del cambio (en el mismo milisegundo que la llegada rancia de P-0) y en `aventura-terminar` a los 250 ms; dos de dos (las pasadas `corto` se hicieron con un espía que no veía un segundo cartel del mismo id). *b)* Al entrar en un tramo, `btn-video` de hijo2 está apagado hasta la siguiente lectura buena: a los 220 ms del cambio a TR-2 seguía apagado (la lectura rancia de P-1, tipo `parada`, llegó a los 81 ms) y se encendió con la de TR-2, a los 1005 ms.
+- **Por qué** (leído). El padre cambia `estado.paradaActual` al principio de su handler de `CAMBIO_PARADA` (`codigo-padre.html:11587`) y avisa al mapa con `vv-parada-cambiada` al final (`:11716`), después de esperar la respuesta de hijo2. `funciones-mapa.js` mide contra su propia copia, `estadoMapa.paradaActual` (`js/funciones-mapa.js:2913`), y la cambia en `completarCambioParada` (`:2331`) después de las esperas del mapa; antes de ellas ya ha vuelto a permitir el cartel de inicio (`_cartelLlegadaInicioMostrado = false`, `:2111`). Una lectura GPS en ese hueco, estando aún dentro de los 15 m del punto de inicio, cumple la condición del cartel (`:3100`). hijo2 toma como elemento actual el `idParada` y el `tipoParada` de cada `ACTUALIZAR_ESTADO` (`coordenadas-hijo2.html:1247-1248`) —el mismo campo lo escriben también `:1646`, `:1948` (al contestar una petición de coordenadas), `:2057` y `:2228`—, y su `CAMBIO_PARADA` borra la llegada notificada (`:2231`) pero no la ventana de confirmación (`_llegadaCandidataId`, `_llegadaVentana`, `:1280-1288`): la lectura rancia encuentra la ventana del elemento anterior llena de aciertos y confirma al instante. `_actualizarBotonVideo` apaga el vídeo cuando el tipo no es tramo (`:563-576`).
+- **Relacionado.** K-14 (`vv-parada-cambiada` como segundo bus, y el orden que impone), K-73, K-77 (el texto de ese cartel).
+- **Pendiente: decisión.** *A)* un solo dueño del elemento actual para el mapa y para hijo2 (que el mapa no mida contra un elemento que el padre ya dejó, o que el `idParada` de `ACTUALIZAR_ESTADO` no pise el de `CAMBIO_PARADA`); *B)* dejarlo, documentado.
+
+##### K-75 — La ficha que se crea en CASA llega a AVENTURA con su reloj — ✅ (medido en parte; leído)
+
+- **Medido** (pasadas `corto` ×2 y `variantes`). El paso CASA visita tres elementos con la lista de hijo5 (ver §24) y el padre crea su ficha (`PENDING_INICIADO`). Al activarse esos mismos tres en AVENTURA, el padre no manda `PENDING_INICIADO`: la ficha ya existía. A los demás les crea una nueva.
+- **Por qué** (leído). La ficha nace al activarse el elemento (`codigo-padre.html:11589-11596`, cuyo comentario dice que «este es el sitio donde el reloj tiene que arrancar»), pero `ensurePending` no toca una ficha que ya existe (`:9615`), y ninguna se borra al cambiar de modo: los `delete` de `pendingCompleciones` que corren son al completar (`:9724`, `:9728`) y al avanzar (`:9765`); el cuarto (`:9818`) no corre nunca (K-81).
+- **Consecuencia** (leída, no medida). El recordatorio de rescate cuenta desde `ficha.timestamp` (`:14043-14050`): un tramo visitado en CASA que se alcanza en AVENTURA más de 8 minutos después saca el recordatorio en el primer barrido, si ese barrido llega antes que el fin de su audio (que pone el reloj a cero). En `variantes` TR-2 se alcanzó a los cinco minutos y no salió. Solo con la herramienta de desarrollo (ver §24).
+- **Comentarios que no se sostienen.** `codigo-padre.html:12157` y la cabecera del spec 68 (`:21-23`) dicen que el barrido «recorre TODAS las fichas»; el de hoy mira solo la del elemento actual (`:14020`, `:14036-14043`). `:11826` dice que `pending.llegada` «persiste en localStorage»; `persistProgressState` no guarda las fichas (`:4273-4290`), como dice `:13846-13848`. `:4280-4284` habla de «saltos de seguridad del TTL de tramos» y de «5 por aventura»: el tope es el del rescate a petición, 12 en la Aventura1 (`:13559-13562`).
+- **Pendiente: decisión.** *A)* que el cambio de modo, o la activación en AVENTURA, empiece el reloj de la ficha; *B)* dejarlo (solo desarrollo), corrigiendo los comentarios.
+
+##### K-76 — `estado.retoActualId` de hijo4 significa dos cosas, y la limpieza del cambio de modo lee la que no es — ✅ (medido el aviso; leído)
+
+- **Medido** (pasadas `corto` ×2 y `variantes`). Al cambiar de modo con una parada con reto como elemento actual y sin ningún reto abierto, hijo4 escribe «CAMBIO_MODO recibido con reto activo (R3-Av1-es) — omitiendo limpieza» (cinco veces en las tres pasadas).
+- **Leído.** El `CAMBIO_PARADA` de hijo4 fija `estado.retoActualId` al reto de la parada (`retos-hijo4.html:1614`, con el comentario «No-op: placeholder for actual reto prefetch logic»); `RETO.MOSTRAR` y `mostrarReto` lo fijan al reto que se abre (`:1378`, `:777`); `RETO.LIMPIAR_ESTADO` lo borra (`:1511`). La guarda del cambio de modo (`:1444-1445`) lo lee como «hay un reto abierto»: en una parada con reto no limpia nunca, haya reto abierto o no. Su rama de limpieza vuelve a poner a `null` dos variables que en esa rama ya son `null` (`:1447-1448`) y vacía el reto de la pantalla.
+- **Efecto hoy.** Un aviso que dice algo que no pasa. El DOM del reto ya lo vacía `RETO.LIMPIAR_ESTADO` al cerrar cada reto, así que en el recorrido normal no queda nada que limpiar.
+- **Pendiente: decisión.** *A)* dos campos (el reto de la parada y el reto abierto); *B)* dejarlo, documentado.
+
+##### K-77 — El cartel de llegada al punto de inicio pide pulsar «avanzar», que está apagado — ✅ (medido; leído)
+
+- **Medido** (las tres pasadas). Al llegar al punto de inicio sale «Ha llegado a la parada Torres de Serranos (start). Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura.», con los iconos de avanzar y de audio; `btn-avanzar` está apagado desde la activación del elemento (`CONTROL.DESHABILITAR`, `razon: 'parada_pendiente_completar'`) y se enciende al completarlo. Y sale otra vez después de pulsarlo (K-74).
+- **Leído.** El único llamador de `mostrarCartelLlegadaParada` es la llegada al elemento de tipo `inicio` (`js/funciones-mapa.js:3100-3103`). El comentario del padre (`codigo-padre.html:9957-9960`) y la guía (L1374) dicen que es «el único sitio donde "ha llegado" es literal, porque no hay ningún elemento anterior que cerrar ni botón que pulsar»; el texto (`TRADUCCIONES_LLEGADA_PARADA`, `js/traducciones-ui.js:448`, doce idiomas) y los iconos (`codigo-padre.html:8586-8587`) son los del cartel que se usaba antes al terminar un tramo. La guía (L1376) cita el texto con el nombre de una parada que no es un punto de inicio (Plaza de la Crida).
+- **Pendiente: decisión de texto** (doce idiomas): qué debe pedir el cartel del punto de inicio.
+
+##### K-78 — Tras un rescate pedido sale también el cartel de transición: la marca que lo evita no casa nunca — ✅ (medido; leído; comprobado en los datos)
+
+- **Medido** (pasada `aventura-terminar`, TR-2 de la Aventura1). Con la pantalla «rescate concedido» a la vista, el padre saca además `cartel-transicion` («Ha terminado el tramo … — va a empezar la parada …»).
+- **Por qué** (leído). `_concederRescate` deja la marca `estado._rescatePeticionPendiente` con la clave del `padreid` sin el prefijo (`codigo-padre.html:13928`: `padre-TR2` → `TR2`); `marcarParadaCompletada` la compara con su `idLimpio`, que sale del `tramo_id` o del `parada_id` (`:9838`, `:9976-9977`: `Av1-TR-2`). No casan, así que el cartel sale y la marca se queda puesta hasta el siguiente rescate. El cobro del rescate sí casa: compara dos claves con el mismo formato (`:13858-13861` con `:13927`).
+- **En los datos** (las siete aventuras, en sus doce idiomas: 7008 paradas y tramos): la clave de la marca no coincide con la de la compleción en ninguno.
+- **La guía** (L10634) dice que la marca evita el cartel (G-54). Ningún spec lo comprueba: los de rescate (70 a 73) no miran el cartel, y ninguno nombra la marca.
+- **Relacionado.** El comentario de `:14015-14017` cuenta un fallo del mismo tipo (una clave con prefijo comparada con el id limpio) en la pieza que esta marca sustituyó.
+- **Pendiente: decisión.** *A)* que la marca y la compleción usen la misma clave; *B)* dejarlo (el usuario ve dos avisos de lo mismo), corrigiendo la guía.
+
+##### K-79 — Al cerrar el último elemento, el cartel pide pulsar play para un audio que no existe — ✅ (medido; leído)
+
+- **Medido** (pasada `aventura-terminar`). Al completar P-40, el último elemento de la Aventura1, sale `cartel-transicion` con «Ha terminado la parada Torres de Serranos Final» y, debajo, «Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura.», con los iconos de avanzar y de audio. Al pulsar avanzar sale el modal de fin de aventura; no hay más audio.
+- **Leído.** Cuando no hay elemento siguiente, `marcarParadaCompletada` llama a `mostrarCartelTransicion` sin segundo elemento (`codigo-padre.html:9985-9990`), y la función quita la mitad «va a empezar…» pero añade siempre la misma instrucción y los dos iconos (`:8405-8442`; `TRADUCCIONES_CARTEL_TRANSICION.instrucciones`, `js/traducciones-ui.js:419`, doce idiomas). Su comentario (`:8384-8386`) contempla el caso del último elemento solo para el nombre.
+- **Pendiente: decisión de texto** (doce idiomas): qué dice el cartel del último elemento, o si sale.
+
+##### K-80 — hijo2 no reconoce nunca el `PENDING_INICIADO` de su elemento: compara la clave de la ficha con su id de coordenadas — ✅ (medido; leído; comprobado en los datos)
+
+- **Medido** (pasadas `corto`, `variantes` y `aventura-terminar`: 110 `SISTEMA.NOTIFICACION` con `PENDING_INICIADO` recibidos por hijo2, con handler). En ninguno coincide el `padreId` del aviso con el id que hijo2 tiene en ese momento, reconstruido con los cuatro mensajes que lo escriben; sin residuo (ningún aviso sin `padreId` y ninguno con hijo2 sin id). Ejemplo: aviso `padre-TR2`, hijo2 tiene `Av1-TR-2`.
+- **Por qué** (leído). `ensurePending` manda como `padreId` la clave de la ficha, que es el `padreid` (`codigo-padre.html:9627`: `padre-TR2`). hijo2 la compara con su `idParadaActual`, o con ese id con `padre-` delante (`coordenadas-hijo2.html:2279-2281`), y `idParadaActual` es siempre un id de coordenadas (`Av1-TR-2`): lo escriben `ACTUALIZAR_ESTADO` (`:1247`), la petición de coordenadas (`:1948`), `RESPUESTA_DATOS_PARADAS` (`:2057`) y `CAMBIO_PARADA`, con su `parada_id` (`:2228`). hijo4 sí casa, porque guarda el `padreId` de su `CAMBIO_PARADA` (`retos-hijo4.html:1615` y `:1639`), y solo lo anota.
+- **En los datos** (las siete aventuras en sus doce idiomas, 84 combinaciones; sin residuo: todos los elementos llevan `padreid` y `parada_id` o `tramo_id`). De los 7092 elementos de tipo `inicio`, `parada` y `tramo`, ninguno tiene un `padreid` igual a su id de coordenadas ni a ese id con `padre-` delante. Los únicos que casan son los 84 de tipo `intro` (`padre-intro` e `intro`), que en las tres pasadas no reciben ficha.
+- **Efecto hoy.** La rama de hijo2 (`coordenadas-hijo2.html:2287-2290`) no corre: no apaga `btn-ubicacion` al crearse la ficha, y su otra línea llama a `actualizarEstado()`, que está vacía (`:519-521`). El comentario del padre dice que «solo hijo2 y hijo4 actúan sobre `PENDING_INICIADO`» (`codigo-padre.html:9624-9626`): hijo2 no llega a actuar y hijo4 solo escribe en el log. La guía (L5876 y L11490) da el apagado por hecho (G-55). Ningún spec lo comprueba: el 50 manda el aviso a hijo4 (`tests/e2e/50-pending-iniciado-no-borra-reto.spec.js:77`) y el 101 (NO-3) mira que hijo2 lo recibe, no lo que hace con él.
+- **Ya anotado fuera de este documento.** Las notas del proyecto recogían una medición anterior con el mismo resultado (0 de 65); no tenía entrada aquí.
+- **Relacionado.** K-78 y K-81 (la misma forma: una clave con el formato del `padreid` comparada con un id de coordenadas) y K-73 (el aviso que se repite al recrearse la ficha).
+- **Pendiente: decisión.** *A)* retirar la rama de hijo2 y decidir si el aviso a hijo2 conserva destinatario; *B)* que el aviso lleve el id que hijo2 conoce, con lo que el apagado de `btn-ubicacion` correría por primera vez en cada activación (cambia lo que ocurre: medir antes); *C)* dejarlo, corrigiendo la guía y el comentario.
+
+##### K-81 — `_notificarParadaCompletada` no borra nunca la ficha: la busca con `padre-` delante del id de coordenadas — ✅ (leído; comprobado en los datos y en las trazas)
+
+- **Leído.** `marcarParadaCompletada` tiene dos llamadores (`codigo-padre.html:9723` y `:9727`; búsqueda desnuda del nombre en `codigo-padre.html` y en `js/`), y los dos le pasan el `parada_id` o el `tramo_id`. De ahí sale `idLimpio` (`:9838`: `Av1-TR-2`), y `_notificarParadaCompletada` busca la ficha `padre-` más `idLimpio` (`:9816`: `padre-Av1-TR-2`). Las fichas se guardan por `padreid` (`padre-TR2`).
+- **En los datos:** ninguno de los 7092 elementos de tipo `inicio`, `parada` y `tramo` tiene un `padreid` igual a `padre-` más su id de coordenadas (la misma cuenta de K-80). **En las trazas:** las 110 claves de ficha vistas tienen la forma `padre-P…` o `padre-TR…`.
+- **Efecto hoy: ninguno.** La ficha la borra `intentarCompletarElemento` justo después, con la clave buena (`:9724` y `:9728`), y el avance (`:9765`). La función entera (`:9814-9822`) no hace nada.
+- **Relacionado.** K-78 y K-80.
+- **Pendiente: decisión.** *A)* retirar `_notificarParadaCompletada` y su llamada (`:9903`); *B)* dejarlo.
+
+##### K-82 — Volver dentro del radio de la parada apaga el botón de retos aunque el audio ya esté resuelto; sin audio grabado, la parada queda bloqueada — ✅ (medido en tres pasadas; leído)
+
+- **Medido, sonda en inglés** (2026-10-12; idioma sin audio grabado; P-1 de la Aventura1, sin ningún hijo caído). El usuario salta el audio y el padre enciende el botón de retos de hijo3 (`CONTROL.HABILITAR`, `retosBtn`, `razon: 'audio_finalizado'`). Diez segundos después empieza a alejarse: la primera lectura a más de 15 m (18 m) manda `GPS.RESTRINGIDO`, la siguiente vuelve a caer dentro, hijo2 manda `GPS.DENTRO_DE_RANGO` y el padre contesta a hijo3 con `CONTROL.DESHABILITAR` (`retosBtn`, `razon: 'esperar_fin_audio_aventura'`), un segundo después de la primera salida. Al volver de los 25 m, lo mismo otra vez. Desde ahí el botón de retos está apagado: lo sigue estando tras pulsar otra vez «saltar», 20 s después y en las dos esperas de 30 s del instrumento. La ficha del elemento dice `llegada: true`, `audio: true`, `reto: false`, y el padre saca «Recuerde pulsar el botón de retos…» cada 22 s (seis veces en 110 s). La pasada se paró ahí: la parada no se puede completar.
+- **Medido, sonda en español** (misma parada, con audio). El botón se apaga igual. Vuelve a encenderse solo después de escuchar otra vez el audio entero («volver a escuchar» y esperar a su fin).
+- **Medido, con hijo3 caído** (pasada `aventura` con caídas, P-7). El mismo apagado llega por otro llamador: al recargarse hijo3 y, 16 s después, al entrar en el radio de la parada (ver «K-07, revisión: medido», en R2.13).
+- **Por qué** (leído). `_configurarRetoBtn` (`codigo-padre.html:11352-11373`), en AVENTURA y con reto y audio, pone siempre `estado.retoActual` a «no disponible» (con la cola y sus completados de cero) y manda el `DESHABILITAR`; no mira si el audio del elemento ya está resuelto (`pending.audio`). Tiene tres llamadores: la activación del elemento (`:11650`), donde el audio aún no puede estar resuelto; el `HIJO_LISTO` de hijo3 (`:7274`); y `GPS.DENTRO_DE_RANGO` (`:10878`), cuyo comentario dice que «reto sigue dependiendo de si el audio ya terminó, igual que siempre» (`:10862-10864`). hijo2 manda `DENTRO_DE_RANGO` cada vez que una lectura cae dentro del rango después de una fuera, sin gracia (`coordenadas-hijo2.html:752-767`). Lo único que vuelve a encender el botón es `_procesarFinAudioElemento` (`codigo-padre.html:12043-12068`), y a él solo se llega con un fin de audio real: `_saltarAudioPulsado` sale antes si la ficha ya tiene `audio` (`:12100`) y `_marcarAudioNoDisponible` solo lo llama si no lo tiene (`:12223`).
+- **Lo que ve el usuario.** En español, el botón de retos se apaga solo y hay que oír el audio entero otra vez. En los once idiomas sin audio grabado no hay salida desde la pantalla: «saltar» no hace nada, «avanzar» sigue apagado, el rescate no se ofrece con la llegada ya confirmada (`:13604`) y el padre insiste en que se pulse un botón apagado. Con el GPS real, que cruza el radio de 15 m con su propio ruido, basta estar cerca del borde.
+- **No medido.** Si recargar la página lo desbloquea (la ficha no se guarda, así que la reanudación crearía una nueva con `audio: false`). Qué pasa si el `DENTRO_DE_RANGO` llega con un reto abierto o entre dos retos de la misma parada (`estado.retoActual.colaCompletados` vuelve a empezar).
+- **Relacionado.** K-07 (la ventana del hijo caído, que llega a lo mismo por el `HIJO_LISTO` de hijo3), K-06 (el radio de 15 m y su ruido).
+- **Pendiente: decisión.** *A)* que `_configurarRetoBtn` respete un audio ya resuelto cuando no es la activación del elemento (mirando la ficha), sin reiniciar `estado.retoActual`; *B)* que volver dentro de rango y la recuperación de hijo3 no pasen por `_configurarRetoBtn`; *C)* dejarlo.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -3243,6 +3335,18 @@ código leído ese día; los hashes son de los commits locales (sin pushear).
 | G-48 | ✅ | `db51b2d`: la fila de `funciones-mapa.js` del inventario de módulos de la guía decía que el efecto de pulso de llegada usa `_pulseTimeout` (módulo) con `clearTimeout` para no acumular confirmaciones seguidas; `_pulseTimeout` no se asigna nunca y ningún efecto la usa (K-64). Sale la frase de la guía; la variable se decide en K-64 |
 | G-49 | ✅ | `db51b2d`: la misma fila decía que los tres triángulos de la flecha llevan `translate(-50%,-50%)`, con el porqué al revés, y contradecía a §4.5 de la propia guía; el código lleva `translate(-50%,0%)` en los tres (`js/funciones-mapa.js:3502`, `:3504` y `:3506`) y su comentario (`:3487-3497`) da la razón: así el vértice queda sobre el punto GPS, que es el pivote del giro. La fila dice ya lo mismo que §4.5 |
 | G-50 | ✅ | `db51b2d`: la tabla del aviso de último recurso (§11) daba el aviso por seguro en `_distribuirDatosRest()` «tras 10-30s de espera (fallo de módulos de Script 2)»; con Script 2 cortado después de crear `__distribuirReadyPromise`, la espera no tiene plazo y el aviso no sale (K-72, medido). La fila separa los dos casos |
+| G-51 | ✅ | `44a76ec`: la guía (L471, L4146, L5236, L6508, L9725 y L9729) llamaba a los dos sensores de llegada «independientes», decía que «solo marcan `pending.llegada`» y llamaba al de `funciones-mapa.js` «respaldo del de hijo2»; hijo2 decide sobre la distancia y el id que le manda `funciones-mapa.js` (`coordenadas-hijo2.html:1366-1402`), el de `funciones-mapa.js` avisa siempre primero y el segundo aviso vuelve a crear la ficha de un tramo cerrado (medido, K-73). L6508 decía además que miden «con radios distintos» (los dos usan 15 m), que los de hijo2 corren cuando `ACTUALIZAR_ESTADO` «trae `tipoParada`» (los corta el modo de hijo2, `:1393`) y repetía un paréntesis |
+| G-52 | ✅ | `44a76ec`: L6508 decía que los dos sensores miden «la tolerancia dinámica en tramos», y L6542 que `_detectarLlegadaTramo()` compara con `toleranciaGPS`; los dos usan `radioLlegada` (15 m) en tramos (`coordenadas-hijo2.html:1303`, `js/funciones-mapa.js:164-174`), como dice L9896, y las llegadas de tramo medidas caen entre 2,7 y 15 m |
+| G-53 | ✅ | `44a76ec`: L1374 decía que el cartel de llegada al inicio sale donde «no hay … botón que pulsar», y L1376 citaba su texto, que pide pulsar avanzar, con el nombre de una parada que no es un inicio (K-77) |
+| G-54 | ✅ | `44a76ec`: L10634 decía que la marca `estado._rescatePeticionPendiente` hace que `marcarParadaCompletada()` no saque el cartel de transición tras un rescate pedido; la marca no casa nunca con el id que compara, y el cartel sale (K-78, medido) |
+| G-55 | ✅ | `44a76ec`: L5876 y L11490 decían que hijo2 apaga `#btn-ubicacion` al recibir el `PENDING_INICIADO` de su elemento; la comparación no casa nunca y la rama no corre (K-80, medido) |
+| G-56 | ✅ | `44a76ec`: la precisión. §25.14, §25.17, §31.5 y §31.6 decían que ninguna lectura se descarta por su precisión; hijo2 no calcula llegada ni franjas con más de 50 m de margen (`coordenadas-hijo2.html:1377`) y el bloqueo de 5 km ignora las de más de 100 m (`codigo-padre.html:5612`). §31.5 decía además que ese bloqueo recorre `elementosIDpadre` y salta a la primera lectura; recorre la lista de coordenadas (`:5618`) y salta a la tercera comprobación seguida (`:5609`, `:5649`) |
+| G-57 | ✅ | `44a76ec`: el modo y los sensores. L473 decía que ni el envío de `ACTUALIZAR_ESTADO` ni el sensor de hijo2 miran el modo; los dos lo miran (`js/funciones-mapa.js:3028`, `coordenadas-hijo2.html:1393`). El fragmento de §4.7d mostraba en `completarCambioParada()` una llamada a `mostrarCartelLlegadaParada` que no está (la única, `js/funciones-mapa.js:3103`). Y la llegada a un tramo con `toleranciaGPS` seguía en seis sitios más (§7.3, §9.1, §11, §25.16, §26.12.11 y la fila del spec 21) |
+| G-58 | ✅ | `44a76ec`: la ficha nace al activarse el elemento (`codigo-padre.html:11596`; medido en cada activación), no con su primer evento (§9.2.3, §9.8, §10.16) |
+| G-59 | ✅ | `44a76ec`: el arranque. `razon: 'sincronizacion_inicial'` (cinco sitios de §5 y §6): nadie lo envía. Los hijos cargan en P14 (medido), no a los 500 ms del arranque (§5, §26.2). hijo6 carga con ellos, no en diferido (§5, §7.7, §8.10); recibe `CHAT.ESTADO_PADRE` solo al abrirse y entonces reconstruye el acordeón entero (`chat-hijo6.html:691-697`, `:794-811`) |
+| G-60 | ✅ | `44a76ec`: el latido no se pausa en CASA ni arranca al entrar en AVENTURA (§8, la fila de `CAMBIO_MODO` de §26.12.1 y §36.15): se enciende una vez (`codigo-padre.html:4022`) |
+| G-61 | ✅ | `44a76ec`: escuchas `message` que no existen. video-intro avisa por el bus (`video-intro.html:1964`), y la selección y el padre atienden con handlers del bus (§27, §35.4, §35.7). `CHAT.*` tiene tres tipos (`js/constants.js:159-171`), no dos (§27) |
+| G-62 | ✅ | `44a76ec`: sueltas. hijo1 no se muestra ni se oculta con el modo (§26.9); hijo2 no importa `funciones-mapa.js` (§37.1); `_hdl_AVENTURA_FINALIZADA` no existe y `RETO.MOSTRADO` solo se anota y se confirma (§10.15); los carteles son diez (§4.7m, §25.5e, §37.5; `codigo-padre.html:8376`); en §6 y §7, la entrada muerta de `controladores-padre.js`, la clase del body de hijo2, el «volumen», la clase `.activo` y el `postMessage` directo de hijo5 y la ventana flotante de hijo1; los totales de los botones de aventura salen de `js/indice-aventuras.js` (§9.12); `__vv_coordenadasAventura ||` (L6289); el flag de hijo2 tiene un lector (§28.2); `backend/` no existe (§36.22); §29, en presente y sin números de línea; y los números de línea de `sw.js` (107) y de los cinco scripts (también en `CLAUDE.md`) |
 
 ### R2.6 Censo de frames (regla 3b)
 
@@ -3606,6 +3710,16 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 45 | 4 | K-70 | una sola forma de la respuesta al latido, en los siete frames; aparte, la de hijo5 sin latido | BUS, GUÍA | — | sí |
 | 46 | 1 | K-71 | el círculo naranja toma su radio de `radioLlegada()` | — | blanda: K-05 (las constantes del radio) | sí |
 | 47 | 3 | K-72 | la reanudación espera `distribuirDatosAventura` con plazo y con el aviso | SPEC (Script 2 cortado), GUÍA | blanda: K-62, K-53 resto | sí |
+| 48 | 3 | K-73 | que la llegada de un elemento ya cerrado no cree ficha, o un solo sensor (K-06) | SPEC | blanda: K-74 (el mismo par de sensores) | sí |
+| 49 | 4 | K-74 | un solo dueño del elemento actual para el mapa y para hijo2 | SPEC, VISIBLE (el cartel de inicio y el botón de vídeo), MEDIR | blanda: K-14 (el orden de `vv-parada-cambiada`), K-73 | sí |
+| 50 | 2 | K-75 | el reloj de la ficha empieza al activarse en AVENTURA (solo desarrollo), y cuatro comentarios que no se sostienen | — | — | sí |
+| 51 | 2 | K-76 | hijo4: un campo para el reto de la parada y otro para el reto abierto | — | — | sí |
+| 52 | 5 | K-77 | el texto del cartel de llegada al punto de inicio, en doce idiomas | VISIBLE, traducciones de usted | blanda: K-74 (que no salga dos veces) | sí |
+| 53 | 2 | K-78 | la marca del rescate pedido y la compleción con la misma clave | SPEC, VISIBLE (un cartel menos tras el rescate), GUÍA si B | — | sí |
+| 54 | 5 | K-79 | qué dice (o si sale) el cartel al cerrar el último elemento, en doce idiomas | VISIBLE, traducciones de usted | blanda: K-77 (la misma familia de carteles) | sí |
+| 55 | 3 | K-80 | hijo2 y el `PENDING_INICIADO`: retirar la rama que no corre, o que el aviso lleve el id que hijo2 conoce | BUS si se retira el envío, SPEC, GUÍA; VISIBLE y MEDIR si B | blanda: K-73 (el mismo aviso), K-78 y K-81 (la misma forma) | sí |
+| 56 | 1 | K-81 | retirar `_notificarParadaCompletada`, que no borra nada | — | blanda: K-78 (la misma función) | sí |
+| 57 | 4 | K-82 | que volver dentro de rango, o la recarga de hijo3, no apague el botón de retos con el audio ya resuelto | SPEC, VISIBLE (hoy bloquea la parada en los idiomas sin audio) | blanda: K-07 (la recarga de hijo3 llega a lo mismo) | sí |
 
 #### R2.9.5 Qué depende de qué
 
@@ -3801,6 +3915,7 @@ El orden es el de menos conflicto (criterio del usuario, 2026-10-05): primero lo
 - **¿Puede ser código muerto?** En parte: fuera de `js/app.js`, las banderas solo las declara `js/state-manager.js`; `iniciarPrewarmEnCasa` solo las escribe y `_reanudarSubsistemasTrasPrewarm` solo las lee. No es muerto del todo: se ejecuta, y es lo que activa la parada de más. No comprobado: qué reciben los hijos con esa activación de más y qué pasa en la reanudación (`restaurado: true`), donde `_activarAventura` se salta `ensureDefaultParada`.
 - **Por qué importa y por qué debe seguir.** La parada por defecto debe existir al entrar en AVENTURA; lo que se decide es cuál de los dos caminos se queda.
 - **Opciones (de la ficha, sin recomendar).** A) solo `ensureDefaultParada` y retirar el pre-warm entero (`_activarParadaDefectoAventura`, `_reanudarSubsistemasTrasPrewarm`, `_prewarmAventura`, `_flujoPrewarmModo`, `iniciarPrewarmEnCasa`, su auto-run y las dos banderas); B) solo `_activarParadaDefectoAventura`; C) dejarlo. La ficha anota que lo medido apunta a A y que falta medir la reanudación antes de recomendarla.
+- **Medido en R2.13** (pasada `variantes`). Con la activación de más, hijo2, hijo3, hijo4 y hijo5 reciben la activación entera de la parada por defecto (hijo3 carga su audio y el padre vuelve a crear la ficha de un elemento ya completado), unos 100 ms antes que la del elemento real. En la reanudación (`restaurado: true`) no hay activación de más: un solo `CAMBIO_PARADA`, el del elemento guardado. El detalle, en R2.13.
 
 **K-07, revisión — dos conjuntos de «hijo listo»**
 - **Qué es y por qué hay que elegir.** `estadoPadre.hijosInicializados` (del padre) y el conjunto del state-manager son dos objetos distintos (medido). `cargarHijo` vacía los dos al cargar un iframe, pero el supervisor del bus, al recargar, vacía solo el del state-manager: durante la recuperación el padre sigue viendo al hijo como listo. Lo que ocurre en esa ventana en cada lector no está medido.
@@ -3809,6 +3924,7 @@ El orden es el de menos conflicto (criterio del usuario, 2026-10-05): primero lo
 - **¿Puede ser código muerto?** Ninguno de los dos: los dos tienen lectores (lista anterior).
 - **Por qué importa y por qué debe seguir.** El «listo» es lo que impide mandar datos a un iframe que todavía no tiene handlers.
 - **Opciones (de la ficha, sin recomendar).** A) que el supervisor avise al padre (como ya hace con `_vv_beforeHijoReload`) para que vacíe el suyo; B) un solo conjunto; C) dejarlo.
+- **Medido en R2.13** (pasada `aventura` con caídas, 2026-10-12). Con hijo4 caído mientras el usuario avanza, el padre le manda `PENDING_INICIADO` y `CAMBIO_PARADA`, que se pierden, sin efecto a la vista. Con hijo3 caído, el padre da por no disponible un audio que hijo3 recupera diez segundos después, y la parada siguiente queda sin poder abrir su reto (K-82). El detalle, en R2.13.
 
 #### R2.11.4 Contrato de mensajes y literales
 
@@ -3977,6 +4093,100 @@ Mismo formato y mismo método que el resto de R2.11, sobre `4bea83e` y el 2026-1
 - **Por qué importa y por qué debe seguir.** Es un fallo raro, solo cuando Script 2 se rompe, pero entonces la reanudación no termina y no se le dice nada al usuario.
 - **Opciones (de la ficha).** A) una sola forma de esperar la función, con plazo y con el aviso; B) dejarlo.
 
+#### R2.11.10 Lo que añadió el recorrido (R2.13)
+
+Mismo formato que el resto de R2.11, con lo medido en el recorrido del 2026-10-07.
+
+**K-73 — el segundo aviso de llegada vuelve a crear la ficha de un tramo cerrado**
+
+- **Qué es y por qué hay que elegir.** Dos sensores avisan de la misma llegada; el primero cierra el tramo y el padre borra su ficha, y el segundo, unos milisegundos después, la vuelve a crear con la llegada marcada y el audio sin marcar. Medido en veintiocho de los treinta tramos cerrados.
+- **Función.** La ficha lleva lo que le falta a un elemento para cerrarse; la de un elemento cerrado no tiene función.
+- **¿Otra herramienta lo cubre?** `paradaListaParaAvanzar` dice ya que el elemento está cerrado, y la ficha se borra al avanzar.
+- **¿Puede ser código muerto?** No: los dos sensores corren en cada llegada.
+- **Por qué importa y por qué debe seguir.** Hoy no se ve; deja estado falso que se encontraría cualquier código nuevo que lea las fichas.
+- **Opciones (de la ficha).** A) que la llegada de un elemento ya cerrado no cree ficha; B) un solo sensor (K-06); C) dejarlo, documentado.
+
+**K-74 — el mapa mide el elemento anterior hasta un segundo después de cada avance**
+
+- **Qué es y por qué hay que elegir.** El padre, el mapa y hijo2 tienen cada uno su «elemento actual», y se ponen al día en momentos distintos; hijo2 además lo toma de cada lectura del mapa. Durante ese hueco hijo2 vuelve a notificar la llegada al elemento que se acaba de dejar (73 de 76 avances), el cartel de llegada al inicio sale otra vez al salir del inicio, y el botón de vídeo se apaga al entrar en un tramo.
+- **Función.** Que cada parte sepa qué elemento se está recorriendo.
+- **¿Otra herramienta lo cubre?** El padre ya descarta la llegada del elemento anterior (`:11839-11842`); el cartel y el botón no tienen guarda.
+- **¿Puede ser código muerto?** No.
+- **Por qué importa y por qué debe seguir.** El usuario lo ve (un cartel que le dice que ha llegado al punto del que acaba de salir y que pulse un botón que ya ha pulsado; un botón que no responde durante un segundo).
+- **Opciones (de la ficha).** A) un solo dueño del elemento actual para el mapa y para hijo2; B) dejarlo, documentado.
+
+**K-75 — la ficha de CASA conserva su reloj en AVENTURA**
+
+- **Qué es y por qué hay que elegir.** Visitar un elemento en CASA con la lista de hijo5 (herramienta de desarrollo, ver §24) crea su ficha, y en AVENTURA esa misma ficha sigue con el reloj de entonces.
+- **Función.** El reloj de la ficha decide cuándo sale el recordatorio de rescate.
+- **¿Otra herramienta lo cubre?** El fin del audio pone el reloj a cero, así que el efecto solo aparece si el barrido llega antes que él.
+- **¿Puede ser código muerto?** No.
+- **Por qué importa y por qué debe seguir.** Solo en desarrollo; los comentarios que dicen otra cosa sí confunden a quien lee el código.
+- **Opciones (de la ficha).** A) que el reloj empiece al activarse en AVENTURA; B) dejarlo y corregir los comentarios.
+
+**K-76 — `retoActualId` de hijo4**
+
+- **Qué es y por qué hay que elegir.** Un campo que guarda el reto de la parada al cambiar de parada y el reto abierto al abrirlo; la limpieza del cambio de modo lo lee como «reto abierto» y no limpia nunca en una parada con reto.
+- **Función.** Que el cambio de modo no borre un reto que el usuario tiene abierto.
+- **¿Otra herramienta lo cubre?** `RETO.LIMPIAR_ESTADO` vacía el reto al cerrarlo.
+- **¿Puede ser código muerto?** La rama que limpia no lo es (corre en elementos sin reto); dentro de ella, las dos asignaciones a `null` no hacen nada.
+- **Por qué importa y por qué debe seguir.** Hoy, solo un aviso falso en la consola.
+- **Opciones (de la ficha).** A) dos campos; B) dejarlo, documentado.
+
+**K-77 — el texto del cartel de llegada al punto de inicio**
+
+- **Qué es y por qué hay que elegir.** El cartel que solo sale en el punto de inicio pide pulsar «avanzar», que en ese momento está apagado, y lleva su icono.
+- **Función.** Decir al usuario que ha llegado y qué hacer: pulsar play.
+- **¿Otra herramienta lo cubre?** No.
+- **¿Puede ser código muerto?** No: sale en cada aventura.
+- **Por qué importa y por qué debe seguir.** Es lo primero que lee el usuario en la calle.
+- **Opciones (de la ficha).** Un texto nuevo en doce idiomas (decisión de contenido).
+
+**K-78 — el cartel de transición tras un rescate pedido**
+
+- **Qué es y por qué hay que elegir.** La pantalla «rescate concedido» ya le cuenta al usuario que el punto queda atrás; una marca debía evitar que, además, saliera el cartel de transición. La marca guarda la clave en un formato y la compleción la busca en otro, así que el cartel sale siempre.
+- **Función.** No contarle lo mismo dos veces.
+- **¿Otra herramienta lo cubre?** No.
+- **¿Puede ser código muerto?** La rama que retira la marca y se salta el cartel (`codigo-padre.html:9977-9978`) no se toma nunca con los datos de hoy.
+- **Por qué importa y por qué debe seguir.** Dos avisos a la vez en un momento de decisión; y una comparación que no puede acertar.
+- **Opciones (de la ficha).** A) la misma clave en la marca y en la compleción; B) dejarlo, corrigiendo la guía.
+
+**K-79 — el cartel al cerrar el último elemento**
+
+- **Qué es y por qué hay que elegir.** Al completar el último elemento de la aventura sale el cartel de transición solo con lo terminado, pero con la instrucción de siempre: pulsar avanzar y pulsar play para escuchar el audio. No hay más audio; al pulsar avanzar sale el modal de fin.
+- **Función.** Decir al usuario que ha terminado el último punto y que avance para cerrar la aventura.
+- **¿Otra herramienta lo cubre?** El modal de fin, después de pulsar avanzar.
+- **¿Puede ser código muerto?** No: sale en cada aventura terminada.
+- **Por qué importa y por qué debe seguir.** Es el último cartel que lee el usuario, y le pide algo que no existe.
+- **Opciones (de la ficha).** Un texto propio para el último elemento (doce idiomas), o no sacar ese cartel.
+
+**K-80 — hijo2 y el `PENDING_INICIADO` de su elemento**
+
+- **Qué es y por qué hay que elegir.** Al crear la ficha de un elemento, el padre avisa a hijo2 con la clave de la ficha; hijo2 la compara con su id de coordenadas y no casa nunca (110 de 110 avisos medidos; ninguno de los 7092 elementos de los datos). La rama que apagaba el botón de ubicación no corre.
+- **Función.** Según el código, apagar el botón de ubicación al empezar el seguimiento de un elemento.
+- **¿Otra herramienta lo cubre?** El botón de ubicación lo deciden ya la distancia y `btnAvanzarCompletadoPorPadre`.
+- **¿Puede ser código muerto?** Sí: la rama de hijo2 (`coordenadas-hijo2.html:2287-2290`). El aviso a hijo4 llega y casa, y solo se anota.
+- **Por qué importa y por qué debe seguir.** No se ve. Es una comparación que no puede acertar, con un comentario y dos frases de la guía que la dan por buena.
+- **Opciones (de la ficha).** A) retirar la rama de hijo2 y decidir si el aviso a hijo2 conserva destinatario; B) que el aviso lleve el id que hijo2 conoce (el apagado correría por primera vez: medir antes); C) dejarlo, corrigiendo la guía y el comentario.
+
+**K-81 — `_notificarParadaCompletada`**
+
+- **Qué es y por qué hay que elegir.** Una función que, al completarse un elemento, busca su ficha para borrarla con una clave que ninguna ficha tiene.
+- **Función.** Borrar la ficha del elemento completado.
+- **¿Otra herramienta lo cubre?** Sí: `intentarCompletarElemento` la borra justo después con la clave buena, y el avance también.
+- **¿Puede ser código muerto?** Sí, la función entera (`codigo-padre.html:9814-9822`).
+- **Por qué importa y por qué debe seguir.** No tiene efecto; quien lee cree que hay tres borrados y corren dos.
+- **Opciones (de la ficha).** A) retirarla, con su llamada; B) dejarlo.
+
+**K-82 — el botón de retos se apaga al volver dentro del radio**
+
+- **Qué es y por qué hay que elegir.** `_configurarRetoBtn` apaga el botón de retos «hasta que termine el audio» cada vez que se le llama, también cuando el audio ya está resuelto: al volver dentro del radio de 15 m (basta una lectura fuera y otra dentro) y al recargarse hijo3. En español hay que oír el audio entero otra vez; en los once idiomas sin audio grabado no hay forma de volver a encenderlo y la parada queda bloqueada (medido en las dos sondas y en la pasada con caídas).
+- **Función.** Que el reto no se abra antes de escuchar el audio.
+- **¿Otra herramienta lo cubre?** La ficha del elemento ya dice si el audio está resuelto (`pending.audio`); `_configurarRetoBtn` no la mira.
+- **¿Puede ser código muerto?** No.
+- **Por qué importa y por qué debe seguir.** Es lo más grave que ha encontrado el recorrido: con GPS real, cerca del borde del radio, el usuario se queda sin poder completar una parada, y la app le recuerda cada veinte segundos que pulse un botón apagado.
+- **Opciones (de la ficha).** A) que respete un audio ya resuelto cuando no es la activación del elemento; B) que volver dentro de rango y la recuperación de hijo3 no pasen por `_configurarRetoBtn`; C) dejarlo.
+
 ### R2.12 Re-verificación contra el código (2026-10-07)
 
 **Encargo.** El usuario pidió (2026-10-07) contrastar este estudio con el código de hoy sin dar por bueno nada de lo que marca como hecho, cerrado o limpio, y comprobar en la misma pasada que no queda código muerto y que cada proceso tiene un solo camino. La pasada fue de solo lectura; lo nuevo se registra aquí (familia T, de K-62 a K-72; E10; G-48 a G-50), y lo único que se tocó después es lo que el usuario decidió (K-63 A) y las frases de la guía que el código contradice (G-48 a G-50).
@@ -4021,3 +4231,80 @@ Mismo formato y mismo método que el resto de R2.11, sobre `4bea83e` y el 2026-1
 Fuera de los frames: `js/funciones-mapa.js` (K-62, K-64, K-71), `js/mensajeria.js` (K-65; el lado del bus de K-68 y K-70), `js/state-manager.js` (K-67) y `js/app.js` (K-62).
 
 **Límites.** No se repitieron las mediciones M-1 a M-22 ni se mutaron los arneses de K-32 y K-34. No se leyó el código de `video-intro.html`, `puzzle.html` ni `mapa-completo.html` más allá de los censos. Los 22 `requestAnimationFrame` sin `cancelAnimationFrame` siguen sin revisar uno a uno (K-30), y las reglas CSS de K-69 tampoco se leyeron una a una. El recorrido real con espía de mensajes (EJE 28) no se ha repetido desde K-57, que cambió el arranque y la recuperación de los hijos, y su instrumento hay que reconstruirlo.
+
+### R2.13 Recorrido real con espía (EJE 28, 2026-10-07 y 2026-10-12)
+
+**Encargo.** El recorrido real de §36.28 no se había repetido desde K-57, que cambió el arranque y la recuperación de los hijos, y su instrumento había que reconstruirlo (R2.12, «Límites»). El usuario autorizó ejecutarlo, con el audio acelerado. El 2026-10-12, con su permiso de nuevo, se corrieron las dos pasadas que faltaban (con dos caídas de hijo añadidas a la primera) y, a raíz de lo que encontraron, una sonda corta en dos idiomas.
+
+**Método.** Chromium por la biblioteca de Playwright, con la PWA servida por `js/server.js`. Un espía, inyectado en todos los frames antes que su código, registra cada mensaje que recibe cada frame (de qué ventana viene, su `origen` y su `destino`, y qué hará el bus con él, siguiendo las mismas comprobaciones que `manejarMensajeEntrante`), cada `despacharLocal`, la carga de cada frame y la inicialización de su bus, los avisos de descarte con su pila, los carteles `#cartel-*` y los errores. El recorrido solo usa controles reales (clic, rueda, teclado) y un GPS continuo con ruido (1 Hz, 1,4 m por lectura, σ 2 m); del padre solo lee estado para saber cuándo seguir. Simulaciones, declaradas en cada informe: el modo de desarrollo (ver §24), el audio a ×16, el GPS por `setGeolocation` (con su error espurio conocido de Chromium, contado aparte) y, en dos pasadas, la caída de un hijo (su documento pasa a `about:blank`). El instrumento queda fuera del repositorio.
+
+**Pasadas.**
+
+| Pasada | Qué recorre | Resultado |
+|---|---|---|
+| `corto` (×2) | P1-P16 entera, CASA con tres elementos de hijo5, paso a AVENTURA y cinco elementos (P-0 a P-2) | La primera se paró en TR-1 por un error del instrumento (esperaba el fin del audio en la ficha del padre, que se borra al cerrarse el tramo: así salió K-73); la segunda, sin fallos |
+| `variantes` | Los ocho primeros elementos con, intercalado: imagen, mapa completo, mapa vintage, controles de audio, hijo1 (listado, temporizador, una página de contenido), vídeo del tramo, el asistente (hijo6), vuelta a CASA y regreso (ver §24), recarga con reanudación, hijo3 caído, desvío de 90 m y vuelta, esperas sin pulsar play ni retos, y el atasco con rescate | Todo, salvo el rescate: el instrumento no llegó a pedirlo (su localizador de la pregunta del atasco casaba con 18 elementos) y, con el asistente abierto encima, no pudo pulsar avanzar; la pasada se paró en TR-4 |
+| `aventura-terminar` | P1-P16, paso a AVENTURA sin CASA y los 65 elementos de la Aventura1 andando (4,2 km); en TR-2, el atasco de 8 min y el rescate pedido desde el asistente (hijo6); al final, el modal de fin con cuatro estrellas y un comentario, «terminar», la despedida (P17) con los agradecimientos leídos hasta el final, y la vuelta a P1 | Sin fallos |
+| `aventura` con caídas (es, 2026-10-12) | P1-P16, CASA, AVENTURA y los doce primeros elementos, con dos caídas simuladas justo antes de pulsar avanzar: hijo4 (de TR-3 a P-3) y hijo3 (de TR-5 a P-7) | Se paró en P-7: tras la caída de hijo3 el botón de retos no vuelve a encenderse (K-82; «K-07, revisión: medido») |
+| `sonda` (en y es, 2026-10-12) | P1-P16, AVENTURA sin CASA y tres elementos; en P-1, con el audio resuelto, el usuario sale 25 m y vuelve | En inglés se paró: el botón de retos no vuelve (K-82). En español siguió tras volver a escuchar el audio entero |
+| `aventura` (es, 2026-10-12) | P1-P16, CASA con tres elementos y los 65 elementos de la Aventura1 andando; variantes de reto (una respuesta mal, la ayuda, un reto saltado y un puzzle con el tiempo agotado); modal de fin con «otra aventura» y vuelta a P1 | Sin fallos (66,7 min) |
+| `aventura` (en, 2026-10-12) | Lo mismo en el idioma sin audio grabado: cada audio se resuelve con su botón de saltar | Sin fallos (59,8 min). Un primer intento se paró en P-0 por un error del instrumento: el reto se abre un segundo después de llegar, con el cartel de llegada encima de la ventana del reto, y el clic en la primera opción lo recibió el cartel |
+
+**Lo que se sostiene (medido).**
+
+- El bus: ningún mensaje descartado por fuente, por falta de origen o por suplantación; ningún error en ningún frame; cada frame inicializa su bus antes de recibir su primer mensaje. Sin handler, solo `SISTEMA.CAMBIO_MODO_APLICADO` en hijo6, que ya recoge K-46.
+- El supervisor (K-57): con hijo3 sin contestar, a los tres latidos sin respuesta recarga su iframe; hijo3 vuelve a estar listo a los 12 s.
+- La reanudación: recargar a media aventura conserva el índice (8) y el elemento (TR-3).
+- La llegada: en los 29 tramos recorridos andando, los dos sensores la dan entre 2,7 y 15 m del final, nunca más lejos (el radio de llegada, 15 m, y no la tolerancia dinámica: G-52).
+- Los recordatorios: «pulse play» y «pulse retos» cada 20 s mientras no se pulsa; el de rescate, a los 8,5 min (`variantes`) y a los 8,1 min (`aventura-terminar`) del fin del audio del tramo. El fin del audio pone a cero el reloj de la ficha: en `variantes` el audio acabó 2,8 min después de activarse el tramo y el recordatorio salió a los 11,3 min de la activación, no a los 8. El barrido corre cada minuto.
+- La carga de los hijos: en todas las pasadas, hijo1 a hijo6 cargan al mostrarse P14 (a los 275-279 s del arranque), no antes.
+- La aventura entera en español y en inglés (2026-10-12), con el paso CASA: 65 elementos y 33 retos cada una, sin un fallo. En inglés ningún audio suena: los 65 se resuelven con el botón de saltar, que aparece solo.
+- El puzzle con el tiempo agotado: `PUZZLE.TIMEOUT`, el botón de continuar y `RETO.COMPLETADO` con `correcto: true`; la parada se completa.
+- La salida «otra aventura»: el padre se recarga (segunda carga del padre y de la selección) y la selección vuelve a P1.
+- El rescate: pedido desde la pregunta del atasco del asistente (hijo6), con sus dos confirmaciones y la pantalla final; el tramo queda completo y el usuario avanza (con el cartel de más de K-78).
+- El fin: el modal de fin de aventura, «terminar», la despedida (P17) y la vuelta a P1.
+- Las pantallas de distancia: a los 20 s de estar a 90 m de la ruta se ve la de «desviado»; la gracia de esa franja (15 min) solo retrasa la restricción de vídeo, avanzar, audio y retos (`coordenadas-hijo2.html:854-882`).
+
+**Conocido, medido otra vez.** Al cargar el padre (y al recargarlo) sale un «Destino desconocido desde padre: 'hijo3'»: `inicializarControlesAudioPadre` manda a hijo3 el estado de su barra de progreso antes de que el padre lo registre (`codigo-padre.html:10176-10183`). El llamador lo atrapa; la marca de «ya notificado» se pone antes del envío, así que ese primer estado no se vuelve a mandar hasta que cambie. Estaba en las notas del proyecto como decisión pendiente de arranque y audio; no estaba en este documento.
+
+**Nuevo** (familia U). K-73 (el segundo aviso de llegada recrea la ficha), K-74 (el mapa mide el elemento anterior hasta un segundo), K-75 (la ficha de CASA conserva su reloj), K-76 (`retoActualId` de hijo4), K-77 (el texto del cartel de inicio), K-78 (el cartel de transición tras un rescate pedido), K-79 (el cartel del último elemento), K-80 (hijo2 no reconoce el `PENDING_INICIADO` de su elemento), K-81 (`_notificarParadaCompletada` no borra nada) y K-82 (volver dentro del radio apaga el botón de retos con el audio ya resuelto). K-80 y K-81 salieron el 2026-10-12, al releer las trazas contra el código; K-82, de las pasadas de ese mismo día. En la guía, G-51 a G-62, corregidas en `44a76ec`.
+
+**Las cifras del 2026-10-12** (pasadas `aventura` en español y en inglés). K-73: la ficha se recrea en 23 de 24 tramos cerrados (el otro, TR-18, porque el aviso de hijo2 llegó después de avanzar) y en 24 de 24. K-74: llegada rancia en 64 de 64 avances y en 63 de 64; el cartel de llegada al inicio vuelve a salir con TR-1 activo en las dos (a los 637 ms y a los 402 ms del cambio), y en las dos sondas, sin paso CASA, sale además dos veces seguidas al llegar al inicio (a 0,3 s y a 0,5 s una de otra). K-75: los tres elementos visitados en CASA llegan a AVENTURA con su ficha ya creada, en las dos. K-80: ninguno de los 204 avisos de ese día casa (314 de 314 con los del día 7). K-82 no sale solo en las pasadas largas (ningún `DESHABILITAR` de `esperar_fin_audio_aventura` tras un `HABILITAR` del mismo elemento, 0 de 37 en inglés): el GPS simulado deja al usuario sobre el punto de la parada, lejos del borde del radio.
+
+**Observado, sin entrada.** En inglés el reto se abre un segundo después de llegar a la parada, con el cartel de llegada todavía a la vista: los carteles van en `z-index: 1000060`, bajo la cabecera, y quedan encima de la parte alta de la ventana del reto. Un toque en la primera opción lo recibe el cartel (medido: la opción no se marca y el cartel se cierra 0,11 s después).
+
+**Medido lo que K-61 dejaba sin medir** (pasada `variantes`).
+
+- *Qué reciben los hijos con la activación de más.* En la segunda entrada en AVENTURA, con el progreso real en `Av1-P-2`, el padre se despacha `NAVEGACION.CAMBIO_PARADA` de `Av1-P-0` (`contexto: 'arranque_aventura'`) antes de mandar el `CAMBIO_MODO` a los hijos, y la activación entera de `Av1-P-0` llega a cuatro de ellos: a hijo2, dos `DATOS.COORDENADAS_PARADAS_REQUEST`, `PENDING_INICIADO` de `padre-P0`, `CAMBIO_PARADA` y `CONTROL.DESHABILITAR` (`btnAvanzar`); a hijo3, `AUDIO.REPRODUCIR_REQUEST` con el audio de `Av1-P-0`, `CAMBIO_PARADA` y `CONTROL.DESHABILITAR` (`retosBtn`); a hijo4, `PENDING_INICIADO` y `CAMBIO_PARADA` con el reto de `Av1-P-0`; a hijo5, `CAMBIO_PARADA`. Unos 100 ms después llega la de `Av1-P-2`. El `PENDING_INICIADO` de `padre-P0` dice que el padre crea otra vez la ficha de un elemento ya completado; ninguno de los `delete` que corren la borra después (`codigo-padre.html:9724`, `:9728` y `:9765` son de otro elemento). En esa ventana no sale ningún cartel ni ningún descarte; lo que pinta el mapa no lo ve la traza.
+- *La reanudación* (`restaurado: true`). Tras recargar a media aventura, el padre se despacha un solo `CAMBIO_PARADA`, el del elemento guardado (`Av1-TR-3`, índice 8): ahí no hay activación de más.
+
+**K-07, revisión: medido** (pasada `aventura` con caídas, 2026-10-12; simulación declarada: el documento del hijo pasa a `about:blank` 1,5 s antes de que el usuario pulse avanzar). En la pasada `variantes` del día 7 la ventana no llevaba más tráfico que tres latidos; aquí el usuario actúa dentro de ella.
+
+- *hijo4 caído al avanzar de TR-3 a P-3.* El padre le manda igualmente `PENDING_INICIADO` y `NAVEGACION.CAMBIO_PARADA` (para él sigue en `hijosInicializados`), y se pierden. El supervisor lo recarga a los 11 s, con tres latidos sin respuesta, y el padre no le repite el `CAMBIO_PARADA`. Sin efecto a la vista: el reto llega entero en `RETO.MOSTRAR` y la parada se completa.
+- *hijo3 caído al avanzar de TR-5 a P-7.* Se pierden los dos intentos de `AUDIO.REPRODUCIR_REQUEST` (a 1,65 s y a 2,83 s de la caída), el `NAVEGACION.CAMBIO_PARADA` y un `CONTROL.DESHABILITAR`. A los 4,05 s el padre da el audio por no disponible (`_marcarAudioNoDisponible`): marca `audio` en la ficha y manda `CONTROL.HABILITAR` (`retosBtn`), que también se pierde. hijo3 vuelve a los 12,5 s y recibe el audio restaurado y un `CONTROL.DESHABILITAR` (`retosBtn`, `esperar_fin_audio_aventura`). Queda así: el play apagado y el botón de saltar a la vista con el audio ya cargado en hijo3 (`estado._audioFalloId` sigue puesto), el botón de retos apagado y el padre recordando que se pulse. La parada no se puede completar (K-82) y la pasada se paró ahí, en el elemento 12.
+
+**Comentarios del código que no se sostienen, sin entrada.** `codigo-padre.html:8370-8375` habla de «los 8 carteles» de la familia: `_TODOS_LOS_CARTELES_IDS` (`:8376`) tiene diez ids. `js/indice-aventuras.js:2-5` dice que los totales «se calculan dinámicamente» en la selección: están escritos en el propio fichero, la selección los lee de ahí (`En-busca-del-tesoro.html:2204-2217`) y los vigila `npm run verificar-totales`. `boton-casa-hijo5.html` (junto a `manejarClickGPS`) habla de un «`enviarMensaje` local… postMessage crudo»: hijo5 usa el del bus (`:348`). Los de K-80 (`codigo-padre.html:9624-9626`) y K-82 (`:10862-10864`) van en sus entradas.
+
+**Contenido, sin entrada.** En la Aventura1 hay seis pares de paradas seguidas con el mismo `nombre` (P-4, P-5 y P-6 se llaman «Plaza de la Virgen»; también P-8 y P-9, P-12 y P-13, P-18 y P-19, y P-28 y P-29), y el cartel de transición entre ellas dice «Ha terminado la parada X — va a empezar la parada X». Es una decisión de los datos.
+
+**Censo de frames (regla 3b).** Los once cargan y su bus aparece en la traza en `variantes`: padre, selección, hijo1 a hijo6, mapa-completo, puzzle y video-intro.
+
+| Frame | Entradas de la familia U | Recorrido sin hallazgo nuevo |
+|---|---|---|
+| padre | K-73, K-74 (su orden de aviso al mapa), K-75, K-78, K-79, K-80 (la clave que manda), K-81, K-82 | modo, reanudación, supervisor, recordatorios, rescate, fin de aventura |
+| selección | ninguna | P1-P16 y la despedida (P17) |
+| hijo1 | ninguna | listado, temporizador, página de contenido |
+| hijo2 | K-73 (segundo sensor), K-74, K-80 | imagen, mapas, ubicación, pantallas de distancia |
+| hijo3 | K-82 (su botón de retos) | audio, recuperación tras caída |
+| hijo4 | K-76 | los 33 retos de la Aventura1 que se abren en hijo4: 13 de opción, 8 de opción múltiple, 7 de texto y 5 de puzzle; ningún puzzle con el tiempo agotado |
+| hijo5 | K-75 (la ficha nace al visitar) | lista de CASA y el botón de vuelta a AVENTURA |
+| hijo6 | ninguna (K-46, ya registrado) | FAQ y la petición de rescate |
+| mapa-completo | ninguna | abrir y cerrar |
+| puzzle | ninguna | el de introducción (P6) y los cinco de reto, dentro de hijo4 |
+| video-intro | ninguna | las veinte escenas |
+
+Fuera de los frames: `js/funciones-mapa.js` (K-73, K-74, K-77) y `js/traducciones-ui.js` (los textos de K-77 y K-79).
+
+**Variantes.** Con estas pasadas quedan recorridas todas las variantes obligatorias de §36.28. Fuera de ellas, sin recorrer: otras aventuras y otros motores, lecturas GPS de mala precisión, el rescate agotado y el tiempo de la aventura agotado.
+
+**Límites.** Solo Chromium; solo la Aventura1. El GPS simulado no tiene el ruido urbano real ni sus caídas de precisión: su `accuracy` es fija, de 4 m, así que ni el corte por precisión de hijo2 (50 m, `coordenadas-hijo2.html:1377`) ni el del bloqueo de 5 km (100 m, `codigo-padre.html:5612`) llegan a correr. El audio va a ×16 (los eventos son los mismos; cambia cuánto tardan). Lo que el espía no ve: lo que un frame hace sin pasar por el bus ni por `despacharLocal`.
