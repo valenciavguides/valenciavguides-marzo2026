@@ -4,12 +4,14 @@
  * Cartel recordatorio "pulse retos" (codigo-padre.html, ver GUIA-COMPLETA §25.5c) —
  * sistema nuevo, añadido 2026-08-17 como espejo exacto del recordatorio de audio
  * (29-recordatorio-audio.spec.js): mismos umbrales (10s + proximidad real, autocierre
- * a los 7s, reaparición cada 20s), mismo icono H4-fotoretos.png. Se muestra solo
- * cuando el botón de retos acaba de habilitarse de verdad tras terminar el audio de
- * un elemento con reto (_procesarFinAudioElemento, rama hijo4Listo). Abrir el reto
- * solo retrasa el próximo aviso (_marcarRetoPulsadoRecordatorio); el apagado
- * PERMANENTE ocurre únicamente en _retoColaCompletada(), cuando toda la cola de
- * retos de la parada se resuelve de verdad.
+ * a los 7s, reaparición cada 20s), mismo icono H4-fotoretos.png. Arranca al terminar
+ * el audio de un elemento con reto (_procesarFinAudioElemento) y solo sale con el
+ * botón de retos encendido: lo pregunta al sitio único que decide ese botón, así que
+ * estos tests ponen primero el estado en que está encendido (lo que pasa con el botón
+ * apagado lo cubre 122-boton-retos-un-solo-sitio.spec.js). Abrir el reto solo retrasa
+ * el próximo aviso (_marcarRetoPulsadoRecordatorio); el apagado PERMANENTE ocurre
+ * únicamente en _retoColaCompletada(), cuando toda la cola de retos de la parada se
+ * resuelve de verdad.
  */
 'use strict';
 
@@ -18,6 +20,22 @@ const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
+
+/**
+ * El estado en que el botón de retos está encendido: AVENTURA, una parada con reto y con su
+ * audio terminado, sin reto abierto y dentro de rango. `proximidadReal` va aparte: es la otra
+ * condición del recordatorio y cada test dice la suya.
+ */
+async function ponerBotonDeRetosEncendido(page) {
+  await page.evaluate(() => {
+    const e = globalThis.estadoPadre;
+    e.modo = e.modo || {};
+    e.modo.actual = globalThis.MODOS.AVENTURA;
+    e.usuarioFueraRango = { activo: false };
+    e.elementoActual = { padreid: 'padre-P1', tipo: 'parada', parada_id: 'Av1-P-1', audio_id: 'audio-Av1-P-1-es', reto_id: 'R4-Av1-es' };
+    e.pendingCompleciones = { 'padre-P1': { tipo: 'parada', llegada: true, audio: true, reto: false, retosTotal: 1, retosCompletadosCount: 0, timestamp: Date.now() } };
+  });
+}
 
 test.describe('RR — Recordatorio periódico de resolver el reto', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -47,6 +65,7 @@ test.describe('RR — Recordatorio periódico de resolver el reto', () => {
         && typeof globalThis._detenerRecordatorioReto === 'function',
       null, { timeout: 15_000 }
     ).catch(() => {});
+    await ponerBotonDeRetosEncendido(page);
   });
 
   test('RR-1. proximidadReal=false + 10s -> NO sale', async ({ page }) => {

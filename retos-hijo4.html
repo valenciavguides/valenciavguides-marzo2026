@@ -1526,8 +1526,8 @@
                     fuegosDiv.style.display = "none";
                 }
 
-                // retoSigueActivo (calculado por el padre, mismo criterio que usa para
-                // retosBtn en hijo3) evita que un RETO.LIMPIAR_ESTADO que llega tarde —
+                // retoSigueActivo (lo calcula el padre: si el reto cerrado es del elemento
+                // actual) evita que un RETO.LIMPIAR_ESTADO que llega tarde —
                 // el usuario cerró el reto de una parada y ya cambió a otra sin reto antes
                 // de que este mensaje aterrizara — vuelva a mostrar botonRetos-wrapper como
                 // si la parada actual tuviera reto. Por defecto true (!== false) para no

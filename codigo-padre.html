@@ -7257,24 +7257,14 @@
                 }
                 if (hijoId === 'hijo2') { await _hijoListo_enviarDatosHijo2(logPrefix); }
                 if (hijoId === 'hijo3') {
-                    // Siempre intentar configurar el botón de retos cuando hijo3 se inicializa.
-                    // _buscarParadaEnDatos/obtenerRetosIds/_configurarRetoBtn viven en Script 2
-                    // (scope de módulo separado) — se llaman vía globalThis con guard, con el
-                    // mismo patrón que el resto de puentes Script1↔Script2 de este archivo.
-                    if (typeof globalThis._buscarParadaEnDatos === 'function' && typeof globalThis.obtenerRetosIds === 'function' && typeof globalThis._configurarRetoBtn === 'function') {
-                        const paradaParaConfigurar = estado.elementoActual || (
-                            estado.paradaActual ? globalThis._buscarParadaEnDatos(
-                                estado.paradaActual,
-                                estado.paradaActual.startsWith('padre-') ? estado.paradaActual.substring(6) : estado.paradaActual,
-                                DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || []
-                            ) : null
-                        );
-                        if (paradaParaConfigurar) {
-                            const retosDeParada = globalThis.obtenerRetosIds(paradaParaConfigurar);
-                            await globalThis._configurarRetoBtn(paradaParaConfigurar, retosDeParada, estado, logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error reconfigurando retosBtn tras hijo3 listo:`, e && e.message));
-                        }
+                    // hijo3 llega con su botón de retos apagado de fábrica: se le manda el estado que
+                    // le toca AHORA. Lo decide un solo sitio, _sincronizarRetoBtn, que vive en Script 2
+                    // (scope de módulo separado) — se llama vía globalThis con guard, con el mismo
+                    // patrón que el resto de puentes Script1↔Script2 de este archivo.
+                    if (typeof globalThis._sincronizarRetoBtn === 'function') {
+                        await globalThis._sincronizarRetoBtn(logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error sincronizando retosBtn tras hijo3 listo:`, e && e.message));
                     } else {
-                        (globalThis.logger || console).warn(`${logPrefix} Funciones de Script 2 (retosBtn) aún no disponibles; se omite reconfiguración tras hijo3 listo`);
+                        (globalThis.logger || console).warn(`${logPrefix} _sincronizarRetoBtn (Script 2) aún no disponible; se omite la sincronización de retosBtn tras hijo3 listo`);
                     }
                 }
                 const hijosCriticos = ['hijo2', 'hijo3', 'hijo4'];
@@ -9030,14 +9020,14 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis._iniciarRecordatorioSaltarAudio = _iniciarRecordatorioSaltarAudio;
 
         // ── Recordatorio periódico de "pulse retos" — mismo patrón que el de audio de arriba ──
-        // Arranca solo cuando el reto del elemento activo se habilita de verdad (audio
-        // terminado + hijo4 listo, ver _procesarFinAudioElemento) — nunca antes, porque
-        // retosBtn sigue deshabilitado hasta ese momento, y nunca si el elemento activo no
-        // tiene reto. Se muestra solo cuando se cumplen DOS condiciones a la vez: han pasado
-        // RECORDATORIO_RETO_PRIMER_AVISO_MS desde que se habilitó el reto, Y el GPS confirma
-        // proximidad real (estado.gps.proximidadReal — mismo campo que usa el recordatorio de
-        // audio, ver §25.5c). Si sigue sin pulsar el botón de retos, se repite cada
-        // RECORDATORIO_RETO_INTERVALO_MS mientras ambas condiciones sigan cumplidas.
+        // Arranca cuando termina el audio de un elemento con reto (ver _procesarFinAudioElemento)
+        // — nunca antes, y nunca si el elemento activo no tiene reto. Se muestra solo cuando se
+        // cumplen TRES condiciones a la vez: han pasado RECORDATORIO_RETO_PRIMER_AVISO_MS desde
+        // que arrancó, el GPS confirma proximidad real (estado.gps.proximidadReal — mismo campo
+        // que usa el recordatorio de audio, ver §25.5c) Y el botón de retos está encendido en ese
+        // momento (_botonRetosEncendido: no se recuerda pulsar un botón apagado, así que con un
+        // reto ya abierto o fuera de rango no sale). Si sigue sin pulsar el botón de retos, se
+        // repite cada RECORDATORIO_RETO_INTERVALO_MS mientras las tres sigan cumplidas.
         const RECORDATORIO_RETO_PRIMER_AVISO_MS = 10000;
         const RECORDATORIO_RETO_INTERVALO_MS = 20000;
         const RECORDATORIO_RETO_CHEQUEO_MS = 2000;
@@ -9103,7 +9093,21 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        // Llamado desde _procesarFinAudioElemento() en cuanto retosBtn se habilita de verdad.
+        // El recordatorio pide pulsar el botón de retos, así que solo tiene sentido con ese botón
+        // encendido. No lleva una regla propia: lo pregunta al mismo sitio que decide el botón
+        // (_retoBtnEncendido, Script 2). Si esa función faltara se dice una vez, en voz alta, y
+        // no se recuerda nada: un recordatorio que no sabe cómo está el botón no debe salir.
+        let _avisadoSinRetoBtnEncendido = false;
+        function _botonRetosEncendido() {
+            if (typeof globalThis._retoBtnEncendido === 'function') return globalThis._retoBtnEncendido() === true;
+            if (!_avisadoSinRetoBtnEncendido) {
+                _avisadoSinRetoBtnEncendido = true;
+                (globalThis.logger || console).error('[PADRE][CARTEL_RECORDATORIO_RETO] _retoBtnEncendido (Script 2) no disponible: el recordatorio de retos no se muestra');
+            }
+            return false;
+        }
+
+        // Llamado desde _procesarFinAudioElemento() cuando termina el audio de un elemento con reto.
         function _iniciarRecordatorioReto() {
             _detenerRecordatorioReto();
             _recordatorioRetoActivadoEn = Date.now();
@@ -9115,7 +9119,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const intervaloListo = _recordatorioRetoUltimoMostradoEn === null || (ahora - _recordatorioRetoUltimoMostradoEn) >= RECORDATORIO_RETO_INTERVALO_MS;
                 // No fuerza nada: si hay cualquier otro cartel visible, espera — mismo criterio
                 // que el recordatorio de audio (§4.7, "no antes").
-                if (tiempoListo && proximidadLista && intervaloListo && !_hayCartelEnPantalla()) {
+                if (tiempoListo && proximidadLista && intervaloListo && _botonRetosEncendido() && !_hayCartelEnPantalla()) {
                     _recordatorioRetoUltimoMostradoEn = ahora;
                     _mostrarCartelRecordatorioReto();
                 }
@@ -9578,10 +9582,6 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!elemento || !elemento.reto_id) return [];
             return Array.isArray(elemento.reto_id) ? elemento.reto_id : [elemento.reto_id];
         }
-        // Expuesta para que Script 1 (scope de módulo separado) pueda llamarla
-        // desde _hdl_SISTEMA_HIJO_LISTO al reconfigurar el botón de retos tras
-        // una reconexión de hijo3 (heartbeat reload a media aventura).
-        globalThis.obtenerRetosIds = obtenerRetosIds;
 
         function findElementoPorReto(retoId) {
             if (!retoId || !DATOS_PADRE[globalThis.aventuraSeleccionada] || !DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado]) return null;
@@ -10460,16 +10460,9 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 await _enviarRetoMostrar(retoIdToUsar, _retosArray, logPrefix);
 
-                // Deshabilitar botón inmediatamente después de solicitar
-                await enviarMensaje_S2({
-                    tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                    destino: 'hijo3',
-                    datos: {
-                        control: 'retosBtn',
-                        razon: 'reto_solicitado',
-                        retoId: retoIdToUsar
-                    }
-                });
+                // El reto ya está a la vista: el botón de retos de hijo3 queda como le toca con un
+                // reto abierto, apagado. Lo decide un solo sitio (_sincronizarRetoBtn).
+                await _sincronizarRetoBtn(logPrefix);
 
                 // 📤 Notificar a hijo2 que reto está activo (para deshabilitar botones según reglas)
                 try {
@@ -10554,23 +10547,19 @@ await _comprobarReanudacionAventura(logPrefix);
                         datos: { motivo: 'reto_cerrado' }
                     });
 
-                    // Rehabilitar retosBtn en hijo3 solo si el reto cerrado pertenece al elemento actual
-                    // (evita sobreescribir el estado de retosBtn si la parada ya progresó)
-                    const _colaCurrent = estado.retoActual?.cola || [];
-                    const _retoSigueActivo = !retoId || retoId === estado.retoActual?.id || _colaCurrent.includes(retoId);
-                    if (_retoSigueActivo) {
-                        enviarMensaje_S2({
-                            tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                            destino: 'hijo3',
-                            datos: { control: 'retosBtn', motivo: 'reto_cerrado' }
-                        });
-                    }
+                    // El reto ya no está a la vista: el botón de retos de hijo3 vuelve a como le toque
+                    // AHORA al elemento actual. Lo decide un solo sitio (_sincronizarRetoBtn), que mira
+                    // también si el usuario está fuera de rango y cuál es el elemento actual — antes se
+                    // encendía con tal de que el reto cerrado fuese de la cola actual, sin mirar más.
+                    _sincronizarRetoBtn(logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error sincronizando retosBtn al cerrar el reto:`, e && e.message));
 
                     // Notificar a hijo4 para limpiar estado interno y restaurar botonRetos en modo CASA.
-                    // retoSigueActivo reutiliza el mismo cálculo de arriba (retosBtn en hijo3): si el
-                    // usuario ya cambió de parada antes de que este mensaje llegue, hijo4 debe limpiar
-                    // su estado interno igualmente, pero NO debe volver a mostrar botonRetos-wrapper
-                    // como si la parada actual tuviera reto — ver guard en su propio handler.
+                    // retoSigueActivo dice si el reto cerrado es del elemento actual: si el usuario ya
+                    // cambió de parada antes de que este mensaje llegue, hijo4 debe limpiar su estado
+                    // interno igualmente, pero NO debe volver a mostrar botonRetos-wrapper como si la
+                    // parada actual tuviera reto — ver guard en su propio handler.
+                    const _colaCurrent = estado.retoActual?.cola || [];
+                    const _retoSigueActivo = !retoId || retoId === estado.retoActual?.id || _colaCurrent.includes(retoId);
                     enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE.RETO.LIMPIAR_ESTADO,
                         destino: 'hijo4',
@@ -10859,26 +10848,17 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).error(`${logPrefix} Error ocultando pantallas de distancia:`, error);
             }
 
-            // Contrapartida de USUARIO_FUERA_RANGO: limpiar el flag y reconfigurar
-            // audio/retosBtn con las reglas normales (no un HABILITAR ciego — reto
-            // sigue dependiendo de si el audio ya terminó, igual que siempre).
+            // Contrapartida de USUARIO_FUERA_RANGO: limpiar el flag y dejar el audio y el botón de
+            // retos como les toca AHORA. hijo2 manda este aviso en cada vuelta dentro de rango,
+            // también cuando la gracia no llegó a agotarse y aquí no se había apagado nada: por
+            // eso no se reconfigura nada desde cero — el botón de retos lo decide un solo sitio
+            // (_sincronizarRetoBtn) mirando el estado que ya hay, con el audio terminado incluido.
             try {
                 estado.usuarioFueraRango = { activo: false };
                 if (typeof actualizarEstadoControlesAudioPadre === 'function') actualizarEstadoControlesAudioPadre();
-
-                const paradaParaConfigurar = estado.elementoActual || (
-                    estado.paradaActual && typeof globalThis._buscarParadaEnDatos === 'function' ? globalThis._buscarParadaEnDatos(
-                        estado.paradaActual,
-                        estado.paradaActual.startsWith('padre-') ? estado.paradaActual.substring(6) : estado.paradaActual,
-                        DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || []
-                    ) : null
-                );
-                if (paradaParaConfigurar && typeof globalThis.obtenerRetosIds === 'function' && typeof globalThis._configurarRetoBtn === 'function') {
-                    const retosDeParada = globalThis.obtenerRetosIds(paradaParaConfigurar);
-                    await globalThis._configurarRetoBtn(paradaParaConfigurar, retosDeParada, estado, logPrefix);
-                }
+                await _sincronizarRetoBtn(logPrefix);
             } catch (error) {
-                (globalThis.logger || console).warn(`${logPrefix} Error reconfigurando audio/retosBtn al volver dentro de rango:`, error);
+                (globalThis.logger || console).warn(`${logPrefix} Error sincronizando audio/retosBtn al volver dentro de rango:`, error);
             }
         }
 
@@ -11132,9 +11112,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 p.tramo_id === idSinPrefijo
             );
         }
-        // Expuesta para el mismo motivo que obtenerRetosIds (ver arriba): la usa
-        // Script 1 al reconfigurar el reto de hijo3 tras una reconexión.
-        globalThis._buscarParadaEnDatos = _buscarParadaEnDatos;
 
         // Resuelve el contenido real de un audio_id (url/title) para incluirlo en línea en
         // AUDIO.REPRODUCIR_REQUEST — protección pasiva por parada: hijo3 ya no necesita tener
@@ -11349,66 +11326,104 @@ await _comprobarReanudacionAventura(logPrefix);
             return null;
         }
 
-        async function _configurarRetoBtn(parada, retosDeParada, estado, logPrefix) {
-            if (!estado.hijosInicializados?.has('hijo3')) {
-                (globalThis.logger || console).warn(`${logPrefix} hijo3 no inicializado, retosBtn no configurado`);
-                return;
-            }
-            const modo = estado.modo?.actual;
-            const tieneReto = retosDeParada.length > 0;
-            const tieneAudio = Boolean(parada?.audio_id);
+        // ============================================================
+        // EL BOTÓN DE RETOS DE HIJO3: UN SOLO SITIO LO DECIDE
+        // ============================================================
+        // Lo encendían o apagaban cinco funciones, cada una mirando su parte: la activación del
+        // elemento, el fin del audio, abrir un reto, cerrarlo y salir de rango. La de la
+        // activación (_configurarRetoBtn), que corría también al volver dentro de rango y al
+        // recargarse hijo3, lo apagaba «hasta que termine el audio» sin mirar si ya había
+        // terminado, y ponía a cero el estado del reto. Un audio saltado no tiene fin que
+        // esperar: en los idiomas sin audio grabado el botón no volvía a encenderse y la parada
+        // quedaba bloqueada (docs/estudio-caminos.md, K-82; lo fija el spec 122).
+        //
+        // Ahora todas preguntan aquí, y aquí se miran TODAS las variables a la vez:
+        //   · si el elemento tiene reto;
+        //   · si hay un reto abierto ahora mismo (hijo4 a la vista);
+        //   · el modo;
+        //   · si el usuario está fuera de rango con la gracia agotada;
+        //   · si el elemento tiene audio y, si lo tiene, si ese audio ya terminó.
+        // Quien cambia una de ellas llama a _sincronizarRetoBtn() y no decide nada por su cuenta.
+        // «hijo4 listo» NO es una de ellas: quien pulsa el botón con hijo4 recuperándose espera
+        // a su HIJO_LISTO en _hdl_RETO_SOLICITAR, como con cualquier hijo.
 
-            (globalThis.logger || console).info(`${logPrefix} Configurando retosBtn - modo: ${modo}, tieneReto: ${tieneReto}, tieneAudio: ${tieneAudio}, retosDeParada:`, retosDeParada);
-
-            if (modo === MODOS.AVENTURA) {
-                if (tieneReto && tieneAudio) {
-                    // Con audio: el botón se habilita solo tras terminar el audio (_procesarFinAudioElemento).
-                    // TODO: cuando toda la app tenga audios, este será el único camino en aventura —
-                    //       eliminar la rama sin audio y habilitar únicamente desde el audio-finish path.
-                    estado.retoActual = { id: retosDeParada[0], disponible: false, cola: retosDeParada, colaCompletados: new Set() };
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                        destino: 'hijo3',
-                        datos: { control: 'retosBtn', razon: 'esperar_fin_audio_aventura' }
-                    });
-                } else if (tieneReto) {
-                    estado.retoActual = { id: retosDeParada[0], disponible: true, cola: retosDeParada, colaCompletados: new Set() };
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                        destino: 'hijo3',
-                        datos: { control: 'retosBtn', razon: 'parada_con_reto_sin_audio_aventura', retoId: retosDeParada[0] }
-                    });
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE.RETO.HABILITAR,
-                        destino: 'hijo4',
-                        datos: { paradaId: parada?.parada_id || parada?.tramo_id, razon: 'sin_audio' }
-                    });
-                } else {
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                        destino: 'hijo3',
-                        datos: { control: 'retosBtn', razon: 'parada_sin_reto_aventura' }
-                    });
-                }
-            } else {
-                if (tieneReto) {
-                    estado.retoActual = { id: retosDeParada[0], disponible: true, cola: retosDeParada, colaCompletados: new Set() };
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                        destino: 'hijo3',
-                        datos: { control: 'retosBtn', razon: 'parada_con_reto_casa', retoId: retosDeParada[0] }
-                    });
-                } else {
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                        destino: 'hijo3',
-                        datos: { control: 'retosBtn', razon: 'parada_sin_reto_casa' }
-                    });
-                }
-            }
+        // El elemento sobre el que se decide: el actual, o el de estado.paradaActual si todavía
+        // no hay elemento (la misma búsqueda que hacían por separado sus dos llamadores).
+        function _elementoDelRetoBtn() {
+            if (estado.elementoActual) return estado.elementoActual;
+            const id = estado.paradaActual;
+            if (!id) return null;
+            const elementos = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || [];
+            return _buscarParadaEnDatos(id, id.startsWith('padre-') ? id.substring(6) : id, elementos) || null;
         }
-        // Expuesta por el mismo motivo que obtenerRetosIds/_buscarParadaEnDatos (ver arriba).
-        globalThis._configurarRetoBtn = _configurarRetoBtn;
+
+        // «Audio terminado» es un dato del elemento y vive en un solo sitio: su ficha. Da igual
+        // cómo se llegó a él —escuchado entero, saltado o dado por no disponible—: las tres vías
+        // marcan lo mismo. Aquí se LEE; ensurePending() crearía la ficha si no existiera.
+        // Un elemento ya completado no tiene ficha (se borra al completarse): su audio terminó,
+        // o el elemento se dio por hecho sin él.
+        function _audioTerminadoEn(elemento) {
+            if (!elemento) return false;
+            const clave = elemento.padreid || `padre-${elemento.parada_id || elemento.tramo_id}`;
+            if (estado.pendingCompleciones?.[clave]?.audio === true) return true;
+            const id = elemento.parada_id || elemento.tramo_id || elemento.padreid;
+            return Boolean(id && estado.paradasCompletadas?.has(String(id).replace(/^padre-/, '').trim()));
+        }
+
+        // La decisión, sin efectos: qué le toca al botón AHORA y por qué. La `razon` viaja en
+        // el mensaje a hijo3 y es lo que se lee en una traza.
+        function _decidirRetoBtn(elemento) {
+            const enAventura = estado.modo?.actual === MODOS.AVENTURA;
+            if (obtenerRetosIds(elemento).length === 0) return { habilitar: false, razon: enAventura ? 'parada_sin_reto_aventura' : 'parada_sin_reto_casa' };
+            if (document.getElementById('hijo4')?.classList.contains('visible')) return { habilitar: false, razon: 'reto_solicitado' };
+            if (!enAventura) return { habilitar: true, razon: 'parada_con_reto_casa' };
+            if (estado.usuarioFueraRango?.activo === true) return { habilitar: false, razon: 'fuera_de_rango' };
+            if (!elemento.audio_id) return { habilitar: true, razon: 'parada_con_reto_sin_audio_aventura' };
+            if (_audioTerminadoEn(elemento)) return { habilitar: true, razon: 'audio_finalizado' };
+            return { habilitar: false, razon: 'esperar_fin_audio_aventura' };
+        }
+
+        // Lo que pregunta el recordatorio «pulse retos» (Script 1) antes de cada aviso: no se
+        // recuerda pulsar un botón apagado.
+        globalThis._retoBtnEncendido = () => _decidirRetoBtn(_elementoDelRetoBtn()).habilitar === true;
+
+        // El estado del reto del elemento: qué reto toca y cuáles van hechos. Se prepara cuando
+        // todavía no es el de este elemento; si ya lo es NO se toca — rehacerlo con el elemento
+        // a medias borraba los retos hechos y la marca de disponible. La cola identifica al
+        // elemento: ningún reto está en dos (los ids son únicos por aventura e idioma).
+        function _asegurarRetoActualDe(elemento) {
+            const retos = obtenerRetosIds(elemento);
+            const cola = estado.retoActual?.cola;
+            if (Array.isArray(cola) && cola.length === retos.length && cola.every((id, i) => id === retos[i])) return;
+            const enAventura = estado.modo?.actual === MODOS.AVENTURA;
+            estado.retoActual = {
+                id: retos[0] || null,
+                disponible: retos.length > 0 && (!enAventura || !elemento?.audio_id || _audioTerminadoEn(elemento)),
+                cola: retos,
+                colaCompletados: new Set()
+            };
+        }
+
+        // Manda a hijo3 el estado que le toca a su botón de retos AHORA. Es el único sitio desde
+        // el que se le enciende o se le apaga, y el mensaje lleva siempre la misma forma.
+        async function _sincronizarRetoBtn(logPrefix) {
+            const elemento = _elementoDelRetoBtn();
+            if (!elemento) return null;
+            if (!estado.hijosInicializados?.has('hijo3')) {
+                (globalThis.logger || console).warn(`${logPrefix} hijo3 no inicializado, retosBtn no sincronizado`);
+                return null;
+            }
+            const decision = _decidirRetoBtn(elemento);
+            (globalThis.logger || console).info(`${logPrefix} retosBtn → ${decision.habilitar ? 'encendido' : 'apagado'} (${decision.razon})`);
+            await enviarMensaje_S2({
+                tipo: decision.habilitar ? TIPOS_MENSAJE.CONTROL.HABILITAR : TIPOS_MENSAJE.CONTROL.DESHABILITAR,
+                destino: 'hijo3',
+                datos: { control: 'retosBtn', razon: decision.razon, retoId: estado.retoActual?.id ?? null }
+            });
+            return decision;
+        }
+        // Publicada porque el HIJO_LISTO de hijo3 se atiende en Script 1 (scope de módulo separado).
+        globalThis._sincronizarRetoBtn = _sincronizarRetoBtn;
 
         async function _solicitarParadaAHijo2(parada, logPrefix) {
             if (!parada.parada_id && !parada.tramo_id) return null;
@@ -11645,9 +11660,19 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 await _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, paradaNormalized, mensaje, estado, logPrefix });
 
-                // Habilitar/deshabilitar retosBtn según modo y existencia de reto en la parada
+                // El estado del reto pasa a ser el del elemento actual (si ya lo era, no se toca) y
+                // el botón de retos de hijo3 queda como le toca: lo decide un solo sitio.
                 const retosDeParada = obtenerRetosIds(parada);
-                await _configurarRetoBtn(parada, retosDeParada, estado, logPrefix);
+                _asegurarRetoActualDe(_elementoDelRetoBtn());
+                await _sincronizarRetoBtn(logPrefix);
+                // El botón propio de hijo4, para un reto sin audio que esperar.
+                if (estado.modo?.actual === MODOS.AVENTURA && retosDeParada.length > 0 && !parada.audio_id) {
+                    await enviarMensaje_S2({
+                        tipo: TIPOS_MENSAJE.RETO.HABILITAR,
+                        destino: 'hijo4',
+                        datos: { paradaId: parada?.parada_id || parada?.tramo_id, razon: 'sin_audio' }
+                    });
+                }
 
                 // Lógica de botón GPS en tramos y paradas
                 const esTramo = parada.tipo === 'tramo';
@@ -11729,10 +11754,14 @@ await _comprobarReanudacionAventura(logPrefix);
                 // del elemento anterior (parada o tramo, mismo criterio) — se detiene siempre
                 // explícitamente el que no aplica, no basta con arrancar el otro.
                 const _audioIdParaRecordatorio = typeof obtenerAudioIdActivoPadre === 'function' ? obtenerAudioIdActivoPadre() : null;
-                if (estado.modo?.actual === MODOS.AVENTURA && _audioIdParaRecordatorio && hayFicheroAudioReal(_audioIdParaRecordatorio)) {
+                // Un audio ya terminado no se recuerda. Pasa cuando se reactiva el mismo elemento
+                // con su audio escuchado o saltado (lo hace la recuperación de hijo2): sin esto el
+                // aviso volvía a pedir un botón de saltar que ya no hace nada.
+                const _audioPendiente = Boolean(_audioIdParaRecordatorio) && !_audioTerminadoEn(parada);
+                if (estado.modo?.actual === MODOS.AVENTURA && _audioPendiente && hayFicheroAudioReal(_audioIdParaRecordatorio)) {
                     globalThis._detenerRecordatorioSaltarAudio?.();
                     globalThis._iniciarRecordatorioAudio?.();
-                } else if (estado.modo?.actual === MODOS.AVENTURA && _audioIdParaRecordatorio) {
+                } else if (estado.modo?.actual === MODOS.AVENTURA && _audioPendiente) {
                     globalThis._detenerRecordatorioAudio?.();
                     globalThis._iniciarRecordatorioSaltarAudio?.();
                 } else {
@@ -11912,15 +11941,12 @@ await _comprobarReanudacionAventura(logPrefix);
                 // _desactivarBotonesRangoExcedido en hijo2 para btn-video/avanzar/mapas:
                 // no tiene sentido interactuar con el contenido de una parada/tramo al
                 // que no se ha llegado. hijo1 (extrainfo), chat y btn-imagen quedan fuera
-                // a propósito — no dependen de la proximidad real.
+                // a propósito — no dependen de la proximidad real. El botón de retos lo apaga
+                // el sitio único que lo decide (_sincronizarRetoBtn), que ya ve el flag de arriba.
                 try { actualizarEstadoControlesAudioPadre(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 try {
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                        destino: 'hijo3',
-                        datos: { control: 'retosBtn', razon: 'fuera_de_rango' }
-                    });
-                } catch (e) { (globalThis.logger || console).warn(`${logPrefix} Error deshabilitando retosBtn:`, e); }
+                    await _sincronizarRetoBtn(logPrefix);
+                } catch (e) { (globalThis.logger || console).warn(`${logPrefix} Error sincronizando retosBtn:`, e); }
 
                 (globalThis.logger || console).info(`${logPrefix} Estado actualizado: usuario fuera de rango (franja: ${franja || 'desconocida'})`);
 
@@ -12043,44 +12069,41 @@ await _comprobarReanudacionAventura(logPrefix);
         async function _procesarFinAudioElemento(audioId, estado, logPrefix) {
             if (!estado.elementoActual || estado.elementoActual.audio_id !== audioId) return;
             const retosDelElemento = obtenerRetosIds(estado.elementoActual);
-            const tieneRetos = retosDelElemento.length > 0;
+            if (retosDelElemento.length === 0) {
+                await _audioFinalizadoSinReto(audioId, estado, logPrefix);
+                return;
+            }
+
+            // El audio de este elemento ha terminado —escuchado entero, saltado o dado por no
+            // disponible: es lo mismo— y su reto queda disponible. El estado del reto solo se
+            // prepara si todavía no es el de este elemento: antes se rehacía en cada fin de audio,
+            // y volver a escuchar el audio entre dos retos de la misma parada borraba los hechos.
+            _asegurarRetoActualDe(estado.elementoActual);
+            estado.retoActual.disponible = true;
+
             const modoAventura = estado.modo.actual === MODOS.AVENTURA;
-            const hijo4Listo = estado.hijosInicializados && estado.hijosInicializados.has('hijo4');
-            if (tieneRetos && modoAventura && hijo4Listo) {
-                (globalThis.logger || console).info(`${logPrefix} Audio finalizado en modo aventura, habilitando botón de retos para ${retosDelElemento.length} reto(s): ${retosDelElemento.join(', ')}`);
-                estado.retoActual.id = retosDelElemento[0];
-                estado.retoActual.disponible = true;
-                estado.retoActual.cola = retosDelElemento;
-                estado.retoActual.colaCompletados = new Set();
-                await enviarMensaje_S2({
-                    tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                    destino: 'hijo3',
-                    datos: { control: 'retosBtn', razon: 'audio_finalizado', retoId: retosDelElemento[0] }
-                });
+            (globalThis.logger || console).info(`${logPrefix} Audio finalizado en modo ${modoAventura ? 'aventura' : 'casa'}: ${retosDelElemento.length} reto(s) disponible(s): ${retosDelElemento.join(', ')}`);
+
+            // El botón de retos de hijo3 lo decide un solo sitio, que mira el audio terminado y
+            // todo lo demás (reto abierto, fuera de rango, modo).
+            await _sincronizarRetoBtn(logPrefix);
+            if (!modoAventura) return;
+
+            // El botón propio de hijo4.
+            if (estado.hijosInicializados?.has('hijo4')) {
                 await enviarMensaje_S2({
                     tipo: TIPOS_MENSAJE.RETO.HABILITAR,
                     destino: 'hijo4',
                     datos: { paradaId: estado.paradaActual, razon: 'audio_escuchado_1vez' }
                 });
-                // Recordatorio "pulse retos" — mismo criterio que el de audio (§25.5c), pero
-                // solo tiene sentido aquí: el botón retosBtn acaba de habilitarse de verdad
-                // en esta misma rama, no en las otras dos (hijo4 no listo, o modo casa).
-                globalThis._iniciarRecordatorioReto?.();
-            } else if (tieneRetos && modoAventura) {
-                (globalThis.logger || console).warn(`${logPrefix} Audio finalizado en modo aventura, ${retosDelElemento.length} reto(s) disponible(s) pero hijo4 no está listo - botón no habilitado`);
-                estado.retoActual.id = retosDelElemento[0];
-                estado.retoActual.disponible = true;
-                estado.retoActual.cola = retosDelElemento;
-                estado.retoActual.colaCompletados = new Set();
-            } else if (tieneRetos) {
-                (globalThis.logger || console).info(`${logPrefix} Audio finalizado en modo casa, ${retosDelElemento.length} reto(s) disponible(s) pero no habilitado automáticamente`);
-                estado.retoActual.id = retosDelElemento[0];
-                estado.retoActual.disponible = true;
-                estado.retoActual.cola = retosDelElemento;
-                estado.retoActual.colaCompletados = new Set();
-            } else {
-                await _audioFinalizadoSinReto(audioId, estado, logPrefix);
             }
+
+            // Recordatorio "pulse retos" — mismo criterio que el de audio (§25.5c). Solo si queda
+            // algún reto por hacer: volver a escuchar el audio de una parada con sus retos ya
+            // hechos no lo arranca otra vez. Antes de cada aviso comprueba él mismo que el botón
+            // esté encendido (_botonRetosEncendido).
+            const quedaReto = (estado.retoActual.cola || []).some(id => !estado.retoActual.colaCompletados?.has(id));
+            if (quedaReto) globalThis._iniciarRecordatorioReto?.();
         }
 
         // Botón de saltar audio no disponible (#audio-action-skip, solo visible cuando
