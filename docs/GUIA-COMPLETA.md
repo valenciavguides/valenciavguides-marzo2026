@@ -2052,7 +2052,7 @@ Los handlers de datos de aventuras están extraídos en el módulo `js/controlad
 |---------|----------------|--------------|
 | Un audio concreto (cache-miss en hijo3) | `DATOS.SOLICITAR_AUDIOS { audioId }` | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` — resuelve solo ese id vía `cargarAudios()`, no reenvía la aventura |
 | Textos narrativos | `DATOS.SOLICITAR_TEXTOS` | `DATOS.CARGAR_TEXTOS` |
-| Un reto concreto (cache-miss en hijo4) | `DATOS.SOLICITAR_RETOS { retoId }` | `RETO.MOSTRAR { retoId, retosArray: [reto], idioma }` — resuelve solo ese id vía `cargarRetos()`, no reenvía la aventura |
+| Un reto concreto (cache-miss en hijo4) | `DATOS.SOLICITAR_RETOS { retoId }` | `RETO.MOSTRAR { retoId, retosArray: [reto], contexto: 'solicitud_hijo', idioma }` — resuelve solo ese id vía `cargarRetos()`, no reenvía la aventura |
 
 Los tres handlers resuelven bajo demanda con `js/data-loader.js` — `cargarTextos()`, `cargarAudios()`, `cargarRetos()` — sin precargar ningún array bulk (protección pasiva por parada, ver §16). El de textos (`DATOS.SOLICITAR_TEXTOS`, en `js/controladores-padre.js`) importa `data-loader.js` de forma dinámica y llama a `cargarTextos(aventura, idioma)`: no hay ningún global de textos del que leer. El handler de `SOLICITAR_DATOS_PARADAS` está en Script 1: lee de `DATOS_PADRE[av][id].elementosIDpadre` con `normalizarParadas_S1`, usando `globalThis.aventuraSeleccionada` e `idiomaSeleccionado || 'es'`. Responde solo a `hijo5`.
 
@@ -4610,7 +4610,7 @@ El latido no depende del modo: el padre lo enciende una vez al cargar y está si
 
 El intervalo del latido se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s, ajustado por calidad de conexión — y se fija al encenderlo, una sola vez. El pulso `SISTEMA.HEARTBEAT` se envía a los iframes supervisados de `iframesRegistrados` que ya completaron su apretón de manos (Map dinámico de `mensajeria.js`, poblado por los cargadores antes de asignar el `src`); encenderlo es una llamada directa, sin ningún mensaje de por medio, ni al propio padre ni a los hijos.
 
-**Por qué la llamada directa (no self-message):** el padre enciende su propio latido llamando a `globalThis.mensajeria.iniciarHeartbeat()` — sin mensaje y sin destino que resolver. Un auto-mensaje aquí no serviría: el bus exige `destino` y rechaza el envío sin lanzar excepción (§21.2), así que un `catch` alrededor no se enteraría del fallo.
+**Por qué la llamada directa (no self-message):** el padre enciende su propio latido llamando a `globalThis.mensajeria.iniciarHeartbeat()` — sin mensaje y sin destino que resolver. Un auto-mensaje aquí no serviría: el bus exige `destino` y rechaza el envío sin lanzar excepción (§8.1), así que un `catch` alrededor no se enteraría del fallo.
 
 Cuando el modo vuelve a CASA, `_transicionarAModoCasa` elimina `localStorage['vv_aventura_iniciada']`, `['vv_progreso']` y `['vv_paradas_completadas']` — con **dos excepciones**, y basta con que se dé una para que no borre nada: en modo dev (`globalThis._devModeActivo === true`, ver §24) y cuando el cambio de modo viene marcado como reanudación de sesión (`mensaje.datos.restaurado === true`, §9.10) — reanudar no es abandonar, y sin ese segundo guard una sesión guardada en CASA sin dev se borraría a sí misma en el instante de restaurarse. Razón: la propia activación en dev entra en CASA como paso de bootstrap (atajo para saltar pago/código), no como abandono real — sin esta excepción, el progreso recién guardado se autoborraría en el instante de activar, y una recarga posterior nunca ofrecería el modal de reanudación. El flujo real de abandono/fin (`limpiarDatosAventura()`, `js/reciclaje-digital.js`) es independiente de esto y sigue limpiando todo por completo, en dev o no.
 
@@ -10306,32 +10306,34 @@ Nota aparte: si la pestaña *completa* del padre (no solo el iframe de hijo1) pa
 
 ### 25.14. Error de GPS: la imagen de señal perdida
 
-Hay dos overlays distintos relacionados con GPS que no deben confundirse:
+Hay tres avisos distintos relacionados con el GPS que no deben confundirse:
 
-**Overlay A — Fuera del radio físico** (3 pantallas en el padre, según distancia — ya documentado en §25.7/§31.4): se activa cuando el usuario está a más del rango real de la parada o tramo actual (15m parada / `toleranciaGPS` tramo). Es una advertencia de posición, no de señal.
+**Overlay A — Fuera del rango del elemento actual** (4 pantallas en el padre, una por franja de distancia — §25.7/§31.4): se activa cuando el usuario está a más del rango real de la parada o tramo actual (15m parada / `toleranciaGPS` tramo). Es una advertencia de posición, no de señal.
 
-**Overlay B — Fuera de la zona de la aventura** (`#gps-out-of-range-overlay` en el padre): reutiliza la misma imagen y el mismo componente que el Overlay A, pero para dos comprobaciones de distancia real distintas y más amplias — el usuario está a más de 2.000m del objetivo actual (§31.4), o a más de 5km de la ruta completa de la aventura (§25.17/§31.5, chequeo anti-uso-fraudulento). No se activa por precisión GPS: una lectura imprecisa tiene su propio aviso (`#gps-precision-overlay`, §31.4), y la comprobación de los 5 km ignora las lecturas con más de 100 m de margen de error (§31.5).
+**Overlay B — Fuera de la zona de la aventura** (`#gps-out-of-range-overlay` en el padre, `fotogpserror.png`): exclusivo de la comprobación de más de 5km de la ruta completa de la aventura (§25.17/§31.5, chequeo anti-uso-fraudulento). No lo dispara la distancia al objetivo actual —más de 2.000m es la franja «perdido» del Overlay A, con pantalla e imagen propias (`#foto-perdido-overlay`, `foto-rango-perdido.png`)— ni la precisión GPS: una lectura imprecisa tiene su propio aviso (`#gps-precision-overlay`, §31.4), y la comprobación de los 5 km ignora las lecturas con más de 100 m de margen de error (§31.5).
+
+**Overlay C — Sin señal o sin permiso** (`#gps-signal-overlay` en el padre, `imagen-no-gps.png` — §31.2/§31.3): el navegador no entrega ninguna posición (permiso denegado, señal no disponible o tiempo agotado). Lo muestra `showGpsSignalOverlay()`; es el que recoge la tabla de errores de más abajo.
 
 **¿Qué ve el usuario en el Overlay B?**
 
 Una imagen a pantalla completa (`imagenes/imagenes-aplicación/fotogpserror.png`) con dos botones:
 
-- **🛰️🔄** — botón de reintento: lanza `getCurrentPosition()`, procesa la nueva lectura (sea cual sea su precisión) y cierra el overlay — la distancia recalculada decide, a través del pipeline normal, si sigue justificando el aviso.
+- **🛰️🔄** — botón de reintento (`#gps-error-action`): arranca una cuenta atrás de 15 segundos, abre el panel «Próxima parada» (§31.6) y lanza `getCurrentPosition()`; cuando llega la lectura la procesa (sea cual sea su precisión) y cierra el overlay con su panel. `_check5kmFromRoute()` lo oculta al declarar el bloqueo si el overlay ya está creado en el documento (§31.5).
 - **✗** — botón de cierre: descarta el overlay sin reintentar (el `watchPosition` sigue activo en segundo plano).
 
 El overlay solo aparece en **modo AVENTURA**. En modo CASA se suprime aunque la distancia sea grande.
 
-**Tipos de error GPS y qué hace el sistema:**
+**Tipos de error GPS y qué hace el sistema (Overlay C):**
 
 | Error | Código | Comportamiento |
 |---|---|---|
-| Permiso denegado | `PERMISSION_DENIED` | Muestra overlay, no reintenta (el usuario debe activar el permiso en ajustes del dispositivo) |
-| Señal no disponible | `POSITION_UNAVAILABLE` | Muestra overlay |
-| Timeout | `TIMEOUT` | Reintenta hasta `MAX_REINTENTOS_GPS` (3) veces. La espera antes de lanzar cada reintento crece **linealmente**: `500 * est.gps.retries` ms, o sea 500 → 1000 → 1500 ms. Si agota los reintentos, muestra overlay |
+| Permiso denegado | `PERMISSION_DENIED` | Muestra el Overlay C y cancela el `watchPosition`; no reintenta (el usuario debe activar el permiso en ajustes del dispositivo) |
+| Señal no disponible | `POSITION_UNAVAILABLE` | Muestra el Overlay C; el `watchPosition` sigue registrado |
+| Timeout | `TIMEOUT` | Muestra el Overlay C desde el primer timeout y, a la vez, reintenta hasta `MAX_REINTENTOS_GPS` (3) veces. La espera antes de lanzar cada reintento crece **linealmente**: `500 * est.gps.retries` ms, o sea 500 → 1000 → 1500 ms. |
 
 El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, maximumAge: 0 }`. En cada reintento por timeout, `enableHighAccuracy` se baja a `false` y el `timeout` se recalcula desde una base propia de 15 s que sí se duplica en cada intento, con tope de 60 s: 15 s → 30 s → 60 s. No parte de los 35 s del watch principal, así que el primer reintento concede **menos** tiempo que el intento original. Estos errores son de **señal** (sin datos de posición en absoluto) — un caso distinto de precisión baja (hay posición, pero con un margen de error grande), que no bloquea nada.
 
-> Esta sección cubre el Overlay B. Para el resto de situaciones de error que el usuario puede encontrar durante la aventura (sin internet, GPS sin señal, GPS sin permiso, usuario a >5 km de la ruta), ver **§25.17**.
+> Esta sección distingue los tres avisos. Para el resto de situaciones de error que el usuario puede encontrar durante la aventura (sin internet, GPS sin señal, GPS sin permiso, usuario a >5 km de la ruta), ver **§25.17**.
 
 ---
 
@@ -10474,11 +10476,12 @@ Con más de 50 m de margen de error (`CONFIG.GPS.PRECISION_MINIMA`), hijo2 no sa
 
 Alejarse de la parada activa (más allá de 15 m, o de la tolerancia del tramo) no bloquea nada de inmediato — la aplicación escala el aviso según cuánta distancia queda por recorrer:
 
-- **Entre 16 y 50 metros**: aparece la imagen de "fuera de rango" — la ayuda se ofrece al instante, sin esperar.
-- **Entre 51 metros y 2 kilómetros**: aparece la imagen de "lejos de tu objetivo" — la ayuda se ofrece al instante, sin esperar.
-- **Más de 2 kilómetros**: aparece la misma imagen que la comprobación de más de 5 km de la ruta (siguiente apartado) — al usuario le queda claro que algo no cuadra, sin necesidad de un mensaje distinto para cada caso.
+- **Hasta 50 metros** (desde el límite del rango real): aparece la imagen de «fuera de rango» (`foto-rango-fuera.png`).
+- **Entre 50 y 150 metros**: aparece la imagen de «te has desviado de la ruta» (`foto-rango-desviado.png`).
+- **Entre 150 metros y 2 kilómetros**: aparece la imagen de «lejos de tu objetivo» (`foto-rango-lejos.png`).
+- **Más de 2 kilómetros**: aparece la imagen de «muy lejos de tu objetivo» (`foto-rango-perdido.png`), una pantalla propia, distinta de la del bloqueo de más de 5 km de la ruta (siguiente apartado).
 
-En todos los casos, el botón de ubicación se habilita para que el usuario pueda pedir una línea en el mapa hacia su destino — pero esa línea nunca aparece sola: solo se dibuja si el usuario pulsa el botón explícitamente. Mientras el aviso está activo, los botones de vídeo y avanzar quedan deshabilitados; los de mapa completo y mapa vintage se habilitan junto con el de ubicación (los tres ayudan a un usuario perdido a orientarse); el botón de imagen sigue disponible.
+En todos los casos, el botón de ubicación se habilita para que el usuario pueda pedir una línea en el mapa hacia su destino — pero esa línea nunca aparece sola: solo se dibuja si el usuario pulsa el botón explícitamente. Los botones de vídeo y avanzar se deshabilitan cuando se agota la gracia de la franja (7 minutos en la primera, 15 en la segunda) y al instante en las otras dos; los de mapa completo y mapa vintage se habilitan junto con el de ubicación (los tres ayudan a un usuario perdido a orientarse); el botón de imagen sigue disponible.
 
 Detalle técnico completo en §31.4.
 
@@ -10488,7 +10491,7 @@ Detalle técnico completo en §31.4.
 
 Esto no es un error técnico sino una comprobación de integridad: si el GPS sitúa al usuario a más de 5 kilómetros de cualquier punto de la aventura, la aplicación entiende que algo no encaja —puede que el teléfono esté dando coordenadas erróneas, o que alguien intente completar la aventura desde casa.
 
-En ese caso aparece la misma imagen que la del apartado anterior, con su propio mensaje, y el **botón de avanzar se bloquea** de forma persistente hasta que el GPS vuelva a situar al usuario dentro del área de la ruta. Esta comprobación se hace con un margen de throttling de 3 minutos para no saturar el procesamiento.
+A la tercera comprobación seguida fuera de esos 5 km aparece un cartel propio (`fotogpserror.png`) y el **botón de avanzar se bloquea** de forma persistente hasta que una comprobación vuelva a situar al usuario dentro del área de la ruta. La comprobación se hace como mucho una vez cada 3 minutos y no cuenta las lecturas con más de 100 m de margen de error.
 
 ---
 
@@ -10499,7 +10502,7 @@ Si el audio de una parada falla y la aventura queda en un estado donde la parada
 1. **Inmediato:** cuando el audio falla, la aplicación lo marca como "reproducido" internamente y comprueba si ya se cumplen el resto de condiciones para completar la parada (llegada física + reto). Si es así, la completa directamente.
 2. **Recordatorio de rescate:** cada 60 segundos, la aplicación mira cuánto lleva el usuario parado en el punto actual. A los 8, 10, 12 y 14 minutos le recuerda que hay una salida y le ofrece abrir el asistente. No completa nada por su cuenta: quien decide es el usuario.
 
-El usuario no ve ningún aviso especial en estos casos — la aventura simplemente avanza con normalidad.
+Lo que ve el usuario: en el control de audio del padre el botón principal queda deshabilitado y aparece el de saltar (§25.5f); si el fallo coincide con una pérdida de conexión, aparece además el cartel de sin internet (§31.1); y si sigue parado en el punto, el recordatorio de rescate (§25.19). Detalle técnico en §31.7.
 
 ---
 
@@ -10773,9 +10776,13 @@ Nota de arquitectura: el audio está centralizado en el padre; `audio-hijo3.html
          → registrarControladoresApp()
            Migra handlers tempranos si los hay
 
-~450 ms  Script 1 registra todos los controladores del padre:
-         HIJO_PREPARADO, HIJO_LISTO, CAMBIO_MODO, GPS.*,
-         NAVEGACION.*, DATOS.*, AUDIO.*, RETO.*, AVENTURA.*, TEMPORIZADOR.*
+~450 ms  Script 1 registra los controladores del arranque:
+         HIJO_PREPARADO, HIJO_LISTO, CAMBIO_MODO, HEARTBEAT_RESPONSE,
+         APLICACION_INICIALIZADA, UI.ACCION_USUARIO, NAVEGACION.SOLICITAR_DATOS_PARADAS
+         y DATOS.SOLICITAR_AUDIOS / SOLICITAR_TEXTOS / SOLICITAR_RETOS (js/controladores-padre.js)
+         Script 2, cuando termina su propia espera, registra los demás:
+         RETO.*, NAVEGACION.* (GPS, cambio de parada, llegada, mapas), AUDIO.*, DATOS.*,
+         SELECCION.*, AVENTURA.*, TEMPORIZADOR.*, PARADAS.*, CHAT.*, MAPA_COMPLETO.SOLICITAR_DATOS…
 
 ~500 ms  La pantalla de selección recibe su src (el único iframe del arranque):
          seleccion → En-busca-del-tesoro.html
@@ -10895,7 +10902,7 @@ Todo el tráfico entre padre e hijos pasa por `js/mensajeria.js` usando `postMes
     id:                   'msg-1712456789-ab3f',         // generarIdUnico('msg')
     timestamp:            1712456789123,
     origen:               'hijo5',                       // lo pone el bus; sin él se descarta
-    destino:              'padre',                        // opcional
+    destino:              'padre',                        // obligatorio: 'padre', un iframe registrado o 'broadcast'
     requiereConfirmacion: true                            // opcional
 }
 ```
@@ -10953,9 +10960,9 @@ registrarControlador(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, async (mensaje) => 
 }
 ```
 
-#### La cola de mensajes
+#### Un destino sin registrar: el envío no sale
 
-Si un mensaje llega antes de que el destino esté registrado, va a `colaMensajes`. Cuando `marcarScript2Listo()` se llama, la cola se vacía enviando los mensajes en orden.
+Un envío no se guarda para más tarde: si el `destino` no es la ventana de arriba ni un iframe registrado en este frame, el mensaje no sale, el bus lo anota (`logger.warn`: «Destino desconocido…») y `enviarMensaje` resuelve `false`. Lo que sí hace fila es la **ejecución** de los handlers: cada mensaje recibido se encadena detrás del anterior del mismo tipo (`_colaPorTipo`, más abajo). `marcarScript2Listo()` anota en el state-manager (`script2Listo`) que los controladores de Script 1 y de Script 2 están registrados; no envía nada.
 
 #### Las confirmaciones (ACK / timeout)
 
@@ -11304,7 +11311,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `NAVEGACION.GPS.ACTIVAR` | Hijo 2 (al pulsar botón GPS) | `_hdl_NAVEGACION_GPS_ACTIVAR`: solo se procesa en modo AVENTURA (en otro modo contesta con un `SISTEMA.ERROR`); si `estado.paradaListaParaAvanzar` → llama `progresarSiguienteElemento()`, que ya revela el siguiente elemento; en todos los casos llama después `activarGPS()` (inicia `watchPosition`) | `SISTEMA.ERROR` (`contexto: 'gps_activar_restringido'` si el modo no es AVENTURA, `'gps_activar'` si algo falla); si sale bien, ninguna | Quien lo pidió | El padre gestiona GPS y progresión; hijo2 envía la señal desde el botón `#btnAvanzar` |
 | `NAVEGACION.GPS.RESTRINGIDO` | Hijo 2 (en cada posición en que el usuario está fuera del rango real del elemento activo; `{ idParada, distancia, rangoMaximo, timestampSalioDeRango }`) | `_hdl_NAVEGACION_GPS_RESTRINGIDO`: con la `distancia` del mensaje elige la pantalla de aviso —más de 2000 m, «perdido»; más de 150 m, «lejos»; más de 50 m, «desviado»; el resto, «fuera de rango», con `rangoMaximo`— y la muestra; se repite en cada posición mientras el usuario sigue fuera de rango | (ninguna) | — | Que la pantalla de aviso del padre muestre la distancia real |
 | `DATOS.SOLICITAR_COORDENADAS` | Hijo 2 (a los 3 s de `PADRE_CONFIRMA_HIJO_LISTO`, solo si aún no tiene las coordenadas) | `_hdl_DATOS_SOLICITAR_COORDENADAS`: lee `__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas`; sin aventura elegida o sin coordenadas no responde | `DATOS.CARGAR_COORDENADAS` (`{ aventura, idioma, coordenadas, total, timestamp }`: paradas, tramos y referencias) | Hijo 2 | Respaldo: hijo2 no tiene datos propios y los pide al padre si no le han llegado |
-| `DATOS.SOLICITAR_AUDIOS` | Hijo 3, cuando `cargarYReproducirAudio()` no encuentra un `audioId` en su caché local acotada (miss — parada visitada hace más de 1 salto, o el `AUDIO.REPRODUCIR_REQUEST` original no incluyó `audioData`) | `js/controladores-padre.js`: resuelve ese `audioId` concreto vía `cargarAudios(aventura, idioma)` — no reenvía la aventura completa | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` — el mismo mensaje que usa el flujo normal, no un tipo aparte | Hijo 3 | Recuperación puntual de un audio fuera de la caché de 2 entradas, sin reexponer el resto de la aventura |
+| `DATOS.SOLICITAR_AUDIOS` | Hijo 3, cuando `cargarYReproducirAudio()` no encuentra un `audioId` en su caché local acotada (miss — parada visitada hace más de 1 salto, o el `AUDIO.REPRODUCIR_REQUEST` original no incluyó `audioData`) | `js/controladores-padre.js`: resuelve ese `audioId` concreto vía `cargarAudios(aventura, idioma)` — no reenvía la aventura completa | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData: { id, title, file }, autoplay: false, contexto: { motivo: 'solicitud_hijo' } }` — el mismo mensaje que usa el flujo normal, no un tipo aparte | Hijo 3 | Recuperación puntual de un audio fuera de la caché de 2 entradas, sin reexponer el resto de la aventura |
 | `DATOS.SOLICITAR_RETOS` | Hijo 4, cuando `mostrarReto()` no encuentra un `retoId` en su caché local acotada | `js/controladores-padre.js`: resuelve ese `retoId` concreto vía `cargarRetos(aventura, idioma)` | `RETO.MOSTRAR { retoId, retosArray: [reto], idioma }` — el mismo mensaje que usa el flujo normal | Hijo 4 | Ídem para retos |
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo 5 | Lee la lista completa de paradas con sus nombres localizados | `NAVEGACION.RESPUESTA_DATOS_PARADAS` (array de paradas con nombre, número y estado) | Hijo 5 | Hijo 5 necesita los nombres de las paradas para renderizar los botones de la barra de navegación |
 | `CHAT.CERRAR` | Hijo 6 (asistente) | `_hdl_CHAT_CERRAR`: oculta el iframe del asistente con `cerrarChatSoporte()` y devuelve `true`; si esa función no existe, deja un `error` en el log y devuelve `false` | (ninguna) | — | El usuario pulsó el botón de cerrar dentro del iframe de soporte |
@@ -12237,7 +12244,7 @@ Cuando se completa la parada (condiciones `pending.llegada + pending.audio + ret
 
 `estadoComponente.btnAvanzarCompletadoPorPadre` (booleano, `coordenadas-hijo2.html`) resuelve esto quedando "pegado" a `true` desde que el padre confirma hasta el siguiente cambio de elemento: mientras está a `true`, `_actualizarBotonGps()` corta antes de la lógica de distancia y deja el botón habilitado sin importar lo que diga el GPS en ese tick.
 
-- **Se activa** en el handler `CONTROL.HABILITAR` de hijo2 — pero solo si `datos.razon` contiene la subcadena `"completad"` (cubre `tramo_completado`, `parada_completada`, `parada_completada_fallback` y `parada_completada_fallback2`, las cuatro razones que el padre envía junto con `estado.paradaListaParaAvanzar = true`). La razón `usuario_en_zona` (recuperación del bloqueo por estar a más de 5km de la ruta, §31.5) llega por el mismo `CONTROL.HABILITAR { control: 'btnAvanzar' }` pero **no** activa el flag — no representa una llegada real al elemento activo, así que debe dejar que la lógica normal de proximidad GPS siga decidiendo; activarlo ahí dejaría avanzar al usuario sin haber completado nada.
+- **Se activa** en el handler `CONTROL.HABILITAR` de hijo2 — pero solo si `datos.razon` contiene la subcadena `"completad"` (cubre `tramo_completado`, `parada_completada`, `parada_completada_fallback` y `parada_completada_fallback2`, las cuatro razones que el padre envía junto con `estado.paradaListaParaAvanzar = true`). La razón `de_vuelta_en_zona` (recuperación del bloqueo por estar a más de 5km de la ruta, §31.5) llega por el mismo `CONTROL.HABILITAR { control: 'btnAvanzar' }` pero **no** activa el flag — no representa una llegada real al elemento activo, así que debe dejar que la lógica normal de proximidad GPS siga decidiendo; activarlo ahí dejaría avanzar al usuario sin haber completado nada.
 - **Se desactiva** en el handler `CONTROL.DESHABILITAR` (cualquier razón), en `NAVEGACION.CAMBIO_PARADA` — un elemento nuevo nunca hereda el "completado" del anterior — y en cualquier `SISTEMA.CAMBIO_MODO` vía `_resetarEstadoParaModo()` (§24, Paso 8), para que un `btnAvanzarCompletadoPorPadre=true` genuino en AVENTURA no sobreviva a una vuelta a CASA y deje `btn-avanzar` habilitado sin que el usuario haya completado nada en la nueva sesión.
 
 Cubierto por la suite de arribo y progresión (`tests/e2e/15-arribo-y-progresion.spec.js`) y por `tests/e2e/38-polyline-y-reset-botones-cambio-modo.spec.js` (PB-2, el caso de cambio de modo).
@@ -12424,7 +12431,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 | Código | Icono del botón | Motivo del icono |
 |---|---|---|
 | 2 (POSITION_UNAVAILABLE) | 🛰️🔄 | GPS sin más contexto — reintento genérico |
-| 3 (TIMEOUT) | 🛰️⏳ | El reloj de arena marca específicamente "se agotó el tiempo de espera (30s)", no "no disponible" |
+| 3 (TIMEOUT) | 🛰️⏳ | El reloj de arena marca específicamente "se agotó el tiempo de espera", no "no disponible" |
 
 Además, botón de cierre ✗ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha, independiente del botón de reintento.
 
@@ -12520,6 +12527,8 @@ Ubicación, mapa completo y mapa vintage se agrupan juntos — los tres ayudan a
 
 Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de que la app sigue activa) y nueva ocasión de pulsar reintentar — el ciclo se repite mientras el usuario siga fuera de rango. Volver dentro de rango (`GPS.DENTRO_DE_RANGO`) limpia todos los tiempos de espera pendientes (`_limpiarSnoozeOverlaysDistancia()`), para que la próxima salida de rango empiece de cero.
 
+Ese ciclo es el de las 4 pantallas de franja, que hijo2 realimenta en cada posición. El aviso de precisión y el overlay del bloqueo de 5 km se piden una sola vez —hijo2 envía `GPS.PRECISION_INSUFICIENTE` una vez por episodio de mala precisión, y `_check5kmFromRoute()` muestra el suyo al declarar el bloqueo—: cerrados con ✗, no reaparecen hasta un episodio o un bloqueo nuevos, y entonces solo si su tiempo de espera ha pasado.
+
 **Banda inferior del botón de reintento:** en todas las pantallas de esta familia, la imagen ocupa el espacio flexible superior de `.gps-inner` (`object-fit:contain`, no `position:absolute` cubriendo todo el recuadro) y el botón 🛰️🔄 vive dentro de `.gps-banda-inferior`, una franja de fondo oscuro con altura propia (mín. 5.5rem) debajo de la imagen — así el botón nunca tapa parte de la foto. La píldora de distancia (arriba) y el botón de cierre (esquina superior derecha) siguen posicionados en absoluto sobre la imagen, sin cambios — salvo `gps-precision-overlay` (aviso de precisión), que no tiene píldora de distancia porque no mide una distancia.
 
 **Precisión GPS insuficiente (`NAVEGACION.GPS.PRECISION_INSUFICIENTE`/`PRECISION_RECUPERADA`):** antes de calcular cualquiera de las 4 franjas (y antes incluso de comprobar llegada), hijo2 compara el `accuracy` de la lectura contra `CONFIG.GPS.PRECISION_MINIMA` (50m, `js/config.js`). Si `accuracy` supera ese umbral, ninguna conclusión de distancia es fiable — el punto real podría estar en cualquier lugar dentro de ese círculo de error — así que hijo2 no calcula franja ni detecta llegada con esa lectura, y en su lugar notifica al padre para que muestre `#gps-precision-overlay` (`imagen-no-gps.png`, mismo icono que usa `showGpsSignalOverlay()` para permiso denegado/sin señal — pero un overlay y mecanismo propios, no ese mismo, porque esa función tiene lógica de reintento específica por código de error 1/2/3 que no encaja aquí). No toca `estado.usuarioFueraRango` ni el audio del padre ni el `retosBtn` de hijo3 — es ortogonal a las 4 franjas de distancia, puede aparecer en cualquier momento sea cual sea la franja real.
@@ -12540,13 +12549,13 @@ Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de q
 
 **Qué ocurre:** el GPS del usuario devuelve una posición a más de 5 km de cualquier punto de la ruta (parada, inicio/fin de tramo o waypoint). Esto indica que el usuario no está en Valencia y no puede realizar la aventura de forma legítima.
 
-**Cuándo se chequea:** `_check5kmFromRoute(lat, lng)` (`codigo-padre.html`) se llama desde `_watchPositionSuccess()` en cada posición, y solo actúa si el modo actual es AVENTURA. Throttling de 3 minutos vía `globalThis.__VV_5KM_LAST_CHECK`: si la última comprobación fue hace menos de 3 minutos, la llamada no hace nada. Una lectura con más de 100 m de margen de error (`PRECISION_MAXIMA_M`) se ignora entera: no cuenta ni a favor ni en contra. No requiere timer independiente — usa el GPS que ya está corriendo.
+**Cuándo se chequea:** `_check5kmFromRoute(lat, lng, accuracy)` (`codigo-padre.html`) se llama desde `_watchPositionSuccess()` en cada posición, y solo actúa si el modo actual es AVENTURA. Throttling de 3 minutos vía `globalThis.__VV_5KM_LAST_CHECK`: si la última comprobación fue hace menos de 3 minutos, la llamada no hace nada. Una lectura con más de 100 m de margen de error (`PRECISION_MAXIMA_M`) se ignora entera: no cuenta ni a favor ni en contra. No requiere timer independiente — usa el GPS que ya está corriendo.
 
 **Cómo mide la distancia:** recorre las coordenadas de la aventura activa (`__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas`) y calcula, con `calcularDistancia()` (`js/utils.js`, fórmula Haversine), la distancia a cada punto candidato de cada elemento (`coordenadas`, `inicio`, `fin`, `waypoints`), quedándose con la mínima encontrada y cortando el recorrido en cuanto encuentra un punto a menos de 5.000m (`LIMIT_M`) — no necesita comprobar el resto de la ruta si ya hay un punto cercano.
 
-**Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true` a la tercera comprobación seguida fuera de los 5 km, `LECTURAS_PARA_BLOQUEAR`; una comprobación dentro pone la cuenta a cero):** overlay `#gps-out-of-range-overlay` (`fotogpserror.png`) con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de N km", con la distancia medida) — distinto del texto que usa el disparador de §31.4 ("Ubicación a más de 2 km de tu objetivo"), para que un lector de pantalla diga la causa real y no confunda ambos casos. El botón de reintento 🛰️🔄 (`#gps-error-action`) se oculta (repetir la lectura GPS no resuelve estar fuera de Valencia); el botón de cierre ✗ sigue visible y solo descarta el aviso en pantalla, sin desbloquear nada. En paralelo, el padre envía `CONTROL.DESHABILITAR` a hijo2 con `{ control: 'btnAvanzar', razon: 'usuario_fuera_zona' }`; hijo2 marca `estadoComponente.btnAvanzarDeshabilitadoExternamente = true`, que `_actualizarBotonGps()` comprueba antes que cualquier otra condición — ninguna actualización de proximidad posterior puede reactivar el botón mientras el flag siga activo.
+**Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true` a la tercera comprobación seguida fuera de los 5 km, `LECTURAS_PARA_BLOQUEAR`; una comprobación dentro pone la cuenta a cero):** overlay `#gps-out-of-range-overlay` (`fotogpserror.png`) con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de N km", con la distancia medida), para que un lector de pantalla diga la causa real. El overlay se muestra una vez, al declarar el bloqueo, y cada pantalla de esta familia oculta a las otras cinco al mostrarse (`_ocultarOtrasPantallasDistanciaGPS()`). `_check5kmFromRoute()` oculta el botón de reintento 🛰️🔄 (`#gps-error-action`) —repetir la lectura GPS no resuelve estar fuera de Valencia— si el overlay ya está creado en el documento; `_ensureGpsOverlay()` lo crea la primera vez que se muestra, así que en el primer bloqueo de la sesión el botón queda a la vista. El botón de cierre ✗ solo descarta el aviso en pantalla, sin desbloquear nada. En cada comprobación mientras dura el bloqueo, el padre envía `CONTROL.DESHABILITAR` a hijo2 con `{ control: 'btnAvanzar', razon: 'fuera_de_zona_5km' }`; hijo2 marca `estadoComponente.btnAvanzarDeshabilitadoExternamente = true`, que `_actualizarBotonGps()` comprueba antes que cualquier otra condición — ninguna actualización de proximidad posterior puede reactivar el botón mientras el flag siga activo.
 
-**Recuperación:** en la siguiente posición válida que sí caiga dentro de los 5km, `__VV_5KM_BLOCKED` vuelve a `false`, se restaura el botón de reintento, se llama `hideGpsOutOfRangeOverlay()` y se envía `CONTROL.HABILITAR` a hijo2 (`razon: 'usuario_en_zona'`), que limpia el flag externo y deja que la lógica normal de proximidad vuelva a decidir el estado del botón.
+**Recuperación:** en la siguiente comprobación que caiga dentro de los 5 km, `__VV_5KM_BLOCKED` vuelve a `false`, se restaura el botón de reintento, se llama `hideGpsOutOfRangeOverlay()` y se envía `CONTROL.HABILITAR` a hijo2 (`razon: 'de_vuelta_en_zona'`), que limpia el flag externo y deja que la lógica normal de proximidad vuelva a decidir el estado del botón.
 
 **`#gps-out-of-range-overlay` (`fotogpserror.png`) es exclusivo de este bloqueo** — un único icono con una cifra impresa fija (2KM o 5KM) no podría ser correcto para dos umbrales reales distintos a la vez, así que "perdido" tiene su propio overlay e imagen por separado (`#foto-perdido-overlay`/`foto-rango-perdido.png`, §31.4); este overlay solo se muestra desde `_check5kmFromRoute()`. `btnAvanzarDeshabilitadoExternamente` (deshabilitación persistente de `btnAvanzar`) es exclusivo de este caso — ninguna de las 4 franjas de §31.4 lo usa. Una lectura con más de 100 m de margen de error no cuenta para este bloqueo; si la precisión es mala, es el aviso independiente de §31.4 (`gps-precision-overlay`) el que se muestra, no este.
 
@@ -12556,9 +12565,9 @@ Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de q
 
 ### 31.6 Mecánica compartida del panel "Próxima parada"
 
-El botón 🛰️🔄 de `#gps-out-of-range-overlay` (anti-piratería, §31.5) tiene cuenta atrás de 15 segundos y llama a `getCurrentPosition()` manualmente, igual que el resto de pantallas de esta familia (§31.4). El reintento introduce la posición recibida en el pipeline normal, y el overlay sigue visible mientras la distancia recalculada siga estando fuera de rango.
+El botón 🛰️🔄 de `#gps-out-of-range-overlay` (anti-piratería, §31.5) arranca una cuenta atrás de 15 segundos y llama a `getCurrentPosition()`; las pantallas de franja y la de precisión (§31.4) piden la posición sin cuenta atrás (`_gpsReintentarDesdeOverlayDistancia()`). Cuando llega la lectura, el padre la introduce en el pipeline normal y cierra el overlay junto con el panel «Próxima parada»; si la petición falla, cierra el overlay y cede a `showGpsSignalOverlay()` (§31.2/§31.3).
 
-**Panel "Próxima parada":** el mismo click que pide la posición nueva abre además `showNextEntityOverlay()` — nombre, tipo y coordenadas del siguiente elemento de la ruta, con botón 📋 para copiar coordenadas y botón 📍 para centrar el mapa ahí. Es funcionalidad propia de `#gps-out-of-range-overlay` desde el origen del proyecto, pensada como ayuda de navegación manual mientras el GPS reintenta obtener una posición útil — tiene sentido aquí porque el usuario está a más de 5km de TODA la ruta, así que puede necesitar reubicarse desde cero. Ninguna de las 4 pantallas de franja de §31.4 (incluida "perdido", desde que tiene overlay propio) abre este panel — su reintento (`_gpsReintentarDesdeOverlayDistancia()`) solo pide la posición nueva, porque a esas distancias el usuario ya tiene su objetivo real a la vista en el mapa principal y no necesita la ayuda adicional.
+**Panel "Próxima parada":** el mismo click que pide la posición nueva abre además `showNextEntityOverlay()` — nombre, tipo y coordenadas del siguiente elemento de la ruta, con botón 📋 para copiar coordenadas y botón 📍 para centrar el mapa ahí. Es funcionalidad propia de `#gps-out-of-range-overlay`, pensada como ayuda de navegación manual mientras el GPS reintenta obtener una posición útil — tiene sentido aquí porque el usuario está a más de 5km de TODA la ruta, así que puede necesitar reubicarse desde cero. Ninguna de las 4 pantallas de franja de §31.4 (incluida "perdido", con su overlay propio) abre este panel — su reintento (`_gpsReintentarDesdeOverlayDistancia()`) solo pide la posición nueva, porque a esas distancias el usuario ya tiene su objetivo real a la vista en el mapa principal y no necesita la ayuda adicional.
 
 **Estado de implementación:** ✅ implementado — overlay, botón, countdown y panel funcionan.
 
@@ -13154,7 +13163,7 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 
 ### 35.6b Transición entre escenas — efecto de pasar página (StPageFlip)
 
-Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma, no como un simple fundido. El mecanismo es enteramente decorativo y desacoplado del cambio de contenido real: `setScene(h)` intercambia `#scene-layer.innerHTML` de forma síncrona e inmediata, sin depender del efecto — las 19 funciones de escena usan `setScene()` igual con o sin él. Por encima, `_flipTransition(prevHTML, nextHTML)` monta una capa StPageFlip de usar-y-tirar que fotografía el antes/después, gira, y se autodestruye, revelando el `#scene-layer` real que lleva rato listo debajo.
+Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma, no como un simple fundido. El mecanismo es enteramente decorativo y desacoplado del cambio de contenido real: `setScene(h)` intercambia `#scene-layer.innerHTML` de forma síncrona e inmediata, sin depender del efecto — las 20 funciones de escena usan `setScene()` igual con o sin él. Por encima, `_flipTransition(prevHTML, nextHTML)` monta una capa StPageFlip de usar-y-tirar que fotografía el antes/después, gira, y se autodestruye, revelando el `#scene-layer` real que lleva rato listo debajo.
 
 **Librería**: [StPageFlip](https://nodlik.github.io/StPageFlip/) (paquete npm `page-flip`, licencia MIT — sin restricción de uso comercial), vendorizada en `js/vendor/page-flip.browser.js` (bundle UMD, expone `globalThis.St.PageFlip`), cargada con `<script src="js/vendor/page-flip.browser.js">` justo después del `<script>` de Leaflet y antes del `<script type="module">`. `eslint.config.js` declara `St: "readonly"` en los globals externos.
 
@@ -13170,7 +13179,7 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 
 **Por qué `useMouseEvents:true` en una capa puramente decorativa**: la propia librería añade un listener de `resize` a `window` en cada instancia; `destroy()` solo lo intenta limpiar si `useMouseEvents:true`. Con `false` se acumularía un listener muerto por transición, sin ninguna vía de limpiarlo. La no-interactividad real se fuerza por CSS (`pointer-events:none` en `.vv-flip-container`) y por las opciones `disableFlipByClick`/`showPageCorners:false`, no desactivando `useMouseEvents`.
 
-**Imperfección conocida, aceptada**: incluso con `useMouseEvents:true`, `destroy()` solo retira uno de los dos listeners de `resize` que la librería registra internamente por instancia — queda un listener muerto (`() => this.update()` sobre una instancia ya destruida) por cada transición. Confirmado que no lanza error al dispararse tras el `resize` (no hace nada visible, no toca DOM eliminado de forma que rompa). Acotado a un máximo de 18 listeners muertos para toda la vida de la página (una intro de una sola pasada, no un bucle) — se acepta en vez de parchear los internos minificados de la librería.
+**Imperfección conocida, aceptada**: incluso con `useMouseEvents:true`, `destroy()` solo retira uno de los dos listeners de `resize` que la librería registra internamente por instancia — queda un listener muerto (`() => this.update()` sobre una instancia ya destruida) por cada transición. Confirmado que no lanza error al dispararse tras el `resize` (no hace nada visible, no toca DOM eliminado de forma que rompa). Acotado a un máximo de 19 listeners muertos para toda la vida de la página (una intro de una sola pasada, no un bucle) — se acepta en vez de parchear los internos minificados de la librería.
 
 **Posición y capas** (`#stage>.vv-flip-container`, no `.vv-flip-container` a secas): StPageFlip inyecta su propia hoja de estilos con `.stf__parent{position:relative}` sobre el contenedor que se le pasa; esa regla empata en especificidad con una clase simple y gana por orden de inserción (se inyecta después que el `<style>` del propio archivo). El selector `#stage>.vv-flip-container` sube la especificidad para que `position:absolute;inset:0` sea siempre el que gana. `z-index:355` — por encima de `#jaime-band` (350) y `#overlay-layer` (300), por debajo de `#knight`/`#knight2` (400) — para que la hoja cubra también la franja donde vive la banda de texto mientras gira, sin depender de a qué velocidad relativa terminan sus respectivas animaciones.
 
@@ -13308,7 +13317,7 @@ Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
 4. Para mensajes bidireccionales (los que esperan ENTENDIDO / EFECTUADO / respuesta): verifica que la respuesta existe, viaja al `origen` correcto y se procesa dentro del timeout esperado.
 5. Resultado en tabla: `Tipo | Emisor | Receptor | Payload | Estado (✅/⚠️/❌/🕳️)`.
 6. **Call-chain deduplication:** para cada `enviarMensaje(tipo=X)`, sube el call-stack completo hacia el caller y el segundo nivel. Verifica si alguna función ancestora también emite `tipo=X` a destinatarios solapados. Si hay solapamiento, el receptor recibe el mismo mensaje dos veces en una sola acción de usuario; determina si los side effects del handler son idempotentes o dañinos. En `SISTEMA.CAMBIO_MODO`, por ejemplo, `actualizarInterfazModo` lo envía a todos los hijos una única vez, sin un segundo envío duplicado (ver §36.15, Flujo F).
-7. **Auto-mensajes (origen === destino):** `enviarMensaje()` a uno mismo no sale y avisa (para eso está `despacharLocal`, ver §21.2) — pero eso no dispensa de comprobar quién procesa realmente cada auto-envío. Un patrón a vigilar: un auto-mensaje cuyo `destino` sale de una constante de configuración que nadie asigna resuelve a `undefined` y se descarta en silencio, con la apariencia de estar funcionando. Un auto-mensaje sin handler, o con un destino que nunca resuelve, no lanza ningún error visible — es exactamente el tipo de huérfano que EJE 7 (rutas de error silenciosas) debe cruzar con este eje.
+7. **Auto-mensajes (origen === destino):** `enviarMensaje()` a uno mismo no sale y avisa (para eso está `despacharLocal`, ver §8.1) — pero eso no dispensa de comprobar quién procesa realmente cada auto-envío. Un patrón a vigilar: un auto-mensaje cuyo `destino` sale de una constante de configuración que nadie asigna resuelve a `undefined` y se descarta en silencio, con la apariencia de estar funcionando. Un auto-mensaje sin handler, o con un destino que nunca resuelve, no lanza ningún error visible — es exactamente el tipo de huérfano que EJE 7 (rutas de error silenciosas) debe cruzar con este eje.
 8. **Descentralización:** cualquier `addEventListener('message', ...)` —con `globalThis.`, con `window.` o a secas— que NO sea el listener central de `mensajeria.js` es una señal de alerta, no un patrón válido más. Localízalo, identifica qué tipos de mensaje procesa y por qué no pasa por `registrarControladorSeguro`/`registrarControlador`. Si no hay una razón documentada (p.ej. necesidad de capturar mensajes antes de que `mensajeria.js` esté listo), repórtalo como ⚠️ y propone migrarlo al canal centralizado.
 9. **Autoenvío del padre con `destino: 'padre'`:** distinto del punto 7 (que cubre `origen === destino` sin handler) — aquí el problema es de enrutamiento, no de handler ausente. Un **hijo** direcciona sus mensajes al padre con `destino: 'padre'`; si un módulo que corre dentro del propio padre (p.ej. `funciones-mapa.js`, importado directamente, no cargado en un iframe) usa ese mismo destino, `enviarMensaje()` (`js/mensajeria.js`) lo detecta —`destino === componenteId`—, avisa una vez por tipo de mensaje con `"… no se envía <tipo> a sí mismo por enviarMensaje: eso se hace con despacharLocal"` y devuelve `false`: no envía nada. Si el envío es fire-and-forget (sin `.catch()` que compruebe el resultado `false`, el patrón más común en el código), esto es indistinguible de "todo va bien" salvo por ese único aviso suelto en el log — fácil de no ver en una lectura superficial porque no rompe nada más. Para cada `enviarMensaje({ destino: 'padre', ... })`, confirma primero desde qué contexto corre ese código: si es un módulo que vive dentro del padre (no un HTML de hijo cargado en iframe), es casi con certeza este bug, y el camino correcto es `despacharLocal`. Ejemplo de este patrón: un módulo que corre dentro del propio padre (como `js/funciones-mapa.js`, importado directamente y no cargado en iframe) usando `destino: 'padre'` para notificar un evento al padre — el mensaje no sale, sin ningún error visible en el resto del flujo.
 
@@ -13862,7 +13871,7 @@ El proyecto se desarrolla actualmente en local, sin el flujo de pago implementad
 
 1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 28 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
 2. **`npm run lint` sin errores** sobre `js/**/*.js` y `*.html` — incluye la regla `no-console` (todo log pasa por el logger centralizado o tiene su excepción documentada en `eslint.config.js`).
-3. **`npm run test:e2e` en verde en los 4 proyectos de Playwright** (chromium, firefox, pixel5, iphone12), no solo chromium. **Ejecutarlos de uno en uno** (`--project=<nombre>`), no los cuatro en la misma invocación: los 1256 tests seguidos agotan los recursos de proceso de Windows y los workers empiezan a morir con `worker process exited unexpectedly (code=3221225794)` — `0xC0000142`, el proceso no llega a arrancar. Se manifiesta como el primer test de **cada** fichero fallando a partir de cierto punto, con el resto marcado "did not run": patrón de arnés agotado, no de regresión. `workers: 1` ya está fijado en `playwright.config.js` y no lo evita, porque el agotamiento es acumulativo.
+3. **`npm run test:e2e` en verde en los 4 proyectos de Playwright** (chromium, firefox, pixel5, iphone12), no solo chromium. **Ejecutarlos de uno en uno** (`--project=<nombre>`), no los cuatro en la misma invocación: los tests de los cuatro proyectos seguidos agotan los recursos de proceso de Windows y los workers empiezan a morir con `worker process exited unexpectedly (code=3221225794)` — `0xC0000142`, el proceso no llega a arrancar. Se manifiesta como el primer test de **cada** fichero fallando a partir de cierto punto, con el resto marcado "did not run": patrón de arnés agotado, no de regresión. `workers: 1` ya está fijado en `playwright.config.js` y no lo evita, porque el agotamiento es acumulativo.
 4. **`npm run verificar-mensajeria` sin huérfanos sin revisar** — todo tipo de `TIPOS_MENSAJE` marcado por la herramienta como sin emisor o sin receptor, todo envío al vacío y todo handler inalcanzable se verifican a mano y se clasifican (huérfano real → se elimina; falso positivo del instrumento → se descarta con motivo).
 5. **`npm run inventory:dupes` sin duplicados sin resolver** — cada nombre duplicado tiene una decisión explícita (una versión es la única real y la otra se eliminó, o ambas coexisten por una razón documentada).
 6. Contraste guía vs. código (EJE 20) ejecutado sobre la totalidad de `docs/GUIA-COMPLETA.md`, no solo sobre las secciones tocadas en la última ronda de cambios.
