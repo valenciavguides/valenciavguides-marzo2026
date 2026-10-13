@@ -50,6 +50,7 @@ nota fechada en cada sección afectada), corrige dos de la propia ronda (E8 y E9
 individual. Léase junto con ella: lo que aquí se dio por cerrado o limpio puede no estarlo. R2.9 (2026-10-03) revisa las decisiones abiertas de R2.8 con otro método y otros ángulos, corrige varias entradas con una nota fechada en ellas y añade cinco más (K-50 a K-54, familia S).
 R2.12 (2026-10-07) vuelve a contrastar el estudio entero con el código: corrige una frase de R2.3 (E10) y tres entradas (K-57, K-54 y el cierre de K-01 y K-02) y añade once (K-62 a K-72, familia T).
 R2.13 (2026-10-12) registra el recorrido real con espía (EJE 28) del 2026-10-07 y del 2026-10-12 y su relectura contra el código: corrige el cierre del candidato `LLEGADA_DETECTADA` (K-06), añade diez entradas (K-73 a K-82, familia U) y, al contrastar con el código las últimas frases de la guía, otras dos (K-83 y K-84, familia V); el arreglo de K-82, el 2026-10-13, deja cuatro entradas más al mirar el mismo error en los otros hijos (K-85 a K-89, familia W; K-85 y K-87 medidas, M-23 y M-24), y mide lo que K-61 y la revisión de K-07 dejaban sin medir.
+R2.14 y R2.15 (2026-10-13) resumen las dos tandas de ese día, la de la noche y la del día: lo aplicado, lo medido, lo preparado sin aplicar y lo que queda por decidir, con cuatro entradas más (K-90 y K-91, familia W; K-92, familia X; K-93, familia Y).
 
 **No es fuente de verdad absoluta.** Mismo principio que la regla 8 de CLAUDE.md aplica a
 `docs/GUIA-COMPLETA.md`: este documento se consulta siempre y no se cree nunca a ciegas. Una
@@ -4659,3 +4660,43 @@ Fuera de los frames: `js/funciones-mapa.js` (K-64, K-71), `js/mensajeria.js` (K-
 **Trampa de instrumento.** Una mutación del padre servida con `page.route` no llega a la navegación de `page.reload()` si el service worker está activo: la sirve él. Tres mutaciones salieron en verde sin haberse aplicado. Las sondas de mutación que recargan van con `serviceWorkers: 'block'` y con una marca en el HTML servido que el test comprueba después de recargar.
 
 **Tanda de los cuatro navegadores.** Lanzada al final, sobre `ded4476` (el último commit de código es `583b3aa`; después solo cambia este documento), con el usuario ausente y sin nada más corriendo en el proyecto: chromium, firefox, pixel5 e iphone12, 2536 tests (634 por navegador), **2536 de 2536 en verde**, de las 05:35 a las 06:39. Sin eventos de energía ni de temperatura del sistema durante la tanda (`Get-WinEvent`, proveedor Kernel-Power, ids 41, 42, 88, 107, 506 y 507: ninguno). Es la primera tanda de los cuatro navegadores desde K-82: cubre también K-82, K-85 y K-87, que solo tenían chromium.
+
+### R2.15 Tanda del día 2026-10-13
+
+**Encargo.** El usuario, al irse a trabajar, repitió el encargo de la noche (avanzar todo lo posible, verificar antes de tocar, quitar el código muerto, documentar en la guía). Se tomó igual que en R2.14: se retira lo que no tiene uso y se arregla lo que no cambia lo que ve el usuario; lo demás se mide o se deja con sus opciones; sin `push`.
+
+**Aplicado.** Todo en chromium, con la suite entera después de cada paso.
+
+| Entrada | Qué | Commit | Comprobación |
+|---|---|---|---|
+| K-41, revisión | campos de estado que solo figuraban en el literal inicial o que nadie lee, en siete ficheros; `estado.audioActual` queda en `{ id, estado }` y `vv_progreso` en diez claves | `c9463f8` | registrado antes (`f15083c`); FG-10 del spec 124 en rojo antes; búsqueda desnuda de cada nombre; 635 de 635 |
+| K-69 | CSS que no aplica a nada (variables sin uso en su documento y reglas sin elemento), en ocho ficheros | `7f415a8` | medido antes con una sonda: ningún elemento casa, con un control por documento; 635 de 635 |
+| K-93 | una función sin llamador, una importación que solo se publicaba y doce publicaciones en `globalThis` sin lector fuera de su bloque (padre, hijo2 e hijo4); cinco globals de `eslint.config.js`; y `tools/inventory-conexiones.js`, que contaba bloques de más | `1f26741` | registrado antes (`1088d7c`); búsqueda desnuda, también de claves computadas; 635 de 635 |
+
+**Medido, sin tocar código.** K-92 (M-27): el ✓ y la ✗ de los retos de la selección se pintan en negro.
+
+**Hallazgos nuevos.** K-92 (por decidir) y K-93 (aplicada). Dentro de K-41: hijo5 lee un campo de estado que nadie escribe. Dentro de K-69: `--audio-action-scale` sí se usa, y el barrido de variables sumaba entre documentos. Dentro de K-93: el generador de §37.2 de la guía contaba como bloque cualquier `<script>` escrito dentro de otro, y `no-undef` está apagado para los `.html`.
+
+**Leído y dejado como está.** K-42, los exports «de uso interno»: de los 18 que da hoy `tools/codigo-muerto.js`, los 14 que no son del state-manager son funciones o constantes con llamadores dentro de su propio módulo (leída cada una con sus usos; a varias las nombran además specs): no hay código muerto, solo la palabra `export`; los otros cuatro son los de K-67. Importaciones sin uso en los `<script type="module">` de los HTML (`imports-sin-uso.cjs`, scratchpad): 126 nombres importados, ninguno sin uso en su bloque; quedan sin clasificar 37 importaciones dinámicas (un módulo entero en una variable, por su efecto, o dentro de un `Promise.all`), no comprobadas nombre a nombre. K-76, releída contra el código: el botón de saltar reto usa `estado.retoActualId` como «el reto activo» cuando el reto no se encontró, así que quitar la escritura del cambio de parada no es retirar código muerto; sigue siendo decisión. K-70: contrato del bus; decisión.
+
+**No tocado, y por qué.** Lo que cambia lo que ve el usuario o es regla del juego: K-91, K-78 (preparada), K-84, K-74, K-77, K-79, K-92. Lo que pide una decisión de diseño: K-62, K-67, K-70, K-72, K-75 (el reloj), K-76, K-80, K-83, K-86. De K-69: `video-intro.html` y tres reglas de hijo3 con nota de «se mantiene». De K-41: el espejo de `estado.gps` (K-08), el literal del state-manager (K-07) y `estado.paradasConfirmaciones`. La fila 58 (el ayudante `cargarHijosDelPadre`): sigue pendiente del visto bueno del usuario. Y las anteriores a la R2.12 que siguen abiertas.
+
+**Censo de frames (regla 3b).**
+
+| Frame | Tocado hoy | Si no, por qué |
+|---|---|---|
+| padre | K-41, K-69, K-93 | — |
+| selección | K-69 (cinco reglas) | K-41: sus seis campos de estado se leen; K-93: sus 14 publicaciones sin otro fichero se leen por `globalThis` o desde un `onclick` |
+| hijo1 | K-69 (`--iframe-h`) | K-41: `estadoMenu` y `estadoTemporizador` sin campos sin lector; K-93: no publica nada que no use otro fichero |
+| hijo2 | K-41, K-69, K-93 | — |
+| hijo3 | K-41 (`inicializado`), K-69 | K-93: sus dos publicaciones se leen por `globalThis` |
+| hijo4 | K-41 (`inicializado`), K-69 (la clase `deshabilitado`), K-93 | — |
+| hijo5 | K-41 (cinco campos), K-69 (dos selectores) | K-93: no publica nada que no use otro fichero |
+| hijo6 | K-69 (`--iframe-w`, `--iframe-h`) | K-41: su `estadoPadre` es el payload de `CHAT.ESTADO_PADRE`; K-93: lo mismo que hijo5 |
+| mapa-completo | no | sin objeto de estado; ninguna regla sin elemento ni variable sin uso; no publica nada sin lector |
+| puzzle | no | lo mismo |
+| video-intro | no | sin objeto de estado; sus 37 reglas sin elemento no se han leído (K-69); sus cuatro publicaciones se leen por `globalThis` |
+
+Fuera de los frames: `js/funciones-mapa.js` y `js/state-manager.js` (K-41), `eslint.config.js` y `tools/inventory-conexiones.js` (K-93). Specs: el 124 gana FG-10 (635 tests por navegador).
+
+**Tanda de los cuatro navegadores, la de hoy.** Lanzada al final, sobre `2587f23` (el último commit de código es `1f26741`; después solo cambia este documento), con el usuario ausente y sin nada más corriendo en el proyecto: chromium, firefox, pixel5 e iphone12, 2540 tests (635 por navegador), **2540 de 2540 en verde**, de las 10:37 a las 11:41. Sin eventos de energía ni de temperatura del sistema durante la tanda (`Get-WinEvent`, proveedor Kernel-Power, ids 41, 42, 88, 107, 506 y 507: ninguno). Cubre en los cuatro navegadores lo aplicado hoy, que hasta aquí solo tenía chromium.
