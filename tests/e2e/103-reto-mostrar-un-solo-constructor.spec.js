@@ -72,7 +72,7 @@ test.describe('RM — RETO.MOSTRAR, un solo constructor', () => {
       globalThis.estadoPadre.modo = globalThis.estadoPadre.modo || {};
       globalThis.estadoPadre.modo.actual = globalThis.MODOS.AVENTURA;
       globalThis.estado.retoActual = {
-        id: 'reto-A', disponible: true, completado: false,
+        id: 'reto-A',
         cola: ['reto-A', 'reto-B'], colaCompletados: new Set(),
       };
     });

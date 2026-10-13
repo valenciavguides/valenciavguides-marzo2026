@@ -204,12 +204,14 @@ test.describe('BSA-C — click en #audio-action-skip: reutiliza la tubería real
   test('C-1. Pulsar salta resuelve pending.audio y habilita retosBtn (mismo camino que un fin de audio real)', async ({ page }) => {
     await activarAv1P1(page, 'en');
     await expect(page.locator('#audio-action-skip')).toBeVisible();
+    expect(await page.evaluate(() => globalThis._retoBtnEncendido()), 'antes de saltar, el reto de la parada no se puede abrir').toBe(false);
 
     await page.evaluate(() => document.getElementById('audio-action-skip').click());
 
+    // «El reto se puede abrir» se pregunta al sitio único que decide el botón de retos (_retoBtnEncendido).
     const resultado = await page.evaluate(() => ({
       pendingAudio: globalThis.estadoPadre.pendingCompleciones?.['padre-P1']?.audio,
-      retoDisponible: globalThis.estadoPadre.retoActual?.disponible,
+      retoDisponible: globalThis._retoBtnEncendido(),
       retoId: globalThis.estadoPadre.retoActual?.id,
     }));
     expect(resultado.pendingAudio, 'pending.audio debe quedar resuelto').toBe(true);
@@ -257,12 +259,13 @@ test.describe('BSA-D — _hdl_AUDIO_ERROR: fallo runtime confirmado también ofr
 
     let mostrarSaltarAntes = await page.evaluate(() => document.getElementById('audio-control-overlay').classList.contains('mostrar-saltar-audio'));
     expect(mostrarSaltarAntes, 'antes del error no debe verse el botón de saltar (el fichero es real)').toBe(false);
+    expect(await page.evaluate(() => globalThis._retoBtnEncendido()), 'antes del error, el reto de la parada no se puede abrir').toBe(false);
 
     await enviarAudioErrorYEsperar(page, 'audio-Av1-P-1-es');
 
     const resultado = await page.evaluate(() => ({
       pendingAudio: globalThis.estadoPadre.pendingCompleciones?.['padre-P1']?.audio,
-      retoDisponible: globalThis.estadoPadre.retoActual?.disponible,
+      retoDisponible: globalThis._retoBtnEncendido(),
       audioFalloId: globalThis.estadoPadre._audioFalloId,
       mostrarSaltar: document.getElementById('audio-control-overlay').classList.contains('mostrar-saltar-audio'),
       mainDisabled: document.getElementById('audio-main-toggle-btn').disabled,

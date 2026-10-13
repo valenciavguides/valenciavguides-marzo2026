@@ -4183,7 +4183,6 @@
             _audioFalloId: null,
             retoActual: {
                 id: null,
-                disponible: false,
                 // Cola multi-reto: lista ordenada de IDs y set de completados
                 cola: [],           // ["R7-Av1-es", "PZ-01"] — todos los retos de la parada
                 colaCompletados: new Set()  // IDs completados correctamente
@@ -7505,11 +7504,11 @@
                     // protege al cliente real durante la ventana de P14, sin seguir
                     // interfiriendo una vez se sabe con certeza que estamos en CASA.
                     globalThis._codigoValidadoP13 = false;
-                    // estado.retoActual (id/disponible/cola) es del elemento de
+                    // estado.retoActual (id/cola) es del elemento de
                     // AVENTURA que se dejó atrás — nada lo reseteaba al cambiar de modo (mismo
                     // patrón que idParadaActual en hijo2, reporte de uso real 2026-08-17). Se
                     // reconstruye limpio al volver a AVENTURA, vía la restauración de más abajo.
-                    estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
+                    estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
                 }
 
                 // Ocultar hijo5 inmediatamente al cambiar a AVENTURA, sin esperar el await
@@ -7952,7 +7951,7 @@
             if (!globalThis.estadoPadre.hijosInicializados) globalThis.estadoPadre.hijosInicializados = new Set();
             if (!globalThis.estadoPadre.hijosPreparados) globalThis.estadoPadre.hijosPreparados = new Set();
             if (!globalThis.estadoPadre.retoActual) {
-                globalThis.estadoPadre.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
+                globalThis.estadoPadre.retoActual = { id: null, cola: [], colaCompletados: new Set() };
             }
 
             // Verificar que enviarMensaje_S1 también esté disponible (alias usado en iframes)
@@ -9843,7 +9842,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 const retosIds = obtenerRetosIds(siguienteElemento);
                 estado.retoActual = {
                     id: retosIds[0] || null,
-                    disponible: false,
                     cola: retosIds,
                     colaCompletados: new Set()
                 };
@@ -9980,7 +9978,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                     if (modoActual === MODOS.CASA) {
                         // Modo casa: limpiar estado del reto, no avanzar — usuario elige via hijo5
-                        estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
+                        estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA: estado limpiado, usuario elige siguiente parada via hijo5`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
@@ -10454,7 +10452,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Guard: inicializar retoActual si no existe (puede ocurrir si estadoPadre
                 // fue recreado con el fallback mínimo sin incluir retoActual)
                 if (!estado.retoActual) {
-                    estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
+                    estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
                 }
 
                 // Determinar qué reto mostrar: el siguiente no completado de la cola
@@ -10480,7 +10478,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 estado.retoActual.id = retoIdToUsar;
-                estado.retoActual.disponible = true;
 
                 // hijo4 se muestra y recibe el reto cuando está listo, como cualquier hijo: si se está recuperando (lo recarga el supervisor del
                 // bus, §2.7) se espera sin plazo a su HIJO_LISTO nuevo.
@@ -10646,7 +10643,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     // Sin clave: fallback — respetar modo
                     if (modoActual === MODOS.CASA) {
-                        estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
+                        estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
@@ -11460,7 +11457,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
         // El estado del reto del elemento: qué reto toca y cuáles van hechos. Se prepara cuando
         // todavía no es el de este elemento; si ya lo es NO se toca — rehacerlo con el elemento
-        // a medias borraba los retos hechos y la marca de disponible. La cola identifica al
+        // a medias borraba los retos hechos. La cola identifica al
         // elemento: ningún reto está en dos (los ids son únicos por aventura e idioma).
         // Un elemento que vuelve con sus retos ya hechos (la reanudación le devuelve la ficha)
         // nace con la cola hecha: con la cola vacía, el recordatorio «pulse retos» los daba por
@@ -11469,10 +11466,8 @@ await _comprobarReanudacionAventura(logPrefix);
             const retos = obtenerRetosIds(elemento);
             const cola = estado.retoActual?.cola;
             if (Array.isArray(cola) && cola.length === retos.length && cola.every((id, i) => id === retos[i])) return;
-            const enAventura = estado.modo?.actual === MODOS.AVENTURA;
             estado.retoActual = {
                 id: retos[0] || null,
-                disponible: retos.length > 0 && (!enAventura || !elemento?.audio_id || _audioTerminadoEn(elemento)),
                 cola: retos,
                 colaCompletados: new Set(_retosHechosEn(elemento) ? retos : [])
             };
@@ -12168,7 +12163,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     // Sin clave: fallback directo, respetar modo
                     if (modoActual === MODOS.CASA) {
-                        estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() };
+                        estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         // Tramo y parada se tratan igual aquí también — habilitar btnAvanzar y
@@ -12196,11 +12191,10 @@ await _comprobarReanudacionAventura(logPrefix);
             }
 
             // El audio de este elemento ha terminado —escuchado entero, saltado o dado por no
-            // disponible: es lo mismo— y su reto queda disponible. El estado del reto solo se
+            // disponible: es lo mismo— y su reto se puede abrir. El estado del reto solo se
             // prepara si todavía no es el de este elemento: antes se rehacía en cada fin de audio,
             // y volver a escuchar el audio entre dos retos de la misma parada borraba los hechos.
             _asegurarRetoActualDe(estado.elementoActual);
-            estado.retoActual.disponible = true;
 
             const modoAventura = estado.modo.actual === MODOS.AVENTURA;
             (globalThis.logger || console).info(`${logPrefix} Audio finalizado en modo ${modoAventura ? 'aventura' : 'casa'}: ${retosDelElemento.length} reto(s) disponible(s): ${retosDelElemento.join(', ')}`);

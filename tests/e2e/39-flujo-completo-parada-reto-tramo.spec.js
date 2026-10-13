@@ -123,10 +123,11 @@ test.describe('FC — Flujo completo real (parada+reto -> tramo -> parada)', () 
     const llegada = await leerEstado(page, `estado.pendingCompleciones?.['${P0.padreid}']?.llegada`);
     expect(llegada, 'La llegada real por GPS debe registrarse en pendingCompleciones').toBe(true);
 
-    // 2. Fin de audio real -> habilita el reto.
+    // 2. Fin de audio real -> habilita el reto. Se pregunta al sitio único que decide el botón de retos.
+    expect(await page.evaluate(() => globalThis._retoBtnEncendido()), 'Antes de terminar el audio, el reto de la parada no se puede abrir').toBe(false);
     await autoPostMessagePadre(page, 'AUDIO.FIN_REPRODUCCION', 'hijo3', { audioId: 'audio-Av1-P-0-es', duracion: 42, timestamp: Date.now() });
     await page.waitForTimeout(400);
-    const retoDisponible = await leerEstado(page, 'estado.retoActual?.disponible');
+    const retoDisponible = await page.evaluate(() => globalThis._retoBtnEncendido());
     expect(retoDisponible, 'El reto debe quedar disponible tras terminar el audio de una parada con reto').toBe(true);
 
     // 3. Reto completado real -> debe completar la parada entera (llegada+audio+reto).

@@ -278,8 +278,7 @@ async function ponerParadaParaRescate(page, audioTerminado) {
     e._rescateGastoPendiente = null;
     e.paradaListaParaAvanzar = false;
     e.pendingCompleciones = { [parada.padreid]: { tipo: 'parada', llegada: false, audio: audioTerminado, reto: false, retosTotal: retos.length, retosCompletadosCount: 0, timestamp: Date.now(), destinoCoords: null, ttlMs: 600000 } };
-    // Como lo deja el padre: disponible con el audio terminado, no disponible mientras no termina.
-    e.retoActual = { id: retos[0], disponible: audioTerminado, cola: retos, colaCompletados: new Set() };
+    e.retoActual = { id: retos[0], cola: retos, colaCompletados: new Set() };
     return { listo: true };
   }, { audioTerminado });
 }

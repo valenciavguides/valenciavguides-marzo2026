@@ -337,7 +337,7 @@ sequenceDiagram
         P->>H5: hijo5 display:block · visibility:visible (vuelve a mostrarse)
     end
     P->>P: _codigoValidadoP13 = false
-    P->>P: estado.retoActual se resetea a {id:null, disponible:false, cola:[], colaCompletados:new Set()}
+    P->>P: estado.retoActual se resetea a {id:null, cola:[], colaCompletados:new Set()}
     P->>P: manejarCambioModoMapa() → estadoMapa.modo='casa'<br/>limpiarPorEstado(resetCompleto:true)<br/>→ limpiarRecursos(): polylines, marcadores, rutas activas<br/>→ setMapView a CENTRO_DEFECTO + ZOOM_INICIAL
     P->>P: manejarCambioModo → estado.modo.actual = 'casa'
     par actualizarInterfazModo
@@ -2017,7 +2017,6 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 | **Audio al cambiar de parada** | `_solicitarAudioParaParada()` — mismo camino unificado que en AVENTURA; resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` (el usuario arranca el audio manualmente en ambos modos) | `_solicitarAudioParaParada()` — resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` |
 | **`RETO.ESTADO_CASA` (hijo4)** | Enviado en cada `CAMBIO_PARADA`: `{ habilitado: !esTramo }` — habilita el panel de retos en paradas, lo deshabilita en tramos | No se envía |
 | **Origen típico de `CAMBIO_PARADA`** | hijo5 (clic en lista de paradas) | El padre mismo, tras `progresarSiguienteElemento()` (usuario pulsa `btn-avanzar` en hijo2 una vez llegada+audio+reto están completos) — nunca hijo2 directamente; la llegada GPS solo marca `pending.llegada`, ver §2.2 |
-| **Estado del reto (`estado.retoActual`)** | `disponible: true` al entrar en parada con `reto_id` (inmediato) | `disponible: false` al entrar; cambia a `true` solo cuando audio termina |
 | **Persistencia de progreso** | `localStorage.removeItem('vv_aventura_iniciada')` al cambiar a CASA | `localStorage.setItem('vv_aventura_iniciada', ...)` al cambiar a AVENTURA |
 | **Carteles de distancia GPS** (`gps-out-of-range-overlay`, `foto-fuera-rango-overlay`, `foto-lejos-overlay`) | Al entrar en CASA, `_hdl_SISTEMA_CAMBIO_MODO` los cierra explícitamente (`_ocultarTodasPantallasDistanciaGPS()`, que cierra los seis carteles de distancia y precisión: estos tres más `foto-perdido-overlay`, `foto-desviado-overlay` y `gps-precision-overlay`) y resetea `estado.usuarioFueraRango` — ninguno puede quedar visible desde una AVENTURA anterior | Gestionados por `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`/`_hdl_NAVEGACION_LLEGADA_DETECTADA`, cada uno con su propio guard de modo (defensa en profundidad, redundante con el guard de hijo2 que ya evita que se envíen desde CASA) |
 | **Recordatorio "pulse play"** (§25.5c) | `_hdl_SISTEMA_CAMBIO_MODO` llama a `globalThis._detenerRecordatorioAudio()` explícitamente — el elemento activo no cambia solo por cambiar de modo, así que sin este apagado el recordatorio seguiría corriendo fuera de AVENTURA | Arranca en `_hdl_NAVEGACION_CAMBIO_PARADA` si el elemento tiene audio; exige tiempo Y proximidad GPS a la vez (ver §25.5c) |
@@ -2742,7 +2741,7 @@ El estado de este botón lo decide **un solo sitio** del padre, `_sincronizarRet
 
 Sin hijo3 en `estado.hijosInicializados` no envía nada (lo anota con `logger.warn`); «hijo4 listo» no es una de las variables: quien pulsa el botón con hijo4 recuperándose espera a su `HIJO_LISTO` en `_hdl_RETO_SOLICITAR`.
 
-**El estado del reto (`estado.retoActual`: `id`, `disponible`, `cola`, `colaCompletados`) es del elemento actual y se conserva mientras el elemento está a medias.** `_asegurarRetoActualDe(elemento)` lo prepara solo cuando la cola guardada no es la de ese elemento (los `reto_id` son únicos por aventura e idioma, así que la cola lo identifica); si es la suya, lo deja como está. Volver dentro de rango, la recarga de hijo3, reactivar el mismo elemento o volver a escuchar su audio conservan los retos hechos y la marca `disponible`. Cuando lo prepara, `colaCompletados` nace con todos los retos de la cola si el elemento los trae hechos y vacío en otro caso. **«Retos hechos» se pregunta en un solo sitio, `_retosHechosEn(elemento)`:** la ficha del elemento tiene `reto` a `true` o, si no tiene ficha, el elemento figura en `estado.paradasCompletadas`. Es el caso de una reanudación que devuelve al elemento su ficha con el reto resuelto (§25.10): la cola y la ficha dicen lo mismo, y volver a escuchar el audio no arranca el recordatorio de un reto ya hecho (§25.5d).
+**El estado del reto (`estado.retoActual`: `id`, `cola`, `colaCompletados`) es del elemento actual y se conserva mientras el elemento está a medias.** `_asegurarRetoActualDe(elemento)` lo prepara solo cuando la cola guardada no es la de ese elemento (los `reto_id` son únicos por aventura e idioma, así que la cola lo identifica); si es la suya, lo deja como está. Volver dentro de rango, la recarga de hijo3, reactivar el mismo elemento o volver a escuchar su audio conservan los retos hechos. Si el reto se puede abrir no es un campo de este estado: lo decide `_decidirRetoBtn()` cada vez que se le pregunta. Cuando lo prepara, `colaCompletados` nace con todos los retos de la cola si el elemento los trae hechos y vacío en otro caso. **«Retos hechos» se pregunta en un solo sitio, `_retosHechosEn(elemento)`:** la ficha del elemento tiene `reto` a `true` o, si no tiene ficha, el elemento figura en `estado.paradasCompletadas`. Es el caso de una reanudación que devuelve al elemento su ficha con el reto resuelto (§25.10): la cola y la ficha dicen lo mismo, y volver a escuchar el audio no arranca el recordatorio de un reto ya hecho (§25.5d).
 
 Cubierto por `tests/e2e/122-boton-retos-un-solo-sitio.spec.js` (BR-1 a BR-9), con el padre, los hijos y el botón reales.
 
@@ -2767,7 +2766,7 @@ if (control === 'retosBtn') {
 }
 ```
 
-Al pulsar `#retosBtn` (cuando está habilitado), hijo3 envía `RETO.SOLICITAR_RETO` al padre. El padre lo recibe en `_hdl_RETO_SOLICITAR`, busca el reto de `estado.retoActual.id` y envía `RETO.MOSTRAR` a hijo4.
+Al pulsar `#retosBtn` (cuando está habilitado), hijo3 envía `RETO.SOLICITAR_RETO` al padre. El padre lo recibe en `_hdl_RETO_SOLICITAR`, elige el siguiente reto sin hacer de la cola de `estado.retoActual` (o el primero del elemento, si no queda ninguno) y envía `RETO.MOSTRAR` a hijo4.
 
 #### Controles globales de audio (viven en el PADRE, no en hijo3)
 
@@ -4866,7 +4865,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-36cebc03db83'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-bd779b451dd7'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5437,7 +5436,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Destino | `padre` |
 | Payload | `{ contexto }` |
 | Handler en padre | `_hdl_RETO_SOLICITAR` — registrado vía `registrarControladorSeguro` en `_regCtrl_Reto` |
-| Acción | Busca `estado.retoActual`, envía `RETO.MOSTRAR` a hijo4 si el reto está disponible |
+| Acción | Elige el reto: el siguiente sin hacer de la cola de `estado.retoActual` o, si no queda ninguno, el primero del elemento actual; sin elemento actual o sin reto responde `SISTEMA.NACK` al emisor. Con reto: espera a que hijo4 esté listo, lo muestra (`mostrarHijo4()`), resuelve los datos de ese reto con `cargarRetos()` y envía `RETO.MOSTRAR` a hijo4 (`_enviarRetoMostrar()`), llama a `_sincronizarRetoBtn()` y avisa a hijo2 con `NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: true, retoId }` |
 
 ---
 
@@ -8168,7 +8167,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-36cebc03db83'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-bd779b451dd7'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8915,7 +8914,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-36cebc03db83';
+const CACHE_VERSION = 'v-bd779b451dd7';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12289,7 +12288,7 @@ Cubierto por la suite de arribo y progresión (`tests/e2e/15-arribo-y-progresion
 - En `_hdl_AUDIO_FIN_REPRODUCCION`:
   - No decide nada sobre retos: refresca los controles de audio y delega en `_procesarFinAudioElemento`, que es quien envía `RETO.HABILITAR`
 - En `_procesarFinAudioElemento` (función separada):
-  - Si el elemento tiene retos: prepara `estado.retoActual` si no es el de ese elemento (`_asegurarRetoActualDe`), lo marca `disponible` y llama a `_sincronizarRetoBtn()` (botón de retos de hijo3, §7.4); en AVENTURA envía además `RETO.HABILITAR` → hijo4 (si figura en `estado.hijosInicializados`) y arranca el recordatorio "pulse retos" si queda algún reto por hacer
+  - Si el elemento tiene retos: prepara `estado.retoActual` si no es el de ese elemento (`_asegurarRetoActualDe`) y llama a `_sincronizarRetoBtn()` (botón de retos de hijo3, §7.4); en AVENTURA envía además `RETO.HABILITAR` → hijo4 (si figura en `estado.hijosInicializados`) y arranca el recordatorio "pulse retos" si queda algún reto por hacer
   - Si la parada no tiene retos: llama directamente `_audioFinalizadoSinReto()` sin enviar nada a hijo4
 
 **Archivo: `retos-hijo4.html`**
@@ -12374,7 +12373,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-36cebc03db83';
+const CACHE_VERSION = 'v-bd779b451dd7';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14029,93 +14028,93 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarVideoOverlay` | clásico 7 (L2072) | módulo 1, módulo 2 | función/objeto |
 | `rotationSuppressed` | clásico 7 (L1772) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 (L3797) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5147) | clásico 13 | estado |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5146) | clásico 13 | estado |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3785) | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3784) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5965) | clásico 13 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6637) | clásico 13 | estado |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5964) | clásico 13 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6636) | clásico 13 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3786) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6777) | clásico 13 | estado |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6776) | clásico 13 | estado |
 | `__vv_MAPAS_VINTAGE` | módulo 1 (L3788) | módulo 2 | función/objeto |
 | `__vv_PUZZLES` | módulo 1 (L3789) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3671) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4865) | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 (L7507) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8860) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L9076) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8981) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4864) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7506) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8859) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9075) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8980) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L4125) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8950) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9160) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9052) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8956) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9168) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8830) | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5291) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6138) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8949) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9159) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9051) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8955) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9167) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8829) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5290) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6137) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3925) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 (L3932) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4683) | clásico 6, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8175) | clásico 5, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8173) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8174) | clásico 6, módulo 2, módulo 3 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4682) | clásico 6, módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8174) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8172) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8173) | clásico 6, módulo 2, módulo 3 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L4032) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3919) | clásico 6, clásico 7, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3920) | módulo 2 | función/objeto |
 | `estadoPadre` | módulo 1 (L4130) | clásico 6, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4483) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4242) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6541) | módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4482) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4241) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6540) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2929) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4684) | clásico 6, módulo 2, clásico 14 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4683) | clásico 6, módulo 2, clásico 14 | función/objeto |
 | `limpiarDatosAventura` | módulo 1 (L2964) | módulo 2, clásico 14 | función/objeto |
 | `MODOS` | módulo 1 (L3917) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8557) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8626) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8480) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8333) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8376) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4333) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8556) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L8625) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8479) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8332) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8375) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4332) | módulo 2 | función/objeto |
 | `registrarControlador` | módulo 1 (L3918) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5175) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5202) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5174) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5201) | módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2970) | clásico 7, módulo 2 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2959) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2960) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6377) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6302) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6229) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6457) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6533) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6837) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6836) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6376) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6301) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6228) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6456) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6532) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6836) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6835) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2917) | módulo 2 | función/objeto |
 | `sleep` | módulo 1 (L2839) | módulo 2, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5902) | módulo 2 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5901) | módulo 2 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L3916) | clásico 6, clásico 7, módulo 2, módulo 3 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L4103) | clásico 7, módulo 2 | función/objeto |
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2968) | clásico 14 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2945) | módulo 2 | función/objeto |
 | `verificarTimeoutAventura` | módulo 1 (L2965) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8176) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9280) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14233) | clásico 13 | estado |
-| `_estadoRescate` | módulo 2 (L14214) | clásico 6 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12880) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11449) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11500) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12910) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9344) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10241) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9483) | clásico 6, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9565) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10060) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13141) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10123) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9603) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10115) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10088) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14256) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8175) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9279) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14227) | clásico 13 | estado |
+| `_estadoRescate` | módulo 2 (L14208) | clásico 6 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12874) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11446) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11495) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12904) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9343) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10239) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9482) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9564) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10058) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13135) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10121) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9602) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10113) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10086) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14250) | módulo 2 | función/objeto |
 
 </details>
 

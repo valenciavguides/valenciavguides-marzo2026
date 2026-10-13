@@ -197,7 +197,7 @@ test.describe('CI — Carteles informativos no bloqueantes', () => {
       if (!globalThis.estado.modo) globalThis.estado.modo = {};
       globalThis.estado.modo.actual = 'aventura'; // marcarParadaCompletada solo dispara carteles fuera de modo CASA
       globalThis.estado.indiceProgreso = idxParada;
-      globalThis.estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() }; // sin retos pendientes
+      globalThis.estado.retoActual = { id: null, cola: [], colaCompletados: new Set() }; // sin retos pendientes
       const elParada = elementos[idxParada];
       await globalThis.marcarParadaCompletada({ paradaId: elParada.parada_id || elParada.tramo_id, origen: 'test', causa: 'audio_reto' });
       return { ok: true };

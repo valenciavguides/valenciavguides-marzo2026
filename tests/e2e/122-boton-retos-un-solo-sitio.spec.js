@@ -223,11 +223,8 @@ test.describe('BR — El botón de retos de hijo3 sale de un solo sitio', () => 
     const aviso = await esperarAvisoNuevo(page, habia, 'el padre contesta a la vuelta dentro de rango');
 
     expect(aviso, 'el reto sigue abierto: apagado, y por eso').toMatchObject({ tipo: 'CONTROL.DESHABILITAR', razon: 'reto_solicitado' });
-    const estadoDelReto = await page.evaluate(() => ({
-      elMismo: globalThis.estado.retoActual === globalThis.__e2e_retoActual,
-      disponible: globalThis.estado.retoActual?.disponible,
-    }));
-    expect(estadoDelReto, 'el estado del reto es el mismo objeto y sigue disponible: no se rehace con el elemento a medias').toEqual({ elMismo: true, disponible: true });
+    const elMismo = await page.evaluate(() => globalThis.estado.retoActual === globalThis.__e2e_retoActual);
+    expect(elMismo, 'el estado del reto es el mismo objeto: no se rehace con el elemento a medias').toBe(true);
 
     await cerrarElReto(page);
     await esperarBoton(page, false, 'al cerrar el reto sin resolver, el botón vuelve a encenderse');

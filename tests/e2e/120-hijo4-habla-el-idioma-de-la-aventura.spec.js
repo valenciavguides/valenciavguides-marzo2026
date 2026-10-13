@@ -80,7 +80,7 @@ test.describe('ID — el padre manda el idioma en cada RETO.MOSTRAR', () => {
     await page.evaluate(() => {
       globalThis.estadoPadre.modo = globalThis.estadoPadre.modo || {};
       globalThis.estadoPadre.modo.actual = globalThis.MODOS.AVENTURA;
-      globalThis.estado.retoActual = { id: 'reto-A', disponible: true, completado: false, cola: ['reto-A', 'reto-B'], colaCompletados: new Set() };
+      globalThis.estado.retoActual = { id: 'reto-A', cola: ['reto-A', 'reto-B'], colaCompletados: new Set() };
     });
     const { leer } = await escuchar(page);
     await page.evaluate(() => globalThis.mensajeria.despacharLocal({
