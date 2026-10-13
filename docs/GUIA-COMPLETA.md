@@ -10699,9 +10699,9 @@ leería nadie nunca.
 
 #### El cobro va diferido, y es lo que protege al usuario
 
-`persistProgressState()` guarda `tramoSkipsUsados` al instante, pero **no** guarda `pendingCompleciones`. Cobrando al pulsar Sí, la marca de completado viviría solo en memoria hasta que el usuario pulsara avanzar: un móvil sin batería en esa ventana —lo que tarde en leer el cartel y mirar alrededor— le dejaría con un rescate menos y delante de la misma valla: pagaría sin recibir nada.
+`_concederRescate()` deja el punto completado al instante —`marcarParadaCompletada()` lo registra en `estado.paradasCompletadas` y lo guarda en `vv_paradas_completadas`—, pero el gasto solo se apunta en memoria (`estado._rescateGastoPendiente`). Si la app se cierra entre el Sí y el botón de avanzar —un móvil sin batería mientras el usuario lee el cartel y mira alrededor—, al reanudar el punto sigue completado y listo para avanzar (§25.10) y el apunte del gasto no existe: ese rescate no se cobra.
 
-Por eso `_cobrarRescateSiProcede()` se llama desde `progresarSiguienteElemento()`, justo antes de `estado.indiceProgreso++`, y solo si el elemento que se deja atrás es el que tiene el rescate apuntado (`estado._rescateGastoPendiente`). El fallo solo puede caer **a favor** del usuario: o avanza y la cuenta cuadra, o algo se rompe y conserva su rescate.
+El cobro llega al avanzar: `_cobrarRescateSiProcede()` se llama desde `progresarSiguienteElemento()`, justo antes de `estado.indiceProgreso++`, y solo si el elemento que se deja atrás es el que tiene el rescate apuntado (`estado._rescateGastoPendiente`). El fallo solo puede caer **a favor** del usuario: o avanza y la cuenta cuadra, o algo se rompe y conserva su rescate.
 
 **La pantalla de concedido enseña la cuenta de después** (`usadas + 1`), no el valor interno del contador. El usuario acaba de gastarlo y el texto tiene que decirle la verdad de lo que ha hecho.
 
