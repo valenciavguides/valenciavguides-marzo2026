@@ -16,7 +16,7 @@
  */
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 /** Los que importan el logger y por tanto deben publicarlo en su propio globalThis */
 const HIJOS_CON_LOGGER = ['seleccion', 'hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5'];
@@ -27,9 +27,7 @@ test.describe('NH — El nivel de log alcanza a los hijos', () => {
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
-    await page.evaluate(async () => {
-      await Promise.all([globalThis.cargarRestoDeiframes?.(), globalThis.cargarHijoCasa?.()]);
-    });
+    await cargarHijosDelPadre(page, { casa: true });
     await page.waitForFunction(
       () => (globalThis.estadoPadre?.hijosPreparados?.size || 0) >= 5,
       null, { timeout: 60000 }

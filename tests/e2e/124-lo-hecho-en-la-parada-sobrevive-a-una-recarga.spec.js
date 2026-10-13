@@ -40,7 +40,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -95,8 +95,8 @@ async function prepararParada(page) {
       if (coords?.length) globalThis.AVENTURA_PARADAS = coords;
     }
   });
-  // La carga dura lo que tarden los hijos: se lanza sin esperarla dentro del evaluate y se espera fuera, a su apretón de manos.
-  await page.evaluate(() => { globalThis.cargarRestoDeiframes(); });
+  // Los hijos se cargan con el ayudante común; la espera de abajo nombra los que este spec necesita.
+  await cargarHijosDelPadre(page);
   await hijosListos(page);
   await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } }));
   await activarLaParada(page);

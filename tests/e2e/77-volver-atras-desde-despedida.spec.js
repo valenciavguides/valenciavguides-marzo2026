@@ -33,7 +33,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -79,7 +79,7 @@ test.describe('VA — La app sobrevive al viaje por la cache de atras', () => {
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
-    await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
+    await cargarHijosDelPadre(page);
     await page.waitForFunction(() => !!document.getElementById('hijo2')?.contentWindow?.logger, null, { timeout: 60_000 });
 
     // Control: antes del viaje, hijo2 contesta al latido. Sin esto, un VA-2 en rojo podria

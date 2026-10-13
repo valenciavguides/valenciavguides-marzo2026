@@ -19,7 +19,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 const HIJOS = ['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5', 'hijo6-chat'];
@@ -32,7 +32,7 @@ async function prepararPadreConHijosCargados(page) {
   await injectInitSpy(page);
   await stubCDNResources(page);
   await gotoAndWaitForFase1(page);
-  await page.evaluate(async () => { await Promise.all([globalThis.cargarRestoDeiframes?.(), globalThis.cargarHijoCasa?.()]); });
+  await cargarHijosDelPadre(page, { casa: true });
   await page.waitForFunction(
     (ids) => ids.every((id) => globalThis.estadoPadre?.hijosInicializados?.has(id)),
     HIJOS, { timeout: 60_000 }

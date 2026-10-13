@@ -28,7 +28,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -40,7 +40,7 @@ async function abrirAsistente(page) {
     null, { timeout: 25_000 },
   );
   // Los hijos se cargan juntos, el asistente entre ellos (como en P14); su botón solo lo enseña.
-  await page.evaluate(() => globalThis.cargarRestoDeiframes());
+  await cargarHijosDelPadre(page);
   await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
   await page.waitForFunction(
     () => {

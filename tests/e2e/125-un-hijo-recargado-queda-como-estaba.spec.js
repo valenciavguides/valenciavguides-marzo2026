@@ -29,7 +29,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -60,8 +60,8 @@ async function prepararParada(page) {
     globalThis.idiomaSeleccionado = 'es';
     if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') await globalThis.__cargarDatosAventuraDiferidos();
   });
-  // La carga dura lo que tarden los hijos: se lanza sin esperarla dentro del evaluate y se espera fuera, a su apretón de manos.
-  await page.evaluate(() => { globalThis.cargarRestoDeiframes(); });
+  // Los hijos se cargan con el ayudante común; la espera de abajo nombra los que este spec necesita.
+  await cargarHijosDelPadre(page);
   await page.waitForFunction(
     () => ['hijo2', 'hijo3', 'hijo4'].every((h) => globalThis.estado?.hijosInicializados?.has(h)),
     null, { timeout: 60_000 },

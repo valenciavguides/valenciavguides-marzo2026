@@ -39,7 +39,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -95,8 +95,8 @@ async function prepararParada(page) {
       if (coords?.length) globalThis.AVENTURA_PARADAS = coords;
     }
   });
-  // La carga dura lo que tarden los hijos: se lanza sin esperarla dentro del evaluate y se espera fuera, a su apretón de manos.
-  await page.evaluate(() => { globalThis.cargarRestoDeiframes(); });
+  // Los hijos se cargan con el ayudante común; la espera de abajo nombra los que este spec necesita.
+  await cargarHijosDelPadre(page);
   await hijosListos(page);
   await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } }));
   const cambio = await activarLaParada(page);
@@ -252,7 +252,7 @@ test.describe('EC — Un elemento completado sigue completado', () => {
 // ── El rescate, por su camino real: el asistente, su botón y las dos confirmaciones (como 72-rescate-concesion.spec.js) ──
 
 async function abrirAsistenteConBoton(page) {
-  await page.evaluate(() => { globalThis.cargarRestoDeiframes(); });
+  await cargarHijosDelPadre(page);
   await page.waitForFunction(
     () => [...(globalThis.mensajeria?.getIframesRegistrados?.() || new Map()).keys()].includes('hijo6-chat')
       && ['hijo2', 'hijo6-chat'].every((h) => globalThis.estado?.hijosInicializados?.has(h)),

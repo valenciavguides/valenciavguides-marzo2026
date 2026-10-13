@@ -31,7 +31,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -63,7 +63,7 @@ test.describe('RM — RETO.MOSTRAR, un solo constructor', () => {
   test.beforeEach(async ({ page }) => {
     test.setTimeout(90_000);
     await prepararPadreConAventura(page);
-    await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
+    await cargarHijosDelPadre(page);
     await page.waitForFunction(() => globalThis.estado?.hijosInicializados?.has('hijo4'), null, { timeout: 60_000 });
     // Cola sintetica de dos retos: hoy ninguna parada real tiene mas de uno (ver
     // project_varios_retos_por_parada.md), asi que se fabrica el escenario a mano,

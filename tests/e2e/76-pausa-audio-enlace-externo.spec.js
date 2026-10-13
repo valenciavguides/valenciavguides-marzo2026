@@ -21,7 +21,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 const frame = (page, nombre) => page.frames().find((f) => f.name() === nombre);
@@ -35,7 +35,7 @@ test.describe('PA — Abrir una pagina informativa pausa el audio', () => {
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
-    await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
+    await cargarHijosDelPadre(page);
     await page.waitForFunction(() => {
       const p = globalThis.estadoPadre?.hijosPreparados;
       return !!p && p.has('hijo1-opciones') && p.has('hijo3');

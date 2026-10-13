@@ -2,7 +2,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 const ID = 'hijo5';
@@ -52,7 +52,7 @@ async function arrancarConHijo5(page, context) {
   await gotoAndWaitForFase1(page);
 
   // hijo5 no entra por el cargador de P14: tiene el suyo propio.
-  await page.evaluate(() => globalThis.cargarHijoCasa?.());
+  await cargarHijosDelPadre(page, { resto: false, casa: true });
   await page.waitForFunction(
     (id) => !!document.getElementById(id)?.contentWindow?.logger,
     ID,

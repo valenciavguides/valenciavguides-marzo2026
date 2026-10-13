@@ -19,7 +19,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 const frame = (page, nombre) => page.frames().find((f) => f.name() === nombre);
@@ -40,7 +40,7 @@ test.describe('CM — «Más opciones» cierra el desplegable de audio del padre
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
-    await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
+    await cargarHijosDelPadre(page);
     await page.waitForFunction(() => !!globalThis.estadoPadre?.hijosPreparados?.has('hijo1-opciones'), null, { timeout: 60_000 });
     await page.waitForFunction(() => !!document.getElementById('hijo1-opciones')?.contentDocument?.getElementById('mas-opciones'), null, { timeout: 20_000 });
     // El desplegable de audio abierto: es lo que «Más opciones» tiene que cerrar.

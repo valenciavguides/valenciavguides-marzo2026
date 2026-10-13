@@ -203,6 +203,23 @@ async function gotoAndWaitForFase1(page) {
     }
     await page.waitForTimeout(50); // VENTANA-OBSERVACION: sondeo de script2Listo, acotado por BOOT_TIMEOUT
   }
+
+  // Y esperar a que el padre termine de arrancar del todo (`globalThis.sistemaInicializado === true`, que el padre pone
+  // al acabar su FASE 3: la pantalla de selección cargada). Son unas décimas de segundo más.
+  //
+  // Sin esta espera, un test corto acaba —y Playwright cierra su página— con el padre a medio arrancar y con cargas en
+  // curso. En WebKit (el proyecto iphone12) los procesos de una página cerrada tardan unos diez segundos en retirarse, y
+  // los de una página cerrada en ese punto gastan mientras tanto cerca de medio núcleo cada uno. Con tests de medio
+  // segundo se juntan más de quince: la CPU sube del 28 % al 75-86 % en doce segundos y la temperatura del equipo, de
+  // 57 a 85 °C en trece (medido; a 98 °C el sistema hiberna). Los de una página cerrada con el arranque terminado no
+  // gastan nada (medido en la misma pasada: 0,0 núcleos frente a 2,0 con cinco páginas).
+  //
+  // No aborta si expira, igual que las dos esperas de arriba: marca `__e2e_arranqueTimedOut` y deja que informe el test.
+  try {
+    await page.waitForFunction(() => globalThis.sistemaInicializado === true, null, { timeout: BOOT_TIMEOUT });
+  } catch (_arranqueError) {
+    await page.evaluate(() => { globalThis.__e2e_arranqueTimedOut = true; }).catch(() => {});
+  }
 }
 
 /**
@@ -297,6 +314,61 @@ function enviarAlHijo(page, mensaje) {
   }, mensaje);
 }
 
+let _cargasDeHijos = 0;
+
+/**
+ * Carga los hijos del padre y espera a que TODOS hayan completado el apretón de manos (`HIJO_LISTO`): los de `cargarRestoDeiframes()` (hijo1-opciones,
+ * hijo2, hijo3, hijo4 y el asistente) y, con `{ casa: true }`, también hijo5 por `cargarHijoCasa()`; con `{ resto: false, casa: true }`, solo hijo5.
+ *
+ * Es la única forma de cargarlos en un spec. No es un `page.evaluate` que espere la carga: ese `evaluate` es una petición de protocolo
+ * (`awaitPromise`) pendiente todo el rato en que los iframes navegan, y si Playwright invalida en ese rato su contexto principal de la página
+ * —con una frecuencia baja pero medida, sin que el documento cambie— se rechaza con «Execution context was destroyed, most likely because of a
+ * navigation» aunque la página siga viva y cargando. Aquí todo va dentro de un único `waitForFunction`, que reintenta el predicado en el contexto
+ * nuevo: la primera vez que se evalúa dispara la carga (una vez por llamada, por la clave `token`) y las siguientes solo miran si ha terminado.
+ *
+ * Solo sobrevive a esa invalidación, que deja el mismo documento. Si el documento del padre cambia de verdad mientras se cargan los hijos
+ * (recarga, navegación o un cambio de URL en el mismo documento), lanza. Lo sabe por Playwright y no por la página: escucha `framenavigated` del marco principal mientras espera, sin
+ * ninguna lectura previa con `page.evaluate`, que la misma invalidación podría tumbar. En el documento nuevo el predicado volvería a cargar y
+ * acabaría bien, y eso taparía la recarga: por eso el aviso de navegación manda sobre el resultado de la espera.
+ *
+ * Si `cargarRestoDeiframes` o `cargarHijoCasa` no existen todavía, espera a que existan; si la carga falla, lanza con el mensaje de la página.
+ */
+async function cargarHijosDelPadre(page, { resto = true, casa = false, timeout = BOOT_TIMEOUT } = {}) {
+  const token = `carga-${++_cargasDeHijos}`;
+  let navego = false;
+  const alNavegar = (marco) => { if (marco === page.mainFrame()) navego = true; };
+  page.on('framenavigated', alNavegar);
+  let fallo = null;
+  try {
+    await page.waitForFunction(
+      ({ conResto, conCasa, clave }) => {
+        if ((conResto && typeof globalThis.cargarRestoDeiframes !== 'function') || (conCasa && typeof globalThis.cargarHijoCasa !== 'function')) return false;
+        const cargas = (globalThis.__cargasHijosDelPadre = globalThis.__cargasHijosDelPadre || {});
+        if (!cargas[clave]) {
+          const estado = (cargas[clave] = { terminada: false, error: null });
+          const promesas = [];
+          if (conResto) promesas.push(globalThis.cargarRestoDeiframes());
+          if (conCasa) promesas.push(globalThis.cargarHijoCasa());
+          Promise.all(promesas).then(
+            () => { estado.terminada = true; },
+            (e) => { estado.error = String((e && e.message) || e); }
+          );
+        }
+        if (cargas[clave].error) throw new Error(`carga de los hijos del padre: ${cargas[clave].error}`);
+        return cargas[clave].terminada;
+      },
+      { conResto: resto, conCasa: casa, clave: token },
+      { timeout, polling: 50 }
+    );
+  } catch (e) {
+    fallo = e;
+  } finally {
+    page.off('framenavigated', alNavegar);
+  }
+  if (navego) throw new Error('el marco principal del padre navegó mientras se cargaban los hijos');
+  if (fallo) throw fallo;
+}
+
 module.exports = {
   BOOT_TIMEOUT,
   injectInitSpy,
@@ -307,4 +379,5 @@ module.exports = {
   abrirHijoEnMarco,
   recibidosPorElMarco,
   enviarAlHijo,
+  cargarHijosDelPadre,
 };

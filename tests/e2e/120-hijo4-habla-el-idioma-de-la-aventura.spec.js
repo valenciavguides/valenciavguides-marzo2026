@@ -21,7 +21,7 @@ const { test, expect } = require('@playwright/test');
 const path = require('path');
 const {
   abrirHijoEnMarco, enviarAlHijo,
-  injectInitSpy, stubCDNResources, gotoAndWaitForFase1,
+  injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre,
 } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
@@ -62,7 +62,7 @@ test.describe('ID — el padre manda el idioma en cada RETO.MOSTRAR', () => {
       globalThis.idiomaSeleccionado = 'fr';
       if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') await globalThis.__cargarDatosAventuraDiferidos();
     });
-    await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
+    await cargarHijosDelPadre(page);
     await page.waitForFunction(() => globalThis.estado?.hijosInicializados?.has('hijo4'), null, { timeout: 60_000 });
   });
 

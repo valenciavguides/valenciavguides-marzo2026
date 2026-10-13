@@ -27,7 +27,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -58,7 +58,7 @@ test.describe('AE — Lo que el padre se dice a sí mismo pasa por el bus', () =
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
-    await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
+    await cargarHijosDelPadre(page);
 
     // Fin del arranque = la condición real que dispara despacharLocal(APLICACION_INICIALIZADA)
     // (paso 8.5 de la lavadora: el aviso 'aplicacion_lista' que antes marcaba este instante para

@@ -50,6 +50,7 @@ Lo que de verdad queda por resolver antes de publicar en `valenciavguides.es` es
 35. [Video-intro — pantalla inicial de la PWA](#35-video-intro--pantalla-inicial-de-la-pwa)
 36. [Metodología de auditoría completa](#36-metodología-de-auditoría-completa)
 37. [Mapa de conexiones compartidas](#37-mapa-de-conexiones-compartidas)
+38. [Mediciones: cómo se mide y qué las protege](#38-mediciones-cómo-se-mide-y-qué-las-protege)
 
 ---
 
@@ -7936,6 +7937,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `123-elemento-completado-sigue-completado.spec.js` | 11 | Un elemento completado sigue completado (§25.10, §25.19, §9.2.3), con el padre, los hijos y el botón «avanzar» reales: una parada ya completada queda lista para avanzar, sin ficha nueva, al reactivarse (EC-1), tras recargar la página y reanudar (EC-2) y cuando el supervisor recarga a hijo2 (EC-3); no se le ofrece el rescate (EC-4); una parada sin completar que se reactiva sigue pendiente, con su ficha intacta (EC-5); y a una parada ya completada no le crean una ficha nueva otra llegada (EC-6), el audio escuchado otra vez (EC-7), el reto resuelto otra vez (EC-8) ni el botón de saltar el audio (EC-9). El rescate deja avanzar con el audio terminado y el reto sin resolver (RS-1) y con el audio sin terminar (RS-2) |
 | `124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` | 10 | Lo hecho en el elemento actual sobrevive a una recarga (§25.10, §9.2.3), con el padre, los hijos y los botones reales y una recarga real con su diálogo de reanudación: lo que se hace en la parada queda guardado en `vv_progreso` en el momento (FG-1); tras recargar y reanudar, el audio terminado sigue terminado y el botón de retos está encendido (FG-2), la llegada y el audio se conservan y el reto resuelto después completa la parada (FG-3), y el reto resuelto sigue resuelto, también en la cola de retos, y la llegada después completa la parada (FG-6); un progreso guardado sin ficha deja la ficha a cero (FG-4) y la ficha guardada de otro elemento no se aplica (FG-5); una ficha que vuelve completa sobre un elemento que no figura como completado lo completa al reanudar (FG-9). El recordatorio «pulse retos» corre al reanudar con el audio terminado y el reto sin resolver (FG-7) y al reactivarse el mismo elemento (FG-8). El progreso guardado lleva solo las claves que la reanudación lee (FG-10) |
 | `125-un-hijo-recargado-queda-como-estaba.spec.js` | 4 | Un hijo que el supervisor recarga recupera su estado (§2.7, §26.14), con el padre y los hijos reales y la caída vista por el latido: la barra de progreso del hijo3 recargado vuelve encendida, con su `CONTROL.HABILITAR` (`progressBar`) (HR-1); al arrancar, el padre no le manda nada a un hijo3 que todavía no está registrado en el bus (HR-2); a un hijo4 recargado con el reto ya cerrado no se le manda `RETO.MOSTRAR` (HR-3), y con el reto abierto sí (HR-4) |
+| `126-el-ayudante-que-carga-los-hijos.spec.js` | 3 | El ayudante `cargarHijosDelPadre()` de `helpers/boot.js` («Patrones de los tests E2E»), contra el padre real: en una carga normal vuelve con los siete hijos del padre con el apretón de manos completado, sin ninguna espera posterior (AY-1); si el padre se recarga mientras se cargan los hijos, falla con su mensaje en vez de dar por buena la carga hecha en el documento nuevo (AY-2); y si la carga se rechaza en la página, falla con el mensaje de la página (AY-3, control) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -7943,7 +7945,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 
 Todos los specs comparten la misma infraestructura (`tests/e2e/helpers/`):
 
-- **`boot.js`** — `gotoAndWaitForFase1()`: navega a `codigo-padre.html`, espera a FASE 1 (`globalThis.__MENSAJERIA_INICIADA === true`, o la API del bus completa) y después a que el padre haya registrado sus controladores (`getScript2Listo()` del state-manager a `true`). Ninguna de las dos esperas aborta al agotar `BOOT_TIMEOUT`: marcan `__e2e_bootTimedOut` o `__e2e_script2TimedOut` y dejan que informe la aserción del test. La de `script2Listo` sondea con `page.evaluate`, no con `waitForFunction`: `waitForFunction` no espera la promesa de un predicado `async` —una Promise es truthy— y la daría por cumplida al instante. `injectInitSpy()` registra el orden de arranque (`__e2e_initOrder`) y se llama antes de navegar. `stubCDNResources()` intercepta los CDN externos y también `js/vendor/maplibre-gl-csp.js` —vendorizado localmente, no CDN— para que el motor de mapas real nunca se ejecute ni los tests dependan de red o de un contexto WebGL real.
+- **`boot.js`** — `gotoAndWaitForFase1()`: navega a `codigo-padre.html`, espera a FASE 1 (`globalThis.__MENSAJERIA_INICIADA === true`, o la API del bus completa), después a que el padre haya registrado sus controladores (`getScript2Listo()` del state-manager a `true`) y por último a que termine de arrancar (`globalThis.sistemaInicializado === true`, que el padre pone al acabar su FASE 3, con la pantalla de selección cargada; el motivo está en §38.3). Ninguna de las tres esperas aborta al agotar `BOOT_TIMEOUT`: marcan `__e2e_bootTimedOut`, `__e2e_script2TimedOut` o `__e2e_arranqueTimedOut` y dejan que informe la aserción del test. La de `script2Listo` sondea con `page.evaluate`, no con `waitForFunction`: `waitForFunction` no espera la promesa de un predicado `async` —una Promise es truthy— y la daría por cumplida al instante. `injectInitSpy()` registra el orden de arranque (`__e2e_initOrder`) y se llama antes de navegar. `stubCDNResources()` intercepta los CDN externos y también `js/vendor/maplibre-gl-csp.js` —vendorizado localmente, no CDN— para que el motor de mapas real nunca se ejecute ni los tests dependan de red o de un contexto WebGL real. `cargarHijosDelPadre(page, { resto, casa })` carga los hijos del padre —los de `cargarRestoDeiframes()` y, con `casa: true`, también hijo5 por `cargarHijoCasa()`; con `{ resto: false, casa: true }`, solo hijo5— y vuelve cuando todos han completado el apretón de manos: es la única forma de cargarlos en un spec. Todo ocurre dentro de un único `waitForFunction` con `polling: 50`, cuyo predicado dispara la carga una vez por llamada y después solo mira si ha terminado. Un `page.evaluate` que esperase la carga entera queda pendiente mientras los iframes navegan, y se rechaza con «Execution context was destroyed» si Playwright invalida en ese rato su contexto principal de la página, cosa que hace con frecuencia baja sin que el documento cambie; el `waitForFunction` reintenta el predicado en el contexto nuevo. Mientras espera, el ayudante escucha `framenavigated` del marco principal: si salta (una recarga, una navegación o un cambio de URL en el mismo documento), lanza «el marco principal del padre navegó mientras se cargaban los hijos», aunque la carga haya terminado en el documento nuevo; si la carga se rechaza en la página, lanza con el mensaje de la página. Las únicas llamadas directas a los cargadores en los specs son las del 08, que comprueba que están publicados, y dos del 80, que cargan sin esperar a propósito. Cubierto por `tests/e2e/126-el-ayudante-que-carga-los-hijos.spec.js`.
 - **`maplibre-stub.js`** — stub de MapLibre GL JS que expone la API mínima necesaria (`Map`, `Marker`, `.on/.flyTo/.addSource/.addLayer/...`) sin renderizar nada real. Permite que `funciones-mapa.js` e `initializeMap()` se ejecuten sin un mapa real.
 - **`marco-vacio.html`** — un documento del mismo origen que hace de **padre** de un hijo
   cargado suelto (`abrirHijoEnMarco()`). Existe porque un hijo sin ventana de arriba no
@@ -7972,8 +7974,8 @@ Los tests Playwright son indispensables porque verifican:
 # Con el servidor activo (en otra terminal):
 node js/server.js
 
-# En la terminal de tests:
-npm run test:e2e:chromium
+# En la terminal de tests (una pasada larga, con el vigía térmico: §38):
+npm run test:e2e:vigilada -- --project=chromium
 ```
 
 El informe de fallos se guarda en `tests/e2e/report/` (HTML) y `tests/e2e/playwright-report.json` (JSON) — las dos rutas salen de los `reporter` de `playwright.config.js`. Los tres destinos están en `.gitignore`, junto con los artefactos de fallos individuales (screenshots, error-context) de `test-results/`: **ninguno se commitea**, porque se regeneran enteros en cada tanda. Al cambiar `outputFolder`/`outputFile` en `playwright.config.js` hay que actualizar también `.gitignore` — los patrones por defecto de Playwright (`playwright-report/`) no cubren estas rutas.
@@ -8409,7 +8411,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 122 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 123 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8461,6 +8463,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 |---------|----------|
 | `npm run test:e2e` | Ejecutar toda la suite Playwright (todos los browsers configurados) |
 | `npm run test:e2e:chromium` | Solo Chromium |
+| `npm run test:e2e:vigilada` | Playwright con el vigía térmico al lado (`tools/tanda-vigilada.js` y `tools/vigia-termico.ps1`): los argumentos pasan a `playwright test`, `--corte=<grados>` cambia la temperatura de corte (85 °C), y una pasada cortada sale con código 3 — ver §38.4 |
 | `npm run test:e2e:headed` | Con navegador visible — útil para depurar tests |
 | `npm run test:e2e:debug` | Modo debug interactivo de Playwright |
 | `npm run test:e2e:report` | Abrir el último reporte HTML de Playwright |
@@ -14381,5 +14384,145 @@ A diferencia de las tres tablas anteriores, esta es curada a mano: no hay forma 
 | `estadoMapa.modo` vs `estadoPadre.modo.actual` | Parecen la misma cosa duplicada, y lo lógico sería inicializarlas igual | Arrancan distinto **a propósito**: el padre en `null` y el mapa en `'casa'`. `actualizarMarcadorUsuario()` decide el icono con `=== MODOS.CASA ? 🛸 : ▲`, así que un `null` ahí pintaría la flecha de AVENTURA sin haber aventura | §2, §11 |
 | `_transicionarAModoCasa()` | Entrar en CASA parece siempre el momento de limpiar el progreso guardado | Entrar en CASA también ocurre **restaurando** una sesión guardada: sin el guard de `restaurado:true`, la reanudación borra los datos que acaba de leer | §9.9, §9.10 |
 | `modo` y `dev` en `vv_aventura_iniciada` | Parece que con guardar el modo basta, porque CASA solo se alcanza en dev | Son dimensiones independientes: dev/AVENTURA existe y es indistinguible de prod/AVENTURA si `dev` no se guarda aparte | §10.19, §24 |
+
+---
+
+## 38. Mediciones: cómo se mide y qué las protege
+
+Una **medición** es una ejecución de Playwright contra la aplicación real cuyo resultado se va a dar por cierto: que un cambio no rompe nada, que un fallo existe o que un arreglo lo quita. Esta sección dice qué mediciones hay, con qué orden se lanza cada una, qué reglas hacen que su resultado valga y qué impide que una pasada larga tumbe el equipo.
+
+### 38.1 Qué mediciones hay
+
+| Medición | Orden | Cuándo |
+|---|---|---|
+| Un spec en un navegador | `npx playwright test tests/e2e/<spec> --project=chromium` | Mientras se itera sobre un cambio: es la medición de trabajo |
+| Un proyecto entero | `npm run test:e2e:vigilada -- --project=iphone12` (o `chromium`, `firefox`, `pixel5`) | Cuando el cambio toca algo que ese navegador ejercita de otra manera, o para completar una tanda interrumpida en él |
+| La tanda de los cuatro navegadores | `npm run test:e2e:vigilada` | Antes de un commit grande o de subir. Los cuatro proyectos corren uno detrás de otro: chromium, firefox, pixel5 e iphone12 |
+| Una sonda desechable | Un spec `zz-*.spec.js` que se copia a `tests/e2e/`, se ejecuta y se borra | Para medir un hecho concreto que ningún spec versionado mide. No se versiona |
+
+```mermaid
+flowchart TD
+    A([Hay algo que comprobar]) --> B{¿Lo mide ya<br/>un spec versionado?}
+    B -- No --> S[Sonda desechable<br/>zz-*.spec.js, con su control<br/>se ejecuta y se borra]
+    B -- Sí --> C{¿Cuánto abarca<br/>el cambio?}
+    C -- Un fichero o un flujo --> D[El spec tocado<br/>en chromium]
+    C -- Depende del navegador --> E[El proyecto entero<br/>con el vigía]
+    C -- Commit grande o subida --> F[La tanda de los<br/>cuatro navegadores<br/>con el vigía]
+    S --> G{¿Sale lo esperado<br/>y el control lo confirma?}
+    D --> G
+    E --> G
+    F --> G
+    G -- Sí --> H([La medición vale])
+    G -- No --> I([Se investiga:<br/>no se repite a ciegas])
+```
+
+**Toda medición lleva su control.** Un resultado solo dice algo si la misma medición, puesta delante de un caso cuyo resultado se conoce, lo detecta: un test nuevo se ve en rojo contra el código que dice vigilar, y una comparación que sale «igual» solo vale si otra pasada demuestra que el instrumento nota la diferencia cuando la hay. El spec `126-el-ayudante-que-carga-los-hijos.spec.js` es un ejemplo: AY-2 y AY-3 son los controles de AY-1.
+
+### 38.2 Reglas para que una medición valga
+
+1. **Una sola a la vez, y nada más en el proyecto mientras corre.** Ni otra pasada, ni `npm run lint`, ni un barrido con `grep` o `node`. `playwright.config.js` lanza un solo worker (`workers: 1`, `fullyParallel: false`) porque los tests de iframes y `postMessage` no son seguros en paralelo; cualquier otra carga en la máquina alarga los tiempos y hace caer esperas que en reposo se cumplen.
+2. **El servidor local es uno.** Playwright levanta `node js/server.js` en `http://localhost:8080` y, si ya hay uno escuchando, lo reutiliza (`webServer.reuseExistingServer`). Un servidor de una pasada anterior que no contesta hace que la siguiente no arranque: sale «Timed out waiting 15000ms from config.webServer» sin ejecutar ningún test. Se cierra ese proceso y se lanza otra vez.
+3. **Las pasadas largas van con el vigía térmico** (§38.4): un proyecto entero o la tanda de los cuatro navegadores se lanzan con `npm run test:e2e:vigilada`.
+4. **Una pasada cortada o interrumpida no cuenta.** Si el vigía la corta, o el sistema hiberna o se suspende a mitad, lo que se haya medido no vale como tanda: se dice hasta dónde llega cada navegador y se repite entera, o el proyecto que faltaba.
+5. **Un fallo raro no se repite a ciegas.** Antes de lanzar otra vez se mira lo que ya hay —el mensaje, la traza, el CSV del vigía— y se busca un disparador que lo reproduzca a voluntad. Cientos de repeticiones sin hipótesis calientan el equipo y no explican nada.
+6. **Las esperas son de condición, no de tiempo.** `npm run verificar-esperas` impide que entren `waitForTimeout` nuevos (§18.2); una espera ciega pasa en una máquina ociosa y cae en una pasada larga.
+
+### 38.3 El calor: de dónde sale y qué lo contiene
+
+Una pasada de Playwright es carga sostenida de CPU, y la temperatura del equipo de desarrollo responde en segundos: su zona térmica ACPI (`\_TZ.HPTZ`) sube entre 1 y 2 °C por segundo con varios núcleos ocupados, y al llegar a su punto crítico (98 °C) Windows hiberna en el acto. Al reanudar, la pasada sigue sola y vuelve a calentar.
+
+El proyecto **iphone12** es el que más calienta, por la forma en que WebKit retira los procesos de una página:
+
+1. Cada test abre su propio contexto y su página, y al acabar Playwright cierra el contexto.
+2. WebKit mantiene los procesos de una página cerrada unos diez segundos, y mientras tanto siguen ejecutando el documento que tienen cargado. Playwright lanza WebKit sin aceleración gráfica, así que todo ese trabajo es de CPU. Con los mismos tests, chromium mantiene la carga plana, entre el 30 y el 40 %.
+3. Una página del padre **cerrada a medio arrancar**, con cargas en curso, gasta en ese rato cerca de medio núcleo. Una página cerrada **con el arranque terminado** no gasta nada. Una página abierta y quieta, tampoco.
+4. Los primeros specs son tests de medio segundo: es donde más páginas se abren por segundo y más procesos rezagados conviven.
+
+```mermaid
+sequenceDiagram
+    participant T as Test
+    participant B as gotoAndWaitForFase1()
+    participant P as Padre (página)
+    participant W as WebKit
+    T->>B: beforeEach
+    B->>P: goto codigo-padre.html
+    P-->>B: FASE 1 lista
+    P-->>B: controladores registrados (script2Listo)
+    P-->>B: arranque terminado (sistemaInicializado)
+    B-->>T: vuelve
+    T->>P: aserciones del test
+    T->>W: fin del test: se cierra el contexto
+    Note over W: los procesos de la página<br/>siguen vivos unos 10 s
+    Note over W: con el arranque terminado<br/>no gastan CPU
+```
+
+Por eso `gotoAndWaitForFase1()` (`tests/e2e/helpers/boot.js`) no vuelve hasta que el padre ha terminado de arrancar (`globalThis.sistemaInicializado === true`): son una o dos décimas de segundo más por test, y ningún test deja al cerrarse una página a medio arrancar.
+
+Cifras medidas en el equipo de desarrollo, con los tres primeros specs (37 tests) en iphone12:
+
+| | Si la página se cierra a medio arrancar | Con la espera al arranque terminado |
+|---|---|---|
+| Procesos de página vivos a la vez | hasta 17 | hasta 13 |
+| Núcleos que gastan entre todos | de 7 a 8 | menos de 1 |
+| Carga total de CPU | sube del 28 % al 75-86 % en 12 s | 21-29 %, estable |
+| Temperatura de la zona | de 57 a 85 °C en 13 s, subiendo | se estabiliza en 68-70 °C |
+
+El proyecto iphone12 entero corre así en unos 22 minutos con una máxima de 80 °C. La pasada sin esa espera no llega al segundo minuto: la zona alcanza en menos tiempo el punto crítico.
+
+Llevar la página a `about:blank` al acabar cada test no sirve como remedio: en WebKit el cierre del contexto se queda colgado en parte de los tests, con un núcleo ocupado, hasta agotar el tiempo del test.
+
+### 38.4 El vigía térmico
+
+`npm run test:e2e:vigilada` lanza `tools/tanda-vigilada.js`, que pone al lado de Playwright un vigía (`tools/vigia-termico.ps1`). El vigía lee la zona térmica una vez por segundo y, si llega a la temperatura de corte, para la pasada mucho antes del punto crítico.
+
+```mermaid
+flowchart TD
+    A(["npm run test:e2e:vigilada, con sus argumentos"]) --> B[Arranca el vigía<br/>y espera su primera muestra]
+    B --> C{¿Hay muestra<br/>en 30 s?}
+    C -- No --> X1([No se lanza Playwright<br/>código 2])
+    C -- Sí --> D{¿La zona está ya<br/>en el corte o por encima?}
+    D -- Sí --> X2([No se lanza Playwright<br/>código 3])
+    D -- No --> E[Lanza playwright test<br/>con los argumentos]
+    E --> F[El vigía toma una muestra<br/>y la apunta en el CSV]
+    F --> G{¿Zona ≥ corte?}
+    G -- No --> H{¿Ha acabado<br/>Playwright?}
+    H -- No --> F
+    G -- Sí --> I[Para todo lo que cuelga del lanzador<br/>menos el propio vigía:<br/>Playwright, workers y navegadores]
+    I --> J([CORTADA: no cuenta<br/>código 3])
+    H -- Sí --> K([Resumen: muestras, máxima y CSV<br/>código de salida de Playwright])
+```
+
+Paso a paso:
+
+1. `tanda-vigilada.js` arranca el vigía con `-PidTanda` igual a su propio pid y espera a que el CSV tenga la primera muestra (30 s como mucho). Sin muestra no lanza Playwright y sale con código 2.
+2. Si esa primera muestra está en el corte o por encima, tampoco lo lanza: avisa de la temperatura y sale con código 3.
+3. Lanza `playwright test` con los argumentos recibidos. `--corte=<grados>` no pasa a Playwright: fija la temperatura de corte (85 °C si no se da; se admite entre 40 y 95).
+4. Cada muestra del vigía que esté en el corte o por encima apunta primero `CORTE a <grados> C` en el CSV y después para todos los procesos que cuelgan del lanzador menos el propio vigía, más cualquier navegador de Playwright que quede abierto. El lanzador sigue vivo para decirlo.
+5. Al acabar Playwright, el lanzador para el vigía e imprime cuántas muestras hay, la temperatura máxima y la ruta del CSV. Si hay un corte apuntado, dice «CORTADA por temperatura: esta tanda NO cuenta» y sale con código 3; si no, sale con el código de Playwright.
+
+El CSV queda en la carpeta temporal del sistema (`vv-vigia-termico-<fecha>.csv`), con una línea por muestra:
+
+| Columna | Contenido |
+|---|---|
+| `hora` | Hora de la muestra |
+| `zona_C` | Temperatura de la zona, en grados |
+| `cpu_pct` | Carga total de CPU |
+| `procesos` | Procesos de navegador de Playwright y de `node` vivos, por nombre: cuántos hay y cuántos núcleos gastan entre todos (`WebKitWebProcess x12 = 0,5`) |
+| `nota` | `CORTE a <grados> C` en las muestras que cortan |
+
+La columna `procesos` es la que explica una subida: muchos procesos de página vivos gastando varios núcleos son páginas cerradas a medio arrancar (§38.3).
+
+El vigía descubre la ruta del contador térmico en vez de llevarla escrita, porque en un Windows en español el nombre tiene acentos y PowerShell 5.1 lee un `.ps1` sin BOM como ANSI; por lo mismo el fichero va en ASCII. Vigila la zona cuyo nombre contiene `HPTZ` (parámetro `-Zona`) y, si no existe, la primera que encuentra. Solo hay vigía en Windows: en otro sistema `tanda-vigilada.js` avisa y lanza Playwright sin él.
+
+### 38.5 Cuando una pasada no arranca o se queda a medias
+
+| Lo que se ve | Qué pasa | Qué se hace |
+|---|---|---|
+| «Timed out waiting 15000ms from config.webServer» y ningún test | El puerto 8080 lo ocupa un `node js/server.js` que no contesta | Se cierra ese proceso y se lanza otra vez |
+| «CORTADA por temperatura» y código 3 | El vigía para la pasada al llegar la zona al corte | Se deja enfriar el equipo y se repite. El CSV dice a qué hora, con cuánta CPU y con qué procesos |
+| «El equipo ya está a … °C» y código 3 | La zona está en el corte al empezar | Se espera a que baje |
+| El equipo hiberna o se suspende a mitad | Sin vigía, o con una subida más rápida que el margen del corte | Al volver, la pasada sigue sola: se para y se repite con el vigía y, si hace falta, con un corte más bajo |
+
+Parar una pasada a mano es parar su árbol de procesos: el `node` de `playwright test`, su worker y los navegadores que cuelgan de él (los de Playwright viven en una carpeta `ms-playwright`). El servidor de tests que mantiene abierto el editor (`playwright … test-server`) no es de la pasada y no se toca.
 
 ---

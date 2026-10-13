@@ -45,7 +45,7 @@ async function enP10(page) {
   await seleccion.waitForFunction(() => typeof globalThis.cargarPuzzle === 'function'
     || typeof cargarPuzzle === 'function', null, { timeout: 15_000 });
   await seleccion.evaluate(async () => {
-    // eslint-disable-next-line no-undef -- vive en el <script> clásico de la propia página
+    // `cargarPuzzle` vive en el <script> clásico de la propia página.
     await cargarPuzzle();
   });
   return seleccion;

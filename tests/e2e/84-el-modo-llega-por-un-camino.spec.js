@@ -30,7 +30,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 const FRAMES_CON_MODO = ['seleccion', 'hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5'];
@@ -62,8 +62,8 @@ test.describe('CM — El modo llega a cada frame por un solo camino', () => {
     test(`CM-${ID}. ${ID} aplica un CAMBIO_MODO del padre exactamente una vez`, async ({ page, context }) => {
       test.setTimeout(120_000);
       await arrancar(page, context);
-      if (ID !== 'seleccion') await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
-      if (ID === 'hijo5') await page.evaluate(() => globalThis.cargarHijoCasa?.());
+      if (ID !== 'seleccion') await cargarHijosDelPadre(page);
+      if (ID === 'hijo5') await cargarHijosDelPadre(page, { resto: false, casa: true });
       await expect.poll(() => conectado(page, ID), { timeout: 60_000 }).toBe(true);
 
       await page.evaluate((id) => {
@@ -98,7 +98,7 @@ test.describe('CM — El modo llega a cada frame por un solo camino', () => {
   test('CM-arranque. Al quedar listos hijo2, hijo3 y hijo4 no se les reenvia el modo', async ({ page, context }) => {
     test.setTimeout(120_000);
     await arrancar(page, context);
-    await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
+    await cargarHijosDelPadre(page);
 
     const criticos = ['hijo2', 'hijo3', 'hijo4'];
     const recibidos = (id) => page.evaluate((i) => document.getElementById(i)?.contentWindow?.__recibidosModo || null, id);

@@ -29,7 +29,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -42,7 +42,7 @@ test.describe('PD — Paradas de hijo5, una sola fuente', () => {
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
     // hijo5 no se carga en P14 como los demas: entra por su propio cargador.
-    await page.evaluate(() => globalThis.cargarHijoCasa?.());
+    await cargarHijosDelPadre(page, { resto: false, casa: true });
     // distribuirDatosAventura solo empuja a hijo5 si esta en hijosInicializados (tras
     // HIJO_LISTO, no solo HIJO_PREPARADO) — hay que esperar a ese hito, no antes.
     await page.waitForFunction(

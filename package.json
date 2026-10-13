@@ -26,6 +26,7 @@
     "lint": "eslint \"js/**/*.js\" \"*.html\"",
     "lint:fix": "eslint \"js/**/*.js\" \"*.html\" --fix",
     "test:e2e": "playwright test",
+    "test:e2e:vigilada": "node tools/tanda-vigilada.js",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:chromium": "playwright test --project=chromium",
     "test:e2e:debug": "playwright test --debug",

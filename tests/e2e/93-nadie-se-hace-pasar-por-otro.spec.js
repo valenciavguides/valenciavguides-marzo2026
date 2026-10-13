@@ -28,7 +28,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 const TIPO = 'PRUEBA.SUPLANTACION';
@@ -61,7 +61,7 @@ test.describe('SU — Ningún frame puede hacerse pasar por otro ante el padre',
       await stubCDNResources(page);
       await gotoAndWaitForFase1(page);
 
-      if (cargar === 'resto') await page.evaluate(() => globalThis.cargarRestoDeiframes?.());
+      if (cargar === 'resto') await cargarHijosDelPadre(page);
       if (cargar === 'mapa') await page.evaluate(() => globalThis.mostrarIframeOverlay('mapa-completo.html?aventura=Aventura1'));
 
       // El frame tiene que tener su bus inicializado: si no, el control no probaría nada.

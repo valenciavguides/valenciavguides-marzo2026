@@ -27,7 +27,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -375,7 +375,7 @@ test.describe('CH — El chat es alcanzable desde el padre', () => {
     expect(antes, 'antes de cargar los hijos el asistente no está cargado, así que tampoco registrado').not.toContain('hijo6-chat');
 
     // Camino real: los hijos se cargan juntos (P14, la reanudación y la ruta fallback llaman a esta función), el asistente entre ellos.
-    await page.evaluate(() => globalThis.cargarRestoDeiframes());
+    await cargarHijosDelPadre(page);
 
     const despues = await page.evaluate(() => [...globalThis.mensajeria.getIframesRegistrados().keys()]);
     expect(
@@ -388,10 +388,8 @@ test.describe('CH — El chat es alcanzable desde el padre', () => {
     await arrancar(page, context);
     await page.waitForFunction(() => !!document.getElementById('btn-chat-soporte') && !!globalThis.mensajeria, null, { timeout: 25000 });
 
-    await page.evaluate(() => {
-      globalThis.idiomaSeleccionado = 'fr';
-      return globalThis.cargarRestoDeiframes();
-    });
+    await page.evaluate(() => { globalThis.idiomaSeleccionado = 'fr'; });
+    await cargarHijosDelPadre(page);
 
     // enviarMensaje resuelve false cuando no encuentra el iframe destino entre los registrados.
     const entregado = await page.evaluate(async () => globalThis.mensajeria.enviarMensaje({

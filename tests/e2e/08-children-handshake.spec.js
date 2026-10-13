@@ -112,14 +112,11 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
     expect(info.hasHijosInicializados).toBe(true);
   });
 
-  test('HD-2b. estadoPadre.hijosInicializados comienza vacío antes de cargar iframes', async ({ page }) => {
-    // Inmediatamente tras FASE 1 (antes de FASE 3) el Set debe estar vacío
-    // ya que los iframes no se cargan en el entorno de test (no hay páginas hijas)
-    const size = await page.evaluate(() => {
-      return globalThis.estadoPadre?.hijosInicializados?.size ?? -1;
-    });
-    // En entorno de test sin iframes reales debe ser 0
-    expect(size).toBe(0);
+  test('HD-2b. Con el arranque terminado y sin cargar los hijos, solo la selección ha completado el apretón de manos', async ({ page }) => {
+    // gotoAndWaitForFase1 vuelve con el arranque del padre terminado: la pantalla de selección ya está cargada (FASE 3.1)
+    // y los hijos no, que se cargan al llegar a P14.
+    const listos = await page.evaluate(() => [...(globalThis.estadoPadre?.hijosInicializados ?? [])].sort());
+    expect(listos, 'ningún hijo de la aventura antes de cargarlos; la selección, sí').toEqual(['seleccion']);
   });
 
   // ── HD-3: Funciones de carga expuestas ───────────────────────────────
