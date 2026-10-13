@@ -382,8 +382,6 @@ let _avisadoFlechaSinBrujula = false; // el aviso de "flecha sin rumbo real" se 
 let compassActiva = false;
 let _brujulaEventoActivo = null; // 'deviceorientationabsolute' o 'deviceorientation' — cuál se registró de verdad
 let _mapaInstance = null; // Instancia del mapa MapLibre
-let _mapaOpciones = null; // Opciones del mapa
-let _pulseTimeout = null; // Timeout del efecto de llegada (cancelable)
 let _camaraSiguiendoUsuario = true; // false tras un arrastre manual del usuario — ver _registrarSeguimientoCamara()
 let _camaraSiguiendoRumbo = false; // true tras elegir "Seguir mi rumbo" en el menú de #brujula-modo — ver _registrarSeguimientoRumbo()
 
@@ -856,12 +854,6 @@ function getIconoEscalado() {
 }
 
 /**
- * Lista de elementos a re-renderizar cuando cambie el zoom
- * @private
- */
-let _elementosParaReescalar = [];
-
-/**
  * HTML de un marcador emoji de ruta (📌 inicio, 🎯 parada/fin de tramo/destino de navegación)
  * para un tamaño dado. Única función que construye esta plantilla — la usan tanto la creación
  * del marcador (completarCambioParada, dibujarPolylineNavegacion) como reescalarMarcadoresEmoji()
@@ -1184,15 +1176,13 @@ if (typeof document !== 'undefined') {
 /**
  * Inicializa el servicio del mapa.
  * @param {Object} mapaInstance - Instancia del mapa de MapLibre GL.
- * @param {Object} [opciones={}] - Opciones de configuración.
  * @returns {boolean} True si la inicialización fue exitosa.
  */
-export function inicializarServicioMapa(mapaInstance, opciones = {}) {
+export function inicializarServicioMapa(mapaInstance) {
     // La instancia la crea codigo-padre.html (con las capas base de los tres modos ya definidas): este módulo
     // no crea mapas. Sin ella devuelve false y quien llama reintenta.
     if (mapaInstance) {
         _mapaInstance = mapaInstance;
-        _mapaOpciones = { ...opciones };
         arrayParadasLocal = normalizarParadas(globalThis.AVENTURA_PARADAS || []);
         registrarListenerZoom(); // Habilitar escalado dinámico según zoom
         _registrarSeguimientoCamara(); // Pausar seguimiento de cámara al arrastrar el mapa a mano
@@ -3296,7 +3286,6 @@ if (globalThis.window !== undefined) {
             rutasActivas.length = 0;
             marcadorUsuario = null;
             marcadorDestino = null;
-            _mapaOpciones = null;
             arrayParadasLocal.length = 0;
 
             // Limpiar estado del mapa
