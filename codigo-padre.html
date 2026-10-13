@@ -4030,10 +4030,6 @@
         // CONFIGURACIÓN DEL COMPONENTE PADRE (compartida con Script 2)
         // ============================================================
         globalThis.CONFIG_PADRE = {
-            ID: 'padre',
-            COMPONENTE_ID: 'PADRE-PRINCIPAL',
-            VERSION: '3.0.0',
-            DEBUG: true,
             LOG_PREFIX: '[PADRE]'
         };
 
@@ -10354,7 +10350,7 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         // Usar globalThis.CONFIG_PADRE ya que CONFIG_PADRE no está en scope local de Script 2
-        var CONFIG_PADRE = globalThis.CONFIG_PADRE || { LOG_PREFIX: '[PADRE]', ID: 'padre' };
+        var CONFIG_PADRE = globalThis.CONFIG_PADRE || { LOG_PREFIX: '[PADRE]' };
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Inicializando controladores del padre...`);
         inicializarControlesAudioPadre();
 

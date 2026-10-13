@@ -113,24 +113,20 @@ test.describe('Globals requeridas tras FASE 1', () => {
 
   // ── CONFIG_PADRE ───────────────────────────────────────────────────────
 
-  test('1f. globalThis.CONFIG_PADRE existe con todas las claves requeridas', async ({ page }) => {
+  // CONFIG_PADRE lleva solo la clave que el código lee (LOG_PREFIX). Las otras cuatro del prerequisito de arriba
+  // (ID, COMPONENTE_ID, VERSION, DEBUG) no tenían ningún lector (docs/estudio-caminos.md, K-66).
+  test('1f. globalThis.CONFIG_PADRE existe con la clave que el código lee', async ({ page }) => {
     const cfg = await page.evaluate(() => {
       const c = globalThis.CONFIG_PADRE;
       return {
         exists: !!c,
-        hasID: typeof c?.ID === 'string' && c.ID.length > 0,
-        hasComponenteID: typeof c?.COMPONENTE_ID === 'string',
-        hasVersion: typeof c?.VERSION === 'string',
-        hasDebug: typeof c?.DEBUG === 'boolean',
-        hasLogPrefix: typeof c?.LOG_PREFIX === 'string',
+        logPrefix: c?.LOG_PREFIX,
+        claves: c ? Object.keys(c) : null,
       };
     });
     expect(cfg.exists).toBe(true);
-    expect(cfg.hasID).toBe(true);
-    expect(cfg.hasComponenteID).toBe(true);
-    expect(cfg.hasVersion).toBe(true);
-    expect(cfg.hasDebug).toBe(true);
-    expect(cfg.hasLogPrefix).toBe(true);
+    expect(cfg.logPrefix).toBe('[PADRE]');
+    expect(cfg.claves, 'ninguna clave sin lector').toEqual(['LOG_PREFIX']);
   });
 
   // ── Flag de estado del sistema ─────────────────────────────────────────
