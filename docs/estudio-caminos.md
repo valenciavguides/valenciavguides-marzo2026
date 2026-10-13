@@ -3045,6 +3045,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Por qué es un segundo camino.** El valor coincide hoy (15 y 15), pero el círculo no lee la constante: cambiar `RADIO_LLEGADA_PARADA_M` dejaría al usuario viendo un círculo de 15 m que ya no sería la zona de llegada. La tabla de K-05 («Radio de llegada») cita los otros tres sitios del radio y no este.
 - **Método.** Búsqueda de `_crearCirculoGeografico` (una llamada) y lectura de su contexto; búsqueda en este documento de `circuloActivacion`, `_crearCirculoGeografico` y «círculo naranja»: ninguna aparición.
 - **Pendiente: decisión.** *A)* que el círculo tome su radio de `radioLlegada()`; *B)* dejarlo.
+- **Aplicada (2026-10-13, `8f36e78`): A.** `actualizarMarcadorUsuario` dibuja el círculo con `_crearCirculoGeografico({ lat, lng }, radioLlegada(), …)`. El valor es el mismo (15 m): no cambia nada a la vista. Specs del mapa en chromium (13, 17, 21, 24, 25, 27, 47, 53 y 57), 54 de 54. Guía: G-75.
 
 ##### K-72 — La reanudación espera `distribuirDatosAventura` por una promesa sin plazo — ✅ (medido; decisión abierta)
 
@@ -3083,6 +3084,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Consecuencia** (leída, no medida). El recordatorio de rescate cuenta desde `ficha.timestamp` (`:14043-14050`): un tramo visitado en CASA que se alcanza en AVENTURA más de 8 minutos después saca el recordatorio en el primer barrido, si ese barrido llega antes que el fin de su audio (que pone el reloj a cero). En `variantes` TR-2 se alcanzó a los cinco minutos y no salió. Solo con la herramienta de desarrollo (ver §24).
 - **Comentarios que no se sostienen.** `codigo-padre.html:12157` y la cabecera del spec 68 (`:21-23`) dicen que el barrido «recorre TODAS las fichas»; el de hoy mira solo la del elemento actual (`:14020`, `:14036-14043`). `:11826` dice que `pending.llegada` «persiste en localStorage»; `persistProgressState` no guarda las fichas (`:4273-4290`), como dice `:13846-13848`. `:4280-4284` habla de «saltos de seguridad del TTL de tramos» y de «5 por aventura»: el tope es el del rescate a petición, 12 en la Aventura1 (`:13559-13562`).
 - **Pendiente: decisión.** *A)* que el cambio de modo, o la activación en AVENTURA, empiece el reloj de la ficha; *B)* dejarlo (solo desarrollo), corrigiendo los comentarios.
+- **Los comentarios, corregidos (2026-10-13, `583b3aa`); la decisión sigue abierta.** Los dos del barrido «que recorre todas las fichas» (el del handler de fin de audio y la cabecera del spec 68) y el de los «saltos de seguridad del TTL, 5 por aventura» (son los rescates a petición: tope 12, y 35 en la de 34 km, `LIMITES_RESCATE`). El de `pending.llegada` que «persiste en localStorage» se deja: desde K-89 la ficha del elemento actual se guarda en `vv_progreso`.
 
 ##### K-76 — `estado.retoActualId` de hijo4 significa dos cosas, y la limpieza del cambio de modo lee la que no es — ✅ (medido el aviso; leído)
 
@@ -3476,6 +3478,7 @@ código leído ese día; los hashes son de los commits locales (sin pushear).
 | G-72 | ✅ | `1e1a660`, con K-68: la fila de `SISTEMA.CAMBIO_MODO` de la tabla de handlers de hijo5 decía «sin `origen` lo ignora»; esa guarda no existe. |
 | G-73 | ✅ | `479b06a`, con K-73: §9.2.3 (a un elemento ya completado, en AVENTURA, `ensurePending` no le crea ficha), §10.16 (decía que `ensurePending` vuelve a crearla cuando un evento posterior la encuentra borrada) y «Dos sensores», en «Tolerancia GPS por tipo de elemento» (decía que la segunda llegada vuelve a crear la ficha de un tramo ya completado); la fila del spec 123 en §18.3. |
 | G-74 | ✅ | `acfebb1`, con K-88: §2.7a (lo que se devuelve a hijo3 y a hijo4), la ficha de `HIJO_LISTO` en dos sitios, §26.14 (decía que el tiempo restante se guarda en `_snapshotRecuperacion.tiempoRestante`: sale de `estado.tiempoRestante`; y los dos controles de hijo3), la fila del spec 125 en §18.3 (122 specs) y §37 (una fila más, `_reenviarProgressBarAHijo3`: 101 identificadores cruzados de 152, y 15 del módulo 2 al 1). |
+| G-75 | ✅ | `8f36e78`, con K-71: la fila de `radioLlegada()` en «Tolerancia GPS por tipo de elemento» dice que el círculo naranja se dibuja con ese mismo radio. |
 
 ### R2.6 Censo de frames (regla 3b)
 
@@ -3837,11 +3840,11 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 43 | 3 | K-68 | retirar 23 guardas de `origen` inalcanzables, en seis frames — **hecha (2026-10-13, `1e1a660`)** | — | — | sí |
 | 44 | — | K-69 | CSS sin uso: leer cada caso antes de proponer (🔎) | — | — | — |
 | 45 | 4 | K-70 | una sola forma de la respuesta al latido, en los siete frames; aparte, la de hijo5 sin latido | BUS, GUÍA | — | sí |
-| 46 | 1 | K-71 | el círculo naranja toma su radio de `radioLlegada()` | — | blanda: K-05 (las constantes del radio) | sí |
+| 46 | 1 | K-71 | el círculo naranja toma su radio de `radioLlegada()` — **hecha (2026-10-13, `8f36e78`)** | — | blanda: K-05 (las constantes del radio) | sí |
 | 47 | 3 | K-72 | la reanudación espera `distribuirDatosAventura` con plazo y con el aviso | SPEC (Script 2 cortado), GUÍA | blanda: K-62, K-53 resto | sí |
 | 48 | 3 | K-73 | que la llegada de un elemento ya cerrado no cree ficha, o un solo sensor (K-06) — **hecha (2026-10-13, `479b06a`): A, en `ensurePending`** | SPEC | blanda: K-74 (el mismo par de sensores) | sí |
 | 49 | 4 | K-74 | un solo dueño del elemento actual para el mapa y para hijo2 | SPEC, VISIBLE (el cartel de inicio y el botón de vídeo), MEDIR | blanda: K-14 (el orden de `vv-parada-cambiada`), K-73 | sí |
-| 50 | 2 | K-75 | el reloj de la ficha empieza al activarse en AVENTURA (solo desarrollo), y cuatro comentarios que no se sostienen | — | — | sí |
+| 50 | 2 | K-75 | el reloj de la ficha empieza al activarse en AVENTURA (solo desarrollo), y cuatro comentarios que no se sostienen — **los comentarios, corregidos (2026-10-13, `583b3aa`); el reloj, por decidir** | — | — | sí |
 | 51 | 2 | K-76 | hijo4: un campo para el reto de la parada y otro para el reto abierto | — | — | sí |
 | 52 | 5 | K-77 | el texto del cartel de llegada al punto de inicio, en doce idiomas | VISIBLE, traducciones de usted | blanda: K-74 (que no salga dos veces) | sí |
 | 53 | 2 | K-78 | la marca del rescate pedido y la compleción con la misma clave | SPEC, VISIBLE (un cartel menos tras el rescate), GUÍA si B | — | sí |
@@ -4227,6 +4230,7 @@ Mismo formato y mismo método que el resto de R2.11, sobre `4bea83e` y el 2026-1
 - **¿Puede ser código muerto?** No: el círculo se crea o se mueve en cada posición fuera de CASA (`actualizarMarcadorUsuario`).
 - **Por qué importa y por qué debe seguir.** El círculo debe seguir y tiene que ser la zona de verdad; lo que se decide es de dónde saca el número.
 - **Opciones (de la ficha).** A) que lo tome de `radioLlegada()`; B) dejarlo.
+- **Aplicado (2026-10-13).** A. Commit `8f36e78`.
 
 **K-72 — la espera de la reanudación a `distribuirDatosAventura`**
 
@@ -4523,6 +4527,8 @@ Fuera de los frames: `js/funciones-mapa.js` (K-62, K-64, K-71), `js/mensajeria.j
 - *hijo3 caído al avanzar de TR-5 a P-7.* Se pierden los dos intentos de `AUDIO.REPRODUCIR_REQUEST` (a 1,65 s y a 2,83 s de la caída), el `NAVEGACION.CAMBIO_PARADA` y un `CONTROL.DESHABILITAR`. A los 4,05 s el padre da el audio por no disponible (`_marcarAudioNoDisponible`): marca `audio` en la ficha y manda `CONTROL.HABILITAR` (`retosBtn`), que también se pierde. hijo3 vuelve a los 12,5 s y recibe el audio restaurado y un `CONTROL.DESHABILITAR` (`retosBtn`, `esperar_fin_audio_aventura`). Queda así: el play apagado y el botón de saltar a la vista con el audio ya cargado en hijo3 (`estado._audioFalloId` sigue puesto), el botón de retos apagado y el padre recordando que se pulse. La parada no se puede completar (K-82) y la pasada se paró ahí, en el elemento 12.
 
 **Comentarios del código que no se sostienen, sin entrada.** `codigo-padre.html:8370-8375` habla de «los 8 carteles» de la familia: `_TODOS_LOS_CARTELES_IDS` (`:8376`) tiene diez ids. `js/indice-aventuras.js:2-5` dice que los totales «se calculan dinámicamente» en la selección: están escritos en el propio fichero, la selección los lee de ahí (`En-busca-del-tesoro.html:2204-2217`) y los vigila `npm run verificar-totales`. `boton-casa-hijo5.html` (junto a `manejarClickGPS`) habla de un «`enviarMensaje` local… postMessage crudo»: hijo5 usa el del bus (`:348`). Los de K-80 (`codigo-padre.html:9624-9626`) y K-82 (`:10862-10864`) van en sus entradas.
+
+**Corregidos (2026-10-13, `583b3aa`; solo comentarios, ninguna línea de código).** De los dos párrafos de arriba y del de abajo: los «8 carteles» (son diez, y el recordatorio de rescate se impone como los cinco de «algo acaba de pasar»: seis llamadas a `_ocultarCualquierCartel()` y cuatro esperas con `_hayCartelEnPantalla()`), los totales de `js/indice-aventuras.js`, el «`enviarMensaje` local» de hijo5, las dos funciones del cartel del bloqueo «que llama `_hdl_NAVEGACION_GPS_RESTRINGIDO`» (búsqueda desnuda de `showGpsOutOfRangeOverlay` y `hideGpsOutOfRangeOverlay` en `*.html`, `js/*.js` y `tests/`: fuera de Script 1 solo un comentario del spec 56; su publicación en `globalThis` no tiene lector), «por baja precisión», el «30s» del timeout, los dos números de línea, los «4 scripts», `usuario_en_zona` de hijo2 y la cabecera de `js/controladores-padre.js` (tres controladores, no cuatro, y cada uno contesta con su mensaje). Quedan sin tocar los de K-80 (van con su decisión).
 
 **Más comentarios que no se sostienen** (leídos al contrastar la guía, G-64; sin entrada). `codigo-padre.html:6034-6035` dice que `_hdl_NAVEGACION_GPS_RESTRINGIDO` llama a `showGpsOutOfRangeOverlay` y a `hideGpsOutOfRangeOverlay`: no llama a ninguna (`:10833-10852`). `:5947` dice de ese cartel que «es por baja precisión»: solo lo muestra el bloqueo de 5 km (el comentario de `:5940-5943`, siete líneas antes, sí lo dice bien). `:6676` da el timeout por «30s sin respuesta»: el `watchPosition` lleva 35 s (`:5822`) y sus reintentos 15, 30 y 60 (`:5484`). `:5241` y `:10991` dan números de línea que no son («línea ~9611», «línea ~4767»), y `:5258` habla de «los 4 scripts». `coordenadas-hijo2.html:1428` nombra la razón `usuario_en_zona`: el padre manda `de_vuelta_en_zona` (`codigo-padre.html:5670`). `js/controladores-padre.js:45-47` dice que el padre responde «reenviando el mismo CARGAR_*»: de sus tres handlers, solo el de textos (`:105-109`).
 
