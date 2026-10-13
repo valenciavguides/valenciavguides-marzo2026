@@ -184,11 +184,6 @@
                 const controladorPrefix = `${CONFIG_HIJO.LOG_PREFIX}[PADRE_DATOS]`;
 
                 try {
-                    if (!mensaje || !mensaje.origen) {
-                        logger.error(`${controladorPrefix} Mensaje sin origen válido`, mensaje);
-                        return;
-                    }
-
                     logger.info(`${controladorPrefix} Datos del padre recibidos desde ${mensaje.origen}`);
 
                     // ✅ PROCESAR DATOS INICIALES DEL PADRE
@@ -244,11 +239,6 @@
 
                 try {
                     logger.info(`${CONFIG_HIJO.IFRAME_ID} PADRE_CONFIRMA_HIJO_LISTO recibido:`, mensaje);
-                    // 1. Validación de origen
-                    if (!mensaje || !mensaje.origen) {
-                        logger.error(`${controladorPrefix} Mensaje sin origen válido`, mensaje);
-                        throw new Error('Mensaje sin origen válido');
-                    }
 
                     logger.info(`${controladorPrefix} Confirmación recibida del padre - controladores listos`);
                     if (_intervaloReintento) { clearTimeout(_intervaloReintento); _intervaloReintento = null; logger.info('[hijo1] Reintento HIJO_LISTO cancelado tras confirmación del padre'); }
@@ -303,20 +293,13 @@
             // ============================================================
             /**
              * Responde al latido del bus (js/mensajeria.js)
-             * @param {Object} mensaje - Mensaje de heartbeat
              * @returns {Object} Respuesta de heartbeat
              */
-            registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT, async (mensaje) => {
+            registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT, async () => {
                 const controladorPrefix = `${CONFIG_HIJO.LOG_PREFIX}[HEARTBEAT]`;
 
                 try {
-                    // 1. Validación de origen
-                    if (!mensaje || !mensaje.origen) {
-                        logger.error(`${controladorPrefix} Mensaje sin origen válido`, mensaje);
-                        return { exito: false, error: 'Sin origen' };
-                    }
-
-                    // 2. Preparar datos de respuesta
+                    // 1. Preparar datos de respuesta
                     const datosRespuesta = {
                         timestamp: Date.now(),
                         componente: CONFIG_HIJO.COMPONENTE_ID,
@@ -325,7 +308,7 @@
                         ultimaInteraccion: estadoMenu.ultimaInteraccion
                     };
 
-                    // 3. Enviar respuesta
+                    // 2. Enviar respuesta
                     await enviarMensaje({
                         destino: 'padre',
                         tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,

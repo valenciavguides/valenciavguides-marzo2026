@@ -1166,11 +1166,6 @@
             const logPrefix = `[hijo3][PADRE_DATOS]`;
 
             try {
-                if (!mensaje || !mensaje.origen) {
-                    logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
-                    return;
-                }
-
                 logger.info(`${logPrefix} Datos del padre recibidos desde ${mensaje.origen}`);
                 logger.info(`Hijo ${CONFIG_HIJO.IFRAME_ID} recibió PADRE_DATOS`);
 
@@ -1237,10 +1232,6 @@
 
             try {
                 logger.info('[hijo3] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
-                if (!mensaje?.origen) {
-                    logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
-                    return;
-                }
 
                 logger.info(`${logPrefix} Confirmación recibida del padre - controladores listos`);
 

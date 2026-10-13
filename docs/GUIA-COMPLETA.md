@@ -4865,7 +4865,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-e5bdae3464e8'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7b21c8f1a570'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8167,7 +8167,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-e5bdae3464e8'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-7b21c8f1a570'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8914,7 +8914,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-e5bdae3464e8';
+const CACHE_VERSION = 'v-7b21c8f1a570';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11646,7 +11646,7 @@ Herramienta de desarrollo. El iframe arranca oculto (`display:none; visibility:h
 |---|---|---|---|---|---|
 | `SISTEMA.PADRE_DATOS` | Padre | Recibe `{ modo, timestamp }`; escribe el modo en el log (no sincroniza el botón GPS) y envía `HIJO_LISTO` con reintentos; si se agotan, muestra la UI como último recurso | `SISTEMA.HIJO_LISTO` | Padre | Handshake — las paradas se piden después, al recibir `PADRE_CONFIRMA_HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Cancela el reintento de `HIJO_LISTO`, sincroniza el botón GPS con `modoInicial`, muestra la UI y pide las paradas al padre | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Padre | Finalizar handshake y poblar la barra |
-| `SISTEMA.CAMBIO_MODO` | Padre | Valida el mensaje (sin `origen` lo ignora; sin `datos` manda `SISTEMA.ERROR`; con un modo inválido manda `SISTEMA.NACK { error, valoresValidos }`); manda `ENTENDIDO`; guarda el modo y actualiza su interfaz (`_actualizarUIParaModo`: en `casa` muestra la ventana de paradas `#paradas-window` y regenera los botones, en `aventura` la oculta, y el botón GPS pasa a OFF o a ON); en `aventura` pide las paradas al padre (forzado); manda `EFECTUADO`. Si falla, manda `SISTEMA.ERROR { error, tipo: 'CAMBIO_MODO_FALLIDO' }` | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | La lista de paradas solo se ve en CASA |
+| `SISTEMA.CAMBIO_MODO` | Padre | Valida el mensaje (sin `datos` manda `SISTEMA.ERROR`; con un modo inválido manda `SISTEMA.NACK { error, valoresValidos }`); manda `ENTENDIDO`; guarda el modo y actualiza su interfaz (`_actualizarUIParaModo`: en `casa` muestra la ventana de paradas `#paradas-window` y regenera los botones, en `aventura` la oculta, y el botón GPS pasa a OFF o a ON); en `aventura` pide las paradas al padre (forzado); manda `EFECTUADO`. Si falla, manda `SISTEMA.ERROR { error, tipo: 'CAMBIO_MODO_FALLIDO' }` | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | La lista de paradas solo se ve en CASA |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre | Valida y transforma las paradas (`estado.aventuraParadas`) y, si el modo no es AVENTURA, renderiza los botones de parada/tramo con emoji, código corto y nombre completo (efecto marquee si el nombre no cabe); si algo falla, manda `SISTEMA.ERROR` | (ninguna) | — | Poblar la barra con los botones navegables de la aventura |
 | `NAVEGACION.CAMBIO_PARADA` | Padre (`{ paradaId, parada_id, padreId, padreid, … }`; no lo recibe si el cambio lo originó el propio hijo5) | Marca como actual el botón de esa parada o tramo (`_resaltarBotonParada`), salvo que `exito` sea `false` | (ninguna) | — | Reflejar en la barra la parada activa |
@@ -12373,7 +12373,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-e5bdae3464e8';
+const CACHE_VERSION = 'v-7b21c8f1a570';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14039,25 +14039,25 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `__vv_PUZZLES` | módulo 1 (L3789) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3671) | módulo 2 | estado |
 | `__vv_salidaEnlaceExterno` | módulo 1 (L4860) | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 (L7502) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8855) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L9071) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8976) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7496) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8844) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9060) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8965) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L4121) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8945) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9155) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9047) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8951) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9163) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8825) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8934) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9144) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9036) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8940) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9152) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8814) | módulo 2 | función/objeto |
 | `_obtenerCoordenadasP0Fallback` | módulo 1 (L5286) | módulo 2 | función/objeto |
 | `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6133) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3925) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 (L3932) | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4678) | clásico 6, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8170) | clásico 5, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8168) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8169) | clásico 6, módulo 2, módulo 3 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8159) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8157) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8158) | clásico 6, módulo 2, módulo 3 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L4032) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3919) | clásico 6, clásico 7, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3920) | módulo 2 | función/objeto |
@@ -14069,11 +14069,11 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `idiomaSeleccionado` | módulo 1 (L4679) | clásico 6, módulo 2, clásico 14 | función/objeto |
 | `limpiarDatosAventura` | módulo 1 (L2964) | módulo 2, clásico 14 | función/objeto |
 | `MODOS` | módulo 1 (L3917) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8552) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8621) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8475) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8328) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8371) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8541) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L8610) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8464) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8317) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8360) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4328) | módulo 2 | función/objeto |
 | `registrarControlador` | módulo 1 (L3918) | módulo 2 | función/objeto |
 | `registrarControladorSeguro` | módulo 1 (L5170) | módulo 2, módulo 4 | función/objeto |
@@ -14096,25 +14096,25 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2968) | clásico 14 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2945) | módulo 2 | función/objeto |
 | `verificarTimeoutAventura` | módulo 1 (L2965) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8171) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9275) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14211) | clásico 13 | estado |
-| `_estadoRescate` | módulo 2 (L14192) | clásico 6 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12858) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11430) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11479) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12888) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9339) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10223) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9478) | clásico 6, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9560) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10042) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13119) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10105) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9598) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10097) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10070) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14234) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8160) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9264) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14180) | clásico 13 | estado |
+| `_estadoRescate` | módulo 2 (L14161) | clásico 6 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12827) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11414) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11463) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12857) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9328) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10212) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9467) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9549) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10031) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13088) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10094) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9587) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10086) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10059) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14203) | módulo 2 | función/objeto |
 
 </details>
 
@@ -14130,10 +14130,10 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_setTimerProgresoCarga` | clásico 3 (L2505) | módulo 7 | función/objeto |
 | `mostrarMapaVintage` | clásico 3 (L2525) | módulo 7 | función/objeto |
 | `x` | clásico 3 (L2498) | módulo 7 | estado |
-| `aventuraSeleccionada` | módulo 7 (L2927) | clásico 3 | función/objeto |
+| `aventuraSeleccionada` | módulo 7 (L2915) | clásico 3 | función/objeto |
 | `enviarValoracion` | módulo 7 (L2551) | clásico 3 | función/objeto |
-| `idiomaSeleccionado` | módulo 7 (L2856) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 7 (L2923) | clásico 3 | función/objeto |
+| `idiomaSeleccionado` | módulo 7 (L2844) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 7 (L2911) | clásico 3 | función/objeto |
 | `TEXTOS_VALORACION` | módulo 7 (L2549) | clásico 3 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 7 (L2589) | clásico 3 | función/objeto |
 | `TRADUCCIONES_ACCESO_ERRONEO` | módulo 7 (L2548) | clásico 3 | función/objeto |

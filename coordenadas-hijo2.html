@@ -1555,10 +1555,6 @@ try {
     registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_DATOS, async (mensaje) => {
         const logPrefix = `[hijo2][PADRE_DATOS]`;
         try {
-            if (!mensaje || !mensaje.origen) {
-                logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
-                return;
-            }
             logger.info(`${logPrefix} Datos del padre recibidos desde ${mensaje.origen}`);
             logger.info(`Hijo ${CONFIG_HIJO.IFRAME_ID} recibió PADRE_DATOS`);
             if (mensaje.datos) _procesarDatosPadre(mensaje.datos, logPrefix);
@@ -1586,10 +1582,6 @@ try {
 
         try {
             logger.info('[hijo2] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
-            if (!mensaje?.origen) {
-                logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
-                return;
-            }
 
             logger.info(`${logPrefix} Confirmación recibida del padre - controladores listos`);
             if (_intervaloReintento) { clearTimeout(_intervaloReintento); _intervaloReintento = null; logger.info('[hijo2] Reintento HIJO_LISTO cancelado tras confirmación del padre'); }

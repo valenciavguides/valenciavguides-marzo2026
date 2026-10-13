@@ -7144,11 +7144,6 @@
             (globalThis.logger || console).info(`🔥 [PADRE] HIJO_PREPARADO RECIBIDO de ${mensaje?.origen}:`, mensaje);
 
             try {
-                if (!mensaje?.origen) {
-                    (globalThis.logger || console).warn(`${logPrefix} Mensaje sin origen`);
-                    return;
-                }
-
                 const hijoId = mensaje.origen;
                 const { version = '1.0.0', capacidades = [], tipo = 'DESCONOCIDO' } = mensaje.datos || {};
 
@@ -7267,7 +7262,6 @@
             (globalThis.logger || console).info(`🔥 [PADRE] HIJO_LISTO RECIBIDO de ${mensaje?.origen}:`, mensaje);
             (globalThis.logger || console).info(`Padre recibió HIJO_LISTO de ${mensaje?.origen}`);
             try {
-                if (!mensaje?.origen) { (globalThis.logger || console).warn(`${logPrefix} Mensaje sin origen`); return; }
                 const hijoId = mensaje.origen;
                 estado.hijosInicializados.add(hijoId);
                 // Marcar hijo como listo en sistema de eventos
@@ -7631,11 +7625,6 @@
             const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[HEARTBEAT_RESPONSE]`;
 
             try {
-                if (!mensaje?.origen) {
-                    (globalThis.logger || console).warn(`${logPrefix} Respuesta sin origen`);
-                    return;
-                }
-
                 // Procesar heartbeat response en mensajeria.js (detección de hijos caídos)
                 if (globalThis.mensajeria && typeof globalThis.mensajeria.procesarHeartbeatResponse === 'function') {
                     await globalThis.mensajeria.procesarHeartbeatResponse(mensaje);
@@ -10688,11 +10677,6 @@ await _comprobarReanudacionAventura(logPrefix);
             _snapshotRecuperacion.retoActual = null;
 
             try {
-                if (!mensaje?.origen) {
-                    (globalThis.logger || console).warn(`${logPrefix} Mensaje sin origen`);
-                    return;
-                }
-
                 const { retoId, correcto } = mensaje.datos || {};
 
                 (globalThis.logger || console).info(`${logPrefix} Reto completado recibido de ${mensaje.origen}`, {
@@ -12082,11 +12066,6 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[AUDIO.ESTADO_ACTUALIZADO]`;
 
             try {
-                if (!mensaje?.origen) {
-                    (globalThis.logger || console).warn(`${logPrefix} Mensaje sin origen`);
-                    return;
-                }
-
                 const { audioId, estado: estadoAudio, timestamp: audioTimestamp } = mensaje.datos || {};
 
                 (globalThis.logger || console).debug(`${logPrefix} Estado de audio actualizado desde ${mensaje.origen}`, {
@@ -12236,11 +12215,6 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[AUDIO.FIN_REPRODUCCION]`;
 
             try {
-                if (!mensaje?.origen) {
-                    (globalThis.logger || console).warn(`${logPrefix} Mensaje sin origen`);
-                    return;
-                }
-
                 const { audioId, duracion, timestamp: audioTimestamp } = mensaje.datos || {};
 
                 (globalThis.logger || console).info(`${logPrefix} Audio finalizado desde ${mensaje.origen}`, {
@@ -12357,11 +12331,6 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[AUDIO.ERROR]`;
 
             try {
-                if (!mensaje?.origen) {
-                    (globalThis.logger || console).warn(`${logPrefix} Mensaje sin origen`);
-                    return;
-                }
-
                 const { audioId, error: errorMsg, timestamp: audioTimestamp } = mensaje.datos || {};
 
                 (globalThis.logger || console).error(`${logPrefix} Error en audio desde ${mensaje.origen}`, {

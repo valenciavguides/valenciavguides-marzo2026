@@ -540,10 +540,6 @@
     }
 
     async function _validarCambioModo(mensaje, logPrefix) {
-        if (!mensaje?.origen) {
-            logger.warn(`${logPrefix} Mensaje sin origen, ignorando`);
-            return 'ignore';
-        }
         if (!mensaje.datos || typeof mensaje.datos !== 'object') {
             logger.error(`${logPrefix} Datos inválidos`, mensaje);
             await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.ERROR, datos: { error: 'Datos de mensaje inválidos' } });
@@ -581,7 +577,6 @@
     }
 
     function _validarMensajeParadas(mensaje, logPrefix) {
-        if (!mensaje?.origen) { logger.warn(`${logPrefix} Mensaje sin origen, ignorando`); return 'ignore'; }
         if (estado.datosRecibidos) { logger.debug(`${logPrefix} Datos ya recibidos anteriormente, ignorando mensaje duplicado`); return 'dup'; }
         if (!mensaje.datos || typeof mensaje.datos !== 'object') { logger.error(`${logPrefix} Mensaje sin datos o datos inválidos`, mensaje); return 'error'; }
         const { paradas } = mensaje.datos;
@@ -803,11 +798,6 @@
             logger.info(`🔥 [hijo5] CONTROLADOR PADRE_DATOS EJECUTADO!`, mensaje);
 
             try {
-                if (!mensaje || !mensaje.origen) {
-                    logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
-                    return;
-                }
-
                 logger.info(`${logPrefix} Datos del padre recibidos desde ${mensaje.origen}`);
                 logger.info(`Hijo hijo5 recibió PADRE_DATOS`);
 
@@ -970,13 +960,6 @@
             const logPrefix = `[hijo5][SISTEMA.HEARTBEAT][${mensaje?.origen || 'desconocido'}]`;
 
             try {
-                // Validación de origen
-                if (!mensaje?.origen) {
-                    logger.warn(`${logPrefix} Mensaje HEARTBEAT sin origen, ignorando`);
-                    return;
-                }
-
-
                 // Enviar respuesta con timestamp actual
                 await enviarMensaje({
                     destino: 'padre',
@@ -1078,7 +1061,6 @@
         registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, async (mensaje) => {
             const logPrefix = `[hijo5][NAVEGACION.CAMBIO_PARADA][${mensaje?.origen || 'desconocido'}]`;
             try {
-                if (!mensaje?.origen) { logger.warn(`${logPrefix} Mensaje sin origen, ignorando`); return; }
                 // Los mensajes propios no llegan hasta aquí: el bus los descarta antes de los handlers (§26.8).
                 if (!mensaje.datos || typeof mensaje.datos !== 'object') { logger.warn(`${logPrefix} Mensaje sin datos`); return; }
 
@@ -1108,12 +1090,6 @@
             const logPrefix = `[hijo5][SISTEMA.ERROR][${mensaje?.origen || 'desconocido'}]`;
 
             try {
-                // Validación de origen
-                if (!mensaje?.origen) {
-                    logger.warn(`${logPrefix} Notificación de error sin origen`);
-                    return;
-                }
-
                 // Validación de datos
                 if (!mensaje.datos || typeof mensaje.datos !== 'object') {
                     logger.warn(`${logPrefix} Notificación de error sin datos`);

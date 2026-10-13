@@ -2704,10 +2704,6 @@
     async function _onPadreDatos(mensaje) {
         const controladorPrefix = `${CONFIG_HIJO.LOG_PREFIX}[PADRE_DATOS]`;
         try {
-            if (!mensaje || !mensaje.origen) {
-                logger.error(`${controladorPrefix} Mensaje sin origen válido`, mensaje);
-                return;
-            }
             logger.info(`${controladorPrefix} Datos del padre recibidos desde ${mensaje.origen}`);
             const modo = mensaje.datos?.modo;
             if (modo) { logger.debug(`${controladorPrefix} Modo inicial: ${modo}`); }
@@ -2745,10 +2741,6 @@
         const controladorPrefix = `${CONFIG_HIJO.LOG_PREFIX}[PADRE_CONFIRMA_HIJO_LISTO]`;
         try {
             logger.debug(`${CONFIG_HIJO.IFRAME_ID} PADRE_CONFIRMA_HIJO_LISTO recibido:`, mensaje);
-            if (!mensaje || !mensaje.origen) {
-                logger.error(`${controladorPrefix} Mensaje sin origen válido`, mensaje);
-                throw new Error('Mensaje sin origen válido');
-            }
             logger.info(`${controladorPrefix} Confirmación recibida del padre - controladores listos`);
             const modoInicial = mensaje.datos?.modoInicial;
             if (modoInicial) {
@@ -2763,13 +2755,9 @@
         }
     }
 
-    async function _onHeartbeat(mensaje) {
+    async function _onHeartbeat() {
         const controladorPrefix = `${CONFIG_HIJO.LOG_PREFIX}[HEARTBEAT]`;
         try {
-            if (!mensaje || !mensaje.origen) {
-                logger.error(`${controladorPrefix} Mensaje sin origen válido`, mensaje);
-                return { exito: false, error: 'Sin origen' };
-            }
             const datosRespuesta = {
                 timestamp: Date.now(), componente: CONFIG_HIJO.COMPONENTE_ID, estado: 'activo',
                 inicializado: estadoComponente.inicializado,
