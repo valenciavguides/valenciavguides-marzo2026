@@ -2013,7 +2013,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 | **GPS** | Activo — `watchPosition` continuo; modo CASA se superpone al GPS: no se detectan llegadas automáticas porque el usuario elige libremente cada parada o tramo | Activo — `watchPosition` continuo; posición del usuario se actualiza en mapa; llegadas detectadas automáticamente por proximidad |
 | **Heartbeat** | Encendido: los hijos que ya completaron su apretón de manos reciben `SISTEMA.HEARTBEAT` cada ~5 s (ajustado por calidad de conexión vía `ajustarTimeoutPorConexion`) | Igual: el latido no depende del modo |
 | **`retosBtn` (hijo3)** | Encendido (`CONTROL.HABILITAR { control: 'retosBtn', razon: 'parada_con_reto_casa', retoId }`) en cuanto el elemento tiene `reto_id`, sin condición de audio | Apagado al activarse el elemento (`CONTROL.DESHABILITAR`, `razon: 'esperar_fin_audio_aventura'`); encendido (`razon: 'audio_finalizado'`) cuando el audio del elemento consta como terminado —escuchado entero, saltado o dado por no disponible— y mientras no haya un reto abierto ni el usuario esté fuera de rango (§7.4) |
-| **`btnAvanzar` (hijo2)** | No se gestiona — en CASA el usuario elige libremente cada parada o tramo (sin avance automático por GPS) | Se deshabilita al entrar en el elemento: `CONTROL.DESHABILITAR { control: 'btnAvanzar', razon: 'parada_pendiente_completar' }`; se habilita cuando `marcarParadaCompletada()` confirma llegada GPS + audio (+ reto si es parada) — nunca solo audio+reto |
+| **`btnAvanzar` (hijo2)** | No se gestiona — en CASA el usuario elige libremente cada parada o tramo (sin avance automático por GPS) | Al activarse una parada pendiente se deshabilita: `CONTROL.DESHABILITAR { control: 'btnAvanzar', razon: 'parada_pendiente_completar' }`; se habilita cuando `marcarParadaCompletada()` confirma llegada GPS + audio (+ reto si es parada) — nunca solo audio+reto. Si el elemento que se activa ya está completado (`_elementoCompletado()`: pasa al reanudar tras una recarga y al recuperarse hijo2), se habilita en la propia activación (`razon: 'parada_completada'` o `'tramo_completado'`) y `estado.paradaListaParaAvanzar` queda a `true` |
 | **Audio al cambiar de parada** | `_solicitarAudioParaParada()` — mismo camino unificado que en AVENTURA; resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` (el usuario arranca el audio manualmente en ambos modos) | `_solicitarAudioParaParada()` — resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` |
 | **`RETO.ESTADO_CASA` (hijo4)** | Enviado en cada `CAMBIO_PARADA`: `{ habilitado: !esTramo }` — habilita el panel de retos en paradas, lo deshabilita en tramos | No se envía |
 | **Origen típico de `CAMBIO_PARADA`** | hijo5 (clic en lista de paradas) | El padre mismo, tras `progresarSiguienteElemento()` (usuario pulsa `btn-avanzar` en hijo2 una vez llegada+audio+reto están completos) — nunca hijo2 directamente; la llegada GPS solo marca `pending.llegada`, ver §2.2 |
@@ -2034,7 +2034,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
   6. dispatchEvent('vv-parada-cambiada') → funciones-mapa.js dibuja marcadores / polylines
 
 [Solo AVENTURA]
-  8. Si parada: CONTROL.DESHABILITAR { control: 'btnAvanzar' } a hijo2
+  8. Elemento ya completado: sin ficha nueva, paradaListaParaAvanzar = true y CONTROL.HABILITAR { control: 'btnAvanzar' } a hijo2; si no, y es parada: CONTROL.DESHABILITAR { control: 'btnAvanzar' } a hijo2
 
 [Solo CASA]
   7. RETO.ESTADO_CASA { habilitado: !esTramo } a hijo4
@@ -4862,7 +4862,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a822fc4c08d2'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c5ade47dffae'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7930,6 +7930,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `120-hijo4-habla-el-idioma-de-la-aventura.spec.js` | 4 | Los dos textos propios de hijo4 salen en el idioma de la aventura, que llega en `RETO.MOSTRAR` (`datos.idioma`): hijo4 pinta el marcador del campo de texto en el idioma del mensaje (ID-1) y en español si el mensaje no lo trae (ID-2); el padre lo manda en la progresión y en la reposición tras recargar hijo4 (ID-3) y al contestar a `DATOS.SOLICITAR_RETOS` (ID-4). |
 | `121-ruta-fallback-espera-al-hijo-listo-nuevo.spec.js` | 4 | En la ruta fallback de `SELECCION.AVENTURA_ACTIVADA`, `cargarHijo` espera el `HIJO_LISTO` de cada hijo recargado: cada una de sus seis esperas resuelve cuando ya ha llegado el `HIJO_LISTO` de su hijo (HL-1), y en esa ruta llega uno de cada uno de los seis (HL-2, control); en el state-manager, `crearPromiseHijoListo` de un id olvidado con `olvidarHijoListo` espera a `marcarHijoListo`, y olvidar un id desconocido no lanza (HL-3); esa espera no arma ningún temporizador: no tiene plazo propio (HL-4). |
 | `122-boton-retos-un-solo-sitio.spec.js` | 12 | El botón de retos de hijo3 lo decide un solo sitio del padre (`_sincronizarRetoBtn`, §7.4), medido con el padre, los hijos y el botón reales: saltar el audio o escucharlo entero lo enciende y volver dentro de rango no lo apaga (BR-1, BR-2), y con el audio sin terminar sigue apagado (BR-3); hijo3 recargado por el supervisor lo recibe encendido con el audio terminado y apagado con el audio sin terminar (BR-4, BR-5); con un reto abierto está apagado y el estado del reto no se rehace (BR-6); fuera de rango con la gracia agotada se apaga y al volver se enciende (BR-7), y cerrar un reto estando fuera de rango no lo enciende (BR-8); reactivar el mismo elemento con el audio terminado no lo apaga (BR-9). El recordatorio "pulse retos" pregunta al mismo sitio: sale con el botón encendido y no sale con el botón apagado por fuera de rango o por un reto abierto (BR-R1 a BR-R3) |
+| `123-elemento-completado-sigue-completado.spec.js` | 7 | Un elemento completado sigue completado (§25.10, §25.19), con el padre, los hijos y el botón «avanzar» reales: una parada ya completada queda lista para avanzar, sin ficha nueva, al reactivarse (EC-1), tras recargar la página y reanudar (EC-2) y cuando el supervisor recarga a hijo2 (EC-3); no se le ofrece el rescate (EC-4); una parada sin completar que se reactiva sigue pendiente, con su ficha intacta (EC-5). El rescate deja avanzar con el audio terminado y el reto sin resolver (RS-1) y con el audio sin terminar (RS-2) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8162,7 +8163,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-a822fc4c08d2'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c5ade47dffae'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8403,7 +8404,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 119 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 120 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8909,7 +8910,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-a822fc4c08d2';
+const CACHE_VERSION = 'v-c5ade47dffae';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10084,7 +10085,7 @@ Si el usuario no toca nada, a los **30 segundos** se reanuda automáticamente (p
 5. Se cargan los datos de la aventura.
 6. Se activa el modo AVENTURA, el GPS y el reloj de compra de hijo1 — incluida la sincronización de `estadoMapa.modo` en `funciones-mapa.js` (ver "Sincronización de `estadoMapa.modo` al reanudar sesión", §11), necesaria porque este paso no pasa por el mismo handler que un cambio de modo en vivo (`_activarModoRest()`, no `_hdl_SISTEMA_CAMBIO_MODO`).
 7. Se restaura el progreso (parada actual) — dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado.
-8. El usuario continúa en el elemento en que lo deja. Lo hecho dentro de ese elemento no se guarda (`pendingCompleciones` no va en `vv_progreso`): su ficha nace de nuevo, con la llegada, el audio y el reto por hacer. Un elemento completado y a falta de pulsar «avanzar» se activa igual, con «avanzar» apagado; al rehacerlo, `marcarParadaCompletada()` lo encuentra en `paradasCompletadas` y sale sin habilitarlo.
+8. El usuario continúa en el elemento en que lo deja. Lo hecho dentro de ese elemento no se guarda (`pendingCompleciones` no va en `vv_progreso`): su ficha nace de nuevo, con la llegada, el audio y el reto por hacer. Un elemento completado y a falta de pulsar «avanzar» se activa listo para avanzar: `_elementoCompletado()` lo encuentra en `paradasCompletadas`, no se le crea ficha, `estado.paradaListaParaAvanzar` queda a `true` y el padre habilita «avanzar» en hijo2. Cubierto por `tests/e2e/123-elemento-completado-sigue-completado.spec.js` (EC-1 a EC-3).
 
 **Por qué el modo se activa antes de restaurar el progreso, no después:** `_restaurarProgresoRest()` (paso 7) dispara el `CAMBIO_PARADA` real del elemento restaurado (`_restoreBroadcast()` → `despacharLocal()` → `_hdl_NAVEGACION_CAMBIO_PARADA`), y ese handler decide varias cosas según `estado.modo?.actual === MODOS.AVENTURA` — si arranca el recordatorio de audio (§25.5c), la lógica de botón GPS en tramos, y si deshabilita `btnAvanzar` hasta completar audio+reto. `estado.modo.actual` **no lo escribe `codigo-padre.html` en ningún sitio**: sus tres únicas asignaciones están en `manejarCambioModo()` de `js/app.js` (el *optimistic update* del principio, la reafirmación de campos mínimos después del pre-warm, y `restaurarEstadoModoAnterior()` si el cambio falla). En una reanudación, `_activarModoRest()` (paso 6) llega ahí por la vía normal — invoca `_hdl_SISTEMA_CAMBIO_MODO` con `modo: _modoRest` en vez de reimplementar la mitad de sus efectos —, así que es el único punto de la reanudación que provoca ese cambio. Con el modo ya aplicado antes de que se procese la parada restaurada, esas ramas reciben el valor real (`aventura`), no el valor de arranque (`null`) con el que empieza `estado.modo.actual` antes de cualquier restauración. El mismo orden evita un segundo problema: el `CAMBIO_MODO` que `_activarModoRest()` difunde a los hijos llega a hijo2 antes que el `CAMBIO_PARADA` — así `_resetarEstadoParaModo()` (§24) limpia el estado antes de que lleguen los datos reales de la parada, en vez de después, donde los borraría justo tras fijarlos. Cubierto por `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
 
@@ -10650,12 +10651,12 @@ pulsaciones. Paso a paso:
 
 1. **El reloj avisa.** `_ejecutarBarridoRecordatorioRescate()` (`setInterval` de 60 s en `globalThis.__VV_PENDING_CLEANUP`) mira **solo el elemento actual** y, a los **8, 10, 12 y 14 minutos** desde que se activó, muestra `cartel-recordatorio-rescate`. Cuatro avisos y después silencio. No hay condición de distancia, y es deliberado: en un tramo la franja mide `distanciaAlCamino`, y quien está bloqueado por una valla está **encima** del camino — para la app, dentro de rango. Exigir "fuera de rango" habría dejado sin aviso justo al caso principal.
 2. **El cartel abre el asistente.** Su botón (`#btn-recordatorio-rescate`) pulsa `#btn-chat-soporte`, que es el único camino que existe para abrirlo. No gasta nada: es navegación, no una segunda puerta al rescate. A diferencia de los tres recordatorios "educados" (§25.5c/d/g), este **se impone** y llama a `_ocultarCualquierCartel()`: el de audio reaparece cada 20 s mientras no se pulse play, y el usuario atascado es justo el que no lo ha pulsado — siendo educado, este no saldría jamás.
-3. **El asistente decide si enseña el botón.** `construirEstadoChat()` incluye `rescate: _estadoRescateParaChat()` —`{puede, motivo, usadas, total, restantes}`— y se refresca en cada apertura del chat. hijo6 pinta `.boton-rescate` **solo si sirve**: si un rescate no tiene sentido aquí (`no-aventura`, `sin-elemento`, `es-inicio`, `ya-llegado`) el botón no se pinta, porque un botón que no hace nada es peor que no tener botón. **Con los rescates agotados sí se pinta**, y no es una excepción caprichosa: es lo único que hace llegar al usuario el cartel que se lo explica.
+3. **El asistente decide si enseña el botón.** `construirEstadoChat()` incluye `rescate: _estadoRescateParaChat()` —`{puede, motivo, usadas, total, restantes}`— y se refresca en cada apertura del chat. hijo6 pinta `.boton-rescate` **solo si sirve**: si un rescate no tiene sentido aquí (`no-aventura`, `sin-elemento`, `es-inicio`, `ya-completado`, `ya-llegado`) el botón no se pinta, porque un botón que no hace nada es peor que no tener botón. **Con los rescates agotados sí se pinta**, y no es una excepción caprichosa: es lo único que hace llegar al usuario el cartel que se lo explica.
 4. **La petición viaja con acuse.** hijo6 envía `CHAT.RESCATE_SOLICITADO` con `enviarMensajeConConfirmacion`. El handler del padre `_hdl_CHAT_RESCATE_SOLICITADO` **devuelve antes de enseñar nada**: si esperase a que el usuario cierre una pantalla, hijo6 agotaría su plazo mientras lee.
 5. **Dos confirmaciones, un solo gasto.** `_pedirConfirmacionRescate()` pinta las dos pantallas de `_mostrarDecisionRescate()`. **El orden de los botones se invierte** entre ellas —la opción segura arriba en la primera, abajo en la segunda—, así que pulsar dos veces en el mismo sitio nunca concede un rescate. Cerrar por cualquier vía equivale a **No**.
 6. **Se vuelve a comprobar todo antes de conceder.** `_concederRescate()` repite `_estadoRescate()`, exige que el elemento siga siendo **el mismo que se prometió**, y comprueba que la aventura no haya terminado (`#modal-tiempo-agotado` / `#modal-finalizacion`). Entre el botón y el Sí final hay dos pantallas que el usuario lee sin prisa.
 7. **Cierra el reto si lo había.** Reutiliza `_hdl_RETO_OCULTAR()`. Sin esto el usuario paga y se queda con **menos** que antes: en hijo2, `retoActivo` se comprueba **antes** que `btnAvanzarCompletadoPorPadre` y sale apagando el botón de avanzar, y la ayuda de ubicación también exige `!retoActivo`.
-8. **Completa el punto y lo anuncia.** Rellena la ficha (`llegada`, `audio`, `reto` y la cuenta de retos) y llama a `intentarCompletarElemento()`. `marcarParadaCompletada()` saca además su cartel de transición: la marca `estado._rescatePeticionPendiente`, que lo evitaría, guarda la clave corta del elemento (`TR2`) y se compara con su id de coordenadas (`Av1-TR-2`). Con el reto del elemento disponible y sin resolver (`estado.retoActual.disponible` y algún reto de la cola sin hacer), `marcarParadaCompletada()` registra el punto y sale a la espera de `RETO.COMPLETADO`, sin habilitar «avanzar».
+8. **Completa el punto y lo anuncia.** Rellena la ficha (`llegada`, `audio`, `reto` y la cuenta de retos) y llama a `intentarCompletarElemento()`. `marcarParadaCompletada()` saca además su cartel de transición: la marca `estado._rescatePeticionPendiente`, que lo evitaría, guarda la clave corta del elemento (`TR2`) y se compara con su id de coordenadas (`Av1-TR-2`). `marcarParadaCompletada()` no vuelve a preguntar por los retos: decide la ficha que le llega completa, también con un reto disponible y sin resolver (spec 123, RS-1).
 9. **El usuario pulsa avanzar.** No hay avance automático: le da sensación de control sobre su aventura.
 
 #### Cuándo se ve el botón, y qué decide el padre
@@ -10672,7 +10673,9 @@ flowchart TD
     C -- no --> N2[sin-elemento]
     C -- si --> D{¿es el punto de inicio?}
     D -- si --> N3[es-inicio]
-    D -- no --> E{¿llegada ya confirmada?}
+    D2 -- si --> N5[ya-completado]
+    D2 -- no --> E{¿llegada ya confirmada?}
+    D -- no --> D2{¿elemento ya completado?}
     E -- si --> N4[ya-llegado]
     E -- no --> F{¿quedan rescates?}
     F -- no --> G[agotados]
@@ -10681,13 +10684,14 @@ flowchart TD
     N2 --> X
     N3 --> X
     N4 --> X
+    N5 --> X
     G --> Y[hijo6 SI pinta el boton]
     H --> Y
     Y --> Z[Dos confirmaciones y concesion]
     G --> W[Cartel: se le acabaron]
 ```
 
-**Los cuatro motivos de la izquierda esconden el botón** porque un rescate ahí no haría
+**Los cinco motivos de la izquierda esconden el botón** porque un rescate ahí no haría
 nada, y un botón que no hace nada es peor que no tener botón. **`agotados` es la excepción
 deliberada**: el botón se pinta igual, porque es lo único que hace llegar al usuario el
 cartel que le explica que se le han acabado. Escondiéndolo también ahí, ese texto no lo
@@ -12365,7 +12369,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-a822fc4c08d2';
+const CACHE_VERSION = 'v-c5ade47dffae';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14090,23 +14094,23 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `verificarTimeoutAventura` | módulo 1 (L2965) | módulo 2 | función/objeto |
 | `waitForMapLibreAndInitialize` | módulo 1 (L8144) | módulo 2 | función/objeto |
 | `__distribuirReadyPromise` | módulo 2 (L9248) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14112) | clásico 13 | estado |
-| `_estadoRescate` | módulo 2 (L14093) | clásico 6 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12762) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11388) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11426) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12792) | módulo 5 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14147) | clásico 13 | estado |
+| `_estadoRescate` | módulo 2 (L14128) | clásico 6 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12792) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11394) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11432) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12822) | módulo 5 | función/objeto |
 | `_vv_afterHijoListo` | módulo 2 (L9312) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10185) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10183) | módulo 1 | función/objeto |
 | `AVENTURA_PARADAS` | módulo 2 (L9451) | clásico 6, módulo 1 | función/objeto |
 | `distribuirDatosAventura` | módulo 2 (L9533) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10004) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13023) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10067) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10002) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13053) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10065) | módulo 1 | función/objeto |
 | `obtenerElementoActual` | módulo 2 (L9571) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10059) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10032) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14135) | módulo 2 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10057) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10030) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14170) | módulo 2 | función/objeto |
 
 </details>
 

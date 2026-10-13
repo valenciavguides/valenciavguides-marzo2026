@@ -9903,7 +9903,12 @@ await _comprobarReanudacionAventura(logPrefix);
                     await _notificarParadaCompletada(idLimpio, registro, logPrefix);
 
                     // Política de progresión:
-                    // - Si hay retos pendientes: esperar RETO.COMPLETADO antes de decidir qué hacer
+                    // - Aquí se llega con el elemento ya completo: su única llamadora
+                    //   (intentarCompletarElemento) lo ha decidido con la ficha, retos incluidos. No
+                    //   se vuelve a preguntar por los retos a estado.retoActual: era una segunda
+                    //   fuente para lo mismo, y el rescate —que da los retos por hechos en la ficha—
+                    //   la dejaba diciendo «pendiente»: el punto se registraba y «avanzar» no se
+                    //   encendía (docs/estudio-caminos.md, K-87; lo fija el spec 123).
                     // - Aventura: GPS/audio/reto ya confirmaron que se cumplieron las condiciones,
                     //   pero SIEMPRE se espera la pulsación explícita de btnAvanzar — parada y tramo
                     //   se comportan igual aquí. Antes el tramo (causa='audio_llegada_tramo')
@@ -9911,13 +9916,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     //   a enterarse de que había cambiado de un elemento a otro; ahora ambos casos
                     //   habilitan btnAvanzar y esperan, exactamente como ya hacía la parada.
                     // - Modo casa: limpiar estado del reto, el usuario elige siguiente via hijo5
-                    const cola = estado.retoActual?.cola || [];
-                    const completados = estado.retoActual?.colaCompletados || new Set();
-                    const retoPendiente = cola.some(id => !completados.has(id)) && estado.retoActual.disponible;
-                    if (retoPendiente) {
-                        (globalThis.logger || console).info(`${logPrefix} Parada ${idLimpio} registrada; retos pendientes (${completados.size}/${cola.length}) -> esperando RETO.COMPLETADO`);
-                        return;
-                    }
 
                     const modoActual = estado.modo?.actual;
                     const esTramo = causa === 'audio_llegada_tramo';
@@ -11357,6 +11355,15 @@ await _comprobarReanudacionAventura(logPrefix);
             return _buscarParadaEnDatos(id, id.startsWith('padre-') ? id.substring(6) : id, elementos) || null;
         }
 
+        // «Completado» es un dato del elemento con una sola fuente: estado.paradasCompletadas,
+        // que además se guarda (vv_paradas_completadas) y sobrevive a una recarga. Quien vuelve
+        // a activar un elemento, o le ofrece un rescate, lo pregunta aquí.
+        function _elementoCompletado(elemento) {
+            if (!elemento) return false;
+            const id = elemento.parada_id || elemento.tramo_id || elemento.padreid;
+            return Boolean(id && estado.paradasCompletadas?.has(String(id).replace(/^padre-/, '').trim()));
+        }
+
         // «Audio terminado» es un dato del elemento y vive en un solo sitio: su ficha. Da igual
         // cómo se llegó a él —escuchado entero, saltado o dado por no disponible—: las tres vías
         // marcan lo mismo. Aquí se LEE; ensurePending() crearía la ficha si no existiera.
@@ -11366,8 +11373,7 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!elemento) return false;
             const clave = elemento.padreid || `padre-${elemento.parada_id || elemento.tramo_id}`;
             if (estado.pendingCompleciones?.[clave]?.audio === true) return true;
-            const id = elemento.parada_id || elemento.tramo_id || elemento.padreid;
-            return Boolean(id && estado.paradasCompletadas?.has(String(id).replace(/^padre-/, '').trim()));
+            return _elementoCompletado(elemento);
         }
 
         // La decisión, sin efectos: qué le toca al botón AHORA y por qué. La `razon` viaja en
@@ -11601,15 +11607,26 @@ await _comprobarReanudacionAventura(logPrefix);
                 const paradaAnterior = estado.paradaActual;
                 _actualizarEstadoParada(paradaId, parada, estado);
 
+                // Un elemento ya completado al que solo le falta la pulsación de «avanzar» sigue
+                // completado cuando se vuelve a activar. Pasa al recargar la página (la reanudación
+                // activa el elemento guardado) y al recuperarse hijo2 (se le reactiva la parada
+                // actual). Aquí nacía una ficha nueva, a cero, y «avanzar» quedaba a la espera; al
+                // rehacer el elemento, marcarParadaCompletada() lo encontraba ya marcado y salía
+                // sin encenderlo: bloqueo sin salida (docs/estudio-caminos.md, K-85; spec 123).
+                const yaCompletado = estado.modo?.actual === MODOS.AVENTURA && _elementoCompletado(parada);
+
                 // La ficha del elemento nace AQUÍ, al activarse, no cuando llega su primer
                 // evento. Nacía con la llegada, con el reto resuelto o con el fin del audio, y
                 // el usuario que se queda bloqueado sin que ninguno de los tres ocurra no tenía
                 // ficha: sin ficha no hay reloj, y sin reloj el recordatorio no salía NUNCA.
                 // Tampoco al reabrir la app, porque el audio ya había sonado y no volvería a
                 // disparar nada. Este es el instante exacto en que el elemento pasa a ser el
-                // actual, así que es el sitio donde el reloj tiene que arrancar.
-                try { ensurePending(padreIdNorm, parada.tipo === 'tramo' ? 'tramo' : 'parada'); }
-                catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                // actual, así que es el sitio donde el reloj tiene que arrancar. Un elemento ya
+                // completado no tiene nada pendiente: no se le crea ficha.
+                if (!yaCompletado) {
+                    try { ensurePending(padreIdNorm, parada.tipo === 'tramo' ? 'tramo' : 'parada'); }
+                    catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                }
                 (globalThis.logger || console).success(`${logPrefix} Estado actualizado: ${paradaAnterior} → ${paradaId}`);
 
                 const solicitudes = {};
@@ -11676,7 +11693,20 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // Lógica de botón GPS en tramos y paradas
                 const esTramo = parada.tipo === 'tramo';
-                if (esTramo && estado.modo?.actual === MODOS.AVENTURA) {
+                if (yaCompletado) {
+                    // Ya estaba completado: queda listo para avanzar, igual que lo dejó marcarParadaCompletada().
+                    (globalThis.logger || console).info(`${logPrefix} ${esTramo ? 'Tramo' : 'Parada'} ya completado: listo para avanzar, sin volver a pedir nada`);
+                    estado.paradaListaParaAvanzar = true;
+                    try {
+                        await enviarMensaje_S2({
+                            tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
+                            destino: 'hijo2',
+                            datos: { control: 'btnAvanzar', razon: esTramo ? 'tramo_completado' : 'parada_completada' }
+                        });
+                    } catch (e) {
+                        (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar en un elemento ya completado:`, e);
+                    }
+                } else if (esTramo && estado.modo?.actual === MODOS.AVENTURA) {
                     // En tramo: botón GPS controlado por distancia en hijo2 (rojo lejos, verde al acercarse al destino)
                     (globalThis.logger || console).info(`${logPrefix} Tramo detectado, audio pendiente de llegada`);
                 } else if (!esTramo && estado.modo?.actual === MODOS.AVENTURA) {
@@ -13621,7 +13651,12 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             if (elemento.tipo === 'inicio') return { ...con, puede: false, motivo: 'es-inicio' };
 
             // Un elemento ya completado no necesita rescate — y ofrecérselo sería cobrarle
-            // por algo que ya tiene.
+            // por algo que ya tiene. «Completado» se pregunta a su única fuente
+            // (_elementoCompletado): la ficha se borra al completarse el elemento, así que
+            // mirando solo la ficha se le ofrecía justo entonces.
+            if (_elementoCompletado(elemento)) return { ...con, puede: false, motivo: 'ya-completado' };
+
+            // Con la llegada confirmada tampoco: el usuario ya está en el punto.
             const clave = elemento.padreid || (id ? `padre-${id}` : null);
             const pendiente = clave ? est.pendingCompleciones?.[clave] : null;
             if (pendiente && pendiente.llegada === true) {
