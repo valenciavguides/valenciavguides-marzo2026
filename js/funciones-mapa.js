@@ -3578,13 +3578,14 @@ export function actualizarMarcadorUsuario(lat, lng, accuracy = 0, modo = 'aventu
         const iconoLog = modo === 'casa' ? '🛸' : '➤';
         logger.debug(`Marcador ${iconoLog} actualizado en [${lat}, ${lng}] (modo: ${modo}, rumbo: ${_flechaGpsAnguloAcumulado === null ? 'sin brujula' : Math.round(_flechaGpsAnguloAcumulado) + '°'})`);
 
-        // Círculo naranja 15m — zona de activación de parada.
+        // Círculo naranja: la zona de llegada, con el radio de radioLlegada() (un solo valor
+        // para lo que se dibuja y para lo que se mide).
         // Brújula activada en el mismo branch para evitar condición duplicada.
         if (modo !== 'casa') {
             if (circuloActivacion) {
                 circuloActivacion.setLatLng({ lat, lng });
             } else {
-                circuloActivacion = _crearCirculoGeografico({ lat, lng }, 15, {
+                circuloActivacion = _crearCirculoGeografico({ lat, lng }, radioLlegada(), {
                     color: '#ff8c00',
                     weight: 2,
                     fillColor: '#ff8c00',
