@@ -42,9 +42,9 @@ export function registrarControladoresDatos({
 }) {
 
     // ============================================================
-    // CONTROLADORES: SOLICITAR_AUDIOS / SOLICITAR_TEXTOS / SOLICITAR_RETOS / SOLICITAR_COORDENADAS
-    // Patrón request-response: si un hijo no recibió CARGAR_*, puede solicitarlo
-    // El padre responde reenviando el mismo CARGAR_* con los datos de la aventura actual
+    // CONTROLADORES: SOLICITAR_AUDIOS / SOLICITAR_TEXTOS / SOLICITAR_RETOS
+    // Patrón request-response: un hijo al que le falta un dato lo pide.
+    // El padre responde con el de la aventura actual: AUDIO.REPRODUCIR_REQUEST, DATOS.CARGAR_TEXTOS o RETO.MOSTRAR
     // ============================================================
 
     // Protección pasiva por parada (ver docs/GUIA-COMPLETA.md §16): SOLICITAR_AUDIOS ya no

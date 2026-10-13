@@ -662,7 +662,7 @@
             }
             const modoNuevo = estado.modo === 'casa' ? 'aventura' : 'casa';
             // No actualizar estado.modo/UI aquí de forma optimista: el envío de abajo
-            // (enviarMensaje local, línea ~320) es un postMessage crudo sin confirmación
+            // (enviarMensaje, el del bus) no lleva confirmación
             // -- resuelve en cuanto se despacha, sin relación alguna con si el padre
             // realmente aplica el cambio (p.ej. su guard "ya hay un cambio de modo en
             // curso" puede rechazarlo en silencio). La actualización real y fiable ya

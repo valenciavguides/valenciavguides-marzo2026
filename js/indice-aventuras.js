@@ -1,8 +1,8 @@
 // js/indice-aventuras.js
 // Metadatos estáticos de cada aventura (lo que no es computable desde los arrays).
 // Los totales (totalParadas, totalTramos, totalRetos, totalMonumentos, totalAudios)
-// se calculan dinámicamente en cargarAventurasDinamicamente() (En-busca-del-tesoro.html)
-// importando los módulos fuente en tiempo de ejecución.
+// van escritos aquí, en cada aventura: la selección (En-busca-del-tesoro.html) los lee de este
+// fichero, y `npm run verificar-totales` los recalcula desde los datos y falla si difieren.
 
 export const MAPEO_IDIOMAS = {
     es: { nombre: 'Español',    bandera: 'bandera_españa.png' },

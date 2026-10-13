@@ -4136,8 +4136,8 @@
             // estados posibles son ahora null (sin decidir) | 'casa' | 'aventura'.
             modo: { actual: null },
             paradaActual: null,
-            // Saltos de seguridad del TTL de tramos (§31.7b) — máx. 5 por aventura, cada uno
-            // exige 18% de progreso real desde el último. Persisten en vv_progreso (a
+            // Rescates a petición ya gastados (§25.19) — con un tope por aventura (12; 35 en
+            // la de 34 km: LIMITES_RESCATE). Persisten en vv_progreso (a
             // diferencia de la distancia recorrida de funciones-mapa.js, que se reinicia
             // adrede al reabrir la PWA): son un límite antiabuso, no contabilidad de progreso.
             tramoSkipsUsados: 0,
@@ -4290,11 +4290,11 @@
                     audioActual: estado.audioActual || null,
                     totalParadas: totalParadas,
                     tiempoRestante: typeof estado.tiempoRestante === 'number' ? estado.tiempoRestante : null,
-                    // Saltos de seguridad del TTL de tramos (§31.7b) — a diferencia de la
+                    // Rescates a petición ya gastados (§25.19) — a diferencia de la
                     // distancia recorrida (js/funciones-mapa.js, que se reinicia adrede al
                     // cerrar la app), esto SÍ debe persistir: es un límite antiabuso, no
                     // contabilidad de progreso — sin persistirlo, cerrar y reabrir la PWA
-                    // antes de cada salto daría saltos ilimitados en vez de 5 por aventura.
+                    // antes de cada rescate los daría ilimitados, sin el tope de la aventura.
                     tramoSkipsUsados: typeof estado.tramoSkipsUsados === 'number' ? estado.tramoSkipsUsados : 0,
                     // Lo hecho dentro del elemento actual. Sin esto, al recargarse la app la parada
                     // empezaba de cero: el audio ya escuchado o saltado y el reto ya resuelto había
@@ -5265,7 +5265,7 @@
          * (evita hardcodear lat/lng). Accesible desde activarGPS. Devuelve siempre
          * algo válido: el punto de inicio real o, si no está disponible, una
          * coordenada fija de Valencia como último recurso.
-         * No confundir con _obtenerCoordenadasFallbackP0() (línea ~9611) — mismo
+         * No confundir con _obtenerCoordenadasFallbackP0() (Script 2) — mismo
          * propósito, implementación independiente para _hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE.
          */
         function _obtenerCoordenadasP0Fallback() {
@@ -5282,7 +5282,7 @@
         }
         // Expuesta en globalThis por consistencia con el resto de helpers GPS de este bloque
         // (activarGPS, calcularDistancia...), accesibles así desde cualquiera
-        // de los 4 scripts de codigo-padre.html aunque hoy solo se llame desde este mismo script.
+        // de los cinco scripts de codigo-padre.html aunque hoy solo se llame desde este mismo script.
         globalThis._obtenerCoordenadasP0Fallback = _obtenerCoordenadasP0Fallback;
 
         // ID real de la parada de inicio de la aventura activa (nunca el literal 'P-0',
@@ -5971,8 +5971,8 @@
                             hideGpsOutOfRangeOverlay();
                         }, (err) => {
                             (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] getCurrentPosition desde overlay falló:', err && err.message);
-                            // Este overlay es por baja precisión; si el reintento falla del todo
-                            // (sin posición en absoluto, no solo imprecisa) el problema real es
+                            // Este overlay es el del bloqueo por distancia; si el reintento falla del todo
+                            // (sin posición en absoluto) el problema real es
                             // "sin señal" — cambiamos al overlay correcto en vez de dejar este
                             // congelado sin explicar qué pasó.
                             try {
@@ -6058,8 +6058,8 @@
                 } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
-        // Expuestas para Script 2 — _hdl_NAVEGACION_GPS_RESTRINGIDO las llama al recibir la
-        // distancia real de hijo2 (ver GUIA-COMPLETA §31).
+        // Expuestas en globalThis. Hoy solo las llama este mismo script, por su nombre (el bloqueo
+        // de 5 km y los cierres de carteles, ver GUIA-COMPLETA §31): Script 2 no las llama.
         try { globalThis.showGpsOutOfRangeOverlay = showGpsOutOfRangeOverlay; globalThis.hideGpsOutOfRangeOverlay = hideGpsOutOfRangeOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
         // ──────────────────────────────────────────────────────────────
@@ -6700,7 +6700,7 @@
                             }).catch(() => {});
                         }
                     } else if (errorCode === 3) {
-                        // TIMEOUT (30s sin respuesta) — mismo icono base que POSITION_UNAVAILABLE
+                        // TIMEOUT (sin posición dentro del plazo) — mismo icono base que POSITION_UNAVAILABLE
                         // (código 2) más ⏳ para distinguir "tardó demasiado" de "no disponible".
                         btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️⏳</span>';
                         btn.setAttribute('aria-label', 'Reintentar GPS (tiempo agotado)');
@@ -8382,12 +8382,12 @@ await _comprobarReanudacionAventura(logPrefix);
             } catch (_e) { /* no crítico — sin vibración, el cartel sigue siendo visible */ }
         }
 
-        // Los 8 carteles de esta familia (5 de "algo acaba de pasar" + 3 recordatorios)
+        // Los diez carteles de esta familia (5 de "algo acaba de pasar", 3 recordatorios, el aviso de progreso y el recordatorio de rescate)
         // comparten posición y capa (§4.7g-m) — nunca deben coincidir dos a la vez en
-        // pantalla, se solapan visualmente. Regla acordada: los 5 de "algo acaba de pasar"
-        // siempre ganan (cierran cualquier otro cartel y se muestran); los 3 recordatorios
+        // pantalla, se solapan visualmente. Regla acordada: los 5 de "algo acaba de pasar" y el recordatorio de rescate
+        // siempre ganan (cierran cualquier otro cartel y se muestran); los 3 recordatorios y el aviso de progreso
         // nunca fuerzan nada — si hay cualquier otro cartel visible, esperan a que se cierre
-        // (su propio setInterval vuelve a comprobar 2s después, sin perder el aviso).
+        // (cada uno vuelve a comprobar poco después, sin perder el aviso).
         const _TODOS_LOS_CARTELES_IDS = ['cartel-transicion', 'cartel-inicio-tramo', 'cartel-llegada-parada', 'cartel-bienvenida-tramo', 'cartel-bienvenida-parada', 'cartel-recordatorio-audio', 'cartel-recordatorio-saltar-audio', 'cartel-recordatorio-reto', 'cartel-aviso-progreso', 'cartel-recordatorio-rescate'];
         function _ocultarCualquierCartel() {
             _TODOS_LOS_CARTELES_IDS.forEach(id => document.getElementById(id)?.remove());
@@ -11018,7 +11018,7 @@ await _comprobarReanudacionAventura(logPrefix);
             return null;
         }
 
-        // No confundir con _obtenerCoordenadasP0Fallback() (línea ~4767, mismo propósito
+        // No confundir con _obtenerCoordenadasP0Fallback() (Script 1, mismo propósito
         // pero implementación independiente: lee __vv_DATOS_AVENTURAS directamente en vez
         // de AVENTURA_PARADAS, puede devolver null, y no tiene coordenada fija de última
         // instancia). Esta versión es la que usa _hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE.
@@ -12281,9 +12281,9 @@ await _comprobarReanudacionAventura(logPrefix);
                     // El audio que termina puede NO ser ya el del elemento activo: el usuario
                     // pudo cambiar de punto mientras sonaba. Sin esta comprobación,
                     // ensurePending() resucita la ficha de un elemento ya dejado atrás y le
-                    // pone el reloj a cero — y como el barrido de TTL recorre TODAS las fichas,
-                    // esa ficha zombi acaba disparando avisos para un punto por el que el
-                    // usuario ya pasó.
+                    // pone el reloj a cero: estado falso sobre un punto por el que el usuario ya
+                    // pasó (el barrido del recordatorio de rescate mira solo la ficha del
+                    // elemento actual, así que esa ficha no avisa de nada: solo estorba).
                     //
                     // Es la misma guarda que ya tiene _saltarAudioPulsado(), su función
                     // hermana; la asimetría era un olvido, no una decisión.

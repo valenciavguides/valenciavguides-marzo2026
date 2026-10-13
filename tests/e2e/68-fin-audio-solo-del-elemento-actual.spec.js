@@ -18,9 +18,9 @@
  *
  * QUE PROVOCA
  *
- * La ficha del elemento viejo **renace, con el reloj a cero**. Y como el barrido de TTL
- * recorre TODAS las fichas —no solo la del elemento actual— esa ficha resucitada acaba
- * disparando avisos para un punto por el que el usuario ya paso.
+ * La ficha del elemento viejo **renace, con el reloj a cero**: estado falso sobre un punto
+ * por el que el usuario ya paso. El barrido del recordatorio de rescate mira solo la ficha
+ * del elemento actual, asi que la resucitada no avisa de nada: solo estorba.
  *
  * ES ALCANZABLE HOY, aunque cueste verlo. En AVENTURA no, porque para avanzar hay que
  * completar y para completar el audio tiene que haber terminado: el fin siempre llega

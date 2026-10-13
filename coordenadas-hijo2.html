@@ -1425,7 +1425,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (mensaje) => {
         if (control === 'btnAvanzar') {
             estadoComponente.btnAvanzarDeshabilitadoExternamente = false;
             // Solo las razones de completado real "pegan" el botón habilitado (ver comentario
-            // junto al flag). 'usuario_en_zona' (recuperación del bloqueo por >5km, no una
+            // junto al flag). 'de_vuelta_en_zona' (recuperación del bloqueo por >5km, no una
             // llegada real al elemento activo) debe dejar que la lógica normal de proximidad
             // GPS decida — si no, el usuario podría avanzar sin haber completado nada.
             if (razon && razon.includes('completad')) {
