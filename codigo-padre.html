@@ -9867,16 +9867,6 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _notificarParadaCompletada(idLimpio, registro, logPrefix) {
-            try {
-                const clavePend = `padre-${idLimpio}`;
-                if (estado.pendingCompleciones && estado.pendingCompleciones[clavePend]) {
-                    delete estado.pendingCompleciones[clavePend];
-                    (globalThis.logger || console).debug(`${logPrefix} Limpiado pendingCompleciones para ${clavePend}`);
-                }
-            } catch (error_) { (globalThis.logger || console).debug('[VV]:', error_?.message); } // NOSONAR
-        }
-
             // ============================================================
             // FUNCION CENTRAL: MARCAR_PARADA_COMPLETADA
             // Registra, persiste y coordina la progresión cuando una parada/tramo
@@ -9955,8 +9945,6 @@ await _comprobarReanudacionAventura(logPrefix);
                             }
                         }
                     } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-
-                    await _notificarParadaCompletada(idLimpio, registro, logPrefix);
 
                     // Política de progresión:
                     // - Aquí se llega con el elemento ya completo: su única llamadora
