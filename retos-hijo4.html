@@ -1553,7 +1553,6 @@
                         // Habilitar botón de retos
                         if (botonRetos) {
                             botonRetos.disabled = false;
-                            botonRetos.classList.remove('deshabilitado');
                             logger.info(`${logPrefix} Botón retos habilitado`);
                         }
                     }
@@ -1576,14 +1575,12 @@
                         if (wrapperCasa) wrapperCasa.style.display = '';
                         if (botonRetos) {
                             botonRetos.disabled = false;
-                            botonRetos.classList.remove('deshabilitado');
                         }
                     } else {
                         logger.info(`${logPrefix} Ocultando retos (modo CASA — tramo o parada sin reto)`);
                         if (wrapperCasa) wrapperCasa.style.display = 'none';
                         if (botonRetos) {
                             botonRetos.disabled = true;
-                            botonRetos.classList.add('deshabilitado');
                         }
                     }
                 } catch (error) {

@@ -235,95 +235,6 @@
         /* Hijo4 styling - Ver CSS detallado más abajo */
         /* #hijo4 { CSS movido a sección detallada } */
 
-        /* Notification system styles */
-        #notification-container {
-            position: fixed;
-            top: 1.25rem;
-            right: 1.25rem;
-            z-index: 10000;
-            max-width: 21.875rem;
-            width: 100%;
-            pointer-events: none; /* Allow click through when no notification */
-        }
-
-        .notification {
-            background-color: #fff8e7;
-            border-radius: 0.5rem;
-            box-shadow: 0 0.1875rem 0.625rem rgba(0, 0, 0, 0.2);
-            padding: 0.9375rem;
-            margin-bottom: 0.625rem;
-            transition: all 0.3s ease-in-out;
-            opacity: 0;
-            transform: translateX(1.875rem);
-            pointer-events: auto; /* Make notifications clickable */
-            display: flex;
-            align-items: flex-start;
-            overflow: hidden;
-            max-width: 100%;
-        }
-
-        .notification.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .notification-icon {
-            margin-right: 0.75rem;
-            font-size: 1.25rem;
-            flex-shrink: 0;
-        }
-
-        .notification-content {
-            flex-grow: 1;
-            padding-right: 1.5625rem;
-        }
-
-        .notification-title {
-            font-weight: bold;
-            margin-bottom: 0.3125rem;
-            font-size: 1rem;
-        }
-
-        .notification-message {
-            font-size: 0.875rem;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-
-        .notification-close {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.625rem;
-            cursor: pointer;
-            font-size: 1rem;
-            opacity: 0.6;
-        }
-
-        .notification-close:hover {
-            opacity: 1;
-        }
-
-        .notification.info {
-            border-left: 0.25rem solid #2196F3;
-        }
-
-        .notification.success {
-            border-left: 0.25rem solid #4CAF50;
-        }
-
-        .notification.warning {
-            border-left: 0.25rem solid #FF9800;
-        }
-
-        .notification.error {
-            border-left: 0.25rem solid #F44336;
-        }
-
-        .notification-icon.info { color: #2196F3; }
-        .notification-icon.success { color: #4CAF50; }
-        .notification-icon.warning { color: #FF9800; }
-        .notification-icon.error { color: #F44336; }
-
             /* Overlay shown when GPS positions are discarded due to low accuracy
                This overlay should visually match the media/image overlays used
                by hijo2 (same borders, close X, button sizes), appear above
@@ -1316,7 +1227,6 @@
         #audio-control-overlay {
             --audio-btn-size: var(--audio-btn-central-size);
             --audio-action-scale: 1;
-            --iframe-w: var(--audio-btn-size);
             --audio-btn-gap: 6px;
             position: fixed;
             right: calc(var(--franja-lateral) + 6px);

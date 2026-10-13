@@ -12,7 +12,6 @@
             document.documentElement.style.fontSize = f + "px";
             // Dimensiones reales del iframe (fiables en móvil, no afectadas por bugs vw/vh)
             document.documentElement.style.setProperty('--iframe-w', globalThis.innerWidth + 'px');
-            document.documentElement.style.setProperty('--iframe-h', globalThis.innerHeight + 'px');
         }
         escalar();
         globalThis.addEventListener("resize", escalar);

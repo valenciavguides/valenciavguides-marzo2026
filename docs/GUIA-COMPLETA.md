@@ -4865,7 +4865,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-8efff826d291'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-2698faa48d1e'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8168,7 +8168,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-8efff826d291'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-2698faa48d1e'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8915,7 +8915,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-8efff826d291';
+const CACHE_VERSION = 'v-2698faa48d1e';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12376,7 +12376,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-8efff826d291';
+const CACHE_VERSION = 'v-2698faa48d1e';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14022,103 +14022,103 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `activarGPS` | clásico 3 (L65) | módulo 1, módulo 2 | función/objeto |
 | `handleIframeError` | clásico 5 (L95) | clásico 8 | función/objeto |
 | `handleIframeLoad` | clásico 5 (L165) | clásico 8 | función/objeto |
-| `actualizarVisibilidadSelectorMapa` | clásico 6 (L1536) | clásico 7, módulo 1, módulo 2, módulo 3 | función/objeto |
-| `cerrarChatSoporte` | clásico 6 (L1633) | módulo 2 | función/objeto |
-| `construirEstadoChat` | clásico 6 (L1636) | módulo 1 | función/objeto |
-| `cerrarImagenOverlay` | clásico 7 (L1755) | módulo 1, módulo 2 | función/objeto |
-| `mostrarIframeOverlay` | clásico 7 (L2235) | módulo 2 | función/objeto |
-| `mostrarImagenOverlay` | clásico 7 (L1731) | módulo 1, módulo 2 | función/objeto |
-| `mostrarVideoOverlay` | clásico 7 (L2072) | módulo 1, módulo 2 | función/objeto |
-| `rotationSuppressed` | clásico 7 (L1772) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3797) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5128) | clásico 13 | estado |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3785) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3784) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5946) | clásico 13 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6618) | clásico 13 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3786) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6758) | clásico 13 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3788) | módulo 2 | función/objeto |
-| `__vv_PUZZLES` | módulo 1 (L3789) | módulo 2 | función/objeto |
-| `__vv_registroScript1` | módulo 1 (L3671) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4846) | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 (L7491) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8839) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L9055) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8960) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L4115) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8929) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9139) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9031) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8935) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9147) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8809) | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5272) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6119) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3925) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3932) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4664) | clásico 6, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8154) | clásico 5, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8152) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8153) | clásico 6, módulo 2, módulo 3 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L4032) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3919) | clásico 6, clásico 7, módulo 2, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3920) | módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L4120) | clásico 6, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4464) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4224) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6522) | módulo 2 | función/objeto |
-| `hideParentLoadingOverlay` | módulo 1 (L2929) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4665) | clásico 6, módulo 2, clásico 14 | función/objeto |
-| `limpiarDatosAventura` | módulo 1 (L2964) | módulo 2, clásico 14 | función/objeto |
-| `MODOS` | módulo 1 (L3917) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8536) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8605) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8459) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8312) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8355) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4314) | módulo 2 | función/objeto |
-| `registrarControlador` | módulo 1 (L3918) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5156) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5183) | módulo 2 | función/objeto |
-| `reproducirVideoConBuffer` | módulo 1 (L2970) | clásico 7, módulo 2 | función/objeto |
-| `resolverIdsParada` | módulo 1 (L2959) | módulo 2 | función/objeto |
-| `retryUntilAvailable` | módulo 1 (L2960) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6358) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6283) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6210) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6438) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6514) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6818) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6817) | módulo 2 | función/objeto |
-| `showParentLoadingOverlay` | módulo 1 (L2917) | módulo 2 | función/objeto |
-| `sleep` | módulo 1 (L2839) | módulo 2, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5883) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3916) | clásico 6, clásico 7, módulo 2, módulo 3 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L4093) | clásico 7, módulo 2 | función/objeto |
-| `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2968) | clásico 14 | función/objeto |
-| `updateLoadingStatus` | módulo 1 (L2945) | módulo 2 | función/objeto |
-| `verificarTimeoutAventura` | módulo 1 (L2965) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8155) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9259) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14189) | clásico 13 | estado |
-| `_estadoRescate` | módulo 2 (L14170) | clásico 6 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12836) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L10223) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11432) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11481) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12866) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9323) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10218) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9462) | clásico 6, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9544) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10033) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13097) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10096) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9582) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10088) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10061) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14212) | módulo 2 | función/objeto |
+| `actualizarVisibilidadSelectorMapa` | clásico 6 (L1446) | clásico 7, módulo 1, módulo 2, módulo 3 | función/objeto |
+| `cerrarChatSoporte` | clásico 6 (L1543) | módulo 2 | función/objeto |
+| `construirEstadoChat` | clásico 6 (L1546) | módulo 1 | función/objeto |
+| `cerrarImagenOverlay` | clásico 7 (L1665) | módulo 1, módulo 2 | función/objeto |
+| `mostrarIframeOverlay` | clásico 7 (L2145) | módulo 2 | función/objeto |
+| `mostrarImagenOverlay` | clásico 7 (L1641) | módulo 1, módulo 2 | función/objeto |
+| `mostrarVideoOverlay` | clásico 7 (L1982) | módulo 1, módulo 2 | función/objeto |
+| `rotationSuppressed` | clásico 7 (L1682) | módulo 1, módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3707) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5038) | clásico 13 | estado |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3695) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3694) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5856) | clásico 13 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6528) | clásico 13 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3696) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6668) | clásico 13 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3698) | módulo 2 | función/objeto |
+| `__vv_PUZZLES` | módulo 1 (L3699) | módulo 2 | función/objeto |
+| `__vv_registroScript1` | módulo 1 (L3581) | módulo 2 | estado |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4756) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7401) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8749) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8965) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8870) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L4025) | módulo 2 | estado |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8839) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9049) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8941) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8845) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9057) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8719) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5182) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6029) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3835) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3842) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4574) | clásico 6, módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8064) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8062) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8063) | clásico 6, módulo 2, módulo 3 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L3942) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3829) | clásico 6, clásico 7, módulo 2, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3830) | módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4030) | clásico 6, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4374) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4134) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6432) | módulo 2 | función/objeto |
+| `hideParentLoadingOverlay` | módulo 1 (L2839) | módulo 2 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4575) | clásico 6, módulo 2, clásico 14 | función/objeto |
+| `limpiarDatosAventura` | módulo 1 (L2874) | módulo 2, clásico 14 | función/objeto |
+| `MODOS` | módulo 1 (L3827) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8446) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L8515) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8369) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8222) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8265) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4224) | módulo 2 | función/objeto |
+| `registrarControlador` | módulo 1 (L3828) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5066) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5093) | módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L2880) | clásico 7, módulo 2 | función/objeto |
+| `resolverIdsParada` | módulo 1 (L2869) | módulo 2 | función/objeto |
+| `retryUntilAvailable` | módulo 1 (L2870) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6268) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6193) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6120) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6348) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6424) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6728) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6727) | módulo 2 | función/objeto |
+| `showParentLoadingOverlay` | módulo 1 (L2827) | módulo 2 | función/objeto |
+| `sleep` | módulo 1 (L2749) | módulo 2, módulo 4 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5793) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3826) | clásico 6, clásico 7, módulo 2, módulo 3 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L4003) | clásico 7, módulo 2 | función/objeto |
+| `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2878) | clásico 14 | función/objeto |
+| `updateLoadingStatus` | módulo 1 (L2855) | módulo 2 | función/objeto |
+| `verificarTimeoutAventura` | módulo 1 (L2875) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8065) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9169) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14099) | clásico 13 | estado |
+| `_estadoRescate` | módulo 2 (L14080) | clásico 6 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12746) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L10133) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11342) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11391) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12776) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9233) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10128) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9372) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9454) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L9943) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13007) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10006) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9492) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9998) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L9971) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14122) | módulo 2 | función/objeto |
 
 </details>
 
@@ -14127,22 +14127,22 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
-| `_devCasaMode` | clásico 3 (L1111) | módulo 7 | estado |
-| `_resetearFlagsContenido` | clásico 3 (L2506) | módulo 7 | función/objeto |
-| `_setAventuraIniciando` | clásico 3 (L2504) | módulo 7 | función/objeto |
-| `_setAventuraSeleccionada` | clásico 3 (L2503) | módulo 7 | función/objeto |
-| `_setTimerProgresoCarga` | clásico 3 (L2505) | módulo 7 | función/objeto |
-| `mostrarMapaVintage` | clásico 3 (L2525) | módulo 7 | función/objeto |
-| `x` | clásico 3 (L2498) | módulo 7 | estado |
-| `aventuraSeleccionada` | módulo 7 (L2915) | clásico 3 | función/objeto |
-| `enviarValoracion` | módulo 7 (L2551) | clásico 3 | función/objeto |
-| `idiomaSeleccionado` | módulo 7 (L2844) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 7 (L2911) | clásico 3 | función/objeto |
-| `TEXTOS_VALORACION` | módulo 7 (L2549) | clásico 3 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 7 (L2589) | clásico 3 | función/objeto |
-| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 7 (L2548) | clásico 3 | función/objeto |
-| `TRADUCCIONES_DESPEDIDA` | módulo 7 (L2547) | clásico 3 | función/objeto |
-| `TRADUCCIONES_REANUDACION` | módulo 7 (L2550) | clásico 3 | función/objeto |
+| `_devCasaMode` | clásico 3 (L1106) | módulo 7 | estado |
+| `_resetearFlagsContenido` | clásico 3 (L2501) | módulo 7 | función/objeto |
+| `_setAventuraIniciando` | clásico 3 (L2499) | módulo 7 | función/objeto |
+| `_setAventuraSeleccionada` | clásico 3 (L2498) | módulo 7 | función/objeto |
+| `_setTimerProgresoCarga` | clásico 3 (L2500) | módulo 7 | función/objeto |
+| `mostrarMapaVintage` | clásico 3 (L2520) | módulo 7 | función/objeto |
+| `x` | clásico 3 (L2493) | módulo 7 | estado |
+| `aventuraSeleccionada` | módulo 7 (L2910) | clásico 3 | función/objeto |
+| `enviarValoracion` | módulo 7 (L2546) | clásico 3 | función/objeto |
+| `idiomaSeleccionado` | módulo 7 (L2839) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 7 (L2906) | clásico 3 | función/objeto |
+| `TEXTOS_VALORACION` | módulo 7 (L2544) | clásico 3 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 7 (L2584) | clásico 3 | función/objeto |
+| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 7 (L2543) | clásico 3 | función/objeto |
+| `TRADUCCIONES_DESPEDIDA` | módulo 7 (L2542) | clásico 3 | función/objeto |
+| `TRADUCCIONES_REANUDACION` | módulo 7 (L2545) | clásico 3 | función/objeto |
 
 **Por qué los `_setX()` existen y no se pueden saltar.** Un `let` declarado en el `<script>` clásico **tapa** la propiedad del mismo nombre en `globalThis`: `globalThis.x = v` desde el módulo no cambia ese `let`, y las lecturas sin prefijo del clásico siguen viendo el valor viejo. Por eso todo estado que el módulo tenga que escribir y el clásico leer necesita su puente.
 
@@ -14160,10 +14160,10 @@ El fallo, cuando falta un puente, es **mudo**: la variable se queda en su valor 
 | `video-intro.html` | `JAIME_SCENES` | módulo 1 (L594) | clásico 3 | función/objeto |
 | `video-intro.html` | `reproducirVideoConBuffer` | módulo 1 (L595) | clásico 3 | función/objeto |
 | `video-intro.html` | `TIPOS_MENSAJE` | módulo 1 (L610) | clásico 3 | función/objeto |
-| `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L408) | módulo 2 | función/objeto |
-| `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L417) | módulo 2 | función/objeto |
+| `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L379) | módulo 2 | función/objeto |
+| `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L388) | módulo 2 | función/objeto |
 | `retos-hijo4.html` | `ejecutarValidacion` | clásico 2 (L26) | módulo 1 | función/objeto |
-| `chat-hijo6.html` | `cerrarChatVentana` | módulo 1 (L384) | módulo 2 | función/objeto |
+| `chat-hijo6.html` | `cerrarChatVentana` | módulo 1 (L382) | módulo 2 | función/objeto |
 
 </details>
 

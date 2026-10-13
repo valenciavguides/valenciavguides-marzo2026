@@ -7,8 +7,6 @@
     function escalar(){
       var f = Math.max(14, Math.min(Math.min(globalThis.innerWidth, globalThis.innerHeight) * 0.025, 18));
       document.documentElement.style.fontSize = f + 'px';
-      document.documentElement.style.setProperty('--iframe-w', globalThis.innerWidth  + 'px');
-      document.documentElement.style.setProperty('--iframe-h', globalThis.innerHeight + 'px');
     }
     escalar();
     globalThis.addEventListener('resize', escalar);

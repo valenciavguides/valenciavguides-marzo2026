@@ -32,15 +32,6 @@
             --btn-size: calc(50vh - 4px);
             --icon-size: 1.5em;
             --progress-thick: 2rem;
-            --trapecio-width: 100%; /* Ocupar todo el ancho del iframe */
-            --trapecio-height: 8.4375rem;
-            --trapecio-bg: transparent;
-            --trapecio-shadow: 0 0.125rem 0.75rem rgba(0,0,0,0.13);
-            --trapecio-radius: 0.75rem;
-            --progress-color: #00FF00;
-            --progress-bg: #e0e0e0;
-            --timer-font-size: 1.1em;
-            --timer-color: #333;
         }
 
         /* Encapsular estilos */
@@ -188,12 +179,6 @@
             overflow: hidden;
         }
 
-        #retosBtn .icon-puzzle {
-            color: white;
-            font-weight: bold;
-            filter: drop-shadow(0 0.0625rem 0.125rem rgba(0,0,0,0.1));
-        }
-
         #retosBtn:disabled {
             background: linear-gradient(#ED2100, #ED2100);
             cursor: not-allowed;
@@ -333,20 +318,6 @@
 
         .progress-container.deshabilitado::after {
             background: #ED2100;
-        }
-
-        .time-display {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            font-size: var(--timer-font-size);
-            color: var(--timer-color);
-            margin: 0;
-            font-weight: 500;
-        }
-
-        .time-display span {
-            font-variant-numeric: tabular-nums;
         }
 
         /* Estilos para los botones del hijo3 */
