@@ -415,7 +415,6 @@ const estadoMapa = {
     _ultimaPosParaRecorrido: null, // {lat,lng} de la última lectura contabilizada
     _tramoDeRecorrido: null,       // id del tramo al que pertenece _distanciaRecorridaTramo
     _saltoPendienteRecorrido: null, // desplazamiento a la espera de confirmarse en la lectura siguiente
-    timestamp: Date.now(),
     // Estado para consultas de cambio de parada
     consultaParadaPendiente: null,
     esperandoCoordenadas: false,
@@ -1541,7 +1540,6 @@ export function limpiarPorEstado(nuevoEstado) {
             // Quien decide de verdad si el sensor esta vivo es activarGPS() en el padre,
             // y _watchPositionError ante un error real.
             estadoMapa.modo = modo;
-            estadoMapa.timestamp = Date.now();
 
             limpiado = true;
             logger.debug(`[funciones-mapa] Reset completo ejecutado para modo ${modo}`);
@@ -1570,7 +1568,6 @@ export function limpiarPorEstado(nuevoEstado) {
             if (modo !== undefined) estadoMapa.modo = modo;
             if (paradaActual !== undefined) estadoMapa.paradaActual = paradaActual;
             if (tramoActual !== undefined) estadoMapa.tramoActual = tramoActual;
-            estadoMapa.timestamp = Date.now();
         }
 
         return limpiado;
@@ -2319,7 +2316,6 @@ async function completarCambioParada() {
 
         // Actualizar estado
         estadoMapa.paradaActual = paradaId;
-        estadoMapa.timestamp = Date.now();
 
         // Confirmar a quien lo pidió (hijo5-casa).
         // Solo a otro frame: si el cambio lo despachó el propio padre ('padre'), el resultado ya
@@ -2566,7 +2562,6 @@ async function manejarCambioModoMapa(mensaje) {
         // Actualizar estado local
         const modoAnterior = estadoMapa.modo;
         estadoMapa.modo = modo;
-        estadoMapa.timestamp = Date.now();
 
         logger.info(`${logPrefix} Cambiando modo: ${modoAnterior} → ${modo}`);
 
@@ -2654,7 +2649,6 @@ async function manejarCambioModoMapa(mensaje) {
 export function sincronizarModoMapa(modo) {
     if (modo !== MODOS.CASA && modo !== MODOS.AVENTURA) return false;
     estadoMapa.modo = modo;
-    estadoMapa.timestamp = Date.now();
     return true;
 }
 

@@ -500,7 +500,6 @@
 
     const estado = {
         retoActualId: null,
-        inicializado: false,
         modo: { actual: 'aventura' }
         ,padreIdActual: null
         ,hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
@@ -1721,7 +1720,6 @@
             // NOTA: HIJO_LISTO se envía SOLO en el controlador PADRE_DATOS con protección de flag
             // para evitar mensajes duplicados
 
-            estado.inicializado = true;
             logger.info(`[hijo4] Inicialización completada exitosamente`);
 
 

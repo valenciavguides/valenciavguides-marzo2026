@@ -30,9 +30,11 @@
  *   FG-7  Tras recargar con el audio terminado y el reto sin resolver, el recordatorio de retos vuelve.
  *   FG-8  Reactivar el mismo elemento con el audio terminado no apaga el recordatorio de retos.
  *   FG-9  Una ficha que vuelve completa sobre un elemento sin marcar como completado lo completa.
+ *   FG-10 El progreso guardado lleva solo las claves que la reanudación lee.
  *
  * ROJO ANTES QUE VERDE: con el código anterior caen FG-1, FG-2, FG-3, FG-6, FG-7, FG-8 y FG-9;
- * FG-4 y FG-5 pasan, que es lo que les toca a los controles.
+ * FG-4 y FG-5 pasan, que es lo que les toca a los controles. FG-10 cae mientras el progreso
+ * lleve `audioActual`, que ningún código lee al reanudar (K-41).
  */
 'use strict';
 
@@ -291,5 +293,15 @@ test.describe('FG — Lo hecho en la parada sobrevive a una recarga', () => {
     await expect.poll(async () => (await estadoDelPadre(page)).listaParaAvanzar, { timeout: 15_000, message: 'la activación cierra el elemento con la ficha que vuelve completa' }).toBe(true);
     expect((await estadoDelPadre(page)).completada, 'y lo deja marcado como completado').toBe(true);
     await expect.poll(() => avanzarApagado(page), { timeout: 10_000, message: '«avanzar» encendido en hijo2' }).toBe(false);
+  });
+
+  test('FG-10. El progreso guardado lleva solo las claves que la reanudación lee', async ({ page }) => {
+    await saltarElAudio(page);
+    await expect.poll(() => fichaGuardada(page), { timeout: 10_000, message: 'precondición: hay progreso guardado' }).toMatchObject({ audio: true });
+
+    // Las nueve que leen `_restoreApplyState` y sus filtros, y `totalParadas`, que lee el diálogo de reanudar.
+    const claves = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('vv_progreso'))).sort());
+    expect(claves, 'una clave de más es un dato que se guarda para nadie; una de menos, algo que la reanudación ya no recibe')
+      .toEqual(['aventura', 'elementoActualId', 'ficha', 'idioma', 'indiceProgreso', 'paradaActual', 'tiempoRestante', 'timestamp', 'totalParadas', 'tramoSkipsUsados']);
   });
 });

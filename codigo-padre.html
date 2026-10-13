@@ -4037,12 +4037,6 @@
         var CONFIG_PADRE = globalThis.CONFIG_PADRE;
 
         // ============================================================
-        // DETECCIÓN DE DISPOSITIVO MÓVIL
-        // ============================================================
-        const esMovil = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-        // Detección estricta de móvil (NO tablet, NO escritorio)
-        // ============================================================
         // ORIENTACIÓN: un solo camino, el aviso a pantalla completa
         // ============================================================
         //
@@ -4141,9 +4135,7 @@
             // diferencia de la distancia recorrida de funciones-mapa.js, que se reinicia
             // adrede al reabrir la PWA): son un límite antiabuso, no contabilidad de progreso.
             tramoSkipsUsados: 0,
-            mapaInicializado: false,
             paradas: [],
-            inicializacionPromises: new Map(),
             todosHijosListos: false,
 
             // Estado GPS centralizado en el padre
@@ -4160,18 +4152,13 @@
                 proximidadReal: false, // Distancia real ≤50m al destino activo (funciones-mapa.js) — a diferencia de visualActivo, nunca se activa solo por revelarse el trazado
             },
 
-            coordinacion: {
-                cacheTTL: esMovil ? 15000 : 30000
-            },
-
             // Estado de progreso de aventura
             // indiceProgreso: integer index into elementosIDpadre array or null if unknown
             indiceProgreso: null,
             elementoActual: null,
             audioActual: {
                 id: null,
-                estado: null,
-                timestamp: null
+                estado: null
             },
             // audioId cuyo AUDIO.ERROR ya fue confirmado por hijo3 (tras agotar sus propios
             // reintentos) — se compara contra el audioId activo en cada momento, así que un
@@ -4287,7 +4274,6 @@
                     indiceProgreso: typeof estado.indiceProgreso === 'number' ? estado.indiceProgreso : null,
                     paradaActual: estado.paradaActual || null,
                     elementoActualId: estado.elementoActual ? (() => { const v = estado.elementoActual.parada_id || estado.elementoActual.tramo_id || estado.elementoActual.padreid; return (v && v !== 'null' && v !== 'undefined') ? v : null; })() : null,
-                    audioActual: estado.audioActual || null,
                     totalParadas: totalParadas,
                     tiempoRestante: typeof estado.tiempoRestante === 'number' ? estado.tiempoRestante : null,
                     // Rescates a petición ya gastados (§25.19) — a diferencia de la
@@ -12106,15 +12092,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 });
 
                 // Actualizar estado global
-                if (!estado.audioActual) {
-                    estado.audioActual = {};
-                }
-
                 estado.audioActual = {
                     id: audioId,
-                    estado: estadoAudio,
-                    timestamp: audioTimestamp || Date.now(),
-                    origen: mensaje.origen
+                    estado: estadoAudio
                 };
 
                 actualizarEstadoControlesAudioPadre();
@@ -12257,7 +12237,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Actualizar estado global
                 if (estado.audioActual?.id === audioId) {
                     estado.audioActual.estado = 'finalizado';
-                    estado.audioActual.timestamp = audioTimestamp || Date.now();
                 }
 
                 actualizarEstadoControlesAudioPadre();
@@ -12373,8 +12352,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Actualizar estado global
                 if (estado.audioActual?.id === audioId) {
                     estado.audioActual.estado = 'error';
-                    estado.audioActual.error = errorMsg;
-                    estado.audioActual.timestamp = audioTimestamp || Date.now();
                 }
 
                 // Registrar evento de error

@@ -445,21 +445,10 @@ const CONFIG_HIJO = {
 const estadoComponente = {
     modo: 'casa',
     gpsActivo: false,
-    watchId: null,
-    ultimaActualizacionGPS: 0,
-    intervaloMinimo: 5000, // 5 segundos entre actualizaciones para ahorrar batería
-    posicionUsuario: null,
     distanciaAlDestino: null,
     tipoParadaActual: null, // 'parada' o 'tramo'
     idParadaActual: null,  // 'P-X' o 'TR-X'
     toleranciaGPS: 50, // Valor de arranque, solo vigente hasta el primer ACTUALIZAR_ESTADO.
-    radioLlegada: 15,  // Radio con el que se declara la llegada — 15 m, el del circulo
-                       // naranja. Distinto de toleranciaGPS a proposito (ver funciones-mapa.js).
-                       // Lo que llega después se usa SOLO en tramos (dinámico, mín. 35 m); en
-                       // paradas este componente usa siempre su propio RADIO_PARADA de 15 m e
-                       // ignora lo recibido — desde que funciones-mapa manda también 15 para
-                       // paradas (RADIO_LLEGADA_PARADA_M), los dos coinciden de todos modos.
-    controlesHabilitados: true,
     btnAvanzarDeshabilitadoExternamente: false,
     // true desde que el padre confirma audio+llegada(+reto) hasta el próximo CAMBIO_PARADA.
     // Sin esto, cada lectura GPS posterior (actualizarEstadoBotones) recalculaba btn-avanzar
@@ -469,14 +458,6 @@ const estadoComponente = {
     btnAvanzarCompletadoPorPadre: false,
     inicializado: false, // Estado de inicialización del componente
     elementosDOM: {}, // Referencias a botones
-    botonesActivos: {
-        gps: false,
-        imagen: false,
-        video: false,
-        ubicacion: false,
-        mapaCompleto: true, // Siempre activo
-        mapaJpg: true       // Siempre activo
-    },
     retoActivo: false, // Flag para saber si hay un reto en progreso
     ubicacionActiva: false, // Flag para saber si ubicación está activa
     posicionActualUsuario: null, // {lat, lng} Posición GPS recibida del padre
@@ -485,7 +466,6 @@ const estadoComponente = {
     fueraDeRangoActivo: false, // Flag: true cuando la GRACIA de la franja ya expiró — vídeo/avanzar deshabilitados y padre notificado (ver _procesarFueraDeRangoConfirmado)
     _notificacionFueraRangoEnviada: false, // Evita reenviar NAVEGACION.USUARIO_FUERA_RANGO en cada tick mientras la restricción sigue activa
     _notificacionSenalNoFiableEnviada: false, // Evita reenviar NAVEGACION.GPS.PRECISION_INSUFICIENTE en cada tick de mala precisión
-    ultimoHeading: 0, // Última dirección del usuario (0-360 grados)
     hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
 };
 
@@ -671,7 +651,6 @@ function actualizarEstadoBotones() {
         idParadaActual,
         toleranciaGPS,
         elementosDOM,
-        controlesHabilitados,
         retoActivo
     } = estadoComponente;
 
@@ -679,11 +658,6 @@ function actualizarEstadoBotones() {
     // evita registrar la traza mientras todavía no ha llegado ningún ACTUALIZAR_ESTADO.
     if (tipoParadaActual === 'tramo' && toleranciaGPS !== 50) {
         logger.debug(`[hijo2] 📏 Usando tolerancia GPS dinámica: ${toleranciaGPS}m para ${idParadaActual}`);
-    }
-
-    if (!controlesHabilitados) {
-        Object.values(elementosDOM).forEach(boton => desactivarBoton(boton));
-        return;
     }
 
     if (estadoComponente.fueraDeRangoActivo) {
@@ -1234,7 +1208,7 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
 // Ahora se usa ACTUALIZAR_ESTADO que incluye distancia y otros datos
 
 function _aplicarDatosEstado(datos, logPrefix) {
-    const { distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, retoActivo, ubicacionActiva, lat, lng } = datos;
+    const { distanciaAlDestino, distanciaAlCamino, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva, lat, lng } = datos;
     if (distanciaAlDestino !== undefined) estadoComponente.distanciaAlDestino = distanciaAlDestino;
     // distanciaAlCamino: distancia al punto más cercano del camino (inicio->waypoints->fin
     // en tramos), no al destino final — solo la usa verificarDistanciaYActualizarBotones()
@@ -1243,10 +1217,8 @@ function _aplicarDatosEstado(datos, logPrefix) {
     // funciones-mapa.js) — distanciaAlCamino no sirve para esto: nunca puede ser mayor que
     // distanciaAlDestino, porque el propio destino es parte del camino que mide.
     if (distanciaAlCamino !== undefined) estadoComponente.distanciaAlCamino = distanciaAlCamino;
-    if (recorridoSuficiente !== undefined) estadoComponente.recorridoSuficiente = recorridoSuficiente;
     if (idParada !== undefined) estadoComponente.idParadaActual = idParada;
     if (tipoParada !== undefined) estadoComponente.tipoParadaActual = tipoParada;
-    if (radioLlegada !== undefined) estadoComponente.radioLlegada = radioLlegada;
     if (toleranciaGPS !== undefined) {
         estadoComponente.toleranciaGPS = toleranciaGPS;
         logger.debug(`${logPrefix} 📏 Tolerancia GPS actualizada: ${toleranciaGPS}m (${tipoParada})`);
@@ -2277,7 +2249,7 @@ globalThis.addEventListener('pagehide', () => {
         const ttlMs = datos?.ttlMs || null;
         logger.info(`${logPrefix} PENDING_INICIADO para ${padreId} ttl=${ttlMs}`);
         if (_esPadreIdActual(padreId)) {
-            if (elementosDOM.btnUbicacion) { desactivarBoton(elementosDOM.btnUbicacion); estadoComponente.botonesActivos.ubicacion = false; }
+            if (elementosDOM.btnUbicacion) desactivarBoton(elementosDOM.btnUbicacion);
             actualizarEstado('Pendiente creado: esperando condiciones', 'info');
         }
     }

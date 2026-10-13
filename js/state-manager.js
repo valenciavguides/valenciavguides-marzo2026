@@ -36,9 +36,7 @@ const state = {
     // hacía que la primera transición real pudiera confundirse con "ya estamos ahí".
     modo: { actual: null },
     paradaActual: 0,
-    mapaInicializado: false,
     paradas: [],
-    inicializacionPromises: new Map(),
     todosHijosListos: false,
     gps: {
       activo: false,

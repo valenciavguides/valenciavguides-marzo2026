@@ -594,11 +594,6 @@
     // Estado del componente
     const estado = {
         inicializado: false,
-        gpsActivo: false,
-        gpsPermisos: null, // null = desconocido, true = concedidos, false = denegados
-        gpsPrecision: null, // Precisión actual del GPS en metros
-        gpsError: null, // Último error GPS
-        ultimaUbicacion: null,
         modo: 'casa',
         aventuraParadas: [], // Array de paradas recibidas del padre
         paradasMapeadas: {}, // Mapeo de IDs locales a IDs del padre
@@ -754,7 +749,6 @@
         try {
             logger.info(`${logPrefix} Activando modo inicial: ${modo}`);
             estado.modo = modo;
-            estado.gpsActivo = (modo === 'aventura');
             _actualizarUIParaModo(modo, logPrefix);
             logger.info(`${logPrefix} Modo inicial activado exitosamente: ${modo}`);
         } catch (error) {
