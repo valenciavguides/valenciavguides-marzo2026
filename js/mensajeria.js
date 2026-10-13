@@ -89,12 +89,6 @@ let _heartbeatIniciando = false;
 let intervaloLatidoMs = 5000;
 
 /**
- * Cola de mensajes pendientes mientras no hay conexión
- * @type {Array}
- */
-const colaMensajes = [];
-
-/**
  * Control de throttling para logs de heartbeat
  * @type {Map<string, number>}
  */
@@ -1143,23 +1137,6 @@ export function procesarHeartbeatResponse(mensaje) {
 // =====================================================
 // LIMPIEZA
 // =====================================================
-
-/**
- * Limpia recursos de la mensajería
- */
-export function limpiar() {
-    // Limpiar confirmaciones pendientes
-    for (const [, pendiente] of confirmacionesPendientes) {
-        clearTimeout(pendiente.timeoutId);
-        pendiente.reject(new Error('Mensajería limpiada'));
-    }
-    confirmacionesPendientes.clear();
-
-    // Limpiar cola
-    colaMensajes.length = 0;
-
-    logger.info('[mensajeria] Recursos limpiados');
-}
 
 // Configurar limpieza periódica
 if (globalThis.window !== undefined) {
