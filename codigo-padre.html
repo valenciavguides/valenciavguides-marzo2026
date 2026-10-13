@@ -9631,6 +9631,13 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!estado.pendingCompleciones[key]) {
                 const elemento = findElementoPorPadreId(key) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.padreid === key || p.parada_id === key || p.tramo_id === key) || {};
                 const { ttlMs } = _buildPendingConfig(elemento);
+                // Un elemento ya completado no tiene nada pendiente: no se le crea ficha. La
+                // activación ya no se la crea (K-85); se la volvían a crear, mientras esperaba la
+                // pulsación de «avanzar», la llegada del segundo sensor, el audio escuchado otra
+                // vez, el reto resuelto otra vez y el botón de saltar (docs/estudio-caminos.md,
+                // K-73; lo fija el spec 123). Solo en AVENTURA, como la activación: en CASA los
+                // elementos se visitan libremente.
+                if (estado.modo?.actual === MODOS.AVENTURA && _elementoCompletado(elemento)) return null;
                 const retosIds = obtenerRetosIds(elemento);
                 estado.pendingCompleciones[key] = { tipo: tipo || 'parada', llegada: false, audio: false, reto: false, retosTotal: retosIds.length, retosCompletadosCount: 0, timestamp: Date.now(), destinoCoords: null, ttlMs };
                 (async () => {
@@ -12198,7 +12205,7 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!elementoAudio) return;
             const clave = elementoAudio.padreid || `padre-${elementoAudio.parada_id || elementoAudio.tramo_id}`;
             const pendingAudio = ensurePending(clave, elementoAudio.tipo || 'parada');
-            if (pendingAudio.audio) return; // ya resuelto por otra vía — idempotencia
+            if (!pendingAudio || pendingAudio.audio) return; // sin ficha (elemento ya completado) o ya resuelto por otra vía — idempotencia
 
             (globalThis.logger || console).info(`${logPrefix} Usuario saltó audio no disponible: ${audioId}`);
             _anotarEnFicha(clave, elementoAudio.tipo || 'parada', { audio: true });
@@ -12313,7 +12320,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (elementoAudio) {
                     const clave = elementoAudio.padreid || `padre-${elementoAudio.parada_id || elementoAudio.tramo_id}`;
                     const pendingAudio = ensurePending(clave, elementoAudio.tipo || 'parada');
-                    if (!pendingAudio.audio) {
+                    if (pendingAudio && !pendingAudio.audio) {
                         _anotarEnFicha(clave, elementoAudio.tipo || 'parada', { audio: true });
                         intentarCompletarElemento(clave);
                         // No es una escucha real, pero pending.audio ya quedó satisfecho, así

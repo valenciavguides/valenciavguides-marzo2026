@@ -27,11 +27,13 @@
  *   EC-3  Lo mismo cuando hijo2 se cae y el supervisor lo recarga.
  *   EC-4  A un elemento ya completado no se le ofrece el rescate.
  *   EC-5  Control: reactivar una parada sin completar la deja pendiente, con su ficha intacta.
+ *   EC-6 a EC-9  A una parada ya completada nada le crea una ficha nueva: ni otra llegada, ni el
+ *         audio escuchado otra vez, ni el reto resuelto otra vez, ni el botón de saltar (K-73).
  *   RS-1  El rescate con el audio terminado y el reto sin resolver deja avanzar.
  *   RS-2  Control: el rescate con el audio sin terminar deja avanzar.
  *
  * ROJO ANTES QUE VERDE: con el código anterior caen EC-1, EC-2, EC-3, EC-4 y RS-1; EC-5 y RS-2
- * pasan, que es lo que les toca a los controles.
+ * pasan, que es lo que les toca a los controles. EC-6 a EC-9 caen con el código anterior a K-73.
  */
 'use strict';
 
@@ -215,6 +217,35 @@ test.describe('EC — Un elemento completado sigue completado', () => {
     expect(avisos[avisos.length - 1], 'la parada no está completada: «avanzar» sigue a la espera').toEqual({ tipo: 'CONTROL.DESHABILITAR', razon: 'parada_pendiente_completar' });
     const padre = await estadoDelPadre(page);
     expect(padre, 'ni completada ni lista, y la ficha conserva lo que ya estaba hecho').toMatchObject({ completada: false, listaParaAvanzar: false, ficha: { audio: true, reto: false } });
+  });
+
+  // Un elemento ya completado no tiene nada pendiente: nada le vuelve a crear ficha mientras espera la pulsación de «avanzar»
+  // (K-73). Cada aviso se manda con acuse: cuando vuelve, el handler del padre ha terminado.
+  for (const caso of [
+    { id: 'EC-6', que: 'otra llegada (el segundo sensor)', hijo: 'hijo2', tipo: 'NAVEGACION.LLEGADA_DETECTADA', datos: { paradaId: PARADA.id, coordenadas: { lat: PARADA.lat, lng: PARADA.lng }, distancia: 3 } },
+    { id: 'EC-7', que: 'el audio escuchado otra vez', hijo: 'hijo3', tipo: 'AUDIO.FIN_REPRODUCCION', datos: { audioId: PARADA.audio, duracion: 10 } },
+    { id: 'EC-8', que: 'el reto resuelto otra vez', hijo: 'hijo4', tipo: 'RETO.COMPLETADO', datos: { retoId: PARADA.reto, correcto: true } },
+  ]) {
+    test(`${caso.id}. A una parada ya completada, ${caso.que} no le crea una ficha nueva`, async ({ page }) => {
+      await prepararParada(page);
+      await completarLaParada(page);
+      expect((await estadoDelPadre(page)).ficha, 'precondición: completada y sin ficha').toBeNull();
+
+      await page.evaluate(async ({ hijo, tipo, datos }) => {
+        await document.getElementById(hijo).contentWindow.mensajeria.enviarMensajeConConfirmacion({ tipo, destino: 'padre', datos, timeout: 15_000 });
+      }, caso);
+
+      expect(await estadoDelPadre(page), 'sigue completada, lista para avanzar y sin ficha').toMatchObject({ completada: true, listaParaAvanzar: true, ficha: null });
+    });
+  }
+
+  test('EC-9. En una parada ya completada, el botón de saltar el audio no le crea una ficha nueva', async ({ page }) => {
+    await prepararParada(page);
+    await completarLaParada(page);
+
+    await saltarElAudio(page);
+
+    expect(await estadoDelPadre(page), 'sigue completada, lista para avanzar y sin ficha').toMatchObject({ completada: true, listaParaAvanzar: true, ficha: null });
   });
 });
 

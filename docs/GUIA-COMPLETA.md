@@ -4247,7 +4247,7 @@ El objeto `MAPEO_IDIOMAS` del mismo archivo mapea los 12 códigos de idioma (`es
 
 #### 9.2.3 pendingCompleciones — estado de completado por elemento
 
-El padre mantiene `estado.pendingCompleciones` (objeto simple, clave = `padreid`). Cada entrada la crea `ensurePending(padreId, tipo)`: nace al activarse el elemento, en `_hdl_NAVEGACION_CAMBIO_PARADA`, y los eventos posteriores (LLEGADA_DETECTADA, FIN_REPRODUCCION o RETO_COMPLETADO) la encuentran creada; si alguno llega sin ficha, `ensurePending` la crea en ese momento. En la primera llamada para una clave nueva crea la entrada y envía PENDING_INICIADO a hijo2/4; en llamadas posteriores devuelve la entrada que ya existe:
+El padre mantiene `estado.pendingCompleciones` (objeto simple, clave = `padreid`). Cada entrada la crea `ensurePending(padreId, tipo)`: nace al activarse el elemento, en `_hdl_NAVEGACION_CAMBIO_PARADA`, y los eventos posteriores (LLEGADA_DETECTADA, FIN_REPRODUCCION o RETO_COMPLETADO) la encuentran creada; si alguno llega sin ficha, `ensurePending` la crea en ese momento. A un elemento ya completado (`_elementoCompletado()`), en AVENTURA, no se le crea ninguna: `ensurePending` devuelve `null` y el evento no anota nada. Es lo que ocurre mientras el elemento espera la pulsación de «avanzar»: la llegada del segundo sensor, el audio escuchado otra vez, el reto resuelto otra vez o el botón de saltar no le dejan una ficha nueva (cubierto por `tests/e2e/123-elemento-completado-sigue-completado.spec.js`, EC-6 a EC-9). En la primera llamada para una clave nueva crea la entrada y envía PENDING_INICIADO a hijo2/4; en llamadas posteriores devuelve la entrada que ya existe:
 
 ```javascript
 estado.pendingCompleciones[padreid] = {
@@ -4865,7 +4865,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7b21c8f1a570'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-77ad653cdabf'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5900,7 +5900,7 @@ padre → hijo2/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, t
 
 > **El aviso significa "el padre ha empezado a seguir la compleción de esta parada", no "el usuario ha salido del reto".** Si hijo4 respondiera haciendo `estado.retoActualId = null` + `ocultarControles()`, rompería tres botones de golpe con el reto ya abierto: `btnEnviar` pasaría a `display:none` (desaparece), `btnMostrarRespuesta` quedaría `disabled` (visible pero inerte) y `btnSaltarReto`, aunque intacto, dejaría de funcionar porque su listener abre con `if (!estado.retoActualId) return`. Por eso solo acusa recibo.
 >
-> El riesgo es real porque `ensurePending()` emite el aviso **al crear** el pending, y eso puede pasar con el reto ya abierto. La ficha nace al activarse el elemento, pero `ensurePending()` vuelve a crearla —y a emitir el aviso— cuando un evento posterior (el fin del audio, una llegada, un reto resuelto) la encuentra ya borrada. En AVENTURA el reto solo se abre tras terminar el audio (§29.7) y para entonces el pending ya está creado — **protegido por el orden de los eventos, no por diseño**, que es exactamente por lo que hijo4 solo acusa recibo y no confía en la secuencia.
+> El riesgo es real porque `ensurePending()` emite el aviso **al crear** el pending, y eso puede pasar con el reto ya abierto. La ficha nace al activarse el elemento, y `ensurePending()` la crea también —y emite el aviso— cuando un evento posterior (el fin del audio, una llegada, un reto resuelto) no la encuentra, salvo que el elemento ya esté completado en AVENTURA (§9.2.3). En AVENTURA el reto solo se abre tras terminar el audio (§29.7) y para entonces el pending ya está creado — **protegido por el orden de los eventos, no por diseño**, que es exactamente por lo que hijo4 solo acusa recibo y no confía en la secuencia.
 >
 > Ninguno de los dos hijos guarda un flag `paradaPendiente`: nada en sus ficheros lo leería. Con los ids de los datos, ninguno de los dos cambia su interfaz al recibirlo. Cubierto por `tests/e2e/50-pending-iniciado-no-borra-reto.spec.js`; PI-4 comprueba el control —un aviso de otra parada tampoco toca nada—.
 
@@ -6528,7 +6528,7 @@ La función `calcularToleranciaGPS()` en `js/funciones-mapa.js` determina cuánt
 | **hijo2** `_detectarLlegadaParada()` | **15 m** (`RADIO_PARADA` local) | Fijo | ✅ Genera `LLEGADA_DETECTADA` → padre |
 | **hijo2** `_detectarLlegadaTramo()` | **= `radioLlegada`** (15 m) | Recibido de funciones-mapa en el mismo `ACTUALIZAR_ESTADO` que `toleranciaGPS`, como campo aparte | ✅ Genera `LLEGADA_DETECTADA` → padre |
 
-> **Dos sensores, un único camino de avance (solo en modo AVENTURA)**: los dos miden lo mismo — `radioLlegada`, 15 m, en paradas y en tramos. funciones-mapa lo aplica en `verificarLlegadaADestino` y hijo2 en `_detectarLlegadaParada`/`_detectarLlegadaTramo`, sobre la distancia y el id que funciones-mapa le manda en cada `NAVEGACION.ACTUALIZAR_ESTADO`: el aviso de funciones-mapa se despacha primero, dentro del propio padre, y el de hijo2 llega unos milisegundos después. Los dos son solo sensores — **ninguno de los dos avanza la aventura por sí solo**: ambos notifican `LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento actual (`_marcarPendingPorLlegada`) y llama a `intentarCompletarElemento()`. El avance real solo ocurre cuando `intentarCompletarElemento()` ve que también se cumplen las demás condiciones (audio terminado, y retos si los hay) y llama a `marcarParadaCompletada()` — que habilita `btn-avanzar` y espera la confirmación explícita del usuario (parada y tramo por igual, ver §9.8) antes de que `progresarSiguienteElemento()` llegue a ejecutarse. Cuando un tramo se completa con la primera de las dos llegadas (su audio ya terminado), la segunda vuelve a crear su ficha (`ensurePending`), con `llegada: true`, hasta que el usuario pulsa avanzar. Ningún camino de detección de llegada envía `CAMBIO_PARADA` directamente: ambos pasan siempre por el sistema pending. En modo CASA ninguno de los dos sensores notifica nada — el guard `estadoMapa.modo !== MODOS.AVENTURA` en `procesarPosicionGPSParaAventura` lo bloquea, y hijo2 solo llama a `_detectarLlegadaParada`/`_detectarLlegadaTramo` con `estadoComponente.modo === 'aventura'`.
+> **Dos sensores, un único camino de avance (solo en modo AVENTURA)**: los dos miden lo mismo — `radioLlegada`, 15 m, en paradas y en tramos. funciones-mapa lo aplica en `verificarLlegadaADestino` y hijo2 en `_detectarLlegadaParada`/`_detectarLlegadaTramo`, sobre la distancia y el id que funciones-mapa le manda en cada `NAVEGACION.ACTUALIZAR_ESTADO`: el aviso de funciones-mapa se despacha primero, dentro del propio padre, y el de hijo2 llega unos milisegundos después. Los dos son solo sensores — **ninguno de los dos avanza la aventura por sí solo**: ambos notifican `LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento actual (`_marcarPendingPorLlegada`) y llama a `intentarCompletarElemento()`. El avance real solo ocurre cuando `intentarCompletarElemento()` ve que también se cumplen las demás condiciones (audio terminado, y retos si los hay) y llama a `marcarParadaCompletada()` — que habilita `btn-avanzar` y espera la confirmación explícita del usuario (parada y tramo por igual, ver §9.8) antes de que `progresarSiguienteElemento()` llegue a ejecutarse. Cuando un tramo se completa con la primera de las dos llegadas (su audio ya terminado), la segunda no anota nada: un elemento ya completado no tiene ficha, y `ensurePending` no se la crea (§9.2.3). Ningún camino de detección de llegada envía `CAMBIO_PARADA` directamente: ambos pasan siempre por el sistema pending. En modo CASA ninguno de los dos sensores notifica nada — el guard `estadoMapa.modo !== MODOS.AVENTURA` en `procesarPosicionGPSParaAventura` lo bloquea, y hijo2 solo llama a `_detectarLlegadaParada`/`_detectarLlegadaTramo` con `estadoComponente.modo === 'aventura'`.
 
 Para los tramos, la tolerancia dinámica se calcula a partir de la distancia entre waypoints: si el tramo tiene waypoints muy separados (calles largas), la tolerancia es mayor; si están muy juntos (callejones), más ajustada — pero nunca por debajo de **35 m** (comprobado contra los 239 tramos reales de las 7 aventuras: ninguno cae en la franja de 25-30 m, que es insuficiente frente al ruido normal de GPS en calles estrechas, y la confirmación por ventana deslizante de 2-de-4 lecturas absorbe ese mismo ruido por otra vía, así que un suelo de 50 m sería una sobrecorrección). El destino de un tramo es siempre su **punto `.fin`** — no el último waypoint del array, que puede quedar corto o largo del punto de llegada real definido en los datos.
 
@@ -7933,7 +7933,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `120-hijo4-habla-el-idioma-de-la-aventura.spec.js` | 4 | Los dos textos propios de hijo4 salen en el idioma de la aventura, que llega en `RETO.MOSTRAR` (`datos.idioma`): hijo4 pinta el marcador del campo de texto en el idioma del mensaje (ID-1) y en español si el mensaje no lo trae (ID-2); el padre lo manda en la progresión y en la reposición tras recargar hijo4 (ID-3) y al contestar a `DATOS.SOLICITAR_RETOS` (ID-4). |
 | `121-ruta-fallback-espera-al-hijo-listo-nuevo.spec.js` | 4 | En la ruta fallback de `SELECCION.AVENTURA_ACTIVADA`, `cargarHijo` espera el `HIJO_LISTO` de cada hijo recargado: cada una de sus seis esperas resuelve cuando ya ha llegado el `HIJO_LISTO` de su hijo (HL-1), y en esa ruta llega uno de cada uno de los seis (HL-2, control); en el state-manager, `crearPromiseHijoListo` de un id olvidado con `olvidarHijoListo` espera a `marcarHijoListo`, y olvidar un id desconocido no lanza (HL-3); esa espera no arma ningún temporizador: no tiene plazo propio (HL-4). |
 | `122-boton-retos-un-solo-sitio.spec.js` | 12 | El botón de retos de hijo3 lo decide un solo sitio del padre (`_sincronizarRetoBtn`, §7.4), medido con el padre, los hijos y el botón reales: saltar el audio o escucharlo entero lo enciende y volver dentro de rango no lo apaga (BR-1, BR-2), y con el audio sin terminar sigue apagado (BR-3); hijo3 recargado por el supervisor lo recibe encendido con el audio terminado y apagado con el audio sin terminar (BR-4, BR-5); con un reto abierto está apagado y el estado del reto no se rehace (BR-6); fuera de rango con la gracia agotada se apaga y al volver se enciende (BR-7), y cerrar un reto estando fuera de rango no lo enciende (BR-8); reactivar el mismo elemento con el audio terminado no lo apaga (BR-9). El recordatorio "pulse retos" pregunta al mismo sitio: sale con el botón encendido y no sale con el botón apagado por fuera de rango o por un reto abierto (BR-R1 a BR-R3) |
-| `123-elemento-completado-sigue-completado.spec.js` | 7 | Un elemento completado sigue completado (§25.10, §25.19), con el padre, los hijos y el botón «avanzar» reales: una parada ya completada queda lista para avanzar, sin ficha nueva, al reactivarse (EC-1), tras recargar la página y reanudar (EC-2) y cuando el supervisor recarga a hijo2 (EC-3); no se le ofrece el rescate (EC-4); una parada sin completar que se reactiva sigue pendiente, con su ficha intacta (EC-5). El rescate deja avanzar con el audio terminado y el reto sin resolver (RS-1) y con el audio sin terminar (RS-2) |
+| `123-elemento-completado-sigue-completado.spec.js` | 11 | Un elemento completado sigue completado (§25.10, §25.19, §9.2.3), con el padre, los hijos y el botón «avanzar» reales: una parada ya completada queda lista para avanzar, sin ficha nueva, al reactivarse (EC-1), tras recargar la página y reanudar (EC-2) y cuando el supervisor recarga a hijo2 (EC-3); no se le ofrece el rescate (EC-4); una parada sin completar que se reactiva sigue pendiente, con su ficha intacta (EC-5); y a una parada ya completada no le crean una ficha nueva otra llegada (EC-6), el audio escuchado otra vez (EC-7), el reto resuelto otra vez (EC-8) ni el botón de saltar el audio (EC-9). El rescate deja avanzar con el audio terminado y el reto sin resolver (RS-1) y con el audio sin terminar (RS-2) |
 | `124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` | 9 | Lo hecho en el elemento actual sobrevive a una recarga (§25.10, §9.2.3), con el padre, los hijos y los botones reales y una recarga real con su diálogo de reanudación: lo que se hace en la parada queda guardado en `vv_progreso` en el momento (FG-1); tras recargar y reanudar, el audio terminado sigue terminado y el botón de retos está encendido (FG-2), la llegada y el audio se conservan y el reto resuelto después completa la parada (FG-3), y el reto resuelto sigue resuelto, también en la cola de retos, y la llegada después completa la parada (FG-6); un progreso guardado sin ficha deja la ficha a cero (FG-4) y la ficha guardada de otro elemento no se aplica (FG-5); una ficha que vuelve completa sobre un elemento que no figura como completado lo completa al reanudar (FG-9). El recordatorio «pulse retos» corre al reanudar con el audio terminado y el reto sin resolver (FG-7) y al reactivarse el mismo elemento (FG-8) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
@@ -8167,7 +8167,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-7b21c8f1a570'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-77ad653cdabf'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8914,7 +8914,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-7b21c8f1a570';
+const CACHE_VERSION = 'v-77ad653cdabf';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12373,7 +12373,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-7b21c8f1a570';
+const CACHE_VERSION = 'v-77ad653cdabf';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14098,23 +14098,23 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `verificarTimeoutAventura` | módulo 1 (L2965) | módulo 2 | función/objeto |
 | `waitForMapLibreAndInitialize` | módulo 1 (L8160) | módulo 2 | función/objeto |
 | `__distribuirReadyPromise` | módulo 2 (L9264) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14180) | clásico 13 | estado |
-| `_estadoRescate` | módulo 2 (L14161) | clásico 6 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12827) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11414) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11463) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12857) | módulo 5 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14187) | clásico 13 | estado |
+| `_estadoRescate` | módulo 2 (L14168) | clásico 6 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12834) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11421) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11470) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12864) | módulo 5 | función/objeto |
 | `_vv_afterHijoListo` | módulo 2 (L9328) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10212) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10219) | módulo 1 | función/objeto |
 | `AVENTURA_PARADAS` | módulo 2 (L9467) | clásico 6, módulo 1 | función/objeto |
 | `distribuirDatosAventura` | módulo 2 (L9549) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10031) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13088) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10094) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10038) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13095) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10101) | módulo 1 | función/objeto |
 | `obtenerElementoActual` | módulo 2 (L9587) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10086) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10059) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14203) | módulo 2 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10093) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10066) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14210) | módulo 2 | función/objeto |
 
 </details>
 
