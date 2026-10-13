@@ -2992,6 +2992,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Método.** `no-unused-vars` de ESLint con `vars: 'all'` y sin ignorar el prefijo `_` (el lint del proyecto no aplica la regla a `js/*.js`, y en los HTML ignora lo que empieza por `_`) y búsqueda desnuda de los tres nombres en todo el repositorio: 3, 1 y 1 apariciones en el código, las de arriba. Los dos únicos `clearTimeout` de `funciones-mapa.js` son de otros temporizadores (`:1953` y `:2177`), y el único pulso del marcador es el halo decorativo del 🛸 en CASA (`@keyframes gpsPulse`, `:3449` y `:3513`), que no es de llegada ni usa la variable.
 - **La guía** (fila de `funciones-mapa.js` del inventario de módulos) decía que el efecto de pulso de llegada usa `_pulseTimeout` con `clearTimeout` para no acumular confirmaciones seguidas (G-48).
 - **Pendiente: decisión.** *A)* retirar las tres; *B)* dejarlas.
+- **Aplicada (2026-10-13, `18cfe1f`): A**, con el encargo del usuario de quitar el código muerto. Fuera las tres variables; con `_mapaOpciones` se va el parámetro `opciones` de `inicializarServicioMapa`, que solo la alimentaba (sus llamadores, el padre y los specs 17, 23, 24, 27, 47 y 53, pasan solo la instancia del mapa). Búsqueda desnuda de los tres nombres en `*.html`, `*.js`, `*.cjs` y `*.mjs` antes de quitarlas: las cinco líneas de `js/funciones-mapa.js`.
 
 ##### K-65 — `limpiar()` del bus no tiene ningún llamador — ✅ (búsqueda desnuda)
 
@@ -2999,6 +3000,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Método.** Búsqueda del identificador `limpiar` en `*.html`, `js/*.js` y `tests/`, fuera de comentarios y cadenas: solo su definición y una función local homónima de `js/video-playback-utils.js:67`, sin relación. Por esa homónima `tools/codigo-muerto.js` no la marca (cuenta como uso un token igual en otro fichero, límite ya descrito en R2.7); `exports-tokens.cjs` y `exports-sin-uso.cjs` sí la listan.
 - **Pendiente: decisión** (toca el bus, regla 1). *A)* retirarla; *B)* dejarla.
 - **Nota (2026-10-12).** `colaMensajes` (`js/mensajeria.js:95`) va con ella: su único uso es el vaciado de `limpiar()` (`:1159`); nadie la llena ni la lee (búsqueda desnuda en `*.html` y `*.js`: esas dos líneas). La guía (§26.5) describía con ese nombre una cola de envíos pendientes que `marcarScript2Listo()` vaciaba; ninguna de las dos cosas existe (G-64).
+- **Aplicada (2026-10-13, `93cb6dc`): A**, con el encargo del usuario de quitar el código muerto. Fuera `limpiar()` y `colaMensajes`; el barrido periódico de confirmaciones caducadas, que está debajo, sigue como estaba. Antes de quitarla: el identificador `limpiar` en `*.html`, `*.js`, `*.cjs` y `*.mjs` (su definición, la homónima local de `js/video-playback-utils.js` y otra de `tools/verificar-citas-guia.js`), y que ningún frame recorre las claves del módulo del bus (los once lo importan entero, como `bus` o `mensajeriaModule`, y lo usan por nombre). La guía no la nombra.
 
 ##### K-66 — `CONFIG_PADRE.COMPONENTE_ID`, `.VERSION` y `.DEBUG` siguen sin lector — ✅ (búsqueda desnuda)
 
@@ -3006,6 +3008,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Método.** Lecturas `CONFIG_PADRE.X` distintas de `LOG_PREFIX` e `ID` en `*.html` y `js/*.js`: ninguna; ninguna desestructuración ni clave computada de `CONFIG_PADRE`; el literal `PADRE-PRINCIPAL` solo aparece en su definición. Lo único que las toca es el test «1f. globalThis.CONFIG_PADRE existe con todas las claves requeridas» del spec `02-global-variables` (`:116`), que comprueba que existen y su tipo.
 - **Por qué siguen.** K-01 las dejó «para la decisión de K-02», y K-02 A vació `js/config.js` y no `CONFIG_PADRE`.
 - **Pendiente: decisión.** *A)* retirarlas y ajustar ese test del spec 02; *B)* dejarlas.
+- **Aplicada (2026-10-13, `2ddb79f`): A, y una clave más.** Al listar todas las apariciones de `CONFIG_PADRE` (143 en `*.html`, `*.js`, `*.cjs` y `*.mjs`, clasificadas por lo que les sigue) sale que `ID` tampoco tiene lector: las 72 lecturas con punto son de `LOG_PREFIX`, y el objeto entero solo viaja a `js/controladores-padre.js`, que lee `LOG_PREFIX`. Las últimas lecturas de `CONFIG_PADRE.ID` se fueron con `getPadreId` (`f6ab460`, K-28); esta entrada daba `ID` por leída. `CONFIG_PADRE` queda en `{ LOG_PREFIX }`, y la reserva de Script 2 pierde su `ID`. El test 1f del spec 02 comprueba el objeto, su `LOG_PREFIX` y que no lleva otra clave (en rojo antes del cambio: sobraban las cuatro). Guía: G-71.
 
 ##### K-67 — El objeto API del state-manager: tres funciones con dos nombres y cinco que solo usan los specs o nadie — ✅ (búsqueda desnuda)
 
@@ -3020,6 +3023,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Por qué no se alcanzan.** Un handler solo se ejecuta a través de `_encolarEjecucionHandler` (`js/mensajeria.js:560`), y a ella llegan dos caminos: `despacharLocal` (`:643`), que sella el `origen` con el del propio frame (`:650`), y el listener de `message`, que descarta antes todo mensaje sin `origen` (`:727`). Las funciones con nombre (las `_on*` de la selección y las `_hdl_*` del padre) solo aparecen en su registro, y los validadores de hijo5, en la llamada desde su handler.
 - **Método.** Búsqueda de las dos formas en los `.html` de la raíz y `js/*.js`: 25 líneas, las 23, la de `js/app.js:388` (decide si se contesta; no es una guarda de entrada) y la del propio bus; para cada una, el handler que la contiene; búsqueda desnuda de cada función con nombre en todo el repositorio; lectura de los dos caminos del bus hasta `_encolarEjecucionHandler`. Otras formas de escribir la misma guarda no se buscaron.
 - **Pendiente: decisión.** *A)* retirarlas; *B)* dejarlas como defensa redundante.
+- **Aplicada (2026-10-13, `1e1a660`): A**, con el encargo del usuario de quitar el código muerto. Recontadas sobre el código de ese día: las mismas 23, en los mismos seis frames; para cada una, su bloque, la función que la contiene y todas las apariciones del nombre de esa función (las `_on*` de la selección y las `_hdl_*` del padre, solo en su registro; los dos validadores de hijo5, solo en la llamada de su handler). El único listener de `message` de la aplicación es el del bus (búsqueda de `addEventListener('message'` y de `onmessage =` en `*.html` y `*.js`: el del bus, el del service worker y los de MapLibre), y los handlers solo se ejecutan en `js/mensajeria.js`, desde `_encolarEjecucionHandler`. Con las guardas se van sus comentarios («Validación de origen») y el parámetro `mensaje` de los dos handlers de latido que ya no lo usan (selección e hijo1). Censo (regla 3b): hijo4, hijo6, mapa-completo, puzzle y video-intro no tenían ninguna (0 apariciones de las dos formas en cada uno). Chromium entero, 626 de 626, con este cambio y los de K-64, K-65, K-66, K-81 y la fila 66. Guía: G-72.
 
 ##### K-69 — Variables y reglas CSS sin uso — 🔎
 
@@ -3124,6 +3128,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Efecto hoy: ninguno.** La ficha la borra `intentarCompletarElemento` justo después, con la clave buena (`:9724` y `:9728`), y el avance (`:9765`). La función entera (`:9814-9822`) no hace nada.
 - **Relacionado.** K-78 y K-80.
 - **Pendiente: decisión.** *A)* retirar `_notificarParadaCompletada` y su llamada (`:9903`); *B)* dejarlo.
+- **Aplicada (2026-10-13, `53bcac4`): A**, con el encargo del usuario de quitar el código muerto. Era el único `await` de `marcarParadaCompletada`: lo que sigue (listo para avanzar, `CONTROL.HABILITAR` de «avanzar», cartel) corre ahora en la misma vuelta que la llamada. Specs de compleción y de rescate en chromium (13, 15, 21, 22, 26, 39, 57, 68, 70, 71, 72, 73, 91, 122, 123 y 124), 108 de 108.
 
 ##### K-82 — Volver dentro del radio de la parada apaga el botón de retos aunque el audio ya esté resuelto; sin audio grabado, la parada queda bloqueada — ✅ (medido en tres pasadas; leído)
 
@@ -3464,6 +3469,8 @@ código leído ese día; los hashes son de los commits locales (sin pushear).
 | G-68 | ✅ | `aadd16d`: §25.19, «El cobro va diferido». El párrafo decía que la marca de completado vive solo en memoria y que un cierre de la app en esa ventana deja al usuario delante de la misma valla; el punto queda guardado como completado al instante y, desde K-85, al reanudar sigue listo para avanzar: lo que vive solo en memoria es el apunte del gasto, y por eso ese rescate no se cobra (K-91). |
 | G-69 | ✅ | `e249843`, con los arreglos de K-89 y K-90: §25.10 (lo hecho en el elemento se guarda y vuelve al reanudar; la fila de `vv_progreso`), §9.2.3 (`_anotarEnFicha`, único sitio que escribe en la ficha; `ensurePending` no «actualiza el campo», devuelve la entrada), §9.10 (`estado._fichaGuardada`), la fila de `vv_progreso` de §10, «Distancia recorrida» (decía que `pendingCompleciones` no persiste y que al reabrir hay que escuchar el audio otra vez), §7.4 (`_retosHechosEn` y la cola de retos), §25.5d (el recordatorio «pulse retos» arranca también en la activación; decía que la activación lo detiene incondicionalmente), §25.19 (el rescate rellena la ficha con `_anotarEnFicha`), los pasos de la activación de §6, la fila del spec 124 en §18.3 (121 specs) y §37.2, regenerada. |
 | G-70 | ✅ | `489f14d`, al retirar `estado.retoActual.disponible`: §2.5 (el estado del reto al volver a CASA), la tabla de CASA frente a AVENTURA de §6 (pierde la fila «Estado del reto», que solo describía ese campo), §7.4 (los campos de `estado.retoActual`; si el reto se puede abrir lo decide `_decidirRetoBtn()`), §29.7, y la ficha de `RETO.SOLICITAR_RETO` de §10.5, que decía «busca `estado.retoActual`, envía `RETO.MOSTRAR` a hijo4 si el reto está disponible»: el handler elige el siguiente reto sin hacer de la cola, o el primero del elemento, y sin reto responde `SISTEMA.NACK` (leído en `_hdl_RETO_SOLICITAR`). §37.2, regenerada. |
+| G-71 | ✅ | `2ddb79f`, con K-66: §32.3 ponía de ejemplo `enviarMensaje({ destino: CONFIG_PADRE.ID })` y decía que el bus busca `'padre'` entre los iframes registrados y avisa con «Iframe no encontrado o sin contentWindow»: cuando el destino es el propio frame, `enviarMensaje` avisa una vez por tipo («no se envía … a sí mismo por enviarMensaje: eso se hace con despacharLocal») y devuelve `false` (leído en `js/mensajeria.js`). |
+| G-72 | ✅ | `1e1a660`, con K-68: la fila de `SISTEMA.CAMBIO_MODO` de la tabla de handlers de hijo5 decía «sin `origen` lo ignora»; esa guarda no existe. |
 
 ### R2.6 Censo de frames (regla 3b)
 
@@ -3818,11 +3825,11 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 36 | 3 | K-60 | plazo y caída a la caché en el Network First de `sw.js` | SPEC (SW real), MEDIR, GUÍA | toca `sw.js` (`CACHE_VERSION`, shell) | decisión |
 | 37 | 2 | K-63 A | quitar la espera de «padre listo» de la selección y de hijo1, con `TIMEOUT_PARENT`, `padreConectado`, `parentReady` y sus dos claves de la respuesta al latido — **hecha (2026-10-07, `fd367da`)** | GUÍA (§26.12.3, §26.12.4 y §37.2) | — | sí |
 | 38 | 3 | K-62 | doce esperas escritas a mano: llevarlas a `retryUntilAvailable` o dejarlas | una decisión por sitio | blanda: K-72 (las dos de `distribuirDatosAventura`) | sí |
-| 39 | 1 | K-64 | retirar tres variables muertas de `js/funciones-mapa.js` | — | — | sí |
-| 40 | 1 | K-65 | retirar `limpiar()` del bus | BUS | — | sí |
-| 41 | 2 | K-66 | retirar `COMPONENTE_ID`, `VERSION` y `DEBUG` de `CONFIG_PADRE` y ajustar el test del spec 02 que las pide | — | — | sí |
+| 39 | 1 | K-64 | retirar tres variables muertas de `js/funciones-mapa.js` — **hecha (2026-10-13, `18cfe1f`)** | — | — | sí |
+| 40 | 1 | K-65 | retirar `limpiar()` del bus — **hecha (2026-10-13, `93cb6dc`), con `colaMensajes`** | BUS | — | sí |
+| 41 | 2 | K-66 | retirar `COMPONENTE_ID`, `VERSION` y `DEBUG` de `CONFIG_PADRE` y ajustar el test del spec 02 que las pide — **hecha (2026-10-13, `2ddb79f`), con `ID`, que tampoco tenía lector** | — | — | sí |
 | 42 | 3 | K-67 | un nombre por función en el objeto API del state-manager y retirar lo que no usa nadie | BUS (el bus usa dos alias); specs que lo usan de sonda | — | sí |
-| 43 | 3 | K-68 | retirar 23 guardas de `origen` inalcanzables, en seis frames | — | — | sí |
+| 43 | 3 | K-68 | retirar 23 guardas de `origen` inalcanzables, en seis frames — **hecha (2026-10-13, `1e1a660`)** | — | — | sí |
 | 44 | — | K-69 | CSS sin uso: leer cada caso antes de proponer (🔎) | — | — | — |
 | 45 | 4 | K-70 | una sola forma de la respuesta al latido, en los siete frames; aparte, la de hijo5 sin latido | BUS, GUÍA | — | sí |
 | 46 | 1 | K-71 | el círculo naranja toma su radio de `radioLlegada()` | — | blanda: K-05 (las constantes del radio) | sí |
@@ -3835,7 +3842,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 53 | 2 | K-78 | la marca del rescate pedido y la compleción con la misma clave | SPEC, VISIBLE (un cartel menos tras el rescate), GUÍA si B | — | sí |
 | 54 | 5 | K-79 | qué dice (o si sale) el cartel al cerrar el último elemento, en doce idiomas | VISIBLE, traducciones de usted | blanda: K-77 (la misma familia de carteles) | sí |
 | 55 | 3 | K-80 | hijo2 y el `PENDING_INICIADO`: retirar la rama que no corre, o que el aviso lleve el id que hijo2 conoce | BUS si se retira el envío, SPEC, GUÍA; VISIBLE y MEDIR si B | blanda: K-73 (el mismo aviso), K-78 y K-81 (la misma forma) | sí |
-| 56 | 1 | K-81 | retirar `_notificarParadaCompletada`, que no borra nada | — | blanda: K-78 (la misma función) | sí |
+| 56 | 1 | K-81 | retirar `_notificarParadaCompletada`, que no borra nada — **hecha (2026-10-13, `53bcac4`)** | — | blanda: K-78 (la misma función) | sí |
 | 57 | 4 | K-82 | que volver dentro de rango, o la recarga de hijo3, no apague el botón de retos con el audio ya resuelto — **hecha (2026-10-13, `5318ef7`): un solo sitio decide el botón** | SPEC, VISIBLE (hoy bloquea la parada en los idiomas sin audio) | blanda: K-07 (la recarga de hijo3 llega a lo mismo) | sí |
 | 58 | 3 | — (arnés de tests) | el ayudante `cargarHijosDelPadre` en los specs que cargan los hijos del padre con un `page.evaluate`, y después la tanda de los cuatro navegadores | SPEC, GUÍA (un párrafo) | — | sí; la tanda pide el OK del usuario en ese momento |
 | 59 | 2 | K-83 | una sola función para las coordenadas del punto de inicio, y qué devuelve cuando no hay entrada de inicio | — | blanda: K-38 (el nombre `AVENTURA_PARADAS`) | sí |
@@ -4157,6 +4164,7 @@ Mismo formato y mismo método que el resto de R2.11, sobre `4bea83e` y el 2026-1
 - **¿Puede ser código muerto?** Sí: 3, 1 y 1 apariciones en todo el repositorio, ninguna lectura.
 - **Por qué importa y por qué debe seguir.** No tienen efecto; `_pulseTimeout` llevó a la guía a describir un efecto que no existe (G-48).
 - **Opciones (de la ficha).** A) retirarlas; B) dejarlas.
+- **Aplicado (2026-10-13).** A. Commit `18cfe1f`.
 
 **K-65 — `limpiar()` del bus**
 
@@ -4166,6 +4174,7 @@ Mismo formato y mismo método que el resto de R2.11, sobre `4bea83e` y el 2026-1
 - **¿Puede ser código muerto?** Sí: el identificador solo aparece en su definición (y en una homónima local de `js/video-playback-utils.js`, sin relación).
 - **Por qué importa y por qué debe seguir.** No tiene efecto; está en el bus (regla 1), así que retirarla pide el OK expreso.
 - **Opciones (de la ficha).** A) retirarla; B) dejarla.
+- **Aplicado (2026-10-13).** A, con `colaMensajes`. Commit `93cb6dc`.
 
 **K-66 — tres claves de `CONFIG_PADRE` sin lector**
 
@@ -4175,6 +4184,7 @@ Mismo formato y mismo método que el resto de R2.11, sobre `4bea83e` y el 2026-1
 - **¿Puede ser código muerto?** Sí: ninguna lectura en `*.html` ni en `js/*.js`.
 - **Por qué importa y por qué debe seguir.** No tienen efecto; quedaron sin lector al cerrarse K-01 y K-02.
 - **Opciones (de la ficha).** A) retirarlas y ajustar el test; B) dejarlas.
+- **Aplicado (2026-10-13).** A, con una cuarta clave sin lector, `ID`. Commit `2ddb79f`.
 
 **K-67 — el objeto API del state-manager**
 
@@ -4193,6 +4203,7 @@ Mismo formato y mismo método que el resto de R2.11, sobre `4bea83e` y el 2026-1
 - **¿Puede ser código muerto?** Sí, por lectura: los handlers solo se ejecutan desde `_encolarEjecucionHandler`, y a ella no llega ningún mensaje sin `origen`.
 - **Por qué importa y por qué debe seguir.** No cambia nada visible; es redundancia.
 - **Opciones (de la ficha).** A) retirarlas; B) dejarlas como defensa redundante.
+- **Aplicado (2026-10-13).** A. Commit `1e1a660`.
 
 **K-70 — la respuesta al latido**
 
@@ -4305,6 +4316,7 @@ Mismo formato que el resto de R2.11, con lo medido en el recorrido del 2026-10-0
 - **¿Puede ser código muerto?** Sí, la función entera (`codigo-padre.html:9814-9822`).
 - **Por qué importa y por qué debe seguir.** No tiene efecto; quien lee cree que hay tres borrados y corren dos.
 - **Opciones (de la ficha).** A) retirarla, con su llamada; B) dejarlo.
+- **Aplicado (2026-10-13).** A. Commit `53bcac4`.
 
 **K-82 — el botón de retos se apaga al volver dentro del radio**
 
