@@ -158,13 +158,9 @@ module.exports = [
         cerrarVideoOverlay: "readonly",
         cerrarChatVentana: "readonly",
         showFotoLejosOverlay: "readonly",
-        hideFotoLejosOverlay: "readonly",
         showFotoFueraRangoOverlay: "readonly",
-        hideFotoFueraRangoOverlay: "readonly",
         showFotoDesviadoOverlay: "readonly",
-        hideFotoDesviadoOverlay: "readonly",
         showFotoPerdidoOverlay: "readonly",
-        hideFotoPerdidoOverlay: "readonly",
         showGpsPrecisionOverlay: "readonly",
         hideGpsPrecisionOverlay: "readonly",
         toggleRotationMessage: "readonly",
@@ -172,7 +168,6 @@ module.exports = [
 
         // ── Globals propios — funciones de mapa/GPS ──────────────────────
         activarGPS: "readonly",
-        showGpsOutOfRangeOverlay: "readonly",
         _ocultarTodasPantallasDistanciaGPS: "readonly",
         _iniciarTemporizadorAventura: "readonly",
         _obtenerCoordenadasP0Fallback: "readonly",

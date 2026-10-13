@@ -156,7 +156,6 @@
                                     }
                                 }
                                 try { applyStylingOnce(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                                try { if (globalThis.__vv_applyStylingOnce === undefined) globalThis.__vv_applyStylingOnce = applyStylingOnce; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                             })()`));
                 doc.head && doc.head.appendChild(script);
             } catch (e) { (globalThis.logger || console).warn('[PADRE] Error injecting hijo5 script', e); }
@@ -1830,7 +1829,6 @@
             if (_escaleraImagenTimer) { clearTimeout(_escaleraImagenTimer); _escaleraImagenTimer = null; }
             if (wrapper) wrapper.classList.remove('cargando');
         }
-        globalThis._cancelarEscaleraImagen = _cancelarEscaleraImagen;
 
         function _escaleraCargaImagen(wrapper, img, url) {
             _cancelarEscaleraImagen(wrapper);
@@ -4227,26 +4225,6 @@
             (globalThis.logger || console).debug('[VV]:', e?.message);
         }
 
-        // Fracción de progreso (0-1) sobre el total de elementos de la aventura activa —
-        // usada por el TTL de saltos de seguridad (§31.7b) para exigir un 20% de avance
-        // real desde el último salto antes de conceder otro. DATOS_PADRE es un import de
-        // módulo, solo visible en este script — se expone para que el TTL (otro script)
-        // pueda llamarla sin necesitar su propio acceso a DATOS_PADRE.
-        function _calcularProgresoFraccion() {
-            try {
-                const total = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre?.length;
-                if (!total || typeof estado.indiceProgreso !== 'number') return 0;
-                return estado.indiceProgreso / total;
-            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); return 0; } // NOSONAR
-        }
-        try {
-            if (globalThis.window !== undefined && globalThis._calcularProgresoFraccion === undefined) {
-                globalThis._calcularProgresoFraccion = _calcularProgresoFraccion;
-            }
-        } catch (e) { // NOSONAR
-            (globalThis.logger || console).debug('[VV]:', e?.message);
-        }
-
         function _restoreCheckTimeout(logPrefix) {
             if (typeof verificarTimeoutAventura !== 'function') return false;
             const result = verificarTimeoutAventura();
@@ -5954,9 +5932,6 @@
                 } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
-        // Expuestas en globalThis. Hoy solo las llama este mismo script, por su nombre (el bloqueo
-        // de 5 km y los cierres de carteles, ver GUIA-COMPLETA §31): Script 2 no las llama.
-        try { globalThis.showGpsOutOfRangeOverlay = showGpsOutOfRangeOverlay; globalThis.hideGpsOutOfRangeOverlay = hideGpsOutOfRangeOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
         // ──────────────────────────────────────────────────────────────
         // Pantallas de aviso GPS por distancia (§30/§31.4 de la guía): foto-perdido
@@ -6125,7 +6100,6 @@
                 if (el) el.classList.remove('show');
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
-        globalThis.hideFotoLejosOverlay = hideFotoLejosOverlay;
 
         function _ensureFotoFueraRangoOverlay() {
             if (document.getElementById('foto-fuera-rango-overlay')) return;
@@ -6198,7 +6172,6 @@
                 if (el) el.classList.remove('show');
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
-        globalThis.hideFotoFueraRangoOverlay = hideFotoFueraRangoOverlay;
 
         // Franja "desviado" (50-150m) — nueva, añadida en la ronda 2026-08-16 (gracia por
         // franjas). Mismo patrón exacto que foto-lejos/foto-fuera-rango.
@@ -6273,7 +6246,6 @@
                 if (el) el.classList.remove('show');
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
-        globalThis.hideFotoDesviadoOverlay = hideFotoDesviadoOverlay;
 
         // Franja "perdido" (>2000m del elemento actual) — nueva, añadida en la ronda
         // 2026-08-16. Antes reutilizaba gps-out-of-range-overlay/fotogpserror.png junto con
@@ -6353,7 +6325,6 @@
                 if (el) el.classList.remove('show');
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
-        globalThis.hideFotoPerdidoOverlay = hideFotoPerdidoOverlay;
 
         // Precisión GPS insuficiente (accuracy > CONFIG.GPS.PRECISION_MINIMA) — nueva,
         // añadida en la ronda 2026-08-16. Distinto de las 4 franjas de arriba: no mide
@@ -6724,8 +6695,8 @@
         }
 
         // Exponer overlays de problemas (§30) para que Script 2 pueda llamarlos desde sus handlers
-        try { globalThis.showInternetOverlay = showInternetOverlay; globalThis.hideInternetOverlay = hideInternetOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-        try { globalThis.showGpsSignalOverlay = showGpsSignalOverlay; globalThis.hideGpsSignalOverlay = hideGpsSignalOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        try { globalThis.showInternetOverlay = showInternetOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        try { globalThis.showGpsSignalOverlay = showGpsSignalOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
         // Detección instantánea de pérdida de conexión — el evento 'offline' dispara el
         // aviso en el momento real en que el dispositivo pierde red, en vez de esperar a
@@ -14109,13 +14080,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
     <!-- Add JavaScript to manage iframe visibility -->
     <script type="module">
 
-        // Importar sistema de mensajería y utilidades
-        const { TIPOS_MENSAJE: TIPOS_MENSAJE_IFRAME } = await import('./js/constants.js');
-        // Publicado en globalThis porque el handler de visibilitychange vive en el
-        // <script> CLASICO de mas abajo, que no ve los const de este modulo. Sin esto,
-        // ese handler lanzaba ReferenceError en cada iframe, lo tragaba su propio
-        // try/catch y no enviaba ni un heartbeat: fallaba en silencio (EJE 26).
-        globalThis.TIPOS_MENSAJE_IFRAME = TIPOS_MENSAJE_IFRAME;
         await import('./js/config.js');
 
         // Functions to manage hijo4 visibility through the centralized messaging system

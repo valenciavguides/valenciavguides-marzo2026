@@ -110,6 +110,10 @@ function detectarBloques(src) {
         const esModulo = /type\s*=\s*["']module["']/.test(m[1]);
         const label = esModulo ? `módulo ${++nModulo}` : `clásico ${++nClasico}`;
         blocks.push({ start: lineOf(src, m.index), end: lineOf(src, closeIdx), label });
+        // Se sigue buscando DESPUÉS del cierre: un «<script>» escrito dentro del cuerpo de un
+        // bloque (en un comentario, en una cadena) no abre otro. Sin esto contaba como bloque
+        // y desplazaba la numeración de los clásicos que venían detrás.
+        SCRIPT_OPEN_RE.lastIndex = closeIdx + '</script>'.length;
     }
     return blocks;
 }
