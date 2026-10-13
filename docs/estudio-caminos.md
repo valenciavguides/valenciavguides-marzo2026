@@ -3107,6 +3107,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **La guía** (L10634) dice que la marca evita el cartel (G-54). Ningún spec lo comprueba: los de rescate (70 a 73) no miran el cartel, y ninguno nombra la marca.
 - **Relacionado.** El comentario de `:14015-14017` cuenta un fallo del mismo tipo (una clave con prefijo comparada con el id limpio) en la pieza que esta marca sustituyó.
 - **Pendiente: decisión.** *A)* que la marca y la compleción usen la misma clave; *B)* dejarlo (el usuario ve dos avisos de lo mismo), corrigiendo la guía.
+- **Preparada, sin aplicar (2026-10-13): A.** No se aplica sin la decisión porque cambia lo que ve el usuario (un cartel menos). El cambio son dos líneas de `codigo-padre.html`: `_concederRescate` deja la marca con la clave de la ficha (`estado._rescatePeticionPendiente = { clave }`, el `padreid`, como `_rescateGastoPendiente`), y `marcarParadaCompletada` la compara con la del elemento completado (`elementoCompletado?.padreid`, o `padre-` más `idLimpio` si no lo tiene). El test, RS-3 en el spec 123: el rescate por su camino real, un observador que apunta cada `cartel-*` que entra en el documento, y al llegar la pantalla de «rescate utilizado» no ha entrado ni `cartel-transicion` ni `cartel-inicio-tramo`, y la marca está gastada. Medido en chromium: con el código de `583b3aa`, RS-3 en rojo (entra `cartel-inicio-tramo`) y RS-1 y RS-2 en verde; con el parche puesto, 44 de 44 con los specs 22, 70, 71, 72 y 73; después se retiró el parche y el test. La guía tendría que cambiar el paso 8 de §25.19, que hoy describe el cartel de más.
 
 ##### K-79 — Al cerrar el último elemento, el cartel pide pulsar play para un audio que no existe — ✅ (medido; leído)
 
@@ -4559,3 +4560,51 @@ Fuera de los frames: `js/funciones-mapa.js` (K-73, K-74, K-77) y `js/traduccione
 **Variantes.** Con estas pasadas quedan recorridas todas las variantes obligatorias de §36.28. Fuera de ellas, sin recorrer: otras aventuras y otros motores, lecturas GPS de mala precisión, el rescate agotado y el tiempo de la aventura agotado.
 
 **Límites.** Solo Chromium; solo la Aventura1. El GPS simulado no tiene el ruido urbano real ni sus caídas de precisión: su `accuracy` es fija, de 4 m, así que ni el corte por precisión de hijo2 (50 m, `coordenadas-hijo2.html:1377`) ni el del bloqueo de 5 km (100 m, `codigo-padre.html:5612`) llegan a correr. El audio va a ×16 (los eventos son los mismos; cambia cuánto tardan). Lo que el espía no ve: lo que un frame hace sin pasar por el bus ni por `despacharLocal`.
+
+### R2.14 Tanda de la noche del 2026-10-13
+
+**Encargo.** El usuario, al irse a dormir, pidió avanzar todo lo posible de este estudio: verificar antes de tocar, quitar el código muerto y documentar en la guía. Se tomó como permiso para aplicar lo que ya estaba decidido, retirar código sin uso, arreglar lo que no cambia lo que ve el usuario y lanzar Playwright; no para decisiones de producto, textos ni `push`. Lo que cambia lo que ve el usuario y no estaba decidido se dejó medido o preparado.
+
+**Aplicado.** Cada fila, con su spec en rojo antes cuando hay comportamiento que fijar; todo en chromium.
+
+| Entrada | Qué | Commit | Comprobación |
+|---|---|---|---|
+| K-89 A y K-90 | la ficha del elemento la escribe un solo sitio, se guarda y vuelve al reanudar; la cola de retos y el recordatorio «pulse retos» miran lo hecho | `e249843` | spec 124 (9 tests; 6 en rojo antes y los 2 controles en verde); cinco líneas vistas en rojo por mutación; chromium entero, 625 de 625 |
+| fila 66 | fuera `estado.retoActual.disponible` | `489f14d` | specs adaptados en verde con el campo y sin él; 93 de 93 |
+| K-81 | fuera `_notificarParadaCompletada` | `53bcac4` | 108 de 108 |
+| K-66 | `CONFIG_PADRE` queda en `{ LOG_PREFIX }` (las tres claves y una cuarta, `ID`) | `2ddb79f` | test 1f del spec 02 en rojo antes; 35 de 35 |
+| K-64 | fuera tres variables de `js/funciones-mapa.js` | `18cfe1f` | 115 de 115, con K-65 |
+| K-65 | fuera `limpiar()` y `colaMensajes` del bus | `93cb6dc` | lo mismo |
+| K-68 | fuera las 23 guardas de `origen` | `1e1a660` | chromium entero, 626 de 626 (con todo lo anterior) |
+| K-73 | a un elemento ya completado nadie le crea ficha | `479b06a` | spec 123, EC-6 a EC-9 en rojo antes; 160 de 160 |
+| K-88 | un hijo recargado recibe su estado (barra de hijo3, reto de hijo4); sin aviso de arranque a hijo3 | `acfebb1` | spec 125 (4 tests; 3 en rojo antes y el control en verde); 106 de 106 |
+| K-71 | el círculo naranja, con `radioLlegada()` | `8f36e78` | 54 de 54 |
+| comentarios | los que este estudio tenía anotados como falsos | `583b3aa` | ninguna línea de código; 43 de 43 |
+
+**Medido, sin tocar código.** K-84 (M-25: el cartel del bloqueo de 5 km dura hasta la siguiente lectura y no vuelve) y K-91 (M-26: recargando entre el «Sí» del rescate y «avanzar», el rescate no se cobra).
+
+**Preparado, sin aplicar.** K-78 (el cartel de más tras un rescate pedido): test y parche probados, descritos en su entrada.
+
+**Hallazgos nuevos.** K-90 (aplicada) y K-91 (por decidir; la abrió K-85). Dentro de K-66, la cuarta clave sin lector. Sin entrada: la publicación en `globalThis` de `showGpsOutOfRangeOverlay` y `hideGpsOutOfRangeOverlay` no tiene lector fuera de Script 1 (búsqueda desnuda en `*.html`, `js/*.js` y `tests/`).
+
+**No tocado, y por qué.** K-67 (hay que elegir qué nombre se queda de cada par y si la herramienta de consola `diagnosticar` sobra). K-72 (al releerla: el «sin plazo» de esa espera es lo que aguanta una conexión lenta; un plazo fijo de 30 s daría el aviso de fallo sin haber fallo, así que la opción A pide decidir el plazo y si escala con la conexión). K-80 (decidir qué es `PENDING_INICIADO` toca el bus). K-83 (qué devuelve la función cuando no hay punto de inicio). K-86 (un solo sitio para «avanzar»: nivel 4, y va con K-84). K-74, K-76 y el reloj de K-75 (comportamiento; sin decisión). K-77 y K-79 (textos en doce idiomas). K-62, K-69 y K-70 (una decisión por sitio, o lectura caso a caso). K-78 y K-91 (cambian lo que ve el usuario o son regla del juego). La fila 58 (el ayudante `cargarHijosDelPadre`: el parche preparado es anterior a los specs 122 a 125 y habría que rehacerlo). Y las anteriores a la R2.12 que siguen abiertas.
+
+**Censo de frames (regla 3b).**
+
+| Frame | Tocado esta noche | Si no, por qué |
+|---|---|---|
+| padre | K-89, K-90, fila 66, K-81, K-66, K-68 (7 guardas), K-73, K-88, comentarios | — |
+| selección | K-68 (3 guardas y el parámetro del latido) | — |
+| hijo1 | K-68 (3 guardas y el parámetro del latido) | — |
+| hijo2 | K-68 (2 guardas), un comentario | — |
+| hijo3 | K-68 (2 guardas) | lo de K-88 que le afecta se arregla en el padre |
+| hijo4 | no | ninguna guarda de K-68 (0 apariciones de las dos formas en `retos-hijo4.html`); lo de K-88 que le afecta se arregla en el padre; K-76 sigue abierta |
+| hijo5 | K-68 (6 guardas), un comentario | — |
+| hijo6 | no | ninguna guarda (0 apariciones); ninguna entrada aplicada lo nombra |
+| mapa-completo | no | lo mismo |
+| puzzle | no | lo mismo |
+| video-intro | no | lo mismo |
+
+Fuera de los frames: `js/funciones-mapa.js` (K-64, K-71), `js/mensajeria.js` (K-65), `js/indice-aventuras.js` y `js/controladores-padre.js` (comentarios). Specs nuevos: 124 y 125; con tests nuevos o adaptados: 02, 22, 39, 44, 68 (cabecera), 103, 120, 122 y 123.
+
+**Trampa de instrumento.** Una mutación del padre servida con `page.route` no llega a la navegación de `page.reload()` si el service worker está activo: la sirve él. Tres mutaciones salieron en verde sin haberse aplicado. Las sondas de mutación que recargan van con `serviceWorkers: 'block'` y con una marca en el HTML servido que el test comprueba después de recargar.
