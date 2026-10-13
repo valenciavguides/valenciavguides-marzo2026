@@ -8168,6 +8168,8 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 `index.html` solo registra el SW (`navigator.serviceWorker.register`) sin ningún listener de actualización, ya que esa página redirige inmediatamente a `codigo-padre.html`. El redirect (`location.replace()` en un `<script>` inline en `<head>`) es efectivamente instantáneo, así que el `<body>` casi nunca llega a pintarse — pero existe como respaldo visible si algo lo retrasa (red lenta, script bloqueado), y usa el mismo lenguaje visual que el resto de pantallas de espera de la app: fondo naranja `#ff8c00`, `logo-redondo.png` girando dentro del mismo círculo (`85vmin`) y con la misma animación de 7s que `#loading-overlay` (`codigo-padre.html`) y `.logo-carga-circular-bg` (`En-busca-del-tesoro.html`), más la misma barra de progreso y porcentaje blanco (decorativos, animados con un `setInterval` local ya que no hay nada real que medir en un redirect). Detalle completo en "Frases aleatorias durante la espera — todas las pantallas de carga", §9.10.
 
+> **En las pasadas E2E cada test estrena contexto, así que cada test registra el SW desde cero.** Eso no cuesta nada mientras la página vive, pero en el proyecto iphone12 una página cerrada con ese registro y la selección a medio cargar deja un proceso de WebKit ocupando un núcleo durante unos diez segundos. Por eso el arranque común de los specs espera a que el padre termine de arrancar antes de dar paso al test: el detalle y las mediciones están en §38.3.
+
 #### CACHE_VERSION y actualización automática
 
 `CACHE_VERSION` (actualmente `'v-06e7f59351df'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
@@ -14435,7 +14437,7 @@ El proyecto **iphone12** es el que más calienta, por la forma en que WebKit ret
 
 1. Cada test abre su propio contexto y su página, y al acabar Playwright cierra el contexto.
 2. WebKit mantiene los procesos de una página cerrada unos diez segundos, y mientras tanto siguen ejecutando el documento que tienen cargado. Playwright lanza WebKit sin aceleración gráfica, así que todo ese trabajo es de CPU. Con los mismos tests, chromium mantiene la carga plana, entre el 30 y el 40 %.
-3. Una página del padre **cerrada a medio arrancar**, con cargas en curso, gasta en ese rato cerca de medio núcleo. Una página cerrada **con el arranque terminado** no gasta nada. Una página abierta y quieta, tampoco.
+3. Una página del padre **cerrada a medio arrancar**, con cargas en curso, deja con frecuencia un proceso ocupando un núcleo entero hasta que WebKit lo retira (entre una y tres de cada cinco páginas). Una página cerrada **con el arranque terminado** no gasta nada. Una página abierta y quieta, tampoco.
 4. Los primeros specs son tests de medio segundo: es donde más páginas se abren por segundo y más procesos rezagados conviven.
 
 ```mermaid
@@ -14457,6 +14459,19 @@ sequenceDiagram
 ```
 
 Por eso `gotoAndWaitForFase1()` (`tests/e2e/helpers/boot.js`) no vuelve hasta que el padre ha terminado de arrancar (`globalThis.sistemaInicializado === true`): son una o dos décimas de segundo más por test, y ningún test deja al cerrarse una página a medio arrancar.
+
+**Qué hace falta para que un proceso rezagado gire, y qué no es.** Tienen que coincidir tres cosas: el service worker activo, la pantalla de selección a medio cargar y el cierre de la página. Con cinco páginas del padre cerradas nada más pasar la FASE 1:
+
+| Variante | Núcleos que gastan los procesos rezagados |
+|---|---|
+| Tal cual | de 1 a 3, durante unos 9 s |
+| Con los service workers bloqueados (`serviceWorkers: 'block'`) | 0, y los procesos no se quedan |
+| Con un documento vacío en lugar de la pantalla de selección | 0 |
+| Con un `sw.js` sin precarga (`APP_SHELL` vacío) | 3 |
+| Con un `sw.js` que no escucha `fetch` | 3 |
+| Cerradas con el arranque terminado | 0 |
+
+No es un bucle de la aplicación. En una página **viva**, el padre a medio arrancar no gira: con la carga de la selección retenida o abortada su proceso gasta menos de 0,3 núcleos y en diez segundos pide entre 2 y 6 temporizadores; tampoco gira al recibir `pagehide` (§28). Una conexión lenta en un teléfono, que deja al padre esperando a la selección, no lo provoca. Tampoco son la precarga ni el `fetch` de `sw.js` (§19). Es el motor WebKit que usa Playwright, al retirar una página que tiene en curso el registro del service worker y la carga de sus marcos.
 
 Cifras medidas en el equipo de desarrollo, con los tres primeros specs (37 tests) en iphone12:
 
