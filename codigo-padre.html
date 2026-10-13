@@ -4243,6 +4243,24 @@
             }
         } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
+        // Lo que se guarda de la ficha del elemento actual: lo que el usuario lleva hecho dentro
+        // de él (llegada, audio y reto). El reloj de la ficha y sus datos de trabajo no se
+        // guardan. La escribe un solo sitio, _anotarEnFicha (Script 2), que guarda al momento.
+        function _fichaParaGuardar() {
+            const elemento = estado.elementoActual;
+            if (!elemento) return null;
+            const clave = elemento.padreid || `padre-${elemento.parada_id || elemento.tramo_id}`;
+            const ficha = estado.pendingCompleciones?.[clave];
+            if (!ficha) return null;
+            return {
+                clave,
+                llegada: ficha.llegada === true,
+                audio: ficha.audio === true,
+                reto: ficha.reto === true,
+                retosCompletadosCount: typeof ficha.retosCompletadosCount === 'number' ? ficha.retosCompletadosCount : 0
+            };
+        }
+
         // Persistencia del progreso de la aventura
         function persistProgressState() {
             try {
@@ -4283,6 +4301,10 @@
                     // contabilidad de progreso — sin persistirlo, cerrar y reabrir la PWA
                     // antes de cada salto daría saltos ilimitados en vez de 5 por aventura.
                     tramoSkipsUsados: typeof estado.tramoSkipsUsados === 'number' ? estado.tramoSkipsUsados : 0,
+                    // Lo hecho dentro del elemento actual. Sin esto, al recargarse la app la parada
+                    // empezaba de cero: el audio ya escuchado o saltado y el reto ya resuelto había
+                    // que repetirlos (docs/estudio-caminos.md, K-89).
+                    ficha: _fichaParaGuardar(),
                     aventura: globalThis.aventuraSeleccionada || null,
                     idioma: globalThis.idiomaSeleccionado || null,
                     timestamp: Date.now()
@@ -4407,6 +4429,11 @@
                 (globalThis.logger || console).info(`${logPrefix} tiempoRestante restaurado: ${estado.tiempoRestante}s`);
             }
             if (typeof obj.tramoSkipsUsados === 'number') estado.tramoSkipsUsados = obj.tramoSkipsUsados;
+            // Lo hecho dentro del elemento guardado espera aquí a que ese elemento se active, que
+            // es cuando nace su ficha (_hdl_NAVEGACION_CAMBIO_PARADA); _restoreBroadcast lo suelta
+            // cuando esa activación termina. Un progreso guardado sin este campo es anterior a
+            // él: la ficha nace a cero, como entonces.
+            estado._fichaGuardada = (obj.ficha && typeof obj.ficha === 'object' && typeof obj.ficha.clave === 'string') ? obj.ficha : null;
             const elementos = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || [];
             if (obj.elementoActualId && Array.isArray(elementos)) {
                 const found = elementos.find(p => p.parada_id === obj.elementoActualId || p.tramo_id === obj.elementoActualId || p.padreid === obj.elementoActualId);
@@ -4415,14 +4442,19 @@
         }
 
         function _restoreBroadcast() {
+            // La ficha guardada (estado._fichaGuardada) vive lo que dure esta activación: la
+            // recoge _hdl_NAVEGACION_CAMBIO_PARADA al activar el elemento restaurado. Termine como
+            // termine, aquí se suelta, para que no alcance a ninguna activación posterior.
+            const soltarFichaGuardada = () => { estado._fichaGuardada = null; };
             try {
                 const padreIdRest = estado.elementoActual?.padreid || (estado.paradaActual ? `padre-${estado.paradaActual}` : null);
                 const datos = { paradaId: estado.paradaActual || null, parada_id: estado.paradaActual || null, padreId: padreIdRest, padreid: padreIdRest, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), restaurado: true };
                 // El handler de CAMBIO_PARADA vive en Script 2: se le despacha por el bus, con la misma
                 // fila que un cambio de parada que llegue de fuera.
                 globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos })
-                    .catch(err => (globalThis.logger || console).debug('[VV]:', err?.message)); // NOSONAR
-            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    .catch(err => (globalThis.logger || console).debug('[VV]:', err?.message)) // NOSONAR
+                    .finally(soltarFichaGuardada);
+            } catch (e) { soltarFichaGuardada(); (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
 
         function restoreProgressFromStorage() {
@@ -9632,6 +9664,32 @@ await _comprobarReanudacionAventura(logPrefix);
             return estado.pendingCompleciones[key];
         }
 
+        // ============================================================
+        // LA FICHA DEL ELEMENTO: UN SOLO SITIO LA ESCRIBE, Y LA GUARDA
+        // ============================================================
+        // La ficha dice qué lleva hecho el usuario dentro del elemento: la llegada, el audio y
+        // el reto. La escribían siete funciones por separado y ninguna guardaba después: al
+        // recargarse la app, lo hecho en la parada se perdía y había que repetirlo
+        // (docs/estudio-caminos.md, K-89; lo fija el spec 124).
+        //
+        // Ahora todas anotan aquí. `hecho` dice qué se da por hecho ({ llegada, audio, reto });
+        // lo que no se nombra no se toca, y nada vuelve de «hecho» a «sin hacer». Se guarda al
+        // momento: persistProgressState() lleva la ficha del elemento actual en vv_progreso.
+        function _anotarEnFicha(clave, tipo, hecho) {
+            const ficha = ensurePending(clave, tipo);
+            if (!ficha) return null;
+            if (hecho.llegada === true) ficha.llegada = true;
+            if (hecho.audio === true) ficha.audio = true;
+            if (hecho.reto === true) {
+                ficha.reto = true;
+                ficha.retosCompletadosCount = typeof hecho.retosCompletados === 'number' ? hecho.retosCompletados : ficha.retosTotal;
+            }
+            if (hecho.destinoCoords) ficha.destinoCoords = hecho.destinoCoords;
+            ficha.timestamp = Date.now();
+            try { persistProgressState(); } catch (e) { (globalThis.logger || console).warn('[PADRE][PENDING] No se pudo guardar la ficha', e); }
+            return ficha;
+        }
+
         function _extractCoordsFromElemento(elemento) {
             if (!elemento) return null;
             if (elemento.coordenadas?.lat && elemento.coordenadas?.lng) return { lat: elemento.coordenadas.lat, lng: elemento.coordenadas.lng };
@@ -10579,10 +10637,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const elementoReto = findElementoPorReto(retoId) || findElementoPorPadreId(estado.elementoActual?.padreid);
                 const claveR = elementoReto?.padreid || (elementoReto?.parada_id ? `padre-${elementoReto.parada_id}` : null);
                 if (claveR) {
-                    const pendingR = ensurePending(claveR, elementoReto?.tipo || 'parada');
-                    pendingR.reto = true;
-                    pendingR.retosCompletadosCount = completados.size;
-                    pendingR.timestamp = Date.now();
+                    _anotarEnFicha(claveR, elementoReto?.tipo || 'parada', { reto: true, retosCompletados: completados.size });
                     intentarCompletarElemento(claveR); // marcarParadaCompletada ya distingue por modo
                     // Apagado permanente real del recordatorio "pulse retos" — aquí, no al abrir
                     // el reto (ver globalThis._marcarRetoPulsadoRecordatorio): esto es la
@@ -11393,10 +11448,23 @@ await _comprobarReanudacionAventura(logPrefix);
         // recuerda pulsar un botón apagado.
         globalThis._retoBtnEncendido = () => _decidirRetoBtn(_elementoDelRetoBtn()).habilitar === true;
 
+        // «Retos hechos» es, como el audio terminado, un dato del elemento que vive en su ficha.
+        // Un elemento ya completado no tiene ficha: sus retos se hicieron, o se dio por hecho
+        // sin ellos.
+        function _retosHechosEn(elemento) {
+            if (!elemento) return false;
+            const clave = elemento.padreid || `padre-${elemento.parada_id || elemento.tramo_id}`;
+            if (estado.pendingCompleciones?.[clave]?.reto === true) return true;
+            return _elementoCompletado(elemento);
+        }
+
         // El estado del reto del elemento: qué reto toca y cuáles van hechos. Se prepara cuando
         // todavía no es el de este elemento; si ya lo es NO se toca — rehacerlo con el elemento
         // a medias borraba los retos hechos y la marca de disponible. La cola identifica al
         // elemento: ningún reto está en dos (los ids son únicos por aventura e idioma).
+        // Un elemento que vuelve con sus retos ya hechos (la reanudación le devuelve la ficha)
+        // nace con la cola hecha: con la cola vacía, el recordatorio «pulse retos» los daba por
+        // pendientes al volver a escuchar el audio.
         function _asegurarRetoActualDe(elemento) {
             const retos = obtenerRetosIds(elemento);
             const cola = estado.retoActual?.cola;
@@ -11406,7 +11474,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 id: retos[0] || null,
                 disponible: retos.length > 0 && (!enAventura || !elemento?.audio_id || _audioTerminadoEn(elemento)),
                 cola: retos,
-                colaCompletados: new Set()
+                colaCompletados: new Set(_retosHechosEn(elemento) ? retos : [])
             };
         }
 
@@ -11623,9 +11691,24 @@ await _comprobarReanudacionAventura(logPrefix);
                 // disparar nada. Este es el instante exacto en que el elemento pasa a ser el
                 // actual, así que es el sitio donde el reloj tiene que arrancar. Un elemento ya
                 // completado no tiene nada pendiente: no se le crea ficha.
+                // Lo que la reanudación trae guardado de ESTE elemento vuelve a su ficha
+                // (docs/estudio-caminos.md, K-89). Solo en AVENTURA, que es donde se guarda:
+                // persistProgressState() no escribe en otro modo.
+                const fichaGuardada = (estado.modo?.actual === MODOS.AVENTURA && estado._fichaGuardada?.clave === padreIdNorm) ? estado._fichaGuardada : null;
+                if (fichaGuardada) estado._fichaGuardada = null;
                 if (!yaCompletado) {
-                    try { ensurePending(padreIdNorm, parada.tipo === 'tramo' ? 'tramo' : 'parada'); }
-                    catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    try {
+                        ensurePending(padreIdNorm, parada.tipo === 'tramo' ? 'tramo' : 'parada');
+                        if (fichaGuardada) {
+                            _anotarEnFicha(padreIdNorm, parada.tipo === 'tramo' ? 'tramo' : 'parada', {
+                                llegada: fichaGuardada.llegada === true,
+                                audio: fichaGuardada.audio === true,
+                                reto: fichaGuardada.reto === true,
+                                retosCompletados: fichaGuardada.retosCompletadosCount
+                            });
+                            (globalThis.logger || console).info(`${logPrefix} Ficha de ${padreIdNorm} restaurada: llegada ${fichaGuardada.llegada === true}, audio ${fichaGuardada.audio === true}, reto ${fichaGuardada.reto === true}`);
+                        }
+                    } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 }
                 (globalThis.logger || console).success(`${logPrefix} Estado actualizado: ${paradaAnterior} → ${paradaId}`);
 
@@ -11776,6 +11859,11 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 actualizarEstadoControlesAudioPadre();
 
+                // Una ficha que vuelve completa de una reanudación se cierra ahora, con el elemento
+                // ya activado: lo normal es que no haga nada, porque un elemento completo ya no
+                // tiene ficha que guardar.
+                if (fichaGuardada && !yaCompletado) await intentarCompletarElemento(padreIdNorm);
+
                 // Recordatorio "pulse play" vs "pulse saltar" — mutuamente excluyentes, solo
                 // en AVENTURA. obtenerAudioIdActivoPadre() ya lee de estado.elementoActual, que
                 // _actualizarEstadoParada() acaba de fijar más arriba; hayFicheroAudioReal()
@@ -11798,11 +11886,18 @@ await _comprobarReanudacionAventura(logPrefix);
                     globalThis._detenerRecordatorioAudio?.();
                     globalThis._detenerRecordatorioSaltarAudio?.();
                 }
-                // Recordatorio de reto: nunca arranca aquí (el reto de este elemento, si
-                // existe, todavía no está disponible — solo lo está tras terminar su audio,
-                // ver _procesarFinAudioElemento). Sí hay que pararlo: si el elemento anterior
-                // tenía uno corriendo, no debe sobrevivir al cambio de elemento.
-                globalThis._detenerRecordatorioReto?.();
+                // Recordatorio de reto: corre mientras el audio del elemento esté terminado y le
+                // quede algún reto por hacer. En un elemento recién activado no arranca aquí (su
+                // audio no ha terminado: lo arranca _procesarFinAudioElemento). Sí arranca cuando
+                // el elemento se activa con el audio ya terminado —una reanudación que le
+                // devuelve la ficha, la recuperación de hijo2—: aquí se paraba siempre, sin mirar
+                // lo que el elemento ya tenía hecho, y nada volvía a arrancarlo. En cualquier
+                // otro caso se para: el del elemento anterior no sobrevive al cambio de elemento.
+                if (estado.modo?.actual === MODOS.AVENTURA && retosDeParada.length > 0 && parada.audio_id && _audioTerminadoEn(parada) && !_retosHechosEn(parada)) {
+                    globalThis._iniciarRecordatorioReto?.();
+                } else {
+                    globalThis._detenerRecordatorioReto?.();
+                }
 
                 (globalThis.logger || console).success(`${logPrefix} Cambio de parada completado exitosamente`);
 
@@ -11862,10 +11957,7 @@ await _comprobarReanudacionAventura(logPrefix);
             try {
                 const elemento = findElementoPorPadreId(paradaId) || findElementoPorPadreId(`padre-${paradaId}`) || findElementoPorPadreId(paradaId.replace(/^padre-/, ''));
                 const key = elemento?.padreid || (`padre-${paradaId}`);
-                const pending = ensurePending(key, elemento?.tipo || 'parada');
-                pending.llegada = true;
-                if (coordenadas?.lat && coordenadas?.lng) pending.destinoCoords = coordenadas;
-                pending.timestamp = Date.now();
+                _anotarEnFicha(key, elemento?.tipo || 'parada', { llegada: true, destinoCoords: (coordenadas?.lat && coordenadas?.lng) ? coordenadas : null });
                 // El cartel de "ha llegado" (mostrarCartelLlegadaParada) ya no dispara aquí:
                 // ahora se decide en marcarParadaCompletada(), con el elemento SIGUIENTE ya
                 // resuelto — necesario para saber su nombre y tipo, que este punto no tiene.
@@ -12070,8 +12162,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const elementoAudio = estado.elementoActual;
                 const claveA = elementoAudio?.padreid || (elementoAudio?.parada_id ? `padre-${elementoAudio.parada_id}` : null);
                 if (claveA) {
-                    const p = ensurePending(claveA, elementoAudio?.tipo || 'parada');
-                    p.audio = true;
+                    _anotarEnFicha(claveA, elementoAudio?.tipo || 'parada', { audio: true });
                     // marcarParadaCompletada (vía intentarCompletarElemento) ya distingue por modo y tipo
                     intentarCompletarElemento(claveA);
                 } else {
@@ -12153,8 +12244,7 @@ await _comprobarReanudacionAventura(logPrefix);
             if (pendingAudio.audio) return; // ya resuelto por otra vía — idempotencia
 
             (globalThis.logger || console).info(`${logPrefix} Usuario saltó audio no disponible: ${audioId}`);
-            pendingAudio.audio = true;
-            pendingAudio.timestamp = Date.now();
+            _anotarEnFicha(clave, elementoAudio.tipo || 'parada', { audio: true });
             intentarCompletarElemento(clave);
             globalThis._detenerRecordatorioAudio?.();
             globalThis._detenerRecordatorioSaltarAudio?.();
@@ -12226,9 +12316,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                     if (elementoAudio && esDelElementoActual) {
                         const clave = elementoAudio.padreid || `padre-${elementoAudio.parada_id || elementoAudio.tramo_id}`;
-                        const pendingAudio = ensurePending(clave, elementoAudio.tipo || 'parada');
-                        pendingAudio.audio = true;
-                        pendingAudio.timestamp = Date.now();
+                        _anotarEnFicha(clave, elementoAudio.tipo || 'parada', { audio: true });
                         intentarCompletarElemento(clave);
                         // Apagado permanente real del recordatorio "pulse play" — aquí, no al
                         // pulsar el botón (ver globalThis._marcarPlayPulsadoRecordatorio): esto
@@ -12274,7 +12362,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     const clave = elementoAudio.padreid || `padre-${elementoAudio.parada_id || elementoAudio.tramo_id}`;
                     const pendingAudio = ensurePending(clave, elementoAudio.tipo || 'parada');
                     if (!pendingAudio.audio) {
-                        pendingAudio.audio = true;
+                        _anotarEnFicha(clave, elementoAudio.tipo || 'parada', { audio: true });
                         intentarCompletarElemento(clave);
                         // No es una escucha real, pero pending.audio ya quedó satisfecho, así
                         // que el recordatorio tampoco tiene ya sentido.
@@ -13900,14 +13988,17 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         /**
          * Cobra el rescate en el momento en que el elemento avanza de verdad.
          *
-         * NO se cobra al pulsar Sí, y la razón es que el gasto y su efecto no son atómicos.
-         * persistProgressState() guarda `tramoSkipsUsados` al instante, pero NO guarda
-         * `pendingCompleciones`: la marca de completado vive solo en memoria hasta que el
-         * usuario pulsa avanzar y el índice se persiste. Cobrando al pulsar Sí, un móvil sin
-         * batería en esa ventana —lo que tarde en leer el cartel y mirar alrededor— dejaría
-         * al usuario con un rescate menos y delante de la misma valla: pagó y no recibió
-         * nada. Cobrando aquí, ese mismo fallo le devuelve el rescate y lo deja donde estaba.
+         * NO se cobra al pulsar Sí: el gasto se apunta en memoria
+         * (estado._rescateGastoPendiente) y se cobra aquí, al avanzar. El elemento, en cambio,
+         * queda completado y guardado en el acto (vv_paradas_completadas). Si la app se cierra
+         * entre el Sí y el botón de avanzar —un móvil sin batería mientras el usuario lee el
+         * cartel y mira alrededor—, al reanudar el elemento sigue completado y el apunte ya no
+         * existe: ese rescate no se cobra. El fallo cae a favor del usuario.
          *
+         * El cobro se difirió porque el gasto y su efecto no eran atómicos: una recarga en esa
+         * ventana dejaba el elemento sin poder avanzar (docs/estudio-caminos.md, K-85), y
+         * cobrando al pulsar Sí el usuario habría pagado sin recibir nada. Qué hacer con el
+         * rescate que hoy queda sin cobrar está por decidir (docs/estudio-caminos.md, K-91).
          */
         function _cobrarRescateSiProcede(elementoQueSeDeja, logPrefix) {
             const pendiente = estado._rescateGastoPendiente;
@@ -13975,12 +14066,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
             // La ficha, completa. La señal de retos y la cuenta van las dos porque
             // _paradaConditionsMet mira las dos y grita si discrepan.
-            const pending = ensurePending(clave, elemento.tipo === 'tramo' ? 'tramo' : 'parada');
-            pending.llegada = true;
-            pending.audio = true;
-            pending.reto = true;
-            pending.retosCompletadosCount = pending.retosTotal;
-            pending.timestamp = Date.now();
+            _anotarEnFicha(clave, elemento.tipo === 'tramo' ? 'tramo' : 'parada', { llegada: true, audio: true, reto: true });
 
             estado._rescateGastoPendiente = { clave };
             estado._rescatePeticionPendiente = { clave: String(clave).replace(/^padre-/, '').trim() };

@@ -2028,6 +2028,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 [Ambos modos]
   1. resolverIdsParada(datos) → buscarParadaEnDatos() → parada object
   2. _actualizarEstadoParada()     → estado.paradaActual = paradaId
+  2b. ensurePending()              → ficha del elemento (salvo un elemento ya completado en AVENTURA); en una reanudación recibe lo guardado en vv_progreso (§25.10)
   3. _solicitarParadaAHijo2()      → DATOS.COORDENADAS_PARADAS_REQUEST a hijo2
   4. _notificarCambioParadaHijos() → CAMBIO_PARADA a hijo2, hijo3, hijo4 (si listo), hijo5 (si no es el origen)
   5. _asegurarRetoActualDe() + _sincronizarRetoBtn() → estado del reto y botón de retos de hijo3 (ver tabla arriba)
@@ -2035,6 +2036,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 
 [Solo AVENTURA]
   8. Elemento ya completado: sin ficha nueva, paradaListaParaAvanzar = true y CONTROL.HABILITAR { control: 'btnAvanzar' } a hijo2; si no, y es parada: CONTROL.DESHABILITAR { control: 'btnAvanzar' } a hijo2
+  9. Recordatorio «pulse retos»: arranca si el elemento tiene reto, su audio está terminado y queda reto por hacer; si no, se detiene (§25.5d)
 
 [Solo CASA]
   7. RETO.ESTADO_CASA { habilitado: !esTramo } a hijo4
@@ -2740,7 +2742,7 @@ El estado de este botón lo decide **un solo sitio** del padre, `_sincronizarRet
 
 Sin hijo3 en `estado.hijosInicializados` no envía nada (lo anota con `logger.warn`); «hijo4 listo» no es una de las variables: quien pulsa el botón con hijo4 recuperándose espera a su `HIJO_LISTO` en `_hdl_RETO_SOLICITAR`.
 
-**El estado del reto (`estado.retoActual`: `id`, `disponible`, `cola`, `colaCompletados`) es del elemento actual y se conserva mientras el elemento está a medias.** `_asegurarRetoActualDe(elemento)` lo prepara solo cuando la cola guardada no es la de ese elemento (los `reto_id` son únicos por aventura e idioma, así que la cola lo identifica); si es la suya, lo deja como está. Volver dentro de rango, la recarga de hijo3, reactivar el mismo elemento o volver a escuchar su audio conservan los retos hechos y la marca `disponible`.
+**El estado del reto (`estado.retoActual`: `id`, `disponible`, `cola`, `colaCompletados`) es del elemento actual y se conserva mientras el elemento está a medias.** `_asegurarRetoActualDe(elemento)` lo prepara solo cuando la cola guardada no es la de ese elemento (los `reto_id` son únicos por aventura e idioma, así que la cola lo identifica); si es la suya, lo deja como está. Volver dentro de rango, la recarga de hijo3, reactivar el mismo elemento o volver a escuchar su audio conservan los retos hechos y la marca `disponible`. Cuando lo prepara, `colaCompletados` nace con todos los retos de la cola si el elemento los trae hechos y vacío en otro caso. **«Retos hechos» se pregunta en un solo sitio, `_retosHechosEn(elemento)`:** la ficha del elemento tiene `reto` a `true` o, si no tiene ficha, el elemento figura en `estado.paradasCompletadas`. Es el caso de una reanudación que devuelve al elemento su ficha con el reto resuelto (§25.10): la cola y la ficha dicen lo mismo, y volver a escuchar el audio no arranca el recordatorio de un reto ya hecho (§25.5d).
 
 Cubierto por `tests/e2e/122-boton-retos-un-solo-sitio.spec.js` (BR-1 a BR-9), con el padre, los hijos y el botón reales.
 
@@ -4246,7 +4248,7 @@ El objeto `MAPEO_IDIOMAS` del mismo archivo mapea los 12 códigos de idioma (`es
 
 #### 9.2.3 pendingCompleciones — estado de completado por elemento
 
-El padre mantiene `estado.pendingCompleciones` (objeto simple, clave = `padreid`). Cada entrada la crea `ensurePending(padreId, tipo)`: nace al activarse el elemento, en `_hdl_NAVEGACION_CAMBIO_PARADA`, y los eventos posteriores (LLEGADA_DETECTADA, FIN_REPRODUCCION o RETO_COMPLETADO) la encuentran creada; si alguno llega sin ficha, `ensurePending` la crea en ese momento. En la primera llamada para una clave nueva crea la entrada y envía PENDING_INICIADO a hijo2/4; en llamadas posteriores solo actualiza el campo correspondiente:
+El padre mantiene `estado.pendingCompleciones` (objeto simple, clave = `padreid`). Cada entrada la crea `ensurePending(padreId, tipo)`: nace al activarse el elemento, en `_hdl_NAVEGACION_CAMBIO_PARADA`, y los eventos posteriores (LLEGADA_DETECTADA, FIN_REPRODUCCION o RETO_COMPLETADO) la encuentran creada; si alguno llega sin ficha, `ensurePending` la crea en ese momento. En la primera llamada para una clave nueva crea la entrada y envía PENDING_INICIADO a hijo2/4; en llamadas posteriores devuelve la entrada que ya existe:
 
 ```javascript
 estado.pendingCompleciones[padreid] = {
@@ -4263,6 +4265,8 @@ estado.pendingCompleciones[padreid] = {
 ```
 
 La lógica de completado en `intentarCompletarElemento` exige `pending.llegada = true` para **todos** los tipos (paradas, inicio y tramos): la llegada GPS siempre es necesaria, sin excepciones por tipo de elemento.
+
+**Un solo sitio escribe en la ficha: `_anotarEnFicha(clave, tipo, hecho)`.** `hecho` nombra lo que se da por hecho (`{ llegada, audio, reto, retosCompletados, destinoCoords }`): lo que no se nombra no se toca, y nada vuelve de hecho a sin hacer. Con `reto`, la cuenta `retosCompletadosCount` toma `retosCompletados` o, si no viene, `retosTotal`. Pone `timestamp` a `Date.now()` y llama a `persistProgressState()`, que guarda en `vv_progreso` la ficha del elemento actual (§25.10): cada cosa hecha queda guardada en el momento. La llaman `_marcarPendingPorLlegada` (la llegada y sus coordenadas), `_hdl_AUDIO_FIN_REPRODUCCION`, `_saltarAudioPulsado`, `_marcarAudioNoDisponible` y `_audioFinalizadoSinReto` (el audio), `_retoColaCompletada` (el reto y su cuenta), `_concederRescate` (las tres cosas, §25.19) y la activación del elemento en una reanudación (lo guardado en `vv_progreso`). Cubierto por `tests/e2e/124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` (FG-1).
 
 Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` a hijo2 e hijo4 — los únicos dos frames que registran handler para `SISTEMA.NOTIFICACION` en todo el proyecto (hijo3 no registra ninguno, y no recibe este aviso).
 
@@ -4674,7 +4678,7 @@ Si la sesión sigue viva y el usuario elige **continuar**, se ejecuta `ejecutarR
    | 3 | `_transicionarAModoCasa()` no borra `vv_aventura_iniciada`/`vv_progreso`/`vv_paradas_completadas` | Reanudar no es abandonar. Sin este guard, restaurar en CASA con el modo dev desactivado borraría en el acto los datos que la propia restauración acaba de leer |
 
    El reloj de compra de hijo1 lo arranca `_activarAventura()` con el 6º parámetro `timestampCompra` (la fecha real de compra), de modo que el tiempo enviado es `tiempoEstimado − tiempo real transcurrido`, no el máximo de la aventura ni el último tick conocido antes de cerrar — ver "Temporizador" en §7.2 y `tests/e2e/41-temporizador-compra-real-y-devmode.spec.js`. Contrato completo del paso 8 en `tests/e2e/46-reanudacion-un-solo-camino.spec.js`.
-9. `_restaurarProgresoRest` — lee `indiceProgreso` y `paradaActual` directamente de `localStorage['vv_progreso']` (no recalcula desde `paradasCompletadas`). Llama internamente a `restoreProgressFromStorage()`, que antes de aplicar nada pasa por sus propios guards: `_restoreCheckTimeout()` (si `verificarTimeoutAventura()` indica que la aventura ya excedió su duración estimada, ejecuta `limpiarDatosAventura('timeout')` y aborta la restauración — el timeout de la aventura tiene prioridad sobre reanudarla), `_restoreLoadFromStorage()` (lee y parsea `vv_progreso`; si no se puede parsear, lo descarta con un `warn`), `_restoreCheckStale()` (mismo TTL de 7 días que `vv_aventura_iniciada`, pero aplicado al propio payload de progreso — puede haber sobrevivido uno y caducado el otro si se editan por separado) y `_restoreCheckMismatch()` (descarta `vv_progreso` si su `aventura` o `idioma` no coincide con los ya seleccionados — progreso de una sesión distinta no debe aplicarse a la actual). Si los cuatro pasan, `_restoreApplyState()` aplica el estado (también restaura `estado.tiempoRestante` si el payload lo trae, ver §7.2) → `_restoreBroadcast()`, que dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado. Este paso va **después** del 8, no antes: la lógica de `_hdl_NAVEGACION_CAMBIO_PARADA` que depende de `estado.modo?.actual === MODOS.AVENTURA` (recordatorio de audio, botón GPS en tramos, deshabilitar `btnAvanzar` hasta completar) necesita el modo ya fijado para activarse correctamente — con el orden invertido, se procesaría con el modo todavía en su valor de arranque (`null`). Verificado en `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
+9. `_restaurarProgresoRest` — lee `indiceProgreso` y `paradaActual` directamente de `localStorage['vv_progreso']` (no recalcula desde `paradasCompletadas`). Llama internamente a `restoreProgressFromStorage()`, que antes de aplicar nada pasa por sus propios guards: `_restoreCheckTimeout()` (si `verificarTimeoutAventura()` indica que la aventura ya excedió su duración estimada, ejecuta `limpiarDatosAventura('timeout')` y aborta la restauración — el timeout de la aventura tiene prioridad sobre reanudarla), `_restoreLoadFromStorage()` (lee y parsea `vv_progreso`; si no se puede parsear, lo descarta con un `warn`), `_restoreCheckStale()` (mismo TTL de 7 días que `vv_aventura_iniciada`, pero aplicado al propio payload de progreso — puede haber sobrevivido uno y caducado el otro si se editan por separado) y `_restoreCheckMismatch()` (descarta `vv_progreso` si su `aventura` o `idioma` no coincide con los ya seleccionados — progreso de una sesión distinta no debe aplicarse a la actual). Si los cuatro pasan, `_restoreApplyState()` aplica el estado (también restaura `estado.tiempoRestante` si el payload lo trae, ver §7.2, y deja en `estado._fichaGuardada` la ficha guardada del elemento, o `null` si el payload no la trae) → `_restoreBroadcast()`, que dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado y, cuando esa activación termina, pone `estado._fichaGuardada` a `null`. Este paso va **después** del 8, no antes: la lógica de `_hdl_NAVEGACION_CAMBIO_PARADA` que depende de `estado.modo?.actual === MODOS.AVENTURA` (recordatorio de audio, botón GPS en tramos, deshabilitar `btnAvanzar` hasta completar) necesita el modo ya fijado para activarse correctamente — con el orden invertido, se procesaría con el modo todavía en su valor de arranque (`null`). Verificado en `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
 9b. **Inicialización de `estado.paradaRealCongelada` para restauraciones en CASA** — solo si `estado.modo.actual === MODOS.CASA` (y `estado.paradaActual` existe tras el paso 9): se asigna `estado.paradaRealCongelada = estado.paradaActual`. Hace falta aunque el paso 8 ya pase por `_hdl_SISTEMA_CAMBIO_MODO` (que es el otro sitio que lo asigna, al entrar en CASA, §2.5): en el paso 8 `estado.paradaActual` todavía es `null` — el progreso no se restaura hasta el paso 9 —, así que allí se congela `null`. Este paso lo rellena con el valor real ya restaurado. Sin él, el primer cambio CASA→AVENTURA de la sesión restaurada ejecutaría `limpiarRecursosPorModo()` (que borra `estado.paradaActual = null`) pero la condición `if (modo===AVENTURA && paradaRealCongelada)` sería falsa → no se despacharía `NAVEGACION.CAMBIO_PARADA` → mapa vacío y `paradaActual` null para el resto de la sesión. CASA solo es alcanzable en dev mode, así que en una PWA real este escenario no puede ocurrirle a un usuario final.
 10. `_solicitarRecursosRest` — solicita coordenadas a hijo2 vía S2 para el elemento actual. El audio ya llegó en el paso 9 vía `_restoreBroadcast` → pipeline CAMBIO_PARADA.
 
@@ -4708,7 +4712,7 @@ El círculo (`#loading-spinner-shell`) usa `min(85vmin,85vw,70vh)` con `margin-t
 
 #### `_restoreBroadcast` y el pipeline CAMBIO_PARADA en restauración
 
-`_restoreBroadcast` no puede usar `postMessage` auto-dirigido: el bus no envía nada cuando el destino es el propio frame — para eso está `despacharLocal`. En su lugar despacha `NAVEGACION.CAMBIO_PARADA` con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos })`, que entrega al handler `_hdl_NAVEGACION_CAMBIO_PARADA` por la misma fila que un mensaje llegado de fuera, activando el pipeline completo: `_actualizarEstadoParada`, audio (`_solicitarAudioParaParada`), notificación a hijos, evento `vv-parada-cambiada` para funciones-mapa, y el botón de retos de hijo3 (`_sincronizarRetoBtn`). Si el handler de `NAVEGACION.CAMBIO_PARADA` no estuviera registrado todavía en ese momento (timing muy temprano), `_solicitarRecursosRest` cae al fallback y solicita el audio directamente.
+`_restoreBroadcast` no puede usar `postMessage` auto-dirigido: el bus no envía nada cuando el destino es el propio frame — para eso está `despacharLocal`. En su lugar despacha `NAVEGACION.CAMBIO_PARADA` con `globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, datos })`, que entrega al handler `_hdl_NAVEGACION_CAMBIO_PARADA` por la misma fila que un mensaje llegado de fuera, activando el pipeline completo: `_actualizarEstadoParada`, la ficha del elemento con lo guardado en `vv_progreso` (§25.10), audio (`_solicitarAudioParaParada`), notificación a hijos, evento `vv-parada-cambiada` para funciones-mapa, y el botón de retos de hijo3 (`_sincronizarRetoBtn`). Si el handler de `NAVEGACION.CAMBIO_PARADA` no estuviera registrado todavía en ese momento (timing muy temprano), `_solicitarRecursosRest` cae al fallback y solicita el audio directamente.
 
 Si el usuario elige **nueva aventura**, se limpia todo el localStorage, se resetean los globals, y se muestra el iframe de selección en P2.
 
@@ -4862,7 +4866,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c5ade47dffae'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-36cebc03db83'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5996,7 +6000,7 @@ GPS.RESTRINGIDO **no** es un broadcast del padre — es un handler que padre rec
 | Clave | Escritor | Lector adicional | Contenido | Cuándo se borra |
 |-------|---------|-----------------|-----------|-----------------|
 | `vv_aventura_iniciada` | padre (activación inicial) + padre (`_hdl_SISTEMA_CAMBIO_MODO`, en cada cambio de modo real de la sesión — incluida la activación de dev mode) | `reciclaje-digital.js` (lee para log antes de borrar; `verificarTimeoutAventura()` lee `aventura`+`timestamp` para la ventana de compra) | `{ aventura, idioma, modo, dev, timestamp }` — punto de entrada de `ejecutarRestauracionAventura()`. `modo` (`'casa'`\|`'aventura'`) y `dev` (booleano) son **dimensiones independientes**, no derivables una de otra: existen dev/CASA, dev/AVENTURA y prod/AVENTURA. Ambos reflejan el estado real de la sesión en cada momento — se escriben en la activación y se resincronizan en cada cambio de modo. Un payload sin `dev` (guardado antes de que el campo existiera) se sigue restaurando: se deduce `dev = true` solo si `modo === 'casa'` | `limpiarDatosAventura()` (fin/reset) |
-| `vv_progreso` | padre (`persistProgressState()`, en cada `CAMBIO_PARADA` y sincronización de modo) | padre al restaurar | `{ indiceProgreso, paradaActual, elementoActualId, audioActual, totalParadas, tiempoRestante, tramoSkipsUsados, aventura, idioma, timestamp }` | `limpiarDatosAventura()` |
+| `vv_progreso` | padre (`persistProgressState()`, solo en AVENTURA: en cada `CAMBIO_PARADA`, al fijar la parada por defecto, al completarse un elemento, al cobrarse un rescate y en cada anotación de la ficha del elemento, `_anotarEnFicha()`) | padre al restaurar | `{ indiceProgreso, paradaActual, elementoActualId, audioActual, totalParadas, tiempoRestante, tramoSkipsUsados, ficha, aventura, idioma, timestamp }`; `ficha` es `{ clave, llegada, audio, reto, retosCompletadosCount }` del elemento actual, o `null` si todavía no tiene ficha | `limpiarDatosAventura()` |
 | `vv_idioma` | padre | `En-busca-del-tesoro.html` `_ejecutarDespedida()` (lee idioma antes de limpiar) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()` |
 | `idioma` | — (legado, no se escribe) | — | Clave legada de versiones anteriores; sin lector activo | — |
 | `vv_aventura` | padre | — | ID de aventura: `'Aventura1'`, etc. | `limpiarDatosAventura()` |
@@ -6553,9 +6557,9 @@ Solo puede afectar a tramos cortos, y es demostrable: lo exigido es el 40 % de l
 
 **Reinicio del contador.** Reinicia las tres variables a la vez (`_distanciaRecorridaTramo` a 0, `_ultimaPosParaRecorrido` y `_saltoPendienteRecorrido` a `null`) y solo cuando el tramo activo cambia de verdad — comparando contra `estadoMapa._tramoDeRecorrido` (id propio del contador), nunca contra `estadoMapa.tramoActual`. Esa distinción importa: `limpiarRecursosInactivos()` pone `tramoActual` a `null` tras un rato de inactividad (pantalla apagada, app en segundo plano) sin que eso signifique que el usuario abandonó el tramo — resetear ahí borraría progreso de caminata real. Como `procesarPosicionGPSParaAventura()` resuelve el elemento activo fresco en cada lectura GPS (vía `_siguienteIdElementoNavegable()`, basado en `estadoMapa.paradaActual`), el reinicio ocurre solo, sin necesitar enganches explícitos en `completarCambioParada()` ni en `limpiarPorEstado()` — la siguiente lectura GPS tras cualquier cambio real de elemento ya lo detecta.
 
-**No persiste al cerrar y reabrir la PWA, y es deliberado.** El payload de `vv_progreso` (`persistProgressState()`) guarda `indiceProgreso`, `paradaActual`, `elementoActualId`, `audioActual`, `tiempoRestante`, `tramoSkipsUsados`, aventura e idioma — y **ni la distancia recorrida ni `pendingCompleciones`**. `estadoMapa` es estado de módulo, así que muere con la página. Al reabrir en mitad de un tramo, el elemento activo y los saltos de seguridad ya gastados se restauran, pero el audio vuelve a `false` y los metros andados a 0: hay que escuchar el audio otra vez y volver a cubrir el 40 %.
+**La distancia recorrida no persiste al cerrar y reabrir la PWA, y es deliberado.** El payload de `vv_progreso` (`persistProgressState()`) guarda `indiceProgreso`, `paradaActual`, `elementoActualId`, `audioActual`, `tiempoRestante`, `tramoSkipsUsados`, la ficha del elemento actual (`ficha`: llegada, audio y reto, §25.10), aventura e idioma — **y no la distancia recorrida**. `estadoMapa` es estado de módulo, así que muere con la página. Al reabrir en mitad de un tramo se restauran el elemento activo, los saltos de seguridad ya gastados y lo hecho en el tramo (su audio terminado sigue terminado), pero los metros andados vuelven a 0: hay que volver a cubrir el 40 %.
 
-La asimetría es intencional: lo que se conserva es el límite antiabuso (`tramoSkipsUsados`), no el progreso ganado. **`pendingCompleciones` no persistir tiene una consecuencia buscada en el rescate**: el descuento se aplica al avanzar de verdad, no al confirmar, así que un fallo en esa ventana le devuelve el rescate al usuario en vez de cobrárselo por nada (§25.19). **La consecuencia, que hay que conocer:** si se cierra la PWA justo al final de un tramo y se reabre allí mismo, ese tramo no se puede completar por GPS sin volver a acumular la distancia —dando vueltas, si hace falta— o pedir un rescate desde el asistente (§25.19). Está medido: el test TA-2 de `57-llegada-tramo-recorrido.spec.js` arranca una página limpia, que es exactamente el estado de después de reabrir, planta al usuario en el destino y da 150 lecturas con ±10/±20/±30 m — cero llegadas en las tres.
+Lo que se conserva es el límite antiabuso (`tramoSkipsUsados`) y lo ya hecho dentro del elemento; la distancia a medio andar, no. El rescate descuenta al avanzar de verdad, no al confirmar (§25.19). **La consecuencia, que hay que conocer:** si se cierra la PWA justo al final de un tramo, sin que el GPS haya confirmado todavía la llegada, y se reabre allí mismo, ese tramo no se puede completar por GPS sin volver a acumular la distancia —dando vueltas, si hace falta— o pedir un rescate desde el asistente (§25.19). Está medido: el test TA-2 de `57-llegada-tramo-recorrido.spec.js` arranca una página limpia, que es exactamente el estado de después de reabrir, planta al usuario en el destino y da 150 lecturas con ±10/±20/±30 m — cero llegadas en las tres.
 
 **Un rodeo real (obras, calle cortada, un evento) satisface el requisito igual que seguir los waypoints oficiales.** La comprobación es "¿cuánto terreno ha cubierto el usuario?", no "¿siguió el trazado exacto?" — un desvío completo desde el principio del tramo, sin pasar cerca de ningún waypoint, sigue acumulando distancia real y confirma la llegada en cuanto se cubre el 40% exigido y el usuario llega físicamente cerca de `.fin` (verificado en `tests/e2e/13-gps-tramo-fix.spec.js`, TR-3).
 
@@ -7931,6 +7935,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `121-ruta-fallback-espera-al-hijo-listo-nuevo.spec.js` | 4 | En la ruta fallback de `SELECCION.AVENTURA_ACTIVADA`, `cargarHijo` espera el `HIJO_LISTO` de cada hijo recargado: cada una de sus seis esperas resuelve cuando ya ha llegado el `HIJO_LISTO` de su hijo (HL-1), y en esa ruta llega uno de cada uno de los seis (HL-2, control); en el state-manager, `crearPromiseHijoListo` de un id olvidado con `olvidarHijoListo` espera a `marcarHijoListo`, y olvidar un id desconocido no lanza (HL-3); esa espera no arma ningún temporizador: no tiene plazo propio (HL-4). |
 | `122-boton-retos-un-solo-sitio.spec.js` | 12 | El botón de retos de hijo3 lo decide un solo sitio del padre (`_sincronizarRetoBtn`, §7.4), medido con el padre, los hijos y el botón reales: saltar el audio o escucharlo entero lo enciende y volver dentro de rango no lo apaga (BR-1, BR-2), y con el audio sin terminar sigue apagado (BR-3); hijo3 recargado por el supervisor lo recibe encendido con el audio terminado y apagado con el audio sin terminar (BR-4, BR-5); con un reto abierto está apagado y el estado del reto no se rehace (BR-6); fuera de rango con la gracia agotada se apaga y al volver se enciende (BR-7), y cerrar un reto estando fuera de rango no lo enciende (BR-8); reactivar el mismo elemento con el audio terminado no lo apaga (BR-9). El recordatorio "pulse retos" pregunta al mismo sitio: sale con el botón encendido y no sale con el botón apagado por fuera de rango o por un reto abierto (BR-R1 a BR-R3) |
 | `123-elemento-completado-sigue-completado.spec.js` | 7 | Un elemento completado sigue completado (§25.10, §25.19), con el padre, los hijos y el botón «avanzar» reales: una parada ya completada queda lista para avanzar, sin ficha nueva, al reactivarse (EC-1), tras recargar la página y reanudar (EC-2) y cuando el supervisor recarga a hijo2 (EC-3); no se le ofrece el rescate (EC-4); una parada sin completar que se reactiva sigue pendiente, con su ficha intacta (EC-5). El rescate deja avanzar con el audio terminado y el reto sin resolver (RS-1) y con el audio sin terminar (RS-2) |
+| `124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` | 9 | Lo hecho en el elemento actual sobrevive a una recarga (§25.10, §9.2.3), con el padre, los hijos y los botones reales y una recarga real con su diálogo de reanudación: lo que se hace en la parada queda guardado en `vv_progreso` en el momento (FG-1); tras recargar y reanudar, el audio terminado sigue terminado y el botón de retos está encendido (FG-2), la llegada y el audio se conservan y el reto resuelto después completa la parada (FG-3), y el reto resuelto sigue resuelto, también en la cola de retos, y la llegada después completa la parada (FG-6); un progreso guardado sin ficha deja la ficha a cero (FG-4) y la ficha guardada de otro elemento no se aplica (FG-5); una ficha que vuelve completa sobre un elemento que no figura como completado lo completa al reanudar (FG-9). El recordatorio «pulse retos» corre al reanudar con el audio terminado y el reto sin resolver (FG-7) y al reactivarse el mismo elemento (FG-8) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8163,7 +8168,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-c5ade47dffae'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-36cebc03db83'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8404,7 +8409,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 120 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 121 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8910,7 +8915,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c5ade47dffae';
+const CACHE_VERSION = 'v-36cebc03db83';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9819,15 +9824,15 @@ Cubierto por `tests/e2e/29-recordatorio-audio.spec.js` (RA-1 el ciclo completo c
 
 **Por qué existe:** mismo problema de fondo que §25.5c pero para retos — espejo exacto del recordatorio de audio, mismos umbrales y mecanismo, para que el botón de retos recién habilitado no pase desapercibido y la parada se quede sin completar por `pending.reto` en `false` para siempre.
 
-**Cuándo se muestra:** tres condiciones a la vez — `RECORDATORIO_RETO_PRIMER_AVISO_MS` (10.000ms) desde que arranca (al terminar el audio del elemento), `estado.gps.proximidadReal === true`, y el botón de retos encendido en ese momento (`_botonRetosEncendido()`, que pregunta a la misma decisión que usa `_sincronizarRetoBtn()`, §7.4: con un reto abierto o fuera de rango no sale) — reevaluadas cada `RECORDATORIO_RETO_CHEQUEO_MS` (2.000ms). Se autocierra a los 7s y reaparece cada `RECORDATORIO_RETO_INTERVALO_MS` (20.000ms). Respeta el guardián anti-solape igual que el resto de carteles (§4.7g).
+**Cuándo se muestra:** tres condiciones a la vez — `RECORDATORIO_RETO_PRIMER_AVISO_MS` (10.000ms) desde que arranca (al terminar el audio del elemento, o al activarse el elemento con el audio ya terminado), `estado.gps.proximidadReal === true`, y el botón de retos encendido en ese momento (`_botonRetosEncendido()`, que pregunta a la misma decisión que usa `_sincronizarRetoBtn()`, §7.4: con un reto abierto o fuera de rango no sale) — reevaluadas cada `RECORDATORIO_RETO_CHEQUEO_MS` (2.000ms). Se autocierra a los 7s y reaparece cada `RECORDATORIO_RETO_INTERVALO_MS` (20.000ms). Respeta el guardián anti-solape igual que el resto de carteles (§4.7g).
 
 **Cuándo deja de mostrarse (temporal) vs. permanente:** abrir el reto llama a `globalThis._marcarRetoPulsadoRecordatorio()`, que solo cierra el cartel visible y retrasa el siguiente aviso — no lo apaga para siempre. El apagado permanente real ocurre en `globalThis._detenerRecordatorioReto()`, llamado desde `_retoColaCompletada()` cuando toda la cola de retos de la parada se resuelve de verdad.
 
-**Enganche de arranque:** `globalThis._iniciarRecordatorioReto()` — a diferencia del de audio (que arranca al activarse el elemento), este solo se llama desde `_procesarFinAudioElemento()`, en AVENTURA, cuando termina el audio de un elemento con reto y queda algún reto de su cola por hacer: hasta ese momento no tiene sentido recordar algo que el usuario todavía no puede pulsar. `_hdl_SISTEMA_CAMBIO_MODO` (CASA) y `_hdl_NAVEGACION_CAMBIO_PARADA` lo detienen incondicionalmente, igual que el de audio.
+**Enganche de arranque:** `globalThis._iniciarRecordatorioReto()` se llama desde dos sitios, los dos en AVENTURA. `_procesarFinAudioElemento()` lo arranca cuando termina el audio de un elemento con reto y queda algún reto de su cola por hacer: hasta ese momento no tiene sentido recordar algo que el usuario todavía no puede pulsar. Y `_hdl_NAVEGACION_CAMBIO_PARADA` lo decide en cada activación mirando lo que el elemento tiene hecho: si tiene reto y audio, su audio está terminado (`_audioTerminadoEn()`) y sus retos no están hechos (`_retosHechosEn()`, §7.4), lo arranca; en cualquier otro caso lo detiene, así que el del elemento anterior no sobrevive al cambio de elemento. Arranca en la activación el elemento que se reactiva a medias: una reanudación que le devuelve la ficha (§25.10) o la recuperación de hijo2, que vuelve a activar el elemento actual. `_hdl_SISTEMA_CAMBIO_MODO` (CASA) lo detiene siempre.
 
 **Dónde vive el código:** `codigo-padre.html`, junto a las funciones del recordatorio de audio (`_mostrarCartelRecordatorioReto()`, `_iniciarRecordatorioReto()`, `_botonRetosEncendido()`, `_detenerRecordatorioReto()`, `globalThis._marcarRetoPulsadoRecordatorio`) — icono `H4-fotoretos.png` en vez del icono de audio, por lo demás mismo estilo visual y estructura que `_mostrarCartelRecordatorioAudio()`. Las traducciones de los 12 idiomas viven en `TRADUCCIONES_RECORDATORIO_RETO` (`js/traducciones-ui.js`).
 
-Cubierto por `tests/e2e/34-recordatorio-reto.spec.js` (RR-1..RR-4, mismo patrón que RA-1..RA-4) y, con el botón apagado, por `tests/e2e/122-boton-retos-un-solo-sitio.spec.js` (BR-R1 a BR-R3).
+Cubierto por `tests/e2e/34-recordatorio-reto.spec.js` (RR-1..RR-4, mismo patrón que RA-1..RA-4) y, con el botón apagado, por `tests/e2e/122-boton-retos-un-solo-sitio.spec.js` (BR-R1 a BR-R3); el arranque en la activación, por `tests/e2e/124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` (FG-7 y FG-8).
 
 ---
 
@@ -10053,7 +10058,7 @@ Si el usuario **cierra el navegador** o **recarga la página** (por accidente, p
 | `vv_idioma` | Idioma seleccionado (ej: `es`) | Al seleccionar idioma en P2 |
 | `vv_aventura` | Aventura seleccionada (ej: `1`) | Al seleccionar aventura en P7 |
 | `vv_aventura_iniciada` | JSON con aventura, idioma, modo, `dev` y timestamp (§10.19) | Al completar Reto R-2 (P15) — padre lo guarda al recibir `SELECCION.AVENTURA_ACTIVADA`, y lo resincroniza en cada cambio de modo real |
-| `vv_progreso` | JSON con índice, parada actual, total de paradas | En cada cambio de parada |
+| `vv_progreso` | JSON con índice, parada actual, total de paradas y la ficha del elemento actual (llegada, audio y reto) | En cada cambio de parada y cada vez que se hace algo en el elemento actual |
 | `vv_paradas_completadas` | Mapa serializado de paradas completadas | Al completar cada parada |
 
 Cuando el usuario vuelve a abrir la aplicación y el sistema detecta que hay una aventura activa (`vv_aventura_iniciada` existe), en lugar de empezar desde cero, aparece un **diálogo de reanudación** en el idioma guardado. Los textos de los 12 idiomas (`TRADUCCIONES_REANUDACION`) están centralizados en `js/traducciones-ui.js` e importados en `codigo-padre.html` Script 1 — ver §10 (tabla "Datos en el frontend").
@@ -10085,7 +10090,7 @@ Si el usuario no toca nada, a los **30 segundos** se reanuda automáticamente (p
 5. Se cargan los datos de la aventura.
 6. Se activa el modo AVENTURA, el GPS y el reloj de compra de hijo1 — incluida la sincronización de `estadoMapa.modo` en `funciones-mapa.js` (ver "Sincronización de `estadoMapa.modo` al reanudar sesión", §11), necesaria porque este paso no pasa por el mismo handler que un cambio de modo en vivo (`_activarModoRest()`, no `_hdl_SISTEMA_CAMBIO_MODO`).
 7. Se restaura el progreso (parada actual) — dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado.
-8. El usuario continúa en el elemento en que lo deja. Lo hecho dentro de ese elemento no se guarda (`pendingCompleciones` no va en `vv_progreso`): su ficha nace de nuevo, con la llegada, el audio y el reto por hacer. Un elemento completado y a falta de pulsar «avanzar» se activa listo para avanzar: `_elementoCompletado()` lo encuentra en `paradasCompletadas`, no se le crea ficha, `estado.paradaListaParaAvanzar` queda a `true` y el padre habilita «avanzar» en hijo2. Cubierto por `tests/e2e/123-elemento-completado-sigue-completado.spec.js` (EC-1 a EC-3).
+8. El usuario continúa en el elemento en que lo deja, con lo que lleva hecho en él. `vv_progreso` guarda la ficha del elemento actual (`ficha`: `clave`, `llegada`, `audio`, `reto` y `retosCompletadosCount`) cada vez que se anota algo en ella (`_anotarEnFicha()`, §9.2.3). Al reanudar, `_restoreApplyState()` la deja en `estado._fichaGuardada` y la activación del elemento restaurado, si la `clave` es la suya y el modo es AVENTURA, la vuelca en la ficha recién creada. El audio terminado sigue terminado: el botón de retos de hijo3 se enciende sin volver a escucharlo ni a saltarlo (§7.4). El reto resuelto sigue resuelto, y la cola de retos nace con él hecho. La llegada confirmada sigue confirmada. Si con lo guardado la ficha está completa y el elemento no figura como completado, se completa en esa misma activación. El recordatorio «pulse retos» corre de nuevo si el audio está terminado y queda reto (§25.5d). El reloj de la ficha (`timestamp`, el que mide el recordatorio de rescate, §25.19) empieza de nuevo. No se guardan la distancia andada dentro de un tramo (ver §"Distancia recorrida") ni, en un elemento con varios retos, los retos sueltos de una cola a medias. Un `vv_progreso` sin `ficha`, o con la ficha de otro elemento, deja la del elemento a cero. Un elemento completado y a falta de pulsar «avanzar» se activa listo para avanzar: `_elementoCompletado()` lo encuentra en `paradasCompletadas`, no se le crea ficha, `estado.paradaListaParaAvanzar` queda a `true` y el padre habilita «avanzar» en hijo2. Cubierto por `tests/e2e/124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` (FG-1 a FG-9) y `tests/e2e/123-elemento-completado-sigue-completado.spec.js` (EC-1 a EC-3).
 
 **Por qué el modo se activa antes de restaurar el progreso, no después:** `_restaurarProgresoRest()` (paso 7) dispara el `CAMBIO_PARADA` real del elemento restaurado (`_restoreBroadcast()` → `despacharLocal()` → `_hdl_NAVEGACION_CAMBIO_PARADA`), y ese handler decide varias cosas según `estado.modo?.actual === MODOS.AVENTURA` — si arranca el recordatorio de audio (§25.5c), la lógica de botón GPS en tramos, y si deshabilita `btnAvanzar` hasta completar audio+reto. `estado.modo.actual` **no lo escribe `codigo-padre.html` en ningún sitio**: sus tres únicas asignaciones están en `manejarCambioModo()` de `js/app.js` (el *optimistic update* del principio, la reafirmación de campos mínimos después del pre-warm, y `restaurarEstadoModoAnterior()` si el cambio falla). En una reanudación, `_activarModoRest()` (paso 6) llega ahí por la vía normal — invoca `_hdl_SISTEMA_CAMBIO_MODO` con `modo: _modoRest` en vez de reimplementar la mitad de sus efectos —, así que es el único punto de la reanudación que provoca ese cambio. Con el modo ya aplicado antes de que se procese la parada restaurada, esas ramas reciben el valor real (`aventura`), no el valor de arranque (`null`) con el que empieza `estado.modo.actual` antes de cualquier restauración. El mismo orden evita un segundo problema: el `CAMBIO_MODO` que `_activarModoRest()` difunde a los hijos llega a hijo2 antes que el `CAMBIO_PARADA` — así `_resetarEstadoParaModo()` (§24) limpia el estado antes de que lleguen los datos reales de la parada, en vez de después, donde los borraría justo tras fijarlos. Cubierto por `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
 
@@ -10656,7 +10661,7 @@ pulsaciones. Paso a paso:
 5. **Dos confirmaciones, un solo gasto.** `_pedirConfirmacionRescate()` pinta las dos pantallas de `_mostrarDecisionRescate()`. **El orden de los botones se invierte** entre ellas —la opción segura arriba en la primera, abajo en la segunda—, así que pulsar dos veces en el mismo sitio nunca concede un rescate. Cerrar por cualquier vía equivale a **No**.
 6. **Se vuelve a comprobar todo antes de conceder.** `_concederRescate()` repite `_estadoRescate()`, exige que el elemento siga siendo **el mismo que se prometió**, y comprueba que la aventura no haya terminado (`#modal-tiempo-agotado` / `#modal-finalizacion`). Entre el botón y el Sí final hay dos pantallas que el usuario lee sin prisa.
 7. **Cierra el reto si lo había.** Reutiliza `_hdl_RETO_OCULTAR()`. Sin esto el usuario paga y se queda con **menos** que antes: en hijo2, `retoActivo` se comprueba **antes** que `btnAvanzarCompletadoPorPadre` y sale apagando el botón de avanzar, y la ayuda de ubicación también exige `!retoActivo`.
-8. **Completa el punto y lo anuncia.** Rellena la ficha (`llegada`, `audio`, `reto` y la cuenta de retos) y llama a `intentarCompletarElemento()`. `marcarParadaCompletada()` saca además su cartel de transición: la marca `estado._rescatePeticionPendiente`, que lo evitaría, guarda la clave corta del elemento (`TR2`) y se compara con su id de coordenadas (`Av1-TR-2`). `marcarParadaCompletada()` no vuelve a preguntar por los retos: decide la ficha que le llega completa, también con un reto disponible y sin resolver (spec 123, RS-1).
+8. **Completa el punto y lo anuncia.** Rellena la ficha con `_anotarEnFicha()` (`llegada`, `audio`, `reto` y la cuenta de retos) y llama a `intentarCompletarElemento()`. `marcarParadaCompletada()` saca además su cartel de transición: la marca `estado._rescatePeticionPendiente`, que lo evitaría, guarda la clave corta del elemento (`TR2`) y se compara con su id de coordenadas (`Av1-TR-2`). `marcarParadaCompletada()` no vuelve a preguntar por los retos: decide la ficha que le llega completa, también con un reto disponible y sin resolver (spec 123, RS-1).
 9. **El usuario pulsa avanzar.** No hay avance automático: le da sensación de control sobre su aventura.
 
 #### Cuándo se ve el botón, y qué decide el padre
@@ -12369,7 +12374,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-c5ade47dffae';
+const CACHE_VERSION = 'v-36cebc03db83';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14024,93 +14029,93 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarVideoOverlay` | clásico 7 (L2072) | módulo 1, módulo 2 | función/objeto |
 | `rotationSuppressed` | clásico 7 (L1772) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 (L3797) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5115) | clásico 13 | estado |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5147) | clásico 13 | estado |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3785) | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3784) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5933) | clásico 13 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6605) | clásico 13 | estado |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5965) | clásico 13 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6637) | clásico 13 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3786) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6745) | clásico 13 | estado |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6777) | clásico 13 | estado |
 | `__vv_MAPAS_VINTAGE` | módulo 1 (L3788) | módulo 2 | función/objeto |
 | `__vv_PUZZLES` | módulo 1 (L3789) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3671) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4833) | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 (L7475) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8828) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L9044) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8949) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4865) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7507) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8860) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9076) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8981) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L4125) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8918) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9128) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9020) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8924) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9136) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8798) | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5259) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6106) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8950) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9160) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9052) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8956) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9168) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8830) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5291) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6138) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3925) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 (L3932) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4651) | clásico 6, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8143) | clásico 5, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8141) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8142) | clásico 6, módulo 2, módulo 3 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4683) | clásico 6, módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8175) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8173) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8174) | clásico 6, módulo 2, módulo 3 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L4032) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3919) | clásico 6, clásico 7, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3920) | módulo 2 | función/objeto |
 | `estadoPadre` | módulo 1 (L4130) | clásico 6, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4451) | módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4483) | módulo 2 | función/objeto |
 | `getEstadoSafe` | módulo 1 (L4242) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6509) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6541) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2929) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4652) | clásico 6, módulo 2, clásico 14 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4684) | clásico 6, módulo 2, clásico 14 | función/objeto |
 | `limpiarDatosAventura` | módulo 1 (L2964) | módulo 2, clásico 14 | función/objeto |
 | `MODOS` | módulo 1 (L3917) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8525) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8594) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8448) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8301) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8344) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4311) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8557) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L8626) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8480) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8333) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8376) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4333) | módulo 2 | función/objeto |
 | `registrarControlador` | módulo 1 (L3918) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5143) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5170) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5175) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5202) | módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2970) | clásico 7, módulo 2 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2959) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2960) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6345) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6270) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6197) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6425) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6501) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6805) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6804) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6377) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6302) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6229) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6457) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6533) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6837) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6836) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2917) | módulo 2 | función/objeto |
 | `sleep` | módulo 1 (L2839) | módulo 2, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5870) | módulo 2 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5902) | módulo 2 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L3916) | clásico 6, clásico 7, módulo 2, módulo 3 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L4103) | clásico 7, módulo 2 | función/objeto |
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2968) | clásico 14 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2945) | módulo 2 | función/objeto |
 | `verificarTimeoutAventura` | módulo 1 (L2965) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8144) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9248) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14147) | clásico 13 | estado |
-| `_estadoRescate` | módulo 2 (L14128) | clásico 6 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12792) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11394) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11432) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12822) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9312) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10183) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9451) | clásico 6, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9533) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10002) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13053) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10065) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9571) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10057) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10030) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14170) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8176) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9280) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14233) | clásico 13 | estado |
+| `_estadoRescate` | módulo 2 (L14214) | clásico 6 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12880) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11449) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11500) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12910) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9344) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10241) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9483) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9565) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10060) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13141) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10123) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9603) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10115) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10088) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14256) | módulo 2 | función/objeto |
 
 </details>
 
