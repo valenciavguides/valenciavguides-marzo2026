@@ -552,8 +552,8 @@ El bus supervisa y recarga a **todos los hijos por igual**: ninguno está exento
 |--------|----------------------------------|
 | `hijo1-opciones` | `AVENTURA.INICIADA` con el tiempo restante (`estado.tiempoRestante`) |
 | `hijo2` | `NAVEGACION.CAMBIO_PARADA` (por `despacharLocal`) con `paradaId` = la parada actual |
-| `hijo3` | `AUDIO.REPRODUCIR_REQUEST` con el audio en curso |
-| `hijo4` | `RETO.MOSTRAR` con el reto a la vista |
+| `hijo3` | `AUDIO.REPRODUCIR_REQUEST` con el audio en curso. Aparte, en cualquier modo y también en su primera carga, el estado de sus dos controles: el botón de retos (`_sincronizarRetoBtn`, §7.4) y la barra de progreso (`_reenviarProgressBarAHijo3`) |
+| `hijo4` | `RETO.MOSTRAR` con el reto que está a la vista; si no hay ninguno abierto, nada |
 | `seleccion`, `hijo5`, `hijo6-chat` | Nada: vuelven a su primera pantalla (la selección a P1) |
 
 **Un solo punto de registro.** El cargador de iframes del padre, `cargarHijo` (el único), llama a `globalThis.registrarIframeHijo(id, elemento)` (Script 1 de `codigo-padre.html`), que registra con `{ supervisado: true }`. Ningún cargador decide por su cuenta.
@@ -4865,7 +4865,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-77ad653cdabf'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-35e0394564be'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4947,7 +4947,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 | Destino | `padre` |
 | Payload | `{ componenteId, iframeId, timestamp }` |
 | Handler en padre | `_hdl_SISTEMA_HIJO_LISTO` (codigo-padre.html) |
-| Acción | Añade al hijo a `estado.hijosInicializados` y lo marca listo; le envía `PADRE_CONFIRMA_HIJO_LISTO` (con `modoInicial`); tras una recarga del supervisor del latido, le devuelve su estado (`_vv_afterHijoListo`, solo en modo AVENTURA); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` y a hijo3 le manda el estado de `retosBtn` (`_sincronizarRetoBtn`); con hijo2, hijo3 e hijo4 listos, marca `estado.todosHijosListos` (§26.12.1) |
+| Acción | Añade al hijo a `estado.hijosInicializados` y lo marca listo; le envía `PADRE_CONFIRMA_HIJO_LISTO` (con `modoInicial`); tras una recarga del supervisor del latido, le devuelve su estado (`_vv_afterHijoListo`, solo en modo AVENTURA); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` y a hijo3 le manda el estado de `retosBtn` (`_sincronizarRetoBtn`) y el de `progressBar` (`_reenviarProgressBarAHijo3`); con hijo2, hijo3 e hijo4 listos, marca `estado.todosHijosListos` (§26.12.1) |
 
 ##### SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 
@@ -7935,6 +7935,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `122-boton-retos-un-solo-sitio.spec.js` | 12 | El botón de retos de hijo3 lo decide un solo sitio del padre (`_sincronizarRetoBtn`, §7.4), medido con el padre, los hijos y el botón reales: saltar el audio o escucharlo entero lo enciende y volver dentro de rango no lo apaga (BR-1, BR-2), y con el audio sin terminar sigue apagado (BR-3); hijo3 recargado por el supervisor lo recibe encendido con el audio terminado y apagado con el audio sin terminar (BR-4, BR-5); con un reto abierto está apagado y el estado del reto no se rehace (BR-6); fuera de rango con la gracia agotada se apaga y al volver se enciende (BR-7), y cerrar un reto estando fuera de rango no lo enciende (BR-8); reactivar el mismo elemento con el audio terminado no lo apaga (BR-9). El recordatorio "pulse retos" pregunta al mismo sitio: sale con el botón encendido y no sale con el botón apagado por fuera de rango o por un reto abierto (BR-R1 a BR-R3) |
 | `123-elemento-completado-sigue-completado.spec.js` | 11 | Un elemento completado sigue completado (§25.10, §25.19, §9.2.3), con el padre, los hijos y el botón «avanzar» reales: una parada ya completada queda lista para avanzar, sin ficha nueva, al reactivarse (EC-1), tras recargar la página y reanudar (EC-2) y cuando el supervisor recarga a hijo2 (EC-3); no se le ofrece el rescate (EC-4); una parada sin completar que se reactiva sigue pendiente, con su ficha intacta (EC-5); y a una parada ya completada no le crean una ficha nueva otra llegada (EC-6), el audio escuchado otra vez (EC-7), el reto resuelto otra vez (EC-8) ni el botón de saltar el audio (EC-9). El rescate deja avanzar con el audio terminado y el reto sin resolver (RS-1) y con el audio sin terminar (RS-2) |
 | `124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` | 9 | Lo hecho en el elemento actual sobrevive a una recarga (§25.10, §9.2.3), con el padre, los hijos y los botones reales y una recarga real con su diálogo de reanudación: lo que se hace en la parada queda guardado en `vv_progreso` en el momento (FG-1); tras recargar y reanudar, el audio terminado sigue terminado y el botón de retos está encendido (FG-2), la llegada y el audio se conservan y el reto resuelto después completa la parada (FG-3), y el reto resuelto sigue resuelto, también en la cola de retos, y la llegada después completa la parada (FG-6); un progreso guardado sin ficha deja la ficha a cero (FG-4) y la ficha guardada de otro elemento no se aplica (FG-5); una ficha que vuelve completa sobre un elemento que no figura como completado lo completa al reanudar (FG-9). El recordatorio «pulse retos» corre al reanudar con el audio terminado y el reto sin resolver (FG-7) y al reactivarse el mismo elemento (FG-8) |
+| `125-un-hijo-recargado-queda-como-estaba.spec.js` | 4 | Un hijo que el supervisor recarga recupera su estado (§2.7, §26.14), con el padre y los hijos reales y la caída vista por el latido: la barra de progreso del hijo3 recargado vuelve encendida, con su `CONTROL.HABILITAR` (`progressBar`) (HR-1); al arrancar, el padre no le manda nada a un hijo3 que todavía no está registrado en el bus (HR-2); a un hijo4 recargado con el reto ya cerrado no se le manda `RETO.MOSTRAR` (HR-3), y con el reto abierto sí (HR-4) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8167,7 +8168,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-77ad653cdabf'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-35e0394564be'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8408,7 +8409,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 121 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 122 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8914,7 +8915,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-77ad653cdabf';
+const CACHE_VERSION = 'v-35e0394564be';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11332,7 +11333,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta el padre | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
 | `SISTEMA.HIJO_PREPARADO` | Cualquier hijo al cargarse | Registra al hijo en `hijosPreparados`; envía PADRE_DATOS inmediatamente (no espera a los demás hijos) | `SISTEMA.PADRE_DATOS { modo, timestamp }` | El hijo que envió la señal | Arrancar el handshake de inicialización |
-| `SISTEMA.HIJO_LISTO` | Cualquier hijo tras procesar `PADRE_DATOS` | `_hdl_SISTEMA_HIJO_LISTO`: añade al hijo a `hijosInicializados`, avisa al state-manager (`marcarHijoListo`); le contesta `PADRE_CONFIRMA_HIJO_LISTO`; si el hijo viene de una recarga del supervisor del latido, `_vv_afterHijoListo` le devuelve su estado (§2.7a); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` (solo si la aventura y el idioma ya están elegidos y hay datos para ellos) y a hijo3 le manda el estado de `retosBtn` (`_sincronizarRetoBtn`); cuando hijo2, hijo3 e hijo4 están listos llama `_hijoListo_onTodosListos()`, que marca `estado.todosHijosListos`, registra `TODOS_HIJOS_LISTOS` y se despacha `SISTEMA.APLICACION_INICIALIZADA` | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` (`{ timestamp, mensaje, modoInicial }`) | El hijo que envió la señal | Completar la fase de handshake; saber cuándo la app está 100% operativa |
+| `SISTEMA.HIJO_LISTO` | Cualquier hijo tras procesar `PADRE_DATOS` | `_hdl_SISTEMA_HIJO_LISTO`: añade al hijo a `hijosInicializados`, avisa al state-manager (`marcarHijoListo`); le contesta `PADRE_CONFIRMA_HIJO_LISTO`; si el hijo viene de una recarga del supervisor del latido, `_vv_afterHijoListo` le devuelve su estado (§2.7a); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` (solo si la aventura y el idioma ya están elegidos y hay datos para ellos) y a hijo3 le manda el estado de `retosBtn` (`_sincronizarRetoBtn`) y el de `progressBar` (`_reenviarProgressBarAHijo3`); cuando hijo2, hijo3 e hijo4 están listos llama `_hijoListo_onTodosListos()`, que marca `estado.todosHijosListos`, registra `TODOS_HIJOS_LISTOS` y se despacha `SISTEMA.APLICACION_INICIALIZADA` | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` (`{ timestamp, mensaje, modoInicial }`) | El hijo que envió la señal | Completar la fase de handshake; saber cuándo la app está 100% operativa |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Anota en un `Map` interno (`_respuestasEntendidoActual`, `js/app.js`) que ese hijo recibió el cambio de modo; `actualizarInterfazModo` espera hasta 5 s a los de todos los hijos y sigue aunque falte alguno (lo avisa en el log) | (ninguna) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Anota en un `Map` interno (`_respuestasEfectuadoActual`, `js/app.js`) que el hijo aplicó el modo; no envía nada: `actualizarInterfazModo` espera hasta 10 s a los de todos los hijos y, aunque falte alguno (lo avisa en el log), pasa a la fase siguiente | (ninguna; `SISTEMA.CAMBIO_MODO_APLICADO` lo manda `actualizarInterfazModo`, no este handler) | — | 3.ª fase del protocolo: confirmar que cada hijo aplicó el modo antes de cerrar la 4.ª |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat (hijo5 la manda además por su cuenta al volver la pestaña a primer plano) | Llama a `mensajeria.procesarHeartbeatResponse()`, que pone a 0 los `latidosSinRespuesta` del iframe en su registro y, si ya completó su apretón de manos, sus `recargas` seguidas | (ninguna) | — | Confirmar que el hijo está vivo; si sus latidos sin respuesta llegan a `MAX_LATIDOS_SIN_RESPUESTA=3` (`js/mensajeria.js`), el bus recarga el iframe |
@@ -11899,9 +11900,9 @@ _hdl_SISTEMA_HIJO_LISTO(mensaje)     [codigo-padre.html Script 1]
 
 | Campo | Fuente | Se usa para restaurar |
 |---|---|---|
-| `_snapshotRecuperacion.tiempoRestante` | `AVENTURA.TIEMPO_ACTUALIZADO` (cada tick) | `hijo1`: re-envía `AVENTURA.INICIADA` con tiempo restante |
+| `estado.tiempoRestante` | `_hdl_AVENTURA_TIEMPO_ACTUALIZADO` (cada tick de hijo1) | `hijo1`: re-envía `AVENTURA.INICIADA` con tiempo restante |
 | `_snapshotRecuperacion.audioActual` | `_solicitarAudioParaParada()` (camino principal, cada cambio de parada) y `solicitarAudioAHijo3()` (fallback de reanudación) — ambos resuelven `audioData` vía `_resolverAudioData()` antes de guardar el snapshot | `hijo3`: re-envía `AUDIO.REPRODUCIR_REQUEST` con el audio ya resuelto, sin depender de un cache-miss posterior |
-| `_snapshotRecuperacion.retoActual` | `_enviarRetoMostrar()` antes del send — único constructor de `RETO.MOSTRAR`, llamado tanto desde `_hdl_RETO_SOLICITAR` como desde `_procesarResultadoReto()` cuando queda un siguiente reto en la cola de la misma parada; `_hdl_RETO_COMPLETADO` lo limpia a `null` nada más entrar, y esa misma llamada lo repuebla si la parada aún no ha cerrado | `hijo4`: re-envía `RETO.MOSTRAR` |
+| `_snapshotRecuperacion.retoActual` | `_enviarRetoMostrar()` antes del send — único constructor de `RETO.MOSTRAR`, llamado tanto desde `_hdl_RETO_SOLICITAR` como desde `_procesarResultadoReto()` cuando queda un siguiente reto en la cola de la misma parada; `_hdl_RETO_COMPLETADO` lo limpia a `null` nada más entrar, y esa misma llamada lo repuebla si la parada aún no ha cerrado; `_hdl_RETO_OCULTAR` lo limpia cuando el reto se cierra, resuelto o no: guarda solo un reto que está a la vista | `hijo4`: re-envía `RETO.MOSTRAR` |
 | `globalThis.estadoPadre.paradaActual` | Estado global del padre (actualizado en `NAVEGACION.CAMBIO_PARADA`) | `hijo2`: re-envía `NAVEGACION.CAMBIO_PARADA` |
 
 #### Mensajes de restauración enviados tras reload
@@ -11915,6 +11916,8 @@ _hdl_SISTEMA_HIJO_LISTO(mensaje)     [codigo-padre.html Script 1]
 
 Si el modo no es aventura al momento del reload, el snapshot se descarta sin enviar nada (en modo CASA no hay estado que restaurar).
 
+**Los dos controles de hijo3 no salen del snapshot.** hijo3 nace con el botón de retos y la barra de progreso apagados, así que en cada `HIJO_LISTO` suyo —el primero y los de cada recarga, en cualquier modo— el padre le manda el estado que les toca en ese momento, preguntando al sitio que decide cada uno: `_sincronizarRetoBtn()` (§7.4) y `_reenviarProgressBarAHijo3()`. La barra la decide `actualizarEstadoControlesAudioPadre()`, que avisa a hijo3 solo cuando el estado cambia respecto al último mandado y solo si hijo3 figura en `estado.hijosInicializados`; `_reenviarProgressBarAHijo3()` olvida lo último mandado y la llama. Cubierto por `tests/e2e/125-un-hijo-recargado-queda-como-estaba.spec.js` (HR-1 a HR-4).
+
 #### `NAVEGACION.CAMBIO_PARADA` de restauración es una reconfirmación, no un cambio real
 
 El reenvío a hijo2 (`paradaActual`, fila de la tabla de arriba) apunta siempre al elemento que YA estaba activo antes del reload — nunca a uno distinto. `completarCambioParada()` (`js/funciones-mapa.js`) reconoce este caso al principio de la función: si el `paradaId` recibido coincide con `estadoMapa.paradaActual` (el elemento ya activo), retorna de inmediato sin ejecutar el resto de la función — sin limpiar capas, sin volver a revelar el trazado, sin volver a dibujar marcadores. Sin este guard, la reconfirmación se procesaría como si fuera un cambio de elemento real: limpiaría la polyline manual de navegación aunque el usuario la hubiera pedido a propósito para ese mismo elemento segundos antes, y repetiría el zoom/reset visual completo por un heartbeat reload de hijo2, no por un avance real de la aventura.
@@ -11923,7 +11926,7 @@ El reenvío a hijo2 (`paradaActual`, fila de la tabla de arriba) apunta siempre 
 
 - `js/mensajeria.js` — `recargarIframe()`: llama `globalThis._vv_beforeHijoReload(hijoId)` antes del reload
 - `codigo-padre.html` Script 1 — `_hdl_SISTEMA_HIJO_LISTO`: llama `globalThis._vv_afterHijoListo(hijoId)` tras `_hijoListo_confirmarAlHijo`
-- `codigo-padre.html` Script 2 — `_snapshotRecuperacion`, `_reloadsPendientes`, `_vv_beforeHijoReload`, `_vv_afterHijoListo` declarados tras imports (antes del wait de mensajería); tracking en `_hdl_AVENTURA_TIEMPO_ACTUALIZADO`, `_solicitarAudioParaParada`, `solicitarAudioAHijo3`, `_enviarRetoMostrar` y `_hdl_RETO_COMPLETADO`
+- `codigo-padre.html` Script 2 — `_snapshotRecuperacion`, `_reloadsPendientes`, `_vv_beforeHijoReload`, `_vv_afterHijoListo` declarados tras imports (antes del wait de mensajería); tracking en `_solicitarAudioParaParada`, `solicitarAudioAHijo3`, `_enviarRetoMostrar`, `_hdl_RETO_COMPLETADO` y `_hdl_RETO_OCULTAR`; `_reenviarProgressBarAHijo3` junto a `actualizarEstadoControlesAudioPadre`
 
 ---
 
@@ -12373,7 +12376,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-77ad653cdabf';
+const CACHE_VERSION = 'v-35e0394564be';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14001,7 +14004,7 @@ graph TB
     MSG -->|delega registro| SM
 
     S1 -.->|globalThis, 65 identificadores| S2
-    S2 -.->|globalThis, 14 identificadores| S1
+    S2 -.->|globalThis, 15 identificadores| S1
 ```
 
 Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el padre ni entre ellos — cada iframe es un documento/contexto de JS completamente aislado. Toda conexión hijo↔padre pasa por `postMessage` (ver §37.3). Dentro del padre, en cambio, los 5 scripts comparten un único `globalThis` real — de ahí que las conexiones entre ellos (§37.2) sean invisibles a simple vista (parece un archivo, son 5 scopes).
@@ -14011,7 +14014,7 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **123 en total**. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 100 identificadores cruzados, de 151 expuestos (20 bloques &lt;script&gt; inline: 5 módulo + 15 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 101 identificadores cruzados, de 152 expuestos (20 bloques &lt;script&gt; inline: 5 módulo + 15 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14039,25 +14042,25 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `__vv_PUZZLES` | módulo 1 (L3789) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3671) | módulo 2 | estado |
 | `__vv_salidaEnlaceExterno` | módulo 1 (L4860) | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 (L7496) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8844) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L9060) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8965) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7505) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8853) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9069) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8974) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L4121) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8934) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9144) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9036) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8940) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9152) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8814) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8943) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9153) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9045) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8949) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9161) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8823) | módulo 2 | función/objeto |
 | `_obtenerCoordenadasP0Fallback` | módulo 1 (L5286) | módulo 2 | función/objeto |
 | `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6133) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3925) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 (L3932) | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4678) | clásico 6, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8159) | clásico 5, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8157) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8158) | clásico 6, módulo 2, módulo 3 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8168) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8166) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8167) | clásico 6, módulo 2, módulo 3 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L4032) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3919) | clásico 6, clásico 7, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3920) | módulo 2 | función/objeto |
@@ -14069,11 +14072,11 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `idiomaSeleccionado` | módulo 1 (L4679) | clásico 6, módulo 2, clásico 14 | función/objeto |
 | `limpiarDatosAventura` | módulo 1 (L2964) | módulo 2, clásico 14 | función/objeto |
 | `MODOS` | módulo 1 (L3917) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8541) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8610) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8464) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8317) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8360) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8550) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L8619) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8473) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8326) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8369) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4328) | módulo 2 | función/objeto |
 | `registrarControlador` | módulo 1 (L3918) | módulo 2 | función/objeto |
 | `registrarControladorSeguro` | módulo 1 (L5170) | módulo 2, módulo 4 | función/objeto |
@@ -14096,25 +14099,26 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2968) | clásico 14 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2945) | módulo 2 | función/objeto |
 | `verificarTimeoutAventura` | módulo 1 (L2965) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8160) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9264) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14187) | clásico 13 | estado |
-| `_estadoRescate` | módulo 2 (L14168) | clásico 6 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12834) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11421) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11470) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12864) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9328) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10219) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9467) | clásico 6, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9549) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L10038) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13095) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10101) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9587) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10093) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10066) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14210) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8169) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9273) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14212) | clásico 13 | estado |
+| `_estadoRescate` | módulo 2 (L14193) | clásico 6 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12859) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L10237) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11446) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11495) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12889) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9337) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10232) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9476) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9558) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10047) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13120) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10110) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9596) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10102) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10075) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14235) | módulo 2 | función/objeto |
 
 </details>
 

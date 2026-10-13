@@ -7287,6 +7287,15 @@
                     } else {
                         (globalThis.logger || console).warn(`${logPrefix} _sincronizarRetoBtn (Script 2) aún no disponible; se omite la sincronización de retosBtn tras hijo3 listo`);
                     }
+                    // Y su barra de progreso, que también nace apagada: la decide
+                    // actualizarEstadoControlesAudioPadre (Script 2), que solo avisa cuando el
+                    // estado cambia. A un hijo3 recién listo —al arrancar o recargado por el
+                    // supervisor— se le manda el que toca AHORA (docs/estudio-caminos.md, K-88).
+                    if (typeof globalThis._reenviarProgressBarAHijo3 === 'function') {
+                        globalThis._reenviarProgressBarAHijo3();
+                    } else {
+                        (globalThis.logger || console).warn(`${logPrefix} _reenviarProgressBarAHijo3 (Script 2) aún no disponible; la barra de hijo3 recibirá su estado en la siguiente actualización de los controles de audio`);
+                    }
                 }
                 const hijosCriticos = ['hijo2', 'hijo3', 'hijo4'];
                 const todosListos = hijosCriticos.every(id => estado.hijosInicializados && estado.hijosInicializados.has(id));
@@ -10207,7 +10216,11 @@ await _comprobarReanudacionAventura(logPrefix);
             // de habilitarse también en modo CASA, decisión que toma hijo3 localmente) —
             // solo se notifica si cambia, para no saturar de mensajes idénticos en cada
             // llamada (esta función se invoca desde varios sitios reactivos).
-            if (hayAudioUtilizable !== _ultimoHayAudioNotificadoAHijo3) {
+            // A un hijo3 que todavía no está listo no se le manda nada ni se apunta nada: el
+            // primer aviso salía al arrancar, con hijo3 sin registrar en el bus, y se perdía
+            // («Destino desconocido desde padre: 'hijo3'»). Su HIJO_LISTO pide aquí el estado
+            // que le toca (_reenviarProgressBarAHijo3).
+            if (estado.hijosInicializados?.has('hijo3') && hayAudioUtilizable !== _ultimoHayAudioNotificadoAHijo3) {
                 _ultimoHayAudioNotificadoAHijo3 = hayAudioUtilizable;
                 enviarMensaje_S2({
                     tipo: hayAudioUtilizable ? TIPOS_MENSAJE.CONTROL.HABILITAR : TIPOS_MENSAJE.CONTROL.DESHABILITAR,
@@ -10217,6 +10230,14 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
         globalThis.actualizarEstadoControlesAudioPadre = actualizarEstadoControlesAudioPadre;
+        // Lo llama el HIJO_LISTO de hijo3 (Script 1): un hijo3 recién listo nace con la barra
+        // apagada, así que se olvida lo último que se le mandó al anterior y se le manda lo que
+        // toca ahora. Sin esto, tras recargarlo el supervisor la barra quedaba apagada hasta que
+        // el estado cambiara (docs/estudio-caminos.md, K-88; lo fija el spec 125).
+        globalThis._reenviarProgressBarAHijo3 = function () {
+            _ultimoHayAudioNotificadoAHijo3 = null;
+            actualizarEstadoControlesAudioPadre();
+        };
 
         // El botón de saltar ocupa el mismo hueco visual que el desplegable (justo
         // encima del central, ver CSS #audio-action-skip). Si el desplegable estaba
@@ -10561,6 +10582,10 @@ await _comprobarReanudacionAventura(logPrefix);
                     // Ocultar elementos — usar cssText para reset completo
                     backdrop.classList.remove('visible');
                     hijo4.classList.remove('visible');
+                    // El reto ya no está a la vista: no hay reto que devolverle a un hijo4 que se
+                    // recargue después. Lo guardado solo se borraba al resolverlo, así que tras
+                    // cerrarlo sin resolver se le reenviaba (docs/estudio-caminos.md, K-88).
+                    _snapshotRecuperacion.retoActual = null;
 
                     // Después de la transición, ocultar completamente (reset inline styles)
                     setTimeout(() => {
