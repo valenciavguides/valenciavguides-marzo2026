@@ -16,10 +16,23 @@
  *   RH-5  En español, una pregunta que acaba en «?» abre con «¿».
  *   RH-6  Ninguna pregunta lleva su número delante («3. ¿…?»): los retos no se numeran en pantalla. El número vive en
  *         los datos (`reto`, `id`), no en el texto que lee el usuario.
+ *   RH-7  Un reto que se repite en varias aventuras —el mismo según el español: misma pregunta, tipo, opciones y
+ *         respuestas— tiene una sola redacción en cada idioma: la misma pregunta, las mismas opciones y las mismas
+ *         respuestas en todas las aventuras donde aparece.
+ *   RH-8  Ningún texto de un reto (pregunta, opción o respuesta) empieza ni acaba en espacio.
+ *   RH-9  Ningún texto de un reto lleva marcas HTML: hijo4 pinta la pregunta con `textContent`, así que un `<br>` sale
+ *         tal cual en pantalla.
+ *   RH-10 Cada reto (aventura y número) tiene en todos los idiomas la forma que tiene en español: el mismo tipo, el mismo
+ *         número de opciones y el mismo de respuestas. Un reto con el contenido cambiado por el de otro, o con otro número
+ *         en un idioma, aparece aquí.
  *
  * Son comprobaciones sobre los datos: el módulo se carga en el navegador, como lo carga la app, desde una página vacía
  * del mismo origen, y los datos se comprueban en el test. Cada una lleva su control, un dato roto a propósito en una
  * copia en memoria, que tiene que fallar.
+ *
+ * ROJO ANTES QUE VERDE: con los datos de `68194c1`, RH-7 a RH-10 fallan (retos repetidos con varias redacciones en los
+ * doce idiomas, 63 preguntas con espacios sobrantes, el `<br>` de los «tres arcos ciegos» en los doce, y en Aventura2 en
+ * inglés los retos 3 y 5 con el contenido cambiado); RH-1 a RH-6 pasan con los dos.
  */
 'use strict';
 
@@ -91,6 +104,53 @@ const numeradas = (RETOS) => [...todos(RETOS)]
   .filter(({ r }) => /^\s*\d{1,3}\.\s/.test(r.pregunta))
   .map(({ a, idioma, r }) => `${a}/${idioma}/${r.id}: ${r.pregunta.slice(0, 40)}`);
 
+/** RH-7: los retos que el español dice que son el mismo, con más de una redacción en algún idioma. */
+function repetidosDesiguales(RETOS) {
+  const ordenadas = (x) => [...(x || [])].sort();
+  const grupos = new Map();
+  for (const a of Object.keys(RETOS)) for (const r of RETOS[a].es || []) {
+    if (typeof r.pregunta !== 'string') continue;
+    const clave = JSON.stringify([r.pregunta, r.tipo, ordenadas(r.opciones), ordenadas(r.correctas)]);
+    if (!grupos.has(clave)) grupos.set(clave, []);
+    grupos.get(clave).push({ a, n: r.reto });
+  }
+  const fallos = [];
+  for (const posiciones of grupos.values()) {
+    if (posiciones.length < 2) continue;
+    for (const idioma of Object.keys(RETOS[posiciones[0].a])) {
+      const formas = new Set(posiciones.map(({ a, n }) => {
+        const r = deReto(RETOS[a][idioma], n);
+        return r ? JSON.stringify([r.pregunta, ordenadas(r.opciones), ordenadas(r.correctas)]) : '(sin reto)';
+      }));
+      if (formas.size > 1) fallos.push(`${idioma}: ${posiciones.map(({ a, n }) => `${a}#${n}`).join(', ')}`);
+    }
+  }
+  return fallos;
+}
+
+const conHtml = (RETOS) => [...todos(RETOS)]
+  .filter(({ r }) => [r.pregunta, ...(r.opciones || []), ...(r.correctas || [])].some((s) => typeof s === 'string' && /<[a-z/!]/i.test(s)))
+  .map(({ a, idioma, r }) => `${a}/${idioma}/${r.id}`);
+
+/** RH-10: (aventura, idioma, número) cuya forma no es la del español. */
+function formasDistintasDelEspanol(RETOS) {
+  const forma = (r) => (r ? `${r.tipo}/${(r.opciones || []).length}/${(r.correctas || []).length}` : '(falta)');
+  const fallos = [];
+  for (const a of Object.keys(RETOS)) {
+    for (const e of RETOS[a].es || []) {
+      for (const idioma of Object.keys(RETOS[a])) {
+        const r = deReto(RETOS[a][idioma], e.reto);
+        if (forma(r) !== forma(e)) fallos.push(`${a}/${idioma} #${e.reto}: ${forma(r)}, en español ${forma(e)}`);
+      }
+    }
+  }
+  return fallos;
+}
+
+const conEspacios = (RETOS) => [...todos(RETOS)]
+  .filter(({ r }) => [r.pregunta, ...(r.opciones || []), ...(r.correctas || [])].some((s) => typeof s === 'string' && s !== s.trim()))
+  .map(({ a, idioma, r }) => `${a}/${idioma}/${r.id}`);
+
 test.describe('RH — los retos, en su idioma y sin provisionales', () => {
   test('RH-1. Retos 1 y 2: una sola redacción por idioma en las siete aventuras', async ({ page }) => {
     const RETOS = await cargarRetos(page);
@@ -138,5 +198,41 @@ test.describe('RH — los retos, en su idioma y sin provisionales', () => {
     const roto = copia(RETOS);
     deReto(roto.Aventura3.it, 4).pregunta = `4. ${deReto(roto.Aventura3.it, 4).pregunta}`;
     expect(numeradas(roto).length, 'control').toBe(1);
+  });
+
+  test('RH-7. Un reto que se repite en varias aventuras tiene una sola redacción en cada idioma', async ({ page }) => {
+    const RETOS = await cargarRetos(page);
+    expect(repetidosDesiguales(RETOS)).toEqual([]);
+    // Control: el reto 1 es el mismo en las siete aventuras; en una, otra redacción en japonés.
+    const roto = copia(RETOS);
+    deReto(roto.Aventura5.ja, 1).pregunta += '（別の書き方）';
+    expect(repetidosDesiguales(roto).filter((f) => f.startsWith('ja: ')).length, 'control').toBe(1);
+  });
+
+  test('RH-8. Ningún texto de un reto empieza ni acaba en espacio', async ({ page }) => {
+    const RETOS = await cargarRetos(page);
+    expect(conEspacios(RETOS)).toEqual([]);
+    const roto = copia(RETOS);
+    deReto(roto.AventuraFallas.pl, 3).pregunta += ' ';
+    expect(conEspacios(roto), 'control').toEqual([`AventuraFallas/pl/${deReto(roto.AventuraFallas.pl, 3).id}`]);
+  });
+
+  test('RH-9. Ningún texto de un reto lleva marcas HTML', async ({ page }) => {
+    const RETOS = await cargarRetos(page);
+    expect(conHtml(RETOS)).toEqual([]);
+    const roto = copia(RETOS);
+    deReto(roto.Aventura2.de, 3).pregunta = `Erste Zeile.<br>${deReto(roto.Aventura2.de, 3).pregunta}`;
+    expect(conHtml(roto), 'control').toEqual([`Aventura2/de/${deReto(roto.Aventura2.de, 3).id}`]);
+  });
+
+  test('RH-10. Cada reto tiene en todos los idiomas la forma que tiene en español', async ({ page }) => {
+    const RETOS = await cargarRetos(page);
+    expect(formasDistintasDelEspanol(RETOS)).toEqual([]);
+    // Control: el cruce que había en Aventura2 en inglés, los retos 3 y 5 con el contenido cambiado.
+    const roto = copia(RETOS);
+    const r3 = deReto(roto.Aventura2.en, 3);
+    const r5 = deReto(roto.Aventura2.en, 5);
+    [r3.opciones, r5.opciones, r3.correctas, r5.correctas] = [r5.opciones, r3.opciones, r5.correctas, r3.correctas];
+    expect(formasDistintasDelEspanol(roto).length, 'control').toBe(2);
   });
 });
