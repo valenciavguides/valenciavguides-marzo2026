@@ -13869,7 +13869,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             // Si la aventura ha terminado —por tiempo o porque ya se completó— no hay rescate
             // posible. hijo1 lleva su propia cuenta atrás en vivo y al llegar a cero el padre
             // monta su modal, así que basta con mirar si alguno de los dos está en pantalla.
-            for (const idModal of ['modal-tiempo-agotado', 'modal-finalizacion']) {
+            for (const idModal of ['modal-tiempo-agotado', 'modal-finalizacion-aventura']) {
                 if (document.getElementById(idModal)) {
                     (globalThis.logger || console).warn(`${logPrefix} La aventura ha terminado (${idModal}) — no hay rescate posible`);
                     return null;

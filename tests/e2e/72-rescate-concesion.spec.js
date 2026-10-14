@@ -219,4 +219,24 @@ test.describe('CR — La concesión del rescate', () => {
     expect(r.usadas, 'y no se cobra nada').toBe(0);
     expect(r.gastoPendiente, 'ni queda deuda apuntada').toBeNull();
   });
+
+  test('CR-6. Si la aventura se completa mientras decide, tampoco hay rescate', async ({ page }) => {
+    // El otro final de la aventura: el modal de fin (`#modal-finalizacion-aventura`) a pantalla completa.
+    const prep = await prepararAventura(page);
+    test.skip(!prep.listo, `Precondición no disponible: ${JSON.stringify(prep)}`);
+    await abrirAsistenteConBoton(page);
+
+    await recorrerFlujo(page, {
+      entreConfirmaciones: () => {
+        const modal = document.createElement('div');
+        modal.id = 'modal-finalizacion-aventura';
+        document.body.appendChild(modal);
+      },
+    });
+    const r = await leerEstado(page, prep.idLimpio);
+
+    expect(r.completado, 'con la aventura completada no se completa nada más').toBe(false);
+    expect(r.usadas, 'y no se cobra nada').toBe(0);
+    expect(r.gastoPendiente, 'ni queda deuda apuntada').toBeNull();
+  });
 });
