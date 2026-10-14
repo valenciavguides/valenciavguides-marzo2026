@@ -8664,6 +8664,7 @@ Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌
 | 22 | Comprobar en un iPhone real el desbloqueo de los efectos de sonido (§12, punto 6): que tras un gesto en el puzzle, en hijo4 y en el padre suenan después, sin gesto, el fin de tiempo del puzzle y el modal de tiempo agotado por el temporizador de hijo1; que `pieza_colocada` y `reto_completado` suenan a la vez al colocar la última pieza (la guía de Apple para Safari dice que iOS no admite varias reproducciones simultáneas: se anota cuál sobrevive); y cuánto tarda el primer sonido | §12, §25.12 | ⏳ pendiente — el desbloqueo está hecho; solo se comprueba en un dispositivo, porque Playwright no reproduce la política de audio de iOS |
 | 23 | Consultar las licencias de los recursos de terceros antes de vender la PWA, empezando por los cuatro efectos de sonido de Pixabay (`audios-efectos/LICENCIAS.md`): su licencia prohíbe distribuirlos sueltos, y los ficheros del repositorio público son descargables uno a uno | §12 | ⏳ pendiente — sin prisa mientras solo los usa su autor; se resuelve al publicar la PWA para su venta |
 | 24 | Pasarela de pago y backend por **categoría de precio** (aventuras cortas y largas): la pasarela cobra el precio de la categoría de la aventura elegida, y el backend guarda la categoría con el código y la exige al comprobarlo. Al añadir una aventura hay que darle su categoría en `js/indice-aventuras.js` | §16.2 | ⏳ pendiente |
+| 25 | El diálogo de vuelta al pulsar «atrás» (§34): que salga desde el primer «atrás» de una sesión, y que «aventura en curso» lo conteste lo que dice que la aventura está en marcha (el modo), no las variables de la elección. Comprobarlo en un móvil real y con la PWA instalada | §34 | ⏳ pendiente — decisión de comportamiento |
 
 ---
 
@@ -13163,6 +13164,8 @@ history.pushState({ vv_en_aventura: true }, '');
 
 Un listener `popstate` detecta el evento y, si `e.state.vv_en_aventura` es `true` y hay una aventura activa en `globalThis.aventuraSeleccionada`, re-inserta otra entrada (para que el siguiente "atrás" también quede interceptado) y muestra `mostrarDialogoVueltaRapida`.
 
+**Cuándo se cumple esa condición.** `e.state` es el estado de la entrada del historial a la que se llega, no el de la que se deja. Con la aventura recién registrada, el historial tiene la entrada inicial de la página (estado `null`) y, encima, la insertada: el primer «atrás» llega a la inicial, el listener no hace nada y el siguiente «atrás» sale de la aplicación. El diálogo sale cuando la entrada de debajo también lleva `vv_en_aventura`, como tras una recarga de la página con la aventura en marcha: la entrada actual conserva su estado al recargar y la reanudación inserta otra encima. «Aventura activa» son aquí `globalThis.aventuraSeleccionada` y `globalThis.idiomaSeleccionado`, que se llenan al elegir idioma y aventura en la selección, antes de que la aventura arranque: con otra aventura elegida y sin arrancar, un «atrás» que llegue a una entrada con `vv_en_aventura` enseña el diálogo sin aventura en curso. Que el diálogo salga desde el primer «atrás» de una sesión, y solo con una aventura en marcha, es la fila 25 de §22.0.
+
 **Vuelta de pestaña externa:**
 
 Cuando el padre recibe `UI.NAVEGACION_EXTERNA` (enviado por hijo1 al abrir un enlace), establece `globalThis.__vv_salidaEnlaceExterno = true`. Un listener `visibilitychange` comprueba este flag al volver (`document.visibilityState === 'visible'`), lo limpia y, si hay aventura activa, muestra el mismo diálogo.
@@ -14243,22 +14246,22 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
 | `_devCasaMode` | clásico 3 (L1125) | módulo 1 | estado |
-| `_resetearFlagsContenido` | clásico 3 (L2585) | módulo 1 | función/objeto |
-| `_setAventuraIniciando` | clásico 3 (L2583) | módulo 1 | función/objeto |
-| `_setAventuraSeleccionada` | clásico 3 (L2582) | módulo 1 | función/objeto |
-| `_setTimerProgresoCarga` | clásico 3 (L2584) | módulo 1 | función/objeto |
-| `continuarTrasElegirAventura` | clásico 3 (L2605) | módulo 1 | función/objeto |
-| `x` | clásico 3 (L2577) | módulo 1 | estado |
-| `_pintarTarjetasDeAventura` | módulo 1 (L2974) | clásico 3 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L3002) | clásico 3 | función/objeto |
-| `enviarValoracion` | módulo 1 (L2632) | clásico 3 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L2925) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 1 (L2998) | clásico 3 | función/objeto |
-| `TEXTOS_VALORACION` | módulo 1 (L2630) | clásico 3 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L2670) | clásico 3 | función/objeto |
-| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 1 (L2629) | clásico 3 | función/objeto |
-| `TRADUCCIONES_DESPEDIDA` | módulo 1 (L2628) | clásico 3 | función/objeto |
-| `TRADUCCIONES_REANUDACION` | módulo 1 (L2631) | clásico 3 | función/objeto |
+| `_resetearFlagsContenido` | clásico 3 (L2586) | módulo 1 | función/objeto |
+| `_setAventuraIniciando` | clásico 3 (L2584) | módulo 1 | función/objeto |
+| `_setAventuraSeleccionada` | clásico 3 (L2583) | módulo 1 | función/objeto |
+| `_setTimerProgresoCarga` | clásico 3 (L2585) | módulo 1 | función/objeto |
+| `continuarTrasElegirAventura` | clásico 3 (L2606) | módulo 1 | función/objeto |
+| `x` | clásico 3 (L2578) | módulo 1 | estado |
+| `_pintarTarjetasDeAventura` | módulo 1 (L2976) | clásico 3 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L3004) | clásico 3 | función/objeto |
+| `enviarValoracion` | módulo 1 (L2633) | clásico 3 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L2927) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 1 (L3000) | clásico 3 | función/objeto |
+| `TEXTOS_VALORACION` | módulo 1 (L2631) | clásico 3 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L2672) | clásico 3 | función/objeto |
+| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 1 (L2630) | clásico 3 | función/objeto |
+| `TRADUCCIONES_DESPEDIDA` | módulo 1 (L2629) | clásico 3 | función/objeto |
+| `TRADUCCIONES_REANUDACION` | módulo 1 (L2632) | clásico 3 | función/objeto |
 
 **Por qué los `_setX()` existen y no se pueden saltar.** Un `let` declarado en el `<script>` clásico **tapa** la propiedad del mismo nombre en `globalThis`: `globalThis.x = v` desde el módulo no cambia ese `let`, y las lecturas sin prefijo del clásico siguen viendo el valor viejo. Por eso todo estado que el módulo tenga que escribir y el clásico leer necesita su puente.
 
