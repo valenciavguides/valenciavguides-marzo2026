@@ -16,7 +16,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -25,7 +25,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-es",
                 tipo: "opcion",
-                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                pregunta: "¿Es buen momento para comenzar su aventura?",
                 opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -34,7 +34,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-es",
                 tipo: "opcion",
-                pregunta: "3. ¿Sabría decirme cómo se llaman estas Torres?",
+                pregunta: "¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -43,7 +43,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-es",
                 tipo: "opcion",
-                pregunta: "4. ¿En la cumbre de las torres ondea la bandera de Valencia: sus colores se componen de rojo, amarillo y… ?",
+                pregunta: "¿En la cumbre de las torres ondea la bandera de Valencia: sus colores se componen de rojo, amarillo y… ?",
                 opciones: ["Violeta", "Verde", "Azul"],
                 correctas: ["Azul"],
                 multiple: false
@@ -52,14 +52,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-es",
                 tipo: "texto",
-                pregunta: "5. ¿Sabría decirme el nombre de la calle?",
+                pregunta: "¿Sabría decirme el nombre de la calle?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-es",
                 tipo: "opcion",
-                pregunta: "6. ¿Qué porta San Lorenzo en la mano?",
+                pregunta: "¿Qué porta San Lorenzo en la mano?",
                 opciones: ["Una Paloma", "Una cuchara", "Una parrilla"],
                 correctas: ["Una parrilla"],
                 multiple: false
@@ -68,7 +68,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-es",
                 tipo: "opcion",
-                pregunta: "7. ¿Con qué mano sujeta Neptuno la cornucopia?",
+                pregunta: "¿Con qué mano sujeta Neptuno la cornucopia?",
                 opciones: ["Izquierda", "Derecha"],
                 correctas: ["Derecha"],
                 multiple: false
@@ -77,7 +77,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-es",
                 tipo: "texto",
-                pregunta: "8. ¿Cuántas figuras rodean la fuente?",
+                pregunta: "¿Cuántas figuras rodean la fuente?",
                 correctas: ["8"]
             },
             {
@@ -90,7 +90,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-es",
                 tipo: "opcion",
-                pregunta: "10. ¿Qué figura esculpida puede verse en el marco del cuadro?",
+                pregunta: "¿Qué figura esculpida puede verse en el marco del cuadro?",
                 opciones: ["Un Dragón", "Un Murciélago", "Una Corona"],
                 correctas: ["Una Corona"],
                 multiple: false
@@ -99,7 +99,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-es",
                 tipo: "opcion-multiple",
-                pregunta: "11. ¿Qué puede verse dentro?",
+                pregunta: "¿Qué puede verse dentro?",
                 opciones: ["Un Altar", "Una bandera", "Una espada"],
                 correctas: ["Un Altar", "Una bandera"],
                 multiple: true
@@ -108,21 +108,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-es",
                 tipo: "texto",
-                pregunta: "12. Sobre ésta hay una placa conmemorativa. ¿En qué año fue expuesta dicha placa?",
+                pregunta: "Sobre ésta hay una placa conmemorativa. ¿En qué año fue expuesta dicha placa?",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-es",
                 tipo: "texto",
-                pregunta: "13. ¿En qué año se edificó esta finca? ¡Pista! Mire en la parte superior de la fachada.",
+                pregunta: "¿En qué año se edificó esta finca? ¡Pista! Mire en la parte superior de la fachada.",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-es",
                 tipo: "opcion",
-                pregunta: "14. ¿Qué puede verse dentro?",
+                pregunta: "¿Qué puede verse dentro?",
                 opciones: ["Una Plaza de Toros", "Unos baños romanos", "Una estación de metro"],
                 correctas: ["Unos baños romanos"],
                 multiple: false
@@ -137,7 +137,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-es",
                 tipo: "opcion",
-                pregunta: "16. ¿Sabría determinar qué geometría tiene?",
+                pregunta: "¿Sabría determinar qué geometría tiene?",
                 opciones: ["hexagonal", "Octogonal", "Cuadrangular"],
                 correctas: ["hexagonal"],
                 multiple: false
@@ -146,14 +146,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-es",
                 tipo: "texto",
-                pregunta: "17. ¿Cuántos Arcos componen la puerta?",
+                pregunta: "¿Cuántos Arcos componen la puerta?",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-es",
                 tipo: "opcion",
-                pregunta: "18. ¿Recuerda qué animal corona el escudo municipal?",
+                pregunta: "¿Recuerda qué animal corona el escudo municipal?",
                 opciones: ["Un Dragón", "Un Murciélago", "Un Caballo"],
                 correctas: ["Un Murciélago"],
                 multiple: false
@@ -162,7 +162,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-es",
                 tipo: "opcion",
-                pregunta: "19. ¡Preste atención a la fachada de la primera torre! ¿Qué Fruta Cítrica natural de Valencia decora la fachada?",
+                pregunta: "¡Preste atención a la fachada de la primera torre! ¿Qué Fruta Cítrica natural de Valencia decora la fachada?",
                 opciones: ["Limones", "Pomelos", "Naranjas"],
                 correctas: ["Naranjas"],
                 multiple: false
@@ -177,14 +177,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-es",
                 tipo: "texto",
-                pregunta: "21. ¿Sabría decirme qué comercio alberga dicho edificio?",
+                pregunta: "¿Sabría decirme qué comercio alberga dicho edificio?",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-es",
                 tipo: "opcion-multiple",
-                pregunta: "22. Sobre la entrada principal, en un arco de medio punto, figuras alegóricas representan a los cinco continentes. ¿Qué porta la figura central?",
+                pregunta: "Sobre la entrada principal, en un arco de medio punto, figuras alegóricas representan a los cinco continentes. ¿Qué porta la figura central?",
                 opciones: ["Una Antorcha", "Una Espada", "Una Corona"],
                 correctas: ["Una Antorcha", "Una Espada"],
                 multiple: true
@@ -193,7 +193,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-es",
                 tipo: "opcion",
-                pregunta: "23. ¿Qué porta la figura en la mano?",
+                pregunta: "¿Qué porta la figura en la mano?",
                 opciones: ["Una balanza", "Un libro", "Una pluma"],
                 correctas: ["Una balanza"],
                 multiple: false
@@ -202,14 +202,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-es",
                 tipo: "texto",
-                pregunta: "24. ¿Cuántos pisos tiene el edificio?",
+                pregunta: "¿Cuántos pisos tiene el edificio?",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-es",
                 tipo: "opcion",
-                pregunta: "25. Busque la vidriera con los colores de la Señera valenciana en la fachada del edificio. ¿Sabría determinar qué forma tiene?",
+                pregunta: "Busque la vidriera con los colores de la Señera valenciana en la fachada del edificio. ¿Sabría determinar qué forma tiene?",
                 opciones: ["Cuadrangular", "Redonda", "Triangular"],
                 correctas: ["Redonda"],
                 multiple: false
@@ -218,7 +218,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-es",
                 tipo: "opcion-multiple",
-                pregunta: "26. ¿Qué sostiene la virgen en su mano?",
+                pregunta: "¿Qué sostiene la virgen en su mano?",
                 opciones: ["Un Rosario", "Un niño", "Una corona"],
                 correctas: ["Un Rosario", "Un niño"],
                 multiple: true
@@ -227,7 +227,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-es",
                 tipo: "opcion",
-                pregunta: "27. ¿Qué le entrega el ángel al niño?",
+                pregunta: "¿Qué le entrega el ángel al niño?",
                 opciones: ["Una paloma", "Un orbe", "Alimentos"],
                 correctas: ["Un orbe"],
                 multiple: false
@@ -242,7 +242,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-es",
                 tipo: "opcion-multiple",
-                pregunta: "29. El barquero que rema a contracorriente.",
+                pregunta: "El barquero que rema a contracorriente.",
                 opciones: ["Un hombre con rostro triste manejando un pequeño bote de madera escapa a contracorriente de un monstruo."],
                 correctas: ["Un hombre con rostro triste manejando un pequeño bote de madera escapa a contracorriente de un monstruo."],
                 multiple: true
@@ -251,7 +251,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-es",
                 tipo: "opcion-multiple",
-                pregunta: "30. Un árbol muerto: símbolo del Pecado, se ve entre las dos hojas de la puerta y cumple la función de parteluz.",
+                pregunta: "Un árbol muerto: símbolo del Pecado, se ve entre las dos hojas de la puerta y cumple la función de parteluz.",
                 opciones: ["Observe en la copa del árbol como 4 hombres desnudos se azotan entre si."],
                 correctas: ["Observe en la copa del árbol como 4 hombres desnudos se azotan entre si."],
                 multiple: true
@@ -260,7 +260,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-es",
                 tipo: "opcion-multiple",
-                pregunta: "31. A la derecha, un ángel que muestra su pene y...",
+                pregunta: "A la derecha, un ángel que muestra su pene y...",
                 opciones: ["se dispone a introducirlo en un jarrón que sostiene con la otra mano. Algo extraño e inusual ¿no le parece?"],
                 correctas: ["se dispone a introducirlo en un jarrón que sostiene con la otra mano. Algo extraño e inusual ¿no le parece?"],
                 multiple: true
@@ -269,7 +269,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-es",
                 tipo: "opcion-multiple",
-                pregunta: "32. En el centro El barbudo y el león:",
+                pregunta: "En el centro El barbudo y el león:",
                 opciones: ["Original y contradictoria escena en la cual el manso es precisamente el león y no el anciano barbudo."],
                 correctas: ["Original y contradictoria escena en la cual el manso es precisamente el león y no el anciano barbudo."],
                 multiple: true
@@ -278,7 +278,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-es",
                 tipo: "opcion-multiple",
-                pregunta: "33. ¡Aquí va un reto extra! ¡Busque al fornicador de la lonja!",
+                pregunta: "¡Aquí va un reto extra! ¡Busque al fornicador de la lonja!",
                 opciones: ["En una de sus ventanas, hallará a un hombre tallado, no se le advierte su cabeza, pero sí sus genitales, Y muy claramente."],
                 correctas: ["En una de sus ventanas, hallará a un hombre tallado, no se le advierte su cabeza, pero sí sus genitales, Y muy claramente."],
                 multiple: true
@@ -287,7 +287,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-es",
                 tipo: "opcion",
-                pregunta: "34. ¿Qué sujeta la figura con sus manos?",
+                pregunta: "¿Qué sujeta la figura con sus manos?",
                 opciones: ["Un escudo", "Una concha", "Una jarra", "Una espada"],
                 correctas: ["Una concha"],
                 multiple: false
@@ -311,7 +311,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-en",
                 tipo: "opcion",
-                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                pregunta: "How many adventures can be done with Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -320,7 +320,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-en",
                 tipo: "opcion",
-                pregunta: "2. Is it a good time to start your adventure?",
+                pregunta: "Is it a good time to start your adventure?",
                 opciones: ["Yes", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -329,7 +329,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-en",
                 tipo: "opcion",
-                pregunta: "3. Can you tell me the names of these towers?",
+                pregunta: "Can you tell me the names of these towers?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -338,7 +338,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-en",
                 tipo: "opcion",
-                pregunta: "4. At the top of the towers flies the flag of Valencia: its colors are red, yellow, and…?",
+                pregunta: "At the top of the towers flies the flag of Valencia: its colors are red, yellow, and…?",
                 opciones: ["Violet", "Green", "Blue"],
                 correctas: ["Blue"],
                 multiple: false
@@ -347,14 +347,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-en",
                 tipo: "texto",
-                pregunta: "5. Can you tell me the name of the street?",
+                pregunta: "Can you tell me the name of the street?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-en",
                 tipo: "opcion",
-                pregunta: "6. What does Saint Lawrence hold in his hand?",
+                pregunta: "What does Saint Lawrence hold in his hand?",
                 opciones: ["A Dove", "A Spoon", "A Grill"],
                 correctas: ["A Grill"],
                 multiple: false
@@ -363,7 +363,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-en",
                 tipo: "opcion",
-                pregunta: "7. With which hand does Neptune hold the cornucopia?",
+                pregunta: "With which hand does Neptune hold the cornucopia?",
                 opciones: ["Left", "Right"],
                 correctas: ["Right"],
                 multiple: false
@@ -372,7 +372,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-en",
                 tipo: "texto",
-                pregunta: "8. How many figures surround the fountain?",
+                pregunta: "How many figures surround the fountain?",
                 correctas: ["8"]
             },
             {
@@ -385,7 +385,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-en",
                 tipo: "opcion",
-                pregunta: "10. What sculpted figure can be seen in the frame of the painting?",
+                pregunta: "What sculpted figure can be seen in the frame of the painting?",
                 opciones: ["A Dragon", "A Bat", "A Crown"],
                 correctas: ["A Crown"],
                 multiple: false
@@ -394,7 +394,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-en",
                 tipo: "opcion-multiple",
-                pregunta: "11. What can be seen inside?",
+                pregunta: "What can be seen inside?",
                 opciones: ["An Altar", "A Flag", "A Sword"],
                 correctas: ["An Altar", "A Flag"],
                 multiple: true
@@ -403,21 +403,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-en",
                 tipo: "texto",
-                pregunta: "12. On this there is a commemorative plaque. In which year was it placed?",
+                pregunta: "On this there is a commemorative plaque. In which year was it placed?",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-en",
                 tipo: "texto",
-                pregunta: "13. In which year was this building constructed? Hint: look at the top of the facade.",
+                pregunta: "In which year was this building constructed? Hint: look at the top of the facade.",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-en",
                 tipo: "opcion",
-                pregunta: "14. What can be seen inside?",
+                pregunta: "What can be seen inside?",
                 opciones: ["A Bullring", "Roman Baths", "A Metro Station"],
                 correctas: ["Roman Baths"],
                 multiple: false
@@ -432,7 +432,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-en",
                 tipo: "opcion",
-                pregunta: "16. Can you determine its geometry?",
+                pregunta: "Can you determine its geometry?",
                 opciones: ["Hexagonal", "Octagonal", "Quadrangular"],
                 correctas: ["Hexagonal"],
                 multiple: false
@@ -441,14 +441,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-en",
                 tipo: "texto",
-                pregunta: "17. How many arches make up the gate?",
+                pregunta: "How many arches make up the gate?",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-en",
                 tipo: "opcion",
-                pregunta: "18. Do you remember which animal crowns the municipal coat of arms?",
+                pregunta: "Do you remember which animal crowns the municipal coat of arms?",
                 opciones: ["A Dragon", "A Bat", "A Horse"],
                 correctas: ["A Bat"],
                 multiple: false
@@ -457,7 +457,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-en",
                 tipo: "opcion",
-                pregunta: "19. Pay attention to the facade of the first tower! Which citrus fruit native to Valencia decorates it?",
+                pregunta: "Pay attention to the facade of the first tower! Which citrus fruit native to Valencia decorates it?",
                 opciones: ["Lemons", "Grapefruits", "Oranges"],
                 correctas: ["Oranges"],
                 multiple: false
@@ -472,14 +472,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-en",
                 tipo: "texto",
-                pregunta: "21. Can you tell me what business is in this building?",
+                pregunta: "Can you tell me what business is in this building?",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-en",
                 tipo: "opcion-multiple",
-                pregunta: "22. Above the main entrance, in a semicircular arch, allegorical figures represent the five continents. What does the central figure hold?",
+                pregunta: "Above the main entrance, in a semicircular arch, allegorical figures represent the five continents. What does the central figure hold?",
                 opciones: ["A Torch", "A Sword", "A Crown"],
                 correctas: ["A Torch", "A Sword"],
                 multiple: true
@@ -488,7 +488,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-en",
                 tipo: "opcion",
-                pregunta: "23. What does the figure hold in its hand?",
+                pregunta: "What does the figure hold in its hand?",
                 opciones: ["A Scale", "A Book", "A Feather"],
                 correctas: ["A Scale"],
                 multiple: false
@@ -497,14 +497,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-en",
                 tipo: "texto",
-                pregunta: "24. How many floors does the building have?",
+                pregunta: "How many floors does the building have?",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-en",
                 tipo: "opcion",
-                pregunta: "25. Look for the stained glass with the colors of the Valencian Senyera on the building facade. Can you determine its shape?",
+                pregunta: "Look for the stained glass with the colors of the Valencian Senyera on the building facade. Can you determine its shape?",
                 opciones: ["Quadrangular", "Roundy", "Triangular"],
                 correctas: ["Roundy"],
                 multiple: false
@@ -513,7 +513,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-en",
                 tipo: "opcion-multiple",
-                pregunta: "26. What does the Virgin hold in her hand?",
+                pregunta: "What does the Virgin hold in her hand?",
                 opciones: ["A Rosary", "A Child", "A Crown"],
                 correctas: ["A Rosary", "A Child"],
                 multiple: true
@@ -522,7 +522,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-en",
                 tipo: "opcion",
-                pregunta: "27. What does the angel give to the child?",
+                pregunta: "What does the angel give to the child?",
                 opciones: ["A Dove", "An Orb", "Food"],
                 correctas: ["An Orb"],
                 multiple: false
@@ -537,7 +537,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-en",
                 tipo: "opcion-multiple",
-                pregunta: "29. The ferryman rowing against the current.",
+                pregunta: "The ferryman rowing against the current.",
                 opciones: ["A man with a sad face steering a small wooden boat escapes against the current from a monster."],
                 correctas: ["A man with a sad face steering a small wooden boat escapes against the current from a monster."],
                 multiple: true
@@ -546,7 +546,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-en",
                 tipo: "opcion-multiple",
-                pregunta: "30. A dead tree: symbol of Sin, is seen between the two leaves of the door and acts as a mullion.",
+                pregunta: "A dead tree: symbol of Sin, is seen between the two leaves of the door and acts as a mullion.",
                 opciones: ["Notice on the tree's top 4 naked men whipping each other."],
                 correctas: ["Notice on the tree's top 4 naked men whipping each other."],
                 multiple: true
@@ -555,7 +555,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-en",
                 tipo: "opcion-multiple",
-                pregunta: "31. On the right, an angel shows his penis and…",
+                pregunta: "On the right, an angel shows his penis and…",
                 opciones: ["He is about to place it in a vase held with the other hand. Strange and unusual, isn't it?"],
                 correctas: ["He is about to place it in a vase held with the other hand. Strange and unusual, isn't it?"],
                 multiple: true
@@ -564,7 +564,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-en",
                 tipo: "opcion-multiple",
-                pregunta: "32. In the center: The Bearded Man and the Lion:",
+                pregunta: "In the center: The Bearded Man and the Lion:",
                 opciones: ["Original and contradictory scene in which the gentle one is precisely the lion and not the bearded old man."],
                 correctas: ["Original and contradictory scene in which the gentle one is precisely the lion and not the bearded old man."],
                 multiple: true
@@ -573,7 +573,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-en",
                 tipo: "opcion-multiple",
-                pregunta: "33. Here's an extra challenge! Look for the fornicator in the Silk Exchange!",
+                pregunta: "Here's an extra challenge! Look for the fornicator in the Silk Exchange!",
                 opciones: ["In one of its windows, you will find a carved man; his head is not visible but his genitals are, very clearly."],
                 correctas: ["In one of its windows, you will find a carved man; his head is not visible but his genitals are, very clearly."],
                 multiple: true
@@ -582,7 +582,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-en",
                 tipo: "opcion",
-                pregunta: "34. What is the figure holding in its hands?",
+                pregunta: "What is the figure holding in its hands?",
                 opciones: ["A shield", "A shell", "A jug", "A sword"],
                 correctas: ["A shell"],
                 multiple: false
@@ -606,7 +606,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-fr",
                 tipo: "opcion",
-                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                pregunta: "Combien d'aventures peut-on faire avec Valencia be Guides ?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -615,7 +615,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-fr",
                 tipo: "opcion",
-                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                pregunta: "Est-ce le bon moment pour commencer votre aventure ?",
                 opciones: ["Oui", "Non"],
                 correctas: ["?"],
                 multiple: false
@@ -624,7 +624,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-fr",
                 tipo: "opcion",
-                pregunta: "2. Pouvez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Pouvez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -633,7 +633,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-fr",
                 tipo: "opcion",
-                pregunta: "3. Au sommet des tours flotte le drapeau de Valence : ses couleurs sont rouge, jaune et… ?",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont rouge, jaune et… ?",
                 opciones: ["Violet", "Vert", "Bleu"],
                 correctas: ["Bleu"],
                 multiple: false
@@ -642,14 +642,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-fr",
                 tipo: "texto",
-                pregunta: "4. Pouvez-vous me donner le nom de la rue ?",
+                pregunta: "Pouvez-vous me donner le nom de la rue ?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-fr",
                 tipo: "opcion",
-                pregunta: "5. Que tient Saint Laurent dans sa main ?",
+                pregunta: "Que tient Saint Laurent dans sa main ?",
                 opciones: ["Une colombe", "Une cuillère", "Une grille"],
                 correctas: ["Une grille"],
                 multiple: false
@@ -658,7 +658,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-fr",
                 tipo: "opcion",
-                pregunta: "6. Avec quelle main Neptune tient-il la corne d'abondance ?",
+                pregunta: "Avec quelle main Neptune tient-il la corne d'abondance ?",
                 opciones: ["Gauche", "Droite"],
                 correctas: ["Droite"],
                 multiple: false
@@ -667,7 +667,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-fr",
                 tipo: "texto",
-                pregunta: "7. Combien de figures entourent la fontaine ?",
+                pregunta: "Combien de figures entourent la fontaine ?",
                 correctas: ["8"]
             },
             {
@@ -680,7 +680,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-fr",
                 tipo: "opcion",
-                pregunta: "9. Quelle figure sculptée peut-on voir dans le cadre du tableau ?",
+                pregunta: "Quelle figure sculptée peut-on voir dans le cadre du tableau ?",
                 opciones: ["Un dragon", "Une chauve-souris", "Une couronne"],
                 correctas: ["Une couronne"],
                 multiple: false
@@ -689,7 +689,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "10. Que peut-on voir à l'intérieur ?",
+                pregunta: "Que peut-on voir à l'intérieur ?",
                 opciones: ["Un autel", "Un drapeau", "Une épée"],
                 correctas: ["Un autel", "Un drapeau"],
                 multiple: true
@@ -698,21 +698,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-fr",
                 tipo: "texto",
-                pregunta: "11. Sur celui-ci se trouve une plaque commémorative. En quelle année a-t-elle été placée ?",
+                pregunta: "Sur celui-ci se trouve une plaque commémorative. En quelle année a-t-elle été placée ?",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-fr",
                 tipo: "texto",
-                pregunta: "12. En quelle année ce bâtiment a-t-il été construit ? Indice : regardez en haut de la façade.",
+                pregunta: "En quelle année ce bâtiment a-t-il été construit ? Indice : regardez en haut de la façade.",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-fr",
                 tipo: "opcion",
-                pregunta: "13. Que peut-on voir à l'intérieur ?",
+                pregunta: "Que peut-on voir à l'intérieur ?",
                 opciones: ["Une arène", "Des bains romains", "Une station de métro"],
                 correctas: ["Des bains romains"],
                 multiple: false
@@ -727,7 +727,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-fr",
                 tipo: "opcion",
-                pregunta: "15. Pouvez-vous déterminer sa géométrie ?",
+                pregunta: "Pouvez-vous déterminer sa géométrie ?",
                 opciones: ["Hexagonal", "Octogonal", "Quadrangulaire"],
                 correctas: ["Hexagonal"],
                 multiple: false
@@ -736,14 +736,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-fr",
                 tipo: "texto",
-                pregunta: "16. Combien d'arcs composent la porte ?",
+                pregunta: "Combien d'arcs composent la porte ?",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-fr",
                 tipo: "opcion",
-                pregunta: "17. Vous souvenez-vous de quel animal couronne le blason municipal ?",
+                pregunta: "Vous souvenez-vous de quel animal couronne le blason municipal ?",
                 opciones: ["Un dragon", "Une chauve-souris", "Un cheval"],
                 correctas: ["Une chauve-souris"],
                 multiple: false
@@ -752,7 +752,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-fr",
                 tipo: "opcion",
-                pregunta: "18. Regardez la façade de la première tour ! Quel fruit d'agrumes de Valence la décore ?",
+                pregunta: "Regardez la façade de la première tour ! Quel fruit d'agrumes de Valence la décore ?",
                 opciones: ["Citrons", "Pamplemousses", "Oranges"],
                 correctas: ["Oranges"],
                 multiple: false
@@ -767,14 +767,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-fr",
                 tipo: "texto",
-                pregunta: "20. Pouvez-vous me dire quelle entreprise occupe ce bâtiment ?",
+                pregunta: "Pouvez-vous me dire quelle entreprise occupe ce bâtiment ?",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "21. Au-dessus de l'entrée principale, dans un arc en plein cintre, des figures allégoriques représentent les cinq continents. Que tient la figure centrale ?",
+                pregunta: "Au-dessus de l'entrée principale, dans un arc en plein cintre, des figures allégoriques représentent les cinq continents. Que tient la figure centrale ?",
                 opciones: ["Une torche", "Une épée", "Une couronne"],
                 correctas: ["Une torche", "Une épée"],
                 multiple: true
@@ -783,7 +783,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-fr",
                 tipo: "opcion",
-                pregunta: "22. Que tient la figure dans sa main ?",
+                pregunta: "Que tient la figure dans sa main ?",
                 opciones: ["Une balance", "Un livre", "Une plume"],
                 correctas: ["Une balance"],
                 multiple: false
@@ -792,14 +792,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-fr",
                 tipo: "texto",
-                pregunta: "23. Combien d'étages a le bâtiment ?",
+                pregunta: "Combien d'étages a le bâtiment ?",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-fr",
                 tipo: "opcion",
-                pregunta: "24. Cherchez le vitrail avec les couleurs de la Senyera valencienne sur la façade du bâtiment. Pouvez-vous déterminer sa forme ?",
+                pregunta: "Cherchez le vitrail avec les couleurs de la Senyera valencienne sur la façade du bâtiment. Pouvez-vous déterminer sa forme ?",
                 opciones: ["Quadrangulaire", "Ronde", "Triangulaire"],
                 correctas: ["Ronde"],
                 multiple: false
@@ -808,7 +808,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "25. Que tient la Vierge dans sa main ?",
+                pregunta: "Que tient la Vierge dans sa main ?",
                 opciones: ["Un chapelet", "Un enfant", "Une couronne"],
                 correctas: ["Un chapelet", "Un enfant"],
                 multiple: true
@@ -817,7 +817,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-fr",
                 tipo: "opcion",
-                pregunta: "26. Que donne l'ange à l'enfant ?",
+                pregunta: "Que donne l'ange à l'enfant ?",
                 opciones: ["Une colombe", "Un orbe", "Des aliments"],
                 correctas: ["Un orbe"],
                 multiple: false
@@ -832,7 +832,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "29. Le batelier qui rame à contre-courant.",
+                pregunta: "Le batelier qui rame à contre-courant.",
                 opciones: ["Un homme au visage triste dirige un petit bateau en bois pour échapper à contre-courant à un monstre."],
                 correctas: ["Un homme au visage triste dirige un petit bateau en bois pour échapper à contre-courant à un monstre."],
                 multiple: true
@@ -841,7 +841,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "30. Un arbre mort : symbole du péché, se trouve entre les deux feuilles de la porte et fait office de meneau.",
+                pregunta: "Un arbre mort : symbole du péché, se trouve entre les deux feuilles de la porte et fait office de meneau.",
                 opciones: ["Observez au sommet de l'arbre quatre hommes nus qui se flagellent entre eux."],
                 correctas: ["Observez au sommet de l'arbre quatre hommes nus qui se flagellent entre eux."],
                 multiple: true
@@ -850,7 +850,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "31. À droite, un ange montre son pénis et…",
+                pregunta: "À droite, un ange montre son pénis et…",
                 opciones: ["Il s'apprête à le placer dans un vase qu'il tient de l'autre main. Étrange et inhabituel, n'est-ce pas ?"],
                 correctas: ["Il s'apprête à le placer dans un vase qu'il tient de l'autre main. Étrange et inhabituel, n'est-ce pas ?"],
                 multiple: true
@@ -859,7 +859,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "32. Au centre : L'homme barbu et le lion :",
+                pregunta: "Au centre : L'homme barbu et le lion :",
                 opciones: ["Scène originale et contradictoire où le doux est précisément le lion et non le vieil homme barbu."],
                 correctas: ["Scène originale et contradictoire où le doux est précisément le lion et non le vieil homme barbu."],
                 multiple: true
@@ -868,7 +868,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "33. Voici un défi supplémentaire ! Cherchez le fornicateur de la Bourse de la soie !",
+                pregunta: "Voici un défi supplémentaire ! Cherchez le fornicateur de la Bourse de la soie !",
                 opciones: ["Dans une de ses fenêtres, vous trouverez un homme sculpté ; sa tête n'est pas visible mais ses parties génitales le sont, très clairement."],
                 correctas: ["Dans une de ses fenêtres, vous trouverez un homme sculpté ; sa tête n'est pas visible mais ses parties génitales le sont, très clairement."],
                 multiple: true
@@ -877,7 +877,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-fr",
                 tipo: "opcion",
-                pregunta: "34. Que tient la figure dans ses mains ?",
+                pregunta: "Que tient la figure dans ses mains ?",
                 opciones: ["Un bouclier", "Une coquille", "Une cruche", "Une épée"],
                 correctas: ["Une coquille"],
                 multiple: false
@@ -901,7 +901,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-it",
                 tipo: "opcion",
-                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                pregunta: "Quante avventure si possono fare con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -910,7 +910,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la sua avventura?",
+                pregunta: "È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -919,7 +919,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-it",
                 tipo: "opcion",
-                pregunta: "2. Puoi dirmi come si chiamano queste torri?",
+                pregunta: "Puoi dirmi come si chiamano queste torri?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre di Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -928,7 +928,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-it",
                 tipo: "opcion",
-                pregunta: "3. In cima alle torri sventola la bandiera di Valencia: i suoi colori sono rosso, giallo e…?",
+                pregunta: "In cima alle torri sventola la bandiera di Valencia: i suoi colori sono rosso, giallo e…?",
                 opciones: ["Viola", "Verde", "Blu"],
                 correctas: ["Blu"],
                 multiple: false
@@ -937,14 +937,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-it",
                 tipo: "texto",
-                pregunta: "4. Sai dirmi il nome della via?",
+                pregunta: "Sai dirmi il nome della via?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-it",
                 tipo: "opcion",
-                pregunta: "5. Cosa tiene San Lorenzo in mano?",
+                pregunta: "Cosa tiene San Lorenzo in mano?",
                 opciones: ["Un colomba", "Un cucchiaio", "Una griglia"],
                 correctas: ["Una griglia"],
                 multiple: false
@@ -953,7 +953,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-it",
                 tipo: "opcion",
-                pregunta: "6. Con quale mano Nettuno tiene la cornucopia?",
+                pregunta: "Con quale mano Nettuno tiene la cornucopia?",
                 opciones: ["Sinistra", "Destra"],
                 correctas: ["Destra"],
                 multiple: false
@@ -962,7 +962,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-it",
                 tipo: "texto",
-                pregunta: "7. Quante figure circondano la fontana?",
+                pregunta: "Quante figure circondano la fontana?",
                 correctas: ["8"]
             },
             {
@@ -975,7 +975,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-it",
                 tipo: "opcion",
-                pregunta: "9. Quale figura scolpita si vede nella cornice del quadro?",
+                pregunta: "Quale figura scolpita si vede nella cornice del quadro?",
                 opciones: ["Un drago", "Un pipistrello", "Una corona"],
                 correctas: ["Una corona"],
                 multiple: false
@@ -984,7 +984,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "10. Cosa si può vedere all'interno?",
+                pregunta: "Cosa si può vedere all'interno?",
                 opciones: ["Un altare", "Una bandiera", "Una spada"],
                 correctas: ["Un altare", "Una bandiera"],
                 multiple: true
@@ -993,21 +993,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-it",
                 tipo: "texto",
-                pregunta: "11. Su di essa c'è una targa commemorativa. In che anno è stata esposta?",
+                pregunta: "Su di essa c'è una targa commemorativa. In che anno è stata esposta?",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-it",
                 tipo: "texto",
-                pregunta: "12. In che anno è stato costruito questo edificio? Suggerimento: guarda in alto sulla facciata.",
+                pregunta: "In che anno è stato costruito questo edificio? Suggerimento: guarda in alto sulla facciata.",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-it",
                 tipo: "opcion",
-                pregunta: "13. Cosa si può vedere all'interno?",
+                pregunta: "Cosa si può vedere all'interno?",
                 opciones: ["Un'arena", "Bagni romani", "Una stazione della metropolitana"],
                 correctas: ["Bagni romani"],
                 multiple: false
@@ -1022,7 +1022,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-it",
                 tipo: "opcion",
-                pregunta: "15. Sai determinarne la geometria?",
+                pregunta: "Sai determinarne la geometria?",
                 opciones: ["Esagonale", "Ottagonale", "Quadrangolare"],
                 correctas: ["Esagonale"],
                 multiple: false
@@ -1031,14 +1031,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-it",
                 tipo: "texto",
-                pregunta: "16. Quanti archi compongono la porta?",
+                pregunta: "Quanti archi compongono la porta?",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-it",
                 tipo: "opcion",
-                pregunta: "17. Ricordi quale animale corona lo stemma comunale?",
+                pregunta: "Ricordi quale animale corona lo stemma comunale?",
                 opciones: ["Un drago", "Un pipistrello", "Un cavallo"],
                 correctas: ["Un pipistrello"],
                 multiple: false
@@ -1047,7 +1047,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-it",
                 tipo: "opcion",
-                pregunta: "18. Guarda la facciata della prima torre! Quale agrume di Valencia la decora?",
+                pregunta: "Guarda la facciata della prima torre! Quale agrume di Valencia la decora?",
                 opciones: ["Limoni", "Pompelmi", "Arance"],
                 correctas: ["Arance"],
                 multiple: false
@@ -1062,14 +1062,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-it",
                 tipo: "texto",
-                pregunta: "20. Puoi dirmi quale attività si trova in questo edificio?",
+                pregunta: "Puoi dirmi quale attività si trova in questo edificio?",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "21. Sopra l'ingresso principale, in un arco a tutto sesto, figure allegoriche rappresentano i cinque continenti. Cosa tiene la figura centrale?",
+                pregunta: "Sopra l'ingresso principale, in un arco a tutto sesto, figure allegoriche rappresentano i cinque continenti. Cosa tiene la figura centrale?",
                 opciones: ["Una torcia", "Una spada", "Una corona"],
                 correctas: ["Una torcia", "Una spada"],
                 multiple: true
@@ -1078,7 +1078,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-it",
                 tipo: "opcion",
-                pregunta: "22. Cosa tiene la figura nella mano?",
+                pregunta: "Cosa tiene la figura nella mano?",
                 opciones: ["Una bilancia", "Un libro", "Una piuma"],
                 correctas: ["Una bilancia"],
                 multiple: false
@@ -1087,14 +1087,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-it",
                 tipo: "texto",
-                pregunta: "23. Quanti piani ha l'edificio?",
+                pregunta: "Quanti piani ha l'edificio?",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-it",
                 tipo: "opcion",
-                pregunta: "24. Cerca la vetrata con i colori della Senyera valenciana sulla facciata dell'edificio. Puoi determinarne la forma?",
+                pregunta: "Cerca la vetrata con i colori della Senyera valenciana sulla facciata dell'edificio. Puoi determinarne la forma?",
                 opciones: ["Cuadrangular", "Redonda", "Triangular"],
                 correctas: ["Redonda"],
                 multiple: false
@@ -1103,7 +1103,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "25. Cosa tiene la Vergine nella sua mano?",
+                pregunta: "Cosa tiene la Vergine nella sua mano?",
                 opciones: ["Un rosario", "Un bambino", "Una corona"],
                 correctas: ["Un rosario", "Un bambino"],
                 multiple: true
@@ -1112,7 +1112,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-it",
                 tipo: "opcion",
-                pregunta: "26. Cosa dà l'angelo al bambino?",
+                pregunta: "Cosa dà l'angelo al bambino?",
                 opciones: ["Una colomba", "Un orbe", "Cibo"],
                 correctas: ["Un orbe"],
                 multiple: false
@@ -1127,7 +1127,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "29. Il barcaiolo che rema controcorrente.",
+                pregunta: "Il barcaiolo che rema controcorrente.",
                 opciones: ["Un uomo con volto triste che manovra una piccola barca di legno fugge controcorrente da un mostro."],
                 correctas: ["Un uomo con volto triste che manovra una piccola barca di legno fugge controcorrente da un mostro."],
                 multiple: true
@@ -1136,7 +1136,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "30. Un albero morto: simbolo del Peccato, si vede tra le due foglie della porta e funge da parteluz.",
+                pregunta: "Un albero morto: simbolo del Peccato, si vede tra le due foglie della porta e funge da parteluz.",
                 opciones: ["Osserva sulla cima dell'albero come 4 uomini nudi si flagellano tra loro."],
                 correctas: ["Osserva sulla cima dell'albero come 4 uomini nudi si flagellano tra loro."],
                 multiple: true
@@ -1145,7 +1145,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "31. A destra, un angelo mostra il suo pene e...",
+                pregunta: "A destra, un angelo mostra il suo pene e...",
                 opciones: ["si appresta a introdurlo in un vaso che tiene con l'altra mano. Strano e insolito, non ti sembra?"],
                 correctas: ["si appresta a introdurlo in un vaso che tiene con l'altra mano. Strano e insolito, non ti sembra?"],
                 multiple: true
@@ -1154,7 +1154,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "32. Al centro: L'uomo barbuto e il leone:",
+                pregunta: "Al centro: L'uomo barbuto e il leone:",
                 opciones: ["Scena originale e contraddittoria in cui il mansueto è proprio il leone e non il vecchio uomo barbuto."],
                 correctas: ["Scena originale e contraddittoria in cui il mansueto è proprio il leone e non il vecchio uomo barbuto."],
                 multiple: true
@@ -1163,7 +1163,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "33. Ecco una sfida extra! Cerca il fornicatore della Lonja della Seta!",
+                pregunta: "Ecco una sfida extra! Cerca il fornicatore della Lonja della Seta!",
                 opciones: ["In una delle sue finestre, troverai un uomo scolpito; la sua testa non è visibile ma i suoi genitali lo sono, molto chiaramente."],
                 correctas: ["In una delle sue finestre, troverai un uomo scolpito; la sua testa non è visibile ma i suoi genitali lo sono, molto chiaramente."],
                 multiple: true
@@ -1172,7 +1172,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-it",
                 tipo: "opcion",
-                pregunta: "34. Cosa tiene in mano la figura?",
+                pregunta: "Cosa tiene in mano la figura?",
                 opciones: ["Uno scudo", "Una conchiglia", "Una brocca", "Una spada"],
                 correctas: ["Una conchiglia"],
                 multiple: false
@@ -1196,7 +1196,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
+                pregunta: "Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -1205,7 +1205,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
+                pregunta: "Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -1214,7 +1214,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-nl",
                 tipo: "opcion",
-                pregunta: "2. Kunt u mij de namen van deze torens vertellen?",
+                pregunta: "Kunt u mij de namen van deze torens vertellen?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -1223,7 +1223,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-nl",
                 tipo: "opcion",
-                pregunta: "3. Op de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…?",
+                pregunta: "Op de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…?",
                 opciones: ["Paars", "Groen", "Blauw"],
                 correctas: ["Blauw"],
                 multiple: false
@@ -1232,14 +1232,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-nl",
                 tipo: "texto",
-                pregunta: "4. Kunt u mij de naam van de straat vertellen?",
+                pregunta: "Kunt u mij de naam van de straat vertellen?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-nl",
                 tipo: "opcion",
-                pregunta: "5. Wat houdt Sint-Laurens in zijn hand?",
+                pregunta: "Wat houdt Sint-Laurens in zijn hand?",
                 opciones: ["Een duif", "Een lepel", "Een rooster"],
                 correctas: ["Een rooster"],
                 multiple: false
@@ -1248,7 +1248,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-nl",
                 tipo: "opcion",
-                pregunta: "6. Met welke hand houdt Neptunus de hoorn des overvloeds vast?",
+                pregunta: "Met welke hand houdt Neptunus de hoorn des overvloeds vast?",
                 opciones: ["Links", "Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -1257,7 +1257,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-nl",
                 tipo: "texto",
-                pregunta: "7. Hoeveel figuren omringen de fontein?",
+                pregunta: "Hoeveel figuren omringen de fontein?",
                 correctas: ["8"]
             },
             {
@@ -1270,7 +1270,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-nl",
                 tipo: "opcion",
-                pregunta: "9. Welke gebeeldhouwde figuur is te zien in de lijst van het schilderij?",
+                pregunta: "Welke gebeeldhouwde figuur is te zien in de lijst van het schilderij?",
                 opciones: ["Een draak", "Een vleermuis", "Een kroon"],
                 correctas: ["Een kroon"],
                 multiple: false
@@ -1279,7 +1279,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "10. Wat is er binnen te zien?",
+                pregunta: "Wat is er binnen te zien?",
                 opciones: ["Een altaar", "Een vlag", "Een zwaard"],
                 correctas: ["Een altaar", "Een vlag"],
                 multiple: true
@@ -1288,21 +1288,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-nl",
                 tipo: "texto",
-                pregunta: "11. Hierop staat een gedenkplaat. In welk jaar is deze geplaatst?",
+                pregunta: "Hierop staat een gedenkplaat. In welk jaar is deze geplaatst?",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-nl",
                 tipo: "texto",
-                pregunta: "12. In welk jaar is dit gebouw gebouwd? Tip: kijk bovenaan de gevel.",
+                pregunta: "In welk jaar is dit gebouw gebouwd? Tip: kijk bovenaan de gevel.",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-nl",
                 tipo: "opcion",
-                pregunta: "13. Wat is er binnen te zien?",
+                pregunta: "Wat is er binnen te zien?",
                 opciones: ["Een stierenarena", "Romeinse baden", "Een metrostation"],
                 correctas: ["Romeinse baden"],
                 multiple: false
@@ -1317,7 +1317,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-nl",
                 tipo: "opcion",
-                pregunta: "15. Kunt u de geometrie bepalen?",
+                pregunta: "Kunt u de geometrie bepalen?",
                 opciones: ["Zeshoekig", "Achthoekig", "Vierkant"],
                 correctas: ["Achthoekig"],
                 multiple: false
@@ -1326,14 +1326,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-nl",
                 tipo: "texto",
-                pregunta: "16. Hoeveel bogen vormen de poort?",
+                pregunta: "Hoeveel bogen vormen de poort?",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-nl",
                 tipo: "opcion",
-                pregunta: "17. Herinnert u zich welk dier het gemeentewapen siert?",
+                pregunta: "Herinnert u zich welk dier het gemeentewapen siert?",
                 opciones: ["Een draak", "Een vleermuis", "Een paard"],
                 correctas: ["Een vleermuis"],
                 multiple: false
@@ -1342,7 +1342,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-nl",
                 tipo: "opcion",
-                pregunta: "18. Let op de gevel van de eerste toren! Welke citrusvrucht uit Valencia siert de gevel?",
+                pregunta: "Let op de gevel van de eerste toren! Welke citrusvrucht uit Valencia siert de gevel?",
                 opciones: ["Citroenen", "Grapefruits", "Sinaasappels"],
                 correctas: ["Sinaasappels"],
                 multiple: false
@@ -1357,14 +1357,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-nl",
                 tipo: "texto",
-                pregunta: "20. Kunt u vertellen welk bedrijf dit gebouw huisvest?",
+                pregunta: "Kunt u vertellen welk bedrijf dit gebouw huisvest?",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "21. Boven de hoofdingang, in een rondboog, vertegenwoordigen allegorische figuren de vijf continenten. Wat houdt de centrale figuur vast?",
+                pregunta: "Boven de hoofdingang, in een rondboog, vertegenwoordigen allegorische figuren de vijf continenten. Wat houdt de centrale figuur vast?",
                 opciones: ["Een fakkel", "Een zwaard", "Een kroon"],
                 correctas: ["Een fakkel", "Een zwaard"],
                 multiple: true
@@ -1373,7 +1373,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-nl",
                 tipo: "opcion",
-                pregunta: "22. Wat houdt de figuur in zijn hand?",
+                pregunta: "Wat houdt de figuur in zijn hand?",
                 opciones: ["Een weegschaal", "Een boek", "Een veer"],
                 correctas: ["Een weegschaal"],
                 multiple: false
@@ -1382,14 +1382,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-nl",
                 tipo: "texto",
-                pregunta: "23. Hoeveel verdiepingen heeft het gebouw?",
+                pregunta: "Hoeveel verdiepingen heeft het gebouw?",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-nl",
                 tipo: "opcion",
-                pregunta: "24. Zoek het glas-in-lood met de kleuren van de Valenciaanse Senyera op de gevel. Kunt u de vorm bepalen?",
+                pregunta: "Zoek het glas-in-lood met de kleuren van de Valenciaanse Senyera op de gevel. Kunt u de vorm bepalen?",
                 opciones: ["Vierkant", "Rond", "Driehoekig"],
                 correctas: ["Rond"],
                 multiple: false
@@ -1398,7 +1398,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "25. Wat houdt de maagd in haar hand?",
+                pregunta: "Wat houdt de maagd in haar hand?",
                 opciones: ["Een rozenkrans", "Een kind", "Een kroon"],
                 correctas: ["Een rozenkrans", "Een kind"],
                 multiple: true
@@ -1407,7 +1407,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-nl",
                 tipo: "opcion",
-                pregunta: "26. Wat geeft de engel aan het kind?",
+                pregunta: "Wat geeft de engel aan het kind?",
                 opciones: ["Een duif", "Een bol", "Voedsel"],
                 correctas: ["Een bol"],
                 multiple: false
@@ -1422,7 +1422,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "29. De veerman die tegen de stroom in roeit.",
+                pregunta: "De veerman die tegen de stroom in roeit.",
                 opciones: ["Een man met een verdrietig gezin die een klein houten boot bestuurt ontsnapt tegen de stroom van een monster."],
                 correctas: ["Een man met een verdrietig gezin die een klein houten boot bestuurt ontsnapt tegen de stroom van een monster."],
                 multiple: true
@@ -1431,7 +1431,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "30. Een dode boom: symbool van Zonde, is te zien tussen de twee bladeren van de deur en fungeert als middenstijl.",
+                pregunta: "Een dode boom: symbool van Zonde, is te zien tussen de twee bladeren van de deur en fungeert als middenstijl.",
                 opciones: ["Let op de top van de boom waar 4 naakte mannen elkaar geselen."],
                 correctas: ["Let op de top van de boom waar 4 naakte mannen elkaar geselen."],
                 multiple: true
@@ -1440,7 +1440,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "31. Rechts, een engel toont zijn penis en...",
+                pregunta: "Rechts, een engel toont zijn penis en...",
                 opciones: ["hij staat op het punt het in een vaas te plaatsen dat hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, nietwaar?"],
                 correctas: ["hij staat op het punt het in een vaas te plaatsen dat hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, nietwaar?"],
                 multiple: true
@@ -1449,7 +1449,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "32. In het midden: De baardige man en de leeuw:",
+                pregunta: "In het midden: De baardige man en de leeuw:",
                 opciones: ["Origineel en tegenstrijdig tafereel waarin de zachte precies de leeuw is en niet de baardige oude man."],
                 correctas: ["Origineel en tegenstrijdig tafereel waarin de zachte precies de leeuw is en niet de baardige oude man."],
                 multiple: true
@@ -1458,7 +1458,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "33. Hier is een extra uitdaging! Zoek de fornicator in de Zijdehal!",
+                pregunta: "Hier is een extra uitdaging! Zoek de fornicator in de Zijdehal!",
                 opciones: ["In een van zijn ramen vindt u een uitgehouwen man; zijn hoofd is niet zichtbaar maar zijn genitaliën zijn, heel duidelijk."],
                 correctas: ["In een van zijn ramen vindt u een uitgehouwen man; zijn hoofd is niet zichtbaar maar zijn genitaliën zijn, heel duidelijk."],
                 multiple: true
@@ -1467,7 +1467,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-nl",
                 tipo: "opcion",
-                pregunta: "34. Wat houdt de figuur in zijn handen?",
+                pregunta: "Wat houdt de figuur in zijn handen?",
                 opciones: ["Een schild", "Een schelp", "Een kruik", "Een zwaard"],
                 correctas: ["Een schelp"],
                 multiple: false
@@ -1491,7 +1491,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-ja",
                 tipo: "opcion",
-                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                pregunta: "Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -1500,7 +1500,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-ja",
                 tipo: "opcion",
-                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                pregunta: "今は冒険を始めるのに良いタイミングですか？",
                 opciones: ["はい", "いいえ"],
                 correctas: ["?"],
                 multiple: false
@@ -1509,7 +1509,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-ja",
                 tipo: "opcion",
-                pregunta: "2. これらの塔の名前を教えてもらえますか？",
+                pregunta: "これらの塔の名前を教えてもらえますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -1518,7 +1518,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-ja",
                 tipo: "opcion",
-                pregunta: "3. 塔の頂上にはバレンシアの旗がはためいています。色は赤、黄、そして…？",
+                pregunta: "塔の頂上にはバレンシアの旗がはためいています。色は赤、黄、そして…？",
                 opciones: ["紫", "緑", "青"],
                 correctas: ["青"],
                 multiple: false
@@ -1527,14 +1527,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-ja",
                 tipo: "texto",
-                pregunta: "4. この通りの名前を教えてもらえますか？",
+                pregunta: "この通りの名前を教えてもらえますか？",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-ja",
                 tipo: "opcion",
-                pregunta: "5. 聖ロレンスは手に何を持っていますか？",
+                pregunta: "聖ロレンスは手に何を持っていますか？",
                 opciones: ["ハト", "スプーン", "グリル"],
                 correctas: ["グリル"],
                 multiple: false
@@ -1543,7 +1543,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-ja",
                 tipo: "opcion",
-                pregunta: "6. ネプチューンはどちらの手で角笛を持っていますか？",
+                pregunta: "ネプチューンはどちらの手で角笛を持っていますか？",
                 opciones: ["左手", "右手"],
                 correctas: ["右手"],
                 multiple: false
@@ -1552,7 +1552,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-ja",
                 tipo: "texto",
-                pregunta: "7. 噴水の周りにはいくつの像がありますか？",
+                pregunta: "噴水の周りにはいくつの像がありますか？",
                 correctas: ["8"]
             },
             {
@@ -1565,7 +1565,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-ja",
                 tipo: "opcion",
-                pregunta: "9. 絵の額縁にはどの彫刻が見えますか？",
+                pregunta: "絵の額縁にはどの彫刻が見えますか？",
                 opciones: ["ドラゴン", "コウモリ", "王冠"],
                 correctas: ["王冠"],
                 multiple: false
@@ -1574,7 +1574,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "10. 内部には何が見えますか？",
+                pregunta: "内部には何が見えますか？",
                 opciones: ["祭壇", "旗", "剣"],
                 correctas: ["祭壇", "旗"],
                 multiple: true
@@ -1583,21 +1583,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-ja",
                 tipo: "texto",
-                pregunta: "11. この場所には記念プレートがあります。設置された年はいつですか？",
+                pregunta: "この場所には記念プレートがあります。設置された年はいつですか？",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-ja",
                 tipo: "texto",
-                pregunta: "12. この建物は何年に建てられましたか？ヒント：ファサードの上部を見てください。",
+                pregunta: "この建物は何年に建てられましたか？ヒント：ファサードの上部を見てください。",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-ja",
                 tipo: "opcion",
-                pregunta: "13. 内部には何が見えますか？",
+                pregunta: "内部には何が見えますか？",
                 opciones: ["闘牛場", "ローマ風浴場", "地下鉄駅"],
                 correctas: ["ローマ風浴場"],
                 multiple: false
@@ -1612,7 +1612,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-ja",
                 tipo: "opcion",
-                pregunta: "15. 形状を判定できますか？",
+                pregunta: "形状を判定できますか？",
                 opciones: ["「六角形」", "「八角形」", "「四角形」"],
                 correctas: ["「六角形」"],
                 multiple: false
@@ -1621,14 +1621,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-ja",
                 tipo: "texto",
-                pregunta: "16. 門はいくつのアーチで構成されていますか？",
+                pregunta: "門はいくつのアーチで構成されていますか？",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-ja",
                 tipo: "opcion",
-                pregunta: "17. 市章の上にいる動物を覚えていますか？",
+                pregunta: "市章の上にいる動物を覚えていますか？",
                 opciones: ["ドラゴン", "コウモリ", "馬"],
                 correctas: ["コウモリ"],
                 multiple: false
@@ -1637,7 +1637,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-ja",
                 tipo: "opcion",
-                pregunta: "18. 第一の塔のファサードに注目！どの柑橘類が装飾されていますか？",
+                pregunta: "第一の塔のファサードに注目！どの柑橘類が装飾されていますか？",
                 opciones: ["レモン", "グレープフルーツ", "オレンジ"],
                 correctas: ["オレンジ"],
                 multiple: false
@@ -1652,14 +1652,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-ja",
                 tipo: "texto",
-                pregunta: "20. この建物にはどの商店が入っていますか？",
+                pregunta: "この建物にはどの商店が入っていますか？",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "21. 正面入口の上の半円アーチには、5大陸を表す寓意的な像があります。中央の像は何を持っていますか？",
+                pregunta: "正面入口の上の半円アーチには、5大陸を表す寓意的な像があります。中央の像は何を持っていますか？",
                 opciones: ["たいまつ", "剣", "王冠"],
                 correctas: ["たいまつ", "剣"],
                 multiple: true
@@ -1668,7 +1668,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-ja",
                 tipo: "opcion",
-                pregunta: "22. この像は手に何を持っていますか？",
+                pregunta: "この像は手に何を持っていますか？",
                 opciones: ["天秤", "本", "羽ペン"],
                 correctas: ["天秤"],
                 multiple: false
@@ -1677,14 +1677,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-ja",
                 tipo: "texto",
-                pregunta: "22. 建物は何階建てですか？",
+                pregunta: "建物は何階建てですか？",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-ja",
                 tipo: "opcion",
-                pregunta: "23. ファサードのバレンシアのセニェーラの色のステンドグラスを探してください。形状は何ですか？",
+                pregunta: "ファサードのバレンシアのセニェーラの色のステンドグラスを探してください。形状は何ですか？",
                 opciones: ["「四角形」", "「円形」", "「三角形」"],
                 correctas: ["「円形」"],
                 multiple: false
@@ -1693,7 +1693,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "24. 聖母は手に何を持っていますか？",
+                pregunta: "聖母は手に何を持っていますか？",
                 opciones: ["ロザリオ", "子供", "王冠"],
                 correctas: ["ロザリオ", "子供"],
                 multiple: true
@@ -1702,7 +1702,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-ja",
                 tipo: "opcion",
-                pregunta: "26. 天使は子供に何を渡していますか？",
+                pregunta: "天使は子供に何を渡していますか？",
                 opciones: ["鳩", "オーブ", "食べ物"],
                 correctas: ["オーブ"],
                 multiple: false
@@ -1717,7 +1717,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "29. 逆流を漕ぐ船頭。",
+                pregunta: "逆流を漕ぐ船頭。",
                 opciones: ["悲しい表情の男が小さな木製の舟を操り、怪物から逃げるように逆流を進んでいる。"],
                 correctas: ["悲しい表情の男が小さな木製の舟を操り、怪物から逃げるように逆流を進んでいる。"],
                 multiple: true
@@ -1726,7 +1726,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "30. 死んだ木：罪の象徴、門の2枚の扉の間にあり、中央の柱として機能しています。",
+                pregunta: "死んだ木：罪の象徴、門の2枚の扉の間にあり、中央の柱として機能しています。",
                 opciones: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
                 correctas: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
                 multiple: true
@@ -1735,7 +1735,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "31. 右側、天使が陰茎を見せて…",
+                pregunta: "右側、天使が陰茎を見せて…",
                 opciones: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
                 correctas: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
                 multiple: true
@@ -1744,7 +1744,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "32. 中央：ひげの男とライオン：",
+                pregunta: "中央：ひげの男とライオン：",
                 opciones: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
                 correctas: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
                 multiple: true
@@ -1753,7 +1753,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "33. ここで追加チャレンジ！絹の取引所の乱交者を探してください！",
+                pregunta: "ここで追加チャレンジ！絹の取引所の乱交者を探してください！",
                 opciones: ["窓の一つに彫刻された男性がいます。頭は見えませんが、性器ははっきり見えます。"],
                 correctas: ["窓の一つに彫刻された男性がいます。頭は見えませんが、性器ははっきり見えます。"],
                 multiple: true
@@ -1762,7 +1762,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-ja",
                 tipo: "opcion",
-                pregunta: "34. この像は手に何を持っていますか？",
+                pregunta: "この像は手に何を持っていますか？",
                 opciones: ["盾", "貝殻", "水差し", "剣"],
                 correctas: ["貝殻"],
                 multiple: false
@@ -1786,7 +1786,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-de",
                 tipo: "opcion",
-                pregunta: "1. Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+                pregunta: "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -1795,7 +1795,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-de",
                 tipo: "opcion",
-                pregunta: "2. Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+                pregunta: "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
                 opciones: ["Ja", "Nein"],
                 correctas: ["?"],
                 multiple: false
@@ -1804,7 +1804,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-de",
                 tipo: "opcion",
-                pregunta: "3. Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -1813,7 +1813,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-de",
                 tipo: "opcion",
-                pregunta: "4. Auf dem Gipfel der Türme weht die Flagge von Valencia: Ihre Farben sind Rot, Gelb und…?",
+                pregunta: "Auf dem Gipfel der Türme weht die Flagge von Valencia: Ihre Farben sind Rot, Gelb und…?",
                 opciones: ["Violett", "Grün", "Blau"],
                 correctas: ["Blau"],
                 multiple: false
@@ -1822,14 +1822,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-de",
                 tipo: "texto",
-                pregunta: "5. Können Sie mir den Namen der Straße nennen?",
+                pregunta: "Können Sie mir den Namen der Straße nennen?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-de",
                 tipo: "opcion",
-                pregunta: "6. Was trägt der heilige Laurentius in seiner Hand?",
+                pregunta: "Was trägt der heilige Laurentius in seiner Hand?",
                 opciones: ["Eine Taube", "Ein Löffel", "Ein Rost"],
                 correctas: ["Ein Rost"],
                 multiple: false
@@ -1838,7 +1838,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-de",
                 tipo: "opcion",
-                pregunta: "7. Mit welcher Hand hält Neptun das Füllhorn?",
+                pregunta: "Mit welcher Hand hält Neptun das Füllhorn?",
                 opciones: ["Links", "Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -1847,7 +1847,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-de",
                 tipo: "texto",
-                pregunta: "8. Wie viele Figuren umgeben den Brunnen?",
+                pregunta: "Wie viele Figuren umgeben den Brunnen?",
                 correctas: ["8"]
             },
             {
@@ -1860,7 +1860,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-de",
                 tipo: "opcion",
-                pregunta: "10. Welche skulptierte Figur ist im Rahmen des Gemäldes zu sehen?",
+                pregunta: "Welche skulptierte Figur ist im Rahmen des Gemäldes zu sehen?",
                 opciones: ["Ein Drache", "Eine Fledermaus", "Eine Krone"],
                 correctas: ["Eine Krone"],
                 multiple: false
@@ -1869,7 +1869,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "11. Was ist im Inneren zu sehen?",
+                pregunta: "Was ist im Inneren zu sehen?",
                 opciones: ["Ein Altar", "Eine Flagge", "Ein Schwert"],
                 correctas: ["Ein Altar", "Eine Flagge"],
                 multiple: true
@@ -1878,21 +1878,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-de",
                 tipo: "texto",
-                pregunta: "12. Daran befindet sich eine Gedenktafel. In welchem Jahr wurde sie aufgestellt?",
+                pregunta: "Daran befindet sich eine Gedenktafel. In welchem Jahr wurde sie aufgestellt?",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-de",
                 tipo: "texto",
-                pregunta: "13. In welchem Jahr wurde dieses Gebäude errichtet? Tipp: Schauen Sie an der Oberseite der Fassade nach.",
+                pregunta: "In welchem Jahr wurde dieses Gebäude errichtet? Tipp: Schauen Sie an der Oberseite der Fassade nach.",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-de",
                 tipo: "opcion",
-                pregunta: "14. Was ist im Inneren zu sehen?",
+                pregunta: "Was ist im Inneren zu sehen?",
                 opciones: ["Eine Stierkampfarena", "Römische Bäder", "Eine U-Bahn-Station"],
                 correctas: ["Römische Bäder"],
                 multiple: false
@@ -1907,7 +1907,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-de",
                 tipo: "opcion",
-                pregunta: "16. Können Sie seine Geometrie bestimmen?",
+                pregunta: "Können Sie seine Geometrie bestimmen?",
                 opciones: ["Hexagonal", "Oktogonal", "Quadrangular"],
                 correctas: ["Hexagonal"],
                 multiple: false
@@ -1916,14 +1916,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-de",
                 tipo: "texto",
-                pregunta: "17. Wie viele Bögen bilden das Tor?",
+                pregunta: "Wie viele Bögen bilden das Tor?",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-de",
                 tipo: "opcion",
-                pregunta: "18. Erinnern Sie sich, welches Tier das Stadtwappen krönt?",
+                pregunta: "Erinnern Sie sich, welches Tier das Stadtwappen krönt?",
                 opciones: ["Ein Drache", "Eine Fledermaus", "Ein Pferd"],
                 correctas: ["Eine Fledermaus"],
                 multiple: false
@@ -1932,7 +1932,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-de",
                 tipo: "opcion",
-                pregunta: "19. Achten Sie auf die Fassade des ersten Turms! Welche Zitrusfrucht aus Valencia schmückt die Fassade?",
+                pregunta: "Achten Sie auf die Fassade des ersten Turms! Welche Zitrusfrucht aus Valencia schmückt die Fassade?",
                 opciones: ["Zitronen", "Grapefruits", "Orangen"],
                 correctas: ["Orangen"],
                 multiple: false
@@ -1947,14 +1947,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-de",
                 tipo: "texto",
-                pregunta: "21. Können Sie mir sagen, welches Gewerbe dieses Gebäude beherbergt?",
+                pregunta: "Können Sie mir sagen, welches Gewerbe dieses Gebäude beherbergt?",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "22. Über dem Haupteingang, in einem Rundbogen, repräsentieren allegorische Figuren die fünf Kontinente. Was hält die zentrale Figur?",
+                pregunta: "Über dem Haupteingang, in einem Rundbogen, repräsentieren allegorische Figuren die fünf Kontinente. Was hält die zentrale Figur?",
                 opciones: ["Eine Fackel", "Ein Schwert", "Eine Krone"],
                 correctas: ["Eine Fackel", "Ein Schwert"],
                 multiple: true
@@ -1963,7 +1963,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-de",
                 tipo: "opcion",
-                pregunta: "23. Was hält die Figur in seiner Hand?",
+                pregunta: "Was hält die Figur in seiner Hand?",
                 opciones: ["Eine Waage", "Ein Buch", "Eine Feder"],
                 correctas: ["Eine Waage"],
                 multiple: false
@@ -1972,14 +1972,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-de",
                 tipo: "texto",
-                pregunta: "24. Wie viele Stockwerke hat das Gebäude?",
+                pregunta: "Wie viele Stockwerke hat das Gebäude?",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-de",
                 tipo: "opcion",
-                pregunta: "25. Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade. Können Sie seine Form bestimmen?",
+                pregunta: "Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade. Können Sie seine Form bestimmen?",
                 opciones: ["Quadrangular", "Rund", "Dreieckig"],
                 correctas: ["Rund"],
                 multiple: false
@@ -1988,7 +1988,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "26. Was hält die Jungfrau in ihrer Hand?",
+                pregunta: "Was hält die Jungfrau in ihrer Hand?",
                 opciones: ["Ein Rosenkranz", "Ein Kind", "Eine Krone"],
                 correctas: ["Ein Rosenkranz", "Ein Kind"],
                 multiple: true
@@ -1997,7 +1997,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-de",
                 tipo: "opcion",
-                pregunta: "27. Was gibt der Engel dem Kind?",
+                pregunta: "Was gibt der Engel dem Kind?",
                 opciones: ["Eine Taube", "Eine Kugel", "Nahrung"],
                 correctas: ["Eine Kugel"],
                 multiple: false
@@ -2012,7 +2012,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "29. Der Fährmann, der gegen den Strom rudert.",
+                pregunta: "Der Fährmann, der gegen den Strom rudert.",
                 opciones: ["Ein Mann mit traurigem Gesicht, der ein kleines Holzboot steuert, entkommt einem Monster gegen den Strom."],
                 correctas: ["Ein Mann mit traurigem Gesicht, der ein kleines Holzboot steuert, entkommt einem Monster gegen den Strom."],
                 multiple: true
@@ -2021,7 +2021,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "30. Ein toter Baum: Symbol der Sünde, ist zwischen den beiden Türflügeln zu sehen und dient als Pfeilerstab.",
+                pregunta: "Ein toter Baum: Symbol der Sünde, ist zwischen den beiden Türflügeln zu sehen und dient als Pfeilerstab.",
                 opciones: ["Beobachten Sie an der Baumkrone, wie 4 nackte Männer sich gegenseitig auspeitschen."],
                 correctas: ["Beobachten Sie an der Baumkrone, wie 4 nackte Männer sich gegenseitig auspeitschen."],
                 multiple: true
@@ -2030,7 +2030,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "31. Rechts, ein Engel zeigt seinen Penis und...",
+                pregunta: "Rechts, ein Engel zeigt seinen Penis und...",
                 opciones: ["...er ist dabei, ihn in eine Vase einzuführen, die er mit der anderen Hand hält. Seltsam und ungewöhnlich, finden Sie nicht?"],
                 correctas: ["...er ist dabei, ihn in eine Vase einzuführen, die er mit der anderen Hand hält. Seltsam und ungewöhnlich, finden Sie nicht?"],
                 multiple: true
@@ -2039,7 +2039,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "32. In der Mitte: Der bärtige Mann und der Löwe:",
+                pregunta: "In der Mitte: Der bärtige Mann und der Löwe:",
                 opciones: ["Originale und widersprüchliche Szene, in der der sanfte genau der Löwe ist und nicht der bärtige alte Mann."],
                 correctas: ["Originale und widersprüchliche Szene, in der der sanfte genau der Löwe ist und nicht der bärtige alte Mann."],
                 multiple: true
@@ -2048,7 +2048,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "33. Hier eine zusätzliche Herausforderung! Suchen Sie den Fornikator der Seidenbörse!",
+                pregunta: "Hier eine zusätzliche Herausforderung! Suchen Sie den Fornikator der Seidenbörse!",
                 opciones: ["In einem seiner Fenster finden Sie einen gemeißelten Mann; sein Kopf ist nicht sichtbar, aber sein Geschlechtsorgan ist es, sehr deutlich."],
                 correctas: ["In einem seiner Fenster finden Sie einen gemeißelten Mann; sein Kopf ist nicht sichtbar, aber sein Geschlechtsorgan ist es, sehr deutlich."],
                 multiple: true
@@ -2057,7 +2057,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-de",
                 tipo: "opcion",
-                pregunta: "34. Was hält die Figur in ihren Händen?",
+                pregunta: "Was hält die Figur in ihren Händen?",
                 opciones: ["Einen Schild", "Eine Muschel", "Einen Krug", "Ein Schwert"],
                 correctas: ["Eine Muschel"],
                 multiple: false
@@ -2081,7 +2081,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-zh",
                 tipo: "opcion",
-                pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
+                pregunta: "使用Valencia be Guides可以进行多少次冒险？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -2090,7 +2090,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-zh",
                 tipo: "opcion",
-                pregunta: "2. 现在是开始冒险的好时机吗？",
+                pregunta: "现在是开始冒险的好时机吗？",
                 opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
@@ -2099,7 +2099,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-zh",
                 tipo: "opcion",
-                pregunta: "3. 您知道这些塔楼叫什么名字吗？",
+                pregunta: "您知道这些塔楼叫什么名字吗？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -2108,7 +2108,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-zh",
                 tipo: "opcion",
-                pregunta: "4. 塔楼顶部飘扬着巴伦西亚的旗帜，颜色由红色、黄色和……组成？",
+                pregunta: "塔楼顶部飘扬着巴伦西亚的旗帜，颜色由红色、黄色和……组成？",
                 opciones: ["紫色", "绿色", "蓝色"],
                 correctas: ["蓝色"],
                 multiple: false
@@ -2117,14 +2117,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-zh",
                 tipo: "texto",
-                pregunta: "5. 您能告诉我这条街道的名字吗？",
+                pregunta: "您能告诉我这条街道的名字吗？",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-zh",
                 tipo: "opcion",
-                pregunta: "6. 圣劳伦斯手中拿着什么？",
+                pregunta: "圣劳伦斯手中拿着什么？",
                 opciones: ["一只鸽子", "一把勺子", "一个烤架"],
                 correctas: ["一个烤架"],
                 multiple: false
@@ -2133,7 +2133,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-zh",
                 tipo: "opcion",
-                pregunta: "7. 海神尼普顿用哪只手拿着丰饶角？",
+                pregunta: "海神尼普顿用哪只手拿着丰饶角？",
                 opciones: ["左手", "右手"],
                 correctas: ["右手"],
                 multiple: false
@@ -2142,7 +2142,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-zh",
                 tipo: "texto",
-                pregunta: "8. 喷泉周围有多少座雕像？",
+                pregunta: "喷泉周围有多少座雕像？",
                 correctas: ["8"]
             },
             {
@@ -2155,7 +2155,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-zh",
                 tipo: "opcion",
-                pregunta: "10. 画框上可以看到什么雕刻图案？",
+                pregunta: "画框上可以看到什么雕刻图案？",
                 opciones: ["一条龙", "一只蝙蝠", "一顶王冠"],
                 correctas: ["一顶王冠"],
                 multiple: false
@@ -2164,7 +2164,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "11. 内部可以看到什么？",
+                pregunta: "内部可以看到什么？",
                 opciones: ["一座祭坛", "一面旗帜", "一把剑"],
                 correctas: ["一座祭坛", "一面旗帜"],
                 multiple: true
@@ -2173,21 +2173,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-zh",
                 tipo: "texto",
-                pregunta: "12. 上面有一块纪念牌匾。这块牌匾是哪年放置的？",
+                pregunta: "上面有一块纪念牌匾。这块牌匾是哪年放置的？",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-zh",
                 tipo: "texto",
-                pregunta: "13. 这栋建筑建于哪一年？提示：看建筑外立面的上部。",
+                pregunta: "这栋建筑建于哪一年？提示：看建筑外立面的上部。",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-zh",
                 tipo: "opcion",
-                pregunta: "14. 内部可以看到什么？",
+                pregunta: "内部可以看到什么？",
                 opciones: ["一个斗牛场", "罗马浴场", "一个地铁站"],
                 correctas: ["罗马浴场"],
                 multiple: false
@@ -2202,7 +2202,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-zh",
                 tipo: "opcion",
-                pregunta: "16. 您能判断它的几何形状吗？",
+                pregunta: "您能判断它的几何形状吗？",
                 opciones: ["六边形", "八边形", "四边形"],
                 correctas: ["六边形"],
                 multiple: false
@@ -2211,14 +2211,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-zh",
                 tipo: "texto",
-                pregunta: "17. 这扇门由几个拱形组成？",
+                pregunta: "这扇门由几个拱形组成？",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-zh",
                 tipo: "opcion",
-                pregunta: "18. 您还记得市徽上是什么动物吗？",
+                pregunta: "您还记得市徽上是什么动物吗？",
                 opciones: ["一条龙", "一只蝙蝠", "一匹马"],
                 correctas: ["一只蝙蝠"],
                 multiple: false
@@ -2227,7 +2227,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-zh",
                 tipo: "opcion",
-                pregunta: "19. 请注意第一座塔楼的外立面！哪种巴伦西亚本地柑橘类水果装饰着外立面？",
+                pregunta: "请注意第一座塔楼的外立面！哪种巴伦西亚本地柑橘类水果装饰着外立面？",
                 opciones: ["柠檬", "葡萄柚", "橙子"],
                 correctas: ["橙子"],
                 multiple: false
@@ -2242,14 +2242,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-zh",
                 tipo: "texto",
-                pregunta: "21. 您能告诉我这栋建筑里有什么商铺吗？",
+                pregunta: "您能告诉我这栋建筑里有什么商铺吗？",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "22. 在主入口上方的半圆拱门中，寓言人物代表五大洲。中央人物拿着什么？",
+                pregunta: "在主入口上方的半圆拱门中，寓言人物代表五大洲。中央人物拿着什么？",
                 opciones: ["一把火炬", "一把剑", "一顶王冠"],
                 correctas: ["一把火炬", "一把剑"],
                 multiple: true
@@ -2258,7 +2258,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-zh",
                 tipo: "opcion",
-                pregunta: "23. 这个人物手中拿着什么？",
+                pregunta: "这个人物手中拿着什么？",
                 opciones: ["一把天平", "一本书", "一根羽毛"],
                 correctas: ["一把天平"],
                 multiple: false
@@ -2267,14 +2267,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-zh",
                 tipo: "texto",
-                pregunta: "24. 这栋建筑有几层楼？",
+                pregunta: "这栋建筑有几层楼？",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-zh",
                 tipo: "opcion",
-                pregunta: "25. 在建筑外立面上寻找带有巴伦西亚旗帜颜色的彩色玻璃窗。您能判断它的形状吗？",
+                pregunta: "在建筑外立面上寻找带有巴伦西亚旗帜颜色的彩色玻璃窗。您能判断它的形状吗？",
                 opciones: ["四边形", "圆形", "三角形"],
                 correctas: ["圆形"],
                 multiple: false
@@ -2283,7 +2283,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "26. 圣母手中拿着什么？",
+                pregunta: "圣母手中拿着什么？",
                 opciones: ["一串玫瑰念珠", "一个孩子", "一顶王冠"],
                 correctas: ["一串玫瑰念珠", "一个孩子"],
                 multiple: true
@@ -2292,7 +2292,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-zh",
                 tipo: "opcion",
-                pregunta: "27. 天使给孩子什么？",
+                pregunta: "天使给孩子什么？",
                 opciones: ["一只鸽子", "一个宝球", "食物"],
                 correctas: ["一个宝球"],
                 multiple: false
@@ -2307,7 +2307,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "29. 逆流而上的船夫。",
+                pregunta: "逆流而上的船夫。",
                 opciones: ["一个面带愁容的男人驾驶着一艘小木船，逆流逃离一只怪物。"],
                 correctas: ["一个面带愁容的男人驾驶着一艘小木船，逆流逃离一只怪物。"],
                 multiple: true
@@ -2316,7 +2316,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "30. 一棵枯树：罪孽的象征，出现在门的两扇叶片之间，充当中柱。",
+                pregunta: "一棵枯树：罪孽的象征，出现在门的两扇叶片之间，充当中柱。",
                 opciones: ["观察树顶，4名裸男相互鞭打。"],
                 correctas: ["观察树顶，4名裸男相互鞭打。"],
                 multiple: true
@@ -2325,7 +2325,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "31. 右侧，一个天使展示着他的阴茎，并……",
+                pregunta: "右侧，一个天使展示着他的阴茎，并……",
                 opciones: ["准备将其插入另一只手拿着的花瓶中。奇怪而不寻常，不是吗？"],
                 correctas: ["准备将其插入另一只手拿着的花瓶中。奇怪而不寻常，不是吗？"],
                 multiple: true
@@ -2334,7 +2334,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "32. 中央：蓄胡子的男人和狮子：",
+                pregunta: "中央：蓄胡子的男人和狮子：",
                 opciones: ["原创而矛盾的场景，其中温顺的恰恰是狮子，而不是蓄胡子的老人。"],
                 correctas: ["原创而矛盾的场景，其中温顺的恰恰是狮子，而不是蓄胡子的老人。"],
                 multiple: true
@@ -2343,7 +2343,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "33. 这是一个额外挑战！寻找丝绸交易所的通奸者！",
+                pregunta: "这是一个额外挑战！寻找丝绸交易所的通奸者！",
                 opciones: ["在它的一扇窗户里，您会发现一个雕刻的男人；他的头部不可见，但他的生殖器非常清晰可见。"],
                 correctas: ["在它的一扇窗户里，您会发现一个雕刻的男人；他的头部不可见，但他的生殖器非常清晰可见。"],
                 multiple: true
@@ -2352,7 +2352,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-zh",
                 tipo: "opcion",
-                pregunta: "34. 这个雕像手里拿着什么？",
+                pregunta: "这个雕像手里拿着什么？",
                 opciones: ["盾牌", "贝壳", "水罐", "剑"],
                 correctas: ["贝壳"],
                 multiple: false
@@ -2376,7 +2376,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-pl",
                 tipo: "opcion",
-                pregunta: "1. Ile przygód można przeżyć z Valencia be Guides?",
+                pregunta: "Ile przygód można przeżyć z Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -2385,7 +2385,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-pl",
                 tipo: "opcion",
-                pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
+                pregunta: "Czy to dobry moment, aby rozpocząć przygodę?",
                 opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
@@ -2394,7 +2394,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-pl",
                 tipo: "opcion",
-                pregunta: "3. Czy może mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Czy może mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -2403,7 +2403,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-pl",
                 tipo: "opcion",
-                pregunta: "4. Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…?",
+                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…?",
                 opciones: ["Fioletowy", "Zielony", "Niebieski"],
                 correctas: ["Niebieski"],
                 multiple: false
@@ -2412,14 +2412,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-pl",
                 tipo: "texto",
-                pregunta: "5. Czy może mi Pan/Pani powiedzieć nazwę tej ulicy?",
+                pregunta: "Czy może mi Pan/Pani powiedzieć nazwę tej ulicy?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-pl",
                 tipo: "opcion",
-                pregunta: "6. Co trzyma święty Wawrzyniec w swojej ręce?",
+                pregunta: "Co trzyma święty Wawrzyniec w swojej ręce?",
                 opciones: ["Gołąb", "Łyżka", "Ruszt"],
                 correctas: ["Ruszt"],
                 multiple: false
@@ -2428,7 +2428,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-pl",
                 tipo: "opcion",
-                pregunta: "7. Którą ręką Neptun trzyma róg obfitości?",
+                pregunta: "Którą ręką Neptun trzyma róg obfitości?",
                 opciones: ["Lewą", "Prawą"],
                 correctas: ["Prawą"],
                 multiple: false
@@ -2437,7 +2437,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-pl",
                 tipo: "texto",
-                pregunta: "8. Ile figur otacza fontannę?",
+                pregunta: "Ile figur otacza fontannę?",
                 correctas: ["8"]
             },
             {
@@ -2450,7 +2450,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-pl",
                 tipo: "opcion",
-                pregunta: "10. Jaką rzeźbioną figurę można zobaczyć w ramie obrazu?",
+                pregunta: "Jaką rzeźbioną figurę można zobaczyć w ramie obrazu?",
                 opciones: ["Smok", "Nietoperz", "Korona"],
                 correctas: ["Korona"],
                 multiple: false
@@ -2459,7 +2459,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "11. Co można zobaczyć wewnątrz?",
+                pregunta: "Co można zobaczyć wewnątrz?",
                 opciones: ["Ołtarz", "Flaga", "Miecz"],
                 correctas: ["Ołtarz", "Flaga"],
                 multiple: true
@@ -2468,21 +2468,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-pl",
                 tipo: "texto",
-                pregunta: "12. Na nim znajduje się tablica pamiątkowa. W którym roku została umieszczona?",
+                pregunta: "Na nim znajduje się tablica pamiątkowa. W którym roku została umieszczona?",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-pl",
                 tipo: "texto",
-                pregunta: "13. W którym roku zbudowano tę kamienicę? Wskazówka: spójrz na górę fasady.",
+                pregunta: "W którym roku zbudowano tę kamienicę? Wskazówka: spójrz na górę fasady.",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-pl",
                 tipo: "opcion",
-                pregunta: "14. Co można zobaczyć wewnątrz?",
+                pregunta: "Co można zobaczyć wewnątrz?",
                 opciones: ["Arena do walk byków", "Łaźnie rzymskie", "Stacja metra"],
                 correctas: ["Łaźnie rzymskie"],
                 multiple: false
@@ -2497,7 +2497,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-pl",
                 tipo: "opcion",
-                pregunta: "16. Czy potrafi Pan/Pani określić jego geometrię?",
+                pregunta: "Czy potrafi Pan/Pani określić jego geometrię?",
                 opciones: ["Sześciokąt", "Ośmiokąt", "Czworokąt"],
                 correctas: ["Sześciokąt"],
                 multiple: false
@@ -2506,14 +2506,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-pl",
                 tipo: "texto",
-                pregunta: "17. Ile łuków tworzy bramę?",
+                pregunta: "Ile łuków tworzy bramę?",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-pl",
                 tipo: "opcion",
-                pregunta: "18. Czy pamięta Pan/Pani, jakie zwierzę wieńczy herb miejski?",
+                pregunta: "Czy pamięta Pan/Pani, jakie zwierzę wieńczy herb miejski?",
                 opciones: ["Smok", "Nietoperz", "Koń"],
                 correctas: ["Nietoperz"],
                 multiple: false
@@ -2522,7 +2522,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-pl",
                 tipo: "opcion",
-                pregunta: "19. Proszę zwrócić uwagę na fasadę pierwszej wieży! Jaki owoc cytrusowy z Walencji zdobi fasadę?",
+                pregunta: "Proszę zwrócić uwagę na fasadę pierwszej wieży! Jaki owoc cytrusowy z Walencji zdobi fasadę?",
                 opciones: ["Cytryny", "Grejpfruty", "Pomarańcze"],
                 correctas: ["Pomarańcze"],
                 multiple: false
@@ -2537,14 +2537,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-pl",
                 tipo: "texto",
-                pregunta: "21. Czy może mi Pan/Pani powiedzieć, jaki rodzaj działalności mieści ten budynek?",
+                pregunta: "Czy może mi Pan/Pani powiedzieć, jaki rodzaj działalności mieści ten budynek?",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "22. Nad głównym wejściem, w półokrągłym łuku, alegoryczne figury reprezentują pięć kontynentów. Co trzyma centralna figura?",
+                pregunta: "Nad głównym wejściem, w półokrągłym łuku, alegoryczne figury reprezentują pięć kontynentów. Co trzyma centralna figura?",
                 opciones: ["Pochodnia", "Miecz", "Korona"],
                 correctas: ["Pochodnia", "Miecz"],
                 multiple: true
@@ -2553,7 +2553,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-pl",
                 tipo: "opcion",
-                pregunta: "23. Co trzyma figura w swojej ręce?",
+                pregunta: "Co trzyma figura w swojej ręce?",
                 opciones: ["Waga", "Książka", "Pióro"],
                 correctas: ["Waga"],
                 multiple: false
@@ -2562,14 +2562,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-pl",
                 tipo: "texto",
-                pregunta: "24. Ile pięter ma budynek?",
+                pregunta: "Ile pięter ma budynek?",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-pl",
                 tipo: "opcion",
-                pregunta: "25. Poszukaj witrażu w kolorach walencjańskiej Senyery na fasadzie budynku. Czy potrafi Pan/Pani określić jego kształt?",
+                pregunta: "Poszukaj witrażu w kolorach walencjańskiej Senyery na fasadzie budynku. Czy potrafi Pan/Pani określić jego kształt?",
                 opciones: ["Czworokąt", "Okrągły", "Trójkąt"],
                 correctas: ["Okrągły"],
                 multiple: false
@@ -2578,7 +2578,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "26. Co trzyma Dziewica w swojej ręce?",
+                pregunta: "Co trzyma Dziewica w swojej ręce?",
                 opciones: ["Różaniec", "Dziecko", "Korona"],
                 correctas: ["Różaniec", "Dziecko"],
                 multiple: true
@@ -2587,7 +2587,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-pl",
                 tipo: "opcion",
-                pregunta: "27. Co anioł daje dziecku?",
+                pregunta: "Co anioł daje dziecku?",
                 opciones: ["Gołąb", "Kula", "Jedzenie"],
                 correctas: ["Kula"],
                 multiple: false
@@ -2602,7 +2602,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "29. Przewoźnik wiosłujący pod prąd.",
+                pregunta: "Przewoźnik wiosłujący pod prąd.",
                 opciones: ["Smutny mężczyzna kierujący małą drewnianą łódką ucieka pod prąd przed potworem."],
                 correctas: ["Smutny mężczyzna kierujący małą drewnianą łódką ucieka pod prąd przed potworem."],
                 multiple: true
@@ -2611,7 +2611,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "30. Martwe drzewo: symbol Grzechu, widać je między dwoma skrzydłami drzwi, pełni funkcję słupka.",
+                pregunta: "Martwe drzewo: symbol Grzechu, widać je między dwoma skrzydłami drzwi, pełni funkcję słupka.",
                 opciones: ["Obserwuj wierzchołek drzewa, gdzie 4 nagich mężczyzn biczuje się nawzajem."],
                 correctas: ["Obserwuj wierzchołek drzewa, gdzie 4 nagich mężczyzn biczuje się nawzajem."],
                 multiple: true
@@ -2620,7 +2620,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "31. Po prawej, anioł pokazuje swój penis i...",
+                pregunta: "Po prawej, anioł pokazuje swój penis i...",
                 opciones: ["...zamierza włożyć go do wazonu, który trzyma w drugiej ręce. Dziwne i niezwykłe, prawda?"],
                 correctas: ["...zamierza włożyć go do wazonu, który trzyma w drugiej ręce. Dziwne i niezwykłe, prawda?"],
                 multiple: true
@@ -2629,7 +2629,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "32. W centrum: Brodaty mężczyzna i lew:",
+                pregunta: "W centrum: Brodaty mężczyzna i lew:",
                 opciones: ["Oryginalna i sprzeczna scena, w której łagodnym jest właśnie lew, a nie brodaty starzec."],
                 correctas: ["Oryginalna i sprzeczna scena, w której łagodnym jest właśnie lew, a nie brodaty starzec."],
                 multiple: true
@@ -2638,7 +2638,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "33. Oto dodatkowe wyzwanie! Znajdź lubieżnika z Giełdy Jedwabiu!",
+                pregunta: "Oto dodatkowe wyzwanie! Znajdź lubieżnika z Giełdy Jedwabiu!",
                 opciones: ["W jednym z jej okien znajdziesz wykutego mężczyznę; jego głowy nie widać, ale genitalia są bardzo wyraźnie widoczne."],
                 correctas: ["W jednym z jej okien znajdziesz wykutego mężczyznę; jego głowy nie widać, ale genitalia są bardzo wyraźnie widoczne."],
                 multiple: true
@@ -2647,7 +2647,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-pl",
                 tipo: "opcion",
-                pregunta: "34. Co postać trzyma w rękach?",
+                pregunta: "Co postać trzyma w rękach?",
                 opciones: ["Tarczę", "Muszlę", "Dzban", "Miecz"],
                 correctas: ["Muszlę"],
                 multiple: false
@@ -2671,7 +2671,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-pt",
                 tipo: "opcion",
-                pregunta: "1. Quantas aventuras podem ser feitas com Valencia be Guides?",
+                pregunta: "Quantas aventuras podem ser feitas com Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -2680,7 +2680,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-pt",
                 tipo: "opcion",
-                pregunta: "2. É um bom momento para começar a sua aventura?",
+                pregunta: "É um bom momento para começar a sua aventura?",
                 opciones: ["Sim", "Não"],
                 correctas: ["?"],
                 multiple: false
@@ -2689,7 +2689,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-pt",
                 tipo: "opcion",
-                pregunta: "3. Pode dizer-me como se chamam estas torres?",
+                pregunta: "Pode dizer-me como se chamam estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -2698,7 +2698,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-pt",
                 tipo: "opcion",
-                pregunta: "4. No topo das torres tremula a bandeira de Valência: as suas cores são vermelho, amarelo e…?",
+                pregunta: "No topo das torres tremula a bandeira de Valência: as suas cores são vermelho, amarelo e…?",
                 opciones: ["Violeta", "Verde", "Azul"],
                 correctas: ["Azul"],
                 multiple: false
@@ -2707,14 +2707,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-pt",
                 tipo: "texto",
-                pregunta: "5. Pode dizer-me o nome da rua?",
+                pregunta: "Pode dizer-me o nome da rua?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-pt",
                 tipo: "opcion",
-                pregunta: "6. O que tem São Lourenço na mão?",
+                pregunta: "O que tem São Lourenço na mão?",
                 opciones: ["Uma pomba", "Uma colher", "Uma grelha"],
                 correctas: ["Uma grelha"],
                 multiple: false
@@ -2723,7 +2723,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-pt",
                 tipo: "opcion",
-                pregunta: "7. Com que mão Neptuno segura a cornucópia?",
+                pregunta: "Com que mão Neptuno segura a cornucópia?",
                 opciones: ["Esquerda", "Direita"],
                 correctas: ["Direita"],
                 multiple: false
@@ -2732,7 +2732,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-pt",
                 tipo: "texto",
-                pregunta: "8. Quantas figuras rodeiam a fonte?",
+                pregunta: "Quantas figuras rodeiam a fonte?",
                 correctas: ["8"]
             },
             {
@@ -2745,7 +2745,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-pt",
                 tipo: "opcion",
-                pregunta: "10. Que figura esculpida se pode ver na moldura do quadro?",
+                pregunta: "Que figura esculpida se pode ver na moldura do quadro?",
                 opciones: ["Um dragão", "Um morcego", "Uma coroa"],
                 correctas: ["Uma coroa"],
                 multiple: false
@@ -2754,7 +2754,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-pt",
                 tipo: "opcion-multiple",
-                pregunta: "11. O que se pode ver no interior?",
+                pregunta: "O que se pode ver no interior?",
                 opciones: ["Um altar", "Uma bandeira", "Uma espada"],
                 correctas: ["Um altar", "Uma bandeira"],
                 multiple: true
@@ -2763,21 +2763,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-pt",
                 tipo: "texto",
-                pregunta: "12. Há uma placa comemorativa neste local. Em que ano foi colocada?",
+                pregunta: "Há uma placa comemorativa neste local. Em que ano foi colocada?",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-pt",
                 tipo: "texto",
-                pregunta: "13. Em que ano foi construído este edifício? Dica: olhe para a parte superior da fachada.",
+                pregunta: "Em que ano foi construído este edifício? Dica: olhe para a parte superior da fachada.",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-pt",
                 tipo: "opcion",
-                pregunta: "14. O que se pode ver no interior?",
+                pregunta: "O que se pode ver no interior?",
                 opciones: ["Uma praça de touros", "Banhos romanos", "Uma estação de metro"],
                 correctas: ["Banhos romanos"],
                 multiple: false
@@ -2792,7 +2792,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-pt",
                 tipo: "opcion",
-                pregunta: "16. Consegue determinar a sua geometria?",
+                pregunta: "Consegue determinar a sua geometria?",
                 opciones: ["Hexagonal", "Octogonal", "Quadrangular"],
                 correctas: ["Hexagonal"],
                 multiple: false
@@ -2801,14 +2801,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-pt",
                 tipo: "texto",
-                pregunta: "17. Quantos arcos compõem o portal?",
+                pregunta: "Quantos arcos compõem o portal?",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-pt",
                 tipo: "opcion",
-                pregunta: "18. Recorda que animal coroa o brasão municipal?",
+                pregunta: "Recorda que animal coroa o brasão municipal?",
                 opciones: ["Um dragão", "Um morcego", "Um cavalo"],
                 correctas: ["Um morcego"],
                 multiple: false
@@ -2817,7 +2817,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-pt",
                 tipo: "opcion",
-                pregunta: "19. Preste atenção à fachada da primeira torre! Que fruto cítrico natural de Valência decora a fachada?",
+                pregunta: "Preste atenção à fachada da primeira torre! Que fruto cítrico natural de Valência decora a fachada?",
                 opciones: ["Limões", "Toranjas", "Laranjas"],
                 correctas: ["Laranjas"],
                 multiple: false
@@ -2832,14 +2832,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-pt",
                 tipo: "texto",
-                pregunta: "21. Pode dizer-me que comércio alberga este edifício?",
+                pregunta: "Pode dizer-me que comércio alberga este edifício?",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-pt",
                 tipo: "opcion-multiple",
-                pregunta: "22. Sobre a entrada principal, num arco de volta perfeita, figuras alegóricas representam os cinco continentes. O que segura a figura central?",
+                pregunta: "Sobre a entrada principal, num arco de volta perfeita, figuras alegóricas representam os cinco continentes. O que segura a figura central?",
                 opciones: ["Uma tocha", "Uma espada", "Uma coroa"],
                 correctas: ["Uma tocha", "Uma espada"],
                 multiple: true
@@ -2848,7 +2848,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-pt",
                 tipo: "opcion",
-                pregunta: "23. O que segura a figura na mão?",
+                pregunta: "O que segura a figura na mão?",
                 opciones: ["Uma balança", "Um livro", "Uma pena"],
                 correctas: ["Uma balança"],
                 multiple: false
@@ -2857,14 +2857,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-pt",
                 tipo: "texto",
-                pregunta: "24. Quantos andares tem o edifício?",
+                pregunta: "Quantos andares tem o edifício?",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-pt",
                 tipo: "opcion",
-                pregunta: "25. Procure o vitral com as cores da Senyera valenciana na fachada do edifício. Consegue determinar a sua forma?",
+                pregunta: "Procure o vitral com as cores da Senyera valenciana na fachada do edifício. Consegue determinar a sua forma?",
                 opciones: ["Quadrangular", "Redonda", "Triangular"],
                 correctas: ["Redonda"],
                 multiple: false
@@ -2873,7 +2873,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-pt",
                 tipo: "opcion-multiple",
-                pregunta: "26. O que segura a Virgem na sua mão?",
+                pregunta: "O que segura a Virgem na sua mão?",
                 opciones: ["Um rosário", "Uma criança", "Uma coroa"],
                 correctas: ["Um rosário", "Uma criança"],
                 multiple: true
@@ -2882,7 +2882,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-pt",
                 tipo: "opcion",
-                pregunta: "27. O que dá o anjo à criança?",
+                pregunta: "O que dá o anjo à criança?",
                 opciones: ["Uma pomba", "Um orbe", "Alimentos"],
                 correctas: ["Um orbe"],
                 multiple: false
@@ -2897,7 +2897,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-pt",
                 tipo: "opcion-multiple",
-                pregunta: "29. O barqueiro que rema contra a corrente.",
+                pregunta: "O barqueiro que rema contra a corrente.",
                 opciones: ["Um homem com rosto triste a conduzir um pequeno barco de madeira foge contra a corrente de um monstro."],
                 correctas: ["Um homem com rosto triste a conduzir um pequeno barco de madeira foge contra a corrente de um monstro."],
                 multiple: true
@@ -2906,7 +2906,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-pt",
                 tipo: "opcion-multiple",
-                pregunta: "30. Uma árvore morta: símbolo do Pecado, vê-se entre as duas folhas da porta e cumpre a função de parteluz.",
+                pregunta: "Uma árvore morta: símbolo do Pecado, vê-se entre as duas folhas da porta e cumpre a função de parteluz.",
                 opciones: ["Observe no topo da árvore como 4 homens nus se açoitam entre si."],
                 correctas: ["Observe no topo da árvore como 4 homens nus se açoitam entre si."],
                 multiple: true
@@ -2915,7 +2915,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-pt",
                 tipo: "opcion-multiple",
-                pregunta: "31. À direita, um anjo mostra o seu pénis e...",
+                pregunta: "À direita, um anjo mostra o seu pénis e...",
                 opciones: ["...prepara-se para o introduzir num vaso que segura com a outra mão. Estranho e incomum, não lhe parece?"],
                 correctas: ["...prepara-se para o introduzir num vaso que segura com a outra mão. Estranho e incomum, não lhe parece?"],
                 multiple: true
@@ -2924,7 +2924,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-pt",
                 tipo: "opcion-multiple",
-                pregunta: "32. No centro: O homem barbudo e o leão:",
+                pregunta: "No centro: O homem barbudo e o leão:",
                 opciones: ["Cena original e contraditória na qual o manso é precisamente o leão e não o velho barbudo."],
                 correctas: ["Cena original e contraditória na qual o manso é precisamente o leão e não o velho barbudo."],
                 multiple: true
@@ -2933,7 +2933,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-pt",
                 tipo: "opcion-multiple",
-                pregunta: "33. Aqui vai um desafio extra! Procure o fornicador da Lonja da Seda!",
+                pregunta: "Aqui vai um desafio extra! Procure o fornicador da Lonja da Seda!",
                 opciones: ["Numa das suas janelas, encontrará um homem esculpido; a sua cabeça não é visível mas os seus genitais estão, muito claramente."],
                 correctas: ["Numa das suas janelas, encontrará um homem esculpido; a sua cabeça não é visível mas os seus genitais estão, muito claramente."],
                 multiple: true
@@ -2942,7 +2942,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-pt",
                 tipo: "opcion",
-                pregunta: "34. O que a figura segura nas mãos?",
+                pregunta: "O que a figura segura nas mãos?",
                 opciones: ["Um escudo", "Uma concha", "Um jarro", "Uma espada"],
                 correctas: ["Uma concha"],
                 multiple: false
@@ -2966,7 +2966,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-ru",
                 tipo: "opcion",
-                pregunta: "1. Сколько приключений можно совершить с Valencia be Guides?",
+                pregunta: "Сколько приключений можно совершить с Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -2975,7 +2975,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-ru",
                 tipo: "opcion",
-                pregunta: "2. Сейчас хорошее время для начала приключения?",
+                pregunta: "Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
@@ -2984,7 +2984,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-ru",
                 tipo: "opcion",
-                pregunta: "3. Вы можете назвать мне, как называются эти башни?",
+                pregunta: "Вы можете назвать мне, как называются эти башни?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -2993,7 +2993,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-ru",
                 tipo: "opcion",
-                pregunta: "4. На вершине башен развевается флаг Валенсии: его цвета — красный, жёлтый и…?",
+                pregunta: "На вершине башен развевается флаг Валенсии: его цвета — красный, жёлтый и…?",
                 opciones: ["Фиолетовый", "Зелёный", "Синий"],
                 correctas: ["Синий"],
                 multiple: false
@@ -3002,14 +3002,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-ru",
                 tipo: "texto",
-                pregunta: "5. Вы можете назвать мне название этой улицы?",
+                pregunta: "Вы можете назвать мне название этой улицы?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-ru",
                 tipo: "opcion",
-                pregunta: "6. Что держит святой Лаврентий в руке?",
+                pregunta: "Что держит святой Лаврентий в руке?",
                 opciones: ["Голубь", "Ложка", "Решётка"],
                 correctas: ["Решётка"],
                 multiple: false
@@ -3018,7 +3018,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-ru",
                 tipo: "opcion",
-                pregunta: "7. Какой рукой Нептун держит рог изобилия?",
+                pregunta: "Какой рукой Нептун держит рог изобилия?",
                 opciones: ["Левой", "Правой"],
                 correctas: ["Правой"],
                 multiple: false
@@ -3027,7 +3027,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-ru",
                 tipo: "texto",
-                pregunta: "8. Сколько фигур окружают фонтан?",
+                pregunta: "Сколько фигур окружают фонтан?",
                 correctas: ["8"]
             },
             {
@@ -3040,7 +3040,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-ru",
                 tipo: "opcion",
-                pregunta: "10. Какую скульптурную фигуру можно увидеть в раме картины?",
+                pregunta: "Какую скульптурную фигуру можно увидеть в раме картины?",
                 opciones: ["Дракон", "Летучая мышь", "Корона"],
                 correctas: ["Корона"],
                 multiple: false
@@ -3049,7 +3049,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "11. Что можно увидеть внутри?",
+                pregunta: "Что можно увидеть внутри?",
                 opciones: ["Алтарь", "Флаг", "Меч"],
                 correctas: ["Алтарь", "Флаг"],
                 multiple: true
@@ -3058,21 +3058,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-ru",
                 tipo: "texto",
-                pregunta: "12. На нём есть памятная табличка. В каком году она была установлена?",
+                pregunta: "На нём есть памятная табличка. В каком году она была установлена?",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-ru",
                 tipo: "texto",
-                pregunta: "13. В каком году было построено это здание? Подсказка: посмотрите на верхнюю часть фасада.",
+                pregunta: "В каком году было построено это здание? Подсказка: посмотрите на верхнюю часть фасада.",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-ru",
                 tipo: "opcion",
-                pregunta: "14. Что можно увидеть внутри?",
+                pregunta: "Что можно увидеть внутри?",
                 opciones: ["Арена для боя быков", "Римские бани", "Станция метро"],
                 correctas: ["Римские бани"],
                 multiple: false
@@ -3087,7 +3087,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-ru",
                 tipo: "opcion",
-                pregunta: "16. Можете ли вы определить его геометрическую форму?",
+                pregunta: "Можете ли вы определить его геометрическую форму?",
                 opciones: ["Шестиугольная", "Восьмиугольная", "Четырёхугольная"],
                 correctas: ["Шестиугольная"],
                 multiple: false
@@ -3096,14 +3096,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-ru",
                 tipo: "texto",
-                pregunta: "17. Из скольких арок состоят ворота?",
+                pregunta: "Из скольких арок состоят ворота?",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-ru",
                 tipo: "opcion",
-                pregunta: "18. Помните ли вы, какое животное венчает городской герб?",
+                pregunta: "Помните ли вы, какое животное венчает городской герб?",
                 opciones: ["Дракон", "Летучая мышь", "Конь"],
                 correctas: ["Летучая мышь"],
                 multiple: false
@@ -3112,7 +3112,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-ru",
                 tipo: "opcion",
-                pregunta: "19. Обратите внимание на фасад первой башни! Какой цитрусовый плод, родом из Валенсии, украшает фасад?",
+                pregunta: "Обратите внимание на фасад первой башни! Какой цитрусовый плод, родом из Валенсии, украшает фасад?",
                 opciones: ["Лимоны", "Грейпфруты", "Апельсины"],
                 correctas: ["Апельсины"],
                 multiple: false
@@ -3127,14 +3127,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-ru",
                 tipo: "texto",
-                pregunta: "21. Вы можете сказать мне, какое заведение находится в этом здании?",
+                pregunta: "Вы можете сказать мне, какое заведение находится в этом здании?",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "22. Над главным входом, в полуциркульной арке, аллегорические фигуры представляют пять континентов. Что держит центральная фигура?",
+                pregunta: "Над главным входом, в полуциркульной арке, аллегорические фигуры представляют пять континентов. Что держит центральная фигура?",
                 opciones: ["Факел", "Меч", "Корона"],
                 correctas: ["Факел", "Меч"],
                 multiple: true
@@ -3143,7 +3143,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-ru",
                 tipo: "opcion",
-                pregunta: "23. Что держит фигура в своей руке?",
+                pregunta: "Что держит фигура в своей руке?",
                 opciones: ["Весы", "Книга", "Перо"],
                 correctas: ["Весы"],
                 multiple: false
@@ -3152,14 +3152,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-ru",
                 tipo: "texto",
-                pregunta: "24. Сколько этажей в здании?",
+                pregunta: "Сколько этажей в здании?",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-ru",
                 tipo: "opcion",
-                pregunta: "25. Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Можете ли вы определить его форму?",
+                pregunta: "Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Можете ли вы определить его форму?",
                 opciones: ["Четырёхугольная", "Круглая", "Треугольная"],
                 correctas: ["Круглая"],
                 multiple: false
@@ -3168,7 +3168,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "26. Что держит Дева Мария в своей руке?",
+                pregunta: "Что держит Дева Мария в своей руке?",
                 opciones: ["Чётки", "Ребёнок", "Корона"],
                 correctas: ["Чётки", "Ребёнок"],
                 multiple: true
@@ -3177,7 +3177,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-ru",
                 tipo: "opcion",
-                pregunta: "27. Что даёт ангел ребёнку?",
+                pregunta: "Что даёт ангел ребёнку?",
                 opciones: ["Голубь", "Держава", "Еда"],
                 correctas: ["Держава"],
                 multiple: false
@@ -3192,7 +3192,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "29. Лодочник, гребущий против течения.",
+                pregunta: "Лодочник, гребущий против течения.",
                 opciones: ["Грустный мужчина, управляющий маленькой деревянной лодкой, спасается от монстра, плывя против течения."],
                 correctas: ["Грустный мужчина, управляющий маленькой деревянной лодкой, спасается от монстра, плывя против течения."],
                 multiple: true
@@ -3201,7 +3201,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "30. Мёртвое дерево: символ Греха, видно между двумя створками двери и служит средником.",
+                pregunta: "Мёртвое дерево: символ Греха, видно между двумя створками двери и служит средником.",
                 opciones: ["Посмотрите на вершину дерева, где 4 обнажённых мужчины хлещут друг друга."],
                 correctas: ["Посмотрите на вершину дерева, где 4 обнажённых мужчины хлещут друг друга."],
                 multiple: true
@@ -3210,7 +3210,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "31. Справа, ангел демонстрирует свой пенис и...",
+                pregunta: "Справа, ангел демонстрирует свой пенис и...",
                 opciones: ["...собирается ввести его в вазу, которую держит другой рукой. Странно и необычно, не правда ли?"],
                 correctas: ["...собирается ввести его в вазу, которую держит другой рукой. Странно и необычно, не правда ли?"],
                 multiple: true
@@ -3219,7 +3219,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "32. В центре: Бородатый мужчина и лев:",
+                pregunta: "В центре: Бородатый мужчина и лев:",
                 opciones: ["Оригинальная и противоречивая сцена, в которой кротким оказывается именно лев, а не бородатый старец."],
                 correctas: ["Оригинальная и противоречивая сцена, в которой кротким оказывается именно лев, а не бородатый старец."],
                 multiple: true
@@ -3228,7 +3228,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "33. Вот дополнительное испытание! Найдите блудника Шёлковой биржи!",
+                pregunta: "Вот дополнительное испытание! Найдите блудника Шёлковой биржи!",
                 opciones: ["В одном из её окон вы найдёте высеченного мужчину; его голова не видна, но гениталии видны очень отчётливо."],
                 correctas: ["В одном из её окон вы найдёте высеченного мужчину; его голова не видна, но гениталии видны очень отчётливо."],
                 multiple: true
@@ -3237,7 +3237,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-ru",
                 tipo: "opcion",
-                pregunta: "34. Что держит фигура в руках?",
+                pregunta: "Что держит фигура в руках?",
                 opciones: ["Щит", "Раковину", "Кувшин", "Меч"],
                 correctas: ["Раковину"],
                 multiple: false
@@ -3261,7 +3261,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-uk",
                 tipo: "opcion",
-                pregunta: "1. Скільки пригод можна здійснити з Valencia be Guides?",
+                pregunta: "Скільки пригод можна здійснити з Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -3270,7 +3270,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-uk",
                 tipo: "opcion",
-                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
+                pregunta: "Чи зараз гарний момент для початку пригоди?",
                 opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
@@ -3279,7 +3279,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-uk",
                 tipo: "opcion",
-                pregunta: "3. Чи можете ви сказати мені, як називаються ці вежі?",
+                pregunta: "Чи можете ви сказати мені, як називаються ці вежі?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -3288,7 +3288,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-uk",
                 tipo: "opcion",
-                pregunta: "4. На вершині веж майорить прапор Валенсії: його кольори — червоний, жовтий і…?",
+                pregunta: "На вершині веж майорить прапор Валенсії: його кольори — червоний, жовтий і…?",
                 opciones: ["Фіолетовий", "Зелений", "Синій"],
                 correctas: ["Синій"],
                 multiple: false
@@ -3297,14 +3297,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-uk",
                 tipo: "texto",
-                pregunta: "5. Чи можете ви назвати мені назву цієї вулиці?",
+                pregunta: "Чи можете ви назвати мені назву цієї вулиці?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-uk",
                 tipo: "opcion",
-                pregunta: "6. Що тримає святий Лаврентій у руці?",
+                pregunta: "Що тримає святий Лаврентій у руці?",
                 opciones: ["Голуб", "Ложка", "Решітка"],
                 correctas: ["Решітка"],
                 multiple: false
@@ -3313,7 +3313,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av1-uk",
                 tipo: "opcion",
-                pregunta: "7. Якою рукою Нептун тримає ріг достатку?",
+                pregunta: "Якою рукою Нептун тримає ріг достатку?",
                 opciones: ["Лівою", "Правою"],
                 correctas: ["Правою"],
                 multiple: false
@@ -3322,7 +3322,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-uk",
                 tipo: "texto",
-                pregunta: "8. Скільки фігур оточує фонтан?",
+                pregunta: "Скільки фігур оточує фонтан?",
                 correctas: ["8"]
             },
             {
@@ -3335,7 +3335,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av1-uk",
                 tipo: "opcion",
-                pregunta: "10. Яку скульптурну фігуру можна побачити в рамі картини?",
+                pregunta: "Яку скульптурну фігуру можна побачити в рамі картини?",
                 opciones: ["Дракон", "Кажан", "Корона"],
                 correctas: ["Корона"],
                 multiple: false
@@ -3344,7 +3344,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "11. Що можна побачити всередині?",
+                pregunta: "Що можна побачити всередині?",
                 opciones: ["Вівтар", "Прапор", "Меч"],
                 correctas: ["Вівтар", "Прапор"],
                 multiple: true
@@ -3353,21 +3353,21 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av1-uk",
                 tipo: "texto",
-                pregunta: "12. На ньому є меморіальна табличка. В якому році вона була встановлена?",
+                pregunta: "На ньому є меморіальна табличка. В якому році вона була встановлена?",
                 correctas: ["1952"]
             },
             {
                 reto: 13,
                 id: "R13-Av1-uk",
                 tipo: "texto",
-                pregunta: "13. В якому році було збудовано цю будівлю? Підказка: подивіться на верхню частину фасаду.",
+                pregunta: "В якому році було збудовано цю будівлю? Підказка: подивіться на верхню частину фасаду.",
                 correctas: ["1906"]
             },
             {
                 reto: 14,
                 id: "R14-Av1-uk",
                 tipo: "opcion",
-                pregunta: "14. Що можна побачити всередині?",
+                pregunta: "Що можна побачити всередині?",
                 opciones: ["Арена для кориди", "Римські лазні", "Станція метро"],
                 correctas: ["Римські лазні"],
                 multiple: false
@@ -3382,7 +3382,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-uk",
                 tipo: "opcion",
-                pregunta: "16. Чи можете ви визначити його геометричну форму?",
+                pregunta: "Чи можете ви визначити його геометричну форму?",
                 opciones: ["Шестикутна", "Восьмикутна", "Чотирикутна"],
                 correctas: ["Шестикутна"],
                 multiple: false
@@ -3391,14 +3391,14 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av1-uk",
                 tipo: "texto",
-                pregunta: "17. Зі скількох арок складаються ворота?",
+                pregunta: "Зі скількох арок складаються ворота?",
                 correctas: ["6"]
             },
             {
                 reto: 18,
                 id: "R18-Av1-uk",
                 tipo: "opcion",
-                pregunta: "18. Чи пам'ятаєте ви, яка тварина прикрашає міський герб?",
+                pregunta: "Чи пам'ятаєте ви, яка тварина прикрашає міський герб?",
                 opciones: ["Дракон", "Кажан", "Кінь"],
                 correctas: ["Кажан"],
                 multiple: false
@@ -3407,7 +3407,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-uk",
                 tipo: "opcion",
-                pregunta: "19. Зверніть увагу на фасад першої вежі! Який цитрусовий плід, родом з Валенсії, прикрашає фасад?",
+                pregunta: "Зверніть увагу на фасад першої вежі! Який цитрусовий плід, родом з Валенсії, прикрашає фасад?",
                 opciones: ["Лимони", "Грейпфрути", "Апельсини"],
                 correctas: ["Апельсини"],
                 multiple: false
@@ -3422,14 +3422,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-uk",
                 tipo: "texto",
-                pregunta: "21. Чи можете ви сказати мені, яке підприємство знаходиться в цій будівлі?",
+                pregunta: "Чи можете ви сказати мені, яке підприємство знаходиться в цій будівлі?",
                 correctas: ["?"]
             },
             {
                 reto: 22,
                 id: "R22-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "22. Над головним входом, у напівкруглій арці, алегоричні фігури представляють п'ять континентів. Що тримає центральна фігура?",
+                pregunta: "Над головним входом, у напівкруглій арці, алегоричні фігури представляють п'ять континентів. Що тримає центральна фігура?",
                 opciones: ["Смолоскип", "Меч", "Корона"],
                 correctas: ["Смолоскип", "Меч"],
                 multiple: true
@@ -3438,7 +3438,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-uk",
                 tipo: "opcion",
-                pregunta: "23. Що тримає фігура в своїй руці?",
+                pregunta: "Що тримає фігура в своїй руці?",
                 opciones: ["Терези", "Книга", "Перо"],
                 correctas: ["Терези"],
                 multiple: false
@@ -3447,14 +3447,14 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av1-uk",
                 tipo: "texto",
-                pregunta: "24. Скільки поверхів у будівлі?",
+                pregunta: "Скільки поверхів у будівлі?",
                 correctas: ["10"]
             },
             {
                 reto: 25,
                 id: "R25-Av1-uk",
                 tipo: "opcion",
-                pregunta: "25. Знайдіть вітраж з кольорами валенсійської Сеньєри на фасаді будівлі. Чи можете ви визначити його форму?",
+                pregunta: "Знайдіть вітраж з кольорами валенсійської Сеньєри на фасаді будівлі. Чи можете ви визначити його форму?",
                 opciones: ["Чотирикутна", "Кругла", "Трикутна"],
                 correctas: ["Кругла"],
                 multiple: false
@@ -3463,7 +3463,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "26. Що тримає Діва Марія у своїй руці?",
+                pregunta: "Що тримає Діва Марія у своїй руці?",
                 opciones: ["Вервиця", "Дитина", "Корона"],
                 correctas: ["Вервиця", "Дитина"],
                 multiple: true
@@ -3472,7 +3472,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av1-uk",
                 tipo: "opcion",
-                pregunta: "27. Що дає ангел дитині?",
+                pregunta: "Що дає ангел дитині?",
                 opciones: ["Голуб", "Держава", "Їжа"],
                 correctas: ["Держава"],
                 multiple: false
@@ -3487,7 +3487,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "29. Поромник, що гребе проти течії.",
+                pregunta: "Поромник, що гребе проти течії.",
                 opciones: ["Сумний чоловік, який керує невеликим дерев'яним човном, тікає від монстра проти течії."],
                 correctas: ["Сумний чоловік, який керує невеликим дерев'яним човном, тікає від монстра проти течії."],
                 multiple: true
@@ -3496,7 +3496,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "30. Мертве дерево: символ Гріха, видно між двома стулками дверей і виконує функцію центрального стовпа.",
+                pregunta: "Мертве дерево: символ Гріха, видно між двома стулками дверей і виконує функцію центрального стовпа.",
                 opciones: ["Подивіться на вершину дерева, де 4 оголених чоловіки шмагають один одного."],
                 correctas: ["Подивіться на вершину дерева, де 4 оголених чоловіки шмагають один одного."],
                 multiple: true
@@ -3505,7 +3505,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "31. Праворуч, ангел демонструє свій статевий орган і...",
+                pregunta: "Праворуч, ангел демонструє свій статевий орган і...",
                 opciones: ["...збирається ввести його у вазу, яку тримає іншою рукою. Дивно і незвично, правда?"],
                 correctas: ["...збирається ввести його у вазу, яку тримає іншою рукою. Дивно і незвично, правда?"],
                 multiple: true
@@ -3514,7 +3514,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "32. У центрі: Бородатий чоловік і лев:",
+                pregunta: "У центрі: Бородатий чоловік і лев:",
                 opciones: ["Оригінальна і суперечлива сцена, в якій лагідним є саме лев, а не бородатий старий."],
                 correctas: ["Оригінальна і суперечлива сцена, в якій лагідним є саме лев, а не бородатий старий."],
                 multiple: true
@@ -3523,7 +3523,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "33. Ось додатковий виклик! Знайдіть блудника Шовкової біржі!",
+                pregunta: "Ось додатковий виклик! Знайдіть блудника Шовкової біржі!",
                 opciones: ["В одному з її вікон ви знайдете висіченого чоловіка; його голова не видно, але геніталії дуже чітко видно."],
                 correctas: ["В одному з її вікон ви знайдете висіченого чоловіка; його голова не видно, але геніталії дуже чітко видно."],
                 multiple: true
@@ -3532,7 +3532,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-uk",
                 tipo: "opcion",
-                pregunta: "34. Що тримає фігура в руках?",
+                pregunta: "Що тримає фігура в руках?",
                 opciones: ["Щит", "Мушлю", "Глечик", "Меч"],
                 correctas: ["Мушлю"],
                 multiple: false
@@ -3558,7 +3558,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -3567,7 +3567,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-es",
                 tipo: "opcion",
-                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                pregunta: "¿Es buen momento para comenzar su aventura?",
                 opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -3576,7 +3576,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-es",
                 tipo: "opcion",
-                pregunta: "3. ¿Sabría decirme cómo se llaman estas Torres?",
+                pregunta: "¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -3585,7 +3585,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-es",
                 tipo: "opcion",
-                pregunta: "4. ¿En la cumbre de las torres ondea la bandera de Valencia: sus colores se componen de rojo, amarillo y… ?",
+                pregunta: "¿En la cumbre de las torres ondea la bandera de Valencia: sus colores se componen de rojo, amarillo y… ?",
                 opciones: ["Violeta", "Verde", "Azul"],
                 correctas: ["Azul"],
                 multiple: false
@@ -3594,7 +3594,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av2-es",
                 tipo: "opcion",
-                pregunta: "5. ¿Cuál de las dos torres creen que es la más nueva la de la plaza o ésta que tiene delante ahora?",
+                pregunta: "¿Cuál de las dos torres creen que es la más nueva la de la plaza o ésta que tiene delante ahora?",
                 opciones: ["La más cercana", "La más alejada"],
                 correctas: ["La más alejada"],
                 multiple: false
@@ -3609,7 +3609,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av2-es",
                 tipo: "opcion-multiple",
-                pregunta: "7. ¿Qué puede verse en este panel cerámico? ¿Son calaveras? ¿Es una cruz? ¿hay también una paloma?",
+                pregunta: "¿Qué puede verse en este panel cerámico? ¿Son calaveras? ¿Es una cruz? ¿hay también una paloma?",
                 opciones: ["Calaveras", "Palomas", "Cruz"],
                 correctas: ["Calaveras", "Cruz"],
                 multiple: true
@@ -3618,7 +3618,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av2-es",
                 tipo: "opcion",
-                pregunta: "8. ¿Cuántas campanas alberga esta torre? ",
+                pregunta: "¿Cuántas campanas alberga esta torre? ",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -3627,7 +3627,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av2-es",
                 tipo: "opcion",
-                pregunta: "9. ¿Por qué se pusieron tan altos estos picaportes?",
+                pregunta: "¿Por qué se pusieron tan altos estos picaportes?",
                 opciones: ["Para personas altas", "Para llamar estando encima del caballo", "Para no ser molestados a la hora de la siesta"],
                 correctas: ["Para llamar estando encima del caballo"],
                 multiple: false
@@ -3636,7 +3636,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av2-es",
                 tipo: "opcion",
-                pregunta: "10. ¿Qué sujeta la figura con sus manos? ",
+                pregunta: "¿Qué sujeta la figura con sus manos? ",
                 opciones: ["Un escudo", "Una concha", "Una jarra", "Una espada"],
                 correctas: ["Una concha"],
                 multiple: false
@@ -3645,7 +3645,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av2-es",
                 tipo: "opcion",
-                pregunta: "11. ¿Qué dirección toma la senda establecida?",
+                pregunta: "¿Qué dirección toma la senda establecida?",
                 opciones: ["Norte", "Sur", "Este", "Oeste"],
                 correctas: ["Norte"],
                 multiple: false
@@ -3654,7 +3654,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av2-es",
                 tipo: "opcion",
-                pregunta: "12. ¿Cuántas Puertas tenía la antigua muralla árabe de Balansiya?",
+                pregunta: "¿Cuántas Puertas tenía la antigua muralla árabe de Balansiya?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -3669,7 +3669,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av2-es",
                 tipo: "opcion",
-                pregunta: "14. ¿Con qué mano sujeta Neptuno la cornucopia de la abundancia?",
+                pregunta: "¿Con qué mano sujeta Neptuno la cornucopia de la abundancia?",
                 opciones: ["Izquierda", "Derecha"],
                 correctas: ["Derecha"],
                 multiple: false
@@ -3678,14 +3678,14 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av2-es",
                 tipo: "texto",
-                pregunta: "15. ¿Cuántas figuras rodean la fuente?",
+                pregunta: "¿Cuántas figuras rodean la fuente?",
                 correctas: ["8"]
             },
             {
                 reto: 16,
                 id: "R16-Av2-es",
                 tipo: "opcion",
-                pregunta: "16. ¿Sabría determinar qué geometría tiene el Cimborrio de la Catedral de Valencia? ",
+                pregunta: "¿Sabría determinar qué geometría tiene el Cimborrio de la Catedral de Valencia? ",
                 opciones: ["Hexagonal", "Octogonal", "Cuadradrangular"],
                 correctas: ["Octogonal"],
                 multiple: false
@@ -3694,7 +3694,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av2-es",
                 tipo: "opcion",
-                pregunta: "17. ¿Sabría determinar qué geometría tiene la Torre del Miguelete de Valencia? ",
+                pregunta: "¿Sabría determinar qué geometría tiene la Torre del Miguelete de Valencia? ",
                 opciones: ["Hexagonal", "Octogonal", "Cuadradrangular"],
                 correctas: ["Octogonal"],
                 multiple: false
@@ -3703,14 +3703,14 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av2-es",
                 tipo: "texto",
-                pregunta: "18. ¿Cuantas ventanas puede ver?",
+                pregunta: "¿Cuantas ventanas puede ver?",
                 correctas: ["?"]
             },
             {
                 reto: 19,
                 id: "R19-Av2-es",
                 tipo: "opcion-multiple",
-                pregunta: "19. ¿Qué se puede ver a más de 35 metros de altura en lo alto de la portada barroca?",
+                pregunta: "¿Qué se puede ver a más de 35 metros de altura en lo alto de la portada barroca?",
                 opciones: ["Una esfera", "Un murciélago", "Una cruz", "Un caballo"],
                 correctas: ["Una esfera", "Una cruz"],
                 multiple: true
@@ -3719,7 +3719,7 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av2-es",
                 tipo: "opcion",
-                pregunta: "20. ¿Que hay en lo más alto de la torre de la torre barroca de Santa Catalina?",
+                pregunta: "¿Que hay en lo más alto de la torre de la torre barroca de Santa Catalina?",
                 opciones: ["Una cruz", "El sol", "Una paloma"],
                 correctas: ["Una cruz"],
                 multiple: false
@@ -3728,14 +3728,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av2-es",
                 tipo: "texto",
-                pregunta: "21. ¿De qué color son las tejas de la cúpula de la Torre barroca Santa Catalina?",
+                pregunta: "¿De qué color son las tejas de la cúpula de la Torre barroca Santa Catalina?",
                 correctas: ["marrones"]
             },
             {
                 reto: 22,
                 id: "R22-Av2-es",
                 tipo: "opcion-multiple",
-                pregunta: "22. tres arcos ciegos. Dos de ellos son lisos el tercero se dejó sin enlucir.<br>¿Qué puede verse en ese arco sin enlucir?",
+                pregunta: "tres arcos ciegos. Dos de ellos son lisos el tercero se dejó sin enlucir.<br>¿Qué puede verse en ese arco sin enlucir?",
                 opciones: ["Un rostro", "Un torso", "Una gárgola"],
                 correctas: ["Un rostro", "Un torso"],
                 multiple: true
@@ -3744,7 +3744,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av2-es",
                 tipo: "texto",
-                pregunta: "23. ¿Cuánto mide la entrada del edificio estrecho?",
+                pregunta: "¿Cuánto mide la entrada del edificio estrecho?",
                 correctas: ["1,35 metros"]
             },
             {
@@ -3772,7 +3772,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-en",
                 tipo: "opcion",
-                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                pregunta: "How many adventures can be done with Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -3781,7 +3781,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-en",
                 tipo: "opcion",
-                pregunta: "2. Is it a good time to start your adventure?",
+                pregunta: "Is it a good time to start your adventure?",
                 opciones: ["Yes", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -3799,7 +3799,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-en",
                 tipo: "opcion",
-                pregunta: "4. At the top of the towers flies the flag of Valencia: its colors are red, yellow, and…?",
+                pregunta: "At the top of the towers flies the flag of Valencia: its colors are red, yellow, and…?",
                 opciones: ["Violet", "Green", "Blue"],
                 correctas: ["Blue"],
                 multiple: false
@@ -3808,7 +3808,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av2-en",
                 tipo: "opcion",
-                pregunta: "3. Can you tell me the names of these towers?",
+                pregunta: "Can you tell me the names of these towers?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -3986,7 +3986,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-fr",
                 tipo: "opcion",
-                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                pregunta: "Combien d'aventures peut-on faire avec Valencia be Guides ?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -3995,7 +3995,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-fr",
                 tipo: "opcion",
-                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                pregunta: "Est-ce le bon moment pour commencer votre aventure ?",
                 opciones: ["Oui", "Non"],
                 correctas: ["?"],
                 multiple: false
@@ -4004,7 +4004,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-fr",
                 tipo: "opcion",
-                pregunta: "3. Pouvez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Pouvez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4013,7 +4013,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-fr",
                 tipo: "opcion",
-                pregunta: "4. Au sommet des tours flotte le drapeau de Valence : ses couleurs sont rouge, jaune et… ?",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont rouge, jaune et… ?",
                 opciones: ["Violet", "Vert", "Bleu"],
                 correctas: ["Bleu"],
                 multiple: false
@@ -4200,7 +4200,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-it",
                 tipo: "opcion",
-                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                pregunta: "Quante avventure si possono fare con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -4209,7 +4209,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la sua avventura?",
+                pregunta: "È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -4218,7 +4218,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-it",
                 tipo: "opcion",
-                pregunta: "3. Puoi dirmi come si chiamano queste torri?",
+                pregunta: "Puoi dirmi come si chiamano queste torri?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre di Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4227,7 +4227,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-it",
                 tipo: "opcion",
-                pregunta: "4. In cima alle torri sventola la bandiera di Valencia: i suoi colori sono rosso, giallo e…?",
+                pregunta: "In cima alle torri sventola la bandiera di Valencia: i suoi colori sono rosso, giallo e…?",
                 opciones: ["Viola", "Verde", "Blu"],
                 correctas: ["Blu"],
                 multiple: false
@@ -4414,7 +4414,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
+                pregunta: "Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -4423,7 +4423,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
+                pregunta: "Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -4432,7 +4432,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-nl",
                 tipo: "opcion",
-                pregunta: "3. Kunt u mij de namen van deze torens vertellen?",
+                pregunta: "Kunt u mij de namen van deze torens vertellen?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4441,7 +4441,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-nl",
                 tipo: "opcion",
-                pregunta: "4. Op de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…?",
+                pregunta: "Op de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…?",
                 opciones: ["Paars", "Groen", "Blauw"],
                 correctas: ["Blauw"],
                 multiple: false
@@ -4628,7 +4628,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-ja",
                 tipo: "opcion",
-                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                pregunta: "Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -4637,7 +4637,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-ja",
                 tipo: "opcion",
-                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                pregunta: "今は冒険を始めるのに良いタイミングですか？",
                 opciones: ["はい", "いいえ"],
                 correctas: ["?"],
                 multiple: false
@@ -4646,7 +4646,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-ja",
                 tipo: "opcion",
-                pregunta: "3. これらの塔の名前を教えてもらえますか？",
+                pregunta: "これらの塔の名前を教えてもらえますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4655,7 +4655,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-ja",
                 tipo: "opcion",
-                pregunta: "4. 塔の頂上にはバレンシアの旗がはためいています。色は赤、黄、そして…？",
+                pregunta: "塔の頂上にはバレンシアの旗がはためいています。色は赤、黄、そして…？",
                 opciones: ["紫", "緑", "青"],
                 correctas: ["青"],
                 multiple: false
@@ -4842,7 +4842,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-de",
                 tipo: "opcion",
-                pregunta: "1. Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+                pregunta: "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -4851,7 +4851,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-de",
                 tipo: "opcion",
-                pregunta: "2. Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+                pregunta: "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
                 opciones: ["Ja", "Nein"],
                 correctas: ["?"],
                 multiple: false
@@ -4860,7 +4860,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-de",
                 tipo: "opcion",
-                pregunta: "3. Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4869,7 +4869,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-de",
                 tipo: "opcion",
-                pregunta: "4. Auf dem Gipfel der Türme weht die Flagge von Valencia: Ihre Farben sind Rot, Gelb und…?",
+                pregunta: "Auf dem Gipfel der Türme weht die Flagge von Valencia: Ihre Farben sind Rot, Gelb und…?",
                 opciones: ["Violett", "Grün", "Blau"],
                 correctas: ["Blau"],
                 multiple: false
@@ -4878,7 +4878,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av2-de",
                 tipo: "opcion",
-                pregunta: "5. Welcher der beiden Türme ist Ihrer Meinung nach neuer, der auf dem Platz oder der vor Ihnen?",
+                pregunta: "Welcher der beiden Türme ist Ihrer Meinung nach neuer, der auf dem Platz oder der vor Ihnen?",
                 opciones: ["Der nächste", "Der entfernteste"],
                 correctas: ["Der entfernteste"],
                 multiple: false
@@ -4893,7 +4893,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av2-de",
                 tipo: "opcion-multiple",
-                pregunta: "7. Was ist auf diesem Keramikpaneel zu sehen? Sind es Schädel? Ist es ein Kreuz? Gibt es auch eine Taube?",
+                pregunta: "Was ist auf diesem Keramikpaneel zu sehen? Sind es Schädel? Ist es ein Kreuz? Gibt es auch eine Taube?",
                 opciones: ["Schädel", "Tauben", "Kreuz"],
                 correctas: ["Schädel", "Kreuz"],
                 multiple: true
@@ -4902,7 +4902,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av2-de",
                 tipo: "opcion",
-                pregunta: "8. Wie viele Glocken beherbergt dieser Turm?",
+                pregunta: "Wie viele Glocken beherbergt dieser Turm?",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -4911,7 +4911,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av2-de",
                 tipo: "opcion",
-                pregunta: "9. Warum wurden diese Türklopfer so hoch angebracht?",
+                pregunta: "Warum wurden diese Türklopfer so hoch angebracht?",
                 opciones: ["Für große Menschen", "Um zu klopfen, wenn man auf dem Pferd sitzt", "Um während der Siesta nicht gestört zu werden"],
                 correctas: ["Um zu klopfen, wenn man auf dem Pferd sitzt"],
                 multiple: false
@@ -4920,7 +4920,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av2-de",
                 tipo: "opcion",
-                pregunta: "10. Was hält die Figur in ihren Händen?",
+                pregunta: "Was hält die Figur in ihren Händen?",
                 opciones: ["Ein Schild", "Eine Muschel", "Ein Krug", "Ein Schwert"],
                 correctas: ["Eine Muschel"],
                 multiple: false
@@ -4929,7 +4929,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av2-de",
                 tipo: "opcion",
-                pregunta: "11. In welche Richtung verläuft der festgelegte Weg?",
+                pregunta: "In welche Richtung verläuft der festgelegte Weg?",
                 opciones: ["Norden", "Süden", "Osten", "Westen"],
                 correctas: ["Norden"],
                 multiple: false
@@ -4938,7 +4938,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av2-de",
                 tipo: "opcion",
-                pregunta: "12. Wie viele Tore hatte die alte arabische Mauer von Balansiya?",
+                pregunta: "Wie viele Tore hatte die alte arabische Mauer von Balansiya?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -4953,7 +4953,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av2-de",
                 tipo: "opcion",
-                pregunta: "14. Mit welcher Hand hält Neptun das Füllhorn der Fülle?",
+                pregunta: "Mit welcher Hand hält Neptun das Füllhorn der Fülle?",
                 opciones: ["Links", "Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -4962,14 +4962,14 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av2-de",
                 tipo: "texto",
-                pregunta: "15. Wie viele Figuren umgeben den Brunnen?",
+                pregunta: "Wie viele Figuren umgeben den Brunnen?",
                 correctas: ["8"]
             },
             {
                 reto: 16,
                 id: "R16-Av2-de",
                 tipo: "opcion",
-                pregunta: "16. Können Sie die Geometrie des Cimborios der Kathedrale von Valencia bestimmen?",
+                pregunta: "Können Sie die Geometrie des Cimborios der Kathedrale von Valencia bestimmen?",
                 opciones: ["Hexagonal", "Oktagonal", "Viereckig"],
                 correctas: ["Oktagonal"],
                 multiple: false
@@ -4978,7 +4978,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av2-de",
                 tipo: "opcion",
-                pregunta: "17. Können Sie die Geometrie des Miguelete-Turms von Valencia bestimmen?",
+                pregunta: "Können Sie die Geometrie des Miguelete-Turms von Valencia bestimmen?",
                 opciones: ["Hexagonal", "Oktagonal", "Viereckig"],
                 correctas: ["Oktagonal"],
                 multiple: false
@@ -4987,14 +4987,14 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av2-de",
                 tipo: "texto",
-                pregunta: "18. Wie viele Fenster können Sie sehen?",
+                pregunta: "Wie viele Fenster können Sie sehen?",
                 correctas: ["?"]
             },
             {
                 reto: 19,
                 id: "R19-Av2-de",
                 tipo: "opcion-multiple",
-                pregunta: "19. Was ist mehr als 35 Meter hoch oben an der Barockfassade zu sehen?",
+                pregunta: "Was ist mehr als 35 Meter hoch oben an der Barockfassade zu sehen?",
                 opciones: ["Eine Kugel", "Eine Fledermaus", "Ein Kreuz", "Ein Pferd"],
                 correctas: ["Eine Kugel", "Ein Kreuz"],
                 multiple: true
@@ -5003,7 +5003,7 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av2-de",
                 tipo: "opcion",
-                pregunta: "20. Was befindet sich ganz oben am Barockturm von Santa Catalina?",
+                pregunta: "Was befindet sich ganz oben am Barockturm von Santa Catalina?",
                 opciones: ["Ein Kreuz", "Die Sonne", "Eine Taube"],
                 correctas: ["Ein Kreuz"],
                 multiple: false
@@ -5012,14 +5012,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av2-de",
                 tipo: "texto",
-                pregunta: "21. Welche Farbe haben die Dachziegel der Kuppel des Barockturms von Santa Catalina?",
+                pregunta: "Welche Farbe haben die Dachziegel der Kuppel des Barockturms von Santa Catalina?",
                 correctas: ["marrones"]
             },
             {
                 reto: 22,
                 id: "R22-Av2-de",
                 tipo: "opcion-multiple",
-                pregunta: "22. Drei Blendbögen. Zwei davon sind glatt, der dritte wurde ohne Verputz gelassen.<br>Was ist in diesem unvergipsten Bogen zu sehen?",
+                pregunta: "Drei Blendbögen. Zwei davon sind glatt, der dritte wurde ohne Verputz gelassen.<br>Was ist in diesem unvergipsten Bogen zu sehen?",
                 opciones: ["Ein Gesicht", "Ein Torso", "Ein Wasserspeier"],
                 correctas: ["Ein Gesicht", "Ein Torso"],
                 multiple: true
@@ -5028,7 +5028,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av2-de",
                 tipo: "texto",
-                pregunta: "23. Wie breit ist der Eingang des schmalen Gebäudes?",
+                pregunta: "Wie breit ist der Eingang des schmalen Gebäudes?",
                 correctas: ["1,35 metros"]
             },
             {
@@ -5056,7 +5056,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-zh",
                 tipo: "opcion",
-                pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
+                pregunta: "使用Valencia be Guides可以进行多少次冒险？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -5065,7 +5065,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-zh",
                 tipo: "opcion",
-                pregunta: "2. 现在是开始冒险的好时机吗？",
+                pregunta: "现在是开始冒险的好时机吗？",
                 opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
@@ -5074,7 +5074,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-zh",
                 tipo: "opcion",
-                pregunta: "3. 您能告诉我这些塔叫什么名字吗？",
+                pregunta: "您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5083,7 +5083,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-zh",
                 tipo: "opcion",
-                pregunta: "4. 塔楼顶部飘扬着巴伦西亚的旗帜，颜色由红色、黄色和……组成？",
+                pregunta: "塔楼顶部飘扬着巴伦西亚的旗帜，颜色由红色、黄色和……组成？",
                 opciones: ["紫色", "绿色", "蓝色"],
                 correctas: ["蓝色"],
                 multiple: false
@@ -5092,7 +5092,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av2-zh",
                 tipo: "opcion",
-                pregunta: "5. 您认为这两座塔中哪座更新，广场上的那座还是您现在面前的这座？",
+                pregunta: "您认为这两座塔中哪座更新，广场上的那座还是您现在面前的这座？",
                 opciones: ["最近的", "最远的"],
                 correctas: ["最远的"],
                 multiple: false
@@ -5107,7 +5107,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av2-zh",
                 tipo: "opcion-multiple",
-                pregunta: "7. 这块陶瓷板上能看到什么？是骷髅吗？是十字架吗？还有鸽子吗？",
+                pregunta: "这块陶瓷板上能看到什么？是骷髅吗？是十字架吗？还有鸽子吗？",
                 opciones: ["骷髅", "鸽子", "十字架"],
                 correctas: ["骷髅", "十字架"],
                 multiple: true
@@ -5116,7 +5116,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av2-zh",
                 tipo: "opcion",
-                pregunta: "8. 这座塔里有多少口钟？",
+                pregunta: "这座塔里有多少口钟？",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -5125,7 +5125,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av2-zh",
                 tipo: "opcion",
-                pregunta: "9. 为什么这些门环被放得这么高？",
+                pregunta: "为什么这些门环被放得这么高？",
                 opciones: ["为了高个子人", "为了骑马时敲门", "为了不在午睡时间被打扰"],
                 correctas: ["为了骑马时敲门"],
                 multiple: false
@@ -5134,7 +5134,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av2-zh",
                 tipo: "opcion",
-                pregunta: "10. 这个雕像的手里拿着什么？",
+                pregunta: "这个雕像的手里拿着什么？",
                 opciones: ["盾牌", "贝壳", "水罐", "宝剑"],
                 correctas: ["贝壳"],
                 multiple: false
@@ -5143,7 +5143,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av2-zh",
                 tipo: "opcion",
-                pregunta: "11. 既定的道路朝哪个方向走？",
+                pregunta: "既定的道路朝哪个方向走？",
                 opciones: ["北", "南", "东", "西"],
                 correctas: ["北"],
                 multiple: false
@@ -5152,7 +5152,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av2-zh",
                 tipo: "opcion",
-                pregunta: "12. 古代巴伦西亚阿拉伯城墙有几座城门？",
+                pregunta: "古代巴伦西亚阿拉伯城墙有几座城门？",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -5167,7 +5167,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av2-zh",
                 tipo: "opcion",
-                pregunta: "14. 海神尼普顿用哪只手拿着丰饶角？",
+                pregunta: "海神尼普顿用哪只手拿着丰饶角？",
                 opciones: ["左手", "右手"],
                 correctas: ["右手"],
                 multiple: false
@@ -5176,14 +5176,14 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av2-zh",
                 tipo: "texto",
-                pregunta: "15. 喷泉周围有多少个雕像？",
+                pregunta: "喷泉周围有多少个雕像？",
                 correctas: ["8"]
             },
             {
                 reto: 16,
                 id: "R16-Av2-zh",
                 tipo: "opcion",
-                pregunta: "16. 您能确定巴伦西亚大教堂穹顶的几何形状吗？",
+                pregunta: "您能确定巴伦西亚大教堂穹顶的几何形状吗？",
                 opciones: ["六边形", "八边形", "四边形"],
                 correctas: ["八边形"],
                 multiple: false
@@ -5192,7 +5192,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av2-zh",
                 tipo: "opcion",
-                pregunta: "17. 您能确定巴伦西亚米格莱特塔的几何形状吗？",
+                pregunta: "您能确定巴伦西亚米格莱特塔的几何形状吗？",
                 opciones: ["六边形", "八边形", "四边形"],
                 correctas: ["八边形"],
                 multiple: false
@@ -5201,14 +5201,14 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av2-zh",
                 tipo: "texto",
-                pregunta: "18. 您能看到多少扇窗户？",
+                pregunta: "您能看到多少扇窗户？",
                 correctas: ["?"]
             },
             {
                 reto: 19,
                 id: "R19-Av2-zh",
                 tipo: "opcion-multiple",
-                pregunta: "19. 在巴洛克式正门顶端35米以上能看到什么？",
+                pregunta: "在巴洛克式正门顶端35米以上能看到什么？",
                 opciones: ["一个球体", "一只蝙蝠", "一个十字架", "一匹马"],
                 correctas: ["一个球体", "一个十字架"],
                 multiple: true
@@ -5217,7 +5217,7 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av2-zh",
                 tipo: "opcion",
-                pregunta: "20. 圣卡塔利娜巴洛克塔的最顶端有什么？",
+                pregunta: "圣卡塔利娜巴洛克塔的最顶端有什么？",
                 opciones: ["一个十字架", "太阳", "一只鸽子"],
                 correctas: ["一个十字架"],
                 multiple: false
@@ -5226,14 +5226,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av2-zh",
                 tipo: "texto",
-                pregunta: "21. 圣卡塔利娜巴洛克塔穹顶的瓦片是什么颜色？",
+                pregunta: "圣卡塔利娜巴洛克塔穹顶的瓦片是什么颜色？",
                 correctas: ["marrones"]
             },
             {
                 reto: 22,
                 id: "R22-Av2-zh",
                 tipo: "opcion-multiple",
-                pregunta: "22. 三个盲拱。其中两个是光滑的，第三个未经粉刷。<br>在这个未粉刷的拱门里能看到什么？",
+                pregunta: "三个盲拱。其中两个是光滑的，第三个未经粉刷。<br>在这个未粉刷的拱门里能看到什么？",
                 opciones: ["一张脸", "一个躯干", "一个滴水兽"],
                 correctas: ["一张脸", "一个躯干"],
                 multiple: true
@@ -5242,7 +5242,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av2-zh",
                 tipo: "texto",
-                pregunta: "23. 这座狭窄建筑入口有多宽？",
+                pregunta: "这座狭窄建筑入口有多宽？",
                 correctas: ["1,35 metros"]
             },
             {
@@ -5270,7 +5270,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-pl",
                 tipo: "opcion",
-                pregunta: "1. Ile przygód można przeżyć z Valencia be Guides?",
+                pregunta: "Ile przygód można przeżyć z Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -5279,7 +5279,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-pl",
                 tipo: "opcion",
-                pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
+                pregunta: "Czy to dobry moment, aby rozpocząć przygodę?",
                 opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
@@ -5288,7 +5288,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-pl",
                 tipo: "opcion",
-                pregunta: "3. Czy potrafi mi powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Czy potrafi mi powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5297,7 +5297,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-pl",
                 tipo: "opcion",
-                pregunta: "4. Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…?",
+                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…?",
                 opciones: ["Fioletowy", "Zielony", "Niebieski"],
                 correctas: ["Niebieski"],
                 multiple: false
@@ -5306,7 +5306,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av2-pl",
                 tipo: "opcion",
-                pregunta: "5. Która z dwóch wież jest według Ciebie nowsza, ta na placu czy ta stojąca przed Tobą teraz?",
+                pregunta: "Która z dwóch wież jest według Ciebie nowsza, ta na placu czy ta stojąca przed Tobą teraz?",
                 opciones: ["Bliższa", "Dalsza"],
                 correctas: ["Dalsza"],
                 multiple: false
@@ -5321,7 +5321,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av2-pl",
                 tipo: "opcion-multiple",
-                pregunta: "7. Co można zobaczyć na tym ceramicznym panelu? Czy to czaszki? Czy jest krzyż? Czy jest też gołąb?",
+                pregunta: "Co można zobaczyć na tym ceramicznym panelu? Czy to czaszki? Czy jest krzyż? Czy jest też gołąb?",
                 opciones: ["Czaszki", "Gołębie", "Krzyż"],
                 correctas: ["Czaszki", "Krzyż"],
                 multiple: true
@@ -5330,7 +5330,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av2-pl",
                 tipo: "opcion",
-                pregunta: "8. Ile dzwonów mieści ta wieża?",
+                pregunta: "Ile dzwonów mieści ta wieża?",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -5339,7 +5339,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av2-pl",
                 tipo: "opcion",
-                pregunta: "9. Dlaczego te kołatki zostały umieszczone tak wysoko?",
+                pregunta: "Dlaczego te kołatki zostały umieszczone tak wysoko?",
                 opciones: ["Dla wysokich osób", "Aby pukać siedząc na koniu", "Aby nie być niepokojonym podczas sjesty"],
                 correctas: ["Aby pukać siedząc na koniu"],
                 multiple: false
@@ -5348,7 +5348,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av2-pl",
                 tipo: "opcion",
-                pregunta: "10. Co trzyma w rękach ta postać?",
+                pregunta: "Co trzyma w rękach ta postać?",
                 opciones: ["Tarczę", "Muszlę", "Dzban", "Miecz"],
                 correctas: ["Muszlę"],
                 multiple: false
@@ -5357,7 +5357,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av2-pl",
                 tipo: "opcion",
-                pregunta: "11. W jakim kierunku przebiega wyznaczona ścieżka?",
+                pregunta: "W jakim kierunku przebiega wyznaczona ścieżka?",
                 opciones: ["Północ", "Południe", "Wschód", "Zachód"],
                 correctas: ["Północ"],
                 multiple: false
@@ -5366,7 +5366,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av2-pl",
                 tipo: "opcion",
-                pregunta: "12. Ile bram miał stary arabski mur Balansiya?",
+                pregunta: "Ile bram miał stary arabski mur Balansiya?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -5381,7 +5381,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av2-pl",
                 tipo: "opcion",
-                pregunta: "14. Którą ręką Neptun trzyma róg obfitości?",
+                pregunta: "Którą ręką Neptun trzyma róg obfitości?",
                 opciones: ["Lewą", "Prawą"],
                 correctas: ["Prawą"],
                 multiple: false
@@ -5390,14 +5390,14 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av2-pl",
                 tipo: "texto",
-                pregunta: "15. Ile postaci otacza fontannę?",
+                pregunta: "Ile postaci otacza fontannę?",
                 correctas: ["8"]
             },
             {
                 reto: 16,
                 id: "R16-Av2-pl",
                 tipo: "opcion",
-                pregunta: "16. Czy potrafiłbyś określić geometrię cimborio katedry w Walencji?",
+                pregunta: "Czy potrafiłbyś określić geometrię cimborio katedry w Walencji?",
                 opciones: ["Sześciokątne", "Ośmiokątne", "Czworokątne"],
                 correctas: ["Ośmiokątne"],
                 multiple: false
@@ -5406,7 +5406,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av2-pl",
                 tipo: "opcion",
-                pregunta: "17. Czy potrafiłbyś określić geometrię wieży Miguelete w Walencji?",
+                pregunta: "Czy potrafiłbyś określić geometrię wieży Miguelete w Walencji?",
                 opciones: ["Sześciokątne", "Ośmiokątne", "Czworokątne"],
                 correctas: ["Ośmiokątne"],
                 multiple: false
@@ -5415,14 +5415,14 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av2-pl",
                 tipo: "texto",
-                pregunta: "18. Ile okien można zobaczyć?",
+                pregunta: "Ile okien można zobaczyć?",
                 correctas: ["?"]
             },
             {
                 reto: 19,
                 id: "R19-Av2-pl",
                 tipo: "opcion-multiple",
-                pregunta: "19. Co można zobaczyć ponad 35 metrów w górze na szczycie barokowej fasady?",
+                pregunta: "Co można zobaczyć ponad 35 metrów w górze na szczycie barokowej fasady?",
                 opciones: ["Kula", "Nietoperz", "Krzyż", "Koń"],
                 correctas: ["Kula", "Krzyż"],
                 multiple: true
@@ -5431,7 +5431,7 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av2-pl",
                 tipo: "opcion",
-                pregunta: "20. Co znajduje się na samym szczycie barokowej wieży Santa Catalina?",
+                pregunta: "Co znajduje się na samym szczycie barokowej wieży Santa Catalina?",
                 opciones: ["Krzyż", "Słońce", "Gołąb"],
                 correctas: ["Krzyż"],
                 multiple: false
@@ -5440,14 +5440,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av2-pl",
                 tipo: "texto",
-                pregunta: "21. Jakiego koloru są dachówki kopuły barokowej wieży Santa Catalina?",
+                pregunta: "Jakiego koloru są dachówki kopuły barokowej wieży Santa Catalina?",
                 correctas: ["marrones"]
             },
             {
                 reto: 22,
                 id: "R22-Av2-pl",
                 tipo: "opcion-multiple",
-                pregunta: "22. Trzy ślepe łuki. Dwa z nich są gładkie, trzeci pozostał bez tynku.<br>Co można zobaczyć w tym nieobitym łuku?",
+                pregunta: "Trzy ślepe łuki. Dwa z nich są gładkie, trzeci pozostał bez tynku.<br>Co można zobaczyć w tym nieobitym łuku?",
                 opciones: ["Twarz", "Tors", "Gargulec"],
                 correctas: ["Twarz", "Tors"],
                 multiple: true
@@ -5456,7 +5456,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av2-pl",
                 tipo: "texto",
-                pregunta: "23. Jak szeroki jest wejście do wąskiego budynku?",
+                pregunta: "Jak szeroki jest wejście do wąskiego budynku?",
                 correctas: ["1,35 metros"]
             },
             {
@@ -5484,7 +5484,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-pt",
                 tipo: "opcion",
-                pregunta: "1. Quantas aventuras podem ser feitas com Valencia be Guides?",
+                pregunta: "Quantas aventuras podem ser feitas com Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -5493,7 +5493,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-pt",
                 tipo: "opcion",
-                pregunta: "2. É um bom momento para começar a sua aventura?",
+                pregunta: "É um bom momento para começar a sua aventura?",
                 opciones: ["Sim", "Não"],
                 correctas: ["?"],
                 multiple: false
@@ -5502,7 +5502,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-pt",
                 tipo: "opcion",
-                pregunta: "3. Saberia dizer-me como se chamam estas Torres?",
+                pregunta: "Saberia dizer-me como se chamam estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5511,7 +5511,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-pt",
                 tipo: "opcion",
-                pregunta: "4. No topo das torres tremula a bandeira de Valência: as suas cores são vermelho, amarelo e…?",
+                pregunta: "No topo das torres tremula a bandeira de Valência: as suas cores são vermelho, amarelo e…?",
                 opciones: ["Violeta", "Verde", "Azul"],
                 correctas: ["Azul"],
                 multiple: false
@@ -5520,7 +5520,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av2-pt",
                 tipo: "opcion",
-                pregunta: "5. Qual das duas torres acha mais recente, a da praça ou a que tem à sua frente agora?",
+                pregunta: "Qual das duas torres acha mais recente, a da praça ou a que tem à sua frente agora?",
                 opciones: ["A mais próxima", "A mais afastada"],
                 correctas: ["A mais afastada"],
                 multiple: false
@@ -5535,7 +5535,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av2-pt",
                 tipo: "opcion-multiple",
-                pregunta: "7. O que se pode ver neste painel de cerâmica? São caveiras? É uma cruz? Há também uma pomba?",
+                pregunta: "O que se pode ver neste painel de cerâmica? São caveiras? É uma cruz? Há também uma pomba?",
                 opciones: ["Caveiras", "Pombas", "Cruz"],
                 correctas: ["Caveiras", "Cruz"],
                 multiple: true
@@ -5544,7 +5544,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av2-pt",
                 tipo: "opcion",
-                pregunta: "8. Quantos sinos tem esta torre?",
+                pregunta: "Quantos sinos tem esta torre?",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -5553,7 +5553,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av2-pt",
                 tipo: "opcion",
-                pregunta: "9. Por que razão estas aldravas foram colocadas tão alto?",
+                pregunta: "Por que razão estas aldravas foram colocadas tão alto?",
                 opciones: ["Para pessoas altas", "Para bater estando a cavalo", "Para não serem incomodados na hora da sesta"],
                 correctas: ["Para bater estando a cavalo"],
                 multiple: false
@@ -5562,7 +5562,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av2-pt",
                 tipo: "opcion",
-                pregunta: "10. O que segura a figura nas suas mãos?",
+                pregunta: "O que segura a figura nas suas mãos?",
                 opciones: ["Um escudo", "Uma concha", "Um jarro", "Uma espada"],
                 correctas: ["Uma concha"],
                 multiple: false
@@ -5571,7 +5571,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av2-pt",
                 tipo: "opcion",
-                pregunta: "11. Que direção toma o caminho estabelecido?",
+                pregunta: "Que direção toma o caminho estabelecido?",
                 opciones: ["Norte", "Sul", "Leste", "Oeste"],
                 correctas: ["Norte"],
                 multiple: false
@@ -5580,7 +5580,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av2-pt",
                 tipo: "opcion",
-                pregunta: "12. Quantas portas tinha a antiga muralha árabe de Balansiya?",
+                pregunta: "Quantas portas tinha a antiga muralha árabe de Balansiya?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -5595,7 +5595,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av2-pt",
                 tipo: "opcion",
-                pregunta: "14. Com que mão Neptuno segura a cornucópia da abundância?",
+                pregunta: "Com que mão Neptuno segura a cornucópia da abundância?",
                 opciones: ["Esquerda", "Direita"],
                 correctas: ["Direita"],
                 multiple: false
@@ -5604,14 +5604,14 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av2-pt",
                 tipo: "texto",
-                pregunta: "15. Quantas figuras rodeiam a fonte?",
+                pregunta: "Quantas figuras rodeiam a fonte?",
                 correctas: ["8"]
             },
             {
                 reto: 16,
                 id: "R16-Av2-pt",
                 tipo: "opcion",
-                pregunta: "16. Consegue determinar que geometria tem o Cimbório da Catedral de Valência?",
+                pregunta: "Consegue determinar que geometria tem o Cimbório da Catedral de Valência?",
                 opciones: ["Hexagonal", "Octogonal", "Quadrangular"],
                 correctas: ["Octogonal"],
                 multiple: false
@@ -5620,7 +5620,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av2-pt",
                 tipo: "opcion",
-                pregunta: "17. Consegue determinar que geometria tem a Torre do Miguelete de Valência?",
+                pregunta: "Consegue determinar que geometria tem a Torre do Miguelete de Valência?",
                 opciones: ["Hexagonal", "Octogonal", "Quadrangular"],
                 correctas: ["Octogonal"],
                 multiple: false
@@ -5629,14 +5629,14 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av2-pt",
                 tipo: "texto",
-                pregunta: "18. Quantas janelas consegue ver?",
+                pregunta: "Quantas janelas consegue ver?",
                 correctas: ["?"]
             },
             {
                 reto: 19,
                 id: "R19-Av2-pt",
                 tipo: "opcion-multiple",
-                pregunta: "19. O que se pode ver a mais de 35 metros de altura no topo da fachada barroca?",
+                pregunta: "O que se pode ver a mais de 35 metros de altura no topo da fachada barroca?",
                 opciones: ["Uma esfera", "Um morcego", "Uma cruz", "Um cavalo"],
                 correctas: ["Uma esfera", "Uma cruz"],
                 multiple: true
@@ -5645,7 +5645,7 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av2-pt",
                 tipo: "opcion",
-                pregunta: "20. O que há no cimo da torre barroca de Santa Catalina?",
+                pregunta: "O que há no cimo da torre barroca de Santa Catalina?",
                 opciones: ["Uma cruz", "O sol", "Uma pomba"],
                 correctas: ["Uma cruz"],
                 multiple: false
@@ -5654,14 +5654,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av2-pt",
                 tipo: "texto",
-                pregunta: "21. De que cor são as telhas da cúpula da torre barroca de Santa Catalina?",
+                pregunta: "De que cor são as telhas da cúpula da torre barroca de Santa Catalina?",
                 correctas: ["marrones"]
             },
             {
                 reto: 22,
                 id: "R22-Av2-pt",
                 tipo: "opcion-multiple",
-                pregunta: "22. Três arcos cegos. Dois deles são lisos, o terceiro ficou sem reboco.<br>O que se pode ver nesse arco sem reboco?",
+                pregunta: "Três arcos cegos. Dois deles são lisos, o terceiro ficou sem reboco.<br>O que se pode ver nesse arco sem reboco?",
                 opciones: ["Um rosto", "Um torso", "Uma gárgula"],
                 correctas: ["Um rosto", "Um torso"],
                 multiple: true
@@ -5670,7 +5670,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av2-pt",
                 tipo: "texto",
-                pregunta: "23. Qual é a largura da entrada do edifício estreito?",
+                pregunta: "Qual é a largura da entrada do edifício estreito?",
                 correctas: ["1,35 metros"]
             },
             {
@@ -5698,7 +5698,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-ru",
                 tipo: "opcion",
-                pregunta: "1. Сколько приключений можно совершить с Valencia be Guides?",
+                pregunta: "Сколько приключений можно совершить с Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -5707,7 +5707,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-ru",
                 tipo: "opcion",
-                pregunta: "2. Сейчас хорошее время для начала приключения?",
+                pregunta: "Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
@@ -5716,7 +5716,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-ru",
                 tipo: "opcion",
-                pregunta: "3. Вы знаете, как называются эти башни?",
+                pregunta: "Вы знаете, как называются эти башни?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5725,7 +5725,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-ru",
                 tipo: "opcion",
-                pregunta: "4. На вершине башен развевается флаг Валенсии: его цвета — красный, жёлтый и…?",
+                pregunta: "На вершине башен развевается флаг Валенсии: его цвета — красный, жёлтый и…?",
                 opciones: ["Фиолетовый", "Зелёный", "Синий"],
                 correctas: ["Синий"],
                 multiple: false
@@ -5734,7 +5734,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av2-ru",
                 tipo: "opcion",
-                pregunta: "5. Как вы думаете, какая из двух башен новее — та, что на площади, или та, что перед вами сейчас?",
+                pregunta: "Как вы думаете, какая из двух башен новее — та, что на площади, или та, что перед вами сейчас?",
                 opciones: ["Ближняя", "Дальняя"],
                 correctas: ["Дальняя"],
                 multiple: false
@@ -5749,7 +5749,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av2-ru",
                 tipo: "opcion-multiple",
-                pregunta: "7. Что можно увидеть на этой керамической панели? Это черепа? Это крест? Есть ли там голубь?",
+                pregunta: "Что можно увидеть на этой керамической панели? Это черепа? Это крест? Есть ли там голубь?",
                 opciones: ["Черепа", "Голуби", "Крест"],
                 correctas: ["Черепа", "Крест"],
                 multiple: true
@@ -5758,7 +5758,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av2-ru",
                 tipo: "opcion",
-                pregunta: "8. Сколько колоколов в этой башне?",
+                pregunta: "Сколько колоколов в этой башне?",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -5767,7 +5767,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av2-ru",
                 tipo: "opcion",
-                pregunta: "9. Почему эти дверные молотки были помещены так высоко?",
+                pregunta: "Почему эти дверные молотки были помещены так высоко?",
                 opciones: ["Для высоких людей", "Чтобы стучать, сидя на лошади", "Чтобы не беспокоили во время сиесты"],
                 correctas: ["Чтобы стучать, сидя на лошади"],
                 multiple: false
@@ -5776,7 +5776,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av2-ru",
                 tipo: "opcion",
-                pregunta: "10. Что держит в руках эта фигура?",
+                pregunta: "Что держит в руках эта фигура?",
                 opciones: ["Щит", "Раковину", "Кувшин", "Меч"],
                 correctas: ["Раковину"],
                 multiple: false
@@ -5785,7 +5785,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av2-ru",
                 tipo: "opcion",
-                pregunta: "11. В каком направлении идёт установленный путь?",
+                pregunta: "В каком направлении идёт установленный путь?",
                 opciones: ["Север", "Юг", "Восток", "Запад"],
                 correctas: ["Север"],
                 multiple: false
@@ -5794,7 +5794,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av2-ru",
                 tipo: "opcion",
-                pregunta: "12. Сколько ворот было в старой арабской стене Балансии?",
+                pregunta: "Сколько ворот было в старой арабской стене Балансии?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -5809,7 +5809,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av2-ru",
                 tipo: "opcion",
-                pregunta: "14. Какой рукой Нептун держит рог изобилия?",
+                pregunta: "Какой рукой Нептун держит рог изобилия?",
                 opciones: ["Левой", "Правой"],
                 correctas: ["Правой"],
                 multiple: false
@@ -5818,14 +5818,14 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av2-ru",
                 tipo: "texto",
-                pregunta: "15. Сколько фигур окружает фонтан?",
+                pregunta: "Сколько фигур окружает фонтан?",
                 correctas: ["8"]
             },
             {
                 reto: 16,
                 id: "R16-Av2-ru",
                 tipo: "opcion",
-                pregunta: "16. Вы могли бы определить геометрическую форму симбория Валенсийского собора?",
+                pregunta: "Вы могли бы определить геометрическую форму симбория Валенсийского собора?",
                 opciones: ["Шестиугольная", "Восьмиугольная", "Четырёхугольная"],
                 correctas: ["Восьмиугольная"],
                 multiple: false
@@ -5834,7 +5834,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av2-ru",
                 tipo: "opcion",
-                pregunta: "17. Вы могли бы определить геометрическую форму башни Мигелете в Валенсии?",
+                pregunta: "Вы могли бы определить геометрическую форму башни Мигелете в Валенсии?",
                 opciones: ["Шестиугольная", "Восьмиугольная", "Четырёхугольная"],
                 correctas: ["Восьмиугольная"],
                 multiple: false
@@ -5843,14 +5843,14 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av2-ru",
                 tipo: "texto",
-                pregunta: "18. Сколько окон вы можете увидеть?",
+                pregunta: "Сколько окон вы можете увидеть?",
                 correctas: ["?"]
             },
             {
                 reto: 19,
                 id: "R19-Av2-ru",
                 tipo: "opcion-multiple",
-                pregunta: "19. Что можно увидеть на высоте более 35 метров на вершине барочного фасада?",
+                pregunta: "Что можно увидеть на высоте более 35 метров на вершине барочного фасада?",
                 opciones: ["Сфера", "Летучая мышь", "Крест", "Лошадь"],
                 correctas: ["Сфера", "Крест"],
                 multiple: true
@@ -5859,7 +5859,7 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av2-ru",
                 tipo: "opcion",
-                pregunta: "20. Что находится на самом верху барочной башни Санта-Каталина?",
+                pregunta: "Что находится на самом верху барочной башни Санта-Каталина?",
                 opciones: ["Крест", "Солнце", "Голубь"],
                 correctas: ["Крест"],
                 multiple: false
@@ -5868,14 +5868,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av2-ru",
                 tipo: "texto",
-                pregunta: "21. Какого цвета черепица купола барочной башни Санта-Каталина?",
+                pregunta: "Какого цвета черепица купола барочной башни Санта-Каталина?",
                 correctas: ["marrones"]
             },
             {
                 reto: 22,
                 id: "R22-Av2-ru",
                 tipo: "opcion-multiple",
-                pregunta: "22. Три глухих арки. Две из них гладкие, третья осталась без штукатурки.<br>Что можно увидеть в этой неоштукатуренной арке?",
+                pregunta: "Три глухих арки. Две из них гладкие, третья осталась без штукатурки.<br>Что можно увидеть в этой неоштукатуренной арке?",
                 opciones: ["Лицо", "Торс", "Горгулья"],
                 correctas: ["Лицо", "Торс"],
                 multiple: true
@@ -5884,7 +5884,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av2-ru",
                 tipo: "texto",
-                pregunta: "23. Какова ширина входа в узкое здание?",
+                pregunta: "Какова ширина входа в узкое здание?",
                 correctas: ["1,35 metros"]
             },
             {
@@ -5912,7 +5912,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-uk",
                 tipo: "opcion",
-                pregunta: "1. Скільки пригод можна здійснити з Valencia be Guides?",
+                pregunta: "Скільки пригод можна здійснити з Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -5921,7 +5921,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-uk",
                 tipo: "opcion",
-                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
+                pregunta: "Чи зараз гарний момент для початку пригоди?",
                 opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
@@ -5930,7 +5930,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-uk",
                 tipo: "opcion",
-                pregunta: "3. Ви знаєте, як називаються ці вежі?",
+                pregunta: "Ви знаєте, як називаються ці вежі?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5939,7 +5939,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-uk",
                 tipo: "opcion",
-                pregunta: "4. На вершині веж майорить прапор Валенсії: його кольори — червоний, жовтий і…?",
+                pregunta: "На вершині веж майорить прапор Валенсії: його кольори — червоний, жовтий і…?",
                 opciones: ["Фіолетовий", "Зелений", "Синій"],
                 correctas: ["Синій"],
                 multiple: false
@@ -5948,7 +5948,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av2-uk",
                 tipo: "opcion",
-                pregunta: "5. Як ви думаєте, яка з двох веж новіша — та, що на площі, чи та, що перед вами зараз?",
+                pregunta: "Як ви думаєте, яка з двох веж новіша — та, що на площі, чи та, що перед вами зараз?",
                 opciones: ["Найближча", "Найдальша"],
                 correctas: ["Найдальша"],
                 multiple: false
@@ -5963,7 +5963,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av2-uk",
                 tipo: "opcion-multiple",
-                pregunta: "7. Що можна побачити на цій керамічній панелі? Це черепи? Це хрест? Є також голуб?",
+                pregunta: "Що можна побачити на цій керамічній панелі? Це черепи? Це хрест? Є також голуб?",
                 opciones: ["Черепи", "Голуби", "Хрест"],
                 correctas: ["Черепи", "Хрест"],
                 multiple: true
@@ -5972,7 +5972,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av2-uk",
                 tipo: "opcion",
-                pregunta: "8. Скільки дзвонів у цій вежі?",
+                pregunta: "Скільки дзвонів у цій вежі?",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -5981,7 +5981,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av2-uk",
                 tipo: "opcion",
-                pregunta: "9. Чому ці дверні молотки були встановлені так високо?",
+                pregunta: "Чому ці дверні молотки були встановлені так високо?",
                 opciones: ["Для високих людей", "Щоб стукати, перебуваючи верхи на коні", "Щоб не турбували під час сієсти"],
                 correctas: ["Щоб стукати, перебуваючи верхи на коні"],
                 multiple: false
@@ -5990,7 +5990,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av2-uk",
                 tipo: "opcion",
-                pregunta: "10. Що тримає в руках ця фігура?",
+                pregunta: "Що тримає в руках ця фігура?",
                 opciones: ["Щит", "Мушлю", "Глечик", "Меч"],
                 correctas: ["Мушлю"],
                 multiple: false
@@ -5999,7 +5999,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av2-uk",
                 tipo: "opcion",
-                pregunta: "11. В якому напрямку проходить встановлений маршрут?",
+                pregunta: "В якому напрямку проходить встановлений маршрут?",
                 opciones: ["Північ", "Південь", "Схід", "Захід"],
                 correctas: ["Північ"],
                 multiple: false
@@ -6008,7 +6008,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av2-uk",
                 tipo: "opcion",
-                pregunta: "12. Скільки воріт мала стара арабська стіна Балансії?",
+                pregunta: "Скільки воріт мала стара арабська стіна Балансії?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -6023,7 +6023,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av2-uk",
                 tipo: "opcion",
-                pregunta: "14. Якою рукою Нептун тримає ріг достатку?",
+                pregunta: "Якою рукою Нептун тримає ріг достатку?",
                 opciones: ["Лівою", "Правою"],
                 correctas: ["Правою"],
                 multiple: false
@@ -6032,14 +6032,14 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av2-uk",
                 tipo: "texto",
-                pregunta: "15. Скільки фігур оточує фонтан?",
+                pregunta: "Скільки фігур оточує фонтан?",
                 correctas: ["8"]
             },
             {
                 reto: 16,
                 id: "R16-Av2-uk",
                 tipo: "opcion",
-                pregunta: "16. Чи могли б ви визначити геометричну форму симборіо Валенсійського собору?",
+                pregunta: "Чи могли б ви визначити геометричну форму симборіо Валенсійського собору?",
                 opciones: ["Шестикутна", "Восьмикутна", "Чотирикутна"],
                 correctas: ["Восьмикутна"],
                 multiple: false
@@ -6048,7 +6048,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av2-uk",
                 tipo: "opcion",
-                pregunta: "17. Чи могли б ви визначити геометричну форму вежі Мігелете у Валенсії?",
+                pregunta: "Чи могли б ви визначити геометричну форму вежі Мігелете у Валенсії?",
                 opciones: ["Шестикутна", "Восьмикутна", "Чотирикутна"],
                 correctas: ["Восьмикутна"],
                 multiple: false
@@ -6057,14 +6057,14 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av2-uk",
                 tipo: "texto",
-                pregunta: "18. Скільки вікон ви можете побачити?",
+                pregunta: "Скільки вікон ви можете побачити?",
                 correctas: ["?"]
             },
             {
                 reto: 19,
                 id: "R19-Av2-uk",
                 tipo: "opcion-multiple",
-                pregunta: "19. Що можна побачити на висоті понад 35 метрів на вершині барокового фасаду?",
+                pregunta: "Що можна побачити на висоті понад 35 метрів на вершині барокового фасаду?",
                 opciones: ["Сфера", "Кажан", "Хрест", "Кінь"],
                 correctas: ["Сфера", "Хрест"],
                 multiple: true
@@ -6073,7 +6073,7 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av2-uk",
                 tipo: "opcion",
-                pregunta: "20. Що знаходиться на самому верху барокової вежі Санта-Каталіна?",
+                pregunta: "Що знаходиться на самому верху барокової вежі Санта-Каталіна?",
                 opciones: ["Хрест", "Сонце", "Голуб"],
                 correctas: ["Хрест"],
                 multiple: false
@@ -6082,14 +6082,14 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av2-uk",
                 tipo: "texto",
-                pregunta: "21. Якого кольору черепиця купола барокової вежі Санта-Каталіна?",
+                pregunta: "Якого кольору черепиця купола барокової вежі Санта-Каталіна?",
                 correctas: ["marrones"]
             },
             {
                 reto: 22,
                 id: "R22-Av2-uk",
                 tipo: "opcion-multiple",
-                pregunta: "22. Три глухі арки. Дві з них гладкі, третя залишилась без штукатурки.<br>Що можна побачити в цій нетинькованій арці?",
+                pregunta: "Три глухі арки. Дві з них гладкі, третя залишилась без штукатурки.<br>Що можна побачити в цій нетинькованій арці?",
                 opciones: ["Обличчя", "Торс", "Гаргулья"],
                 correctas: ["Обличчя", "Торс"],
                 multiple: true
@@ -6098,7 +6098,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av2-uk",
                 tipo: "texto",
-                pregunta: "23. Яка ширина входу вузького будинку?",
+                pregunta: "Яка ширина входу вузького будинку?",
                 correctas: ["1,35 metros"]
             },
             {
@@ -6128,7 +6128,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -6137,7 +6137,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-es",
                 tipo: "opcion",
-                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                pregunta: "¿Es buen momento para comenzar su aventura?",
                 opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -6369,7 +6369,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-en",
                 tipo: "opcion",
-                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                pregunta: "How many adventures can be done with Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -6378,7 +6378,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-en",
                 tipo: "opcion",
-                pregunta: "2. Is it a good time to start your adventure?",
+                pregunta: "Is it a good time to start your adventure?",
                 opciones: ["Yes", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -6610,7 +6610,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-fr",
                 tipo: "opcion",
-                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                pregunta: "Combien d'aventures peut-on faire avec Valencia be Guides ?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -6619,7 +6619,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-fr",
                 tipo: "opcion",
-                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                pregunta: "Est-ce le bon moment pour commencer votre aventure ?",
                 opciones: ["Oui", "Non"],
                 correctas: ["?"],
                 multiple: false
@@ -6851,7 +6851,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-it",
                 tipo: "opcion",
-                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                pregunta: "Quante avventure si possono fare con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -6860,7 +6860,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la sua avventura?",
+                pregunta: "È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -7092,7 +7092,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
+                pregunta: "Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -7101,7 +7101,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
+                pregunta: "Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -7333,7 +7333,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-ja",
                 tipo: "opcion",
-                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                pregunta: "Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -7342,7 +7342,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-ja",
                 tipo: "opcion",
-                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                pregunta: "今は冒険を始めるのに良いタイミングですか？",
                 opciones: ["はい", "いいえ"],
                 correctas: ["?"],
                 multiple: false
@@ -7574,7 +7574,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-de",
                 tipo: "opcion",
-                pregunta: "1. Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+                pregunta: "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -7583,7 +7583,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-de",
                 tipo: "opcion",
-                pregunta: "2. Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+                pregunta: "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
                 opciones: ["Ja", "Nein"],
                 correctas: ["?"],
                 multiple: false
@@ -7815,7 +7815,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-zh",
                 tipo: "opcion",
-                pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
+                pregunta: "使用Valencia be Guides可以进行多少次冒险？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -7824,7 +7824,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-zh",
                 tipo: "opcion",
-                pregunta: "2. 现在是开始冒险的好时机吗？",
+                pregunta: "现在是开始冒险的好时机吗？",
                 opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
@@ -8056,7 +8056,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-pl",
                 tipo: "opcion",
-                pregunta: "1. Ile przygód można przeżyć z Valencia be Guides?",
+                pregunta: "Ile przygód można przeżyć z Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -8065,7 +8065,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-pl",
                 tipo: "opcion",
-                pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
+                pregunta: "Czy to dobry moment, aby rozpocząć przygodę?",
                 opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
@@ -8297,7 +8297,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-pt",
                 tipo: "opcion",
-                pregunta: "1. Quantas aventuras podem ser feitas com Valencia be Guides?",
+                pregunta: "Quantas aventuras podem ser feitas com Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -8306,7 +8306,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-pt",
                 tipo: "opcion",
-                pregunta: "2. É um bom momento para começar a sua aventura?",
+                pregunta: "É um bom momento para começar a sua aventura?",
                 opciones: ["Sim", "Não"],
                 correctas: ["?"],
                 multiple: false
@@ -8538,7 +8538,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-ru",
                 tipo: "opcion",
-                pregunta: "1. Сколько приключений можно совершить с Valencia be Guides?",
+                pregunta: "Сколько приключений можно совершить с Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -8547,7 +8547,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-ru",
                 tipo: "opcion",
-                pregunta: "2. Сейчас хорошее время для начала приключения?",
+                pregunta: "Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
@@ -8779,7 +8779,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-uk",
                 tipo: "opcion",
-                pregunta: "1. Скільки пригод можна здійснити з Valencia be Guides?",
+                pregunta: "Скільки пригод можна здійснити з Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -8788,7 +8788,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-uk",
                 tipo: "opcion",
-                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
+                pregunta: "Чи зараз гарний момент для початку пригоди?",
                 opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
@@ -9022,7 +9022,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -9031,7 +9031,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-es",
                 tipo: "opcion",
-                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                pregunta: "¿Es buen momento para comenzar su aventura?",
                 opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -9040,7 +9040,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-es",
                 tipo: "opcion",
-                pregunta: "3. ¿Sabría decirme cómo se llaman estas Torres?",
+                pregunta: "¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -9199,7 +9199,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-en",
                 tipo: "opcion",
-                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                pregunta: "How many adventures can be done with Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -9208,7 +9208,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-en",
                 tipo: "opcion",
-                pregunta: "2. Is it a good time to start your adventure?",
+                pregunta: "Is it a good time to start your adventure?",
                 opciones: ["Yes", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -9376,7 +9376,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-fr",
                 tipo: "opcion",
-                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                pregunta: "Combien d'aventures peut-on faire avec Valencia be Guides ?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -9385,7 +9385,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-fr",
                 tipo: "opcion",
-                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                pregunta: "Est-ce le bon moment pour commencer votre aventure ?",
                 opciones: ["Oui", "Non"],
                 correctas: ["?"],
                 multiple: false
@@ -9553,7 +9553,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-it",
                 tipo: "opcion",
-                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                pregunta: "Quante avventure si possono fare con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -9562,7 +9562,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la sua avventura?",
+                pregunta: "È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -9730,7 +9730,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
+                pregunta: "Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -9739,7 +9739,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
+                pregunta: "Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -9907,7 +9907,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-ja",
                 tipo: "opcion",
-                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                pregunta: "Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -9916,7 +9916,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-ja",
                 tipo: "opcion",
-                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                pregunta: "今は冒険を始めるのに良いタイミングですか？",
                 opciones: ["はい", "いいえ"],
                 correctas: ["?"],
                 multiple: false
@@ -10084,7 +10084,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-de",
                 tipo: "opcion",
-                pregunta: "1. Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+                pregunta: "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -10093,7 +10093,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-de",
                 tipo: "opcion",
-                pregunta: "2. Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+                pregunta: "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
                 opciones: ["Ja", "Nein"],
                 correctas: ["?"],
                 multiple: false
@@ -10102,7 +10102,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-de",
                 tipo: "opcion",
-                pregunta: "3. Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10258,7 +10258,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-zh",
                 tipo: "opcion",
-                pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
+                pregunta: "使用Valencia be Guides可以进行多少次冒险？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -10267,7 +10267,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-zh",
                 tipo: "opcion",
-                pregunta: "2. 现在是开始冒险的好时机吗？",
+                pregunta: "现在是开始冒险的好时机吗？",
                 opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
@@ -10276,7 +10276,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-zh",
                 tipo: "opcion",
-                pregunta: "3. 您能告诉我这些塔叫什么名字吗？",
+                pregunta: "您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10432,7 +10432,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-pl",
                 tipo: "opcion",
-                pregunta: "1. Ile przygód można przeżyć z Valencia be Guides?",
+                pregunta: "Ile przygód można przeżyć z Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -10441,7 +10441,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-pl",
                 tipo: "opcion",
-                pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
+                pregunta: "Czy to dobry moment, aby rozpocząć przygodę?",
                 opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
@@ -10450,7 +10450,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-pl",
                 tipo: "opcion",
-                pregunta: "3. Czy potrafi Pan/Pani powiedzieć mi, jak nazywają się te wieże?",
+                pregunta: "Czy potrafi Pan/Pani powiedzieć mi, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10606,7 +10606,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-pt",
                 tipo: "opcion",
-                pregunta: "1. Quantas aventuras podem ser feitas com Valencia be Guides?",
+                pregunta: "Quantas aventuras podem ser feitas com Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -10615,7 +10615,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-pt",
                 tipo: "opcion",
-                pregunta: "2. É um bom momento para começar a sua aventura?",
+                pregunta: "É um bom momento para começar a sua aventura?",
                 opciones: ["Sim", "Não"],
                 correctas: ["?"],
                 multiple: false
@@ -10624,7 +10624,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-pt",
                 tipo: "opcion",
-                pregunta: "3. Sabe me dizer como se chamam estas Torres?",
+                pregunta: "Sabe me dizer como se chamam estas Torres?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10780,7 +10780,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-ru",
                 tipo: "opcion",
-                pregunta: "1. Сколько приключений можно совершить с Valencia be Guides?",
+                pregunta: "Сколько приключений можно совершить с Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -10789,7 +10789,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-ru",
                 tipo: "opcion",
-                pregunta: "2. Сейчас хорошее время для начала приключения?",
+                pregunta: "Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
@@ -10798,7 +10798,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-ru",
                 tipo: "opcion",
-                pregunta: "3. Можете ли вы назвать мне, как называются эти башни?",
+                pregunta: "Можете ли вы назвать мне, как называются эти башни?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10954,7 +10954,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-uk",
                 tipo: "opcion",
-                pregunta: "1. Скільки пригод можна здійснити з Valencia be Guides?",
+                pregunta: "Скільки пригод можна здійснити з Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -10963,7 +10963,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-uk",
                 tipo: "opcion",
-                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
+                pregunta: "Чи зараз гарний момент для початку пригоди?",
                 opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
@@ -10972,7 +10972,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-uk",
                 tipo: "opcion",
-                pregunta: "3. Чи можете ви сказати мені, як називаються ці вежі?",
+                pregunta: "Чи можете ви сказати мені, як називаються ці вежі?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -11130,7 +11130,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -11139,7 +11139,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-es",
                 tipo: "opcion",
-                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                pregunta: "¿Es buen momento para comenzar su aventura?",
                 opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -11148,7 +11148,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-es",
                 tipo: "opcion",
-                pregunta: "3. ¿Sabría decirme cómo se llaman estas Torres?",
+                pregunta: "¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -11367,7 +11367,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-en",
                 tipo: "opcion",
-                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                pregunta: "How many adventures can be done with Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -11376,7 +11376,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-en",
                 tipo: "opcion",
-                pregunta: "2. Is it a good time to start your adventure?",
+                pregunta: "Is it a good time to start your adventure?",
                 opciones: ["Yes", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -11618,7 +11618,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-fr",
                 tipo: "opcion",
-                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                pregunta: "Combien d'aventures peut-on faire avec Valencia be Guides ?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -11627,7 +11627,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-fr",
                 tipo: "opcion",
-                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                pregunta: "Est-ce le bon moment pour commencer votre aventure ?",
                 opciones: ["Oui", "Non"],
                 correctas: ["?"],
                 multiple: false
@@ -11869,7 +11869,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-it",
                 tipo: "opcion",
-                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                pregunta: "Quante avventure si possono fare con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -11878,7 +11878,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la sua avventura?",
+                pregunta: "È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -12120,7 +12120,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
+                pregunta: "Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -12129,7 +12129,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
+                pregunta: "Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -12371,7 +12371,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-ja",
                 tipo: "opcion",
-                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                pregunta: "Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -12380,7 +12380,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-ja",
                 tipo: "opcion",
-                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                pregunta: "今は冒険を始めるのに良いタイミングですか？",
                 opciones: ["はい", "いいえ"],
                 correctas: ["?"],
                 multiple: false
@@ -12622,7 +12622,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-de",
                 tipo: "opcion",
-                pregunta: "1. Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+                pregunta: "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -12631,7 +12631,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-de",
                 tipo: "opcion",
-                pregunta: "2. Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+                pregunta: "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
                 opciones: ["Ja", "Nein"],
                 correctas: ["?"],
                 multiple: false
@@ -12640,7 +12640,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-de",
                 tipo: "opcion",
-                pregunta: "3. Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -12859,7 +12859,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-zh",
                 tipo: "opcion",
-                pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
+                pregunta: "使用Valencia be Guides可以进行多少次冒险？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -12868,7 +12868,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-zh",
                 tipo: "opcion",
-                pregunta: "2. 现在是开始冒险的好时机吗？",
+                pregunta: "现在是开始冒险的好时机吗？",
                 opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
@@ -12877,7 +12877,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-zh",
                 tipo: "opcion",
-                pregunta: "3. 您能告诉我这些塔叫什么名字吗？",
+                pregunta: "您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13096,7 +13096,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-pl",
                 tipo: "opcion",
-                pregunta: "1. Ile przygód można przeżyć z Valencia be Guides?",
+                pregunta: "Ile przygód można przeżyć z Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -13105,7 +13105,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-pl",
                 tipo: "opcion",
-                pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
+                pregunta: "Czy to dobry moment, aby rozpocząć przygodę?",
                 opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
@@ -13114,7 +13114,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-pl",
                 tipo: "opcion",
-                pregunta: "3. Czy potrafi Pan/Pani powiedzieć mi, jak nazywają się te wieże?",
+                pregunta: "Czy potrafi Pan/Pani powiedzieć mi, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13333,7 +13333,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-pt",
                 tipo: "opcion",
-                pregunta: "1. Quantas aventuras podem ser feitas com Valencia be Guides?",
+                pregunta: "Quantas aventuras podem ser feitas com Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -13342,7 +13342,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-pt",
                 tipo: "opcion",
-                pregunta: "2. É um bom momento para começar a sua aventura?",
+                pregunta: "É um bom momento para começar a sua aventura?",
                 opciones: ["Sim", "Não"],
                 correctas: ["?"],
                 multiple: false
@@ -13351,7 +13351,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-pt",
                 tipo: "opcion",
-                pregunta: "3. Sabe me dizer como se chamam estas Torres?",
+                pregunta: "Sabe me dizer como se chamam estas Torres?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13570,7 +13570,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-ru",
                 tipo: "opcion",
-                pregunta: "1. Сколько приключений можно совершить с Valencia be Guides?",
+                pregunta: "Сколько приключений можно совершить с Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -13579,7 +13579,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-ru",
                 tipo: "opcion",
-                pregunta: "2. Сейчас хорошее время для начала приключения?",
+                pregunta: "Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
@@ -13588,7 +13588,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-ru",
                 tipo: "opcion",
-                pregunta: "3. Можете ли вы назвать мне, как называются эти башни?",
+                pregunta: "Можете ли вы назвать мне, как называются эти башни?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13807,7 +13807,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-uk",
                 tipo: "opcion",
-                pregunta: "1. Скільки пригод можна здійснити з Valencia be Guides?",
+                pregunta: "Скільки пригод можна здійснити з Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -13816,7 +13816,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-uk",
                 tipo: "opcion",
-                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
+                pregunta: "Чи зараз гарний момент для початку пригоди?",
                 opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
@@ -13825,7 +13825,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-uk",
                 tipo: "opcion",
-                pregunta: "3. Чи можете ви сказати мені, як називаються ці вежі?",
+                pregunta: "Чи можете ви сказати мені, як називаються ці вежі?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -14046,7 +14046,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -14055,7 +14055,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-es",
                 tipo: "opcion",
-                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                pregunta: "¿Es buen momento para comenzar su aventura?",
                 opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -14219,7 +14219,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-en",
                 tipo: "opcion",
-                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                pregunta: "How many adventures can be done with Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -14228,7 +14228,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-en",
                 tipo: "opcion",
-                pregunta: "2. Is it a good time to start your adventure?",
+                pregunta: "Is it a good time to start your adventure?",
                 opciones: ["Yes", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -14394,7 +14394,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-fr",
                 tipo: "opcion",
-                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                pregunta: "Combien d'aventures peut-on faire avec Valencia be Guides ?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -14403,7 +14403,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-fr",
                 tipo: "opcion",
-                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                pregunta: "Est-ce le bon moment pour commencer votre aventure ?",
                 opciones: ["Oui", "Non"],
                 correctas: ["?"],
                 multiple: false
@@ -14569,7 +14569,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-it",
                 tipo: "opcion",
-                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                pregunta: "Quante avventure si possono fare con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -14578,7 +14578,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la sua avventura?",
+                pregunta: "È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -14744,7 +14744,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
+                pregunta: "Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -14753,7 +14753,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
+                pregunta: "Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -14919,7 +14919,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-ja",
                 tipo: "opcion",
-                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                pregunta: "Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -14928,7 +14928,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-ja",
                 tipo: "opcion",
-                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                pregunta: "今は冒険を始めるのに良いタイミングですか？",
                 opciones: ["はい", "いいえ"],
                 correctas: ["?"],
                 multiple: false
@@ -15094,7 +15094,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "1. Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+                pregunta: "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -15103,7 +15103,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "2. Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+                pregunta: "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
                 opciones: ["Ja", "Nein"],
                 correctas: ["?"],
                 multiple: false
@@ -15112,7 +15112,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "3. Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15267,7 +15267,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
+                pregunta: "使用Valencia be Guides可以进行多少次冒险？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -15276,7 +15276,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "2. 现在是开始冒险的好时机吗？",
+                pregunta: "现在是开始冒险的好时机吗？",
                 opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
@@ -15285,7 +15285,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "3. 您能告诉我这些塔叫什么名字吗？",
+                pregunta: "您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15440,7 +15440,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "1. Ile przygód można przeżyć z Valencia be Guides?",
+                pregunta: "Ile przygód można przeżyć z Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -15449,7 +15449,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
+                pregunta: "Czy to dobry moment, aby rozpocząć przygodę?",
                 opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
@@ -15458,7 +15458,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "3. Czy potrafi Pan/Pani powiedzieć mi, jak nazywają się te wieże?",
+                pregunta: "Czy potrafi Pan/Pani powiedzieć mi, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15613,7 +15613,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-pt",
                 tipo: "opcion",
-                pregunta: "1. Quantas aventuras podem ser feitas com Valencia be Guides?",
+                pregunta: "Quantas aventuras podem ser feitas com Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -15622,7 +15622,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-pt",
                 tipo: "opcion",
-                pregunta: "2. É um bom momento para começar a sua aventura?",
+                pregunta: "É um bom momento para começar a sua aventura?",
                 opciones: ["Sim", "Não"],
                 correctas: ["?"],
                 multiple: false
@@ -15631,7 +15631,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-pt",
                 tipo: "opcion",
-                pregunta: "3. Sabe me dizer como se chamam estas Torres?",
+                pregunta: "Sabe me dizer como se chamam estas Torres?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15786,7 +15786,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "1. Сколько приключений можно совершить с Valencia be Guides?",
+                pregunta: "Сколько приключений можно совершить с Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -15795,7 +15795,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "2. Сейчас хорошее время для начала приключения?",
+                pregunta: "Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
@@ -15804,7 +15804,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "3. Можете ли вы назвать мне, как называются эти башни?",
+                pregunta: "Можете ли вы назвать мне, как называются эти башни?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15959,7 +15959,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "1. Скільки пригод можна здійснити з Valencia be Guides?",
+                pregunta: "Скільки пригод можна здійснити з Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -15968,7 +15968,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
+                pregunta: "Чи зараз гарний момент для початку пригоди?",
                 opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
@@ -15977,7 +15977,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "3. Чи можете ви сказати мені, як називаються ці вежі?",
+                pregunta: "Чи можете ви сказати мені, як називаються ці вежі?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -16134,7 +16134,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -16143,7 +16143,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-es",
                 tipo: "opcion",
-                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                pregunta: "¿Es buen momento para comenzar su aventura?",
                 opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -16152,7 +16152,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-es",
                 tipo: "opcion",
-                pregunta: "3. ¿Sabría decirme cómo se llaman estas Torres?",
+                pregunta: "¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -16315,7 +16315,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-es",
                 tipo: "opcion",
-                pregunta: "23. ¿Recuerda qué animal corona el escudo municipal?",
+                pregunta: "¿Recuerda qué animal corona el escudo municipal?",
                 opciones: ["Un Dragón", "Un Murciélago", "Un Caballo"],
                 correctas: ["Un Murciélago"],
                 multiple: false
@@ -16324,7 +16324,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "24. Sobre la entrada principal, en un arco de medio punto, figuras alegóricas representan a los cinco continentes. ¿Qué porta la figura central?",
+                pregunta: "Sobre la entrada principal, en un arco de medio punto, figuras alegóricas representan a los cinco continentes. ¿Qué porta la figura central?",
                 opciones: ["Una Antorcha", "Una Espada", "Una Corona"],
                 correctas: ["Una Antorcha", "Una Espada"],
                 multiple: true
@@ -16333,7 +16333,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-es",
                 tipo: "opcion",
-                pregunta: "25. ¿Qué porta la figura en la mano?",
+                pregunta: "¿Qué porta la figura en la mano?",
                 opciones: ["Una balanza", "Un libro", "Una pluma"],
                 correctas: ["Una balanza"],
                 multiple: false
@@ -16342,14 +16342,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-es",
                 tipo: "texto",
-                pregunta: "26. ¿Cuántos pisos tiene el edificio?",
+                pregunta: "¿Cuántos pisos tiene el edificio?",
                 correctas: ["10"]
             },
             {
                 reto: 27,
                 id: "R27-Av34km-es",
                 tipo: "opcion",
-                pregunta: "27. Busque la vidriera con los colores de la Señera valenciana en la fachada del edificio. ¿Sabría determinar qué forma tiene?",
+                pregunta: "Busque la vidriera con los colores de la Señera valenciana en la fachada del edificio. ¿Sabría determinar qué forma tiene?",
                 opciones: ["Cuadrangular", "Redonda", "Triangular"],
                 correctas: ["Redonda"],
                 multiple: false
@@ -16358,7 +16358,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "28. ¿Qué sostiene la virgen en su mano?",
+                pregunta: "¿Qué sostiene la virgen en su mano?",
                 opciones: ["Un Rosario", "Un niño", "Una corona"],
                 correctas: ["Un Rosario", "Un niño"],
                 multiple: true
@@ -16367,7 +16367,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-es",
                 tipo: "opcion",
-                pregunta: "29. ¿Qué le entrega el ángel al niño?",
+                pregunta: "¿Qué le entrega el ángel al niño?",
                 opciones: ["Una paloma", "Un orbe", "Alimentos"],
                 correctas: ["Un orbe"],
                 multiple: false
@@ -16382,7 +16382,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "31. El barquero que rema a contracorriente.",
+                pregunta: "El barquero que rema a contracorriente.",
                 opciones: ["Un hombre con rostro triste manejando un pequeño bote de madera escapa a contracorriente de un monstruo."],
                 correctas: ["Un hombre con rostro triste manejando un pequeño bote de madera escapa a contracorriente de un monstruo."],
                 multiple: true
@@ -16391,7 +16391,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "32. Un árbol muerto: símbolo del Pecado, se ve entre las dos hojas de la puerta y cumple la función de parteluz.",
+                pregunta: "Un árbol muerto: símbolo del Pecado, se ve entre las dos hojas de la puerta y cumple la función de parteluz.",
                 opciones: ["Observe en la copa del árbol como 4 hombres desnudos se azotan entre si."],
                 correctas: ["Observe en la copa del árbol como 4 hombres desnudos se azotan entre si."],
                 multiple: true
@@ -16400,7 +16400,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "33. A la derecha, un ángel que muestra su pene y...",
+                pregunta: "A la derecha, un ángel que muestra su pene y...",
                 opciones: ["se dispone a introducirlo en un jarrón que sostiene con la otra mano. Algo extraño e inusual ¿no le parece?"],
                 correctas: ["se dispone a introducirlo en un jarrón que sostiene con la otra mano. Algo extraño e inusual ¿no le parece?"],
                 multiple: true
@@ -16409,7 +16409,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "34. En el centro El barbudo y el león:",
+                pregunta: "En el centro El barbudo y el león:",
                 opciones: ["Original y contradictoria escena en la cual el manso es precisamente el león y no el anciano barbudo."],
                 correctas: ["Original y contradictoria escena en la cual el manso es precisamente el león y no el anciano barbudo."],
                 multiple: true
@@ -16418,7 +16418,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "35. ¡Aquí va un reto extra! ¡Busque al fornicador de la lonja!",
+                pregunta: "¡Aquí va un reto extra! ¡Busque al fornicador de la lonja!",
                 opciones: ["En una de sus ventanas, hallará a un hombre tallado, no se le advierte su cabeza, pero sí sus genitales, Y muy claramente."],
                 correctas: ["En una de sus ventanas, hallará a un hombre tallado, no se le advierte su cabeza, pero sí sus genitales, Y muy claramente."],
                 multiple: true
@@ -16433,14 +16433,14 @@ export const RETOS_AVENTURAS = {
                 reto: 37,
                 id: "R37-Av34km-es",
                 tipo: "texto",
-                pregunta: "37. ¿Cuánto mide la entrada del edificio estrecho?",
+                pregunta: "¿Cuánto mide la entrada del edificio estrecho?",
                 correctas: ["1,35 metros"]
             },
             {
                 reto: 38,
                 id: "R38-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "38. tres arcos ciegos. Dos de ellos son lisos el tercero se dejó sin enlucir.<br>¿Qué puede verse en ese arco sin enlucir?",
+                pregunta: "tres arcos ciegos. Dos de ellos son lisos el tercero se dejó sin enlucir.<br>¿Qué puede verse en ese arco sin enlucir?",
                 opciones: ["Un rostro", "Un torso", "Una gárgola"],
                 correctas: ["Un rostro", "Un torso"],
                 multiple: true
@@ -16449,7 +16449,7 @@ export const RETOS_AVENTURAS = {
                 reto: 39,
                 id: "R39-Av34km-es",
                 tipo: "opcion",
-                pregunta: "39. ¿Que hay en lo más alto de la torre de la torre barroca de Santa Catalina?",
+                pregunta: "¿Que hay en lo más alto de la torre de la torre barroca de Santa Catalina?",
                 opciones: ["Una cruz", "El sol", "Una paloma"],
                 correctas: ["Una cruz"],
                 multiple: false
@@ -16458,14 +16458,14 @@ export const RETOS_AVENTURAS = {
                 reto: 40,
                 id: "R40-Av34km-es",
                 tipo: "texto",
-                pregunta: "40. ¿De qué color son las tejas de la cúpula de la Torre barroca Santa Catalina?",
+                pregunta: "¿De qué color son las tejas de la cúpula de la Torre barroca Santa Catalina?",
                 correctas: ["marrones"]
             },
             {
                 reto: 41,
                 id: "R41-Av34km-es",
                 tipo: "opcion",
-                pregunta: "41. ¿Sabría determinar qué geometría tiene la Torre del Miguelete de Valencia? ",
+                pregunta: "¿Sabría determinar qué geometría tiene la Torre del Miguelete de Valencia? ",
                 opciones: ["Hexagonal", "Octogonal", "Cuadradrangular"],
                 correctas: ["Octogonal"],
                 multiple: false
@@ -16474,14 +16474,14 @@ export const RETOS_AVENTURAS = {
                 reto: 42,
                 id: "R42-Av34km-es",
                 tipo: "texto",
-                pregunta: "42. ¿Cuantas ventanas puede ver?",
+                pregunta: "¿Cuantas ventanas puede ver?",
                 correctas: ["?"]
             },
             {
                 reto: 43,
                 id: "R43-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "43. ¿Qué se puede ver a más de 35 metros de altura en lo alto de la portada barroca?",
+                pregunta: "¿Qué se puede ver a más de 35 metros de altura en lo alto de la portada barroca?",
                 opciones: ["Una esfera", "Un murciélago", "Una cruz", "Un caballo"],
                 correctas: ["Una esfera", "Una cruz"],
                 multiple: true
@@ -16498,7 +16498,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-es",
                 tipo: "opcion",
-                pregunta: "45. ¿Qué figura esculpida puede verse en el marco del cuadro?",
+                pregunta: "¿Qué figura esculpida puede verse en el marco del cuadro?",
                 opciones: ["Un Dragón", "Un Murciélago", "Una Corona"],
                 correctas: ["Una Corona"],
                 multiple: false
@@ -16507,7 +16507,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "46. ¿Qué puede verse dentro?",
+                pregunta: "¿Qué puede verse dentro?",
                 opciones: ["Un Altar", "Una bandera", "Una espada"],
                 correctas: ["Un Altar", "Una bandera"],
                 multiple: true
@@ -16516,21 +16516,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-es",
                 tipo: "texto",
-                pregunta: "47. Sobre ésta hay una placa conmemorativa. ¿En qué año fue expuesta dicha placa?",
+                pregunta: "Sobre ésta hay una placa conmemorativa. ¿En qué año fue expuesta dicha placa?",
                 correctas: ["1952"]
             },
             {
                 reto: 48,
                 id: "R48-Av34km-es",
                 tipo: "texto",
-                pregunta: "48. ¿En qué año se edificó esta finca? ¡Pista! Mire en la parte superior de la fachada.",
+                pregunta: "¿En qué año se edificó esta finca? ¡Pista! Mire en la parte superior de la fachada.",
                 correctas: ["1906"]
             },
             {
                 reto: 49,
                 id: "R49-Av34km-es",
                 tipo: "opcion",
-                pregunta: "49. Mirando la imagen de San Valero, ¿qué artefacto podría decirnos que estuvo preso?",
+                pregunta: "Mirando la imagen de San Valero, ¿qué artefacto podría decirnos que estuvo preso?",
                 opciones: ["Las cadenas", "El libro", "Su cara triste"],
                 correctas: ["Las cadenas"],
                 multiple: false
@@ -16539,7 +16539,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-es",
                 tipo: "opcion",
-                pregunta: "50. ¿Qué puede verse dentro?",
+                pregunta: "¿Qué puede verse dentro?",
                 opciones: ["Una Plaza de Toros", "Unos baños romanos", "Una estación de metro"],
                 correctas: ["Unos baños romanos"],
                 multiple: false
@@ -16554,7 +16554,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-es",
                 tipo: "opcion",
-                pregunta: "52. ¿Sabría determinar qué geometría tiene?",
+                pregunta: "¿Sabría determinar qué geometría tiene?",
                 opciones: ["hexagonal", "Octogonal", "Cuadrangular"],
                 correctas: ["hexagonal"],
                 multiple: false
@@ -16563,7 +16563,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-es",
                 tipo: "opcion",
-                pregunta: "53. ¿Con qué mano sujeta Neptuno la cornucopia?",
+                pregunta: "¿Con qué mano sujeta Neptuno la cornucopia?",
                 opciones: ["Izquierda", "Derecha"],
                 correctas: ["Derecha"],
                 multiple: false
@@ -16572,14 +16572,14 @@ export const RETOS_AVENTURAS = {
                 reto: 54,
                 id: "R54-Av34km-es",
                 tipo: "texto",
-                pregunta: "54. ¿Cuántas figuras rodean la fuente?",
+                pregunta: "¿Cuántas figuras rodean la fuente?",
                 correctas: ["8"]
             },
             {
                 reto: 55,
                 id: "R55-Av34km-es",
                 tipo: "opcion",
-                pregunta: "55. ¿Cuál de las dos torres del Palacio de la Generalitat creen que es la más nueva: la de la plaza o ésta que tiene delante ahora?",
+                pregunta: "¿Cuál de las dos torres del Palacio de la Generalitat creen que es la más nueva: la de la plaza o ésta que tiene delante ahora?",
                 opciones: ["La de la plaza", "Ésta que tiene delante"],
                 correctas: ["Ésta que tiene delante"],
                 multiple: false
@@ -16594,7 +16594,7 @@ export const RETOS_AVENTURAS = {
                 reto: 57,
                 id: "R57-Av34km-es",
                 tipo: "opcion-multiple",
-                pregunta: "57. ¿Qué puede verse en este panel cerámico? ¿Son calaveras? ¿Es una cruz? ¿hay también una paloma?",
+                pregunta: "¿Qué puede verse en este panel cerámico? ¿Son calaveras? ¿Es una cruz? ¿hay también una paloma?",
                 opciones: ["Calaveras", "Palomas", "Cruz"],
                 correctas: ["Calaveras", "Cruz"],
                 multiple: true
@@ -16603,7 +16603,7 @@ export const RETOS_AVENTURAS = {
                 reto: 58,
                 id: "R58-Av34km-es",
                 tipo: "opcion",
-                pregunta: "58. ¿Cuántas campanas alberga esta torre? ",
+                pregunta: "¿Cuántas campanas alberga esta torre? ",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -16612,7 +16612,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-es",
                 tipo: "opcion",
-                pregunta: "59. ¿Qué sujeta la figura con sus manos?",
+                pregunta: "¿Qué sujeta la figura con sus manos?",
                 opciones: ["Un escudo", "Una concha", "Una jarra", "Una espada"],
                 correctas: ["Una concha"],
                 multiple: false
@@ -16621,7 +16621,7 @@ export const RETOS_AVENTURAS = {
                 reto: 60,
                 id: "R60-Av34km-es",
                 tipo: "opcion",
-                pregunta: "60. ¿Qué dirección toma la senda establecida?",
+                pregunta: "¿Qué dirección toma la senda establecida?",
                 opciones: ["Norte", "Sur", "Este", "Oeste"],
                 correctas: ["Norte"],
                 multiple: false
@@ -16630,7 +16630,7 @@ export const RETOS_AVENTURAS = {
                 reto: 61,
                 id: "R61-Av34km-es",
                 tipo: "opcion",
-                pregunta: "61. ¿Cuántas Puertas tenía la antigua muralla árabe de Balansiya?",
+                pregunta: "¿Cuántas Puertas tenía la antigua muralla árabe de Balansiya?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -16849,7 +16849,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-es",
                 tipo: "opcion",
-                pregunta: "89. ¿Qué porta San Lorenzo en la mano?",
+                pregunta: "¿Qué porta San Lorenzo en la mano?",
                 opciones: ["Una Paloma", "Una cuchara", "Una parrilla"],
                 correctas: ["Una parrilla"],
                 multiple: false
@@ -16873,7 +16873,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-en",
                 tipo: "opcion",
-                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                pregunta: "How many adventures can be done with Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -16882,7 +16882,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-en",
                 tipo: "opcion",
-                pregunta: "2. Is it a good time to start your adventure?",
+                pregunta: "Is it a good time to start your adventure?",
                 opciones: ["Yes", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -16891,7 +16891,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-en",
                 tipo: "opcion",
-                pregunta: "3. Can you tell me the names of these towers?",
+                pregunta: "Can you tell me the names of these towers?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -17057,7 +17057,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-en",
                 tipo: "opcion",
-                pregunta: "23. Do you remember which animal crowns the municipal coat of arms?",
+                pregunta: "Do you remember which animal crowns the municipal coat of arms?",
                 opciones: ["A Dragon", "A Bat", "A Horse"],
                 correctas: ["A Bat"],
                 multiple: false
@@ -17066,7 +17066,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-en",
                 tipo: "opcion-multiple",
-                pregunta: "24. Above the main entrance, in a semicircular arch, allegorical figures represent the five continents. What does the central figure hold?",
+                pregunta: "Above the main entrance, in a semicircular arch, allegorical figures represent the five continents. What does the central figure hold?",
                 opciones: ["A Torch", "A Sword", "A Crown"],
                 correctas: ["A Torch", "A Sword"],
                 multiple: true
@@ -17075,7 +17075,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-en",
                 tipo: "opcion",
-                pregunta: "25. What does the figure hold in its hand?",
+                pregunta: "What does the figure hold in its hand?",
                 opciones: ["A Scale", "A Book", "A Feather"],
                 correctas: ["A Scale"],
                 multiple: false
@@ -17084,14 +17084,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-en",
                 tipo: "texto",
-                pregunta: "26. How many floors does the building have?",
+                pregunta: "How many floors does the building have?",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-en",
                 tipo: "opcion",
-                pregunta: "27. Look for the stained glass with the colors of the Valencian Senyera on the building facade. Can you determine its shape?",
+                pregunta: "Look for the stained glass with the colors of the Valencian Senyera on the building facade. Can you determine its shape?",
                 opciones: ["Quadrangular", "Roundy", "Triangular"],
                 correctas: ["Roundy"],
                 multiple: false
@@ -17100,7 +17100,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-en",
                 tipo: "opcion-multiple",
-                pregunta: "28. What does the Virgin hold in her hand?",
+                pregunta: "What does the Virgin hold in her hand?",
                 opciones: ["A Rosary", "A Child", "A Crown"],
                 correctas: ["A Rosary", "A Child"],
                 multiple: true
@@ -17109,7 +17109,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-en",
                 tipo: "opcion",
-                pregunta: "29. What does the angel give to the child?",
+                pregunta: "What does the angel give to the child?",
                 opciones: ["A Dove", "An Orb", "Food"],
                 correctas: ["An Orb"],
                 multiple: false
@@ -17124,7 +17124,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-en",
                 tipo: "opcion-multiple",
-                pregunta: "31. The ferryman rowing against the current.",
+                pregunta: "The ferryman rowing against the current.",
                 opciones: ["A man with a sad face steering a small wooden boat escapes against the current from a monster."],
                 correctas: ["A man with a sad face steering a small wooden boat escapes against the current from a monster."],
                 multiple: true
@@ -17133,7 +17133,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-en",
                 tipo: "opcion-multiple",
-                pregunta: "32. A dead tree: symbol of Sin, is seen between the two leaves of the door and acts as a mullion.",
+                pregunta: "A dead tree: symbol of Sin, is seen between the two leaves of the door and acts as a mullion.",
                 opciones: ["Notice on the tree's top 4 naked men whipping each other."],
                 correctas: ["Notice on the tree's top 4 naked men whipping each other."],
                 multiple: true
@@ -17142,7 +17142,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-en",
                 tipo: "opcion-multiple",
-                pregunta: "33. On the right, an angel shows his penis and…",
+                pregunta: "On the right, an angel shows his penis and…",
                 opciones: ["He is about to place it in a vase held with the other hand. Strange and unusual, isn't it?"],
                 correctas: ["He is about to place it in a vase held with the other hand. Strange and unusual, isn't it?"],
                 multiple: true
@@ -17151,7 +17151,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-en",
                 tipo: "opcion-multiple",
-                pregunta: "34. In the center: The Bearded Man and the Lion:",
+                pregunta: "In the center: The Bearded Man and the Lion:",
                 opciones: ["Original and contradictory scene in which the gentle one is precisely the lion and not the bearded old man."],
                 correctas: ["Original and contradictory scene in which the gentle one is precisely the lion and not the bearded old man."],
                 multiple: true
@@ -17160,7 +17160,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-en",
                 tipo: "opcion-multiple",
-                pregunta: "35. Here's an extra challenge! Look for the fornicator in the Silk Exchange!",
+                pregunta: "Here's an extra challenge! Look for the fornicator in the Silk Exchange!",
                 opciones: ["In one of its windows, you will find a carved man; his head is not visible but his genitals are, very clearly."],
                 correctas: ["In one of its windows, you will find a carved man; his head is not visible but his genitals are, very clearly."],
                 multiple: true
@@ -17240,7 +17240,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-en",
                 tipo: "opcion",
-                pregunta: "45. What sculpted figure can be seen in the frame of the painting?",
+                pregunta: "What sculpted figure can be seen in the frame of the painting?",
                 opciones: ["A Dragon", "A Bat", "A Crown"],
                 correctas: ["A Crown"],
                 multiple: false
@@ -17249,7 +17249,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-en",
                 tipo: "opcion-multiple",
-                pregunta: "46. What can be seen inside?",
+                pregunta: "What can be seen inside?",
                 opciones: ["An Altar", "A Flag", "A Sword"],
                 correctas: ["An Altar", "A Flag"],
                 multiple: true
@@ -17258,21 +17258,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-en",
                 tipo: "texto",
-                pregunta: "47. On this there is a commemorative plaque. In which year was it placed?",
+                pregunta: "On this there is a commemorative plaque. In which year was it placed?",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-en",
                 tipo: "texto",
-                pregunta: "48. In which year was this building constructed? Hint: look at the top of the facade.",
+                pregunta: "In which year was this building constructed? Hint: look at the top of the facade.",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-en",
                 tipo: "opcion",
-                pregunta: "49. Looking at the image of San Valero, which item could tell us he was imprisoned?",
+                pregunta: "Looking at the image of San Valero, which item could tell us he was imprisoned?",
                 opciones: ["The chains", "The book", "His sad face"],
                 correctas: ["The chains"],
                 multiple: false
@@ -17281,7 +17281,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-en",
                 tipo: "opcion",
-                pregunta: "50. What can be seen inside?",
+                pregunta: "What can be seen inside?",
                 opciones: ["A Bullring", "Roman Baths", "A Metro Station"],
                 correctas: ["Roman Baths"],
                 multiple: false
@@ -17296,7 +17296,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-en",
                 tipo: "opcion",
-                pregunta: "52. Can you determine its geometry?",
+                pregunta: "Can you determine its geometry?",
                 opciones: ["Hexagonal", "Octagonal", "Quadrangular"],
                 correctas: ["Hexagonal"],
                 multiple: false
@@ -17305,7 +17305,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-en",
                 tipo: "opcion",
-                pregunta: "53. With which hand does Neptune hold the cornucopia?",
+                pregunta: "With which hand does Neptune hold the cornucopia?",
                 opciones: ["Left", "Right"],
                 correctas: ["Right"],
                 multiple: false
@@ -17321,7 +17321,7 @@ export const RETOS_AVENTURAS = {
                 reto: 55,
                 id: "R55-Av34km-en",
                 tipo: "opcion",
-                pregunta: "55. Which of the two towers of the Palacio de la Generalitat do you think is newer: the one on the square, or this one in front of you now?",
+                pregunta: "Which of the two towers of the Palacio de la Generalitat do you think is newer: the one on the square, or this one in front of you now?",
                 opciones: ["The one on the square", "This one in front of you"],
                 correctas: ["This one in front of you"],
                 multiple: false
@@ -17354,7 +17354,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-en",
                 tipo: "opcion",
-                pregunta: "59. What is the figure holding in its hands?",
+                pregunta: "What is the figure holding in its hands?",
                 opciones: ["A shield", "A shell", "A jug", "A sword"],
                 correctas: ["A shell"],
                 multiple: false
@@ -17595,7 +17595,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-en",
                 tipo: "opcion",
-                pregunta: "89. What does Saint Lawrence hold in his hand?",
+                pregunta: "What does Saint Lawrence hold in his hand?",
                 opciones: ["A Dove", "A Spoon", "A Grill"],
                 correctas: ["A Grill"],
                 multiple: false
@@ -17619,7 +17619,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                pregunta: "Combien d'aventures peut-on faire avec Valencia be Guides ?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -17628,7 +17628,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                pregunta: "Est-ce le bon moment pour commencer votre aventure ?",
                 opciones: ["Oui", "Non"],
                 correctas: ["?"],
                 multiple: false
@@ -17637,7 +17637,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "3. Pouvez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Pouvez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -17803,7 +17803,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "23. Vous souvenez-vous de quel animal couronne le blason municipal ?",
+                pregunta: "Vous souvenez-vous de quel animal couronne le blason municipal ?",
                 opciones: ["Un dragon", "Une chauve-souris", "Un cheval"],
                 correctas: ["Une chauve-souris"],
                 multiple: false
@@ -17812,7 +17812,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "24. Au-dessus de l'entrée principale, dans un arc en plein cintre, des figures allégoriques représentent les cinq continents. Que tient la figure centrale ?",
+                pregunta: "Au-dessus de l'entrée principale, dans un arc en plein cintre, des figures allégoriques représentent les cinq continents. Que tient la figure centrale ?",
                 opciones: ["Une torche", "Une épée", "Une couronne"],
                 correctas: ["Une torche", "Une épée"],
                 multiple: true
@@ -17821,7 +17821,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "25. Que tient la figure dans sa main ?",
+                pregunta: "Que tient la figure dans sa main ?",
                 opciones: ["Une balance", "Un livre", "Une plume"],
                 correctas: ["Une balance"],
                 multiple: false
@@ -17830,14 +17830,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-fr",
                 tipo: "texto",
-                pregunta: "26. Combien d'étages a le bâtiment ?",
+                pregunta: "Combien d'étages a le bâtiment ?",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "27. Cherchez le vitrail avec les couleurs de la Senyera valencienne sur la façade du bâtiment. Pouvez-vous déterminer sa forme ?",
+                pregunta: "Cherchez le vitrail avec les couleurs de la Senyera valencienne sur la façade du bâtiment. Pouvez-vous déterminer sa forme ?",
                 opciones: ["Quadrangulaire", "Ronde", "Triangulaire"],
                 correctas: ["Ronde"],
                 multiple: false
@@ -17846,7 +17846,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "28. Que tient la Vierge dans sa main ?",
+                pregunta: "Que tient la Vierge dans sa main ?",
                 opciones: ["Un chapelet", "Un enfant", "Une couronne"],
                 correctas: ["Un chapelet", "Un enfant"],
                 multiple: true
@@ -17855,7 +17855,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "29. Que donne l'ange à l'enfant ?",
+                pregunta: "Que donne l'ange à l'enfant ?",
                 opciones: ["Une colombe", "Un orbe", "Des aliments"],
                 correctas: ["Un orbe"],
                 multiple: false
@@ -17870,7 +17870,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "31. Le batelier qui rame à contre-courant.",
+                pregunta: "Le batelier qui rame à contre-courant.",
                 opciones: ["Un homme au visage triste dirige un petit bateau en bois pour échapper à contre-courant à un monstre."],
                 correctas: ["Un homme au visage triste dirige un petit bateau en bois pour échapper à contre-courant à un monstre."],
                 multiple: true
@@ -17879,7 +17879,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "32. Un arbre mort : symbole du péché, se trouve entre les deux feuilles de la porte et fait office de meneau.",
+                pregunta: "Un arbre mort : symbole du péché, se trouve entre les deux feuilles de la porte et fait office de meneau.",
                 opciones: ["Observez au sommet de l'arbre quatre hommes nus qui se flagellent entre eux."],
                 correctas: ["Observez au sommet de l'arbre quatre hommes nus qui se flagellent entre eux."],
                 multiple: true
@@ -17888,7 +17888,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "33. À droite, un ange montre son pénis et…",
+                pregunta: "À droite, un ange montre son pénis et…",
                 opciones: ["Il s'apprête à le placer dans un vase qu'il tient de l'autre main. Étrange et inhabituel, n'est-ce pas ?"],
                 correctas: ["Il s'apprête à le placer dans un vase qu'il tient de l'autre main. Étrange et inhabituel, n'est-ce pas ?"],
                 multiple: true
@@ -17897,7 +17897,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "34. Au centre : L'homme barbu et le lion :",
+                pregunta: "Au centre : L'homme barbu et le lion :",
                 opciones: ["Scène originale et contradictoire où le doux est précisément le lion et non le vieil homme barbu."],
                 correctas: ["Scène originale et contradictoire où le doux est précisément le lion et non le vieil homme barbu."],
                 multiple: true
@@ -17906,7 +17906,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "35. Voici un défi supplémentaire ! Cherchez le fornicateur de la Bourse de la soie !",
+                pregunta: "Voici un défi supplémentaire ! Cherchez le fornicateur de la Bourse de la soie !",
                 opciones: ["Dans une de ses fenêtres, vous trouverez un homme sculpté ; sa tête n'est pas visible mais ses parties génitales le sont, très clairement."],
                 correctas: ["Dans une de ses fenêtres, vous trouverez un homme sculpté ; sa tête n'est pas visible mais ses parties génitales le sont, très clairement."],
                 multiple: true
@@ -17986,7 +17986,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "45. Quelle figure sculptée peut-on voir dans le cadre du tableau ?",
+                pregunta: "Quelle figure sculptée peut-on voir dans le cadre du tableau ?",
                 opciones: ["Un dragon", "Une chauve-souris", "Une couronne"],
                 correctas: ["Une couronne"],
                 multiple: false
@@ -17995,7 +17995,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "46. Que peut-on voir à l'intérieur ?",
+                pregunta: "Que peut-on voir à l'intérieur ?",
                 opciones: ["Un autel", "Un drapeau", "Une épée"],
                 correctas: ["Un autel", "Un drapeau"],
                 multiple: true
@@ -18004,21 +18004,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-fr",
                 tipo: "texto",
-                pregunta: "47. Sur celui-ci se trouve une plaque commémorative. En quelle année a-t-elle été placée ?",
+                pregunta: "Sur celui-ci se trouve une plaque commémorative. En quelle année a-t-elle été placée ?",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-fr",
                 tipo: "texto",
-                pregunta: "48. En quelle année ce bâtiment a-t-il été construit ? Indice : regardez en haut de la façade.",
+                pregunta: "En quelle année ce bâtiment a-t-il été construit ? Indice : regardez en haut de la façade.",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "49. En regardant l'image de San Valero, quel objet pourrait nous dire qu'il a été emprisonné ?",
+                pregunta: "En regardant l'image de San Valero, quel objet pourrait nous dire qu'il a été emprisonné ?",
                 opciones: ["Les chaînes", "Le livre", "Son visage triste"],
                 correctas: ["Les chaînes"],
                 multiple: false
@@ -18027,7 +18027,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "50. Que peut-on voir à l'intérieur ?",
+                pregunta: "Que peut-on voir à l'intérieur ?",
                 opciones: ["Une arène", "Des bains romains", "Une station de métro"],
                 correctas: ["Des bains romains"],
                 multiple: false
@@ -18042,7 +18042,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "52. Pouvez-vous déterminer sa géométrie ?",
+                pregunta: "Pouvez-vous déterminer sa géométrie ?",
                 opciones: ["Hexagonal", "Octogonal", "Quadrangulaire"],
                 correctas: ["Hexagonal"],
                 multiple: false
@@ -18051,7 +18051,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "53. Avec quelle main Neptune tient-il la corne d'abondance ?",
+                pregunta: "Avec quelle main Neptune tient-il la corne d'abondance ?",
                 opciones: ["Gauche", "Droite"],
                 correctas: ["Droite"],
                 multiple: false
@@ -18067,7 +18067,7 @@ export const RETOS_AVENTURAS = {
                 reto: 55,
                 id: "R55-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "55. Laquelle des deux tours du Palacio de la Generalitat pensez-vous être la plus récente : celle de la place ou celle-ci devant vous ?",
+                pregunta: "Laquelle des deux tours du Palacio de la Generalitat pensez-vous être la plus récente : celle de la place ou celle-ci devant vous ?",
                 opciones: ["Celle de la place", "Celle-ci devant vous"],
                 correctas: ["Celle-ci devant vous"],
                 multiple: false
@@ -18100,7 +18100,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "59. Que tient la figure dans ses mains ?",
+                pregunta: "Que tient la figure dans ses mains ?",
                 opciones: ["Un bouclier", "Une coquille", "Une cruche", "Une épée"],
                 correctas: ["Une coquille"],
                 multiple: false
@@ -18341,7 +18341,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "89. Que tient Saint Laurent dans sa main ?",
+                pregunta: "Que tient Saint Laurent dans sa main ?",
                 opciones: ["Une colombe", "Une cuillère", "Une grille"],
                 correctas: ["Une grille"],
                 multiple: false
@@ -18365,7 +18365,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-it",
                 tipo: "opcion",
-                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                pregunta: "Quante avventure si possono fare con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -18374,7 +18374,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la sua avventura?",
+                pregunta: "È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -18383,7 +18383,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-it",
                 tipo: "opcion",
-                pregunta: "3. Puoi dirmi come si chiamano queste torri?",
+                pregunta: "Puoi dirmi come si chiamano queste torri?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre di Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -18549,7 +18549,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-it",
                 tipo: "opcion",
-                pregunta: "23. Ricordi quale animale corona lo stemma comunale?",
+                pregunta: "Ricordi quale animale corona lo stemma comunale?",
                 opciones: ["Un drago", "Un pipistrello", "Un cavallo"],
                 correctas: ["Un pipistrello"],
                 multiple: false
@@ -18558,7 +18558,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-it",
                 tipo: "opcion-multiple",
-                pregunta: "24. Sopra l'ingresso principale, in un arco a tutto sesto, figure allegoriche rappresentano i cinque continenti. Cosa tiene la figura centrale?",
+                pregunta: "Sopra l'ingresso principale, in un arco a tutto sesto, figure allegoriche rappresentano i cinque continenti. Cosa tiene la figura centrale?",
                 opciones: ["Una torcia", "Una spada", "Una corona"],
                 correctas: ["Una torcia", "Una spada"],
                 multiple: true
@@ -18567,7 +18567,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-it",
                 tipo: "opcion",
-                pregunta: "25. Cosa tiene la figura nella mano?",
+                pregunta: "Cosa tiene la figura nella mano?",
                 opciones: ["Una bilancia", "Un libro", "Una piuma"],
                 correctas: ["Una bilancia"],
                 multiple: false
@@ -18576,14 +18576,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-it",
                 tipo: "texto",
-                pregunta: "26. Quanti piani ha l'edificio?",
+                pregunta: "Quanti piani ha l'edificio?",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-it",
                 tipo: "opcion",
-                pregunta: "27. Cerca la vetrata con i colori della Senyera valenciana sulla facciata dell'edificio. Puoi determinarne la forma?",
+                pregunta: "Cerca la vetrata con i colori della Senyera valenciana sulla facciata dell'edificio. Puoi determinarne la forma?",
                 opciones: ["Cuadrangular", "Redonda", "Triangular"],
                 correctas: ["Redonda"],
                 multiple: false
@@ -18592,7 +18592,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-it",
                 tipo: "opcion-multiple",
-                pregunta: "28. Cosa tiene la Vergine nella sua mano?",
+                pregunta: "Cosa tiene la Vergine nella sua mano?",
                 opciones: ["Un rosario", "Un bambino", "Una corona"],
                 correctas: ["Un rosario", "Un bambino"],
                 multiple: true
@@ -18601,7 +18601,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-it",
                 tipo: "opcion",
-                pregunta: "29. Cosa dà l'angelo al bambino?",
+                pregunta: "Cosa dà l'angelo al bambino?",
                 opciones: ["Una colomba", "Un orbe", "Cibo"],
                 correctas: ["Un orbe"],
                 multiple: false
@@ -18616,7 +18616,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-it",
                 tipo: "opcion-multiple",
-                pregunta: "31. Il barcaiolo che rema controcorrente.",
+                pregunta: "Il barcaiolo che rema controcorrente.",
                 opciones: ["Un uomo con volto triste che manovra una piccola barca di legno fugge controcorrente da un mostro."],
                 correctas: ["Un uomo con volto triste che manovra una piccola barca di legno fugge controcorrente da un mostro."],
                 multiple: true
@@ -18625,7 +18625,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-it",
                 tipo: "opcion-multiple",
-                pregunta: "32. Un albero morto: simbolo del Peccato, si vede tra le due foglie della porta e funge da parteluz.",
+                pregunta: "Un albero morto: simbolo del Peccato, si vede tra le due foglie della porta e funge da parteluz.",
                 opciones: ["Osserva sulla cima dell'albero come 4 uomini nudi si flagellano tra loro."],
                 correctas: ["Osserva sulla cima dell'albero come 4 uomini nudi si flagellano tra loro."],
                 multiple: true
@@ -18634,7 +18634,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-it",
                 tipo: "opcion-multiple",
-                pregunta: "33. A destra, un angelo mostra il suo pene e...",
+                pregunta: "A destra, un angelo mostra il suo pene e...",
                 opciones: ["si appresta a introdurlo in un vaso che tiene con l'altra mano. Strano e insolito, non ti sembra?"],
                 correctas: ["si appresta a introdurlo in un vaso che tiene con l'altra mano. Strano e insolito, non ti sembra?"],
                 multiple: true
@@ -18643,7 +18643,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-it",
                 tipo: "opcion-multiple",
-                pregunta: "34. Al centro: L'uomo barbuto e il leone:",
+                pregunta: "Al centro: L'uomo barbuto e il leone:",
                 opciones: ["Scena originale e contraddittoria in cui il mansueto è proprio il leone e non il vecchio uomo barbuto."],
                 correctas: ["Scena originale e contraddittoria in cui il mansueto è proprio il leone e non il vecchio uomo barbuto."],
                 multiple: true
@@ -18652,7 +18652,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-it",
                 tipo: "opcion-multiple",
-                pregunta: "35. Ecco una sfida extra! Cerca il fornicatore della Lonja della Seta!",
+                pregunta: "Ecco una sfida extra! Cerca il fornicatore della Lonja della Seta!",
                 opciones: ["In una delle sue finestre, troverai un uomo scolpito; la sua testa non è visibile ma i suoi genitali lo sono, molto chiaramente."],
                 correctas: ["In una delle sue finestre, troverai un uomo scolpito; la sua testa non è visibile ma i suoi genitali lo sono, molto chiaramente."],
                 multiple: true
@@ -18732,7 +18732,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-it",
                 tipo: "opcion",
-                pregunta: "45. Quale figura scolpita si vede nella cornice del quadro?",
+                pregunta: "Quale figura scolpita si vede nella cornice del quadro?",
                 opciones: ["Un drago", "Un pipistrello", "Una corona"],
                 correctas: ["Una corona"],
                 multiple: false
@@ -18741,7 +18741,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-it",
                 tipo: "opcion-multiple",
-                pregunta: "46. Cosa si può vedere all'interno?",
+                pregunta: "Cosa si può vedere all'interno?",
                 opciones: ["Un altare", "Una bandiera", "Una spada"],
                 correctas: ["Un altare", "Una bandiera"],
                 multiple: true
@@ -18750,21 +18750,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-it",
                 tipo: "texto",
-                pregunta: "47. Su di essa c'è una targa commemorativa. In che anno è stata esposta?",
+                pregunta: "Su di essa c'è una targa commemorativa. In che anno è stata esposta?",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-it",
                 tipo: "texto",
-                pregunta: "48. In che anno è stato costruito questo edificio? Suggerimento: guarda in alto sulla facciata.",
+                pregunta: "In che anno è stato costruito questo edificio? Suggerimento: guarda in alto sulla facciata.",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-it",
                 tipo: "opcion",
-                pregunta: "49. Guardando l'immagine di San Valero, quale oggetto potrebbe dirci che fu imprigionato?",
+                pregunta: "Guardando l'immagine di San Valero, quale oggetto potrebbe dirci che fu imprigionato?",
                 opciones: ["Le catene", "Il libro", "Il suo volto triste"],
                 correctas: ["Le catene"],
                 multiple: false
@@ -18773,7 +18773,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-it",
                 tipo: "opcion",
-                pregunta: "50. Cosa si può vedere all'interno?",
+                pregunta: "Cosa si può vedere all'interno?",
                 opciones: ["Un'arena", "Bagni romani", "Una stazione della metropolitana"],
                 correctas: ["Bagni romani"],
                 multiple: false
@@ -18788,7 +18788,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-it",
                 tipo: "opcion",
-                pregunta: "52. Sai determinarne la geometria?",
+                pregunta: "Sai determinarne la geometria?",
                 opciones: ["Esagonale", "Ottagonale", "Quadrangolare"],
                 correctas: ["Esagonale"],
                 multiple: false
@@ -18797,7 +18797,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-it",
                 tipo: "opcion",
-                pregunta: "53. Con quale mano Nettuno tiene la cornucopia?",
+                pregunta: "Con quale mano Nettuno tiene la cornucopia?",
                 opciones: ["Sinistra", "Destra"],
                 correctas: ["Destra"],
                 multiple: false
@@ -18813,7 +18813,7 @@ export const RETOS_AVENTURAS = {
                 reto: 55,
                 id: "R55-Av34km-it",
                 tipo: "opcion",
-                pregunta: "55. Quale delle due torri del Palacio de la Generalitat pensate sia la più recente: quella sulla piazza o questa che avete davanti ora?",
+                pregunta: "Quale delle due torri del Palacio de la Generalitat pensate sia la più recente: quella sulla piazza o questa che avete davanti ora?",
                 opciones: ["Quella sulla piazza", "Questa davanti a voi"],
                 correctas: ["Questa davanti a voi"],
                 multiple: false
@@ -18846,7 +18846,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-it",
                 tipo: "opcion",
-                pregunta: "59. Cosa tiene in mano la figura?",
+                pregunta: "Cosa tiene in mano la figura?",
                 opciones: ["Uno scudo", "Una conchiglia", "Una brocca", "Una spada"],
                 correctas: ["Una conchiglia"],
                 multiple: false
@@ -19087,7 +19087,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-it",
                 tipo: "opcion",
-                pregunta: "89. Cosa tiene San Lorenzo in mano?",
+                pregunta: "Cosa tiene San Lorenzo in mano?",
                 opciones: ["Un colomba", "Un cucchiaio", "Una griglia"],
                 correctas: ["Una griglia"],
                 multiple: false
@@ -19111,7 +19111,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
+                pregunta: "Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -19120,7 +19120,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
+                pregunta: "Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -19129,7 +19129,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "3. Kunt u mij de namen van deze torens vertellen?",
+                pregunta: "Kunt u mij de namen van deze torens vertellen?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -19295,7 +19295,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "23. Herinnert u zich welk dier het gemeentewapen siert?",
+                pregunta: "Herinnert u zich welk dier het gemeentewapen siert?",
                 opciones: ["Een draak", "Een vleermuis", "Een paard"],
                 correctas: ["Een vleermuis"],
                 multiple: false
@@ -19304,7 +19304,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "24. Boven de hoofdingang, in een rondboog, vertegenwoordigen allegorische figuren de vijf continenten. Wat houdt de centrale figuur vast?",
+                pregunta: "Boven de hoofdingang, in een rondboog, vertegenwoordigen allegorische figuren de vijf continenten. Wat houdt de centrale figuur vast?",
                 opciones: ["Een fakkel", "Een zwaard", "Een kroon"],
                 correctas: ["Een fakkel", "Een zwaard"],
                 multiple: true
@@ -19313,7 +19313,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "25. Wat houdt de figuur in zijn hand?",
+                pregunta: "Wat houdt de figuur in zijn hand?",
                 opciones: ["Een weegschaal", "Een boek", "Een veer"],
                 correctas: ["Een weegschaal"],
                 multiple: false
@@ -19322,14 +19322,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-nl",
                 tipo: "texto",
-                pregunta: "26. Hoeveel verdiepingen heeft het gebouw?",
+                pregunta: "Hoeveel verdiepingen heeft het gebouw?",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "27. Zoek het glas-in-lood met de kleuren van de Valenciaanse Senyera op de gevel. Kunt u de vorm bepalen?",
+                pregunta: "Zoek het glas-in-lood met de kleuren van de Valenciaanse Senyera op de gevel. Kunt u de vorm bepalen?",
                 opciones: ["Vierkant", "Rond", "Driehoekig"],
                 correctas: ["Rond"],
                 multiple: false
@@ -19338,7 +19338,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "28. Wat houdt de maagd in haar hand?",
+                pregunta: "Wat houdt de maagd in haar hand?",
                 opciones: ["Een rozenkrans", "Een kind", "Een kroon"],
                 correctas: ["Een rozenkrans", "Een kind"],
                 multiple: true
@@ -19347,7 +19347,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "29. Wat geeft de engel aan het kind?",
+                pregunta: "Wat geeft de engel aan het kind?",
                 opciones: ["Een duif", "Een bol", "Voedsel"],
                 correctas: ["Een bol"],
                 multiple: false
@@ -19362,7 +19362,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "31. De veerman die tegen de stroom in roeit.",
+                pregunta: "De veerman die tegen de stroom in roeit.",
                 opciones: ["Een man met een verdrietig gezin die een klein houten boot bestuurt ontsnapt tegen de stroom van een monster."],
                 correctas: ["Een man met een verdrietig gezin die een klein houten boot bestuurt ontsnapt tegen de stroom van een monster."],
                 multiple: true
@@ -19371,7 +19371,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "32. Een dode boom: symbool van Zonde, is te zien tussen de twee bladeren van de deur en fungeert als middenstijl.",
+                pregunta: "Een dode boom: symbool van Zonde, is te zien tussen de twee bladeren van de deur en fungeert als middenstijl.",
                 opciones: ["Let op de top van de boom waar 4 naakte mannen elkaar geselen."],
                 correctas: ["Let op de top van de boom waar 4 naakte mannen elkaar geselen."],
                 multiple: true
@@ -19380,7 +19380,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "33. Rechts, een engel toont zijn penis en...",
+                pregunta: "Rechts, een engel toont zijn penis en...",
                 opciones: ["hij staat op het punt het in een vaas te plaatsen dat hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, nietwaar?"],
                 correctas: ["hij staat op het punt het in een vaas te plaatsen dat hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, nietwaar?"],
                 multiple: true
@@ -19389,7 +19389,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "34. In het midden: De baardige man en de leeuw:",
+                pregunta: "In het midden: De baardige man en de leeuw:",
                 opciones: ["Origineel en tegenstrijdig tafereel waarin de zachte precies de leeuw is en niet de baardige oude man."],
                 correctas: ["Origineel en tegenstrijdig tafereel waarin de zachte precies de leeuw is en niet de baardige oude man."],
                 multiple: true
@@ -19398,7 +19398,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "35. Hier is een extra uitdaging! Zoek de fornicator in de Zijdehal!",
+                pregunta: "Hier is een extra uitdaging! Zoek de fornicator in de Zijdehal!",
                 opciones: ["In een van zijn ramen vindt u een uitgehouwen man; zijn hoofd is niet zichtbaar maar zijn genitaliën zijn, heel duidelijk."],
                 correctas: ["In een van zijn ramen vindt u een uitgehouwen man; zijn hoofd is niet zichtbaar maar zijn genitaliën zijn, heel duidelijk."],
                 multiple: true
@@ -19478,7 +19478,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "45. Welke gebeeldhouwde figuur is te zien in de lijst van het schilderij?",
+                pregunta: "Welke gebeeldhouwde figuur is te zien in de lijst van het schilderij?",
                 opciones: ["Een draak", "Een vleermuis", "Een kroon"],
                 correctas: ["Een kroon"],
                 multiple: false
@@ -19487,7 +19487,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "46. Wat is er binnen te zien?",
+                pregunta: "Wat is er binnen te zien?",
                 opciones: ["Een altaar", "Een vlag", "Een zwaard"],
                 correctas: ["Een altaar", "Een vlag"],
                 multiple: true
@@ -19496,21 +19496,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-nl",
                 tipo: "texto",
-                pregunta: "47. Hierop staat een gedenkplaat. In welk jaar is deze geplaatst?",
+                pregunta: "Hierop staat een gedenkplaat. In welk jaar is deze geplaatst?",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-nl",
                 tipo: "texto",
-                pregunta: "48. In welk jaar is dit gebouw gebouwd? Tip: kijk bovenaan de gevel.",
+                pregunta: "In welk jaar is dit gebouw gebouwd? Tip: kijk bovenaan de gevel.",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "49. Als u naar het beeld van San Valero kijkt, welk voorwerp zou ons kunnen vertellen dat hij gevangen zat?",
+                pregunta: "Als u naar het beeld van San Valero kijkt, welk voorwerp zou ons kunnen vertellen dat hij gevangen zat?",
                 opciones: ["De kettingen", "Het boek", "Zijn droevige gezicht"],
                 correctas: ["De kettingen"],
                 multiple: false
@@ -19519,7 +19519,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "50. Wat is er binnen te zien?",
+                pregunta: "Wat is er binnen te zien?",
                 opciones: ["Een stierenarena", "Romeinse baden", "Een metrostation"],
                 correctas: ["Romeinse baden"],
                 multiple: false
@@ -19534,7 +19534,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "52. Kunt u de geometrie bepalen?",
+                pregunta: "Kunt u de geometrie bepalen?",
                 opciones: ["Zeshoekig", "Achthoekig", "Vierkant"],
                 correctas: ["Achthoekig"],
                 multiple: false
@@ -19543,7 +19543,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "53. Met welke hand houdt Neptunus de hoorn des overvloeds vast?",
+                pregunta: "Met welke hand houdt Neptunus de hoorn des overvloeds vast?",
                 opciones: ["Links", "Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -19559,7 +19559,7 @@ export const RETOS_AVENTURAS = {
                 reto: 55,
                 id: "R55-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "55. Welke van de twee torens van het Palacio de la Generalitat is volgens u de nieuwste: die op het plein of deze die nu voor u staat?",
+                pregunta: "Welke van de twee torens van het Palacio de la Generalitat is volgens u de nieuwste: die op het plein of deze die nu voor u staat?",
                 opciones: ["Die op het plein", "Deze voor u"],
                 correctas: ["Deze voor u"],
                 multiple: false
@@ -19592,7 +19592,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "59. Wat houdt de figuur in zijn handen?",
+                pregunta: "Wat houdt de figuur in zijn handen?",
                 opciones: ["Een schild", "Een schelp", "Een kruik", "Een zwaard"],
                 correctas: ["Een schelp"],
                 multiple: false
@@ -19833,7 +19833,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "89. Wat houdt Sint-Laurens in zijn hand?",
+                pregunta: "Wat houdt Sint-Laurens in zijn hand?",
                 opciones: ["Een duif", "Een lepel", "Een rooster"],
                 correctas: ["Een rooster"],
                 multiple: false
@@ -19857,7 +19857,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                pregunta: "Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -19866,7 +19866,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                pregunta: "今は冒険を始めるのに良いタイミングですか？",
                 opciones: ["はい", "いいえ"],
                 correctas: ["?"],
                 multiple: false
@@ -19875,7 +19875,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "3. これらの塔の名前を教えてもらえますか？",
+                pregunta: "これらの塔の名前を教えてもらえますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -20041,7 +20041,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "23. 市章の上にいる動物を覚えていますか？",
+                pregunta: "市章の上にいる動物を覚えていますか？",
                 opciones: ["ドラゴン", "コウモリ", "馬"],
                 correctas: ["コウモリ"],
                 multiple: false
@@ -20050,7 +20050,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "24. 正面入口の上の半円アーチには、5大陸を表す寓意的な像があります。中央の像は何を持っていますか？",
+                pregunta: "正面入口の上の半円アーチには、5大陸を表す寓意的な像があります。中央の像は何を持っていますか？",
                 opciones: ["たいまつ", "剣", "王冠"],
                 correctas: ["たいまつ", "剣"],
                 multiple: true
@@ -20059,7 +20059,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "25. この像は手に何を持っていますか？",
+                pregunta: "この像は手に何を持っていますか？",
                 opciones: ["天秤", "本", "羽ペン"],
                 correctas: ["天秤"],
                 multiple: false
@@ -20068,14 +20068,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-ja",
                 tipo: "texto",
-                pregunta: "26. 建物は何階建てですか？",
+                pregunta: "建物は何階建てですか？",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "27. ファサードのバレンシアのセニェーラの色のステンドグラスを探してください。形状は何ですか？",
+                pregunta: "ファサードのバレンシアのセニェーラの色のステンドグラスを探してください。形状は何ですか？",
                 opciones: ["「四角形」", "「円形」", "「三角形」"],
                 correctas: ["「円形」"],
                 multiple: false
@@ -20084,7 +20084,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "28. 聖母は手に何を持っていますか？",
+                pregunta: "聖母は手に何を持っていますか？",
                 opciones: ["ロザリオ", "子供", "王冠"],
                 correctas: ["ロザリオ", "子供"],
                 multiple: true
@@ -20093,7 +20093,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "29. 天使は子供に何を渡していますか？",
+                pregunta: "天使は子供に何を渡していますか？",
                 opciones: ["鳩", "オーブ", "食べ物"],
                 correctas: ["オーブ"],
                 multiple: false
@@ -20108,7 +20108,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "31. 逆流を漕ぐ船頭。",
+                pregunta: "逆流を漕ぐ船頭。",
                 opciones: ["悲しい表情の男が小さな木製の舟を操り、怪物から逃げるように逆流を進んでいる。"],
                 correctas: ["悲しい表情の男が小さな木製の舟を操り、怪物から逃げるように逆流を進んでいる。"],
                 multiple: true
@@ -20117,7 +20117,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "32. 死んだ木：罪の象徴、門の2枚の扉の間にあり、中央の柱として機能しています。",
+                pregunta: "死んだ木：罪の象徴、門の2枚の扉の間にあり、中央の柱として機能しています。",
                 opciones: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
                 correctas: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
                 multiple: true
@@ -20126,7 +20126,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "33. 右側、天使が陰茎を見せて…",
+                pregunta: "右側、天使が陰茎を見せて…",
                 opciones: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
                 correctas: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
                 multiple: true
@@ -20135,7 +20135,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "34. 中央：ひげの男とライオン：",
+                pregunta: "中央：ひげの男とライオン：",
                 opciones: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
                 correctas: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
                 multiple: true
@@ -20144,7 +20144,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "35. ここで追加チャレンジ！絹の取引所の乱交者を探してください！",
+                pregunta: "ここで追加チャレンジ！絹の取引所の乱交者を探してください！",
                 opciones: ["窓の一つに彫刻された男性がいます。頭は見えませんが、性器ははっきり見えます。"],
                 correctas: ["窓の一つに彫刻された男性がいます。頭は見えませんが、性器ははっきり見えます。"],
                 multiple: true
@@ -20224,7 +20224,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "45. 絵の額縁にはどの彫刻が見えますか？",
+                pregunta: "絵の額縁にはどの彫刻が見えますか？",
                 opciones: ["ドラゴン", "コウモリ", "王冠"],
                 correctas: ["王冠"],
                 multiple: false
@@ -20233,7 +20233,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "46. 内部には何が見えますか？",
+                pregunta: "内部には何が見えますか？",
                 opciones: ["祭壇", "旗", "剣"],
                 correctas: ["祭壇", "旗"],
                 multiple: true
@@ -20242,21 +20242,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-ja",
                 tipo: "texto",
-                pregunta: "47. この場所には記念プレートがあります。設置された年はいつですか？",
+                pregunta: "この場所には記念プレートがあります。設置された年はいつですか？",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-ja",
                 tipo: "texto",
-                pregunta: "48. この建物は何年に建てられましたか？ヒント：ファサードの上部を見てください。",
+                pregunta: "この建物は何年に建てられましたか？ヒント：ファサードの上部を見てください。",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "49. サン・バレロ像を見て、彼が投獄されていたことを示す道具はどれだと思いますか？",
+                pregunta: "サン・バレロ像を見て、彼が投獄されていたことを示す道具はどれだと思いますか？",
                 opciones: ["鎖", "本", "悲しい顔"],
                 correctas: ["鎖"],
                 multiple: false
@@ -20265,7 +20265,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "50. 内部には何が見えますか？",
+                pregunta: "内部には何が見えますか？",
                 opciones: ["闘牛場", "ローマ風浴場", "地下鉄駅"],
                 correctas: ["ローマ風浴場"],
                 multiple: false
@@ -20280,7 +20280,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "52. 形状を判定できますか？",
+                pregunta: "形状を判定できますか？",
                 opciones: ["「六角形」", "「八角形」", "「四角形」"],
                 correctas: ["「六角形」"],
                 multiple: false
@@ -20289,7 +20289,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "53. ネプチューンはどちらの手で角笛を持っていますか？",
+                pregunta: "ネプチューンはどちらの手で角笛を持っていますか？",
                 opciones: ["左手", "右手"],
                 correctas: ["右手"],
                 multiple: false
@@ -20305,7 +20305,7 @@ export const RETOS_AVENTURAS = {
                 reto: 55,
                 id: "R55-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "55. ジェネラリタット宮殿の2つの塔のうち、どちらが新しいと思いますか？広場側の塔か、今目の前にあるこの塔か？",
+                pregunta: "ジェネラリタット宮殿の2つの塔のうち、どちらが新しいと思いますか？広場側の塔か、今目の前にあるこの塔か？",
                 opciones: ["広場側の塔", "目の前のこの塔"],
                 correctas: ["目の前のこの塔"],
                 multiple: false
@@ -20338,7 +20338,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "59. この像は手に何を持っていますか？",
+                pregunta: "この像は手に何を持っていますか？",
                 opciones: ["盾", "貝殻", "水差し", "剣"],
                 correctas: ["貝殻"],
                 multiple: false
@@ -20579,7 +20579,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "89. 聖ロレンスは手に何を持っていますか？",
+                pregunta: "聖ロレンスは手に何を持っていますか？",
                 opciones: ["ハト", "スプーン", "グリル"],
                 correctas: ["グリル"],
                 multiple: false
@@ -20603,7 +20603,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-de",
                 tipo: "opcion",
-                pregunta: "1. Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+                pregunta: "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -20612,7 +20612,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-de",
                 tipo: "opcion",
-                pregunta: "2. Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+                pregunta: "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
                 opciones: ["Ja", "Nein"],
                 correctas: ["?"],
                 multiple: false
@@ -20621,7 +20621,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-de",
                 tipo: "opcion",
-                pregunta: "3. Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -20784,7 +20784,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-de",
                 tipo: "opcion",
-                pregunta: "23. Erinnern Sie sich, welches Tier das Stadtwappen krönt?",
+                pregunta: "Erinnern Sie sich, welches Tier das Stadtwappen krönt?",
                 opciones: ["Ein Drache", "Eine Fledermaus", "Ein Pferd"],
                 correctas: ["Eine Fledermaus"],
                 multiple: false
@@ -20793,7 +20793,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "24. Über dem Haupteingang, in einem Rundbogen, repräsentieren allegorische Figuren die fünf Kontinente. Was hält die zentrale Figur?",
+                pregunta: "Über dem Haupteingang, in einem Rundbogen, repräsentieren allegorische Figuren die fünf Kontinente. Was hält die zentrale Figur?",
                 opciones: ["Eine Fackel", "Ein Schwert", "Eine Krone"],
                 correctas: ["Eine Fackel", "Ein Schwert"],
                 multiple: true
@@ -20802,7 +20802,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-de",
                 tipo: "opcion",
-                pregunta: "25. Was hält die Figur in seiner Hand?",
+                pregunta: "Was hält die Figur in seiner Hand?",
                 opciones: ["Eine Waage", "Ein Buch", "Eine Feder"],
                 correctas: ["Eine Waage"],
                 multiple: false
@@ -20811,14 +20811,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-de",
                 tipo: "texto",
-                pregunta: "26. Wie viele Stockwerke hat das Gebäude?",
+                pregunta: "Wie viele Stockwerke hat das Gebäude?",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-de",
                 tipo: "opcion",
-                pregunta: "27. Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade. Können Sie seine Form bestimmen?",
+                pregunta: "Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade. Können Sie seine Form bestimmen?",
                 opciones: ["Quadrangular", "Rund", "Dreieckig"],
                 correctas: ["Rund"],
                 multiple: false
@@ -20827,7 +20827,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "28. Was hält die Jungfrau in ihrer Hand?",
+                pregunta: "Was hält die Jungfrau in ihrer Hand?",
                 opciones: ["Ein Rosenkranz", "Ein Kind", "Eine Krone"],
                 correctas: ["Ein Rosenkranz", "Ein Kind"],
                 multiple: true
@@ -20836,7 +20836,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-de",
                 tipo: "opcion",
-                pregunta: "29. Was gibt der Engel dem Kind?",
+                pregunta: "Was gibt der Engel dem Kind?",
                 opciones: ["Eine Taube", "Eine Kugel", "Nahrung"],
                 correctas: ["Eine Kugel"],
                 multiple: false
@@ -20851,7 +20851,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "31. Der Fährmann, der gegen den Strom rudert.",
+                pregunta: "Der Fährmann, der gegen den Strom rudert.",
                 opciones: ["Ein Mann mit traurigem Gesicht, der ein kleines Holzboot steuert, entkommt einem Monster gegen den Strom."],
                 correctas: ["Ein Mann mit traurigem Gesicht, der ein kleines Holzboot steuert, entkommt einem Monster gegen den Strom."],
                 multiple: true
@@ -20860,7 +20860,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "32. Ein toter Baum: Symbol der Sünde, ist zwischen den beiden Türflügeln zu sehen und dient als Pfeilerstab.",
+                pregunta: "Ein toter Baum: Symbol der Sünde, ist zwischen den beiden Türflügeln zu sehen und dient als Pfeilerstab.",
                 opciones: ["Beobachten Sie an der Baumkrone, wie 4 nackte Männer sich gegenseitig auspeitschen."],
                 correctas: ["Beobachten Sie an der Baumkrone, wie 4 nackte Männer sich gegenseitig auspeitschen."],
                 multiple: true
@@ -20869,7 +20869,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "33. Rechts, ein Engel zeigt seinen Penis und...",
+                pregunta: "Rechts, ein Engel zeigt seinen Penis und...",
                 opciones: ["...er ist dabei, ihn in eine Vase einzuführen, die er mit der anderen Hand hält. Seltsam und ungewöhnlich, finden Sie nicht?"],
                 correctas: ["...er ist dabei, ihn in eine Vase einzuführen, die er mit der anderen Hand hält. Seltsam und ungewöhnlich, finden Sie nicht?"],
                 multiple: true
@@ -20878,7 +20878,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "34. In der Mitte: Der bärtige Mann und der Löwe:",
+                pregunta: "In der Mitte: Der bärtige Mann und der Löwe:",
                 opciones: ["Originale und widersprüchliche Szene, in der der sanfte genau der Löwe ist und nicht der bärtige alte Mann."],
                 correctas: ["Originale und widersprüchliche Szene, in der der sanfte genau der Löwe ist und nicht der bärtige alte Mann."],
                 multiple: true
@@ -20887,7 +20887,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "35. Hier eine zusätzliche Herausforderung! Suchen Sie den Fornikator der Seidenbörse!",
+                pregunta: "Hier eine zusätzliche Herausforderung! Suchen Sie den Fornikator der Seidenbörse!",
                 opciones: ["In einem seiner Fenster finden Sie einen gemeißelten Mann; sein Kopf ist nicht sichtbar, aber sein Geschlechtsorgan ist es, sehr deutlich."],
                 correctas: ["In einem seiner Fenster finden Sie einen gemeißelten Mann; sein Kopf ist nicht sichtbar, aber sein Geschlechtsorgan ist es, sehr deutlich."],
                 multiple: true
@@ -20902,14 +20902,14 @@ export const RETOS_AVENTURAS = {
                 reto: 37,
                 id: "R37-Av34km-de",
                 tipo: "texto",
-                pregunta: "37. Wie breit ist der Eingang des schmalen Gebäudes?",
+                pregunta: "Wie breit ist der Eingang des schmalen Gebäudes?",
                 correctas: ["1,35 metros"]
             },
 {
                 reto: 38,
                 id: "R38-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "38. Drei Blendbögen. Zwei davon sind glatt, der dritte wurde ohne Verputz gelassen.<br>Was ist in diesem unvergipsten Bogen zu sehen?",
+                pregunta: "Drei Blendbögen. Zwei davon sind glatt, der dritte wurde ohne Verputz gelassen.<br>Was ist in diesem unvergipsten Bogen zu sehen?",
                 opciones: ["Ein Gesicht", "Ein Torso", "Ein Wasserspeier"],
                 correctas: ["Ein Gesicht", "Ein Torso"],
                 multiple: true
@@ -20918,7 +20918,7 @@ export const RETOS_AVENTURAS = {
                 reto: 39,
                 id: "R39-Av34km-de",
                 tipo: "opcion",
-                pregunta: "39. Was befindet sich ganz oben am Barockturm von Santa Catalina?",
+                pregunta: "Was befindet sich ganz oben am Barockturm von Santa Catalina?",
                 opciones: ["Ein Kreuz", "Die Sonne", "Eine Taube"],
                 correctas: ["Ein Kreuz"],
                 multiple: false
@@ -20927,14 +20927,14 @@ export const RETOS_AVENTURAS = {
                 reto: 40,
                 id: "R40-Av34km-de",
                 tipo: "texto",
-                pregunta: "40. Welche Farbe haben die Dachziegel der Kuppel des Barockturms von Santa Catalina?",
+                pregunta: "Welche Farbe haben die Dachziegel der Kuppel des Barockturms von Santa Catalina?",
                 correctas: ["marrones"]
             },
 {
                 reto: 41,
                 id: "R41-Av34km-de",
                 tipo: "opcion",
-                pregunta: "41. Können Sie die Geometrie des Miguelete-Turms von Valencia bestimmen?",
+                pregunta: "Können Sie die Geometrie des Miguelete-Turms von Valencia bestimmen?",
                 opciones: ["Hexagonal", "Oktagonal", "Viereckig"],
                 correctas: ["Oktagonal"],
                 multiple: false
@@ -20943,14 +20943,14 @@ export const RETOS_AVENTURAS = {
                 reto: 42,
                 id: "R42-Av34km-de",
                 tipo: "texto",
-                pregunta: "42. Wie viele Fenster können Sie sehen?",
+                pregunta: "Wie viele Fenster können Sie sehen?",
                 correctas: ["?"]
             },
 {
                 reto: 43,
                 id: "R43-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "43. Was ist mehr als 35 Meter hoch oben an der Barockfassade zu sehen?",
+                pregunta: "Was ist mehr als 35 Meter hoch oben an der Barockfassade zu sehen?",
                 opciones: ["Eine Kugel", "Eine Fledermaus", "Ein Kreuz", "Ein Pferd"],
                 correctas: ["Eine Kugel", "Ein Kreuz"],
                 multiple: true
@@ -20967,7 +20967,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-de",
                 tipo: "opcion",
-                pregunta: "45. Welche skulptierte Figur ist im Rahmen des Gemäldes zu sehen?",
+                pregunta: "Welche skulptierte Figur ist im Rahmen des Gemäldes zu sehen?",
                 opciones: ["Ein Drache", "Eine Fledermaus", "Eine Krone"],
                 correctas: ["Eine Krone"],
                 multiple: false
@@ -20976,7 +20976,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "46. Was ist im Inneren zu sehen?",
+                pregunta: "Was ist im Inneren zu sehen?",
                 opciones: ["Ein Altar", "Eine Flagge", "Ein Schwert"],
                 correctas: ["Ein Altar", "Eine Flagge"],
                 multiple: true
@@ -20985,21 +20985,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-de",
                 tipo: "texto",
-                pregunta: "47. Daran befindet sich eine Gedenktafel. In welchem Jahr wurde sie aufgestellt?",
+                pregunta: "Daran befindet sich eine Gedenktafel. In welchem Jahr wurde sie aufgestellt?",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-de",
                 tipo: "texto",
-                pregunta: "48. In welchem Jahr wurde dieses Gebäude errichtet? Tipp: Schauen Sie an der Oberseite der Fassade nach.",
+                pregunta: "In welchem Jahr wurde dieses Gebäude errichtet? Tipp: Schauen Sie an der Oberseite der Fassade nach.",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-de",
                 tipo: "opcion",
-                pregunta: "49. Wenn Sie sich das Bild von San Valero ansehen, welcher Gegenstand könnte uns sagen, dass er gefangen war?",
+                pregunta: "Wenn Sie sich das Bild von San Valero ansehen, welcher Gegenstand könnte uns sagen, dass er gefangen war?",
                 opciones: ["Die Ketten", "Das Buch", "Sein trauriges Gesicht"],
                 correctas: ["Die Ketten"],
                 multiple: false
@@ -21008,7 +21008,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-de",
                 tipo: "opcion",
-                pregunta: "50. Was ist im Inneren zu sehen?",
+                pregunta: "Was ist im Inneren zu sehen?",
                 opciones: ["Eine Stierkampfarena", "Römische Bäder", "Eine U-Bahn-Station"],
                 correctas: ["Römische Bäder"],
                 multiple: false
@@ -21023,7 +21023,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-de",
                 tipo: "opcion",
-                pregunta: "52. Können Sie seine Geometrie bestimmen?",
+                pregunta: "Können Sie seine Geometrie bestimmen?",
                 opciones: ["Hexagonal", "Oktogonal", "Quadrangular"],
                 correctas: ["Hexagonal"],
                 multiple: false
@@ -21032,7 +21032,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-de",
                 tipo: "opcion",
-                pregunta: "53. Mit welcher Hand hält Neptun das Füllhorn?",
+                pregunta: "Mit welcher Hand hält Neptun das Füllhorn?",
                 opciones: ["Links", "Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -21041,14 +21041,14 @@ export const RETOS_AVENTURAS = {
                 reto: 54,
                 id: "R54-Av34km-de",
                 tipo: "texto",
-                pregunta: "54. Wie viele Figuren umgeben den Brunnen?",
+                pregunta: "Wie viele Figuren umgeben den Brunnen?",
                 correctas: ["8"]
             },
 {
                 reto: 55,
                 id: "R55-Av34km-de",
                 tipo: "opcion",
-                pregunta: "55. Welcher der beiden Türme des Palacio de la Generalitat ist Ihrer Meinung nach der neuere: der auf dem Platz oder dieser hier vor Ihnen?",
+                pregunta: "Welcher der beiden Türme des Palacio de la Generalitat ist Ihrer Meinung nach der neuere: der auf dem Platz oder dieser hier vor Ihnen?",
                 opciones: ["Der auf dem Platz", "Dieser vor Ihnen"],
                 correctas: ["Dieser vor Ihnen"],
                 multiple: false
@@ -21063,7 +21063,7 @@ export const RETOS_AVENTURAS = {
                 reto: 57,
                 id: "R57-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "57. Was ist auf diesem Keramikpaneel zu sehen? Sind es Schädel? Ist es ein Kreuz? Gibt es auch eine Taube?",
+                pregunta: "Was ist auf diesem Keramikpaneel zu sehen? Sind es Schädel? Ist es ein Kreuz? Gibt es auch eine Taube?",
                 opciones: ["Schädel", "Tauben", "Kreuz"],
                 correctas: ["Schädel", "Kreuz"],
                 multiple: true
@@ -21072,7 +21072,7 @@ export const RETOS_AVENTURAS = {
                 reto: 58,
                 id: "R58-Av34km-de",
                 tipo: "opcion",
-                pregunta: "58. Wie viele Glocken beherbergt dieser Turm?",
+                pregunta: "Wie viele Glocken beherbergt dieser Turm?",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -21081,7 +21081,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-de",
                 tipo: "opcion",
-                pregunta: "59. Was hält die Figur in ihren Händen?",
+                pregunta: "Was hält die Figur in ihren Händen?",
                 opciones: ["Einen Schild", "Eine Muschel", "Einen Krug", "Ein Schwert"],
                 correctas: ["Eine Muschel"],
                 multiple: false
@@ -21090,7 +21090,7 @@ export const RETOS_AVENTURAS = {
                 reto: 60,
                 id: "R60-Av34km-de",
                 tipo: "opcion",
-                pregunta: "60. In welche Richtung verläuft der festgelegte Weg?",
+                pregunta: "In welche Richtung verläuft der festgelegte Weg?",
                 opciones: ["Norden", "Süden", "Osten", "Westen"],
                 correctas: ["Norden"],
                 multiple: false
@@ -21099,7 +21099,7 @@ export const RETOS_AVENTURAS = {
                 reto: 61,
                 id: "R61-Av34km-de",
                 tipo: "opcion",
-                pregunta: "61. Wie viele Tore hatte die alte arabische Mauer von Balansiya?",
+                pregunta: "Wie viele Tore hatte die alte arabische Mauer von Balansiya?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -21315,7 +21315,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-de",
                 tipo: "opcion",
-                pregunta: "89. Was trägt der heilige Laurentius in seiner Hand?",
+                pregunta: "Was trägt der heilige Laurentius in seiner Hand?",
                 opciones: ["Eine Taube", "Ein Löffel", "Ein Rost"],
                 correctas: ["Ein Rost"],
                 multiple: false
@@ -21339,7 +21339,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
+                pregunta: "使用Valencia be Guides可以进行多少次冒险？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -21348,7 +21348,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "2. 现在是开始冒险的好时机吗？",
+                pregunta: "现在是开始冒险的好时机吗？",
                 opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
@@ -21357,7 +21357,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "3. 您知道这些塔楼叫什么名字吗？",
+                pregunta: "您知道这些塔楼叫什么名字吗？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -21520,7 +21520,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "23. 您还记得市徽上是什么动物吗？",
+                pregunta: "您还记得市徽上是什么动物吗？",
                 opciones: ["一条龙", "一只蝙蝠", "一匹马"],
                 correctas: ["一只蝙蝠"],
                 multiple: false
@@ -21529,7 +21529,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "24. 在主入口上方的半圆拱门中，寓言人物代表五大洲。中央人物拿着什么？",
+                pregunta: "在主入口上方的半圆拱门中，寓言人物代表五大洲。中央人物拿着什么？",
                 opciones: ["一把火炬", "一把剑", "一顶王冠"],
                 correctas: ["一把火炬", "一把剑"],
                 multiple: true
@@ -21538,7 +21538,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "25. 这个人物手中拿着什么？",
+                pregunta: "这个人物手中拿着什么？",
                 opciones: ["一把天平", "一本书", "一根羽毛"],
                 correctas: ["一把天平"],
                 multiple: false
@@ -21547,14 +21547,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-zh",
                 tipo: "texto",
-                pregunta: "26. 这栋建筑有几层楼？",
+                pregunta: "这栋建筑有几层楼？",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "27. 在建筑外立面上寻找带有巴伦西亚旗帜颜色的彩色玻璃窗。您能判断它的形状吗？",
+                pregunta: "在建筑外立面上寻找带有巴伦西亚旗帜颜色的彩色玻璃窗。您能判断它的形状吗？",
                 opciones: ["四边形", "圆形", "三角形"],
                 correctas: ["圆形"],
                 multiple: false
@@ -21563,7 +21563,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "28. 圣母手中拿着什么？",
+                pregunta: "圣母手中拿着什么？",
                 opciones: ["一串玫瑰念珠", "一个孩子", "一顶王冠"],
                 correctas: ["一串玫瑰念珠", "一个孩子"],
                 multiple: true
@@ -21572,7 +21572,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "29. 天使给孩子什么？",
+                pregunta: "天使给孩子什么？",
                 opciones: ["一只鸽子", "一个宝球", "食物"],
                 correctas: ["一个宝球"],
                 multiple: false
@@ -21587,7 +21587,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "31. 逆流而上的船夫。",
+                pregunta: "逆流而上的船夫。",
                 opciones: ["一个面带愁容的男人驾驶着一艘小木船，逆流逃离一只怪物。"],
                 correctas: ["一个面带愁容的男人驾驶着一艘小木船，逆流逃离一只怪物。"],
                 multiple: true
@@ -21596,7 +21596,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "32. 一棵枯树：罪孽的象征，出现在门的两扇叶片之间，充当中柱。",
+                pregunta: "一棵枯树：罪孽的象征，出现在门的两扇叶片之间，充当中柱。",
                 opciones: ["观察树顶，4名裸男相互鞭打。"],
                 correctas: ["观察树顶，4名裸男相互鞭打。"],
                 multiple: true
@@ -21605,7 +21605,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "33. 右侧，一个天使展示着他的阴茎，并……",
+                pregunta: "右侧，一个天使展示着他的阴茎，并……",
                 opciones: ["准备将其插入另一只手拿着的花瓶中。奇怪而不寻常，不是吗？"],
                 correctas: ["准备将其插入另一只手拿着的花瓶中。奇怪而不寻常，不是吗？"],
                 multiple: true
@@ -21614,7 +21614,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "34. 中央：蓄胡子的男人和狮子：",
+                pregunta: "中央：蓄胡子的男人和狮子：",
                 opciones: ["原创而矛盾的场景，其中温顺的恰恰是狮子，而不是蓄胡子的老人。"],
                 correctas: ["原创而矛盾的场景，其中温顺的恰恰是狮子，而不是蓄胡子的老人。"],
                 multiple: true
@@ -21623,7 +21623,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "35. 这是一个额外挑战！寻找丝绸交易所的通奸者！",
+                pregunta: "这是一个额外挑战！寻找丝绸交易所的通奸者！",
                 opciones: ["在它的一扇窗户里，您会发现一个雕刻的男人；他的头部不可见，但他的生殖器非常清晰可见。"],
                 correctas: ["在它的一扇窗户里，您会发现一个雕刻的男人；他的头部不可见，但他的生殖器非常清晰可见。"],
                 multiple: true
@@ -21638,14 +21638,14 @@ export const RETOS_AVENTURAS = {
                 reto: 37,
                 id: "R37-Av34km-zh",
                 tipo: "texto",
-                pregunta: "37. 这座狭窄建筑入口有多宽？",
+                pregunta: "这座狭窄建筑入口有多宽？",
                 correctas: ["1,35 metros"]
             },
 {
                 reto: 38,
                 id: "R38-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "38. 三个盲拱。其中两个是光滑的，第三个未经粉刷。<br>在这个未粉刷的拱门里能看到什么？",
+                pregunta: "三个盲拱。其中两个是光滑的，第三个未经粉刷。<br>在这个未粉刷的拱门里能看到什么？",
                 opciones: ["一张脸", "一个躯干", "一个滴水兽"],
                 correctas: ["一张脸", "一个躯干"],
                 multiple: true
@@ -21654,7 +21654,7 @@ export const RETOS_AVENTURAS = {
                 reto: 39,
                 id: "R39-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "39. 圣卡塔利娜巴洛克塔的最顶端有什么？",
+                pregunta: "圣卡塔利娜巴洛克塔的最顶端有什么？",
                 opciones: ["一个十字架", "太阳", "一只鸽子"],
                 correctas: ["一个十字架"],
                 multiple: false
@@ -21663,14 +21663,14 @@ export const RETOS_AVENTURAS = {
                 reto: 40,
                 id: "R40-Av34km-zh",
                 tipo: "texto",
-                pregunta: "40. 圣卡塔利娜巴洛克塔穹顶的瓦片是什么颜色？",
+                pregunta: "圣卡塔利娜巴洛克塔穹顶的瓦片是什么颜色？",
                 correctas: ["marrones"]
             },
 {
                 reto: 41,
                 id: "R41-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "41. 您能确定巴伦西亚米格莱特塔的几何形状吗？",
+                pregunta: "您能确定巴伦西亚米格莱特塔的几何形状吗？",
                 opciones: ["六边形", "八边形", "四边形"],
                 correctas: ["八边形"],
                 multiple: false
@@ -21679,14 +21679,14 @@ export const RETOS_AVENTURAS = {
                 reto: 42,
                 id: "R42-Av34km-zh",
                 tipo: "texto",
-                pregunta: "42. 您能看到多少扇窗户？",
+                pregunta: "您能看到多少扇窗户？",
                 correctas: ["?"]
             },
 {
                 reto: 43,
                 id: "R43-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "43. 在巴洛克式正门顶端35米以上能看到什么？",
+                pregunta: "在巴洛克式正门顶端35米以上能看到什么？",
                 opciones: ["一个球体", "一只蝙蝠", "一个十字架", "一匹马"],
                 correctas: ["一个球体", "一个十字架"],
                 multiple: true
@@ -21703,7 +21703,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "45. 画框上可以看到什么雕刻图案？",
+                pregunta: "画框上可以看到什么雕刻图案？",
                 opciones: ["一条龙", "一只蝙蝠", "一顶王冠"],
                 correctas: ["一顶王冠"],
                 multiple: false
@@ -21712,7 +21712,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "46. 内部可以看到什么？",
+                pregunta: "内部可以看到什么？",
                 opciones: ["一座祭坛", "一面旗帜", "一把剑"],
                 correctas: ["一座祭坛", "一面旗帜"],
                 multiple: true
@@ -21721,21 +21721,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-zh",
                 tipo: "texto",
-                pregunta: "47. 上面有一块纪念牌匾。这块牌匾是哪年放置的？",
+                pregunta: "上面有一块纪念牌匾。这块牌匾是哪年放置的？",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-zh",
                 tipo: "texto",
-                pregunta: "48. 这栋建筑建于哪一年？提示：看建筑外立面的上部。",
+                pregunta: "这栋建筑建于哪一年？提示：看建筑外立面的上部。",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "49. 看着圣瓦莱罗的雕像，哪件物品能告诉我们他曾被囚禁？",
+                pregunta: "看着圣瓦莱罗的雕像，哪件物品能告诉我们他曾被囚禁？",
                 opciones: ["锁链", "书", "悲伤的表情"],
                 correctas: ["锁链"],
                 multiple: false
@@ -21744,7 +21744,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "50. 内部可以看到什么？",
+                pregunta: "内部可以看到什么？",
                 opciones: ["一个斗牛场", "罗马浴场", "一个地铁站"],
                 correctas: ["罗马浴场"],
                 multiple: false
@@ -21759,7 +21759,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "52. 您能判断它的几何形状吗？",
+                pregunta: "您能判断它的几何形状吗？",
                 opciones: ["六边形", "八边形", "四边形"],
                 correctas: ["六边形"],
                 multiple: false
@@ -21768,7 +21768,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "53. 海神尼普顿用哪只手拿着丰饶角？",
+                pregunta: "海神尼普顿用哪只手拿着丰饶角？",
                 opciones: ["左手", "右手"],
                 correctas: ["右手"],
                 multiple: false
@@ -21777,14 +21777,14 @@ export const RETOS_AVENTURAS = {
                 reto: 54,
                 id: "R54-Av34km-zh",
                 tipo: "texto",
-                pregunta: "54. 喷泉周围有多少个雕像？",
+                pregunta: "喷泉周围有多少个雕像？",
                 correctas: ["8"]
             },
 {
                 reto: 55,
                 id: "R55-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "55. 赫内拉利塔宫的两座塔中，您认为哪一座更新：广场那座，还是您现在面前的这座？",
+                pregunta: "赫内拉利塔宫的两座塔中，您认为哪一座更新：广场那座，还是您现在面前的这座？",
                 opciones: ["广场那座", "面前这座"],
                 correctas: ["面前这座"],
                 multiple: false
@@ -21799,7 +21799,7 @@ export const RETOS_AVENTURAS = {
                 reto: 57,
                 id: "R57-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "57. 这块陶瓷板上能看到什么？是骷髅吗？是十字架吗？还有鸽子吗？",
+                pregunta: "这块陶瓷板上能看到什么？是骷髅吗？是十字架吗？还有鸽子吗？",
                 opciones: ["骷髅", "鸽子", "十字架"],
                 correctas: ["骷髅", "十字架"],
                 multiple: true
@@ -21808,7 +21808,7 @@ export const RETOS_AVENTURAS = {
                 reto: 58,
                 id: "R58-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "58. 这座塔里有多少口钟？",
+                pregunta: "这座塔里有多少口钟？",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -21817,7 +21817,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "59. 这个雕像手里拿着什么？",
+                pregunta: "这个雕像手里拿着什么？",
                 opciones: ["盾牌", "贝壳", "水罐", "剑"],
                 correctas: ["贝壳"],
                 multiple: false
@@ -21826,7 +21826,7 @@ export const RETOS_AVENTURAS = {
                 reto: 60,
                 id: "R60-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "60. 既定的道路朝哪个方向走？",
+                pregunta: "既定的道路朝哪个方向走？",
                 opciones: ["北", "南", "东", "西"],
                 correctas: ["北"],
                 multiple: false
@@ -21835,7 +21835,7 @@ export const RETOS_AVENTURAS = {
                 reto: 61,
                 id: "R61-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "61. 古代巴伦西亚阿拉伯城墙有几座城门？",
+                pregunta: "古代巴伦西亚阿拉伯城墙有几座城门？",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -22051,7 +22051,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "89. 圣劳伦斯手中拿着什么？",
+                pregunta: "圣劳伦斯手中拿着什么？",
                 opciones: ["一只鸽子", "一把勺子", "一个烤架"],
                 correctas: ["一个烤架"],
                 multiple: false
@@ -22075,7 +22075,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "1. Ile przygód można przeżyć z Valencia be Guides?",
+                pregunta: "Ile przygód można przeżyć z Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -22084,7 +22084,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
+                pregunta: "Czy to dobry moment, aby rozpocząć przygodę?",
                 opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
@@ -22093,7 +22093,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "3. Czy może mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Czy może mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -22256,7 +22256,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "23. Czy pamięta Pan/Pani, jakie zwierzę wieńczy herb miejski?",
+                pregunta: "Czy pamięta Pan/Pani, jakie zwierzę wieńczy herb miejski?",
                 opciones: ["Smok", "Nietoperz", "Koń"],
                 correctas: ["Nietoperz"],
                 multiple: false
@@ -22265,7 +22265,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "24. Nad głównym wejściem, w półokrągłym łuku, alegoryczne figury reprezentują pięć kontynentów. Co trzyma centralna figura?",
+                pregunta: "Nad głównym wejściem, w półokrągłym łuku, alegoryczne figury reprezentują pięć kontynentów. Co trzyma centralna figura?",
                 opciones: ["Pochodnia", "Miecz", "Korona"],
                 correctas: ["Pochodnia", "Miecz"],
                 multiple: true
@@ -22274,7 +22274,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "25. Co trzyma figura w swojej ręce?",
+                pregunta: "Co trzyma figura w swojej ręce?",
                 opciones: ["Waga", "Książka", "Pióro"],
                 correctas: ["Waga"],
                 multiple: false
@@ -22283,14 +22283,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-pl",
                 tipo: "texto",
-                pregunta: "26. Ile pięter ma budynek?",
+                pregunta: "Ile pięter ma budynek?",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "27. Poszukaj witrażu w kolorach walencjańskiej Senyery na fasadzie budynku. Czy potrafi Pan/Pani określić jego kształt?",
+                pregunta: "Poszukaj witrażu w kolorach walencjańskiej Senyery na fasadzie budynku. Czy potrafi Pan/Pani określić jego kształt?",
                 opciones: ["Czworokąt", "Okrągły", "Trójkąt"],
                 correctas: ["Okrągły"],
                 multiple: false
@@ -22299,7 +22299,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "28. Co trzyma Dziewica w swojej ręce?",
+                pregunta: "Co trzyma Dziewica w swojej ręce?",
                 opciones: ["Różaniec", "Dziecko", "Korona"],
                 correctas: ["Różaniec", "Dziecko"],
                 multiple: true
@@ -22308,7 +22308,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "29. Co anioł daje dziecku?",
+                pregunta: "Co anioł daje dziecku?",
                 opciones: ["Gołąb", "Kula", "Jedzenie"],
                 correctas: ["Kula"],
                 multiple: false
@@ -22323,7 +22323,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "31. Przewoźnik wiosłujący pod prąd.",
+                pregunta: "Przewoźnik wiosłujący pod prąd.",
                 opciones: ["Smutny mężczyzna kierujący małą drewnianą łódką ucieka pod prąd przed potworem."],
                 correctas: ["Smutny mężczyzna kierujący małą drewnianą łódką ucieka pod prąd przed potworem."],
                 multiple: true
@@ -22332,7 +22332,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "32. Martwe drzewo: symbol Grzechu, widać je między dwoma skrzydłami drzwi, pełni funkcję słupka.",
+                pregunta: "Martwe drzewo: symbol Grzechu, widać je między dwoma skrzydłami drzwi, pełni funkcję słupka.",
                 opciones: ["Obserwuj wierzchołek drzewa, gdzie 4 nagich mężczyzn biczuje się nawzajem."],
                 correctas: ["Obserwuj wierzchołek drzewa, gdzie 4 nagich mężczyzn biczuje się nawzajem."],
                 multiple: true
@@ -22341,7 +22341,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "33. Po prawej, anioł pokazuje swój penis i...",
+                pregunta: "Po prawej, anioł pokazuje swój penis i...",
                 opciones: ["...zamierza włożyć go do wazonu, który trzyma w drugiej ręce. Dziwne i niezwykłe, prawda?"],
                 correctas: ["...zamierza włożyć go do wazonu, który trzyma w drugiej ręce. Dziwne i niezwykłe, prawda?"],
                 multiple: true
@@ -22350,7 +22350,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "34. W centrum: Brodaty mężczyzna i lew:",
+                pregunta: "W centrum: Brodaty mężczyzna i lew:",
                 opciones: ["Oryginalna i sprzeczna scena, w której łagodnym jest właśnie lew, a nie brodaty starzec."],
                 correctas: ["Oryginalna i sprzeczna scena, w której łagodnym jest właśnie lew, a nie brodaty starzec."],
                 multiple: true
@@ -22359,7 +22359,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "35. Oto dodatkowe wyzwanie! Znajdź lubieżnika z Giełdy Jedwabiu!",
+                pregunta: "Oto dodatkowe wyzwanie! Znajdź lubieżnika z Giełdy Jedwabiu!",
                 opciones: ["W jednym z jej okien znajdziesz wykutego mężczyznę; jego głowy nie widać, ale genitalia są bardzo wyraźnie widoczne."],
                 correctas: ["W jednym z jej okien znajdziesz wykutego mężczyznę; jego głowy nie widać, ale genitalia są bardzo wyraźnie widoczne."],
                 multiple: true
@@ -22374,14 +22374,14 @@ export const RETOS_AVENTURAS = {
                 reto: 37,
                 id: "R37-Av34km-pl",
                 tipo: "texto",
-                pregunta: "37. Jak szeroki jest wejście do wąskiego budynku?",
+                pregunta: "Jak szeroki jest wejście do wąskiego budynku?",
                 correctas: ["1,35 metros"]
             },
 {
                 reto: 38,
                 id: "R38-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "38. Trzy ślepe łuki. Dwa z nich są gładkie, trzeci pozostał bez tynku.<br>Co można zobaczyć w tym nieobitym łuku?",
+                pregunta: "Trzy ślepe łuki. Dwa z nich są gładkie, trzeci pozostał bez tynku.<br>Co można zobaczyć w tym nieobitym łuku?",
                 opciones: ["Twarz", "Tors", "Gargulec"],
                 correctas: ["Twarz", "Tors"],
                 multiple: true
@@ -22390,7 +22390,7 @@ export const RETOS_AVENTURAS = {
                 reto: 39,
                 id: "R39-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "39. Co znajduje się na samym szczycie barokowej wieży Santa Catalina?",
+                pregunta: "Co znajduje się na samym szczycie barokowej wieży Santa Catalina?",
                 opciones: ["Krzyż", "Słońce", "Gołąb"],
                 correctas: ["Krzyż"],
                 multiple: false
@@ -22399,14 +22399,14 @@ export const RETOS_AVENTURAS = {
                 reto: 40,
                 id: "R40-Av34km-pl",
                 tipo: "texto",
-                pregunta: "40. Jakiego koloru są dachówki kopuły barokowej wieży Santa Catalina?",
+                pregunta: "Jakiego koloru są dachówki kopuły barokowej wieży Santa Catalina?",
                 correctas: ["marrones"]
             },
 {
                 reto: 41,
                 id: "R41-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "41. Czy potrafiłbyś określić geometrię wieży Miguelete w Walencji?",
+                pregunta: "Czy potrafiłbyś określić geometrię wieży Miguelete w Walencji?",
                 opciones: ["Sześciokątne", "Ośmiokątne", "Czworokątne"],
                 correctas: ["Ośmiokątne"],
                 multiple: false
@@ -22415,14 +22415,14 @@ export const RETOS_AVENTURAS = {
                 reto: 42,
                 id: "R42-Av34km-pl",
                 tipo: "texto",
-                pregunta: "42. Ile okien można zobaczyć?",
+                pregunta: "Ile okien można zobaczyć?",
                 correctas: ["?"]
             },
 {
                 reto: 43,
                 id: "R43-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "43. Co można zobaczyć ponad 35 metrów w górze na szczycie barokowej fasady?",
+                pregunta: "Co można zobaczyć ponad 35 metrów w górze na szczycie barokowej fasady?",
                 opciones: ["Kula", "Nietoperz", "Krzyż", "Koń"],
                 correctas: ["Kula", "Krzyż"],
                 multiple: true
@@ -22439,7 +22439,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "45. Jaką rzeźbioną figurę można zobaczyć w ramie obrazu?",
+                pregunta: "Jaką rzeźbioną figurę można zobaczyć w ramie obrazu?",
                 opciones: ["Smok", "Nietoperz", "Korona"],
                 correctas: ["Korona"],
                 multiple: false
@@ -22448,7 +22448,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "46. Co można zobaczyć wewnątrz?",
+                pregunta: "Co można zobaczyć wewnątrz?",
                 opciones: ["Ołtarz", "Flaga", "Miecz"],
                 correctas: ["Ołtarz", "Flaga"],
                 multiple: true
@@ -22457,21 +22457,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-pl",
                 tipo: "texto",
-                pregunta: "47. Na nim znajduje się tablica pamiątkowa. W którym roku została umieszczona?",
+                pregunta: "Na nim znajduje się tablica pamiątkowa. W którym roku została umieszczona?",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-pl",
                 tipo: "texto",
-                pregunta: "48. W którym roku zbudowano tę kamienicę? Wskazówka: spójrz na górę fasady.",
+                pregunta: "W którym roku zbudowano tę kamienicę? Wskazówka: spójrz na górę fasady.",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "49. Patrząc na wizerunek San Valero, jaki przedmiot mógłby nam powiedzieć, że był więziony?",
+                pregunta: "Patrząc na wizerunek San Valero, jaki przedmiot mógłby nam powiedzieć, że był więziony?",
                 opciones: ["Łańcuchy", "Księga", "Jego smutna twarz"],
                 correctas: ["Łańcuchy"],
                 multiple: false
@@ -22480,7 +22480,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "50. Co można zobaczyć wewnątrz?",
+                pregunta: "Co można zobaczyć wewnątrz?",
                 opciones: ["Arena do walk byków", "Łaźnie rzymskie", "Stacja metra"],
                 correctas: ["Łaźnie rzymskie"],
                 multiple: false
@@ -22495,7 +22495,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "52. Czy potrafi Pan/Pani określić jego geometrię?",
+                pregunta: "Czy potrafi Pan/Pani określić jego geometrię?",
                 opciones: ["Sześciokąt", "Ośmiokąt", "Czworokąt"],
                 correctas: ["Sześciokąt"],
                 multiple: false
@@ -22504,7 +22504,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "53. Którą ręką Neptun trzyma róg obfitości?",
+                pregunta: "Którą ręką Neptun trzyma róg obfitości?",
                 opciones: ["Lewą", "Prawą"],
                 correctas: ["Prawą"],
                 multiple: false
@@ -22513,14 +22513,14 @@ export const RETOS_AVENTURAS = {
                 reto: 54,
                 id: "R54-Av34km-pl",
                 tipo: "texto",
-                pregunta: "54. Ile postaci otacza fontannę?",
+                pregunta: "Ile postaci otacza fontannę?",
                 correctas: ["8"]
             },
 {
                 reto: 55,
                 id: "R55-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "55. Która z dwóch wież Pałacu Generalitat jest waszym zdaniem nowsza: ta na placu, czy ta, która stoi teraz przed wami?",
+                pregunta: "Która z dwóch wież Pałacu Generalitat jest waszym zdaniem nowsza: ta na placu, czy ta, która stoi teraz przed wami?",
                 opciones: ["Ta na placu", "Ta przed wami"],
                 correctas: ["Ta przed wami"],
                 multiple: false
@@ -22535,7 +22535,7 @@ export const RETOS_AVENTURAS = {
                 reto: 57,
                 id: "R57-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "57. Co można zobaczyć na tym ceramicznym panelu? Czy to czaszki? Czy jest krzyż? Czy jest też gołąb?",
+                pregunta: "Co można zobaczyć na tym ceramicznym panelu? Czy to czaszki? Czy jest krzyż? Czy jest też gołąb?",
                 opciones: ["Czaszki", "Gołębie", "Krzyż"],
                 correctas: ["Czaszki", "Krzyż"],
                 multiple: true
@@ -22544,7 +22544,7 @@ export const RETOS_AVENTURAS = {
                 reto: 58,
                 id: "R58-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "58. Ile dzwonów mieści ta wieża?",
+                pregunta: "Ile dzwonów mieści ta wieża?",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -22553,7 +22553,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "59. Co postać trzyma w rękach?",
+                pregunta: "Co postać trzyma w rękach?",
                 opciones: ["Tarczę", "Muszlę", "Dzban", "Miecz"],
                 correctas: ["Muszlę"],
                 multiple: false
@@ -22562,7 +22562,7 @@ export const RETOS_AVENTURAS = {
                 reto: 60,
                 id: "R60-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "60. W jakim kierunku przebiega wyznaczona ścieżka?",
+                pregunta: "W jakim kierunku przebiega wyznaczona ścieżka?",
                 opciones: ["Północ", "Południe", "Wschód", "Zachód"],
                 correctas: ["Północ"],
                 multiple: false
@@ -22571,7 +22571,7 @@ export const RETOS_AVENTURAS = {
                 reto: 61,
                 id: "R61-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "61. Ile bram miał stary arabski mur Balansiya?",
+                pregunta: "Ile bram miał stary arabski mur Balansiya?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -22787,7 +22787,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "89. Co trzyma święty Wawrzyniec w swojej ręce?",
+                pregunta: "Co trzyma święty Wawrzyniec w swojej ręce?",
                 opciones: ["Gołąb", "Łyżka", "Ruszt"],
                 correctas: ["Ruszt"],
                 multiple: false
@@ -22811,7 +22811,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "1. Quantas aventuras podem ser feitas com Valencia be Guides?",
+                pregunta: "Quantas aventuras podem ser feitas com Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -22820,7 +22820,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "2. É um bom momento para começar a sua aventura?",
+                pregunta: "É um bom momento para começar a sua aventura?",
                 opciones: ["Sim", "Não"],
                 correctas: ["?"],
                 multiple: false
@@ -22829,7 +22829,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "3. Pode dizer-me como se chamam estas torres?",
+                pregunta: "Pode dizer-me como se chamam estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -22992,7 +22992,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "23. Recorda que animal coroa o brasão municipal?",
+                pregunta: "Recorda que animal coroa o brasão municipal?",
                 opciones: ["Um dragão", "Um morcego", "Um cavalo"],
                 correctas: ["Um morcego"],
                 multiple: false
@@ -23001,7 +23001,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "24. Sobre a entrada principal, num arco de volta perfeita, figuras alegóricas representam os cinco continentes. O que segura a figura central?",
+                pregunta: "Sobre a entrada principal, num arco de volta perfeita, figuras alegóricas representam os cinco continentes. O que segura a figura central?",
                 opciones: ["Uma tocha", "Uma espada", "Uma coroa"],
                 correctas: ["Uma tocha", "Uma espada"],
                 multiple: true
@@ -23010,7 +23010,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "25. O que segura a figura na mão?",
+                pregunta: "O que segura a figura na mão?",
                 opciones: ["Uma balança", "Um livro", "Uma pena"],
                 correctas: ["Uma balança"],
                 multiple: false
@@ -23019,14 +23019,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-pt",
                 tipo: "texto",
-                pregunta: "26. Quantos andares tem o edifício?",
+                pregunta: "Quantos andares tem o edifício?",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "27. Procure o vitral com as cores da Senyera valenciana na fachada do edifício. Consegue determinar a sua forma?",
+                pregunta: "Procure o vitral com as cores da Senyera valenciana na fachada do edifício. Consegue determinar a sua forma?",
                 opciones: ["Quadrangular", "Redonda", "Triangular"],
                 correctas: ["Redonda"],
                 multiple: false
@@ -23035,7 +23035,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "28. O que segura a Virgem na sua mão?",
+                pregunta: "O que segura a Virgem na sua mão?",
                 opciones: ["Um rosário", "Uma criança", "Uma coroa"],
                 correctas: ["Um rosário", "Uma criança"],
                 multiple: true
@@ -23044,7 +23044,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "29. O que dá o anjo à criança?",
+                pregunta: "O que dá o anjo à criança?",
                 opciones: ["Uma pomba", "Um orbe", "Alimentos"],
                 correctas: ["Um orbe"],
                 multiple: false
@@ -23059,7 +23059,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "31. O barqueiro que rema contra a corrente.",
+                pregunta: "O barqueiro que rema contra a corrente.",
                 opciones: ["Um homem com rosto triste a conduzir um pequeno barco de madeira foge contra a corrente de um monstro."],
                 correctas: ["Um homem com rosto triste a conduzir um pequeno barco de madeira foge contra a corrente de um monstro."],
                 multiple: true
@@ -23068,7 +23068,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "32. Uma árvore morta: símbolo do Pecado, vê-se entre as duas folhas da porta e cumpre a função de parteluz.",
+                pregunta: "Uma árvore morta: símbolo do Pecado, vê-se entre as duas folhas da porta e cumpre a função de parteluz.",
                 opciones: ["Observe no topo da árvore como 4 homens nus se açoitam entre si."],
                 correctas: ["Observe no topo da árvore como 4 homens nus se açoitam entre si."],
                 multiple: true
@@ -23077,7 +23077,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "33. À direita, um anjo mostra o seu pénis e...",
+                pregunta: "À direita, um anjo mostra o seu pénis e...",
                 opciones: ["...prepara-se para o introduzir num vaso que segura com a outra mão. Estranho e incomum, não lhe parece?"],
                 correctas: ["...prepara-se para o introduzir num vaso que segura com a outra mão. Estranho e incomum, não lhe parece?"],
                 multiple: true
@@ -23086,7 +23086,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "34. No centro: O homem barbudo e o leão:",
+                pregunta: "No centro: O homem barbudo e o leão:",
                 opciones: ["Cena original e contraditória na qual o manso é precisamente o leão e não o velho barbudo."],
                 correctas: ["Cena original e contraditória na qual o manso é precisamente o leão e não o velho barbudo."],
                 multiple: true
@@ -23095,7 +23095,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "35. Aqui vai um desafio extra! Procure o fornicador da Lonja da Seda!",
+                pregunta: "Aqui vai um desafio extra! Procure o fornicador da Lonja da Seda!",
                 opciones: ["Numa das suas janelas, encontrará um homem esculpido; a sua cabeça não é visível mas os seus genitais estão, muito claramente."],
                 correctas: ["Numa das suas janelas, encontrará um homem esculpido; a sua cabeça não é visível mas os seus genitais estão, muito claramente."],
                 multiple: true
@@ -23110,14 +23110,14 @@ export const RETOS_AVENTURAS = {
                 reto: 37,
                 id: "R37-Av34km-pt",
                 tipo: "texto",
-                pregunta: "37. Qual é a largura da entrada do edifício estreito?",
+                pregunta: "Qual é a largura da entrada do edifício estreito?",
                 correctas: ["1,35 metros"]
             },
 {
                 reto: 38,
                 id: "R38-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "38. Três arcos cegos. Dois deles são lisos, o terceiro ficou sem reboco.<br>O que se pode ver nesse arco sem reboco?",
+                pregunta: "Três arcos cegos. Dois deles são lisos, o terceiro ficou sem reboco.<br>O que se pode ver nesse arco sem reboco?",
                 opciones: ["Um rosto", "Um torso", "Uma gárgula"],
                 correctas: ["Um rosto", "Um torso"],
                 multiple: true
@@ -23126,7 +23126,7 @@ export const RETOS_AVENTURAS = {
                 reto: 39,
                 id: "R39-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "39. O que há no cimo da torre barroca de Santa Catalina?",
+                pregunta: "O que há no cimo da torre barroca de Santa Catalina?",
                 opciones: ["Uma cruz", "O sol", "Uma pomba"],
                 correctas: ["Uma cruz"],
                 multiple: false
@@ -23135,14 +23135,14 @@ export const RETOS_AVENTURAS = {
                 reto: 40,
                 id: "R40-Av34km-pt",
                 tipo: "texto",
-                pregunta: "40. De que cor são as telhas da cúpula da torre barroca de Santa Catalina?",
+                pregunta: "De que cor são as telhas da cúpula da torre barroca de Santa Catalina?",
                 correctas: ["marrones"]
             },
 {
                 reto: 41,
                 id: "R41-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "41. Consegue determinar que geometria tem a Torre do Miguelete de Valência?",
+                pregunta: "Consegue determinar que geometria tem a Torre do Miguelete de Valência?",
                 opciones: ["Hexagonal", "Octogonal", "Quadrangular"],
                 correctas: ["Octogonal"],
                 multiple: false
@@ -23151,14 +23151,14 @@ export const RETOS_AVENTURAS = {
                 reto: 42,
                 id: "R42-Av34km-pt",
                 tipo: "texto",
-                pregunta: "42. Quantas janelas consegue ver?",
+                pregunta: "Quantas janelas consegue ver?",
                 correctas: ["?"]
             },
 {
                 reto: 43,
                 id: "R43-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "43. O que se pode ver a mais de 35 metros de altura no topo da fachada barroca?",
+                pregunta: "O que se pode ver a mais de 35 metros de altura no topo da fachada barroca?",
                 opciones: ["Uma esfera", "Um morcego", "Uma cruz", "Um cavalo"],
                 correctas: ["Uma esfera", "Uma cruz"],
                 multiple: true
@@ -23175,7 +23175,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "45. Que figura esculpida se pode ver na moldura do quadro?",
+                pregunta: "Que figura esculpida se pode ver na moldura do quadro?",
                 opciones: ["Um dragão", "Um morcego", "Uma coroa"],
                 correctas: ["Uma coroa"],
                 multiple: false
@@ -23184,7 +23184,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "46. O que se pode ver no interior?",
+                pregunta: "O que se pode ver no interior?",
                 opciones: ["Um altar", "Uma bandeira", "Uma espada"],
                 correctas: ["Um altar", "Uma bandeira"],
                 multiple: true
@@ -23193,21 +23193,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-pt",
                 tipo: "texto",
-                pregunta: "47. Há uma placa comemorativa neste local. Em que ano foi colocada?",
+                pregunta: "Há uma placa comemorativa neste local. Em que ano foi colocada?",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-pt",
                 tipo: "texto",
-                pregunta: "48. Em que ano foi construído este edifício? Dica: olhe para a parte superior da fachada.",
+                pregunta: "Em que ano foi construído este edifício? Dica: olhe para a parte superior da fachada.",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "49. Olhando para a imagem de San Valero, que objeto poderia dizer-nos que ele esteve preso?",
+                pregunta: "Olhando para a imagem de San Valero, que objeto poderia dizer-nos que ele esteve preso?",
                 opciones: ["As correntes", "O livro", "O seu rosto triste"],
                 correctas: ["As correntes"],
                 multiple: false
@@ -23216,7 +23216,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "50. O que se pode ver no interior?",
+                pregunta: "O que se pode ver no interior?",
                 opciones: ["Uma praça de touros", "Banhos romanos", "Uma estação de metro"],
                 correctas: ["Banhos romanos"],
                 multiple: false
@@ -23231,7 +23231,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "52. Consegue determinar a sua geometria?",
+                pregunta: "Consegue determinar a sua geometria?",
                 opciones: ["Hexagonal", "Octogonal", "Quadrangular"],
                 correctas: ["Hexagonal"],
                 multiple: false
@@ -23240,7 +23240,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "53. Com que mão Neptuno segura a cornucópia?",
+                pregunta: "Com que mão Neptuno segura a cornucópia?",
                 opciones: ["Esquerda", "Direita"],
                 correctas: ["Direita"],
                 multiple: false
@@ -23249,14 +23249,14 @@ export const RETOS_AVENTURAS = {
                 reto: 54,
                 id: "R54-Av34km-pt",
                 tipo: "texto",
-                pregunta: "54. Quantas figuras rodeiam a fonte?",
+                pregunta: "Quantas figuras rodeiam a fonte?",
                 correctas: ["8"]
             },
 {
                 reto: 55,
                 id: "R55-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "55. Qual das duas torres do Palacio de la Generalitat acham que é a mais nova: a da praça ou esta que têm à vossa frente agora?",
+                pregunta: "Qual das duas torres do Palacio de la Generalitat acham que é a mais nova: a da praça ou esta que têm à vossa frente agora?",
                 opciones: ["A da praça", "Esta à vossa frente"],
                 correctas: ["Esta à vossa frente"],
                 multiple: false
@@ -23271,7 +23271,7 @@ export const RETOS_AVENTURAS = {
                 reto: 57,
                 id: "R57-Av34km-pt",
                 tipo: "opcion-multiple",
-                pregunta: "57. O que se pode ver neste painel de cerâmica? São caveiras? É uma cruz? Há também uma pomba?",
+                pregunta: "O que se pode ver neste painel de cerâmica? São caveiras? É uma cruz? Há também uma pomba?",
                 opciones: ["Caveiras", "Pombas", "Cruz"],
                 correctas: ["Caveiras", "Cruz"],
                 multiple: true
@@ -23280,7 +23280,7 @@ export const RETOS_AVENTURAS = {
                 reto: 58,
                 id: "R58-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "58. Quantos sinos tem esta torre?",
+                pregunta: "Quantos sinos tem esta torre?",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -23289,7 +23289,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "59. O que a figura segura nas mãos?",
+                pregunta: "O que a figura segura nas mãos?",
                 opciones: ["Um escudo", "Uma concha", "Um jarro", "Uma espada"],
                 correctas: ["Uma concha"],
                 multiple: false
@@ -23298,7 +23298,7 @@ export const RETOS_AVENTURAS = {
                 reto: 60,
                 id: "R60-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "60. Que direção toma o caminho estabelecido?",
+                pregunta: "Que direção toma o caminho estabelecido?",
                 opciones: ["Norte", "Sul", "Leste", "Oeste"],
                 correctas: ["Norte"],
                 multiple: false
@@ -23307,7 +23307,7 @@ export const RETOS_AVENTURAS = {
                 reto: 61,
                 id: "R61-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "61. Quantas portas tinha a antiga muralha árabe de Balansiya?",
+                pregunta: "Quantas portas tinha a antiga muralha árabe de Balansiya?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -23523,7 +23523,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "89. O que tem São Lourenço na mão?",
+                pregunta: "O que tem São Lourenço na mão?",
                 opciones: ["Uma pomba", "Uma colher", "Uma grelha"],
                 correctas: ["Uma grelha"],
                 multiple: false
@@ -23547,7 +23547,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "1. Сколько приключений можно совершить с Valencia be Guides?",
+                pregunta: "Сколько приключений можно совершить с Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -23556,7 +23556,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "2. Сейчас хорошее время для начала приключения?",
+                pregunta: "Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
@@ -23565,7 +23565,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "3. Вы можете назвать мне, как называются эти башни?",
+                pregunta: "Вы можете назвать мне, как называются эти башни?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -23728,7 +23728,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "23. Помните ли вы, какое животное венчает городской герб?",
+                pregunta: "Помните ли вы, какое животное венчает городской герб?",
                 opciones: ["Дракон", "Летучая мышь", "Конь"],
                 correctas: ["Летучая мышь"],
                 multiple: false
@@ -23737,7 +23737,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "24. Над главным входом, в полуциркульной арке, аллегорические фигуры представляют пять континентов. Что держит центральная фигура?",
+                pregunta: "Над главным входом, в полуциркульной арке, аллегорические фигуры представляют пять континентов. Что держит центральная фигура?",
                 opciones: ["Факел", "Меч", "Корона"],
                 correctas: ["Факел", "Меч"],
                 multiple: true
@@ -23746,7 +23746,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "25. Что держит фигура в своей руке?",
+                pregunta: "Что держит фигура в своей руке?",
                 opciones: ["Весы", "Книга", "Перо"],
                 correctas: ["Весы"],
                 multiple: false
@@ -23755,14 +23755,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-ru",
                 tipo: "texto",
-                pregunta: "26. Сколько этажей в здании?",
+                pregunta: "Сколько этажей в здании?",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "27. Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Можете ли вы определить его форму?",
+                pregunta: "Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Можете ли вы определить его форму?",
                 opciones: ["Четырёхугольная", "Круглая", "Треугольная"],
                 correctas: ["Круглая"],
                 multiple: false
@@ -23771,7 +23771,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "28. Что держит Дева Мария в своей руке?",
+                pregunta: "Что держит Дева Мария в своей руке?",
                 opciones: ["Чётки", "Ребёнок", "Корона"],
                 correctas: ["Чётки", "Ребёнок"],
                 multiple: true
@@ -23780,7 +23780,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "29. Что даёт ангел ребёнку?",
+                pregunta: "Что даёт ангел ребёнку?",
                 opciones: ["Голубь", "Держава", "Еда"],
                 correctas: ["Держава"],
                 multiple: false
@@ -23795,7 +23795,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "31. Лодочник, гребущий против течения.",
+                pregunta: "Лодочник, гребущий против течения.",
                 opciones: ["Грустный мужчина, управляющий маленькой деревянной лодкой, спасается от монстра, плывя против течения."],
                 correctas: ["Грустный мужчина, управляющий маленькой деревянной лодкой, спасается от монстра, плывя против течения."],
                 multiple: true
@@ -23804,7 +23804,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "32. Мёртвое дерево: символ Греха, видно между двумя створками двери и служит средником.",
+                pregunta: "Мёртвое дерево: символ Греха, видно между двумя створками двери и служит средником.",
                 opciones: ["Посмотрите на вершину дерева, где 4 обнажённых мужчины хлещут друг друга."],
                 correctas: ["Посмотрите на вершину дерева, где 4 обнажённых мужчины хлещут друг друга."],
                 multiple: true
@@ -23813,7 +23813,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "33. Справа, ангел демонстрирует свой пенис и...",
+                pregunta: "Справа, ангел демонстрирует свой пенис и...",
                 opciones: ["...собирается ввести его в вазу, которую держит другой рукой. Странно и необычно, не правда ли?"],
                 correctas: ["...собирается ввести его в вазу, которую держит другой рукой. Странно и необычно, не правда ли?"],
                 multiple: true
@@ -23822,7 +23822,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "34. В центре: Бородатый мужчина и лев:",
+                pregunta: "В центре: Бородатый мужчина и лев:",
                 opciones: ["Оригинальная и противоречивая сцена, в которой кротким оказывается именно лев, а не бородатый старец."],
                 correctas: ["Оригинальная и противоречивая сцена, в которой кротким оказывается именно лев, а не бородатый старец."],
                 multiple: true
@@ -23831,7 +23831,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "35. Вот дополнительное испытание! Найдите блудника Шёлковой биржи!",
+                pregunta: "Вот дополнительное испытание! Найдите блудника Шёлковой биржи!",
                 opciones: ["В одном из её окон вы найдёте высеченного мужчину; его голова не видна, но гениталии видны очень отчётливо."],
                 correctas: ["В одном из её окон вы найдёте высеченного мужчину; его голова не видна, но гениталии видны очень отчётливо."],
                 multiple: true
@@ -23846,14 +23846,14 @@ export const RETOS_AVENTURAS = {
                 reto: 37,
                 id: "R37-Av34km-ru",
                 tipo: "texto",
-                pregunta: "37. Какова ширина входа в узкое здание?",
+                pregunta: "Какова ширина входа в узкое здание?",
                 correctas: ["1,35 metros"]
             },
 {
                 reto: 38,
                 id: "R38-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "38. Три глухих арки. Две из них гладкие, третья осталась без штукатурки.<br>Что можно увидеть в этой неоштукатуренной арке?",
+                pregunta: "Три глухих арки. Две из них гладкие, третья осталась без штукатурки.<br>Что можно увидеть в этой неоштукатуренной арке?",
                 opciones: ["Лицо", "Торс", "Горгулья"],
                 correctas: ["Лицо", "Торс"],
                 multiple: true
@@ -23862,7 +23862,7 @@ export const RETOS_AVENTURAS = {
                 reto: 39,
                 id: "R39-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "39. Что находится на самом верху барочной башни Санта-Каталина?",
+                pregunta: "Что находится на самом верху барочной башни Санта-Каталина?",
                 opciones: ["Крест", "Солнце", "Голубь"],
                 correctas: ["Крест"],
                 multiple: false
@@ -23871,14 +23871,14 @@ export const RETOS_AVENTURAS = {
                 reto: 40,
                 id: "R40-Av34km-ru",
                 tipo: "texto",
-                pregunta: "40. Какого цвета черепица купола барочной башни Санта-Каталина?",
+                pregunta: "Какого цвета черепица купола барочной башни Санта-Каталина?",
                 correctas: ["marrones"]
             },
 {
                 reto: 41,
                 id: "R41-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "41. Вы могли бы определить геометрическую форму башни Мигелете в Валенсии?",
+                pregunta: "Вы могли бы определить геометрическую форму башни Мигелете в Валенсии?",
                 opciones: ["Шестиугольная", "Восьмиугольная", "Четырёхугольная"],
                 correctas: ["Восьмиугольная"],
                 multiple: false
@@ -23887,14 +23887,14 @@ export const RETOS_AVENTURAS = {
                 reto: 42,
                 id: "R42-Av34km-ru",
                 tipo: "texto",
-                pregunta: "42. Сколько окон вы можете увидеть?",
+                pregunta: "Сколько окон вы можете увидеть?",
                 correctas: ["?"]
             },
 {
                 reto: 43,
                 id: "R43-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "43. Что можно увидеть на высоте более 35 метров на вершине барочного фасада?",
+                pregunta: "Что можно увидеть на высоте более 35 метров на вершине барочного фасада?",
                 opciones: ["Сфера", "Летучая мышь", "Крест", "Лошадь"],
                 correctas: ["Сфера", "Крест"],
                 multiple: true
@@ -23911,7 +23911,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "45. Какую скульптурную фигуру можно увидеть в раме картины?",
+                pregunta: "Какую скульптурную фигуру можно увидеть в раме картины?",
                 opciones: ["Дракон", "Летучая мышь", "Корона"],
                 correctas: ["Корона"],
                 multiple: false
@@ -23920,7 +23920,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "46. Что можно увидеть внутри?",
+                pregunta: "Что можно увидеть внутри?",
                 opciones: ["Алтарь", "Флаг", "Меч"],
                 correctas: ["Алтарь", "Флаг"],
                 multiple: true
@@ -23929,21 +23929,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-ru",
                 tipo: "texto",
-                pregunta: "47. На нём есть памятная табличка. В каком году она была установлена?",
+                pregunta: "На нём есть памятная табличка. В каком году она была установлена?",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-ru",
                 tipo: "texto",
-                pregunta: "48. В каком году было построено это здание? Подсказка: посмотрите на верхнюю часть фасада.",
+                pregunta: "В каком году было построено это здание? Подсказка: посмотрите на верхнюю часть фасада.",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "49. Глядя на изображение Сан-Валеро, какой предмет мог бы сказать нам, что он был заключён в тюрьму?",
+                pregunta: "Глядя на изображение Сан-Валеро, какой предмет мог бы сказать нам, что он был заключён в тюрьму?",
                 opciones: ["Цепи", "Книга", "Его печальное лицо"],
                 correctas: ["Цепи"],
                 multiple: false
@@ -23952,7 +23952,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "50. Что можно увидеть внутри?",
+                pregunta: "Что можно увидеть внутри?",
                 opciones: ["Арена для боя быков", "Римские бани", "Станция метро"],
                 correctas: ["Римские бани"],
                 multiple: false
@@ -23967,7 +23967,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "52. Можете ли вы определить его геометрическую форму?",
+                pregunta: "Можете ли вы определить его геометрическую форму?",
                 opciones: ["Шестиугольная", "Восьмиугольная", "Четырёхугольная"],
                 correctas: ["Шестиугольная"],
                 multiple: false
@@ -23976,7 +23976,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "53. Какой рукой Нептун держит рог изобилия?",
+                pregunta: "Какой рукой Нептун держит рог изобилия?",
                 opciones: ["Левой", "Правой"],
                 correctas: ["Правой"],
                 multiple: false
@@ -23985,14 +23985,14 @@ export const RETOS_AVENTURAS = {
                 reto: 54,
                 id: "R54-Av34km-ru",
                 tipo: "texto",
-                pregunta: "54. Сколько фигур окружает фонтан?",
+                pregunta: "Сколько фигур окружает фонтан?",
                 correctas: ["8"]
             },
 {
                 reto: 55,
                 id: "R55-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "55. Какая из двух башен Дворца Хенералитат, по-вашему, новее: та, что на площади, или та, что сейчас перед вами?",
+                pregunta: "Какая из двух башен Дворца Хенералитат, по-вашему, новее: та, что на площади, или та, что сейчас перед вами?",
                 opciones: ["Та, что на площади", "Та, что перед вами"],
                 correctas: ["Та, что перед вами"],
                 multiple: false
@@ -24007,7 +24007,7 @@ export const RETOS_AVENTURAS = {
                 reto: 57,
                 id: "R57-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "57. Что можно увидеть на этой керамической панели? Это черепа? Это крест? Есть ли там голубь?",
+                pregunta: "Что можно увидеть на этой керамической панели? Это черепа? Это крест? Есть ли там голубь?",
                 opciones: ["Черепа", "Голуби", "Крест"],
                 correctas: ["Черепа", "Крест"],
                 multiple: true
@@ -24016,7 +24016,7 @@ export const RETOS_AVENTURAS = {
                 reto: 58,
                 id: "R58-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "58. Сколько колоколов в этой башне?",
+                pregunta: "Сколько колоколов в этой башне?",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -24025,7 +24025,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "59. Что держит фигура в руках?",
+                pregunta: "Что держит фигура в руках?",
                 opciones: ["Щит", "Раковину", "Кувшин", "Меч"],
                 correctas: ["Раковину"],
                 multiple: false
@@ -24034,7 +24034,7 @@ export const RETOS_AVENTURAS = {
                 reto: 60,
                 id: "R60-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "60. В каком направлении идёт установленный путь?",
+                pregunta: "В каком направлении идёт установленный путь?",
                 opciones: ["Север", "Юг", "Восток", "Запад"],
                 correctas: ["Север"],
                 multiple: false
@@ -24043,7 +24043,7 @@ export const RETOS_AVENTURAS = {
                 reto: 61,
                 id: "R61-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "61. Сколько ворот было в старой арабской стене Балансии?",
+                pregunta: "Сколько ворот было в старой арабской стене Балансии?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -24259,7 +24259,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "89. Что держит святой Лаврентий в руке?",
+                pregunta: "Что держит святой Лаврентий в руке?",
                 opciones: ["Голубь", "Ложка", "Решётка"],
                 correctas: ["Решётка"],
                 multiple: false
@@ -24283,7 +24283,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "1. Скільки пригод можна здійснити з Valencia be Guides?",
+                pregunta: "Скільки пригод можна здійснити з Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -24292,7 +24292,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
+                pregunta: "Чи зараз гарний момент для початку пригоди?",
                 opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
@@ -24301,7 +24301,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "3. Чи можете ви сказати мені, як називаються ці вежі?",
+                pregunta: "Чи можете ви сказати мені, як називаються ці вежі?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -24464,7 +24464,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "23. Чи пам'ятаєте ви, яка тварина прикрашає міський герб?",
+                pregunta: "Чи пам'ятаєте ви, яка тварина прикрашає міський герб?",
                 opciones: ["Дракон", "Кажан", "Кінь"],
                 correctas: ["Кажан"],
                 multiple: false
@@ -24473,7 +24473,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "24. Над головним входом, у напівкруглій арці, алегоричні фігури представляють п'ять континентів. Що тримає центральна фігура?",
+                pregunta: "Над головним входом, у напівкруглій арці, алегоричні фігури представляють п'ять континентів. Що тримає центральна фігура?",
                 opciones: ["Смолоскип", "Меч", "Корона"],
                 correctas: ["Смолоскип", "Меч"],
                 multiple: true
@@ -24482,7 +24482,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "25. Що тримає фігура в своїй руці?",
+                pregunta: "Що тримає фігура в своїй руці?",
                 opciones: ["Терези", "Книга", "Перо"],
                 correctas: ["Терези"],
                 multiple: false
@@ -24491,14 +24491,14 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av34km-uk",
                 tipo: "texto",
-                pregunta: "26. Скільки поверхів у будівлі?",
+                pregunta: "Скільки поверхів у будівлі?",
                 correctas: ["10"]
             },
 {
                 reto: 27,
                 id: "R27-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "27. Знайдіть вітраж з кольорами валенсійської Сеньєри на фасаді будівлі. Чи можете ви визначити його форму?",
+                pregunta: "Знайдіть вітраж з кольорами валенсійської Сеньєри на фасаді будівлі. Чи можете ви визначити його форму?",
                 opciones: ["Чотирикутна", "Кругла", "Трикутна"],
                 correctas: ["Кругла"],
                 multiple: false
@@ -24507,7 +24507,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "28. Що тримає Діва Марія у своїй руці?",
+                pregunta: "Що тримає Діва Марія у своїй руці?",
                 opciones: ["Вервиця", "Дитина", "Корона"],
                 correctas: ["Вервиця", "Дитина"],
                 multiple: true
@@ -24516,7 +24516,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "29. Що дає ангел дитині?",
+                pregunta: "Що дає ангел дитині?",
                 opciones: ["Голуб", "Держава", "Їжа"],
                 correctas: ["Держава"],
                 multiple: false
@@ -24531,7 +24531,7 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "31. Поромник, що гребе проти течії.",
+                pregunta: "Поромник, що гребе проти течії.",
                 opciones: ["Сумний чоловік, який керує невеликим дерев'яним човном, тікає від монстра проти течії."],
                 correctas: ["Сумний чоловік, який керує невеликим дерев'яним човном, тікає від монстра проти течії."],
                 multiple: true
@@ -24540,7 +24540,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "32. Мертве дерево: символ Гріха, видно між двома стулками дверей і виконує функцію центрального стовпа.",
+                pregunta: "Мертве дерево: символ Гріха, видно між двома стулками дверей і виконує функцію центрального стовпа.",
                 opciones: ["Подивіться на вершину дерева, де 4 оголених чоловіки шмагають один одного."],
                 correctas: ["Подивіться на вершину дерева, де 4 оголених чоловіки шмагають один одного."],
                 multiple: true
@@ -24549,7 +24549,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "33. Праворуч, ангел демонструє свій статевий орган і...",
+                pregunta: "Праворуч, ангел демонструє свій статевий орган і...",
                 opciones: ["...збирається ввести його у вазу, яку тримає іншою рукою. Дивно і незвично, правда?"],
                 correctas: ["...збирається ввести його у вазу, яку тримає іншою рукою. Дивно і незвично, правда?"],
                 multiple: true
@@ -24558,7 +24558,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "34. У центрі: Бородатий чоловік і лев:",
+                pregunta: "У центрі: Бородатий чоловік і лев:",
                 opciones: ["Оригінальна і суперечлива сцена, в якій лагідним є саме лев, а не бородатий старий."],
                 correctas: ["Оригінальна і суперечлива сцена, в якій лагідним є саме лев, а не бородатий старий."],
                 multiple: true
@@ -24567,7 +24567,7 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "35. Ось додатковий виклик! Знайдіть блудника Шовкової біржі!",
+                pregunta: "Ось додатковий виклик! Знайдіть блудника Шовкової біржі!",
                 opciones: ["В одному з її вікон ви знайдете висіченого чоловіка; його голова не видно, але геніталії дуже чітко видно."],
                 correctas: ["В одному з її вікон ви знайдете висіченого чоловіка; його голова не видно, але геніталії дуже чітко видно."],
                 multiple: true
@@ -24582,14 +24582,14 @@ export const RETOS_AVENTURAS = {
                 reto: 37,
                 id: "R37-Av34km-uk",
                 tipo: "texto",
-                pregunta: "37. Яка ширина входу вузького будинку?",
+                pregunta: "Яка ширина входу вузького будинку?",
                 correctas: ["1,35 metros"]
             },
 {
                 reto: 38,
                 id: "R38-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "38. Три глухі арки. Дві з них гладкі, третя залишилась без штукатурки.<br>Що можна побачити в цій нетинькованій арці?",
+                pregunta: "Три глухі арки. Дві з них гладкі, третя залишилась без штукатурки.<br>Що можна побачити в цій нетинькованій арці?",
                 opciones: ["Обличчя", "Торс", "Гаргулья"],
                 correctas: ["Обличчя", "Торс"],
                 multiple: true
@@ -24598,7 +24598,7 @@ export const RETOS_AVENTURAS = {
                 reto: 39,
                 id: "R39-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "39. Що знаходиться на самому верху барокової вежі Санта-Каталіна?",
+                pregunta: "Що знаходиться на самому верху барокової вежі Санта-Каталіна?",
                 opciones: ["Хрест", "Сонце", "Голуб"],
                 correctas: ["Хрест"],
                 multiple: false
@@ -24607,14 +24607,14 @@ export const RETOS_AVENTURAS = {
                 reto: 40,
                 id: "R40-Av34km-uk",
                 tipo: "texto",
-                pregunta: "40. Якого кольору черепиця купола барокової вежі Санта-Каталіна?",
+                pregunta: "Якого кольору черепиця купола барокової вежі Санта-Каталіна?",
                 correctas: ["marrones"]
             },
 {
                 reto: 41,
                 id: "R41-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "41. Чи могли б ви визначити геометричну форму вежі Мігелете у Валенсії?",
+                pregunta: "Чи могли б ви визначити геометричну форму вежі Мігелете у Валенсії?",
                 opciones: ["Шестикутна", "Восьмикутна", "Чотирикутна"],
                 correctas: ["Восьмикутна"],
                 multiple: false
@@ -24623,14 +24623,14 @@ export const RETOS_AVENTURAS = {
                 reto: 42,
                 id: "R42-Av34km-uk",
                 tipo: "texto",
-                pregunta: "42. Скільки вікон ви можете побачити?",
+                pregunta: "Скільки вікон ви можете побачити?",
                 correctas: ["?"]
             },
 {
                 reto: 43,
                 id: "R43-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "43. Що можна побачити на висоті понад 35 метрів на вершині барокового фасаду?",
+                pregunta: "Що можна побачити на висоті понад 35 метрів на вершині барокового фасаду?",
                 opciones: ["Сфера", "Кажан", "Хрест", "Кінь"],
                 correctas: ["Сфера", "Хрест"],
                 multiple: true
@@ -24647,7 +24647,7 @@ export const RETOS_AVENTURAS = {
                 reto: 45,
                 id: "R45-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "45. Яку скульптурну фігуру можна побачити в рамі картини?",
+                pregunta: "Яку скульптурну фігуру можна побачити в рамі картини?",
                 opciones: ["Дракон", "Кажан", "Корона"],
                 correctas: ["Корона"],
                 multiple: false
@@ -24656,7 +24656,7 @@ export const RETOS_AVENTURAS = {
                 reto: 46,
                 id: "R46-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "46. Що можна побачити всередині?",
+                pregunta: "Що можна побачити всередині?",
                 opciones: ["Вівтар", "Прапор", "Меч"],
                 correctas: ["Вівтар", "Прапор"],
                 multiple: true
@@ -24665,21 +24665,21 @@ export const RETOS_AVENTURAS = {
                 reto: 47,
                 id: "R47-Av34km-uk",
                 tipo: "texto",
-                pregunta: "47. На ньому є меморіальна табличка. В якому році вона була встановлена?",
+                pregunta: "На ньому є меморіальна табличка. В якому році вона була встановлена?",
                 correctas: ["1952"]
             },
 {
                 reto: 48,
                 id: "R48-Av34km-uk",
                 tipo: "texto",
-                pregunta: "48. В якому році було збудовано цю будівлю? Підказка: подивіться на верхню частину фасаду.",
+                pregunta: "В якому році було збудовано цю будівлю? Підказка: подивіться на верхню частину фасаду.",
                 correctas: ["1906"]
             },
 {
                 reto: 49,
                 id: "R49-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "49. Дивлячись на зображення Сан-Валеро, який предмет міг би сказати нам, що він був ув'язнений?",
+                pregunta: "Дивлячись на зображення Сан-Валеро, який предмет міг би сказати нам, що він був ув'язнений?",
                 opciones: ["Кайдани", "Книга", "Його сумне обличчя"],
                 correctas: ["Кайдани"],
                 multiple: false
@@ -24688,7 +24688,7 @@ export const RETOS_AVENTURAS = {
                 reto: 50,
                 id: "R50-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "50. Що можна побачити всередині?",
+                pregunta: "Що можна побачити всередині?",
                 opciones: ["Арена для кориди", "Римські лазні", "Станція метро"],
                 correctas: ["Римські лазні"],
                 multiple: false
@@ -24703,7 +24703,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "52. Чи можете ви визначити його геометричну форму?",
+                pregunta: "Чи можете ви визначити його геометричну форму?",
                 opciones: ["Шестикутна", "Восьмикутна", "Чотирикутна"],
                 correctas: ["Шестикутна"],
                 multiple: false
@@ -24712,7 +24712,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "53. Якою рукою Нептун тримає ріг достатку?",
+                pregunta: "Якою рукою Нептун тримає ріг достатку?",
                 opciones: ["Лівою", "Правою"],
                 correctas: ["Правою"],
                 multiple: false
@@ -24721,14 +24721,14 @@ export const RETOS_AVENTURAS = {
                 reto: 54,
                 id: "R54-Av34km-uk",
                 tipo: "texto",
-                pregunta: "54. Скільки фігур оточує фонтан?",
+                pregunta: "Скільки фігур оточує фонтан?",
                 correctas: ["8"]
             },
 {
                 reto: 55,
                 id: "R55-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "55. Яка з двох веж Палацу Хенералітат, на вашу думку, новіша: та, що на площі, чи та, що зараз перед вами?",
+                pregunta: "Яка з двох веж Палацу Хенералітат, на вашу думку, новіша: та, що на площі, чи та, що зараз перед вами?",
                 opciones: ["Та, що на площі", "Та, що перед вами"],
                 correctas: ["Та, що перед вами"],
                 multiple: false
@@ -24743,7 +24743,7 @@ export const RETOS_AVENTURAS = {
                 reto: 57,
                 id: "R57-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "57. Що можна побачити на цій керамічній панелі? Це черепи? Це хрест? Є також голуб?",
+                pregunta: "Що можна побачити на цій керамічній панелі? Це черепи? Це хрест? Є також голуб?",
                 opciones: ["Черепи", "Голуби", "Хрест"],
                 correctas: ["Черепи", "Хрест"],
                 multiple: true
@@ -24752,7 +24752,7 @@ export const RETOS_AVENTURAS = {
                 reto: 58,
                 id: "R58-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "58. Скільки дзвонів у цій вежі?",
+                pregunta: "Скільки дзвонів у цій вежі?",
                 opciones: ["3", "4", "5"],
                 correctas: ["5"],
                 multiple: false
@@ -24761,7 +24761,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "59. Що тримає фігура в руках?",
+                pregunta: "Що тримає фігура в руках?",
                 opciones: ["Щит", "Мушлю", "Глечик", "Меч"],
                 correctas: ["Мушлю"],
                 multiple: false
@@ -24770,7 +24770,7 @@ export const RETOS_AVENTURAS = {
                 reto: 60,
                 id: "R60-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "60. В якому напрямку проходить встановлений маршрут?",
+                pregunta: "В якому напрямку проходить встановлений маршрут?",
                 opciones: ["Північ", "Південь", "Схід", "Захід"],
                 correctas: ["Північ"],
                 multiple: false
@@ -24779,7 +24779,7 @@ export const RETOS_AVENTURAS = {
                 reto: 61,
                 id: "R61-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "61. Скільки воріт мала стара арабська стіна Балансії?",
+                pregunta: "Скільки воріт мала стара арабська стіна Балансії?",
                 opciones: ["5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -24995,7 +24995,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "89. Що тримає святий Лаврентій у руці?",
+                pregunta: "Що тримає святий Лаврентій у руці?",
                 opciones: ["Голуб", "Ложка", "Решітка"],
                 correctas: ["Решітка"],
                 multiple: false

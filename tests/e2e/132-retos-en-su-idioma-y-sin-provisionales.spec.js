@@ -14,6 +14,8 @@
  *   RH-3  Ningún reto de otro idioma copia la pregunta en español del mismo reto (sin traducir).
  *   RH-4  Las opciones del reto 2 (sí / no) están en su idioma: fuera del inglés, nunca son las del inglés.
  *   RH-5  En español, una pregunta que acaba en «?» abre con «¿».
+ *   RH-6  Ninguna pregunta lleva su número delante («3. ¿…?»): los retos no se numeran en pantalla. El número vive en
+ *         los datos (`reto`, `id`), no en el texto que lee el usuario.
  *
  * Son comprobaciones sobre los datos: el módulo se carga en el navegador, como lo carga la app, desde una página vacía
  * del mismo origen, y los datos se comprueban en el test. Cada una lleva su control, un dato roto a propósito en una
@@ -85,6 +87,10 @@ const sinAbrirInterrogacion = (RETOS) => [...todos(RETOS)]
   .filter(({ idioma, r }) => idioma === 'es' && /\?\s*$/.test(r.pregunta) && !r.pregunta.includes('¿'))
   .map(({ a, r }) => `${a}/${r.id}: ${r.pregunta.slice(0, 60)}`);
 
+const numeradas = (RETOS) => [...todos(RETOS)]
+  .filter(({ r }) => /^\s*\d{1,3}\.\s/.test(r.pregunta))
+  .map(({ a, idioma, r }) => `${a}/${idioma}/${r.id}: ${r.pregunta.slice(0, 40)}`);
+
 test.describe('RH — los retos, en su idioma y sin provisionales', () => {
   test('RH-1. Retos 1 y 2: una sola redacción por idioma en las siete aventuras', async ({ page }) => {
     const RETOS = await cargarRetos(page);
@@ -124,5 +130,13 @@ test.describe('RH — los retos, en su idioma y sin provisionales', () => {
     const roto = copia(RETOS);
     deReto(roto.Aventura1.es, 1).pregunta = '1. Cuántas aventuras pueden hacerse con Valencia be Guides?';
     expect(sinAbrirInterrogacion(roto).length, 'control').toBe(1);
+  });
+
+  test('RH-6. Ninguna pregunta lleva su número delante', async ({ page }) => {
+    const RETOS = await cargarRetos(page);
+    expect(numeradas(RETOS)).toEqual([]);
+    const roto = copia(RETOS);
+    deReto(roto.Aventura3.it, 4).pregunta = `4. ${deReto(roto.Aventura3.it, 4).pregunta}`;
+    expect(numeradas(roto).length, 'control').toBe(1);
   });
 });

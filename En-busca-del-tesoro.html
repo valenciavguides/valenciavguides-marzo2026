@@ -332,7 +332,6 @@
       width: min(55vw, 220px);
       margin-top: 0;
     }
-    #reto-r1-titulo, #reto-r2-titulo { display: none; }
 
     /* Escalar controles de audio nativos - proporcional al viewport */
     audio {
@@ -824,7 +823,6 @@
     <div class="free-demo">FREE DEMO</div>
     <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="">
     <div class="reto-box" id="reto-r1-box">
-      <h3 id="reto-r1-titulo">Reto 1</h3>
       <p id="reto-r1-pregunta"><span class="spinner-inline-circular-bg"><img class="spinner-inline-spin" src="imagenes/imagenes-aplicación/logo-redondo.png" alt="Cargando"></span></p>
       <div id="reto-r1-opciones"></div>
       <button class="btn btn-mundo-verde" id="btn-verificar-reto-r1" onclick="verificarRetoR1()" disabled title="Continuar">
@@ -985,7 +983,6 @@
     <div class="free-demo">FREE DEMO</div>
     <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="">
     <div class="reto-box" id="reto-r2-box">
-      <h3 id="reto-r2-titulo">Reto 2</h3>
       <p id="reto-r2-pregunta"><span class="spinner-inline-circular-bg"><img class="spinner-inline-spin" src="imagenes/imagenes-aplicación/logo-redondo.png" alt="Cargando"></span></p>
       <div id="reto-r2-opciones"></div>
       <button class="btn btn-mundo-verde" id="btn-verificar-reto-r2" onclick="verificarRetoR2()" disabled title="Continuar">
@@ -1552,9 +1549,8 @@
       contenedor.appendChild(div);
     }
 
-    function _procesarRetoR1Cargado(retoR1, titulo, pregunta, opciones, caja) {
+    function _procesarRetoR1Cargado(retoR1, pregunta, opciones, caja) {
       retoActualR1 = retoR1;
-      titulo.textContent = `Reto ${retoR1.reto}`;
       pregunta.textContent = retoR1.pregunta;
       opciones.innerHTML = '';
       if (retoR1.opciones && Array.isArray(retoR1.opciones)) {
@@ -1566,7 +1562,6 @@
     }
 
     async function cargarRetoR1() {
-      const titulo = document.getElementById('reto-r1-titulo');
       const pregunta = document.getElementById('reto-r1-pregunta');
       const opciones = document.getElementById('reto-r1-opciones');
       const caja = document.getElementById('reto-r1-box');
@@ -1578,7 +1573,7 @@
         if (retosIdioma && Array.isArray(retosIdioma)) {
           const retoR1 = retosIdioma.find(r => r.reto === 1);
           if (retoR1) {
-            _procesarRetoR1Cargado(retoR1, titulo, pregunta, opciones, caja);
+            _procesarRetoR1Cargado(retoR1, pregunta, opciones, caja);
           } else {
             pregunta.textContent = 'Reto R-1 no encontrado';
           }
@@ -2466,9 +2461,8 @@
       contenedor.appendChild(div);
     }
 
-    function _procesarRetoR2Cargado(retoR2, titulo, pregunta, opciones, caja) {
+    function _procesarRetoR2Cargado(retoR2, pregunta, opciones, caja) {
       retoActualR2 = retoR2;
-      titulo.textContent = `Reto ${retoR2.reto}`;
       pregunta.textContent = retoR2.pregunta;
       opciones.innerHTML = '';
       if (retoR2.opciones && Array.isArray(retoR2.opciones)) {
@@ -2480,7 +2474,6 @@
     }
 
     async function cargarRetoR2() {
-      const titulo = document.getElementById('reto-r2-titulo');
       const pregunta = document.getElementById('reto-r2-pregunta');
       const opciones = document.getElementById('reto-r2-opciones');
       const caja = document.getElementById('reto-r2-box');
@@ -2492,7 +2485,7 @@
         if (retosIdioma && Array.isArray(retosIdioma)) {
           const retoR2 = retosIdioma.find(r => r.reto === 2);
           if (retoR2) {
-            _procesarRetoR2Cargado(retoR2, titulo, pregunta, opciones, caja);
+            _procesarRetoR2Cargado(retoR2, pregunta, opciones, caja);
           } else {
             pregunta.textContent = 'Reto R-2 no encontrado';
           }
