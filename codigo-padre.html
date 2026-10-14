@@ -3482,10 +3482,10 @@
                         } catch (e) { (globalThis.logger || console).debug('[PADRE] Error cambiando modo de cámara', e && e.message); }
                     }
 
-                    // Expuesto para que las dos vías de "elegir otra aventura" que no recargan la página
-                    // —ejecutarElegirOtra() (diálogo de reanudación de sesión) y _elegirOtra() (diálogo de vuelta
-                    // rápida), ambas fuera de este cierre— puedan resetear el modo de cámara, mismo sitio donde ya
-                    // se resetean estado.tiempoRestante y el resto de globals de la aventura abandonada.
+                    // Expuesto para que ejecutarElegirOtra() (diálogo de reanudación de sesión), que no recarga la
+                    // página y queda fuera de este cierre, pueda resetear el modo de cámara en el mismo sitio donde
+                    // resetea estado.tiempoRestante y el resto de globals de la aventura abandonada. El «elegir otra»
+                    // del diálogo de vuelta (_elegirOtra) no lo necesita: recarga la página.
                     globalThis._resetBrujulaModo = () => {
                         globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
                         _brujulaModoActivo = 'brujula-modo-norte';
@@ -4406,11 +4406,11 @@
             return '';
         }
 
-        // Inversa de _mostrarUIActivada() (Script 2, ~línea 10955) — esa función nunca se
-        // revierte por sí sola. Necesaria en "elegir otra aventura" (ambos diálogos, este
-        // Script) porque hijo2/hijo3/hijo1-opciones/hijo5/chat/selector de mapa pueden
-        // llegar ya visibles: de una aventura realmente activa (mostrarDialogoVueltaRapida)
-        // o de una restauración de bfcache del navegador al reabrir la pestaña.
+        // Inversa de _mostrarUIActivada() (Script 2) — esa función nunca se revierte por sí
+        // sola. Necesaria en el "elegir otra aventura" del diálogo de reanudación porque
+        // hijo2/hijo3/hijo1-opciones/hijo5/chat/selector de mapa pueden llegar ya visibles
+        // de una restauración de bfcache del navegador al reabrir la pestaña. El del diálogo
+        // de vuelta (aventura realmente activa) recarga la página y no pasa por aquí.
         function _ocultarUIActivada() {
             const idsAOcultar = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte'];
             for (const id of idsAOcultar) {
@@ -4572,10 +4572,9 @@
                     // abandonada seguiría activo en la siguiente, con el icono ya desincronizado.
                     globalThis._resetBrujulaModo?.();
                     // Ocultar la UI de "aventura activada" (hijo2/hijo3/hijo1-opciones/hijo5/
-                    // chat/selector de mapa) por si ya estaba visible — de una restauración
-                    // de bfcache al reabrir la pestaña, o de una aventura realmente activa en
-                    // el caso de mostrarDialogoVueltaRapida — _mostrarUIActivada() (Script 2)
-                    // es quien las muestra y nunca se revierte por sí sola.
+                    // chat/selector de mapa) por si ya estaba visible de una restauración de
+                    // bfcache al reabrir la pestaña — _mostrarUIActivada() (Script 2) es quien
+                    // las muestra y nunca se revierte por sí sola.
                     _ocultarUIActivada();
                     // Quitar 'loading' (añadida al mostrar este diálogo) ANTES de revelar el
                     // iframe de selección: la regla CSS "body.loading iframe" es !important y
@@ -4621,7 +4620,7 @@
         // ── Diálogo ligero: botón retroceder / vuelta de pestaña externa ─────────────
         // Mismo estilo visual y traducciones que mostrarDialogoReanudacion pero sin
         // restaurar aventura. "Continuar" cierra el modal (audio sigue pausado, el
-        // usuario lo reanuda manualmente). "Elegir otra" limpia estado y va a selección.
+        // usuario lo reanuda manualmente). "Elegir otra" borra la aventura guardada y recarga la página.
         async function mostrarDialogoVueltaRapida(idioma) {
             const t = TRADUCCIONES_REANUDACION[idioma] || TRADUCCIONES_REANUDACION['es'];
             return new Promise((resolve) => {
@@ -4662,47 +4661,16 @@
                         localStorage.removeItem('vv_idioma');
                         localStorage.removeItem('vv_aventura');
                     } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
-                    globalThis.aventuraSeleccionada = null;
-                    globalThis.idiomaSeleccionado = null;
-                    if (estado.seleccion) {
-                        estado.seleccion.aventura = null;
-                    }
-                    // El tiempo restante es de ESTA aventura — sin resetearlo, la próxima
-                    // aventura seleccionada arrancaría su temporizador con el tiempo que le
-                    // quedaba a esta (ver _iniciarTemporizadorAventura, tieneRestante).
-                    estado.tiempoRestante = null;
-                    // Mismo motivo que tiempoRestante: los saltos de seguridad del TTL de
-                    // tramos (§31.7b) son de ESTA aventura — sin resetearlos aquí, la próxima
-                    // aventura heredaría los saltos ya gastados en la anterior.
-                    estado.tramoSkipsUsados = 0;
-                    // paradasCompletadas es de ESTA aventura — sin resetearlo, si el usuario
-                    // elige la misma aventura de nuevo, todas sus paradas aparecerían ya
-                    // completadas desde el primer momento.
-                    estado.paradasCompletadas = new Map();
-                    // Mismo motivo que en ejecutarElegirOtra(): este camino tampoco recarga la página y reutiliza
-                    // el module scope de funciones-mapa.js; sin esto, el modo de cámara ("Seguir mi rumbo"/"Norte
-                    // fijo") de la aventura abandonada seguiría activo en la siguiente.
-                    globalThis._resetBrujulaModo?.();
-                    // Esta aventura SÍ estaba realmente activa (por eso mostrarDialogoVueltaRapida
-                    // se disparó) — hijo2/hijo3/chat/selector están visibles de verdad y hay que
-                    // ocultarlos al volver a selección, ver _ocultarUIActivada().
-                    _ocultarUIActivada();
-                    // Quitar 'loading' ANTES de revelar el iframe de selección: la regla CSS
-                    // "body.loading iframe" es !important y lo taparía pese al
-                    // visibility:visible de abajo si siguiera activa.
-                    document.body.classList.remove('loading');
-                    const iframeSeleccion = document.getElementById('seleccion');
-                    if (iframeSeleccion) {
-                        iframeSeleccion.style.display = 'block';
-                        iframeSeleccion.style.visibility = 'visible';
-                        // Por el bus: a pelo iba sin `origen`, y el bus descarta lo que llega sin remite.
-                        void enviarMensaje_S1({
-                            tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA,
-                            destino: 'seleccion',
-                            datos: { pantalla: 1 },
-                        });
-                    }
+                    // Sin aventura guardada, se recarga la página: lo mismo que hace «otra aventura» en el modal
+                    // de fin y en el de tiempo agotado. Aquí la aventura SÍ estaba en curso, así que hay estado
+                    // suyo en tres sitios: el padre (parada, modo, tiempo restante, saltos, brújula), los hijos y
+                    // la pantalla de selección, que ya arrancó una aventura y conserva su pantalla de carga a la
+                    // vista y su marca de «arrancando» (solo las baja un arranque que falla). Reiniciarlo pieza a
+                    // pieza se dejaba fuera a la selección: volvía tapada por esa pantalla de carga y la segunda
+                    // aventura no podía arrancar, y el padre conservaba la parada de la abandonada (spec 128).
+                    // Recargando, todo nace como en un arranque normal y la app se abre en la P1.
                     resolve('otra');
+                    globalThis.location.reload();
                 }
 
                 overlay.querySelector('#btn-vuelta-continuar').addEventListener('click', _continuar);

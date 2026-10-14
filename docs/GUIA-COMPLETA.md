@@ -1087,7 +1087,7 @@ Retomar el seguimiento de posición manualmente centra sobre `estadoMapa.posicio
 **Dos salvaguardas contra estado inconsistente:**
 
 - **Brújula caída (permiso denegado en iOS, o `DeviceOrientationEvent` no soportado).** `activarSeguimientoRumbo()` enciende `_camaraSiguiendoRumbo` sin comprobar si la brújula responde de verdad — si nunca responde, `actualizarRotacionFlechaGPS()` nunca vuelve a llamar a `setBearing()` y el modo se queda "encendido" sin hacer nada, indistinguible de un cuelgue. `_elegirBrujulaModo('brujula-modo-seguimiento')`, tras activar el modo, arma un `setTimeout` de 1.5s que comprueba `funcionesMapa.brujulaEstaActiva()` (getter de solo lectura sobre la variable interna `compassActiva`, `js/funciones-mapa.js`); si sigue sin responder y el usuario no ha cambiado de modo mientras tanto (guard `_brujulaModoActivo === 'brujula-modo-seguimiento'`), revierte sola a "Norte fijo" — `desactivarSeguimientoRumbo()`. Cubierto por BR-7.
-- **"Elegir otra aventura" sin recargar la página.** Terminar una aventura normalmente y pulsar "otra aventura" en el modal de fin SÍ recarga (`location.reload()`, §25.11) y resetea todo el estado del módulo solo. Pero hay dos diálogos con su propio "elegir otra" que limpian `localStorage`/globals y navegan el iframe de selección **sin recargar**: el de **reanudación de sesión** (`mostrarDialogoReanudacion`, `ejecutarElegirOtra()`, al reabrir la app con una aventura ya activa) y el de **vuelta rápida** (`mostrarDialogoVueltaRapida`, `_elegirOtra()`, al volver atrás o de una pestaña externa con una aventura activa). Los dos reutilizan el mismo module scope de `funciones-mapa.js`, así que sin nada más el modo de cámara de la aventura abandonada (p. ej. "Seguir mi rumbo") seguiría activo en la siguiente. `initializeMap()` expone `globalThis._resetBrujulaModo()` (pone `_brujulaModoActivo = 'brujula-modo-norte'` y llama a `desactivarSeguimientoRumbo()`) y las dos vías lo llaman junto al resto de globals que ya resetean (`estado.tiempoRestante`, etc.). Cubierto por BR-8 (el hook) y BR-10 (la vuelta rápida).
+- **"Elegir otra aventura" sin recargar la página.** Terminar una aventura normalmente y pulsar "otra aventura" en el modal de fin recarga (`location.reload()`, §25.11) y deja todo el estado del módulo como en un arranque; lo mismo hace el "Elegir otra aventura" del diálogo de **vuelta rápida** (`mostrarDialogoVueltaRapida`, `_elegirOtra()`, al volver atrás o de una pestaña externa con una aventura activa: §34). El único "elegir otra" que limpia `localStorage`/globals y navega el iframe de selección **sin recargar** es el de **reanudación de sesión** (`mostrarDialogoReanudacion`, `ejecutarElegirOtra()`, al reabrir la app con una aventura guardada). Ese camino reutiliza el module scope de `funciones-mapa.js`, así que resetea él mismo el modo de cámara: `initializeMap()` expone `globalThis._resetBrujulaModo()` (pone `_brujulaModoActivo = 'brujula-modo-norte'` y llama a `desactivarSeguimientoRumbo()`) y `ejecutarElegirOtra()` lo llama junto al resto de globals que resetea (`estado.tiempoRestante`, etc.). Cubierto por BR-8 (el hook).
 - **Visible por encima de una pantalla de carga.** `#brujula-modo` se crea (con `display:none` inline) dentro de `initializeMap()`, que corre en el arranque en frío, mucho antes de que el usuario llegue a activar una aventura — igual que `#selector-tipo-mapa`. Al no ser un `<iframe>`, la regla `body.loading iframe` no lo cubre; sin una entrada propia en la hoja de estilos, cualquier `display:flex` disparado mientras `body` sigue en `loading` (una reanudación de sesión, sobre todo) lo dejaría visible por encima del overlay de carga, ya que su z-index (1000025) es mayor que el suyo (999999) — mismo síntoma, mismo origen y misma solución que `#selector-tipo-mapa`: `body.loading #brujula-modo { visibility:hidden !important; opacity:0 !important; }` (ver "Por qué nada puede verse nunca por encima de `#loading-overlay`" más arriba). Cubierto por `tests/e2e/16-loading-overlay-oculta-ui.spec.js` (LO-1/LO-2).
 
 **El menú de cámara no compite con el `flyTo` de cambio de parada/tramo.** Las tres funciones (`reactivarSeguimientoCamara()`, `activarSeguimientoRumbo()`, `desactivarSeguimientoRumbo()`) comprueban `!estadoMapa.zoomEnCurso` antes de incluir `center` en su `easeTo()` — mismo guard que ya usa el seguimiento por-tick. `bearing` (en las dos últimas) se aplica siempre, incluso con `zoomEnCurso` activo: ningún `flyTo()` de la app lo toca nunca (solo `center`/`zoom`), así que no hay nada con lo que competir, y omitirlo en `desactivarSeguimientoRumbo()` sería especialmente grave — como esa función ya deja `_camaraSiguiendoRumbo=false`, ningún otro sitio volvería a corregir el bearing después. Si `center` se omite por haber un `flyTo` en curso, se autocorrige solo: `_camaraSiguiendoUsuario` queda en `true`, así que el seguimiento por-tick lo recentra en la siguiente lectura GPS real.
@@ -3822,7 +3822,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `MAPA_COMPLETO.VISIBLE` | Padre → mapa-completo | El overlay del mapa ya es visible: el mapa recalcula su vista, al momento y a los 300 ms |
 | **PUZZLE** | `PUZZLE.COMPLETADO` | Iframe puzzle → su contenedor (Hijo4 o Selección) | Puzzle resuelto o saltado con ⏩ |
 | | `PUZZLE.TIMEOUT` | Iframe puzzle → su contenedor (Hijo4 o Selección) | Puzzle sin resolver por tiempo |
-| **OTROS** | `NAVEGAR_PANTALLA` | Padre → Tesoro | Pide a la pantalla de selección que muestre la pantalla `{ pantalla }`; el padre manda `{ pantalla: 1 }` cuando el usuario elige «otra aventura» |
+| **OTROS** | `NAVEGAR_PANTALLA` | Padre → Tesoro | Pide a la pantalla de selección que muestre la pantalla `{ pantalla }`; el padre manda `{ pantalla: 1 }` cuando el usuario elige «otra aventura» en el diálogo de reanudación |
 
 ---
 
@@ -4866,7 +4866,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-06e7f59351df'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d0cf92ef43b9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5704,10 +5704,10 @@ Todos van por `js/mensajeria.js`, como el resto (§10.4): ninguno tiene escucha 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | El padre (`enviarMensaje_S1`, `destino: 'seleccion'`), en los dos caminos que devuelven al usuario a la pantalla de inicio después de limpiar |
+| Emitido por | El padre (`enviarMensaje_S1`, `destino: 'seleccion'`), en `ejecutarElegirOtra()` (diálogo de reanudación), que devuelve al usuario a la pantalla de inicio después de limpiar |
 | Tipo | `TIPOS_MENSAJE.NAVEGACION_PANTALLA` = `'NAVEGAR_PANTALLA'` (string bare, no categoría) |
 | Handler en seleccion | `En-busca-del-tesoro.html` — llama a `mostrar(pantalla)`; sin `pantalla` devuelve `false` y no navega |
-| Payload | `{ pantalla: 1 }` — el número de pantalla. Los dos emisores mandan P1 |
+| Payload | `{ pantalla: 1 }` — el número de pantalla. Su único emisor manda P1 |
 | Acción | seleccion navega a la pantalla indicada (e.g. mostrar términos, pantalla de inicio) |
 
 #### CONTROL.HABILITAR en cierre de overlays (padre → hijo2)
@@ -7832,13 +7832,13 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `16-loading-overlay-oculta-ui.spec.js` | 2 | Con `body.loading` activo, `#selector-tipo-mapa`, `#btn-chat-soporte`, `#brujula-modo` y `#audio-control-overlay` permanecen invisibles (opacity/visibility computados) aunque su `style.display` se fuerce a visible; al quitar la clase, los cuatro vuelven a mostrarse |
 | `17-flecha-brujula-continuidad.spec.js` | 4 | La recreación del marcador GPS (una posición nueva) reutiliza el ángulo acumulado de la brújula como rotación inicial de `.gps-arrow-heading` (FB-1); el ápice del triángulo de la flecha, medido con `getBoundingClientRect()` en 0° y 180°, coincide exactamente con el punto GPS real en ambos ángulos — no orbita (GA-1); `alpha=90` (Android) se convierte al rumbo `270` (`360-alpha`), nunca se usa crudo (HD-1); con el mapa girado 180° a mano (bearing≠0), el mismo rumbo real se pinta restando el bearing (`_rumboEnPantalla()`) — 180 en pantalla con bearing 0, 0deg con bearing 180 (RB-1) |
 | `18-boton-deshabilitado-color.spec.js` | 8 | Un `background-color` inline no puede tapar el degradado de la clase `.disabled` (BU-1); los 5 sitios CSS estandarizados (`.boton.disabled` en hijo2 y video-intro.html, `#retosBtn:disabled` y `.boton.deshabilitado` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en el padre) resuelven al mismo rojo `#ED2100` (BU-2a..e); en hijo2, `#btn-video`/`#btn-imagen`/`#btn-avanzar`/`#btn-ubicacion` resuelven al verde vivo `#00FF00` y `#btn-mapa-completo`/`#btn-mapa-jpg` al verde medio `#00BB77` (BU-3a), y un botón de verde vivo con la clase `.disabled` puesta sigue resolviendo a rojo, no a verde (BU-3b) |
-| `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` resetea `estado.tiempoRestante` a `null` — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
+| `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` recarga la página y `estado.tiempoRestante` no conserva ningún número — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
 | `20-tramo-inicio-y-revelado.spec.js` | 7 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); `revelarNavegacion()` deja el trazado visible sin depender de ninguna lectura GPS (RV-1) y, una vez revelado, permanece visible aunque el usuario esté lejos de `.inicio` y de todo el camino — no hay ningún ocultado automático por distancia (RV-2); pulsar el botón de ubicación oculta el trazado persistente de inmediato (PL-1); con la línea manual activa, estar cerca de un punto del camino que no es `.inicio` (un waypoint, o el propio `.fin`) no la limpia ni revela el trazado (PL-2); volver al radio de `.inicio` sí la limpia y revela el trazado de nuevo, en el mismo tick (PL-3) |
 | `21-llegada-ruido-gps.spec.js` | 5 | Con datos reales de Av1-P-1 y un hijo2 real cargado como iframe (registrado en `iframesRegistrados`, solo para que RG-4 pueda comprobar el enrutamiento — `enviarLectura()` llama siempre a `funcionesMapa.procesarPosicionGPSParaAventura()` directamente, nunca a un mensaje sintético ni al detector propio de hijo2): 2 lecturas exactas en la diana confirman llegada (RG-1); una única lectura dentro de radio rodeada de lecturas lejanas (1 de 4) NO confirma (RG-2); 12 lecturas alternando 12 m/18 m alrededor del radio de llegada de 15 m —nunca 2 seguidas dentro— sí confirman llegada con la ventana deslizante de 2-de-4 (RG-3); el sensor de `funciones-mapa.js` no genera el warning "Iframe no encontrado" al notificar su propia llegada al padre (RG-4) |
 | `22-carteles-informativos.spec.js` | 9 | Los cinco carteles (§4.7g-l), cada uno invocado directamente: Transición con dos iconos y texto tras "Por favor," (CI-1); Inicio de tramo variante parada→tramo, nombra la parada y el tramo ("Ha terminado la parada X — va a empezar el tramo Y") además de "línea azul" (CI-2, §4.7i); Inicio de tramo variante tramo→tramo, mismo mecanismo con los dos tramos (CI-2b); Llegada, con el nombre de la parada y "avanzar"+"play" (CI-3); Bienvenida de vuelta tramo, con "línea azul" (CI-4); Bienvenida de vuelta parada, sin "línea azul" (CI-5); la bifurcación real de `marcarParadaCompletada()` (§4.7g) para una pareja parada→tramo dispara el cartel de Inicio de tramo, nunca el de Transición genérico — con datos reales de Aventura1 (CI-6); `navigator.vibrate(200)` se llama exactamente una vez al mostrar un cartel (CI-7, §4.7m); sin soporte de `navigator.vibrate` (escritorio/Safari) el cartel se muestra igual sin lanzar error (CI-8) |
 | `23-polyline-autoreparacion.spec.js` | 3 | Con un mapa simulado cuyo `isStyleLoaded()` empieza en `false` (§4.6a): `dibujarPolylineNavegacion({origen,destino})` (la función real del botón de ubicación) no llama a `addLayer`/`addSource` hasta que el mapa dispara `'load'`, momento en el que la capa real se crea sola (PR-1); un `.setStyle()` pedido sobre el objeto que devuelve, antes de que exista la capa real, se aplica sobre ella en cuanto se crea, no se pierde (PR-2); con el estilo ya cargado, la capa se crea al instante, sin esperar a `'load'` (PR-3) |
 | `24-camara-sigue-usuario.spec.js` | 1 | Ciclo completo del seguimiento de cámara (§4.6b): la primera posición GPS centra la cámara (`easeTo`); un `dragstart` sin `originalEvent` (programático) no pausa el seguimiento; uno con `originalEvent` (gesto real del usuario) sí lo pausa; `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato |
-| `25-brujula-modo.spec.js` | 10 | Menú de modo de cámara `#brujula-modo` (§4.6b): existe y empieza oculto sin estilo inline forzándolo a visible (BR-1); mismo `bottom` que `#selector-tipo-mapa` y mismo margen izquierdo que el selector tiene a la derecha (espejado), ancho del botón principal en rango (BR-2); pulsar el botón principal despliega/pliega las 3 opciones (BR-3); elegir "Norte fijo" llama a `desactivarSeguimientoRumbo()` y cierra el desplegable (BR-4); elegir "Seguir mi rumbo" llama a `activarSeguimientoRumbo()` (BR-5); elegir "Centrar mapa en mi ubicación" llama a `reactivarSeguimientoCamara()` — acción puntual, no modo persistente (BR-6); con `brujulaEstaActiva()` simulada en `false`, "Seguir mi rumbo" revierte sola a "Norte fijo" ~1.5s después, invocando `desactivarSeguimientoRumbo()` (BR-7); `globalThis._resetBrujulaModo()` fuerza el reset a "Norte fijo" bajo demanda (BR-8); alternar rumbo→norte→rumbo dos veces en menos de 1.5s no deja que el timeout de la primera elección revierta la segunda antes de su propio plazo (BR-9); "Vuelta rápida → Elegir otra aventura" también devuelve el menú a "Norte fijo" (BR-10) |
+| `25-brujula-modo.spec.js` | 9 | Menú de modo de cámara `#brujula-modo` (§4.6b): existe y empieza oculto sin estilo inline forzándolo a visible (BR-1); mismo `bottom` que `#selector-tipo-mapa` y mismo margen izquierdo que el selector tiene a la derecha (espejado), ancho del botón principal en rango (BR-2); pulsar el botón principal despliega/pliega las 3 opciones (BR-3); elegir "Norte fijo" llama a `desactivarSeguimientoRumbo()` y cierra el desplegable (BR-4); elegir "Seguir mi rumbo" llama a `activarSeguimientoRumbo()` (BR-5); elegir "Centrar mapa en mi ubicación" llama a `reactivarSeguimientoCamara()` — acción puntual, no modo persistente (BR-6); con `brujulaEstaActiva()` simulada en `false`, "Seguir mi rumbo" revierte sola a "Norte fijo" ~1.5s después, invocando `desactivarSeguimientoRumbo()` (BR-7); `globalThis._resetBrujulaModo()` fuerza el reset a "Norte fijo" bajo demanda (BR-8); alternar rumbo→norte→rumbo dos veces en menos de 1.5s no deja que el timeout de la primera elección revierta la segunda antes de su propio plazo (BR-9) |
 | `26-reto-completado-boton-verde.spec.js` | 2 | Cargando `retos-hijo4.html` como página de nivel superior: tras responder correcto un reto de tipo texto, ningún log de envío de `RETO.COMPLETADO` aparece todavía — solo el de "pendiente de confirmación con el botón verde"; al pulsar `#btnNextAfterReto`, sí aparece (confirmado o sin confirmación) (RC-1); si el botón verde nunca se pulsa, ese envío nunca se intenta (RC-2). Verifica por log de consola, no por el mensaje `postMessage` en sí — sin un padre real que responda, el delivery real pasa por un bucle interno de auto-confirmación de `mensajeria.js` no observable de forma fiable en este arnés de test, pero cada rama del código bajo prueba emite su propio log de forma síncrona en el punto exacto que importa |
 | `27-seguimiento-rumbo.spec.js` | 1 | Modo "Seguir mi rumbo" (§4.6b): con el modo desactivado (estado por defecto), una lectura de brújula no mueve el `bearing` del mapa (SR-1); `activarSeguimientoRumbo()` gira el mapa de inmediato (`easeTo`) al último rumbo conocido y, a partir de ahí, cada lectura de brújula sí mueve el `bearing` (`setBearing()`, dentro de `actualizarRotacionFlechaGPS()`) (SR-2); `desactivarSeguimientoRumbo()` fija el mapa a norte (`bearing:0`) de inmediato y las lecturas de brújula dejan de mover el `bearing` otra vez (SR-3) |
 | `28-audio-control-error.spec.js` | 3 | `_manejarAudioControl()` (§7.4 "Controles globales de audio", audio-hijo3.html): pedir `play` de un `audioId` que no está en caché local (`cargarYReproducirAudio()` devuelve `exito:false` de forma determinista en este contexto standalone) hace que el catch propio de la función registre el fallo explícitamente, en vez de perderse en el catch genérico externo o confirmar éxito de todos modos ignorando el `exito:false` (AC-1); en `codigo-padre.html`, `_hdl_SISTEMA_ERROR` despacha por código: con `AUDIO_CONTROL_FALLIDO` marca el audio activo como no disponible —`estado._audioFalloId`, que es lo que habilita el botón ⏩ de saltar (§25.5f)— y con cualquier otro código no toca el estado del audio (SE-2) |
@@ -7938,6 +7938,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` | 10 | Lo hecho en el elemento actual sobrevive a una recarga (§25.10, §9.2.3), con el padre, los hijos y los botones reales y una recarga real con su diálogo de reanudación: lo que se hace en la parada queda guardado en `vv_progreso` en el momento (FG-1); tras recargar y reanudar, el audio terminado sigue terminado y el botón de retos está encendido (FG-2), la llegada y el audio se conservan y el reto resuelto después completa la parada (FG-3), y el reto resuelto sigue resuelto, también en la cola de retos, y la llegada después completa la parada (FG-6); un progreso guardado sin ficha deja la ficha a cero (FG-4) y la ficha guardada de otro elemento no se aplica (FG-5); una ficha que vuelve completa sobre un elemento que no figura como completado lo completa al reanudar (FG-9). El recordatorio «pulse retos» corre al reanudar con el audio terminado y el reto sin resolver (FG-7) y al reactivarse el mismo elemento (FG-8). El progreso guardado lleva solo las claves que la reanudación lee (FG-10) |
 | `125-un-hijo-recargado-queda-como-estaba.spec.js` | 4 | Un hijo que el supervisor recarga recupera su estado (§2.7, §26.14), con el padre y los hijos reales y la caída vista por el latido: la barra de progreso del hijo3 recargado vuelve encendida, con su `CONTROL.HABILITAR` (`progressBar`) (HR-1); al arrancar, el padre no le manda nada a un hijo3 que todavía no está registrado en el bus (HR-2); a un hijo4 recargado con el reto ya cerrado no se le manda `RETO.MOSTRAR` (HR-3), y con el reto abierto sí (HR-4) |
 | `126-el-ayudante-que-carga-los-hijos.spec.js` | 3 | El ayudante `cargarHijosDelPadre()` de `helpers/boot.js` («Patrones de los tests E2E»), contra el padre real: en una carga normal vuelve con los siete hijos del padre con el apretón de manos completado, sin ninguna espera posterior (AY-1); si el padre se recarga mientras se cargan los hijos, falla con su mensaje en vez de dar por buena la carga hecha en el documento nuevo (AY-2); y si la carga se rechaza en la página, falla con el mensaje de la página (AY-3, control) |
+| `128-elegir-otra-aventura-arranca-de-cero.spec.js` | 1 | «Elegir otra aventura» con una aventura en curso deja la app como recién abierta (§34): por el camino real —elegir, normativa, logos y su botón— arranca una aventura (control), se pulsa «Elegir otra aventura» en el diálogo de vuelta y la página se recarga; tras la recarga no queda aventura guardada, el padre no tiene modo ni parada, la selección está en P1 sin su pantalla de carga y sin oferta de reanudar, y la segunda aventura arranca con una parada que es de la suya (EO-1). Espera a que el arranque del padre haya comprobado si hay una aventura guardada antes de arrancar ninguna |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8172,7 +8173,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-06e7f59351df'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-d0cf92ef43b9'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8413,7 +8414,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 123 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 124 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8920,7 +8921,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-06e7f59351df';
+const CACHE_VERSION = 'v-d0cf92ef43b9';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11428,7 +11429,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Hijo 2 | Cuando el GPS queda activo (`_finalizarActivacionGPS`: `{ activo: true, permisos: true, precision: null, error: null }`) | Que hijo2 refleje el estado del GPS |
 | `NAVEGACION.GPS.ERROR` | Hijo 2 | Cuando `watchPosition` devuelve un error (`{ codigo, mensaje, contexto: 'watchPosition' }`) | Que hijo2 conozca el fallo del GPS |
 | `NAVEGACION.SOLICITAR_COORDENADAS` | Hijo 2 | Solo cuando el padre cambia de parada y su propia caché (`__vv_DATOS_AVENTURAS`) no tiene las coordenadas de esa parada (`js/funciones-mapa.js`, `enviarConsultaCoordenadas`: `{ paradaId, padreId, tipoConsulta: 'COORDENADAS' }`); hijo2 contesta con `NAVEGACION.RESPUESTA_COORDENADAS` | Respaldo del cambio de parada |
-| `NAVEGAR_PANTALLA` | La pantalla de selección | Cuando el usuario elige «otra aventura» en el diálogo de reanudación o en el de vuelta rápida (`{ pantalla: 1 }`) | Que la selección vuelva a mostrar P1 |
+| `NAVEGAR_PANTALLA` | La pantalla de selección | Cuando el usuario elige «otra aventura» en el diálogo de reanudación (`{ pantalla: 1 }`) | Que la selección vuelva a mostrar P1 |
 | `SISTEMA.NOTIFICACION` | Hijo 2 e Hijo 4 | Al crear la ficha pendiente de un elemento (`ensurePending`: `{ evento: 'PENDING_INICIADO', padreId, ttlMs }`) | Aviso del inicio del plazo de pendientes (§10.16) |
 | `UI.ACCION_USUARIO` | Hijo 3 | Cuando el usuario pulsa una acción del desplegable de audio del padre (`{ accion: 'audio_control', comando, audioId, contexto: 'audio_dropdown_padre', timestamp }`); además, el reenvío de la pausa que pide hijo1 | Dar a hijo3 las órdenes de reproducción |
 
@@ -11447,7 +11448,7 @@ Primera pantalla visible para el usuario. Cubre toda la ventana (`z-index:2000`)
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | `_onCambioModoAplicado`: solo escribe en el log que el modo se aplicó | (ninguna) | — | 4.ª fase del protocolo de modo (§26.6) |
 | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro (el iframe de P4, que esta pantalla registra al crearlo) | Pasa a P5 (`mostrar(5)`) y devuelve `true` | (ninguna) | — | Seguir con la incorporación cuando termina el vídeo de introducción |
 | `PUZZLE.COMPLETADO` / `PUZZLE.TIMEOUT` | puzzle (el iframe de P6, que esta pantalla registra en `cargarPuzzle`; se atienden una sola vez por página) | `_mostrarContinuarPuzzle`: muestra `#btn-continuar-puzzle` y devuelve `true`; el botón lleva a P7 (`completarPuzzle`). Resuelto o con el tiempo agotado, el usuario siempre tiene salida | (ninguna) | — | Dejar continuar al terminar el puzzle de introducción |
-| `NAVEGAR_PANTALLA` | Padre (`{ pantalla }`) | Muestra esa pantalla (`mostrar(pantalla)`) y devuelve `true`; sin `pantalla` devuelve `false` | (ninguna) | — | Llevar a la selección a una pantalla concreta: el padre manda `{ pantalla: 1 }` cuando el usuario elige «otra aventura» |
+| `NAVEGAR_PANTALLA` | Padre (`{ pantalla }`) | Muestra esa pantalla (`mostrar(pantalla)`) y devuelve `true`; sin `pantalla` devuelve `false` | (ninguna) | — | Llevar a la selección a una pantalla concreta: el padre manda `{ pantalla: 1 }` cuando el usuario elige «otra aventura» en el diálogo de reanudación |
 
 **Mensajes salientes de la pantalla de selección:**
 
@@ -12381,7 +12382,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-06e7f59351df';
+const CACHE_VERSION = 'v-d0cf92ef43b9';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13064,9 +13065,11 @@ Cuando el padre recibe `UI.NAVEGACION_EXTERNA` (enviado por hijo1 al abrir un en
 Función hermana de `mostrarDialogoReanudacion` que reutiliza `TRADUCCIONES_REANUDACION` (ya disponibles en 12 idiomas) y el mismo estilo visual (`#1a1a2e`, borde `#f5a623`), pero con callbacks simplificados:
 
 - **"Continuar mi aventura"** → cierra el overlay. Audio queda pausado si lo estaba; el usuario lo reanuda manualmente.
-- **"Elegir otra aventura"** → limpia `localStorage` + globals + `estado.seleccion` + `estado.tiempoRestante` (ver §25.10 — el mismo reseteo que hace `ejecutarElegirOtra`), muestra el iframe de selección y lo navega a **P1**.
+- **"Elegir otra aventura"** → borra de `localStorage` la aventura guardada y su progreso (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`, `vv_idioma`, `vv_aventura`) y recarga la página (`location.reload()`): la app arranca en **P1** como en un arranque normal, igual que con "otra aventura" en el modal de fin (§25.11).
 
 La función NO llama a `ejecutarRestauracionAventura` (no recarga la aventura, no muestra pantalla de carga). Es una intercepción ligera, no una restauración.
+
+**Por qué recarga.** Una aventura en curso deja estado en tres sitios: el padre (parada, modo, tiempo restante, saltos, modo de cámara), los hijos y la pantalla de selección, que al arrancar la aventura sube su marca `aventuraIniciando` y enseña `#overlay-carga-aventura`, y solo las baja si el arranque falla. La recarga deja los tres como en el arranque. Con la selección sin recargar, su pantalla de carga taparía la P1 e `iniciarAventura()` saldría en su primera línea: la segunda aventura no podría arrancar. Lo fija `tests/e2e/128-elegir-otra-aventura-arranca-de-cero.spec.js`. El "elegir otra" del diálogo de reanudación (`ejecutarElegirOtra()`, §25.10) no recarga: se ofrece al abrir la app, con la selección recién cargada.
 
 **Protección de z-index mientras el diálogo está abierto:** tanto este overlay como el de `mostrarDialogoReanudacion` (paso 1) tienen `z-index:99999`, muy por debajo de `#brujula-modo`/`#selector-tipo-mapa`/`#btn-chat-soporte` (1000000+, ver §3.1 y la regla CSS `body.loading` de §9.10). Como la aventura está realmente activa cuando se dispara el diálogo, esos tres elementos están visibles de verdad — sin protección extra se verían por encima del overlay. `#audio-control-overlay` (z-index 1505, §4.7c y "Por qué nada puede verse nunca por encima de `#loading-overlay`" en §9.10) sufre el problema inverso: su z-index es tan bajo que nunca gana a estos diálogos, pero como su fondo es semitransparente (`rgba(0,0,0,0.85)`) en vez de sólido, el botón de audio se vería "sangrando" por debajo, atenuado, si no estuviera sujeto a la misma regla `body.loading`. Ambas funciones añaden la clase `body.loading` (la misma que usa la pantalla de carga de `ejecutarReanudacion`) nada más crear el overlay, y la quitan justo antes de revelar cualquier cosa que dependa de que `body.loading` no esté activo: en "Continuar" (`mostrarDialogoVueltaRapida`), inmediatamente, porque nada se ocultó de verdad y basta con quitarla para que mapa/brújula/selector/chat vuelvan a verse; en "Elegir otra" (ambas funciones), justo antes de poner visible el iframe `#seleccion` — la regla `body.loading iframe:not(#hijo5) { visibility:hidden !important }` taparia ese iframe pese a su propio `visibility:visible` si `body.loading` siguiera activa en ese momento.
 
@@ -14036,94 +14039,94 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarVideoOverlay` | clásico 7 (L1980) | módulo 1, módulo 2 | función/objeto |
 | `rotationSuppressed` | clásico 7 (L1681) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 (L3705) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5016) | clásico 11 | estado |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4984) | clásico 11 | estado |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3693) | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3692) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5834) | clásico 11 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6499) | clásico 11 | estado |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5802) | clásico 11 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6467) | clásico 11 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3694) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6639) | clásico 11 | estado |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6607) | clásico 11 | estado |
 | `__vv_MAPAS_VINTAGE` | módulo 1 (L3696) | módulo 2 | función/objeto |
 | `__vv_PUZZLES` | módulo 1 (L3697) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3579) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4734) | módulo 2 | función/objeto |
-| `_codigoValidadoP13` | módulo 1 (L7372) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8720) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8936) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8841) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4702) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7340) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8688) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8904) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8809) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L4023) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8810) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9020) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8912) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8816) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9028) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8690) | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5160) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6004) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8778) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8988) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8880) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8784) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8996) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8658) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5128) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5972) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3833) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 (L3840) | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4552) | clásico 6, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8035) | clásico 5, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8033) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8034) | clásico 6, módulo 2, módulo 3 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8003) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8001) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8002) | clásico 6, módulo 2, módulo 3 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L3940) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3827) | clásico 6, clásico 7, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3828) | módulo 2 | función/objeto |
 | `estadoPadre` | módulo 1 (L4028) | clásico 6, módulo 2 | función/objeto |
 | `findIndexByPadreIdOrId` | módulo 1 (L4352) | módulo 2 | función/objeto |
 | `getEstadoSafe` | módulo 1 (L4132) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6403) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6371) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2837) | módulo 2 | función/objeto |
 | `idiomaSeleccionado` | módulo 1 (L4553) | clásico 6, módulo 2, clásico 12 | función/objeto |
 | `limpiarDatosAventura` | módulo 1 (L2872) | módulo 2, clásico 12 | función/objeto |
 | `MODOS` | módulo 1 (L3825) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8417) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8486) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8340) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8193) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8236) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8385) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L8454) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8308) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8161) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8204) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4222) | módulo 2 | función/objeto |
 | `registrarControlador` | módulo 1 (L3826) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5044) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5071) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5012) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5039) | módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2878) | clásico 7, módulo 2 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2867) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2868) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6241) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6167) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6095) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6320) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6395) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6699) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6698) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6209) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6135) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6063) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6288) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6363) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6667) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6666) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2825) | módulo 2 | función/objeto |
 | `sleep` | módulo 1 (L2747) | módulo 2, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5771) | módulo 2 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5739) | módulo 2 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L3824) | clásico 6, clásico 7, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L4001) | clásico 7, módulo 2 | función/objeto |
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2876) | clásico 12 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2853) | módulo 2 | función/objeto |
 | `verificarTimeoutAventura` | módulo 1 (L2873) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8036) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9140) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14070) | clásico 11 | estado |
-| `_estadoRescate` | módulo 2 (L14051) | clásico 6 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12717) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L10104) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11313) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11362) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12747) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9204) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10099) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9343) | clásico 6, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9425) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L9914) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12978) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9977) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9463) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9969) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L9942) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14086) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8004) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9108) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14038) | clásico 11 | estado |
+| `_estadoRescate` | módulo 2 (L14019) | clásico 6 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12685) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L10072) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11281) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11330) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12715) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9172) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10067) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9311) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9393) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L9882) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12946) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9945) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9431) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9937) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L9910) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14054) | módulo 2 | función/objeto |
 
 </details>
 
