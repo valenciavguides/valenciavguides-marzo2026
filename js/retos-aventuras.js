@@ -6155,7 +6155,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av3-es",
                 tipo: "opcion",
-                pregunta: "En la cumbre de las torres ondea la bandera de Valencia: sus colores se componen de rojo, amarillo y...?",
+                pregunta: "¿En la cumbre de las torres ondea la bandera de Valencia: sus colores se componen de rojo, amarillo y...?",
                 opciones: ["Violeta", "verde", "Azul"],
                 correctas: ["Azul"],
                 multiple: false
@@ -14073,7 +14073,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-AvFallas-es",
                 tipo: "opcion",
-                pregunta: "En la cumbre de las torres ondea la bandera de Valencia: sus colores se componen de rojo, amarillo y… ?",
+                pregunta: "¿En la cumbre de las torres ondea la bandera de Valencia: sus colores se componen de rojo, amarillo y… ?",
                 opciones: ["Violeta", "Verde", "Azul"],
                 correctas: ["Azul"],
                 multiple: false
