@@ -2984,7 +2984,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-ru",
                 tipo: "opcion",
-                pregunta: "Вы можете назвать мне, как называются эти башни?",
+                pregunta: "Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -3002,7 +3002,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-ru",
                 tipo: "texto",
-                pregunta: "Вы можете назвать мне название этой улицы?",
+                pregunta: "Не могли бы вы сказать, как называется эта улица?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
@@ -3027,7 +3027,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-ru",
                 tipo: "texto",
-                pregunta: "Сколько фигур окружают фонтан?",
+                pregunta: "Сколько фигур окружает фонтан?",
                 correctas: ["8"]
             },
             {
@@ -3143,7 +3143,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-ru",
                 tipo: "opcion",
-                pregunta: "Что держит фигура в своей руке?",
+                pregunta: "Что держит фигура в руке?",
                 opciones: ["Весы", "Книга", "Перо"],
                 correctas: ["Весы"],
                 multiple: false
@@ -3159,7 +3159,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av1-ru",
                 tipo: "opcion",
-                pregunta: "Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Можете ли вы определить его форму?",
+                pregunta: "Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Не могли бы вы определить, какую форму он имеет?",
                 opciones: ["Четырёхугольная", "Круглая", "Треугольная"],
                 correctas: ["Круглая"],
                 multiple: false
@@ -3168,7 +3168,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "Что держит Дева Мария в своей руке?",
+                pregunta: "Что держит Богородица в руке?",
                 opciones: ["Чётки", "Ребёнок", "Корона"],
                 correctas: ["Чётки", "Ребёнок"],
                 multiple: true
@@ -3193,24 +3193,24 @@ export const RETOS_AVENTURAS = {
                 id: "R29-Av1-ru",
                 tipo: "opcion-multiple",
                 pregunta: "Лодочник, гребущий против течения.",
-                opciones: ["Грустный мужчина, управляющий маленькой деревянной лодкой, спасается от монстра, плывя против течения."],
-                correctas: ["Грустный мужчина, управляющий маленькой деревянной лодкой, спасается от монстра, плывя против течения."],
+                opciones: ["Грустный мужчина управляет маленькой деревянной лодкой и спасается от монстра, плывя против течения."],
+                correctas: ["Грустный мужчина управляет маленькой деревянной лодкой и спасается от монстра, плывя против течения."],
                 multiple: true
             },
             {
                 reto: 30,
                 id: "R30-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "Мёртвое дерево: символ Греха, видно между двумя створками двери и служит средником.",
-                opciones: ["Посмотрите на вершину дерева, где 4 обнажённых мужчины хлещут друг друга."],
-                correctas: ["Посмотрите на вершину дерева, где 4 обнажённых мужчины хлещут друг друга."],
+                pregunta: "Мёртвое дерево, символ Греха, стоит между двумя створками двери и служит средником.",
+                opciones: ["Посмотрите на верхушку дерева: 4 обнажённых мужчины хлещут друг друга."],
+                correctas: ["Посмотрите на верхушку дерева: 4 обнажённых мужчины хлещут друг друга."],
                 multiple: true
             },
             {
                 reto: 31,
                 id: "R31-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "Справа, ангел демонстрирует свой пенис и...",
+                pregunta: "Справа ангел демонстрирует свой пенис и…",
                 opciones: ["...собирается ввести его в вазу, которую держит другой рукой. Странно и необычно, не правда ли?"],
                 correctas: ["...собирается ввести его в вазу, которую держит другой рукой. Странно и необычно, не правда ли?"],
                 multiple: true
@@ -3219,7 +3219,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-ru",
                 tipo: "opcion-multiple",
-                pregunta: "В центре: Бородатый мужчина и лев:",
+                pregunta: "В центре — бородатый мужчина и лев:",
                 opciones: ["Оригинальная и противоречивая сцена, в которой кротким оказывается именно лев, а не бородатый старец."],
                 correctas: ["Оригинальная и противоречивая сцена, в которой кротким оказывается именно лев, а не бородатый старец."],
                 multiple: true
@@ -3237,7 +3237,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-ru",
                 tipo: "opcion",
-                pregunta: "Что держит фигура в руках?",
+                pregunta: "Что держит в руках эта фигура?",
                 opciones: ["Щит", "Раковину", "Кувшин", "Меч"],
                 correctas: ["Раковину"],
                 multiple: false
@@ -5716,7 +5716,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-ru",
                 tipo: "opcion",
-                pregunta: "Вы знаете, как называются эти башни?",
+                pregunta: "Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5825,7 +5825,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av2-ru",
                 tipo: "opcion",
-                pregunta: "Вы могли бы определить геометрическую форму симбория Валенсийского собора?",
+                pregunta: "Не могли бы вы определить геометрическую форму купольного барабана Валенсийского собора?",
                 opciones: ["Шестиугольная", "Восьмиугольная", "Четырёхугольная"],
                 correctas: ["Восьмиугольная"],
                 multiple: false
@@ -8556,7 +8556,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av3-ru",
                 tipo: "opcion",
-                pregunta: "Вот ваше первое испытание, лёгкое. Вы знаете, как называются эти Башни?",
+                pregunta: "Вот ваше первое испытание, лёгкое. Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -8565,7 +8565,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av3-ru",
                 tipo: "opcion",
-                pregunta: "На вершине башен развевается флаг Валенсии: его цвета — красный, жёлтый и...?",
+                pregunta: "На вершине башен развевается флаг Валенсии: его цвета — красный, жёлтый и…?",
                 opciones: ["Фиолетовый", "Зелёный", "Синий"],
                 correctas: ["Синий"],
                 multiple: false
@@ -8574,7 +8574,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av3-ru",
                 tipo: "texto",
-                pregunta: "Вы знаете, как называется эта старая река?",
+                pregunta: "Не могли бы вы сказать, как называется эта древняя река?",
                 correctas: ["Turia"],
                 multiple: false
             },
@@ -8588,7 +8588,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av3-ru",
                 tipo: "opcion",
-                pregunta: "Вы знаете, как называются эти популярные праздники в Валенсии?",
+                pregunta: "Не могли бы вы сказать, как называются эти народные праздники Валенсии?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -8724,7 +8724,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av3-ru",
                 tipo: "texto",
-                pregunta: "В каком году было построено это здание? Подсказка: посмотрите на верхнюю часть фасада",
+                pregunta: "В каком году было построено это здание? Подсказка: посмотрите на верхнюю часть фасада.",
                 correctas: ["1906"],
                 multiple: false
             },
@@ -10798,7 +10798,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-ru",
                 tipo: "opcion",
-                pregunta: "Можете ли вы назвать мне, как называются эти башни?",
+                pregunta: "Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10906,9 +10906,9 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av4-ru",
                 tipo: "opcion",
-                pregunta: "На вершине башен развевается флаг Валенсии: его цвета состоят из красного, жёлтого и…",
-                opciones: ["Фиолетового","Зелёного","Синего"],
-                correctas: ["Синего"],
+                pregunta: "На вершине башен развевается флаг Валенсии: его цвета — красный, жёлтый и…?",
+                opciones: ["Фиолетовый", "Зелёный", "Синий"],
+                correctas: ["Синий"],
                 multiple: false
             },
             {
@@ -13588,7 +13588,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-ru",
                 tipo: "opcion",
-                pregunta: "Можете ли вы назвать мне, как называются эти башни?",
+                pregunta: "Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13597,16 +13597,16 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av5-ru",
                 tipo: "opcion",
-                pregunta: "На вершине башен развевается флаг Валенсии: его цвета состоят из красного, жёлтого и…",
-                opciones: ["Фиолетового","Зелёного","Синего"],
-                correctas: ["Синего"],
+                pregunta: "На вершине башен развевается флаг Валенсии: его цвета — красный, жёлтый и…?",
+                opciones: ["Фиолетовый", "Зелёный", "Синий"],
+                correctas: ["Синий"],
                 multiple: null
             },
             {
                 reto: 5,
                 id: "R5-Av5-ru",
                 tipo: "texto",
-                pregunta: "Можете ли вы назвать мне имя этой древней реки?",
+                pregunta: "Не могли бы вы сказать, как называется эта древняя река?",
                 correctas: ["Turia"]
             },
             {
@@ -13619,9 +13619,9 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av5-ru",
                 tipo: "opcion",
-                pregunta: "Можете ли вы назвать мне эти народные праздники Валенсии?",
-                opciones: ["Лас Фальяс","Ла Томатина","Ночные костры Сан-Хуана"],
-                correctas: ["Лас Фальяс"],
+                pregunta: "Не могли бы вы сказать, как называются эти народные праздники Валенсии?",
+                opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
+                correctas: ["Las Fallas"],
                 multiple: false
             },
             {
@@ -13678,14 +13678,14 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av5-ru",
                 tipo: "texto",
-                pregunta: "Сколько этажей у этого Монумента?",
+                pregunta: "Сколько этажей у этого памятника?",
                 correctas: ["4"]
             },
             {
                 reto: 15,
                 id: "R15-Av5-ru",
                 tipo: "opcion",
-                pregunta: "Каким натуральным цитрусовым фруктом из Валенсии украшен фасад?",
+                pregunta: "Обратите внимание на фасад первой башни! Какой цитрусовый плод, родом из Валенсии, украшает фасад?",
                 opciones: ["Лимоны","Грейпфруты","Апельсины"],
                 correctas: ["Апельсины"],
                 multiple: false
@@ -13737,7 +13737,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av5-ru",
                 tipo: "opcion",
-                pregunta: "Можете ли вы определить, какую форму он имеет?",
+                pregunta: "Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Не могли бы вы определить, какую форму он имеет?",
                 opciones: ["Четырёхугольная","Круглая","Треугольная"],
                 correctas: ["Круглая"],
                 multiple: false
@@ -13752,18 +13752,18 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av5-ru",
                 tipo: "opcion-multiple",
-                pregunta: "Гребец, плывущий против течения.",
-                opciones: ["Грустный мужчина управляет маленькой деревянной лодкой и бежит против течения от монстра."],
-                correctas: ["Грустный мужчина управляет маленькой деревянной лодкой и бежит против течения от монстра."],
+                pregunta: "Лодочник, гребущий против течения.",
+                opciones: ["Грустный мужчина управляет маленькой деревянной лодкой и спасается от монстра, плывя против течения."],
+                correctas: ["Грустный мужчина управляет маленькой деревянной лодкой и спасается от монстра, плывя против течения."],
                 multiple: true
             },
             {
                 reto: 25,
                 id: "R25-Av5-ru",
                 tipo: "opcion-multiple",
-                pregunta: "Мёртвое дерево: символ Греха, стоит между двумя створками двери и выполняет функцию средника.",
-                opciones: ["Понаблюдайте на верхушке дерева, как 4 обнажённых мужчины хлещут друг друга."],
-                correctas: ["Понаблюдайте на верхушке дерева, как 4 обнажённых мужчины хлещут друг друга."],
+                pregunta: "Мёртвое дерево, символ Греха, стоит между двумя створками двери и служит средником.",
+                opciones: ["Посмотрите на верхушку дерева: 4 обнажённых мужчины хлещут друг друга."],
+                correctas: ["Посмотрите на верхушку дерева: 4 обнажённых мужчины хлещут друг друга."],
                 multiple: true
             },
             {
@@ -15804,7 +15804,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "Можете ли вы назвать мне, как называются эти башни?",
+                pregunta: "Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15813,16 +15813,16 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "На вершине башен развевается флаг Валенсии: его цвета состоят из красного, жёлтого и… ?",
-                opciones: ["Фиолетового","Зелёного","Синего"],
-                correctas: ["Синего"],
+                pregunta: "На вершине башен развевается флаг Валенсии: его цвета — красный, жёлтый и…?",
+                opciones: ["Фиолетовый", "Зелёный", "Синий"],
+                correctas: ["Синий"],
                 multiple: false
             },
             {
                 reto: 5,
                 id: "R5-AvFallas-ru",
                 tipo: "texto",
-                pregunta: "Можете ли вы назвать мне имя этой улицы?",
+                pregunta: "Не могли бы вы сказать, как называется эта улица?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
@@ -15853,7 +15853,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "Можете ли вы определить геометрию тимпана Кафедрального собора Валенсии?",
+                pregunta: "Не могли бы вы определить геометрическую форму купольного барабана Валенсийского собора?",
                 opciones: ["Шестиугольная","Восьмиугольная","Четырёхугольная"],
                 correctas: ["Восьмиугольная"],
                 multiple: false
@@ -15875,7 +15875,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "Помните ли вы, какое животное венчает герб Валенсии?",
+                pregunta: "Вы помните, какое животное венчает герб Валенсии?",
                 opciones: ["Летучая мышь","Дракон","Лев"],
                 correctas: ["Летучая мышь"],
                 multiple: false
@@ -15884,7 +15884,7 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-AvFallas-ru",
                 tipo: "opcion-multiple",
-                pregunta: "Над главным входом, в полукруглой арке, аллегорические фигуры представляют пять континентов. Что несёт центральная фигура?",
+                pregunta: "Над главным входом, в полуциркульной арке, аллегорические фигуры представляют пять континентов. Что держит центральная фигура?",
                 opciones: ["Факел","Меч","Корона"],
                 correctas: ["Факел","Меч"],
                 multiple: true
@@ -15902,7 +15902,7 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Можете ли вы определить, какую форму он имеет?",
+                pregunta: "Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Не могли бы вы определить, какую форму он имеет?",
                 opciones: ["Четырёхугольная","Круглая","Треугольная"],
                 correctas: ["Круглая"],
                 multiple: false
@@ -15920,7 +15920,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "Что ангел передаёт ребёнку?",
+                pregunta: "Что даёт ангел ребёнку?",
                 opciones: ["Голубь","Держава","Еда"],
                 correctas: ["Держава"],
                 multiple: false
@@ -23565,7 +23565,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "Вы можете назвать мне, как называются эти башни?",
+                pregunta: "Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -23580,7 +23580,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "Вы знаете, как называются эти популярные праздники в Валенсии?",
+                pregunta: "Не могли бы вы сказать, как называются эти народные праздники Валенсии?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -23705,14 +23705,14 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av34km-ru",
                 tipo: "texto",
-                pregunta: "Сколько этажей у этого Монумента?",
+                pregunta: "Сколько этажей у этого памятника?",
                 correctas: ["4"]
             },
 {
                 reto: 21,
                 id: "R21-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "Каким натуральным цитрусовым фруктом из Валенсии украшен фасад?",
+                pregunta: "Обратите внимание на фасад первой башни! Какой цитрусовый плод, родом из Валенсии, украшает фасад?",
                 opciones: ["Лимоны","Грейпфруты","Апельсины"],
                 correctas: ["Апельсины"],
                 multiple: false
@@ -23746,7 +23746,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "Что держит фигура в своей руке?",
+                pregunta: "Что держит фигура в руке?",
                 opciones: ["Весы", "Книга", "Перо"],
                 correctas: ["Весы"],
                 multiple: false
@@ -23762,7 +23762,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Можете ли вы определить его форму?",
+                pregunta: "Найдите витраж с цветами валенсийской Сеньеры на фасаде здания. Не могли бы вы определить, какую форму он имеет?",
                 opciones: ["Четырёхугольная", "Круглая", "Треугольная"],
                 correctas: ["Круглая"],
                 multiple: false
@@ -23771,7 +23771,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "Что держит Дева Мария в своей руке?",
+                pregunta: "Что держит Богородица в руке?",
                 opciones: ["Чётки", "Ребёнок", "Корона"],
                 correctas: ["Чётки", "Ребёнок"],
                 multiple: true
@@ -23796,24 +23796,24 @@ export const RETOS_AVENTURAS = {
                 id: "R31-Av34km-ru",
                 tipo: "opcion-multiple",
                 pregunta: "Лодочник, гребущий против течения.",
-                opciones: ["Грустный мужчина, управляющий маленькой деревянной лодкой, спасается от монстра, плывя против течения."],
-                correctas: ["Грустный мужчина, управляющий маленькой деревянной лодкой, спасается от монстра, плывя против течения."],
+                opciones: ["Грустный мужчина управляет маленькой деревянной лодкой и спасается от монстра, плывя против течения."],
+                correctas: ["Грустный мужчина управляет маленькой деревянной лодкой и спасается от монстра, плывя против течения."],
                 multiple: true
             },
 {
                 reto: 32,
                 id: "R32-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "Мёртвое дерево: символ Греха, видно между двумя створками двери и служит средником.",
-                opciones: ["Посмотрите на вершину дерева, где 4 обнажённых мужчины хлещут друг друга."],
-                correctas: ["Посмотрите на вершину дерева, где 4 обнажённых мужчины хлещут друг друга."],
+                pregunta: "Мёртвое дерево, символ Греха, стоит между двумя створками двери и служит средником.",
+                opciones: ["Посмотрите на верхушку дерева: 4 обнажённых мужчины хлещут друг друга."],
+                correctas: ["Посмотрите на верхушку дерева: 4 обнажённых мужчины хлещут друг друга."],
                 multiple: true
             },
 {
                 reto: 33,
                 id: "R33-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "Справа, ангел демонстрирует свой пенис и...",
+                pregunta: "Справа ангел демонстрирует свой пенис и…",
                 opciones: ["...собирается ввести его в вазу, которую держит другой рукой. Странно и необычно, не правда ли?"],
                 correctas: ["...собирается ввести его в вазу, которую держит другой рукой. Странно и необычно, не правда ли?"],
                 multiple: true
@@ -23822,7 +23822,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-ru",
                 tipo: "opcion-multiple",
-                pregunta: "В центре: Бородатый мужчина и лев:",
+                pregunta: "В центре — бородатый мужчина и лев:",
                 opciones: ["Оригинальная и противоречивая сцена, в которой кротким оказывается именно лев, а не бородатый старец."],
                 correctas: ["Оригинальная и противоречивая сцена, в которой кротким оказывается именно лев, а не бородатый старец."],
                 multiple: true
@@ -24025,7 +24025,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "Что держит фигура в руках?",
+                pregunta: "Что держит в руках эта фигура?",
                 opciones: ["Щит", "Раковину", "Кувшин", "Меч"],
                 correctas: ["Раковину"],
                 multiple: false
@@ -24209,9 +24209,9 @@ export const RETOS_AVENTURAS = {
                 reto: 83,
                 id: "R83-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "На вершине башен развевается флаг Валенсии: его цвета состоят из красного, жёлтого и…",
-                opciones: ["Фиолетового","Зелёного","Синего"],
-                correctas: ["Синего"],
+                pregunta: "На вершине башен развевается флаг Валенсии: его цвета — красный, жёлтый и…?",
+                opciones: ["Фиолетовый", "Зелёный", "Синий"],
+                correctas: ["Синий"],
                 multiple: null
             },
 {
