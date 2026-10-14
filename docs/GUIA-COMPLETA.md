@@ -240,7 +240,7 @@ flowchart TD
     C --> DEV{¿_devModeActivo?\nFactor 1 activado antes de P12}
     DEV -- Sí\nmodo DEV --> BYPASS["mostrar() intercepta P12, P13 y P14\nredirige id=15 directamente\nsin CODIGO_VALIDADO — GPS sí se activa en P15"]
     DEV -- No --> P14[P14: usuario introduce código de compra\nseleccion envía CODIGO_VALIDADO · padre solo registra]
-    P14 --> P15[P15: normativa mostrada\n_accionPantalla15() → P15_MOSTRADA\ncarga hijo1-6 + datos en paralelo → activa GPS siempre]
+    P14 --> P15[P15: normativa mostrada\n_accionNormativa() → P15_MOSTRADA\ncarga hijo1-6 + datos en paralelo → activa GPS siempre]
     BYPASS --> P15
     P15 --> P16[P16: Reto R-2 SÍ\nP17: logos ➣ → AVENTURA_ACTIVADA]
     P16 --> J([Sistema en MODO CASA\nhijo5 visible si modo DEV · heartbeat activo\nUsuario ve mapa y controles])
@@ -4900,7 +4900,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-285e698d8601'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-cfcd86b5b8d3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8276,7 +8276,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-285e698d8601'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-cfcd86b5b8d3'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9026,7 +9026,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-285e698d8601';
+const CACHE_VERSION = 'v-cfcd86b5b8d3';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9333,7 +9333,7 @@ flowchart TD
     NORMAL --> P12_13{mostrar(12), mostrar(13)\no mostrar(14)}
     P12_13 -- "_devCasaMode === true" --> BYPASS["id = 15 directamente (sin CODIGO_VALIDADO)\nsin pago, sin segunda confirmación y sin código de compra · GPS SÍ se activa en P15, igual que en prod"]
     P12_13 -- "_devCasaMode === false" --> NORMAL2["Flujo normal:\nP12 pago → P13 confirmación → P14 código de compra → GPS"]
-    BYPASS --> HDLP15["P15 visible → _accionPantalla15()\nSELECCION.P15_MOSTRADA → padre\n_hdl_SELECCION_P15_MOSTRADA\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos\n_iframesPreCargadosP15 = true\nactivarGPS() siempre, prod y dev"]
+    BYPASS --> HDLP15["P15 visible → _accionNormativa()\nSELECCION.P15_MOSTRADA → padre\n_hdl_SELECCION_P15_MOSTRADA\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos\n_iframesPreCargadosP15 = true\nactivarGPS() siempre, prod y dev"]
     HDLP15 --> P15[P15 — Normativa]
     NORMAL2 --> P15
     P15 --> P16[P16 — Reto R-2 SÍ\nP17 — logos ➣: seleccion envía AVENTURA_ACTIVADA]
@@ -9341,7 +9341,7 @@ flowchart TD
     HDLAA --> CASA1([Sistema en MODO CASA\nhijo5 visible · GPS activo en watchPosition · overlay GPS silenciado])
 ```
 
-En dev mode, `mostrar(12)`, `mostrar(13)` y `mostrar(14)` redirigen directamente a P15 (`id = 15`) — no se envía `CODIGO_VALIDADO`. La función `_accionPantalla15()` envía `SELECCION.P15_MOSTRADA` al padre, que en `_hdl_SELECCION_P15_MOSTRADA` carga iframes + datos y **activa `activarGPS()` igual que en producción** — el `_devModeActivo` no cambia este paso. Guard `_iframesPreCargadosP15` evita doble carga.
+En dev mode, `mostrar(12)`, `mostrar(13)` y `mostrar(14)` redirigen directamente a P15 (`id = 15`) — no se envía `CODIGO_VALIDADO`. La función `_accionNormativa()` envía `SELECCION.P15_MOSTRADA` al padre, que en `_hdl_SELECCION_P15_MOSTRADA` carga iframes + datos y **activa `activarGPS()` igual que en producción** — el `_devModeActivo` no cambia este paso. Guard `_iframesPreCargadosP15` evita doble carga.
 
 #### Factor 2 — Activación durante la aventura activa
 
@@ -9518,7 +9518,7 @@ Cuando la lógica de `mostrar()` intentaría mostrar la pantalla de pago (P12), 
 
 #### Paso 4 — P15: normativa
 
-El desarrollador ve la pantalla de normativa. Es obligatoria incluso en modo DEV: debe hacer scroll hasta el final para habilitar el botón de aceptar. Al aceptar, `_accionPantalla15()` envía `SELECCION.P15_MOSTRADA` al padre.
+El desarrollador ve la pantalla de normativa. Es obligatoria incluso en modo DEV: debe hacer scroll hasta el final para habilitar el botón de aceptar. `SELECCION.P15_MOSTRADA` ya ha salido hacia el padre al mostrarse la pantalla (`_accionNormativa()`); aceptar lleva al reto R-2 (P16).
 
 El padre ejecuta `_hdl_SELECCION_P15_MOSTRADA` en este orden:
 
@@ -11574,7 +11574,7 @@ Primera pantalla visible para el usuario. Cubre toda la ventana (`z-index:2000`)
 | `SELECCION.PREPARAR_HIJOS` | Padre | P9 (confirmación aventura) | Comunicar los datos de pre-selección `{ idioma, aventura, timestamp }` al padre |
 | `SELECCION.CODIGO_VALIDADO` | Padre | Al pulsar → en P14 con activación aceptada por el backend y GPS no denegado (`_irANormativa()`) — solo prod; en modo DEV (ver §24) este mensaje nunca se envía, `mostrar()` salta P12, P13 y P14 directamente | El handler padre es no-op; la carga real de iframes y GPS la dispara `P15_MOSTRADA` |
 | `SELECCION.DEV_MODE_TOGGLE` | Padre | Modo desarrollador (ver §24) | Modo desarrollador (ver §24) |
-| `SELECCION.P15_MOSTRADA` | Padre | Al mostrarse P15, la normativa (`_accionPantalla15`: `{ timestamp }`) | Que el padre cargue iframes, datos y GPS mientras el usuario lee (§2.3) |
+| `SELECCION.P15_MOSTRADA` | Padre | Al mostrarse P15, la normativa (`_accionNormativa`: `{ timestamp }`) | Que el padre cargue iframes, datos y GPS mientras el usuario lee (§2.3) |
 | `SELECCION.REINICIAR` | Padre | Cuando el usuario responde NO en el reto R-2 (P16; `verificarRetoR2`), justo antes de reiniciar la selección y volver a P1 | Que el padre vuelva a poner a `false` `_codigoValidadoP14` e `_iframesPreCargadosP15` |
 | `NAVEGACION.SUPRIMIR_ROTACION` | Padre | Al abrir el mapa vintage de la aventura (`{ value: true }`) y al cerrarlo (`{ value: false }`) | Que el aviso de girar el dispositivo no estorbe mientras se ve el mapa vintage, que en algunas aventuras es horizontal |
 | `SISTEMA.ERROR` | Padre | Si falla el handler de `PADRE_CONFIRMA_HIJO_LISTO` (`{ error, controlador, timestamp }`) o el de `CAMBIO_MODO` (`{ error, tipo: 'CAMBIO_MODO_FALLIDO' }`) | Avisar al padre de un error propio (§10.17) |
@@ -12490,7 +12490,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-285e698d8601';
+const CACHE_VERSION = 'v-cfcd86b5b8d3';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

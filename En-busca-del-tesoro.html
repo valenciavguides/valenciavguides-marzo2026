@@ -1189,7 +1189,7 @@
       }
     }
 
-    function _accionPantalla5() {
+    function _accionAgradecimientos() {
       if (!agradecimientosCargados) { void cargarAgradecimientosOverlay(); return; }
       const cont = document.getElementById('agradecimientos-contenido');
       if (cont) cont.scrollTop = 0;
@@ -1255,7 +1255,7 @@
       }, { once: true });
     }
 
-    function _accionPantalla15() {
+    function _accionNormativa() {
       // Notificar al padre que P15 es visible → precarga de datos e iframes
       if (globalThis.parent && globalThis.parent !== globalThis) {
         // Por el bus y con el tipo de constants.js, aunque este sea el <script> clásico: no puede importar, pero alcanza
@@ -1340,9 +1340,9 @@
       },
       12: () => mostrarPulsoValoracion('P12'),
       13: () => globalThis._pintarTarjetasDeAventura(),
-      15: () => _accionPantalla15(),
+      15: () => _accionNormativa(),
       16: () => { if (!retoCargadoR2) void cargarRetoR2(); },
-      18: () => _accionPantalla5(),
+      18: () => _accionAgradecimientos(),
     };
 
     // ============================================================
