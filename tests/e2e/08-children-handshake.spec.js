@@ -153,9 +153,7 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
 
     // Obtener el tipo exacto de HIJO_PREPARADO del contexto del padre
     const tipoHijoPre = await page.evaluate(() => {
-      return globalThis.TIPOS_MENSAJE?.SISTEMA?.HIJO_PREPARADO ||
-             globalThis.TIPOS_MENSAJE_S1?.SISTEMA?.HIJO_PREPARADO ||
-             'SISTEMA.HIJO_PREPARADO';
+      return globalThis.TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO;
     });
 
     // Inyectar el mensaje vía postMessage (el listener está en window)
@@ -190,9 +188,7 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
     const hijoId = 'hijo3';
 
     const tipoHijoListo = await page.evaluate(() => {
-      return globalThis.TIPOS_MENSAJE?.SISTEMA?.HIJO_LISTO ||
-             globalThis.TIPOS_MENSAJE_S1?.SISTEMA?.HIJO_LISTO ||
-             'SISTEMA.HIJO_LISTO';
+      return globalThis.TIPOS_MENSAJE.SISTEMA.HIJO_LISTO;
     });
 
     await page.evaluate(({ tipo, hijoId }) => {
@@ -218,7 +214,7 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
 
   test('HD-7. TIPOS_MENSAJE.SISTEMA contiene HIJO_PREPARADO y HIJO_LISTO', async ({ page }) => {
     const info = await page.evaluate(() => {
-      const tm = globalThis.TIPOS_MENSAJE || globalThis.TIPOS_MENSAJE_S1;
+      const tm = globalThis.TIPOS_MENSAJE;
       if (!tm) return { ok: false, reason: 'TIPOS_MENSAJE no existe' };
       return {
         ok: true,

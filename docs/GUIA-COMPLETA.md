@@ -7802,7 +7802,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 | **Rate limiting** | Pendiente — requiere backend |
 | **Helmet (headers HTTP de seguridad)** | Pendiente — requiere backend Express |
 | **Log de seguridad** | Pendiente — requiere backend |
-| **Validación de código de activación real (email + código)** | Frontend preparado: `#input-email` habilitado, `ApiClient.comprobarCodigo()` envía código, email y aventura, `_irANormativa()` llama al backend en modo `'api'` (ver §16.2/§16.3). Lo único pendiente es que exista un backend real que responda a `POST /api/auth/comprobar` y a `POST /api/auth/activar`; hasta entonces (`BACKEND_READY=false`), toda activación se rechaza siempre en modo `'local'`. |
+| **Validación de código de activación real (email + código)** | Frontend preparado: `#input-email` habilitado, `ApiClient.comprobarCodigo()` envía código, email y aventura, `_irANormativa()` llama al backend en modo `'api'` (ver §16.2/§16.3). Lo único pendiente es que exista un backend real que responda a `POST /api/auth/comprobar` y a `POST /api/auth/activar`; hasta entonces (`BACKEND_READY=false`), en modo `'local'` la pantalla del código rechaza siempre y la aventura no avisa al servidor al arrancar. |
 | **CORS restringido al dominio** | Pendiente para producción |
 | **Sandboxing de iframes** | Pendiente — añadir `sandbox="allow-scripts allow-same-origin allow-forms"` a los 7 iframes hijo; ver §22.5 |
 | **HSTS** | Pendiente — solo activo en producción HTTPS; ver §22.6 |

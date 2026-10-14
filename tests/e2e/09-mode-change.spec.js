@@ -46,19 +46,12 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
   // ── MC-1: manejarCambioModo expuesta ──────────────────────────────────
 
   test('MC-1a. globalThis.manejarCambioModo existe como función (expuesta por app.js)', async ({ page }) => {
-    // manejarCambioModo puede estar en window directamente o en globalThis.app
-    const ok = await page.evaluate(() => {
-      return typeof globalThis.manejarCambioModo === 'function' ||
-             typeof globalThis.app?.manejarCambioModo === 'function';
-    });
+    const ok = await page.evaluate(() => typeof globalThis.manejarCambioModo === 'function');
     expect(ok).toBe(true);
   });
 
   test('MC-1b. globalThis.actualizarInterfazModo existe como función', async ({ page }) => {
-    const ok = await page.evaluate(() => {
-      return typeof globalThis.actualizarInterfazModo === 'function' ||
-             typeof globalThis.app?.actualizarInterfazModo === 'function';
-    });
+    const ok = await page.evaluate(() => typeof globalThis.actualizarInterfazModo === 'function');
     expect(ok).toBe(true);
   });
 
@@ -69,24 +62,15 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
     // app.js se importa durante FASE 1 (Script 1) y es un módulo del proyecto.
     // Verificamos solo que la función existe y tiene el tipo correcto,
     // sin invocarla (invocarla requeriría iframes reales para el protocolo 4-fases).
-    const info = await page.evaluate(() => {
-      const fn = globalThis.actualizarInterfazModo || globalThis.app?.actualizarInterfazModo;
-      return {
-        tipo: typeof fn,
-        enWindow: typeof globalThis.actualizarInterfazModo,
-        enApp: typeof globalThis.app?.actualizarInterfazModo,
-      };
-    });
-    // Debe existir en window o en globalThis.app
-    const existe = info.enWindow === 'function' || info.enApp === 'function';
-    expect(existe).toBe(true);
+    const tipo = await page.evaluate(() => typeof globalThis.actualizarInterfazModo);
+    expect(tipo).toBe('function');
   });
 
   // ── MC-3: Tipos de mensaje del protocolo ─────────────────────────────
 
   test('MC-3a. TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO existe', async ({ page }) => {
     const val = await page.evaluate(() => {
-      const tm = globalThis.TIPOS_MENSAJE || globalThis.TIPOS_MENSAJE_S1;
+      const tm = globalThis.TIPOS_MENSAJE;
       return tm?.SISTEMA?.CAMBIO_MODO;
     });
     expect(val).toBeTruthy();
@@ -95,7 +79,7 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
 
   test('MC-3b. TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO existe', async ({ page }) => {
     const val = await page.evaluate(() => {
-      const tm = globalThis.TIPOS_MENSAJE || globalThis.TIPOS_MENSAJE_S1;
+      const tm = globalThis.TIPOS_MENSAJE;
       return tm?.SISTEMA?.CAMBIO_MODO_ENTENDIDO;
     });
     expect(val).toBeTruthy();
@@ -104,7 +88,7 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
 
   test('MC-3c. TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO existe', async ({ page }) => {
     const val = await page.evaluate(() => {
-      const tm = globalThis.TIPOS_MENSAJE || globalThis.TIPOS_MENSAJE_S1;
+      const tm = globalThis.TIPOS_MENSAJE;
       return tm?.SISTEMA?.CAMBIO_MODO_EFECTUADO;
     });
     expect(val).toBeTruthy();
@@ -113,7 +97,7 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
 
   test('MC-3d. Los 3 tipos del protocolo son strings distintos', async ({ page }) => {
     const tipos = await page.evaluate(() => {
-      const tm = globalThis.TIPOS_MENSAJE || globalThis.TIPOS_MENSAJE_S1;
+      const tm = globalThis.TIPOS_MENSAJE;
       return {
         cambioModo: tm?.SISTEMA?.CAMBIO_MODO,
         entendido: tm?.SISTEMA?.CAMBIO_MODO_ENTENDIDO,
@@ -153,9 +137,7 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
     });
 
     const tipoCambioModo = await page.evaluate(() => {
-      return globalThis.TIPOS_MENSAJE?.SISTEMA?.CAMBIO_MODO ||
-             globalThis.TIPOS_MENSAJE_S1?.SISTEMA?.CAMBIO_MODO ||
-             'SISTEMA.CAMBIO_MODO';
+      return globalThis.TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO;
     });
 
     // Escuchar qué mensajes emite el padre (para ver si propaga a hijos)
@@ -183,7 +165,7 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
       // El handler de CAMBIO_MODO en Script 1 actualiza estado (closure local)
       // y también globalThis.estadoPadre.modoActual si manejarCambioModo lo hace
       // Verificamos que al menos manejarCambioModo fue invocable
-      const fn = globalThis.manejarCambioModo || globalThis.app?.manejarCambioModo;
+      const fn = globalThis.manejarCambioModo;
       return {
         fnExists: typeof fn === 'function',
         // Si el modo fue actualizado en estadoPadre, lo capturamos
@@ -286,7 +268,7 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
 
   test('MC-10. Los 4 tipos del protocolo completo existen: CAMBIO_MODO + ENTENDIDO + EFECTUADO + RESPONSE', async ({ page }) => {
     const tipos = await page.evaluate(() => {
-      const tm = globalThis.TIPOS_MENSAJE || globalThis.TIPOS_MENSAJE_S1;
+      const tm = globalThis.TIPOS_MENSAJE;
       if (!tm?.SISTEMA) return null;
       return {
         cambioModo: !!tm.SISTEMA.CAMBIO_MODO,
