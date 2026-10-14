@@ -1813,7 +1813,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-de",
                 tipo: "opcion",
-                pregunta: "Auf dem Gipfel der Türme weht die Flagge von Valencia: Ihre Farben sind Rot, Gelb und…?",
+                pregunta: "Auf der Spitze der Türme weht die Flagge Valencias: ihre Farben sind Rot, Gelb und…?",
                 opciones: ["Violett", "Grün", "Blau"],
                 correctas: ["Blau"],
                 multiple: false
@@ -1829,16 +1829,16 @@ export const RETOS_AVENTURAS = {
                 reto: 6,
                 id: "R6-Av1-de",
                 tipo: "opcion",
-                pregunta: "Was trägt der heilige Laurentius in seiner Hand?",
-                opciones: ["Eine Taube", "Ein Löffel", "Ein Rost"],
-                correctas: ["Ein Rost"],
+                pregunta: "Was trägt der heilige Laurentius in der Hand?",
+                opciones: ["Eine Taube", "Einen Löffel", "Einen Rost"],
+                correctas: ["Einen Rost"],
                 multiple: false
             },
             {
                 reto: 7,
                 id: "R7-Av1-de",
                 tipo: "opcion",
-                pregunta: "Mit welcher Hand hält Neptun das Füllhorn?",
+                pregunta: "Mit welcher Hand hält Neptun das Füllhorn des Überflusses?",
                 opciones: ["Links", "Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -1885,7 +1885,7 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-Av1-de",
                 tipo: "texto",
-                pregunta: "In welchem Jahr wurde dieses Gebäude errichtet? Tipp: Schauen Sie an der Oberseite der Fassade nach.",
+                pregunta: "In welchem Jahr wurde dieses Gebäude errichtet? Tipp: Schauen Sie oben an der Fassade nach.",
                 correctas: ["1906"]
             },
             {
@@ -1954,7 +1954,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "Über dem Haupteingang, in einem Rundbogen, repräsentieren allegorische Figuren die fünf Kontinente. Was hält die zentrale Figur?",
+                pregunta: "Über dem Haupteingang stellen allegorische Figuren in einem Rundbogen die fünf Kontinente dar. Was hält die mittlere Figur?",
                 opciones: ["Eine Fackel", "Ein Schwert", "Eine Krone"],
                 correctas: ["Eine Fackel", "Ein Schwert"],
                 multiple: true
@@ -1963,7 +1963,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-de",
                 tipo: "opcion",
-                pregunta: "Was hält die Figur in seiner Hand?",
+                pregunta: "Was hält die Figur in der Hand?",
                 opciones: ["Eine Waage", "Ein Buch", "Eine Feder"],
                 correctas: ["Eine Waage"],
                 multiple: false
@@ -1979,8 +1979,8 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av1-de",
                 tipo: "opcion",
-                pregunta: "Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade. Können Sie seine Form bestimmen?",
-                opciones: ["Quadrangular", "Rund", "Dreieckig"],
+                pregunta: "Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade des Gebäudes. Können Sie bestimmen, welche Form es hat?",
+                opciones: ["Viereckig", "Rund", "Dreieckig"],
                 correctas: ["Rund"],
                 multiple: false
             },
@@ -1989,8 +1989,8 @@ export const RETOS_AVENTURAS = {
                 id: "R26-Av1-de",
                 tipo: "opcion-multiple",
                 pregunta: "Was hält die Jungfrau in ihrer Hand?",
-                opciones: ["Ein Rosenkranz", "Ein Kind", "Eine Krone"],
-                correctas: ["Ein Rosenkranz", "Ein Kind"],
+                opciones: ["Einen Rosenkranz", "Ein Kind", "Eine Krone"],
+                correctas: ["Einen Rosenkranz", "Ein Kind"],
                 multiple: true
             },
             {
@@ -2013,24 +2013,24 @@ export const RETOS_AVENTURAS = {
                 id: "R29-Av1-de",
                 tipo: "opcion-multiple",
                 pregunta: "Der Fährmann, der gegen den Strom rudert.",
-                opciones: ["Ein Mann mit traurigem Gesicht, der ein kleines Holzboot steuert, entkommt einem Monster gegen den Strom."],
-                correctas: ["Ein Mann mit traurigem Gesicht, der ein kleines Holzboot steuert, entkommt einem Monster gegen den Strom."],
+                opciones: ["Ein Mann mit traurigem Gesicht steuert ein kleines Holzboot und flieht gegen den Strom vor einem Monster."],
+                correctas: ["Ein Mann mit traurigem Gesicht steuert ein kleines Holzboot und flieht gegen den Strom vor einem Monster."],
                 multiple: true
             },
             {
                 reto: 30,
                 id: "R30-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "Ein toter Baum: Symbol der Sünde, ist zwischen den beiden Türflügeln zu sehen und dient als Pfeilerstab.",
-                opciones: ["Beobachten Sie an der Baumkrone, wie 4 nackte Männer sich gegenseitig auspeitschen."],
-                correctas: ["Beobachten Sie an der Baumkrone, wie 4 nackte Männer sich gegenseitig auspeitschen."],
+                pregunta: "Ein toter Baum, Symbol der Sünde, steht zwischen den beiden Türflügeln und dient als Mittelpfeiler.",
+                opciones: ["Beobachten Sie im Wipfel des Baumes, wie 4 nackte Männer sich gegenseitig auspeitschen."],
+                correctas: ["Beobachten Sie im Wipfel des Baumes, wie 4 nackte Männer sich gegenseitig auspeitschen."],
                 multiple: true
             },
             {
                 reto: 31,
                 id: "R31-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "Rechts, ein Engel zeigt seinen Penis und...",
+                pregunta: "Rechts zeigt ein Engel seinen Penis und…",
                 opciones: ["...er ist dabei, ihn in eine Vase einzuführen, die er mit der anderen Hand hält. Seltsam und ungewöhnlich, finden Sie nicht?"],
                 correctas: ["...er ist dabei, ihn in eine Vase einzuführen, die er mit der anderen Hand hält. Seltsam und ungewöhnlich, finden Sie nicht?"],
                 multiple: true
@@ -2039,7 +2039,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-de",
                 tipo: "opcion-multiple",
-                pregunta: "In der Mitte: Der bärtige Mann und der Löwe:",
+                pregunta: "In der Mitte der bärtige Mann und der Löwe:",
                 opciones: ["Originale und widersprüchliche Szene, in der der sanfte genau der Löwe ist und nicht der bärtige alte Mann."],
                 correctas: ["Originale und widersprüchliche Szene, in der der sanfte genau der Löwe ist und nicht der bärtige alte Mann."],
                 multiple: true
@@ -4869,7 +4869,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-de",
                 tipo: "opcion",
-                pregunta: "Auf dem Gipfel der Türme weht die Flagge von Valencia: Ihre Farben sind Rot, Gelb und…?",
+                pregunta: "Auf der Spitze der Türme weht die Flagge Valencias: ihre Farben sind Rot, Gelb und…?",
                 opciones: ["Violett", "Grün", "Blau"],
                 correctas: ["Blau"],
                 multiple: false
@@ -4921,7 +4921,7 @@ export const RETOS_AVENTURAS = {
                 id: "R10-Av2-de",
                 tipo: "opcion",
                 pregunta: "Was hält die Figur in ihren Händen?",
-                opciones: ["Ein Schild", "Eine Muschel", "Ein Krug", "Ein Schwert"],
+                opciones: ["Einen Schild", "Eine Muschel", "Einen Krug", "Ein Schwert"],
                 correctas: ["Eine Muschel"],
                 multiple: false
             },
@@ -4953,7 +4953,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av2-de",
                 tipo: "opcion",
-                pregunta: "Mit welcher Hand hält Neptun das Füllhorn der Fülle?",
+                pregunta: "Mit welcher Hand hält Neptun das Füllhorn des Überflusses?",
                 opciones: ["Links", "Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -4969,9 +4969,9 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av2-de",
                 tipo: "opcion",
-                pregunta: "Können Sie die Geometrie des Cimborios der Kathedrale von Valencia bestimmen?",
-                opciones: ["Hexagonal", "Oktagonal", "Viereckig"],
-                correctas: ["Oktagonal"],
+                pregunta: "Können Sie bestimmen, welche Geometrie der Vierungsturm der Kathedrale von Valencia hat?",
+                opciones: ["Sechseckig", "Achteckig", "Viereckig"],
+                correctas: ["Achteckig"],
                 multiple: false
             },
             {
@@ -7601,7 +7601,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av3-de",
                 tipo: "opcion",
-                pregunta: "Auf dem Gipfel der Türme weht die Flagge von Valencia: ihre Farben sind Rot, Gelb und...?",
+                pregunta: "Auf der Spitze der Türme weht die Flagge Valencias: ihre Farben sind Rot, Gelb und…?",
                 opciones: ["Violett", "Grün", "Blau"],
                 correctas: ["Blau"],
                 multiple: false
@@ -7624,7 +7624,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av3-de",
                 tipo: "opcion",
-                pregunta: "Können Sie mir sagen, wie diese beliebten Feste in Valencia heißen?",
+                pregunta: "Können Sie mir sagen, wie diese Volksfeste Valencias heißen?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -7760,7 +7760,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av3-de",
                 tipo: "texto",
-                pregunta: "In welchem Jahr wurde dieses Gebäude errichtet? Hinweis: Schauen Sie oben an der Fassade",
+                pregunta: "In welchem Jahr wurde dieses Gebäude errichtet? Tipp: Schauen Sie oben an der Fassade nach.",
                 correctas: ["1906"],
                 multiple: false
             },
@@ -7768,7 +7768,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av3-de",
                 tipo: "opcion",
-                pregunta: "In der Nähe hat sich ein Zeitportal geöffnet! Was ist hindurchzusehen?",
+                pregunta: "In der Nähe hat sich ein Zeitportal geöffnet! Was ist dadurch zu sehen?",
                 opciones: ["Stierkampfarena", "Römische Thermen", "U-Bahn-Station"],
                 correctas: ["Römische Thermen"],
                 multiple: false
@@ -7783,7 +7783,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av3-de",
                 tipo: "opcion",
-                pregunta: "Mit welcher Hand hält Neptun das Füllhorn?",
+                pregunta: "Mit welcher Hand hält Neptun das Füllhorn des Überflusses?",
                 opciones: ["Links", "Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -10210,7 +10210,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av4-de",
                 tipo: "opcion",
-                pregunta: "Auf dem Gipfel der Türme weht die Flagge Valencias: Ihre Farben bestehen aus Rot, Gelb und…",
+                pregunta: "Auf der Spitze der Türme weht die Flagge Valencias: ihre Farben sind Rot, Gelb und…?",
                 opciones: ["Violett","Grün","Blau"],
                 correctas: ["Blau"],
                 multiple: false
@@ -12649,7 +12649,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av5-de",
                 tipo: "opcion",
-                pregunta: "Auf dem Gipfel der Türme weht die Flagge Valencias: Ihre Farben bestehen aus Rot, Gelb und…",
+                pregunta: "Auf der Spitze der Türme weht die Flagge Valencias: ihre Farben sind Rot, Gelb und…?",
                 opciones: ["Violett","Grün","Blau"],
                 correctas: ["Blau"],
                 multiple: null
@@ -12671,7 +12671,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av5-de",
                 tipo: "opcion",
-                pregunta: "Können Sie mir sagen, wie diese beliebten Feste Valencias heißen?",
+                pregunta: "Können Sie mir sagen, wie diese Volksfeste Valencias heißen?",
                 opciones: ["Las Fallas","La Tomatina","Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -12680,7 +12680,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av5-de",
                 tipo: "texto",
-                pregunta: "Was ist im Bogen des Mittelbogens zu sehen?",
+                pregunta: "Was ist in der Öffnung des mittleren Bogens zu sehen?",
                 correctas: ["Ein Kreuz"]
             },
             {
@@ -12737,7 +12737,7 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av5-de",
                 tipo: "opcion",
-                pregunta: "Welche natürliche Zitrusfrucht aus Valencia schmückt die Fassade?",
+                pregunta: "Achten Sie auf die Fassade des ersten Turms! Welche Zitrusfrucht aus Valencia schmückt die Fassade?",
                 opciones: ["Zitronen","Grapefruits","Orangen"],
                 correctas: ["Orangen"],
                 multiple: false
@@ -12762,7 +12762,7 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av5-de",
                 tipo: "texto",
-                pregunta: "In welchem Jahr begannen die Bauarbeiten? Schauen Sie an der Fassade!",
+                pregunta: "In welchem Jahr begannen die Bauarbeiten? Schauen Sie auf die Fassade!",
                 correctas: ["1400"]
             },
             {
@@ -12776,7 +12776,7 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av5-de",
                 tipo: "texto",
-                pregunta: "In welchem Jahr wurden diese Arbeiten durchgeführt? Brauchen Sie einen Hinweis? Schauen Sie an der Fassade des Gebäudes.",
+                pregunta: "In welchem Jahr wurden diese Arbeiten durchgeführt? Brauchen Sie einen Hinweis? Schauen Sie sich die Fassade des Gebäudes an.",
                 correctas: ["1756"]
             },
             {
@@ -12789,7 +12789,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av5-de",
                 tipo: "opcion",
-                pregunta: "Können Sie bestimmen, welche Form es hat?",
+                pregunta: "Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade des Gebäudes. Können Sie bestimmen, welche Form es hat?",
                 opciones: ["Viereckig","Rund","Dreieckig"],
                 correctas: ["Rund"],
                 multiple: false
@@ -12804,7 +12804,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av5-de",
                 tipo: "opcion-multiple",
-                pregunta: "Der Fährmann rudert gegen den Strom.",
+                pregunta: "Der Fährmann, der gegen den Strom rudert.",
                 opciones: ["Ein Mann mit traurigem Gesicht steuert ein kleines Holzboot und flieht gegen den Strom vor einem Monster."],
                 correctas: ["Ein Mann mit traurigem Gesicht steuert ein kleines Holzboot und flieht gegen den Strom vor einem Monster."],
                 multiple: true
@@ -12813,7 +12813,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av5-de",
                 tipo: "opcion-multiple",
-                pregunta: "Ein toter Baum: Symbol der Sünde, er steht zwischen den beiden Türflügeln und dient als Mittelpfeiler.",
+                pregunta: "Ein toter Baum, Symbol der Sünde, steht zwischen den beiden Türflügeln und dient als Mittelpfeiler.",
                 opciones: ["Beobachten Sie im Wipfel des Baumes, wie 4 nackte Männer sich gegenseitig auspeitschen."],
                 correctas: ["Beobachten Sie im Wipfel des Baumes, wie 4 nackte Männer sich gegenseitig auspeitschen."],
                 multiple: true
@@ -15121,7 +15121,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "Auf dem Gipfel der Türme weht die Flagge Valencias: Ihre Farben bestehen aus Rot, Gelb und… ?",
+                pregunta: "Auf der Spitze der Türme weht die Flagge Valencias: ihre Farben sind Rot, Gelb und…?",
                 opciones: ["Violett","Grün","Blau"],
                 correctas: ["Blau"],
                 multiple: false
@@ -15138,15 +15138,15 @@ export const RETOS_AVENTURAS = {
                 id: "R6-AvFallas-de",
                 tipo: "opcion",
                 pregunta: "Was trägt der heilige Laurentius in der Hand?",
-                opciones: ["Eine Taube","Ein Löffel","Ein Rost"],
-                correctas: ["Ein Rost"],
+                opciones: ["Eine Taube", "Einen Löffel", "Einen Rost"],
+                correctas: ["Einen Rost"],
                 multiple: false
             },
             {
                 reto: 7,
                 id: "R7-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "Mit welcher Hand hält Neptun das Füllhorn?",
+                pregunta: "Mit welcher Hand hält Neptun das Füllhorn des Überflusses?",
                 opciones: ["Links","Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -15161,7 +15161,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "Können Sie bestimmen, welche Geometrie die Laterne der Kathedrale von Valencia hat?",
+                pregunta: "Können Sie bestimmen, welche Geometrie der Vierungsturm der Kathedrale von Valencia hat?",
                 opciones: ["Sechseckig","Achteckig","Viereckig"],
                 correctas: ["Achteckig"],
                 multiple: false
@@ -15192,7 +15192,7 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-AvFallas-de",
                 tipo: "opcion-multiple",
-                pregunta: "Über dem Haupteingang, in einem Rundbogen, stellen allegorische Figuren die fünf Kontinente dar. Was trägt die mittlere Figur?",
+                pregunta: "Über dem Haupteingang stellen allegorische Figuren in einem Rundbogen die fünf Kontinente dar. Was hält die mittlere Figur?",
                 opciones: ["Eine Fackel","Ein Schwert","Eine Krone"],
                 correctas: ["Eine Fackel","Ein Schwert"],
                 multiple: true
@@ -15201,7 +15201,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "Was trägt die Figur in der Hand?",
+                pregunta: "Was hält die Figur in der Hand?",
                 opciones: ["Eine Waage","Ein Buch","Eine Feder"],
                 correctas: ["Eine Waage"],
                 multiple: false
@@ -15210,7 +15210,7 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade. Können Sie bestimmen, welche Form es hat?",
+                pregunta: "Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade des Gebäudes. Können Sie bestimmen, welche Form es hat?",
                 opciones: ["Viereckig","Rund","Dreieckig"],
                 correctas: ["Rund"],
                 multiple: false
@@ -15228,7 +15228,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "Was überreicht der Engel dem Kind?",
+                pregunta: "Was gibt der Engel dem Kind?",
                 opciones: ["Eine Taube","Eine Kugel","Nahrung"],
                 correctas: ["Eine Kugel"],
                 multiple: false
@@ -20636,7 +20636,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av34km-de",
                 tipo: "opcion",
-                pregunta: "Können Sie mir sagen, wie diese beliebten Feste in Valencia heißen?",
+                pregunta: "Können Sie mir sagen, wie diese Volksfeste Valencias heißen?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -20768,7 +20768,7 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av34km-de",
                 tipo: "opcion",
-                pregunta: "Welche natürliche Zitrusfrucht aus Valencia schmückt die Fassade?",
+                pregunta: "Achten Sie auf die Fassade des ersten Turms! Welche Zitrusfrucht aus Valencia schmückt die Fassade?",
                 opciones: ["Zitronen","Grapefruits","Orangen"],
                 correctas: ["Orangen"],
                 multiple: false
@@ -20793,7 +20793,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "Über dem Haupteingang, in einem Rundbogen, repräsentieren allegorische Figuren die fünf Kontinente. Was hält die zentrale Figur?",
+                pregunta: "Über dem Haupteingang stellen allegorische Figuren in einem Rundbogen die fünf Kontinente dar. Was hält die mittlere Figur?",
                 opciones: ["Eine Fackel", "Ein Schwert", "Eine Krone"],
                 correctas: ["Eine Fackel", "Ein Schwert"],
                 multiple: true
@@ -20802,7 +20802,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-de",
                 tipo: "opcion",
-                pregunta: "Was hält die Figur in seiner Hand?",
+                pregunta: "Was hält die Figur in der Hand?",
                 opciones: ["Eine Waage", "Ein Buch", "Eine Feder"],
                 correctas: ["Eine Waage"],
                 multiple: false
@@ -20818,8 +20818,8 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av34km-de",
                 tipo: "opcion",
-                pregunta: "Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade. Können Sie seine Form bestimmen?",
-                opciones: ["Quadrangular", "Rund", "Dreieckig"],
+                pregunta: "Suchen Sie das Buntglasfenster mit den Farben der valencianischen Senyera an der Fassade des Gebäudes. Können Sie bestimmen, welche Form es hat?",
+                opciones: ["Viereckig", "Rund", "Dreieckig"],
                 correctas: ["Rund"],
                 multiple: false
             },
@@ -20828,8 +20828,8 @@ export const RETOS_AVENTURAS = {
                 id: "R28-Av34km-de",
                 tipo: "opcion-multiple",
                 pregunta: "Was hält die Jungfrau in ihrer Hand?",
-                opciones: ["Ein Rosenkranz", "Ein Kind", "Eine Krone"],
-                correctas: ["Ein Rosenkranz", "Ein Kind"],
+                opciones: ["Einen Rosenkranz", "Ein Kind", "Eine Krone"],
+                correctas: ["Einen Rosenkranz", "Ein Kind"],
                 multiple: true
             },
 {
@@ -20852,24 +20852,24 @@ export const RETOS_AVENTURAS = {
                 id: "R31-Av34km-de",
                 tipo: "opcion-multiple",
                 pregunta: "Der Fährmann, der gegen den Strom rudert.",
-                opciones: ["Ein Mann mit traurigem Gesicht, der ein kleines Holzboot steuert, entkommt einem Monster gegen den Strom."],
-                correctas: ["Ein Mann mit traurigem Gesicht, der ein kleines Holzboot steuert, entkommt einem Monster gegen den Strom."],
+                opciones: ["Ein Mann mit traurigem Gesicht steuert ein kleines Holzboot und flieht gegen den Strom vor einem Monster."],
+                correctas: ["Ein Mann mit traurigem Gesicht steuert ein kleines Holzboot und flieht gegen den Strom vor einem Monster."],
                 multiple: true
             },
 {
                 reto: 32,
                 id: "R32-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "Ein toter Baum: Symbol der Sünde, ist zwischen den beiden Türflügeln zu sehen und dient als Pfeilerstab.",
-                opciones: ["Beobachten Sie an der Baumkrone, wie 4 nackte Männer sich gegenseitig auspeitschen."],
-                correctas: ["Beobachten Sie an der Baumkrone, wie 4 nackte Männer sich gegenseitig auspeitschen."],
+                pregunta: "Ein toter Baum, Symbol der Sünde, steht zwischen den beiden Türflügeln und dient als Mittelpfeiler.",
+                opciones: ["Beobachten Sie im Wipfel des Baumes, wie 4 nackte Männer sich gegenseitig auspeitschen."],
+                correctas: ["Beobachten Sie im Wipfel des Baumes, wie 4 nackte Männer sich gegenseitig auspeitschen."],
                 multiple: true
             },
 {
                 reto: 33,
                 id: "R33-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "Rechts, ein Engel zeigt seinen Penis und...",
+                pregunta: "Rechts zeigt ein Engel seinen Penis und…",
                 opciones: ["...er ist dabei, ihn in eine Vase einzuführen, die er mit der anderen Hand hält. Seltsam und ungewöhnlich, finden Sie nicht?"],
                 correctas: ["...er ist dabei, ihn in eine Vase einzuführen, die er mit der anderen Hand hält. Seltsam und ungewöhnlich, finden Sie nicht?"],
                 multiple: true
@@ -20878,7 +20878,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-de",
                 tipo: "opcion-multiple",
-                pregunta: "In der Mitte: Der bärtige Mann und der Löwe:",
+                pregunta: "In der Mitte der bärtige Mann und der Löwe:",
                 opciones: ["Originale und widersprüchliche Szene, in der der sanfte genau der Löwe ist und nicht der bärtige alte Mann."],
                 correctas: ["Originale und widersprüchliche Szene, in der der sanfte genau der Löwe ist und nicht der bärtige alte Mann."],
                 multiple: true
@@ -20992,7 +20992,7 @@ export const RETOS_AVENTURAS = {
                 reto: 48,
                 id: "R48-Av34km-de",
                 tipo: "texto",
-                pregunta: "In welchem Jahr wurde dieses Gebäude errichtet? Tipp: Schauen Sie an der Oberseite der Fassade nach.",
+                pregunta: "In welchem Jahr wurde dieses Gebäude errichtet? Tipp: Schauen Sie oben an der Fassade nach.",
                 correctas: ["1906"]
             },
 {
@@ -21032,7 +21032,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-de",
                 tipo: "opcion",
-                pregunta: "Mit welcher Hand hält Neptun das Füllhorn?",
+                pregunta: "Mit welcher Hand hält Neptun das Füllhorn des Überflusses?",
                 opciones: ["Links", "Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -21202,7 +21202,7 @@ export const RETOS_AVENTURAS = {
                 reto: 74,
                 id: "R74-Av34km-de",
                 tipo: "texto",
-                pregunta: "In welchem Jahr begannen die Bauarbeiten? Schauen Sie an der Fassade!",
+                pregunta: "In welchem Jahr begannen die Bauarbeiten? Schauen Sie auf die Fassade!",
                 correctas: ["1400"]
             },
 {
@@ -21216,7 +21216,7 @@ export const RETOS_AVENTURAS = {
                 reto: 76,
                 id: "R76-Av34km-de",
                 tipo: "texto",
-                pregunta: "In welchem Jahr wurden diese Arbeiten durchgeführt? Brauchen Sie einen Hinweis? Schauen Sie an der Fassade des Gebäudes.",
+                pregunta: "In welchem Jahr wurden diese Arbeiten durchgeführt? Brauchen Sie einen Hinweis? Schauen Sie sich die Fassade des Gebäudes an.",
                 correctas: ["1756"]
             },
 {
@@ -21265,7 +21265,7 @@ export const RETOS_AVENTURAS = {
                 reto: 83,
                 id: "R83-Av34km-de",
                 tipo: "opcion",
-                pregunta: "Auf dem Gipfel der Türme weht die Flagge Valencias: Ihre Farben bestehen aus Rot, Gelb und…",
+                pregunta: "Auf der Spitze der Türme weht die Flagge Valencias: ihre Farben sind Rot, Gelb und…?",
                 opciones: ["Violett","Grün","Blau"],
                 correctas: ["Blau"],
                 multiple: null
@@ -21315,9 +21315,9 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-de",
                 tipo: "opcion",
-                pregunta: "Was trägt der heilige Laurentius in seiner Hand?",
-                opciones: ["Eine Taube", "Ein Löffel", "Ein Rost"],
-                correctas: ["Ein Rost"],
+                pregunta: "Was trägt der heilige Laurentius in der Hand?",
+                opciones: ["Eine Taube", "Einen Löffel", "Einen Rost"],
+                correctas: ["Einen Rost"],
                 multiple: false
             },
 {
