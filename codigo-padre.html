@@ -1523,7 +1523,7 @@
                     if (!globalThis.__stateManager.hijoEstaListo('hijo6-chat')) return;
                     // Se le entrega el estado de ahora (parada, rescate) antes de enseñarlo: el que recibió al cargarse es el de P15
                     globalThis.mensajeria.enviarMensaje({
-                        tipo: globalThis.TIPOS_MENSAJE?.CHAT?.ESTADO_PADRE || 'CHAT.ESTADO_PADRE',
+                        tipo: globalThis.TIPOS_MENSAJE.CHAT.ESTADO_PADRE,
                         destino: 'hijo6-chat',
                         datos: construirEstadoChat()
                     });

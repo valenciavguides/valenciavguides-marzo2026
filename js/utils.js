@@ -5,6 +5,10 @@
  * Funciones de utilidad comunes usadas a lo largo de toda la aplicación.
  */
 
+// El tipo del informe de errores (ver _mandarErrorAlPadre) sale de constants.js, igual en todos los
+// frames. La copia `globalThis.TIPOS_MENSAJE` no sirve aquí: solo la publican el padre, la selección
+// y video-intro, y en los seis hijos no existe.
+import { TIPOS_MENSAJE } from './constants.js';
 
 /**
  * Canonicaliza un modo a su forma estándar
@@ -370,7 +374,7 @@ function _mandarErrorAlPadre(mensajeTexto) {
     if (typeof enviar !== 'function') return false;
     try {
         enviar({
-            tipo: globalThis.TIPOS_MENSAJE?.SISTEMA?.ERROR || 'SISTEMA.ERROR',
+            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             destino: 'padre',
             datos: { codigo: 'ERROR_NO_CONTROLADO', mensaje: mensajeTexto }
         });
