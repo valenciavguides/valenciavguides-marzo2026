@@ -2394,7 +2394,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-pl",
                 tipo: "opcion",
-                pregunta: "Czy może mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -2412,14 +2412,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-pl",
                 tipo: "texto",
-                pregunta: "Czy może mi Pan/Pani powiedzieć nazwę tej ulicy?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć nazwę tej ulicy?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-pl",
                 tipo: "opcion",
-                pregunta: "Co trzyma święty Wawrzyniec w swojej ręce?",
+                pregunta: "Co trzyma w ręce święty Wawrzyniec?",
                 opciones: ["Gołąb", "Łyżka", "Ruszt"],
                 correctas: ["Ruszt"],
                 multiple: false
@@ -2437,7 +2437,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av1-pl",
                 tipo: "texto",
-                pregunta: "Ile figur otacza fontannę?",
+                pregunta: "Ile postaci otacza fontannę?",
                 correctas: ["8"]
             },
             {
@@ -2475,7 +2475,7 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-Av1-pl",
                 tipo: "texto",
-                pregunta: "W którym roku zbudowano tę kamienicę? Wskazówka: spójrz na górę fasady.",
+                pregunta: "W którym roku zbudowano ten budynek? Wskazówka: proszę spojrzeć na górną część fasady.",
                 correctas: ["1906"]
             },
             {
@@ -2544,7 +2544,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Nad głównym wejściem, w półokrągłym łuku, alegoryczne figury reprezentują pięć kontynentów. Co trzyma centralna figura?",
+                pregunta: "Nad głównym wejściem, w łuku półkolistym, alegoryczne postacie przedstawiają pięć kontynentów. Co trzyma centralna postać?",
                 opciones: ["Pochodnia", "Miecz", "Korona"],
                 correctas: ["Pochodnia", "Miecz"],
                 multiple: true
@@ -2553,7 +2553,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-pl",
                 tipo: "opcion",
-                pregunta: "Co trzyma figura w swojej ręce?",
+                pregunta: "Co trzyma postać w ręce?",
                 opciones: ["Waga", "Książka", "Pióro"],
                 correctas: ["Waga"],
                 multiple: false
@@ -2569,8 +2569,8 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av1-pl",
                 tipo: "opcion",
-                pregunta: "Poszukaj witrażu w kolorach walencjańskiej Senyery na fasadzie budynku. Czy potrafi Pan/Pani określić jego kształt?",
-                opciones: ["Czworokąt", "Okrągły", "Trójkąt"],
+                pregunta: "Proszę poszukać na fasadzie budynku witrażu w kolorach walencjańskiej Senyery. Czy potrafi Pan/Pani określić, jaki ma kształt?",
+                opciones: ["Czworokątny", "Okrągły", "Trójkątny"],
                 correctas: ["Okrągły"],
                 multiple: false
             },
@@ -2578,7 +2578,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Co trzyma Dziewica w swojej ręce?",
+                pregunta: "Co trzyma w ręce Matka Boska?",
                 opciones: ["Różaniec", "Dziecko", "Korona"],
                 correctas: ["Różaniec", "Dziecko"],
                 multiple: true
@@ -2603,24 +2603,24 @@ export const RETOS_AVENTURAS = {
                 id: "R29-Av1-pl",
                 tipo: "opcion-multiple",
                 pregunta: "Przewoźnik wiosłujący pod prąd.",
-                opciones: ["Smutny mężczyzna kierujący małą drewnianą łódką ucieka pod prąd przed potworem."],
-                correctas: ["Smutny mężczyzna kierujący małą drewnianą łódką ucieka pod prąd przed potworem."],
+                opciones: ["Smutny mężczyzna sterujący małą drewnianą łódką ucieka pod prąd przed potworem."],
+                correctas: ["Smutny mężczyzna sterujący małą drewnianą łódką ucieka pod prąd przed potworem."],
                 multiple: true
             },
             {
                 reto: 30,
                 id: "R30-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Martwe drzewo: symbol Grzechu, widać je między dwoma skrzydłami drzwi, pełni funkcję słupka.",
-                opciones: ["Obserwuj wierzchołek drzewa, gdzie 4 nagich mężczyzn biczuje się nawzajem."],
-                correctas: ["Obserwuj wierzchołek drzewa, gdzie 4 nagich mężczyzn biczuje się nawzajem."],
+                pregunta: "Martwe drzewo, symbol Grzechu, stoi między dwoma skrzydłami drzwi i pełni funkcję słupa środkowego.",
+                opciones: ["Proszę spojrzeć na koronę drzewa: 4 nagich mężczyzn biczuje się nawzajem."],
+                correctas: ["Proszę spojrzeć na koronę drzewa: 4 nagich mężczyzn biczuje się nawzajem."],
                 multiple: true
             },
             {
                 reto: 31,
                 id: "R31-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Po prawej, anioł pokazuje swój penis i...",
+                pregunta: "Po prawej anioł pokazuje swojego penisa i…",
                 opciones: ["...zamierza włożyć go do wazonu, który trzyma w drugiej ręce. Dziwne i niezwykłe, prawda?"],
                 correctas: ["...zamierza włożyć go do wazonu, który trzyma w drugiej ręce. Dziwne i niezwykłe, prawda?"],
                 multiple: true
@@ -2629,7 +2629,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "W centrum: Brodaty mężczyzna i lew:",
+                pregunta: "W centrum brodaty mężczyzna i lew:",
                 opciones: ["Oryginalna i sprzeczna scena, w której łagodnym jest właśnie lew, a nie brodaty starzec."],
                 correctas: ["Oryginalna i sprzeczna scena, w której łagodnym jest właśnie lew, a nie brodaty starzec."],
                 multiple: true
@@ -2638,16 +2638,16 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Oto dodatkowe wyzwanie! Znajdź lubieżnika z Giełdy Jedwabiu!",
-                opciones: ["W jednym z jej okien znajdziesz wykutego mężczyznę; jego głowy nie widać, ale genitalia są bardzo wyraźnie widoczne."],
-                correctas: ["W jednym z jej okien znajdziesz wykutego mężczyznę; jego głowy nie widać, ale genitalia są bardzo wyraźnie widoczne."],
+                pregunta: "Oto dodatkowe wyzwanie! Proszę znaleźć lubieżnika z Giełdy Jedwabiu!",
+                opciones: ["W jednym z jej okien można znaleźć wyrzeźbionego mężczyznę: jego głowy nie widać, ale genitalia są widoczne bardzo wyraźnie."],
+                correctas: ["W jednym z jej okien można znaleźć wyrzeźbionego mężczyznę: jego głowy nie widać, ale genitalia są widoczne bardzo wyraźnie."],
                 multiple: true
             },
             {
                 reto: 34,
                 id: "R34-Av1-pl",
                 tipo: "opcion",
-                pregunta: "Co postać trzyma w rękach?",
+                pregunta: "Co trzyma w rękach ta postać?",
                 opciones: ["Tarczę", "Muszlę", "Dzban", "Miecz"],
                 correctas: ["Muszlę"],
                 multiple: false
@@ -5288,7 +5288,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi mi powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5306,7 +5306,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av2-pl",
                 tipo: "opcion",
-                pregunta: "Która z dwóch wież jest według Ciebie nowsza, ta na placu czy ta stojąca przed Tobą teraz?",
+                pregunta: "Jak Pan/Pani sądzi, która z dwóch wież jest nowsza: ta na placu czy ta, którą ma Pan/Pani teraz przed sobą?",
                 opciones: ["Bliższa", "Dalsza"],
                 correctas: ["Dalsza"],
                 multiple: false
@@ -5397,7 +5397,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av2-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafiłbyś określić geometrię cimborio katedry w Walencji?",
+                pregunta: "Czy potrafi Pan/Pani określić geometrię latarni katedry w Walencji?",
                 opciones: ["Sześciokątne", "Ośmiokątne", "Czworokątne"],
                 correctas: ["Ośmiokątne"],
                 multiple: false
@@ -5406,7 +5406,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av2-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafiłbyś określić geometrię wieży Miguelete w Walencji?",
+                pregunta: "Czy potrafi Pan/Pani określić geometrię wieży Miguelete w Walencji?",
                 opciones: ["Sześciokątne", "Ośmiokątne", "Czworokątne"],
                 correctas: ["Ośmiokątne"],
                 multiple: false
@@ -5447,7 +5447,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av2-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Trzy ślepe łuki. Dwa z nich są gładkie, trzeci pozostał bez tynku. Co można zobaczyć w tym nieobitym łuku?",
+                pregunta: "Trzy ślepe łuki. Dwa z nich są gładkie, trzeci pozostał bez tynku. Co można zobaczyć w tym nieotynkowanym łuku?",
                 opciones: ["Twarz", "Tors", "Gargulec"],
                 correctas: ["Twarz", "Tors"],
                 multiple: true
@@ -5456,7 +5456,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av2-pl",
                 tipo: "texto",
-                pregunta: "Jak szeroki jest wejście do wąskiego budynku?",
+                pregunta: "Jak szerokie jest wejście do wąskiego budynku?",
                 correctas: ["1,35 metros"]
             },
             {
@@ -8074,7 +8074,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av3-pl",
                 tipo: "opcion",
-                pregunta: "Oto Twoje pierwsze wyzwanie, łatwe. Czy potrafi mi powiedzieć, jak nazywają się te Wieże?",
+                pregunta: "Oto pierwsze wyzwanie, łatwe. Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -8083,7 +8083,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av3-pl",
                 tipo: "opcion",
-                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i...?",
+                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…?",
                 opciones: ["Fioletowy", "Zielony", "Niebieski"],
                 correctas: ["Niebieski"],
                 multiple: false
@@ -8092,7 +8092,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av3-pl",
                 tipo: "texto",
-                pregunta: "Czy potrafi mi powiedzieć nazwę tej starej rzeki?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć nazwę tej starej rzeki?",
                 correctas: ["Turia"],
                 multiple: false
             },
@@ -8106,7 +8106,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av3-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi mi powiedzieć, jak nazywają się te popularne święta w Walencji?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te popularne święta w Walencji?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -8124,7 +8124,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av3-pl",
                 tipo: "texto",
-                pregunta: "Czy potrafisz zgadnąć, ile ma stopni?",
+                pregunta: "Czy potrafi Pan/Pani zgadnąć, ile ma stopni?",
                 correctas: ["16"],
                 multiple: false
             },
@@ -8132,7 +8132,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av3-pl",
                 tipo: "opcion",
-                pregunta: "Jakie drzewa możesz teraz dotknąć?",
+                pregunta: "Jakich drzew może Pan/Pani teraz dotknąć?",
                 opciones: ["Drzewa oliwne", "Drzewa pomarańczowe", "Palmy"],
                 correctas: ["Palmy"],
                 multiple: false
@@ -8141,7 +8141,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av3-pl",
                 tipo: "texto",
-                pregunta: "Czy potrafi mi powiedzieć cenę wejścia do tej atrakcji?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, ile kosztuje wstęp do tej atrakcji?",
                 correctas: ["gratis"],
                 multiple: false
             },
@@ -8182,7 +8182,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av3-pl",
                 tipo: "opcion",
-                pregunta: "Czy pamiętasz, jakie zwierzę wieńczy herb Walencji?",
+                pregunta: "Czy pamięta Pan/Pani, jakie zwierzę wieńczy herb Walencji?",
                 opciones: ["Nietoperz", "Smok", "Lew"],
                 correctas: ["Nietoperz"],
                 multiple: false
@@ -8242,7 +8242,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av3-pl",
                 tipo: "texto",
-                pregunta: "W którym roku wybudowano ten budynek? Wskazówka: spójrz na górę fasady",
+                pregunta: "W którym roku zbudowano ten budynek? Wskazówka: proszę spojrzeć na górną część fasady.",
                 correctas: ["1906"],
                 multiple: false
             },
@@ -10450,7 +10450,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi Pan/Pani powiedzieć mi, jak nazywają się te wieże?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10558,7 +10558,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av4-pl",
                 tipo: "opcion",
-                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…",
+                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…?",
                 opciones: ["Fioletowy","Zielony","Niebieski"],
                 correctas: ["Niebieski"],
                 multiple: false
@@ -13114,7 +13114,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi Pan/Pani powiedzieć mi, jak nazywają się te wieże?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13123,7 +13123,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av5-pl",
                 tipo: "opcion",
-                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…",
+                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…?",
                 opciones: ["Fioletowy","Zielony","Niebieski"],
                 correctas: ["Niebieski"],
                 multiple: null
@@ -13132,7 +13132,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av5-pl",
                 tipo: "texto",
-                pregunta: "Czy potrafi Pan/Pani powiedzieć mi nazwę tej starej rzeki?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć nazwę tej starej rzeki?",
                 correctas: ["Turia"]
             },
             {
@@ -13145,7 +13145,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av5-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi Pan/Pani powiedzieć mi, jak nazywają się te popularne święta Walencji?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te popularne święta w Walencji?",
                 opciones: ["Las Fallas","La Tomatina","Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -13204,14 +13204,14 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av5-pl",
                 tipo: "texto",
-                pregunta: "Ile pięter ma ten Pomnik?",
+                pregunta: "Ile pięter ma ten zabytek?",
                 correctas: ["4"]
             },
             {
                 reto: 15,
                 id: "R15-Av5-pl",
                 tipo: "opcion",
-                pregunta: "Jakim naturalnym owocem cytrusowym z Walencji ozdobiona jest fasada?",
+                pregunta: "Proszę zwrócić uwagę na fasadę pierwszej wieży! Jaki owoc cytrusowy z Walencji zdobi fasadę?",
                 opciones: ["Cytryny","Grejpfruty","Pomarańcze"],
                 correctas: ["Pomarańcze"],
                 multiple: false
@@ -13243,7 +13243,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av5-pl",
                 tipo: "texto",
-                pregunta: "Czy potrafi Pan/Pani podać rok ostatniej renowacji? Na pewno już to widział(a)!",
+                pregunta: "Czy potrafi Pan/Pani podać rok ostatniej renowacji? Na pewno rzucił się już w oczy!",
                 correctas: ["2012"]
             },
             {
@@ -13263,7 +13263,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av5-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi Pan/Pani określić, jaki ma kształt?",
+                pregunta: "Proszę poszukać na fasadzie budynku witrażu w kolorach walencjańskiej Senyery. Czy potrafi Pan/Pani określić, jaki ma kształt?",
                 opciones: ["Czworokątny","Okrągły","Trójkątny"],
                 correctas: ["Okrągły"],
                 multiple: false
@@ -13278,7 +13278,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av5-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Wioślarz płynący pod prąd.",
+                pregunta: "Przewoźnik wiosłujący pod prąd.",
                 opciones: ["Smutny mężczyzna sterujący małą drewnianą łódką ucieka pod prąd przed potworem."],
                 correctas: ["Smutny mężczyzna sterujący małą drewnianą łódką ucieka pod prąd przed potworem."],
                 multiple: true
@@ -13287,9 +13287,9 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av5-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Martwe drzewo: symbol Grzechu, stoi między dwoma skrzydłami drzwi i pełni funkcję słupa środkowego.",
-                opciones: ["Obserwuj w koronie drzewa, jak 4 nagie mężczyźni wzajemnie się chłostają."],
-                correctas: ["Obserwuj w koronie drzewa, jak 4 nagie mężczyźni wzajemnie się chłostają."],
+                pregunta: "Martwe drzewo, symbol Grzechu, stoi między dwoma skrzydłami drzwi i pełni funkcję słupa środkowego.",
+                opciones: ["Proszę spojrzeć na koronę drzewa: 4 nagich mężczyzn biczuje się nawzajem."],
+                correctas: ["Proszę spojrzeć na koronę drzewa: 4 nagich mężczyzn biczuje się nawzajem."],
                 multiple: true
             },
             {
@@ -15458,7 +15458,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi Pan/Pani powiedzieć mi, jak nazywają się te wieże?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15467,7 +15467,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i… ?",
+                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…?",
                 opciones: ["Fioletowy","Zielony","Niebieski"],
                 correctas: ["Niebieski"],
                 multiple: false
@@ -15476,14 +15476,14 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-AvFallas-pl",
                 tipo: "texto",
-                pregunta: "Czy potrafi Pan/Pani powiedzieć mi nazwę tej ulicy?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć nazwę tej ulicy?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "Co trzyma święty Wawrzyniec w ręce?",
+                pregunta: "Co trzyma w ręce święty Wawrzyniec?",
                 opciones: ["Gołąb","Łyżka","Ruszt"],
                 correctas: ["Ruszt"],
                 multiple: false
@@ -15507,9 +15507,9 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi Pan/Pani określić, jaką geometrię ma Cimborrio Katedry w Walencji?",
-                opciones: ["Sześciokąt","Ośmiokąt","Czworokąt"],
-                correctas: ["Ośmiokąt"],
+                pregunta: "Czy potrafi Pan/Pani określić geometrię latarni katedry w Walencji?",
+                opciones: ["Sześciokątne", "Ośmiokątne", "Czworokątne"],
+                correctas: ["Ośmiokątne"],
                 multiple: false
             },
             {
@@ -15538,7 +15538,7 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-AvFallas-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Nad głównym wejściem, w łuku półkolistym, alegoryczne postacie przedstawiają pięć kontynentów. Co niesie centralna figura?",
+                pregunta: "Nad głównym wejściem, w łuku półkolistym, alegoryczne postacie przedstawiają pięć kontynentów. Co trzyma centralna postać?",
                 opciones: ["Pochodnia","Miecz","Korona"],
                 correctas: ["Pochodnia","Miecz"],
                 multiple: true
@@ -15547,7 +15547,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "Co trzyma figura w ręce?",
+                pregunta: "Co trzyma postać w ręce?",
                 opciones: ["Waga","Książka","Pióro"],
                 correctas: ["Waga"],
                 multiple: false
@@ -15556,7 +15556,7 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "Poszukaj witrażu z kolorami walencjańskiej Senyery na fasadzie budynku. Czy potrafi Pan/Pani określić, jaki ma kształt?",
+                pregunta: "Proszę poszukać na fasadzie budynku witrażu w kolorach walencjańskiej Senyery. Czy potrafi Pan/Pani określić, jaki ma kształt?",
                 opciones: ["Czworokątny","Okrągły","Trójkątny"],
                 correctas: ["Okrągły"],
                 multiple: false
@@ -15565,7 +15565,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-AvFallas-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Co trzyma Matka Boska w ręce?",
+                pregunta: "Co trzyma w ręce Matka Boska?",
                 opciones: ["Różaniec","Dziecko","Korona"],
                 correctas: ["Różaniec","Dziecko"],
                 multiple: true
@@ -15574,7 +15574,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "Co anioł przekazuje dziecku?",
+                pregunta: "Co anioł daje dziecku?",
                 opciones: ["Gołąb","Kula","Jedzenie"],
                 correctas: ["Kula"],
                 multiple: false
@@ -22093,7 +22093,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Czy może mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -22108,7 +22108,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi mi powiedzieć, jak nazywają się te popularne święta w Walencji?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te popularne święta w Walencji?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -22126,7 +22126,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av34km-pl",
                 tipo: "texto",
-                pregunta: "Czy potrafisz zgadnąć, ile ma stopni?",
+                pregunta: "Czy potrafi Pan/Pani zgadnąć, ile ma stopni?",
                 correctas: ["16"],
                 multiple: false
             },
@@ -22134,7 +22134,7 @@ export const RETOS_AVENTURAS = {
                 reto: 8,
                 id: "R8-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Jakie drzewa możesz teraz dotknąć?",
+                pregunta: "Jakich drzew może Pan/Pani teraz dotknąć?",
                 opciones: ["Drzewa oliwne", "Drzewa pomarańczowe", "Palmy"],
                 correctas: ["Palmy"],
                 multiple: false
@@ -22143,7 +22143,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av34km-pl",
                 tipo: "texto",
-                pregunta: "Czy potrafi mi powiedzieć cenę wejścia do tej atrakcji?",
+                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, ile kosztuje wstęp do tej atrakcji?",
                 correctas: ["gratis"],
                 multiple: false
             },
@@ -22184,7 +22184,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Czy pamiętasz, jakie zwierzę wieńczy herb Walencji?",
+                pregunta: "Czy pamięta Pan/Pani, jakie zwierzę wieńczy herb Walencji?",
                 opciones: ["Nietoperz", "Smok", "Lew"],
                 correctas: ["Nietoperz"],
                 multiple: false
@@ -22233,14 +22233,14 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av34km-pl",
                 tipo: "texto",
-                pregunta: "Ile pięter ma ten Pomnik?",
+                pregunta: "Ile pięter ma ten zabytek?",
                 correctas: ["4"]
             },
 {
                 reto: 21,
                 id: "R21-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Jakim naturalnym owocem cytrusowym z Walencji ozdobiona jest fasada?",
+                pregunta: "Proszę zwrócić uwagę na fasadę pierwszej wieży! Jaki owoc cytrusowy z Walencji zdobi fasadę?",
                 opciones: ["Cytryny","Grejpfruty","Pomarańcze"],
                 correctas: ["Pomarańcze"],
                 multiple: false
@@ -22265,7 +22265,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Nad głównym wejściem, w półokrągłym łuku, alegoryczne figury reprezentują pięć kontynentów. Co trzyma centralna figura?",
+                pregunta: "Nad głównym wejściem, w łuku półkolistym, alegoryczne postacie przedstawiają pięć kontynentów. Co trzyma centralna postać?",
                 opciones: ["Pochodnia", "Miecz", "Korona"],
                 correctas: ["Pochodnia", "Miecz"],
                 multiple: true
@@ -22274,7 +22274,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Co trzyma figura w swojej ręce?",
+                pregunta: "Co trzyma postać w ręce?",
                 opciones: ["Waga", "Książka", "Pióro"],
                 correctas: ["Waga"],
                 multiple: false
@@ -22290,8 +22290,8 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Poszukaj witrażu w kolorach walencjańskiej Senyery na fasadzie budynku. Czy potrafi Pan/Pani określić jego kształt?",
-                opciones: ["Czworokąt", "Okrągły", "Trójkąt"],
+                pregunta: "Proszę poszukać na fasadzie budynku witrażu w kolorach walencjańskiej Senyery. Czy potrafi Pan/Pani określić, jaki ma kształt?",
+                opciones: ["Czworokątny", "Okrągły", "Trójkątny"],
                 correctas: ["Okrągły"],
                 multiple: false
             },
@@ -22299,7 +22299,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Co trzyma Dziewica w swojej ręce?",
+                pregunta: "Co trzyma w ręce Matka Boska?",
                 opciones: ["Różaniec", "Dziecko", "Korona"],
                 correctas: ["Różaniec", "Dziecko"],
                 multiple: true
@@ -22324,24 +22324,24 @@ export const RETOS_AVENTURAS = {
                 id: "R31-Av34km-pl",
                 tipo: "opcion-multiple",
                 pregunta: "Przewoźnik wiosłujący pod prąd.",
-                opciones: ["Smutny mężczyzna kierujący małą drewnianą łódką ucieka pod prąd przed potworem."],
-                correctas: ["Smutny mężczyzna kierujący małą drewnianą łódką ucieka pod prąd przed potworem."],
+                opciones: ["Smutny mężczyzna sterujący małą drewnianą łódką ucieka pod prąd przed potworem."],
+                correctas: ["Smutny mężczyzna sterujący małą drewnianą łódką ucieka pod prąd przed potworem."],
                 multiple: true
             },
 {
                 reto: 32,
                 id: "R32-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Martwe drzewo: symbol Grzechu, widać je między dwoma skrzydłami drzwi, pełni funkcję słupka.",
-                opciones: ["Obserwuj wierzchołek drzewa, gdzie 4 nagich mężczyzn biczuje się nawzajem."],
-                correctas: ["Obserwuj wierzchołek drzewa, gdzie 4 nagich mężczyzn biczuje się nawzajem."],
+                pregunta: "Martwe drzewo, symbol Grzechu, stoi między dwoma skrzydłami drzwi i pełni funkcję słupa środkowego.",
+                opciones: ["Proszę spojrzeć na koronę drzewa: 4 nagich mężczyzn biczuje się nawzajem."],
+                correctas: ["Proszę spojrzeć na koronę drzewa: 4 nagich mężczyzn biczuje się nawzajem."],
                 multiple: true
             },
 {
                 reto: 33,
                 id: "R33-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Po prawej, anioł pokazuje swój penis i...",
+                pregunta: "Po prawej anioł pokazuje swojego penisa i…",
                 opciones: ["...zamierza włożyć go do wazonu, który trzyma w drugiej ręce. Dziwne i niezwykłe, prawda?"],
                 correctas: ["...zamierza włożyć go do wazonu, który trzyma w drugiej ręce. Dziwne i niezwykłe, prawda?"],
                 multiple: true
@@ -22350,7 +22350,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "W centrum: Brodaty mężczyzna i lew:",
+                pregunta: "W centrum brodaty mężczyzna i lew:",
                 opciones: ["Oryginalna i sprzeczna scena, w której łagodnym jest właśnie lew, a nie brodaty starzec."],
                 correctas: ["Oryginalna i sprzeczna scena, w której łagodnym jest właśnie lew, a nie brodaty starzec."],
                 multiple: true
@@ -22359,9 +22359,9 @@ export const RETOS_AVENTURAS = {
                 reto: 35,
                 id: "R35-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Oto dodatkowe wyzwanie! Znajdź lubieżnika z Giełdy Jedwabiu!",
-                opciones: ["W jednym z jej okien znajdziesz wykutego mężczyznę; jego głowy nie widać, ale genitalia są bardzo wyraźnie widoczne."],
-                correctas: ["W jednym z jej okien znajdziesz wykutego mężczyznę; jego głowy nie widać, ale genitalia są bardzo wyraźnie widoczne."],
+                pregunta: "Oto dodatkowe wyzwanie! Proszę znaleźć lubieżnika z Giełdy Jedwabiu!",
+                opciones: ["W jednym z jej okien można znaleźć wyrzeźbionego mężczyznę: jego głowy nie widać, ale genitalia są widoczne bardzo wyraźnie."],
+                correctas: ["W jednym z jej okien można znaleźć wyrzeźbionego mężczyznę: jego głowy nie widać, ale genitalia są widoczne bardzo wyraźnie."],
                 multiple: true
             },
 {
@@ -22374,14 +22374,14 @@ export const RETOS_AVENTURAS = {
                 reto: 37,
                 id: "R37-Av34km-pl",
                 tipo: "texto",
-                pregunta: "Jak szeroki jest wejście do wąskiego budynku?",
+                pregunta: "Jak szerokie jest wejście do wąskiego budynku?",
                 correctas: ["1,35 metros"]
             },
 {
                 reto: 38,
                 id: "R38-Av34km-pl",
                 tipo: "opcion-multiple",
-                pregunta: "Trzy ślepe łuki. Dwa z nich są gładkie, trzeci pozostał bez tynku. Co można zobaczyć w tym nieobitym łuku?",
+                pregunta: "Trzy ślepe łuki. Dwa z nich są gładkie, trzeci pozostał bez tynku. Co można zobaczyć w tym nieotynkowanym łuku?",
                 opciones: ["Twarz", "Tors", "Gargulec"],
                 correctas: ["Twarz", "Tors"],
                 multiple: true
@@ -22406,7 +22406,7 @@ export const RETOS_AVENTURAS = {
                 reto: 41,
                 id: "R41-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafiłbyś określić geometrię wieży Miguelete w Walencji?",
+                pregunta: "Czy potrafi Pan/Pani określić geometrię wieży Miguelete w Walencji?",
                 opciones: ["Sześciokątne", "Ośmiokątne", "Czworokątne"],
                 correctas: ["Ośmiokątne"],
                 multiple: false
@@ -22464,7 +22464,7 @@ export const RETOS_AVENTURAS = {
                 reto: 48,
                 id: "R48-Av34km-pl",
                 tipo: "texto",
-                pregunta: "W którym roku zbudowano tę kamienicę? Wskazówka: spójrz na górę fasady.",
+                pregunta: "W którym roku zbudowano ten budynek? Wskazówka: proszę spojrzeć na górną część fasady.",
                 correctas: ["1906"]
             },
 {
@@ -22520,9 +22520,9 @@ export const RETOS_AVENTURAS = {
                 reto: 55,
                 id: "R55-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Która z dwóch wież Pałacu Generalitat jest waszym zdaniem nowsza: ta na placu, czy ta, która stoi teraz przed wami?",
-                opciones: ["Ta na placu", "Ta przed wami"],
-                correctas: ["Ta przed wami"],
+                pregunta: "Jak Pan/Pani sądzi, która z dwóch wież Pałacu Generalitat jest nowsza: ta na placu czy ta, którą ma Pan/Pani teraz przed sobą?",
+                opciones: ["Ta na placu", "Ta, którą mam przed sobą"],
+                correctas: ["Ta, którą mam przed sobą"],
                 multiple: false
             },
 {
@@ -22553,7 +22553,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Co postać trzyma w rękach?",
+                pregunta: "Co trzyma w rękach ta postać?",
                 opciones: ["Tarczę", "Muszlę", "Dzban", "Miecz"],
                 correctas: ["Muszlę"],
                 multiple: false
@@ -22681,7 +22681,7 @@ export const RETOS_AVENTURAS = {
                 reto: 75,
                 id: "R75-Av34km-pl",
                 tipo: "texto",
-                pregunta: "Czy potrafi Pan/Pani podać rok ostatniej renowacji? Na pewno już to widział(a)!",
+                pregunta: "Czy potrafi Pan/Pani podać rok ostatniej renowacji? Na pewno rzucił się już w oczy!",
                 correctas: ["2012"]
             },
 {
@@ -22737,7 +22737,7 @@ export const RETOS_AVENTURAS = {
                 reto: 83,
                 id: "R83-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…",
+                pregunta: "Na szczycie wież powiewa flaga Walencji: jej kolory to czerwony, żółty i…?",
                 opciones: ["Fioletowy","Zielony","Niebieski"],
                 correctas: ["Niebieski"],
                 multiple: null
@@ -22787,7 +22787,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Co trzyma święty Wawrzyniec w swojej ręce?",
+                pregunta: "Co trzyma w ręce święty Wawrzyniec?",
                 opciones: ["Gołąb", "Łyżka", "Ruszt"],
                 correctas: ["Ruszt"],
                 multiple: false
