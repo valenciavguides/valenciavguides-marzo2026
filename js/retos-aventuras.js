@@ -16,7 +16,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -26,7 +26,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av1-es",
                 tipo: "opcion",
                 pregunta: "2. ¿Es buen momento para comenzar su aventura?",
-                opciones: ["Sí", "NO"],
+                opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -910,7 +910,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                pregunta: "2. È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -1196,7 +1196,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -1205,7 +1205,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -2081,7 +2081,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av1-zh",
                 tipo: "opcion",
-                pregunta: "1. Valencia be Guides 可以进行多少次冒险？",
+                pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -2975,7 +2975,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av1-ru",
                 tipo: "opcion",
-                pregunta: "2. Сейчас хороший момент для начала приключения?",
+                pregunta: "2. Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
@@ -3558,7 +3558,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -3568,7 +3568,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av2-es",
                 tipo: "opcion",
                 pregunta: "2. ¿Es buen momento para comenzar su aventura?",
-                opciones: ["Sí", "NO"],
+                opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -4209,7 +4209,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                pregunta: "2. È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -4414,7 +4414,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av2-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -4423,7 +4423,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -5065,7 +5065,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-zh",
                 tipo: "opcion",
-                pregunta: "2. 现在是开始您的冒险的好时机吗？",
+                pregunta: "2. 现在是开始冒险的好时机吗？",
                 opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
@@ -5279,7 +5279,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-pl",
                 tipo: "opcion",
-                pregunta: "2. Czy to dobry moment, aby rozpocząć swoją przygodę?",
+                pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
                 opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
@@ -5707,7 +5707,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-ru",
                 tipo: "opcion",
-                pregunta: "2. Это хорошее время, чтобы начать своё приключение?",
+                pregunta: "2. Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
@@ -5921,7 +5921,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av2-uk",
                 tipo: "opcion",
-                pregunta: "2. Чи зараз вдалий час, щоб розпочати свою пригоду?",
+                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
                 opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
@@ -6128,7 +6128,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -6138,7 +6138,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av3-es",
                 tipo: "opcion",
                 pregunta: "2. ¿Es buen momento para comenzar su aventura?",
-                opciones: ["Sí", "NO"],
+                opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -6860,7 +6860,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                pregunta: "2. È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -7092,7 +7092,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av3-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -7101,7 +7101,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -7824,7 +7824,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-zh",
                 tipo: "opcion",
-                pregunta: "2. 现在是开始您的冒险的好时机吗？",
+                pregunta: "2. 现在是开始冒险的好时机吗？",
                 opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
@@ -8065,7 +8065,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-pl",
                 tipo: "opcion",
-                pregunta: "2. Czy to dobry moment, aby rozpocząć swoją przygodę?",
+                pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
                 opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
@@ -8547,7 +8547,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-ru",
                 tipo: "opcion",
-                pregunta: "2. Это хорошее время, чтобы начать своё приключение?",
+                pregunta: "2. Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
@@ -8788,7 +8788,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av3-uk",
                 tipo: "opcion",
-                pregunta: "2. Чи зараз вдалий час, щоб розпочати свою пригоду?",
+                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
                 opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
@@ -9022,7 +9022,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-es",
                 tipo: "opcion",
-                pregunta: "1. Cuantas Aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -9031,8 +9031,8 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-es",
                 tipo: "opcion",
-                pregunta: "2. Es buen momento para comenzar su aventura?",
-                opciones: ["Si", "NO"],
+                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -9562,8 +9562,8 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-it",
                 tipo: "opcion",
-                pregunta: "2. E un buon momento per iniziare la tua avventura?",
-                opciones: ["Si", "No"],
+                pregunta: "2. È un buon momento per iniziare la sua avventura?",
+                opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -9730,7 +9730,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kun je doen met Valencia be Guides?",
+                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -9739,7 +9739,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -9907,7 +9907,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-ja",
                 tipo: "opcion",
-                pregunta: "1. [PENDING] Valencia be Guides intro question",
+                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -9916,8 +9916,8 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-ja",
                 tipo: "opcion",
-                pregunta: "2. [PENDING] Is it a good time to start your adventure?",
-                opciones: ["Yes", "No"],
+                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                opciones: ["はい", "いいえ"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -10084,8 +10084,8 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-de",
                 tipo: "opcion",
-                pregunta: "1. Wie viele Abenteuer kann man mit Valencia be Guides machen?",
-                opciones: ["4","5","6","7"],
+                pregunta: "1. Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -10093,8 +10093,8 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-de",
                 tipo: "opcion",
-                pregunta: "2. Ist es ein guter Zeitpunkt, um Ihr Abenteuer zu beginnen?",
-                opciones: ["Ja","Nein"],
+                pregunta: "2. Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+                opciones: ["Ja", "Nein"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -10259,7 +10259,7 @@ export const RETOS_AVENTURAS = {
                 id: "R1-Av4-zh",
                 tipo: "opcion",
                 pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
-                opciones: ["4","5","6","7"],
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -10268,7 +10268,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av4-zh",
                 tipo: "opcion",
                 pregunta: "2. 现在是开始冒险的好时机吗？",
-                opciones: ["是","否"],
+                opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -10433,7 +10433,7 @@ export const RETOS_AVENTURAS = {
                 id: "R1-Av4-pl",
                 tipo: "opcion",
                 pregunta: "1. Ile przygód można przeżyć z Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -10442,7 +10442,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av4-pl",
                 tipo: "opcion",
                 pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
-                opciones: ["Tak","Nie"],
+                opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -10606,8 +10606,8 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av4-pt",
                 tipo: "opcion",
-                pregunta: "1. Quantas Aventuras podem ser feitas com Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                pregunta: "1. Quantas aventuras podem ser feitas com Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -10616,7 +10616,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av4-pt",
                 tipo: "opcion",
                 pregunta: "2. É um bom momento para começar a sua aventura?",
-                opciones: ["Sim","Não"],
+                opciones: ["Sim", "Não"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -10781,7 +10781,7 @@ export const RETOS_AVENTURAS = {
                 id: "R1-Av4-ru",
                 tipo: "opcion",
                 pregunta: "1. Сколько приключений можно совершить с Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -10790,7 +10790,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av4-ru",
                 tipo: "opcion",
                 pregunta: "2. Сейчас хорошее время для начала приключения?",
-                opciones: ["Да","Нет"],
+                opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -10955,7 +10955,7 @@ export const RETOS_AVENTURAS = {
                 id: "R1-Av4-uk",
                 tipo: "opcion",
                 pregunta: "1. Скільки пригод можна здійснити з Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -10963,8 +10963,8 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av4-uk",
                 tipo: "opcion",
-                pregunta: "2. Зараз хороший час для початку пригоди?",
-                opciones: ["Так","Ні"],
+                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
+                opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -11130,7 +11130,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -11140,7 +11140,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av5-es",
                 tipo: "opcion",
                 pregunta: "2. ¿Es buen momento para comenzar su aventura?",
-                opciones: ["Sí", "NO"],
+                opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -11878,7 +11878,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                pregunta: "2. È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -12120,7 +12120,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -12129,7 +12129,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -12622,8 +12622,8 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-de",
                 tipo: "opcion",
-                pregunta: "1. Wie viele Abenteuer kann man mit Valencia be Guides machen?",
-                opciones: ["4","5","6","7"],
+                pregunta: "1. Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -12631,8 +12631,8 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-de",
                 tipo: "opcion",
-                pregunta: "2. Ist es ein guter Zeitpunkt, um Ihr Abenteuer zu beginnen?",
-                opciones: ["Ja","Nein"],
+                pregunta: "2. Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+                opciones: ["Ja", "Nein"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -12860,7 +12860,7 @@ export const RETOS_AVENTURAS = {
                 id: "R1-Av5-zh",
                 tipo: "opcion",
                 pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
-                opciones: ["4","5","6","7"],
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -12869,7 +12869,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av5-zh",
                 tipo: "opcion",
                 pregunta: "2. 现在是开始冒险的好时机吗？",
-                opciones: ["是","否"],
+                opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -13097,7 +13097,7 @@ export const RETOS_AVENTURAS = {
                 id: "R1-Av5-pl",
                 tipo: "opcion",
                 pregunta: "1. Ile przygód można przeżyć z Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -13106,7 +13106,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av5-pl",
                 tipo: "opcion",
                 pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
-                opciones: ["Tak","Nie"],
+                opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -13333,8 +13333,8 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av5-pt",
                 tipo: "opcion",
-                pregunta: "1. Quantas Aventuras podem ser feitas com Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                pregunta: "1. Quantas aventuras podem ser feitas com Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -13343,7 +13343,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av5-pt",
                 tipo: "opcion",
                 pregunta: "2. É um bom momento para começar a sua aventura?",
-                opciones: ["Sim","Não"],
+                opciones: ["Sim", "Não"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -13571,7 +13571,7 @@ export const RETOS_AVENTURAS = {
                 id: "R1-Av5-ru",
                 tipo: "opcion",
                 pregunta: "1. Сколько приключений можно совершить с Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -13580,7 +13580,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av5-ru",
                 tipo: "opcion",
                 pregunta: "2. Сейчас хорошее время для начала приключения?",
-                opciones: ["Да","Нет"],
+                opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -13808,7 +13808,7 @@ export const RETOS_AVENTURAS = {
                 id: "R1-Av5-uk",
                 tipo: "opcion",
                 pregunta: "1. Скільки пригод можна здійснити з Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -13816,8 +13816,8 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av5-uk",
                 tipo: "opcion",
-                pregunta: "2. Зараз хороший час для початку пригоди?",
-                opciones: ["Так","Ні"],
+                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
+                opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -14046,7 +14046,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-es",
                 tipo: "opcion",
-                pregunta: "¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -14055,8 +14055,8 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-es",
                 tipo: "opcion",
-                pregunta: "¿Es buen momento para comenzar su aventura?",
-                opciones: ["Sí", "NO"],
+                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -14578,7 +14578,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                pregunta: "2. È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -14744,7 +14744,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -14753,7 +14753,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -15094,8 +15094,8 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                pregunta: "1. Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -15103,8 +15103,8 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "2. Ist es ein guter Zeitpunkt, um Ihr Abenteuer zu beginnen?",
-                opciones: ["Ja","Nein"],
+                pregunta: "2. Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+                opciones: ["Ja", "Nein"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -15267,8 +15267,8 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "使用Valencia be Guides可以进行多少次冒险？",
-                opciones: ["4","5","6","7"],
+                pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -15277,7 +15277,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-AvFallas-zh",
                 tipo: "opcion",
                 pregunta: "2. 现在是开始冒险的好时机吗？",
-                opciones: ["是","否"],
+                opciones: ["是", "否"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -15440,8 +15440,8 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "Ile przygód można przeżyć z Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                pregunta: "1. Ile przygód można przeżyć z Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -15450,7 +15450,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-AvFallas-pl",
                 tipo: "opcion",
                 pregunta: "2. Czy to dobry moment, aby rozpocząć przygodę?",
-                opciones: ["Tak","Nie"],
+                opciones: ["Tak", "Nie"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -15613,8 +15613,8 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-pt",
                 tipo: "opcion",
-                pregunta: "Quantas Aventuras podem ser feitas com Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                pregunta: "1. Quantas aventuras podem ser feitas com Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -15623,7 +15623,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-AvFallas-pt",
                 tipo: "opcion",
                 pregunta: "2. É um bom momento para começar a sua aventura?",
-                opciones: ["Sim","Não"],
+                opciones: ["Sim", "Não"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -15786,8 +15786,8 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "Сколько приключений можно совершить с Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                pregunta: "1. Сколько приключений можно совершить с Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -15796,7 +15796,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-AvFallas-ru",
                 tipo: "opcion",
                 pregunta: "2. Сейчас хорошее время для начала приключения?",
-                opciones: ["Да","Нет"],
+                opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -15959,8 +15959,8 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "Скільки пригод можна здійснити з Valencia be Guides?",
-                opciones: ["4","5","6","7"],
+                pregunta: "1. Скільки пригод можна здійснити з Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
             },
@@ -15968,8 +15968,8 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "2. Зараз хороший час для початку пригоди?",
-                opciones: ["Так","Ні"],
+                pregunta: "2. Чи зараз гарний момент для початку пригоди?",
+                opciones: ["Так", "Ні"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -16134,7 +16134,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-es",
                 tipo: "opcion",
-                pregunta: "1. ¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                pregunta: "1. ¿Cuántas aventuras pueden hacerse con Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -16144,7 +16144,7 @@ export const RETOS_AVENTURAS = {
                 id: "R2-Av34km-es",
                 tipo: "opcion",
                 pregunta: "2. ¿Es buen momento para comenzar su aventura?",
-                opciones: ["Sí", "NO"],
+                opciones: ["Sí", "No"],
                 correctas: ["?"],
                 multiple: false
             },
@@ -18374,7 +18374,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-it",
                 tipo: "opcion",
-                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                pregunta: "2. È un buon momento per iniziare la sua avventura?",
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
@@ -19111,7 +19111,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                pregunta: "1. Hoeveel avonturen kunt u beleven met Valencia be Guides?",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -19120,7 +19120,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                pregunta: "2. Is het een goed moment om uw avontuur te beginnen?",
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
@@ -21339,7 +21339,7 @@ export const RETOS_AVENTURAS = {
                 reto: 1,
                 id: "R1-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "1. Valencia be Guides 可以进行多少次冒险？",
+                pregunta: "1. 使用Valencia be Guides可以进行多少次冒险？",
                 opciones: ["4", "5", "6", "7"],
                 correctas: ["7"],
                 multiple: false
@@ -23556,7 +23556,7 @@ export const RETOS_AVENTURAS = {
                 reto: 2,
                 id: "R2-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "2. Сейчас хороший момент для начала приключения?",
+                pregunta: "2. Сейчас хорошее время для начала приключения?",
                 opciones: ["Да", "Нет"],
                 correctas: ["?"],
                 multiple: false
