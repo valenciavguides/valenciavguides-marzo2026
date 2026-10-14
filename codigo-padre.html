@@ -12881,7 +12881,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     `;
 
                     modalTiempoAgotado.innerHTML = `
-                        <div style="background:#c8e6f7;border-radius:1rem;padding:clamp(1.5rem,5vmin,2.5rem);max-width:95vw;width:95vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.4);">
+                        <div style="position:relative;background:#c8e6f7;border-radius:1rem;padding:clamp(1.5rem,5vmin,2.5rem);max-width:95vw;width:95vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.4);">
+                            <button type="button" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
                             <img src="imagenes/imagenes video intro/caballero_llorando.png" alt="" style="max-width:clamp(120px,35vmin,220px);width:100%;height:auto;margin-bottom:1rem;">
                             <h1 style="font-size:clamp(1.2rem,5vmin,1.8rem);color:#1a5276;margin:0 0 0.75rem 0;">${t.titulo}</h1>
                             <p style="font-size:clamp(0.9rem,3.5vmin,1.1rem);color:#333;margin:0 0 1.5rem 0;">${t.cuerpo}</p>
@@ -12913,12 +12914,16 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                         () => _limpiarYRecargarTiempoAgotado('abandono'), 'TIEMPO_AGOTADO'
                     );
 
-                    // "Hacer otra aventura": limpieza total + recarga (mismo camino que el modal de fin de aventura normal)
-                    document.getElementById('btn-tiempo-agotado-otra').onclick = async () => {
+                    // "Hacer otra aventura": limpieza total + recarga (mismo camino que el modal de fin de aventura normal).
+                    // La ✕ hace lo mismo: el tiempo se ha acabado, y cerrar el aviso sin más dejaría debajo la aventura
+                    // con los controles bloqueados y sin salida.
+                    const _otraAventuraTiempoAgotado = async (como) => {
                         _desarmarAbandonoTiempoAgotado();
-                        (globalThis.logger || console).info(`${logPrefix} Usuario eligió OTRA AVENTURA`);
+                        (globalThis.logger || console).info(`${logPrefix} Usuario eligió OTRA AVENTURA (${como})`);
                         await _limpiarYRecargarTiempoAgotado('timeout');
                     };
+                    document.getElementById('btn-tiempo-agotado-otra').onclick = () => _otraAventuraTiempoAgotado('botón');
+                    modalTiempoAgotado.querySelector('.btn-cerrar-overlay').onclick = () => _otraAventuraTiempoAgotado('✕');
 
                     // "Terminar esta experiencia": mismo camino emotivo que el modal de fin de aventura normal (P18 despedida)
                     document.getElementById('btn-tiempo-agotado-terminar').onclick = () => {

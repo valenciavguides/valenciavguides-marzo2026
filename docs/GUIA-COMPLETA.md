@@ -4900,7 +4900,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-3f2f001ba3f7'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f6bb380aaf1c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8042,6 +8042,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `127-confirmacion-de-aventura-tras-el-pago.spec.js` | 11 | La segunda confirmación de la aventura (P13) y lo que se puede elegir con el pago hecho (§7.1), con el padre y su pantalla de selección reales: las pantallas son dieciocho y cada una está en su número (CP-1); la tarjeta enseña la aventura elegida, se pinta al mostrarse la pantalla y es la misma en P9 y en P13 (CP-2); P12 ➣ → P13 ➣ → P14 (CP-3); sin el pago hecho se pueden elegir las siete aventuras y elegir enseña el mapa de la aventura, no P13 (CP-4, control); con el pago hecho de una aventura corta, la larga sale deshabilitada nada más volver a P7 y otra corta va derecha a P13, sin mapa y con el padre avisado (CP-5); con el pago hecho de la larga solo ella queda habilitada (CP-6); pedir P13 sin el pago hecho enseña P12 y lo registra en la consola (CP-7); volver a P1 deja de dar el pago por hecho (CP-8); en local el código se rechaza con su aviso y P14 sigue en pantalla (CP-9); en modo DEV (ver §24) P12, P13 y P14 llevan a la normativa (CP-10); y al mostrarse la normativa (P15) el padre carga los hijos (CP-11) |
 | `128-elegir-otra-aventura-arranca-de-cero.spec.js` | 1 | «Elegir otra aventura» con una aventura en curso deja la app como recién abierta (§34): por el camino real —elegir, normativa, logos y su botón— arranca una aventura (control), se pulsa «Elegir otra aventura» en el diálogo de vuelta y la página se recarga; tras la recarga no queda aventura guardada, el padre no tiene modo ni parada, la selección está en P1 sin su pantalla de carga y sin oferta de reanudar, y la segunda aventura arranca con una parada que es de la suya (EO-1). Espera a que el arranque del padre haya comprobado si hay una aventura guardada antes de arrancar ninguna |
 | `129-el-codigo-se-comprueba-y-cuenta-al-arrancar.spec.js` | 4 | El código de compra se comprueba en P14 y empieza a contar al arrancar la aventura (§16.2). El spec sirve una copia de `js/data-loader.js` con el backend autorizado, contesta él mismo a `/api/*` y va sin service worker: sin backend, arrancar el reloj de la aventura no llama a `/api` (CC-1, control); con backend, P14 llama a `/auth/comprobar` con el código, el email y la aventura elegida, pasa a la normativa y no llama a `/auth/activar` (CC-2); al arrancar el reloj de la aventura se llama a `/auth/activar`, una vez, con la aventura y con el token que dejó la comprobación (CC-3); en modo DEV (ver §24) o fuera del modo AVENTURA el reloj no arranca y no se llama (CC-4) |
+| `130-modal-tiempo-agotado-tiene-x.spec.js` | 3 | El modal de tiempo agotado lleva la ✕ común de la PWA, visible y dentro del modal (TX-1), y la ✕ vacía lo guardado y recarga la página sin modal al volver (TX-2), igual que «Hacer otra aventura», medido igual como control (TX-3) (§25.12) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8276,7 +8277,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-3f2f001ba3f7'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-f6bb380aaf1c'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8517,7 +8518,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 126 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 127 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9026,7 +9027,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-3f2f001ba3f7';
+const CACHE_VERSION = 'v-f6bb380aaf1c';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10345,7 +10346,7 @@ Los disparadores 2 y 3 llaman a la misma función directamente (`await globalThi
 |---|---|---|
 | Imagen | Emoji 🎉 | `imagenes/imagenes video intro/caballero_llorando.png` |
 | Título/cuerpo | `TRADUCCIONES_FINALIZACION` (12 idiomas): título de felicitación + nombre de la aventura + pregunta | `TRADUCCIONES_TIEMPO_AGOTADO` (12 idiomas): `titulo` ("¡Tiempo agotado!") + `cuerpo` (mensaje de cierre, sin invitar a "reiniciar") |
-| Botones | `btn_otra` / `btn_terminar` de `TRADUCCIONES_FINALIZACION` | Los mismos textos `btn_otra` / `btn_terminar`, reutilizados de `TRADUCCIONES_FINALIZACION` — no existen claves de botón propias en `TRADUCCIONES_TIEMPO_AGOTADO` |
+| Botones | `btn_otra` / `btn_terminar` de `TRADUCCIONES_FINALIZACION` | Los mismos textos `btn_otra` / `btn_terminar`, reutilizados de `TRADUCCIONES_FINALIZACION` — no existen claves de botón propias en `TRADUCCIONES_TIEMPO_AGOTADO` —, y además la ✕ común de la PWA (`.btn-cerrar-overlay`), que hace lo mismo que «Hacer otra aventura» |
 | Función creadora | `mostrarModalFinalizacion()` (Script 1) | Construido inline dentro de `_hdl_AVENTURA_TIEMPO_AGOTADO()` (Script 2) — no es la misma función, es HTML/CSS duplicado a propósito porque vive en otro scope de script |
 
 `TRADUCCIONES_FINALIZACION` se importa en Script 2 mediante `await import('./js/traducciones-ui.js')` junto a `TRADUCCIONES_TIEMPO_AGOTADO`, ya que el import estático de Script 1 no es visible en Script 2 (ver regla de scopes separados en `CLAUDE.md`).
@@ -10357,6 +10358,8 @@ Al crear el modal por primera vez, también arma la **red de seguridad por aband
 1. `modalTiempoAgotado.remove()`
 2. `await limpiarDatosAventura('timeout')` — limpieza total (localStorage, sessionStorage, cachés SW, desregistra SW)
 3. `location.reload()` → selector muestra P1 sin estado
+
+**La ✕** (`.btn-cerrar-overlay` con `.icono-x-cerrar`, la misma de todas las capas que se cierran) hace lo mismo que «Hacer otra aventura»: las dos llaman a `_otraAventuraTiempoAgotado()`. Cerrar el aviso sin más dejaría debajo la aventura con los controles bloqueados y sin salida. Spec 130.
 
 **Botón "Terminar esta experiencia"** (`#btn-tiempo-agotado-terminar`) — camino emotivo, reutiliza el flujo P18 existente sin modificarlo:
 
@@ -10420,7 +10423,7 @@ El flag `activado` garantiza que `accionLimpieza()` se ejecuta como máximo una 
 | # | Dónde se arma | Acción de limpieza vinculada | Dónde se desarma |
 |---|---|---|---|
 | 1 | `mostrarModalFinalizacion()` — `codigo-padre.html` (Script 1) | `_finalizarYLimpiar('abandono')` | Onclick de `btn-fin-otra-aventura` / `btn-fin-terminar` |
-| 2 | `_hdl_AVENTURA_TIEMPO_AGOTADO()` — `codigo-padre.html` (Script 2) | `_limpiarYRecargarTiempoAgotado('abandono')` | Onclick de `btn-tiempo-agotado-otra` / `btn-tiempo-agotado-terminar` |
+| 2 | `_hdl_AVENTURA_TIEMPO_AGOTADO()` — `codigo-padre.html` (Script 2) | `_limpiarYRecargarTiempoAgotado('abandono')` | Onclick de `btn-tiempo-agotado-otra`, de su ✕ y de `btn-tiempo-agotado-terminar` |
 | 3 | `_armarLimpiezaPorAbandonoP18()` — `En-busca-del-tesoro.html`, invocada desde `_checkUrlParams()` cuando `?despedida=1` | `_ejecutarDespedida()` | Inicio de `_ejecutarDespedida()` |
 
 **Protecciones que cubren estos tres casos borde:**
@@ -12490,7 +12493,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-3f2f001ba3f7';
+const CACHE_VERSION = 'v-f6bb380aaf1c';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14219,8 +14222,8 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `verificarTimeoutAventura` | módulo 1 (L2873) | módulo 2 | función/objeto |
 | `waitForMapLibreAndInitialize` | módulo 1 (L8004) | módulo 2 | función/objeto |
 | `__distribuirReadyPromise` | módulo 2 (L9108) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14059) | clásico 11 | estado |
-| `_estadoRescate` | módulo 2 (L14040) | clásico 6 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14064) | clásico 11 | estado |
+| `_estadoRescate` | módulo 2 (L14045) | clásico 6 | función/objeto |
 | `_iniciarTemporizadorAventura` | módulo 2 (L12706) | módulo 1 | función/objeto |
 | `_reenviarProgressBarAHijo3` | módulo 2 (L10072) | módulo 1 | función/objeto |
 | `_retoBtnEncendido` | módulo 2 (L11281) | módulo 1 | función/objeto |
@@ -14231,12 +14234,12 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `AVENTURA_PARADAS` | módulo 2 (L9311) | clásico 6, módulo 1 | función/objeto |
 | `distribuirDatosAventura` | módulo 2 (L9393) | módulo 1 | función/objeto |
 | `marcarParadaCompletada` | módulo 2 (L9882) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12967) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12972) | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 (L9945) | módulo 1 | función/objeto |
 | `obtenerElementoActual` | módulo 2 (L9431) | módulo 1 | función/objeto |
 | `solicitarAudioAHijo3` | módulo 2 (L9937) | módulo 1 | función/objeto |
 | `solicitarCoordenadasAHijo2` | módulo 2 (L9910) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14075) | módulo 2 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14080) | módulo 2 | función/objeto |
 
 </details>
 
