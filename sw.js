@@ -36,6 +36,8 @@ const APP_SHELL = [
   '/gastronomia.html',
   '/paginas-oficiales-valencia.html',
   '/videos-valencia-historica.html',
+  // La X común de esas cuatro páginas, que hijo1 abre en otra ventana:
+  '/css/boton-cerrar.css',
   '/puzzle.html',
   '/extrainfo-hijo1.html',
   '/chat-hijo6.html',
@@ -104,7 +106,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell actualiza la versión de caché
 // automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-1e2823c04c92';
+const CACHE_VERSION = 'v-08e0a0541a6d';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';

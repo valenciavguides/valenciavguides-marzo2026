@@ -1,0 +1,56 @@
+/*
+ * La ✕ común de la PWA (`.btn-cerrar-overlay` con `.icono-x-cerrar` dentro), para las páginas sueltas que abre hijo1
+ * en otra ventana (gastronomía, información, historia y páginas oficiales). Es la misma que dibuja el padre en sus
+ * capas (codigo-padre.html): mismo color, mismo borde, mismo tamaño.
+ *
+ * `.btn-cerrar-pagina` la fija a la esquina de la ventana, para que siga a la vista al desplazar una página larga.
+ */
+.btn-cerrar-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 3.25rem;
+    height: 3.25rem;
+    background: #F28500; /* Fondo naranja clementine */
+    border: 0.3125rem solid #50C878; /* Borde verde esmeralda de 0.3125rem */
+    border-radius: 50%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #0F0616; /* Negro púrpura */
+    cursor: pointer;
+    z-index: 1000020 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+    -webkit-align-items: center;
+    -webkit-justify-content: center;
+    /* Touch-friendly */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.icono-x-cerrar {
+    display: inline-block;
+    transform: scaleY(1.4);
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    -webkit-text-stroke: 1px #0F0616;
+}
+
+.btn-cerrar-overlay:hover {
+    background: #d97400; /* Naranja clementine más oscuro en hover */
+    border-color: #3ea862; /* Verde esmeralda más oscuro en hover */
+    transform: scale(1.1);
+    box-shadow: 0 0.375rem 1.25rem rgba(0, 0, 0, 0.4);
+}
+
+.btn-cerrar-pagina {
+    position: fixed;
+    top: max(0.75rem, env(safe-area-inset-top, 0px));
+    right: 0.75rem;
+}

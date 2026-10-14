@@ -2422,10 +2422,10 @@ flowchart TD
 |----------|----|---------|-----------|--------------|
 | Botón principal | `#mas-opciones` | Toggle del menú desplegable. Gira con animación `spin-ruleta 0.9s cubic-bezier`. Glow `glow-suave-h1 3s infinite` en reposo | Siempre | — |
 | Listado de paradas | `#icono-listado-paradas` | Abre/cierra la ventana flotante con el progreso de la aventura (ver "Listado de paradas" más abajo) | Siempre, en CASA y en AVENTURA | — |
-| Gastronomía | `#icono-gastronomia` | Pide al padre abrir `gastronomia.html` | Siempre que el menú esté abierto | — |
-| Información | `#icono-informacion` | Pide abrir `consejos-valencia.html` | Siempre | — |
-| Historia | `#icono-historia` | Pide abrir `videos-valencia-historica.html` | Siempre | — |
-| Páginas oficiales | `#icono-paginas-oficiales` | Pide abrir `paginas-oficiales-valencia.html` | Siempre | — |
+| Gastronomía | `#icono-gastronomia` | Abre `gastronomia.html` en otra ventana (`window.open`) y avisa al padre (`UI.NAVEGACION_EXTERNA`) | Siempre que el menú esté abierto | — |
+| Información | `#icono-informacion` | Abre `consejos-valencia.html`, igual | Siempre | — |
+| Historia | `#icono-historia` | Abre `videos-valencia-historica.html`, igual | Siempre | — |
+| Páginas oficiales | `#icono-paginas-oficiales` | Abre `paginas-oficiales-valencia.html`, igual | Siempre | — |
 | Temporizador | `#icono-temporizador` | Activa/desactiva ventana del temporizador (en CASA el reloj del padre marca `000:00:00`) | Siempre | — |
 
 Los 6 iconos son `display:none` por defecto y se despliegan con JS al pulsar `#mas-opciones`. Se posicionan verticalmente hacia arriba desde el botón principal con la fórmula:
@@ -3526,6 +3526,8 @@ Estas cuatro páginas son **HTML estático** — no tienen `postMessage`, no reg
 | `consejos-valencia.html` | Consejos prácticos e información turística | Español (`lang="es"`, sin selector de idioma) |
 | `videos-valencia-historica.html` | Vídeos de historia de Valencia (embeds externos) | Español (`lang="es"`, sin selector de idioma) |
 | `paginas-oficiales-valencia.html` | Páginas oficiales del Ayuntamiento y turismo | Español (`lang="es"`, sin selector de idioma) |
+
+Las cuatro llevan la ✕ común de la PWA, fija en la esquina superior derecha: `.btn-cerrar-overlay` con `.icono-x-cerrar`, la misma que dibuja el padre, más `.btn-cerrar-pagina`, que la fija; las tres clases vienen de `css/boton-cerrar.css`. La ✕ cierra la ventana con `window.close()`, que la cierra porque la abrió hijo1 con `window.open`. Spec 134.
 
 ---
 
@@ -4900,7 +4902,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-1e2823c04c92'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-08e0a0541a6d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8046,6 +8048,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `131-boton-atras-como-una-app.spec.js` | 6 | El botón atrás con una aventura en marcha, pulsado de verdad (`history.back()`, §34): en una sesión recién abierta el primer «atrás» enseña el diálogo de vuelta, el segundo lo cierra y la aventura sigue, y el tercero lo vuelve a enseñar (BA-1); primero cierra lo que hay delante —el listado de paradas y el asistente, uno por pulsación— y solo después el diálogo (BA-2); cierra un desplegable abierto sin diálogo (BA-3); con la ventana del reto el diálogo sale encima, se puede pulsar y al continuar la ventana sigue a la vista (BA-4); con el modal de fin de aventura no hace nada (BA-5); y sin aventura en marcha, con otra aventura elegida en la selección, no enseña el diálogo (BA-6) |
 | `132-retos-en-su-idioma-y-sin-provisionales.spec.js` | 6 | Los datos de `js/retos-aventuras.js`, cargados en el navegador: los retos 1 y 2 de la selección tienen una sola redacción por idioma, igual en las siete aventuras (RH-1); ningún reto lleva un texto provisional (RH-2); ninguno de otro idioma copia la pregunta en español (RH-3); las opciones del reto 2 están en su idioma (RH-4); en español una pregunta que acaba en «?» abre con «¿» (RH-5); y ninguna pregunta lleva su número delante, porque los retos no se numeran en pantalla (RH-6). Cada comprobación lleva su control, un dato roto a propósito que tiene que fallar |
 | `133-hijo4-el-reto-abierto-es-uno-solo.spec.js` | 2 | En hijo4, «el reto abierto» (`estado.retoActualId`) es uno solo: con un reto abierto, el cambio de modo no limpia la ventana y lo avisa (UR-1, control); tras un `NAVEGACION.CAMBIO_PARADA` que nombra un reto, sin abrirlo, el cambio de modo limpia sin ese aviso (UR-2) |
+| `134-paginas-de-hijo1-con-x.spec.js` | 4 | Las cuatro páginas que abre hijo1 (gastronomía, información, historia y páginas oficiales), abiertas como las abre él (`window.open` en otra ventana), llevan la ✕ común con su aspecto, fija en la esquina, y la ✕ cierra la ventana (PH-1 y PH-2, una por página) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8280,7 +8283,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-1e2823c04c92'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-08e0a0541a6d'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8411,6 +8414,8 @@ proyecto/
 ├── consejos-valencia.html
 ├── gastronomia.html
 ├── paginas-oficiales-valencia.html
+├── css/
+│   └── boton-cerrar.css              ← La ✕ común de las cuatro páginas que abre hijo1
 │
 ├── manifest.json                     ← Configuración PWA (iconos, shortcuts, categorías)
 ├── sw.js                             ← Service Worker: caché shell (Network First) + media (Cache First LRU-100, sin vídeos ni audios de aventura — esos van siempre directos a red; los efectos de `audios-efectos/` viajan en el shell)
@@ -8521,7 +8526,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 130 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 131 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9030,7 +9035,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-1e2823c04c92';
+const CACHE_VERSION = 'v-08e0a0541a6d';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12496,7 +12501,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-1e2823c04c92';
+const CACHE_VERSION = 'v-08e0a0541a6d';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
