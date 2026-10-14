@@ -2099,7 +2099,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-zh",
                 tipo: "opcion",
-                pregunta: "您知道这些塔楼叫什么名字吗？",
+                pregunta: "您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -2108,7 +2108,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-zh",
                 tipo: "opcion",
-                pregunta: "塔楼顶部飘扬着巴伦西亚的旗帜，颜色由红色、黄色和……组成？",
+                pregunta: "塔顶飘扬着巴伦西亚的旗帜：它的颜色是红色、黄色和……？",
                 opciones: ["紫色", "绿色", "蓝色"],
                 correctas: ["蓝色"],
                 multiple: false
@@ -2124,7 +2124,7 @@ export const RETOS_AVENTURAS = {
                 reto: 6,
                 id: "R6-Av1-zh",
                 tipo: "opcion",
-                pregunta: "圣劳伦斯手中拿着什么？",
+                pregunta: "圣洛伦佐手里拿着什么？",
                 opciones: ["一只鸽子", "一把勺子", "一个烤架"],
                 correctas: ["一个烤架"],
                 multiple: false
@@ -2180,7 +2180,7 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-Av1-zh",
                 tipo: "texto",
-                pregunta: "这栋建筑建于哪一年？提示：看建筑外立面的上部。",
+                pregunta: "这栋建筑建于哪一年？提示：请看建筑外立面的上部。",
                 correctas: ["1906"]
             },
             {
@@ -2249,9 +2249,9 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "在主入口上方的半圆拱门中，寓言人物代表五大洲。中央人物拿着什么？",
-                opciones: ["一把火炬", "一把剑", "一顶王冠"],
-                correctas: ["一把火炬", "一把剑"],
+                pregunta: "在主入口上方的半圆拱门中，寓言人物代表着五大洲。中央人物拿着什么？",
+                opciones: ["一支火炬", "一把剑", "一顶王冠"],
+                correctas: ["一支火炬", "一把剑"],
                 multiple: true
             },
             {
@@ -2259,8 +2259,8 @@ export const RETOS_AVENTURAS = {
                 id: "R23-Av1-zh",
                 tipo: "opcion",
                 pregunta: "这个人物手中拿着什么？",
-                opciones: ["一把天平", "一本书", "一根羽毛"],
-                correctas: ["一把天平"],
+                opciones: ["一架天平", "一本书", "一支羽毛笔"],
+                correctas: ["一架天平"],
                 multiple: false
             },
             {
@@ -2274,7 +2274,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av1-zh",
                 tipo: "opcion",
-                pregunta: "在建筑外立面上寻找带有巴伦西亚旗帜颜色的彩色玻璃窗。您能判断它的形状吗？",
+                pregunta: "请在建筑外立面上寻找带有巴伦西亚旗帜颜色的彩色玻璃窗。您能判断它是什么形状吗？",
                 opciones: ["四边形", "圆形", "三角形"],
                 correctas: ["圆形"],
                 multiple: false
@@ -2316,9 +2316,9 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "一棵枯树：罪孽的象征，出现在门的两扇叶片之间，充当中柱。",
-                opciones: ["观察树顶，4名裸男相互鞭打。"],
-                correctas: ["观察树顶，4名裸男相互鞭打。"],
+                pregunta: "一棵枯树，罪孽的象征，立在两扇门扉之间，充当中柱。",
+                opciones: ["请看树顶：4个裸体男人在互相鞭打。"],
+                correctas: ["请看树顶：4个裸体男人在互相鞭打。"],
                 multiple: true
             },
             {
@@ -2334,7 +2334,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-zh",
                 tipo: "opcion-multiple",
-                pregunta: "中央：蓄胡子的男人和狮子：",
+                pregunta: "中央是蓄胡子的男人和狮子：",
                 opciones: ["原创而矛盾的场景，其中温顺的恰恰是狮子，而不是蓄胡子的老人。"],
                 correctas: ["原创而矛盾的场景，其中温顺的恰恰是狮子，而不是蓄胡子的老人。"],
                 multiple: true
@@ -5083,7 +5083,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-zh",
                 tipo: "opcion",
-                pregunta: "塔楼顶部飘扬着巴伦西亚的旗帜，颜色由红色、黄色和……组成？",
+                pregunta: "塔顶飘扬着巴伦西亚的旗帜：它的颜色是红色、黄色和……？",
                 opciones: ["紫色", "绿色", "蓝色"],
                 correctas: ["蓝色"],
                 multiple: false
@@ -5134,8 +5134,8 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av2-zh",
                 tipo: "opcion",
-                pregunta: "这个雕像的手里拿着什么？",
-                opciones: ["盾牌", "贝壳", "水罐", "宝剑"],
+                pregunta: "这个雕像手里拿着什么？",
+                opciones: ["盾牌", "贝壳", "水罐", "剑"],
                 correctas: ["贝壳"],
                 multiple: false
             },
@@ -5176,14 +5176,14 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av2-zh",
                 tipo: "texto",
-                pregunta: "喷泉周围有多少个雕像？",
+                pregunta: "喷泉周围有多少座雕像？",
                 correctas: ["8"]
             },
             {
                 reto: 16,
                 id: "R16-Av2-zh",
                 tipo: "opcion",
-                pregunta: "您能确定巴伦西亚大教堂穹顶的几何形状吗？",
+                pregunta: "您能判断巴伦西亚大教堂穹顶塔的几何形状吗？",
                 opciones: ["六边形", "八边形", "四边形"],
                 correctas: ["八边形"],
                 multiple: false
@@ -7842,7 +7842,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av3-zh",
                 tipo: "opcion",
-                pregunta: "塔顶飘扬着巴伦西亚的旗帜：其颜色由红色、黄色和...组成？",
+                pregunta: "塔顶飘扬着巴伦西亚的旗帜：它的颜色是红色、黄色和……？",
                 opciones: ["紫色", "绿色", "蓝色"],
                 correctas: ["蓝色"],
                 multiple: false
@@ -7865,7 +7865,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av3-zh",
                 tipo: "opcion",
-                pregunta: "您能告诉我巴伦西亚这些流行节日的名字吗？",
+                pregunta: "您能告诉我巴伦西亚这些民间节日叫什么名字吗？",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -7941,7 +7941,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av3-zh",
                 tipo: "opcion",
-                pregunta: "您还记得什么动物装饰着巴伦西亚的盾形纹章吗？",
+                pregunta: "您还记得巴伦西亚的盾徽顶上是什么动物吗？",
                 opciones: ["蝙蝠", "龙", "狮子"],
                 correctas: ["蝙蝠"],
                 multiple: false
@@ -8001,7 +8001,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av3-zh",
                 tipo: "texto",
-                pregunta: "这栋建筑是哪年建造的？提示：请看立面的上部",
+                pregunta: "这栋建筑建于哪一年？提示：请看建筑外立面的上部。",
                 correctas: ["1906"],
                 multiple: false
             },
@@ -8033,7 +8033,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av3-zh",
                 tipo: "texto",
-                pregunta: "喷泉周围有多少个雕像？",
+                pregunta: "喷泉周围有多少座雕像？",
                 correctas: ["8"],
                 multiple: false
             },
@@ -10384,7 +10384,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av4-zh",
                 tipo: "opcion",
-                pregunta: "塔顶飘扬着巴伦西亚的旗帜：其颜色由红色、黄色和…组成",
+                pregunta: "塔顶飘扬着巴伦西亚的旗帜：它的颜色是红色、黄色和……？",
                 opciones: ["紫色","绿色","蓝色"],
                 correctas: ["蓝色"],
                 multiple: false
@@ -12886,7 +12886,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av5-zh",
                 tipo: "opcion",
-                pregunta: "塔顶飘扬着巴伦西亚的旗帜：其颜色由红色、黄色和…组成",
+                pregunta: "塔顶飘扬着巴伦西亚的旗帜：它的颜色是红色、黄色和……？",
                 opciones: ["紫色","绿色","蓝色"],
                 correctas: ["蓝色"],
                 multiple: null
@@ -12908,9 +12908,9 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av5-zh",
                 tipo: "opcion",
-                pregunta: "您能告诉我巴伦西亚这个民间节日叫什么名字吗？",
-                opciones: ["法利亚节","西红柿节","圣胡安篝火节"],
-                correctas: ["法利亚节"],
+                pregunta: "您能告诉我巴伦西亚这些民间节日叫什么名字吗？",
+                opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
+                correctas: ["Las Fallas"],
                 multiple: false
             },
             {
@@ -12974,7 +12974,7 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av5-zh",
                 tipo: "opcion",
-                pregunta: "巴伦西亚特产的哪种柑橘水果装饰着外墙？",
+                pregunta: "请注意第一座塔楼的外立面！哪种巴伦西亚本地柑橘类水果装饰着外立面？",
                 opciones: ["柠檬","葡萄柚","橙子"],
                 correctas: ["橙子"],
                 multiple: false
@@ -12999,7 +12999,7 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av5-zh",
                 tipo: "texto",
-                pregunta: "建筑工程始于哪一年？看外墙！",
+                pregunta: "建筑工程始于哪一年？请看外墙！",
                 correctas: ["1400"]
             },
             {
@@ -13026,7 +13026,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av5-zh",
                 tipo: "opcion",
-                pregunta: "您能判断它是什么形状吗？",
+                pregunta: "请在建筑外立面上寻找带有巴伦西亚旗帜颜色的彩色玻璃窗。您能判断它是什么形状吗？",
                 opciones: ["四边形","圆形","三角形"],
                 correctas: ["圆形"],
                 multiple: false
@@ -13042,17 +13042,17 @@ export const RETOS_AVENTURAS = {
                 id: "R24-Av5-zh",
                 tipo: "opcion-multiple",
                 pregunta: "逆流而上的船夫。",
-                opciones: ["一个面容悲伤的男人驾驶着一艘小木船，逆流逃离一只怪物。"],
-                correctas: ["一个面容悲伤的男人驾驶着一艘小木船，逆流逃离一只怪物。"],
+                opciones: ["一个面带愁容的男人驾驶着一艘小木船，逆流逃离一只怪物。"],
+                correctas: ["一个面带愁容的男人驾驶着一艘小木船，逆流逃离一只怪物。"],
                 multiple: true
             },
             {
                 reto: 25,
                 id: "R25-Av5-zh",
                 tipo: "opcion-multiple",
-                pregunta: "一棵枯死的树：罪恶的象征，位于两扇门之间，充当中柱。",
-                opciones: ["观察树顶，4个裸体男人互相鞭打。"],
-                correctas: ["观察树顶，4个裸体男人互相鞭打。"],
+                pregunta: "一棵枯树，罪孽的象征，立在两扇门扉之间，充当中柱。",
+                opciones: ["请看树顶：4个裸体男人在互相鞭打。"],
+                correctas: ["请看树顶：4个裸体男人在互相鞭打。"],
                 multiple: true
             },
             {
@@ -15294,7 +15294,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "塔顶飘扬着巴伦西亚的旗帜：其颜色由红色、黄色和…组成？",
+                pregunta: "塔顶飘扬着巴伦西亚的旗帜：它的颜色是红色、黄色和……？",
                 opciones: ["紫色","绿色","蓝色"],
                 correctas: ["蓝色"],
                 multiple: false
@@ -15319,7 +15319,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "海神尼普顿用哪只手握着丰饶角？",
+                pregunta: "海神尼普顿用哪只手拿着丰饶角？",
                 opciones: ["左手","右手"],
                 correctas: ["右手"],
                 multiple: false
@@ -15334,7 +15334,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "您能判断巴伦西亚大教堂穹顶的几何形状吗？",
+                pregunta: "您能判断巴伦西亚大教堂穹顶塔的几何形状吗？",
                 opciones: ["六边形","八边形","四边形"],
                 correctas: ["八边形"],
                 multiple: false
@@ -15343,7 +15343,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-AvFallas-zh",
                 tipo: "texto",
-                pregunta: "您能看到几扇窗户？",
+                pregunta: "您能看到多少扇窗户？",
                 correctas: ["?"]
             },
             {
@@ -15356,7 +15356,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "您还记得什么动物装饰着巴伦西亚的盾徽吗？",
+                pregunta: "您还记得巴伦西亚的盾徽顶上是什么动物吗？",
                 opciones: ["蝙蝠","龙","狮子"],
                 correctas: ["蝙蝠"],
                 multiple: false
@@ -15374,16 +15374,16 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "人物手里拿着什么？",
-                opciones: ["一个天平","一本书","一支羽毛笔"],
-                correctas: ["一个天平"],
+                pregunta: "这个人物手中拿着什么？",
+                opciones: ["一架天平", "一本书", "一支羽毛笔"],
+                correctas: ["一架天平"],
                 multiple: false
             },
             {
                 reto: 15,
                 id: "R15-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "在建筑外墙上寻找带有巴伦西亚旗颜色的彩色玻璃窗。您能判断它是什么形状吗？",
+                pregunta: "请在建筑外立面上寻找带有巴伦西亚旗帜颜色的彩色玻璃窗。您能判断它是什么形状吗？",
                 opciones: ["四边形","圆形","三角形"],
                 correctas: ["圆形"],
                 multiple: false
@@ -15392,9 +15392,9 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-AvFallas-zh",
                 tipo: "opcion-multiple",
-                pregunta: "圣母手里拿着什么？",
-                opciones: ["玫瑰念珠","一个孩子","一顶王冠"],
-                correctas: ["玫瑰念珠","一个孩子"],
+                pregunta: "圣母手中拿着什么？",
+                opciones: ["一串玫瑰念珠", "一个孩子", "一顶王冠"],
+                correctas: ["一串玫瑰念珠", "一个孩子"],
                 multiple: true
             },
             {
@@ -21357,7 +21357,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "您知道这些塔楼叫什么名字吗？",
+                pregunta: "您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -21372,7 +21372,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "您能告诉我巴伦西亚这些流行节日的名字吗？",
+                pregunta: "您能告诉我巴伦西亚这些民间节日叫什么名字吗？",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -21448,7 +21448,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "您还记得什么动物装饰着巴伦西亚的盾形纹章吗？",
+                pregunta: "您还记得巴伦西亚的盾徽顶上是什么动物吗？",
                 opciones: ["蝙蝠", "龙", "狮子"],
                 correctas: ["蝙蝠"],
                 multiple: false
@@ -21504,7 +21504,7 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "巴伦西亚特产的哪种柑橘水果装饰着外墙？",
+                pregunta: "请注意第一座塔楼的外立面！哪种巴伦西亚本地柑橘类水果装饰着外立面？",
                 opciones: ["柠檬","葡萄柚","橙子"],
                 correctas: ["橙子"],
                 multiple: false
@@ -21529,9 +21529,9 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "在主入口上方的半圆拱门中，寓言人物代表五大洲。中央人物拿着什么？",
-                opciones: ["一把火炬", "一把剑", "一顶王冠"],
-                correctas: ["一把火炬", "一把剑"],
+                pregunta: "在主入口上方的半圆拱门中，寓言人物代表着五大洲。中央人物拿着什么？",
+                opciones: ["一支火炬", "一把剑", "一顶王冠"],
+                correctas: ["一支火炬", "一把剑"],
                 multiple: true
             },
 {
@@ -21539,8 +21539,8 @@ export const RETOS_AVENTURAS = {
                 id: "R25-Av34km-zh",
                 tipo: "opcion",
                 pregunta: "这个人物手中拿着什么？",
-                opciones: ["一把天平", "一本书", "一根羽毛"],
-                correctas: ["一把天平"],
+                opciones: ["一架天平", "一本书", "一支羽毛笔"],
+                correctas: ["一架天平"],
                 multiple: false
             },
 {
@@ -21554,7 +21554,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "在建筑外立面上寻找带有巴伦西亚旗帜颜色的彩色玻璃窗。您能判断它的形状吗？",
+                pregunta: "请在建筑外立面上寻找带有巴伦西亚旗帜颜色的彩色玻璃窗。您能判断它是什么形状吗？",
                 opciones: ["四边形", "圆形", "三角形"],
                 correctas: ["圆形"],
                 multiple: false
@@ -21596,9 +21596,9 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "一棵枯树：罪孽的象征，出现在门的两扇叶片之间，充当中柱。",
-                opciones: ["观察树顶，4名裸男相互鞭打。"],
-                correctas: ["观察树顶，4名裸男相互鞭打。"],
+                pregunta: "一棵枯树，罪孽的象征，立在两扇门扉之间，充当中柱。",
+                opciones: ["请看树顶：4个裸体男人在互相鞭打。"],
+                correctas: ["请看树顶：4个裸体男人在互相鞭打。"],
                 multiple: true
             },
 {
@@ -21614,7 +21614,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-zh",
                 tipo: "opcion-multiple",
-                pregunta: "中央：蓄胡子的男人和狮子：",
+                pregunta: "中央是蓄胡子的男人和狮子：",
                 opciones: ["原创而矛盾的场景，其中温顺的恰恰是狮子，而不是蓄胡子的老人。"],
                 correctas: ["原创而矛盾的场景，其中温顺的恰恰是狮子，而不是蓄胡子的老人。"],
                 multiple: true
@@ -21728,7 +21728,7 @@ export const RETOS_AVENTURAS = {
                 reto: 48,
                 id: "R48-Av34km-zh",
                 tipo: "texto",
-                pregunta: "这栋建筑建于哪一年？提示：看建筑外立面的上部。",
+                pregunta: "这栋建筑建于哪一年？提示：请看建筑外立面的上部。",
                 correctas: ["1906"]
             },
 {
@@ -21777,7 +21777,7 @@ export const RETOS_AVENTURAS = {
                 reto: 54,
                 id: "R54-Av34km-zh",
                 tipo: "texto",
-                pregunta: "喷泉周围有多少个雕像？",
+                pregunta: "喷泉周围有多少座雕像？",
                 correctas: ["8"]
             },
 {
@@ -21938,7 +21938,7 @@ export const RETOS_AVENTURAS = {
                 reto: 74,
                 id: "R74-Av34km-zh",
                 tipo: "texto",
-                pregunta: "建筑工程始于哪一年？看外墙！",
+                pregunta: "建筑工程始于哪一年？请看外墙！",
                 correctas: ["1400"]
             },
 {
@@ -22001,7 +22001,7 @@ export const RETOS_AVENTURAS = {
                 reto: 83,
                 id: "R83-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "塔顶飘扬着巴伦西亚的旗帜：其颜色由红色、黄色和…组成",
+                pregunta: "塔顶飘扬着巴伦西亚的旗帜：它的颜色是红色、黄色和……？",
                 opciones: ["紫色","绿色","蓝色"],
                 correctas: ["蓝色"],
                 multiple: null
@@ -22051,7 +22051,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "圣劳伦斯手中拿着什么？",
+                pregunta: "圣洛伦佐手里拿着什么？",
                 opciones: ["一只鸽子", "一把勺子", "一个烤架"],
                 correctas: ["一个烤架"],
                 multiple: false
