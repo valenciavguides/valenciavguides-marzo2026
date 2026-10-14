@@ -1426,7 +1426,7 @@ El rojo de "deshabilitado" (`#ED2100`) y el rojo de "respuesta incorrecta" en hi
 
 **`#selector-tipo-mapa` y `#brujula-modo` no tienen estado deshabilitado real** (§4.6b, §11) — su fondo `#00BB77` está definido por consistencia con el resto de la app, pero en la práctica queda casi siempre tapado por la imagen/thumbnail que muestran, ya que ninguno de los dos tiene una condición real que los bloquee.
 
-**Pendiente:** las recreaciones de botones en `video-intro.html` (`.boton`, `.btn-main-ico`, `.btn-sub-ico`, `.x-btn`) usan el verde unificado (`#43c465→#28a745→#1e8035`, sin distinguir vivo/medio); su rojo (`.boton.disabled`) sí es `#ED2100`, consistente con el resto de la app. Repartir sus botones entre los dos verdes exige revisar qué representa cada uno escena por escena.
+**Pendiente:** las recreaciones de botones en `video-intro.html` (`.boton`, `.btn-main-ico`) usan el verde unificado (`#43c465→#28a745→#1e8035`, sin distinguir vivo/medio); su rojo (`.boton.disabled`) sí es `#ED2100`, consistente con el resto de la app. Repartir sus botones entre los dos verdes exige revisar qué representa cada uno escena por escena.
 
 ```mermaid
 flowchart TD
@@ -4900,7 +4900,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c8d812f249ae'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f6f7f89f927c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8276,7 +8276,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-c8d812f249ae'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-f6f7f89f927c'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9025,7 +9025,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c8d812f249ae';
+const CACHE_VERSION = 'v-f6f7f89f927c';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12489,7 +12489,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-c8d812f249ae';
+const CACHE_VERSION = 'v-f6f7f89f927c';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13337,7 +13337,7 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 
 **Escenas encadenadas sin clic**: algunas escenas avanzan automáticamente (sin esperar a que el usuario pulse el botón de la banda). Si una escena nueva llama a `setScene()` mientras el giro de la escena anterior sigue activo, `_activeFlipCleanup` fuerza la limpieza inmediata del giro anterior antes de montar el nuevo — sin esta guarda, dos hojas girarían a la vez, superpuestas, con contenidos distintos.
 
-**Paleta**: degradado pergamino `#fffdf7 → #f5e6c8` con borde `#8b5e1a` — la propia paleta de "papel viejo" que ya usan `.s3-ov` (pantalla de aviso vintage) y `.s5-map` (borde del mapa vintage) en este mismo archivo, no la paleta de otros archivos de la sesión.
+**Paleta**: degradado pergamino `#fffdf7 → #f5e6c8` con borde `#8b5e1a` — el mismo marrón de "papel viejo" que llevan en este archivo el borde del mapa vintage (`.s5-map`) y los del puzzle (`.puzzle-board`, `.pz-piece`).
 
 **Degradación**: todo el cuerpo de `_flipTransition` está envuelto en `try/catch`; cualquier fallo se registra con `(globalThis.logger || console).warn('[INTRO][FLIP] ...')` y no interrumpe nada — el fundido CSS de 220ms de `setScene()` sigue funcionando igual, con o sin la capa decorativa encima.
 
@@ -14273,9 +14273,9 @@ El fallo, cuando falta un puente, es **mudo**: la variable se queda en su valor 
 
 | Archivo | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|---|
-| `video-intro.html` | `JAIME_SCENES` | módulo 1 (L594) | clásico 1 | función/objeto |
-| `video-intro.html` | `reproducirVideoConBuffer` | módulo 1 (L595) | clásico 1 | función/objeto |
-| `video-intro.html` | `TIPOS_MENSAJE` | módulo 1 (L610) | clásico 1 | función/objeto |
+| `video-intro.html` | `JAIME_SCENES` | módulo 1 (L537) | clásico 1 | función/objeto |
+| `video-intro.html` | `reproducirVideoConBuffer` | módulo 1 (L538) | clásico 1 | función/objeto |
+| `video-intro.html` | `TIPOS_MENSAJE` | módulo 1 (L553) | clásico 1 | función/objeto |
 | `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L379) | módulo 2 | función/objeto |
 | `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L388) | módulo 2 | función/objeto |
 | `retos-hijo4.html` | `ejecutarValidacion` | clásico 2 (L26) | módulo 1 | función/objeto |
