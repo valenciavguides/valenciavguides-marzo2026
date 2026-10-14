@@ -4729,15 +4729,18 @@
             return arriba;
         }
 
-        /** Cierra el desplegable que esté abierto (audio, tipo de mapa o brújula); dice si había alguno. */
-        function _cerrarDesplegableAbierto() {
+        /** Cierra los desplegables del padre que estén abiertos (audio, tipo de mapa y brújula); dice si había alguno.
+         *  Lo usan el botón atrás y el aviso de hijo1 al abrir su menú (`UI.CLOSE_MENUS`, Script 2). Un desplegable que
+         *  todavía no se ha construido no ha publicado su función: no hay nada que cerrar. */
+        function _cerrarDesplegablesDelPadre() {
             const cerradores = [
                 globalThis._cerrarDesplegableAudioSiAbierto,
                 globalThis._cerrarDesplegableTipoMapaSiAbierto,
                 globalThis._cerrarDesplegableBrujulaSiAbierto,
             ];
-            return cerradores.some((cerrar) => typeof cerrar === 'function' && cerrar());
+            return cerradores.map((cerrar) => typeof cerrar === 'function' && cerrar()).some(Boolean);
         }
+        globalThis._cerrarDesplegablesDelPadre = _cerrarDesplegablesDelPadre;
 
         let _popstateActivo = false;
         function _atrasConAventuraEnMarcha() {
@@ -4748,7 +4751,7 @@
             if (document.getElementById('modal-finalizacion-aventura')) return;
             const capa = _capaDeArribaQueSeCierra();
             if (capa) { capa.cerrar(); return; }
-            if (_cerrarDesplegableAbierto()) return;
+            if (_cerrarDesplegablesDelPadre()) return;
             // Nada que cerrar, o solo lo que no tiene ✕ a propósito (la ventana del reto, que se cierra
             // respondiendo o saltando): el diálogo. Mientras está abierto, `body.loading` oculta los iframes, y al
             // «Continuar» todo vuelve tal cual.
@@ -11988,10 +11991,9 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         function _hdl_UI_CLOSE_MENUS_PADRE() {
-            // hijo1 envía este mensaje para que el padre cierre sus propios desplegables
-            // antes de abrir el panel de más-opciones (evita solapamiento visual)
-            const overlay = document.getElementById('audio-control-overlay');
-            if (overlay) overlay.classList.remove('open');
+            // hijo1 envía este mensaje al abrir su menú, para que el padre cierre los suyos (evita solapamiento visual):
+            // los tres, por el mismo sitio que el botón atrás (Script 1).
+            globalThis._cerrarDesplegablesDelPadre();
         }
 
         function _regCtrl_NavegacionEventos(TIPOS_MENSAJE) {

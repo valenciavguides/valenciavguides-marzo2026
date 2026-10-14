@@ -10,6 +10,10 @@
  *   CM-1  camino real: con el desplegable de audio del padre abierto, «Más opciones» lo cierra
  *   CM-2  el mensaje de hijo1 lleva solo `timestamp`: ningún `except`
  *   CM-3  el tipo tiene un solo receptor: el padre lo atiende y hijo1 no tiene handler
+ *   CM-4  cierra también el desplegable del tipo de mapa: los tres del padre (audio, tipo de mapa y brújula) se
+ *         cierran por el mismo sitio, `_cerrarDesplegablesDelPadre()`, que es el que usa el botón atrás
+ *
+ * CM-4, rojo antes que verde: cuando el handler solo cerraba el de audio, el del tipo de mapa seguía abierto.
  *
  * ROJO ANTES QUE VERDE: con el código anterior CM-2 cae (el mensaje llevaba `except`) y CM-3
  * cae (hijo1 registraba un handler que ningún mensaje alcanzaba). CM-1 pasa antes y después:
@@ -51,6 +55,20 @@ test.describe('CM — «Más opciones» cierra el desplegable de audio del padre
     expect(await desplegableAbierto(page), 'precondición: el desplegable empieza abierto').toBe(true);
     await frame(page, 'hijo1-opciones').evaluate(() => document.getElementById('mas-opciones').click());
     await expect.poll(() => desplegableAbierto(page), { timeout: 8_000, message: 'el desplegable de audio tiene que cerrarse' }).toBe(false);
+  });
+
+  test('CM-4. También cierra el desplegable del tipo de mapa: los tres del padre se cierran por el mismo sitio', async ({ page }) => {
+    // El desplegable del tipo de mapa, abierto como lo abre el usuario: su botón principal.
+    const tipoMapaAbierto = () => page.evaluate(() => {
+      const d = document.querySelector('#selector-tipo-mapa > div:nth-child(2)');
+      return !!d && !['', '0', '0px'].includes(d.style.maxHeight);
+    });
+    // El selector a la vista, como lo deja la app durante la aventura: oculto, su desplegable no tiene hueco donde abrirse.
+    await page.evaluate(() => { document.getElementById('selector-tipo-mapa').style.display = 'flex'; });
+    await page.evaluate(() => document.querySelector('#selector-tipo-mapa > div:first-child').click());
+    await expect.poll(tipoMapaAbierto, { timeout: 5_000, message: 'precondición: el desplegable del tipo de mapa se abre' }).toBe(true);
+    await frame(page, 'hijo1-opciones').evaluate(() => document.getElementById('mas-opciones').click());
+    await expect.poll(tipoMapaAbierto, { timeout: 8_000, message: 'el desplegable del tipo de mapa tiene que cerrarse' }).toBe(false);
   });
 
   test('CM-2. El mensaje de hijo1 lleva solo `timestamp`', async ({ page }) => {
