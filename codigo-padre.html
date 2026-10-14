@@ -3317,6 +3317,8 @@
                     document.addEventListener('click', () => { if (_dropdownAbierto) _cerrarDropdown(); });
 
                     function _cerrarDropdown() { _dropdownAbierto = false; _dropdownDiv.style.maxHeight = '0'; }
+                    // El botón atrás (Script 1, _atrasConAventuraEnMarcha) cierra este desplegable si está abierto.
+                    globalThis._cerrarDesplegableTipoMapaSiAbierto = () => { if (!_dropdownAbierto) return false; _cerrarDropdown(); return true; };
 
                     function _cambiarModo(nuevoId) {
                         if (nuevoId === _modoActivo) return;
@@ -3450,6 +3452,8 @@
                     document.addEventListener('click', () => { if (_brujulaModoDropdownAbierto) _cerrarBrujulaModoDropdown(); });
 
                     function _cerrarBrujulaModoDropdown() { _brujulaModoDropdownAbierto = false; _brujulaModoDropdownDiv.style.maxHeight = '0'; }
+                    // El botón atrás (Script 1, _atrasConAventuraEnMarcha) cierra este desplegable si está abierto.
+                    globalThis._cerrarDesplegableBrujulaSiAbierto = () => { if (!_brujulaModoDropdownAbierto) return false; _cerrarBrujulaModoDropdown(); return true; };
 
                     function _elegirBrujulaModo(nuevoId) {
                         try {
@@ -4525,7 +4529,7 @@
                         await ejecutarRestauracionAventura(datosGuardados);
                         _setLoadingProgress(100);
                         // Insertar entrada en el historial para interceptar "botón atrás"
-                        try { history.pushState({ vv_en_aventura: true }, ''); } catch (_e) { /* NOSONAR */ }
+                        try { history.pushState(null, ''); } catch (_e) { /* NOSONAR */ }
                     } finally {
                         clearInterval(restoreProgressTimer);
                         globalThis.hideParentLoadingOverlay?.();
@@ -4679,18 +4683,86 @@
         }
         globalThis._mostrarDialogoVueltaRapida = mostrarDialogoVueltaRapida;
 
-        // Popstate — intercepta el botón retroceder del dispositivo cuando hay aventura activa
+        // ── Botón atrás del dispositivo con una aventura en marcha ──────────────────────────────────────
+        // Como en una app nativa: cada «atrás» cierra primero lo que hay delante, y solo si no hay nada
+        // abierto enseña el diálogo de vuelta. Con una aventura en marcha, «atrás» nunca saca de la aplicación:
+        // cada pulsación vuelve a poner la entrada del historial que la intercepta.
+        //
+        // Dos cosas que este escucha NO mira, a propósito (spec 131):
+        // - El estado de la entrada a la que se llega. Al arrancar la aventura se apila una sola entrada, y el
+        //   primer «atrás» llega a la inicial de la página, que no lleva ninguno: mirándolo, ese primer «atrás»
+        //   no hacía nada y el segundo sacaba de la aplicación.
+        // - La aventura y el idioma elegidos, que se llenan en la selección antes de arrancar. «¿Hay una aventura
+        //   en marcha?» lo contesta el modo: nace en null, vale casa o aventura con una aventura arrancada, y todas
+        //   las salidas de una aventura recargan la página.
+        function _hayAventuraEnMarcha() {
+            const modo = estado.modo?.actual;
+            return modo === MODOS.AVENTURA || modo === MODOS.CASA;
+        }
+
+        /**
+         * La capa que se puede cerrar y está más arriba: las del padre con la ✕ común (`.btn-cerrar-overlay`,
+         * que se pulsa como lo haría el usuario) y el asistente (hijo6), cuya ✕ vive en su propio frame y
+         * llama a la misma `cerrarChatSoporte`. Gana la de mayor z-index; a igual altura, la que va después.
+         */
+        function _capaDeArribaQueSeCierra() {
+            const alturaDe = (el) => {
+                let z = 0;
+                for (let e = el; e && e !== document.body; e = e.parentElement) {
+                    const zi = Number.parseInt(getComputedStyle(e).zIndex, 10);
+                    if (Number.isFinite(zi) && zi > z) z = zi;
+                }
+                return z;
+            };
+            const seVe = (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+            const capas = [];
+            for (const x of document.querySelectorAll('.btn-cerrar-overlay')) {
+                // La altura es la de su capa: la ✕ lleva un z-index propio que no dice nada de dónde está.
+                if (seVe(x)) capas.push({ z: alturaDe(x.parentElement), cerrar: () => x.click() });
+            }
+            const chat = document.getElementById('hijo6-chat');
+            if (chat && seVe(chat) && typeof globalThis.cerrarChatSoporte === 'function') {
+                capas.push({ z: alturaDe(chat), cerrar: () => globalThis.cerrarChatSoporte() });
+            }
+            let arriba = null;
+            for (const c of capas) if (!arriba || c.z >= arriba.z) arriba = c;
+            return arriba;
+        }
+
+        /** Cierra el desplegable que esté abierto (audio, tipo de mapa o brújula); dice si había alguno. */
+        function _cerrarDesplegableAbierto() {
+            const cerradores = [
+                globalThis._cerrarDesplegableAudioSiAbierto,
+                globalThis._cerrarDesplegableTipoMapaSiAbierto,
+                globalThis._cerrarDesplegableBrujulaSiAbierto,
+            ];
+            return cerradores.some((cerrar) => typeof cerrar === 'function' && cerrar());
+        }
+
         let _popstateActivo = false;
-        globalThis.addEventListener('popstate', async (e) => {
-            if (!e.state?.vv_en_aventura) return;
-            const enAventura = !!(globalThis.aventuraSeleccionada && globalThis.idiomaSeleccionado);
-            if (!enAventura) return;
-            // Re-insertar entrada para que el próximo "atrás" también quede interceptado
-            try { history.pushState({ vv_en_aventura: true }, ''); } catch (_e) { /* NOSONAR */ }
+        function _atrasConAventuraEnMarcha() {
+            // El diálogo de vuelta ya abierto: «atrás» es su «Continuar mi aventura».
+            const continuar = document.getElementById('btn-vuelta-continuar');
+            if (continuar) { continuar.click(); return; }
+            // La aventura ha terminado: su modal de fin ofrece las dos salidas y no tiene ✕.
+            if (document.getElementById('modal-finalizacion-aventura')) return;
+            const capa = _capaDeArribaQueSeCierra();
+            if (capa) { capa.cerrar(); return; }
+            if (_cerrarDesplegableAbierto()) return;
+            // Nada que cerrar, o solo lo que no tiene ✕ a propósito (la ventana del reto, que se cierra
+            // respondiendo o saltando): el diálogo. Mientras está abierto, `body.loading` oculta los iframes, y al
+            // «Continuar» todo vuelve tal cual.
             if (_popstateActivo) return;
             _popstateActivo = true;
-            try { await mostrarDialogoVueltaRapida(globalThis.idiomaSeleccionado || 'es'); }
-            finally { _popstateActivo = false; }
+            mostrarDialogoVueltaRapida(globalThis.idiomaSeleccionado || 'es')
+                .catch((e) => (globalThis.logger || console).error('[PADRE][ATRAS] Error en el diálogo de vuelta:', e?.message || e))
+                .finally(() => { _popstateActivo = false; });
+        }
+
+        globalThis.addEventListener('popstate', () => {
+            if (!_hayAventuraEnMarcha()) return;
+            try { history.pushState(null, ''); } catch (_e) { /* NOSONAR */ }
+            _atrasConAventuraEnMarcha();
         });
 
         // Visibilitychange — muestra diálogo al volver de pestaña externa solo si el usuario
@@ -4700,8 +4772,7 @@
             if (document.visibilityState !== 'visible') return;
             if (!globalThis.__vv_salidaEnlaceExterno) return;
             globalThis.__vv_salidaEnlaceExterno = false;
-            const enAventura = !!(globalThis.aventuraSeleccionada && globalThis.idiomaSeleccionado);
-            if (!enAventura || _dialogoVueltaActivo) return;
+            if (!_hayAventuraEnMarcha() || _dialogoVueltaActivo) return;
             _dialogoVueltaActivo = true;
             try { await mostrarDialogoVueltaRapida(globalThis.idiomaSeleccionado || 'es'); }
             finally { _dialogoVueltaActivo = false; }
@@ -10129,6 +10200,8 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!overlay || !mainBtn || !dropdown || overlay.dataset.initOk === 'true') return;
 
             const cerrarDropdown = () => overlay.classList.remove('open');
+            // El botón atrás (Script 1, _atrasConAventuraEnMarcha) cierra este desplegable si está abierto.
+            globalThis._cerrarDesplegableAudioSiAbierto = () => { if (!overlay.classList.contains('open')) return false; cerrarDropdown(); return true; };
 
             // ── Spin para audio-main-toggle-btn ──
             let _audioMainSpinInterval = null;
@@ -12592,7 +12665,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
                 (globalThis.logger || console).success(`${logPrefix} ✅ Aventura ${aventura} registrada correctamente`);
                 // Insertar entrada en el historial del navegador para interceptar "botón atrás"
-                try { history.pushState({ vv_en_aventura: true }, ''); } catch (_e) { /* NOSONAR */ }
+                try { history.pushState(null, ''); } catch (_e) { /* NOSONAR */ }
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error registrando aventura:`, error, error?.stack);
