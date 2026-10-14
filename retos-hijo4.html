@@ -1440,8 +1440,6 @@
                     if (retoActual !== null || estado.retoActualId !== null) {
                         logger.warn(`${logPrefix} CAMBIO_MODO recibido con reto activo (${estado.retoActualId}) — omitiendo limpieza`);
                     } else {
-                        estado.retoActualId = null;
-                        retoActual = null;
                         if (retoDiv) {
                             retoDiv.innerHTML = "";
                             retoDiv.classList.remove("correct", "incorrect");
@@ -1601,12 +1599,9 @@
                     const padreId = datos.padreId || datos.padreid || null;
                     const paradaId = datos.paradaId || datos.parada_id || null;
                     logger.info(`[hijo4][NAVEGACION.CAMBIO_PARADA] recibido: padreId=${padreId}, paradaId=${paradaId}, retoId=${datos.retoId}`);
-                    // update local state such as current challenge if necessary
-                    if (paradaId) {
-                        // No-op: placeholder for actual reto prefetch logic
-                        estado.retoActualId = mensaje.datos?.retoId || null;
-                        estado.padreIdActual = padreId || null;
-                    }
+                    // La parada actual: es lo que compara el aviso PENDING_INICIADO. El reto de la parada no se da por
+                    // abierto aquí: `estado.retoActualId` es el reto que el usuario tiene abierto, y lo fija mostrarReto().
+                    if (paradaId) estado.padreIdActual = padreId || null;
                     // Send confirmation back to parent
                     await enviarMensaje({
                         destino: 'padre',
