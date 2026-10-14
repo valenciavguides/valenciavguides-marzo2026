@@ -3279,7 +3279,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-uk",
                 tipo: "opcion",
-                pregunta: "Чи можете ви сказати мені, як називаються ці вежі?",
+                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -3297,7 +3297,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-uk",
                 tipo: "texto",
-                pregunta: "Чи можете ви назвати мені назву цієї вулиці?",
+                pregunta: "Чи могли б ви сказати, як називається ця вулиця?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
@@ -3398,7 +3398,7 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av1-uk",
                 tipo: "opcion",
-                pregunta: "Чи пам'ятаєте ви, яка тварина прикрашає міський герб?",
+                pregunta: "Чи пам'ятаєте ви, яка тварина вінчає міський герб?",
                 opciones: ["Дракон", "Кажан", "Кінь"],
                 correctas: ["Кажан"],
                 multiple: false
@@ -3438,7 +3438,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av1-uk",
                 tipo: "opcion",
-                pregunta: "Що тримає фігура в своїй руці?",
+                pregunta: "Що тримає фігура в руці?",
                 opciones: ["Терези", "Книга", "Перо"],
                 correctas: ["Терези"],
                 multiple: false
@@ -3454,7 +3454,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av1-uk",
                 tipo: "opcion",
-                pregunta: "Знайдіть вітраж з кольорами валенсійської Сеньєри на фасаді будівлі. Чи можете ви визначити його форму?",
+                pregunta: "Знайдіть вітраж із кольорами валенсійської Сеньєри на фасаді будівлі. Чи могли б ви визначити, яку форму він має?",
                 opciones: ["Чотирикутна", "Кругла", "Трикутна"],
                 correctas: ["Кругла"],
                 multiple: false
@@ -3463,7 +3463,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "Що тримає Діва Марія у своїй руці?",
+                pregunta: "Що тримає Богородиця в руці?",
                 opciones: ["Вервиця", "Дитина", "Корона"],
                 correctas: ["Вервиця", "Дитина"],
                 multiple: true
@@ -3488,24 +3488,24 @@ export const RETOS_AVENTURAS = {
                 id: "R29-Av1-uk",
                 tipo: "opcion-multiple",
                 pregunta: "Поромник, що гребе проти течії.",
-                opciones: ["Сумний чоловік, який керує невеликим дерев'яним човном, тікає від монстра проти течії."],
-                correctas: ["Сумний чоловік, який керує невеликим дерев'яним човном, тікає від монстра проти течії."],
+                opciones: ["Сумний чоловік керує маленьким дерев'яним човном і тікає від монстра проти течії."],
+                correctas: ["Сумний чоловік керує маленьким дерев'яним човном і тікає від монстра проти течії."],
                 multiple: true
             },
             {
                 reto: 30,
                 id: "R30-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "Мертве дерево: символ Гріха, видно між двома стулками дверей і виконує функцію центрального стовпа.",
-                opciones: ["Подивіться на вершину дерева, де 4 оголених чоловіки шмагають один одного."],
-                correctas: ["Подивіться на вершину дерева, де 4 оголених чоловіки шмагають один одного."],
+                pregunta: "Мертве дерево, символ Гріха, стоїть між двома стулками дверей і виконує функцію середника.",
+                opciones: ["Подивіться на верхівку дерева: 4 оголені чоловіки шмагають один одного."],
+                correctas: ["Подивіться на верхівку дерева: 4 оголені чоловіки шмагають один одного."],
                 multiple: true
             },
             {
                 reto: 31,
                 id: "R31-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "Праворуч, ангел демонструє свій статевий орган і...",
+                pregunta: "Праворуч ангел демонструє свій статевий орган і…",
                 opciones: ["...збирається ввести його у вазу, яку тримає іншою рукою. Дивно і незвично, правда?"],
                 correctas: ["...збирається ввести його у вазу, яку тримає іншою рукою. Дивно і незвично, правда?"],
                 multiple: true
@@ -3514,7 +3514,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-uk",
                 tipo: "opcion-multiple",
-                pregunta: "У центрі: Бородатий чоловік і лев:",
+                pregunta: "У центрі — бородатий чоловік і лев:",
                 opciones: ["Оригінальна і суперечлива сцена, в якій лагідним є саме лев, а не бородатий старий."],
                 correctas: ["Оригінальна і суперечлива сцена, в якій лагідним є саме лев, а не бородатий старий."],
                 multiple: true
@@ -3524,15 +3524,15 @@ export const RETOS_AVENTURAS = {
                 id: "R33-Av1-uk",
                 tipo: "opcion-multiple",
                 pregunta: "Ось додатковий виклик! Знайдіть блудника Шовкової біржі!",
-                opciones: ["В одному з її вікон ви знайдете висіченого чоловіка; його голова не видно, але геніталії дуже чітко видно."],
-                correctas: ["В одному з її вікон ви знайдете висіченого чоловіка; його голова не видно, але геніталії дуже чітко видно."],
+                opciones: ["В одному з її вікон ви знайдете висіченого чоловіка: його голови не видно, але геніталії видно дуже чітко."],
+                correctas: ["В одному з її вікон ви знайдете висіченого чоловіка: його голови не видно, але геніталії видно дуже чітко."],
                 multiple: true
             },
             {
                 reto: 34,
                 id: "R34-Av1-uk",
                 tipo: "opcion",
-                pregunta: "Що тримає фігура в руках?",
+                pregunta: "Що тримає в руках ця фігура?",
                 opciones: ["Щит", "Мушлю", "Глечик", "Меч"],
                 correctas: ["Мушлю"],
                 multiple: false
@@ -5930,7 +5930,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-uk",
                 tipo: "opcion",
-                pregunta: "Ви знаєте, як називаються ці вежі?",
+                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -6039,7 +6039,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av2-uk",
                 tipo: "opcion",
-                pregunta: "Чи могли б ви визначити геометричну форму симборіо Валенсійського собору?",
+                pregunta: "Чи могли б ви визначити геометричну форму барабана купола Валенсійського собору?",
                 opciones: ["Шестикутна", "Восьмикутна", "Чотирикутна"],
                 correctas: ["Восьмикутна"],
                 multiple: false
@@ -8797,7 +8797,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av3-uk",
                 tipo: "opcion",
-                pregunta: "Ось ваше перше випробування, легке. Ви знаєте, як називаються ці Вежі?",
+                pregunta: "Ось ваше перше випробування, легке. Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -8806,7 +8806,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av3-uk",
                 tipo: "opcion",
-                pregunta: "На вершині веж майорить прапор Валенсії: його кольори — червоний, жовтий і...?",
+                pregunta: "На вершині веж майорить прапор Валенсії: його кольори — червоний, жовтий і…?",
                 opciones: ["Фіолетовий", "Зелений", "Синій"],
                 correctas: ["Синій"],
                 multiple: false
@@ -8815,7 +8815,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av3-uk",
                 tipo: "texto",
-                pregunta: "Ви знаєте, як називається ця стара річка?",
+                pregunta: "Чи могли б ви сказати, як називається ця стародавня річка?",
                 correctas: ["Turia"],
                 multiple: false
             },
@@ -8829,7 +8829,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av3-uk",
                 tipo: "opcion",
-                pregunta: "Ви знаєте, як називаються ці популярні свята у Валенсії?",
+                pregunta: "Чи могли б ви сказати, як називаються ці народні свята Валенсії?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -8905,7 +8905,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av3-uk",
                 tipo: "opcion",
-                pregunta: "Ви пам'ятаєте, яка тварина прикрашає герб Валенсії?",
+                pregunta: "Чи пам'ятаєте ви, яка тварина вінчає герб Валенсії?",
                 opciones: ["Кажан", "Дракон", "Лев"],
                 correctas: ["Кажан"],
                 multiple: false
@@ -8965,7 +8965,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av3-uk",
                 tipo: "texto",
-                pregunta: "В якому році було збудовано цю будівлю? Підказка: подивіться на верхню частину фасаду",
+                pregunta: "В якому році було збудовано цю будівлю? Підказка: подивіться на верхню частину фасаду.",
                 correctas: ["1906"],
                 multiple: false
             },
@@ -10972,7 +10972,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-uk",
                 tipo: "opcion",
-                pregunta: "Чи можете ви сказати мені, як називаються ці вежі?",
+                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -11080,9 +11080,9 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av4-uk",
                 tipo: "opcion",
-                pregunta: "На вершині веж майорить прапор Валенсії: його кольори складаються з червоного, жовтого і…",
-                opciones: ["Фіолетового","Зеленого","Синього"],
-                correctas: ["Синього"],
+                pregunta: "На вершині веж майорить прапор Валенсії: його кольори — червоний, жовтий і…?",
+                opciones: ["Фіолетовий", "Зелений", "Синій"],
+                correctas: ["Синій"],
                 multiple: false
             },
             {
@@ -13825,7 +13825,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-uk",
                 tipo: "opcion",
-                pregunta: "Чи можете ви сказати мені, як називаються ці вежі?",
+                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13834,16 +13834,16 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av5-uk",
                 tipo: "opcion",
-                pregunta: "На вершині веж майорить прапор Валенсії: його кольори складаються з червоного, жовтого і…",
-                opciones: ["Фіолетового","Зеленого","Синього"],
-                correctas: ["Синього"],
+                pregunta: "На вершині веж майорить прапор Валенсії: його кольори — червоний, жовтий і…?",
+                opciones: ["Фіолетовий", "Зелений", "Синій"],
+                correctas: ["Синій"],
                 multiple: null
             },
             {
                 reto: 5,
                 id: "R5-Av5-uk",
                 tipo: "texto",
-                pregunta: "Чи можете ви назвати мені ім'я цієї стародавньої річки?",
+                pregunta: "Чи могли б ви сказати, як називається ця стародавня річка?",
                 correctas: ["Turia"]
             },
             {
@@ -13856,9 +13856,9 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av5-uk",
                 tipo: "opcion",
-                pregunta: "Чи можете ви сказати мені, як називаються ці народні свята Валенсії?",
-                opciones: ["Лас Фальяс","Ла Томатіна","Вогнища Святого Хуана"],
-                correctas: ["Лас Фальяс"],
+                pregunta: "Чи могли б ви сказати, як називаються ці народні свята Валенсії?",
+                opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
+                correctas: ["Las Fallas"],
                 multiple: false
             },
             {
@@ -13915,14 +13915,14 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av5-uk",
                 tipo: "texto",
-                pregunta: "Скільки поверхів у цьому Монументі?",
+                pregunta: "Скільки поверхів у цій пам'ятці?",
                 correctas: ["4"]
             },
             {
                 reto: 15,
                 id: "R15-Av5-uk",
                 tipo: "opcion",
-                pregunta: "Яким натуральним цитрусовим фруктом з Валенсії прикрашений фасад?",
+                pregunta: "Зверніть увагу на фасад першої вежі! Який цитрусовий плід, родом з Валенсії, прикрашає фасад?",
                 opciones: ["Лимони","Грейпфрути","Апельсини"],
                 correctas: ["Апельсини"],
                 multiple: false
@@ -13974,7 +13974,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av5-uk",
                 tipo: "opcion",
-                pregunta: "Чи можете ви визначити, яку форму вона має?",
+                pregunta: "Знайдіть вітраж із кольорами валенсійської Сеньєри на фасаді будівлі. Чи могли б ви визначити, яку форму він має?",
                 opciones: ["Чотирикутна","Кругла","Трикутна"],
                 correctas: ["Кругла"],
                 multiple: false
@@ -13989,18 +13989,18 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av5-uk",
                 tipo: "opcion-multiple",
-                pregunta: "Весляр, який гребе проти течії.",
-                opciones: ["Сумний чоловік керує маленьким дерев'яним човном і тікає проти течії від монстра."],
-                correctas: ["Сумний чоловік керує маленьким дерев'яним човном і тікає проти течії від монстра."],
+                pregunta: "Поромник, що гребе проти течії.",
+                opciones: ["Сумний чоловік керує маленьким дерев'яним човном і тікає від монстра проти течії."],
+                correctas: ["Сумний чоловік керує маленьким дерев'яним човном і тікає від монстра проти течії."],
                 multiple: true
             },
             {
                 reto: 25,
                 id: "R25-Av5-uk",
                 tipo: "opcion-multiple",
-                pregunta: "Мертве дерево: символ Гріха, знаходиться між двома стулками дверей і виконує функцію середника.",
-                opciones: ["Понаблюдайте на верхівці дерева, як 4 оголені чоловіки хлещуть один одного."],
-                correctas: ["Понаблюдайте на верхівці дерева, як 4 оголені чоловіки хлещуть один одного."],
+                pregunta: "Мертве дерево, символ Гріха, стоїть між двома стулками дверей і виконує функцію середника.",
+                opciones: ["Подивіться на верхівку дерева: 4 оголені чоловіки шмагають один одного."],
+                correctas: ["Подивіться на верхівку дерева: 4 оголені чоловіки шмагають один одного."],
                 multiple: true
             },
             {
@@ -15977,7 +15977,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "Чи можете ви сказати мені, як називаються ці вежі?",
+                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15986,16 +15986,16 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "На вершині веж майорить прапор Валенсії: його кольори складаються з червоного, жовтого і… ?",
-                opciones: ["Фіолетового","Зеленого","Синього"],
-                correctas: ["Синього"],
+                pregunta: "На вершині веж майорить прапор Валенсії: його кольори — червоний, жовтий і…?",
+                opciones: ["Фіолетовий", "Зелений", "Синій"],
+                correctas: ["Синій"],
                 multiple: false
             },
             {
                 reto: 5,
                 id: "R5-AvFallas-uk",
                 tipo: "texto",
-                pregunta: "Чи можете ви назвати мені ім'я цієї вулиці?",
+                pregunta: "Чи могли б ви сказати, як називається ця вулиця?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
@@ -16026,7 +16026,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "Чи можете ви визначити геометрію тимпану Собору Валенсії?",
+                pregunta: "Чи могли б ви визначити геометричну форму барабана купола Валенсійського собору?",
                 opciones: ["Шестикутна","Восьмикутна","Чотирикутна"],
                 correctas: ["Восьмикутна"],
                 multiple: false
@@ -16057,9 +16057,9 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-AvFallas-uk",
                 tipo: "opcion-multiple",
-                pregunta: "Над головним входом, у напівкруглій арці, алегоричні фігури представляють п'ять континентів. Що несе центральна фігура?",
-                opciones: ["Факел","Меч","Корона"],
-                correctas: ["Факел","Меч"],
+                pregunta: "Над головним входом, у напівкруглій арці, алегоричні фігури представляють п'ять континентів. Що тримає центральна фігура?",
+                opciones: ["Смолоскип", "Меч", "Корона"],
+                correctas: ["Смолоскип", "Меч"],
                 multiple: true
             },
             {
@@ -16075,7 +16075,7 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "Знайдіть вітраж з кольорами валенсійської Сеньєри на фасаді будівлі. Чи можете ви визначити, яку форму він має?",
+                pregunta: "Знайдіть вітраж із кольорами валенсійської Сеньєри на фасаді будівлі. Чи могли б ви визначити, яку форму він має?",
                 opciones: ["Чотирикутна","Кругла","Трикутна"],
                 correctas: ["Кругла"],
                 multiple: false
@@ -16093,7 +16093,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "Що ангел передає дитині?",
+                pregunta: "Що дає ангел дитині?",
                 opciones: ["Голуб","Держава","Їжа"],
                 correctas: ["Держава"],
                 multiple: false
@@ -24301,7 +24301,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "Чи можете ви сказати мені, як називаються ці вежі?",
+                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -24316,7 +24316,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "Ви знаєте, як називаються ці популярні свята у Валенсії?",
+                pregunta: "Чи могли б ви сказати, як називаються ці народні свята Валенсії?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -24392,7 +24392,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "Ви пам'ятаєте, яка тварина прикрашає герб Валенсії?",
+                pregunta: "Чи пам'ятаєте ви, яка тварина вінчає герб Валенсії?",
                 opciones: ["Кажан", "Дракон", "Лев"],
                 correctas: ["Кажан"],
                 multiple: false
@@ -24441,14 +24441,14 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av34km-uk",
                 tipo: "texto",
-                pregunta: "Скільки поверхів у цьому Монументі?",
+                pregunta: "Скільки поверхів у цій пам'ятці?",
                 correctas: ["4"]
             },
 {
                 reto: 21,
                 id: "R21-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "Яким натуральним цитрусовим фруктом з Валенсії прикрашений фасад?",
+                pregunta: "Зверніть увагу на фасад першої вежі! Який цитрусовий плід, родом з Валенсії, прикрашає фасад?",
                 opciones: ["Лимони","Грейпфрути","Апельсини"],
                 correctas: ["Апельсини"],
                 multiple: false
@@ -24464,7 +24464,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "Чи пам'ятаєте ви, яка тварина прикрашає міський герб?",
+                pregunta: "Чи пам'ятаєте ви, яка тварина вінчає міський герб?",
                 opciones: ["Дракон", "Кажан", "Кінь"],
                 correctas: ["Кажан"],
                 multiple: false
@@ -24482,7 +24482,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "Що тримає фігура в своїй руці?",
+                pregunta: "Що тримає фігура в руці?",
                 opciones: ["Терези", "Книга", "Перо"],
                 correctas: ["Терези"],
                 multiple: false
@@ -24498,7 +24498,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "Знайдіть вітраж з кольорами валенсійської Сеньєри на фасаді будівлі. Чи можете ви визначити його форму?",
+                pregunta: "Знайдіть вітраж із кольорами валенсійської Сеньєри на фасаді будівлі. Чи могли б ви визначити, яку форму він має?",
                 opciones: ["Чотирикутна", "Кругла", "Трикутна"],
                 correctas: ["Кругла"],
                 multiple: false
@@ -24507,7 +24507,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "Що тримає Діва Марія у своїй руці?",
+                pregunta: "Що тримає Богородиця в руці?",
                 opciones: ["Вервиця", "Дитина", "Корона"],
                 correctas: ["Вервиця", "Дитина"],
                 multiple: true
@@ -24532,24 +24532,24 @@ export const RETOS_AVENTURAS = {
                 id: "R31-Av34km-uk",
                 tipo: "opcion-multiple",
                 pregunta: "Поромник, що гребе проти течії.",
-                opciones: ["Сумний чоловік, який керує невеликим дерев'яним човном, тікає від монстра проти течії."],
-                correctas: ["Сумний чоловік, який керує невеликим дерев'яним човном, тікає від монстра проти течії."],
+                opciones: ["Сумний чоловік керує маленьким дерев'яним човном і тікає від монстра проти течії."],
+                correctas: ["Сумний чоловік керує маленьким дерев'яним човном і тікає від монстра проти течії."],
                 multiple: true
             },
 {
                 reto: 32,
                 id: "R32-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "Мертве дерево: символ Гріха, видно між двома стулками дверей і виконує функцію центрального стовпа.",
-                opciones: ["Подивіться на вершину дерева, де 4 оголених чоловіки шмагають один одного."],
-                correctas: ["Подивіться на вершину дерева, де 4 оголених чоловіки шмагають один одного."],
+                pregunta: "Мертве дерево, символ Гріха, стоїть між двома стулками дверей і виконує функцію середника.",
+                opciones: ["Подивіться на верхівку дерева: 4 оголені чоловіки шмагають один одного."],
+                correctas: ["Подивіться на верхівку дерева: 4 оголені чоловіки шмагають один одного."],
                 multiple: true
             },
 {
                 reto: 33,
                 id: "R33-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "Праворуч, ангел демонструє свій статевий орган і...",
+                pregunta: "Праворуч ангел демонструє свій статевий орган і…",
                 opciones: ["...збирається ввести його у вазу, яку тримає іншою рукою. Дивно і незвично, правда?"],
                 correctas: ["...збирається ввести його у вазу, яку тримає іншою рукою. Дивно і незвично, правда?"],
                 multiple: true
@@ -24558,7 +24558,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-uk",
                 tipo: "opcion-multiple",
-                pregunta: "У центрі: Бородатий чоловік і лев:",
+                pregunta: "У центрі — бородатий чоловік і лев:",
                 opciones: ["Оригінальна і суперечлива сцена, в якій лагідним є саме лев, а не бородатий старий."],
                 correctas: ["Оригінальна і суперечлива сцена, в якій лагідним є саме лев, а не бородатий старий."],
                 multiple: true
@@ -24568,8 +24568,8 @@ export const RETOS_AVENTURAS = {
                 id: "R35-Av34km-uk",
                 tipo: "opcion-multiple",
                 pregunta: "Ось додатковий виклик! Знайдіть блудника Шовкової біржі!",
-                opciones: ["В одному з її вікон ви знайдете висіченого чоловіка; його голова не видно, але геніталії дуже чітко видно."],
-                correctas: ["В одному з її вікон ви знайдете висіченого чоловіка; його голова не видно, але геніталії дуже чітко видно."],
+                opciones: ["В одному з її вікон ви знайдете висіченого чоловіка: його голови не видно, але геніталії видно дуже чітко."],
+                correctas: ["В одному з її вікон ви знайдете висіченого чоловіка: його голови не видно, але геніталії видно дуже чітко."],
                 multiple: true
             },
 {
@@ -24761,7 +24761,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "Що тримає фігура в руках?",
+                pregunta: "Що тримає в руках ця фігура?",
                 opciones: ["Щит", "Мушлю", "Глечик", "Меч"],
                 correctas: ["Мушлю"],
                 multiple: false
@@ -24945,9 +24945,9 @@ export const RETOS_AVENTURAS = {
                 reto: 83,
                 id: "R83-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "На вершині веж майорить прапор Валенсії: його кольори складаються з червоного, жовтого і…",
-                opciones: ["Фіолетового","Зеленого","Синього"],
-                correctas: ["Синього"],
+                pregunta: "На вершині веж майорить прапор Валенсії: його кольори — червоний, жовтий і…?",
+                opciones: ["Фіолетовий", "Зелений", "Синій"],
+                correctas: ["Синій"],
                 multiple: null
             },
 {
