@@ -165,6 +165,7 @@
     import * as bus from './js/mensajeria.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
+    import { capaQueSeCierraConAtras } from './js/capa-con-atras.js';
 
     // Publica el logger en el globalThis de ESTA ventana. Cada iframe tiene el suyo, y el
     // `globalThis.logger = ...` de codigo-padre.html solo alcanza al del padre: sin esta
@@ -212,11 +213,19 @@
         ? `<img src="${ref.imagen}" alt="${ref.nombre || ''}">`
         : `<div class="sin-imagen">🏛️</div>`;
       overlay.classList.add('visible');
+      avisarFicha?.(true);
     }
 
-    function cerrarOverlay() { overlay.classList.remove('visible'); }
+    function cerrarOverlay() {
+      overlay.classList.remove('visible');
+      avisarFicha?.(false);
+    }
     btnCerrar.addEventListener('click', cerrarOverlay);
     overlay.addEventListener('click', e => { if (e.target === overlay) cerrarOverlay(); });
+    // El botón atrás del dispositivo cierra la ficha con cerrarOverlay(), lo mismo que su ✕ (js/capa-con-atras.js).
+    // Sin padre no hay a quién avisar ni quién lo pida: la ficha se abre desde un marcador, y los marcadores salen de
+    // los datos que manda el padre.
+    const avisarFicha = tienePadre ? capaQueSeCierraConAtras(cerrarOverlay) : null;
 
     globalThis.addEventListener('resize', () => map.invalidateSize());
 

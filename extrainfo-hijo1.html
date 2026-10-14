@@ -38,6 +38,7 @@
     import './js/utils.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
+    import { capaQueSeCierraConAtras } from './js/capa-con-atras.js';
 
     // Ocultar la interfaz AQUI, antes del primer `await` de este modulo, y no mas abajo.
     //
@@ -89,6 +90,11 @@
         ultimaInteraccion: null,
         hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
     };
+
+    // El botón atrás del dispositivo cierra el menú abierto (js/capa-con-atras.js), con ocultarTodos(): la misma
+    // función con que lo cierran el botón «más opciones» y cada icono. Quien avisa al padre son ocultarTodos() y
+    // mostrarIconos(), que son las dos que cambian estadoMenu.abierto.
+    const avisarMenu = capaQueSeCierraConAtras(ocultarTodos);
 
     // ============================================================
     // FUNCIÓN PARA MOSTRAR UI
@@ -466,6 +472,7 @@
             });
 
             estadoMenu.abierto = false;
+            avisarMenu(false);
             estadoMenu.ultimaInteraccion = Date.now();
 
             logger.info(`${logPrefix} Iconos ocultados: ${ocultados}/${todosIconos.length}, errores: ${errores}`);
@@ -542,6 +549,7 @@
             });
 
             estadoMenu.abierto = true;
+            avisarMenu(true);
             estadoMenu.ultimaInteraccion = Date.now();
 
             const totalIconos = iconosArriba.length + iconosAbajo.length;

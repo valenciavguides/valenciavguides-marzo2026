@@ -411,6 +411,7 @@
     TRADUCCIONES_RESCATE_BOTON_PEDIR,
   } from './js/traducciones-ui.js';
   import { enviarSugerencia } from './js/feedback-forms.js';
+  import { capaQueSeCierraConAtras } from './js/capa-con-atras.js';
 
   // ── CONFIG ────────────────────────────────────────────────────────────────
   const CONFIG_HIJO = { IFRAME_ID: 'hijo6-chat', COMPONENTE_ID: 'CHAT' };
@@ -640,7 +641,7 @@
     const idiomas = _cacheModuloEnlace[tipo];
     modalContenidoEl.className = 'chat-modal-contenido';
     modalContenidoEl.innerHTML = idiomas?.[idioma] || idiomas?.es || '';
-    modalOverlayEl.classList.add('visible');
+    mostrarModal();
   }
 
   function abrirModalVideoIntro() {
@@ -653,7 +654,7 @@
     iframeVideo.src = 'video-intro.html?lang=' + encodeURIComponent(idioma) + '&replay=1';
     iframeVideo.title = 'Video intro';
     modalContenidoEl.appendChild(iframeVideo);
-    modalOverlayEl.classList.add('visible');
+    mostrarModal();
   }
 
   function abrirModalEnlace(enlace) {
@@ -666,14 +667,24 @@
     }
   }
 
+  // Los dos únicos sitios que cambian si el modal se ve: mostrarModal() y cerrarModal(). Cada uno avisa al padre,
+  // que así sabe si el botón atrás tiene que cerrarlo (js/capa-con-atras.js).
+  function mostrarModal() {
+    modalOverlayEl.classList.add('visible');
+    avisarModal(true);
+  }
+
   function cerrarModal() {
     modalOverlayEl.classList.remove('visible');
+    avisarModal(false);
     // De baja antes de vaciar: el iframe del vídeo se va con el HTML, y un registro que
     // apunta a un elemento que ya no existe se queda ahí para siempre.
     globalThis.mensajeria.desregistrarIframe('video-intro');
     modalContenidoEl.innerHTML = ''; // detiene el vídeo si estaba reproduciéndose
   }
   modalCerrarEl.addEventListener('click', cerrarModal);
+  // El botón atrás del dispositivo cierra el modal con cerrarModal(), lo mismo que su ✕.
+  const avisarModal = capaQueSeCierraConAtras(cerrarModal);
 
   // El vídeo de introducción anidado avisa de su fin exactamente igual que en
   // En-busca-del-tesoro.html — aquí solo se usa para cerrar el modal.

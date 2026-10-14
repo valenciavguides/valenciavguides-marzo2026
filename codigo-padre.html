@@ -4701,11 +4701,19 @@
         }
 
         /**
-         * La capa que se puede cerrar y está más arriba: las del padre con la ✕ común (`.btn-cerrar-overlay`,
-         * que se pulsa como lo haría el usuario) y el asistente (hijo6), cuya ✕ vive en su propio frame y
-         * llama a la misma `cerrarChatSoporte`. Gana la de mayor z-index; a igual altura, la que va después.
+         * La capa de más arriba de las que «atrás» tiene en cuenta, o null si no hay ninguna abierta:
+         * - las del padre con la ✕ común (`.btn-cerrar-overlay`, que se pulsa como lo haría el usuario);
+         * - el asistente (hijo6), cuya ✕ vive en su propio frame y llama a la misma `cerrarChatSoporte`;
+         * - la ventana del temporizador, que no lleva ✕ porque la abre y la cierra el icono de hijo1: se cierra con
+         *   ese mismo cierre (`_cerrarVentanaTemporizador`, Script 2);
+         * - las capas de dentro de un hijo (el menú de hijo1, el modal del asistente, la ficha de un monumento del
+         *   mapa completo): el hijo avisa al abrirlas y al cerrarlas (js/capa-con-atras.js), y se le pide que la
+         *   cierre él. Se dibujan encima de su iframe, así que cuentan medio escalón por encima de él;
+         * - la ventana del reto, que entra SIN cierre: se cierra respondiendo o saltando, nunca con «atrás». Si es la
+         *   de arriba, lo que tapa no se toca.
+         * Gana la de mayor z-index; a igual altura, la que va después en el documento, que es la que se pinta encima.
          */
-        function _capaDeArribaQueSeCierra() {
+        function _capaDeArriba() {
             const alturaDe = (el) => {
                 let z = 0;
                 for (let e = el; e && e !== document.body; e = e.parentElement) {
@@ -4716,16 +4724,30 @@
             };
             const seVe = (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
             const capas = [];
+            const reto = document.getElementById('hijo4');
+            if (reto?.classList.contains('visible')) capas.push({ el: reto, z: alturaDe(reto), cerrar: null });
             for (const x of document.querySelectorAll('.btn-cerrar-overlay')) {
                 // La altura es la de su capa: la ✕ lleva un z-index propio que no dice nada de dónde está.
-                if (seVe(x)) capas.push({ z: alturaDe(x.parentElement), cerrar: () => x.click() });
+                if (seVe(x)) capas.push({ el: x.parentElement, z: alturaDe(x.parentElement), cerrar: () => x.click() });
             }
             const chat = document.getElementById('hijo6-chat');
             if (chat && seVe(chat) && typeof globalThis.cerrarChatSoporte === 'function') {
-                capas.push({ z: alturaDe(chat), cerrar: () => globalThis.cerrarChatSoporte() });
+                capas.push({ el: chat, z: alturaDe(chat), cerrar: () => globalThis.cerrarChatSoporte() });
             }
+            const temporizador = document.getElementById('ventana-temporizador-padre');
+            if (temporizador && seVe(temporizador)) {
+                capas.push({ el: temporizador, z: alturaDe(temporizador), cerrar: () => globalThis._cerrarVentanaTemporizador() });
+            }
+            for (const { id, iframe } of globalThis._hijosConCapaAbierta()) {
+                if (seVe(iframe)) {
+                    capas.push({ el: iframe, z: alturaDe(iframe) + 0.5, cerrar: () => { void enviarMensaje_S1({ tipo: TIPOS_MENSAJE.UI.CERRAR_CAPA, destino: id }); } });
+                }
+            }
+            const encima = (a, b) => (a.z === b.z
+                ? Boolean(b.el.compareDocumentPosition(a.el) & globalThis.Node.DOCUMENT_POSITION_FOLLOWING)
+                : a.z > b.z);
             let arriba = null;
-            for (const c of capas) if (!arriba || c.z >= arriba.z) arriba = c;
+            for (const c of capas) if (!arriba || encima(c, arriba)) arriba = c;
             return arriba;
         }
 
@@ -4749,12 +4771,12 @@
             if (continuar) { continuar.click(); return; }
             // La aventura ha terminado: su modal de fin ofrece las dos salidas y no tiene ✕.
             if (document.getElementById('modal-finalizacion-aventura')) return;
-            const capa = _capaDeArribaQueSeCierra();
-            if (capa) { capa.cerrar(); return; }
-            if (_cerrarDesplegablesDelPadre()) return;
-            // Nada que cerrar, o solo lo que no tiene ✕ a propósito (la ventana del reto, que se cierra
-            // respondiendo o saltando): el diálogo. Mientras está abierto, `body.loading` oculta los iframes, y al
-            // «Continuar» todo vuelve tal cual.
+            const capa = _capaDeArriba();
+            if (capa?.cerrar) { capa.cerrar(); return; }
+            if (!capa && _cerrarDesplegablesDelPadre()) return;
+            // Nada que cerrar, o arriba del todo lo que no se cierra con «atrás» a propósito (la ventana del reto,
+            // que se cierra respondiendo o saltando): el diálogo. Mientras está abierto, `body.loading` oculta los
+            // iframes, y al «Continuar» todo vuelve tal cual.
             if (_popstateActivo) return;
             _popstateActivo = true;
             mostrarDialogoVueltaRapida(globalThis.idiomaSeleccionado || 'es')
@@ -11996,12 +12018,33 @@ await _comprobarReanudacionAventura(logPrefix);
             globalThis._cerrarDesplegablesDelPadre();
         }
 
+        // Los hijos que tienen abierta una capa que el botón atrás cierra antes que nada: el menú de hijo1, el modal
+        // interno del asistente, la ficha de un monumento del mapa completo. Cada uno avisa al abrirla y al cerrarla
+        // (`UI.CAPA_ABIERTA`, desde js/capa-con-atras.js), y aquí se apunta su IFRAME, no su nombre: el del mapa
+        // completo se destruye al cerrarlo, y su apunte se va con él. Un documento nuevo en el mismo iframe (un hijo
+        // recargado) avisa al arrancar de que la suya está cerrada.
+        const _iframesConCapaAbierta = new WeakSet();
+
+        function _hdl_UI_CAPA_ABIERTA(mensaje) {
+            const iframe = globalThis.mensajeria.getIframesRegistrados().get(mensaje.origen)?.elemento;
+            if (!iframe) return;
+            if (mensaje.datos?.abierta === true) _iframesConCapaAbierta.add(iframe);
+            else _iframesConCapaAbierta.delete(iframe);
+        }
+
+        /** Para el botón atrás (`_capaDeArriba`, Script 1): los iframes registrados cuyo documento tiene ahora una capa abierta. */
+        globalThis._hijosConCapaAbierta = () => [...globalThis.mensajeria.getIframesRegistrados().values()]
+            .filter((info) => _iframesConCapaAbierta.has(info.elemento))
+            .map((info) => ({ id: info.id, iframe: info.elemento }));
+
         function _regCtrl_NavegacionEventos(TIPOS_MENSAJE) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.USUARIO_FUERA_RANGO, _hdl_NAVEGACION_USUARIO_FUERA_RANGO, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.NAVEGACION_EXTERNA, _hdl_UI_NAVEGACION_EXTERNA, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.CLOSE_MENUS, _hdl_UI_CLOSE_MENUS_PADRE, { permanente: true });
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.CAPA_ABIERTA, _hdl_UI_CAPA_ABIERTA, { permanente: true });
         }
 
         async function _hdl_AUDIO_ESTADO_ACTUALIZADO(mensaje) {
@@ -13113,6 +13156,14 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             }
         }
 
+        /** Oculta la ventana del temporizador. Es el cierre de su conmutador (otra pulsación del icono de hijo1) y el
+         *  del botón atrás del dispositivo (`_capaDeArriba`, Script 1): la ventana no lleva ✕. */
+        function _cerrarVentanaTemporizador() {
+            const ventana = document.getElementById('ventana-temporizador-padre');
+            if (ventana) ventana.style.display = 'none';
+        }
+        globalThis._cerrarVentanaTemporizador = _cerrarVentanaTemporizador;
+
         async function _hdl_TEMPORIZADOR_TOGGLE(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[TEMPORIZADOR.TOGGLE]`;
 
@@ -13136,12 +13187,12 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     (globalThis.logger || console).info(`${logPrefix} Ventana del temporizador creada en el padre`);
                 }
 
-                // Toggle visibilidad (si recién creada, siempre mostrar)
+                // Toggle visibilidad (si recién creada, siempre mostrar); al mostrarse, con los datos actuales
                 const estaVisible = !recienCreada && ventana.style.display !== 'none';
-                ventana.style.display = estaVisible ? 'none' : 'flex';
-
-                // Si se muestra, actualizar con los datos actuales
-                if (!estaVisible) {
+                if (estaVisible) {
+                    _cerrarVentanaTemporizador();
+                } else {
+                    ventana.style.display = 'flex';
                     _actualizarDisplayTemporizador(ventana, mensaje);
                 }
 

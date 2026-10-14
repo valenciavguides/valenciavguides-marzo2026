@@ -123,7 +123,11 @@ export const TIPOS_MENSAJE = {
     UI: {
         ACCION_USUARIO: 'UI.ACCION_USUARIO',
         CLOSE_MENUS: 'UI.CLOSE_MENUS',
-        NAVEGACION_EXTERNA: 'UI.NAVEGACION_EXTERNA'
+        NAVEGACION_EXTERNA: 'UI.NAVEGACION_EXTERNA',
+        // Una capa de dentro de un hijo que el botón atrás cierra (js/capa-con-atras.js): el hijo avisa al padre
+        // al abrirla y al cerrarla (CAPA_ABIERTA, `{ abierta }`), y el padre le pide que la cierre (CERRAR_CAPA).
+        CAPA_ABIERTA: 'UI.CAPA_ABIERTA',
+        CERRAR_CAPA: 'UI.CERRAR_CAPA'
     },
     SELECCION: {
         IDIOMA_SELECCIONADO: 'SELECCION.IDIOMA_SELECCIONADO',

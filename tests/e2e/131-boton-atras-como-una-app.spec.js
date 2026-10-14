@@ -4,11 +4,16 @@
  * POR QUE EXISTE
  *
  * Con una aventura en marcha, «atrás» no puede sacar al usuario de la aplicación. Cada pulsación cierra primero lo
- * que tiene delante (la capa del padre con la ✕ común, el asistente o un desplegable abierto) y, si no hay nada que
- * cerrar, enseña el diálogo de vuelta («Continuar mi aventura» / «Elegir otra aventura»). Con el diálogo abierto,
- * «atrás» es su «Continuar». Lo que no tiene ✕ a propósito, como la ventana del reto, se queda: sale el diálogo
- * encima, y al continuar todo sigue como estaba. «¿Hay una aventura en marcha?» lo contesta el modo, no la aventura y
- * el idioma elegidos en la selección.
+ * que tiene delante (la capa del padre con la ✕ común, el asistente, la ventana del temporizador, una capa de dentro
+ * de un hijo o un desplegable abierto) y, si no hay nada que cerrar, enseña el diálogo de vuelta («Continuar mi
+ * aventura» / «Elegir otra aventura»). Con el diálogo abierto, «atrás» es su «Continuar». Lo que no tiene ✕ a
+ * propósito, como la ventana del reto, se queda: sale el diálogo encima, y al continuar todo sigue como estaba.
+ * «¿Hay una aventura en marcha?» lo contesta el modo, no la aventura y el idioma elegidos en la selección.
+ *
+ * Las capas de dentro de un hijo (el menú de hijo1, el modal interno del asistente, la ficha de un monumento del
+ * mapa completo) las ve el padre porque el hijo le avisa al abrirlas y al cerrarlas (js/capa-con-atras.js); «atrás»
+ * le pide al hijo que la cierre. Antes de pulsar «atrás», cada caso espera a que el padre lo sepa
+ * (`_hijosConCapaAbierta`): el aviso tarda lo que un mensaje, y un dedo no pulsa tan rápido.
  *
  * Aquí «atrás» es `history.back()` en el padre, el mismo `popstate` que da el botón del móvil. Ningún otro spec lo
  * pulsa: los que abren el diálogo de vuelta lo hacen llamando a su función.
@@ -23,10 +28,21 @@
  *   BA-5  Con el modal de fin de aventura (sin ✕) «atrás» no hace nada: ni diálogo ni salida.
  *   BA-6  Sin aventura en marcha —tras «Elegir otra aventura», con otra aventura elegida en la selección y sin
  *         arrancar— «atrás» no enseña el diálogo.
+ *   BA-7  El menú de hijo1 abierto y, encima, el listado de paradas: el primer «atrás» cierra el listado, el segundo
+ *         el menú (lo de dentro del hijo, que el padre no dibuja), y solo el tercero enseña el diálogo.
+ *   BA-8  El modal interno del asistente (los términos) se cierra antes que el asistente: un «atrás» para cada uno.
+ *   BA-9  La ficha de un monumento del mapa completo se cierra antes que el mapa: un «atrás» para cada uno.
+ *   BA-10 La ventana del temporizador (sin ✕: la abre y la cierra el icono de hijo1) se cierra con «atrás».
+ *   BA-11 La ventana del reto encima del menú abierto de hijo1: «atrás» enseña el diálogo y el menú de debajo no se
+ *         toca. Al continuar, siguen los dos.
  *
  * ROJO ANTES QUE VERDE: con el escucha anterior (miraba el estado de la entrada a la que se llega, y la aventura y
  * el idioma elegidos), BA-1 a BA-4 y BA-6 fallan: el primer «atrás» no enseña el diálogo ni cierra nada (BA-6 cae ya
- * en ese primer paso). BA-5 pasa con los dos, porque el anterior no hacía nada con ningún «atrás».
+ * en ese primer paso). BA-5 pasa con los dos, porque el anterior no hacía nada con ningún «atrás». Con el padre que
+ * solo veía sus propias capas, BA-7 a BA-10 fallan: el menú de hijo1, el modal del asistente, la ficha del monumento y
+ * la ventana del temporizador siguen abiertos tras su «atrás», que enseña el diálogo o cierra lo de detrás (el
+ * asistente, el mapa). BA-11 vigila el otro lado: sin la ventana del reto en la cuenta, su «atrás» cerraba el menú de
+ * debajo en vez de enseñar el diálogo.
  */
 'use strict';
 
@@ -71,6 +87,19 @@ async function arrancarAventura(page, aventura) {
 
 const hayDialogo = (page) => page.evaluate(() => !!document.getElementById('btn-vuelta-continuar'));
 const sigueEnLaAventura = (page) => page.evaluate(() => globalThis.estadoPadre?.modo?.actual === 'aventura');
+
+/** Los hijos que, según el padre, tienen ahora una capa abierta (js/capa-con-atras.js). */
+const capasQueVeElPadre = (page) => page.evaluate(() => globalThis._hijosConCapaAbierta().map((c) => c.id).sort());
+
+const hijo1 = (page) => page.frames().find((f) => f.name() === 'hijo1-opciones');
+const menuDeHijo1Abierto = (page) => hijo1(page).evaluate(() => getComputedStyle(document.getElementById('icono-gastronomia')).display !== 'none');
+
+/** El menú de «más opciones», abierto como lo abre el usuario, y con el padre ya enterado. */
+async function abrirMenuDeHijo1(page) {
+  await hijo1(page).evaluate(() => document.getElementById('mas-opciones').click());
+  await expect.poll(() => menuDeHijo1Abierto(page), { timeout: 5_000 }).toBe(true);
+  await expect.poll(() => capasQueVeElPadre(page), { timeout: 5_000 }).toEqual(['hijo1-opciones']);
+}
 
 /** «Atrás» de verdad: el popstate que da el botón del móvil. */
 const atras = (page) => page.evaluate(() => history.back());
@@ -209,5 +238,118 @@ test.describe('BA — el botón atrás, como en una app nativa', () => {
     // VENTANA-OBSERVACION: sin aventura en marcha el diálogo de vuelta no debe salir
     await page.waitForTimeout(1500);
     expect(await hayDialogo(page).catch(() => false)).toBe(false);
+  });
+
+  test('BA-7. El menú de hijo1 se cierra con atrás, después de lo que tiene encima', async ({ page }) => {
+    test.setTimeout(180_000);
+    await arrancarAventura(page, 'Aventura1');
+    await abrirMenuDeHijo1(page);
+    // Encima del menú, el listado de paradas, que es del padre y lleva la ✕ común.
+    await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: globalThis.TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE, datos: {} }));
+    await expect(page.locator('#ventana-listado-paradas-padre')).toBeVisible();
+
+    await atras(page);
+    await expect(page.locator('#ventana-listado-paradas-padre')).toBeHidden();
+    expect(await menuDeHijo1Abierto(page), 'lo de debajo espera a su turno').toBe(true);
+
+    await atras(page);
+    await expect.poll(() => menuDeHijo1Abierto(page), { timeout: 5_000 }).toBe(false);
+    expect(await hayDialogo(page), 'cerrar el menú no enseña el diálogo').toBe(false);
+    await expect.poll(() => capasQueVeElPadre(page), { timeout: 5_000 }).toEqual([]);
+
+    await atras(page);
+    await expect.poll(() => hayDialogo(page), { timeout: 5_000 }).toBe(true);
+  });
+
+  test('BA-8. El modal interno del asistente se cierra antes que el asistente', async ({ page }) => {
+    test.setTimeout(180_000);
+    await arrancarAventura(page, 'Aventura1');
+    await page.evaluate(() => document.getElementById('btn-chat-soporte').click());
+    await expect(page.locator('#hijo6-chat')).toBeVisible();
+    const chat = page.frames().find((f) => f.name() === 'hijo6-chat');
+    // La flecha de la primera respuesta con enlace abre los términos (la de los datos de terceros).
+    await chat.evaluate(() => document.querySelector('.respuesta-enlace-flecha').click());
+    const modalAbierto = () => chat.evaluate(() => document.getElementById('chat-modal-overlay').classList.contains('visible'));
+    await expect.poll(modalAbierto, { timeout: 10_000 }).toBe(true);
+    expect(await chat.evaluate(() => document.getElementById('chat-modal-contenido').textContent.trim().length), 'con los términos dentro').toBeGreaterThan(0);
+    await expect.poll(() => capasQueVeElPadre(page), { timeout: 5_000 }).toEqual(['hijo6-chat']);
+
+    await atras(page);
+    await expect.poll(modalAbierto, { timeout: 5_000 }).toBe(false);
+    await expect(page.locator('#hijo6-chat'), 'el asistente sigue abierto').toBeVisible();
+    expect(await hayDialogo(page)).toBe(false);
+
+    await atras(page);
+    await expect(page.locator('#hijo6-chat')).toBeHidden();
+    expect(await hayDialogo(page)).toBe(false);
+
+    await atras(page);
+    await expect.poll(() => hayDialogo(page), { timeout: 5_000 }).toBe(true);
+  });
+
+  test('BA-9. La ficha de un monumento se cierra antes que el mapa completo', async ({ page }) => {
+    test.setTimeout(180_000);
+    // El mapa completo pinta con Leaflet, que el arnés sustituye por un fichero vacío: aquí se deja pasar el de
+    // verdad, como en el spec 54 (MC-3). La ruta registrada después es la que se aplica.
+    await page.route('**/cdnjs.cloudflare.com/ajax/libs/leaflet/**', (route) => route.continue());
+    await arrancarAventura(page, 'Aventura1');
+    // El mismo mensaje que manda el botón del mapa completo de hijo2.
+    await page.evaluate(() => globalThis.mensajeria.despacharLocal({
+      tipo: globalThis.TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO,
+      datos: { accion: 'mostrar-mapa-completo', formato: 'html', url: 'mapa-completo.html?aventura=Aventura1', aventura: 'Aventura1', mostrarTodo: true },
+    }));
+    await expect(page.locator('#iframe-overlay')).toBeVisible();
+    await expect.poll(() => page.frames().some((f) => f.url().includes('mapa-completo.html')), { timeout: 10_000 }).toBe(true);
+    const mapa = page.frames().find((f) => f.url().includes('mapa-completo.html'));
+    await mapa.waitForFunction(() => document.querySelectorAll('.monumento-marker').length > 0, null, { timeout: 30_000 });
+    await mapa.locator('.monumento-marker').first().click();
+    const fichaAbierta = () => mapa.evaluate(() => document.getElementById('monumento-overlay').classList.contains('visible'));
+    await expect.poll(fichaAbierta, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => capasQueVeElPadre(page), { timeout: 5_000 }).toEqual(['mapa-completo']);
+
+    await atras(page);
+    await expect.poll(fichaAbierta, { timeout: 5_000 }).toBe(false);
+    await expect(page.locator('#iframe-overlay'), 'el mapa sigue abierto').toBeVisible();
+    expect(await hayDialogo(page)).toBe(false);
+
+    await atras(page);
+    await expect(page.locator('#iframe-overlay')).toBeHidden();
+    expect(await hayDialogo(page)).toBe(false);
+
+    await atras(page);
+    await expect.poll(() => hayDialogo(page), { timeout: 5_000 }).toBe(true);
+  });
+
+  test('BA-10. La ventana del temporizador se cierra con atrás, sin diálogo', async ({ page }) => {
+    test.setTimeout(180_000);
+    await arrancarAventura(page, 'Aventura1');
+    // El mismo mensaje que manda el icono del temporizador de hijo1.
+    await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: globalThis.TIPOS_MENSAJE.TEMPORIZADOR.TOGGLE, datos: {} }));
+    await expect(page.locator('#ventana-temporizador-padre')).toBeVisible();
+
+    await atras(page);
+    await expect(page.locator('#ventana-temporizador-padre')).toBeHidden();
+    expect(await hayDialogo(page), 'cerrar el temporizador no enseña el diálogo').toBe(false);
+
+    await atras(page);
+    await expect.poll(() => hayDialogo(page), { timeout: 5_000 }).toBe(true);
+  });
+
+  test('BA-11. Con la ventana del reto encima del menú de hijo1, atrás enseña el diálogo y no toca el menú', async ({ page }) => {
+    test.setTimeout(180_000);
+    await arrancarAventura(page, 'Aventura1');
+    await abrirMenuDeHijo1(page);
+    // La ventana del reto a la vista, como en BA-4.
+    await page.evaluate(() => document.getElementById('hijo4').classList.add('visible'));
+    await expect(page.locator('#hijo4')).toBeVisible();
+
+    await atras(page);
+    await expect.poll(() => hayDialogo(page), { timeout: 5_000 }).toBe(true);
+    expect(await menuDeHijo1Abierto(page), 'el menú de debajo no se toca').toBe(true);
+
+    await atras(page);
+    await expect.poll(() => hayDialogo(page), { timeout: 5_000 }).toBe(false);
+    expect(await menuDeHijo1Abierto(page), 'al continuar sigue el menú').toBe(true);
+    expect(await page.evaluate(() => document.getElementById('hijo4').classList.contains('visible')), 'y la ventana del reto').toBe(true);
   });
 });

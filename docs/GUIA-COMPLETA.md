@@ -2438,6 +2438,8 @@ i = 0..5 (listado, gastronomia, informacion, historia, páginas, temporizador)
 
 `listado` es el primero del array `iconosArriba` (índice `i=0`) — por eso queda pegado al botón principal, el más fácil de alcanzar con el pulgar.
 
+El menú lo despliega `mostrarIconos()` y lo recoge `ocultarTodos()`, las dos únicas funciones que cambian `estadoMenu.abierto`. `ocultarTodos()` es el cierre de todos: el botón principal (`toggleMenu`), cada icono antes de hacer lo suyo y el botón atrás del dispositivo, para el que el menú es una capa de hijo1 (`js/capa-con-atras.js`, §34.3). Las dos avisan al padre con `UI.CAPA_ABIERTA { abierta }` cuando el estado cambia.
+
 Al pulsar cualquier icono con URL, hijo1 pide al padre pausar el audio (`UI.ACCION_USUARIO` con `accion:'audio_control'`, `comando:'pause'`, `contexto:'enlace_externo'`), abre la URL en una pestaña nueva (`globalThis.open(url, '_blank')`) y envía `UI.NAVEGACION_EXTERNA` al padre. El padre no abre nada: registra la URL en el log y marca `__vv_salidaEnlaceExterno`, la bandera con la que decide mostrar el diálogo de vuelta rápida cuando el usuario regresa a la pestaña. No manda ningún `UI.CLOSE_MENUS`.
 
 #### Temporizador
@@ -2498,13 +2500,17 @@ Mensajes del temporizador:
 | `AVENTURA.INICIADA` | Inicia la cuenta atrás con el tiempo recibido |
 | `AVENTURA.FINALIZADA` | Detiene el temporizador |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
+| `UI.CERRAR_CAPA` | Lo manda el padre cuando el botón atrás le toca al menú abierto: lo cierra con `ocultarTodos()` (registrado por `js/capa-con-atras.js`, §34.3) |
 
 #### Mensajes que envía al padre
 
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
 | `SISTEMA.HIJO_PREPARADO` / `HIJO_LISTO` | Handshake estándar | — |
-| `UI.NAVEGACION_EXTERNA` | Click en cualquier icono con URL | `{ url: 'gastronomia.html' }` |
+| `UI.CLOSE_MENUS` | Cada pulsación del botón «más opciones» (`toggleMenu`), al abrir y al cerrar | `{ timestamp }` |
+| `UI.CAPA_ABIERTA` | Al arrancar (`{ abierta: false }`) y cada vez que el menú se abre o se cierra | `{ abierta }` |
+| `UI.ACCION_USUARIO` | Click en cualquier icono con URL, antes de abrirla | `{ accion: 'audio_control', comando: 'pause', contexto: 'enlace_externo' }` |
+| `UI.NAVEGACION_EXTERNA` | Click en cualquier icono con URL | `{ url, icono, timestamp }` |
 | `TEMPORIZADOR.TOGGLE` | Click en `#icono-temporizador` (sin gesto multi-tap) | `{ tiempoRestante, tiempoTotal, estado, modoAventura, tiempoFormateado, timestamp }` |
 | `PARADAS.LISTADO_TOGGLE` | Click en `#icono-listado-paradas` | `{ timestamp }` |
 | `CONTROL.DEV_CINCO_TOQUES` | Gesto oculto de activación del modo DEV (Factor 2 — detalle en §24) | `{ timestamp }` — el padre abre modal de código DEV |
@@ -3279,9 +3285,9 @@ function abrirChat() {
 
 > **Los cargadores de iframes registran su iframe, sin excepción.** `cargarHijo()` (el cargador único de hijos, que usan `cargarIframeSoloSeleccion()`, `cargarHijoCasa()` y `cargarRestoDeiframes()`) llama a `globalThis.registrarIframeHijo(id, elemento)` (que registra con `registrarIframe_S1(id, elemento, { supervisado: true })`) **antes** de asignar el `src`. Cualquier cargador nuevo debe hacer lo mismo: es el requisito, no un detalle.
 
-> **El registro en la mensajería es obligatorio, no decorativo.** `enviarMensaje()` (`js/mensajeria.js`) resuelve todo destino padre→hijo buscándolo en el Map `iframesRegistrados`; un iframe que no esté ahí **no es alcanzable desde el padre** y cualquier mensaje dirigido a él se descarta devolviendo `false`, con un único `logger.warn("Iframe no encontrado o sin contentWindow: …")` como rastro. El sentido contrario (hijo→padre) nunca depende de este Map: es un `postMessage` directo a `globalThis.parent`, así que un hijo sin registrar sí consigue entregar su `HIJO_PREPARADO` — y ese es justo el modo de fallo confuso, porque el handshake parece arrancar bien y solo la respuesta se pierde.
+> **El registro en la mensajería es obligatorio, no decorativo.** El bus (`js/mensajeria.js`) solo habla con los iframes que el frame ha registrado, y en los dos sentidos. Hacia abajo, `enviarMensaje()` resuelve todo destino en el Map `iframesRegistrados`: un destino que no está ahí no se envía, devuelve `false` y deja un `warn` («Destino desconocido desde padre: '…' no es la ventana de arriba ni un iframe registrado aquí»). Hacia arriba, `manejarMensajeEntrante()` descarta lo que llega de un frame que no es su ventana de arriba ni un iframe registrado, con un aviso por tipo («padre descarta …: viene de un frame que no es su padre ni un iframe registrado aquí»).
 >
-> Un iframe sin registrar produce un fallo confuso. En `hijo6-chat` se ve como un chat siempre en español. En **hijo5** la cadena es: `PADRE_DATOS` descartado → hijo5 nunca envía su `HIJO_LISTO` (lo emite desde dentro de ese handler) → `cargarHijoCasa()` se queda esperando su `HIJO_LISTO` → hijo5 no entra en `hijosInicializados`, así que el cambio de modo llega a 5 hijos en vez de 6 → sin `PADRE_CONFIRMA_HIJO_LISTO`, su `mostrarUI()` hace `return` y su propio `document.body` se queda en `display:none`. **El iframe queda visible y vacío.** Para `hijo6-chat` la consecuencia concreta es doble: no le llega el `SISTEMA.PADRE_DATOS` que transporta el idioma (§6, "única excepción"), con lo que el FAQ se construye con el `'es'` por defecto sea cual sea `idiomaSeleccionado`; y al no completar `HIJO_LISTO` nunca entra en `hijosInicializados`, lo que deja también sin efecto la vía de refresco `CHAT.ESTADO_PADRE` de cada apertura (que se condiciona a que el asistente esté listo). Por eso el registro se hace **antes** de asignar `src`, en el mismo punto y con el mismo criterio que el cargador único de hijos del padre (`cargarHijo()`). Cubierto por `tests/e2e/47-reescalado-marcador-usuario-y-chat.spec.js` (grupo CH).
+> Un hijo sin registrar no completa el apretón de manos: su `HIJO_PREPARADO` se descarta al llegar, así que el padre no le manda `PADRE_DATOS`, el hijo no manda `HIJO_LISTO` (lo emite desde ese handler) y no entra en `hijosInicializados`. Sin `PADRE_CONFIRMA_HIJO_LISTO`, los hijos que nacen ocultos (hijo1 a hijo5) no muestran nunca su interfaz: **el iframe queda visible y vacío**. En `hijo6-chat`, además de no recibir el idioma de `PADRE_DATOS` (§6, «única excepción»), el asistente no se abre: `abrirChat()` no hace nada mientras `hijoEstaListo('hijo6-chat')` sea falso. Por eso el registro se hace **antes** de asignar `src`, en el mismo punto y con el mismo criterio que el cargador único de hijos del padre (`cargarHijo()`). Cubierto por `tests/e2e/47-reescalado-marcador-usuario-y-chat.spec.js` (grupo CH).
 
 #### Estructura del acordeón FAQ
 
@@ -3332,13 +3338,13 @@ Cuando `RESPUESTAS_CHAT[clave][idioma].enlace` no es `null`, `construirFAQ()` a�
 |---|---|---|
 | `'terminos'` | `import('./js/terminos-aventuras.js')` (lazy, cacheado en `_cacheModuloEnlace` tras la primera vez) → pinta `TERMINOS_AVENTURAS.terminos_idiomas[idioma]` como HTML dentro de `#chat-modal-contenido` | Mismo módulo que usa `En-busca-del-tesoro.html` P5 |
 | `'agradecimientos'` | Igual, con `import('./js/agradecimientos-aventuras.js')` → `AGRADECIMIENTOS_AVENTURAS.agradecimientos_idiomas[idioma]` | Mismo módulo que usa `En-busca-del-tesoro.html` P18 |
-| `'video-intro'` | Crea un `<iframe src="video-intro.html?lang=IDIOMA&replay=1">` dentro de `#chat-modal-contenido` (sin cachear — se recrea cada vez) | `video-intro.html`, el mismo fichero que reproduce la introducción en `En-busca-del-tesoro.html` P4; escucha `postMessage` en `globalThis.parent`, que aquí resuelve al propio hijo6. El `&replay=1` sí lo condiciona a este contexto: habilita `#btn-skip` desde el arranque en vez de esperar a la escena 4 (§35.5b) — el usuario ya ha visto la intro antes, así que puede salir en cualquier momento |
+| `'video-intro'` | Crea un `<iframe src="video-intro.html?lang=IDIOMA&replay=1">` dentro de `#chat-modal-contenido` (sin cachear — se recrea cada vez) | `video-intro.html`, el mismo fichero que reproduce la introducción en `En-busca-del-tesoro.html` P4; avisa por el bus a su ventana de arriba, que aquí es hijo6 (lo registra como `'video-intro'` antes de darle `src`, y lo da de baja al cerrar el modal). El `&replay=1` sí lo condiciona a este contexto: habilita `#btn-skip` desde el arranque en vez de esperar a la escena 4 (§35.5b) — el usuario ya ha visto la intro antes, así que puede salir en cualquier momento |
 
-`cerrarModal()` vacía `#chat-modal-contenido.innerHTML` al cerrar — esto detiene el `<iframe>` del vídeo si estaba reproduciéndose (destruye su documento) en vez de solo ocultarlo. hijo6 también escucha `message` en `globalThis` (con el mismo check de origen que el resto de la app) para `SELECCION.VIDEO_INTRO_TERMINADO` — el mismo evento que `video-intro.html` emite siempre al terminar — y cierra el modal automáticamente cuando el vídeo llega a su fin.
+El modal se muestra y se oculta en dos únicos sitios, `mostrarModal()` y `cerrarModal()`. `cerrarModal()` vacía `#chat-modal-contenido.innerHTML` al cerrar —esto detiene el `<iframe>` del vídeo si estaba reproduciéndose (destruye su documento) en vez de solo ocultarlo— y da de baja `'video-intro'` en el bus. Lo llaman la ✕ del modal (`#chat-modal-cerrar`), el handler de `SELECCION.VIDEO_INTRO_TERMINADO` —el aviso que `video-intro.html` emite siempre al terminar, por el bus— y el botón atrás del dispositivo: el modal es la capa de hijo6 que «atrás» cierra antes que el propio asistente (`js/capa-con-atras.js`, §34.3). Cada uno de los dos sitios avisa al padre (`UI.CAPA_ABIERTA { abierta }`).
 
-Hoy solo `RESPUESTAS_CHAT.CONFIG_DATOS_TERCEROS` usa `'terminos'`, solo `AGRADECIMIENTOS_VER` usa `'agradecimientos'`, y solo `INTRO_VOLVER_A_VER` usa `'video-intro'` — un enlace por clave, nunca más de uno.
+Solo `RESPUESTAS_CHAT.CONFIG_DATOS_TERCEROS` usa `'terminos'`, solo `AGRADECIMIENTOS_VER` usa `'agradecimientos'`, y solo `INTRO_VOLVER_A_VER` usa `'video-intro'` — un enlace por clave, nunca más de uno.
 
-El estado que `CHAT.ESTADO_PADRE` entrega (`paradaActualNombre`, `siguienteParadaNombre`, `paradasRestantes`, `aventura`, `idioma`) ya **no** se usa para sustituir nada dentro de las respuestas del FAQ — estas son estáticas, iguales en cualquier parada. Ese mismo `estadoPadre` se sigue usando exclusivamente como contexto adjunto al buzón de sugerencias (ver más abajo).
+Las respuestas del FAQ son estáticas, iguales en cualquier parada. Del estado que entrega `CHAT.ESTADO_PADRE` (`idioma`, `aventura`, `paradaActualNombre`, `siguienteParadaNombre`, `paradasRestantes`, `rescate`), hijo6 lee `idioma` (el idioma del asistente), `rescate` (si se pinta la pregunta del atasco y con qué número) y `aventura` y `paradaActualNombre` (el contexto adjunto al buzón de sugerencias, más abajo); `siguienteParadaNombre` y `paradasRestantes` no los lee.
 
 #### Controladores que registra
 
@@ -3349,6 +3355,8 @@ El estado que `CHAT.ESTADO_PADRE` entrega (`paradaActualNombre`, `siguienteParad
 | `CHAT.ESTADO_PADRE` | Actualiza `estadoPadre` interno y reconstruye el FAQ (`actualizarIdioma()` con el idioma recibido): así se refrescan el idioma y el botón de rescate en cada apertura |
 | `SISTEMA.CAMBIO_MODO` | Envía `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO { exito: true }` al padre |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
+| `SELECCION.VIDEO_INTRO_TERMINADO` | Lo manda el `video-intro.html` del modal al terminar: cierra el modal (`cerrarModal()`) |
+| `UI.CERRAR_CAPA` | Lo manda el padre cuando el botón atrás le toca al modal interno: lo cierra con `cerrarModal()` (registrado por `js/capa-con-atras.js`, §34.3) |
 
 #### Mensajes que envía al padre
 
@@ -3359,6 +3367,9 @@ El estado que `CHAT.ESTADO_PADRE` entrega (`paradaActualNombre`, `siguienteParad
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Al recibir `CAMBIO_MODO` | `{ modo, timestamp, mensajeId }` |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Al recibir `CAMBIO_MODO` | `{ modo, exito: true, timestamp, mensajeId }` |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp, estado: 'activo'/'inicializando' }` |
+| `CHAT.CERRAR` | Al pulsar la ✕ de la cabecera (`#btn-cerrar`) | — (sin `datos`) |
+| `CHAT.RESCATE_SOLICITADO` | Al pulsar el botón del rescate, con acuse (plazo `ajustarTimeoutPorConexion(5000)`) | `{}` |
+| `UI.CAPA_ABIERTA` | Al arrancar (`{ abierta: false }`) y cada vez que el modal interno se abre o se cierra | `{ abierta }` |
 
 ```mermaid
 sequenceDiagram
@@ -3398,7 +3409,7 @@ sequenceDiagram
 
 Debajo del acordeón `#faq`, fuera de sus temas/preguntas, hay una caja fija (`#buzon-sugerencias`) con un `<textarea>` libre y un botón de envío — el canal para que el usuario reporte una pregunta mal formulada, un error, o cualquier propuesta que no encaje en el FAQ. No depende del acordeón ni de ninguna intención concreta: siempre visible, en cualquier idioma, en cualquier modo.
 
-Al pulsar enviar, el texto (más el contexto — idioma activo, aventura y parada actual, tomados del mismo `estadoPadre` que alimenta los tokens del FAQ) se envía mediante `enviarSugerencia()` de `js/feedback-forms.js`. No hay backend propio ni tipo de mensaje nuevo en el bus padre-hijo: es una llamada de red directa, fuera del protocolo `mensajeria`, igual en naturaleza a los `fetch()` de la capa de datos (ver §10.21). El botón se deshabilita brevemente tras el envío y muestra un mensaje de agradecimiento (`TEXTOS_BUZON_SUGERENCIAS`, 12 idiomas, en `js/traducciones-ui.js`).
+Al pulsar enviar, el texto (más el contexto — idioma activo, y la aventura y la parada actual de `estadoPadre`) se envía mediante `enviarSugerencia()` de `js/feedback-forms.js`. No hay backend propio ni tipo de mensaje nuevo en el bus padre-hijo: es una llamada de red directa, fuera del protocolo `mensajeria`, igual en naturaleza a los `fetch()` de la capa de datos (ver §10.21). El botón se deshabilita brevemente tras el envío y muestra un mensaje de agradecimiento (`TEXTOS_BUZON_SUGERENCIAS`, 12 idiomas, en `js/traducciones-ui.js`).
 
 El destino real (URL de envío, campo de destino) vive únicamente en las constantes internas de `js/feedback-forms.js` — deliberadamente no se documentan aquí porque este fichero es público (ver §22.15); quien necesite gestionar las sugerencias recibidas debe consultar ese módulo directamente, no esta guía.
 
@@ -4902,7 +4913,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-08e0a0541a6d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-2295c0b8c9e5'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5502,8 +5513,22 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo1, al abrir su panel de opciones (`toggleMenu`), con `datos: { timestamp }` |
+| Emitido por | hijo1, en cada pulsación del botón «más opciones» (`toggleMenu`), al abrir y al cerrar su menú, con `datos: { timestamp }` |
 | Handler en padre | `_hdl_UI_CLOSE_MENUS_PADRE` (Script 2): cierra los desplegables del padre con `_cerrarDesplegablesDelPadre()` (§34.1) |
+
+**UI.CAPA_ABIERTA** (hijo1, hijo6 y mapa-completo → padre)
+
+| Campo | Valor |
+|-------|-------|
+| Emitido por | `js/capa-con-atras.js`, en el frame que tiene una capa que el botón atrás cierra antes que nada: hijo1 (su menú), hijo6 (su modal interno) y mapa-completo (la ficha de un monumento, solo con padre). Sale `{ abierta: false }` al crearse la capa, al arrancar el frame, y después solo cuando el estado cambia: el frame llama a `avisar(abierta)` desde las dos funciones que abren y cierran la capa |
+| Handler en padre | `_hdl_UI_CAPA_ABIERTA` (Script 2): busca el iframe registrado con el nombre de `mensaje.origen` y lo apunta en un `WeakSet` (`abierta: true`) o lo quita (`false`). `globalThis._hijosConCapaAbierta()` devuelve los iframes registrados apuntados, `{ id, iframe }`, para el botón atrás (§34.3). Se apunta el iframe y no el nombre: el del mapa completo se destruye al cerrarlo, y su apunte se va con él |
+
+**UI.CERRAR_CAPA** (padre → hijo1, hijo6 y mapa-completo)
+
+| Campo | Valor |
+|-------|-------|
+| Emitido por | El padre, desde `_capaDeArriba()` (Script 1), cuando el botón atrás le toca a la capa de ese hijo; `destino` es el nombre con que está registrado (`'hijo1-opciones'`, `'hijo6-chat'` o `'mapa-completo'`), sin `datos` |
+| Handler en el hijo | El que registra `js/capa-con-atras.js`: llama a la función de cierre que el hijo le dio —`ocultarTodos()` en hijo1, `cerrarModal()` en hijo6, `cerrarOverlay()` en mapa-completo, las mismas que su ✕ o su botón— y devuelve `true`. El cierre avisa al padre con `UI.CAPA_ABIERTA { abierta: false }` |
 
 **UI.NAVEGACION_EXTERNA** (hijo1 → padre)
 
@@ -5675,7 +5700,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 #### `UI.CLOSE_MENUS` hijo1 → padre
 
-hijo1 envía `UI.CLOSE_MENUS` al abrir su panel de opciones. El padre tiene `_hdl_UI_CLOSE_MENUS_PADRE` en Script 2 que cierra los desplegables del padre: control de audio, tipo de mapa y modo de brújula (ver §34.1).
+hijo1 envía `UI.CLOSE_MENUS` en cada pulsación de «más opciones», al abrir y al cerrar su menú. El padre tiene `_hdl_UI_CLOSE_MENUS_PADRE` en Script 2 que cierra los desplegables del padre: control de audio, tipo de mapa y modo de brújula (ver §34.1).
 
 ---
 
@@ -5701,8 +5726,11 @@ hijo1 envía `UI.CLOSE_MENUS` al abrir su panel de opciones. El padre tiene `_hd
 | AVENTURA.INICIADA/FINALIZADA | ✅ | — | — | — | — | — |
 | RESPUESTA_DATOS_PARADAS | — | ✅ (guarda las paradas) | — | — | ✅ (genera botones) | — |
 | CHAT.ESTADO_PADRE | — | — | — | — | — | ✅ |
+| UI.CERRAR_CAPA | ✅ (su menú) | — | — | — | — | ✅ (su modal interno) |
 
 **Leyenda**: ✅ handler presente · ❌ ausente (potencial gap) · — no aplica al rol de ese hijo
+
+> ℹ️ **UI.CERRAR_CAPA**: lo atiende también `mapa-completo.html` (la ficha de un monumento), que no es uno de los seis hijos. Los registra `js/capa-con-atras.js` (§34.3).
 
 > ℹ️ **GPS (ESTADO_ACTUALIZADO / ERROR)**: solo **hijo2** tiene handlers para estos tipos. El GPS real llega directamente a hijo2 vía `enviarMensaje_S1` — los demás hijos no procesan eventos GPS.
 
@@ -6817,11 +6845,8 @@ Página independiente que muestra todas las paradas y la polyline de la aventura
 **Marcadores de referencia:**  
 Se crean con `L.divIcon` usando `iconSize: null` para que Leaflet no restrinja el tamaño a los 12×12 px por defecto (sin ese ajuste el número queda recortado). El marcador muestra `🏛️ N` donde N es `mapa_numero` del objeto.
 
-**Popup al pulsar un marcador:**  
-`mostrarMonumento(ref)` muestra un overlay con el número (`Nº {mapa_numero} ·`), el nombre, y la imagen del monumento si `ref.imagen` está definida (si no, un emoji 🏛️ de relleno). Se cierra con el botón de cerrar o pulsando fuera del overlay.
-
-**Popup en mapa completo (`mapa-completo.html`):**  
-Distinto — muestra la imagen (`ref.imagen`) y compone el número+nombre en `#monumento-numero` (el elemento `#monumento-nombre` se mantiene oculto con `display:none`).
+**Ficha al pulsar un marcador:**  
+`mostrarMonumento(ref)` abre `#monumento-overlay` con la imagen del monumento si `ref.imagen` está definida (si no, un emoji 🏛️ de relleno) y compone el número y el nombre en `#monumento-numero` (`Nº {mapa_numero} · {nombre}`; `#monumento-nombre` se queda oculto con `display:none`). La cierra `cerrarOverlay()`, que llaman su ✕ (`#monumento-cerrar`), un toque fuera de la ficha y el botón atrás del dispositivo: la ficha es la capa del mapa completo que «atrás» cierra antes que el propio mapa (`js/capa-con-atras.js`, §34.3; solo con padre, porque sin él no hay marcadores). `mostrarMonumento` y `cerrarOverlay` avisan al padre con `UI.CAPA_ABIERTA { abierta }`.
 
 ### Configuración del GPS (`js/config.js` → `CONFIG.GPS`)
 
@@ -8045,7 +8070,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `128-elegir-otra-aventura-arranca-de-cero.spec.js` | 1 | «Elegir otra aventura» con una aventura en curso deja la app como recién abierta (§34): por el camino real —elegir, normativa, logos y su botón— arranca una aventura (control), se pulsa «Elegir otra aventura» en el diálogo de vuelta y la página se recarga; tras la recarga no queda aventura guardada, el padre no tiene modo ni parada, la selección está en P1 sin su pantalla de carga y sin oferta de reanudar, y la segunda aventura arranca con una parada que es de la suya (EO-1). Espera a que el arranque del padre haya comprobado si hay una aventura guardada antes de arrancar ninguna |
 | `129-el-codigo-se-comprueba-y-cuenta-al-arrancar.spec.js` | 4 | El código de compra se comprueba en P14 y empieza a contar al arrancar la aventura (§16.2). El spec sirve una copia de `js/data-loader.js` con el backend autorizado, contesta él mismo a `/api/*` y va sin service worker: sin backend, arrancar el reloj de la aventura no llama a `/api` (CC-1, control); con backend, P14 llama a `/auth/comprobar` con el código, el email y la aventura elegida, pasa a la normativa y no llama a `/auth/activar` (CC-2); al arrancar el reloj de la aventura se llama a `/auth/activar`, una vez, con la aventura y con el token que dejó la comprobación (CC-3); en modo DEV (ver §24) o fuera del modo AVENTURA el reloj no arranca y no se llama (CC-4) |
 | `130-modal-tiempo-agotado-tiene-x.spec.js` | 3 | El modal de tiempo agotado lleva la ✕ común de la PWA, visible y dentro del modal (TX-1), y la ✕ vacía lo guardado y recarga la página sin modal al volver (TX-2), igual que «Hacer otra aventura», medido igual como control (TX-3) (§25.12) |
-| `131-boton-atras-como-una-app.spec.js` | 6 | El botón atrás con una aventura en marcha, pulsado de verdad (`history.back()`, §34): en una sesión recién abierta el primer «atrás» enseña el diálogo de vuelta, el segundo lo cierra y la aventura sigue, y el tercero lo vuelve a enseñar (BA-1); primero cierra lo que hay delante —el listado de paradas y el asistente, uno por pulsación— y solo después el diálogo (BA-2); cierra un desplegable abierto sin diálogo (BA-3); con la ventana del reto el diálogo sale encima, se puede pulsar y al continuar la ventana sigue a la vista (BA-4); con el modal de fin de aventura no hace nada (BA-5); y sin aventura en marcha, con otra aventura elegida en la selección, no enseña el diálogo (BA-6) |
+| `131-boton-atras-como-una-app.spec.js` | 11 | El botón atrás con una aventura en marcha, pulsado de verdad (`history.back()`, §34.3): en una sesión recién abierta el primer «atrás» enseña el diálogo de vuelta, el segundo lo cierra y la aventura sigue, y el tercero lo vuelve a enseñar (BA-1); primero cierra lo que hay delante —el listado de paradas y el asistente, uno por pulsación— y solo después el diálogo (BA-2); cierra un desplegable abierto sin diálogo (BA-3); con la ventana del reto el diálogo sale encima, se puede pulsar y al continuar la ventana sigue a la vista (BA-4); con el modal de fin de aventura no hace nada (BA-5); sin aventura en marcha, con otra aventura elegida en la selección, no enseña el diálogo (BA-6); lo que se abre dentro de un hijo se cierra después de lo que tiene encima y antes que lo de debajo: el menú de hijo1 tras el listado de paradas (BA-7), el modal interno del asistente antes que el asistente (BA-8) y la ficha de un monumento antes que el mapa completo (BA-9); cierra la ventana del temporizador, que no lleva ✕ (BA-10); y con la ventana del reto encima del menú de hijo1 enseña el diálogo sin tocar el menú (BA-11) |
 | `132-retos-en-su-idioma-y-sin-provisionales.spec.js` | 6 | Los datos de `js/retos-aventuras.js`, cargados en el navegador: los retos 1 y 2 de la selección tienen una sola redacción por idioma, igual en las siete aventuras (RH-1); ningún reto lleva un texto provisional (RH-2); ninguno de otro idioma copia la pregunta en español (RH-3); las opciones del reto 2 están en su idioma (RH-4); en español una pregunta que acaba en «?» abre con «¿» (RH-5); y ninguna pregunta lleva su número delante, porque los retos no se numeran en pantalla (RH-6). Cada comprobación lleva su control, un dato roto a propósito que tiene que fallar |
 | `133-hijo4-el-reto-abierto-es-uno-solo.spec.js` | 2 | En hijo4, «el reto abierto» (`estado.retoActualId`) es uno solo: con un reto abierto, el cambio de modo no limpia la ventana y lo avisa (UR-1, control); tras un `NAVEGACION.CAMBIO_PARADA` que nombra un reto, sin abrirlo, el cambio de modo limpia sin ese aviso (UR-2) |
 | `134-paginas-de-hijo1-con-x.spec.js` | 4 | Las cuatro páginas que abre hijo1 (gastronomía, información, historia y páginas oficiales), abiertas como las abre él (`window.open` en otra ventana), llevan la ✕ común con su aspecto, fija en la esquina, y la ✕ cierra la ventana (PH-1 y PH-2, una por página) |
@@ -8283,7 +8308,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-08e0a0541a6d'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-2295c0b8c9e5'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8452,6 +8477,7 @@ proyecto/
 │   ├── reciclaje-digital.js          ← Limpieza total al finalizar aventura (localStorage, caché, SW)
 │   ├── video-playback-utils.js       ← reproducirVideoConBuffer() — espera buffer suficiente antes de reproducir cualquier <video>, sirve para clips de segundos o minutos (ver §15)
 │   ├── efectos-sonido.js             ← Los cuatro efectos de sonido (`audios-efectos/`): un reproductor por efecto y por frame, siempre a volumen 1 (ver §12)
+│   ├── capa-con-atras.js             ← Una capa de dentro de un hijo que el botón atrás cierra antes que nada: el hijo avisa al padre al abrirla y al cerrarla, y la cierra cuando el padre se lo pide (ver §34.3)
 │   │
 │   ├── ── DATOS ──
 │   ├── data-loader.js                ← Cargador de datos (modo 'local' actual / 'api' futuro)
@@ -9035,7 +9061,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-08e0a0541a6d';
+const CACHE_VERSION = 'v-2295c0b8c9e5';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10990,7 +11016,7 @@ Después  Padre recibe HIJO_PREPARADO de cada hijo (independiente, por hijo):
 
 | Módulo | Rol | Expone |
 |--------|-----|--------|
-| `constants.js` | Los tipos de mensaje y las constantes compartidas. Define `TIPOS_MENSAJE` (árbol jerárquico de 92 tipos), `MODOS`, `LOG_LEVELS` y `TTL_LIMPIEZA` (solo la parte de mensajería: el TTL de limpieza en móvil y en desktop). | Solo exports. La copia `globalThis.TIPOS_MENSAJE` para los `<script>` clásicos no la publica este módulo: la publica cada frame que la usa (el padre, la selección y `video-intro.html`); los seis hijos no la tienen |
+| `constants.js` | Los tipos de mensaje y las constantes compartidas. Define `TIPOS_MENSAJE` (árbol jerárquico de 94 tipos), `MODOS`, `LOG_LEVELS` y `TTL_LIMPIEZA` (solo la parte de mensajería: el TTL de limpieza en móvil y en desktop). | Solo exports. La copia `globalThis.TIPOS_MENSAJE` para los `<script>` clásicos no la publica este módulo: la publica cada frame que la usa (el padre, la selección y `video-intro.html`); los seis hijos no la tienen |
 | `state-manager.js` | Estado compartido del padre, con acceso serializado: un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por cada uno de los cuatro campos que se leen o escriben desde fuera —`script2Listo`, `estadoPadre`, `controladores` (el Map de handlers) y `heartbeat`—, más `hijosListosPromises`, sin mutex. Solo lo carga el padre. Detalle en «El state-manager (gestor de estado)». | `globalThis.__vv_stateManager` (y `globalThis.__stateManager`) |
 | `logger.js` | Logging centralizado con los cinco niveles de `LOG_LEVELS` (`constants.js`): DEBUG, INFO, WARN, ERROR y NONE. El nivel efectivo sale de `CONFIG.DEBUG.NIVEL_LOG`, que `logger.js` lee **en cada llamada**: primero de `globalThis.__vv_config` y, si su ventana no lo tiene, del `__vv_config` de la ventana padre. No lo importa, porque `logger.js` y `config.js` van en el mismo `Promise.all` de la FASE 1 sin orden garantizado entre ellos, y resolverlo una sola vez dejaría el nivel clavado si el primer log ocurriera antes que `config.js`. **El salto a la ventana padre es lo que hace que el nivel alcance a los hijos**: cada iframe tiene su propio `globalThis` y `config.js` solo publica `__vv_config` en la ventana de arriba, así que sin él ningún hijo recibiría el nivel y todos seguirían logueándolo todo. Mirar hacia arriba en vez de importar `config.js` en cada hijo deja además **una sola fuente del nivel para toda la app**. `setNivel()` permite forzarlo en runtime y, desde esa llamada, gana sobre `CONFIG`. Con `NONE` no sale nada, ni los errores. Cada página que loguea publica su logger en su propio `globalThis` justo tras importarlo — los siete hijos más `puzzle.html`, `video-intro.html` y `mapa-completo.html`. Sin esa línea, sus `(globalThis.logger \|\| console).x` caen al `console` crudo y se saltan el nivel, y **eslint no lo detecta**: su regla `no-console` no marca ese patrón porque el objeto va envuelto en el `\|\|`. Las únicas llamadas a `console` que quedan son tres en scripts clásicos pre-módulo, donde `logger.js` aún no se ha importado; llevan su `// eslint-disable-line no-console` con el motivo, según la convención de `eslint.config.js`. Cubierto por `tests/e2e/59-nivel-de-log.spec.js` y `60-nivel-de-log-alcanza-hijos.spec.js`. Buffer en memoria de 500 entradas (FIFO — elimina la entrada más antigua cuando se llena). **Sin limpieza periódica por TTL** — `TTL_LIMPIEZA.LOGGER` está definido en `constants.js` pero `logger.js` no lo importa ni lo usa. Colorea la consola por nivel. | `default export logger` |
 | `utils.js` | Funciones compartidas: `generarIdUnico(prefijo)` → `prefijo_timestamp_aleatorio`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `normalizarParadas()`, `esIdDeTramo()`, `resolverIdsParada()`, `ajustarTimeoutPorConexion()`, `retryUntilAvailable()`, `debounce()`, `sleep()`, `calcularDistancia()` y `puntoMasCercanoEnLinea()`. Al cargarse instala, solo en los frames que tienen padre, el reporte de errores no controlados hacia el padre (`instalarReporteErroresAlPadre()`, §10.17). | Named exports |
@@ -11005,6 +11031,7 @@ Después  Padre recibe HIJO_PREPARADO de cada hijo (independiente, por hijo):
 | `mensajeria.js` | Bus central de comunicación padre↔hijos. Registro de handlers, envío dirigido o broadcast, cola de mensajes pendientes, sistema ACK/timeout, limpieza periódica por TTL. Delega al `state-manager` para almacenar handlers; fallback a mapa local si no está disponible. | `globalThis.mensajeria` |
 | `api-client.js` | Cliente HTTP para el backend. Usa la ruta **relativa** `/api`, igual en local (proxy de `js/server.js`) que en el VPS (proxy inverso): un solo origen, sin CORS y cubierto por el `connect-src 'self'` del CSP (§22.4). Implementa `TokenManager` (JWT en memoria + `sessionStorage`). | `globalThis.TokenManager`, `globalThis.ApiClient`, `globalThis.API_CONFIG` |
 | `data-loader.js` | Carga datos con doble modo: `'local'` (import JS directo) o `'api'` (backend + token) — el modo lo resuelve `asegurarModo()` preguntando a `/api/health`, y se queda en `'local'` mientras `BACKEND_READY=false` (ver §17). Cache interna (`Map`) para evitar peticiones repetidas. | `cargarCoordenadas()`, `cargarTextos()`, `cargarAudios()`, `cargarRetos()` |
+| `capa-con-atras.js` | Una capa de dentro de un hijo que el botón atrás del dispositivo cierra antes que nada (§34.3). `capaQueSeCierraConAtras(cerrar)` registra el handler de `UI.CERRAR_CAPA` —llama a `cerrar`, la misma función que la ✕ o el botón de la capa—, avisa al padre de que la capa está cerrada (`UI.CAPA_ABIERTA { abierta: false }`) y devuelve `avisar(abierta)`, que el frame llama desde las dos funciones que abren y cierran la capa; solo sale el cambio. Una capa por frame, creada con el bus del frame ya inicializado. Lo cargan `extrainfo-hijo1.html` (el menú de «más opciones»), `chat-hijo6.html` (el modal interno) y `mapa-completo.html` (la ficha de un monumento, solo con frame contenedor). | `capaQueSeCierraConAtras(cerrar)` |
 
 #### Módulos de aplicación
 
@@ -11488,10 +11515,11 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `AVENTURA.TIEMPO_ACTUALIZADO` | Hijo 1 (cada segundo mientras el temporizador corre) | `_hdl_AVENTURA_TIEMPO_ACTUALIZADO`: guarda el valor en `estado.tiempoRestante` (siempre, esté o no visible la ventana) y, si `#ventana-temporizador-padre` está desplegada, escribe el display `#tiempo-display-padre` y le pone la clase de color que corresponda | (ninguna) | — | Mantener el contador visible en el padre sincronizado con hijo1 |
 | `AVENTURA.TIEMPO_AGOTADO` | Hijo 1 (contador a 0) | `_hdl_AVENTURA_TIEMPO_AGOTADO`: lanza el flujo de fin de aventura por tiempo (modal + despedida) | (ninguna directa) | — | Gestionar el caso de límite de tiempo alcanzado |
 | `AVENTURA.ESTADISTICAS_TIEMPO` | Hijo 1 (al finalizar) | `_hdl_AVENTURA_ESTADISTICAS_TIEMPO`: registra los tiempos en el log y, solo en modo AVENTURA, llama a `mostrarModalFinalizacion()`. No persiste ninguna estadística | (ninguna) | — | Preservar datos de rendimiento del recorrido |
-| `TEMPORIZADOR.TOGGLE` | Hijo 1 (click en `#icono-temporizador` sin gesto multi-tap) | `_hdl_TEMPORIZADOR_TOGGLE`: crea (si no existe) y alterna la ventana `#ventana-temporizador-padre`; al mostrarla la rellena con el `tiempoFormateado` y el color que traiga el mensaje (en CASA, `000:00:00` en verde) | (ninguna) | — | El padre dibuja la ventana del temporizador; hijo1 solo avisa del click |
+| `TEMPORIZADOR.TOGGLE` | Hijo 1 (click en `#icono-temporizador` sin gesto multi-tap) | `_hdl_TEMPORIZADOR_TOGGLE`: crea (si no existe) y alterna la ventana `#ventana-temporizador-padre`; al mostrarla la rellena con el `tiempoFormateado` y el color que traiga el mensaje (en CASA, `000:00:00` en verde), y la oculta con `_cerrarVentanaTemporizador()`, el mismo cierre que usa el botón atrás (la ventana no lleva ✕) | (ninguna) | — | El padre dibuja la ventana del temporizador; hijo1 solo avisa del click |
 | `PARADAS.LISTADO_TOGGLE` | Hijo 1 (click en `#icono-listado-paradas`) | `_hdl_PARADAS_LISTADO_TOGGLE`: crea/alterna `#ventana-listado-paradas-padre`; al mostrarla, construye las filas (paradas + puentes) cruzando `coordenadas-aventuras.js` con `estado.paradasCompletadas` | (ninguna) | — | El progreso de la aventura solo vive en el padre (`estado.paradasCompletadas`); hijo1 no necesita conocer el contenido, solo dispara el toggle |
 | `UI.ACCION_USUARIO` | Hijo 2 (botones de imagen y de vídeo) o Hijo 1 (pausa del audio antes de abrir un enlace externo) | `_hdl_UI_ACCION_USUARIO`, según `datos.accion`: `'mostrar-imagen'` → abre el overlay de imagen; `'reproducir-video'` → abre el reproductor; `'audio_control'` → reenvía a hijo3 el mismo `UI.ACCION_USUARIO` (`comando`, `contexto`, `reenviadoDe`), porque un hijo no escribe a otro hijo; cualquier otra → `debug` | `UI.ACCION_USUARIO` → Hijo 3 (solo `audio_control`) | Hijo 3 (condicional) | El padre gestiona todos los overlays y es quien reenvía entre hijos |
 | `UI.CLOSE_MENUS` | Hijo 1 → Padre | `_hdl_UI_CLOSE_MENUS_PADRE`: cierra los tres desplegables del padre (`_cerrarDesplegablesDelPadre()`) | (ninguna) | — | Evitar solapamiento visual cuando hijo1 abre su panel de opciones |
+| `UI.CAPA_ABIERTA` | Hijo 1, Hijo 6 y mapa-completo (`{ abierta }`, desde `js/capa-con-atras.js`) | `_hdl_UI_CAPA_ABIERTA`: apunta (`abierta: true`) o quita el iframe registrado de quien lo manda en el `WeakSet` de iframes con capa abierta, que lee el botón atrás con `globalThis._hijosConCapaAbierta()` | (ninguna) | — | Que «atrás» cierre lo que se ha abierto dentro de un hijo antes que lo de debajo (§34.3) |
 | `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: solo registra el evento. No activa ninguna aventura (ver §10.14) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: apunta cada confirmación en `estado.paradasConfirmaciones[padreId]` y la registra en el log. No habilita nada ni desbloquea ningún flujo (§10.7) | (ninguna) | — | Garantizar que audio y retos están listos antes de que el usuario pueda avanzar |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2, tras la gracia de su franja (§31.4/§25.7); `{ distancia, franja, elementoMasCercano, timestamp }` | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: solo en modo AVENTURA; marca `estado.usuarioFueraRango`, refresca los controles de audio del padre (`actualizarEstadoControlesAudioPadre`) y llama a `_sincronizarRetoBtn()`, que apaga `retosBtn` en hijo3 (`CONTROL.DESHABILITAR`; con reto y sin uno abierto, `razon: 'fuera_de_rango'`) | `CONTROL.DESHABILITAR` | Hijo 3 | Bloquear el audio y el reto mientras el usuario está confirmado fuera de rango |
@@ -11551,6 +11579,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `NAVEGAR_PANTALLA` | La pantalla de selección | Cuando el usuario elige «otra aventura» en el diálogo de reanudación (`{ pantalla: 1 }`) | Que la selección vuelva a mostrar P1 |
 | `SISTEMA.NOTIFICACION` | Hijo 2 e Hijo 4 | Al crear la ficha pendiente de un elemento (`ensurePending`: `{ evento: 'PENDING_INICIADO', padreId, ttlMs }`) | Aviso del inicio del plazo de pendientes (§10.16) |
 | `UI.ACCION_USUARIO` | Hijo 3 | Cuando el usuario pulsa una acción del desplegable de audio del padre (`{ accion: 'audio_control', comando, audioId, contexto: 'audio_dropdown_padre', timestamp }`); además, el reenvío de la pausa que pide hijo1 | Dar a hijo3 las órdenes de reproducción |
+| `UI.CERRAR_CAPA` | Hijo 1, Hijo 6 o mapa-completo | Cuando el botón atrás del dispositivo le toca a la capa abierta de ese frame —el menú de hijo1, el modal interno de hijo6, la ficha de un monumento— (`_capaDeArriba()`, Script 1; sin `datos`) | Que el frame cierre su capa con su propio cierre (§34.3) |
 
 ---
 
@@ -11607,6 +11636,7 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 | `AVENTURA.INICIADA` | Padre (`{ aventuraId, tiempoEstimado, idioma, timestamp }`; al restaurar el temporizador, `{ tiempoEstimado, pausado, timestamp }`) | Si trae `tiempoEstimado`, arranca la cuenta atrás (`iniciarTemporizador`: un tick por segundo) y devuelve `{ exito: true }`; si no, devuelve `{ exito: false, error: 'Sin tiempoEstimado' }` | `AVENTURA.TIEMPO_ACTUALIZADO`, cada segundo | Padre | Arrancar el temporizador de la aventura |
 | `AVENTURA.FINALIZADA` | Padre (`{ aventuraId, idioma, motivo, timestamp }`) | Detiene el temporizador (`detenerTemporizador`) y manda sus estadísticas | `AVENTURA.ESTADISTICAS_TIEMPO` (`{ tiempoTotal, tiempoRestante, tiempoUsado, completado }`) | Padre | Cerrar el cronometraje al terminar la aventura |
 | `AVENTURA.DETENER` | Padre (`{ motivo, aventuraAnterior, aventuraNueva, timestamp }`) | Detiene el temporizador sin mandar estadísticas | (ninguna) | — | Cancelar el temporizador anterior al cambiar de aventura |
+| `UI.CERRAR_CAPA` | Padre (botón atrás, con el menú abierto y encima de todo) | Lo registra `js/capa-con-atras.js`: cierra el menú con `ocultarTodos()` y devuelve `true` | `UI.CAPA_ABIERTA { abierta: false }` (lo manda el propio cierre) | Padre | Que «atrás» cierre el menú de «más opciones» (§34.3) |
 
 **Mensajes salientes de Hijo 1:**
 
@@ -11620,6 +11650,7 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 | `TEMPORIZADOR.TOGGLE` | Padre | Al pulsar `#icono-temporizador` (`{ tiempoRestante, tiempoTotal, estado, modoAventura, tiempoFormateado, timestamp }`) | El padre muestra/oculta la ventana del temporizador |
 | `PARADAS.LISTADO_TOGGLE` | Padre | Al pulsar `#icono-listado-paradas` | El padre muestra/oculta la ventana de listado de paradas (ver §7.2) |
 | `UI.CLOSE_MENUS` | Padre | Cada vez que el usuario pulsa «más opciones» (`toggleMenu`: `{ timestamp }`) | Que el padre cierre sus desplegables para que no se solapen |
+| `UI.CAPA_ABIERTA` | Padre | Al arrancar (`{ abierta: false }`) y cada vez que el menú se abre o se cierra (`{ abierta }`, desde `mostrarIconos()` y `ocultarTodos()`) | Que el padre sepa si el botón atrás tiene que cerrar el menú |
 | `UI.ACCION_USUARIO` | Padre | Al pulsar un icono con enlace externo, antes de abrirlo (`{ accion: 'audio_control', comando: 'pause', contexto: 'enlace_externo' }`) | Pausar el audio; el padre se lo reenvía a hijo3 (un hijo no escribe a otro) |
 | `UI.NAVEGACION_EXTERNA` | Padre | Al abrir el enlace en otra pestaña (`{ url, icono, timestamp }`) | Que el padre sepa que el usuario sale de la app |
 | `AVENTURA.TIEMPO_ACTUALIZADO` | Padre | Cada segundo mientras corre el temporizador (`{ tiempoRestante, tiempoTotal, porcentajeRestante, estado, tiempoFormateado, timestamp }`) | Mantener al día el contador del padre |
@@ -11800,7 +11831,7 @@ Herramienta de desarrollo. El iframe arranca oculto (`display:none; visibility:h
 
 #### 26.12.9 Handlers del HIJO 6 — chat-hijo6.html (asistente de soporte)
 
-Panel FAQ de acordeón de dos niveles. No tiene lógica de aventura: salvo el handshake, solo habla con el padre para cerrarse y para pedir un rescate.
+Panel FAQ de acordeón de dos niveles. No tiene lógica de aventura: salvo el handshake, solo habla con el padre para cerrarse, para pedir un rescate y para avisar de su modal interno, que el botón atrás cierra antes que el asistente.
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
@@ -11808,15 +11839,17 @@ Panel FAQ de acordeón de dos niveles. No tiene lógica de aventura: salvo el ha
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Cancela el reintento de `HIJO_LISTO` | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Envía `CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO` al padre (igual que los demás hijos). El padre gestiona la visibilidad directamente via `display:none/block`, pero hijo6 debe participar en el protocolo para no causar timeouts de 15s en cada transición de modo. | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Participar en el protocolo de modo; sin respuesta el padre espera 15s antes de continuar |
 | `SISTEMA.HEARTBEAT` | Padre | Responde con `{ timestamp, estado: 'activo' o 'inicializando' }` | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
-| `CHAT.ESTADO_PADRE` | Padre (al abrir el asistente, ya listo) | Mezcla los datos en `estadoPadre` y reconstruye el acordeón con el idioma que traiga (sin idioma, lo reconstruye igual para refrescar el estado del rescate) | (ninguna) | — | Refrescar idioma sin recargar el iframe; el resto de `estadoPadre` solo sirve de contexto al buzón de sugerencias |
+| `CHAT.ESTADO_PADRE` | Padre (al abrir el asistente, ya listo) | Mezcla los datos en `estadoPadre` y reconstruye el acordeón con el idioma que traiga (sin idioma, lo reconstruye igual para refrescar el estado del rescate) | (ninguna) | — | Refrescar idioma sin recargar el iframe; de lo demás, `rescate` decide la pregunta del atasco, y `aventura` y `paradaActualNombre` son el contexto del buzón de sugerencias |
 | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro (el vídeo de introducción de su modal, que hijo6 registra al crearlo) | Cierra el modal (`cerrarModal`: da de baja el iframe `video-intro` y vacía el contenido) y devuelve `true` | (ninguna) | — | Cerrar el modal cuando termina el vídeo |
+| `UI.CERRAR_CAPA` | Padre (botón atrás, con el modal interno abierto y encima de todo) | Lo registra `js/capa-con-atras.js`: cierra el modal con `cerrarModal()` y devuelve `true` | `UI.CAPA_ABIERTA { abierta: false }` (lo manda el propio cierre) | Padre | Que «atrás» cierre el modal antes que el asistente (§34.3) |
 
 **Mensajes salientes de Hijo 6:**
 
 | Mensaje | Va a | Cuándo | Propósito |
 |---|---|---|---|
 | `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
-| `SISTEMA.HIJO_LISTO` | Padre | Tras cargar los textos del FAQ | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras recibir `PADRE_DATOS` (se reenvía cada segundo, hasta 30 veces, mientras no llegue `PADRE_CONFIRMA_HIJO_LISTO`) | Handshake |
+| `UI.CAPA_ABIERTA` | Padre | Al arrancar (`{ abierta: false }`) y cada vez que el modal interno se abre o se cierra (`{ abierta }`) | Que el padre sepa si el botón atrás tiene que cerrar el modal |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
@@ -11835,12 +11868,14 @@ Las tres páginas se cargan dentro de otro frame, que las registra en el bus ant
 |---|---|---|---|---|---|
 | `MAPA_COMPLETO.DATOS` | Padre (respuesta a `MAPA_COMPLETO.SOLICITAR_DATOS`; `{ coordenadas }`) | `pintarRuta(coordenadas)`: dibuja la ruta con paradas, tramos y referencias; solo la primera vez (`_pintado`) y solo si recibe un array no vacío | `{ pintadas }`, en el acuse del bus | Padre | Pintar la aventura con lo que el padre entrega |
 | `MAPA_COMPLETO.VISIBLE` | Padre (una vez, al hacerse visible el overlay) | `_reajustarVista()` al momento y a los 300 ms | `true`, en el acuse del bus | Padre | Recalcular la vista cuando el contenedor ya tiene tamaño |
+| `UI.CERRAR_CAPA` | Padre (botón atrás, con la ficha de un monumento abierta y encima de todo) | Lo registra `js/capa-con-atras.js`, solo con frame contenedor: cierra la ficha con `cerrarOverlay()` y devuelve `true` | `UI.CAPA_ABIERTA { abierta: false }` (lo manda el propio cierre) | Padre | Que «atrás» cierre la ficha antes que el mapa (§34.3) |
 
 **Mensajes salientes de los tres nietos:**
 
 | Mensaje | De | Va a | Cuándo | Propósito |
 |---|---|---|---|---|
 | `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo | Padre | Nada más cargarse, si tiene frame contenedor (`{ aventura }`); sin él, el mapa avisa de que debe abrirse desde la aventura | Pedir las coordenadas de la aventura |
+| `UI.CAPA_ABIERTA` | mapa-completo | Padre | Con frame contenedor: al arrancar (`{ abierta: false }`) y cada vez que la ficha de un monumento se abre o se cierra (`{ abierta }`) | Que el padre sepa si el botón atrás tiene que cerrar la ficha |
 | `PUZZLE.COMPLETADO` | puzzle | Su contenedor (selección o hijo4) | Al resolver el puzzle y al pulsar el botón de saltar ⏩, también con un puzzle roto (`{ puzzleId, exito: true, timestamp }`) | Avisar de que el puzzle terminó bien |
 | `PUZZLE.TIMEOUT` | puzzle | Su contenedor (selección o hijo4) | Cuando se agota el tiempo (`{ puzzleId, exito: false, timestamp }`) | Avisar de que el puzzle terminó sin resolverse |
 | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro | Su contenedor (selección o hijo6) | Al pulsar el botón verde de continuar, tras las escenas (sin datos) | Avisar de que el vídeo de introducción terminó |
@@ -12501,7 +12536,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-08e0a0541a6d';
+const CACHE_VERSION = 'v-2295c0b8c9e5';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13075,9 +13110,9 @@ registrar(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO, async (msg) => { ... }, {
 registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS, async (mensaje) => { ... }, { permanente: true });
 ```
 
-Ahora mismo `opciones.permanente` no lo lee ningún código de la app — no hay ningún barrido de controladores en tiempo de ejecución que lo consulte (§28.4). El campo queda como una etiqueta declarativa en el propio registro ("este handler es del núcleo, no es un registro puntual") sin efecto funcional hoy.
+`opciones.permanente` no lo lee ningún código de la app — no hay ningún barrido de controladores en tiempo de ejecución que lo consulte (§28.4). El campo queda como una etiqueta declarativa en el propio registro ("este handler es del núcleo, no es un registro puntual") sin efecto funcional.
 
-**Alcance total:** **57 handlers** con `permanente: true` en total — 52 en `codigo-padre.html` (7 en Script 1 y 45 en Script 2, ninguno en los Scripts 3 a 5; incluye `_hdl_PARADAS_LISTADO_TOGGLE`, ver §7.2), 2 en `app.js`, 3 en `controladores-padre.js` (recuento verificado por `grep -c "permanente: *true"` sobre los 3 archivos).
+**Alcance total:** **58 handlers** con `permanente: true` en total — 53 en `codigo-padre.html` (7 en Script 1 y 46 en Script 2, ninguno en los Scripts 3 a 5; incluye `_hdl_PARADAS_LISTADO_TOGGLE`, ver §7.2), 2 en `app.js`, 3 en `controladores-padre.js` (recuento verificado por `grep -c "permanente: *true"` sobre los 3 archivos).
 
 ---
 
@@ -13178,11 +13213,16 @@ Con una aventura en marcha, el escucha de `popstate` vuelve a apilarla en cada �
 
 1. Con el diálogo de vuelta abierto, pulsa su «Continuar mi aventura».
 2. Con el modal de fin de aventura (`#modal-finalizacion-aventura`, sin ✕) no hace nada: el modal ofrece sus dos salidas.
-3. Si hay abierta una capa que se cierra, cierra la de más arriba (mayor `z-index` de su capa; a igual altura, la última): las del padre con la ✕ común (`.btn-cerrar-overlay`), que pulsa como lo haría el usuario —imagen, vídeo, mapa completo, avisos de error, carteles, avisos de distancia GPS, listado de paradas y modal de tiempo agotado—, y el asistente (hijo6), con `cerrarChatSoporte()`.
-4. Si hay un desplegable abierto —control de audio, tipo de mapa o modo de brújula—, lo cierra: cada uno publica una función (`globalThis._cerrarDesplegableAudioSiAbierto`, `_cerrarDesplegableTipoMapaSiAbierto` y `_cerrarDesplegableBrujulaSiAbierto`) que lo cierra si está abierto y dice si lo estaba.
-5. Si no queda nada que cerrar, o solo lo que no tiene ✕ a propósito —la ventana del reto, que se cierra respondiendo o saltando—, enseña el diálogo de vuelta, y al «Continuar» todo sigue como estaba.
+3. Busca la capa de más arriba con `_capaDeArriba()`: la de mayor `z-index` (el mayor de la cadena de sus antepasados) y, a igual altura, la que va después en el documento, que es la que se pinta encima. Si tiene cierre, la cierra y termina. Entran en la cuenta:
+   - las capas del padre con la ✕ común (`.btn-cerrar-overlay`), que pulsa como lo haría el usuario —imagen, vídeo, mapa completo, avisos de error, carteles, avisos de distancia GPS, listado de paradas y modal de tiempo agotado—;
+   - el asistente (hijo6), con `cerrarChatSoporte()`;
+   - la ventana del temporizador (`#ventana-temporizador-padre`), que no lleva ✕ porque la abre y la cierra el icono de hijo1, con su mismo cierre, `_cerrarVentanaTemporizador()` (Script 2);
+   - las capas de dentro de un hijo: el menú de «más opciones» de hijo1, el modal interno del asistente y la ficha de un monumento del mapa completo. El padre no ve dentro de un hijo, así que el hijo le avisa al abrir y al cerrar su capa (`UI.CAPA_ABIERTA { abierta }`, desde `js/capa-con-atras.js`), el padre apunta su iframe (`_hdl_UI_CAPA_ABIERTA`, Script 2) y, cuando le toca, le pide que la cierre (`UI.CERRAR_CAPA`); el hijo la cierra con la misma función que su ✕ o su botón. Cuentan medio escalón por encima de su iframe, porque se dibujan encima de él: el modal del asistente se cierra antes que el asistente, y la ficha antes que el mapa completo;
+   - la ventana del reto (`#hijo4` con la clase `visible`), que entra sin cierre: se cierra respondiendo o saltando, nunca con «atrás». Si es la de arriba, se pasa al paso 5 y lo que tapa no se toca.
+4. Si no hay ninguna capa abierta y hay un desplegable abierto —control de audio, tipo de mapa o modo de brújula—, lo cierra: cada uno publica una función (`globalThis._cerrarDesplegableAudioSiAbierto`, `_cerrarDesplegableTipoMapaSiAbierto` y `_cerrarDesplegableBrujulaSiAbierto`) que lo cierra si está abierto y dice si lo estaba.
+5. Si no queda nada que cerrar, o lo de arriba es la ventana del reto, enseña el diálogo de vuelta, y al «Continuar» todo sigue como estaba.
 
-«Aventura en marcha» es el modo (`estado.modo.actual` en `casa` o `aventura`): nace en `null` y todas las salidas de una aventura recargan la página. No lo son la aventura y el idioma elegidos, que se llenan en la selección antes de arrancar, ni el estado de la entrada del historial a la que se llega. Sin aventura en marcha, «atrás» hace lo de siempre en el navegador. Lo que vive dentro de un hijo —el modal interno del asistente, la ficha de un monumento del mapa completo— no se cierra por separado: «atrás» cierra el asistente entero o el mapa completo. Spec 131; la prueba en un Android real es la fila 25 de §22.0.
+«Aventura en marcha» es el modo (`estado.modo.actual` en `casa` o `aventura`): nace en `null` y todas las salidas de una aventura recargan la página. No lo son la aventura y el idioma elegidos, que se llenan en la selección antes de arrancar, ni el estado de la entrada del historial a la que se llega. Sin aventura en marcha, «atrás» hace lo de siempre en el navegador. Spec 131 (BA-1 a BA-11); la prueba en un Android real es la fila 25 de §22.0.
 
 **Vuelta de pestaña externa:**
 
@@ -14152,7 +14192,7 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **123 en total**. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 103 identificadores cruzados, de 144 expuestos (18 bloques &lt;script&gt; inline: 5 módulo + 13 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 105 identificadores cruzados, de 146 expuestos (18 bloques &lt;script&gt; inline: 5 módulo + 13 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14169,101 +14209,103 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarVideoOverlay` | clásico 7 (L1980) | módulo 1, módulo 2 | función/objeto |
 | `rotationSuppressed` | clásico 7 (L1681) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 (L3709) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5058) | clásico 11 | estado |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5080) | clásico 11 | estado |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3697) | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3696) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5876) | clásico 11 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6541) | clásico 11 | estado |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5898) | clásico 11 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6563) | clásico 11 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3698) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6681) | clásico 11 | estado |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6703) | clásico 11 | estado |
 | `__vv_MAPAS_VINTAGE` | módulo 1 (L3700) | módulo 2 | función/objeto |
 | `__vv_PUZZLES` | módulo 1 (L3701) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3583) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4777) | módulo 2 | función/objeto |
-| `_cerrarDesplegablesDelPadre` | módulo 1 (L4743) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L7414) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8762) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8978) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8883) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4799) | módulo 2 | función/objeto |
+| `_cerrarDesplegablesDelPadre` | módulo 1 (L4765) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L7436) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8784) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9000) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8905) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L4027) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8852) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9062) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8954) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8858) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9070) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8732) | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5202) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6046) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8874) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9084) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8976) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8880) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9092) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8754) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5224) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6068) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3837) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 (L3844) | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4556) | clásico 6, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8077) | clásico 5, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8075) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8076) | clásico 6, módulo 2, módulo 3 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8099) | clásico 5, módulo 2 | función/objeto |
+| `cargarIframeSoloSeleccion` | módulo 1 (L8097) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8098) | clásico 6, módulo 2, módulo 3 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L3944) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3831) | clásico 6, clásico 7, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3832) | módulo 2 | función/objeto |
 | `estadoPadre` | módulo 1 (L4032) | clásico 6, módulo 2 | función/objeto |
 | `findIndexByPadreIdOrId` | módulo 1 (L4356) | módulo 2 | función/objeto |
 | `getEstadoSafe` | módulo 1 (L4136) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6445) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6467) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2837) | módulo 2 | función/objeto |
 | `idiomaSeleccionado` | módulo 1 (L4557) | clásico 6, módulo 2, clásico 12 | función/objeto |
 | `limpiarDatosAventura` | módulo 1 (L2872) | módulo 2, clásico 12 | función/objeto |
 | `MODOS` | módulo 1 (L3829) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8459) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8528) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8382) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8235) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8278) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8481) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L8550) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8404) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8257) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8300) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4226) | módulo 2 | función/objeto |
 | `registrarControlador` | módulo 1 (L3830) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5086) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5113) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5108) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5135) | módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2878) | clásico 7, módulo 2 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2867) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2868) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6283) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6209) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6137) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6362) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6437) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6741) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6740) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6305) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6231) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6159) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6384) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6459) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6763) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6762) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2825) | módulo 2 | función/objeto |
 | `sleep` | módulo 1 (L2747) | módulo 2, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5813) | módulo 2 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5835) | módulo 2 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L3828) | clásico 6, clásico 7, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L4005) | clásico 7, módulo 2 | función/objeto |
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2876) | clásico 12 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2853) | módulo 2 | función/objeto |
 | `verificarTimeoutAventura` | módulo 1 (L2873) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8078) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9182) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14139) | clásico 11 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10207) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L14120) | clásico 6 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12781) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L10146) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11357) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11406) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12811) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9246) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10141) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9385) | clásico 6, módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9467) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L9956) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13047) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10019) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9505) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10011) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L9984) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14155) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8100) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9204) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14190) | clásico 11 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10229) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L13165) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L14171) | clásico 6 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L12036) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12824) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L10168) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11379) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11428) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12854) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9268) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10163) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9407) | clásico 6, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9489) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L9978) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13090) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10041) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9527) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10033) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10006) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14206) | módulo 2 | función/objeto |
 
 </details>
 
 <details>
-<summary><code>En-busca-del-tesoro.html</code> — 17 identificadores cruzados, de 36 expuestos (4 bloques) — clic para desplegar</summary>
+<summary><code>En-busca-del-tesoro.html</code> — 15 identificadores cruzados, de 34 expuestos (4 bloques) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14274,11 +14316,9 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_setTimerProgresoCarga` | clásico 3 (L2578) | módulo 1 | función/objeto |
 | `continuarTrasElegirAventura` | clásico 3 (L2599) | módulo 1 | función/objeto |
 | `x` | clásico 3 (L2571) | módulo 1 | estado |
-| `_pintarTarjetasDeAventura` | módulo 1 (L2969) | clásico 3 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L2997) | clásico 3 | función/objeto |
+| `_pintarTarjetasDeAventura` | módulo 1 (L2965) | clásico 3 | función/objeto |
 | `enviarValoracion` | módulo 1 (L2626) | clásico 3 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L2920) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 1 (L2993) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 1 (L2989) | clásico 3 | función/objeto |
 | `TEXTOS_VALORACION` | módulo 1 (L2624) | clásico 3 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L2665) | clásico 3 | función/objeto |
 | `TRADUCCIONES_ACCESO_ERRONEO` | módulo 1 (L2623) | clásico 3 | función/objeto |
@@ -14310,10 +14350,10 @@ El fallo, cuando falta un puente, es **mudo**: la variable se queda en su valor 
 
 ### 37.3 Mensajes (`TIPOS_MENSAJE`) — emisor(es) → receptor(es)
 
-Generado con `node tools/verificar-mensajeria.js --todos`. 92 tipos de mensaje. La herramienta lee el código con un parser (acorn) y resuelve cada tipo por su valor —alias de import (`TIPOS_MENSAJE_S1`), `globalThis.TIPOS_MENSAJE?.X?.Y`, constantes locales con ámbito de bloque, literales—; cuenta como emisor un objeto con `tipo` que se pasa a un envío o que lleva `destino`/`datos`, y como receptor una llamada a `registrarControlador`, `registrarControladorSeguro`, `registrarSiNoExiste` o al `registrar` local de `js/app.js`. `*(ninguno detectado)*` significa que ningún fichero cumple esa condición. El único caso de esta tabla es `NAVEGACION.GPS.DESACTIVAR`: nada en el proyecto lo emite ni lo escucha — el propio código (`codigo-padre.html`, junto a `_regCtrl_GPS`) lo deja dicho y conserva la constante a propósito, por si algún día un hijo necesita pedir la desactivación de verdad. `js/mensajeria.js` aparece como emisor o receptor de los tipos que el propio bus construye o atiende sin handler registrado: el acuse `SISTEMA.CONFIRMACION`, el latido y el reenvío de `SISTEMA.ERROR`. Sin `--todos`, la herramienta imprime además los envíos con destino literal que caen en un frame sin handler de ese tipo, los handlers que ninguna emisión alcanza y el residuo (lo que parece emisor o receptor y no resuelve a un tipo).
+Generado con `node tools/verificar-mensajeria.js --todos`. 94 tipos de mensaje. La herramienta lee el código con un parser (acorn) y resuelve cada tipo por su valor —alias de import (`TIPOS_MENSAJE_S1`), `globalThis.TIPOS_MENSAJE?.X?.Y`, constantes locales con ámbito de bloque, literales—; cuenta como emisor un objeto con `tipo` que se pasa a un envío o que lleva `destino`/`datos`, y como receptor una llamada a `registrarControlador`, `registrarControladorSeguro`, `registrarSiNoExiste` o al `registrar` local de `js/app.js`. `*(ninguno detectado)*` significa que ningún fichero cumple esa condición. El único caso de esta tabla es `NAVEGACION.GPS.DESACTIVAR`: nada en el proyecto lo emite ni lo escucha — el propio código (`codigo-padre.html`, junto a `_regCtrl_GPS`) lo deja dicho y conserva la constante a propósito, por si algún día un hijo necesita pedir la desactivación de verdad. `js/mensajeria.js` aparece como emisor o receptor de los tipos que el propio bus construye o atiende sin handler registrado: el acuse `SISTEMA.CONFIRMACION`, el latido y el reenvío de `SISTEMA.ERROR`. Sin `--todos`, la herramienta imprime además los envíos con destino literal que caen en un frame sin handler de ese tipo, los handlers que ninguna emisión alcanza y el residuo (lo que parece emisor o receptor y no resuelve a un tipo).
 
 <details>
-<summary>Tabla completa (92 filas) — clic para desplegar</summary>
+<summary>Tabla completa (94 filas) — clic para desplegar</summary>
 
 | Tipo | Emisor(es) | Receptor(es) |
 |---|---|---|
@@ -14406,6 +14446,8 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 92 tipos de mensaje. 
 | `SISTEMA.PADRE_DATOS` | codigo-padre.html | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
 | `TEMPORIZADOR.TOGGLE` | extrainfo-hijo1.html | codigo-padre.html |
 | `UI.ACCION_USUARIO` | codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html | audio-hijo3.html, codigo-padre.html |
+| `UI.CAPA_ABIERTA` | js/capa-con-atras.js | codigo-padre.html |
+| `UI.CERRAR_CAPA` | codigo-padre.html | js/capa-con-atras.js |
 | `UI.CLOSE_MENUS` | extrainfo-hijo1.html | codigo-padre.html |
 | `UI.NAVEGACION_EXTERNA` | extrainfo-hijo1.html | codigo-padre.html |
 | `VV:PARADAS:READY` | boton-casa-hijo5.html | codigo-padre.html |
