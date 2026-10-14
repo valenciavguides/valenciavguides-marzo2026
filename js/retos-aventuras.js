@@ -1214,7 +1214,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij de namen van deze torens vertellen?",
+                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -1239,7 +1239,7 @@ export const RETOS_AVENTURAS = {
                 reto: 6,
                 id: "R6-Av1-nl",
                 tipo: "opcion",
-                pregunta: "Wat houdt Sint-Laurens in zijn hand?",
+                pregunta: "Wat houdt de heilige Laurentius in zijn hand?",
                 opciones: ["Een duif", "Een lepel", "Een rooster"],
                 correctas: ["Een rooster"],
                 multiple: false
@@ -1333,7 +1333,7 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av1-nl",
                 tipo: "opcion",
-                pregunta: "Herinnert u zich welk dier het gemeentewapen siert?",
+                pregunta: "Weet u nog welk dier het gemeentewapen bekroont?",
                 opciones: ["Een draak", "Een vleermuis", "Een paard"],
                 correctas: ["Een vleermuis"],
                 multiple: false
@@ -1364,7 +1364,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "Boven de hoofdingang, in een rondboog, vertegenwoordigen allegorische figuren de vijf continenten. Wat houdt de centrale figuur vast?",
+                pregunta: "Boven de hoofdingang stellen allegorische figuren in een rondboog de vijf continenten voor. Wat houdt de centrale figuur vast?",
                 opciones: ["Een fakkel", "Een zwaard", "Een kroon"],
                 correctas: ["Een fakkel", "Een zwaard"],
                 multiple: true
@@ -1374,7 +1374,7 @@ export const RETOS_AVENTURAS = {
                 id: "R23-Av1-nl",
                 tipo: "opcion",
                 pregunta: "Wat houdt de figuur in zijn hand?",
-                opciones: ["Een weegschaal", "Een boek", "Een veer"],
+                opciones: ["Een weegschaal", "Een boek", "Een pen"],
                 correctas: ["Een weegschaal"],
                 multiple: false
             },
@@ -1389,7 +1389,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av1-nl",
                 tipo: "opcion",
-                pregunta: "Zoek het glas-in-lood met de kleuren van de Valenciaanse Senyera op de gevel. Kunt u de vorm bepalen?",
+                pregunta: "Zoek het glas-in-loodraam met de kleuren van de Valenciaanse Senyera op de gevel van het gebouw. Kunt u bepalen welke vorm het heeft?",
                 opciones: ["Vierkant", "Rond", "Driehoekig"],
                 correctas: ["Rond"],
                 multiple: false
@@ -1398,7 +1398,7 @@ export const RETOS_AVENTURAS = {
                 reto: 26,
                 id: "R26-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "Wat houdt de maagd in haar hand?",
+                pregunta: "Wat houdt de Maagd in haar hand?",
                 opciones: ["Een rozenkrans", "Een kind", "Een kroon"],
                 correctas: ["Een rozenkrans", "Een kind"],
                 multiple: true
@@ -1423,33 +1423,33 @@ export const RETOS_AVENTURAS = {
                 id: "R29-Av1-nl",
                 tipo: "opcion-multiple",
                 pregunta: "De veerman die tegen de stroom in roeit.",
-                opciones: ["Een man met een verdrietig gezin die een klein houten boot bestuurt ontsnapt tegen de stroom van een monster."],
-                correctas: ["Een man met een verdrietig gezin die een klein houten boot bestuurt ontsnapt tegen de stroom van een monster."],
+                opciones: ["Een man met een droevig gezicht bestuurt een kleine houten boot en ontsnapt tegen de stroom in aan een monster."],
+                correctas: ["Een man met een droevig gezicht bestuurt een kleine houten boot en ontsnapt tegen de stroom in aan een monster."],
                 multiple: true
             },
             {
                 reto: 30,
                 id: "R30-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "Een dode boom: symbool van Zonde, is te zien tussen de twee bladeren van de deur en fungeert als middenstijl.",
-                opciones: ["Let op de top van de boom waar 4 naakte mannen elkaar geselen."],
-                correctas: ["Let op de top van de boom waar 4 naakte mannen elkaar geselen."],
+                pregunta: "Een dode boom, symbool van de Zonde, staat tussen de twee deurvleugels en dient als middenstijl.",
+                opciones: ["Kijk hoe bovenin de boom 4 naakte mannen elkaar geselen."],
+                correctas: ["Kijk hoe bovenin de boom 4 naakte mannen elkaar geselen."],
                 multiple: true
             },
             {
                 reto: 31,
                 id: "R31-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "Rechts, een engel toont zijn penis en...",
-                opciones: ["hij staat op het punt het in een vaas te plaatsen dat hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, nietwaar?"],
-                correctas: ["hij staat op het punt het in een vaas te plaatsen dat hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, nietwaar?"],
+                pregunta: "Rechts toont een engel zijn penis en…",
+                opciones: ["…hij staat op het punt hem in een vaas te steken die hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, vindt u niet?"],
+                correctas: ["…hij staat op het punt hem in een vaas te steken die hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, vindt u niet?"],
                 multiple: true
             },
             {
                 reto: 32,
                 id: "R32-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "In het midden: De baardige man en de leeuw:",
+                pregunta: "In het midden de baardige man en de leeuw:",
                 opciones: ["Origineel en tegenstrijdig tafereel waarin de zachte precies de leeuw is en niet de baardige oude man."],
                 correctas: ["Origineel en tegenstrijdig tafereel waarin de zachte precies de leeuw is en niet de baardige oude man."],
                 multiple: true
@@ -1459,8 +1459,8 @@ export const RETOS_AVENTURAS = {
                 id: "R33-Av1-nl",
                 tipo: "opcion-multiple",
                 pregunta: "Hier is een extra uitdaging! Zoek de fornicator in de Zijdehal!",
-                opciones: ["In een van zijn ramen vindt u een uitgehouwen man; zijn hoofd is niet zichtbaar maar zijn genitaliën zijn, heel duidelijk."],
-                correctas: ["In een van zijn ramen vindt u een uitgehouwen man; zijn hoofd is niet zichtbaar maar zijn genitaliën zijn, heel duidelijk."],
+                opciones: ["In een van de ramen vindt u een uitgehouwen man: zijn hoofd is niet te zien, maar zijn geslachtsdelen wel, en heel duidelijk."],
+                correctas: ["In een van de ramen vindt u een uitgehouwen man: zijn hoofd is niet te zien, maar zijn geslachtsdelen wel, en heel duidelijk."],
                 multiple: true
             },
             {
@@ -4432,7 +4432,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij de namen van deze torens vertellen?",
+                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4492,7 +4492,7 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av2-nl",
                 tipo: "opcion",
-                pregunta: "Wat houdt het beeld in zijn handen?",
+                pregunta: "Wat houdt de figuur in zijn handen?",
                 opciones: ["Een schild", "Een schelp", "Een kruik", "Een zwaard"],
                 correctas: ["Een schelp"],
                 multiple: false
@@ -4541,9 +4541,9 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av2-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u de geometrie van het koepeltje van de kathedraal van Valencia bepalen?",
-                opciones: ["Hexagonaal", "Octogonaal", "Vierkant"],
-                correctas: ["Octogonaal"],
+                pregunta: "Kunt u bepalen welke geometrie de vieringtoren van de kathedraal van Valencia heeft?",
+                opciones: ["Zeshoekig", "Achthoekig", "Vierkant"],
+                correctas: ["Achthoekig"],
                 multiple: false
             },
             {
@@ -7110,7 +7110,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av3-nl",
                 tipo: "opcion",
-                pregunta: "Hier is uw eerste uitdaging, een gemakkelijke. Kunt u mij de naam van deze Torens vertellen?",
+                pregunta: "Hier is uw eerste uitdaging, een gemakkelijke. Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -7119,7 +7119,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av3-nl",
                 tipo: "opcion",
-                pregunta: "Op de top van de torens wappert de vlag van Valencia: haar kleuren zijn rood, geel en...?",
+                pregunta: "Op de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…?",
                 opciones: ["Paars", "Groen", "Blauw"],
                 correctas: ["Blauw"],
                 multiple: false
@@ -7142,7 +7142,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av3-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij de naam van deze populaire feesten in Valencia vertellen?",
+                pregunta: "Kunt u mij vertellen hoe deze volksfeesten in Valencia heten?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -7218,7 +7218,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av3-nl",
                 tipo: "opcion",
-                pregunta: "Herinnert u zich welk dier het wapen van Valencia kroont?",
+                pregunta: "Weet u nog welk dier het wapen van Valencia bekroont?",
                 opciones: ["Vleermuis", "Draak", "Leeuw"],
                 correctas: ["Vleermuis"],
                 multiple: false
@@ -7227,7 +7227,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av3-nl",
                 tipo: "texto",
-                pregunta: "Op deze gevel hangt een klok. Hoe laat is het?",
+                pregunta: "Op deze gevel hangt een klok. Welke tijd geeft hij aan?",
                 correctas: ["?"],
                 multiple: false
             },
@@ -7278,7 +7278,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av3-nl",
                 tipo: "texto",
-                pregunta: "In welk jaar werd dit gebouw gebouwd? Hint: kijk naar de bovenkant van de gevel",
+                pregunta: "In welk jaar is dit gebouw gebouwd? Tip: kijk bovenaan de gevel.",
                 correctas: ["1906"],
                 multiple: false
             },
@@ -9748,7 +9748,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-nl",
                 tipo: "opcion",
-                pregunta: "Weet u hoe deze Torens heten?",
+                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -9859,7 +9859,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av4-nl",
                 tipo: "opcion",
-                pregunta: "Aan de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…",
+                pregunta: "Op de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…?",
                 opciones: ["Paars", "Groen", "Blauw"],
                 correctas: ["Blauw"],
                 multiple: false
@@ -12138,7 +12138,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-nl",
                 tipo: "opcion",
-                pregunta: "Weet u hoe deze Torens heten?",
+                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -12147,7 +12147,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av5-nl",
                 tipo: "opcion",
-                pregunta: "Aan de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…",
+                pregunta: "Op de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…?",
                 opciones: ["Paars", "Groen", "Blauw"],
                 correctas: ["Blauw"],
                 multiple: false
@@ -12171,8 +12171,8 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av5-nl",
                 tipo: "opcion",
-                pregunta: "Weet u de naam van deze volksfeesten in Valencia?",
-                opciones: ["Las Fallas", "La Tomatina", "Johannisvuren"],
+                pregunta: "Kunt u mij vertellen hoe deze volksfeesten in Valencia heten?",
+                opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
             },
@@ -12215,7 +12215,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av5-nl",
                 tipo: "texto",
-                pregunta: "Hoeveel dieren kunt u tellen? Let op dat er koeien, varkens zijn…",
+                pregunta: "Hoeveel dieren kunt u tellen? Let op: er zijn onder meer koeien, varkens…",
                 correctas: ["?"],
                 multiple: false
             },
@@ -12232,7 +12232,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av5-nl",
                 tipo: "texto",
-                pregunta: "Hoeveel verdiepingen heeft dit Monument?",
+                pregunta: "Hoeveel verdiepingen heeft dit monument?",
                 correctas: ["4"],
                 multiple: false
             },
@@ -12240,9 +12240,9 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av5-nl",
                 tipo: "opcion",
-                pregunta: "Welke citrusvrucht typisch voor Valencia siert de gevel?",
-                opciones: ["Citroenen", "Grapefruits", "Sinaasappelen"],
-                correctas: ["Sinaasappelen"],
+                pregunta: "Let op de gevel van de eerste toren! Welke citrusvrucht uit Valencia siert de gevel?",
+                opciones: ["Citroenen", "Grapefruits", "Sinaasappels"],
+                correctas: ["Sinaasappels"],
                 multiple: false
             },
             {
@@ -12297,7 +12297,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av5-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u bepalen welke vorm het heeft?",
+                pregunta: "Zoek het glas-in-loodraam met de kleuren van de Valenciaanse Senyera op de gevel van het gebouw. Kunt u bepalen welke vorm het heeft?",
                 opciones: ["Vierkant", "Rond", "Driehoekig"],
                 correctas: ["Rond"],
                 multiple: false
@@ -12313,18 +12313,18 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av5-nl",
                 tipo: "opcion-multiple",
-                pregunta: "De schuitenvoerder die tegen de stroom inroeit.",
-                opciones: ["Een man met een droevig gezicht bestuurt een kleine houten boot en ontsnapt stroomopwaarts aan een monster."],
-                correctas: ["Een man met een droevig gezicht bestuurt een kleine houten boot en ontsnapt stroomopwaarts aan een monster."],
+                pregunta: "De veerman die tegen de stroom in roeit.",
+                opciones: ["Een man met een droevig gezicht bestuurt een kleine houten boot en ontsnapt tegen de stroom in aan een monster."],
+                correctas: ["Een man met een droevig gezicht bestuurt een kleine houten boot en ontsnapt tegen de stroom in aan een monster."],
                 multiple: true
             },
             {
                 reto: 25,
                 id: "R25-Av5-nl",
                 tipo: "opcion-multiple",
-                pregunta: "Een dode boom: symbool van de Zonde, staat tussen de twee deurbladden als middenstijl.",
-                opciones: ["Bekijk hoe bovenin de boom 4 naakte mannen elkaar geselen."],
-                correctas: ["Bekijk hoe bovenin de boom 4 naakte mannen elkaar geselen."],
+                pregunta: "Een dode boom, symbool van de Zonde, staat tussen de twee deurvleugels en dient als middenstijl.",
+                opciones: ["Kijk hoe bovenin de boom 4 naakte mannen elkaar geselen."],
+                correctas: ["Kijk hoe bovenin de boom 4 naakte mannen elkaar geselen."],
                 multiple: true
             },
             {
@@ -14762,7 +14762,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "Weet u hoe deze Torens heten?",
+                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -14771,7 +14771,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "Aan de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en… ?",
+                pregunta: "Op de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…?",
                 opciones: ["Paars", "Groen", "Blauw"],
                 correctas: ["Blauw"],
                 multiple: false
@@ -14780,7 +14780,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-AvFallas-nl",
                 tipo: "texto",
-                pregunta: "Kunt u mij de naam van deze straat vertellen?",
+                pregunta: "Kunt u mij de naam van de straat vertellen?",
                 correctas: ["Calle Muro de Santa Ana"],
                 multiple: false
             },
@@ -14788,8 +14788,8 @@ export const RETOS_AVENTURAS = {
                 reto: 6,
                 id: "R6-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "Wat heeft de Heilige Laurentius in zijn hand?",
-                opciones: ["Een Duif", "Een lepel", "Een rooster"],
+                pregunta: "Wat houdt de heilige Laurentius in zijn hand?",
+                opciones: ["Een duif", "Een lepel", "Een rooster"],
                 correctas: ["Een rooster"],
                 multiple: false
             },
@@ -14797,7 +14797,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "In welke hand houdt Neptunus de hoorn des overvloeds?",
+                pregunta: "Met welke hand houdt Neptunus de hoorn des overvloeds vast?",
                 opciones: ["Links", "Rechts"],
                 correctas: ["Rechts"],
                 multiple: false
@@ -14812,7 +14812,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u bepalen welke geometrie de Cimborrio van de Kathedraal van Valencia heeft?",
+                pregunta: "Kunt u bepalen welke geometrie de vieringtoren van de kathedraal van Valencia heeft?",
                 opciones: ["Zeshoekig", "Achthoekig", "Vierkant"],
                 correctas: ["Achthoekig"],
                 multiple: false
@@ -14844,16 +14844,16 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-AvFallas-nl",
                 tipo: "opcion-multiple",
-                pregunta: "Boven de hoofdingang, in een rondboog, stellen allegorische figuren de vijf continenten voor. Wat draagt de centrale figuur?",
-                opciones: ["Een Fakkel", "Een Zwaard", "Een Kroon"],
-                correctas: ["Een Fakkel", "Een Zwaard"],
+                pregunta: "Boven de hoofdingang stellen allegorische figuren in een rondboog de vijf continenten voor. Wat houdt de centrale figuur vast?",
+                opciones: ["Een fakkel", "Een zwaard", "Een kroon"],
+                correctas: ["Een fakkel", "Een zwaard"],
                 multiple: true
             },
             {
                 reto: 14,
                 id: "R14-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "Wat draagt de figuur in zijn hand?",
+                pregunta: "Wat houdt de figuur in zijn hand?",
                 opciones: ["Een weegschaal", "Een boek", "Een pen"],
                 correctas: ["Een weegschaal"],
                 multiple: false
@@ -14862,7 +14862,7 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "Zoek het gebrandschilderde raam met de kleuren van de Valenciaanse Senyera op de gevel van het gebouw. Kunt u bepalen welke vorm het heeft?",
+                pregunta: "Zoek het glas-in-loodraam met de kleuren van de Valenciaanse Senyera op de gevel van het gebouw. Kunt u bepalen welke vorm het heeft?",
                 opciones: ["Vierkant", "Rond", "Driehoekig"],
                 correctas: ["Rond"],
                 multiple: false
@@ -14872,8 +14872,8 @@ export const RETOS_AVENTURAS = {
                 id: "R16-AvFallas-nl",
                 tipo: "opcion-multiple",
                 pregunta: "Wat houdt de Maagd in haar hand?",
-                opciones: ["Een Rozenkrans", "Een kind", "Een kroon"],
-                correctas: ["Een Rozenkrans", "Een kind"],
+                opciones: ["Een rozenkrans", "Een kind", "Een kroon"],
+                correctas: ["Een rozenkrans", "Een kind"],
                 multiple: true
             },
             {
@@ -19129,7 +19129,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij de namen van deze torens vertellen?",
+                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -19144,7 +19144,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij de naam van deze populaire feesten in Valencia vertellen?",
+                pregunta: "Kunt u mij vertellen hoe deze volksfeesten in Valencia heten?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -19220,7 +19220,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "Herinnert u zich welk dier het wapen van Valencia kroont?",
+                pregunta: "Weet u nog welk dier het wapen van Valencia bekroont?",
                 opciones: ["Vleermuis", "Draak", "Leeuw"],
                 correctas: ["Vleermuis"],
                 multiple: false
@@ -19256,7 +19256,7 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av34km-nl",
                 tipo: "texto",
-                pregunta: "Hoeveel dieren kunt u tellen? Let op dat er koeien, varkens zijn…",
+                pregunta: "Hoeveel dieren kunt u tellen? Let op: er zijn onder meer koeien, varkens…",
                 correctas: ["?"],
                 multiple: false
             },
@@ -19270,7 +19270,7 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av34km-nl",
                 tipo: "texto",
-                pregunta: "Hoeveel verdiepingen heeft dit Monument?",
+                pregunta: "Hoeveel verdiepingen heeft dit monument?",
                 correctas: ["4"],
                 multiple: false
             },
@@ -19278,9 +19278,9 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "Welke citrusvrucht typisch voor Valencia siert de gevel?",
-                opciones: ["Citroenen", "Grapefruits", "Sinaasappelen"],
-                correctas: ["Sinaasappelen"],
+                pregunta: "Let op de gevel van de eerste toren! Welke citrusvrucht uit Valencia siert de gevel?",
+                opciones: ["Citroenen", "Grapefruits", "Sinaasappels"],
+                correctas: ["Sinaasappels"],
                 multiple: false
             },
 {
@@ -19295,7 +19295,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "Herinnert u zich welk dier het gemeentewapen siert?",
+                pregunta: "Weet u nog welk dier het gemeentewapen bekroont?",
                 opciones: ["Een draak", "Een vleermuis", "Een paard"],
                 correctas: ["Een vleermuis"],
                 multiple: false
@@ -19304,7 +19304,7 @@ export const RETOS_AVENTURAS = {
                 reto: 24,
                 id: "R24-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "Boven de hoofdingang, in een rondboog, vertegenwoordigen allegorische figuren de vijf continenten. Wat houdt de centrale figuur vast?",
+                pregunta: "Boven de hoofdingang stellen allegorische figuren in een rondboog de vijf continenten voor. Wat houdt de centrale figuur vast?",
                 opciones: ["Een fakkel", "Een zwaard", "Een kroon"],
                 correctas: ["Een fakkel", "Een zwaard"],
                 multiple: true
@@ -19314,7 +19314,7 @@ export const RETOS_AVENTURAS = {
                 id: "R25-Av34km-nl",
                 tipo: "opcion",
                 pregunta: "Wat houdt de figuur in zijn hand?",
-                opciones: ["Een weegschaal", "Een boek", "Een veer"],
+                opciones: ["Een weegschaal", "Een boek", "Een pen"],
                 correctas: ["Een weegschaal"],
                 multiple: false
             },
@@ -19329,7 +19329,7 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "Zoek het glas-in-lood met de kleuren van de Valenciaanse Senyera op de gevel. Kunt u de vorm bepalen?",
+                pregunta: "Zoek het glas-in-loodraam met de kleuren van de Valenciaanse Senyera op de gevel van het gebouw. Kunt u bepalen welke vorm het heeft?",
                 opciones: ["Vierkant", "Rond", "Driehoekig"],
                 correctas: ["Rond"],
                 multiple: false
@@ -19338,7 +19338,7 @@ export const RETOS_AVENTURAS = {
                 reto: 28,
                 id: "R28-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "Wat houdt de maagd in haar hand?",
+                pregunta: "Wat houdt de Maagd in haar hand?",
                 opciones: ["Een rozenkrans", "Een kind", "Een kroon"],
                 correctas: ["Een rozenkrans", "Een kind"],
                 multiple: true
@@ -19363,33 +19363,33 @@ export const RETOS_AVENTURAS = {
                 id: "R31-Av34km-nl",
                 tipo: "opcion-multiple",
                 pregunta: "De veerman die tegen de stroom in roeit.",
-                opciones: ["Een man met een verdrietig gezin die een klein houten boot bestuurt ontsnapt tegen de stroom van een monster."],
-                correctas: ["Een man met een verdrietig gezin die een klein houten boot bestuurt ontsnapt tegen de stroom van een monster."],
+                opciones: ["Een man met een droevig gezicht bestuurt een kleine houten boot en ontsnapt tegen de stroom in aan een monster."],
+                correctas: ["Een man met een droevig gezicht bestuurt een kleine houten boot en ontsnapt tegen de stroom in aan een monster."],
                 multiple: true
             },
 {
                 reto: 32,
                 id: "R32-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "Een dode boom: symbool van Zonde, is te zien tussen de twee bladeren van de deur en fungeert als middenstijl.",
-                opciones: ["Let op de top van de boom waar 4 naakte mannen elkaar geselen."],
-                correctas: ["Let op de top van de boom waar 4 naakte mannen elkaar geselen."],
+                pregunta: "Een dode boom, symbool van de Zonde, staat tussen de twee deurvleugels en dient als middenstijl.",
+                opciones: ["Kijk hoe bovenin de boom 4 naakte mannen elkaar geselen."],
+                correctas: ["Kijk hoe bovenin de boom 4 naakte mannen elkaar geselen."],
                 multiple: true
             },
 {
                 reto: 33,
                 id: "R33-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "Rechts, een engel toont zijn penis en...",
-                opciones: ["hij staat op het punt het in een vaas te plaatsen dat hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, nietwaar?"],
-                correctas: ["hij staat op het punt het in een vaas te plaatsen dat hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, nietwaar?"],
+                pregunta: "Rechts toont een engel zijn penis en…",
+                opciones: ["…hij staat op het punt hem in een vaas te steken die hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, vindt u niet?"],
+                correctas: ["…hij staat op het punt hem in een vaas te steken die hij met de andere hand vasthoudt. Vreemd en ongebruikelijk, vindt u niet?"],
                 multiple: true
             },
 {
                 reto: 34,
                 id: "R34-Av34km-nl",
                 tipo: "opcion-multiple",
-                pregunta: "In het midden: De baardige man en de leeuw:",
+                pregunta: "In het midden de baardige man en de leeuw:",
                 opciones: ["Origineel en tegenstrijdig tafereel waarin de zachte precies de leeuw is en niet de baardige oude man."],
                 correctas: ["Origineel en tegenstrijdig tafereel waarin de zachte precies de leeuw is en niet de baardige oude man."],
                 multiple: true
@@ -19399,8 +19399,8 @@ export const RETOS_AVENTURAS = {
                 id: "R35-Av34km-nl",
                 tipo: "opcion-multiple",
                 pregunta: "Hier is een extra uitdaging! Zoek de fornicator in de Zijdehal!",
-                opciones: ["In een van zijn ramen vindt u een uitgehouwen man; zijn hoofd is niet zichtbaar maar zijn genitaliën zijn, heel duidelijk."],
-                correctas: ["In een van zijn ramen vindt u een uitgehouwen man; zijn hoofd is niet zichtbaar maar zijn genitaliën zijn, heel duidelijk."],
+                opciones: ["In een van de ramen vindt u een uitgehouwen man: zijn hoofd is niet te zien, maar zijn geslachtsdelen wel, en heel duidelijk."],
+                correctas: ["In een van de ramen vindt u een uitgehouwen man: zijn hoofd is niet te zien, maar zijn geslachtsdelen wel, en heel duidelijk."],
                 multiple: true
             },
 {
@@ -19783,7 +19783,7 @@ export const RETOS_AVENTURAS = {
                 reto: 83,
                 id: "R83-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "Aan de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…",
+                pregunta: "Op de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…?",
                 opciones: ["Paars", "Groen", "Blauw"],
                 correctas: ["Blauw"],
                 multiple: false
@@ -19816,7 +19816,7 @@ export const RETOS_AVENTURAS = {
                 reto: 87,
                 id: "R87-Av34km-nl",
                 tipo: "texto",
-                pregunta: "Op deze gevel hangt een klok. Hoe laat is het?",
+                pregunta: "Op deze gevel hangt een klok. Welke tijd geeft hij aan?",
                 correctas: ["?"],
                 multiple: false
             },
@@ -19833,7 +19833,7 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "Wat houdt Sint-Laurens in zijn hand?",
+                pregunta: "Wat houdt de heilige Laurentius in zijn hand?",
                 opciones: ["Een duif", "Een lepel", "Een rooster"],
                 correctas: ["Een rooster"],
                 multiple: false
