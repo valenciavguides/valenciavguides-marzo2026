@@ -8512,7 +8512,7 @@ proyecto/
 │   ├── lib/analisis-js.js            ← Piezas comunes de las herramientas que leen el código con acorn: bloques de `<script>`, comentarios, identificadores, exports y cierre de imports de cada página
 │   ├── estudio-caminos/              ← Los extractores con los que se mide la aplicación para `docs/estudio-caminos.md`, con su README (§18.2)
 │   ├── inventario-timers.js         ← Los setTimeout/setInterval/watchPosition de producción (`npm run inventory:timers`)
-│   └── ...                           (verificar-frames, verificar-media, verificar-docs, verificar-esperas, verificar-totales-indice, renumber-pantallas, generar-guiones-aventuras, generar-tramos-para-videos, watch-sw)
+│   └── ...                           (verificar-frames, verificar-media, verificar-docs, verificar-esperas, verificar-totales-indice, generar-guiones-aventuras, generar-tramos-para-videos, watch-sw)
 │
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
@@ -14399,8 +14399,8 @@ Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tool
 
 | Asset | Usado en |
 |---|---|
-| `logo-redondo.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `index.html`, `manifest.json`, `sw.js`, `tools/renumber-pantallas.js`, `video-intro.html` |
-| `logo_alargado_3.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `js/agradecimientos-aventuras.js`, `js/normativa-cumplimiento.js`, `js/terminos-aventuras.js`, `tools/renumber-pantallas.js` |
+| `logo-redondo.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `index.html`, `manifest.json`, `sw.js`, `video-intro.html` |
+| `logo_alargado_3.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `js/agradecimientos-aventuras.js`, `js/normativa-cumplimiento.js`, `js/terminos-aventuras.js` |
 | `H4-fotoretos.png` | `audio-hijo3.html`, `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-play.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-pausa.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `video-intro.html` |
