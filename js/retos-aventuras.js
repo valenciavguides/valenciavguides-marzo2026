@@ -34,7 +34,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-es",
                 tipo: "opcion",
-                pregunta: "¿Sabría decirme cómo se llaman estas torres?",
+                pregunta: "Aquí va el primero de sus retos, este es facilito. ¿Sabría decirme cómo se llaman estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -329,7 +329,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-en",
                 tipo: "opcion",
-                pregunta: "Could you tell me what these towers are called?",
+                pregunta: "Here is your first challenge, an easy one. Could you tell me what these towers are called?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -624,7 +624,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-fr",
                 tipo: "opcion",
-                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Voici votre premier défi, facile. Pourriez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -919,7 +919,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-it",
                 tipo: "opcion",
-                pregunta: "Saprebbe dirmi come si chiamano queste torri?",
+                pregunta: "Ecco la sua prima sfida, facile. Saprebbe dirmi come si chiamano queste torri?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -1214,7 +1214,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
+                pregunta: "Hier is uw eerste uitdaging, een gemakkelijke. Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -1509,7 +1509,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-ja",
                 tipo: "opcion",
-                pregunta: "これらの塔の名前を教えていただけますか？",
+                pregunta: "最初の挑戦です。簡単なものです。これらの塔の名前を教えていただけますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -1804,7 +1804,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-de",
                 tipo: "opcion",
-                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Hier ist Ihre erste Herausforderung, eine leichte. Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -2099,7 +2099,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-zh",
                 tipo: "opcion",
-                pregunta: "您能告诉我这些塔叫什么名字吗？",
+                pregunta: "这是您的第一个挑战，很容易。您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -2394,7 +2394,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Oto pierwsze wyzwanie, łatwe. Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -2689,7 +2689,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-pt",
                 tipo: "opcion",
-                pregunta: "Saberia dizer-me como se chamam estas torres?",
+                pregunta: "Aqui está o seu primeiro desafio, fácil. Saberia dizer-me como se chamam estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -2984,7 +2984,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-ru",
                 tipo: "opcion",
-                pregunta: "Не могли бы вы сказать, как называются эти башни?",
+                pregunta: "Вот ваше первое испытание, лёгкое. Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -3279,7 +3279,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-uk",
                 tipo: "opcion",
-                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
+                pregunta: "Ось ваше перше випробування, легке. Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -3576,7 +3576,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-es",
                 tipo: "opcion",
-                pregunta: "¿Sabría decirme cómo se llaman estas torres?",
+                pregunta: "Aquí va el primero de sus retos, este es facilito. ¿Sabría decirme cómo se llaman estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -3790,7 +3790,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-en",
                 tipo: "opcion",
-                pregunta: "Could you tell me what these towers are called?",
+                pregunta: "Here is your first challenge, an easy one. Could you tell me what these towers are called?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4004,7 +4004,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-fr",
                 tipo: "opcion",
-                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Voici votre premier défi, facile. Pourriez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4218,7 +4218,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-it",
                 tipo: "opcion",
-                pregunta: "Saprebbe dirmi come si chiamano queste torri?",
+                pregunta: "Ecco la sua prima sfida, facile. Saprebbe dirmi come si chiamano queste torri?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4432,7 +4432,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
+                pregunta: "Hier is uw eerste uitdaging, een gemakkelijke. Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4646,7 +4646,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-ja",
                 tipo: "opcion",
-                pregunta: "これらの塔の名前を教えていただけますか？",
+                pregunta: "最初の挑戦です。簡単なものです。これらの塔の名前を教えていただけますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4860,7 +4860,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-de",
                 tipo: "opcion",
-                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Hier ist Ihre erste Herausforderung, eine leichte. Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5074,7 +5074,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-zh",
                 tipo: "opcion",
-                pregunta: "您能告诉我这些塔叫什么名字吗？",
+                pregunta: "这是您的第一个挑战，很容易。您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5288,7 +5288,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Oto pierwsze wyzwanie, łatwe. Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5502,7 +5502,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-pt",
                 tipo: "opcion",
-                pregunta: "Saberia dizer-me como se chamam estas torres?",
+                pregunta: "Aqui está o seu primeiro desafio, fácil. Saberia dizer-me como se chamam estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5716,7 +5716,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-ru",
                 tipo: "opcion",
-                pregunta: "Не могли бы вы сказать, как называются эти башни?",
+                pregunta: "Вот ваше первое испытание, лёгкое. Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -5930,7 +5930,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-uk",
                 tipo: "opcion",
-                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
+                pregunta: "Ось ваше перше випробування, легке. Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -9040,7 +9040,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-es",
                 tipo: "opcion",
-                pregunta: "¿Sabría decirme cómo se llaman estas torres?",
+                pregunta: "Aquí va el primero de sus retos, este es facilito. ¿Sabría decirme cómo se llaman estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -9217,7 +9217,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-en",
                 tipo: "opcion",
-                pregunta: "Could you tell me what these towers are called?",
+                pregunta: "Here is your first challenge, an easy one. Could you tell me what these towers are called?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -9394,7 +9394,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-fr",
                 tipo: "opcion",
-                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Voici votre premier défi, facile. Pourriez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -9571,7 +9571,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-it",
                 tipo: "opcion",
-                pregunta: "Saprebbe dirmi come si chiamano queste torri?",
+                pregunta: "Ecco la sua prima sfida, facile. Saprebbe dirmi come si chiamano queste torri?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -9748,7 +9748,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
+                pregunta: "Hier is uw eerste uitdaging, een gemakkelijke. Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -9925,7 +9925,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-ja",
                 tipo: "opcion",
-                pregunta: "これらの塔の名前を教えていただけますか？",
+                pregunta: "最初の挑戦です。簡単なものです。これらの塔の名前を教えていただけますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10102,7 +10102,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-de",
                 tipo: "opcion",
-                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Hier ist Ihre erste Herausforderung, eine leichte. Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10276,7 +10276,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-zh",
                 tipo: "opcion",
-                pregunta: "您能告诉我这些塔叫什么名字吗？",
+                pregunta: "这是您的第一个挑战，很容易。您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10450,7 +10450,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Oto pierwsze wyzwanie, łatwe. Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10624,7 +10624,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-pt",
                 tipo: "opcion",
-                pregunta: "Saberia dizer-me como se chamam estas torres?",
+                pregunta: "Aqui está o seu primeiro desafio, fácil. Saberia dizer-me como se chamam estas torres?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10798,7 +10798,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-ru",
                 tipo: "opcion",
-                pregunta: "Не могли бы вы сказать, как называются эти башни?",
+                pregunta: "Вот ваше первое испытание, лёгкое. Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -10972,7 +10972,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-uk",
                 tipo: "opcion",
-                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
+                pregunta: "Ось ваше перше випробування, легке. Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -11148,7 +11148,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-es",
                 tipo: "opcion",
-                pregunta: "¿Sabría decirme cómo se llaman estas torres?",
+                pregunta: "Aquí va el primero de sus retos, este es facilito. ¿Sabría decirme cómo se llaman estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -11385,7 +11385,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-en",
                 tipo: "opcion",
-                pregunta: "Could you tell me what these towers are called?",
+                pregunta: "Here is your first challenge, an easy one. Could you tell me what these towers are called?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -11636,7 +11636,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-fr",
                 tipo: "opcion",
-                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Voici votre premier défi, facile. Pourriez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -11887,7 +11887,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-it",
                 tipo: "opcion",
-                pregunta: "Saprebbe dirmi come si chiamano queste torri?",
+                pregunta: "Ecco la sua prima sfida, facile. Saprebbe dirmi come si chiamano queste torri?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -12138,7 +12138,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
+                pregunta: "Hier is uw eerste uitdaging, een gemakkelijke. Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -12389,7 +12389,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-ja",
                 tipo: "opcion",
-                pregunta: "これらの塔の名前を教えていただけますか？",
+                pregunta: "最初の挑戦です。簡単なものです。これらの塔の名前を教えていただけますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -12640,7 +12640,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-de",
                 tipo: "opcion",
-                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Hier ist Ihre erste Herausforderung, eine leichte. Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -12877,7 +12877,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-zh",
                 tipo: "opcion",
-                pregunta: "您能告诉我这些塔叫什么名字吗？",
+                pregunta: "这是您的第一个挑战，很容易。您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13114,7 +13114,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Oto pierwsze wyzwanie, łatwe. Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13351,7 +13351,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-pt",
                 tipo: "opcion",
-                pregunta: "Saberia dizer-me como se chamam estas torres?",
+                pregunta: "Aqui está o seu primeiro desafio, fácil. Saberia dizer-me como se chamam estas torres?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13588,7 +13588,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-ru",
                 tipo: "opcion",
-                pregunta: "Не могли бы вы сказать, как называются эти башни?",
+                pregunta: "Вот ваше первое испытание, лёгкое. Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -13825,7 +13825,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-uk",
                 tipo: "opcion",
-                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
+                pregunta: "Ось ваше перше випробування, легке. Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -14064,7 +14064,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-es",
                 tipo: "opcion",
-                pregunta: "¿Sabría decirme cómo se llaman estas torres?",
+                pregunta: "Aquí va el primero de sus retos, este es facilito. ¿Sabría decirme cómo se llaman estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -14237,7 +14237,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-en",
                 tipo: "opcion",
-                pregunta: "Could you tell me what these towers are called?",
+                pregunta: "Here is your first challenge, an easy one. Could you tell me what these towers are called?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -14412,7 +14412,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-fr",
                 tipo: "opcion",
-                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Voici votre premier défi, facile. Pourriez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -14587,7 +14587,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-it",
                 tipo: "opcion",
-                pregunta: "Saprebbe dirmi come si chiamano queste torri?",
+                pregunta: "Ecco la sua prima sfida, facile. Saprebbe dirmi come si chiamano queste torri?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -14762,7 +14762,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
+                pregunta: "Hier is uw eerste uitdaging, een gemakkelijke. Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -14937,7 +14937,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-ja",
                 tipo: "opcion",
-                pregunta: "これらの塔の名前を教えていただけますか？",
+                pregunta: "最初の挑戦です。簡単なものです。これらの塔の名前を教えていただけますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15112,7 +15112,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-de",
                 tipo: "opcion",
-                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Hier ist Ihre erste Herausforderung, eine leichte. Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15285,7 +15285,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-zh",
                 tipo: "opcion",
-                pregunta: "您能告诉我这些塔叫什么名字吗？",
+                pregunta: "这是您的第一个挑战，很容易。您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15458,7 +15458,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Oto pierwsze wyzwanie, łatwe. Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15631,7 +15631,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-pt",
                 tipo: "opcion",
-                pregunta: "Saberia dizer-me como se chamam estas torres?",
+                pregunta: "Aqui está o seu primeiro desafio, fácil. Saberia dizer-me como se chamam estas torres?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15804,7 +15804,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-ru",
                 tipo: "opcion",
-                pregunta: "Не могли бы вы сказать, как называются эти башни?",
+                pregunta: "Вот ваше первое испытание, лёгкое. Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -15977,7 +15977,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-uk",
                 tipo: "opcion",
-                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
+                pregunta: "Ось ваше перше випробування, легке. Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart","Torres de Serranos","Torre del Miguelete","Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -16152,7 +16152,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-es",
                 tipo: "opcion",
-                pregunta: "¿Sabría decirme cómo se llaman estas torres?",
+                pregunta: "Aquí va el primero de sus retos, este es facilito. ¿Sabría decirme cómo se llaman estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -16891,7 +16891,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-en",
                 tipo: "opcion",
-                pregunta: "Could you tell me what these towers are called?",
+                pregunta: "Here is your first challenge, an easy one. Could you tell me what these towers are called?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -17637,7 +17637,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Voici votre premier défi, facile. Pourriez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -18383,7 +18383,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-it",
                 tipo: "opcion",
-                pregunta: "Saprebbe dirmi come si chiamano queste torri?",
+                pregunta: "Ecco la sua prima sfida, facile. Saprebbe dirmi come si chiamano queste torri?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -19129,7 +19129,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-nl",
                 tipo: "opcion",
-                pregunta: "Kunt u mij vertellen hoe deze torens heten?",
+                pregunta: "Hier is uw eerste uitdaging, een gemakkelijke. Kunt u mij vertellen hoe deze torens heten?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -19875,7 +19875,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "これらの塔の名前を教えていただけますか？",
+                pregunta: "最初の挑戦です。簡単なものです。これらの塔の名前を教えていただけますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -20621,7 +20621,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-de",
                 tipo: "opcion",
-                pregunta: "Können Sie mir sagen, wie diese Türme heißen?",
+                pregunta: "Hier ist Ihre erste Herausforderung, eine leichte. Können Sie mir sagen, wie diese Türme heißen?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -21357,7 +21357,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-zh",
                 tipo: "opcion",
-                pregunta: "您能告诉我这些塔叫什么名字吗？",
+                pregunta: "这是您的第一个挑战，很容易。您能告诉我这些塔叫什么名字吗？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -22093,7 +22093,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-pl",
                 tipo: "opcion",
-                pregunta: "Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
+                pregunta: "Oto pierwsze wyzwanie, łatwe. Czy potrafi mi Pan/Pani powiedzieć, jak nazywają się te wieże?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -22829,7 +22829,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-pt",
                 tipo: "opcion",
-                pregunta: "Saberia dizer-me como se chamam estas torres?",
+                pregunta: "Aqui está o seu primeiro desafio, fácil. Saberia dizer-me como se chamam estas torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -23565,7 +23565,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-ru",
                 tipo: "opcion",
-                pregunta: "Не могли бы вы сказать, как называются эти башни?",
+                pregunta: "Вот ваше первое испытание, лёгкое. Не могли бы вы сказать, как называются эти башни?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -24301,7 +24301,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-uk",
                 tipo: "opcion",
-                pregunta: "Чи могли б ви сказати, як називаються ці вежі?",
+                pregunta: "Ось ваше перше випробування, легке. Чи могли б ви сказати, як називаються ці вежі?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
