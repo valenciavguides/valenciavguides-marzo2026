@@ -234,7 +234,7 @@ test.describe('CP — la confirmación de la aventura tras el pago', () => {
     // Pulsar una apagada no hace nada: sigue la elección en pantalla.
     await elegir(f, 'Aventura1');
     expect(await aLaVista(f)).toEqual(['pantalla7']);
-    expect(await f.evaluate(() => globalThis.aventuraSeleccionada), 'la aventura elegida no cambia').toBe('Aventura34km');
+    expect(await f.evaluate(() => aventuraSeleccionada), 'la aventura elegida no cambia').toBe('Aventura34km');
 
     await elegir(f, 'Aventura34km');
     await expect.poll(() => aLaVista(f), { timeout: 10_000 }).toEqual(['pantalla13']);

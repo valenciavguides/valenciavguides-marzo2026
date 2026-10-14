@@ -2680,8 +2680,6 @@
     // ============================================================
     const estadoComponente = {
         inicializado: false,
-        idiomaSeleccionado: null,
-        aventuraSeleccionada: null,
         terminosAceptados: false,
         ultimaInteraccion: null,
         hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
@@ -2837,7 +2835,7 @@
             const datosRespuesta = {
                 timestamp: Date.now(), componente: CONFIG_HIJO.COMPONENTE_ID, estado: 'activo',
                 inicializado: estadoComponente.inicializado,
-                idiomaSeleccionado: estadoComponente.idiomaSeleccionado, aventuraSeleccionada: estadoComponente.aventuraSeleccionada,
+                idiomaSeleccionado, aventuraSeleccionada,
                 terminosAceptados: estadoComponente.terminosAceptados, ultimaInteraccion: estadoComponente.ultimaInteraccion
             };
             await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE, datos: datosRespuesta });
@@ -2915,9 +2913,7 @@
      */
     globalThis.seleccionarIdioma = async function(idioma) {
         try {
-            estadoComponente.idiomaSeleccionado = idioma;
             estadoComponente.ultimaInteraccion = Date.now();
-            globalThis.idiomaSeleccionado = idioma;
             globalThis._setIdiomaSeleccionado(idioma);
 
             // Restablecer flags de contenido al cambiar de idioma
@@ -2992,15 +2988,13 @@
      */
     globalThis.seleccionarAventura = async function(aventura) {
         try {
-            estadoComponente.aventuraSeleccionada = aventura;
             estadoComponente.ultimaInteraccion = Date.now();
-            globalThis.aventuraSeleccionada = aventura;
             globalThis._setAventuraSeleccionada(aventura);
             logger.info(`[SELECCION] Aventura seleccionada: ${aventura}`);
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.AVENTURA_SELECCIONADA,
                 destino: 'padre',
-                datos: { aventura: aventura, idioma: estadoComponente.idiomaSeleccionado || 'es', timestamp: Date.now() }
+                datos: { aventura: aventura, idioma: idiomaSeleccionado || 'es', timestamp: Date.now() }
             });
             logger.debug(`[SELECCION] Mensaje AVENTURA_SELECCIONADA enviado al padre`);
             continuarTrasElegirAventura();
@@ -3029,11 +3023,11 @@
             actualizarProgresoCargaAventura(28);
             logger.debug('🚀 [SELECCION] iniciarAventura() LLAMADA');
             logger.debug('🚀 [SELECCION] Estado:', JSON.stringify({
-                aventura: estadoComponente.aventuraSeleccionada,
-                idioma: estadoComponente.idiomaSeleccionado
+                aventura: aventuraSeleccionada,
+                idioma: idiomaSeleccionado
             }));
 
-            logger.info(`[SELECCION] Iniciando aventura: ${estadoComponente.aventuraSeleccionada} en idioma ${estadoComponente.idiomaSeleccionado}`);
+            logger.info(`[SELECCION] Iniciando aventura: ${aventuraSeleccionada} en idioma ${idiomaSeleccionado}`);
 
             actualizarProgresoCargaAventura(55);
 
@@ -3042,8 +3036,8 @@
                 tipo: TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA,
                 destino: 'padre',
                 datos: {
-                    aventura: estadoComponente.aventuraSeleccionada || 'Aventura1',
-                    idioma: estadoComponente.idiomaSeleccionado || 'es',
+                    aventura: aventuraSeleccionada || 'Aventura1',
+                    idioma: idiomaSeleccionado || 'es',
                     terminosAceptados: estadoComponente.terminosAceptados,
                     timestamp: Date.now()
                 }

@@ -20,8 +20,9 @@
  * R2, aviso al padre, activación y el mapa vintage). Se comprueba el mapa porque es el único con
  * un efecto observable directo en el DOM.
  *
- *   SA-1  Control: el módulo recibe la aventura elegida. Sin esto, un SA-2 en rojo podría deberse
- *         a que la elección ni siquiera llega.
+ *   SA-1  Control: la aventura elegida queda en el `let` del script clásico, que es la única fuente
+ *         (el módulo la escribe por el puente y la lee por su nombre). Sin esto, un SA-2 en rojo
+ *         podría deberse a que la elección ni siquiera llega.
  *   SA-2  El mapa vintage que se muestra es el de la aventura elegida, no el de la primera.
  *
  * ROJO ANTES QUE VERDE: sin el puente `_setAventuraSeleccionada`, SA-2 muestra `Av1_mapa.jpg`.
@@ -51,7 +52,7 @@ test.describe('SA — La selección usa la aventura elegida', () => {
 
   const seleccion = (page) => page.frames().find((f) => f.name() === 'seleccion');
 
-  test('SA-1. Control: el módulo recibe la aventura elegida', async ({ page }) => {
+  test('SA-1. Control: la aventura elegida queda en la única fuente', async ({ page }) => {
     const f = seleccion(page);
     expect(
       await f.evaluate(() => typeof globalThis.seleccionarAventura === 'function'),
@@ -60,7 +61,7 @@ test.describe('SA — La selección usa la aventura elegida', () => {
 
     await f.evaluate((a) => globalThis.seleccionarAventura(a), ELEGIDA);
     await expect
-      .poll(() => f.evaluate(() => globalThis.aventuraSeleccionada), { timeout: 5_000 })
+      .poll(() => f.evaluate(() => aventuraSeleccionada), { timeout: 5_000 })
       .toBe(ELEGIDA);
   });
 
@@ -69,7 +70,7 @@ test.describe('SA — La selección usa la aventura elegida', () => {
     await f.evaluate((a) => globalThis.seleccionarAventura(a), ELEGIDA);
     // Misma condicion que comprueba SA-1: la aventura elegida ya esta guardada.
     await expect
-      .poll(() => f.evaluate(() => globalThis.aventuraSeleccionada), { timeout: 5_000 })
+      .poll(() => f.evaluate(() => aventuraSeleccionada), { timeout: 5_000 })
       .toBe(ELEGIDA);
 
     const src = await f.evaluate(async () => {
