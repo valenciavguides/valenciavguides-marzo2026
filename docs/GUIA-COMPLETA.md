@@ -5820,7 +5820,7 @@ padre _hdl_RETO_COMPLETADO (lee `correcto`)
 
 En modo puzzle los controles normales del reto, incluido "saltar reto", están ocultos: `#btn-puzzle-continuar` es la única salida del usuario, y por eso resuelto y tiempo agotado completan la parada igual.
 
-**En `En-busca-del-tesoro.html`** (selector): puzzles de intro en la pantalla de selección también usan el mismo mecanismo (L1256). Se usa para desbloquear aventuras mediante puzzle.
+**En `En-busca-del-tesoro.html`** (selección): el puzzle de la P6 usa los mismos dos avisos. `cargarPuzzle()` registra `PUZZLE.COMPLETADO` y `PUZZLE.TIMEOUT`, y los dos enseñan el botón de continuar (`_mostrarContinuarPuzzle()`), que lleva a la P7 (`completarPuzzle()`).
 
 ---
 
@@ -10353,7 +10353,7 @@ Los disparadores 2 y 3 llaman a la misma función directamente (`await globalThi
 
 `TRADUCCIONES_FINALIZACION` se importa en Script 2 mediante `await import('./js/traducciones-ui.js')` junto a `TRADUCCIONES_TIEMPO_AGOTADO`, ya que el import estático de Script 1 no es visible en Script 2 (ver regla de scopes separados en `CLAUDE.md`).
 
-Al crear el modal por primera vez, también arma la **red de seguridad por abandono** (§25.13) mediante `armarRedDeSeguridad_S2(...)` (Script 2, importado en L8350) — si el usuario no pulsa ningún botón, la sesión se limpia sola igual que en el modal de fin de aventura. Esto cubre también a los disparadores 2 y 3: si el modal aparece en un arranque en frío y el usuario abandona la pestaña sin elegir nada, la limpieza ocurre igual.
+Al crear el modal por primera vez, también arma la **red de seguridad por abandono** (§25.13) mediante `armarRedDeSeguridad_S2(...)` (Script 2, importado de `js/reciclaje-digital.js`) — si el usuario no pulsa ningún botón, la sesión se limpia sola igual que en el modal de fin de aventura. Esto cubre también a los disparadores 2 y 3: si el modal aparece en un arranque en frío y el usuario abandona la pestaña sin elegir nada, la limpieza ocurre igual.
 
 **Botón "Hacer otra aventura"** (`#btn-tiempo-agotado-otra`) — camino rápido, igual que en fin de aventura normal:
 
@@ -10369,7 +10369,7 @@ Al crear el modal por primera vez, también arma la **red de seguridad por aband
 2. `location.href = 'En-busca-del-tesoro.html?despedida=1'`
 3. P18 se muestra (`modoDespedida = true` → pantalla de agradecimientos)
 4. El usuario pulsa el botón verde mundo (`#btn-siguiente-agradecimientos`) → `aceptarAgradecimientos()` → `_ejecutarDespedida()`
-5. **Solo en este paso** ocurre la limpieza: `await limpiarDatosAventura('completada')` (`En-busca-del-tesoro.html` L1519-1520)
+5. **Solo en este paso** ocurre la limpieza: `await limpiarDatosAventura('completada')` (`En-busca-del-tesoro.html`, en `_ejecutarDespedida()`)
 6. Pausa 2 s y `location.replace('codigo-padre.html')`: P1. Es `replace` y no una recarga, porque recargar esta dirección, que lleva `?despedida=1`, volvería a entrar en P18; y `replace` para que "atrás" no devuelva a la despedida
 
 Es decir: el botón "Terminar" del modal de tiempo agotado **no limpia nada por sí mismo** — solo navega a la pantalla de despedida; la limpieza real ocurre cuando el usuario, tras leer el agradecimiento, pulsa el botón verde mundo de esa pantalla. Es exactamente el mismo mecanismo que usa el botón "Terminar esta experiencia" del modal de fin de aventura normal (§25.11) — no hay lógica duplicada, solo se reutiliza la misma URL/flujo.
@@ -14406,7 +14406,7 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 92 tipos de mensaje. 
 
 ### 37.4 Assets compartidos (imágenes usadas en 2+ archivos)
 
-Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tools/**`, `sw.js` y `manifest.json` (65 archivos) — **76 imágenes compartidas de 355 referenciadas en total**. Muchas de las apariciones en `video-intro.html` son porque esa página reutiliza los mismos iconos de audio/mapa en sus propias escenas, no porque dependa del padre — pero un cambio de nombre de fichero rompe ambos igual. Los pares `js/coordenadas-aventuras.js` ↔ `js/puzzles-aventuras.js` (fotos de parada reutilizadas como imagen de puzzle) son el grupo más numeroso — mover o renombrar una de esas fotos rompe el puzzle de esa parada sin que nada lo avise hasta que se prueba.
+Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tools/**`, `sw.js` y `manifest.json` (75 archivos) — **76 imágenes compartidas de 356 referenciadas en total**. Muchas de las apariciones en `video-intro.html` son porque esa página reutiliza los mismos iconos de audio/mapa en sus propias escenas, no porque dependa del padre — pero un cambio de nombre de fichero rompe ambos igual. Los pares `js/coordenadas-aventuras.js` ↔ `js/puzzles-aventuras.js` (fotos de parada reutilizadas como imagen de puzzle) son el grupo más numeroso — mover o renombrar una de esas fotos rompe el puzzle de esa parada sin que nada lo avise hasta que se prueba.
 
 <details>
 <summary>Tabla completa (76 filas) — clic para desplegar</summary>
@@ -14422,7 +14422,7 @@ Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tool
 | `fotoruta-A-B.png` | `codigo-padre.html`, `coordenadas-hijo2.html`, `video-intro.html` |
 | `plaza_de_la_almoina.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
 | `plaza_de_la_virgen.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
-| `Av1_mapa.jpg` | `En-busca-del-tesoro.html`, `js/mapa-vintage-aventuras.js`, `video-intro.html` |
+| `Av1_mapa.jpg` | `js/mapa-vintage-aventuras.js`, `video-intro.html` |
 | `serranos_back.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js`, `video-intro.html` |
 | `fotochat-boton.png` | `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-central.png` | `codigo-padre.html`, `video-intro.html` |
@@ -14462,7 +14462,7 @@ Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tool
 | `bandera_ucrania.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
 | `pano_CAC.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js` |
 | `cabecera_lake_side.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js` |
-| `Av2_Mapa.jpg` | `En-busca-del-tesoro.html`, `js/mapa-vintage-aventuras.js` |
+| `logo-luna.png` | `En-busca-del-tesoro.html`, `js/puzzles-aventuras.js` |
 | `foto-opciones.png` | `extrainfo-hijo1.html`, `video-intro.html` |
 | `boton_listado_paradas.png` | `extrainfo-hijo1.html`, `video-intro.html` |
 | `H1-fotogastronomia.png` | `extrainfo-hijo1.html`, `video-intro.html` |
