@@ -624,7 +624,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-fr",
                 tipo: "opcion",
-                pregunta: "Pouvez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -633,7 +633,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-fr",
                 tipo: "opcion",
-                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont rouge, jaune et… ?",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont le rouge, le jaune et… ?",
                 opciones: ["Violet", "Vert", "Bleu"],
                 correctas: ["Bleu"],
                 multiple: false
@@ -642,23 +642,23 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-fr",
                 tipo: "texto",
-                pregunta: "Pouvez-vous me donner le nom de la rue ?",
+                pregunta: "Pourriez-vous me dire le nom de la rue ?",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-fr",
                 tipo: "opcion",
-                pregunta: "Que tient Saint Laurent dans sa main ?",
-                opciones: ["Une colombe", "Une cuillère", "Une grille"],
-                correctas: ["Une grille"],
+                pregunta: "Que tient saint Laurent dans sa main ?",
+                opciones: ["Une colombe", "Une cuillère", "Un gril"],
+                correctas: ["Un gril"],
                 multiple: false
             },
             {
                 reto: 7,
                 id: "R7-Av1-fr",
                 tipo: "opcion",
-                pregunta: "Avec quelle main Neptune tient-il la corne d'abondance ?",
+                pregunta: "De quelle main Neptune tient-il la corne d'abondance ?",
                 opciones: ["Gauche", "Droite"],
                 correctas: ["Droite"],
                 multiple: false
@@ -727,7 +727,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-fr",
                 tipo: "opcion",
-                pregunta: "Pouvez-vous déterminer sa géométrie ?",
+                pregunta: "Pourriez-vous déterminer sa géométrie ?",
                 opciones: ["Hexagonal", "Octogonal", "Quadrangulaire"],
                 correctas: ["Hexagonal"],
                 multiple: false
@@ -743,7 +743,7 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av1-fr",
                 tipo: "opcion",
-                pregunta: "Vous souvenez-vous de quel animal couronne le blason municipal ?",
+                pregunta: "Vous souvenez-vous de l'animal qui couronne le blason municipal ?",
                 opciones: ["Un dragon", "Une chauve-souris", "Un cheval"],
                 correctas: ["Une chauve-souris"],
                 multiple: false
@@ -752,7 +752,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-fr",
                 tipo: "opcion",
-                pregunta: "Regardez la façade de la première tour ! Quel fruit d'agrumes de Valence la décore ?",
+                pregunta: "Prêtez attention à la façade de la première tour ! Quel agrume originaire de Valence décore la façade ?",
                 opciones: ["Citrons", "Pamplemousses", "Oranges"],
                 correctas: ["Oranges"],
                 multiple: false
@@ -767,7 +767,7 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av1-fr",
                 tipo: "texto",
-                pregunta: "Pouvez-vous me dire quelle entreprise occupe ce bâtiment ?",
+                pregunta: "Pourriez-vous me dire quelle entreprise occupe ce bâtiment ?",
                 correctas: ["?"]
             },
             {
@@ -799,9 +799,9 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av1-fr",
                 tipo: "opcion",
-                pregunta: "Cherchez le vitrail avec les couleurs de la Senyera valencienne sur la façade du bâtiment. Pouvez-vous déterminer sa forme ?",
-                opciones: ["Quadrangulaire", "Ronde", "Triangulaire"],
-                correctas: ["Ronde"],
+                pregunta: "Cherchez le vitrail aux couleurs de la Senyera valencienne sur la façade du bâtiment. Pourriez-vous déterminer quelle forme il a ?",
+                opciones: ["Carré", "Rond", "Triangulaire"],
+                correctas: ["Rond"],
                 multiple: false
             },
             {
@@ -818,7 +818,7 @@ export const RETOS_AVENTURAS = {
                 id: "R27-Av1-fr",
                 tipo: "opcion",
                 pregunta: "Que donne l'ange à l'enfant ?",
-                opciones: ["Une colombe", "Un orbe", "Des aliments"],
+                opciones: ["Une colombe", "Un orbe", "De la nourriture"],
                 correctas: ["Un orbe"],
                 multiple: false
             },
@@ -833,17 +833,17 @@ export const RETOS_AVENTURAS = {
                 id: "R29-Av1-fr",
                 tipo: "opcion-multiple",
                 pregunta: "Le batelier qui rame à contre-courant.",
-                opciones: ["Un homme au visage triste dirige un petit bateau en bois pour échapper à contre-courant à un monstre."],
-                correctas: ["Un homme au visage triste dirige un petit bateau en bois pour échapper à contre-courant à un monstre."],
+                opciones: ["Un homme au visage triste manœuvre un petit bateau en bois et s'échappe à contre-courant d'un monstre."],
+                correctas: ["Un homme au visage triste manœuvre un petit bateau en bois et s'échappe à contre-courant d'un monstre."],
                 multiple: true
             },
             {
                 reto: 30,
                 id: "R30-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "Un arbre mort : symbole du péché, se trouve entre les deux feuilles de la porte et fait office de meneau.",
-                opciones: ["Observez au sommet de l'arbre quatre hommes nus qui se flagellent entre eux."],
-                correctas: ["Observez au sommet de l'arbre quatre hommes nus qui se flagellent entre eux."],
+                pregunta: "Un arbre mort, symbole du Péché, se dresse entre les deux vantaux de la porte et fait office de trumeau.",
+                opciones: ["Observez au sommet de l'arbre comment 4 hommes nus se fouettent mutuellement."],
+                correctas: ["Observez au sommet de l'arbre comment 4 hommes nus se fouettent mutuellement."],
                 multiple: true
             },
             {
@@ -859,7 +859,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "Au centre : L'homme barbu et le lion :",
+                pregunta: "Au centre, l'homme barbu et le lion :",
                 opciones: ["Scène originale et contradictoire où le doux est précisément le lion et non le vieil homme barbu."],
                 correctas: ["Scène originale et contradictoire où le doux est précisément le lion et non le vieil homme barbu."],
                 multiple: true
@@ -4004,7 +4004,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-fr",
                 tipo: "opcion",
-                pregunta: "Pouvez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4013,7 +4013,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-fr",
                 tipo: "opcion",
-                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont rouge, jaune et… ?",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont le rouge, le jaune et… ?",
                 opciones: ["Violet", "Vert", "Bleu"],
                 correctas: ["Bleu"],
                 multiple: false
@@ -4097,7 +4097,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av2-fr",
                 tipo: "opcion",
-                pregunta: "De quelle main Neptune tient-il la corne d’abondance ?",
+                pregunta: "De quelle main Neptune tient-il la corne d'abondance ?",
                 opciones: ["Gauche", "Droite"],
                 correctas: ["Droite"],
                 multiple: false
@@ -4113,9 +4113,9 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av2-fr",
                 tipo: "opcion",
-                pregunta: "Sauriez-vous déterminer la géométrie du ciborium de la cathédrale de Valence ?",
-                opciones: ["Hexagonal", "Octogonal", "Quadrangulaire"],
-                correctas: ["Octogonal"],
+                pregunta: "Sauriez-vous déterminer la géométrie de la tour-lanterne de la cathédrale de Valence ?",
+                opciones: ["Hexagonale", "Octogonale", "Quadrangulaire"],
+                correctas: ["Octogonale"],
                 multiple: false
             },
             {
@@ -6628,7 +6628,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av3-fr",
                 tipo: "opcion",
-                pregunta: "Voici votre premier défi, facile. Pouvez-vous me dire comment s'appellent ces Tours ?",
+                pregunta: "Voici votre premier défi, facile. Pourriez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -6637,7 +6637,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av3-fr",
                 tipo: "opcion",
-                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont le rouge, le jaune et... ?",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont le rouge, le jaune et… ?",
                 opciones: ["Violet", "Vert", "Bleu"],
                 correctas: ["Bleu"],
                 multiple: false
@@ -6646,7 +6646,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av3-fr",
                 tipo: "texto",
-                pregunta: "Pouvez-vous me dire le nom de cet ancien fleuve ?",
+                pregunta: "Pourriez-vous me dire le nom de cet ancien fleuve ?",
                 correctas: ["Turia"],
                 multiple: false
             },
@@ -6660,7 +6660,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av3-fr",
                 tipo: "opcion",
-                pregunta: "Pouvez-vous me dire comment s'appellent ces fêtes populaires de Valence ?",
+                pregunta: "Pourriez-vous me dire comment s'appellent ces fêtes populaires de Valence ?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -6678,7 +6678,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av3-fr",
                 tipo: "texto",
-                pregunta: "Pouvez-vous deviner combien de marches il comporte ?",
+                pregunta: "Pourriez-vous deviner combien de marches il comporte ?",
                 correctas: ["16"],
                 multiple: false
             },
@@ -6695,7 +6695,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av3-fr",
                 tipo: "texto",
-                pregunta: "Pouvez-vous me dire le prix pour accéder à cette attraction ?",
+                pregunta: "Pourriez-vous me dire le prix pour accéder à cette attraction ?",
                 correctas: ["gratis"],
                 multiple: false
             },
@@ -6736,7 +6736,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av3-fr",
                 tipo: "opcion",
-                pregunta: "Vous souvenez-vous quel animal couronne le blason de Valence ?",
+                pregunta: "Vous souvenez-vous de l'animal qui couronne le blason de Valence ?",
                 opciones: ["Chauve-souris", "Dragon", "Lion"],
                 correctas: ["Chauve-souris"],
                 multiple: false
@@ -6796,7 +6796,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av3-fr",
                 tipo: "texto",
-                pregunta: "En quelle année cet immeuble a-t-il été construit ? Indice : regardez en haut de la façade",
+                pregunta: "En quelle année ce bâtiment a-t-il été construit ? Indice : regardez en haut de la façade.",
                 correctas: ["1906"],
                 multiple: false
             },
@@ -9427,7 +9427,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av4-fr",
                 tipo: "opcion-multiple",
-                pregunta: "Que porte Sainte Thérèse dans ses mains ?",
+                pregunta: "Que porte sainte Thérèse dans ses mains ?",
                 opciones: ["Une plume", "Une épée", "Un livre", "Une cruche"],
                 correctas: ["Une plume", "Un livre"],
                 multiple: true
@@ -9505,7 +9505,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av4-fr",
                 tipo: "opcion",
-                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs se composent de rouge, jaune et…",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont le rouge, le jaune et… ?",
                 opciones: ["Violet", "Vert", "Bleu"],
                 correctas: ["Bleu"],
                 multiple: false
@@ -11645,7 +11645,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av5-fr",
                 tipo: "opcion",
-                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs se composent de rouge, jaune et…",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont le rouge, le jaune et… ?",
                 opciones: ["Violet", "Vert", "Bleu"],
                 correctas: ["Bleu"],
                 multiple: false
@@ -11669,8 +11669,8 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av5-fr",
                 tipo: "opcion",
-                pregunta: "Pourriez-vous me dire le nom de ces fêtes populaires de Valence ?",
-                opciones: ["Las Fallas", "La Tomatina", "Les feux de la Saint-Jean"],
+                pregunta: "Pourriez-vous me dire comment s'appellent ces fêtes populaires de Valence ?",
+                opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
             },
@@ -11713,7 +11713,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-Av5-fr",
                 tipo: "texto",
-                pregunta: "Combien d'animaux pouvez-vous dénombrer ? Notez qu'il y a des vaches, des cochons…",
+                pregunta: "Combien d'animaux pouvez-vous compter ? Notez qu'il y a parmi eux des vaches, des cochons…",
                 correctas: ["?"],
                 multiple: false
             },
@@ -11730,7 +11730,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av5-fr",
                 tipo: "texto",
-                pregunta: "Combien d'étages possède ce Monument ?",
+                pregunta: "Combien d'étages possède ce monument ?",
                 correctas: ["4"],
                 multiple: false
             },
@@ -11738,7 +11738,7 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av5-fr",
                 tipo: "opcion",
-                pregunta: "Quel agrume natif de Valence décore la façade ?",
+                pregunta: "Prêtez attention à la façade de la première tour ! Quel agrume originaire de Valence décore la façade ?",
                 opciones: ["Citrons", "Pamplemousses", "Oranges"],
                 correctas: ["Oranges"],
                 multiple: false
@@ -11772,7 +11772,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av5-fr",
                 tipo: "texto",
-                pregunta: "Pourriez-vous me dire l'année de sa dernière réhabilitation ? Vous l'avez sûrement déjà vu !",
+                pregunta: "Pourriez-vous me dire l'année de sa dernière réhabilitation ? Vous l'avez sûrement déjà vue !",
                 correctas: ["2012"],
                 multiple: false
             },
@@ -11795,7 +11795,7 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av5-fr",
                 tipo: "opcion",
-                pregunta: "Pourriez-vous déterminer quelle forme il a ?",
+                pregunta: "Cherchez le vitrail aux couleurs de la Senyera valencienne sur la façade du bâtiment. Pourriez-vous déterminer quelle forme il a ?",
                 opciones: ["Carré", "Rond", "Triangulaire"],
                 correctas: ["Rond"],
                 multiple: false
@@ -11820,7 +11820,7 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av5-fr",
                 tipo: "opcion-multiple",
-                pregunta: "Un arbre mort : symbole du Péché, entre les deux vantaux de la porte en guise de poteau médian.",
+                pregunta: "Un arbre mort, symbole du Péché, se dresse entre les deux vantaux de la porte et fait office de trumeau.",
                 opciones: ["Observez au sommet de l'arbre comment 4 hommes nus se fouettent mutuellement."],
                 correctas: ["Observez au sommet de l'arbre comment 4 hommes nus se fouettent mutuellement."],
                 multiple: true
@@ -14421,7 +14421,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-AvFallas-fr",
                 tipo: "opcion",
-                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs se composent de rouge, jaune et… ?",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont le rouge, le jaune et… ?",
                 opciones: ["Violet", "Vert", "Bleu"],
                 correctas: ["Bleu"],
                 multiple: false
@@ -14430,7 +14430,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-AvFallas-fr",
                 tipo: "texto",
-                pregunta: "Pourriez-vous me dire le nom de cette rue ?",
+                pregunta: "Pourriez-vous me dire le nom de la rue ?",
                 correctas: ["Calle Muro de Santa Ana"],
                 multiple: false
             },
@@ -14438,8 +14438,8 @@ export const RETOS_AVENTURAS = {
                 reto: 6,
                 id: "R6-AvFallas-fr",
                 tipo: "opcion",
-                pregunta: "Que porte Saint Laurent dans la main ?",
-                opciones: ["Une Colombe", "Une cuillère", "Un gril"],
+                pregunta: "Que tient saint Laurent dans sa main ?",
+                opciones: ["Une colombe", "Une cuillère", "Un gril"],
                 correctas: ["Un gril"],
                 multiple: false
             },
@@ -14462,8 +14462,8 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-AvFallas-fr",
                 tipo: "opcion",
-                pregunta: "Pourriez-vous déterminer quelle géométrie a le Cimborrio de la Cathédrale de Valence ?",
-                opciones: ["Hexagonale", "Octogonale", "Carrée"],
+                pregunta: "Sauriez-vous déterminer la géométrie de la tour-lanterne de la cathédrale de Valence ?",
+                opciones: ["Hexagonale", "Octogonale", "Quadrangulaire"],
                 correctas: ["Octogonale"],
                 multiple: false
             },
@@ -14485,7 +14485,7 @@ export const RETOS_AVENTURAS = {
                 reto: 12,
                 id: "R12-AvFallas-fr",
                 tipo: "opcion",
-                pregunta: "Vous souvenez-vous quel animal surmonte le blason de Valence ?",
+                pregunta: "Vous souvenez-vous de l'animal qui couronne le blason de Valence ?",
                 opciones: ["Chauve-souris", "Dragon", "Lion"],
                 correctas: ["Chauve-souris"],
                 multiple: false
@@ -14494,16 +14494,16 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-AvFallas-fr",
                 tipo: "opcion-multiple",
-                pregunta: "Au-dessus de l'entrée principale, dans un arc en plein cintre, des figures allégoriques représentent les cinq continents. Que porte la figure centrale ?",
-                opciones: ["Une Torche", "Une Épée", "Une Couronne"],
-                correctas: ["Une Torche", "Une Épée"],
+                pregunta: "Au-dessus de l'entrée principale, dans un arc en plein cintre, des figures allégoriques représentent les cinq continents. Que tient la figure centrale ?",
+                opciones: ["Une torche", "Une épée", "Une couronne"],
+                correctas: ["Une torche", "Une épée"],
                 multiple: true
             },
             {
                 reto: 14,
                 id: "R14-AvFallas-fr",
                 tipo: "opcion",
-                pregunta: "Que tient la figure dans la main ?",
+                pregunta: "Que tient la figure dans sa main ?",
                 opciones: ["Une balance", "Un livre", "Une plume"],
                 correctas: ["Une balance"],
                 multiple: false
@@ -14522,8 +14522,8 @@ export const RETOS_AVENTURAS = {
                 id: "R16-AvFallas-fr",
                 tipo: "opcion-multiple",
                 pregunta: "Que tient la Vierge dans sa main ?",
-                opciones: ["Un Rosaire", "Un enfant", "Une couronne"],
-                correctas: ["Un Rosaire", "Un enfant"],
+                opciones: ["Un chapelet", "Un enfant", "Une couronne"],
+                correctas: ["Un chapelet", "Un enfant"],
                 multiple: true
             },
             {
@@ -17637,7 +17637,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Pouvez-vous me dire comment s'appellent ces tours ?",
+                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -17652,7 +17652,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Pouvez-vous me dire comment s'appellent ces fêtes populaires de Valence ?",
+                pregunta: "Pourriez-vous me dire comment s'appellent ces fêtes populaires de Valence ?",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -17670,7 +17670,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av34km-fr",
                 tipo: "texto",
-                pregunta: "Pouvez-vous deviner combien de marches il comporte ?",
+                pregunta: "Pourriez-vous deviner combien de marches il comporte ?",
                 correctas: ["16"],
                 multiple: false
             },
@@ -17687,7 +17687,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av34km-fr",
                 tipo: "texto",
-                pregunta: "Pouvez-vous me dire le prix pour accéder à cette attraction ?",
+                pregunta: "Pourriez-vous me dire le prix pour accéder à cette attraction ?",
                 correctas: ["gratis"],
                 multiple: false
             },
@@ -17728,7 +17728,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Vous souvenez-vous quel animal couronne le blason de Valence ?",
+                pregunta: "Vous souvenez-vous de l'animal qui couronne le blason de Valence ?",
                 opciones: ["Chauve-souris", "Dragon", "Lion"],
                 correctas: ["Chauve-souris"],
                 multiple: false
@@ -17764,7 +17764,7 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av34km-fr",
                 tipo: "texto",
-                pregunta: "Combien d'animaux pouvez-vous dénombrer ? Notez qu'il y a des vaches, des cochons…",
+                pregunta: "Combien d'animaux pouvez-vous compter ? Notez qu'il y a parmi eux des vaches, des cochons…",
                 correctas: ["?"],
                 multiple: false
             },
@@ -17778,7 +17778,7 @@ export const RETOS_AVENTURAS = {
                 reto: 20,
                 id: "R20-Av34km-fr",
                 tipo: "texto",
-                pregunta: "Combien d'étages possède ce Monument ?",
+                pregunta: "Combien d'étages possède ce monument ?",
                 correctas: ["4"],
                 multiple: false
             },
@@ -17786,7 +17786,7 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Quel agrume natif de Valence décore la façade ?",
+                pregunta: "Prêtez attention à la façade de la première tour ! Quel agrume originaire de Valence décore la façade ?",
                 opciones: ["Citrons", "Pamplemousses", "Oranges"],
                 correctas: ["Oranges"],
                 multiple: false
@@ -17803,7 +17803,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Vous souvenez-vous de quel animal couronne le blason municipal ?",
+                pregunta: "Vous souvenez-vous de l'animal qui couronne le blason municipal ?",
                 opciones: ["Un dragon", "Une chauve-souris", "Un cheval"],
                 correctas: ["Une chauve-souris"],
                 multiple: false
@@ -17837,9 +17837,9 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Cherchez le vitrail avec les couleurs de la Senyera valencienne sur la façade du bâtiment. Pouvez-vous déterminer sa forme ?",
-                opciones: ["Quadrangulaire", "Ronde", "Triangulaire"],
-                correctas: ["Ronde"],
+                pregunta: "Cherchez le vitrail aux couleurs de la Senyera valencienne sur la façade du bâtiment. Pourriez-vous déterminer quelle forme il a ?",
+                opciones: ["Carré", "Rond", "Triangulaire"],
+                correctas: ["Rond"],
                 multiple: false
             },
 {
@@ -17856,7 +17856,7 @@ export const RETOS_AVENTURAS = {
                 id: "R29-Av34km-fr",
                 tipo: "opcion",
                 pregunta: "Que donne l'ange à l'enfant ?",
-                opciones: ["Une colombe", "Un orbe", "Des aliments"],
+                opciones: ["Une colombe", "Un orbe", "De la nourriture"],
                 correctas: ["Un orbe"],
                 multiple: false
             },
@@ -17871,17 +17871,17 @@ export const RETOS_AVENTURAS = {
                 id: "R31-Av34km-fr",
                 tipo: "opcion-multiple",
                 pregunta: "Le batelier qui rame à contre-courant.",
-                opciones: ["Un homme au visage triste dirige un petit bateau en bois pour échapper à contre-courant à un monstre."],
-                correctas: ["Un homme au visage triste dirige un petit bateau en bois pour échapper à contre-courant à un monstre."],
+                opciones: ["Un homme au visage triste manœuvre un petit bateau en bois et s'échappe à contre-courant d'un monstre."],
+                correctas: ["Un homme au visage triste manœuvre un petit bateau en bois et s'échappe à contre-courant d'un monstre."],
                 multiple: true
             },
 {
                 reto: 32,
                 id: "R32-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "Un arbre mort : symbole du péché, se trouve entre les deux feuilles de la porte et fait office de meneau.",
-                opciones: ["Observez au sommet de l'arbre quatre hommes nus qui se flagellent entre eux."],
-                correctas: ["Observez au sommet de l'arbre quatre hommes nus qui se flagellent entre eux."],
+                pregunta: "Un arbre mort, symbole du Péché, se dresse entre les deux vantaux de la porte et fait office de trumeau.",
+                opciones: ["Observez au sommet de l'arbre comment 4 hommes nus se fouettent mutuellement."],
+                correctas: ["Observez au sommet de l'arbre comment 4 hommes nus se fouettent mutuellement."],
                 multiple: true
             },
 {
@@ -17897,7 +17897,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "Au centre : L'homme barbu et le lion :",
+                pregunta: "Au centre, l'homme barbu et le lion :",
                 opciones: ["Scène originale et contradictoire où le doux est précisément le lion et non le vieil homme barbu."],
                 correctas: ["Scène originale et contradictoire où le doux est précisément le lion et non le vieil homme barbu."],
                 multiple: true
@@ -18042,7 +18042,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Pouvez-vous déterminer sa géométrie ?",
+                pregunta: "Pourriez-vous déterminer sa géométrie ?",
                 opciones: ["Hexagonal", "Octogonal", "Quadrangulaire"],
                 correctas: ["Hexagonal"],
                 multiple: false
@@ -18051,7 +18051,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Avec quelle main Neptune tient-il la corne d'abondance ?",
+                pregunta: "De quelle main Neptune tient-il la corne d'abondance ?",
                 opciones: ["Gauche", "Droite"],
                 correctas: ["Droite"],
                 multiple: false
@@ -18151,7 +18151,7 @@ export const RETOS_AVENTURAS = {
                 reto: 65,
                 id: "R65-Av34km-fr",
                 tipo: "opcion-multiple",
-                pregunta: "Que porte Sainte Thérèse dans ses mains ?",
+                pregunta: "Que porte sainte Thérèse dans ses mains ?",
                 opciones: ["Une plume", "Une épée", "Un livre", "Une cruche"],
                 correctas: ["Une plume", "Un livre"],
                 multiple: true
@@ -18233,7 +18233,7 @@ export const RETOS_AVENTURAS = {
                 reto: 75,
                 id: "R75-Av34km-fr",
                 tipo: "texto",
-                pregunta: "Pourriez-vous me dire l'année de sa dernière réhabilitation ? Vous l'avez sûrement déjà vu !",
+                pregunta: "Pourriez-vous me dire l'année de sa dernière réhabilitation ? Vous l'avez sûrement déjà vue !",
                 correctas: ["2012"],
                 multiple: false
             },
@@ -18291,7 +18291,7 @@ export const RETOS_AVENTURAS = {
                 reto: 83,
                 id: "R83-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs se composent de rouge, jaune et…",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs sont le rouge, le jaune et… ?",
                 opciones: ["Violet", "Vert", "Bleu"],
                 correctas: ["Bleu"],
                 multiple: false
@@ -18341,9 +18341,9 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-fr",
                 tipo: "opcion",
-                pregunta: "Que tient Saint Laurent dans sa main ?",
-                opciones: ["Une colombe", "Une cuillère", "Une grille"],
-                correctas: ["Une grille"],
+                pregunta: "Que tient saint Laurent dans sa main ?",
+                opciones: ["Une colombe", "Une cuillère", "Un gril"],
+                correctas: ["Un gril"],
                 multiple: false
             },
 {
