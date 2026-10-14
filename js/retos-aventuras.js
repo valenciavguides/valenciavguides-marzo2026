@@ -34,7 +34,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-es",
                 tipo: "opcion",
-                pregunta: "3. ¿Sabía decirme cómo se llaman estas Torres?",
+                pregunta: "3. ¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -3576,7 +3576,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-es",
                 tipo: "opcion",
-                pregunta: "3. ¿Sabía decirme cómo se llaman estas Torres?",
+                pregunta: "3. ¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -9040,7 +9040,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-es",
                 tipo: "opcion",
-                pregunta: "3. ¿Sabía decirme cómo se llaman estas Torres?",
+                pregunta: "3. ¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -11148,7 +11148,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av5-es",
                 tipo: "opcion",
-                pregunta: "3. ¿Sabía decirme cómo se llaman estas Torres?",
+                pregunta: "3. ¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -14064,7 +14064,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-AvFallas-es",
                 tipo: "opcion",
-                pregunta: "¿Sabía decirme cómo se llaman estas Torres?",
+                pregunta: "¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -16152,7 +16152,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-es",
                 tipo: "opcion",
-                pregunta: "3. ¿Sabía decirme cómo se llaman estas Torres?",
+                pregunta: "3. ¿Sabría decirme cómo se llaman estas Torres?",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
