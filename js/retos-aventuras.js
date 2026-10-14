@@ -1509,7 +1509,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av1-ja",
                 tipo: "opcion",
-                pregunta: "これらの塔の名前を教えてもらえますか？",
+                pregunta: "これらの塔の名前を教えていただけますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -1518,7 +1518,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av1-ja",
                 tipo: "opcion",
-                pregunta: "塔の頂上にはバレンシアの旗がはためいています。色は赤、黄、そして…？",
+                pregunta: "塔の頂上にはバレンシアの旗が翻っています。その色は赤、黄色、そして…？",
                 opciones: ["紫", "緑", "青"],
                 correctas: ["青"],
                 multiple: false
@@ -1527,23 +1527,23 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av1-ja",
                 tipo: "texto",
-                pregunta: "この通りの名前を教えてもらえますか？",
+                pregunta: "この通りの名前を教えていただけますか？",
                 correctas: ["Calle Muro de Santa Ana"]
             },
             {
                 reto: 6,
                 id: "R6-Av1-ja",
                 tipo: "opcion",
-                pregunta: "聖ロレンスは手に何を持っていますか？",
-                opciones: ["ハト", "スプーン", "グリル"],
-                correctas: ["グリル"],
+                pregunta: "聖ラウレンティウスは手に何を持っていますか？",
+                opciones: ["鳩", "スプーン", "焼き網"],
+                correctas: ["焼き網"],
                 multiple: false
             },
             {
                 reto: 7,
                 id: "R7-Av1-ja",
                 tipo: "opcion",
-                pregunta: "ネプチューンはどちらの手で角笛を持っていますか？",
+                pregunta: "ネプチューンはどちらの手で豊穣の角を持っていますか？",
                 opciones: ["左手", "右手"],
                 correctas: ["右手"],
                 multiple: false
@@ -1590,7 +1590,7 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-Av1-ja",
                 tipo: "texto",
-                pregunta: "この建物は何年に建てられましたか？ヒント：ファサードの上部を見てください。",
+                pregunta: "この建物は何年に建てられましたか？ヒント：ファサードの上部をご覧ください。",
                 correctas: ["1906"]
             },
             {
@@ -1612,7 +1612,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av1-ja",
                 tipo: "opcion",
-                pregunta: "形状を判定できますか？",
+                pregunta: "どのような形状か分かりますか？",
                 opciones: ["「六角形」", "「八角形」", "「四角形」"],
                 correctas: ["「六角形」"],
                 multiple: false
@@ -1637,7 +1637,7 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av1-ja",
                 tipo: "opcion",
-                pregunta: "第一の塔のファサードに注目！どの柑橘類が装飾されていますか？",
+                pregunta: "最初の塔のファサードにご注目ください！バレンシア原産のどの柑橘類がファサードを飾っていますか？",
                 opciones: ["レモン", "グレープフルーツ", "オレンジ"],
                 correctas: ["オレンジ"],
                 multiple: false
@@ -1669,7 +1669,7 @@ export const RETOS_AVENTURAS = {
                 id: "R23-Av1-ja",
                 tipo: "opcion",
                 pregunta: "この像は手に何を持っていますか？",
-                opciones: ["天秤", "本", "羽ペン"],
+                opciones: ["天秤", "本", "羽根ペン"],
                 correctas: ["天秤"],
                 multiple: false
             },
@@ -1684,9 +1684,9 @@ export const RETOS_AVENTURAS = {
                 reto: 25,
                 id: "R25-Av1-ja",
                 tipo: "opcion",
-                pregunta: "ファサードのバレンシアのセニェーラの色のステンドグラスを探してください。形状は何ですか？",
-                opciones: ["「四角形」", "「円形」", "「三角形」"],
-                correctas: ["「円形」"],
+                pregunta: "建物のファサードで、バレンシアのセニェーラの色をしたステンドグラスを探してください。どんな形をしているか分かりますか？",
+                opciones: ["四角形", "円形", "三角形"],
+                correctas: ["円形"],
                 multiple: false
             },
             {
@@ -1703,8 +1703,8 @@ export const RETOS_AVENTURAS = {
                 id: "R27-Av1-ja",
                 tipo: "opcion",
                 pregunta: "天使は子供に何を渡していますか？",
-                opciones: ["鳩", "オーブ", "食べ物"],
-                correctas: ["オーブ"],
+                opciones: ["鳩", "宝珠", "食べ物"],
+                correctas: ["宝珠"],
                 multiple: false
             },
             {
@@ -1717,25 +1717,25 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "逆流を漕ぐ船頭。",
-                opciones: ["悲しい表情の男が小さな木製の舟を操り、怪物から逃げるように逆流を進んでいる。"],
-                correctas: ["悲しい表情の男が小さな木製の舟を操り、怪物から逃げるように逆流を進んでいる。"],
+                pregunta: "流れに逆らって漕ぐ渡し守。",
+                opciones: ["悲しそうな顔をした男が小さな木の舟を操り、流れに逆らって怪物から逃げています。"],
+                correctas: ["悲しそうな顔をした男が小さな木の舟を操り、流れに逆らって怪物から逃げています。"],
                 multiple: true
             },
             {
                 reto: 30,
                 id: "R30-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "死んだ木：罪の象徴、門の2枚の扉の間にあり、中央の柱として機能しています。",
-                opciones: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
-                correctas: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
+                pregunta: "枯れ木は罪の象徴で、2枚の扉板の間に立ち、中央の柱の役割を果たしています。",
+                opciones: ["木の頂上で、4人の裸の男性が互いを鞭打つ様子をご覧ください。"],
+                correctas: ["木の頂上で、4人の裸の男性が互いを鞭打つ様子をご覧ください。"],
                 multiple: true
             },
             {
                 reto: 31,
                 id: "R31-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "右側、天使が陰茎を見せて…",
+                pregunta: "右側では、天使が陰茎を見せて…",
                 opciones: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
                 correctas: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
                 multiple: true
@@ -1744,7 +1744,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "中央：ひげの男とライオン：",
+                pregunta: "中央には、ひげの男とライオン：",
                 opciones: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
                 correctas: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
                 multiple: true
@@ -1762,7 +1762,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-ja",
                 tipo: "opcion",
-                pregunta: "この像は手に何を持っていますか？",
+                pregunta: "この像は両手で何を持っていますか？",
                 opciones: ["盾", "貝殻", "水差し", "剣"],
                 correctas: ["貝殻"],
                 multiple: false
@@ -4646,7 +4646,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av2-ja",
                 tipo: "opcion",
-                pregunta: "これらの塔の名前を教えてもらえますか？",
+                pregunta: "これらの塔の名前を教えていただけますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -4655,7 +4655,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av2-ja",
                 tipo: "opcion",
-                pregunta: "塔の頂上にはバレンシアの旗がはためいています。色は赤、黄、そして…？",
+                pregunta: "塔の頂上にはバレンシアの旗が翻っています。その色は赤、黄色、そして…？",
                 opciones: ["紫", "緑", "青"],
                 correctas: ["青"],
                 multiple: false
@@ -4706,8 +4706,8 @@ export const RETOS_AVENTURAS = {
                 reto: 10,
                 id: "R10-Av2-ja",
                 tipo: "opcion",
-                pregunta: "像は何を手に持っていますか？",
-                opciones: ["盾", "貝殻", "壺", "剣"],
+                pregunta: "この像は両手で何を持っていますか？",
+                opciones: ["盾", "貝殻", "水差し", "剣"],
                 correctas: ["貝殻"],
                 multiple: false
             },
@@ -4755,7 +4755,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av2-ja",
                 tipo: "opcion",
-                pregunta: "バレンシア大聖堂のキンボリウムの形状は何ですか？",
+                pregunta: "バレンシア大聖堂のシンボリオ（ドームを支える塔）がどのような形をしているか分かりますか？",
                 opciones: ["六角形", "八角形", "四角形"],
                 correctas: ["八角形"],
                 multiple: false
@@ -4764,7 +4764,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av2-ja",
                 tipo: "opcion",
-                pregunta: "バレンシアのミゲレット塔の形状は何ですか？",
+                pregunta: "バレンシアのミゲレテ塔がどのような形状か分かりますか？",
                 opciones: ["六角形", "八角形", "四角形"],
                 correctas: ["八角形"],
                 multiple: false
@@ -4773,7 +4773,7 @@ export const RETOS_AVENTURAS = {
                 reto: 18,
                 id: "R18-Av2-ja",
                 tipo: "texto",
-                pregunta: "いくつの窓が見えますか？",
+                pregunta: "窓はいくつ見えますか？",
                 correctas: ["?"]
             },
             {
@@ -7351,7 +7351,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av3-ja",
                 tipo: "opcion",
-                pregunta: "最初の挑戦です、簡単なものです。この塔の名前を教えてもらえますか？",
+                pregunta: "最初の挑戦です。簡単なものです。これらの塔の名前を教えていただけますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -7360,7 +7360,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av3-ja",
                 tipo: "opcion",
-                pregunta: "塔の頂上にはバレンシアの旗が翻っています：その色は赤、黄色、そして...？",
+                pregunta: "塔の頂上にはバレンシアの旗が翻っています。その色は赤、黄色、そして…？",
                 opciones: ["紫", "緑", "青"],
                 correctas: ["青"],
                 multiple: false
@@ -7369,7 +7369,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av3-ja",
                 tipo: "texto",
-                pregunta: "この古い川の名前を教えてもらえますか？",
+                pregunta: "この古い川の名前を教えていただけますか？",
                 correctas: ["Turia"],
                 multiple: false
             },
@@ -7383,7 +7383,7 @@ export const RETOS_AVENTURAS = {
                 reto: 7,
                 id: "R7-Av3-ja",
                 tipo: "opcion",
-                pregunta: "バレンシアのこの人気祭りの名前を教えてもらえますか？",
+                pregunta: "バレンシアのこれらの民衆祭りの名前を教えていただけますか？",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -7418,7 +7418,7 @@ export const RETOS_AVENTURAS = {
                 reto: 11,
                 id: "R11-Av3-ja",
                 tipo: "texto",
-                pregunta: "このアトラクションに入場する料金を教えてもらえますか？",
+                pregunta: "このアトラクションの入場料を教えていただけますか？",
                 correctas: ["gratis"],
                 multiple: false
             },
@@ -7459,7 +7459,7 @@ export const RETOS_AVENTURAS = {
                 reto: 16,
                 id: "R16-Av3-ja",
                 tipo: "opcion",
-                pregunta: "バレンシアの紋章を飾る動物を覚えていますか？",
+                pregunta: "バレンシアの紋章の上にいる動物を覚えていますか？",
                 opciones: ["コウモリ", "ドラゴン", "ライオン"],
                 correctas: ["コウモリ"],
                 multiple: false
@@ -7519,7 +7519,7 @@ export const RETOS_AVENTURAS = {
                 reto: 23,
                 id: "R23-Av3-ja",
                 tipo: "texto",
-                pregunta: "この建物はいつ建てられましたか？ヒント：ファサードの上部をご覧ください",
+                pregunta: "この建物は何年に建てられましたか？ヒント：ファサードの上部をご覧ください。",
                 correctas: ["1906"],
                 multiple: false
             },
@@ -10036,7 +10036,7 @@ export const RETOS_AVENTURAS = {
                 reto: 17,
                 id: "R17-Av4-ja",
                 tipo: "opcion",
-                pregunta: "塔の頂上にはバレンシアの旗が翻っています：その色は赤、黄色、そして…",
+                pregunta: "塔の頂上にはバレンシアの旗が翻っています。その色は赤、黄色、そして…？",
                 opciones: ["紫", "緑", "青"],
                 correctas: ["青"],
                 multiple: false
@@ -12398,7 +12398,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-Av5-ja",
                 tipo: "opcion",
-                pregunta: "塔の頂上にはバレンシアの旗が翻っています：その色は赤、黄色、そして…",
+                pregunta: "塔の頂上にはバレンシアの旗が翻っています。その色は赤、黄色、そして…？",
                 opciones: ["紫", "緑", "青"],
                 correctas: ["青"],
                 multiple: false
@@ -12423,8 +12423,8 @@ export const RETOS_AVENTURAS = {
                 id: "R7-Av5-ja",
                 tipo: "opcion",
                 pregunta: "バレンシアのこれらの民衆祭りの名前を教えていただけますか？",
-                opciones: ["ファジャス", "ラ・トマティーナ", "ミッドサマーのかがり火"],
-                correctas: ["ファジャス"],
+                opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
+                correctas: ["Las Fallas"],
                 multiple: false
             },
             {
@@ -12491,7 +12491,7 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-Av5-ja",
                 tipo: "opcion",
-                pregunta: "バレンシア原産の柑橘類のどれがファサードを飾っていますか？",
+                pregunta: "最初の塔のファサードにご注目ください！バレンシア原産のどの柑橘類がファサードを飾っていますか？",
                 opciones: ["レモン", "グレープフルーツ", "オレンジ"],
                 correctas: ["オレンジ"],
                 multiple: false
@@ -12548,8 +12548,8 @@ export const RETOS_AVENTURAS = {
                 reto: 22,
                 id: "R22-Av5-ja",
                 tipo: "opcion",
-                pregunta: "どんな形をしているか分かりますか？",
-                opciones: ["正方形", "円形", "三角形"],
+                pregunta: "建物のファサードで、バレンシアのセニェーラの色をしたステンドグラスを探してください。どんな形をしているか分かりますか？",
+                opciones: ["四角形", "円形", "三角形"],
                 correctas: ["円形"],
                 multiple: false
             },
@@ -12565,17 +12565,17 @@ export const RETOS_AVENTURAS = {
                 id: "R24-Av5-ja",
                 tipo: "opcion-multiple",
                 pregunta: "流れに逆らって漕ぐ渡し守。",
-                opciones: ["悲しそうな顔をした男が小さな木の舟を操りながら怪物から流れに逆らって逃げています。"],
-                correctas: ["悲しそうな顔をした男が小さな木の舟を操りながら怪物から流れに逆らって逃げています。"],
+                opciones: ["悲しそうな顔をした男が小さな木の舟を操り、流れに逆らって怪物から逃げています。"],
+                correctas: ["悲しそうな顔をした男が小さな木の舟を操り、流れに逆らって怪物から逃げています。"],
                 multiple: true
             },
             {
                 reto: 25,
                 id: "R25-Av5-ja",
                 tipo: "opcion-multiple",
-                pregunta: "枯れ木：罪の象徴で、扉の2枚の羽の間にあり中央柱として機能しています。",
-                opciones: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
-                correctas: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
+                pregunta: "枯れ木は罪の象徴で、2枚の扉板の間に立ち、中央の柱の役割を果たしています。",
+                opciones: ["木の頂上で、4人の裸の男性が互いを鞭打つ様子をご覧ください。"],
+                correctas: ["木の頂上で、4人の裸の男性が互いを鞭打つ様子をご覧ください。"],
                 multiple: true
             },
             {
@@ -14946,7 +14946,7 @@ export const RETOS_AVENTURAS = {
                 reto: 4,
                 id: "R4-AvFallas-ja",
                 tipo: "opcion",
-                pregunta: "塔の頂上にはバレンシアの旗が翻っています：その色は赤、黄色、そして…？",
+                pregunta: "塔の頂上にはバレンシアの旗が翻っています。その色は赤、黄色、そして…？",
                 opciones: ["紫", "緑", "青"],
                 correctas: ["青"],
                 multiple: false
@@ -14987,8 +14987,8 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-AvFallas-ja",
                 tipo: "opcion",
-                pregunta: "バレンシア大聖堂のシンボリオはどのような幾何学形状をしているか分かりますか？",
-                opciones: ["六角形", "八角形", "正方形"],
+                pregunta: "バレンシア大聖堂のシンボリオ（ドームを支える塔）がどのような形をしているか分かりますか？",
+                opciones: ["六角形", "八角形", "四角形"],
                 correctas: ["八角形"],
                 multiple: false
             },
@@ -15019,7 +15019,7 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-AvFallas-ja",
                 tipo: "opcion-multiple",
-                pregunta: "正面入口の上の丸アーチには、5大陸を表す寓意的な像があります。中央の像は何を持っていますか？",
+                pregunta: "正面入口の上の半円アーチには、5大陸を表す寓意的な像があります。中央の像は何を持っていますか？",
                 opciones: ["たいまつ", "剣", "王冠"],
                 correctas: ["たいまつ", "剣"],
                 multiple: true
@@ -15028,7 +15028,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-AvFallas-ja",
                 tipo: "opcion",
-                pregunta: "その像は手に何を持っていますか？",
+                pregunta: "この像は手に何を持っていますか？",
                 opciones: ["天秤", "本", "羽根ペン"],
                 correctas: ["天秤"],
                 multiple: false
@@ -15037,8 +15037,8 @@ export const RETOS_AVENTURAS = {
                 reto: 15,
                 id: "R15-AvFallas-ja",
                 tipo: "opcion",
-                pregunta: "建物のファサードにあるバレンシアの旗の色のステンドグラスを探してください。どんな形をしているか分かりますか？",
-                opciones: ["正方形", "円形", "三角形"],
+                pregunta: "建物のファサードで、バレンシアのセニェーラの色をしたステンドグラスを探してください。どんな形をしているか分かりますか？",
+                opciones: ["四角形", "円形", "三角形"],
                 correctas: ["円形"],
                 multiple: false
             },
@@ -15056,8 +15056,8 @@ export const RETOS_AVENTURAS = {
                 id: "R17-AvFallas-ja",
                 tipo: "opcion",
                 pregunta: "天使は子供に何を渡していますか？",
-                opciones: ["鳩", "球体", "食べ物"],
-                correctas: ["球体"],
+                opciones: ["鳩", "宝珠", "食べ物"],
+                correctas: ["宝珠"],
                 multiple: false
             },
             {
@@ -19875,7 +19875,7 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "これらの塔の名前を教えてもらえますか？",
+                pregunta: "これらの塔の名前を教えていただけますか？",
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
@@ -19890,7 +19890,7 @@ export const RETOS_AVENTURAS = {
                 reto: 5,
                 id: "R5-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "バレンシアのこの人気祭りの名前を教えてもらえますか？",
+                pregunta: "バレンシアのこれらの民衆祭りの名前を教えていただけますか？",
                 opciones: ["Las Fallas", "La Tomatina", "Las Hogueras de San Juan"],
                 correctas: ["Las Fallas"],
                 multiple: false
@@ -19925,7 +19925,7 @@ export const RETOS_AVENTURAS = {
                 reto: 9,
                 id: "R9-Av34km-ja",
                 tipo: "texto",
-                pregunta: "このアトラクションに入場する料金を教えてもらえますか？",
+                pregunta: "このアトラクションの入場料を教えていただけますか？",
                 correctas: ["gratis"],
                 multiple: false
             },
@@ -19966,7 +19966,7 @@ export const RETOS_AVENTURAS = {
                 reto: 14,
                 id: "R14-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "バレンシアの紋章を飾る動物を覚えていますか？",
+                pregunta: "バレンシアの紋章の上にいる動物を覚えていますか？",
                 opciones: ["コウモリ", "ドラゴン", "ライオン"],
                 correctas: ["コウモリ"],
                 multiple: false
@@ -20024,7 +20024,7 @@ export const RETOS_AVENTURAS = {
                 reto: 21,
                 id: "R21-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "バレンシア原産の柑橘類のどれがファサードを飾っていますか？",
+                pregunta: "最初の塔のファサードにご注目ください！バレンシア原産のどの柑橘類がファサードを飾っていますか？",
                 opciones: ["レモン", "グレープフルーツ", "オレンジ"],
                 correctas: ["オレンジ"],
                 multiple: false
@@ -20060,7 +20060,7 @@ export const RETOS_AVENTURAS = {
                 id: "R25-Av34km-ja",
                 tipo: "opcion",
                 pregunta: "この像は手に何を持っていますか？",
-                opciones: ["天秤", "本", "羽ペン"],
+                opciones: ["天秤", "本", "羽根ペン"],
                 correctas: ["天秤"],
                 multiple: false
             },
@@ -20075,9 +20075,9 @@ export const RETOS_AVENTURAS = {
                 reto: 27,
                 id: "R27-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "ファサードのバレンシアのセニェーラの色のステンドグラスを探してください。形状は何ですか？",
-                opciones: ["「四角形」", "「円形」", "「三角形」"],
-                correctas: ["「円形」"],
+                pregunta: "建物のファサードで、バレンシアのセニェーラの色をしたステンドグラスを探してください。どんな形をしているか分かりますか？",
+                opciones: ["四角形", "円形", "三角形"],
+                correctas: ["円形"],
                 multiple: false
             },
 {
@@ -20094,8 +20094,8 @@ export const RETOS_AVENTURAS = {
                 id: "R29-Av34km-ja",
                 tipo: "opcion",
                 pregunta: "天使は子供に何を渡していますか？",
-                opciones: ["鳩", "オーブ", "食べ物"],
-                correctas: ["オーブ"],
+                opciones: ["鳩", "宝珠", "食べ物"],
+                correctas: ["宝珠"],
                 multiple: false
             },
 {
@@ -20108,25 +20108,25 @@ export const RETOS_AVENTURAS = {
                 reto: 31,
                 id: "R31-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "逆流を漕ぐ船頭。",
-                opciones: ["悲しい表情の男が小さな木製の舟を操り、怪物から逃げるように逆流を進んでいる。"],
-                correctas: ["悲しい表情の男が小さな木製の舟を操り、怪物から逃げるように逆流を進んでいる。"],
+                pregunta: "流れに逆らって漕ぐ渡し守。",
+                opciones: ["悲しそうな顔をした男が小さな木の舟を操り、流れに逆らって怪物から逃げています。"],
+                correctas: ["悲しそうな顔をした男が小さな木の舟を操り、流れに逆らって怪物から逃げています。"],
                 multiple: true
             },
 {
                 reto: 32,
                 id: "R32-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "死んだ木：罪の象徴、門の2枚の扉の間にあり、中央の柱として機能しています。",
-                opciones: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
-                correctas: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
+                pregunta: "枯れ木は罪の象徴で、2枚の扉板の間に立ち、中央の柱の役割を果たしています。",
+                opciones: ["木の頂上で、4人の裸の男性が互いを鞭打つ様子をご覧ください。"],
+                correctas: ["木の頂上で、4人の裸の男性が互いを鞭打つ様子をご覧ください。"],
                 multiple: true
             },
 {
                 reto: 33,
                 id: "R33-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "右側、天使が陰茎を見せて…",
+                pregunta: "右側では、天使が陰茎を見せて…",
                 opciones: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
                 correctas: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
                 multiple: true
@@ -20135,7 +20135,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av34km-ja",
                 tipo: "opcion-multiple",
-                pregunta: "中央：ひげの男とライオン：",
+                pregunta: "中央には、ひげの男とライオン：",
                 opciones: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
                 correctas: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
                 multiple: true
@@ -20191,7 +20191,7 @@ export const RETOS_AVENTURAS = {
                 reto: 41,
                 id: "R41-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "バレンシアのミゲレット塔の形状は何ですか？",
+                pregunta: "バレンシアのミゲレテ塔がどのような形状か分かりますか？",
                 opciones: ["六角形", "八角形", "四角形"],
                 correctas: ["八角形"],
                 multiple: false
@@ -20200,7 +20200,7 @@ export const RETOS_AVENTURAS = {
                 reto: 42,
                 id: "R42-Av34km-ja",
                 tipo: "texto",
-                pregunta: "いくつの窓が見えますか？",
+                pregunta: "窓はいくつ見えますか？",
                 correctas: ["?"]
             },
 {
@@ -20249,7 +20249,7 @@ export const RETOS_AVENTURAS = {
                 reto: 48,
                 id: "R48-Av34km-ja",
                 tipo: "texto",
-                pregunta: "この建物は何年に建てられましたか？ヒント：ファサードの上部を見てください。",
+                pregunta: "この建物は何年に建てられましたか？ヒント：ファサードの上部をご覧ください。",
                 correctas: ["1906"]
             },
 {
@@ -20280,7 +20280,7 @@ export const RETOS_AVENTURAS = {
                 reto: 52,
                 id: "R52-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "形状を判定できますか？",
+                pregunta: "どのような形状か分かりますか？",
                 opciones: ["「六角形」", "「八角形」", "「四角形」"],
                 correctas: ["「六角形」"],
                 multiple: false
@@ -20289,7 +20289,7 @@ export const RETOS_AVENTURAS = {
                 reto: 53,
                 id: "R53-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "ネプチューンはどちらの手で角笛を持っていますか？",
+                pregunta: "ネプチューンはどちらの手で豊穣の角を持っていますか？",
                 opciones: ["左手", "右手"],
                 correctas: ["右手"],
                 multiple: false
@@ -20338,7 +20338,7 @@ export const RETOS_AVENTURAS = {
                 reto: 59,
                 id: "R59-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "この像は手に何を持っていますか？",
+                pregunta: "この像は両手で何を持っていますか？",
                 opciones: ["盾", "貝殻", "水差し", "剣"],
                 correctas: ["貝殻"],
                 multiple: false
@@ -20529,7 +20529,7 @@ export const RETOS_AVENTURAS = {
                 reto: 83,
                 id: "R83-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "塔の頂上にはバレンシアの旗が翻っています：その色は赤、黄色、そして…",
+                pregunta: "塔の頂上にはバレンシアの旗が翻っています。その色は赤、黄色、そして…？",
                 opciones: ["紫", "緑", "青"],
                 correctas: ["青"],
                 multiple: false
@@ -20579,9 +20579,9 @@ export const RETOS_AVENTURAS = {
                 reto: 89,
                 id: "R89-Av34km-ja",
                 tipo: "opcion",
-                pregunta: "聖ロレンスは手に何を持っていますか？",
-                opciones: ["ハト", "スプーン", "グリル"],
-                correctas: ["グリル"],
+                pregunta: "聖ラウレンティウスは手に何を持っていますか？",
+                opciones: ["鳩", "スプーン", "焼き網"],
+                correctas: ["焼き網"],
                 multiple: false
             },
 {
