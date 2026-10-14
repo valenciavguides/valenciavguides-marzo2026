@@ -374,7 +374,7 @@ test.describe('CH — El chat es alcanzable desde el padre', () => {
     const antes = await page.evaluate(() => [...globalThis.mensajeria.getIframesRegistrados().keys()]);
     expect(antes, 'antes de cargar los hijos el asistente no está cargado, así que tampoco registrado').not.toContain('hijo6-chat');
 
-    // Camino real: los hijos se cargan juntos (P14, la reanudación y la ruta fallback llaman a esta función), el asistente entre ellos.
+    // Camino real: los hijos se cargan juntos (P15, la reanudación y la ruta fallback llaman a esta función), el asistente entre ellos.
     await cargarHijosDelPadre(page);
 
     const despues = await page.evaluate(() => [...globalThis.mensajeria.getIframesRegistrados().keys()]);

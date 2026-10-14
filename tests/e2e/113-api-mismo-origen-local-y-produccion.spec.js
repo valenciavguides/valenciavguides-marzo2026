@@ -105,7 +105,7 @@ test.describe('AO — la API comparte origen con la página', () => {
 
   test('AO-3. Los dos clientes de red apuntan a ruta relativa, no a un puerto fijo', async ({ page }) => {
     await abrirApp(page);
-    // api-client.js no se carga en el arranque: la app lo importa bajo demanda en P13
+    // api-client.js no se carga en el arranque: la app lo importa bajo demanda en P14
     // (`En-busca-del-tesoro.html`, al activar el código). Se importa aquí igual que allí —
     // su IIFE es quien publica API_CONFIG, así que sin importarlo no hay nada que leer.
     const base = await page.evaluate(async () => {

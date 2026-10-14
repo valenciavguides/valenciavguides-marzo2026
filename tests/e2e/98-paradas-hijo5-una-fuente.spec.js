@@ -41,7 +41,7 @@ test.describe('PD — Paradas de hijo5, una sola fuente', () => {
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
-    // hijo5 no se carga en P14 como los demas: entra por su propio cargador.
+    // hijo5 no se carga en P15 como los demas: entra por su propio cargador.
     await cargarHijosDelPadre(page, { resto: false, casa: true });
     // distribuirDatosAventura solo empuja a hijo5 si esta en hijosInicializados (tras
     // HIJO_LISTO, no solo HIJO_PREPARADO) — hay que esperar a ese hito, no antes.

@@ -2566,7 +2566,7 @@ async function manejarCambioModoMapa(mensaje) {
         logger.info(`${logPrefix} Cambiando modo: ${modoAnterior} → ${modo}`);
 
         // Si cambia a AVENTURA, asegurar que el GPS esté activo (normalmente ya lo
-        // está desde P14 — ver codigo-padre.html:_hdl_SELECCION_P14_MOSTRADA — esto
+        // está desde P15 — ver codigo-padre.html:_hdl_SELECCION_P15_MOSTRADA — esto
         // es red de seguridad si se desactivó por algún motivo). manejarGPSActivar()
         // es el adaptador real: delega a activarGPS() (el hub, en codigo-padre.html),
         // nunca finge el estado.

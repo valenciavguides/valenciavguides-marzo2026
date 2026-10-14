@@ -416,7 +416,7 @@ test.describe('RC-9 — El asistente (hijo6) se carga con los demás y se ve al 
     });
     const tocarBoton = () => page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
 
-    // Los hijos se cargan juntos (P14, la reanudación y la ruta fallback llaman a esta función) y hijo6 va entre ellos, sin que nadie pulse su botón.
+    // Los hijos se cargan juntos (P15, la reanudación y la ruta fallback llaman a esta función) y hijo6 va entre ellos, sin que nadie pulse su botón.
     await page.evaluate(() => localStorage.setItem('vvtest:sin-apreton', '1'));
     await page.evaluate(() => { void globalThis.cargarRestoDeiframes(); });
     await page.waitForFunction(() => globalThis.mensajeria.getIframesRegistrados().has('hijo6-chat'), null, { timeout: 15_000 });
@@ -452,7 +452,7 @@ test.describe('RC-9 — El asistente (hijo6) se carga con los demás y se ve al 
     });
     await tocarBoton();
     await expect.poll(estiloChat, { timeout: 10_000, message: 'listo el asistente, su botón lo enseña' }).toEqual({ display: 'block', visibility: 'visible' });
-    expect(await page.evaluate(() => globalThis.__estadosChat), 'al abrirlo se le entrega el estado de ahora: el que recibió al cargarse es el de P14').toEqual(['hijo6-chat']);
+    expect(await page.evaluate(() => globalThis.__estadosChat), 'al abrirlo se le entrega el estado de ahora: el que recibió al cargarse es el de P15').toEqual(['hijo6-chat']);
 
     // Si después lo recarga el supervisor (deja de estar listo), el botón no lo abre.
     await page.evaluate(() => { globalThis.cerrarChatSoporte(); globalThis.__stateManager.olvidarHijoListo('hijo6-chat'); });
@@ -478,8 +478,8 @@ test.describe('RC-10 — hijo4 recibe el reto cuando está listo, como cualquier
     const post = (tipo, datos) => page.evaluate(([t, d]) => document.getElementById('seleccion').contentWindow.parent.postMessage(
       { tipo: t, origen: 'seleccion', datos: d }, globalThis.location.origin), [tipo, datos]);
     await page.evaluate(() => { globalThis.aventuraSeleccionada = 'Aventura1'; globalThis.idiomaSeleccionado = 'es'; });
-    await post('SELECCION.P14_MOSTRADA', { timestamp: Date.now() });
-    await page.waitForFunction(() => globalThis._iframesPreCargadosP14 === true, null, { timeout: 60_000 });
+    await post('SELECCION.P15_MOSTRADA', { timestamp: Date.now() });
+    await page.waitForFunction(() => globalThis._iframesPreCargadosP15 === true, null, { timeout: 60_000 });
     await post('SELECCION.AVENTURA_ACTIVADA', { aventura: 'Aventura1', idioma: 'es', terminosAceptados: true, timestamp: Date.now() });
     await page.waitForFunction(() => globalThis.estadoPadre?.modo?.actual === 'aventura', null, { timeout: 60_000 });
 

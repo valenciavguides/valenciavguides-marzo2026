@@ -52,7 +52,7 @@ test.describe('H5 — hijo5 habla por el bus', () => {
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
-    // hijo5 no se carga en P14 como los demas: entra por su propio cargador.
+    // hijo5 no se carga en P15 como los demas: entra por su propio cargador.
     await cargarHijosDelPadre(page, { resto: false, casa: true });
     await page.waitForFunction(
       (id) => !!document.getElementById(id)?.contentWindow?.logger,

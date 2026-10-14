@@ -385,15 +385,15 @@
         border-radius: 0.5rem;
       }
 
-    /* P5, P6, P15: sin padding lateral para que la caja ocupe el 95vw limpio */
-    #pantalla17, #pantalla10, #pantalla14 {
+    /* P10, P15, P18: sin padding lateral para que la caja ocupe el 95vw limpio */
+    #pantalla18, #pantalla10, #pantalla15 {
       justify-content: flex-start;
       padding-top: 2.5rem;
       padding-bottom: var(--gap-inferior);
       padding-left: 0;
       padding-right: 0;
     }
-    #pantalla17 #agradecimientos-contenido {
+    #pantalla18 #agradecimientos-contenido {
       flex: 1;
       min-height: 0;
       width: 95vw;
@@ -425,7 +425,7 @@
       background-position: 0 0, center;
       background-repeat: repeat, no-repeat;
     }
-    #pantalla14 #normativa-contenido {
+    #pantalla15 #normativa-contenido {
       flex: 1;
       min-height: 0;
       width: 95vw;
@@ -441,15 +441,15 @@
       background-position: 0 0, center;
       background-repeat: repeat, no-repeat;
     }
-    /* P1, P4, P16: logo alargado al 98% del ancho */
+    /* P1, P5, P17: logo alargado al 98% del ancho */
     #pantalla1 .logo-alargado { width: min(98vw, 440px); }
     #pantalla5 .logo-alargado { width: min(98vw, 440px); }
-    #pantalla16 .logo-alargado { width: min(98vw, 440px); }
-    /* P5, P6, P15: botones con margen superior reducido */
-    #pantalla17 .btn, #pantalla10 .btn, #pantalla14 .btn { margin-top: 0.5rem; }
-    /* P8: layout pantalla y card de confirmación */
-    #pantalla9 { justify-content: flex-start; padding-top: 2.5rem; padding-left: 0; padding-right: 0; }
-    #aventura-confirmacion-card {
+    #pantalla17 .logo-alargado { width: min(98vw, 440px); }
+    /* P10, P15, P18: botones con margen superior reducido */
+    #pantalla18 .btn, #pantalla10 .btn, #pantalla15 .btn { margin-top: 0.5rem; }
+    /* P9 y P13: las dos confirmaciones de aventura (antes y después del pago) son la misma pantalla y la misma tarjeta */
+    #pantalla9, #pantalla13 { justify-content: flex-start; padding-top: 2.5rem; padding-left: 0; padding-right: 0; }
+    #pantalla9 .aventura-confirmacion-card, #pantalla13 .aventura-confirmacion-card {
       flex: 1;
       min-height: 0;
       width: 100%;
@@ -462,7 +462,7 @@
       font-size: clamp(16px, 6vmin, 40px);
       overflow: hidden;
     }
-    #pantalla9 .btn-mundo-verde, #pantalla9 .btn-mundo-rojo { margin-top: 0; }
+    #pantalla9 .btn-mundo-verde, #pantalla9 .btn-mundo-rojo, #pantalla13 .btn-mundo-verde, #pantalla13 .btn-mundo-rojo { margin-top: 0; }
     .icono-x-cerrar {
       display: inline-block;
       transform: scaleY(1.4);
@@ -834,10 +834,10 @@
     </div>
   </div>
 
-  <!-- P9: Confirmación de aventura -->
+  <!-- P9: Confirmación de aventura, antes del pago (➣ → P10, ✗ → P7) -->
   <div class="pantalla" id="pantalla9">
     <div class="free-demo">FREE DEMO</div>
-    <div id="aventura-confirmacion-card" class="btn" style="cursor:default; pointer-events:none; margin-top:0;"></div>
+    <div class="aventura-confirmacion-card btn" style="cursor:default; pointer-events:none; margin-top:0;"></div>
     <div style="display:flex; gap:1.25rem; justify-content:center; margin-top:0.5rem;">
       <button class="btn btn-mundo-rojo" onclick="void mostrar(7)" title="No, cambiar">
         <div class="contenedor-x"><span class="icono-x">✗</span></div>
@@ -904,15 +904,31 @@
       <p style="color:#333; font-size:1.2rem; font-weight:bold;">Pantalla de pago</p>
       <p style="color:#666; font-size:0.9rem;">Próximamente</p>
     </div>
-    <!-- De momento, saltar directamente a P13 -->
-    <button class="btn btn-mundo-verde" onclick="void mostrar(13)" title="Continuar" style="margin-top:1rem;">
+    <!-- De momento no hay pasarela: el botón da la pantalla de pago por hecha y pasa a P13 -->
+    <button class="btn btn-mundo-verde" onclick="void continuarTrasPago()" title="Continuar" style="margin-top:1rem;">
       <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
       <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
     </button>
   </div>
 
-  <!-- P13: Código de activación y email -->
-  <div class="pantalla" id="pantalla13" style="background-color:orange;">
+  <!-- P13: Confirmación de aventura tras el pago: la misma pantalla que P9 (➣ → P14, ✗ → P7) -->
+  <div class="pantalla" id="pantalla13">
+    <div class="free-demo">FREE DEMO</div>
+    <div class="aventura-confirmacion-card btn" style="cursor:default; pointer-events:none; margin-top:0;"></div>
+    <div style="display:flex; gap:1.25rem; justify-content:center; margin-top:0.5rem;">
+      <button class="btn btn-mundo-rojo" onclick="void mostrar(7)" title="No, cambiar">
+        <div class="contenedor-x"><span class="icono-x">✗</span></div>
+        <div class="contenedor-x segunda"><span class="icono-x">✗</span></div>
+      </button>
+      <button class="btn btn-mundo-verde" onclick="void mostrar(14)" title="Sí, confirmar">
+        <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
+        <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- P14: Código de activación y email -->
+  <div class="pantalla" id="pantalla14" style="background-color:orange;">
     <div class="free-demo">FREE DEMO</div>
     <div style="background:#fff8e7; padding:1.5rem; border-radius:1.25rem; margin:0.5rem auto; max-width:95vw; width:95vw; box-sizing:border-box; box-shadow:0 0.375rem 1.5625rem rgba(0,0,0,0.4);">
       <div style="text-align:center; margin-bottom:1.25rem;">
@@ -943,15 +959,15 @@
         <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
         <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
       </button>
-      <div id="gps-denegado-p13" style="display:none; text-align:center; margin-top:1rem; padding:0.75rem; background:#fff3cd; border-radius:0.75rem;">
+      <div id="gps-denegado-p14" style="display:none; text-align:center; margin-top:1rem; padding:0.75rem; background:#fff3cd; border-radius:0.75rem;">
         <img src="imagenes/imagenes-aplicación/imagen-no-gps.png" alt="GPS sin permiso" style="width:4rem; height:auto;">
         <div style="font-size:1.75rem; margin-top:0.5rem;" title="Active el GPS en los ajustes y vuelva a pulsar ➣">🛰️→🌐→⚙️</div>
       </div>
     </div>
   </div>
 
-  <!-- P14: Normativa y Cumplimiento / Seguridad vial -->
-  <div class="pantalla" id="pantalla14">
+  <!-- P15: Normativa y Cumplimiento / Seguridad vial -->
+  <div class="pantalla" id="pantalla15">
     <div class="free-demo">FREE DEMO</div>
     <div id="normativa-contenido" class="texto-box borde-azul" style="overflow-y:auto;" onscroll="checkNormativaScroll()">
       <div class="spinner-inline-wrap"><div class="spinner-inline-circular-bg"><img class="spinner-inline-spin" src="imagenes/imagenes-aplicación/logo-redondo.png" alt="Cargando"></div></div>
@@ -964,8 +980,8 @@
     </div>
   </div>
 
-  <!-- P15: Reto R-2 — Sí/Yes/Oui/Sì/Ja/はい → aventura | No/NO/Non/Nee/いいえ → P1 -->
-  <div class="pantalla" id="pantalla15">
+  <!-- P16: Reto R-2 — Sí/Yes/Oui/Sì/Ja/はい → aventura | No/NO/Non/Nee/いいえ → P1 -->
+  <div class="pantalla" id="pantalla16">
     <div class="free-demo">FREE DEMO</div>
     <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="">
     <div class="reto-box" id="reto-r2-box">
@@ -979,8 +995,8 @@
     </div>
   </div>
 
-  <!-- P16: Logos — pantalla de transición hacia la aventura -->
-  <div class="pantalla" id="pantalla16">
+  <!-- P17: Logos — pantalla de transición hacia la aventura -->
+  <div class="pantalla" id="pantalla17">
     <div class="free-demo">FREE DEMO</div>
     <div class="logo-circular-bg">
       <img src="imagenes/imagenes-aplicación/logo-redondo.png" class="logo-redondo" alt="">
@@ -992,8 +1008,8 @@
     </button>
   </div>
 
-  <!-- P17: Agradecimientos y Fuentes (solo ?despedida=1) -->
-  <div class="pantalla" id="pantalla17">
+  <!-- P18: Agradecimientos y Fuentes (solo ?despedida=1) -->
+  <div class="pantalla" id="pantalla18">
     <div class="free-demo">FREE DEMO</div>
     <div id="agradecimientos-contenido" class="texto-box borde-azul" style="overflow-y:auto;" onscroll="checkAgradecimientosScroll()">
       <div class="spinner-inline-wrap"><div class="spinner-inline-circular-bg"><img class="spinner-inline-spin" src="imagenes/imagenes-aplicación/logo-redondo.png" alt="Cargando"></div></div>
@@ -1036,7 +1052,7 @@
     </div>
   </div>
 
-  <!-- Overlay: Carga de aventura al finalizar P16 (logo giratorio + barra de progreso) -->
+  <!-- Overlay: Carga de aventura al finalizar P17 (logo giratorio + barra de progreso) -->
   <div id="overlay-carga-aventura" aria-live="polite" aria-busy="true">
     <div class="carga-aventura-box">
       <div class="logo-carga-circular-bg">
@@ -1057,7 +1073,7 @@
     // SonarLint S106 o a la regla no-console de eslint. Las dos se callan igual delegando
     // —el objeto que reciben no es `console`— y un no-op tira las 34 llamadas del fichero,
     // entre ellas todos los fallos de carga de esta pantalla y el error de validacion de
-    // acceso de P13: se quedan sin salida a ninguna consola y el fallo pasa a ser invisible.
+    // acceso de P14: se quedan sin salida a ninguna consola y el fallo pasa a ser invisible.
     // Delegando, ademas, quedan bajo CONFIG.DEBUG.NIVEL_LOG como el resto del proyecto.
     // Cubierto por tests/e2e/62-log-seleccion-no-es-mudo.spec.js.
     //
@@ -1085,7 +1101,10 @@
     let agradecimientosCargados = false;
     let modoDespedida = false; // true cuando la página se carga con ?despedida=1
     let _despedidaEjecutada = false; // evita doble ejecución si el botón y la red de seguridad coinciden
-    let _desarmarAbandonoP17 = null;
+    let _desarmarAbandonoP18 = null;
+    // Categoría de precio ('corta' o 'larga') que se ha pagado en este recorrido; null mientras no se ha hecho
+    // la pantalla de pago. La pone continuarTrasPago() y la apaga la P1: un recorrido nuevo empieza sin pago.
+    let categoriaPagada = null;
 
     // TRADUCCIONES_DESPEDIDA vive en js/traducciones-ui.js; se expone aquí
     // vía globalThis porque este es un <script> clásico (no module) y no
@@ -1144,8 +1163,8 @@
     // FUNCIÓN PRINCIPAL: MOSTRAR PANTALLA
     // ============================================================
     function actualizarVisibilidadFreeDemo(idPantalla) {
-      // Mostrar FREE DEMO solo en fase gratuita: P2 hasta pantalla de Reto 1 (P11).
-      // Desde pantalla de pago (P13) en adelante debe permanecer oculto.
+      // Mostrar FREE DEMO solo en la fase gratuita: de P2 a P11 (el audio de introducción).
+      // Desde la pantalla de pago (P12) en adelante debe permanecer oculto.
       const mostrarFreeDemo = Number.isFinite(Number(idPantalla)) && Number(idPantalla) >= 2 && Number(idPantalla) <= 11;
       document.querySelectorAll('.free-demo').forEach((el) => {
         el.style.display = mostrarFreeDemo ? 'block' : 'none';
@@ -1237,7 +1256,7 @@
     }
 
     function _accionPantalla15() {
-      // Notificar al padre que P14 es visible → precarga de datos e iframes
+      // Notificar al padre que P15 es visible → precarga de datos e iframes
       if (globalThis.parent && globalThis.parent !== globalThis) {
         // Por el bus, aunque este sea el <script> clásico: no puede importar, pero alcanza
         // `globalThis.mensajeria` que el módulo de abajo publica (spec 85, SB-4).
@@ -1248,7 +1267,7 @@
         // que el usuario no puede alcanzarlos antes. No se pone guard: sería un segundo camino
         // para un caso que no ocurre, y taparía el fallo si algún día ocurriera de verdad.
         globalThis.mensajeria.enviarMensaje({
-          tipo: 'SELECCION.P14_MOSTRADA',
+          tipo: 'SELECCION.P15_MOSTRADA',
           destino: 'padre',
           datos: { timestamp: Date.now() }
         });
@@ -1259,11 +1278,54 @@
       checkNormativaScroll();
     }
 
+    // ============================================================
+    // PAGO HECHO, CATEGORÍA DE PRECIO Y LO QUE SIGUE A ELEGIR AVENTURA
+    // ============================================================
+    // Hay dos categorías de precio, aventuras cortas y largas, con el mismo precio dentro de cada una
+    // (`categoria` en js/indice-aventuras.js). La pantalla de pago se hace una vez por recorrido: quien ya
+    // la ha hecho y vuelve a elegir aventura desde la ✗ de P13 solo puede cambiar a otra de la categoría que
+    // pagó —las demás salen apagadas en P7— y va derecho a confirmarla, sin repetir nada. Así nadie llega a
+    // pagar dos aventuras por cambiar de idea.
+    //
+    // Esta marca solo decide qué pantallas se enseñan. La llave de la aventura es el código con su email,
+    // que comprueba el servidor (docs/GUIA-COMPLETA.md §16.2).
+    function _categoriaDe(aventuraId) {
+      const categoria = INDICE_AVENTURAS_DATOS?.[aventuraId]?.categoria;
+      return categoria === 'corta' || categoria === 'larga' ? categoria : null;
+    }
+
+    function _pagoHechoParaLaElegida() {
+      return categoriaPagada !== null && _categoriaDe(aventuraSeleccionada) === categoriaPagada;
+    }
+
+    // P12: la pantalla de pago queda hecha para la categoría de la aventura elegida, y se pasa a confirmarla.
+    function continuarTrasPago() {
+      categoriaPagada = _categoriaDe(aventuraSeleccionada);
+      void mostrar(13);
+    }
+
+    // Lo que sigue a elegir aventura en P7 lo decide esta función y nadie más: con el pago hecho para su
+    // categoría, la confirmación de P13; si no, el recorrido entero, que empieza por el mapa de la aventura.
+    function continuarTrasElegirAventura() {
+      if (_pagoHechoParaLaElegida()) { void mostrar(13); return; }
+      if (categoriaPagada !== null) {
+        // P7 apaga las aventuras de otra categoría cuando el pago está hecho, así que aquí no se llega
+        // pulsando. Si pasa, ese pago no vale para lo elegido: se dice y se sigue el recorrido entero.
+        _log.error('[SELECCION] Con el pago hecho para una aventura', categoriaPagada, 'se ha elegido', aventuraSeleccionada, '— se sigue el recorrido entero');
+        categoriaPagada = null;
+      }
+      void mostrarMapaVintage();
+    }
+
     const _ACCION_PANTALLA = {
+      // La P1 abre un recorrido nuevo: el pago deja de darse por hecho. Se vuelve a ella sin recargar esta
+      // pantalla al responder «no» en el reto 2 y al elegir otra aventura en el diálogo de reanudación.
+      1:  () => { categoriaPagada = null; },
       4:  () => cargarVideoIntroIframe(),
       6:  () => void cargarPuzzle(),
       7:  () => void cargarAventurasDinamicamente(),
       8:  () => { if (!retoCargadoR1) void cargarRetoR1(); },
+      9:  () => globalThis._pintarTarjetasDeAventura(),
       10: () => { if (!terminosCargados) void cargarTerminos(); },
       // async porque _iniciarGuantePlayHint() necesita esperar a que cargarAudioIntro()
       // decida si hay botón real que señalar (o lo oculta, sin audio) antes de animar el
@@ -1276,9 +1338,10 @@
         _iniciarGuantePlayHint();
       },
       12: () => mostrarPulsoValoracion('P12'),
-      14: () => _accionPantalla15(),
-      15: () => { if (!retoCargadoR2) void cargarRetoR2(); },
-      17: () => _accionPantalla5(),
+      13: () => globalThis._pintarTarjetasDeAventura(),
+      15: () => _accionPantalla15(),
+      16: () => { if (!retoCargadoR2) void cargarRetoR2(); },
+      18: () => _accionPantalla5(),
     };
 
     // ============================================================
@@ -1338,9 +1401,16 @@
         void mostrar(7);
         return;
       }
-      // Dev mode: saltar P12 y P13, ir directamente a P14
-      if (globalThis._devCasaMode && (id === 12 || id === 13)) {
-        id = 14;
+      // Dev mode: saltar P12, P13 y P14, ir directamente a P15
+      if (globalThis._devCasaMode && (id === 12 || id === 13 || id === 14)) {
+        id = 15;
+      }
+      // La confirmación tras el pago (P13) solo se enseña con el pago hecho para la categoría de la aventura
+      // elegida. Sin eso se enseña la pantalla de pago, y se dice en voz alta: es un estado que el recorrido
+      // normal no produce.
+      if (id === 13 && !_pagoHechoParaLaElegida()) {
+        _log.error('[SELECCION] P13 pedida sin el pago hecho para', aventuraSeleccionada || '(ninguna aventura)', '— se enseña la pantalla de pago');
+        id = 12;
       }
       document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
       document.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; });
@@ -1354,7 +1424,7 @@
     }
 
     // ============================================================
-    // P5: CARGAR TÉRMINOS DESDE js/terminos-aventuras.js
+    // P10: CARGAR TÉRMINOS DESDE js/terminos-aventuras.js
     // ============================================================
     async function cargarTerminos() {
       const contenedor = document.getElementById('terminos-contenido');
@@ -1663,15 +1733,12 @@
     }
 
     // ============================================================
-    // P11: VALIDAR CÓDIGO DE ACTIVACIÓN (CON FEEDBACK VISUAL)
-    // ============================================================
-    // ============================================================
     // P14: VALIDAR CÓDIGO DE ACTIVACIÓN
     // ============================================================
     // IMPORTANTE: esta función solo valida FORMATO (código y email con
     // pinta razonable) para habilitar el botón — no existe ningún código
     // de referencia local con el que comparar. La comprobación real
-    // (¿existe?, ¿coincide con el email?, ¿no usado?, ¿no expirado?) la
+    // (¿existe?, ¿coincide con el email?, ¿vale para esta aventura?, ¿le queda tiempo?) la
     // hace el backend en _irANormativa() → ver docs/GUIA-COMPLETA.md §16.2/§16.3.
     // El código distingue mayúsculas/minúsculas — nunca usar toUpperCase()/
     // toLowerCase() sobre inputCodigo.value en ningún punto de este flujo.
@@ -1717,27 +1784,27 @@
     // js/traducciones-ui.js). Se muestra siempre que la activación falla, tanto en local
     // (sin backend, ver _irANormativa) como en producción con un código/email que el
     // backend rechaza.
-    function _mostrarErrorAccesoP13() {
-      if (document.getElementById('_p13-error-overlay')) return;
+    function _mostrarErrorAccesoP14() {
+      if (document.getElementById('_p14-error-overlay')) return;
       const idioma = idiomaSeleccionado || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })() || 'es';
       const dic = globalThis.TRADUCCIONES_ACCESO_ERRONEO || {};
       const t = dic[idioma] || dic.es || { titulo: 'Código o email incorrectos', cuerpo: 'Revise los datos introducidos e inténtelo de nuevo.' };
       const overlay = document.createElement('div');
-      overlay.id = '_p13-error-overlay';
+      overlay.id = '_p14-error-overlay';
       overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999999;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;padding:1rem;box-sizing:border-box;';
       overlay.innerHTML = `<div style="background:#fff8e7;border-radius:1rem;padding:1.75rem 1.5rem;width:min(90vw,24rem);text-align:center;box-shadow:0 0.375rem 1.5625rem rgba(0,0,0,0.4);">
           <div style="font-size:2.5rem;margin-bottom:0.5rem;">🔒</div>
           <p style="color:#c0392b;font-size:1.15rem;font-weight:bold;margin:0 0 0.75rem 0;">${t.titulo}</p>
           <p style="color:#333;font-size:0.95rem;margin:0 0 1.25rem 0;">${t.cuerpo}</p>
-          <button type="button" id="_p13-error-ok" style="padding:0.7rem 2rem;background:#e67e22;color:#fff;border:none;border-radius:0.6rem;cursor:pointer;font-size:1rem;font-weight:bold;">OK</button>
+          <button type="button" id="_p14-error-ok" style="padding:0.7rem 2rem;background:#e67e22;color:#fff;border:none;border-radius:0.6rem;cursor:pointer;font-size:1rem;font-weight:bold;">OK</button>
       </div>`;
       document.body.appendChild(overlay);
       const cerrar = () => { try { document.body.removeChild(overlay); } catch (_) {} };
-      overlay.querySelector('#_p13-error-ok').addEventListener('click', cerrar);
+      overlay.querySelector('#_p14-error-ok').addEventListener('click', cerrar);
     }
 
     async function _irANormativa() {
-      const errorDiv = document.getElementById('gps-denegado-p13');
+      const errorDiv = document.getElementById('gps-denegado-p14');
       if (errorDiv) errorDiv.style.display = 'none';
 
       const inputCodigo = document.getElementById('input-codigo');
@@ -1753,22 +1820,24 @@
         const { getDataMode, asegurarModo } = await import('./js/data-loader.js');
         await asegurarModo();
         if (getDataMode() === 'api') {
-          // Producción: comprobación real contra el backend (código + email, ver §16.2)
+          // Con backend: se COMPRUEBA el código con su email para la aventura elegida (§16.2). Aquí no se gasta
+          // nada: el código empieza a contar cuando la aventura arranca (ApiClient.activar, desde el padre). Así
+          // quien dice «no» en el reto 2, cierra la app o se queda sin batería antes de empezar no lo pierde.
           const { ApiClient } = await import('./js/api-client.js');
-          const resultado = await ApiClient.activar(codigo, email, aventuraSeleccionada);
+          const resultado = await ApiClient.comprobarCodigo(codigo, email, aventuraSeleccionada);
           if (!resultado || !resultado.token) {
-            _mostrarErrorAccesoP13();
+            _mostrarErrorAccesoP14();
             return;
           }
         } else {
           // Local/sin backend: todavía no se ha pagado ni se ha emitido ningún código
           // real — rechazar siempre, aunque el formato introducido sea plausible.
-          _mostrarErrorAccesoP13();
+          _mostrarErrorAccesoP14();
           return;
         }
       } catch (e) {
-        _log.error('[SELECCION][P13] Error validando acceso contra el backend:', e?.message || e);
-        _mostrarErrorAccesoP13();
+        _log.error('[SELECCION][P14] Error validando acceso contra el backend:', e?.message || e);
+        _mostrarErrorAccesoP14();
         return;
       }
 
@@ -1795,7 +1864,7 @@
           }
         });
       }
-      void mostrar(14);
+      void mostrar(15);
     }
 
     // ============================================================
@@ -1859,7 +1928,7 @@
     async function _ejecutarDespedida() {
       if (_despedidaEjecutada) return;
       _despedidaEjecutada = true;
-      if (_desarmarAbandonoP17) { _desarmarAbandonoP17(); _desarmarAbandonoP17 = null; }
+      if (_desarmarAbandonoP18) { _desarmarAbandonoP18(); _desarmarAbandonoP18 = null; }
 
       // Capturar idioma ANTES de limpiar localStorage
       const idioma = idiomaSeleccionado || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })() || 'es';
@@ -1890,7 +1959,7 @@
       // Pequeña pausa para que el usuario lea el mensaje de despedida, luego P1.
       //
       // A P1 de verdad: codigo-padre.html. Recargar (`location.reload()`) volvía a cargar esta
-      // misma dirección, que lleva `?despedida=1`, y `_checkUrlParams()` enseñaba P17 otra vez
+      // misma dirección, que lleva `?despedida=1`, y `_checkUrlParams()` enseñaba P18 otra vez
       // y rearmaba la red de seguridad: un bucle del que solo se salía cerrando la pestaña.
       // `replace` para que "atrás" no devuelva a la despedida. Lo fija el spec 92.
       await new Promise(r => setTimeout(r, 2000));
@@ -1935,7 +2004,7 @@
     }
 
     function aceptarNormativa() {
-      void mostrar(15);
+      void mostrar(16);
     }
 
     function actualizarProgresoCargaAventura(porcentaje) {
@@ -2154,11 +2223,14 @@
 
 
     // ============================================================
-    // P8: CARGAR AVENTURAS DINÁMICAMENTE DESDE js/indice-aventuras.js
+    // P7: CARGAR AVENTURAS DINÁMICAMENTE DESDE js/indice-aventuras.js
     // ============================================================
     function _crearBotonAventura(aventura, idioma, contenedor) {
       const disponibleEnIdioma = aventura.idiomas[idioma]?.disponible;
-      const estaDisponible = aventura.disponible && disponibleEnIdioma;
+      // Con el pago hecho solo se puede cambiar a una aventura de la categoría que se pagó. Y una aventura sin
+      // categoría en el índice no se puede elegir: no se sabría qué precio tiene.
+      const categoria = _categoriaDe(aventura.id);
+      const estaDisponible = aventura.disponible && disponibleEnIdioma && categoria !== null && (categoriaPagada === null || categoria === categoriaPagada);
       const boton = document.createElement('button');
       boton.className = 'btn';
       boton.style.width = '100%';
@@ -2187,8 +2259,30 @@
     }
 
 
+    // Pinta los botones de P7 con lo que vale AHORA: el idioma y, si el pago está hecho, la categoría pagada.
+    function _pintarBotonesDeAventura(contenedor) {
+      const idioma = idiomaSeleccionado || 'es';
+      contenedor.innerHTML = '';  // Limpiar contenido previo
+      const aventurasArray = Object.values(INDICE_AVENTURAS_DATOS);
+
+      // Generar botones para cada aventura
+      aventurasArray.forEach(a => _crearBotonAventura(a, idioma, contenedor));
+
+      // Calcular font-size proporcional al número de botones y altura de pantalla
+      const remPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const usableH = globalThis.innerHeight - 4.25 * remPx; // 3rem arriba (FREE DEMO) + 1.25rem abajo
+      const alturaBoton = usableH / aventurasArray.length;
+      const fontSize = Math.max(11, Math.round(Math.min(alturaBoton * 0.28, 1.9 * remPx, 22)));
+      contenedor.style.setProperty('--btn-font-size', fontSize + 'px');
+      return aventurasArray.length;
+    }
+
     async function cargarAventurasDinamicamente() {
       const contenedor = document.getElementById('aventuras-dinamicas');
+      // A P7 se puede volver (la ✗ de las dos confirmaciones). Los botones de la visita anterior no se quedan
+      // a la vista mientras llega el índice: se repintan en el acto con lo que vale ahora. Sin esto, quien
+      // vuelve con el pago hecho tendría unos instantes encendidas las aventuras de la otra categoría.
+      if (INDICE_AVENTURAS_DATOS) _pintarBotonesDeAventura(contenedor);
       try {
         // 1. Cargar índice base (siempre disponible, sin imports)
         const modulo = await import(`./js/indice-aventuras.js?v=${Date.now()}`);
@@ -2210,24 +2304,14 @@
         if (_sinTotales.length > 0) {
           _log.error(`[SELECCION] Sin totales en el índice para: ${_sinTotales.join(', ')} — regenerar con: npm run verificar-totales -- --escribir`);
         }
+        const _sinCategoria = Object.keys(INDICE_AVENTURAS_DATOS).filter((id) => _categoriaDe(id) === null);
+        if (_sinCategoria.length > 0) {
+          _log.error(`[SELECCION] Sin categoría ('corta' o 'larga') en el índice para: ${_sinCategoria.join(', ')} — no se pueden elegir; lo comprueba npm run verificar-datos`);
+        }
 
-        const idioma = idiomaSeleccionado || 'es';
-        contenedor.innerHTML = '';  // Limpiar contenido previo
-
-        const aventurasArray = Object.values(INDICE_AVENTURAS_DATOS);
-        _log.info('[SELECCION] Total aventuras a cargar:', aventurasArray.length);
-
-        // Generar botones para cada aventura
-        aventurasArray.forEach(a => _crearBotonAventura(a, idioma, contenedor));
-
-        // Calcular font-size proporcional al número de botones y altura de pantalla
-        const remPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
-        const usableH = globalThis.innerHeight - 4.25 * remPx; // 3rem arriba (FREE DEMO) + 1.25rem abajo
-        const alturaBoton = usableH / aventurasArray.length;
-        const fontSize = Math.max(11, Math.round(Math.min(alturaBoton * 0.28, 1.9 * remPx, 22)));
-        contenedor.style.setProperty('--btn-font-size', fontSize + 'px');
-
-        _log.info('[SELECCION] Aventuras cargadas dinámicamente para idioma:', idioma);
+        const total = _pintarBotonesDeAventura(contenedor);
+        _log.info('[SELECCION] Total aventuras a cargar:', total);
+        _log.info('[SELECCION] Aventuras cargadas dinámicamente para idioma:', idiomaSeleccionado || 'es');
       } catch (error) {
         _log.error('[SELECCION] Error cargando aventuras:', error);
         contenedor.innerHTML = '<p style="color:#1a1a1a; text-align:center;">Error cargando aventuras</p>';
@@ -2235,7 +2319,7 @@
     }
 
     // ============================================================
-    // P5→P6: MOSTRAR/CERRAR MAPA VINTAGE DE LA AVENTURA
+    // P7→P8: MOSTRAR/CERRAR MAPA VINTAGE DE LA AVENTURA
     // ============================================================
     async function mostrarMapaVintage() {
       const overlay = document.getElementById('mapa-vintage-overlay');
@@ -2366,7 +2450,7 @@
     }
 
     // ============================================================
-    // P12: CARGAR RETO R-2 DESDE js/retos-aventuras.js
+    // P16: CARGAR RETO R-2 DESDE js/retos-aventuras.js
     // (reto_id dinámico: R2-AvX-xx según aventura e idioma)
     // ============================================================
     function _crearOpcionRetoR2(opcion, index, contenedor) {
@@ -2455,7 +2539,7 @@
         // cierra la app, simplemente vuelve a P1 sin perder el código.
         // ============================================================
         _log.info('[SELECCION][P16] ✅ Reto R-2 completado → ACTIVANDO CÓDIGO');
-        setTimeout(() => { void mostrar(16); }, 1500);
+        setTimeout(() => { void mostrar(17); }, 1500);
       } else {
         _log.info('[SELECCION] Reto R2: respuesta negativa → reinicio a P1');
         if (globalThis.parent && globalThis.parent !== globalThis) {
@@ -2517,6 +2601,8 @@
     globalThis.aceptarSinAudio = aceptarSinAudio;
     globalThis.rechazarSinAudio = rechazarSinAudio;
     globalThis.confirmarAventura = confirmarAventura;
+    globalThis.continuarTrasPago = continuarTrasPago;
+    globalThis.continuarTrasElegirAventura = continuarTrasElegirAventura;
     globalThis.mostrarMapaVintage = mostrarMapaVintage;
     globalThis.cerrarMapaVintage = cerrarMapaVintage;
     globalThis.verificarRetoR1 = verificarRetoR1;
@@ -2527,12 +2613,12 @@
   <script type="module">
     /* global _ejecutarDespedida, _log, aventuraIniciando,
        mostrarOverlayCargaAventura, actualizarProgresoCargaAventura, timerProgresoCarga,
-       ocultarOverlayCargaAventura */
+       ocultarOverlayCargaAventura, continuarTrasElegirAventura */
     // Estos dos van aparte porque este bloque solo los ESCRIBE; quien los lee es el script
     // clasico de mas arriba. Sin declararlos, eslint marcaria no-undef al asignarlos; al
     // declararlos, marca no-unused-vars por no leerlos. Ninguna de las dos cosas es un
     // problema: es el patron de globalThis compartido entre bloques (ver 37.2 de la guia).
-    /* global modoDespedida, _desarmarAbandonoP17 */ // eslint-disable-line no-unused-vars
+    /* global modoDespedida, _desarmarAbandonoP18 */ // eslint-disable-line no-unused-vars
     // Importado por su efecto: al cargarse instala la captura de `error` y `unhandledrejection`
     // de este frame, que es la que avisa al padre. El bus ya lo arrastra, pero de ahí no se
     // deduce leyendo este fichero.
@@ -2650,21 +2736,21 @@
         const params = new URLSearchParams(globalThis.location.search);
         if (params.get('despedida') === '1') {
             modoDespedida = true;
-            // Recuperar idioma de localStorage ANTES de mostrar P17, para que
+            // Recuperar idioma de localStorage ANTES de mostrar P18, para que
             // cargarAgradecimientosOverlay() lo use en vez de caer al fallback 'es'
             if (!idiomaSeleccionado) {
                 idiomaSeleccionado = (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })() || 'es';
             }
-            logger.info(`${logPrefix} Modo despedida activo → mostrando P17 agradecimientos (idioma: ${idiomaSeleccionado})`);
-            void mostrar(17);
-            void _armarLimpiezaPorAbandonoP17();
+            logger.info(`${logPrefix} Modo despedida activo → mostrando P18 agradecimientos (idioma: ${idiomaSeleccionado})`);
+            void mostrar(18);
+            void _armarLimpiezaPorAbandonoP18();
         }
     }
 
-    // Red de seguridad: si el usuario abandona P17 sin pulsar el botón verde
+    // Red de seguridad: si el usuario abandona P18 sin pulsar el botón verde
     // (pestaña en segundo plano, pantalla bloqueada, cierre de pestaña),
     // ejecutar la despedida igual que si lo hubiera pulsado.
-    async function _armarLimpiezaPorAbandonoP17() {
+    async function _armarLimpiezaPorAbandonoP18() {
         try {
             // Precargar reciclaje-digital.js ahora (no esperar la respuesta): si la red de
             // seguridad se dispara por pagehide (cierre real de pestaña), _ejecutarDespedida()
@@ -2672,7 +2758,7 @@
             // está en caché y el resto de la limpieza dispone de más margen para completarse.
             void import('./js/reciclaje-digital.js');
             const { armarRedDeSeguridad } = await import('./js/reciclaje-digital.js');
-            _desarmarAbandonoP17 = armarRedDeSeguridad(() => { void _ejecutarDespedida(); }, 'P17_DESPEDIDA');
+            _desarmarAbandonoP18 = armarRedDeSeguridad(() => { void _ejecutarDespedida(); }, 'P18_DESPEDIDA');
         } catch (e) {
             _log.error('[SELECCION][DESPEDIDA] Error armando red de seguridad:', e);
         }
@@ -2880,25 +2966,31 @@
         return { gridRows, nombre: meta.nombre };
     }
 
-    function _poblarCardAventura(aventura) {
-        const card = document.getElementById('aventura-confirmacion-card');
-        if (!card) { return; }
+    // Las dos confirmaciones de aventura (P9, antes del pago, y P13, después) enseñan la misma tarjeta. Se
+    // pinta al mostrarse la pantalla —no al elegir— y la aventura se lee del `let` del script clásico, que es
+    // la variable que usan el código de compra (_irANormativa) y los retos. Así la tarjeta no puede enseñar
+    // una aventura distinta de la que el recorrido tiene elegida, tampoco si el aviso al padre falla o si se
+    // pulsan dos aventuras seguidas. La llama el script clásico desde _ACCION_PANTALLA, por globalThis.
+    globalThis._pintarTarjetasDeAventura = function() {
+        const aventura = aventuraSeleccionada;
         const meta = INDICE_AVENTURAS_DATOS?.[aventura];
-        if (meta) {
-            const { gridRows, nombre } = _calcularMetaStats(meta);
-            card.innerHTML = `<div style="font-weight:bold; font-size:1.15em; text-align:center; width:100%; margin-bottom:0.4em;">${nombre}</div><div style="display:inline-grid; grid-template-columns:auto auto; gap:0.35em 0.7em; align-items:center; overflow:hidden; max-width:100%; text-align:left;">${gridRows}</div>`;
-        } else {
-            card.innerHTML = `<span style="font-weight:bold;">${aventura}</span>`;
-        }
         const imgFondo = IMAGENES_AVENTURAS[aventura];
-        if (imgFondo) {
-            card.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url('${imgFondo}')`;
-            card.style.backgroundSize = 'cover';
-            card.style.backgroundPosition = 'center';
-        } else {
-            card.style.backgroundImage = '';
-        }
-    }
+        document.querySelectorAll('.aventura-confirmacion-card').forEach((card) => {
+            if (meta) {
+                const { gridRows, nombre } = _calcularMetaStats(meta);
+                card.innerHTML = `<div style="font-weight:bold; font-size:1.15em; text-align:center; width:100%; margin-bottom:0.4em;">${nombre}</div><div style="display:inline-grid; grid-template-columns:auto auto; gap:0.35em 0.7em; align-items:center; overflow:hidden; max-width:100%; text-align:left;">${gridRows}</div>`;
+            } else {
+                card.innerHTML = `<span style="font-weight:bold;">${aventura}</span>`;
+            }
+            if (imgFondo) {
+                card.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url('${imgFondo}')`;
+                card.style.backgroundSize = 'cover';
+                card.style.backgroundPosition = 'center';
+            } else {
+                card.style.backgroundImage = '';
+            }
+        });
+    };
 
     /**
      * Selecciona una aventura y notifica al padre para iniciar
@@ -2916,11 +3008,10 @@
                 datos: { aventura: aventura, idioma: estadoComponente.idiomaSeleccionado || 'es', timestamp: Date.now() }
             });
             logger.debug(`[SELECCION] Mensaje AVENTURA_SELECCIONADA enviado al padre`);
-            _poblarCardAventura(aventura);
-            mostrarMapaVintage();
+            continuarTrasElegirAventura();
         } catch (error) {
             logger.error(`[SELECCION] Error seleccionando aventura:`, error);
-            mostrarMapaVintage();
+            continuarTrasElegirAventura();
         }
     };
 
@@ -3099,7 +3190,7 @@
                 // porque el padre lo escuchaba con una escucha suelta que aceptaba el aviso de
                 // CUALQUIER frame del dominio: bastaba con mandarlo para activar el modo dev.
                 void enviarMensaje({ tipo: TIPOS_MENSAJE.SELECCION.DEV_MODE_TOGGLE, destino: 'padre' });
-                (globalThis.logger || console).warn('[DEV] Modo dev activado en P1 — se saltarán P12 y P13');
+                (globalThis.logger || console).warn('[DEV] Modo dev activado en P1 — se saltarán P12, P13 y P14');
             } catch (err) {
                 (globalThis.logger || console).error('[DEV] Error activando modo dev:', err?.message || err);
                 _confirming = false;

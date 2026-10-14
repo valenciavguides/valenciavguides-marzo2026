@@ -49,7 +49,7 @@ async function prepararPadre(page) {
 
 /**
  * NOTA de método: la aserción es **estricta a propósito** — el escenario parte de un GPS
- * activo (`estadoPadre.gps = { activo: true, watchId: 1 }`, el estado real tras P14) y
+ * activo (`estadoPadre.gps = { activo: true, watchId: 1 }`, el estado real tras P15) y
  * exige que siga activo después. Una versión más débil ("que no cambie") pasaba con y sin
  * el fallo, porque `estadoMapa.gpsActivo` vale `false` de partida y volver a ponerlo en
  * `false` no cambia nada: test vacuo, del tipo que documenta EJE 26.
@@ -64,7 +64,7 @@ test.describe('GA — el sensor GPS sobrevive al cambio de modo', () => {
     const r = await page.evaluate(() => {
       const diag = globalThis.funcionesMapa;
       globalThis.estadoPadre = globalThis.estadoPadre || {};
-      globalThis.estadoPadre.gps = { activo: true, watchId: 1 };   // estado real tras P14
+      globalThis.estadoPadre.gps = { activo: true, watchId: 1 };   // estado real tras P15
       diag.limpiarRecursos();
       return { activo: globalThis.estadoPadre.gps.activo, watchId: globalThis.estadoPadre.gps.watchId };
     });

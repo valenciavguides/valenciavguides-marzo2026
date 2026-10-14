@@ -3,8 +3,8 @@
  *
  * POR QUE EXISTE
  *
- * Al responder que no en el reto R2 (P15), seleccion vuelve a P1 y avisa al padre con
- * `SELECCION.REINICIAR` para que baje `_codigoValidadoP13` e `_iframesPreCargadosP14`.
+ * Al responder que no en el reto R2 (P16), seleccion vuelve a P1 y avisa al padre con
+ * `SELECCION.REINICIAR` para que baje `_codigoValidadoP14` e `_iframesPreCargadosP15`.
  * Ese aviso es un `postMessage` escrito a mano, y el bus del padre (`js/mensajeria.js`)
  * descarta en silencio todo mensaje sin `origen`: sin ese campo el handler no llega a
  * ejecutarse. Asi estuvo, sin que nada lo notara.
@@ -12,7 +12,7 @@
  *   RE-1  Control: el mismo mensaje CON `origen`, enviado desde el iframe de seleccion,
  *         si baja las dos banderas. Demuestra que el handler existe y que el montaje
  *         funciona, para que RE-2 no pueda fallar por otro motivo.
- *   RE-2  Camino real: abrir P15, marcar la respuesta negativa y pulsar el boton. El padre
+ *   RE-2  Camino real: abrir P16, marcar la respuesta negativa y pulsar el boton. El padre
  *         tiene que ejecutar su handler y bajar las dos banderas.
  *
  * ROJO ANTES QUE VERDE: RE-2 falla si el mensaje de seleccion pierde el `origen`.
@@ -24,15 +24,15 @@ const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
-const LOG_HANDLER = /\[SELECCION\.REINICIAR\] Flags P13\/P14 reseteados/;
+const LOG_HANDLER = /\[SELECCION\.REINICIAR\] Flags P14\/P15 reseteados/;
 
 const subirBanderas = (page) => page.evaluate(() => {
-  globalThis._codigoValidadoP13 = true;
-  globalThis._iframesPreCargadosP14 = true;
+  globalThis._codigoValidadoP14 = true;
+  globalThis._iframesPreCargadosP15 = true;
 });
 const leerBanderas = (page) => page.evaluate(() => ({
-  p13: globalThis._codigoValidadoP13,
-  p14: globalThis._iframesPreCargadosP14,
+  p14: globalThis._codigoValidadoP14,
+  p15: globalThis._iframesPreCargadosP15,
 }));
 const frameSeleccion = (page) => page.frames().find((f) => f.name() === 'seleccion');
 
@@ -49,7 +49,7 @@ test.describe('RE — "no" en R2 llega al padre', () => {
     // `verificarRetoR2` sale de un script clasico, que corre antes que los modulos de la
     // seleccion: la funcion existe antes que su bus. MEDIDO en iphone12 con carga (2 de 80): el
     // clic llegaba ~20 ms antes de `inicializarMensajeria`, `globalThis.mensajeria` aun no
-    // existia y el envio de SELECCION.REINICIAR lanzaba un TypeError. En la app no pasa: P15
+    // existia y el envio de SELECCION.REINICIAR lanzaba un TypeError. En la app no pasa: P16
     // queda muchas pantallas despues del arranque; solo el test salta a ella en el acto.
     // `PADRE_CONFIRMA_HIJO_LISTO` lo registra la seleccion con el bus ya inicializado.
     await page.waitForFunction(
@@ -68,7 +68,7 @@ test.describe('RE — "no" en R2 llega al padre', () => {
     });
 
     await expect.poll(() => leerBanderas(page), { timeout: 5_000 })
-      .toEqual({ p13: false, p14: false });
+      .toEqual({ p14: false, p15: false });
     expect(logs.some((t) => LOG_HANDLER.test(t)), 'y lo hace su handler, no otra cosa').toBe(true);
   });
 
@@ -78,12 +78,12 @@ test.describe('RE — "no" en R2 llega al padre', () => {
     await subirBanderas(page);
     const sel = frameSeleccion(page);
 
-    // Abrir P15 como lo hace la app: su entrada carga el reto R2 real.
+    // Abrir P16 como lo hace la app: su entrada carga el reto R2 real.
     const abierta = await sel.evaluate(async () => {
-      if (typeof mostrar === 'function') { await mostrar(15); return 'mostrar'; }
+      if (typeof mostrar === 'function') { await mostrar(16); return 'mostrar'; }
       return null;
     });
-    test.skip(!abierta, 'No se pudo abrir P15 desde el iframe de seleccion');
+    test.skip(!abierta, 'No se pudo abrir P16 desde el iframe de seleccion');
 
     await sel.waitForFunction(() => document.querySelectorAll('input[name="reto-r2"]').length >= 2, null, { timeout: 15_000 });
 
@@ -106,6 +106,6 @@ test.describe('RE — "no" en R2 llega al padre', () => {
       logs.some((t) => LOG_HANDLER.test(t)),
       'F1: el handler SELECCION.REINICIAR del padre tiene que ejecutarse al responder "no"',
     ).toBe(true);
-    expect(banderas, 'F1: y las dos banderas de P13/P14 tienen que quedar bajadas').toEqual({ p13: false, p14: false });
+    expect(banderas, 'F1: y las dos banderas de P14/P15 tienen que quedar bajadas').toEqual({ p14: false, p15: false });
   });
 });

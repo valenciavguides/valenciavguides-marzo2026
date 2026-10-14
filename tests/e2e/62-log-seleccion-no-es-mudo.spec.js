@@ -11,7 +11,7 @@
  * evitar el uso directo de `console` (SonarLint S106) — y lo conseguia, pero tirando los
  * mensajes: las 34 llamadas del fichero no escribian en ningun sitio. Entre ellas, todos
  * los fallos de carga de la pantalla (terminos, audio intro, retos R1/R2, puzzle, texto
- * intro, aventuras) y el error de validacion de acceso de P13.
+ * intro, aventuras) y el error de validacion de acceso de P14.
  *
  * Es el caso mas puro del EJE 27: el instrumento miente. Ninguna auditoria del codigo lo
  * encuentra, porque el codigo esta bien — lo que esta roto es aquello con lo que se mira.

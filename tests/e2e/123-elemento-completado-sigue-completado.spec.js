@@ -165,7 +165,7 @@ test.describe('EC — Un elemento completado sigue completado', () => {
     await prepararParada(page);
     await completarLaParada(page);
     // `vv_progreso` y `vv_paradas_completadas` son los que ha escrito el padre. `vv_aventura_iniciada` lo escribe la activación
-    // real al entrar en la aventura (P15), que este test no recorre: se pone aquí con esa misma forma.
+    // real al entrar en la aventura (P16), que este test no recorre: se pone aquí con esa misma forma.
     await page.evaluate(() => {
       localStorage.setItem('vv_aventura_iniciada', JSON.stringify({ aventura: 'Aventura1', idioma: 'en', modo: 'aventura', dev: false, timestamp: Date.now() }));
     });

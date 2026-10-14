@@ -151,7 +151,6 @@ module.exports = [
         mostrar: "readonly",
         mostrarErrorOverlay: "readonly",
         mostrarHijo4: "readonly",
-        mostrarMapaVintage: "readonly",
         cerrarErrorOverlay: "readonly",
         cerrarIframeOverlay: "readonly",
         cerrarImagenOverlay: "readonly",

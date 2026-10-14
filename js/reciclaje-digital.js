@@ -176,7 +176,7 @@ const TIMEOUT_ABANDONO_MS = 10 * 60 * 1000; // gracia de 10 min tras mostrar el 
  * Los 10 min internos son solo la ventana de gracia para el modal de fin de aventura.
  *
  * @param {() => void|Promise<void>} accionLimpieza - misma acción que pulsar "otra aventura"
- * @param {string} etiqueta - identifica el origen en los logs ('FIN_AVENTURA', 'TIEMPO_AGOTADO', 'P17_DESPEDIDA')
+ * @param {string} etiqueta - identifica el origen en los logs ('FIN_AVENTURA', 'TIEMPO_AGOTADO', 'P18_DESPEDIDA')
  * @returns {() => void} desarmar - cancela la red; llamarla cuando el usuario pulse un botón real
  */
 export function armarRedDeSeguridad(accionLimpieza, etiqueta) {

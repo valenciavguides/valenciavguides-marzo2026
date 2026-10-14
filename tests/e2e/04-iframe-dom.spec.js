@@ -103,7 +103,7 @@ test.describe('DOM de iframes — estructura antes de selección de aventura', (
   });
 
   /**
-   * La Fase 2 se llama desde TRES sitios (P14, restauración y AVENTURA_ACTIVADA), así que
+   * La Fase 2 se llama desde TRES sitios (P15, restauración y AVENTURA_ACTIVADA), así que
    * su corto-circuito de "ya cargado" no es una optimización opcional: sin él, cada llamada
    * reimporta y reasigna los datos.
    *

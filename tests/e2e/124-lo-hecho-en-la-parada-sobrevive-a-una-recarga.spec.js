@@ -145,7 +145,7 @@ async function esperarRecordatorioDeRetos(page, mensaje) {
 
 /**
  * Recarga la página y reanuda por el diálogo real. `vv_progreso` y `vv_paradas_completadas` son los que ha escrito el padre;
- * `vv_aventura_iniciada` lo escribe la activación real al entrar en la aventura (P15), que estos tests no recorren: se pone
+ * `vv_aventura_iniciada` lo escribe la activación real al entrar en la aventura (P16), que estos tests no recorren: se pone
  * aquí con esa misma forma. `antes` permite tocar lo guardado justo antes de recargar. Con `conFicha: false` no se espera a
  * que el elemento tenga ficha tras reanudar (un elemento que se completa en la misma activación ya no la tiene).
  */

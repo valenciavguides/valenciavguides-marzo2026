@@ -1,7 +1,7 @@
 /**
  * 121-ruta-fallback-espera-al-hijo-listo-nuevo.spec.js
  *
- * La ruta fallback de `SELECCION.AVENTURA_ACTIVADA` (la que deja `SELECCION.REINICIAR`: `_iframesPreCargadosP14` falso)
+ * La ruta fallback de `SELECCION.AVENTURA_ACTIVADA` (la que deja `SELECCION.REINICIAR`: `_iframesPreCargadosP15` falso)
  * recarga a los seis hijos con el cargador único (`cargarHijo`), que borra a cada uno del conjunto del padre y espera «un
  * HIJO_LISTO nuevo» suyo. Esa espera la hace `crearPromiseHijoListo` del state-manager, que resuelve al instante para
  * un id que ya está en SU conjunto. Si el padre vacía el suyo y el state-manager no, la espera no espera.
@@ -61,8 +61,8 @@ test.describe('HL — la ruta fallback espera al HIJO_LISTO nuevo', () => {
         const marcar = sm.marcarHijoListo;
         sm.marcarHijoListo = (id) => { globalThis.__hl.marcados.push({ id, t: performance.now() }); return marcar(id); };
         // Lo que deja SELECCION.REINICIAR: la ruta fallback en la próxima activación
-        globalThis._iframesPreCargadosP14 = false;
-        globalThis._codigoValidadoP13 = false;
+        globalThis._iframesPreCargadosP15 = false;
+        globalThis._codigoValidadoP14 = false;
         document.getElementById('seleccion').contentWindow.parent.postMessage(
           { tipo: 'SELECCION.AVENTURA_ACTIVADA', origen: 'seleccion', datos: { aventura: 'Aventura1', idioma: 'es', terminosAceptados: true, timestamp: Date.now() } },
           globalThis.location.origin

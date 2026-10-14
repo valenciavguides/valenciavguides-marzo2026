@@ -3,6 +3,12 @@
 // Los totales (totalParadas, totalTramos, totalRetos, totalMonumentos, totalAudios)
 // van escritos aquí, en cada aventura: la selección (En-busca-del-tesoro.html) los lee de este
 // fichero, y `npm run verificar-totales` los recalcula desde los datos y falla si difieren.
+//
+// `categoria` es la categoría de PRECIO de la aventura: 'corta' o 'larga'. Todas las de una categoría cuestan
+// lo mismo. No se deduce de la distancia ni del tiempo: la decide el autor, y TODA aventura tiene que llevarla
+// —una aventura sin categoría no se puede elegir en la selección, y `npm run verificar-datos` falla—. De ella
+// depende a qué aventuras puede cambiar quien ya ha hecho la pantalla de pago (solo a las de la categoría que
+// pagó) y para qué aventuras vale un código de compra (docs/GUIA-COMPLETA.md §16.2).
 
 export const MAPEO_IDIOMAS = {
     es: { nombre: 'Español',    bandera: 'bandera_españa.png' },
@@ -33,6 +39,7 @@ export const INDICE_AVENTURAS = {
         tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 4,
         vehiculo: '👣',
+        categoria: 'corta',
         idiomas: {
             es: { disponible: true },
             en: { disponible: true },
@@ -61,6 +68,7 @@ export const INDICE_AVENTURAS = {
         tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 4,
         vehiculo: '👣',
+        categoria: 'corta',
         idiomas: {
             es: { disponible: true },
             en: { disponible: true },
@@ -89,6 +97,7 @@ export const INDICE_AVENTURAS = {
         tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 10,
         vehiculo: '🚲🛴',
+        categoria: 'corta',
         idiomas: {
             es: { disponible: true },
             en: { disponible: true },
@@ -117,6 +126,7 @@ export const INDICE_AVENTURAS = {
         tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 10,
         vehiculo: '🚲🛴',
+        categoria: 'corta',
         idiomas: {
             es: { disponible: true },
             en: { disponible: true },
@@ -145,6 +155,7 @@ export const INDICE_AVENTURAS = {
         tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 6,
         vehiculo: '🚲🛴',
+        categoria: 'corta',
         idiomas: {
             es: { disponible: true },
             en: { disponible: true },
@@ -173,6 +184,7 @@ export const INDICE_AVENTURAS = {
         tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 4,
         vehiculo: '👣',
+        categoria: 'corta',
         idiomas: {
             es: { disponible: true },
             en: { disponible: true },
@@ -201,6 +213,7 @@ export const INDICE_AVENTURAS = {
         tiempoEstimado: 540000, // segundos (150 horas)
         distanciaKm: 34,
         vehiculo: '🚲🛴👣',
+        categoria: 'larga',
         idiomas: {
             es: { disponible: true },
             en: { disponible: true },

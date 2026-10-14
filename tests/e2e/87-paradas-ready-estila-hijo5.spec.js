@@ -51,7 +51,7 @@ async function arrancarConHijo5(page, context) {
   await stubCDNResources(page);
   await gotoAndWaitForFase1(page);
 
-  // hijo5 no entra por el cargador de P14: tiene el suyo propio.
+  // hijo5 no entra por el cargador de P15: tiene el suyo propio.
   await cargarHijosDelPadre(page, { resto: false, casa: true });
   await page.waitForFunction(
     (id) => !!document.getElementById(id)?.contentWindow?.logger,

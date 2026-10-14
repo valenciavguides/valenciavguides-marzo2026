@@ -72,10 +72,10 @@ async function arrancarAventura(page, aventura) {
   await f.waitForFunction(() => document.querySelectorAll('#aventuras-dinamicas button:not([disabled])').length >= 2, null, { timeout: 20_000 });
   await f.evaluate((a) => globalThis.seleccionarAventura(a), aventura);
   await f.evaluate(() => { if (getComputedStyle(document.getElementById('mapa-vintage-overlay')).display !== 'none') cerrarMapaVintage(); });
-  await f.evaluate(() => mostrar(14));
-  await page.waitForFunction(() => globalThis._iframesPreCargadosP14 === true, null, { timeout: 90_000 });
-  await f.evaluate(() => mostrar(16));
-  await f.evaluate(() => document.querySelector('#pantalla16 .btn-mundo-verde').click());
+  await f.evaluate(() => mostrar(15));
+  await page.waitForFunction(() => globalThis._iframesPreCargadosP15 === true, null, { timeout: 90_000 });
+  await f.evaluate(() => mostrar(17));
+  await f.evaluate(() => document.querySelector('#pantalla17 .btn-mundo-verde').click());
   // En marcha: modo aventura, la selección oculta, hijo2 a la vista, la pantalla de carga del padre retirada y una parada fijada.
   await page.waitForFunction(
     (a) => globalThis.estadoPadre?.modo?.actual === 'aventura' && globalThis.aventuraSeleccionada === a

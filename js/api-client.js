@@ -53,7 +53,7 @@ function safeSessionStorage(action, fallback = null) {
 
 /**
  * Almacena y recupera el token de sesión.
- * El token se obtiene al activar un código y se envía en cada petición API.
+ * El token se obtiene al comprobar un código de compra y se envía en cada petición API.
  * En desarrollo (AUTH_ENABLED=false en backend), las peticiones pasan sin token.
  */
 const TokenManager = {
@@ -284,15 +284,21 @@ const ApiClient = {
     // ========================================
 
     /**
-     * Activa una aventura con un código y email, y obtiene un token de sesión.
+     * Comprueba un código de compra con su email para una aventura, y obtiene un token de sesión.
+     *
+     * Solo comprueba: no gasta el código ni pone en marcha su tiempo, y se puede repetir cuantas veces
+     * haga falta. Lo que pone el tiempo en marcha es `activar()`, al arrancar la aventura. Si aquí se
+     * gastara, quien dijera «no» en el reto 2, cerrara la app o se quedara sin batería antes de empezar
+     * se quedaría con un código gastado y sin aventura (docs/GUIA-COMPLETA.md §16.2).
+     *
      * El código distingue mayúsculas/minúsculas — nunca transformar antes de enviarlo.
-     * @param {string} codigo - Código de activación
+     * @param {string} codigo - Código de compra
      * @param {string} email - Email del comprador (debe coincidir con el asociado al código)
-     * @param {string} aventuraId - ID de la aventura
+     * @param {string} aventuraId - ID de la aventura para la que se quiere usar
      * @returns {Promise<{exito: boolean, token: string}>}
      */
-    async activar(codigo, email, aventuraId = 'Aventura1') {
-        const url = `${API_CONFIG.baseUrl}/auth/activar`;
+    async comprobarCodigo(codigo, email, aventuraId) {
+        const url = `${API_CONFIG.baseUrl}/auth/comprobar`;
         const data = await fetchWithRetry(url, {
             method: 'POST',
             body: JSON.stringify({ codigo, email, aventuraId })
@@ -301,6 +307,22 @@ const ApiClient = {
             TokenManager.setToken(data.token);
         }
         return data;
+    },
+
+    /**
+     * Avisa al servidor de que la aventura arranca: desde ese instante cuenta el tiempo del código.
+     *
+     * Va con el token de sesión que dejó `comprobarCodigo()`. El servidor guarda la primera fecha y
+     * contesta siempre la misma, así que repetir la llamada —al volver a la aventura o al reanudarla—
+     * no cambia nada (docs/GUIA-COMPLETA.md §16.2).
+     * @param {string} aventuraId - ID de la aventura que arranca
+     * @returns {Promise<{exito: boolean, iniciada: number, expira: number}>}
+     */
+    async activar(aventuraId) {
+        return fetchWithRetry(`${API_CONFIG.baseUrl}/auth/activar`, {
+            method: 'POST',
+            body: JSON.stringify({ aventuraId })
+        });
     },
 
     /**

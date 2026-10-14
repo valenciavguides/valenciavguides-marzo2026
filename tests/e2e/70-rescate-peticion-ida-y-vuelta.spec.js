@@ -125,7 +125,7 @@ test.describe('RP — Petición de rescate: ida y vuelta', () => {
     page.on('console', (m) => { if (/petición de rescate|peticion de rescate/i.test(m.text())) respuestas.push(m.text()); });
 
     await prepararAventura(page);
-    // Los hijos se cargan juntos, el asistente entre ellos (como en P14); su botón solo lo enseña.
+    // Los hijos se cargan juntos, el asistente entre ellos (como en P15); su botón solo lo enseña.
     await cargarHijosDelPadre(page);
     await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
     await page.waitForFunction(

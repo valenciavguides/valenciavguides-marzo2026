@@ -28,6 +28,7 @@
  *   7. Ningún audio ni reto tiene id vacío, en ninguna aventura ni idioma
  *   8. Los retos tienen pregunta y opciones
  *   9. Lo que el índice marca como disponible existe de verdad en los datos
+ *  10. Cada aventura del índice dice si es corta o larga (su categoría de precio)
  *
  * Lo que NO comprueba: que los ficheros de audio/vídeo/imagen existan en disco. Eso es
  * `npm run verificar-media`, y el usuario los está preparando.
@@ -217,6 +218,18 @@ async function main() {
         }
     }
     check('Lo que el índice marca disponible existe en los datos', indiceMal, `${Object.keys(INDICE_AVENTURAS).length} aventuras`);
+
+    // ── 10. Toda aventura dice si es corta o larga
+    // La categoría es la del PRECIO y la decide el autor: no se deduce de la distancia ni del tiempo. Sin ella la
+    // selección no deja elegir la aventura, así que una aventura nueva sin categoría se para aquí.
+    const sinCategoria = [];
+    const reparto = { corta: 0, larga: 0 };
+    for (const [aventuraId, info] of Object.entries(INDICE_AVENTURAS)) {
+        if (!info || typeof info !== 'object') continue;
+        if (info.categoria === 'corta' || info.categoria === 'larga') reparto[info.categoria]++;
+        else sinCategoria.push(`${aventuraId}: \`categoria\` vale ${JSON.stringify(info.categoria)} y tiene que ser 'corta' o 'larga' — preguntar al autor cuál es`);
+    }
+    check('Cada aventura del índice dice si es corta o larga', sinCategoria, `${reparto.corta} cortas, ${reparto.larga} largas`);
 
     informe();
 }

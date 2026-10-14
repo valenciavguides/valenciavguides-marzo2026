@@ -114,7 +114,7 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
 
   test('HD-2b. Con el arranque terminado y sin cargar los hijos, solo la selección ha completado el apretón de manos', async ({ page }) => {
     // gotoAndWaitForFase1 vuelve con el arranque del padre terminado: la pantalla de selección ya está cargada (FASE 3.1)
-    // y los hijos no, que se cargan al llegar a P14.
+    // y los hijos no, que se cargan al llegar a P15.
     const listos = await page.evaluate(() => [...(globalThis.estadoPadre?.hijosInicializados ?? [])].sort());
     expect(listos, 'ningún hijo de la aventura antes de cargarlos; la selección, sí').toEqual(['seleccion']);
   });

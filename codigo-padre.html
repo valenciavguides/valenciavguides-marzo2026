@@ -1521,7 +1521,7 @@
 
                 function abrirChat() {
                     if (!globalThis.__stateManager.hijoEstaListo('hijo6-chat')) return;
-                    // Se le entrega el estado de ahora (parada, rescate) antes de enseñarlo: el que recibió al cargarse es el de P14
+                    // Se le entrega el estado de ahora (parada, rescate) antes de enseñarlo: el que recibió al cargarse es el de P15
                     globalThis.mensajeria.enviarMensaje({
                         tipo: globalThis.TIPOS_MENSAJE?.CHAT?.ESTADO_PADRE || 'CHAT.ESTADO_PADRE',
                         destino: 'hijo6-chat',
@@ -4938,7 +4938,7 @@
                     await globalThis.__cargarDatosAventuraDiferidos();
                 }
 
-                // La restauración de sesión nunca pasa por P14 — _hdl_SELECCION_P14_MOSTRADA
+                // La restauración de sesión nunca pasa por P15 — _hdl_SELECCION_P15_MOSTRADA
                 // es el ÚNICO otro sitio que carga hijo1-5 (los iframes hijo contienen lógica
                 // de pago y no se cargan antes). Sin esto, ningún iframe tiene src asignado
                 // aquí y nadie les diría que carguen. Los cargadores no terminan hasta que cada
@@ -5615,7 +5615,7 @@
             // Si ya está activo, no hacer nada — comprobación barata AL PRINCIPIO,
             // antes de esperar a hijo2 o comprobar permisos. activarGPS() puede
             // llamarse desde varios sitios que no se coordinan entre sí en tiempo real
-            // (P14, botón de hijo2, _gestionarGpsSegunModo como red de seguridad tras
+            // (P15, botón de hijo2, _gestionarGpsSegunModo como red de seguridad tras
             // CAMBIO_MODO) — si dos de ellos coinciden, que la segunda llamada resuelva
             // en el acto en vez de repetir 5s de espera de hijo2 y la comprobación de
             // permisos para nada. No depende de que el orden de ejecución sea exacto:
@@ -6506,8 +6506,8 @@
         function showGpsSignalOverlay(errorCode, mensajeError) {
             try {
                 const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
-                // Mostrar en AVENTURA o cuando el código ya fue validado en P13 (fase previa a aventura)
-                if (modoActual !== MODOS.AVENTURA && !globalThis._codigoValidadoP13) return;
+                // Mostrar en AVENTURA o cuando el código ya fue validado en P14 (fase previa a aventura)
+                if (modoActual !== MODOS.AVENTURA && !globalThis._codigoValidadoP14) return;
                 _ensureGpsSignalOverlay();
                 const el = document.getElementById('gps-signal-overlay');
                 if (!el) return;
@@ -7330,14 +7330,14 @@
                     // AVENTURA — nada la limpiaba al cambiar de modo, así que se quedaba pegada
                     // en pantalla en CASA junto al 🛸 simulado (reporte de uso real 2026-08-17).
                     try { globalThis.funcionesMapa?.limpiarPolylineNavegacion?.(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                    // _codigoValidadoP13 se pone a true justo antes de activarGPS() en P14
+                    // _codigoValidadoP14 se pone a true justo antes de activarGPS() en P15
                     // (guard para que showGpsSignalOverlay() no se calle si el GPS falla ahí,
                     // antes de que el modo esté decidido) y nunca se resetea después — sin
                     // esto, el overlay de "sin señal GPS" se sigue mostrando en CASA para
                     // siempre, aunque CASA no necesite GPS. Al confirmar CASA, se resetea:
-                    // protege al cliente real durante la ventana de P14, sin seguir
+                    // protege al cliente real durante la ventana de P15, sin seguir
                     // interfiriendo una vez se sabe con certeza que estamos en CASA.
-                    globalThis._codigoValidadoP13 = false;
+                    globalThis._codigoValidadoP14 = false;
                     // estado.retoActual (id/cola) es del elemento de
                     // AVENTURA que se dejó atrás — nada lo reseteaba al cambiar de modo (mismo
                     // patrón que idParadaActual en hijo2, reporte de uso real 2026-08-17). Se
@@ -7635,7 +7635,7 @@
         // ============================================================
         // CARGADOR DE HIJOS: el único
         // Lo usan la selección (cargarIframeSoloSeleccion), hijo5 (cargarHijoCasa) y los demás hijos de la aventura
-        // (cargarRestoDeiframes); y esas tres, a su vez, todos los flujos que cargan hijos: el arranque, P14, la reanudación de
+        // (cargarRestoDeiframes); y esas tres, a su vez, todos los flujos que cargan hijos: el arranque, P15, la reanudación de
         // sesión y la ruta fallback de SELECCION.AVENTURA_ACTIVADA.
         // ============================================================
 
@@ -7844,9 +7844,9 @@
                         //
                         // El índice NO es contenido de pago: son 6 KB de catálogo (nombres,
                         // duración, disponibilidad) que las pantallas gratuitas necesitan para
-                        // listar aventuras. Por eso se carga aquí y no espera a P14 — a
+                        // listar aventuras. Por eso se carga aquí y no espera a P15 — a
                         // diferencia de coordenadas, audios, retos, mapas vintage y puzzles, que
-                        // sí lo son y siguen cargándose en P14 (§7.1).
+                        // sí lo son y siguen cargándose en P15 (§7.1).
                         if (!globalThis.__vv_INDICE_AVENTURAS) {
                             try {
                                 const { INDICE_AVENTURAS: _IDX, MAPEO_IDIOMAS: _MAP } = await import('./js/indice-aventuras.js');
@@ -7919,18 +7919,18 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).success(`${logPrefix} ✅ Mensajería validada`);
 
                 // ============================================================
-                // 📦 FASE 2 (datos de aventura): NO se ejecuta aqui — se ejecuta en P14.
+                // 📦 FASE 2 (datos de aventura): NO se ejecuta aqui — se ejecuta en P15.
                 // ============================================================
                 // Aqui habia una llamada a __cargarDatosAventuraDiferidos() sin condicion
                 // alguna. Medido: dejaba las 7 aventuras en memoria —coordenadas, audios,
                 // indice, mapas vintage, puzzles— con `aventuraSeleccionada` vacia y
-                // `_codigoValidadoP13` en false. Es decir, antes de pagar.
+                // `_codigoValidadoP14` en false. Es decir, antes de pagar.
                 //
                 // Las pantallas anteriores a P12 son gratuitas: no deben descargar contenido
-                // de pago. La carga pertenece a _hdl_SELECCION_P14_MOSTRADA, que ya la hace
-                // en paralelo con los iframes y el GPS (§7.1, modelo P14).
+                // de pago. La carga pertenece a _hdl_SELECCION_P15_MOSTRADA, que ya la hace
+                // en paralelo con los iframes y el GPS (§7.1, modelo P15).
                 //
-                // Era ademas redundante: P14 la llamaba igual, y el corto-circuito de "ya
+                // Era ademas redundante: P15 la llamaba igual, y el corto-circuito de "ya
                 // cargado" hacia que la segunda vez no hiciera nada.
                 //
                 // Los lectores de __vv_DATOS_AVENTURAS estan cubiertos: todos usan `?.` y
@@ -7947,7 +7947,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).success(`${logPrefix} ✅ FASE 3.1 COMPLETADA - Iframe de selección cargado`);
 
                 // Los iframes hijo (hijo1-5) NO se cargan aquí — contienen lógica de pago.
-                // Se cargan en _hdl_SELECCION_P14_MOSTRADA, tras validación del código en P13.
+                // Se cargan en _hdl_SELECCION_P15_MOSTRADA, tras validación del código en P14.
 
                 // 5. Marcar sistema como inicializado
                 globalThis.sistemaInicializado = true;
@@ -8150,7 +8150,7 @@ await _comprobarReanudacionAventura(logPrefix);
             document.getElementById('btn-fin-terminar').onclick = async () => {
                 _desarmarAbandonoFin();
                 await _enviarValoracionFinal();
-                (globalThis.logger || console).info('[PADRE][MODAL_FIN] Usuario eligió TERMINAR experiencia → P17 despedida');
+                (globalThis.logger || console).info('[PADRE][MODAL_FIN] Usuario eligió TERMINAR experiencia → P18 despedida');
                 modal.remove();
                 globalThis.location.href = 'En-busca-del-tesoro.html?despedida=1';
             };
@@ -11041,7 +11041,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // del recordatorio "pulse play"/"pulse saltar" (10s, §25.5c/f) se arriesgaría a una
         // carrera real: agotar los reintentos justo después de que el recordatorio ya
         // hubiera arrancado apagaría uno que no tocaba, por una alarma que en producción
-        // (hijo3 real, siempre listo tras P14) se resuelve en milisegundos.
+        // (hijo3 real, siempre listo tras P15) se resuelve en milisegundos.
         const MAX_REINTENTOS_ENVIO_AUDIO = 2;
         async function _enviarAudioRequestConReintento(datosMensaje, logPrefix) {
             for (let intento = 1; intento <= MAX_REINTENTOS_ENVIO_AUDIO; intento++) {
@@ -12369,9 +12369,9 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         function _hdl_SELECCION_REINICIAR() {
-            globalThis._codigoValidadoP13 = false;
-            globalThis._iframesPreCargadosP14 = false;
-            (globalThis.logger || console).info('[PADRE][SELECCION.REINICIAR] Flags P13/P14 reseteados — NO en R2');
+            globalThis._codigoValidadoP14 = false;
+            globalThis._iframesPreCargadosP15 = false;
+            (globalThis.logger || console).info('[PADRE][SELECCION.REINICIAR] Flags P14/P15 reseteados — NO en R2');
         }
 
         let _aventuraEnProceso = false; // guard contra double-fire de AVENTURA_SELECCIONADA/ACTIVADA
@@ -12397,9 +12397,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); }
                 (globalThis.logger || console).debug(`${logPrefix} Aventura almacenada en estado global: ${aventura}`);
 
-                // Limpiar flags de P13/P14 para esta selección de aventura
-                globalThis._codigoValidadoP13 = false;
-                globalThis._iframesPreCargadosP14 = false;
+                // Limpiar flags de P14/P15 para esta selección de aventura
+                globalThis._codigoValidadoP14 = false;
+                globalThis._iframesPreCargadosP15 = false;
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando selección de aventura:`, error, error?.stack);
@@ -12426,14 +12426,14 @@ await _comprobarReanudacionAventura(logPrefix);
 
         async function _hdl_SELECCION_CODIGO_VALIDADO(_mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[CODIGO_VALIDADO]`;
-            // P13 validó el código — GPS, iframes y datos se activan en P14_MOSTRADA
-            (globalThis.logger || console).info(`${logPrefix} ✅ Código validado — carga delegada a P14_MOSTRADA`);
+            // P14 validó el código — GPS, iframes y datos se activan en P15_MOSTRADA
+            (globalThis.logger || console).info(`${logPrefix} ✅ Código validado — carga delegada a P15_MOSTRADA`);
         }
 
-        async function _hdl_SELECCION_P14_MOSTRADA(_mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[P14_MOSTRADA]`;
-            if (globalThis._iframesPreCargadosP14) {
-                (globalThis.logger || console).info(`${logPrefix} ⏭️ Ya cargado desde P14 — ignorando duplicado`);
+        async function _hdl_SELECCION_P15_MOSTRADA(_mensaje) {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[P15_MOSTRADA]`;
+            if (globalThis._iframesPreCargadosP15) {
+                (globalThis.logger || console).info(`${logPrefix} ⏭️ Ya cargado desde P15 — ignorando duplicado`);
                 return;
             }
             try {
@@ -12447,7 +12447,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // GPS se activa DESPUÉS de los iframes, en prod y en dev por igual: una vez
                 // encendido nunca se apaga al cambiar de modo (ver estadoMapa.modo !== AVENTURA
                 // en funciones-mapa.js:procesarPosicionGPSParaAventura — esa es la barrera real,
-                // no el watch), así que encenderlo ya en P14 evita el coste de reingresar
+                // no el watch), así que encenderlo ya en P15 evita el coste de reingresar
                 // GPS más tarde y deja el dev mode fiel al comportamiento de producción.
                 // El flag se pone AQUÍ, en cuanto el Promise.all de arriba termina, porque
                 // eso es exactamente lo que su nombre afirma: los iframes están precargados.
@@ -12464,10 +12464,10 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Si el GPS está listo o no es otra pregunta, y los dos únicos lectores del
                 // flag (el return temprano de esta misma función y el `if` de
                 // AVENTURA_ACTIVADA) solo necesitan saber lo de los iframes.
-                globalThis._iframesPreCargadosP14 = true;
+                globalThis._iframesPreCargadosP15 = true;
                 (globalThis.logger || console).info(`${logPrefix} ✅ Iframes + datos listos para AVENTURA_ACTIVADA`);
 
-                globalThis._codigoValidadoP13 = true; // guard para showGpsSignalOverlay
+                globalThis._codigoValidadoP14 = true; // guard para showGpsSignalOverlay
                 try {
                     await activarGPS();
                 } catch (gpsErr) {
@@ -12477,7 +12477,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
                 (globalThis.logger || console).info(`${logPrefix} ✅ GPS activo`);
             } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} ❌ Error en P14_MOSTRADA:`, error, error?.stack);
+                (globalThis.logger || console).error(`${logPrefix} ❌ Error en P15_MOSTRADA:`, error, error?.stack);
             }
         }
 
@@ -12543,13 +12543,13 @@ await _comprobarReanudacionAventura(logPrefix);
                 globalThis.aventuraSeleccionada = aventura;
                 globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado || 'es';
 
-                if (globalThis._iframesPreCargadosP14) {
-                    // Iframes cargados desde P14 — saltamos recarga para no destruir su estado
-                    (globalThis.logger || console).info(`${logPrefix} ✅ Iframes pre-cargados desde P14 — saltando recarga`);
-                    globalThis._iframesPreCargadosP14 = false;
+                if (globalThis._iframesPreCargadosP15) {
+                    // Iframes cargados desde P15 — saltamos recarga para no destruir su estado
+                    (globalThis.logger || console).info(`${logPrefix} ✅ Iframes pre-cargados desde P15 — saltando recarga`);
+                    globalThis._iframesPreCargadosP15 = false;
                     updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
                 } else {
-                    // Ruta fallback: reanudación de sesión o P14 no disparó (recargar todo)
+                    // Ruta fallback: reanudación de sesión o P15 no disparó (recargar todo)
                     (globalThis.logger || console).info(`${logPrefix} 📦 Cargando iframes hijos (ruta fallback)...`);
                     await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()]);
                     (globalThis.logger || console).success(`${logPrefix} ✅ Iframes hijos cargados`);
@@ -12621,6 +12621,23 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
+        // El código de compra empieza a contar cuando arranca el reloj de la aventura, no cuando se escribe: en
+        // la pantalla del código solo se comprueba. Solo hay a quién avisar con backend (modo 'api'). El servidor
+        // guarda la primera fecha y contesta siempre la misma, así que avisar otra vez —al reanudar la aventura
+        // tras recargar— no cambia nada. Un fallo se dice en voz alta y no para la aventura.
+        async function _avisarInicioDeAventuraAlServidor(aventura, logPrefix) {
+            try {
+                const { getDataMode, asegurarModo } = await import('./js/data-loader.js');
+                await asegurarModo();
+                if (getDataMode() !== 'api') return;
+                const { ApiClient } = await import('./js/api-client.js');
+                await ApiClient.activar(aventura);
+                (globalThis.logger || console).info(`${logPrefix} ⏱️ El servidor ha registrado el inicio de ${aventura}`);
+            } catch (e) {
+                (globalThis.logger || console).error(`${logPrefix} ❌ El servidor no ha registrado el inicio de ${aventura}:`, e?.message || e);
+            }
+        }
+
         async function _iniciarTemporizadorAventura(aventura, idioma, estado, logPrefix, tiempoRestanteOverride, timestampInicioRest) {
             const modoActual = estado.modo?.actual || MODOS.CASA;
             if (globalThis._devModeActivo) {
@@ -12633,6 +12650,10 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).info(`${logPrefix} 🏠 Modo CASA detectado → Timer NO iniciado (desarrollo sin tiempo límite)`);
                 return;
             }
+            // Aquí arranca el reloj de la aventura, y con él empieza a contar el código de compra: hasta este
+            // punto el código solo se ha comprobado (pantalla del código de la selección). No se espera la
+            // respuesta: el reloj de pantalla no depende de ella.
+            void _avisarInicioDeAventuraAlServidor(aventura, logPrefix);
             try {
                 _cancelarTimerAnteriorSiCambia(aventura, logPrefix);
                 const indiceAventuras = globalThis.__vv_INDICE_AVENTURAS;
@@ -12773,7 +12794,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.CODIGO_VALIDADO, _hdl_SELECCION_CODIGO_VALIDADO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.P14_MOSTRADA, _hdl_SELECCION_P14_MOSTRADA, { permanente: true });
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.P15_MOSTRADA, _hdl_SELECCION_P15_MOSTRADA, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA, _hdl_SELECCION_AVENTURA_ACTIVADA, { permanente: true });
 
@@ -12899,10 +12920,10 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                         await _limpiarYRecargarTiempoAgotado('timeout');
                     };
 
-                    // "Terminar esta experiencia": mismo camino emotivo que el modal de fin de aventura normal (P17 despedida)
+                    // "Terminar esta experiencia": mismo camino emotivo que el modal de fin de aventura normal (P18 despedida)
                     document.getElementById('btn-tiempo-agotado-terminar').onclick = () => {
                         _desarmarAbandonoTiempoAgotado();
-                        (globalThis.logger || console).info(`${logPrefix} Usuario eligió TERMINAR experiencia → P17 despedida`);
+                        (globalThis.logger || console).info(`${logPrefix} Usuario eligió TERMINAR experiencia → P18 despedida`);
                         modalTiempoAgotado.remove();
                         globalThis.location.href = 'En-busca-del-tesoro.html?despedida=1';
                     };

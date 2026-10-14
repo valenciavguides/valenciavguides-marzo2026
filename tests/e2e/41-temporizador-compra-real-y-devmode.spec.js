@@ -38,7 +38,7 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
-    // Los datos de aventura ya NO se cargan en el arranque: pertenecen a P14, porque las
+    // Los datos de aventura ya NO se cargan en el arranque: pertenecen a P15, porque las
     // pantallas anteriores son gratuitas y no deben descargar contenido de pago (§7.1).
     // Este spec necesita el índice, así que lo pide explícitamente — como ya hacían los
     // otros 16 specs que leen datos.
@@ -61,7 +61,7 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
       const capturados = [];
       const iframe = document.getElementById('hijo1-opciones');
       // En producción, hijo1-opciones siempre está registrado en el bus antes de que esta
-      // función pueda dispararse (llega solo tras P14). Este test la llama directo, así que
+      // función pueda dispararse (llega solo tras P15). Este test la llama directo, así que
       // hay que registrarlo a mano — si no, el envío (que desde el paso 4 va por el bus) se
       // descarta como destino desconocido y postMessage no llega a llamarse nunca.
       globalThis.registrarIframeHijo('hijo1-opciones', iframe);
@@ -89,7 +89,7 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
       const capturados = [];
       const iframe = document.getElementById('hijo1-opciones');
       // En producción, hijo1-opciones siempre está registrado en el bus antes de que esta
-      // función pueda dispararse (llega solo tras P14). Este test la llama directo, así que
+      // función pueda dispararse (llega solo tras P15). Este test la llama directo, así que
       // hay que registrarlo a mano — si no, el envío (que desde el paso 4 va por el bus) se
       // descarta como destino desconocido y postMessage no llega a llamarse nunca.
       globalThis.registrarIframeHijo('hijo1-opciones', iframe);
@@ -112,7 +112,7 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
       const capturados = [];
       const iframe = document.getElementById('hijo1-opciones');
       // En producción, hijo1-opciones siempre está registrado en el bus antes de que esta
-      // función pueda dispararse (llega solo tras P14). Este test la llama directo, así que
+      // función pueda dispararse (llega solo tras P15). Este test la llama directo, así que
       // hay que registrarlo a mano — si no, el envío (que desde el paso 4 va por el bus) se
       // descarta como destino desconocido y postMessage no llega a llamarse nunca.
       globalThis.registrarIframeHijo('hijo1-opciones', iframe);

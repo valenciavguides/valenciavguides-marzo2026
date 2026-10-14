@@ -63,7 +63,7 @@ async function prepararAventura(page) {
 
 /** Abre el asistente y despliega su FAQ, dejando el botón de rescate a la vista. */
 async function abrirAsistenteConBoton(page) {
-  // Los hijos se cargan juntos, el asistente entre ellos (como en P14); su botón solo lo enseña.
+  // Los hijos se cargan juntos, el asistente entre ellos (como en P15); su botón solo lo enseña.
   await cargarHijosDelPadre(page);
   await page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
   await page.waitForFunction(

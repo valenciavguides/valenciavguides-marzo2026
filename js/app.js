@@ -714,7 +714,7 @@ async function limpiarRecursosPorModo(estado, modo, opciones = {}, restaurado = 
         estado.elementoActual = null;
 
         // Resetear estado GPS — NUNCA tocar aquí estado.gps.activo ni estado.gps.watchId.
-        // watchPosition() se enciende una sola vez en P14 y no se apaga al cambiar de modo
+        // watchPosition() se enciende una sola vez en P15 y no se apaga al cambiar de modo
         // (ver docs/GUIA-COMPLETA.md §2.15/§2.6 y "Fuente única de verdad del estado GPS") —
         // el modo solo decide si las posiciones fuerzan avance automático (comprobación en
         // funciones-mapa.js:procesarPosicionGPSParaAventura), no si el sensor está encendido.
