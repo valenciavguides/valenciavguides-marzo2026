@@ -18,6 +18,11 @@
  * SISTEMA.PADRE_DATOS que lleva el idioma, con el FAQ construyéndose siempre en español
  * aunque `idiomaSeleccionado` fuera otro.
  *
+ * CH-3 — Lo que el padre entrega al asistente (el PADRE_DATOS del apretón de manos y el
+ * CHAT.ESTADO_PADRE de cada apertura) lleva solo los campos que `chat-hijo6.html` lee: el
+ * idioma, el estado del rescate y el contexto del buzón de sugerencias (aventura y parada).
+ * Un campo que nadie lee es un dato que se calcula y viaja para nada.
+ *
  * Los dos casos se ejercitan por el camino real (posición GPS entrante, carga de los
  * hijos) y no llamando a las funciones del arreglo: el fallo original nunca fue que esas
  * funciones no hicieran su trabajo, sino que nadie las invocaba en el momento que tocaba.
@@ -399,5 +404,42 @@ test.describe('CH — El chat es alcanzable desde el padre', () => {
       datos: { timestamp: Date.now() }
     }));
     expect(entregado, 'un envío a hijo6-chat ya no puede caer en "Iframe no encontrado o sin contentWindow"').not.toBe(false);
+  });
+
+  test('CH-3. El estado que el padre entrega al asistente lleva solo lo que el asistente lee', async ({ page, context }) => {
+    // Se escucha dentro del propio asistente, antes de que arranque su código, para ver lo que de verdad
+    // le llega por el camino real: el PADRE_DATOS del apretón de manos y el CHAT.ESTADO_PADRE de su botón.
+    // El filtro se aplica al llegar cada mensaje y no al instalarse: en firefox el script de inicio de un
+    // iframe corre con el iframe todavía en blanco, y esa ventana se reutiliza al cargar la página real.
+    await page.addInitScript(() => {
+      if (globalThis.__recibidoPorElAsistente) return;
+      globalThis.__recibidoPorElAsistente = [];
+      globalThis.addEventListener('message', (evento) => {
+        if (!globalThis.location.pathname.endsWith('/chat-hijo6.html')) return;
+        const tipo = evento.data?.tipo;
+        if (tipo === 'SISTEMA.PADRE_DATOS' || tipo === 'CHAT.ESTADO_PADRE') {
+          globalThis.__recibidoPorElAsistente.push({ tipo, claves: Object.keys(evento.data.datos || {}).sort() });
+        }
+      }, true);
+    });
+    await arrancar(page, context);
+    await page.waitForFunction(() => !!document.getElementById('btn-chat-soporte') && !!globalThis.mensajeria, null, { timeout: 25000 });
+    await cargarHijosDelPadre(page);
+
+    const asistente = page.frames().find(f => f.url().endsWith('/chat-hijo6.html'));
+    expect(asistente, 'el asistente se carga con los demás hijos').toBeTruthy();
+    await page.evaluate(() => document.getElementById('btn-chat-soporte').click());
+    const recibido = () => asistente.evaluate(() => globalThis.__recibidoPorElAsistente || []);
+    await expect.poll(async () => (await recibido()).map(r => r.tipo), { timeout: 10000, message: 'al pulsar su botón, el asistente recibe el estado de ahora' })
+      .toContain('CHAT.ESTADO_PADRE');
+
+    // Lo que hijo6 lee de ese estado: el idioma, el rescate y el contexto del buzón (aventura y parada).
+    const lee = ['aventura', 'idioma', 'paradaActualNombre', 'rescate'];
+    const mensajes = await recibido();
+    expect(
+      mensajes.find(m => m.tipo === 'SISTEMA.PADRE_DATOS')?.claves,
+      'el apretón de manos lleva el modo y la hora, como a todos los hijos, y solo lo que el asistente lee'
+    ).toEqual([...lee, 'modo', 'timestamp'].sort());
+    expect(mensajes.find(m => m.tipo === 'CHAT.ESTADO_PADRE')?.claves, 'al abrirlo, solo lo que el asistente lee').toEqual(lee);
   });
 });

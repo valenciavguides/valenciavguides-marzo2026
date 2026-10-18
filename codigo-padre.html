@@ -1502,12 +1502,12 @@
                     let ep     = globalThis.estadoPadre || {};
                     let paradas = globalThis.AVENTURA_PARADAS || [];
                     let idx    = (typeof ep.indiceProgreso === 'number') ? ep.indiceProgreso : 0;
+                    // Lo que el asistente lee de este estado, y nada más: el idioma, el estado del rescate y el
+                    // contexto del buzón de sugerencias (aventura y parada). Lo vigila CH-3 del spec 47.
                     return {
                         idioma:               globalThis.idiomaSeleccionado || ep.idioma || 'es',
                         aventura:             globalThis.aventuraSeleccionada || '',
                         paradaActualNombre:   paradas[idx]?.nombre  || '',
-                        siguienteParadaNombre: paradas[idx + 1]?.nombre || '',
-                        paradasRestantes:     Math.max(0, paradas.length - 1 - idx),
                         rescate:              _estadoRescateParaChat()
                     };
                 }
