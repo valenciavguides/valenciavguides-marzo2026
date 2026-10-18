@@ -71,13 +71,16 @@ test.describe('LH/RC2 — Latido sin auto-mensajes muertos; recuperación por el
 
   test('RC2-1. La recuperación de hijo2 pasa por despacharLocal(NAVEGACION.CAMBIO_PARADA), no por un envío directo', async ({ page }) => {
     // Poner al padre en una parada conocida por el camino real, para que el snapshot tenga algo que restaurar.
+    // Las precondiciones son aserciones, no omisiones: si fallan, el test lo dice en vez de desaparecer.
     const disponible = await page.evaluate(() => typeof globalThis._vv_beforeHijoReload === 'function' && typeof globalThis._vv_afterHijoListo === 'function');
-    test.skip(!disponible, 'snapshot de recuperación no disponible');
+    expect(disponible, 'el snapshot de recuperación (_vv_beforeHijoReload / _vv_afterHijoListo) está publicado').toBe(true);
 
+    // La aventura elegida va primero, como en la app: sin ella el padre no cambia de parada (docs/estudio-caminos.md, K-52).
+    await page.evaluate(() => { globalThis.aventuraSeleccionada = 'Aventura1'; globalThis.idiomaSeleccionado = 'es'; });
     await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'aventura' } }));
     await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: 'Av1-P-0' } }));
     const paradaActual = await page.evaluate(() => globalThis.estado?.paradaActual || null);
-    test.skip(!paradaActual, 'sin paradaActual tras entrar en AVENTURA — no se puede montar el snapshot');
+    expect(paradaActual, 'el padre está en la parada pedida: sin ella no hay snapshot que restaurar').toBe('Av1-P-0');
 
     await page.evaluate(() => globalThis._vv_beforeHijoReload('hijo2'));
 

@@ -23,6 +23,9 @@
  *         distinto (intro / audio-Av1-P-0-es / audio-Av1-P-1-es).
  *   PP-3  distribuirDatosAventura() ya no reporta 'audios'/'retos' — el
  *         broadcast masivo (DATOS.CARGAR_AUDIOS/CARGAR_RETOS) está retirado.
+ *   PP-4  Sin aventura elegida, un cambio de parada no se resuelve contra ninguna
+ *         otra (ni una guardada en el navegador ni Aventura1): no cambia la parada,
+ *         contesta el error y lo dice en la consola.
  */
 'use strict';
 
@@ -143,5 +146,26 @@ test.describe('PP — Protección pasiva por parada (audio/reto en línea, sin b
     expect(resultado.resultados).not.toContain('retos');
     // Coordenadas y textos SÍ siguen siendo bulk — no forman parte de esta protección.
     expect(resultado.resultados).toContain('coordenadas');
+  });
+
+  test('PP-4. Sin aventura elegida, un cambio de parada no se resuelve contra ninguna otra', async ({ page }) => {
+    const errores = [];
+    page.on('console', (msg) => { if (msg.type() === 'error') errores.push(msg.text()); });
+    await esperarPipelineListo(page);
+    const antes = await page.evaluate(() => globalThis.estado?.paradaActual ?? null);
+
+    // Dos formas de que falte: con otra aventura guardada en el navegador, y sin ninguna (la de reserva sería Aventura1).
+    for (const { guardada, paradaId } of [{ guardada: 'Aventura2', paradaId: 'Av2-P-1' }, { guardada: null, paradaId: 'Av1-P-1' }]) {
+      const resultado = await page.evaluate(async ({ guardada: g, paradaId: id }) => {
+        globalThis.aventuraSeleccionada = null;
+        try { if (g) localStorage.setItem('vv_aventura', g); else localStorage.removeItem('vv_aventura'); } catch (_e) { /* sin almacenamiento */ }
+        return globalThis.mensajeria.despacharLocal({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: {
+          paradaId: id, parada_id: id, padreId: `padre-${id}`, padreid: `padre-${id}`, timestamp: Date.now(),
+        } });
+      }, { guardada, paradaId });
+      expect(resultado, `${paradaId}: el padre contesta que no hay aventura elegida`).toEqual({ exito: false, error: 'sin_aventura_elegida' });
+      expect(await page.evaluate(() => globalThis.estado?.paradaActual ?? null), `${paradaId}: la parada no cambia`).toBe(antes);
+      await expect.poll(() => errores.some((t) => t.includes(`el cambio a ${paradaId} no se aplica`)), { timeout: 5000, message: `${paradaId}: lo dice en la consola` }).toBe(true);
+    }
   });
 });

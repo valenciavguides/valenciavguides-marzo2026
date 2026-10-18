@@ -4557,7 +4557,6 @@
                         localStorage.removeItem('vv_progreso');
                         localStorage.removeItem('vv_paradas_completadas');
                         localStorage.removeItem('vv_idioma');
-                        localStorage.removeItem('vv_aventura');
                     } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
                     // Resetear globals
                     globalThis.aventuraSeleccionada = null;
@@ -4670,7 +4669,6 @@
                         localStorage.removeItem('vv_progreso');
                         localStorage.removeItem('vv_paradas_completadas');
                         localStorage.removeItem('vv_idioma');
-                        localStorage.removeItem('vv_aventura');
                     } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
                     // Sin aventura guardada, se recarga la página: lo mismo que hace «otra aventura» en el modal
                     // de fin y en el de tiempo agotado. Aquí la aventura SÍ estaba en curso, así que hay estado
@@ -11547,6 +11545,15 @@ await _comprobarReanudacionAventura(logPrefix);
                     };
                 }
 
+                // La aventura es la que eligió el usuario, y solo esa: sin ella no hay a qué parada cambiar, y no
+                // se busca en otro sitio ni se inventa una (docs/estudio-caminos.md, K-52). Se comprueba antes de
+                // tocar el estado, para que un cambio que no se aplica no deje nada a medias.
+                const _av = globalThis.aventuraSeleccionada;
+                if (!_av) {
+                    (globalThis.logger || console).error(`${logPrefix} No hay aventura elegida: el cambio a ${paradaId} no se aplica`);
+                    return { exito: false, error: 'sin_aventura_elegida' };
+                }
+
                 // Al entrar en cualquier parada/tramo nuevo, limpiar el flag de confirmación
                 // de avance GPS (puede haber quedado activo si se cambió de parada manualmente)
                 estado.paradaListaParaAvanzar = false;
@@ -11556,13 +11563,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 // - hijo5 envía "padre-P-5" (padre-{coord.id} donde coord.id="P-5")
                 // - DATOS_PADRE tiene padreid="padre-P5", parada_id="P-5", tramo_id="TR-5"
                 const idSinPrefijo = paradaId.startsWith('padre-') ? paradaId.substring(6) : paradaId;
-                const _avRaw = globalThis.aventuraSeleccionada
-                    || (() => { try { return localStorage.getItem('vv_aventura'); } catch (_e) { return null; } })()
-                    || 'Aventura1';
                 const _idiomaRaw = globalThis.idiomaSeleccionado
                     || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })()
                     || 'es';
-                const _av = _avRaw;
                 const _idioma = DATOS_PADRE?.[_av]?.[_idiomaRaw] ? _idiomaRaw : 'es';
                 const _elementosIDpadre = DATOS_PADRE?.[_av]?.[_idioma]?.elementosIDpadre;
                 if (!_elementosIDpadre) {
@@ -12493,7 +12496,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 globalThis.aventuraSeleccionada = aventura;
                 globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado || 'es';
                 try {
-                    localStorage.setItem('vv_aventura', aventura);
                     localStorage.setItem('vv_idioma', idioma || globalThis.idiomaSeleccionado || 'es');
                 } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); }
                 (globalThis.logger || console).debug(`${logPrefix} Aventura almacenada en estado global: ${aventura}`);
