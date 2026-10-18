@@ -3827,7 +3827,10 @@
 
         // Exponer alias críticos en `window` para que otros bloques de
         // script (Script 2 u otros) que esperan nombres sin sufijo
-        // puedan acceder a ellos sin provocar ReferenceErrors.
+        // puedan acceder a ellos sin provocar ReferenceErrors. Es el único sitio que los
+        // publica: Script 2 no pasa de su espera inicial hasta ver `globalThis.estadoPadre`,
+        // que se publica más abajo, así que los encuentra siempre puestos (medido en
+        // chromium, firefox e iphone12; docs/estudio-caminos.md, K-104). Lo vigila CI-6 del spec 11.
         if (globalThis.window !== undefined) {
             if (globalThis.TIPOS_MENSAJE === undefined) globalThis.TIPOS_MENSAJE = TIPOS_MENSAJE;
             if (globalThis.MODOS === undefined) globalThis.MODOS = MODOS;
@@ -9327,7 +9330,7 @@ await _comprobarReanudacionAventura(logPrefix);
         if (!globalThis.mensajeria?.enviarMensaje) {
             throw new Error('[PADRE Script2] mensajeria no disponible tras 10s — Script 2 abortado: sus controladores (reto, audio, parada) no se registran');
         }
-        const { registrarControlador: registrarControlador_S2, enviarMensaje: enviarMensaje_S2 } = globalThis.mensajeria;
+        const { enviarMensaje: enviarMensaje_S2 } = globalThis.mensajeria;
         // Capturar la implementación de Script 1 ANTES de importar app.js — ese módulo asigna
         // su propio globalThis.registrarEvento en su top-level (misma propiedad, formato de log
         // distinto), y sobrescribiría la de Script 1 si se leyera después del import (auditoría).
@@ -9497,14 +9500,6 @@ await _comprobarReanudacionAventura(logPrefix);
             _resolveDistribuirReady();
             (globalThis.logger || console).info('[PADRE] ✅ distribuirDatosAventura disponible globalmente');
         }
-
-        // Safe aliases for common messaging symbols in Script 2 (only define if not already present on window)
-        if (globalThis.TIPOS_MENSAJE === undefined) { globalThis.TIPOS_MENSAJE = TIPOS_MENSAJE_S2; }
-        if (globalThis.MODOS === undefined) { globalThis.MODOS = MODOS_S2; }
-        if (globalThis.registrarControlador === undefined) { globalThis.registrarControlador = registrarControlador_S2 || globalThis.registrarControlador; }
-        if (globalThis.enviarMensaje === undefined) { globalThis.enviarMensaje = enviarMensaje_S2 || globalThis.enviarMensaje; }
-        if (globalThis.ajustarTimeoutPorConexion === undefined) { globalThis.ajustarTimeoutPorConexion = ajustarTimeoutPorConexion_S2 || globalThis.ajustarTimeoutPorConexion; }
-
 
         // ============================================================
         // FUNCIONES AUXILIARES DE PROGRESIÓN DE AVENTURA
@@ -13502,7 +13497,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         // tenia 22 de 65, y faltaban los de esta funcion — SISTEMA.ERROR entre ellos. Lo fija el spec 89.
         const _registroControladoresScript2 = (async function registrarControladoresScript2() {
             await _setupRegistrarControladores();
-            const TIPOS_MENSAJE = globalThis.TIPOS_MENSAJE || TIPOS_MENSAJE_S2;
+            const TIPOS_MENSAJE = TIPOS_MENSAJE_S2;
             (globalThis.logger || console).info('[SCRIPT2] 🚀 Registrando controladores adicionales de Script 2...');
             _regCtrl_Reto(TIPOS_MENSAJE);
             _regCtrl_GPS(TIPOS_MENSAJE);

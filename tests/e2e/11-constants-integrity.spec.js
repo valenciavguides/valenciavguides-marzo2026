@@ -13,11 +13,18 @@
  *   CI-4    TIPOS_MENSAJE.CHAT.ESTADO_PADRE existe (usado por construirEstadoChat)
  *
  *   CI-5    limpiarDatosAventura y verificarTimeoutAventura expuestas (reciclaje-digital.js)
+ *
+ *   CI-6    Cada alias global (TIPOS_MENSAJE, MODOS, registrarControlador, enviarMensaje,
+ *           enviarMensajeConConfirmacion, ajustarTimeoutPorConexion) se publica como mucho en un
+ *           sitio de cada fichero. Un segundo «si no está» no corre nunca mientras el primero
+ *           funcione, y si el primero se rompiera lo taparía en silencio. Que existan lo vigila
+ *           el spec 02.
  */
 'use strict';
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
+const fs = require('fs');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
@@ -84,5 +91,29 @@ test.describe('CI — Integridad de constantes y funciones globales', () => {
   test('CI-5b. verificarTimeoutAventura está expuesta como función global', async ({ page }) => {
     const ok = await page.evaluate(() => typeof globalThis.verificarTimeoutAventura === 'function');
     expect(ok).toBe(true);
+  });
+});
+
+test.describe('CI-6 — Los alias globales se publican en un solo sitio', () => {
+  const RAIZ = path.resolve(__dirname, '../..');
+  const ALIAS = ['TIPOS_MENSAJE', 'MODOS', 'registrarControlador', 'enviarMensaje', 'enviarMensajeConConfirmacion', 'ajustarTimeoutPorConexion'];
+  // Una asignación `globalThis.X = …` (no una comparación `===`). `enviarMensaje` no casa con
+  // `enviarMensajeConConfirmacion` ni `ajustarTimeoutPorConexion` con su versión `Safe`: tras el nombre
+  // solo puede venir espacio o el `=`.
+  const asignaciones = (texto, nombre) => (texto.match(new RegExp(`globalThis\\.${nombre}\\s*=(?!=)`, 'g')) || []).length;
+  /** Los ficheros de producción que el navegador ejecuta: los HTML de la raíz y js/*.js (sin el servidor). */
+  const ficheros = () => [
+    ...fs.readdirSync(RAIZ).filter((f) => f.endsWith('.html')),
+    ...fs.readdirSync(path.join(RAIZ, 'js')).filter((f) => f.endsWith('.js') && f !== 'server.js').map((f) => `js/${f}`),
+  ];
+
+  test('CI-6. Cada alias se publica como mucho una vez por fichero', () => {
+    for (const rel of ficheros()) {
+      const texto = fs.readFileSync(path.join(RAIZ, rel), 'utf8');
+      for (const nombre of ALIAS) {
+        const n = asignaciones(texto, nombre);
+        expect(n, `${rel} publica globalThis.${nombre} en ${n} sitios`).toBeLessThanOrEqual(1);
+      }
+    }
   });
 });
