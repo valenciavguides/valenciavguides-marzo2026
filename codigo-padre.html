@@ -187,7 +187,11 @@
            En landscape: vmin = vh → mismo resultado que antes.
            En portrait mobile: vmin = vw → escala sobre el lado pequeño. */
         :root {
-            --franja-lateral: clamp(62px, 7.2vh, 80px);
+            /* El mínimo es el de un botón cómodo para el dedo (44 px), no más: en una pantalla baja, un
+               mínimo mayor alarga la columna de botones laterales y deja sin sitio a los desplegables
+               del tipo de mapa y de la brújula, que crecen hacia arriba desde su botón (en un iPhone 12
+               se veían 28 de 130 px con 62 px de mínimo). */
+            --franja-lateral: clamp(44px, 7.2vh, 80px);
             --franja-inferior: clamp(62px, 7.2vh, 80px);
             --audio-btn-central-size: calc((var(--franja-inferior) - 4px) * 1.03);
             --gap-inferior: calc(1.5rem + env(safe-area-inset-bottom, 0px));
@@ -1163,7 +1167,7 @@
         /* ── Mapas a pantalla completa ─────────────────────────────────────────────
            Un mapa se mira para orientarse, y ahí cualquier borde es superficie
            desperdiciada. Las fotos de monumentos siguen en su ventana con marco: esto
-           solo se aplica a lo que se abre con `fullHeight`, que son los dos mapas.
+           solo se aplica a lo que se abre con `fullHeight`, que es el mapa vintage.
 
            QUÉ ARREGLA. `.media-contenedor` mide `width: min(99vw, 99vmin)`, y `vmin` es el
            lado CORTO de la pantalla. En vertical da igual — el lado corto es el ancho —,
@@ -11022,34 +11026,19 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MOSTRAR_MAPA_COMPLETO][${mensaje?.origen || 'desconocido'}]`;
 
             try {
-                const { url, aventura } = mensaje.datos || {};
-
-                (globalThis.logger || console).info(`${logPrefix} Solicitud de mapa completo recibida — aventura: ${aventura}, url: ${url}`);
-
-                if (!url) {
-                    (globalThis.logger || console).warn(`${logPrefix} URL de mapa no proporcionada`);
-                    return { exito: false, error: 'URL de mapa no proporcionada' };
+                // La aventura del mapa la decide el padre, y solo él: la que eligió el usuario. hijo2 pide el
+                // mapa sin decir cuál; el mapa pide sus coordenadas sin decir cuál, y _hdl_MAPA_COMPLETO_SOLICITAR_DATOS
+                // le contesta con las de esta misma aventura (docs/estudio-caminos.md, K-107).
+                const aventura = globalThis.aventuraSeleccionada;
+                (globalThis.logger || console).info(`${logPrefix} Solicitud de mapa completo — aventura: ${aventura}`);
+                if (!aventura) {
+                    (globalThis.logger || console).error(`${logPrefix} No hay aventura elegida: el mapa completo no se abre`);
+                    return { exito: false, error: 'Sin aventura elegida' };
                 }
-
-                // Determinar si es imagen o iframe según la extensión
-                const esImagen = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-
-                // El título SE VE en pantalla y va también como texto alternativo de la
-                // imagen. Las dos ramas enseñan el MISMO mapa completo, así que dicen lo
-                // mismo: la de imagen ponía "Mapa vintage" por copia y pega del otro
-                // handler, y la de iframe solo "Mapa" — el usuario leía un título distinto
-                // según la extensión del fichero.
-                const tituloMapa = `Mapa completo — ${aventura || 'Aventura'}`;
-                if (esImagen) {
-                    globalThis.mostrarImagenOverlay(url, tituloMapa, null, null, { objectFit: 'fill', fullHeight: true });
-                } else {
-                    globalThis.mostrarIframeOverlay(url, tituloMapa);
-                }
-
-                return { exito: true, url, aventura };
-
+                globalThis.mostrarIframeOverlay('mapa-completo.html', `Mapa completo — ${aventura}`);
+                return { exito: true, aventura };
             } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error mostrando mapa vintage:`, error);
+                (globalThis.logger || console).error(`${logPrefix} Error mostrando el mapa completo:`, error);
                 return { exito: false, error: error.message };
             }
         }
@@ -11061,9 +11050,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 // importaba mapa-vintage-aventuras.js, resolvia la URL y se la mandaba aqui
                 // — el hijo se traia datos solo para pasarlos. Ahora pide, y el padre
                 // responde desde __vv_MAPAS_VINTAGE (Fase 2). Un solo camino (§22.12).
-                const aventura = mensaje.datos?.aventura
-                    || globalThis.aventuraSeleccionada
-                    || estado?.seleccion?.aventura;
+                // La aventura la decide el padre, como en el mapa completo: la elegida (K-107).
+                const aventura = globalThis.aventuraSeleccionada;
                 const url = globalThis.__vv_MAPAS_VINTAGE?.[aventura] || null;
                 (globalThis.logger || console).info(`${logPrefix} Solicitud de mapa vintage — aventura: ${aventura}, url: ${url}`);
                 if (!url) {
@@ -13432,8 +13420,9 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
          * El día del backend cambia solo esta lectura: los datos vendrán con token y
          * mapa-completo.html no se entera.
          */
-        async function _hdl_MAPA_COMPLETO_SOLICITAR_DATOS(mensaje) {
-            const av = mensaje?.datos?.aventura;
+        async function _hdl_MAPA_COMPLETO_SOLICITAR_DATOS(_mensaje) {
+            // Las coordenadas de la aventura elegida: el mapa no dice cuál (K-107).
+            const av = globalThis.aventuraSeleccionada;
             const coordenadas = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas;
             if (!Array.isArray(coordenadas) || coordenadas.length === 0) {
                 (globalThis.logger || console).error(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MAPA_COMPLETO] Sin coordenadas para ${av} — el mapa quedara vacio`);

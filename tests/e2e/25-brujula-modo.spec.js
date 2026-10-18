@@ -80,7 +80,7 @@ test.describe('BR — Menú de modo de cámara', () => {
       const btnPrincipalBrujula = document.querySelector('#brujula-modo > div:first-child');
       const btnPrincipalSelector = document.querySelector('#selector-tipo-mapa > div:first-child');
       // getComputedStyle().getPropertyValue('--franja-lateral') devuelve el texto crudo
-      // ("clamp(62px, 7.2vh, 80px)"), no un píxel resuelto — un custom property con
+      // (el clamp() tal cual), no un píxel resuelto — un custom property con
       // calc()/clamp() no se resuelve así. Sonda temporal: un div con
       // width:var(--franja-lateral) sí resuelve a píxeles reales en su computed style.
       const _sonda = document.createElement('div');

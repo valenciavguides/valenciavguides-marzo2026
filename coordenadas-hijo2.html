@@ -1054,21 +1054,12 @@ elementosDOM.btnMapaCompleto?.addEventListener('click', async () => {
     try {
         setBotonActivo('btnMapaCompleto');
 
-        // Enviar mensaje al padre para mostrar mapa completo
-        const aventuraActual = globalThis.__vv_aventuraActual
-            || (globalThis.parent && globalThis.parent !== globalThis && globalThis.parent.aventuraSeleccionada)
-            || (logger.warn('[hijo2] aventuraActual no disponible, usando Aventura1 como fallback'), 'Aventura1');
-        const urlMapaCompleto = 'mapa-completo.html?aventura=' + encodeURIComponent(aventuraActual);
+        // Solo pide el mapa: de qué aventura lo decide el padre, que es quien sabe cuál eligió el usuario
+        // (docs/estudio-caminos.md, K-107). Lo mismo el botón del mapa vintage, de abajo.
         await enviarMensaje({
             tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO,
             destino: 'padre',
-            datos: {
-                accion: 'mostrar-mapa-completo',
-                formato: 'html',
-                url: urlMapaCompleto,
-                aventura: aventuraActual,
-                mostrarTodo: true
-            }
+            datos: {}
         });
 
         actualizarEstado('Mapa completo', 'success');
@@ -1089,11 +1080,7 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
         await enviarMensaje({
             tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_VINTAGE,
             destino: 'padre',
-            datos: {
-                accion: 'mostrar-mapa-vintage',
-                formato: 'jpg',
-                aventura: globalThis.__vv_aventuraActual || null
-            }
+            datos: {}
         });
 
         logger.info('[hijo2] Solicitado mapa vintage al padre');
@@ -1672,7 +1659,6 @@ try {
 
             // Almacenar en estado global (igual que audios y retos)
             globalThis.__vv_coordenadasAventura = coordenadas;
-            globalThis.__vv_aventuraActual = aventura;
 
             logger.info(`${logPrefix} ✅ ${coordenadas.length} coordenadas almacenadas en globalThis.__vv_coordenadasAventura`);
 

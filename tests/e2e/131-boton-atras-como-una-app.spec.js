@@ -296,7 +296,7 @@ test.describe('BA — el botón atrás, como en una app nativa', () => {
     // El mismo mensaje que manda el botón del mapa completo de hijo2.
     await page.evaluate(() => globalThis.mensajeria.despacharLocal({
       tipo: globalThis.TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO,
-      datos: { accion: 'mostrar-mapa-completo', formato: 'html', url: 'mapa-completo.html?aventura=Aventura1', aventura: 'Aventura1', mostrarTodo: true },
+      datos: {},
     }));
     await expect(page.locator('#iframe-overlay')).toBeVisible();
     await expect.poll(() => page.frames().some((f) => f.url().includes('mapa-completo.html')), { timeout: 10_000 }).toBe(true);

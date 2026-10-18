@@ -183,9 +183,6 @@
     const tienePadre = globalThis.parent && globalThis.parent !== globalThis;
     if (tienePadre) await bus.inicializarMensajeria({ id: 'mapa-completo' });
 
-    const params   = new URLSearchParams(globalThis.location.search);
-    const aventura = params.get('aventura') || 'Aventura1';
-
     const map = L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 21 });
     let _bounds = null;
 
@@ -292,11 +289,12 @@
         return true;
       });
 
-      // Pedir los datos. Sin padre no hay a quien pedirselos: el mapa queda vacio.
+      // Pedir los datos, sin decir de que aventura: la decide el padre, la que eligio el usuario
+      // (docs/estudio-caminos.md, K-107). Sin padre no hay a quien pedirselos: el mapa queda vacio.
       void bus.enviarMensaje({
         tipo: TIPOS_MENSAJE.MAPA_COMPLETO.SOLICITAR_DATOS,
         destino: 'padre',
-        datos: { aventura },
+        datos: {},
       });
     } else {
       document.getElementById('map').innerHTML =

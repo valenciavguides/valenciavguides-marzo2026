@@ -17,6 +17,9 @@
  *   MC-2  Suelto por URL: NO descarga coordenadas-aventuras.js (el import se fue).
  *   MC-3  Con un padre que responde: pinta la ruta y los monumentos.
  *   MC-4  El padre solo responde al iframe del overlay, no a cualquiera del mismo origen.
+ *   MC-5  La aventura del mapa la decide el padre, la elegida: aunque el mensaje de hijo2 traiga otra aventura y
+ *         otra URL, se abre `mapa-completo.html` con la elegida (docs/estudio-caminos.md, K-107). Rojo antes que
+ *         verde: el padre anterior abría la URL del mensaje.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -28,7 +31,7 @@ const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 test.describe('MC — mapa-completo recibe los datos por mensaje, no por import', () => {
 
   test('MC-1. Abierto por URL no muestra ruta ni monumentos, y avisa', async ({ page }) => {
-    await page.goto('/mapa-completo.html?aventura=Aventura1');
+    await page.goto('/mapa-completo.html');
     await page.waitForLoadState('networkidle');
     // VENTANA-OBSERVACION: MC-1 comprueba que sin padre NO se pinta nada; hay que dar margen a que se pintara si fuera a pintarse
     await page.waitForTimeout(1500);
@@ -47,7 +50,7 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
   test('MC-2. Abierto por URL no descarga coordenadas-aventuras.js', async ({ page }) => {
     // Se mide con Resource Timing, no con page.route(): en WebKit la interceptación no
     // ve todas las peticiones (ver EI-4 en 49-escalera-espera-imagen.spec.js).
-    await page.goto('/mapa-completo.html?aventura=Aventura1');
+    await page.goto('/mapa-completo.html');
     await page.waitForLoadState('networkidle');
     // VENTANA-OBSERVACION: MC-2 comprueba que NO se descarga coordenadas-aventuras.js; una condición no puede esperar a algo que no ocurre
     await page.waitForTimeout(1000);
@@ -68,13 +71,14 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
     await page.route('**/__contenedor-mc.html', (route) => route.fulfill({
       contentType: 'text/html',
       body: `<!DOCTYPE html><html><body>
-        <iframe id="f" src="/mapa-completo.html?aventura=Aventura1" style="width:100vw;height:100vh;border:0"></iframe>
+        <iframe id="f" src="/mapa-completo.html" style="width:100vw;height:100vh;border:0"></iframe>
         <script type="module">
           const m = await import('/js/coordenadas-aventuras.js');
           const { TIPOS_MENSAJE } = await import('/js/constants.js');
           globalThis.addEventListener('message', (ev) => {
             if (ev.data?.tipo !== TIPOS_MENSAJE.MAPA_COMPLETO.SOLICITAR_DATOS) return;
-            const c = m.DATOS_AVENTURAS[ev.data.datos.aventura]['coordenadas-hijo2.html'].coordenadas;
+            // Como el padre real: contesta con SU aventura elegida, el mapa no la dice (K-107).
+            const c = m.DATOS_AVENTURAS.Aventura1['coordenadas-hijo2.html'].coordenadas;
             ev.source.postMessage({
               tipo: TIPOS_MENSAJE.MAPA_COMPLETO.DATOS,
               origen: 'padre',
@@ -129,7 +133,7 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
       globalThis.postMessage({
         tipo: 'MAPA_COMPLETO.SOLICITAR_DATOS',
         origen: 'intruso',
-        datos: { aventura: 'Aventura1' },
+        datos: {},
       }, globalThis.location.origin);
       await new Promise((r) => setTimeout(r, 600));
       return vistos;
@@ -139,5 +143,29 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
 
     const entregas = logs.filter((l) => l.includes('[MAPA_COMPLETO] Enviadas'));
     expect(entregas.length, 'y el padre no puede dar por enviadas unas coordenadas que no salieron').toBe(0);
+  });
+
+  test('MC-5. La aventura del mapa completo la decide el padre, no el mensaje', async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+    await expect.poll(() => page.evaluate(() => globalThis.mensajeria.tieneControlador('NAVEGACION.MOSTRAR_MAPA_COMPLETO')), { timeout: 20_000 }).toBe(true);
+    const abierto = await page.evaluate(async () => {
+      globalThis.aventuraSeleccionada = 'Aventura1';
+      const llamadas = [];
+      const original = globalThis.mostrarIframeOverlay;
+      globalThis.mostrarIframeOverlay = (url, titulo) => { llamadas.push({ url, titulo }); };
+      try {
+        await globalThis.mensajeria.despacharLocal({
+          tipo: globalThis.TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO,
+          datos: { aventura: 'Aventura3', url: 'mapa-completo.html?aventura=Aventura3' },
+        });
+      } finally { globalThis.mostrarIframeOverlay = original; }
+      return llamadas;
+    });
+    expect(abierto, 'se abre una sola vez').toHaveLength(1);
+    expect(abierto[0].url, 'la página del mapa, sin aventura en la URL').toBe('mapa-completo.html');
+    expect(abierto[0].titulo, 'con la aventura elegida, no la del mensaje').toContain('Aventura1');
   });
 });

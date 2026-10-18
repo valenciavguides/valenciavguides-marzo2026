@@ -62,7 +62,7 @@ test.describe('SU — Ningún frame puede hacerse pasar por otro ante el padre',
       await gotoAndWaitForFase1(page);
 
       if (cargar === 'resto') await cargarHijosDelPadre(page);
-      if (cargar === 'mapa') await page.evaluate(() => globalThis.mostrarIframeOverlay('mapa-completo.html?aventura=Aventura1'));
+      if (cargar === 'mapa') await page.evaluate(() => globalThis.mostrarIframeOverlay('mapa-completo.html'));
 
       // El frame tiene que tener su bus inicializado: si no, el control no probaría nada.
       await page.waitForFunction(
