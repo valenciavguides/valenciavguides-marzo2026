@@ -13,6 +13,14 @@
  *   AY-2  el padre se recarga mientras se cargan los hijos: el ayudante falla, con su mensaje
  *   AY-3  control: si la carga falla en la página, el ayudante falla con el mensaje de la página
  *
+ * Y `gotoAndWaitForFase1(page)`, la espera de arranque de todos los specs, vuelve con la última comprobación del arranque
+ * hecha: la de una aventura guardada (`_finalizarInicializacion` → `_comprobarReanudacionAventura`, 300 ms después de
+ * `sistemaInicializado`). Un test que arrancara una aventura antes dejaría escrita la marca que esa comprobación lee y se
+ * encontraría el diálogo de reanudación.
+ *
+ *   AR-1  sin nada guardado: al volver, la pantalla de carga del padre ya se ha retirado
+ *   AR-2  con una aventura guardada: al volver, el diálogo de reanudación ya está en pantalla
+ *
  * Lo que no se puede versionar aquí: que sobrevive a la invalidación del contexto. Se comprueba instrumentando
  * Playwright desde fuera (un inyector que la provoca a voluntad), no desde un spec.
  */
@@ -26,6 +34,35 @@ const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 const HIJOS = ['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5', 'hijo6-chat', 'seleccion'];
 
 test.use({ permissions: ['geolocation'], geolocation: { latitude: 39.47876, longitude: -0.37626 } });
+
+test.describe('AR — la espera de arranque vuelve con la comprobación de la aventura guardada hecha', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+  });
+
+  test('AR-1. Sin nada guardado: al volver, la pantalla de carga del padre ya se ha retirado', async ({ page }) => {
+    await gotoAndWaitForFase1(page);
+    // Sin esperar nada más.
+    expect(await page.evaluate(() => document.body.classList.contains('loading')), 'el body ya no lleva la clase loading').toBe(false);
+  });
+
+  test('AR-2. Con una aventura guardada: al volver, el diálogo de reanudación ya está en pantalla', async ({ page }) => {
+    // Una sesión guardada con la forma real de vv_aventura_iniciada, escrita antes de que corra el código del padre.
+    await page.addInitScript(() => {
+      if (globalThis !== globalThis.top || !globalThis.location.pathname.endsWith('/codigo-padre.html')) return;
+      try {
+        if (sessionStorage.getItem('__sesionDePruebaPuesta')) return;
+        sessionStorage.setItem('__sesionDePruebaPuesta', '1');
+        localStorage.setItem('vv_aventura_iniciada', JSON.stringify({ aventura: 'Aventura1', idioma: 'es', modo: 'aventura', dev: false, timestamp: Date.now() }));
+      } catch (_e) { /* sin almacenamiento: el test lo dirá */ }
+    });
+    await gotoAndWaitForFase1(page);
+    // Sin esperar nada más.
+    expect(await page.evaluate(() => !!document.getElementById('dialogo-reanudacion-overlay')), 'el diálogo de reanudación está en pantalla').toBe(true);
+  });
+});
 
 test.describe('AY — el ayudante que carga los hijos del padre', () => {
   test.beforeEach(async ({ page }) => {

@@ -220,6 +220,23 @@ async function gotoAndWaitForFase1(page) {
   } catch (_arranqueError) {
     await page.evaluate(() => { globalThis.__e2e_arranqueTimedOut = true; }).catch(() => {});
   }
+
+  // Y esperar a la última comprobación del arranque: la de una aventura guardada. 300 ms después de
+  // `sistemaInicializado`, `_finalizarInicializacion` retira la pantalla de carga y, en la misma tarea,
+  // `_comprobarReanudacionAventura` lee `vv_aventura_iniciada`. Un test que arrancara una aventura antes dejaría esa marca
+  // escrita y se encontraría el diálogo de reanudación, que a los 30 s continúa solo (docs/estudio-caminos.md, K-102).
+  // La señal: el body ya sin `loading` (no había nada guardado), o el diálogo de reanudación o el modal de tiempo agotado
+  // en pantalla (había algo y ya se decidió qué enseñar). No basta con mirar `loading`: el diálogo la vuelve a poner para
+  // tapar la interfaz. Lo vigilan AR-1 y AR-2 del spec 126.
+  //
+  // No aborta si expira, igual que las tres esperas de arriba: marca `__e2e_reanudacionTimedOut` y deja que informe el test.
+  try {
+    await page.waitForFunction(() => !document.body.classList.contains('loading')
+      || !!document.getElementById('dialogo-reanudacion-overlay')
+      || !!document.getElementById('modal-tiempo-agotado'), null, { timeout: BOOT_TIMEOUT });
+  } catch (_reanudacionError) {
+    await page.evaluate(() => { globalThis.__e2e_reanudacionTimedOut = true; }).catch(() => {});
+  }
 }
 
 /**
