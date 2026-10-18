@@ -3440,11 +3440,20 @@ El error de K-82 tiene dos caras: un control que se enciende y se apaga desde va
 - **Dónde.** `codigo-padre.html`: `globalThis.aventuraSeleccionada` (58 lecturas) y `estado.seleccion.aventura` (7 apariciones). Las escriben juntas la selección de aventura, la restauración de una aventura guardada y el reinicio; `_hdl_SELECCION_PREPARAR_HIJOS` escribe solo la segunda. La segunda solo se lee como respaldo de la primera (`globalThis.aventuraSeleccionada || estado?.seleccion?.aventura`): con K-107 aplicada queda **un solo** respaldo, en `codigo-padre.html:7257` (el que contesta a hijo5); el del mapa vintage se fue con K-107. Es el mismo caso que K-97 resolvió en la selección, ahora del lado del padre.
 - **Recomendación (sin cambio visible).** Una sola: la que leen todos (`aventuraSeleccionada`), y fuera la copia de `estado.seleccion` y los dos respaldos. Antes, medir quién llega a leer el respaldo con la primera vacía (si alguien, es un fallo que hoy no se ve).
 
-##### K-108 — El padre manda al asistente dos campos que el asistente no lee — 🔎 (registrada; sin cambio visible)
+##### K-108 — El padre manda al asistente dos campos que el asistente no lee — ✅ (aplicada, `64f4abf`; sin cambio visible)
 
 - **Cómo salió.** Al corregir la sección del asistente en la guía, que decía que `estadoPadre` solo sirve al buzón.
 - **Dónde.** `construirEstadoChat()` (`codigo-padre.html`, Script clásico del asistente) arma `{ idioma, aventura, paradaActualNombre, siguienteParadaNombre, paradasRestantes, rescate }` para `PADRE_DATOS` y `CHAT.ESTADO_PADRE`. `chat-hijo6.html` lee `idioma` (del mensaje), `rescate`, `aventura` y `paradaActualNombre` (búsqueda de `estadoPadre.` en el fichero); `siguienteParadaNombre` y `paradasRestantes` no los lee nadie.
 - **Recomendación (sin cambio visible):** quitar los dos campos del mensaje y el cálculo que los produce.
+- **Aplicada (2026-10-18, `64f4abf`).** Fuera los dos campos y su cálculo de `construirEstadoChat()`; un comentario dice qué lee el asistente. Spec 47, CH-3: escucha dentro del propio hijo6, con un script de inicio, el `PADRE_DATOS` del apretón de manos y el `CHAT.ESTADO_PADRE` que manda su botón real, y exige `idioma`, `rescate`, `aventura` y `paradaActualNombre` (más `modo` y `timestamp` en el primero): en rojo antes del cambio, con exactamente los dos campos de más; en verde después. Chromium: 112/112 en los 18 specs que tocan el asistente (04, 11, 16, 47, 69 a 72, 80, 88, 90, 93, 96, 104, 121, 123, 126 y 131). Guía: §6, §7.7, la tabla del handshake de §7, §9, §18.3, §26.12 y §27. Búsqueda desnuda de los dos nombres después: solo quedan en este estudio. **Censo de frames (regla 3b):** tocado el padre; `chat-hijo6.html` no cambia (no los leía), ni la selección, hijo1 a hijo5, mapa-completo, puzzle y video-intro (`git diff 64f4abf^ 64f4abf --stat`: solo el padre, el spec 47, la guía, `sw.js` y `version.json`). Al leer la función entera salió K-110.
+
+##### K-110 — El nombre de parada que el asistente adjunta al buzón sale de otra lista — ✅ (medido; sin aplicar)
+
+- **Cómo salió.** Al aplicar K-108, leyendo `construirEstadoChat()` entera.
+- **Dónde.** `codigo-padre.html`, `construirEstadoChat()`: `paradaActualNombre: paradas[idx]?.nombre`, con `paradas = globalThis.AVENTURA_PARADAS` e `idx = estadoPadre.indiceProgreso`. `indiceProgreso` es un índice de `elementosIDpadre` (lo dice su declaración en `estado` y es lo que lee `obtenerElementoActual()`), y `AVENTURA_PARADAS` es la lista de coordenadas de `coordenadas-hijo2.html` (sus dos escritores, `distribuirDatosAventura` y la carga perezosa de `js/funciones-mapa.js`, toman la misma), que empieza por las referencias y no lleva `pre-intro1`, `pre-intro2` ni `intro`: dos listas distintas con el mismo índice.
+- **Medido (estático, sobre los datos de las siete aventuras; sonda desechable `k108/indice-chat.mjs` del scratchpad).** Para cada índice, el elemento real (`elementosIDpadre[idx]`, buscado por su `parada_id`/`tramo_id` en las coordenadas) frente a `AVENTURA_PARADAS[idx]`: 0 coincidencias en las siete (Aventura1 0 de 65, Av34km 0 de 236). En el índice 3, la parada de inicio (Torres de Serranos), sale una referencia: en Aventura1, «Plaza Décimo Junio Bruto (Almoína)».
+- **Lo que ve el usuario.** Nada en pantalla: el nombre solo viaja como contexto del buzón de sugerencias (`enviarSugerencia`, `js/feedback-forms.js`). Lo ve quien lee las sugerencias, con la parada equivocada.
+- **Recomendación (un solo camino: el elemento en curso ya lo guarda el padre).** `paradaActualNombre: ep.elementoActual?.nombre || ''`: `estado.elementoActual` (el mismo objeto que `globalThis.estadoPadre`) lo fija `_actualizarEstadoParada()` en cada cambio de parada con el elemento de `elementosIDpadre`, que lleva `nombre`, y vale `null` antes de la aventura y tras un cambio de modo (`limpiarRecursosPorModo`, `js/app.js`). Fuera `paradas` e `idx`. Spec: con la aventura en un elemento concreto, el `CHAT.ESTADO_PADRE` que llega a hijo6 lleva su nombre. No cambia nada visible para quien recorre la aventura; cambia lo que llega al buzón.
 
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
@@ -4092,7 +4101,8 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 82 | 1 | K-106 | el seguro de «aventura terminada» del rescate con el id bueno del modal de fin — **hecha (2026-10-14, `d5d6ca6`)** | SPEC (72, CR-6) | — | sí |
 | 83 | 2 | K-107 | la aventura del mapa completo (y del vintage) la decide solo el padre, con la elegida: hijo2 y el mapa no la dicen | SPEC, BUS (datos de tres mensajes) | blanda: K-109 | aplicada; falta la tanda de los cuatro navegadores |
 | 85 | 1 | K-109 | la aventura elegida en un solo sitio del padre: fuera `estado.seleccion.aventura` y los dos respaldos | — | — | sí, midiendo antes |
-| 84 | 1 | K-108 | quitar `siguienteParadaNombre` y `paradasRestantes` del estado que el padre manda al asistente | — | — | sí |
+| 84 | 1 | K-108 | quitar `siguienteParadaNombre` y `paradasRestantes` del estado que el padre manda al asistente — **hecha (2026-10-18, `64f4abf`)** | SPEC (47, CH-3) | — | sí |
+| 86 | 1 | K-110 | el nombre de parada que el asistente adjunta al buzón, del elemento en curso (`estadoPadre.elementoActual`) y no de `AVENTURA_PARADAS[indiceProgreso]` | SPEC | — | sí |
 
 #### R2.9.5 Qué depende de qué
 
