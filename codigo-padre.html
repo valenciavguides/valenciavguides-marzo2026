@@ -7978,9 +7978,10 @@
                             if (typeof globalThis.mostrarModalTiempoAgotado === 'function') {
                                 await globalThis.mostrarModalTiempoAgotado();
                             } else {
+                                // Solo pasa si Script 2 no llega a cargar (el arranque lo espera hasta 30 s): la sesión se limpia por
+                                // el mismo camino que la reanudación caducada (_restoreCheckTimeout), sin dejar claves vivas.
                                 (globalThis.logger || console).error(`${logPrefix} mostrarModalTiempoAgotado no disponible — descartando sin avisar al usuario`);
-                                localStorage.removeItem('vv_aventura_iniciada');
-                                localStorage.removeItem('vv_progreso');
+                                await limpiarDatosAventura('timeout');
                             }
                         } else {
                             (globalThis.logger || console).info(`${logPrefix} 🔄 Aventura activa detectada: ${datosGuardados.aventura} (${datosGuardados.idioma})`);
@@ -8055,6 +8056,19 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // Los iframes hijo (hijo1-5) NO se cargan aquí — contienen lógica de pago.
                 // Se cargan en _hdl_SELECCION_P15_MOSTRADA, tras validación del código en P14.
+
+                // 4b. Script 2 listo antes de dar el arranque por terminado. Sus handlers son los de la elección
+                // (IDIOMA_SELECCIONADO, AVENTURA_SELECCIONADA, que la selección espera con acuse), los de la aventura y el
+                // modal de tiempo agotado que usa la comprobación de la sesión guardada, 300 ms después. Sin esta espera,
+                // con un módulo de Script 2 lento la pantalla de carga se iba antes de que existieran: medido con Script 2
+                // retrasado 6 s, el arranque terminaba a los 0,4-1,2 s y una sesión caducada se borraba sin enseñar el modal
+                // (docs/estudio-caminos.md, K-54). `script2Listo` se marca cuando están registrados los handlers de los dos
+                // scripts (spec 89). Si en 30 s no llega, se dice y el arranque sigue.
+                const _script2Listo = await retryUntilAvailable(
+                    () => globalThis.__vv_stateManager?.getEstado?.().flags.script2Listo === true,
+                    { maxIntentos: 600, intervalo: 50, mensaje: `${logPrefix} Script 2 listo antes de terminar el arranque` }
+                );
+                if (!_script2Listo) (globalThis.logger || console).error(`${logPrefix} Script 2 no ha terminado en 30 s: el arranque sigue sin sus handlers`);
 
                 // 5. Marcar sistema como inicializado
                 globalThis.sistemaInicializado = true;

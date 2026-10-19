@@ -13,6 +13,9 @@ const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
  *   S2-2  SISTEMA.ERROR, en concreto, ya tiene handler
  *   S2-3  se marca una sola vez
  *   S2-4  el marcado espera a Script 1 aunque su último import tarde
+ *   S2-5  el arranque espera a Script 2: con un módulo de Script 2 lento, al darse por terminado Script 2 ya está
+ *         listo, y una sesión caducada enseña el modal de tiempo agotado (en rojo sin esa espera: la sesión se
+ *         borraba sin modal)
  *
  * El nombre `script2Listo` se queda corto: la señal espera también a Script 1, cuyos últimos
  * controladores (DATOS.SOLICITAR_*) se registran detrás de un `await import`. MEDIDO sin esa
@@ -135,6 +138,41 @@ test.describe('S2 — script2Listo dice la verdad', () => {
  * ROJO ANTES QUE VERDE: medido sin la espera a `__vv_registroScript1`, los tres faltan al
  * marcar en 4 de 4 arranques, en chromium y en firefox.
  */
+test.describe('S2-5 — el arranque espera a Script 2', () => {
+  test('S2-5. Con un módulo de Script 2 lento, el arranque no termina antes que Script 2 y la sesión caducada enseña su modal', async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await page.addInitScript(() => {
+      if (globalThis !== globalThis.top) return;
+      try {
+        if (!sessionStorage.getItem('__s25')) {
+          sessionStorage.setItem('__s25', '1');
+          localStorage.setItem('vv_aventura_iniciada', JSON.stringify({ aventura: 'Aventura1', idioma: 'es', modo: 'aventura', dev: false, timestamp: Date.now() - 61 * 3600 * 1000 }));
+        }
+      } catch (_e) { /* sin almacenamiento: el test lo dirá */ }
+      // En el instante en que el arranque se da por terminado, ¿está Script 2 listo?
+      globalThis.__s25 = null;
+      let valor = false;
+      Object.defineProperty(globalThis, 'sistemaInicializado', {
+        configurable: true,
+        get() { return valor; },
+        set(v) {
+          valor = v;
+          if (v === true && globalThis.__s25 === null) globalThis.__s25 = globalThis.__vv_stateManager?.getEstado?.().flags.script2Listo === true;
+        },
+      });
+    });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    // js/efectos-sonido.js solo lo importa Script 2: retrasarlo detiene Script 2 sin tocar Script 1.
+    await page.route('**/js/efectos-sonido.js', async (route) => { await new Promise((r) => setTimeout(r, 6_000)); await route.continue(); });
+    await page.goto('/codigo-padre.html');
+    await expect.poll(() => page.evaluate(() => globalThis.__s25), { timeout: 30_000, message: 'el arranque se da por terminado' }).not.toBeNull();
+    expect(await page.evaluate(() => globalThis.__s25), 'al darse por terminado, Script 2 está listo').toBe(true);
+    await expect(page.locator('#modal-tiempo-agotado'), 'la sesión caducada enseña su modal').toBeVisible({ timeout: 15_000 });
+  });
+});
+
 test.describe('S2-4 — el marcado espera a Script 1 aunque su último import tarde', () => {
   test.use({ serviceWorkers: 'block' });
 
