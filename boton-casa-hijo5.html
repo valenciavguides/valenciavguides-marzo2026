@@ -692,23 +692,18 @@
         try {
             logger.info(`${logPrefix} Solicitando paradas del padre...`);
 
-            // La ubicación GPS es contexto opcional; sólo omitir si estamos en aventura sin GPS
-            // y la solicitud no es forzada (ej. tras CAMBIO_MODO donde los datos son necesarios siempre)
-            if (!forzar && estado.modo === 'aventura' && !estado.ubicacionUsuario) {
-                logger.warn(`${logPrefix} No hay ubicación de usuario disponible en modo aventura, omitiendo solicitud`);
+            // En AVENTURA solo pide la solicitud forzada, la que sigue a CAMBIO_MODO; las otras dos (al confirmar el padre que
+            // hijo5 está listo y al reconectarse) piden solo en CASA.
+            if (!forzar && estado.modo === 'aventura') {
+                logger.debug(`${logPrefix} En AVENTURA las paradas se piden tras CAMBIO_MODO: esta solicitud se omite`);
                 return;
             }
 
-            // Enviar solicitud al padre
+            // Enviar solicitud al padre. Sin parámetros: el padre contesta con la lista de la aventura elegida.
             await enviarMensaje({
                 destino: 'padre',
                 tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS,
-                datos: {
-                    incluirTramos: true,
-                    incluirInicio: true,
-                    incluirMetadatos: true,
-                    ubicacionUsuario: estado.ubicacionUsuario
-                }
+                datos: {}
             });
 
             logger.debug(`${logPrefix} Solicitud enviada al padre - esperando respuesta asíncrona`);

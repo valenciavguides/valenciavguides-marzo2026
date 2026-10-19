@@ -3231,7 +3231,7 @@ wrap.classList.add('marquee');
 
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
-| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Al inicializarse | `{ incluirTramos: true, incluirInicio: true }` |
+| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Al conectarse y al volver a la pestaña sin paradas (solo en CASA), y tras cada `CAMBIO_MODO` | `{}` |
 | `SISTEMA.CAMBIO_MODO` | Click en `#gps-casa-btn` | `{ modo: 'casa'/'aventura', origen: 'boton-gps' }` |
 | `NAVEGACION.CAMBIO_PARADA` | Click en botón de parada/tramo | `{ paradaId, parada_id, padreId, padreid, origen: 'hijo5' }` |
 | `PARADAS.READY` | Tras generar todos los botones | `{ count: N }` |
@@ -4124,7 +4124,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componenteId, estado:{ inicializado, modo, paradasCargadas } }` | Al recibir HEARTBEAT |
 | `SISTEMA.CAMBIO_MODO` | `{ modo, timestamp, origen:'boton-gps' }` | Usuario pulsa botón GPS 🛰️ |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, origen:'hijo5' }` | Usuario pulsa un botón de parada |
-| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `{ incluirTramos, incluirInicio, incluirMetadatos, ubicacionUsuario }` | Al arrancar o al necesitar actualizar la lista |
+| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `{}` | Al conectarse y al volver a la pestaña sin paradas (solo en CASA), y tras cada `CAMBIO_MODO` |
 | `SISTEMA.ERROR` | `{ error, contexto, timestamp }` | Notificación de error interno |
 | `PARADAS.READY` | `{ count:botonesGenerados }` | UI de paradas lista |
 
@@ -4557,7 +4557,7 @@ sequenceDiagram
     Note over P: Despacha NAVEGACION.CAMBIO_PARADA con despacharLocal(datos)
     P-->>P: ensurePending(padreId, tipo) — crea la entrada del elemento\n→ PENDING_INICIADO a hijo2/hijo4
 
-    P->>H2: DATOS.COORDENADAS_PARADAS_REQUEST { paradaId, padreId, incluirRutas }
+    P->>H2: DATOS.COORDENADAS_PARADAS_REQUEST { paradaId }
     H2-->>P: acuse automático { coordenadas }
     P->>H3: AUDIO.REPRODUCIR_REQUEST { audioId, audioData, autoplay:false }
     Note over H3: Mismo camino en CASA y AVENTURA — audioData resuelto vía cargarAudios()
@@ -4917,7 +4917,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-3d50cb9d4605'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c6ed66a9538e'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5875,7 +5875,7 @@ Solicita la lista de paradas transformada a partir de `coordenadas-aventuras.js`
 
 ```text
 hijo5 → padre   NAVEGACION.SOLICITAR_DATOS_PARADAS
-  { incluirTramos, incluirInicio, incluirMetadatos, ubicacionUsuario }
+  {}   (sin parámetros; en AVENTURA solo la pide tras CAMBIO_MODO, ver §24)
   ↓
 codigo-padre.html Script 1 (handler SOLICITAR_DATOS_PARADAS)
   → Fuente única: DATOS_PADRE[av][idioma].elementosIDpadre + normalizarParadas_S1
@@ -5888,8 +5888,7 @@ padre → mensaje.origen   NAVEGACION.RESPUESTA_DATOS_PARADAS
 hijo5 genera botones de parada en panel CASA
 hijo5 → padre   PARADAS.READY
 
-También lo envía `funciones-mapa.js` (para dibujar ruta). hijo2 **no** envía este mensaje.
-También lo recibe hijo2, que almacena en `arrayParadasLocal` para cálculos de proximidad GPS.
+Solo lo envía hijo5. hijo2 **no** lo envía, pero también recibe `NAVEGACION.RESPUESTA_DATOS_PARADAS`: se la manda el padre sin que la pida.
 
 > El handler activo para `SOLICITAR_DATOS_PARADAS` es el de Script 1 de `codigo-padre.html`; `controladores-padre.js` no tiene handler competidor para este tipo — `registrarControladorSeguro` garantiza exactamente un handler por tipo.
 ```
@@ -8308,7 +8307,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-3d50cb9d4605'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c6ed66a9538e'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9061,7 +9060,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-3d50cb9d4605';
+const CACHE_VERSION = 'v-c6ed66a9538e';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11520,7 +11519,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `UI.CLOSE_MENUS` | Hijo 1 → Padre | `_hdl_UI_CLOSE_MENUS_PADRE`: cierra los tres desplegables del padre (`_cerrarDesplegablesDelPadre()`) | (ninguna) | — | Evitar solapamiento visual cuando hijo1 abre su panel de opciones |
 | `UI.CAPA_ABIERTA` | Hijo 1, Hijo 6 y mapa-completo (`{ abierta }`, desde `js/capa-con-atras.js`) | `_hdl_UI_CAPA_ABIERTA`: apunta (`abierta: true`) o quita el iframe registrado de quien lo manda en el `WeakSet` de iframes con capa abierta, que lee el botón atrás con `globalThis._hijosConCapaAbierta()` | (ninguna) | — | Que «atrás» cierre lo que se ha abierto dentro de un hijo antes que lo de debajo (§34.3) |
 | `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: solo registra el evento. No activa ninguna aventura (ver §10.14) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
-| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: apunta cada confirmación en `estado.paradasConfirmaciones[padreId]` y la registra en el log. No habilita nada ni desbloquea ningún flujo (§10.7) | (ninguna) | — | Garantizar que audio y retos están listos antes de que el usuario pueda avanzar |
+| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: registra la confirmación en el log. No habilita nada ni desbloquea ningún flujo (§10.7) | (ninguna) | — | Garantizar que audio y retos están listos antes de que el usuario pueda avanzar |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2, tras la gracia de su franja (§31.4/§25.7); `{ distancia, franja, elementoMasCercano, timestamp }` | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: solo en modo AVENTURA; marca `estado.usuarioFueraRango`, refresca los controles de audio del padre (`actualizarEstadoControlesAudioPadre`) y llama a `_sincronizarRetoBtn()`, que apaga `retosBtn` en hijo3 (`CONTROL.DESHABILITAR`; con reto y sin uno abierto, `razon: 'fuera_de_rango'`) | `CONTROL.DESHABILITAR` | Hijo 3 | Bloquear el audio y el reto mientras el usuario está confirmado fuera de rango |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo 2 (botón de ubicación) | `_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE`: dibuja una línea en el mapa de aventura desde la posición actual del usuario hasta la parada objetivo | (ninguna) | — | Feedback visual de dirección al usuario |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Hijo 2 (botón de mapa completo) | `_hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO`: abre `mapa-completo.html` en overlay de pantalla completa, con la aventura elegida (`aventuraSeleccionada`) | (ninguna) | — | Vista interactiva del mapa Leaflet con todas las paradas |
@@ -12535,7 +12534,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-3d50cb9d4605';
+const CACHE_VERSION = 'v-c6ed66a9538e';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14273,26 +14272,26 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2891) | clásico 13 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2868) | módulo 2 | función/objeto |
 | `__distribuirReadyPromise` | módulo 2 (L9223) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14153) | clásico 12 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14140) | clásico 12 | estado |
 | `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10240) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L13127) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L14134) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L12033) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12789) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L13114) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L14121) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L12020) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12776) | módulo 1 | función/objeto |
 | `_reenviarProgressBarAHijo3` | módulo 2 (L10179) | módulo 1 | función/objeto |
 | `_retoBtnEncendido` | módulo 2 (L11374) | módulo 1 | función/objeto |
 | `_sincronizarRetoBtn` | módulo 2 (L11423) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12819) | módulo 5 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12806) | módulo 5 | función/objeto |
 | `_vv_afterHijoListo` | módulo 2 (L9287) | módulo 1 | función/objeto |
 | `actualizarEstadoControlesAudioPadre` | módulo 2 (L10174) | módulo 1 | función/objeto |
 | `AVENTURA_PARADAS` | módulo 2 (L9426) | módulo 1 | función/objeto |
 | `distribuirDatosAventura` | módulo 2 (L9508) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13052) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13039) | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 (L10052) | módulo 1 | función/objeto |
 | `obtenerElementoActual` | módulo 2 (L9538) | módulo 1 | función/objeto |
 | `solicitarAudioAHijo3` | módulo 2 (L10044) | módulo 1 | función/objeto |
 | `solicitarCoordenadasAHijo2` | módulo 2 (L10017) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14169) | módulo 2 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14156) | módulo 2 | función/objeto |
 
 </details>
 
@@ -14327,8 +14326,8 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `video-intro.html` | `JAIME_SCENES` | módulo 1 (L537) | clásico 1 | función/objeto |
 | `video-intro.html` | `reproducirVideoConBuffer` | módulo 1 (L538) | clásico 1 | función/objeto |
 | `video-intro.html` | `TIPOS_MENSAJE` | módulo 1 (L553) | clásico 1 | función/objeto |
-| `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L379) | módulo 2 | función/objeto |
-| `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L388) | módulo 2 | función/objeto |
+| `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L359) | módulo 2 | función/objeto |
+| `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L368) | módulo 2 | función/objeto |
 | `retos-hijo4.html` | `ejecutarValidacion` | clásico 2 (L26) | módulo 1 | función/objeto |
 | `chat-hijo6.html` | `cerrarChatVentana` | módulo 1 (L382) | módulo 2 | función/objeto |
 

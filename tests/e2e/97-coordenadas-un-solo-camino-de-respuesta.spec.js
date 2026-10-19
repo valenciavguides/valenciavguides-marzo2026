@@ -39,7 +39,7 @@ test.describe('CO — Coordenadas pedidas dos veces por elemento, un solo camino
   });
 
   test('CO-1. Control: solicitarCoordenadasHijo resuelve (no se queda colgado) con la respuesta de hijo2', async ({ page }) => {
-    const respuesta = await page.evaluate(() => globalThis.solicitarCoordenadasHijo('hijo2', { paradaId: 'Av1-P-0', incluirMetadatos: false }, 4000));
+    const respuesta = await page.evaluate(() => globalThis.solicitarCoordenadasHijo('hijo2', { paradaId: 'Av1-P-0' }, 4000));
     expect(typeof respuesta?.exito, `respuesta inesperada: ${JSON.stringify(respuesta)}`).toBe('boolean');
     expect(Array.isArray(respuesta?.coordenadas)).toBe(true);
   });
@@ -55,7 +55,7 @@ test.describe('CO — Coordenadas pedidas dos veces por elemento, un solo camino
         }
       });
     });
-    await page.evaluate(() => globalThis.solicitarCoordenadasHijo('hijo2', { paradaId: 'Av1-P-0', incluirMetadatos: false }, 4000).catch(() => null));
+    await page.evaluate(() => globalThis.solicitarCoordenadasHijo('hijo2', { paradaId: 'Av1-P-0' }, 4000).catch(() => null));
     // VENTANA-OBSERVACION: comprobar la ausencia del mensaje explícito no admite poll.
     await page.waitForTimeout(500);
     const recibidas = await page.evaluate(() => globalThis.__coordRespuestasExplicitas.length);

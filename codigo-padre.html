@@ -5293,7 +5293,7 @@
             (globalThis.logger || console).warn(`${logPrefix} No se obtuvo posición inicial aceptable tras ${maxAttempts} intentos; intentando fallback a coordenadas de inicio`);
             try {
                 const idInicio = _idParadaInicioAventura();
-                const coordenadasResponse = await solicitarCoordenadasHijo('hijo2', { paradaId: idInicio, incluirMetadatos: false, contexto: 'gps_fallback' }, ajustarTimeoutPorConexionSafe(5000));
+                const coordenadasResponse = await solicitarCoordenadasHijo('hijo2', { paradaId: idInicio, contexto: 'gps_fallback' }, ajustarTimeoutPorConexionSafe(5000));
                 const primerCoord = coordenadasResponse?.coordenadas?.[0]?.coordenadas;
                 if (coordenadasResponse?.exito && primerCoord) {
                     const c = primerCoord;
@@ -9664,7 +9664,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 const paradaId = (elemento && (elemento.parada_id || elemento.tramo_id)) || String(pendKey).replace(/^padre-/, '');
                 const timeoutMs = 5000;
-                const coordsResponse = await solicitarCoordenadasHijo('hijo2', { paradaId, padreId: pendKey }, timeoutMs).catch(_err => null);
+                const coordsResponse = await solicitarCoordenadasHijo('hijo2', { paradaId }, timeoutMs).catch(_err => null);
                 const fromResponse = _normalizarCoordsRespuesta(coordsResponse);
                 if (fromResponse) { pending.destinoCoords = fromResponse; return pending.destinoCoords; }
                 return null;
@@ -10945,7 +10945,7 @@ await _comprobarReanudacionAventura(logPrefix);
             if (elemento && elemento.lat && elemento.lng) return { lat: elemento.lat, lng: elemento.lng };
             (globalThis.logger || console).debug(`${logPrefix} Solicitando coordenadas de ${elementoId} a hijo2...`);
             try {
-                const res = await solicitarCoordenadasHijo('hijo2', { paradaId: elementoId, padreId: `padre-${elementoId}`, incluirMetadatos: false }, ajustarTimeoutPorConexionSafe(5000));
+                const res = await solicitarCoordenadasHijo('hijo2', { paradaId: elementoId }, ajustarTimeoutPorConexionSafe(5000));
                 // El objeto que devuelve hijo2 es la entrada cruda de coordenadas-aventuras.js:
                 // una parada trae .coordenadas, un tramo nunca tiene ese campo (trae .inicio/
                 // .fin/.waypoints) — sin este fallback, CUALQUIER tramo activo hacía que esta
@@ -11849,19 +11849,6 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[NAVEGACION.CAMBIO_PARADA_CONFIRMADO]`;
             try {
                 (globalThis.logger || console).info(`${logPrefix} Confirmación recibida de ${mensaje.origen}`, { datos: mensaje.datos || {} });
-
-                // Manage a local registry with confirmations per padreId
-                try {
-                    const padreId = (mensaje.datos && (mensaje.datos.padreId || mensaje.datos.padreid || mensaje.datos.padre)) || null;
-                    if (padreId) {
-                        const est = getEstadoSafe();
-                        est.paradasConfirmaciones = est.paradasConfirmaciones || {};
-                        est.paradasConfirmaciones[padreId] = est.paradasConfirmaciones[padreId] || [];
-                        est.paradasConfirmaciones[padreId].push({ origen: mensaje.origen, timestamp: Date.now(), datos: mensaje.datos });
-                    }
-                } catch (err) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error gestionando confirmación local:`, err);
-                }
             } catch (err) {
                 (globalThis.logger || console).warn(`${logPrefix} Error en handler:`, err);
             }
