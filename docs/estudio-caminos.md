@@ -3626,7 +3626,7 @@ Al contestar al usuario qué queda del estudio, con un script sobre las 111 entr
 - **Cómo salió.** Al ver en rojo el spec 145 (K-120): el ensayo elegía los dos primeros elementos con reto, y la búsqueda del handler devolvía el otro.
 - **Dónde.** `js/aventuras-ID-padre.js`: los dos elementos de antes de la introducción (`pre-intro1`, con el puzzle `PZ-intro`, y `pre-intro2`, con el reto `R1-Av1-es` en la Aventura1) llevan `parada_id` con el texto `"null"`. `_encontrarParadaEnElementos` (la primera con esa `parada_id`) devuelve siempre `pre-intro1`.
 - **Método.** Script en Node sobre `DATOS_PADRE` (`paradas-repetidas.mjs`, scratchpad): `parada_id` repetidas en español, por aventura: solo `"null"`, dos veces, en las siete. Los otros idiomas, sin contar.
-- **Lo que ve el usuario.** Nada, si el padre nunca tiene uno de esos dos elementos como actual: el puzzle de P6 y el R-1 de P8 se hacen en la selección. Sin comprobar si el padre llega a activarlos.
+- **Lo que ve el usuario.** Nada: el puzzle de P6 y el R-1 de P8 se hacen en la selección, y el padre nunca tiene uno de esos dos elementos como actual. Leído: la aventura empieza en el elemento de tipo `inicio` (`ensureDefaultParada`) y avanza siempre hacia delante. Solo hijo5, herramienta de desarrollo, podría elegirlos a mano (sin comprobar).
 - **Pendiente.** Contar los otros idiomas, leer si el padre activa alguna vez un elemento `pre-intro`, y decidir el dato (`parada_id` vacía de verdad, o la que le toque). Decide el usuario.
 
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
