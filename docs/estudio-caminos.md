@@ -1723,7 +1723,8 @@ Instrumento de recursos (517 sitios), cruzado con la ronda 1 (categoría 2).
   `_registrarSeguimientoRumbo` se registran una vez por instancia (`inicializarServicioMapa` tiene
   un solo llamador de producción, `:3647`): ➖.
 - **`requestAnimationFrame` 22 / `cancelAnimationFrame` 0:** animaciones de puzzle y video-intro y
-  el `_zoomRAF` de `funciones-mapa.js:940`: no se han revisado una a una — 🔎.
+  el `_zoomRAF` de `funciones-mapa.js:940`: no se han revisado una a una — 🔎. **Revisados uno a uno (2026-10-19):** sale K-115
+  (el bucle de dibujo del puzzle se multiplica); el resto termina solo o es de un fotograma.
 - **Un observer en `puzzle.html` y los reproductores de `js/efectos-sonido.js`** (uno por efecto y por
   frame): viven lo que la página. `detenerEfectos()` los pausa, y el observer del puzzle lo llama cuando
   su contenedor deja de verse.
@@ -3528,6 +3529,14 @@ Al contestar al usuario qué queda del estudio, con un script sobre las 111 entr
 - **Fuera de esta entrada, para el usuario.** El texto del enlace va de tú («Si no eres redirigido automáticamente, haz clic aquí») y solo en español. Y la etiqueta `<meta http-equiv="Strict-Transport-Security">` de quince de las diecisiete páginas de la raíz (todas salvo `debug-brujula.html` y `video-intro.html`) no tiene efecto: el navegador no la atiende en un `<meta>` (RFC 6797, §8.5); HSTS solo cuenta como cabecera HTTP del servidor.
 - **Aplicada (2026-10-19, `a93ff42`), la recomendación tal cual.** Fuera del `<body>` el `setTimeout`, la regla de HTTPS y el registro del SW; un comentario en el `<head>` dice que el `replace` es el único camino y por qué. Spec 136 nuevo: IX-1 (una sola navegación en el código de `index.html`, sin SW ni HTTPS propios) en rojo con el `index.html` anterior (tres navegaciones) y en verde después; IX-2 (`/` e `/index.html` llevan a `/codigo-padre.html`) en verde en los dos. **Una hipótesis mía, medida y descartada:** pensé que el `setTimeout` dejaba `index.html` en el historial con el padre lento, y lo dije así a mitad de trabajo. La sonda (desechable) da dos entradas en todos los casos, también entrando directo al padre: Playwright parte de `about:blank`, y ni el `setTimeout` ni el padre añaden ninguna. No hay test de eso. Guía: las pantallas de espera, la tabla del ciclo del SW, la lista de canales, el árbol de tests y la fila del spec; y la memoria de auditoría del SW decía que `index.html` registra el SW.
 
+##### K-115 — El puzzle dibuja con varios bucles a la vez: cada llamada directa a `draw()` deja otro en marcha — ✅ (medido: spec 140)
+
+- **Cómo salió.** Al revisar uno a uno los `requestAnimationFrame` de K-30 (22 y ningún `cancelAnimationFrame`). Los demás están bien: los de un solo fotograma (añadir una clase en el fotograma siguiente: padre, selección, hijo3, hijo5, `video-intro.html`) no se repiten; los fuegos y el confeti del puzzle y los fuegos de `video-intro.html` terminan por su duración; `_zoomRAF` de `js/funciones-mapa.js` es un limitador (un fotograma por ráfaga de `zoom`), no un bucle.
+- **Dónde.** `puzzle.html`: `draw()` pinta y, si el puzzle no ha terminado ni está en pausa, se vuelve a programar con `requestAnimationFrame(draw)`. Pero también la llaman directamente `init()` (al empezar y al reiniciar), `resizePieces()` (en cada `resize` y `orientationchange`, y cuando el `IntersectionObserver` ve que el puzzle se hace visible) y el botón de saltar. Cada llamada directa con el puzzle en marcha deja otro bucle perpetuo encima de los que ya había.
+- **Medido** (spec 140, chromium; los fotogramas pendientes del frame del puzzle, que son uno por bucle vivo): 3 bucles con el puzzle recién abierto y a la vista, 6 tras tres `resize` seguidos y 4 tras pulsar reiniciar.
+- **Lo que ve el usuario.** El trabajo de dibujo se multiplica por el número de bucles (en un móvil, más batería y más calor), y la animación de la pieza que encaja va más deprisa con cada bucle de más (avanza un paso por llamada).
+- **Recomendación (un solo camino; sin otro cambio visible):** `draw()` pinta siempre en el acto, pero solo programa el siguiente fotograma si no hay ya uno pendiente; la reanudación tras la pausa llama a `draw()` como los demás.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 
@@ -4185,6 +4194,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 92 | 1 | K-41 (resto) | fuera `estado.paradasConfirmaciones` del padre y la lectura de `estado.ubicacionUsuario` de hijo5, que nadie escribe — **hecha (2026-10-19, `177e731`)** | GUÍA | blanda: K-46 (el handler que queda en un log), K-36 | sí |
 | 93 | 1 | K-36 (dos claves) | fuera las claves de `SOLICITAR_DATOS_PARADAS` y el `incluirMetadatos` de dos peticiones de coordenadas, que nadie lee — **hecha (2026-10-19, `177e731`), también el `padreId` de esas peticiones** | GUÍA (la carga útil del mensaje) | blanda: K-41 (resto) | sí |
 | 97 | 1 | K-41 (hijo2) | fuera `estadoComponente.arrayParadasLocal` de hijo2, que solo lee el log de su handler — **hecha (2026-10-19, `304ceda`)** | — | — | sí |
+| 98 | 2 | K-115 | un solo bucle de dibujo en el puzzle: `draw()` solo programa el siguiente fotograma si no hay uno pendiente | SPEC (140) | — | sí |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
