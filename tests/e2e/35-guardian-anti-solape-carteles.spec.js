@@ -150,7 +150,7 @@ test.describe('AP — Aviso de progreso no guardado (persistProgressState → ca
     await page.waitForTimeout(100);
 
     const texto = await page.evaluate(() => document.getElementById('cartel-aviso-progreso')?.textContent || '');
-    expect(texto).toContain('No se ha podido guardar tu progreso en este dispositivo');
+    expect(texto).toContain('No se ha podido guardar el progreso en este dispositivo');
 
     // Guard de una sola vez por sesión (estado._avisoPersistenciaMostrado): cerrado el
     // cartel, una segunda llamada de persistProgressState() no debe reabrirlo.

@@ -57,6 +57,7 @@ const APP_SHELL = [
   '/js/api-client.js',
   '/js/suppress-warnings.js',
   '/js/proteccion.js',
+  '/js/almacenamiento.js',
   '/js/controladores-padre.js',
   '/js/normativa-cumplimiento.js',
   '/js/reciclaje-digital.js',
@@ -107,7 +108,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell actualiza la versión de caché
 // automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-bc0c726e908b';
+const CACHE_VERSION = 'v-c64a333e0123';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';

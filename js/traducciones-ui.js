@@ -784,15 +784,15 @@ export const MSG_ERROR_CARGA_APP = {
 };
 
 export const MSG_PROGRESO_NO_GUARDADO = {
-    es: 'No se ha podido guardar tu progreso en este dispositivo. Si cierras la aplicación, podrías perderlo.',
+    es: 'No se ha podido guardar el progreso en este dispositivo. Si cierra la aplicación, podría perderse.',
     en: "We couldn't save your progress on this device. If you close the app, you might lose it.",
     fr: "Nous n'avons pas pu enregistrer votre progression sur cet appareil. Si vous fermez l'application, vous risquez de la perdre.",
-    it: 'Non è stato possibile salvare i tuoi progressi su questo dispositivo. Se chiudi l\'app, potresti perderli.',
+    it: 'Non è stato possibile salvare i progressi su questo dispositivo. Se chiude l\'app, potrebbero andare persi.',
     nl: 'We konden uw voortgang niet opslaan op dit apparaat. Als u de app sluit, kunt u deze kwijtraken.',
     ja: 'この端末に進行状況を保存できませんでした。アプリを閉じると内容が失われる可能性があります。',
     de: 'Ihr Fortschritt konnte auf diesem Gerät nicht gespeichert werden. Wenn Sie die App schließen, könnten Sie ihn verlieren.',
     zh: '无法在此设备上保存您的进度。如果关闭应用，进度可能会丢失。',
-    pl: 'Nie udało się zapisać Twojego postępu na tym urządzeniu. Jeśli zamkniesz aplikację, możesz go utracić.',
+    pl: 'Nie udało się zapisać postępu na tym urządzeniu. Zamknięcie aplikacji może spowodować jego utratę.',
     pt: 'Não foi possível guardar o seu progresso neste dispositivo. Se fechar a aplicação, poderá perdê-lo.',
     ru: 'Не удалось сохранить ваш прогресс на этом устройстве. Если вы закроете приложение, он может быть утерян.',
     uk: 'Не вдалося зберегти ваш прогрес на цьому пристрої. Якщо ви закриєте застосунок, він може бути втрачений.'

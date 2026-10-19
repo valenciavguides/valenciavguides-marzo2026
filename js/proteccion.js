@@ -23,13 +23,9 @@
     const esNetlifyPreview = host.endsWith('.netlify.app');
     const esMovil = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent || '');
     const debugPorQuery = /(?:^|[?&])vv_debug=1(?:&|$)/.test(location.search || '');
-    const debugPorStorage = (() => {
-        try { return localStorage.getItem('vv_debug') === '1'; } catch (_e) { return false; }
-    })();
+    const debugPorStorage = globalThis.almacen.local.leer(globalThis.almacen.CLAVES.DEBUG) === '1';
     const proteccionDuraPorQuery = /(?:^|[?&])vv_hard_protect=1(?:&|$)/.test(location.search || '');
-    const proteccionDuraPorStorage = (() => {
-        try { return localStorage.getItem('vv_hard_protect') === '1'; } catch (_e) { return false; }
-    })();
+    const proteccionDuraPorStorage = globalThis.almacen.local.leer(globalThis.almacen.CLAVES.PROTECCION_DURA) === '1';
     const LIMPIEZA_DESTRUCTIVA_ACTIVA = proteccionDuraPorQuery || proteccionDuraPorStorage;
     const PROTECCION_DEVTOOLS_ACTIVA = LIMPIEZA_DESTRUCTIVA_ACTIVA;
 

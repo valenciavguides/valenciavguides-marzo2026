@@ -36,17 +36,6 @@ import { sleep } from './utils.js';
 
 const { API_CONFIG } = globalThis;
 
-function safeSessionStorage(action, fallback = null) {
-    try {
-        return action();
-    } catch (error) {
-        if (API_CONFIG.isDevelopment) {
-            (globalThis.logger || console).warn('[API Client] sessionStorage no disponible:', error.message);
-        }
-        return fallback;
-    }
-}
-
 // ========================================
 // GESTIÓN DE TOKEN DE SESIÓN
 // ========================================
@@ -62,20 +51,20 @@ const TokenManager = {
     /** Guarda el token en memoria y sessionStorage */
     setToken(token) {
         this._token = token;
-        safeSessionStorage(() => sessionStorage.setItem('vbg_session_token', token));
+        globalThis.almacen.sesion.escribir(globalThis.almacen.CLAVES.TOKEN_SESION, token);
     },
 
     /** Recupera el token (memoria > sessionStorage) */
     getToken() {
         if (this._token) return this._token;
-        this._token = safeSessionStorage(() => sessionStorage.getItem('vbg_session_token'));
+        this._token = globalThis.almacen.sesion.leer(globalThis.almacen.CLAVES.TOKEN_SESION);
         return this._token;
     },
 
     /** Elimina el token (logout / expiración) */
     clearToken() {
         this._token = null;
-        safeSessionStorage(() => sessionStorage.removeItem('vbg_session_token'));
+        globalThis.almacen.sesion.borrar(globalThis.almacen.CLAVES.TOKEN_SESION);
     },
 
     /** ¿Hay token almacenado? */

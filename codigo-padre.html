@@ -42,8 +42,11 @@
         })();
     </script>
 
+        <!-- El almacenamiento del dispositivo, antes que cualquier script que lo use (js/almacenamiento.js) -->
+    <script src="js/almacenamiento.js"></script>
         <!-- Add warning suppression script early in the head -->
     <script src="js/proteccion.js"></script>
+        <!-- suppress-warnings.js se carga solo aquí, como en las demás páginas: ningún módulo lo importa (correría dos veces) -->
     <script src="js/suppress-warnings.js" defer></script>
 
         <!-- Ensure an activator stub is available immediately so tests and early callers can invoke it.
@@ -99,11 +102,7 @@
         // Script 1. Lo que solo ocurre con la aventura en marcha lee `globalThis.idiomaSeleccionado` directamente.
         globalThis.idiomaDeLaInterfaz = function() {
             if (globalThis.idiomaSeleccionado) return globalThis.idiomaSeleccionado;
-            try {
-                const guardado = localStorage.getItem('vv_idioma');
-                if (guardado) return guardado;
-            } catch (_e) { /* sin almacenamiento: español */ }
-            return 'es';
+            return globalThis.almacen.local.leer(globalThis.almacen.CLAVES.IDIOMA) || 'es';
         };
     </script>
 
@@ -2891,6 +2890,10 @@
         import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
         globalThis.reproducirVideoConBuffer = reproducirVideoConBuffer;
 
+        // El almacenamiento del dispositivo pasa siempre por js/almacenamiento.js, un script clásico del <head> que corre
+        // antes que este módulo: ESLint prohíbe localStorage y sessionStorage fuera de él.
+        const almacen = globalThis.almacen;
+
         // Initialize map after MapLibre is loaded
         // Variable para guardar la instancia del mapa y evitar reinicialización
         let _mapInstance = null;
@@ -3923,8 +3926,6 @@
             }
         }
 
-        await import('./js/suppress-warnings.js');
-
         // Inicialización de servicios
         // NOTA: inicializarServicioMapa se llama desde initializeMap() con la instancia del mapa
         // No llamar aquí para evitar doble inicialización del contenedor del mapa
@@ -4212,7 +4213,9 @@
                     idioma: globalThis.idiomaSeleccionado || null,
                     timestamp: Date.now()
                 };
-                localStorage.setItem('vv_progreso', JSON.stringify(payload));
+                // Si no se puede guardar, lo dice el almacén (una vez por clave), y aquí se avisa al usuario por el mismo
+                // camino que cualquier otro fallo de esta función.
+                if (!almacen.local.escribirJSON(almacen.CLAVES.PROGRESO, payload)) throw new Error('vv_progreso no se ha podido guardar');
                 (globalThis.logger || console).debug('[PADRE][PROGRESO] Estado de progreso persistido', payload);
             } catch (e) {
                 (globalThis.logger || console).warn('[PADRE][PROGRESO] No se pudo persistir vv_progreso', e);
@@ -4257,27 +4260,30 @@
         }
 
         function _restoreLoadFromStorage(logPrefix) {
-            const raw = localStorage.getItem('vv_progreso');
-            if (!raw) { (globalThis.logger || console).debug(`${logPrefix} No hay progreso persistido`); return null; }
-            try {
-                return JSON.parse(raw) || null;
-            } catch (e) {
-                // Un vv_progreso que no se puede leer no se va a poder leer nunca: se descarta, para que el aviso no se repita en cada arranque.
-                (globalThis.logger || console).warn(`${logPrefix} vv_progreso corrupto, descartando`, e?.message);
-                localStorage.removeItem('vv_progreso');
-                return null;
-            }
+            // Un vv_progreso que no se puede leer lo descarta el almacén, y lo dice: no se va a poder leer nunca.
+            const progreso = almacen.local.leerJSON(almacen.CLAVES.PROGRESO);
+            if (!progreso) { (globalThis.logger || console).debug(`${logPrefix} No hay progreso persistido`); return null; }
+            return progreso;
         }
 
         // Un solo valor para el TTL de progreso/sesion guardada — antes se repetia como
         // literal en dos funciones (auditoria "un solo camino", 2026-09-29).
         const TTL_PROGRESO_GUARDADO_MS = 7 * 24 * 60 * 60 * 1000;
 
+        // Borrar la aventura guardada en el dispositivo. Sus claves están escritas una sola vez, en almacen.AVENTURA_GUARDADA
+        // (js/almacenamiento.js). La usan «elegir otra aventura», con el idioma (la selección vuelve a empezar por él), y la
+        // vuelta a CASA, sin él. El progreso caducado o de otra aventura descarta solo vv_progreso, y el final de la aventura
+        // vacía el dispositivo entero (limpiarDatosAventura, js/reciclaje-digital.js).
+        function _borrarAventuraGuardada({ conIdioma }) {
+            for (const clave of almacen.AVENTURA_GUARDADA) almacen.local.borrar(clave);
+            if (conIdioma) almacen.local.borrar(almacen.CLAVES.IDIOMA);
+        }
+
         function _restoreCheckStale(obj, logPrefix) {
             const TTL = TTL_PROGRESO_GUARDADO_MS;
             if (!obj.timestamp || Date.now() - obj.timestamp <= TTL) return false;
             (globalThis.logger || console).info(`${logPrefix} vv_progreso expirado (${Math.round((Date.now() - obj.timestamp) / 86400000)} días), descartando`);
-            localStorage.removeItem('vv_progreso');
+            almacen.local.borrar(almacen.CLAVES.PROGRESO);
             return true;
         }
 
@@ -4286,12 +4292,12 @@
             const lang = globalThis.idiomaSeleccionado;
             if (obj.aventura && av && obj.aventura !== av) {
                 (globalThis.logger || console).info(`${logPrefix} vv_progreso de otra aventura (${obj.aventura} ≠ ${av}), descartando`);
-                localStorage.removeItem('vv_progreso');
+                almacen.local.borrar(almacen.CLAVES.PROGRESO);
                 return true;
             }
             if (obj.idioma && lang && obj.idioma !== lang) {
                 (globalThis.logger || console).info(`${logPrefix} vv_progreso de otro idioma (${obj.idioma} ≠ ${lang}), descartando`);
-                localStorage.removeItem('vv_progreso');
+                almacen.local.borrar(almacen.CLAVES.PROGRESO);
                 return true;
             }
             return false;
@@ -4409,14 +4415,10 @@
         // o elegir otra (con advertencia de pérdida de progreso).
         // ============================================================
         function _getInfoProgresoText(t) {
-            try {
-                const raw = localStorage.getItem('vv_progreso');
-                if (!raw) return '';
-                const progreso = JSON.parse(raw);
-                if (progreso && typeof progreso.indiceProgreso === 'number') {
-                    return `${t.progreso}: ${t.parada} ${progreso.indiceProgreso + 1} ${t.de} ${progreso.totalParadas || '?'}`;
-                }
-            } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+            const progreso = almacen.local.leerJSON(almacen.CLAVES.PROGRESO);
+            if (progreso && typeof progreso.indiceProgreso === 'number') {
+                return `${t.progreso}: ${t.parada} ${progreso.indiceProgreso + 1} ${t.de} ${progreso.totalParadas || '?'}`;
+            }
             return '';
         }
 
@@ -4569,12 +4571,7 @@
                     overlay.remove();
                     (globalThis.logger || console).info(`${logPrefix} 🔄 Usuario eligió OTRA aventura - limpiando estado`);
                     // Limpiar el estado persistido completo
-                    try {
-                        localStorage.removeItem('vv_aventura_iniciada');
-                        localStorage.removeItem('vv_progreso');
-                        localStorage.removeItem('vv_paradas_completadas');
-                        localStorage.removeItem('vv_idioma');
-                    } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+                    _borrarAventuraGuardada({ conIdioma: true });
                     // Resetear globals
                     globalThis.aventuraSeleccionada = null;
                     globalThis.idiomaSeleccionado = null;
@@ -4678,12 +4675,7 @@
 
                 async function _elegirOtra() {
                     overlay.remove();
-                    try {
-                        localStorage.removeItem('vv_aventura_iniciada');
-                        localStorage.removeItem('vv_progreso');
-                        localStorage.removeItem('vv_paradas_completadas');
-                        localStorage.removeItem('vv_idioma');
-                    } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+                    _borrarAventuraGuardada({ conIdioma: true });
                     // Sin aventura guardada, se recarga la página: lo mismo que hace «otra aventura» en el modal
                     // de fin y en el de tiempo agotado. Aquí la aventura SÍ estaba en curso, así que hay estado
                     // suyo en tres sitios: el padre (parada, modo, tiempo restante, saltos, brújula), los hijos y
@@ -5033,17 +5025,14 @@
                 _mostrarInterfazReanudacion();
 
                 try {
-                    const paradasRaw = localStorage.getItem('vv_paradas_completadas');
-                    if (paradasRaw) {
-                        const paradasObj = JSON.parse(paradasRaw);
-                        if (paradasObj && typeof paradasObj === 'object') {
-                            // paradasObj es un array [[id, registro], ...] — Map() lo acepta directamente.
-                            // Object.entries() sobre un array produce claves '0','1'... en lugar de los IDs reales.
-                            estado.paradasCompletadas = Array.isArray(paradasObj)
-                                ? new Map(paradasObj)
-                                : new Map(Object.entries(paradasObj));
-                            (globalThis.logger || console).info(`${logPrefix} ✅ ${estado.paradasCompletadas.size} paradas completadas restauradas`);
-                        }
+                    const paradasObj = almacen.local.leerJSON(almacen.CLAVES.PARADAS_COMPLETADAS);
+                    if (paradasObj && typeof paradasObj === 'object') {
+                        // paradasObj es un array [[id, registro], ...] — Map() lo acepta directamente.
+                        // Object.entries() sobre un array produce claves '0','1'... en lugar de los IDs reales.
+                        estado.paradasCompletadas = Array.isArray(paradasObj)
+                            ? new Map(paradasObj)
+                            : new Map(Object.entries(paradasObj));
+                        (globalThis.logger || console).info(`${logPrefix} ✅ ${estado.paradasCompletadas.size} paradas completadas restauradas`);
                     }
                 } catch (pErr) { (globalThis.logger || console).warn(`${logPrefix} Error restaurando paradas completadas`, pErr); }
 
@@ -7336,13 +7325,7 @@
             // vv_aventura_iniciada/vv_progreso/vv_paradas_completadas — justo los datos que
             // la restauración acaba de leer y está aplicando.
             const _reanudando = mensaje?.datos?.restaurado === true;
-            if (!globalThis._devModeActivo && !_reanudando) {
-                try {
-                    localStorage.removeItem('vv_aventura_iniciada');
-                    localStorage.removeItem('vv_progreso');
-                    localStorage.removeItem('vv_paradas_completadas');
-                } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
-            }
+            if (!globalThis._devModeActivo && !_reanudando) _borrarAventuraGuardada({ conIdioma: false });
         }
 
         async function _gestionarSesionSegunModo(modo, mensaje, logPrefix) {
@@ -7451,7 +7434,7 @@
                     // AVENTURA que se dejó atrás — nada lo reseteaba al cambiar de modo (mismo
                     // patrón que idParadaActual en hijo2, reporte de uso real 2026-08-17). Se
                     // reconstruye limpio al volver a AVENTURA, vía la restauración de más abajo.
-                    estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
+                    globalThis._vaciarRetoActual();
                 }
 
                 // Ocultar hijo5 inmediatamente al cambiar a AVENTURA, sin esperar el await
@@ -7514,19 +7497,16 @@
                     // independientes (dev/CASA, dev/AVENTURA, prod/AVENTURA), y deducir una
                     // de la otra al reabrir era justo lo que impedía representar una sesión
                     // dev guardada en AVENTURA. Ver _activarModoRest().
-                    try {
-                        const _aventuraGuardadaRaw = localStorage.getItem('vv_aventura_iniciada');
-                        if (_aventuraGuardadaRaw) {
-                            const _aventuraGuardada = JSON.parse(_aventuraGuardadaRaw);
-                            const _devActual = !!globalThis._devModeActivo;
-                            if (_aventuraGuardada && (_aventuraGuardada.modo !== modo || _aventuraGuardada.dev !== _devActual)) {
-                                _aventuraGuardada.modo = modo;
-                                _aventuraGuardada.dev = _devActual;
-                                localStorage.setItem('vv_aventura_iniciada', JSON.stringify(_aventuraGuardada));
-                                (globalThis.logger || console).debug(`${logPrefix} vv_aventura_iniciada sincronizada — modo:'${modo}' dev:${_devActual}`);
-                            }
+                    const _aventuraGuardada = almacen.local.leerJSON(almacen.CLAVES.AVENTURA_INICIADA);
+                    const _devActual = !!globalThis._devModeActivo;
+                    if (_aventuraGuardada && typeof _aventuraGuardada === 'object'
+                        && (_aventuraGuardada.modo !== modo || _aventuraGuardada.dev !== _devActual)) {
+                        _aventuraGuardada.modo = modo;
+                        _aventuraGuardada.dev = _devActual;
+                        if (almacen.local.escribirJSON(almacen.CLAVES.AVENTURA_INICIADA, _aventuraGuardada)) {
+                            (globalThis.logger || console).debug(`${logPrefix} vv_aventura_iniciada sincronizada — modo:'${modo}' dev:${_devActual}`);
                         }
-                    } catch (persistErr) { (globalThis.logger || console).debug('[VV]:', persistErr?.message); } // NOSONAR
+                    }
 
                     // Restaurar el progreso real al volver a AVENTURA — ver
                     // estado.paradaRealCongelada más arriba. Se dispara SIEMPRE que hay un
@@ -7888,9 +7868,6 @@
             // Asegurar propiedades mínimas sin destruir el objeto existente
             if (!globalThis.estadoPadre.hijosInicializados) globalThis.estadoPadre.hijosInicializados = new Set();
             if (!globalThis.estadoPadre.hijosPreparados) globalThis.estadoPadre.hijosPreparados = new Set();
-            if (!globalThis.estadoPadre.retoActual) {
-                globalThis.estadoPadre.retoActual = { id: null, cola: [], colaCompletados: new Set() };
-            }
 
             // Verificar que enviarMensaje_S1 también esté disponible (alias usado en iframes)
             if (typeof enviarMensaje_S1 !== 'function') {
@@ -7927,9 +7904,8 @@
 
         async function _comprobarReanudacionAventura(logPrefix) {
             try {
-                const aventuraGuardada = localStorage.getItem('vv_aventura_iniciada');
-                if (aventuraGuardada) {
-                    const datosGuardados = JSON.parse(aventuraGuardada);
+                const datosGuardados = almacen.local.leerJSON(almacen.CLAVES.AVENTURA_INICIADA);
+                if (datosGuardados) {
                     // La activación guarda la aventura y el idioma, y reanudar necesita los dos: sin uno de ellos no se
                     // ofrece reanudar, y se dice.
                     if (!datosGuardados?.aventura || !datosGuardados?.idioma) {
@@ -8339,6 +8315,9 @@ await _comprobarReanudacionAventura(logPrefix);
         function _hayCartelEnPantalla() {
             return _TODOS_LOS_CARTELES_IDS.some(id => document.getElementById(id));
         }
+        // Script 2 la usa al pulsar el botón de retos (el de hijo3 o el de hijo4) o el del audio: quien pulsa ya sabe que
+        // ha llegado, y el cartel que haya a la vista se cierra (docs/estudio-caminos.md, K-118).
+        globalThis._ocultarCualquierCartel = _ocultarCualquierCartel;
 
         // Cartel breve y no bloqueante al completar una parada/tramo, combinando lo que se
         // acaba de terminar con lo que viene a continuación (o solo lo terminado si es el
@@ -9216,11 +9195,13 @@ await _comprobarReanudacionAventura(logPrefix);
         let _resolveDistribuirReady;
         globalThis.__distribuirReadyPromise = new Promise(r => { _resolveDistribuirReady = r; });
 
+        // El almacenamiento del dispositivo pasa siempre por js/almacenamiento.js (ver Script 1).
+        const almacen = globalThis.almacen;
+
         // ============================================================
         // Importación de módulos
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_S2, MODOS: MODOS_S2 } = await import('./js/constants.js');
         const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2, normalizarParadas: normalizarParadas_S2 } = await import('./js/utils.js');
-        await import('./js/suppress-warnings.js');
         const { DATOS_PADRE } = await import('./js/aventuras-ID-padre.js');
 
         const loggerScript2 = (await import('./js/logger.js')).default;
@@ -9776,12 +9757,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // Actualizar estado
                 estado.elementoActual = siguienteElemento;
-                const retosIds = obtenerRetosIds(siguienteElemento);
-                estado.retoActual = {
-                    id: retosIds[0] || null,
-                    cola: retosIds,
-                    colaCompletados: new Set()
-                };
+                _asegurarRetoActualDe(siguienteElemento);
 
                 (globalThis.logger || console).info(`${logPrefix} Progresando a elemento ${estado.indiceProgreso}: ${siguienteElemento.tipo} ${siguienteElemento.parada_id || siguienteElemento.tramo_id}`);
 
@@ -9842,13 +9818,9 @@ await _comprobarReanudacionAventura(logPrefix);
                     estado.paradasCompletadas.set(idLimpio, registro);
                     (globalThis.logger || console).info(`${logPrefix} Registrada parada completada: ${idLimpio}`, registro);
 
-                    // Persistir de forma simple (localStorage) — no rompe si no está disponible
-                    try {
-                        const objetoSerializable = [...estado.paradasCompletadas.entries()];
-                        localStorage.setItem('vv_paradas_completadas', JSON.stringify(objetoSerializable));
+                    // Persistir en el dispositivo; si no se puede, lo dice el almacén
+                    if (almacen.local.escribirJSON(almacen.CLAVES.PARADAS_COMPLETADAS, [...estado.paradasCompletadas.entries()])) {
                         (globalThis.logger || console).debug(`${logPrefix} Persistencia local OK`);
-                    } catch (persistError) {
-                        (globalThis.logger || console).warn(`${logPrefix} No se pudo persistir en localStorage`, persistError);
                     }
 
                     // Persistir además el índice de progreso si está definido
@@ -9903,7 +9875,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                     if (modoActual === MODOS.CASA) {
                         // Modo casa: limpiar estado del reto, no avanzar — usuario elige via hijo5
-                        estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
+                        _vaciarRetoActual();
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA: estado limpiado, usuario elige siguiente parada via hijo5`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
@@ -10262,6 +10234,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (_audioMainSpinInterval) { clearInterval(_audioMainSpinInterval); _audioMainSpinInterval = null; }
                 event.stopPropagation();
                 if (mainBtn.disabled) return;
+                // Pulsar el audio es saber que ha llegado: se cierra el cartel que haya a la vista (K-118).
+                globalThis._ocultarCualquierCartel();
                 overlay.classList.toggle('open');
             });
 
@@ -10367,6 +10341,9 @@ await _comprobarReanudacionAventura(logPrefix);
             try {
                 (globalThis.logger || console).info(`${logPrefix} Solicitud de reto recibida de ${mensaje.origen}`);
                 globalThis._marcarRetoPulsadoRecordatorio?.();
+                // Quien pide un reto ya sabe que ha llegado: el cartel que haya a la vista se cierra, para que no tape la parte
+                // alta de la ventana del reto ni se quede el primer toque (K-118).
+                globalThis._ocultarCualquierCartel();
 
                 // El padre decide basado en su estado y array DATOS_PADRE
                 const elementosIDpadre = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre;
@@ -10386,22 +10363,18 @@ await _comprobarReanudacionAventura(logPrefix);
                 const _paradaId = estado.paradaActual;
                 const _idSinPrefijo = _paradaId?.startsWith('padre-') ? _paradaId.substring(6) : _paradaId;
                 const paradaEncontrada = _encontrarParadaEnElementos(elementosIDpadre, _paradaId, _idSinPrefijo);
-                const retosIds = obtenerRetosIds(paradaEncontrada);
 
-                // Guard: inicializar retoActual si no existe (puede ocurrir si estadoPadre
-                // fue recreado con el fallback mínimo sin incluir retoActual)
-                if (!estado.retoActual) {
-                    estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
+                // La cola de retos del elemento la prepara _asegurarRetoActualDe al activarlo y al avanzar. Si al pedir un
+                // reto no es la de este elemento, es un fallo de esos caminos: se dice, y se prepara por el mismo (K-120).
+                if (paradaEncontrada && !_colaEsDe(paradaEncontrada)) {
+                    (globalThis.logger || console).error(`${logPrefix} La cola de retos no era la del elemento ${paradaEncontrada.padreid || _paradaId} al pedir el reto: se prepara ahora (K-120)`);
+                    _asegurarRetoActualDe(paradaEncontrada);
                 }
 
-                // Determinar qué reto mostrar: el siguiente no completado de la cola
+                // Qué reto mostrar: el siguiente no completado de la cola. Con todos hechos, volver a pulsar el botón los
+                // repite desde el primero.
                 let retoIdToUsar = _buscarSiguienteRetoEnCola(estado.retoActual);
-                // Fallback: usar reto_id clásico si la cola no está inicializada
-                if (!retoIdToUsar && retosIds.length > 0) {
-                    retoIdToUsar = retosIds[0];
-                    estado.retoActual.cola = retosIds;
-                    estado.retoActual.colaCompletados = estado.retoActual.colaCompletados || new Set();
-                }
+                if (!retoIdToUsar && estado.retoActual.cola.length > 0) retoIdToUsar = estado.retoActual.cola[0];
 
                 if (!estado.paradaActual || !retoIdToUsar) {
                     (globalThis.logger || console).warn(`${logPrefix} No hay parada actual (${estado.paradaActual}) o reto_id definido para parada encontrada: ${paradaEncontrada ? JSON.stringify(paradaEncontrada) : 'null'}`);
@@ -10586,7 +10559,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     // Sin clave: fallback — respetar modo
                     if (modoActual === MODOS.CASA) {
-                        estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
+                        _vaciarRetoActual();
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
@@ -11377,6 +11350,20 @@ await _comprobarReanudacionAventura(logPrefix);
             return _elementoCompletado(elemento);
         }
 
+        // ¿La cola de retos es la de este elemento? La cola identifica al elemento: ningún reto está en dos.
+        function _colaEsDe(elemento) {
+            const retos = obtenerRetosIds(elemento);
+            const cola = estado.retoActual?.cola;
+            return Array.isArray(cola) && cola.length === retos.length && cola.every((id, i) => id === retos[i]);
+        }
+
+        // Ningún reto en curso: lo que queda al dejar un elemento sin pasar al siguiente (en CASA). Un solo sitio, publicado
+        // para Script 1, que lo usa al entrar en CASA (docs/estudio-caminos.md, K-120).
+        function _vaciarRetoActual() {
+            estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
+        }
+        globalThis._vaciarRetoActual = _vaciarRetoActual;
+
         // El estado del reto del elemento: qué reto toca y cuáles van hechos. Se prepara cuando
         // todavía no es el de este elemento; si ya lo es NO se toca — rehacerlo con el elemento
         // a medias borraba los retos hechos. La cola identifica al
@@ -11385,9 +11372,8 @@ await _comprobarReanudacionAventura(logPrefix);
         // nace con la cola hecha: con la cola vacía, el recordatorio «pulse retos» los daba por
         // pendientes al volver a escuchar el audio.
         function _asegurarRetoActualDe(elemento) {
+            if (_colaEsDe(elemento)) return;
             const retos = obtenerRetosIds(elemento);
-            const cola = estado.retoActual?.cola;
-            if (Array.isArray(cola) && cola.length === retos.length && cola.every((id, i) => id === retos[i])) return;
             estado.retoActual = {
                 id: retos[0] || null,
                 cola: retos,
@@ -12083,7 +12069,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     // Sin clave: fallback directo, respetar modo
                     if (modoActual === MODOS.CASA) {
-                        estado.retoActual = { id: null, cola: [], colaCompletados: new Set() };
+                        _vaciarRetoActual();
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         // Tramo y parada se tratan igual aquí también — habilitar btnAvanzar y
@@ -12432,7 +12418,7 @@ await _comprobarReanudacionAventura(logPrefix);
             globalThis.idiomaSeleccionado = idioma;
             // `vv_idioma` es la copia que sobrevive a una recarga: la leen la despedida (?despedida=1) y el idioma de la
             // interfaz del arranque siguiente (la regla del bloque clásico temprano del padre).
-            try { localStorage.setItem('vv_idioma', idioma); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+            almacen.local.escribir(almacen.CLAVES.IDIOMA, idioma);
         }
 
         async function _fase2CargarDatos(logPrefix) {
@@ -12622,12 +12608,11 @@ await _comprobarReanudacionAventura(logPrefix);
                 updateLoadingStatus('Hijos sincronizados', 'Distribuyendo datos de aventura', 62);
 
                 const _modoInicio = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA;
-                try {
-                    // `dev` se guarda como campo propio, no se deduce del modo: modo y modo
-                    // dev son dimensiones independientes (dev/CASA, dev/AVENTURA, prod/AVENTURA).
-                    localStorage.setItem('vv_aventura_iniciada', JSON.stringify({ aventura, idioma, modo: _modoInicio, dev: !!globalThis._devModeActivo, timestamp: Date.now() }));
-                    (globalThis.logger || console).debug(`${logPrefix} Aventura persistida en localStorage (modo ${_modoInicio}, dev ${!!globalThis._devModeActivo})`);
-                } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); }
+                // `dev` se guarda como campo propio, no se deduce del modo: modo y modo
+                // dev son dimensiones independientes (dev/CASA, dev/AVENTURA, prod/AVENTURA).
+                if (almacen.local.escribirJSON(almacen.CLAVES.AVENTURA_INICIADA, { aventura, idioma, modo: _modoInicio, dev: !!globalThis._devModeActivo, timestamp: Date.now() })) {
+                    (globalThis.logger || console).debug(`${logPrefix} Aventura persistida en el dispositivo (modo ${_modoInicio}, dev ${!!globalThis._devModeActivo})`);
+                }
 
                 await _distribuirDatosActivacion(aventura, idioma, logPrefix);
                 updateLoadingStatus('Datos distribuidos', 'Aplicando interfaz final', 82);
@@ -12669,10 +12654,9 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         function _cancelarTimerAnteriorSiCambia(aventura, logPrefix) {
-            const aventuraAnterior = localStorage.getItem('vv_aventura_iniciada');
-            if (!aventuraAnterior) return;
+            const datosAnterior = almacen.local.leerJSON(almacen.CLAVES.AVENTURA_INICIADA);
+            if (!datosAnterior) return;
             try {
-                const datosAnterior = JSON.parse(aventuraAnterior);
                 if (datosAnterior.aventura === aventura) return;
                 (globalThis.logger || console).info(`${logPrefix} 🔄 Detectada aventura anterior (${datosAnterior.aventura}) → Cancelando timer viejo`);
                 const iframeOpciones = document.getElementById('hijo1-opciones');
@@ -12681,7 +12665,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     (globalThis.logger || console).info(`${logPrefix} ✅ Mensaje DETENER enviado al temporizador anterior`);
                 }
             } catch (parseError) {
-                (globalThis.logger || console).warn(`${logPrefix} Error parseando aventura anterior:`, parseError);
+                (globalThis.logger || console).warn(`${logPrefix} Error deteniendo el reloj de la aventura anterior:`, parseError);
             }
         }
 
@@ -14354,7 +14338,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             // instante de la siguiente sesión — no hay "cambio" que detectar), así que
             // sin este flag el aviso se perdía para siempre y el usuario podía quedarse
             // en la versión vieja sin saberlo ni tener botón para arreglarlo.
-            const SW_PENDIENTE_KEY = 'vv_sw_update_pendiente';
+            const SW_PENDIENTE_KEY = globalThis.almacen.CLAVES.SW_ACTUALIZACION_PENDIENTE;
 
             // ── Criterio único: ¿el código que esta página ejecuta es el desplegado? ──
             // Dos datos independientes lo responden, y solo cuando los dos están
@@ -14383,10 +14367,10 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             function _reciclandoDatos() { return globalThis.__VV_RECICLANDO === true; }
 
             function _marcarActualizacionPendiente(version) {
-                try { localStorage.setItem(SW_PENDIENTE_KEY, version || 'desconocida'); } catch (_e) { /* ignore */ }
+                globalThis.almacen.local.escribir(SW_PENDIENTE_KEY, version || 'desconocida');
             }
             function _limpiarActualizacionPendiente() {
-                try { localStorage.removeItem(SW_PENDIENTE_KEY); } catch (_e) { /* ignore */ }
+                globalThis.almacen.local.borrar(SW_PENDIENTE_KEY);
             }
             function _retirarBannerSW() {
                 document.getElementById('sw-update-banner')?.remove();
@@ -14530,7 +14514,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             // Recargar sobre una versión que ya era la última es inofensivo (una recarga
             // de más); perder el aviso para siempre no lo es — ante la duda, se muestra.
             try {
-                const _pendiente = localStorage.getItem(SW_PENDIENTE_KEY);
+                const _pendiente = globalThis.almacen.local.leer(SW_PENDIENTE_KEY);
                 if (_pendiente) _mostrarBannerSW(_pendiente === 'desconocida' ? null : _pendiente);
             } catch (_e) { /* ignore */ }
 
@@ -14602,7 +14586,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                             // mismo instante para volver a preguntar por las dos versiones:
                             // la PWA puede llevar horas dormida y el mundo real haber cambiado.
                             try {
-                                const _pendienteAlVolver = localStorage.getItem(SW_PENDIENTE_KEY);
+                                const _pendienteAlVolver = globalThis.almacen.local.leer(SW_PENDIENTE_KEY);
                                 if (_pendienteAlVolver) _mostrarBannerSW(_pendienteAlVolver === 'desconocida' ? null : _pendienteAlVolver);
                             } catch (_e) { /* ignore */ }
                             _pedirVersionAlSW();

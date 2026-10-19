@@ -282,6 +282,28 @@ module.exports = [
     },
   },
 
+  // ── El almacenamiento del dispositivo, por una sola puerta ────────────────
+  // localStorage y sessionStorage solo se tocan desde js/almacenamiento.js (globalThis.almacen), que nunca lanza,
+  // dice cada fallo una vez y solo acepta las claves que tiene registradas. Ver CLAUDE.md, convenciones.
+  {
+    files: ["js/**/*.js", "*.html"],
+    ignores: ["js/almacenamiento.js", "js/vendor/**", "js/server.js"],
+    rules: {
+      "no-restricted-globals": ["error",
+        { name: "localStorage", message: "Usa globalThis.almacen.local (js/almacenamiento.js)." },
+        { name: "sessionStorage", message: "Usa globalThis.almacen.sesion (js/almacenamiento.js)." },
+      ],
+      "no-restricted-properties": ["error",
+        { object: "globalThis", property: "localStorage", message: "Usa globalThis.almacen.local (js/almacenamiento.js)." },
+        { object: "globalThis", property: "sessionStorage", message: "Usa globalThis.almacen.sesion (js/almacenamiento.js)." },
+        { object: "window", property: "localStorage", message: "Usa globalThis.almacen.local (js/almacenamiento.js)." },
+        { object: "window", property: "sessionStorage", message: "Usa globalThis.almacen.sesion (js/almacenamiento.js)." },
+        { object: "self", property: "localStorage", message: "Usa globalThis.almacen.local (js/almacenamiento.js)." },
+        { object: "self", property: "sessionStorage", message: "Usa globalThis.almacen.sesion (js/almacenamiento.js)." },
+      ],
+    },
+  },
+
   // ── Ignorar carpetas generadas ────────────────────────────────────────────
   {
     ignores: [

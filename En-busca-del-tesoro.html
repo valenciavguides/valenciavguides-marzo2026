@@ -20,6 +20,7 @@
     }
   </script>
 
+  <script src="js/almacenamiento.js"></script>
   <script src="js/proteccion.js"></script>
   <script src="js/suppress-warnings.js"></script>
   <script>
@@ -2713,7 +2714,7 @@
             // La despedida llega con la página recargada: el idioma de la aventura que acaba está en `vv_idioma` (lo
             // guarda el padre al elegirlo, y las dos salidas a la despedida no lo borran). Se lee ANTES de enseñar P18.
             if (!idiomaSeleccionado) {
-                idiomaSeleccionado = (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })();
+                idiomaSeleccionado = globalThis.almacen.local.leer(globalThis.almacen.CLAVES.IDIOMA);
                 if (!idiomaSeleccionado) logger.error(`${logPrefix} Despedida sin el idioma de la aventura: vv_idioma está vacío`);
             }
             logger.info(`${logPrefix} Modo despedida activo → mostrando P18 agradecimientos (idioma: ${idiomaSeleccionado})`);

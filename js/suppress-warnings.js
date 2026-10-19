@@ -75,14 +75,8 @@
     ];
 
     const debugVerbose = (function() {
-        try {
-            const ls = globalThis.localStorage;
-            if (ls && (ls.getItem('vv_debug_verbose') === '1' || ls.getItem('vv_debug_verbose') === 'true')) {
-                return true;
-            }
-        } catch {
-            // ignore
-        }
+        const guardado = globalThis.almacen.local.leer(globalThis.almacen.CLAVES.DEBUG_VERBOSE);
+        if (guardado === '1' || guardado === 'true') return true;
 
         try {
             return typeof globalThis.location?.search === 'string' && /[?&]debug=1\b/i.test(globalThis.location.search);
@@ -160,12 +154,9 @@
         };
 
         globalThis.__vv_debugVerbose = function(enabled = true) {
-            try {
-                const value = enabled ? '1' : '0';
-                globalThis.localStorage?.setItem('vv_debug_verbose', value);
+            const value = enabled ? '1' : '0';
+            if (globalThis.almacen.local.escribir(globalThis.almacen.CLAVES.DEBUG_VERBOSE, value)) {
                 originalWarn.call(console, `[suppress-warnings] vv_debug_verbose=${value}. Recarga la página para aplicar totalmente.`);
-            } catch (err) {
-                originalWarn.call(console, '[suppress-warnings] No se pudo persistir vv_debug_verbose:', err && err.message);
             }
         };
     }

@@ -338,7 +338,7 @@ sequenceDiagram
         P->>H5: hijo5 display:block · visibility:visible (vuelve a mostrarse)
     end
     P->>P: _codigoValidadoP14 = false
-    P->>P: estado.retoActual se resetea a {id:null, cola:[], colaCompletados:new Set()}
+    P->>P: _vaciarRetoActual() — estado.retoActual = {id:null, cola:[], colaCompletados:new Set()}
     P->>P: manejarCambioModoMapa() → estadoMapa.modo='casa'<br/>limpiarPorEstado(resetCompleto:true)<br/>→ limpiarRecursos(): polylines, marcadores, rutas activas<br/>→ setMapView a CENTRO_DEFECTO + ZOOM_INICIAL
     P->>P: manejarCambioModo → estado.modo.actual = 'casa'
     par actualizarInterfazModo
@@ -2020,7 +2020,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 | **Audio al cambiar de parada** | `_solicitarAudioParaParada()` — mismo camino unificado que en AVENTURA; resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` (el usuario arranca el audio manualmente en ambos modos) | `_solicitarAudioParaParada()` — resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` |
 | **`RETO.ESTADO_CASA` (hijo4)** | Enviado en cada `CAMBIO_PARADA`: `{ habilitado: !esTramo }` — habilita el panel de retos en paradas, lo deshabilita en tramos | No se envía |
 | **Origen típico de `CAMBIO_PARADA`** | hijo5 (clic en lista de paradas) | El padre mismo, tras `progresarSiguienteElemento()` (usuario pulsa `btn-avanzar` en hijo2 una vez llegada+audio+reto están completos) — nunca hijo2 directamente; la llegada GPS solo marca `pending.llegada`, ver §2.2 |
-| **Persistencia de progreso** | `localStorage.removeItem('vv_aventura_iniciada')` al cambiar a CASA | `localStorage.setItem('vv_aventura_iniciada', ...)` al cambiar a AVENTURA |
+| **Persistencia de progreso** | Borra la aventura guardada (`_borrarAventuraGuardada({ conIdioma: false })`, §10.19), salvo en modo desarrollo (ver §24) o al reanudar | Reescribe `modo` y `dev` de `vv_aventura_iniciada` (`almacen.local.escribirJSON`), en cada cambio real de modo |
 | **Carteles de distancia GPS** (`gps-out-of-range-overlay`, `foto-fuera-rango-overlay`, `foto-lejos-overlay`) | Al entrar en CASA, `_hdl_SISTEMA_CAMBIO_MODO` los cierra explícitamente (`_ocultarTodasPantallasDistanciaGPS()`, que cierra los seis carteles de distancia y precisión: estos tres más `foto-perdido-overlay`, `foto-desviado-overlay` y `gps-precision-overlay`) y resetea `estado.usuarioFueraRango` — ninguno puede quedar visible desde una AVENTURA anterior | Gestionados por `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`/`_hdl_NAVEGACION_LLEGADA_DETECTADA`, cada uno con su propio guard de modo (defensa en profundidad, redundante con el guard de hijo2 que ya evita que se envíen desde CASA) |
 | **Recordatorio "pulse play"** (§25.5c) | `_hdl_SISTEMA_CAMBIO_MODO` llama a `globalThis._detenerRecordatorioAudio()` explícitamente — el elemento activo no cambia solo por cambiar de modo, así que sin este apagado el recordatorio seguiría corriendo fuera de AVENTURA | Arranca en `_hdl_NAVEGACION_CAMBIO_PARADA` si el elemento tiene audio; exige tiempo Y proximidad GPS a la vez (ver §25.5c) |
 
@@ -2778,7 +2778,7 @@ El estado de este botón lo decide **un solo sitio** del padre, `_sincronizarRet
 
 Sin hijo3 en `estado.hijosInicializados` no envía nada (lo anota con `logger.warn`); «hijo4 listo» no es una de las variables: quien pulsa el botón con hijo4 recuperándose espera a su `HIJO_LISTO` en `_hdl_RETO_SOLICITAR`.
 
-**El estado del reto (`estado.retoActual`: `id`, `cola`, `colaCompletados`) es del elemento actual y se conserva mientras el elemento está a medias.** `_asegurarRetoActualDe(elemento)` lo prepara solo cuando la cola guardada no es la de ese elemento (los `reto_id` son únicos por aventura e idioma, así que la cola lo identifica); si es la suya, lo deja como está. Volver dentro de rango, la recarga de hijo3, reactivar el mismo elemento o volver a escuchar su audio conservan los retos hechos. Si el reto se puede abrir no es un campo de este estado: lo decide `_decidirRetoBtn()` cada vez que se le pregunta. Cuando lo prepara, `colaCompletados` nace con todos los retos de la cola si el elemento los trae hechos y vacío en otro caso. **«Retos hechos» se pregunta en un solo sitio, `_retosHechosEn(elemento)`:** la ficha del elemento tiene `reto` a `true` o, si no tiene ficha, el elemento figura en `estado.paradasCompletadas`. Es el caso de una reanudación que devuelve al elemento su ficha con el reto resuelto (§25.10): la cola y la ficha dicen lo mismo, y volver a escuchar el audio no arranca el recordatorio de un reto ya hecho (§25.5d).
+**El estado del reto (`estado.retoActual`: `id`, `cola`, `colaCompletados`) es del elemento actual y se conserva mientras el elemento está a medias.** `_asegurarRetoActualDe(elemento)` lo prepara solo cuando la cola guardada no es la de ese elemento (los `reto_id` son únicos por aventura e idioma, así que la cola lo identifica); si es la suya, lo deja como está. Volver dentro de rango, la recarga de hijo3, reactivar el mismo elemento o volver a escuchar su audio conservan los retos hechos. Si el reto se puede abrir no es un campo de este estado: lo decide `_decidirRetoBtn()` cada vez que se le pregunta. Cuando lo prepara, `colaCompletados` nace con todos los retos de la cola si el elemento los trae hechos y vacío en otro caso. Es el único sitio que prepara la cola: la llaman la activación del elemento, el fin de su audio y el avance al elemento siguiente (`progresarSiguienteElemento`). Al pedir un reto (`_hdl_RETO_SOLICITAR`), si la cola no es la del elemento, el padre lo dice con un `error` («(K-120)») y la prepara con esa misma función; con todos los retos hechos, volver a pedir uno los repite desde el primero. El estado vacío (`{ id: null, cola: [], colaCompletados: new Set() }`) lo escribe solo `_vaciarRetoActual()`, en CASA: al entrar y al terminar un elemento. **«Retos hechos» se pregunta en un solo sitio, `_retosHechosEn(elemento)`:** la ficha del elemento tiene `reto` a `true` o, si no tiene ficha, el elemento figura en `estado.paradasCompletadas`. Es el caso de una reanudación que devuelve al elemento su ficha con el reto resuelto (§25.10): la cola y la ficha dicen lo mismo, y volver a escuchar el audio no arranca el recordatorio de un reto ya hecho (§25.5d).
 
 Cubierto por `tests/e2e/122-boton-retos-un-solo-sitio.spec.js` (BR-1 a BR-9), con el padre, los hijos y el botón reales.
 
@@ -4451,7 +4451,7 @@ sequenceDiagram
     Note over H: hijo1-opciones, hijo2, hijo3, hijo4, hijo5
     H->>P: SISTEMA.HIJO_LISTO (x5, via handshake)
     P-->>P: las cargas terminan (cada hijo, ya listo, queda visible)
-    P-->>P: localStorage.setItem('vv_aventura_iniciada', { modo: _modoInicio })
+    P-->>P: almacen.local.escribirJSON('vv_aventura_iniciada', { aventura, idioma, modo: _modoInicio, dev, timestamp })
     P->>H: distribuirDatosAventura(aventura, idioma)
     P->>P: _mostrarUIActivada() — oculta iframe seleccion, muestra hijo2/3/1-opciones/5
     P-->>P: hideParentLoadingOverlay()
@@ -4817,7 +4817,7 @@ Los stats (paradas, tramos, retos, monumentos, audios) de los botones de aventur
 > - *Bus / postMessage entre componentes*: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/utils.js`
 > - *SW lifecycle*: `sw.js`, `codigo-padre.html` (el registro y el aviso de versión nueva)
 > - *HTTP fetch / API backend*: `js/api-client.js`, `js/data-loader.js`
-> - *localStorage / sessionStorage*: `js/api-client.js` (token sesión), `En-busca-del-tesoro.html` (lee `vv_idioma` en modo despedida), `js/suppress-warnings.js` (flag debug), `js/reciclaje-digital.js` (clear total + caché SW)
+> - *localStorage / sessionStorage*: solo a través de `js/almacenamiento.js` (`globalThis.almacen`, §10.19). Lo usan el padre, `js/api-client.js` (token sesión), `En-busca-del-tesoro.html` (lee `vv_idioma` en modo despedida), `js/proteccion.js` y `js/suppress-warnings.js` (interruptores de depuración) y `js/reciclaje-digital.js` (vaciado total + caché SW)
 >
 > **Sin comunicación entre componentes** (solo eventos DOM internos propios): `js/device-detection.js`, `js/proteccion.js`, `js/config.js`, `consejos-valencia.html`, `gastronomia.html`, `paginas-oficiales-valencia.html`, `videos-valencia-historica.html`.
 
@@ -4916,7 +4916,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-bc0c726e908b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c64a333e0123'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6051,23 +6051,37 @@ GPS.RESTRINGIDO **no** es un broadcast del padre — es un handler que padre rec
 
 ### 10.19 localStorage — estado persistido entre sesiones
 
-`codigo-padre.html` usa `localStorage` como canal de persistencia para restaurar el estado completo de la aventura entre recargas o reinicios de la app. Todas las escrituras ocurren en `codigo-padre.html`; las lecturas en el propio padre al arrancar y en otros archivos indicados.
+Todo lo que la app guarda en el dispositivo pasa por `js/almacenamiento.js`, que lo publica en `globalThis.almacen`: es el único fichero que toca `localStorage` y `sessionStorage`, y ESLint lo exige (`no-restricted-globals` y `no-restricted-properties` en `eslint.config.js`, salvo en ese fichero). Es un script clásico, no un módulo, porque también lo usan scripts clásicos (`js/proteccion.js`, `js/suppress-warnings.js` y dos bloques clásicos del padre). Lo cargan en su `<head>`, antes que cualquier script que lo use, las siete páginas que tocan el almacenamiento: el padre, la selección y hijo1 a hijo5. Las otras cuatro (hijo6, el mapa completo, el puzzle y el vídeo de introducción) no lo tocan. El service worker lo precarga.
+
+| Función (`almacen.local` o `almacen.sesion`) | Devuelve | Si falla |
+|---|---|---|
+| `leer(clave)` | el texto guardado, o `null` | `null`, y un `warn` |
+| `escribir(clave, texto)` | `true` | `false`, y un `error`; también si el valor no es texto |
+| `borrar(clave)` | `true` | `false`, y un `warn` |
+| `vaciar()` | `true` | `false`, y un `warn` |
+| `leerJSON(clave)` | el valor, o `null` | `null`; si lo guardado no es JSON válido, lo borra y lo dice con un `error` |
+| `escribirJSON(clave, valor)` | `true` | `false`, y un `error` |
+
+Nunca lanza: con el almacenamiento bloqueado (con las cookies bloqueadas, tocar `localStorage` lanza), lleno (escribir lanza) o con un valor roto, la app sigue. Cada fallo sale en el log una sola vez por almacén, operación, clave y tipo de error, con el prefijo `[ALMACEN]`, para que un almacenamiento bloqueado no inunde la consola. Solo acepta las claves registradas en `almacen.CLAVES` (las de las dos tablas de abajo); una clave que no está ni se escribe ni se lee, y se dice con un `error`. `almacen.AVENTURA_GUARDADA` agrupa las tres claves de una aventura guardada: `vv_aventura_iniciada`, `vv_progreso` y `vv_paradas_completadas`. Las borra `_borrarAventuraGuardada({ conIdioma })` (Script 1 del padre), la única función que borra una aventura guardada sin vaciar el dispositivo entero; con `conIdioma: true` borra también `vv_idioma`. La usan «elegir otra aventura», con el idioma, y la vuelta a CASA, sin él.
+
+El padre usa `localStorage` para restaurar el estado de la aventura entre recargas o reinicios de la app; la tabla dice quién escribe y quién lee cada clave.
 
 | Clave | Escritor | Lector adicional | Contenido | Cuándo se borra |
 |-------|---------|-----------------|-----------|-----------------|
-| `vv_aventura_iniciada` | padre (activación inicial) + padre (`_hdl_SISTEMA_CAMBIO_MODO`, en cada cambio de modo real de la sesión — incluida la activación de dev mode) | `reciclaje-digital.js` (lee para log antes de borrar; `verificarTimeoutAventura()` lee `aventura`+`timestamp` para la ventana de compra) | `{ aventura, idioma, modo, dev, timestamp }` — punto de entrada de `ejecutarRestauracionAventura()`. `modo` (`'casa'`\|`'aventura'`) y `dev` (booleano) son **dimensiones independientes**, no derivables una de otra: existen dev/CASA, dev/AVENTURA y prod/AVENTURA. Ambos reflejan el estado real de la sesión en cada momento — se escriben en la activación y se resincronizan en cada cambio de modo. Un payload sin `dev` (guardado antes de que el campo existiera) se sigue restaurando: se deduce `dev = true` solo si `modo === 'casa'` | `limpiarDatosAventura()` (fin/reset) |
-| `vv_progreso` | padre (`persistProgressState()`, solo en AVENTURA: en cada `CAMBIO_PARADA`, al fijar la parada por defecto, al completarse un elemento, al cobrarse un rescate y en cada anotación de la ficha del elemento, `_anotarEnFicha()`) | padre al restaurar | `{ indiceProgreso, paradaActual, elementoActualId, totalParadas, tiempoRestante, tramoSkipsUsados, ficha, aventura, idioma, timestamp }`; `ficha` es `{ clave, llegada, audio, reto, retosCompletadosCount }` del elemento actual, o `null` si todavía no tiene ficha | `limpiarDatosAventura()` |
-| `vv_idioma` | padre (`_hdl_SELECCION_IDIOMA_SELECCIONADO`, su único escritor) | `En-busca-del-tesoro.html` `_checkUrlParams()` (el idioma de la despedida, tras la recarga) y `globalThis.idiomaDeLaInterfaz()` del padre (el idioma de la interfaz antes de elegir) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()` y las dos «Elegir otra» (`ejecutarElegirOtra`, `_elegirOtra`) |
-| `vv_paradas_completadas` | padre | padre al restaurar | Array de pares `[[id, registro], ...]` — formato nativo de `Map.entries()`. Se restaura con `new Map(paradasObj)`, **no** con `Object.entries()` (este último produce claves numéricas y rompe el dedup). | `limpiarDatosAventura()` |
+| `vv_aventura_iniciada` | padre (activación inicial) + padre (`_hdl_SISTEMA_CAMBIO_MODO`, en cada cambio de modo real de la sesión — incluida la activación de dev mode) | `reciclaje-digital.js` (lee para log antes de borrar; `verificarTimeoutAventura()` lee `aventura`+`timestamp` para la ventana de compra) | `{ aventura, idioma, modo, dev, timestamp }` — punto de entrada de `ejecutarRestauracionAventura()`. `modo` (`'casa'`\|`'aventura'`) y `dev` (booleano) son **dimensiones independientes**, no derivables una de otra: existen dev/CASA, dev/AVENTURA y prod/AVENTURA. Ambos reflejan el estado real de la sesión en cada momento — se escriben en la activación y se resincronizan en cada cambio de modo. Un payload sin `dev` (guardado antes de que el campo existiera) se sigue restaurando: se deduce `dev = true` solo si `modo === 'casa'` | `limpiarDatosAventura()` (fin/reset) y `_borrarAventuraGuardada()` («elegir otra» y la vuelta a CASA); si no es JSON válido, `leerJSON` la borra al leerla |
+| `vv_progreso` | padre (`persistProgressState()`, solo en AVENTURA: en cada `CAMBIO_PARADA`, al fijar la parada por defecto, al completarse un elemento, al cobrarse un rescate y en cada anotación de la ficha del elemento, `_anotarEnFicha()`) | padre al restaurar | `{ indiceProgreso, paradaActual, elementoActualId, totalParadas, tiempoRestante, tramoSkipsUsados, ficha, aventura, idioma, timestamp }`; `ficha` es `{ clave, llegada, audio, reto, retosCompletadosCount }` del elemento actual, o `null` si todavía no tiene ficha | `limpiarDatosAventura()`, `_borrarAventuraGuardada()`, y el progreso caducado, de otra aventura o de otro idioma (`_restoreCheckStale`, `_restoreCheckMismatch`) o roto (`leerJSON`) |
+| `vv_idioma` | padre (`_hdl_SELECCION_IDIOMA_SELECCIONADO`, su único escritor) | `En-busca-del-tesoro.html` `_checkUrlParams()` (el idioma de la despedida, tras la recarga) y `globalThis.idiomaDeLaInterfaz()` del padre (el idioma de la interfaz antes de elegir) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()` y «elegir otra» (`_borrarAventuraGuardada({ conIdioma: true })`, en sus dos diálogos) |
+| `vv_paradas_completadas` | padre | padre al restaurar | Array de pares `[[id, registro], ...]` — formato nativo de `Map.entries()`. Se restaura con `new Map(paradasObj)`, **no** con `Object.entries()` (este último produce claves numéricas y rompe el dedup). | `limpiarDatosAventura()` y `_borrarAventuraGuardada()` |
 | `vv_debug` | Manual (DevTools) | `js/proteccion.js` | `'1'` = modo debug activo (desactiva algunas protecciones) | Manual, **y también `limpiarDatosAventura()`**, que vacía el almacenamiento entero |
 | `vv_hard_protect` | Manual (DevTools) | `js/proteccion.js` | `'1'` = protección fuerte de contenido activa | Manual, **y también `limpiarDatosAventura()`** |
 | `vv_debug_verbose` | `js/suppress-warnings.js` | `js/suppress-warnings.js` | `'1'` o `'true'` = conservar trazas completas de `console.debug` | `limpiarDatosAventura()` |
+| `vv_sw_update_pendiente` | el bloque del service worker del padre (`_mostrarBannerSW`), al saber que hay una versión nueva sin aplicar | el mismo bloque, al arrancar y al volver la página a primer plano (`visibilitychange`) | la versión nueva, o `'desconocida'` | cuando la página ya es la versión desplegada (`_limpiarActualizacionPendiente`) y `limpiarDatosAventura()` |
 
 **Flujo de restauración de sesión:**
 
 ```text
 codigo-padre.html arranca
-  → lee localStorage('vv_aventura_iniciada')
+  → lee vv_aventura_iniciada (almacen.local.leerJSON: si no es JSON válido, la descarta y lo dice)
   → si le falta la aventura o el idioma: no se ofrece reanudar (error en consola)
   → si la compra ha caducado: modal de tiempo agotado
   → si no: diálogo de reanudación → «Continuar» → ejecutarRestauracionAventura()
@@ -6076,9 +6090,9 @@ codigo-padre.html arranca
   → si no existe: arranque normal, en P1
 ```
 
-**Flujo de limpieza:** `limpiarDatosAventura(motivo)` (`js/reciclaje-digital.js`) no borra una lista de claves: hace `localStorage.clear()` y `sessionStorage.clear()` **enteros**, «sin excepciones», y después vacía las cachés del Service Worker y lo desregistra. Eso alcanza también a las claves manuales de depuración (`vv_debug`, `vv_hard_protect`, `vv_debug_verbose`): quien esté depurando las pierde al terminar una aventura, no solo al borrarlas a mano.
+**Flujo de limpieza:** `limpiarDatosAventura(motivo)` (`js/reciclaje-digital.js`) no borra una lista de claves: vacía `localStorage` y `sessionStorage` **enteros** (`almacen.local.vaciar()` y `almacen.sesion.vaciar()`), «sin excepciones», y después vacía las cachés del Service Worker y lo desregistra. Eso alcanza también a las claves manuales de depuración (`vv_debug`, `vv_hard_protect`, `vv_debug_verbose`): quien esté depurando las pierde al terminar una aventura, no solo al borrarlas a mano.
 
-**Si `localStorage.setItem('vv_progreso', ...)` falla:** `persistProgressState()` tiene su propio try/catch interno — el fallo no se propaga, se registra con `logger.warn`, y la primera vez que falla en la sesión (`estado._avisoPersistenciaMostrado`, para no repetir el aviso en cada parada si el problema persiste toda la sesión — lo habitual, dado que suele ser una restricción del navegador/dispositivo, no un fallo puntual) muestra el cartel `_mostrarCartelAvisoProgresoConReintento()` con `MSG_PROGRESO_NO_GUARDADO` (`js/traducciones-ui.js`, 12 idiomas) — ver §25.5h para el detalle del cartel en sí. La función en sí no es `async` (se llama sin `await` en varios sitios) — la resolución de la traducción y el aviso ocurren dentro del propio cartel, sin bloquear ni cambiar la firma de `persistProgressState()`. Causas reales más probables: modo privado de Safari/iOS, almacenamiento del dispositivo lleno, o política de navegador/empresa que bloquea `localStorage` — nunca un problema del propio tamaño de los datos (el payload son unos pocos KB).
+**Si no se puede guardar `vv_progreso`:** `almacen.local.escribirJSON()` devuelve `false` (y el almacén lo dice con un `error`, una vez), y `persistProgressState()` lo trata como cualquier otro fallo suyo, dentro de su try/catch: el fallo no se propaga, se registra con `logger.warn`, y la primera vez que falla en la sesión (`estado._avisoPersistenciaMostrado`, para no repetir el aviso en cada parada si el problema persiste toda la sesión — lo habitual, dado que suele ser una restricción del navegador/dispositivo, no un fallo puntual) muestra el cartel `_mostrarCartelAvisoProgresoConReintento()` con `MSG_PROGRESO_NO_GUARDADO` (`js/traducciones-ui.js`, 12 idiomas) — ver §25.5h para el detalle del cartel en sí. La función en sí no es `async` (se llama sin `await` en varios sitios) — la resolución de la traducción y el aviso ocurren dentro del propio cartel, sin bloquear ni cambiar la firma de `persistProgressState()`. Causas reales más probables: modo privado de Safari/iOS, almacenamiento del dispositivo lleno, o política de navegador/empresa que bloquea `localStorage` — nunca un problema del propio tamaño de los datos (el payload son unos pocos KB).
 
 ---
 
@@ -6086,9 +6100,9 @@ codigo-padre.html arranca
 
 | Clave | Escritor | Lector | Contenido |
 |-------|---------|--------|-----------|
-| `vbg_session_token` | `js/api-client.js` `TokenManager.setToken()` | `js/api-client.js`, `js/data-loader.js` (en modo API) | JWT de autenticación con el backend. Se incluye como `Authorization: Bearer` en cada petición. Se borra al cerrar sesión o al recibir 401. |
+| `vbg_session_token` | `js/api-client.js` `TokenManager.setToken()`, con `almacen.sesion` | `js/api-client.js`, `js/data-loader.js` (en modo API) | JWT de autenticación con el backend. Se incluye como `Authorization: Bearer` en cada petición. Se borra al cerrar sesión o al recibir 401. |
 
-**Limpieza total:** `js/reciclaje-digital.js` llama `sessionStorage.clear()` — borra todas las claves de sessionStorage de golpe (no selectivamente). Se invoca desde la pantalla de "reciclaje digital" / reset total de la app.
+**Limpieza total:** `js/reciclaje-digital.js` llama `almacen.sesion.vaciar()` — borra todas las claves de sessionStorage de golpe (no selectivamente). Se invoca desde la pantalla de "reciclaje digital" / reset total de la app.
 
 ---
 
@@ -8067,6 +8081,10 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `139-parada-por-defecto-un-solo-camino.spec.js` | 2 | La parada por defecto la elige solo `ensureDefaultParada()`: la primera entrada en AVENTURA activa la de inicio (PD-1, control); al volver de CASA con otro elemento en curso, cada `CAMBIO_PARADA` de la vuelta es de ese elemento (PD-2) |
 | `140-puzzle-un-solo-bucle-de-dibujo.spec.js` | 3 | El puzzle dibuja con un solo bucle (cuenta los fotogramas pendientes de su frame, uno por bucle vivo): uno con el puzzle en marcha y a la vista (UB-1), uno tras tres `resize` seguidos (UB-2) y uno tras reiniciar en marcha (UB-3) |
 | `141-diagnostico-gps-dice-la-verdad.spec.js` | 3 | El estado del sensor GPS tiene un solo dueño, `estadoPadre.gps`: antes de activar, el diagnóstico de consola dice que el GPS no está activo (DG-1, control); con el GPS activado por `activarGPS()`, dice que sí (DG-2); tras activar, el espejo del mapa no pisa los permisos del padre, y el diagnóstico los da por concedidos (DG-3) |
+| `142-almacenamiento-una-sola-puerta.spec.js` | 4 | El almacenamiento del dispositivo pasa por una sola puerta, `globalThis.almacen` (§10.19): con el almacenamiento bloqueado el padre arranca entero, dice el fallo una vez por clave y dice como error una escritura que falla (AL-1); una aventura guardada que no es JSON válido se descarta al arrancar, y se dice (AL-2); una clave que no está en `almacen.CLAVES` ni se escribe ni se lee (AL-3); las siete páginas que tocan el almacenamiento cargan `js/almacenamiento.js` antes que cualquier script que lo use, el service worker lo precarga y las otras cuatro no lo tocan (AL-4) |
+| `143-filtro-de-consola-una-sola-vez.spec.js` | 2 | `js/suppress-warnings.js` corre una sola vez en el padre: restaurar la consola deja la original, la que encuentran los scripts de la página al cargar (FC-1), y ninguna página ni módulo lo importa (FC-2) |
+| `144-pulsar-reto-o-audio-cierra-el-cartel.spec.js` | 3 | Con el cartel de llegada a la vista, pedir un reto lo cierra (CA-1) y pulsar el botón del audio también (CA-2); sin pulsar nada, sigue a la vista (CA-3, control) |
+| `145-cola-de-retos-un-solo-camino.spec.js` | 3 | La cola de retos la prepara solo `_asegurarRetoActualDe`: con la cola de otro elemento, pedir un reto lo dice con un error y deja la del elemento actual (RC-1); con la cola ya preparada, no lo dice (RC-2, control); avanzar al elemento siguiente le prepara su cola (RC-3, control) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8301,7 +8319,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-bc0c726e908b'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c64a333e0123'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8462,6 +8480,7 @@ proyecto/
 │   ├── ── UTILIDADES ──
 │   ├── logger.js                     ← Sistema de logging con niveles
 │   ├── utils.js                      ← Utilidades generales (sleep, resolverIdsParada…)
+│   ├── almacenamiento.js             ← Único acceso a localStorage y sessionStorage (globalThis.almacen, claves registradas)
 │   ├── device-detection.js           ← Detección móvil/desktop
 │   ├── suppress-warnings.js          ← Filtrado de avisos de consola irrelevantes
 │   ├── validacion.js                 ← Validación de datos de entrada
@@ -8545,7 +8564,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 138 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 142 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9054,7 +9073,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-bc0c726e908b';
+const CACHE_VERSION = 'v-c64a333e0123';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9982,7 +10001,7 @@ Cubierto por `tests/e2e/34-recordatorio-reto.spec.js` (RR-1..RR-4, mismo patrón
 
 **Por qué existe:** con los tres recordatorios periódicos (§25.5c/d/g) y el aviso acotado de progreso (§25.5h) sumados a los cinco carteles de "algo acaba de pasar" (§4.7g), dos carteles podrían coincidir en pantalla — un recordatorio apareciendo justo cuando se completa una parada, por ejemplo.
 
-**Regla — cuatro categorías:** los 5 carteles de uso único siempre ganan — cada uno de sus `mostrarCartelXXX()` empieza llamando a `_ocultarCualquierCartel()`, que quita cualquiera de los otros 9 que hubiera en pantalla antes de mostrarse. El recordatorio de rescate (§25.19) también se impone: empieza igual, con `_ocultarCualquierCartel()`. Los 3 recordatorios periódicos respetan a cualquier otro: su condición de mostrado incluye `&& !_hayCartelEnPantalla()`, así que si hay uno visible, esperan al siguiente tick (máximo 2s de retraso) en vez de solaparse — como no dejan de reevaluar nunca mientras el elemento activo siga sin resolverse, no hace falta que cuenten intentos. El aviso de progreso (§25.5h) respeta igual a cualquier otro cartel, pero al ser un evento de una sola vez por sesión (no un chequeo periódico que vuelve a evaluar solo) sí necesita su propio reintento acotado (`_mostrarCartelAvisoProgresoConReintento`, 5 intentos × 3s) para no perderse en silencio si el único momento en que ocurre el fallo coincide con otro cartel ya visible.
+**Regla — cuatro categorías:** los 5 carteles de uso único siempre ganan — cada uno de sus `mostrarCartelXXX()` empieza llamando a `_ocultarCualquierCartel()`, que quita cualquiera de los otros 9 que hubiera en pantalla antes de mostrarse. El recordatorio de rescate (§25.19) también se impone: empieza igual, con `_ocultarCualquierCartel()`. Los 3 recordatorios periódicos respetan a cualquier otro: su condición de mostrado incluye `&& !_hayCartelEnPantalla()`, así que si hay uno visible, esperan al siguiente tick (máximo 2s de retraso) en vez de solaparse — como no dejan de reevaluar nunca mientras el elemento activo siga sin resolverse, no hace falta que cuenten intentos. El aviso de progreso (§25.5h) respeta igual a cualquier otro cartel, pero al ser un evento de una sola vez por sesión (no un chequeo periódico que vuelve a evaluar solo) sí necesita su propio reintento acotado (`_mostrarCartelAvisoProgresoConReintento`, 5 intentos × 3s) para no perderse en silencio si el único momento en que ocurre el fallo coincide con otro cartel ya visible. Pulsar el botón de retos (el de hijo3 o el de hijo4, que llegan al padre como `RETO.SOLICITAR_RETO`) o el del audio (`#audio-main-toggle-btn`) también quita el cartel que haya a la vista: quien pulsa ya sabe que ha llegado, y el cartel taparía la parte alta de la ventana del reto y se quedaría el primer toque. Lo hace la misma `_ocultarCualquierCartel()`, publicada en `globalThis` para Script 2, donde viven esos dos botones.
 
 **Dónde vive:** `codigo-padre.html` — `_TODOS_LOS_CARTELES_IDS` (lista los 10 ids), `_ocultarCualquierCartel()`, `_hayCartelEnPantalla()`.
 
@@ -10042,13 +10061,13 @@ Cubierto por `tests/e2e/44-boton-saltar-audio.spec.js` (grupo BSA-G: aparece a l
 
 ### 25.5h. Aviso de progreso no guardado (`cartel-aviso-progreso`)
 
-**Por qué existe:** el caso genuinamente no-bloqueante (audio caso 4 en §7.4/§25.5f, y la carga de párrafos en `js/data-loader.js`, §10.21) — `persistProgressState()` guarda `vv_progreso` en cada cambio de parada; si `localStorage.setItem` falla (modo privado de Safari/iOS, almacenamiento lleno, política de navegador/empresa), el progreso deja de persistir en silencio y el usuario solo lo descubre si cierra la app y la reabre — demasiado tarde para hacer nada al respecto. Reutiliza el patrón ya existente de la familia de carteles (§4.7g-m, §25.5c/d/g) — 9º miembro.
+**Por qué existe:** el caso genuinamente no-bloqueante (audio caso 4 en §7.4/§25.5f, y la carga de párrafos en `js/data-loader.js`, §10.21) — `persistProgressState()` guarda `vv_progreso` en cada cambio de parada; si guardarlo falla (modo privado de Safari/iOS, almacenamiento lleno, política de navegador/empresa), el progreso deja de persistir en silencio y el usuario solo lo descubre si cierra la app y la reabre — demasiado tarde para hacer nada al respecto. Reutiliza el patrón ya existente de la familia de carteles (§4.7g-m, §25.5c/d/g) — 9º miembro.
 
 **Distinto de los otros 9 en un punto — no es periódico:** los 3 recordatorios (§25.5c/d/g) vuelven a comprobar sus condiciones cada 2s indefinidamente mientras el elemento activo siga sin resolverse; este aviso ocurre como mucho una vez por sesión entera (guardado por `estado._avisoPersistenciaMostrado`, fijado a `true` antes incluso de intentar mostrar el cartel — no hay una segunda oportunidad más adelante en la sesión). Por eso, si el único instante en que salta coincide con otro cartel ya en pantalla, no puede permitirse simplemente "esperar al siguiente chequeo" como los recordatorios — necesita su propio reintento acotado.
 
 **`_mostrarCartelAvisoProgresoConReintento(intento = 0)`:** si `_hayCartelEnPantalla()` es `true`, reprograma con `setTimeout` cada 3.000ms hasta `MAX_INTENTOS_AVISO_PROGRESO` (5, es decir hasta 15s de espera total); agotados los 5 intentos sin hueco libre, registra un `logger.warn` y desiste — el aviso no se muestra esta sesión. En cuanto encuentra hueco libre, llama a `_mostrarCartelAvisoProgreso()`.
 
-**`_mostrarCartelAvisoProgreso()`:** mismo estilo visual que el resto de la familia (fondo `#fff8e7`, borde naranja `#FF8C00`, `z-index:1000060`, misma posición `top:calc(10.7vh + 10px + 0.5rem)`) — icono `⚠️` (emoji, no imagen — es el único cartel de la familia sin un icono de archivo propio, al no estar ligado a un botón/acción concreta de la app) y el texto de `MSG_PROGRESO_NO_GUARDADO[idioma]` (`js/traducciones-ui.js`, 12 idiomas; en español: *"No se ha podido guardar tu progreso en este dispositivo. Si cierras la aplicación, podrías perderlo."*). Botón ✗ y autocierre a los 7s, igual que el resto. Llama a `_vibrarCartel()` (§4.7m).
+**`_mostrarCartelAvisoProgreso()`:** mismo estilo visual que el resto de la familia (fondo `#fff8e7`, borde naranja `#FF8C00`, `z-index:1000060`, misma posición `top:calc(10.7vh + 10px + 0.5rem)`) — icono `⚠️` (emoji, no imagen — es el único cartel de la familia sin un icono de archivo propio, al no estar ligado a un botón/acción concreta de la app) y el texto de `MSG_PROGRESO_NO_GUARDADO[idioma]` (`js/traducciones-ui.js`, 12 idiomas; en español: *"No se ha podido guardar el progreso en este dispositivo. Si cierra la aplicación, podría perderse."*). Botón ✗ y autocierre a los 7s, igual que el resto. Llama a `_vibrarCartel()` (§4.7m).
 
 **Participa en el guardián anti-solape como un 9º id** (`_TODOS_LOS_CARTELES_IDS`, §25.5e) — un cartel de "algo acaba de pasar" que aparezca mientras este está visible lo cierra igual que a cualquier otro (nunca se le da trato especial de prioridad).
 
@@ -10323,8 +10342,8 @@ El `await` sobre `enviarValoracion()` es solo por consistencia de código async 
 
 | Qué se borra | Cómo |
 |---|---|
-| Todo el `localStorage` | `localStorage.clear()` |
-| Todo el `sessionStorage` | `sessionStorage.clear()` |
+| Todo el `localStorage` | `almacen.local.vaciar()` |
+| Todo el `sessionStorage` | `almacen.sesion.vaciar()` |
 | Todas las cachés del Service Worker | `caches.delete()` para cada caché |
 | El propio Service Worker | `registration.unregister()` |
 
@@ -10911,11 +10930,13 @@ Nota de arquitectura: el audio está centralizado en el padre; `audio-hijo3.html
 ### 26.2 Orden de inicialización real
 
 ```text
+~0 ms    almacenamiento.js     ← script clásico síncrono: publica globalThis.almacen (§10.19)
+
 ~0 ms    proteccion.js          ← IIFE síncrono (se parsea antes que todo)
          → Bloquea F12, clic derecho, arrastre de media
          → Instala detector de DevTools por timing y resize
 
-~30 ms   suppress-warnings.js  ← defer
+~30 ms   suppress-warnings.js  ← defer; solo aquí: ningún módulo lo importa
 
 ~100 ms  js/vendor/: maplibre-gl-csp.js + maplibre-gl.css  (local, sin CDN)
 
@@ -10972,7 +10993,7 @@ En P15   La selección avisa con SELECCION.P15_MOSTRADA y el padre da su src, en
          hijo6-chat     → chat-hijo6.html
 
 Al cargar  Cada iframe (la selección en el arranque; los hijos en P15):
-         1. Ejecuta proteccion.js + suppress-warnings.js
+         1. Ejecuta los scripts clásicos de su <head>: almacenamiento.js, proteccion.js y suppress-warnings.js (hijo1 no carga proteccion.js; hijo6, ninguno de los tres)
          2. Ejecuta su cadena de imports propia
          3. Registra sus controladores (PADRE_DATOS, CAMBIO_MODO, HEARTBEAT…)
          4. Envía SISTEMA.HIJO_PREPARADO al padre
@@ -11459,6 +11480,7 @@ El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-compl
 - **Registro de handlers con fallbacks en cadena**: `registrarControlador_S1` → `sm.registrarManejador` es la vía primaria; si mensajería no está lista, cae a `__vv_manejadoresLocales` y encola en `__CONTROLADORES_PENDIENTES`, que se drena garantizadamente tras `mensajeriaReady`. El Set `__CONTROLADOR_REGISTRADOS` evita dobles registros. Diseño defensivo intencional, no una duplicación accidental.
 - **`NAVEGACION.SOLICITAR_DATOS_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia.
 - **Logging centralizado y verificado**: toda llamada de log en `js/**/*.js` y en los `<script>` de los HTML de producción pasa por `js/logger.js` (import directo donde el módulo lo permite, o el patrón `(globalThis.logger || console).X(...)` en scripts clásicos/pre-módulo). **`no-console` en verde no prueba que los logs lleguen a ninguna parte**: un envoltorio cuyos métodos sean no-ops (`Function.prototype`, `() => {}`) satisface la regla perfectamente y tira todos los mensajes. Lo que lo prueba es medir salida real en consola — `62-log-seleccion-no-es-mudo.spec.js` lo hace para el envoltorio `_log` de `En-busca-del-tesoro.html`. La regla ESLint `no-console` (en `eslint.config.js`, cubre tanto `js/**/*.js` como `*.html` desde `npm run lint`) impide que se cuele una llamada directa a `console.*` fuera de las excepciones documentadas por archivo (`js/logger.js`, `js/server.js`, `js/vendor/**`, `js/suppress-warnings.js`, y los scripts clásicos pre-módulo de los hijos, cada uno con su comentario explicando por qué el logger no está disponible ahí). `js/suppress-warnings.js` filtra ruido conocido sobrescribiendo `console.warn/error/debug` de forma global y muy temprana (antes de que cargue cualquier módulo) — como `logger.js` llama a esos mismos métodos de `console` internamente, el filtrado aplica también a los logs que pasan por el logger, sin necesidad de duplicar esa lógica.
+- **Almacenamiento por una sola puerta**: todo acceso a `localStorage` y `sessionStorage` pasa por `js/almacenamiento.js` (`globalThis.almacen`, §10.19), que nunca lanza, dice cada fallo una vez y solo acepta las claves registradas en `almacen.CLAVES`; ESLint lo exige (`no-restricted-globals` y `no-restricted-properties`, salvo en ese fichero).
 - **Verificación automática de emisor/receptor**: `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) cruza cada tipo de `TIPOS_MENSAJE` contra quién lo emite y quién lo escucha en todo el proyecto, señalando tipos sin receptor, sin emisor o sin ninguno de los dos, los envíos con destino literal que caen en un frame sin handler de ese tipo y los handlers que ninguna emisión alcanza. Lee el código con un parser (acorn) y resuelve alias, `?.` y constantes locales; los destinos dinámicos se dan por buenos y lo que no logra resolver sale en su residuo. Cada hallazgo debe verificarse leyendo el código antes de actuar, tal como exige la metodología de auditoría (§35).
 - **Verificación automática de documentación desactualizada**: `npm run verificar-docs` (`tools/verificar-docs.js`) calcula qué ficheros HTML/JS/CSS cambiaron (working tree + commits sin empujar, o un rango con `--since=REF`) y señala, agrupadas por sección, las menciones de esos ficheros en esta guía — incluye ficheros borrados que sigan mencionados (p.ej., un fichero eliminado que siga citado en el árbol de carpetas de §20 varias ediciones después de borrarse). Busca por nombre de fichero, no por función/mensaje concreto, y no verifica que el texto sea correcto — solo evita el fallo de no pararse a mirar. Pensado para correr antes de cada `git push` que toque código de producción.
 
@@ -12528,7 +12550,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-bc0c726e908b';
+const CACHE_VERSION = 'v-c64a333e0123';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14184,107 +14206,109 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **115 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 97 identificadores cruzados, de 142 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 99 identificadores cruzados, de 144 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
-| `__setRealActivarGPS` | clásico 3 (L75) | módulo 1 | función/objeto |
-| `activarGPS` | clásico 3 (L65) | módulo 1, módulo 2 | función/objeto |
-| `idiomaDeLaInterfaz` | clásico 5 (L100) | módulo 1, clásico 13 | función/objeto |
-| `handleIframeError` | clásico 6 (L112) | clásico 9 | función/objeto |
-| `handleIframeLoad` | clásico 6 (L181) | clásico 9 | función/objeto |
-| `actualizarVisibilidadSelectorMapa` | clásico 7 (L1466) | clásico 8, módulo 1, módulo 2, módulo 3 | función/objeto |
-| `cerrarChatSoporte` | clásico 7 (L1562) | módulo 1, módulo 2 | función/objeto |
-| `construirEstadoChat` | clásico 7 (L1565) | módulo 1 | función/objeto |
-| `mostrarIframeOverlay` | clásico 8 (L2163) | módulo 2 | función/objeto |
-| `mostrarImagenOverlay` | clásico 8 (L1660) | módulo 1, módulo 2 | función/objeto |
-| `mostrarVideoOverlay` | clásico 8 (L2000) | módulo 1 | función/objeto |
-| `rotationSuppressed` | clásico 8 (L1701) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3728) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5097) | clásico 12 | estado |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3718) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3717) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5911) | clásico 12 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6576) | clásico 12 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3698) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6716) | clásico 12 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3719) | módulo 2 | función/objeto |
-| `__vv_PUZZLES` | módulo 1 (L3720) | módulo 2 | función/objeto |
-| `__vv_registroScript1` | módulo 1 (L3597) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4818) | módulo 2 | función/objeto |
-| `_cerrarDesplegablesDelPadre` | módulo 1 (L4784) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L7449) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8797) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L9013) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8918) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L4037) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8887) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9097) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8989) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8893) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9105) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8767) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6081) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3849) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3856) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4579) | clásico 7, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8114) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8113) | módulo 2 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L3954) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3843) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3844) | módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L4042) | clásico 7, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4366) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4146) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6480) | módulo 2 | función/objeto |
-| `hideParentLoadingOverlay` | módulo 1 (L2852) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4580) | clásico 5, clásico 7, módulo 2 | función/objeto |
-| `limpiarDatosAventura` | módulo 1 (L2887) | módulo 2 | función/objeto |
-| `MODOS` | módulo 1 (L3842) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8494) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8417) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8270) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8313) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4236) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5125) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5152) | módulo 2 | función/objeto |
-| `reproducirVideoConBuffer` | módulo 1 (L2892) | clásico 8 | función/objeto |
-| `resolverIdsParada` | módulo 1 (L2882) | módulo 2 | función/objeto |
-| `retryUntilAvailable` | módulo 1 (L2883) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6318) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6244) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6172) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6397) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6472) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6776) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6775) | módulo 2 | función/objeto |
-| `showParentLoadingOverlay` | módulo 1 (L2840) | módulo 2 | función/objeto |
-| `sleep` | módulo 1 (L2767) | módulo 2, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5848) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3841) | clásico 7, clásico 8, módulo 2 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L4015) | clásico 8, módulo 2 | función/objeto |
-| `updateLoadingStatus` | módulo 1 (L2868) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9217) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14135) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10234) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L13109) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L14116) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L12014) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12771) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L10173) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11368) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11417) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12801) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9281) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10168) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9420) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9502) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13034) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10046) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9532) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10038) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10011) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14151) | módulo 2 | función/objeto |
+| `__setRealActivarGPS` | clásico 3 (L78) | módulo 1 | función/objeto |
+| `activarGPS` | clásico 3 (L68) | módulo 1, módulo 2 | función/objeto |
+| `idiomaDeLaInterfaz` | clásico 5 (L103) | módulo 1, clásico 13 | función/objeto |
+| `handleIframeError` | clásico 6 (L111) | clásico 9 | función/objeto |
+| `handleIframeLoad` | clásico 6 (L180) | clásico 9 | función/objeto |
+| `actualizarVisibilidadSelectorMapa` | clásico 7 (L1465) | clásico 8, módulo 1, módulo 2, módulo 3 | función/objeto |
+| `cerrarChatSoporte` | clásico 7 (L1561) | módulo 1, módulo 2 | función/objeto |
+| `construirEstadoChat` | clásico 7 (L1564) | módulo 1 | función/objeto |
+| `mostrarIframeOverlay` | clásico 8 (L2162) | módulo 2 | función/objeto |
+| `mostrarImagenOverlay` | clásico 8 (L1659) | módulo 1, módulo 2 | función/objeto |
+| `mostrarVideoOverlay` | clásico 8 (L1999) | módulo 1 | función/objeto |
+| `rotationSuppressed` | clásico 8 (L1700) | módulo 1, módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3731) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5086) | clásico 12 | estado |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3721) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3720) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5900) | clásico 12 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6565) | clásico 12 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3701) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6705) | clásico 12 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3722) | módulo 2 | función/objeto |
+| `__vv_PUZZLES` | módulo 1 (L3723) | módulo 2 | función/objeto |
+| `__vv_registroScript1` | módulo 1 (L3600) | módulo 2 | estado |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4810) | módulo 2 | función/objeto |
+| `_cerrarDesplegablesDelPadre` | módulo 1 (L4776) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L7432) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8776) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8992) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8897) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L4038) | módulo 2 | estado |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8866) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9076) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8968) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8872) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9084) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8746) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L8320) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6070) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3852) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3859) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4576) | clásico 7, módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8090) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8089) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L3955) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3846) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3847) | módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4043) | clásico 7, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4372) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4147) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6469) | módulo 2 | función/objeto |
+| `hideParentLoadingOverlay` | módulo 1 (L2851) | módulo 2 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4577) | clásico 5, clásico 7, módulo 2 | función/objeto |
+| `limpiarDatosAventura` | módulo 1 (L2886) | módulo 2 | función/objeto |
+| `MODOS` | módulo 1 (L3845) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8473) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8396) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8246) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8289) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4239) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5114) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5141) | módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L2891) | clásico 8 | función/objeto |
+| `resolverIdsParada` | módulo 1 (L2881) | módulo 2 | función/objeto |
+| `retryUntilAvailable` | módulo 1 (L2882) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6307) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6233) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6161) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6386) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6461) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6765) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6764) | módulo 2 | función/objeto |
+| `showParentLoadingOverlay` | módulo 1 (L2839) | módulo 2 | función/objeto |
+| `sleep` | módulo 1 (L2766) | módulo 2, módulo 4 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5837) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3844) | clásico 7, clásico 8, módulo 2 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L4016) | clásico 8, módulo 2 | función/objeto |
+| `updateLoadingStatus` | módulo 1 (L2867) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9196) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14119) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10206) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L13093) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L14100) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L12000) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12755) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L10145) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11341) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11403) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L11365) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12785) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9262) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10140) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9401) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9483) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13018) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10018) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9513) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10010) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L9983) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14135) | módulo 2 | función/objeto |
 
 </details>
 
@@ -14293,17 +14317,17 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
-| `_devCasaMode` | clásico 3 (L1122) | módulo 1 | estado |
-| `_resetearFlagsContenido` | clásico 3 (L2560) | módulo 1 | función/objeto |
-| `continuarTrasElegirAventura` | clásico 3 (L2580) | módulo 1 | función/objeto |
-| `_pintarTarjetasDeAventura` | módulo 1 (L2948) | clásico 3 | función/objeto |
-| `enviarValoracion` | módulo 1 (L2607) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 1 (L2974) | clásico 3 | función/objeto |
-| `TEXTOS_VALORACION` | módulo 1 (L2605) | clásico 3 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L2646) | clásico 3 | función/objeto |
-| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 1 (L2604) | clásico 3 | función/objeto |
-| `TRADUCCIONES_DESPEDIDA` | módulo 1 (L2603) | clásico 3 | función/objeto |
-| `TRADUCCIONES_REANUDACION` | módulo 1 (L2606) | clásico 3 | función/objeto |
+| `_devCasaMode` | clásico 3 (L1123) | módulo 1 | estado |
+| `_resetearFlagsContenido` | clásico 3 (L2561) | módulo 1 | función/objeto |
+| `continuarTrasElegirAventura` | clásico 3 (L2581) | módulo 1 | función/objeto |
+| `_pintarTarjetasDeAventura` | módulo 1 (L2949) | clásico 3 | función/objeto |
+| `enviarValoracion` | módulo 1 (L2608) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 1 (L2975) | clásico 3 | función/objeto |
+| `TEXTOS_VALORACION` | módulo 1 (L2606) | clásico 3 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L2647) | clásico 3 | función/objeto |
+| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 1 (L2605) | clásico 3 | función/objeto |
+| `TRADUCCIONES_DESPEDIDA` | módulo 1 (L2604) | clásico 3 | función/objeto |
+| `TRADUCCIONES_REANUDACION` | módulo 1 (L2607) | clásico 3 | función/objeto |
 
 **El estado que el módulo escribe y el clásico lee.** Un `let` de nivel superior del `<script>` clásico es visible y asignable desde los módulos del mismo documento: el módulo de la selección escribe `idiomaSeleccionado`, `aventuraSeleccionada`, `aventuraIniciando`, `timerProgresoCarga` o `modoDespedida` por su nombre, y el clásico lee el valor nuevo. `globalThis.x = v` no sirve: crea una propiedad aparte que el clásico, que lee el `let`, no ve. Si la elección no llegara a su variable, nada la sustituye: la selección no encuentra datos de ninguna aventura, y la activación lleva la aventura vacía, que el padre rechaza en voz alta. Lo cubren `tests/e2e/82-seleccion-usa-la-aventura-elegida.spec.js` y `tests/e2e/135-la-eleccion-se-sabe-siempre.spec.js`.
 
@@ -14319,9 +14343,9 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `video-intro.html` | `JAIME_SCENES` | módulo 1 (L537) | clásico 1 | función/objeto |
 | `video-intro.html` | `reproducirVideoConBuffer` | módulo 1 (L538) | clásico 1 | función/objeto |
 | `video-intro.html` | `TIPOS_MENSAJE` | módulo 1 (L553) | clásico 1 | función/objeto |
-| `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L359) | módulo 2 | función/objeto |
-| `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L368) | módulo 2 | función/objeto |
-| `retos-hijo4.html` | `ejecutarValidacion` | clásico 2 (L26) | módulo 1 | función/objeto |
+| `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L360) | módulo 2 | función/objeto |
+| `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L369) | módulo 2 | función/objeto |
+| `retos-hijo4.html` | `ejecutarValidacion` | clásico 2 (L27) | módulo 1 | función/objeto |
 | `chat-hijo6.html` | `cerrarChatVentana` | módulo 1 (L382) | módulo 2 | función/objeto |
 
 </details>

@@ -67,22 +67,12 @@ export async function limpiarDatosAventura(motivo = 'desconocido') {
         // ========================================
         // 1. BORRAR EL localStorage COMPLETO
         // ========================================
-        try {
-            localStorage.clear(); // Vacía el almacenamiento sin excepciones
-            logger.info(`${logPrefix} ♻️ localStorage VACIADO COMPLETAMENTE`);
-        } catch (e) {
-            logger.warn(`${logPrefix} Error limpiando localStorage:`, e);
-        }
+        if (globalThis.almacen.local.vaciar()) logger.info(`${logPrefix} ♻️ localStorage VACIADO COMPLETAMENTE`);
 
         // ========================================
         // 2. BORRAR EL sessionStorage COMPLETO
         // ========================================
-        try {
-            sessionStorage.clear(); // Vacía el almacenamiento sin excepciones
-            logger.info(`${logPrefix} ♻️ sessionStorage VACIADO COMPLETAMENTE`);
-        } catch (e) {
-            logger.warn(`${logPrefix} Error limpiando sessionStorage:`, e);
-        }
+        if (globalThis.almacen.sesion.vaciar()) logger.info(`${logPrefix} ♻️ sessionStorage VACIADO COMPLETAMENTE`);
 
         // ========================================
         // 3. ELIMINAR TODAS LAS CACHÉS DEL SERVICE WORKER
@@ -132,10 +122,10 @@ export function verificarTimeoutAventura() {
     const logger = globalThis.logger || console;
 
     try {
-        const datosInicio = localStorage.getItem('vv_aventura_iniciada');
+        const datosInicio = globalThis.almacen.local.leerJSON(globalThis.almacen.CLAVES.AVENTURA_INICIADA);
         if (!datosInicio) return { excedido: false };
 
-        const { aventura, timestamp } = JSON.parse(datosInicio);
+        const { aventura, timestamp } = datosInicio;
         if (!aventura || !timestamp) return { excedido: false };
 
         const INDICE = globalThis.__vv_INDICE_AVENTURAS;
