@@ -4243,7 +4243,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 99 | 1 | K-116 | que `diagnosticarGPS()` lea el «GPS activo» de su dueño en cada frame | SPEC | — | sí (preparada; falta poder lanzar su spec) |
 | 100 | 4 | K-117 | que el elemento actual tras restaurar lo decida un solo dato guardado (el id) | SPEC, MEDIR | **dura:** K-51 | con K-51 |
 | 101 | 4 | K-07 (revisión) | dos conjuntos de «hijo listo»: que el supervisor del bus avise al padre al recargar un hijo, o un solo conjunto | BUS, SPEC, MEDIR | blanda: K-57 | decisión |
-| 102 | 3 | R2.10 | las familias de homogeneidad: doce de la app (el log, el registro de handlers, el envío, el destino, las esperas —K-62—, los `catch`, el almacenamiento, los `import()` —K-53—, mostrar y ocultar, los eventos del DOM, las dos grafías del estado del padre, las copias —K-28—) y las de herramientas y tests | una decisión por familia, cada una con su línea en `CLAUDE.md` | — | decisión |
+| 102 | 3 | R2.10 | las familias de homogeneidad: doce de la app (el log, el registro de handlers, el envío, el destino, las esperas —K-62—, los `catch`, el almacenamiento, los `import()` —K-53—, mostrar y ocultar, los eventos del DOM, las dos grafías del estado del padre, las copias —K-28—) y las de herramientas y tests; **la de los `catch`, estudiada sitio a sitio, con su propuesta de regla (R2.10.6)** | una decisión por familia, cada una con su línea en `CLAUDE.md` | — | decisión |
 | 103 | 4 | K-118 | el cartel de llegada tapa la ventana del reto y se queda el primer toque | VISIBLE, SPEC, MEDIR | blanda: K-49, K-84 | decisión |
 | 104 | 5 | K-119 | 61 pares de paradas contiguas con el mismo nombre y seis nombres con «FRONT» o «BACK»: los datos o el texto del cartel | VISIBLE, DATOS | — | decisión |
 | 105 | 3 | K-15 (reabrir) | siete `SISTEMA.NACK` hacia el padre, que no los escucha: cerrada en R2.8 como intencional, la reabre el principio «todo handler registrado» (2026-10-14) | BUS | — | decisión |
@@ -4377,6 +4377,20 @@ El orden es el de menos conflicto (criterio del usuario, 2026-10-05): primero lo
 - **Control de la sonda:** la misma sonda comparando contra otra página cae en los 5 specs (21: 5 de 5, 22: 1 de 9, 30: 1 de 6, 32: 4 de 4, 33: 3 de 3) con el error esperado: la sonda se ejecuta y detecta diferencias.
 - **Con Playwright** (chromium, los 5 specs): 27 tests antes y 27 después, todos esperados, y la lista test por test es idéntica.
 - **Ninguno de los cinco specs vigila el `src`:** con la ruta rota (`/coordenadas-hijo2-NO-EXISTE.html`) los 27 tests siguen en verde. Los cinco son exactamente los que definen `cargarHijo2Real`, que da el iframe por cargado en su evento `load` (un solo `addEventListener('load')` cada uno) y no lee nada del documento que cargó; un iframe que no carga también dispara `load` (K-58). A diferencia del spec 86, que comprueba que el documento cargado es el hijo y no una página de error. Registrado, sin tocar.
+
+#### R2.10.6 La familia de los `catch` vacíos, estudiada sitio a sitio (2026-10-19)
+
+Es la de menos conflicto de las doce de la app: no cambia nada de lo que ve el usuario y no toca el contrato del bus. Estudiada sin tocar código, para que el usuario solo tenga que decidir la regla.
+
+- **Método.** `catch-vacios.cjs` (scratchpad): el parser sobre las 17 páginas de la raíz, `js/*.js` sin los de datos y `sw.js`; ningún bloque sin parsear. Salen 47, los mismos que el censo de R2.10.1. Leído cada uno con su `try`.
+- **38 son de mejor esfuerzo** y no esconden nada: almacenamiento que puede no existir (modo privado: 6, en el padre y `js/suppress-warnings.js`); API opcionales (consulta de permisos, vibración, `fetchPriority`, `app-settings:` y tres `history.pushState`: 7); limpiezas de lo que puede haber desaparecido ya (once marcadores y capas del mapa, `clearWatch`, dos `clearInterval`, `pf.destroy()` de `video-intro.html`, el vaciado del registro de controladores y el giro del botón de audio: 17); leer la URL de un iframe que puede ser de otro origen (1); el aviso de versión al service worker (1); la comprobación que repite `retryUntilAvailable` (1); el panel de depuración (1); la huella de los handlers y un log de depuración del state-manager (2); y `js/proteccion.js` (2, módulo que este estudio no estudia, como en K-38).
+- **9 esconden algo o sobran:**
+  1. `codigo-padre.html:7224`: se traga sin decir nada un fallo de `_vv_afterHijoListo`, el gancho que devuelve su estado a un hijo que el supervisor ha recargado. Si falla, el hijo se queda con el estado equivocado y no queda rastro.
+  2. `retos-hijo4.html:1328` (`mostrarUI()`), `:1236` y `:1352` (reponer el `display` del `body`): si fallan, hijo4 no se ve y no lo dice.
+  3. `extrainfo-hijo1.html:744`: un `try` alrededor de `enviarMensaje`, que no rechaza nunca (devuelve `false`; leído en `js/mensajeria.js:319-341` y medido con K-52). Su `catch` no puede saltar.
+  4. Cuatro `document.body.removeChild(overlay)` dentro de un `try` (`En-busca-del-tesoro.html:1795`, `:3144`; `codigo-padre.html:12839`, `:14699`): `overlay.remove()` no lanza aunque el nodo ya no esté, y es como lo quita el resto de la aplicación.
+- **Propuesta de regla (decide el usuario; iría a `CLAUDE.md` como una línea):** un `catch` vacío solo para operaciones de mejor esfuerzo que pueden fallar sin consecuencia, y siempre con un comentario que diga por qué; si lo que falla deja algo sin hacer, el `catch` lo dice en el log. Aplicarla toca los nueve sitios de arriba: un `error` en los de los puntos 1 y 2 (el del padre, con un spec que haga fallar el gancho), fuera el `try` del punto 3, y `overlay.remove()` sin `try` en el punto 4.
+- **Fuera de esta familia, por si se decide igual:** los 29 `catch` vacíos de `tools/` y los 18 de `tests/` (R2.10.4).
 
 ### R2.11 Lo que hay que decidir: qué es cada cosa, para qué sirve y si puede sobrar (2026-10-06)
 
