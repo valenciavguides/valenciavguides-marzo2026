@@ -37,7 +37,8 @@ while (i < L.length) {
 console.log('tablas', tablas);
 
 const consecutivos = (xs) => xs.every((n, j) => n === j + 1);
-const k = [...t.matchAll(/^##### K-(\d\d) /gm)].map((x) => +x[1]);
+// `\d+`, no `\d\d`: desde K-100 las entradas tienen tres cifras, y con dos ni se contaban ni se veían sus referencias.
+const k = [...t.matchAll(/^##### K-(\d+) /gm)].map((x) => +x[1]);
 console.log('entradas K', k.length, consecutivos(k) ? 'consecutivas' : 'NO consecutivas');
 if (!consecutivos(k)) mal('las entradas K no son consecutivas');
 
@@ -56,10 +57,10 @@ if (!consecutivos(erratas)) mal('las erratas E no son consecutivas');
 
 const fuera = (re, max) => [...new Set([...t.matchAll(re)].map((x) => +x[1]))].filter((n) => n > max);
 const refs = [
-  ['K-nn', fuera(/\bK-(\d\d)\b/g, k.length)],
+  ['K-nn', fuera(/\bK-(\d+)\b/g, k.length)],
   ['M-n', fuera(/\bM-(\d+)\b/g, m.length)],
   ['G-n', fuera(/\bG-(\d+)\b/g, g.length)],
-  ['En', fuera(/\bE(\d)\b/g, erratas.length)],
+  ['En', fuera(/\bE(\d+)\b/g, erratas.length)],
 ];
 for (const [nombre, f] of refs) {
   console.log(`referencias ${nombre} fuera de rango:`, f.join(',') || 'ninguna');
