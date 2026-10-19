@@ -25,6 +25,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { textoSinComentarios } = require('./lib/analisis-js');
 
 const ROOT = path.resolve(__dirname, '..');
 const ARGS = process.argv.slice(2);
@@ -128,8 +129,7 @@ function analizarArchivo(rel, src) {
     };
 
     // La parte derecha se lee hasta el `;` o el final de la línea, lo que llegue antes: solo sirve para clasificar (función u
-    // objeto, o estado). Con un `[^;]*` que cruzaba líneas, un `globalThis.x = v` escrito en un comentario sin punto y coma
-    // se tragaba la asignación real de la línea siguiente, y esa no salía en la tabla.
+    // objeto, o estado), y una expresión sin punto y coma no debe arrastrar la línea siguiente.
     const asignRe = /globalThis\.([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=(?![=>])\s*([^;\n]*)/g;
     const asignaciones = new Map();
     let m;
@@ -164,10 +164,20 @@ function analizarArchivo(rel, src) {
 const EXCLUDE = ['node_modules', 'test-results', 'tests', '.git', 'playwright-report'];
 const htmlFiles = walk(ROOT, ['.html'], EXCLUDE.concat(['docs']));
 
-let totalCruzadosGlobal = 0;
+// Cada fichero se lee con los comentarios blanqueados (los del HTML y los de cada bloque de JavaScript, con las mismas
+// posiciones y líneas): un comentario que CITA un nombre no es un uso, ni una asignación escrita en un comentario es una
+// definición. Un bloque que el parser no entiende conserva sus comentarios, y se dice al final por stderr (fuera de la tabla).
+const textos = new Map();
+const sinParsear = [];
 for (const filePath of htmlFiles) {
     const rel = path.relative(ROOT, filePath).replace(/\\/g, '/');
-    const src = fs.readFileSync(filePath, 'utf8');
+    const { texto, sinParsear: noParseados } = textoSinComentarios(rel);
+    textos.set(rel, texto);
+    sinParsear.push(...noParseados);
+}
+
+let totalCruzadosGlobal = 0;
+for (const [rel, src] of textos) {
     const analisis = analizarArchivo(rel, src);
     if (!analisis || analisis.cruzados.length === 0) continue;
 
@@ -183,4 +193,5 @@ for (const filePath of htmlFiles) {
     console.log('');
 }
 
-console.log(`(${totalCruzadosGlobal} identificadores cruzados en total, en los ${htmlFiles.filter(f => detectarBloques(fs.readFileSync(f, 'utf8')).length >= 2).length} archivos con 2+ bloques <script> inline)`);
+console.log(`(${totalCruzadosGlobal} identificadores cruzados en total, en los ${[...textos.values()].filter(t => detectarBloques(t).length >= 2).length} archivos con 2+ bloques <script> inline)`);
+console.error(`Bloques sin parsear (sus comentarios cuentan como texto): ${sinParsear.length ? sinParsear.join('; ') : 'ninguno'}`);

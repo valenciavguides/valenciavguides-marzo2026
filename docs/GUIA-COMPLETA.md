@@ -14188,10 +14188,10 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 
 ### 37.2 `globalThis` compartido entre bloques `<script>` inline (todos los archivos)
 
-Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **123 en total**. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
+Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **116 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 105 identificadores cruzados, de 146 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 98 identificadores cruzados, de 146 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14203,10 +14203,9 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `actualizarVisibilidadSelectorMapa` | clásico 7 (L1466) | clásico 8, módulo 1, módulo 2, módulo 3 | función/objeto |
 | `cerrarChatSoporte` | clásico 7 (L1562) | módulo 1, módulo 2 | función/objeto |
 | `construirEstadoChat` | clásico 7 (L1565) | módulo 1 | función/objeto |
-| `cerrarImagenOverlay` | clásico 8 (L1684) | módulo 1, módulo 2 | función/objeto |
 | `mostrarIframeOverlay` | clásico 8 (L2163) | módulo 2 | función/objeto |
 | `mostrarImagenOverlay` | clásico 8 (L1660) | módulo 1, módulo 2 | función/objeto |
-| `mostrarVideoOverlay` | clásico 8 (L2000) | módulo 1, módulo 2 | función/objeto |
+| `mostrarVideoOverlay` | clásico 8 (L2000) | módulo 1 | función/objeto |
 | `rotationSuppressed` | clásico 8 (L1701) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 (L3724) | módulo 2 | función/objeto |
 | `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5088) | clásico 12 | estado |
@@ -14232,14 +14231,12 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8905) | módulo 2 | función/objeto |
 | `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9117) | módulo 2 | función/objeto |
 | `_mostrarCartelRecordatorioRescate` | módulo 1 (L8779) | módulo 2 | función/objeto |
-| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5232) | módulo 2 | función/objeto |
 | `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6076) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3853) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 (L3860) | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4570) | clásico 7, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8124) | clásico 6, módulo 2 | función/objeto |
-| `cargarIframeSoloSeleccion` | módulo 1 (L8122) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8123) | clásico 7, módulo 2, módulo 3 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8124) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8123) | módulo 2 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L3959) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3847) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3848) | módulo 2 | función/objeto |
@@ -14249,17 +14246,16 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `hideGpsPrecisionOverlay` | módulo 1 (L6475) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2852) | módulo 2 | función/objeto |
 | `idiomaSeleccionado` | módulo 1 (L4571) | clásico 5, clásico 7, módulo 2 | función/objeto |
-| `limpiarDatosAventura` | módulo 1 (L2887) | módulo 2, clásico 13 | función/objeto |
+| `limpiarDatosAventura` | módulo 1 (L2887) | módulo 2 | función/objeto |
 | `MODOS` | módulo 1 (L3846) | módulo 2 | función/objeto |
 | `mostrarCartelInicioTramo` | módulo 1 (L8506) | módulo 2 | función/objeto |
-| `mostrarCartelLlegadaParada` | módulo 1 (L8575) | módulo 2 | función/objeto |
 | `mostrarCartelTransicion` | módulo 1 (L8429) | módulo 2 | función/objeto |
 | `mostrarModalFinalizacion` | módulo 1 (L8282) | módulo 2 | función/objeto |
 | `mostrarPulsoValoracionPadre` | módulo 1 (L8325) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4241) | módulo 2 | función/objeto |
 | `registrarControladorSeguro` | módulo 1 (L5116) | módulo 2, módulo 4 | función/objeto |
 | `registrarEvento` | módulo 1 (L5143) | módulo 2 | función/objeto |
-| `reproducirVideoConBuffer` | módulo 1 (L2893) | clásico 8, módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L2893) | clásico 8 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2882) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2883) | módulo 2 | función/objeto |
 | `showFotoDesviadoOverlay` | módulo 1 (L6313) | módulo 2 | función/objeto |
@@ -14276,8 +14272,6 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `toggleRotationMessage` | módulo 1 (L4020) | clásico 8, módulo 2 | función/objeto |
 | `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2891) | clásico 13 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2868) | módulo 2 | función/objeto |
-| `verificarTimeoutAventura` | módulo 1 (L2888) | módulo 2 | función/objeto |
-| `waitForMapLibreAndInitialize` | módulo 1 (L8125) | módulo 2 | función/objeto |
 | `__distribuirReadyPromise` | módulo 2 (L9229) | módulo 1 | estado |
 | `__VV_PENDING_CLEANUP` | módulo 2 (L14159) | clásico 12 | estado |
 | `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10246) | módulo 1 | función/objeto |
@@ -14293,7 +14287,6 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `actualizarEstadoControlesAudioPadre` | módulo 2 (L10180) | módulo 1 | función/objeto |
 | `AVENTURA_PARADAS` | módulo 2 (L9432) | módulo 1 | función/objeto |
 | `distribuirDatosAventura` | módulo 2 (L9514) | módulo 1 | función/objeto |
-| `marcarParadaCompletada` | módulo 2 (L9995) | módulo 1 | función/objeto |
 | `mostrarModalTiempoAgotado` | módulo 2 (L13058) | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 (L10058) | módulo 1 | función/objeto |
 | `obtenerElementoActual` | módulo 2 (L9544) | módulo 1 | función/objeto |
