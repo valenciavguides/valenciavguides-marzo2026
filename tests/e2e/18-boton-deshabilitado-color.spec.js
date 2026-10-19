@@ -15,9 +15,9 @@
  *         reproduce el bypass a propósito (fondo inline verde) y confirma que la
  *         clase `.disabled` sigue pintando el degradado rojo por encima, pase lo que
  *         pase con el inline.
- *   BU-2  Estandarización de color: los 5 sitios CSS (`.boton.disabled` en
- *         coordenadas-hijo2.html y video-intro.html, `#retosBtn:disabled` y
- *         `#hijo3 .boton.deshabilitado` en audio-hijo3.html,
+ *   BU-2  Estandarización de color: los 4 sitios CSS (`.boton.disabled` en
+ *         coordenadas-hijo2.html y video-intro.html, `#retosBtn:disabled` en
+ *         audio-hijo3.html,
  *         `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en
  *         codigo-padre.html) resuelven al mismo rojo base #ED2100 = rgb(237, 33, 0) —
  *         único para TODOS los botones deshabilitados de la app, sin excepción,
@@ -92,24 +92,7 @@ test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de l
     expect(bg, `Computado: ${bg}`).toContain(ROJO_BASE);
   });
 
-  test('BU-2c. audio-hijo3.html — #hijo3 .boton.deshabilitado resuelve a rgb(237,33,0)', async ({ page }) => {
-    await page.goto('/audio-hijo3.html');
-    const bg = await page.evaluate(() => {
-      let hijo3 = document.getElementById('hijo3');
-      if (!hijo3) {
-        hijo3 = document.createElement('div');
-        hijo3.id = 'hijo3';
-        document.body.appendChild(hijo3);
-      }
-      const el = document.createElement('button');
-      el.className = 'boton deshabilitado';
-      hijo3.appendChild(el);
-      return getComputedStyle(el).backgroundImage;
-    });
-    expect(bg, `Computado: ${bg}`).toContain(ROJO_BASE);
-  });
-
-  test('BU-2d. codigo-padre.html — #audio-main-toggle-btn:disabled y .audio-action-btn:disabled resuelven a rgb(237,33,0)', async ({ page }) => {
+  test('BU-2c. codigo-padre.html — #audio-main-toggle-btn:disabled y .audio-action-btn:disabled resuelven a rgb(237,33,0)', async ({ page }) => {
     await page.goto('/codigo-padre.html');
     const resultado = await page.evaluate(() => {
       const a = document.createElement('button');
@@ -131,7 +114,7 @@ test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de l
     expect(resultado.accion, `.audio-action-btn computado: ${resultado.accion}`).toContain(ROJO_BASE);
   });
 
-  test('BU-2e. video-intro.html — .boton.disabled resuelve a rgb(237,33,0)', async ({ page }) => {
+  test('BU-2d. video-intro.html — .boton.disabled resuelve a rgb(237,33,0)', async ({ page }) => {
     await page.goto('/video-intro.html?lang=es');
     const bg = await page.evaluate(() => {
       const el = document.createElement('button');
@@ -145,7 +128,7 @@ test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de l
   test('BU-3a. coordenadas-hijo2.html — verde vivo en dron/imagen/avanzar/ubicación, verde medio en el resto', async ({ page }) => {
     await page.goto('/coordenadas-hijo2.html');
     // Los botones reales arrancan deshabilitados por defecto hasta que el estado real
-    // (GPS/progreso) los habilita — igual que BU-2a/2c, se leen las reglas CSS sobre
+    // (GPS/progreso) los habilita — igual que BU-2a, se leen las reglas CSS sobre
     // elementos frescos con el id/clase exactos, no el estado inicial de la página real.
     const resultado = await page.evaluate(() => {
       const idsVivos = ['btn-video', 'btn-imagen', 'btn-avanzar', 'btn-ubicacion'];

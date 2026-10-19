@@ -310,7 +310,7 @@
             transition: left 0.1s linear, opacity 0.2s ease, background 0.2s ease;
         }
 
-        /* Deshabilitado: rojo estándar de la app (mismo que .boton.disabled) y sin
+        /* Deshabilitado: rojo estándar de la app (#ED2100) y sin
            interacción — arrastrar/clicar/tocar no hace nada mientras esté activo. */
         .progress-container.deshabilitado {
             pointer-events: none;
@@ -318,26 +318,6 @@
 
         .progress-container.deshabilitado::after {
             background: #ED2100;
-        }
-
-        /* Estilos para los botones del hijo3 */
-        #hijo3 .boton {
-            transition: background 0.3s ease, color 0.3s ease;
-            background: none; /* Se asegura que no haya colores adicionales */
-        }
-
-        /* Botón habilitado: verde medio #00BB77 (sin caller real hoy — ver nota de
-           arriba, ningún elemento de este fichero lleva class="boton"; se mantiene
-           el color al día por si se retoma) */
-        #hijo3 .boton.habilitado {
-            background: linear-gradient(#00BB77, #00BB77);
-            color: white;
-        }
-
-        /* Botón deshabilitado: rojo estándar #ED2100 */
-        #hijo3 .boton.deshabilitado {
-            background: linear-gradient(#ED2100, #ED2100);
-            color: white;
         }
 
         /* Estilos para el modo casa (controles completamente visibles y habilitados) */
