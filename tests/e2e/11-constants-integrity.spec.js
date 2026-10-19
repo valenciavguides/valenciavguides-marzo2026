@@ -96,7 +96,7 @@ test.describe('CI — Integridad de constantes y funciones globales', () => {
 
 test.describe('CI-6 — Los alias globales se publican en un solo sitio', () => {
   const RAIZ = path.resolve(__dirname, '../..');
-  const ALIAS = ['TIPOS_MENSAJE', 'MODOS', 'registrarControlador', 'enviarMensaje', 'enviarMensajeConConfirmacion', 'ajustarTimeoutPorConexion'];
+  const ALIAS = ['TIPOS_MENSAJE', 'MODOS', 'enviarMensaje', 'enviarMensajeConConfirmacion', 'ajustarTimeoutPorConexion'];
   // Una asignación `globalThis.X = …` (no una comparación `===`). `enviarMensaje` no casa con
   // `enviarMensajeConConfirmacion` ni `ajustarTimeoutPorConexion` con su versión `Safe`: tras el nombre
   // solo puede venir espacio o el `=`.

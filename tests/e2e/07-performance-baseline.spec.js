@@ -192,7 +192,6 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
     const snapshot = await page.evaluate(() => ({
       TIPOS_MENSAJE:                typeof globalThis.TIPOS_MENSAJE,
       MODOS:                        typeof globalThis.MODOS,
-      registrarControlador:         typeof globalThis.registrarControlador,
       enviarMensaje:                typeof globalThis.enviarMensaje,
       enviarMensajeConConfirmacion: typeof globalThis.enviarMensajeConConfirmacion,
       logger:                       typeof globalThis.logger,
@@ -210,7 +209,6 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
     // Todas estas deben ser 'object' o 'function' tras el refactor — NUNCA 'undefined'
     expect(snapshot.TIPOS_MENSAJE).toBe('object');
     expect(snapshot.MODOS).toBe('object');
-    expect(snapshot.registrarControlador).toBe('function');
     expect(snapshot.enviarMensaje).toBe('function');
     expect(snapshot.enviarMensajeConConfirmacion).toBe('function');
     expect(snapshot.logger).toBe('object');

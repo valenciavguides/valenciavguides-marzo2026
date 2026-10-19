@@ -141,7 +141,7 @@ async function gotoAndWaitForFase1(page) {
         const listo = globalThis.__MENSAJERIA_INICIADA === true || (
           typeof globalThis.mensajeria === 'object' &&
           globalThis.mensajeria !== null &&
-          typeof globalThis.registrarControlador === 'function' &&
+          typeof globalThis.mensajeria.registrarControlador === 'function' &&
           typeof globalThis.enviarMensaje === 'function' &&
           typeof globalThis.TIPOS_MENSAJE === 'object' &&
           globalThis.TIPOS_MENSAJE !== null

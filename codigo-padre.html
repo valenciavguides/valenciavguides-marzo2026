@@ -3831,7 +3831,6 @@
 
         // Alias locales para módulos importados en Fase 1
         const CONFIG = CONFIG_S1;
-        const registrarControlador = registrarControlador_S1;
         const enviarMensaje = enviarMensaje_S1;
         const enviarMensajeConConfirmacion = enviarMensajeConConfirmacion_S1;
         const manejarCambioModo = manejarCambioModo_S1;
@@ -3845,7 +3844,6 @@
         if (globalThis.window !== undefined) {
             if (globalThis.TIPOS_MENSAJE === undefined) globalThis.TIPOS_MENSAJE = TIPOS_MENSAJE;
             if (globalThis.MODOS === undefined) globalThis.MODOS = MODOS;
-            if (globalThis.registrarControlador === undefined) globalThis.registrarControlador = registrarControlador;
             if (globalThis.enviarMensaje === undefined) globalThis.enviarMensaje = enviarMensaje;
             if (globalThis.enviarMensajeConConfirmacion === undefined) globalThis.enviarMensajeConConfirmacion = enviarMensajeConConfirmacion;
             if (globalThis.logger === undefined) globalThis.logger = logger_S1 || globalThis.logger || console;

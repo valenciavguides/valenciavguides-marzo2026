@@ -4916,7 +4916,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-959d331fe190'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0afc5f071a28'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7942,7 +7942,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | Spec | Tests | Qué verifica |
 |------|------:|-------------|
 | `01-fase1-boot.spec.js` | 8 | Orden de carga de módulos en FASE 1: mensajería, state-manager, logger, config, constants |
-| `02-global-variables.spec.js` | 12 | Variables globales expuestas tras FASE 1: TIPOS_MENSAJE, MODOS, enviarMensaje, CONFIG_PADRE… |
+| `02-global-variables.spec.js` | 12 | Variables globales expuestas tras FASE 1: TIPOS_MENSAJE, MODOS, enviarMensaje, CONFIG_PADRE…; y que no hay `globalThis.registrarControlador`: los handlers se registran por el bus (`globalThis.mensajeria.registrarControlador`) |
 | `03-handler-registration.spec.js` | 6 | Handlers registrados en state-manager (no en el fallback local) |
 | `04-iframe-dom.spec.js` | 17 | Datos diferidos nulos antes de selección (`__vv_DATOS/AUDIOS/RETOS_AVENTURAS`); `__cargarDatosAventuraDiferidos` expuesta |
 | `05-queues-draining.spec.js` | 3 | Colas drenadas tras el arranque: ni `__pendingDistribucion` ni `__pendingBroadcast` existen sin aventura seleccionada, y el bus del padre está inicializado, se identifica y es el frame de arriba |
@@ -7951,7 +7951,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `08-children-handshake.spec.js` | 11 | Infraestructura del handshake: HIJO_PREPARADO/HIJO_LISTO en registro, estadoPadre, mensajes sintéticos |
 | `09-mode-change.spec.js` | 16 | Protocolo CAMBIO_MODO↔ENTENDIDO↔EFECTUADO; unicidad de handlers; el latido está encendido desde el arranque, sin modo decidido (MC-7a), y el padre atiende `HEARTBEAT_RESPONSE` sin registrar `HEARTBEAT` (MC-7b) |
 | `10-controladores-padre.spec.js` | 8 | Handlers extraídos a `js/controladores-padre.js`; smoke tests de SOLICITAR_AUDIOS/TEXTOS/RETOS/COORDENADAS |
-| `11-constants-integrity.spec.js` | 9 | Integridad de `TIPOS_MENSAJE` y de los alias globales: las constantes GPS funcionales existen y `GPS.VISUAL_*` no, `CHAT.ESTADO_PADRE` existe, `limpiarDatosAventura` y `verificarTimeoutAventura` están expuestas, y cada alias global (`TIPOS_MENSAJE`, `MODOS`, `registrarControlador`, `enviarMensaje`, `enviarMensajeConConfirmacion`, `ajustarTimeoutPorConexion`) se publica como mucho en un sitio de cada fichero de producción, leído en el fuente (CI-6) |
+| `11-constants-integrity.spec.js` | 9 | Integridad de `TIPOS_MENSAJE` y de los alias globales: las constantes GPS funcionales existen y `GPS.VISUAL_*` no, `CHAT.ESTADO_PADRE` existe, `limpiarDatosAventura` y `verificarTimeoutAventura` están expuestas, y cada alias global (`TIPOS_MENSAJE`, `MODOS`, `enviarMensaje`, `enviarMensajeConConfirmacion`, `ajustarTimeoutPorConexion`) se publica como mucho en un sitio de cada fichero de producción, leído en el fuente (CI-6) |
 | `12-carga-por-parada.spec.js` | 4 | Protección pasiva por parada: audio/reto se resuelven en línea por elemento activado, sin broadcast masivo; y sin aventura elegida un cambio de parada no se resuelve contra ninguna otra, ni una guardada en el navegador ni `Aventura1`: la parada no cambia, el padre contesta `sin_aventura_elegida` y lo dice en la consola (PP-4) |
 | `13-gps-tramo-fix.spec.js` | 17 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) tras confirmar por ventana deslizante (2 de las últimas 4 lecturas dentro de radio — este test usa 2 consecutivas como estímulo, que también confirma; ver `21-llegada-ruido-gps.spec.js` para el caso con ruido real), con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6); precisión mala no descarta la lectura y el contador de candidata se reinicia al salir de radio (PD-1..4); la polyline manual (única guía de vuelta que existe, §4.6) se limpia al volver de verdad a `.inicio` (destino real de la línea mientras el tramo no esté completo), y permanece si el usuario está en `.fin` en vez de `.inicio` (PM-1/2); `distanciaAlCamino` da ~0m en el inicio del tramo y sobre un waypoint intermedio mientras `distanciaAlDestino` se mantiene grande, y coincide siempre con `distanciaAlDestino` en una parada (DC-1..3); sin distancia recorrida, estar en `.fin` no basta para confirmar llegada (TR-1); tras el camino oficial sí confirma (TR-2); tras un rodeo sin waypoints oficiales pero con distancia real equivalente, también confirma (TR-3) — GT-3/GT-4/PD-2/PD-3/PD-4 acumulan distancia con el rodeo, no el camino oficial, para no contaminar su propia ventana deslizante (ver §"Distancia recorrida") |
 | `15-arribo-y-progresion.spec.js` | 3 | Pipeline llegada→pending→progresión con mensajes reales: `LLEGADA_DETECTADA` marca `pending.llegada`; `AUDIO.FIN_REPRODUCCION` marca `pending.audio` y completa el tramo — habilita btn-avanzar y espera confirmación explícita, sin avanzar `indiceProgreso` por sí solo (AP-2, parada y tramo por igual, §4.7d); solo al recibir `NAVEGACION.GPS.ACTIVAR` (btn-avanzar pulsado) `progresarSiguienteElemento()` avanza y limpia el pending anterior antes de fijar el nuevo `elementoActual` (AP-3); `manejarCambiarParada()` encuentra el nuevo elemento en `AVENTURA_PARADAS` sin error |
@@ -8307,7 +8307,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-959d331fe190'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-0afc5f071a28'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9060,7 +9060,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-959d331fe190';
+const CACHE_VERSION = 'v-0afc5f071a28';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12534,7 +12534,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-959d331fe190';
+const CACHE_VERSION = 'v-0afc5f071a28';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

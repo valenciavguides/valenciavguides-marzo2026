@@ -5,10 +5,13 @@
  *
  * Prerequisito DT-1 Opción B — escenario 1f:
  *   "Tras el refactor, estos deben seguir existiendo con los mismos valores:
- *    globalThis.TIPOS_MENSAJE, globalThis.MODOS, globalThis.registrarControlador,
+ *    globalThis.TIPOS_MENSAJE, globalThis.MODOS,
  *    globalThis.enviarMensaje, globalThis.enviarMensajeConConfirmacion, globalThis.logger,
  *    globalThis.esTelefonoMovil, globalThis.ajustarTimeoutPorConexion,
  *    globalThis.CONFIG_PADRE (ID, COMPONENTE_ID, VERSION, DEBUG, LOG_PREFIX)"
+ *
+ * Y que no hay `globalThis.registrarControlador`: los handlers se registran por el bus
+ * (`globalThis.mensajeria.registrarControlador`), y la aplicación no lee esa global (1f).
  */
 'use strict';
 
@@ -54,9 +57,9 @@ test.describe('Globals requeridas tras FASE 1', () => {
 
   // ── Funciones de comunicación ──────────────────────────────────────────
 
-  test('1f. globalThis.registrarControlador es una función', async ({ page }) => {
-    const ok = await page.evaluate(() => typeof globalThis.registrarControlador === 'function');
-    expect(ok).toBe(true);
+  test('1f. No hay globalThis.registrarControlador: se registra por el bus', async ({ page }) => {
+    const r = await page.evaluate(() => ({ global: typeof globalThis.registrarControlador, bus: typeof globalThis.mensajeria?.registrarControlador }));
+    expect(r, 'la global no existe y el registro del bus sí').toEqual({ global: 'undefined', bus: 'function' });
   });
 
   test('1f. globalThis.enviarMensaje es una función', async ({ page }) => {
