@@ -388,18 +388,14 @@ let _camaraSiguiendoRumbo = false; // true tras elegir "Seguir mi rumbo" en el m
 // Array de paradas locales
 let arrayParadasLocal = [];
 
-// Estado del mapa (ÚNICA FUENTE DE VERDAD para GPS)
-// ARQUITECTURA: funciones-mapa.js mantiene estadoMapa como estado local.
-// El PADRE (codigo-padre.html) mantiene globalThis.estadoPadre.gps como estado global.
-// SINCRONIZACIÓN: Cuando funciones-mapa.js actualiza estadoMapa, debe sincronizar
-// con globalThis.estadoPadre.gps si está disponible (cuando se ejecuta en contexto padre).
+// Estado del mapa. Este módulo solo lo carga el padre.
+// Lo que escribe el mapa al procesar las posiciones (posición, precisión, última ubicación, `gpsVisualActivo` y
+// `proximidadReal`) se copia a globalThis.estadoPadre.gps con sincronizarEstadoGPSConPadre(). El estado del sensor
+// (activo, watchId, permisos y error) no está aquí: es del padre, que lo escriben activarGPS() y sus callbacks.
 const estadoMapa = {
     modo: MODOS.CASA,
     posicionUsuario: null,
-    gpsActivo: false,
-    gpsPermisos: null, // null = desconocido, true = concedidos, false = denegados
     gpsPrecision: null, // Precisión actual del GPS en metros
-    gpsError: null, // Último error GPS
     ultimaUbicacion: null, // { lat, lng } - última ubicación GPS recibida
     gpsVisualActivo: false, // Controla si polyline y emojis se muestran en modo AVENTURA
     proximidadReal: false, // Distancia real ≤50m al destino activo, independiente de gpsVisualActivo (ver sincronizarEstadoGPSConPadre)
@@ -1079,9 +1075,8 @@ export function desactivarSeguimientoRumbo() {
 // NOTA: Implementación de precalentamiento GPS eliminada — el GPS principal se iniciará bajo demanda
 
 /**
- * Sincroniza el estado GPS local (estadoMapa) con el estado global del padre
- * ARQUITECTURA: El padre es el orquestador - mantiene globalThis.estadoPadre.gps
- * Esta función asegura que ambos estados estén sincronizados
+ * Copia a globalThis.estadoPadre.gps lo que escribe el mapa: posición, precisión, última ubicación, visualActivo y
+ * proximidadReal. El estado del sensor (activo, watchId, permisos y error) es del padre y aquí no se toca.
  * @private
  */
 function sincronizarEstadoGPSConPadre() {
@@ -1090,9 +1085,9 @@ function sincronizarEstadoGPSConPadre() {
         // tick que watchPosition() devuelve el watchId, y lo quita _watchPositionError
         // ante un error real (§11).
         //
-        // Copiarlo desde estadoMapa.gpsActivo era escribir una mentira: en el padre ese
-        // campo NUNCA llega a true. manejarGPSActivar() delega en globalThis.activarGPS()
-        // y no lo marca (solo lo hace su rama de fallback, cuando activarGPS no existe).
+        // Copiarlo desde el `gpsActivo` que tenia estadoMapa era escribir una mentira: en el
+        // padre ese campo no llegaba nunca a true, porque solo lo marcaban dos ramas de
+        // manejarGPSActivar() que no corrian (K-122; hoy estadoMapa no tiene ese campo).
         // Asi que este espejo pisaba con `false` el `true` legitimo del
         // padre en cada una de sus llamadas, incluida CADA posicion GPS recibida.
         //
@@ -1102,10 +1097,12 @@ function sincronizarEstadoGPSConPadre() {
         // SEGUNDO watchPosition imposible de cancelar. Es la misma familia de fallo que se
         // corrigio en 2026-07-31 con `watchId`; entonces se cerro media puerta.
         //
-        // Los demas campos si son propiedad de estadoMapa y se siguen copiando.
-        globalThis.estadoPadre.gps.permisos = estadoMapa.gpsPermisos;
+        // `permisos` y `error` tampoco se copian: tambien los escribe el padre (activarGPS() y sus callbacks).
+        // Copiarlos desde estadoMapa los pisaba, con cada posicion, con los valores de partida: en estadoMapa solo
+        // los ponian dos ramas de manejarGPSActivar() que no corrian nunca (docs/estudio-caminos.md, K-122).
+        //
+        // Los demas campos son los que escribe el mapa, y se copian.
         globalThis.estadoPadre.gps.precision = estadoMapa.gpsPrecision;
-        globalThis.estadoPadre.gps.error = estadoMapa.gpsError;
         globalThis.estadoPadre.gps.posicionUsuario = estadoMapa.posicionUsuario;
         globalThis.estadoPadre.gps.ultimaUbicacion = estadoMapa.ultimaUbicacion;
         globalThis.estadoPadre.gps.visualActivo = estadoMapa.gpsVisualActivo;
@@ -1413,10 +1410,11 @@ export function limpiarRecursos() {
             intervaloLimpiezaAutomatica = null;
         }
 
-        // Resetear estado GPS de estadoMapa. `gpsActivo` NO entra aqui, a proposito:
-        // esta funcion no apaga el sensor —no puede, `watchId` es propiedad exclusiva del
-        // padre— asi que ponerlo en false es afirmar algo falso. Y como la linea siguiente
-        // sincroniza con el padre, ese false viajaba directo a estadoPadre.gps.activo y
+        // Resetear el estado del mapa. El del sensor no entra aqui, a proposito, ni vive en
+        // estadoMapa (es del padre, K-122): esta funcion no apaga el sensor —no puede, `watchId`
+        // es propiedad exclusiva del padre— asi que ponerlo en false es afirmar algo falso. Cuando
+        // estadoMapa tenia su `gpsActivo` y se ponia aqui en false, la sincronizacion con el padre
+        // lo llevaba directo a estadoPadre.gps.activo y
         // rompia el guard de activarGPS() (`est.gps.activo && est.gps.watchId !== null`):
         // el siguiente cambio a AVENTURA no reconocia el watch vivo, hacia una activacion
         // completa —~6 s de interfaz congelada, medidos en uso real— y creaba un SEGUNDO
@@ -1431,7 +1429,6 @@ export function limpiarRecursos() {
         // Misma correccion que se hizo en 2026-07-31 con `watchId` en limpiarRecursosPorModo()
         // (js/app.js): el guard necesita las dos condiciones, arreglar solo una no bastaba.
         // Los demas campos si son estado de comportamiento del mapa y se resetean igual.
-        estadoMapa.gpsError = null;
         estadoMapa.gpsVisualActivo = false;
         estadoMapa.proximidadReal = false;
         estadoMapa.posicionUsuario = null;
@@ -1522,8 +1519,8 @@ export function limpiarPorEstado(nuevoEstado) {
             estadoMapa.paradaActual = null;
             estadoMapa.tramoActual = null;
             estadoMapa.posicionUsuario = null;
-            // `gpsActivo` NO se resetea aqui, a proposito: no es estado del mapa, es el
-            // estado del SENSOR, y watchPosition() nunca se detiene al cambiar de modo
+            // El estado del SENSOR no se resetea aqui, a proposito (ni vive en estadoMapa: es
+            // del padre, K-122), y watchPosition() nunca se detiene al cambiar de modo
             // (§2.6 de GUIA-COMPLETA; el modo decide si las posiciones fuerzan avance, no
             // si el sensor corre). Ponerlo en false con el watch vivo hacia que
             // sincronizarEstadoGPSConPadre() copiara ese false a estadoPadre.gps.activo en
@@ -2399,6 +2396,11 @@ export function revelarNavegacion() {
  * @returns {Object} Información de diagnóstico GPS
  */
 export async function diagnosticarGPS() {
+    // Cada campo, de su dueño: el estado del sensor (activo, permisos y error) lo escriben activarGPS() y sus
+    // callbacks en el padre; la posición, la precisión y la última ubicación, el mapa al procesar cada lectura.
+    // «Activo» es la misma condición que usa el guard de activarGPS(): `activo` y un `watchId`.
+    const gpsDelPadre = globalThis.estadoPadre?.gps;
+    if (!gpsDelPadre) logger.error('[GPS.DIAGNOSTICO] Sin globalThis.estadoPadre.gps: el estado del sensor sale vacío');
     const diagnostico = {
         timestamp: new Date().toISOString(),
         navegador: {
@@ -2411,11 +2413,10 @@ export async function diagnosticarGPS() {
             esLocalhost: location.hostname === 'localhost' || location.hostname === '127.0.0.1'
         },
         gpsEstado: {
-            activo: estadoMapa.gpsActivo,
+            activo: Boolean(gpsDelPadre?.activo && gpsDelPadre.watchId !== null && gpsDelPadre.watchId !== undefined),
             posicionUsuario: estadoMapa.posicionUsuario,
-            gpsActivo: estadoMapa.gpsActivo,
-            gpsPermisos: estadoMapa.gpsPermisos,
-            gpsError: estadoMapa.gpsError,
+            gpsPermisos: gpsDelPadre?.permisos ?? null,
+            gpsError: gpsDelPadre?.error ?? null,
             gpsPrecision: estadoMapa.gpsPrecision,
             ultimaUbicacion: estadoMapa.ultimaUbicacion
         }
@@ -2466,74 +2467,25 @@ export async function diagnosticarGPS() {
     return diagnostico;
 }
 /**
- * Capa adaptadora GPS para contexto iframe.
- * DISEÑO INTENCIONAL — no duplica lógica con activarGPS() en codigo-padre.html.
- * Si se ejecuta en el padre (globalThis.parent === window), delega directamente a globalThis.activarGPS().
- * Si se ejecuta en un iframe hijo, envía postMessage al padre para que él active el GPS.
- * La implementación real (navigator.geolocation.watchPosition) vive únicamente en codigo-padre.html.
+ * Activa el GPS al pasar a AVENTURA (la llama manejarCambioModoMapa()): delega en globalThis.activarGPS(), la única
+ * implementación (codigo-padre.html la define desde su primer bloque, con una cola hasta que llega la real). Este
+ * módulo solo lo carga el padre; los hijos piden el GPS con NAVEGACION.GPS.ACTIVAR. El estado del sensor lo escriben
+ * activarGPS() y sus callbacks: aquí no se marca nada.
  *
- * @param {Object} mensaje - Mensaje de activación GPS
+ * @param {Object} mensaje - Mensaje de activación GPS (su `origen` va al log)
  * @returns {Object} Resultado de la operación
  */
 export async function manejarGPSActivar(mensaje) {
     const logPrefix = `[GPS.ACTIVAR][${mensaje?.origen || 'desconocido'}]`;
-
     try {
-        // Si ya estamos en el contexto del padre, delegar a la implementación centralizada
-        if (globalThis.parent === globalThis.window) {
-            logger.info(`${logPrefix} En contexto padre: delegando a la implementación centralizada (globalThis.activarGPS)`);
-            try {
-                if (typeof globalThis.activarGPS === 'function') {
-                    const res = await globalThis.activarGPS();
-                    // sincronizar estado local con el estado global del padre
-                    sincronizarEstadoGPSConPadre();
-                    return { exito: true, detalle: res };
-                }
-                // Fallback: mantener comportamiento previo (marcar activo) y sincronizar
-                estadoMapa.gpsActivo = true;
-                estadoMapa.gpsPermisos = true;
-                estadoMapa.gpsError = null;
-                sincronizarEstadoGPSConPadre();
-                return { exito: true };
-            } catch (err) {
-                logger.error(`${logPrefix} Error delegando activación al padre:`, err);
-                estadoMapa.gpsError = err.message || String(err);
-                sincronizarEstadoGPSConPadre();
-                return { exito: false, error: err.message || String(err) };
-            }
-        }
-
-        // Si estamos en un iframe, delegar al padre
-        logger.info(`${logPrefix} Delegando activación GPS al padre`);
-
-        enviarMensaje({
-            destino: 'padre',
-            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR,
-            datos: {
-                timestamp: Date.now(),
-                razon: 'delegacion_desde_iframe'
-            }
-        });
-
-        // Actualizar estado local para compatibilidad
-        estadoMapa.gpsActivo = true;
-        estadoMapa.gpsPermisos = true;
-        estadoMapa.gpsError = null;
-
-        logger.info(`${logPrefix} Solicitud de activación GPS enviada al padre`);
-        return { exito: true };
-
-    } catch (error) {
-        logger.error(`${logPrefix} Error en activación GPS: ${error.message}`, error);
-
-        // Actualizar estado local (estadoMapa es la única fuente de verdad)
-        estadoMapa.gpsError = error.message;
-        estadoMapa.gpsActivo = false;
-
-        // Sincronizar con el estado global del padre
+        logger.info(`${logPrefix} Delegando en globalThis.activarGPS()`);
+        const res = await globalThis.activarGPS();
         sincronizarEstadoGPSConPadre();
-
-        return { exito: false, error: error.message };
+        return { exito: true, detalle: res };
+    } catch (err) {
+        logger.error(`${logPrefix} Error activando el GPS:`, err);
+        sincronizarEstadoGPSConPadre();
+        return { exito: false, error: err.message || String(err) };
     }
 }
 

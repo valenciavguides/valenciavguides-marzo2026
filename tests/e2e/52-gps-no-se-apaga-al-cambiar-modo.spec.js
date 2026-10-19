@@ -23,7 +23,7 @@
  * Es la otra mitad del fallo corregido en 2026-07-31 quitando `watchId` de
  * `limpiarRecursosPorModo()`: el guard necesita las dos condiciones.
  *
- *   GA-1  limpiarPorEstado con resetCompleto NO toca estadoMapa.gpsActivo.
+ *   GA-1  limpiarRecursos no apaga el sensor: estadoPadre.gps.activo y su watchId siguen igual.
  *   GA-2  Sí sigue reseteando lo que sí es estado de mapa (control de que no se ha
  *         desactivado la limpieza entera).
  *   GA-3  Tras el ciclo completo, estadoPadre.gps.activo sigue en true: el espejo ya

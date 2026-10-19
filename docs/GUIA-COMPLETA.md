@@ -4916,7 +4916,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-23ae1dad1623'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-bc0c726e908b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6377,11 +6377,11 @@ Los pasos 1-2 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 3-5 solo o
 
 ### Fuente única de verdad del estado GPS
 
-El estado GPS está repartido entre dos propietarios con responsabilidades distintas:
+El estado GPS está repartido entre dos propietarios con responsabilidades distintas, y cada campo tiene uno solo:
 
-**`estadoMapa` (`js/funciones-mapa.js`)** — propietario de los campos de comportamiento GPS:
-`gpsActivo`, `gpsPermisos`, `gpsPrecision`, `gpsError`, `posicionUsuario`, `ultimaUbicacion`, `gpsVisualActivo`.
-Cada vez que alguno de estos campos cambia, `sincronizarEstadoGPSConPadre()` los copia a `globalThis.estadoPadre.gps`, permitiendo que el resto del padre los lea sin acceder directamente a las variables internas de `funciones-mapa.js`.
+**`estadoPadre.gps` (`codigo-padre.html`)** — el estado del sensor: `activo`, `watchId`, `permisos` y `error`. Los escriben `activarGPS()` y sus callbacks (`_watchPositionSuccess`, `_watchPositionError` y el procesado de cada posición). El diagnóstico de consola (`diagnosticarGPS()`) lee de aquí si el GPS está activo (`activo` y un `watchId`, como el guard de `activarGPS()`), los permisos y el error.
+
+**`estadoMapa` (`js/funciones-mapa.js`, que solo carga el padre)** — lo que escribe el mapa al procesar las posiciones: `posicionUsuario`, `gpsPrecision`, `ultimaUbicacion`, `gpsVisualActivo` y `proximidadReal`. `sincronizarEstadoGPSConPadre()` los copia a `globalThis.estadoPadre.gps` (`posicionUsuario`, `precision`, `ultimaUbicacion`, `visualActivo` y `proximidadReal`), para que el resto del padre los lea sin acceder a las variables internas de `funciones-mapa.js`. La llaman el procesado de cada posición GPS, `limpiarRecursos()`, `revelarNavegacion()` y `_ocultarNavegacion()` (que cambian `gpsVisualActivo`) y `manejarGPSActivar()`. El estado del sensor no se copia: `estadoMapa` no lo tiene.
 
 **`estadoPadre.gps.watchId` (`codigo-padre.html`)** — propiedad exclusiva del padre.
 Solo `activarGPS()` lo asigna, al llamar a `navigator.geolocation.watchPosition`. **Nada lo limpia en vida de la página**: no existe ninguna función que apague el GPS — al terminar o abandonar la aventura la app navega a `En-busca-del-tesoro.html`, y el navegador cancela el watch al destruir el documento. Los `clearWatch()` que quedan en `activarGPS()`/`_watchPositionError` son internos del reintento, para no dejar un watch huérfano al crear el siguiente. `funciones-mapa.js` no tiene campo `watchId` en `estadoMapa` ni escribe en `estadoPadre.gps.watchId`. `sincronizarEstadoGPSConPadre()` deliberadamente no sincroniza este campo. **`limpiarRecursosPorModo()` (`js/app.js`), que corre en cada `SISTEMA.CAMBIO_MODO`, NO toca `watchId` ni `activo`** — ponerlos a `null`/`false` en cada cambio de modo mentiría sobre el estado real: el watch nativo sigue vivo (nunca se apaga al cambiar de modo, ver más arriba), y `activarGPS()` usa exactamente `activo && watchId !== null` para reconocer un watch ya en marcha — con `watchId` a `null`, la siguiente activación no lo reconocería y arrancaría un segundo `watchPosition` en paralelo, sin poder cancelar nunca el primero (su id estaría perdido). Cada vuelta CASA↔AVENTURA sumaría un watch huérfano más.
@@ -6437,7 +6437,7 @@ actualizar el estado para calcular el flag correctamente. **No confundirla con
 **estilo** del mapa (satélite / callejero / nocturno), sin relación con CASA/AVENTURA.
 
 > **Nota de diseño — hub + adaptador, no duplicación.**
-> `activarGPS()` en `codigo-padre.html` es el **hub**: la única implementación real que abre un `navigator.geolocation.watchPosition` (él mismo, y su reintento por timeout, que reemplaza al anterior). `manejarGPSActivar()` en `funciones-mapa.js` es el **adaptador**: detecta si está en el padre (`globalThis.parent === globalThis.window`) y delega al hub, o si está en un iframe, envía postMessage al padre para que el hub actúe. `manejarCambioModoMapa()` lo llama al entrar en AVENTURA — como red de seguridad, ya que el GPS normalmente ya está activo desde P15 (ver «Cuándo se activa el GPS por primera vez», arriba). No hay lógica duplicada — hay un único punto de ejecución real con una capa de enrutamiento. No existe adaptador de desactivación porque no existe desactivación: el sensor vive lo que vive el documento (nunca vía mensaje — no hay handler para `NAVEGACION.GPS.DESACTIVAR`) — no hay ningún caso de uso hoy en que un iframe necesite pedir la desactivación, y el GPS está diseñado para no apagarse nunca al cambiar de modo (ver tabla de comportamiento por modo, §2.6).
+> `activarGPS()` en `codigo-padre.html` es el **hub**: la única implementación real que abre un `navigator.geolocation.watchPosition` (él mismo, y su reintento por timeout, que reemplaza al anterior). `manejarGPSActivar()` en `funciones-mapa.js` (que solo carga el padre) es el **adaptador**: delega en el hub y sincroniza el espejo del mapa, sin marcar ningún estado. Los hijos piden el GPS con `NAVEGACION.GPS.ACTIVAR`, cuyo handler llama al hub. `manejarCambioModoMapa()` lo llama al entrar en AVENTURA — como red de seguridad, ya que el GPS normalmente ya está activo desde P15 (ver «Cuándo se activa el GPS por primera vez», arriba). No hay lógica duplicada: hay un único punto de ejecución real. No existe adaptador de desactivación porque no existe desactivación: el sensor vive lo que vive el documento (nunca vía mensaje — no hay handler para `NAVEGACION.GPS.DESACTIVAR`) — no hay ningún caso de uso hoy en que un iframe necesite pedir la desactivación, y el GPS está diseñado para no apagarse nunca al cambiar de modo (ver tabla de comportamiento por modo, §2.6).
 
 ### Envío del estado GPS a hijo2
 
@@ -7979,7 +7979,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `49-escalera-espera-imagen.spec.js` | 5 | La escalera de espera de imágenes (`_escaleraCargaImagen()`) y la precarga que la hace innecesaria casi siempre (`_precargarImagenParada()`), §25.18: 4 s de gracia en silencio → spinner mientras reintenta → rendición. |
 | `50-pending-iniciado-no-borra-reto.spec.js` | 4 | `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` (§13) significa que el padre empieza a seguir la compleción de una parada, NO que el usuario haya salido del reto: hijo4 no borra `retoActualId` ni oculta sus controles al recibirlo. |
 | `51-mapa-id-parada-resuelto.spec.js` | 3 | El evento `vv-parada-cambiada` que dispara `_hdl_NAVEGACION_CAMBIO_PARADA` para `js/funciones-mapa.js` lleva el id REAL del elemento (`Av1-P-2`), no el formato propio de hijo5 (`padre-P2`) con el que puede venir el mensaje. |
-| `52-gps-no-se-apaga-al-cambiar-modo.spec.js` | 3 | `watchPosition()` se enciende una vez y **no se detiene** al cambiar de modo (§2.6). `limpiarPorEstado()` resetea parada, tramo, posición y seguimiento, pero `gpsActivo` no entra ahí: el modo decide si las posiciones fuerzan avance, no si el sensor corre. |
+| `52-gps-no-se-apaga-al-cambiar-modo.spec.js` | 3 | `watchPosition()` se enciende una vez y **no se detiene** al cambiar de modo (§2.6). `limpiarPorEstado()` resetea parada, tramo, posición y seguimiento, pero el estado del sensor no entra ahí (es del padre): el modo decide si las posiciones fuerzan avance, no si el sensor corre. |
 | `53-camara-no-sigue-en-casa.spec.js` | 1 | En CASA el GPS no manda sobre el mapa: el marcador 🛸 se sigue dibujando y moviendo —sirve para ver que el sensor está vivo— pero la cámara no se recentra sola en cada posición. |
 | `54-mapa-completo-datos-por-mensaje.spec.js` | 5 | `mapa-completo.html` recibe las coordenadas por mensaje del padre en vez de importar `DATOS_AVENTURAS` por su cuenta, que sería uno de los caminos que se saltan `data-loader.js` (§22.12, pendiente 13). La aventura del mapa la decide el padre: un `NAVEGACION.MOSTRAR_MAPA_COMPLETO` que traiga otra aventura y otra URL abre `mapa-completo.html`, sin parámetros, con la aventura elegida (MC-5). |
 | `55-mapa-vintage-resuelto-por-el-padre.spec.js` | 6 | El mapa vintage lo resuelve el padre, no el hijo: hijo2 suelto no descarga `mapa-vintage-aventuras.js` (MV-1); el padre resuelve la URL de una aventura con mapa (MV-2); una aventura sin mapa vintage no muestra nada y deja aviso (MV-3); el padre ignora una URL que llegue en el mensaje y usa su propia fuente (MV-4); el mapa vintage suprime el aviso de girar el móvil y al cerrarlo lo devuelve (MV-5); y el padre ignora también la aventura que llegue en el mensaje: el mapa es el de la aventura elegida (MV-6) |
@@ -8066,6 +8066,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `138-banner-version-en-su-idioma.spec.js` | 3 | El banner de versión nueva sale en el idioma del usuario también al arrancar con el aviso pendiente (el bloque del banner importa sus textos): en inglés con el último idioma en inglés (SB-1), en español en español (SB-2, control), y uno solo (SB-3) |
 | `139-parada-por-defecto-un-solo-camino.spec.js` | 2 | La parada por defecto la elige solo `ensureDefaultParada()`: la primera entrada en AVENTURA activa la de inicio (PD-1, control); al volver de CASA con otro elemento en curso, cada `CAMBIO_PARADA` de la vuelta es de ese elemento (PD-2) |
 | `140-puzzle-un-solo-bucle-de-dibujo.spec.js` | 3 | El puzzle dibuja con un solo bucle (cuenta los fotogramas pendientes de su frame, uno por bucle vivo): uno con el puzzle en marcha y a la vista (UB-1), uno tras tres `resize` seguidos (UB-2) y uno tras reiniciar en marcha (UB-3) |
+| `141-diagnostico-gps-dice-la-verdad.spec.js` | 3 | El estado del sensor GPS tiene un solo dueño, `estadoPadre.gps`: antes de activar, el diagnóstico de consola dice que el GPS no está activo (DG-1, control); con el GPS activado por `activarGPS()`, dice que sí (DG-2); tras activar, el espejo del mapa no pisa los permisos del padre, y el diagnóstico los da por concedidos (DG-3) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8300,7 +8301,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-23ae1dad1623'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-bc0c726e908b'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8544,7 +8545,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 137 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 138 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9053,7 +9054,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-23ae1dad1623';
+const CACHE_VERSION = 'v-bc0c726e908b';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12527,7 +12528,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-23ae1dad1623';
+const CACHE_VERSION = 'v-bc0c726e908b';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

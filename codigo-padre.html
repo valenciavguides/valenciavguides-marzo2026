@@ -5706,9 +5706,9 @@
 
         /**
          * Hub GPS central — única implementación real de navigator.geolocation.watchPosition.
-         * DISEÑO INTENCIONAL — manejarGPSActivar() en funciones-mapa.js es solo la capa adaptadora
-         * para contexto iframe: cuando se llama desde un hijo, reenvía aquí vía postMessage.
-         * No existe duplicación: hay un hub (aquí) y un adaptador (funciones-mapa.js).
+         * La piden manejarGPSActivar() (js/funciones-mapa.js, que solo carga el padre) al pasar a AVENTURA y los hijos
+         * con NAVEGACION.GPS.ACTIVAR (_hdl_NAVEGACION_GPS_ACTIVAR). Ella y sus callbacks son los dueños del estado del
+         * sensor en estadoPadre.gps: activo, watchId, permisos y error.
          */
         async function activarGPS() {
             const logPrefix = '[PADRE][GPS][ACTIVAR]';
