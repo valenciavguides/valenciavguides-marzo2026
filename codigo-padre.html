@@ -1517,14 +1517,13 @@
 
                 function construirEstadoChat() {
                     let ep     = globalThis.estadoPadre || {};
-                    let paradas = globalThis.AVENTURA_PARADAS || [];
-                    let idx    = (typeof ep.indiceProgreso === 'number') ? ep.indiceProgreso : 0;
                     // Lo que el asistente lee de este estado, y nada más: el idioma, el estado del rescate y el
                     // contexto del buzón de sugerencias (aventura y parada). Lo vigila CH-3 del spec 47.
                     return {
                         idioma:               globalThis.idiomaSeleccionado,
-                        aventura:             globalThis.aventuraSeleccionada || '',
-                        paradaActualNombre:   paradas[idx]?.nombre  || '',
+                        aventura:             globalThis.aventuraSeleccionada,
+                        // El elemento en curso, que el padre guarda en cada cambio de elemento (vacío fuera de la aventura).
+                        paradaActualNombre:   ep.elementoActual?.nombre || '',
                         rescate:              _estadoRescateParaChat()
                     };
                 }

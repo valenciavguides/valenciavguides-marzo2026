@@ -442,4 +442,31 @@ test.describe('CH — El chat es alcanzable desde el padre', () => {
     ).toEqual([...lee, 'modo', 'timestamp'].sort());
     expect(mensajes.find(m => m.tipo === 'CHAT.ESTADO_PADRE')?.claves, 'al abrirlo, solo lo que el asistente lee').toEqual(lee);
   });
+
+  test('CH-4. El nombre de parada que el asistente adjunta al buzón es el del elemento en curso', async ({ page, context }) => {
+    await page.addInitScript(() => {
+      if (globalThis.__paradaParaElAsistente !== undefined) return;
+      globalThis.__paradaParaElAsistente = null;
+      globalThis.addEventListener('message', (evento) => {
+        if (!globalThis.location.pathname.endsWith('/chat-hijo6.html')) return;
+        if (evento.data?.tipo === 'CHAT.ESTADO_PADRE') globalThis.__paradaParaElAsistente = evento.data.datos?.paradaActualNombre ?? null;
+      }, true);
+    });
+    await arrancar(page, context);
+    await page.waitForFunction(() => !!document.getElementById('btn-chat-soporte') && !!globalThis.mensajeria, null, { timeout: 25000 });
+    await cargarHijosDelPadre(page);
+    // La aventura en un elemento concreto, el cuarto de la Aventura1 en español, con el índice de progreso que le corresponde.
+    // El índice de progreso cuenta elementos (`elementosIDpadre`), no las entradas de `AVENTURA_PARADAS`.
+    const esperado = await page.evaluate(() => {
+      const elementos = globalThis.DATOS_PADRE.Aventura1.es.elementosIDpadre;
+      globalThis.aventuraSeleccionada = 'Aventura1';
+      globalThis.estadoPadre.elementoActual = elementos[3];
+      globalThis.estadoPadre.indiceProgreso = 3;
+      return elementos[3].nombre;
+    });
+    const asistente = page.frames().find(f => f.url().endsWith('/chat-hijo6.html'));
+    await page.evaluate(() => document.getElementById('btn-chat-soporte').click());
+    await expect.poll(() => asistente.evaluate(() => globalThis.__paradaParaElAsistente), { timeout: 10000, message: 'el nombre del elemento en curso' })
+      .toBe(esperado);
+  });
 });
