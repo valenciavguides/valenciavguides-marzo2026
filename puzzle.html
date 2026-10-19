@@ -405,6 +405,11 @@ function init() {
     draw();
 }
 
+// Un solo bucle de dibujo. draw() pinta en el acto cuando la llaman directamente (al empezar, al redimensionar, al hacerse
+// visible, al reiniciar, al saltar), pero solo programa el siguiente fotograma si no hay ya uno pendiente: sin esto cada
+// llamada directa con el puzzle en marcha dejaba otro bucle perpetuo encima (medidos 3 al abrir y 6 tras tres resize; K-115).
+let fotogramaPendiente = null;
+
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     // Dibujar piezas colocadas primero, luego las no colocadas para que se vean encima
@@ -422,8 +427,8 @@ function draw() {
             animFrame = 0; animDirection = 1;
         }
     }
-    if (!puzzleEnded && !paused) {
-        requestAnimationFrame(draw);
+    if (!puzzleEnded && !paused && fotogramaPendiente === null) {
+        fotogramaPendiente = requestAnimationFrame(() => { fotogramaPendiente = null; draw(); });
     }
 }
 
@@ -652,7 +657,7 @@ pauseBtn.addEventListener("click", () => {
     if (paused) {
         clearInterval(timerInterval);
     } else {
-        requestAnimationFrame(draw);
+        draw();
         startTimer();
     }
 });

@@ -3455,7 +3455,8 @@ Los tres botones de la barra superior (`#leftControls`) son **solo icono, sin te
 - **Drag & drop**: eventos `pointerdown`, `pointermove`, `pointerup`, `pointercancel`
 - **Tolerancia de colocación**: pieza se "encaja" si su centro está a ≤ 25% del tamaño de celda de la posición correcta
 - **Timer**: `setInterval` cada 1 s decrementa `timeLeft`. Al llegar a 0 → `endPuzzle(false)`
-- **Pausa**: `clearInterval(timerInterval)` + flag `paused = true`; al reanudar: `requestAnimationFrame(draw)` + `startTimer()`
+- **Dibujo**: un solo bucle de `requestAnimationFrame`. `draw()` pinta en el acto cuando la llaman directamente (al empezar, al redimensionar, al hacerse visible, al reiniciar, al saltar) y solo programa el siguiente fotograma si no hay ya uno pendiente (`fotogramaPendiente`); el bucle se para con el puzzle terminado o en pausa. Lo vigila `140-puzzle-un-solo-bucle-de-dibujo.spec.js`
+- **Pausa**: `clearInterval(timerInterval)` + flag `paused = true`; al reanudar: `draw()` + `startTimer()`
 
 ```javascript
 // Pausa/continuar
@@ -3463,11 +3464,11 @@ pauseBtn.addEventListener('click', () => {
   paused = !paused;
   pauseBtn.textContent = paused ? '▶️' : '⏸️'; // solo icono, sin texto (ver arriba)
   if (paused) clearInterval(timerInterval);
-  else { requestAnimationFrame(draw); startTimer(); }
+  else { draw(); startTimer(); }
 });
 ```
 
-#### Mensajes enviados al padre (via `globalThis.parent.postMessage`)
+#### Mensajes enviados al padre (por el bus, `js/mensajeria.js`)
 
 | Tipo | Cuándo | Payload |
 |------|--------|---------|
@@ -4903,7 +4904,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c21b647fbf60'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d0e020e72ab4'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8052,6 +8053,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `137-nombres-del-indice-sin-reserva-muda.spec.js` | 2 | El nombre de la aventura sale del índice por `_nombreDeAventura()`: con el índice cargado, el cartel de transición enseña el nombre (NI-1, control); sin la entrada, enseña el id de la aventura y el padre lo dice con un error (NI-2) |
 | `138-banner-version-en-su-idioma.spec.js` | 3 | El banner de versión nueva sale en el idioma del usuario también al arrancar con el aviso pendiente (el bloque del banner importa sus textos): en inglés con el último idioma en inglés (SB-1), en español en español (SB-2, control), y uno solo (SB-3) |
 | `139-parada-por-defecto-un-solo-camino.spec.js` | 2 | La parada por defecto la elige solo `ensureDefaultParada()`: la primera entrada en AVENTURA activa la de inicio (PD-1, control); al volver de CASA con otro elemento en curso, cada `CAMBIO_PARADA` de la vuelta es de ese elemento (PD-2) |
+| `140-puzzle-un-solo-bucle-de-dibujo.spec.js` | 3 | El puzzle dibuja con un solo bucle (cuenta los fotogramas pendientes de su frame, uno por bucle vivo): uno con el puzzle en marcha y a la vista (UB-1), uno tras tres `resize` seguidos (UB-2) y uno tras reiniciar en marcha (UB-3) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8286,7 +8288,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-c21b647fbf60'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-d0e020e72ab4'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8530,7 +8532,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 136 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 137 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9039,7 +9041,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c21b647fbf60';
+const CACHE_VERSION = 'v-d0e020e72ab4';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12513,7 +12515,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-c21b647fbf60';
+const CACHE_VERSION = 'v-d0e020e72ab4';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
