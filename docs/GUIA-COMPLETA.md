@@ -4917,7 +4917,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c6ed66a9538e'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a83f9c833433'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5165,7 +5165,7 @@ Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo
 | Handler en padre | `codigo-padre.html`, Script 1 (busca `NAVEGACION.SOLICITAR_DATOS_PARADAS`) |
 | Acción | Normaliza `DATOS_PADRE[aventura][idioma].elementosIDpadre` (`normalizarParadas_S1`) y responde a quien preguntó con `RESPUESTA_DATOS_PARADAS { paradas, aventura, timestamp }`; sin aventura elegida, o sin datos para ella, responde con la lista vacía (y un `warn` si faltan los datos) |
 | Respuesta | `NAVEGACION.RESPUESTA_DATOS_PARADAS` → al solicitante (hijo5). hijo2 también recibe RESPUESTA_DATOS_PARADAS pero de forma proactiva (sin solicitarla), vía `_hijoListo_enviarDatosHijo2` tras su handshake |
-| Handler en hijo2 | el controlador de `RESPUESTA_DATOS_PARADAS` — almacena paradas normalizadas en `estadoComponente.arrayParadasLocal` para cálculos de proximidad GPS |
+| Handler en hijo2 | el controlador de `RESPUESTA_DATOS_PARADAS` — marca `datosRecibidos`, fija la parada actual si llega `paradaActual` y refresca sus botones |
 
 ---
 
@@ -8307,7 +8307,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-c6ed66a9538e'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-a83f9c833433'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9060,7 +9060,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c6ed66a9538e';
+const CACHE_VERSION = 'v-a83f9c833433';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11680,7 +11680,7 @@ Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y 
 | `NAVEGACION.ACTUALIZAR_ESTADO` | Padre (en cada posición GPS en AVENTURA: `{ distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, … }`; y puntualmente `{ retoActivo }` o `{ ubicacionActiva }`) | Guarda cada campo que llega (`_aplicarDatosEstado`); en AVENTURA, si la precisión de la lectura es peor que `CONFIG.GPS.PRECISION_MINIMA`, avisa de señal no fiable y no sigue; si no, detecta la llegada (`_detectarLlegadaTramo` o `_detectarLlegadaParada`), refresca los botones y comprueba la distancia al rango real (`verificarDistanciaYActualizarBotones`) | `NAVEGACION.LLEGADA_DETECTADA`, `NAVEGACION.GPS.RESTRINGIDO`, `NAVEGACION.USUARIO_FUERA_RANGO`, `NAVEGACION.GPS.DENTRO_DE_RANGO`, `NAVEGACION.GPS.PRECISION_INSUFICIENTE` o `PRECISION_RECUPERADA`, según el caso | Padre | La distancia real manda sobre los botones y las pantallas de aviso |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Padre (`{ activo, permisos, precision, error }`) | En CASA deja el botón de ubicación rojo y deshabilitado («Ubicación no disponible en modo casa»); en AVENTURA no hace nada: el botón lo decide la distancia | (ninguna) | — | Mantener el botón de ubicación coherente con el modo |
 | `NAVEGACION.GPS.ERROR` | Padre (`{ codigo, mensaje, contexto }`) | Deja el error en el log con el código descrito (`PERMISSION_DENIED`, `POSITION_UNAVAILABLE` o `TIMEOUT`) | (ninguna) | — | Dejar constancia del error de GPS en el log |
-| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre (`{ paradas, … }`) | Normaliza y guarda las paradas (`arrayParadasLocal`) y marca `datosRecibidos`; si trae `paradaActual`, la fija como elemento vigilado; refresca los botones. Tras la carga inicial ignora un segundo envío masivo (más de 5 paradas) | (ninguna) | — | Datos de las paradas desde el arranque |
+| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre (`{ paradas, … }`) | Marca `datosRecibidos`; si trae `paradaActual`, la fija como elemento vigilado; refresca los botones. Tras la carga inicial ignora un segundo envío masivo (más de 5 paradas) | (ninguna) | — | Datos de las paradas desde el arranque |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Solo escribe en el log que el modo se aplicó | (ninguna) | — | 4.ª fase del protocolo de modo (§26.6) |
 | `SISTEMA.NOTIFICACION` | Padre (`{ evento: 'PENDING_INICIADO', padreId, ttlMs }`) | Con `PENDING_INICIADO` lo anota en el log; solo desactivaría el botón de ubicación si el `padreId` del aviso coincidiera con `idParadaActual`, y con los ids de los datos (`padre-TR2` frente a `Av1-TR-2`) no coincide; con cualquier otro `evento`, nada | (ninguna) | — | Aviso del inicio del plazo de pendientes (§10.16) |
 | `SISTEMA.ERROR` | Padre | Solo escribe en el log el `error` y el `contexto` | (ninguna) | — | Dejar rastro de los errores que el padre le comunica (§10.17) |
@@ -12534,7 +12534,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-c6ed66a9538e';
+const CACHE_VERSION = 'v-a83f9c833433';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

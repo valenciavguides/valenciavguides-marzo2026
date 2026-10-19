@@ -260,7 +260,7 @@
         // `unhandledrejection` de este frame. El bus ya lo arrastra, pero de ahí no se
         // deduce leyendo este fichero.
         import './js/utils.js';
-        import { normalizarParadas, esIdDeTramo } from './js/utils.js';
+        import { esIdDeTramo } from './js/utils.js';
 
         // ============================================================
         // 🔄 DATOS CENTRALIZADOS: Las coordenadas ahora se reciben del padre
@@ -1896,14 +1896,7 @@ try {
                 return;
             }
 
-            // Almacenar datos localmente — usar helper central de normalización
-            try {
-                estadoComponente.arrayParadasLocal = normalizarParadas(mensaje.datos.paradas || []);
-                estadoComponente.datosRecibidos = true;
-            } catch (err) {
-                logger.error(`${logPrefix} Error normalizando/parando datos de paradas:`, err);
-                return;
-            }
+            estadoComponente.datosRecibidos = true;
 
             // ✅ Si se especifica paradaActual, actualizar el estado
             if (mensaje.datos.paradaActual) {
@@ -1916,16 +1909,10 @@ try {
             // ✅ Refrescar botones tras actualizar estado de parada
             actualizarEstadoBotones();
 
-            logger.info(`${logPrefix} Datos almacenados:`, {
-                totalParadas: estadoComponente.arrayParadasLocal.length,
+            logger.info(`${logPrefix} Paradas recibidas:`, {
+                totalParadas: mensaje.datos.paradas.length,
                 paradaActual: estadoComponente.idParadaActual,
-                tipoParada: estadoComponente.tipoParadaActual,
-                primerasParadas: estadoComponente.arrayParadasLocal.slice(0, 3).map(p => ({
-                    id: p.id,
-                    nombre: p.nombre,
-                    tieneImagen: !!p.imagen,
-                    tieneVideo: !!p.video
-                }))
+                tipoParada: estadoComponente.tipoParadaActual
             });
 
             // El padre no registra ningún handler de SISTEMA.CONFIRMACION para este
