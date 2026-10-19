@@ -215,8 +215,10 @@ async function gotoAndWaitForFase1(page) {
   // gastan nada (medido en la misma pasada: 0,0 núcleos frente a 2,0 con cinco páginas).
   //
   // No aborta si expira, igual que las dos esperas de arriba: marca `__e2e_arranqueTimedOut` y deja que informe el test.
+  let arrancado = false;
   try {
     await page.waitForFunction(() => globalThis.sistemaInicializado === true, null, { timeout: BOOT_TIMEOUT });
+    arrancado = true;
   } catch (_arranqueError) {
     await page.evaluate(() => { globalThis.__e2e_arranqueTimedOut = true; }).catch(() => {});
   }
@@ -225,15 +227,22 @@ async function gotoAndWaitForFase1(page) {
   // `sistemaInicializado`, `_finalizarInicializacion` retira la pantalla de carga y, en la misma tarea,
   // `_comprobarReanudacionAventura` lee `vv_aventura_iniciada`. Un test que arrancara una aventura antes dejaría esa marca
   // escrita y se encontraría el diálogo de reanudación, que a los 30 s continúa solo (docs/estudio-caminos.md, K-102).
-  // La señal: el body ya sin `loading` (no había nada guardado), o el diálogo de reanudación o el modal de tiempo agotado
-  // en pantalla (había algo y ya se decidió qué enseñar). No basta con mirar `loading`: el diálogo la vuelve a poner para
-  // tapar la interfaz. Lo vigilan AR-1 y AR-2 del spec 126.
+  // La señal: el diálogo de reanudación o el modal de tiempo agotado en pantalla (había algo y ya se decidió qué enseñar), o
+  // el body sin `loading` y ninguna aventura guardada (no había nada que enseñar; es la misma condición con la que el padre
+  // decide). Solo `loading` no basta por dos lados: el diálogo la vuelve a poner para tapar la interfaz, y entre retirarla y
+  // enseñar el diálogo el padre importa `js/indice-aventuras.js` si aún no lo tiene (medido: el diálogo llega 7-9 ms después
+  // en chromium y 20-45 ms en firefox, donde AR-2 volvía en ese hueco). Lo vigilan AR-1 y AR-2 del spec 126.
   //
   // No aborta si expira, igual que las tres esperas de arriba: marca `__e2e_reanudacionTimedOut` y deja que informe el test.
+  // Si el arranque no terminó, esta comprobación no llega a hacerse y no hay nada que esperar: un spec que deja el padre sin
+  // arrancar adrede (RC-5 del spec 80) perdería 45 s más y, con ellos, la ventana del supervisor que mide.
+  if (!arrancado) return;
   try {
-    await page.waitForFunction(() => !document.body.classList.contains('loading')
-      || !!document.getElementById('dialogo-reanudacion-overlay')
-      || !!document.getElementById('modal-tiempo-agotado'), null, { timeout: BOOT_TIMEOUT });
+    await page.waitForFunction(() => {
+      if (document.getElementById('dialogo-reanudacion-overlay') || document.getElementById('modal-tiempo-agotado')) return true;
+      if (document.body.classList.contains('loading')) return false;
+      try { return !JSON.parse(localStorage.getItem('vv_aventura_iniciada') || 'null')?.aventura; } catch (_) { return true; }
+    }, null, { timeout: BOOT_TIMEOUT });
   } catch (_reanudacionError) {
     await page.evaluate(() => { globalThis.__e2e_reanudacionTimedOut = true; }).catch(() => {});
   }
