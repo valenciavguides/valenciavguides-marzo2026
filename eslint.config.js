@@ -194,7 +194,6 @@ module.exports = [
 
         // ── Globals propios — funciones de datos ─────────────────────────
         distribuirDatosAventura: "readonly",
-        obtenerElementoActual: "readonly",
         obtenerRetosIds: "readonly",
       },
     },

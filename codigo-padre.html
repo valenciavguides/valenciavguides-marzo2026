@@ -4185,8 +4185,9 @@
                     if (Array.isArray(paradas)) totalParadas = paradas.length;
                 } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
                 const payload = {
+                    // El elemento en curso se reanuda por su identificador (elementoActualId; docs/estudio-caminos.md,
+                    // K-117). El índice y totalParadas solo los enseña el diálogo de reanudación («parada N de M»).
                     indiceProgreso: typeof estado.indiceProgreso === 'number' ? estado.indiceProgreso : null,
-                    paradaActual: estado.paradaActual || null,
                     elementoActualId: estado.elementoActual ? (() => { const v = estado.elementoActual.parada_id || estado.elementoActual.tramo_id || estado.elementoActual.padreid; return (v && v !== 'null' && v !== 'undefined') ? v : null; })() : null,
                     totalParadas: totalParadas,
                     tiempoRestante: typeof estado.tiempoRestante === 'number' ? estado.tiempoRestante : null,
@@ -4305,31 +4306,40 @@
             return false;
         }
 
+        // Devuelve si hay elemento que reanudar. El tiempo restante y los rescates usados son de la aventura, no del
+        // elemento: se reponen en los dos casos.
         function _restoreApplyState(obj) {
             const logPrefix = '[PADRE][PROGRESO][RESTORE]';
-            if (typeof obj.indiceProgreso === 'number') {
-                estado.indiceProgreso = obj.indiceProgreso;
-                (globalThis.logger || console).info(`${logPrefix} indiceProgreso restaurado: ${estado.indiceProgreso}`);
-            }
-            if (obj.paradaActual) {
-                estado.paradaActual = obj.paradaActual;
-                (globalThis.logger || console).info(`${logPrefix} paradaActual restaurada: ${estado.paradaActual}`);
-            }
             if (typeof obj.tiempoRestante === 'number' && obj.tiempoRestante > 0) {
                 estado.tiempoRestante = obj.tiempoRestante;
                 (globalThis.logger || console).info(`${logPrefix} tiempoRestante restaurado: ${estado.tiempoRestante}s`);
             }
             if (typeof obj.tramoSkipsUsados === 'number') estado.tramoSkipsUsados = obj.tramoSkipsUsados;
+            // El elemento en curso lo decide un solo dato guardado, su identificador (elementoActualId), y el índice y la
+            // parada salen de él. Aquí se reponían también el índice y la parada guardados, y _restaurarProgresoRest volvía
+            // a fijar el elemento por el índice: tres respuestas a la misma pregunta, que solo coinciden mientras los datos
+            // de la aventura no cambian (docs/estudio-caminos.md, K-117). Un identificador que no está en los datos vigentes
+            // no debería darse —las paradas no cambian con sesiones vivas (K-51)—: se dice con un error, y la reanudación
+            // sigue sin elemento, desde la parada por defecto (ensureDefaultParada).
+            const elementos = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || [];
+            const id = obj.elementoActualId;
+            const indice = id ? elementos.findIndex(p => p.parada_id === id || p.tramo_id === id || p.padreid === id) : -1;
+            if (indice < 0) {
+                estado._fichaGuardada = null;
+                (globalThis.logger || console).error(`${logPrefix} El elemento guardado (${id || 'sin identificador'}) no está en los datos de ${globalThis.aventuraSeleccionada}/${globalThis.idiomaSeleccionado}: se sigue desde la parada por defecto (K-117)`);
+                return false;
+            }
+            const elemento = elementos[indice];
+            estado.elementoActual = elemento;
+            estado.indiceProgreso = indice;
+            estado.paradaActual = elemento.parada_id || elemento.tramo_id || elemento.padreid || null;
+            (globalThis.logger || console).info(`${logPrefix} Elemento restaurado por su identificador: ${id} (índice ${indice})`);
             // Lo hecho dentro del elemento guardado espera aquí a que ese elemento se active, que
             // es cuando nace su ficha (_hdl_NAVEGACION_CAMBIO_PARADA); _restoreBroadcast lo suelta
             // cuando esa activación termina. Un progreso guardado sin este campo es anterior a
             // él: la ficha nace a cero, como entonces.
             estado._fichaGuardada = (obj.ficha && typeof obj.ficha === 'object' && typeof obj.ficha.clave === 'string') ? obj.ficha : null;
-            const elementos = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || [];
-            if (obj.elementoActualId && Array.isArray(elementos)) {
-                const found = elementos.find(p => p.parada_id === obj.elementoActualId || p.tramo_id === obj.elementoActualId || p.padreid === obj.elementoActualId);
-                if (found) estado.elementoActual = found;
-            }
+            return true;
         }
 
         function _restoreBroadcast() {
@@ -4356,7 +4366,7 @@
                 if (!obj) return null;
                 if (_restoreCheckStale(obj, logPrefix)) return null;
                 if (_restoreCheckMismatch(obj, logPrefix)) return null;
-                _restoreApplyState(obj);
+                if (!_restoreApplyState(obj)) return null;
                 try { _restoreBroadcast(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 return obj;
             } catch (e) {
@@ -4808,12 +4818,9 @@
             } catch (_e5) { (globalThis.logger || console).warn(`${logPrefix} Error enviando RESPUESTA_DATOS_PARADAS a hijo5:`, _e5); }
         }
         async function _restaurarProgresoRest(logPrefix) {
-            const restored = restoreProgressFromStorage();
-            if (restored && typeof restored.indiceProgreso === 'number') {
-                estado.indiceProgreso = restored.indiceProgreso;
-                const fnObtener = globalThis.obtenerElementoActual || (typeof obtenerElementoActual === 'function' ? obtenerElementoActual : null);
-                estado.elementoActual = fnObtener ? fnObtener() : null;
-                (globalThis.logger || console).info(`${logPrefix} ✅ Progreso restaurado: índice ${restored.indiceProgreso}, parada ${restored.paradaActual}`);
+            // El elemento lo fija restoreProgressFromStorage(), por su identificador (K-117): aquí no se vuelve a fijar.
+            if (restoreProgressFromStorage()) {
+                (globalThis.logger || console).info(`${logPrefix} ✅ Progreso restaurado: parada ${estado.paradaActual}, índice ${estado.indiceProgreso}`);
             } else {
                 await ensureDefaultParada();
                 (globalThis.logger || console).info(`${logPrefix} Sin progreso previo, usando parada por defecto`);
@@ -9433,8 +9440,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
             return DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre[idx];
         }
-        // Exponer a globalThis para que Script 1 pueda usarla sin ReferenceError
-        globalThis.obtenerElementoActual = obtenerElementoActual;
 
         // Busca un elemento por audio_id
         function findElementoPorAudio(audioId) {

@@ -299,9 +299,10 @@ test.describe('FG — Lo hecho en la parada sobrevive a una recarga', () => {
     await saltarElAudio(page);
     await expect.poll(() => fichaGuardada(page), { timeout: 10_000, message: 'precondición: hay progreso guardado' }).toMatchObject({ audio: true });
 
-    // Las nueve que leen `_restoreApplyState` y sus filtros, y `totalParadas`, que lee el diálogo de reanudar.
+    // Las que leen `_restoreApplyState` y sus filtros (el elemento sale de `elementoActualId`), e `indiceProgreso` y
+    // `totalParadas`, que enseña el diálogo de reanudar.
     const claves = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('vv_progreso'))).sort());
     expect(claves, 'una clave de más es un dato que se guarda para nadie; una de menos, algo que la reanudación ya no recibe')
-      .toEqual(['aventura', 'elementoActualId', 'ficha', 'idioma', 'indiceProgreso', 'paradaActual', 'tiempoRestante', 'timestamp', 'totalParadas', 'tramoSkipsUsados']);
+      .toEqual(['aventura', 'elementoActualId', 'ficha', 'idioma', 'indiceProgreso', 'tiempoRestante', 'timestamp', 'totalParadas', 'tramoSkipsUsados']);
   });
 });
