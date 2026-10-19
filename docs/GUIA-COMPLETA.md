@@ -123,7 +123,7 @@ modo: { actual: 'casa' | 'aventura' }
 
 **Por qué se arranca en `null` y no en CASA:** `manejarCambioModo()` (`js/app.js`) trata "el modo solicitado ya es el actual" como un caso sin transición. Arrancando en CASA, la primerísima transición de la sesión podría coincidir con ese valor ya puesto y caer en esa rama: el camino de producción (→AVENTURA) no lo notaría nunca, porque AVENTURA jamás coincide con el CASA de arranque, pero el camino de desarrollo (→CASA) sí coincidiría. Con `null`, la primera transición es siempre real, sea cual sea su destino.
 
-**Cómo leer el modo con tres estados.** Un binario del tipo `if (modo !== MODOS.CASA)` o un `else` sin condición mete `null` en la rama de AVENTURA. La forma correcta en cualquier punto que vaya a ejecutar lógica de aventura es exigir el modo confirmado (`=== MODOS.AVENTURA`); para lógica de CASA, `=== MODOS.CASA`. Un `|| MODOS.CASA` al leer es válido solo donde "sin decidir" y "en casa" deban tratarse igual a propósito — es el caso del pre-warm (`iniciarPrewarmEnCasa()`) y del `modoInicial` que viaja en `PADRE_CONFIRMA_HIJO_LISTO`.
+**Cómo leer el modo con tres estados.** Un binario del tipo `if (modo !== MODOS.CASA)` o un `else` sin condición mete `null` en la rama de AVENTURA. La forma correcta en cualquier punto que vaya a ejecutar lógica de aventura es exigir el modo confirmado (`=== MODOS.AVENTURA`); para lógica de CASA, `=== MODOS.CASA`. Un `|| MODOS.CASA` al leer es válido solo donde "sin decidir" y "en casa" deban tratarse igual a propósito — es el caso del `modoInicial` que viaja en `PADRE_CONFIRMA_HIJO_LISTO` (`estado.modo.actual || MODOS.CASA`).
 
 **Los hijos nunca ven `null`.** `actualizarInterfazModo()` propaga siempre un modo ya canonicalizado, y los dos envíos iniciales —el `modo` de `PADRE_DATOS` (`_hdl_SISTEMA_HIJO_PREPARADO`) y el `modoInicial` de `PADRE_CONFIRMA_HIJO_LISTO` (`_hijoListo_confirmarAlHijo`)— usan `|| MODOS.CASA`. El tercer estado es interno del padre.
 
@@ -375,41 +375,28 @@ persistencia. El estado en memoria de `codigo-padre.html` (`estadoPadre.paradaAc
 `paradasCompletadas`, `elementoActual`) **no se limpia** al pasar a CASA. Mientras
 el usuario no recargue la página, ese estado sigue presente.
 
-**Retorno a AVENTURA (misma sesión)**: dos mecanismos independientes actúan en
-secuencia, y el segundo pisa al primero cuando aplica:
+**Retorno a AVENTURA (misma sesión)**: un solo sitio decide qué elemento se activa.
 
-1. Dentro de `manejarCambioModo()` (`js/app.js`), `_flujoPrewarmModo()` →
-   `_prewarmAventura()` → `_reanudarSubsistemasTrasPrewarm()` llama a
-   `_activarParadaDefectoAventura()` **salvo que** `estado.sistema.prewarmIniciado &&
-   estado.sistema.prewarmPausado` sean ambos `true` — condición que solo se cumple en la
-   primerísima activación de AVENTURA de la sesión (si el pre-warm de arranque en CASA,
-   `iniciarPrewarmEnCasa()`, ya completó antes de que el usuario pulsara el botón GPS).
-   En cualquier retorno posterior a CASA, `prewarmPausado` ya quedó en `false` desde la
-   activación anterior, así que la condición no se cumple y `_activarParadaDefectoAventura()`
-   **sí se ejecuta**: busca en `elementosIDpadre` la entrada con `padreid === 'padre-P0'`
-   (idéntico en las 7 aventuras, a diferencia de `parada_id`, que sí lleva el prefijo de
-   cada una: `"Av1-P-0"`, `"Av34km-P-0"`...) y envía `CAMBIO_PARADA` para ella — es decir,
-   por sí solo este paso resetearía visualmente el progreso al inicio.
+1. Dentro de `manejarCambioModo()` (`js/app.js`) solo se espera a que los hijos estén listos
+   (`_esperarHijosAlEntrarEnAventura()`: `esperarHijosListos` con 10 s, y un tope de 20 s) antes de actualizar la
+   interfaz. Ahí no se activa ninguna parada.
 2. De vuelta en `_hdl_SISTEMA_CAMBIO_MODO()` (`codigo-padre.html`, §2.4 paso 4), tras
    confirmar el éxito de `manejarCambioModo()`: si existe `estado.paradaRealCongelada`
-   (el progreso real, congelado al entrar en CASA — §2.5), se envía un segundo
-   `CAMBIO_PARADA` hacia esa parada real despachándolo con `despacharLocal()`, que
-   **sobrescribe** el reset a `padre-P0` del paso 1. El resultado neto para el usuario es
-   que el progreso real se conserva — el reset del paso 1 es transitorio e invisible en
-   el flujo normal.
+   (el progreso real, congelado al entrar en CASA — §2.5), se envía el `CAMBIO_PARADA` de
+   esa parada con `despacharLocal()`. Es la única activación de la vuelta: el progreso real
+   se conserva y los hijos no reciben ninguna otra parada (lo vigila
+   `139-parada-por-defecto-un-solo-camino.spec.js`).
 
 A partir de ahí, el GPS solo confirma llegada al elemento activo (`pending.llegada`) — el
 `CAMBIO_PARADA` del siguiente elemento sigue requiriendo que el usuario pulse `btn-avanzar`
 una vez llegada+audio(+reto) estén completos, igual que en cualquier otro momento de la
 aventura (ver §2.2). El progreso visual (`paradasCompletadas`) se mantiene desde memoria.
 
-**Un tercer mecanismo, `ensureDefaultParada()` (`codigo-padre.html`, no `_activarParadaDefectoAventura()`
-de `js/app.js` — nombres parecidos, funciones distintas), se llama también en cada entrada a AVENTURA
-desde `_activarAventura()`** (después de los dos pasos de arriba). A diferencia de los otros
-dos, tiene su propio guard: `if (estado.paradaActual) return` — es un no-op en cualquier retorno
-posterior a la primera activación, porque `estado.paradaActual` ya tiene un valor real. Solo hace
-algo cuando no existe progreso previo en memoria (primera activación de la sesión, sin que el
-pre-warm de `iniciarPrewarmEnCasa()` haya llegado a completar antes).
+**La parada por defecto la elige un solo sitio, `ensureDefaultParada()` (`codigo-padre.html`)**, que
+`_activarAventura()` llama en cada entrada a AVENTURA salvo en una reanudación. Tiene su guard:
+`if (estado.paradaActual) return` — no hace nada si ya hay un elemento en curso, así que solo actúa en
+la primera entrada de la sesión: activa la entrada `tipo === 'inicio'` de la aventura (si no la hay, la
+primera parada).
 
 **Retorno a AVENTURA (sesión reanudada tras cerrar en CASA)**: el modo CASA solo es alcanzable en dev mode (Factor 2 o `DEV_MODE_TOGGLE`), y en dev mode `_transicionarAModoCasa` **no borra** `localStorage` de forma intencional (ver `_transicionarAModoCasa`, excepción `_devModeActivo`). Por eso, al reabrir la app tras cerrarla en CASA, `_comprobarReanudacionAventura` encuentra `vv_aventura_iniciada.modo='casa'` y muestra el diálogo “Continuar / Elegir otra”. Si el usuario elige continuar, `ejecutarRestauracionAventura` restaura la sesión en modo CASA: `#hijo5` visible, datos y progreso restaurados. El primer cambio CASA→AVENTURA de esa sesión pasa por `_hdl_SISTEMA_CAMBIO_MODO` como siempre, pero como la restauración nunca entra a CASA por ese handler, `estado.paradaRealCongelada` no está fijado. Para que la resincronización `→AVENTURA` (paso 4 del diagrama de arriba) funcione, `ejecutarRestauracionAventura` fija explícitamente `estado.paradaRealCongelada = estado.paradaActual` justo después de `_restaurarProgresoRest` cuando el modo restaurado es CASA — ver paso 9b en §9.10.
 
@@ -584,7 +571,6 @@ El bus supervisa y recarga a **todos los hijos por igual**: ninguno está exento
 | `_gestionarGpsSegunModo()` | Script 1 | Gestiona overlays GPS según modo; si modo=AVENTURA y `!estado.gps.activo` llama `activarGPS()` |
 | `activarGPS()` | Script 1 | Inicia `watchPosition` (con mutex anti-duplicado) |
 | `ejecutarRestauracionAventura()` | Script 1 | Restaura sesión desde `localStorage` |
-| `_activarParadaDefectoAventura()` | `js/app.js` | Envía `CAMBIO_PARADA` para `padre-P0`. Se llama desde `_reanudarSubsistemasTrasPrewarm()` salvo que el pre-warm de arranque ya esté "iniciado y pausado"; en la práctica corre en casi todas las activaciones de AVENTURA salvo la primera de la sesión (detalle en §2.5) |
 | `manejarCambioModoMapa(mensaje)` | `js/funciones-mapa.js` | Controlador de `SISTEMA.CAMBIO_MODO` en el módulo de mapa. Captura `modoAnterior`, actualiza `estadoMapa.modo` y llama `limpiarPorEstado`. El orden de operaciones es crítico: `modoAnterior` debe capturarse **antes** de mutar `estadoMapa.modo`. |
 | `limpiarPorEstado({ modo, resetCompleto })` | `js/funciones-mapa.js` | Elimina capas activas del mapa (polylines, marcadores, rutas). **No toca la cámara**: el `setMapView()` a `CENTRO_DEFECTO`/`ZOOM_INICIAL` lo hace `manejarCambioModoMapa()` después de llamarla, no esta función — de ahí que la reanudación de sesión pueda saltarse el reset de vista sin renunciar a la limpieza de capas (§9.10). `resetCompleto:true` es obligatorio cuando se llama tras un cambio de modo, porque en ese punto `estadoMapa.modo` ya fue actualizado y la comprobación interna fallaría sin el flag explícito. |
 
@@ -2114,7 +2100,7 @@ La estructura del estado (`state`) tiene dos niveles diferenciados:
         paradas: [],
         todosHijosListos,
         gps: { activo, watchId, posicionUsuario, permisos, precision, error, ultimaUbicacion },
-        sistema: { prewarmIniciado, prewarmPausado, cambiandoModo },
+        sistema: { cambiandoModo },
         retoActivo, audioActivo, ubicacionActiva,
         elementoActual,
         hijosQueRecibieronPadreListo: Set([...])
@@ -4917,7 +4903,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-5aad64b944cc'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c21b647fbf60'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5802,17 +5788,6 @@ Todos van por `js/mensajeria.js`, como el resto (§10.4): ninguno tiene escucha 
 | Por qué overlay visible en init | `mostrarIframeOverlay` es síncrona: añade `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo de `mapa-completo.html` solo puede ejecutar después de que esa tarea termine — el overlay ya es visible cuando el script corre y `_reajustarVista()` obtiene dimensiones reales. |
 | Timing de envío | Se envía **una sola vez** por apertura del overlay, siempre vía `load` listener + `requestAnimationFrame`. Fallback cancelable a 1500 ms por si `load` no dispara. El reintento a 300 ms es interno a `mapa-completo.html` (en su propio handler). |
 | Por qué una sola vez | Cada uno dispara un `fitBounds()`. Enviarlo varias veces (un escalonado de temporizadores, o un fallback que no se cancela cuando `load` sí dispara) llama a `fitBounds()` con tiles ya en vuelo, y cada llamada abre una ronda nueva de peticiones en paralelo: el mapa se pinta a trozos de distintos niveles de zoom. Por eso el escalonado vive **dentro** de `mapa-completo.html` —un único reintento a 300 ms sobre el mapa ya construido— y no en el emisor. |
-
-#### Autodespacho de `js/app.js` (fallback de arranque, al propio frame del padre)
-
-| Campo | Valor |
-|-------|-------|
-| Tipo | `TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA` |
-| Canal | `despacharLocal(payload)` — entra en la misma fila por tipo que un `CAMBIO_PARADA` llegado de fuera |
-| Emisor | `js/app.js` — fallback cuando `globalThis.__vv_stateManager` no está disponible durante el arranque del modo AVENTURA |
-| Payload | `{ paradaId, parada_id, padreId, padreid, contexto: 'arranque_aventura', timestamp }`. Sin `origen` ni `destino`: el bus firma como `'padre'`, y en un autodespacho un destino no significa nada |
-| Receptor | El handler de `NAVEGACION.CAMBIO_PARADA` del propio padre, el mismo que atiende los que llegan de fuera |
-| Nota | Camino de arranque, para cuando el state-manager no está listo al entrar en modo AVENTURA. No hay rama alternativa: `app.js` se importa después del bus, así que `globalThis.mensajeria` existe siempre ahí. |
 
 ---
 
@@ -8076,6 +8051,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `136-index-un-solo-camino.spec.js` | 3 | `index.html` lleva a la app por un solo camino: en su código hay una sola navegación, `location.replace('codigo-padre.html')`, sin registro del SW ni regla de HTTPS propios (IX-1); entrar por `/` y por `/index.html` deja en `/codigo-padre.html` (IX-2) |
 | `137-nombres-del-indice-sin-reserva-muda.spec.js` | 2 | El nombre de la aventura sale del índice por `_nombreDeAventura()`: con el índice cargado, el cartel de transición enseña el nombre (NI-1, control); sin la entrada, enseña el id de la aventura y el padre lo dice con un error (NI-2) |
 | `138-banner-version-en-su-idioma.spec.js` | 3 | El banner de versión nueva sale en el idioma del usuario también al arrancar con el aviso pendiente (el bloque del banner importa sus textos): en inglés con el último idioma en inglés (SB-1), en español en español (SB-2, control), y uno solo (SB-3) |
+| `139-parada-por-defecto-un-solo-camino.spec.js` | 2 | La parada por defecto la elige solo `ensureDefaultParada()`: la primera entrada en AVENTURA activa la de inicio (PD-1, control); al volver de CASA con otro elemento en curso, cada `CAMBIO_PARADA` de la vuelta es de ese elemento (PD-2) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8310,7 +8286,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-5aad64b944cc'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c21b647fbf60'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8554,7 +8530,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 135 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 136 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9063,7 +9039,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-5aad64b944cc';
+const CACHE_VERSION = 'v-c21b647fbf60';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10242,7 +10218,7 @@ Si el usuario no toca nada, a los **30 segundos** se reanuda automáticamente (p
 7. Se restaura el progreso (parada actual) — dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado.
 8. El usuario continúa en el elemento en que lo deja, con lo que lleva hecho en él. `vv_progreso` guarda la ficha del elemento actual (`ficha`: `clave`, `llegada`, `audio`, `reto` y `retosCompletadosCount`) cada vez que se anota algo en ella (`_anotarEnFicha()`, §9.2.3). Al reanudar, `_restoreApplyState()` la deja en `estado._fichaGuardada` y la activación del elemento restaurado, si la `clave` es la suya y el modo es AVENTURA, la vuelca en la ficha recién creada. El audio terminado sigue terminado: el botón de retos de hijo3 se enciende sin volver a escucharlo ni a saltarlo (§7.4). El reto resuelto sigue resuelto, y la cola de retos nace con él hecho. La llegada confirmada sigue confirmada. Si con lo guardado la ficha está completa y el elemento no figura como completado, se completa en esa misma activación. El recordatorio «pulse retos» corre de nuevo si el audio está terminado y queda reto (§25.5d). El reloj de la ficha (`timestamp`, el que mide el recordatorio de rescate, §25.19) empieza de nuevo. No se guardan la distancia andada dentro de un tramo (ver §"Distancia recorrida") ni, en un elemento con varios retos, los retos sueltos de una cola a medias. Un `vv_progreso` sin `ficha`, o con la ficha de otro elemento, deja la del elemento a cero. Un elemento completado y a falta de pulsar «avanzar» se activa listo para avanzar: `_elementoCompletado()` lo encuentra en `paradasCompletadas`, no se le crea ficha, `estado.paradaListaParaAvanzar` queda a `true` y el padre habilita «avanzar» en hijo2. Cubierto por `tests/e2e/124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` (FG-1 a FG-9) y `tests/e2e/123-elemento-completado-sigue-completado.spec.js` (EC-1 a EC-3).
 
-**Por qué el modo se activa antes de restaurar el progreso, no después:** `_restaurarProgresoRest()` (paso 7) dispara el `CAMBIO_PARADA` real del elemento restaurado (`_restoreBroadcast()` → `despacharLocal()` → `_hdl_NAVEGACION_CAMBIO_PARADA`), y ese handler decide varias cosas según `estado.modo?.actual === MODOS.AVENTURA` — si arranca el recordatorio de audio (§25.5c), la lógica de botón GPS en tramos, y si deshabilita `btnAvanzar` hasta completar audio+reto. `estado.modo.actual` **no lo escribe `codigo-padre.html` en ningún sitio**: sus tres únicas asignaciones están en `manejarCambioModo()` de `js/app.js` (el *optimistic update* del principio, la reafirmación de campos mínimos después del pre-warm, y `restaurarEstadoModoAnterior()` si el cambio falla). En una reanudación, `_activarModoRest()` (paso 6) llega ahí por la vía normal — invoca `_hdl_SISTEMA_CAMBIO_MODO` con `modo: _modoRest` en vez de reimplementar la mitad de sus efectos —, así que es el único punto de la reanudación que provoca ese cambio. Con el modo ya aplicado antes de que se procese la parada restaurada, esas ramas reciben el valor real (`aventura`), no el valor de arranque (`null`) con el que empieza `estado.modo.actual` antes de cualquier restauración. El mismo orden evita un segundo problema: el `CAMBIO_MODO` que `_activarModoRest()` difunde a los hijos llega a hijo2 antes que el `CAMBIO_PARADA` — así `_resetarEstadoParaModo()` (§24) limpia el estado antes de que lleguen los datos reales de la parada, en vez de después, donde los borraría justo tras fijarlos. Cubierto por `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
+**Por qué el modo se activa antes de restaurar el progreso, no después:** `_restaurarProgresoRest()` (paso 7) dispara el `CAMBIO_PARADA` real del elemento restaurado (`_restoreBroadcast()` → `despacharLocal()` → `_hdl_NAVEGACION_CAMBIO_PARADA`), y ese handler decide varias cosas según `estado.modo?.actual === MODOS.AVENTURA` — si arranca el recordatorio de audio (§25.5c), la lógica de botón GPS en tramos, y si deshabilita `btnAvanzar` hasta completar audio+reto. `estado.modo.actual` **no lo escribe `codigo-padre.html` en ningún sitio**: sus tres únicas asignaciones están en `manejarCambioModo()` de `js/app.js` (el *optimistic update* del principio, la reafirmación de campos mínimos después de esperar a los hijos, y `restaurarEstadoModoAnterior()` si el cambio falla). En una reanudación, `_activarModoRest()` (paso 6) llega ahí por la vía normal — invoca `_hdl_SISTEMA_CAMBIO_MODO` con `modo: _modoRest` en vez de reimplementar la mitad de sus efectos —, así que es el único punto de la reanudación que provoca ese cambio. Con el modo ya aplicado antes de que se procese la parada restaurada, esas ramas reciben el valor real (`aventura`), no el valor de arranque (`null`) con el que empieza `estado.modo.actual` antes de cualquier restauración. El mismo orden evita un segundo problema: el `CAMBIO_MODO` que `_activarModoRest()` difunde a los hijos llega a hijo2 antes que el `CAMBIO_PARADA` — así `_resetarEstadoParaModo()` (§24) limpia el estado antes de que lleguen los datos reales de la parada, en vez de después, donde los borraría justo tras fijarlos. Cubierto por `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
 
 **El reloj de compra (§7.2) se reanuda con el tiempo real transcurrido, no con el que quedaba al cerrar la app:** `_activarModoRest()`, si el modo restaurado es AVENTURA, llama a `_iniciarTemporizadorAventura()` pasándole `datosGuardados.timestamp` (la fecha real en que se compró/inició la aventura, persistida en `vv_aventura_iniciada`). El tiempo que se envía a hijo1 es `tiempoEstimado - (Date.now() - datosGuardados.timestamp)` — el mismo cálculo en tiempo real que ya usa `verificarTimeoutAventura()` (`js/reciclaje-digital.js`) para cortar el acceso al superar las 60h/150h compradas. Si en vez de esto se reenviara el último `tiempoRestante` conocido antes de cerrar la app, el reloj visible se habría "pausado" durante todo el tiempo que la PWA estuvo cerrada, mostrando más tiempo del que realmente queda. En modo dev (`globalThis._devModeActivo`), `_iniciarTemporizadorAventura()` no envía nada en absoluto — el temporizador cuenta tiempo de compra real, y no hay compra que cronometrar mientras se prueba la app (mismo guard aplica al retorno CASA→AVENTURA en la misma sesión, no solo a la reanudación). Cubierto por `tests/e2e/41-temporizador-compra-real-y-devmode.spec.js`.
 
@@ -11038,7 +11014,7 @@ Después  Padre recibe HIJO_PREPARADO de cada hijo (independiente, por hijo):
 
 | Módulo | Rol | Expone |
 |--------|-----|--------|
-| `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. | `actualizarInterfazModo()`, `manejarCambioModo()`, `iniciarPrewarmEnCasa()` |
+| `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. | `registrarControladoresApp()`, `actualizarInterfazModo()`, `manejarCambioModo()` |
 | `funciones-mapa.js` | El módulo más grande. Recibe la instancia MapLibre ya creada en `codigo-padre.html` (con las capas base de los tres modos ya definidas) y la registra mediante `inicializarServicioMapa(mapInstance)`. Gestiona: (1) **marcador GPS del usuario** (`actualizarMarcadorUsuario()`): triángulo azul `#4285F4` estilo Google Maps (sin punto central — el triángulo solo ya representa posición y rumbo) que rota con la brújula en tiempo real vía `DeviceOrientationEvent`; en modo CASA aparece como 🛸. Los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul) llevan cada uno `transform: translate(-50%,0%)`: con la técnica CSS de bordes (`width:0;height:0;border-*`) el vértice de un triángulo se renderiza en el borde superior de su caja, así que centrar solo el eje horizontal lo deja exactamente sobre el punto GPS real, el pivote sobre el que gira `.gps-arrow-heading`, y la punta no se mueve al rotar (§4.5). El HTML de este marcador lo construye una única función, `_htmlMarcadorUsuario(modo)`, compartida por la creación y por `reescalarMarcadorUsuario()` (el reescalado por zoom, §4.6) para que ambos momentos no puedan divergir. `actualizarMarcadorUsuario()` destruye y recrea el marcador entero en cada posición GPS (hace falta para reposicionarlo — no hay un `setLatLng` barato para un marcador HTML completo), y el ángulo inicial del elemento nuevo sale **siempre** del ángulo acumulado de la brújula (`_flechaGpsAnguloAcumulado`): es la única fuente del rumbo de la flecha (§4.5). La firma `actualizarMarcadorUsuario(lat, lng, accuracy, modo)` no incluye ningún rumbo, precisamente para que no pueda entrar otro por ahí. (2) **Cámara siguiendo al usuario** (§4.6b): `actualizarMarcadorUsuario()` centra la cámara en cada posición GPS real (`_camaraSiguiendoUsuario`), salvo mientras un `flyTo` de cambio de parada/tramo está en curso o tras un arrastre manual del mapa (`_registrarSeguimientoCamara()`, escucha `'dragstart'`) — retomado por `reactivarSeguimientoCamara()`, el botón de recentrar. (3) Brújula en tiempo real (`activarBrujula()`/`desactivarBrujula()`). (4) Polylines de ruta, con auto-reparación si el estilo del mapa aún no cargó (§4.6a). Calcula `calcularToleranciaGPS()`: `RADIO_LLEGADA_PARADA_M` (15 m) para paradas e inicios, dinámica con suelo de 35 m para tramos; y `radioLlegada()`, el radio con el que se declara una llegada, que es el del círculo naranja que ve el usuario (§4.5). | `invalidarTamañoMapa()`, `diagnosticarMapa()`, `isMapInitialized()` |
 | `proteccion.js` | IIFE de protección anti-inspección. Se ejecuta antes que cualquier módulo. Cuatro capas: teclas DevTools, clic derecho, arrastre de media, detector por timing/resize. Borra `globalThis.RETOS_AVENTURAS` y coordenadas si detecta ≥2 intentos de debugger o ≥3 de resize. | — |
 | `efectos-sonido.js` | Los cuatro efectos de sonido de `audios-efectos/`: un reproductor por efecto y por frame, siempre a volumen 1, que el primer gesto del usuario desbloquea para iOS (§12, «Efectos de sonido»). Lo cargan, con un `import()` que captura el fallo, `puzzle.html`, `retos-hijo4.html` y el Script 2 de `codigo-padre.html`. | `EFECTOS`, `precargarEfectos`, `reproducirEfecto`, `detenerEfectos` |
@@ -12537,7 +12513,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-5aad64b944cc';
+const CACHE_VERSION = 'v-c21b647fbf60';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

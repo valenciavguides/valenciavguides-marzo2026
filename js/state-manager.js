@@ -48,8 +48,6 @@ const state = {
       ultimaUbicacion: null
     },
     sistema: {
-      prewarmIniciado: false,
-      prewarmPausado: false,
       cambiandoModo: false
     },
     retoActivo: false,

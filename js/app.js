@@ -281,67 +281,10 @@ const MODOS_OPERACION = {
     }
 };
 
-async function _activarParadaDefectoAventura() {
-    try {
-        // Se lee del global, no de un import propio: `aventuras-ID-padre.js` lo publica al
-        // evaluarse (globalThis.DATOS_PADRE) y `codigo-padre.html` lo importa de forma
-        // ESTATICA, asi que esta puesto antes de que corra nada de este modulo. Dejar un solo
-        // punto de importacion es lo que permitira cambiarlo por cargarDatosPadre() cuando
-        // exista el backend, sin tocar este fichero (§22.12).
-        const datosPadre = globalThis.DATOS_PADRE;
-        if (!datosPadre) {
-            logger.error('[APP][CAMBIO_MODO] globalThis.DATOS_PADRE no disponible — no se puede activar la parada por defecto');
-            return;
-        }
-        const { elementosIDpadre } = datosPadre[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado];
-        if (elementosIDpadre && elementosIDpadre.length > 0) {
-            const paradaDefecto = elementosIDpadre.find(p => p.padreid === 'padre-P0') || elementosIDpadre[0];
-            const paradaId = paradaDefecto.parada_id || paradaDefecto.tramo_id || paradaDefecto.id;
-            const padreId = paradaDefecto.padreid || `padre-${paradaId}`;
-            const payloadCambioParada = {
-                tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                // Sin `origen` ni `destino`: lo despacha el propio frame contra sí mismo, así
-                // que el bus pone `origen: 'padre'` —el único nombre del padre— y un destino
-                // no significa nada aquí.
-                datos: {
-                    paradaId,
-                    parada_id: paradaId,
-                    padreId,
-                    padreid: padreId,
-                    contexto: 'arranque_aventura',
-                    timestamp: Date.now()
-                }
-            };
-
-            logger.info(`[APP][CAMBIO_MODO] Activando flujo principal de CAMBIO_PARADA para ${padreId}`);
-
-            // Por `despacharLocal`, que mete este mensaje en la MISMA fila por tipo que un
-            // CAMBIO_PARADA llegado de fuera. Antes iba por `enviarMensajeCentral` del
-            // state-manager, un segundo repartidor con garantías distintas: ejecutaba TODOS los
-            // handlers que encajaran en vez del primero, no pasaba por la fila y no confirmaba.
-            // Dos repartidores para el mismo trabajo, y este era justo el mensaje que podía
-            // coincidir con otro CAMBIO_PARADA entrante.
-            //
-            // Sin rama alternativa: `app.js` se importa DESPUÉS del bus en el arranque del
-            // padre, así que `globalThis.mensajeria` existe siempre aquí. El `postMessage` de
-            // respaldo que había no podía tomarse nunca.
-            await globalThis.mensajeria.despacharLocal(payloadCambioParada);
-            logger.debug(`[APP][CAMBIO_MODO] CAMBIO_PARADA inicial despachado para ${padreId}`);
-        }
-    } catch (e) {
-        logger.warn('[APP][CAMBIO_MODO] Error estableciendo parada por defecto:', e);
-    }
-}
-
-async function _reanudarSubsistemasTrasPrewarm(estado) {
-    if (!(estado.sistema?.prewarmIniciado && estado.sistema?.prewarmPausado)) {
-        await _activarParadaDefectoAventura();
-        estado.sistema.prewarmIniciado = true;
-    }
-    estado.sistema.prewarmPausado = false;
-}
-
-async function _prewarmAventura(estado) {
+// Al entrar en AVENTURA, la interfaz no se actualiza hasta que los hijos están listos (o pasa el plazo). La parada por defecto
+// no se elige aquí: la elige un solo sitio, ensureDefaultParada() del padre, que no hace nada si ya hay un elemento en curso
+// (estudio K-61: un segundo camino aquí activaba la parada de inicio en cada vuelta a AVENTURA desde CASA).
+async function _esperarHijosAlEntrarEnAventura() {
     // 10 s de espera a los hijos antes de seguir. CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION (5 s) no se lee aquí: ver docs/estudio-caminos.md (K-01).
     const cfgConfirmTimeout = 10000;
 
@@ -360,24 +303,8 @@ async function _prewarmAventura(estado) {
         } else {
             logger.info('[APP][CAMBIO_MODO] HIJO_LISTO completed or settled');
         }
-
-        try {
-            await _reanudarSubsistemasTrasPrewarm(estado);
-        } catch (e) { logger.warn('[APP][CAMBIO_MODO] Error reanudando/iniciando subsistemas tras pre-warm:', e); }
     } catch (e) {
-        logger.warn('[APP][CAMBIO_MODO] Error esperando prewarm/hijosListos:', e);
-    }
-}
-
-async function _flujoPrewarmModo(estado, modoKey, modoNormalized) {
-    const esAventura = (modoKey === 'AVENTURA') || (modoNormalized === MODOS.AVENTURA);
-
-    try {
-        if (esAventura) {
-            await _prewarmAventura(estado);
-        }
-    } catch (e) {
-        logger.warn('[APP][CAMBIO_MODO] Error en flujo de pre-warm:', e);
+        logger.warn('[APP][CAMBIO_MODO] Error esperando a los hijos al entrar en AVENTURA:', e);
     }
 }
 
@@ -537,8 +464,8 @@ export async function manejarCambioModo(estado, mensaje) {
             // handlers de SISTEMA.NOTIFICACION del proyecto (hijo2, hijo4) solo miran
             // datos.evento, nunca datos.tipo — sin consumidor posible por diseño.
 
-            // 8.1 Preparar pre-warm / pausar según el modo (usar valores normalizados)
-            await _flujoPrewarmModo(estado, modoKey, modoNormalized);
+            // 8.1 Al entrar en AVENTURA, esperar a los hijos antes de actualizar la interfaz (valores normalizados)
+            if (modoKey === 'AVENTURA' || modoNormalized === MODOS.AVENTURA) await _esperarHijosAlEntrarEnAventura();
 
             // (Estado ya actualizado de forma optimista antes) - asegurar campos mínimos
             estado.modo = estado.modo || {};
@@ -621,71 +548,6 @@ export async function manejarCambioModo(estado, mensaje) {
             modoActual: estado.modo?.actual
         };
     }
-}
-
-/**
- * Inicia (idempotente) el pre-warm de subsistemas cuando la app está en modo CASA.
- * Ya no precalienta nada: el latido es del bus y lo enciende el padre una vez, al arrancar. Lo que queda son las banderas
- * `prewarmIniciado`/`prewarmPausado`, que solo deciden si al entrar en AVENTURA se activa la parada por defecto.
- */
-export async function iniciarPrewarmEnCasa(estado = globalThis.estadoPadre) {
-    try {
-        if (!estado) return { iniciado: false, motivo: 'estado no disponible' };
-        const modoActual = estado.modo?.actual || MODOS.CASA;
-        if (modoActual !== MODOS.CASA) return { iniciado: false, motivo: 'modo no es CASA' };
-
-        estado.sistema = estado.sistema || {};
-        if (estado.sistema.prewarmIniciado) {
-            logger.debug('[APP][PREWARM] Ya iniciado previamente, omitiendo re-inicio');
-            return { iniciado: true, motivo: 'ya_iniciado' };
-        }
-
-        // Nada que precalentar: ni el GPS ni el latido (que ya está encendido desde que arrancó el padre).
-
-        estado.sistema.prewarmIniciado = true;
-        estado.sistema.prewarmPausado = true;
-
-        return { iniciado: true };
-    } catch (err) {
-        logger.warn('[APP][PREWARM] Error iniciando prewarm en CASA:', err);
-        return { iniciado: false, motivo: err.message };
-    }
-}
-
-// Auto-run seguro: si el estado del padre ya existe y todavía no está en AVENTURA
-// (CASA o sin modo decidido), iniciar pre-warm. Si no está disponible aún, comprobar
-// periódicamente durante unos segundos.
-// El caso "sin decidir" se comprueba por el valor (=== null), no por la ausencia del
-// objeto `modo`: desde que el modo arranca en `{ actual: null }` ese objeto SIEMPRE
-// existe, así que la comprobación antigua (`!estadoPadre.modo`) dejaría de cumplirse
-// nunca y el pre-warm de arranque no llegaría a iniciarse en ninguna sesión.
-if (globalThis.window !== undefined) {
-    (async () => {
-        try {
-            const tryStart = async () => {
-                const _modoPrewarm = globalThis.estadoPadre?.modo?.actual ?? null;
-                if (globalThis.estadoPadre && (_modoPrewarm === MODOS.CASA || _modoPrewarm === null)) {
-                    await iniciarPrewarmEnCasa(globalThis.estadoPadre);
-                    return true;
-                }
-                return false;
-            };
-
-            if (!(await tryStart())) {
-                // Reintentar a intervalos cortos hasta 5s
-                const maxRetries = 10;
-                let attempts = 0;
-                const iv = setInterval(async () => {
-                    attempts++;
-                    if (await tryStart() || attempts >= maxRetries) {
-                        clearInterval(iv);
-                    }
-                }, 500);
-            }
-        } catch (e) {
-            logger.warn('[APP][PREWARM] Auto-run prewarm falló:', e);
-        }
-    })();
 }
 
 /**
