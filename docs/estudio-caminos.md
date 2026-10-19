@@ -3605,6 +3605,15 @@ Al contestar al usuario qué queda del estudio, con un script sobre las 111 entr
 - **Recomendación (sin cambio visible), con K-116:** un solo dueño del estado del GPS en el padre, `estadoPadre.gps`. El diagnóstico lee de ahí `activo` (con `watchId`), `permisos` y `error`; `manejarGPSActivar()` se queda en su rama viva (delegar en `activarGPS()` y sincronizar); fuera `estadoMapa.gpsActivo`, `.gpsPermisos` y `.gpsError` y su copia en el espejo, que sigue copiando lo que sí escribe el mapa (posición, precisión, última ubicación, `visualActivo` y `proximidadReal`). Spec 141 en rojo antes. Decide el usuario si va junto con K-116 o detrás.
 - **Aplicada (2026-10-19, `aea2670`), con K-116, la recomendación tal cual.** `manejarGPSActivar()` queda en su rama viva; fuera `estadoMapa.gpsActivo`, `.gpsPermisos` y `.gpsError`, y su copia en el espejo, que copia solo lo que escribe el mapa. Spec 141, DG-3: tras activar y una sincronización (`limpiarRecursos()`), `estadoPadre.gps.permisos` valía `null` con el módulo anterior (rojo) y vale `true` después (verde). Guía: §11 (un dueño por campo), la nota «hub + adaptador», la fila del spec 52, la del 141 y el recuento de specs; al día el JSDoc de `activarGPS()` y la cabecera del spec 52.
 
+##### K-123 — El padre ejecuta `js/suppress-warnings.js` dos veces: como script clásico y como módulo — ✅ (leído)
+
+- **Cómo salió.** Al ver cómo carga cada página los scripts que tocan el almacenamiento, para la propuesta de R2.10.7 (2026-10-19).
+- **Dónde.** `codigo-padre.html:47` lo carga como script clásico (`<script src="js/suppress-warnings.js" defer>`), y Script 1 (`:3926`) y Script 2 (`:9223`) lo importan como módulo (`await import('./js/suppress-warnings.js')`; el navegador evalúa el módulo una vez). El fichero es una función que se llama a sí misma y no tiene guarda (leído entero, 171 líneas): corre dos veces. Cada vuelta guarda los `console.warn`, `console.error` y `console.debug` que encuentra como «originales» y los envuelve con su filtro; la segunda envuelve lo que dejó la primera, y la `__vv_restaurarConsola()` que queda publicada (la de la segunda) devuelve la consola a la primera envoltura, no a la de verdad. Las otras seis páginas que lo cargan (selección, hijo1 a hijo5) lo hacen una vez, como script clásico.
+- **Lo que no cuadra.** Dos caminos para cargar el mismo script en el padre.
+- **Método.** Búsqueda desnuda de `suppress-warnings` en las páginas de la raíz y en `js/`; leído el fichero entero.
+- **Lo que ve el usuario.** Nada: filtra mensajes de consola. Los dos `import` ya figuran en K-53 (imports en posición fatal).
+- **Recomendación (sin cambio visible):** un solo camino, el `<script src>` del `<head>` como en las demás páginas, y fuera los dos `import`. Toca el mismo fichero que la unificación del almacenamiento (R2.10.7, su lectura por el alias `ls`): conviene hacerlo con ella. Decide el usuario.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 
@@ -4284,6 +4293,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 114 | 3 | K-121 | el índice lo carga el padre en un solo sitio, la fase 1, antes que todos sus lectores; la selección, sin parámetro en la URL — **hecha (2026-10-19, `7a92883`)** | SPEC, GUÍA | — | sí |
 | 115 | 2 | G-88 | §22.12 frente a `PROTECTED_FILES`, y los dos módulos protegidos que la selección importa antes del pago (puzzle de introducción, audio) | GUÍA, compra | — | decidido el qué (el usuario: lo que usa la demo gratis se carga antes del pago); falta el cómo |
 | 116 | 3 | K-122 | un solo dueño del estado del GPS en el padre: fuera las dos ramas de `manejarGPSActivar()` que no corren y `estadoMapa.gpsActivo`, `.gpsPermisos` y `.gpsError` con su copia en el espejo | SPEC, GUÍA | blanda: K-116 | **hecha (2026-10-19, `aea2670`), con K-116 (decisión del usuario: juntas)** |
+| 117 | 2 | K-123 | el padre carga `suppress-warnings.js` una sola vez, como las demás páginas (fuera los dos `import`) | — | blanda: R2.10.7 | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
