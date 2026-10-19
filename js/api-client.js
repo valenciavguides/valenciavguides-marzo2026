@@ -379,7 +379,7 @@ const ApiClient = {
      * @param {string} aventuraId - ID de la aventura
      * @param {string} idioma - Código de idioma (es, en, fr, etc.)
      */
-    async getAventuraCompleta(aventuraId, idioma = 'es') {
+    async getAventuraCompleta(aventuraId, idioma) {
         const url = `${API_CONFIG.baseUrl}/aventuras/${encodeURIComponent(aventuraId)}/completa?idioma=${idioma}`;
         return fetchWithRetry(url);
     },
@@ -432,7 +432,7 @@ const ApiClient = {
     /**
      * Obtiene todos los audios de una aventura
      */
-    async getAudios(aventuraId, idioma = 'es') {
+    async getAudios(aventuraId, idioma) {
         const url = `${API_CONFIG.baseUrl}/audios/${encodeURIComponent(aventuraId)}/${idioma}`;
         return fetchWithRetry(url);
     },
@@ -452,7 +452,7 @@ const ApiClient = {
     /**
      * Obtiene todos los retos de una aventura (sin respuestas correctas)
      */
-    async getRetos(aventuraId, idioma = 'es') {
+    async getRetos(aventuraId, idioma) {
         const url = `${API_CONFIG.baseUrl}/retos/${encodeURIComponent(aventuraId)}/${idioma}`;
         return fetchWithRetry(url);
     },

@@ -21,11 +21,12 @@
  * un efecto observable directo en el DOM.
  *
  *   SA-1  Control: la aventura elegida queda en el `let` del script clásico, que es la única fuente
- *         (el módulo la escribe por el puente y la lee por su nombre). Sin esto, un SA-2 en rojo
+ *         (el módulo la escribe y la lee por su nombre). Sin esto, un SA-2 en rojo
  *         podría deberse a que la elección ni siquiera llega.
  *   SA-2  El mapa vintage que se muestra es el de la aventura elegida, no el de la primera.
  *
- * ROJO ANTES QUE VERDE: sin el puente `_setAventuraSeleccionada`, SA-2 muestra `Av1_mapa.jpg`.
+ * ROJO ANTES QUE VERDE: si el módulo escribiera la aventura en `globalThis.aventuraSeleccionada` (una propiedad aparte
+ * que el script clásico no lee) en vez de en su variable, SA-1 y SA-2 caen.
  */
 'use strict';
 

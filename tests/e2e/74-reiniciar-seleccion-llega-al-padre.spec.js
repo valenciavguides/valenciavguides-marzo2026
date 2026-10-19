@@ -80,6 +80,9 @@ test.describe('RE — "no" en R2 llega al padre', () => {
 
     // Abrir P16 como lo hace la app: su entrada carga el reto R2 real.
     const abierta = await sel.evaluate(async () => {
+      // Al llegar a P16 la app ya tiene elegidos el idioma (P2) y la aventura (P7): el reto R2 es el de esa aventura.
+      idiomaSeleccionado = 'es';
+      aventuraSeleccionada = 'Aventura1';
       if (typeof mostrar === 'function') { await mostrar(16); return 'mostrar'; }
       return null;
     });

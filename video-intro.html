@@ -560,7 +560,9 @@ const VI = 'imagenes/imagenes video intro/';
 const MV = 'imagenes/imagenes-mapas-vintage/';
 const IM = 'imagenes/imagenes-aventuras/';
 
-const _lang = new URLSearchParams(globalThis.location.search).get('lang') || 'es';
+// El idioma lo dice quien abre el vídeo, siempre: la selección (después de elegirlo en P2) y el asistente.
+const _lang = new URLSearchParams(globalThis.location.search).get('lang');
+if (!_lang) (globalThis.logger || console).error('[video-intro] Sin ?lang=: quien abre el vídeo tiene que decir el idioma');
 // Reapertura desde chat-hijo6.html ("¿puedo ver el video-intro de nuevo?"): el usuario
 // ya lo ha visto antes, así que el botón de saltar se habilita desde el arranque en vez
 // de esperar a que termine la escena 4 — ver run().
@@ -751,7 +753,7 @@ function showBubble(idx) {
   const band = $('jaime-band');
   const txt  = $('jaime-band-text');
   if (!entry || !band) return () => {};
-  txt.textContent = entry[_lang] || entry.es;
+  txt.textContent = entry[_lang];
   band.classList.add('on');
   requestAnimationFrame(ajustarScena);
   return () => {

@@ -114,7 +114,8 @@ test.describe('PZ — puzzle.html: botón de saltar (⏩)', () => {
  */
 async function mostrarReto(page, hijo, datos, selectorEspera) {
   for (let intento = 0; intento < 10; intento++) {
-    await enviarAlHijo(page, { tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4', datos });
+    // Como el padre: cada RETO.MOSTRAR lleva el idioma de la aventura.
+    await enviarAlHijo(page, { tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4', datos: { idioma: 'es', ...datos } });
     try {
       await hijo.waitForSelector(selectorEspera, { timeout: 1000 });
       return;
@@ -152,7 +153,7 @@ test.describe('RT — retos-hijo4.html: botón de saltar (⏩)', () => {
     for (let intento = 0; intento < 10; intento++) {
       await enviarAlHijo(page, {
         tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4',
-        datos: { retoId: 'test-skip-roto', retosArray: [] },
+        datos: { retoId: 'test-skip-roto', retosArray: [], idioma: 'es' },
       });
       const texto = await hijo.locator('#reto').textContent();
       if (texto && texto.includes('no está disponible')) break;

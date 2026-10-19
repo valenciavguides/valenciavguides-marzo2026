@@ -90,7 +90,7 @@ test.describe('NH — El nivel de log alcanza a los hijos', () => {
     // publica antes de que la pagina decida si tiene a quien hablar.
     const r = {};
     const imagenPuzzle = encodeURIComponent('imagenes/imagenes-aplicación/logo-luna.png');
-    for (const url of [`puzzle.html?id=PZ-intro&imagen=${imagenPuzzle}`, 'video-intro.html', 'mapa-completo.html']) {
+    for (const url of [`puzzle.html?id=PZ-intro&imagen=${imagenPuzzle}`, 'video-intro.html?lang=es', 'mapa-completo.html']) {
       const p2 = await page.context().newPage();
       try {
         await p2.goto('/' + url, { waitUntil: 'load' });

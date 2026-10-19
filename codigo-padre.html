@@ -90,6 +90,23 @@
         })();
     </script>
 
+    <!-- Idioma de la interfaz: el de lo que puede salir antes de elegir idioma, o en cualquier momento -->
+    <script>
+        // El overlay de carga, el aviso de fallo de carga y el banner de versión nueva pueden salir antes de que el
+        // usuario elija idioma. Hablan en este: el elegido si ya lo hay; si no, el último que se eligió en este
+        // dispositivo (`vv_idioma`, que guarda el padre al recibir la elección); si no, español. Está en un bloque
+        // clásico temprano para que exista antes que cualquier otro script: el banner puede salir antes de que corra
+        // Script 1. Lo que solo ocurre con la aventura en marcha lee `globalThis.idiomaSeleccionado` directamente.
+        globalThis.idiomaDeLaInterfaz = function() {
+            if (globalThis.idiomaSeleccionado) return globalThis.idiomaSeleccionado;
+            try {
+                const guardado = localStorage.getItem('vv_idioma');
+                if (guardado) return guardado;
+            } catch (_e) { /* sin almacenamiento: español */ }
+            return 'es';
+        };
+    </script>
+
     <!-- Global iframe handling functions -->
     <script>
         globalThis.handleIframeError = function(iframeId, event) {
@@ -1505,7 +1522,7 @@
                     // Lo que el asistente lee de este estado, y nada más: el idioma, el estado del rescate y el
                     // contexto del buzón de sugerencias (aventura y parada). Lo vigila CH-3 del spec 47.
                     return {
-                        idioma:               globalThis.idiomaSeleccionado || ep.idioma || 'es',
+                        idioma:               globalThis.idiomaSeleccionado,
                         aventura:             globalThis.aventuraSeleccionada || '',
                         paradaActualNombre:   paradas[idx]?.nombre  || '',
                         rescate:              _estadoRescateParaChat()
@@ -2786,14 +2803,10 @@
         // que comparte el mismo banco de frases en vez de tener uno propio.
         let _loadingFraseTimer = null;
         let _loadingUltimaFraseIdx = -1;
-        const _resolverIdiomaLoadingOverlay = (idioma) => {
-            if (idioma) return idioma;
-            if (globalThis.idiomaSeleccionado) return globalThis.idiomaSeleccionado;
-            try { return localStorage.getItem('vv_idioma') || 'es'; } catch (_e) { return 'es'; }
-        };
         const _iniciarFrasesLoadingOverlay = (idioma) => {
             if (_loadingFraseTimer) { clearInterval(_loadingFraseTimer); _loadingFraseTimer = null; }
-            const t = TRADUCCIONES_REANUDACION[_resolverIdiomaLoadingOverlay(idioma)] || TRADUCCIONES_REANUDACION['es'];
+            // El idioma que trae quien la llama; si no trae ninguno, el de la interfaz.
+            const t = TRADUCCIONES_REANUDACION[idioma || globalThis.idiomaDeLaInterfaz()];
             const frasesCarga = Array.isArray(t.frasesCarga) ? t.frasesCarga : [];
             const fraseEl = document.getElementById('loading-frase-carga');
             if (!fraseEl || frasesCarga.length === 0) return;
@@ -2822,8 +2835,7 @@
         // El overlay de carga inicial (arranque en frío) ya está visible en el
         // HTML desde el primer pintado, sin pasar por showParentLoadingOverlay —
         // así que sus frases arrancan aquí mismo. Aún no hay idioma elegido por el
-        // usuario en esta sesión; _resolverIdiomaLoadingOverlay cae al último
-        // idioma guardado en localStorage o a español.
+        // usuario en esta sesión: habla en el de la interfaz (globalThis.idiomaDeLaInterfaz).
         _iniciarFrasesLoadingOverlay();
 
         globalThis.showParentLoadingOverlay = (message = '', details = '', progress = 8, idioma = null) => {
@@ -3870,8 +3882,7 @@
             _avisoFalloCargaAppMostrado = true;
             try {
                 const { MSG_ERROR_CARGA_APP } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                alert(MSG_ERROR_CARGA_APP[idioma] || MSG_ERROR_CARGA_APP.es);
+                alert(MSG_ERROR_CARGA_APP[globalThis.idiomaDeLaInterfaz()]);
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
         globalThis._avisarFalloCargaAppUnaVez = _avisarFalloCargaAppUnaVez;
@@ -4445,9 +4456,9 @@
 
         async function mostrarDialogoReanudacion(datosGuardados) {
             const logPrefix = '[PADRE][DIALOGO_REANUDACION]';
-            const idioma = datosGuardados.idioma || 'es';
+            const idioma = datosGuardados.idioma;
             const aventura = datosGuardados.aventura;
-            const t = TRADUCCIONES_REANUDACION[idioma] || TRADUCCIONES_REANUDACION['es'];
+            const t = TRADUCCIONES_REANUDACION[idioma];
 
             const indice = globalThis.__vv_INDICE_AVENTURAS;
             const mapeoIdiomas = globalThis.__vv_MAPEO_IDIOMAS;
@@ -4561,9 +4572,6 @@
                     // Resetear globals
                     globalThis.aventuraSeleccionada = null;
                     globalThis.idiomaSeleccionado = null;
-                    if (estado.seleccion) {
-                        estado.seleccion.aventura = null;
-                    }
                     // El tiempo restante es de ESTA aventura — sin resetearlo, la próxima
                     // aventura seleccionada arrancaría su temporizador con el tiempo que le
                     // quedaba a esta (ver _iniciarTemporizadorAventura, tieneRestante).
@@ -4632,7 +4640,7 @@
         // restaurar aventura. "Continuar" cierra el modal (audio sigue pausado, el
         // usuario lo reanuda manualmente). "Elegir otra" borra la aventura guardada y recarga la página.
         async function mostrarDialogoVueltaRapida(idioma) {
-            const t = TRADUCCIONES_REANUDACION[idioma] || TRADUCCIONES_REANUDACION['es'];
+            const t = TRADUCCIONES_REANUDACION[idioma];
             return new Promise((resolve) => {
                 const overlay = document.createElement('div');
                 overlay.id = 'dialogo-vuelta-rapida-overlay';
@@ -4784,7 +4792,7 @@
             // iframes, y al «Continuar» todo vuelve tal cual.
             if (_popstateActivo) return;
             _popstateActivo = true;
-            mostrarDialogoVueltaRapida(globalThis.idiomaSeleccionado || 'es')
+            mostrarDialogoVueltaRapida(globalThis.idiomaSeleccionado)
                 .catch((e) => (globalThis.logger || console).error('[PADRE][ATRAS] Error en el diálogo de vuelta:', e?.message || e))
                 .finally(() => { _popstateActivo = false; });
         }
@@ -4804,7 +4812,7 @@
             globalThis.__vv_salidaEnlaceExterno = false;
             if (!_hayAventuraEnMarcha() || _dialogoVueltaActivo) return;
             _dialogoVueltaActivo = true;
-            try { await mostrarDialogoVueltaRapida(globalThis.idiomaSeleccionado || 'es'); }
+            try { await mostrarDialogoVueltaRapida(globalThis.idiomaSeleccionado); }
             finally { _dialogoVueltaActivo = false; }
         });
 
@@ -4856,7 +4864,7 @@
         }
         async function _enviarRespuestaParadasHijosRest(logPrefix, datosGuardados) {
             const av = datosGuardados.aventura;
-            const id = datosGuardados.idioma || 'es';
+            const id = datosGuardados.idioma;
             // Un solo camino (paso 8.2 de la lavadora): hijo2 e hijo5 reciben el mismo
             // normalizarParadas_S1(DATOS_PADRE...) que ya usa el camino de petición
             // (SOLICITAR_DATOS_PARADAS, más abajo) — antes hijo5 recibía una construcción a
@@ -5014,9 +5022,7 @@
             const logPrefix = '[PADRE][RESTAURACION]';
             try {
                 globalThis.aventuraSeleccionada = datosGuardados.aventura;
-                globalThis.idiomaSeleccionado = datosGuardados.idioma || 'es';
-                if (!estado.seleccion) estado.seleccion = {};
-                estado.seleccion.aventura = datosGuardados.aventura;
+                globalThis.idiomaSeleccionado = datosGuardados.idioma;
 
                 _mostrarInterfazReanudacion();
 
@@ -7255,8 +7261,8 @@
             const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[SOLICITAR_DATOS_PARADAS][${mensaje?.origen || 'desconocido'}]`;
             const destino = mensaje?.origen || 'hijo5';
             try {
-                const av = globalThis.aventuraSeleccionada || estado?.seleccion?.aventura;
-                const id = globalThis.idiomaSeleccionado || 'es';
+                const av = globalThis.aventuraSeleccionada;
+                const id = globalThis.idiomaSeleccionado;
 
                 if (!av) {
                     (globalThis.logger || console).debug(`${logPrefix} Sin aventura seleccionada — enviando lista vacía`);
@@ -7304,11 +7310,11 @@
             try {
                 if (typeof globalThis._iniciarTemporizadorAventura === 'function' && globalThis.aventuraSeleccionada) {
                     // Al reanudar, el reloj de compra se recalcula desde la fecha real de
-                    // compra (6º parámetro) en vez del último tick conocido antes de cerrar
-                    // (5º): el tiempo comprado corre esté la app abierta o cerrada. Ver §7.2.
+                    // compra (`timestampInicioRest`) en vez del último tick conocido antes de cerrar
+                    // (`tiempoRestanteOverride`): el tiempo comprado corre esté la app abierta o cerrada. Ver §7.2.
                     const _tsCompra = mensaje?.datos?.timestampCompra;
                     await globalThis._iniciarTemporizadorAventura(
-                        globalThis.aventuraSeleccionada, globalThis.idiomaSeleccionado, estado, logPrefix,
+                        globalThis.aventuraSeleccionada, estado, logPrefix,
                         _restaurando ? null : estado.tiempoRestante,
                         (_restaurando && typeof _tsCompra === 'number') ? _tsCompra : undefined
                     );
@@ -7594,7 +7600,7 @@
         async function _buscarTextoParaParada(paradaActual, logPrefix) {
             try {
                 const aventuraActual = globalThis.aventuraSeleccionada;
-                const idiomaActual = globalThis.idiomaSeleccionado || 'es';
+                const idiomaActual = globalThis.idiomaSeleccionado;
                 if (!aventuraActual) return null;
                 const { cargarTextos: _cTx } = await import('./js/data-loader.js');
                 const textos = await _cTx(aventuraActual, idiomaActual);
@@ -7628,8 +7634,8 @@
             if (!textoFinal?.content) {
                 try {
                     const { MSG_TEXTO_PARADA_NO_DISPONIBLE } = await import('./js/traducciones-ui.js');
-                    const idioma = globalThis.idiomaSeleccionado || 'es';
-                    const mensaje = MSG_TEXTO_PARADA_NO_DISPONIBLE[idioma] || MSG_TEXTO_PARADA_NO_DISPONIBLE.es;
+                    const idioma = globalThis.idiomaSeleccionado;
+                    const mensaje = MSG_TEXTO_PARADA_NO_DISPONIBLE[idioma];
                     textoFinal = { title: '', content: `<p style="color:#666;font-size:0.9em;text-align:center;margin:0;">📖 ${mensaje}</p>` };
                 } catch (e) { (globalThis.logger || console).debug(`${logPrefix} Error cargando aviso de texto no disponible:`, e?.message); }
             }
@@ -7922,7 +7928,12 @@
                 const aventuraGuardada = localStorage.getItem('vv_aventura_iniciada');
                 if (aventuraGuardada) {
                     const datosGuardados = JSON.parse(aventuraGuardada);
-                    if (datosGuardados && datosGuardados.aventura) {
+                    // La activación guarda la aventura y el idioma, y reanudar necesita los dos: sin uno de ellos no se
+                    // ofrece reanudar, y se dice.
+                    if (!datosGuardados?.aventura || !datosGuardados?.idioma) {
+                        (globalThis.logger || console).error(`${logPrefix} Sesión guardada incompleta (aventura: ${datosGuardados?.aventura}, idioma: ${datosGuardados?.idioma}): no se ofrece reanudar`);
+                    }
+                    if (datosGuardados && datosGuardados.aventura && datosGuardados.idioma) {
                         // La ventana real de compra (tiempoEstimado de la aventura: 60h en
                         // Av1-5/Fallas, 150h en Av34km) es SIEMPRE más corta que el TTL de
                         // 7 días, así que es ella la que de verdad decide si esta sesión
@@ -7964,11 +7975,9 @@
                         } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                         if (_ttlSuperado || _ventanaCompraExcedida) {
                             (globalThis.logger || console).info(`${logPrefix} Sesión guardada caducada (${_ventanaCompraExcedida ? 'ventana de compra agotada' : 'TTL de 7 días'}, ${Math.round((Date.now() - datosGuardados.timestamp) / 3600000)}h) — mostrando modal de tiempo agotado en vez de ofrecer reanudarla`);
-                            // Aún no ha pasado por ninguna pantalla de selección en este arranque
-                            // en frío — sin esto, el modal (que lee globalThis.idiomaSeleccionado)
-                            // caería siempre a español, ignorando el idioma real de la aventura
-                            // abandonada.
-                            globalThis.idiomaSeleccionado = globalThis.idiomaSeleccionado || datosGuardados.idioma || 'es';
+                            // Aún no ha pasado por ninguna pantalla de selección en este arranque en frío: el
+                            // modal (que lee globalThis.idiomaSeleccionado) habla en el idioma de la aventura guardada.
+                            globalThis.idiomaSeleccionado = datosGuardados.idioma;
                             if (typeof globalThis.mostrarModalTiempoAgotado === 'function') {
                                 await globalThis.mostrarModalTiempoAgotado();
                             } else {
@@ -8136,9 +8145,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 return;
             }
 
-            const idioma = globalThis.idiomaSeleccionado || 'es';
-            const t = TRADUCCIONES_FINALIZACION[idioma] || TRADUCCIONES_FINALIZACION['es'];
-            const tv = TEXTOS_VALORACION[idioma] || TEXTOS_VALORACION['es'];
+            const idioma = globalThis.idiomaSeleccionado;
+            const t = TRADUCCIONES_FINALIZACION[idioma];
+            const tv = TEXTOS_VALORACION[idioma];
             const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre
                                 || globalThis.aventuraSeleccionada || '';
 
@@ -8265,8 +8274,8 @@ await _comprobarReanudacionAventura(logPrefix);
         // Se expone en globalThis porque quien lo dispara (marcarParadaCompletada) vive en
         // otro script — mismo motivo que mostrarCartelTransicion, justo abajo.
         function mostrarPulsoValoracionPadre(momento) {
-            const idioma = globalThis.idiomaSeleccionado || 'es';
-            const t = TEXTOS_VALORACION[idioma] || TEXTOS_VALORACION['es'];
+            const idioma = globalThis.idiomaSeleccionado;
+            const t = TEXTOS_VALORACION[idioma];
 
             document.getElementById('pulso-valoracion-padre')?.remove();
             const card = document.createElement('div');
@@ -8343,8 +8352,8 @@ await _comprobarReanudacionAventura(logPrefix);
             try {
                 if (!nombre1) return;
                 const { TRADUCCIONES_CARTEL_TRANSICION } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_CARTEL_TRANSICION?.[idioma] || TRADUCCIONES_CARTEL_TRANSICION?.es;
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_CARTEL_TRANSICION?.[idioma];
                 if (!t) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_TRANSICION] Traducciones no disponibles');
                     return;
@@ -8420,8 +8429,8 @@ await _comprobarReanudacionAventura(logPrefix);
         async function mostrarCartelInicioTramo(tipoAnterior, nombreAnterior, nombreTramoNuevo) {
             try {
                 const { TRADUCCIONES_INICIO_TRAMO, TRADUCCIONES_CARTEL_TRANSICION } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_INICIO_TRAMO?.[idioma] || TRADUCCIONES_INICIO_TRAMO?.es;
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_INICIO_TRAMO?.[idioma];
                 if (!t) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_INICIO_TRAMO] Traducciones no disponibles');
                     return;
@@ -8432,7 +8441,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 let cuerpo = t.mensaje || '';
                 if (nombreAnterior && nombreTramoNuevo) {
-                    const tt = TRADUCCIONES_CARTEL_TRANSICION?.[idioma] || TRADUCCIONES_CARTEL_TRANSICION?.es;
+                    const tt = TRADUCCIONES_CARTEL_TRANSICION?.[idioma];
                     if (tt) {
                         const plantillaTermina = tipoAnterior === 'tramo' ? tt.terminaTramo : tt.terminaParada;
                         const terminaTxt = plantillaTermina.replace('{nombre}', nombreAnterior);
@@ -8499,8 +8508,8 @@ await _comprobarReanudacionAventura(logPrefix);
             try {
                 if (!nombreParada) return;
                 const { TRADUCCIONES_LLEGADA_PARADA } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_LLEGADA_PARADA?.[idioma] || TRADUCCIONES_LLEGADA_PARADA?.es;
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_LLEGADA_PARADA?.[idioma];
                 if (!t) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_LLEGADA_PARADA] Traducciones no disponibles');
                     return;
@@ -8563,8 +8572,8 @@ await _comprobarReanudacionAventura(logPrefix);
         async function mostrarCartelBienvenidaTramo() {
             try {
                 const { TRADUCCIONES_BIENVENIDA_TRAMO } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_BIENVENIDA_TRAMO?.[idioma] || TRADUCCIONES_BIENVENIDA_TRAMO?.es;
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_BIENVENIDA_TRAMO?.[idioma];
                 if (!t) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_BIENVENIDA_TRAMO] Traducciones no disponibles');
                     return;
@@ -8626,8 +8635,8 @@ await _comprobarReanudacionAventura(logPrefix);
         async function mostrarCartelBienvenidaParada(nombreParada) {
             try {
                 const { TRADUCCIONES_BIENVENIDA_PARADA } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_BIENVENIDA_PARADA?.[idioma] || TRADUCCIONES_BIENVENIDA_PARADA?.es;
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_BIENVENIDA_PARADA?.[idioma];
                 if (!t) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_BIENVENIDA_PARADA] Traducciones no disponibles');
                     return;
@@ -8702,8 +8711,8 @@ await _comprobarReanudacionAventura(logPrefix);
         async function _mostrarCartelRecordatorioRescate() {
             try {
                 const { TRADUCCIONES_RESCATE_RECORDATORIO } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_RESCATE_RECORDATORIO?.[idioma] || TRADUCCIONES_RESCATE_RECORDATORIO?.es;
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_RESCATE_RECORDATORIO?.[idioma];
                 if (!t) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_RECORDATORIO_RESCATE] Traducciones no disponibles');
                     return;
@@ -8791,8 +8800,8 @@ await _comprobarReanudacionAventura(logPrefix);
         async function _mostrarCartelRecordatorioAudio() {
             try {
                 const { TRADUCCIONES_RECORDATORIO_AUDIO } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_RECORDATORIO_AUDIO?.[idioma] || TRADUCCIONES_RECORDATORIO_AUDIO?.es;
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_RECORDATORIO_AUDIO?.[idioma];
                 if (!t) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_RECORDATORIO_AUDIO] Traducciones no disponibles');
                     return;
@@ -8912,8 +8921,8 @@ await _comprobarReanudacionAventura(logPrefix);
         async function _mostrarCartelRecordatorioSaltarAudio() {
             try {
                 const { TRADUCCIONES_RECORDATORIO_SALTAR_AUDIO } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_RECORDATORIO_SALTAR_AUDIO?.[idioma] || TRADUCCIONES_RECORDATORIO_SALTAR_AUDIO?.es;
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_RECORDATORIO_SALTAR_AUDIO?.[idioma];
                 if (!t) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_RECORDATORIO_SALTAR_AUDIO] Traducciones no disponibles');
                     return;
@@ -9007,8 +9016,8 @@ await _comprobarReanudacionAventura(logPrefix);
         async function _mostrarCartelRecordatorioReto() {
             try {
                 const { TRADUCCIONES_RECORDATORIO_RETO } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_RECORDATORIO_RETO?.[idioma] || TRADUCCIONES_RECORDATORIO_RETO?.es;
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_RECORDATORIO_RETO?.[idioma];
                 if (!t) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_RECORDATORIO_RETO] Traducciones no disponibles');
                     return;
@@ -9109,8 +9118,8 @@ await _comprobarReanudacionAventura(logPrefix);
         async function _mostrarCartelAvisoProgreso() {
             try {
                 const { MSG_PROGRESO_NO_GUARDADO } = await import('./js/traducciones-ui.js');
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const mensaje = MSG_PROGRESO_NO_GUARDADO?.[idioma] || MSG_PROGRESO_NO_GUARDADO?.es;
+                const idioma = globalThis.idiomaSeleccionado;
+                const mensaje = MSG_PROGRESO_NO_GUARDADO?.[idioma];
                 if (!mensaje) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_AVISO_PROGRESO] Traducción no disponible');
                     return;
@@ -11563,10 +11572,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // - hijo5 envía "padre-P-5" (padre-{coord.id} donde coord.id="P-5")
                 // - DATOS_PADRE tiene padreid="padre-P5", parada_id="P-5", tramo_id="TR-5"
                 const idSinPrefijo = paradaId.startsWith('padre-') ? paradaId.substring(6) : paradaId;
-                const _idiomaRaw = globalThis.idiomaSeleccionado
-                    || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })()
-                    || 'es';
-                const _idioma = DATOS_PADRE?.[_av]?.[_idiomaRaw] ? _idiomaRaw : 'es';
+                const _idioma = globalThis.idiomaSeleccionado;
                 const _elementosIDpadre = DATOS_PADRE?.[_av]?.[_idioma]?.elementosIDpadre;
                 if (!_elementosIDpadre) {
                     (globalThis.logger || console).warn(`${logPrefix} DATOS_PADRE no disponible para aventura="${_av}" idioma="${_idioma}"`);
@@ -12418,7 +12424,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
         async function _hdl_DATOS_SOLICITAR_COORDENADAS(mensaje) {
             const av = globalThis.aventuraSeleccionada;
-            const id = globalThis.idiomaSeleccionado || 'es';
+            const id = globalThis.idiomaSeleccionado;
             const coords = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas || [];
             if (!av || coords.length === 0) return;
             (globalThis.logger || console).info(`[PADRE][SOLICITAR_COORDENADAS] Reenviando ${coords.length} coordenadas a ${mensaje.origen}`);
@@ -12432,26 +12438,15 @@ await _comprobarReanudacionAventura(logPrefix);
         async function _hdl_SELECCION_IDIOMA_SELECCIONADO(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SELECCION.IDIOMA]`;
 
-            try {
-                const { idioma } = mensaje.datos || {};
-
-                (globalThis.logger || console).info(`${logPrefix} Idioma seleccionado: ${idioma} desde ${mensaje.origen}`);
-
-                // DEBUG: Verificar estado
-                (globalThis.logger || console).debug(`${logPrefix} DEBUG estado:`, typeof estado, estado);
-                (globalThis.logger || console).debug(`${logPrefix} DEBUG globalThis.estadoPadre:`, typeof globalThis.estadoPadre, !!globalThis.estadoPadre);
-
-                // Exponer globalmente para otros componentes
-                globalThis.idiomaSeleccionado = idioma;
-                try { localStorage.setItem('vv_idioma', idioma); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
-
-                (globalThis.logger || console).debug(`${logPrefix} Idioma almacenado en estado global: ${idioma}`);
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando selección de idioma:`, error, error?.stack);
-                (globalThis.logger || console).error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, estado);
-                (globalThis.logger || console).error(`${logPrefix} DEBUG en catch - globalThis.estadoPadre:`, typeof globalThis.estadoPadre);
-            }
+            // Es el único escritor del idioma elegido. La selección no sigue sin el acuse de este handler: sin idioma,
+            // lanza, y el bus le contesta que ha fallado (la selección se queda en la elección de idioma).
+            const { idioma } = mensaje.datos || {};
+            if (!idioma) throw new Error('IDIOMA_SELECCIONADO sin idioma');
+            (globalThis.logger || console).info(`${logPrefix} Idioma seleccionado: ${idioma} desde ${mensaje.origen}`);
+            globalThis.idiomaSeleccionado = idioma;
+            // `vv_idioma` es la copia que sobrevive a una recarga: la leen la despedida (?despedida=1) y el idioma de la
+            // interfaz del arranque siguiente (la regla del bloque clásico temprano del padre).
+            try { localStorage.setItem('vv_idioma', idioma); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
         }
 
         async function _fase2CargarDatos(logPrefix) {
@@ -12482,34 +12477,17 @@ await _comprobarReanudacionAventura(logPrefix);
 
         async function _hdl_SELECCION_AVENTURA_SELECCIONADA(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SELECCION.AVENTURA]`;
-            if (_aventuraEnProceso) {
-                (globalThis.logger || console).warn(`${logPrefix} Ya hay una activación en curso — ignorando AVENTURA_SELECCIONADA concurrente`);
-                return;
-            }
-            _aventuraEnProceso = true;
-            try {
-                const { aventura, idioma } = mensaje.datos || {};
-                (globalThis.logger || console).info(`${logPrefix} Aventura seleccionada: ${aventura} (idioma: ${idioma}) desde ${mensaje.origen}`);
-
-                if (!estado.seleccion) estado.seleccion = {};
-                estado.seleccion.aventura = aventura;
-                globalThis.aventuraSeleccionada = aventura;
-                globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado || 'es';
-                try {
-                    localStorage.setItem('vv_idioma', idioma || globalThis.idiomaSeleccionado || 'es');
-                } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); }
-                (globalThis.logger || console).debug(`${logPrefix} Aventura almacenada en estado global: ${aventura}`);
-
-                // Limpiar flags de P14/P15 para esta selección de aventura
-                globalThis._codigoValidadoP14 = false;
-                globalThis._iframesPreCargadosP15 = false;
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando selección de aventura:`, error, error?.stack);
-                (globalThis.logger || console).error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, !!estado);
-            } finally {
-                _aventuraEnProceso = false;
-            }
+            // Es el único escritor de la aventura elegida mientras se elige (la activación y la reanudación escriben la que
+            // arranca). La selección no sigue sin el acuse de este handler: si aquí no se puede guardar la aventura, lanza, y
+            // el bus le contesta que ha fallado (la selección se queda en la lista de aventuras).
+            if (_aventuraEnProceso) throw new Error('Hay una activación en curso: no se cambia la aventura elegida');
+            const { aventura } = mensaje.datos || {};
+            if (!aventura) throw new Error('AVENTURA_SELECCIONADA sin aventura');
+            (globalThis.logger || console).info(`${logPrefix} Aventura seleccionada: ${aventura} desde ${mensaje.origen}`);
+            globalThis.aventuraSeleccionada = aventura;
+            // Limpiar flags de P14/P15 para esta selección de aventura
+            globalThis._codigoValidadoP14 = false;
+            globalThis._iframesPreCargadosP15 = false;
         }
 
         async function _hdl_SELECCION_PREPARAR_HIJOS(mensaje) {
@@ -12519,8 +12497,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 const { idioma, aventura } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} Pre-selección recibida: ${aventura} (${idioma})`);
 
-                if (!estado.seleccion) estado.seleccion = {};
-                if (aventura) estado.seleccion.aventura = aventura;
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando pre-selección:`, error, error?.stack);
                 (globalThis.logger || console).error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, !!estado);
@@ -12638,13 +12614,12 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 if (!aventura) { (globalThis.logger || console).error(`${logPrefix} No se especificó aventura`); _aventuraEnProceso = false; return; }
 
-                globalThis.showParentLoadingOverlay?.('Preparando aventura...', 'Cargando componentes principales', 12, idioma || 'es');
+                globalThis.showParentLoadingOverlay?.('Preparando aventura...', 'Cargando componentes principales', 12, idioma);
 
                 if (!estado.seleccion) estado.seleccion = {};
-                estado.seleccion.aventura = aventura;
                 estado.seleccion.activada = true;
                 globalThis.aventuraSeleccionada = aventura;
-                globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado || 'es';
+                globalThis.idiomaSeleccionado = idioma;
 
                 if (globalThis._iframesPreCargadosP15) {
                     // Iframes cargados desde P15 — saltamos recarga para no destruir su estado
@@ -12664,7 +12639,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 try {
                     // `dev` se guarda como campo propio, no se deduce del modo: modo y modo
                     // dev son dimensiones independientes (dev/CASA, dev/AVENTURA, prod/AVENTURA).
-                    localStorage.setItem('vv_aventura_iniciada', JSON.stringify({ aventura, idioma: idioma || 'es', modo: _modoInicio, dev: !!globalThis._devModeActivo, timestamp: Date.now() }));
+                    localStorage.setItem('vv_aventura_iniciada', JSON.stringify({ aventura, idioma, modo: _modoInicio, dev: !!globalThis._devModeActivo, timestamp: Date.now() }));
                     (globalThis.logger || console).debug(`${logPrefix} Aventura persistida en localStorage (modo ${_modoInicio}, dev ${!!globalThis._devModeActivo})`);
                 } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); }
 
@@ -12741,7 +12716,7 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _iniciarTemporizadorAventura(aventura, idioma, estado, logPrefix, tiempoRestanteOverride, timestampInicioRest) {
+        async function _iniciarTemporizadorAventura(aventura, estado, logPrefix, tiempoRestanteOverride, timestampInicioRest) {
             const modoActual = estado.modo?.actual || MODOS.CASA;
             if (globalThis._devModeActivo) {
                 // El temporizador cuenta tiempo de compra real — en modo dev no hay compra,
@@ -12791,7 +12766,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
                 const iframeOpciones = document.getElementById('hijo1-opciones');
                 if (iframeOpciones) {
-                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, destino: 'hijo1-opciones', datos: { aventuraId: aventura, tiempoEstimado: tiempoAEnviar, idioma: idioma || 'es', timestamp: Date.now() } });
+                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.AVENTURA.INICIADA, destino: 'hijo1-opciones', datos: { tiempoEstimado: tiempoAEnviar, timestamp: Date.now() } });
                     (globalThis.logger || console).info(`${logPrefix} ⏱️ Mensaje AVENTURA.INICIADA enviado al temporizador (${tiempoAEnviar}s${tieneRestante ? ', reanudado' : ''})`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ Iframe hijo1-opciones no disponible para temporizador`);
@@ -12804,7 +12779,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // _hdl_SISTEMA_CAMBIO_MODO. Cubre los tres casos por igual (activación inicial,
         // retorno desde CASA en la misma sesión, y reanudación tras cerrar/reabrir la PWA),
         // porque la reanudación pasa por ese mismo handler con restaurado:true — de ahí
-        // saca también el 6º parámetro, la fecha real de compra. En dev mode devuelve sin
+        // saca también `timestampInicioRest`, la fecha real de compra. En dev mode devuelve sin
         // hacer nada: el temporizador cuenta tiempo de compra real, y en dev no hay compra.
         try { globalThis._iniciarTemporizadorAventura = _iniciarTemporizadorAventura; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
@@ -12915,8 +12890,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 const { tiempoRestante, tiempoUsado, completado } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} Estadísticas recibidas: usado=${tiempoUsado}s, restante=${tiempoRestante}s, completado=${completado}`);
 
-                if (!estado.seleccion) estado.seleccion = {};
-
                 // Mostrar modal de finalización solo en modo AVENTURA
                 const modoActual = estado?.modo?.actual || MODOS.CASA;
                 if (modoActual === MODOS.AVENTURA) {
@@ -12939,8 +12912,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             try {
                 (globalThis.logger || console).error(`${logPrefix} ⏰ ¡TIEMPO AGOTADO! La aventura ha terminado.`);
 
-                const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_TIEMPO_AGOTADO[idioma] || TRADUCCIONES_TIEMPO_AGOTADO['es'];
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_TIEMPO_AGOTADO[idioma];
 
                 // 1. Bloquear todos los controles de la aventura
                 const iframesToDisable = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5'];
@@ -12955,7 +12928,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 // 2. Crear y mostrar modal de tiempo agotado
                 let modalTiempoAgotado = document.getElementById('modal-tiempo-agotado');
                 if (!modalTiempoAgotado) {
-                    const tFin = TRADUCCIONES_FINALIZACION[idioma] || TRADUCCIONES_FINALIZACION['es'];
+                    const tFin = TRADUCCIONES_FINALIZACION[idioma];
 
                     modalTiempoAgotado = document.createElement('div');
                     modalTiempoAgotado.id = 'modal-tiempo-agotado';
@@ -13061,8 +13034,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     }
                 } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
                 try {
-                    const idiomaFallback = globalThis.idiomaSeleccionado || 'es';
-                    const tFallback = TRADUCCIONES_TIEMPO_AGOTADO[idiomaFallback] || TRADUCCIONES_TIEMPO_AGOTADO['es'];
+                    const tFallback = TRADUCCIONES_TIEMPO_AGOTADO[globalThis.idiomaSeleccionado];
                     alert(`${tFallback.titulo}\n\n${tFallback.cuerpo}`);
                     globalThis.location.reload();
                 } catch (e3) { (globalThis.logger || console).debug('[VV]:', e3?.message); } // NOSONAR
@@ -13310,12 +13282,12 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
         async function _renderizarListadoParadas(ventana) {
             const aventura = globalThis.aventuraSeleccionada;
-            const idioma = globalThis.idiomaSeleccionado || 'es';
+            const idioma = globalThis.idiomaSeleccionado;
             if (!aventura) return;
             const scroll = ventana.querySelector('.listado-paradas-scroll');
             if (!scroll) return;
             const filas = await _construirFilasListadoParadas(aventura, idioma);
-            const enBuscaImg = _EN_BUSCA_IMG_POR_IDIOMA[idioma] || _EN_BUSCA_IMG_POR_IDIOMA.es;
+            const enBuscaImg = _EN_BUSCA_IMG_POR_IDIOMA[idioma];
             scroll.innerHTML = `
                 <img class="listado-paradas-logo" src="imagenes/imagenes-aplicación/logo-alargado.png" alt="Valencia VGuides">
                 <img class="listado-paradas-en-busca" src="imagenes/imagenes-aplicación/${enBuscaImg}" alt="En busca del tesoro">
@@ -13827,10 +13799,10 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
          * decisión que abrirla a medias.
          */
         async function _pedirConfirmacionRescate(nombre, restantes, total, logPrefix) {
-            const idioma = globalThis.idiomaSeleccionado || 'es';
+            const idioma = globalThis.idiomaSeleccionado;
             const { TRADUCCIONES_RESCATE_CONFIRMAR_1, TRADUCCIONES_RESCATE_CONFIRMAR_2 } = await import('./js/traducciones-ui.js');
-            const t1 = TRADUCCIONES_RESCATE_CONFIRMAR_1?.[idioma] || TRADUCCIONES_RESCATE_CONFIRMAR_1?.es;
-            const t2 = TRADUCCIONES_RESCATE_CONFIRMAR_2?.[idioma] || TRADUCCIONES_RESCATE_CONFIRMAR_2?.es;
+            const t1 = TRADUCCIONES_RESCATE_CONFIRMAR_1?.[idioma];
+            const t2 = TRADUCCIONES_RESCATE_CONFIRMAR_2?.[idioma];
             if (!t1 || !t2) {
                 (globalThis.logger || console).error(`${logPrefix} Traducciones de confirmación no disponibles — no se abre la decisión`);
                 return false;
@@ -13877,10 +13849,10 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
          * evita una entrada nueva que diría exactamente lo mismo.
          */
         async function _mostrarRescatesAgotados(total, logPrefix) {
-            const idioma = globalThis.idiomaSeleccionado || 'es';
+            const idioma = globalThis.idiomaSeleccionado;
             const { TRADUCCIONES_RESCATE_AGOTADOS, TRADUCCIONES_RESCATE_CONCEDIDO } = await import('./js/traducciones-ui.js');
-            const t = TRADUCCIONES_RESCATE_AGOTADOS?.[idioma] || TRADUCCIONES_RESCATE_AGOTADOS?.es;
-            const tc = TRADUCCIONES_RESCATE_CONCEDIDO?.[idioma] || TRADUCCIONES_RESCATE_CONCEDIDO?.es;
+            const t = TRADUCCIONES_RESCATE_AGOTADOS?.[idioma];
+            const tc = TRADUCCIONES_RESCATE_CONCEDIDO?.[idioma];
             if (!t || !tc) {
                 (globalThis.logger || console).error(`${logPrefix} Traducciones de "agotados" no disponibles — no se muestra nada`);
                 return;
@@ -13909,9 +13881,9 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
          * se rompe y recupera el rescate.
          */
         async function _mostrarRescateConcedido(nombre, usadas, total, logPrefix) {
-            const idioma = globalThis.idiomaSeleccionado || 'es';
+            const idioma = globalThis.idiomaSeleccionado;
             const { TRADUCCIONES_RESCATE_CONCEDIDO } = await import('./js/traducciones-ui.js');
-            const t = TRADUCCIONES_RESCATE_CONCEDIDO?.[idioma] || TRADUCCIONES_RESCATE_CONCEDIDO?.es;
+            const t = TRADUCCIONES_RESCATE_CONCEDIDO?.[idioma];
             if (!t) {
                 (globalThis.logger || console).error(`${logPrefix} Traducciones de "concedido" no disponibles — el rescate ya está dado, pero el usuario no ve el aviso`);
                 return;
@@ -14448,9 +14420,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     return;
                 }
                 _swBannerMostrado = true;
-                const _lang = globalThis.idiomaSeleccionado
-                    || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_) { return null; } })()
-                    || 'es';
+                const _lang = globalThis.idiomaDeLaInterfaz();
                 const _t = (globalThis.TRADUCCIONES_SW_UPDATE || {})[_lang]
                     || { label: '🔄 Nueva versión disponible', boton: 'Actualizar' };
                 const banner = document.createElement('div');

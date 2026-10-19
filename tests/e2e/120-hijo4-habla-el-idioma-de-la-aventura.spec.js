@@ -7,7 +7,7 @@
  * y hijo4 lo aplica antes de pintar.
  *
  *   ID-1  hijo4 pinta el marcador del campo de texto en el idioma del mensaje
- *   ID-2  sin `idioma` en el mensaje, el marcador sale en español (el respaldo)
+ *   ID-2  el idioma lo pone cada RETO.MOSTRAR: el reto siguiente, en otro idioma, cambia el marcador
  *   ID-3  el padre manda `idioma` en el RETO.MOSTRAR de la progresión y en la reposición que sigue a una recarga de hijo4
  *   ID-4  el padre manda `idioma` al contestar a `DATOS.SOLICITAR_RETOS` (la petición de hijo4 tras un fallo de caché)
  *
@@ -43,8 +43,16 @@ test.describe('ID — hijo4 recibe el idioma de la aventura', () => {
     expect(await placeholderTrasMostrar(page, 'fr')).toBe(PLACEHOLDER.fr);
   });
 
-  test('ID-2. Sin `idioma` en el mensaje, el marcador sale en español', async ({ page }) => {
-    expect(await placeholderTrasMostrar(page, null)).toBe(PLACEHOLDER.es);
+  test('ID-2. El idioma lo pone cada RETO.MOSTRAR: el reto siguiente, en otro idioma, cambia el marcador', async ({ page }) => {
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    const segundo = { ...RETO_TEXTO, id: 'id-texto-2' };
+    const mostrarEn = async (reto, idioma) => {
+      await enviarAlHijo(page, { tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4', datos: { retoId: reto.id, retosArray: [RETO_TEXTO, segundo], contexto: 'manual', idioma, timestamp: Date.now() } });
+      await hijo.waitForFunction((p) => document.getElementById('respuestaTexto')?.placeholder === p, PLACEHOLDER[idioma], { timeout: 10_000 }).catch(() => {});
+      return hijo.evaluate(() => document.getElementById('respuestaTexto')?.placeholder);
+    };
+    expect(await mostrarEn(RETO_TEXTO, 'fr'), 'el primer reto, en francés').toBe(PLACEHOLDER.fr);
+    expect(await mostrarEn(segundo, 'es'), 'el siguiente, en español: el marcador sigue al idioma de cada reto').toBe(PLACEHOLDER.es);
   });
 });
 

@@ -228,8 +228,8 @@ async function gotoAndWaitForFase1(page) {
   // `_comprobarReanudacionAventura` lee `vv_aventura_iniciada`. Un test que arrancara una aventura antes dejaría esa marca
   // escrita y se encontraría el diálogo de reanudación, que a los 30 s continúa solo (docs/estudio-caminos.md, K-102).
   // La señal: el diálogo de reanudación o el modal de tiempo agotado en pantalla (había algo y ya se decidió qué enseñar), o
-  // el body sin `loading` y ninguna aventura guardada (no había nada que enseñar; es la misma condición con la que el padre
-  // decide). Solo `loading` no basta por dos lados: el diálogo la vuelve a poner para tapar la interfaz, y entre retirarla y
+  // el body sin `loading` y ninguna sesión guardada completa, con aventura e idioma (no había nada que enseñar; es la misma
+  // condición con la que decide `_comprobarReanudacionAventura` del padre: si cambia allí, cambia aquí). Solo `loading` no basta por dos lados: el diálogo la vuelve a poner para tapar la interfaz, y entre retirarla y
   // enseñar el diálogo el padre importa `js/indice-aventuras.js` si aún no lo tiene (medido: el diálogo llega 7-9 ms después
   // en chromium y 20-45 ms en firefox, donde AR-2 volvía en ese hueco). Lo vigilan AR-1 y AR-2 del spec 126.
   //
@@ -241,7 +241,10 @@ async function gotoAndWaitForFase1(page) {
     await page.waitForFunction(() => {
       if (document.getElementById('dialogo-reanudacion-overlay') || document.getElementById('modal-tiempo-agotado')) return true;
       if (document.body.classList.contains('loading')) return false;
-      try { return !JSON.parse(localStorage.getItem('vv_aventura_iniciada') || 'null')?.aventura; } catch (_) { return true; }
+      try {
+        const guardada = JSON.parse(localStorage.getItem('vv_aventura_iniciada') || 'null');
+        return !(guardada?.aventura && guardada?.idioma);
+      } catch (_) { return true; }
     }, null, { timeout: BOOT_TIMEOUT });
   } catch (_reanudacionError) {
     await page.evaluate(() => { globalThis.__e2e_reanudacionTimedOut = true; }).catch(() => {});
@@ -340,6 +343,16 @@ function enviarAlHijo(page, mensaje) {
   }, mensaje);
 }
 
+/**
+ * Deja elegido el idioma en el padre por el camino de la app: el handler real de `SELECCION.IDIOMA_SELECCIONADO` (el único que escribe
+ * `globalThis.idiomaSeleccionado` y `vv_idioma`), por el bus del propio padre (`despacharLocal`). En la app el idioma se elige en P2, antes que
+ * todo lo que lo necesita, y el padre no tiene reserva: un spec que arranca el padre y salta a un momento posterior (un cartel, el modal de
+ * tiempo agotado) lo deja elegido así.
+ */
+async function elegirIdioma(page, idioma = 'es') {
+  await page.evaluate((i) => globalThis.mensajeria.despacharLocal({ tipo: 'SELECCION.IDIOMA_SELECCIONADO', datos: { idioma: i } }), idioma);
+}
+
 let _cargasDeHijos = 0;
 
 /**
@@ -359,7 +372,7 @@ let _cargasDeHijos = 0;
  *
  * Si `cargarRestoDeiframes` o `cargarHijoCasa` no existen todavía, espera a que existan; si la carga falla, lanza con el mensaje de la página.
  */
-async function cargarHijosDelPadre(page, { resto = true, casa = false, timeout = BOOT_TIMEOUT } = {}) {
+async function cargarHijosDelPadre(page, { resto = true, casa = false, timeout = BOOT_TIMEOUT, idioma = 'es' } = {}) {
   const token = `carga-${++_cargasDeHijos}`;
   let navego = false;
   const alNavegar = (marco) => { if (marco === page.mainFrame()) navego = true; };
@@ -367,15 +380,21 @@ async function cargarHijosDelPadre(page, { resto = true, casa = false, timeout =
   let fallo = null;
   try {
     await page.waitForFunction(
-      ({ conResto, conCasa, clave }) => {
+      ({ conResto, conCasa, clave, idiomaSiFalta }) => {
         if ((conResto && typeof globalThis.cargarRestoDeiframes !== 'function') || (conCasa && typeof globalThis.cargarHijoCasa !== 'function')) return false;
         const cargas = (globalThis.__cargasHijosDelPadre = globalThis.__cargasHijosDelPadre || {});
         if (!cargas[clave]) {
           const estado = (cargas[clave] = { terminada: false, error: null });
-          const promesas = [];
-          if (conResto) promesas.push(globalThis.cargarRestoDeiframes());
-          if (conCasa) promesas.push(globalThis.cargarHijoCasa());
-          Promise.all(promesas).then(
+          // Como en la app, los hijos se cargan con el idioma ya elegido (P2 va antes que P15): si el padre aún no lo tiene, se
+          // elige por el handler real de SELECCION.IDIOMA_SELECCIONADO, como hace elegirIdioma().
+          const eleccion = globalThis.idiomaSeleccionado ? Promise.resolve()
+            : globalThis.mensajeria.despacharLocal({ tipo: 'SELECCION.IDIOMA_SELECCIONADO', datos: { idioma: idiomaSiFalta } });
+          eleccion.then(() => {
+            const promesas = [];
+            if (conResto) promesas.push(globalThis.cargarRestoDeiframes());
+            if (conCasa) promesas.push(globalThis.cargarHijoCasa());
+            return Promise.all(promesas);
+          }).then(
             () => { estado.terminada = true; },
             (e) => { estado.error = String((e && e.message) || e); }
           );
@@ -383,7 +402,7 @@ async function cargarHijosDelPadre(page, { resto = true, casa = false, timeout =
         if (cargas[clave].error) throw new Error(`carga de los hijos del padre: ${cargas[clave].error}`);
         return cargas[clave].terminada;
       },
-      { conResto: resto, conCasa: casa, clave: token },
+      { conResto: resto, conCasa: casa, clave: token, idiomaSiFalta: idioma },
       { timeout, polling: 50 }
     );
   } catch (e) {
@@ -405,5 +424,6 @@ module.exports = {
   abrirHijoEnMarco,
   recibidosPorElMarco,
   enviarAlHijo,
+  elegirIdioma,
   cargarHijosDelPadre,
 };

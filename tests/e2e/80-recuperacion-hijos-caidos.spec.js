@@ -39,7 +39,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, cargarHijosDelPadre, elegirIdioma } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -329,6 +329,8 @@ test.describe('RC-7 — Un hijo se muestra al estar listo, también si lo recupe
       if (m.type() === 'error' && /no completó el apretón de manos/.test(m.text())) errores.push(m.text());
     });
 
+    // Como en la app, los hijos se cargan con el idioma ya elegido (P2 va antes que P15).
+    await elegirIdioma(page);
     await page.evaluate(() => localStorage.setItem('vvtest:sin-apreton', '1'));
     // hijo5 ya a la vista, como lo deja la interfaz de la reanudación en desarrollo: el cargador ni lo oculta al cargarlo ni lo
     // muestra al darlo por listo.
@@ -417,6 +419,8 @@ test.describe('RC-9 — El asistente (hijo6) se carga con los demás y se ve al 
     const tocarBoton = () => page.evaluate(() => { document.getElementById('btn-chat-soporte').click(); });
 
     // Los hijos se cargan juntos (P15, la reanudación y la ruta fallback llaman a esta función) y hijo6 va entre ellos, sin que nadie pulse su botón.
+    // Como en la app, los hijos se cargan con el idioma ya elegido (P2 va antes que P15).
+    await elegirIdioma(page);
     await page.evaluate(() => localStorage.setItem('vvtest:sin-apreton', '1'));
     await page.evaluate(() => { void globalThis.cargarRestoDeiframes(); });
     await page.waitForFunction(() => globalThis.mensajeria.getIframesRegistrados().has('hijo6-chat'), null, { timeout: 15_000 });

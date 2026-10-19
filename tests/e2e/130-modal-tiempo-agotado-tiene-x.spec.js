@@ -17,7 +17,7 @@
 'use strict';
 
 const { test, expect } = require('@playwright/test');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, elegirIdioma } = require('./helpers/boot');
 
 const MARCA = 'vv_marca_spec130';
 
@@ -31,6 +31,8 @@ async function conElTiempoAgotado(page) {
       && !document.body.classList.contains('loading'),
     null, { timeout: 30_000 },
   );
+  // Con la aventura en marcha el idioma está elegido (P2 va antes que todo): el padre no tiene reserva.
+  await elegirIdioma(page);
   await page.evaluate((m) => localStorage.setItem(m, '1'), MARCA);
   await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'AVENTURA.TIEMPO_AGOTADO', datos: {} }));
   await expect(page.locator('#modal-tiempo-agotado')).toBeVisible();

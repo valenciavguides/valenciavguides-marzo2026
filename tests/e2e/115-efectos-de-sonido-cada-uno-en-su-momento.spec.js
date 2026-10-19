@@ -35,7 +35,7 @@ const { test, expect } = require('@playwright/test');
 const path = require('path');
 const {
   MARCO_VACIO, abrirHijoEnMarco, enviarAlHijo,
-  injectInitSpy, stubCDNResources, gotoAndWaitForFase1,
+  injectInitSpy, stubCDNResources, gotoAndWaitForFase1, elegirIdioma,
 } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
@@ -451,6 +451,8 @@ test.describe('TA — codigo-padre.html: el modal de tiempo agotado suena tiempo
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
+    // Sin sesión guardada, la aventura en marcha tiene el idioma que el usuario eligió en P2.
+    if (edadHoras === null) await elegirIdioma(page);
   }
 
   const salioAlgunDialogo = (page) => page.waitForFunction(

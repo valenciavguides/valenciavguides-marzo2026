@@ -33,7 +33,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1, elegirIdioma } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -75,6 +75,8 @@ test.describe('CI — Carteles informativos no bloqueantes', () => {
     await stubCDNResources(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await gotoAndWaitForFase1(page);
+    // Con la aventura en marcha el idioma está elegido (P2 va antes que todo): el padre no tiene reserva.
+    await elegirIdioma(page);
   });
 
   test('CI-1. Cartel de transición: dos iconos (avanzar + audio) y texto en minúscula tras "Por favor,"', async ({ page }) => {
@@ -231,6 +233,8 @@ test.describe('CI — Vibración al mostrar un cartel', () => {
     await stubCDNResources(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await gotoAndWaitForFase1(page);
+    // Con la aventura en marcha el idioma está elegido (P2 va antes que todo): el padre no tiene reserva.
+    await elegirIdioma(page);
 
     await page.waitForFunction(() => typeof globalThis.mostrarCartelTransicion === 'function', null, { timeout: 15000 });
     await page.evaluate(() => {
@@ -250,6 +254,8 @@ test.describe('CI — Vibración al mostrar un cartel', () => {
     await stubCDNResources(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await gotoAndWaitForFase1(page);
+    // Con la aventura en marcha el idioma está elegido (P2 va antes que todo): el padre no tiene reserva.
+    await elegirIdioma(page);
 
     const pageErrors = [];
     page.on('pageerror', e => pageErrors.push(e.message));

@@ -127,6 +127,8 @@ async function arrancar(page) {
     () => document.getElementById('seleccion')?.contentWindow?.mensajeria?.tieneControlador?.('SISTEMA.PADRE_CONFIRMA_HIJO_LISTO') === true,
     null, { timeout: 20_000 },
   );
+  // El idioma se elige en P2, antes que todo lo que recorren estos tests.
+  await seleccion(page).evaluate(() => globalThis.seleccionarIdioma('es'));
 }
 
 test.describe('CP — la confirmación de la aventura tras el pago', () => {
@@ -171,9 +173,9 @@ test.describe('CP — la confirmación de la aventura tras el pago', () => {
     expect(larga.p9, 'la P9 enseña la aventura elegida, con sus horas').toContain('max 150h');
     expect(larga.p13, 'la P13 enseña lo mismo que la P9').toBe(larga.p9);
 
-    // La aventura cambia sin pasar por el botón (el puente que usa seleccionarAventura): al mostrarse la
-    // pantalla, la tarjeta tiene que enseñar la que hay AHORA, no la que se pintó la última vez.
-    await f.evaluate(() => globalThis._setAventuraSeleccionada('Aventura2'));
+    // La aventura cambia sin pasar por el botón (escribiendo la variable, como hace seleccionarAventura): al mostrarse
+    // la pantalla, la tarjeta tiene que enseñar la que hay AHORA, no la que se pintó la última vez.
+    await f.evaluate(() => { aventuraSeleccionada = 'Aventura2'; });
     await f.evaluate(() => mostrar(9));
     const corta = await tarjetas(f);
     expect(corta.p9, 'la tarjeta sigue a la variable que usa el resto del recorrido').toContain('max 60h');
@@ -262,6 +264,8 @@ test.describe('CP — la confirmación de la aventura tras el pago', () => {
     // Lo que hace el «no» del reto 2: reiniciar la selección y volver a la P1.
     await f.evaluate(async () => { reiniciarSeleccion(); await mostrar(1); });
     expect(await aLaVista(f)).toEqual(['pantalla1']);
+    // Empezar de cero vacía también el idioma: el usuario lo vuelve a elegir en P2 antes de llegar a las aventuras.
+    await f.evaluate(() => globalThis.seleccionarIdioma('es'));
 
     const lista = await abrirEleccion(page, f);
     expect(lista.filter((a) => a.apagado).map((a) => a.id), 'vuelven a poder elegirse todas').toEqual([]);

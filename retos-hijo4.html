@@ -535,10 +535,6 @@
      * ██ Descomentar solo si falla el flujo centralizado y necesitamos fallback
      * ═══════════════════════════════════════════════════════════════════════════════ */
 
-    // Array de retos - NO ELIMINAR NI MODIFICAR SIN REVISIÓN: Este array es esencial para mapear retos/puzzles. Cualquier cambio debe coordinarse con el padre.
-    // NOTE: El array backup está deliberadamente comentado para evitar declaraciones duplicadas y errores de parseo si se carga la versión centralizada desde el padre.
-    //       Si necesitas reactivar el fallback, descomenta y asegúrate de que su formato coincide con la API esperada y añade pruebas (TODO: añadir test al repositorio). // NOSONAR
-    // const retosAventura1Es_BACKUP = [ /* fallback placeholder, commented out */ ]
     /* ═══════════════════════════════════════════════════════════════════════════════ */
 
     // estadoRetos (progreso, estadisticas: tiempoPromedio/intentosPromedio/
@@ -749,7 +745,7 @@
                 ocultarControles();
                 retoDiv.innerHTML = "";
                 const avisoNoDisponible = document.createElement("p");
-                avisoNoDisponible.textContent = MSG_RETO_NO_DISPONIBLE[globalThis.__vv_idiomaActual] || MSG_RETO_NO_DISPONIBLE.es;
+                avisoNoDisponible.textContent = MSG_RETO_NO_DISPONIBLE[globalThis.__vv_idiomaActual];
                 retoDiv.appendChild(avisoNoDisponible);
                 // A diferencia del resto de controles, el botón de saltar debe seguir
                 // habilitado precisamente aquí: es el único rescate real cuando el reto
@@ -854,7 +850,7 @@
                 inputTexto.setAttribute("inputmode", "text");
                 inputTexto.style.fontSize = "1.2em";
                 inputTexto.style.width = "100%";
-                inputTexto.placeholder = PLACEHOLDER_RESPUESTA_TEXTO[globalThis.__vv_idiomaActual] || PLACEHOLDER_RESPUESTA_TEXTO.es;
+                inputTexto.placeholder = PLACEHOLDER_RESPUESTA_TEXTO[globalThis.__vv_idiomaActual];
                 retoDiv.appendChild(inputTexto);
                 // Insertar btnEnviar en el button-container para mantener estilos consistentes
                 const buttonContainer = document.getElementById('button-container');
@@ -1341,9 +1337,9 @@
                         return;
                     }
                     const { retoId, retosArray, idioma } = mensaje.datos;
-                    // El idioma de la aventura llega con cada reto: es el de los dos textos propios de este frame (el marcador
-                    // del campo de texto y el aviso de reto no disponible). Sin él, se queda el que había, y al empezar el español.
-                    if (idioma) globalThis.__vv_idiomaActual = idioma;
+                    // El idioma de la aventura llega con cada reto (el padre lo manda siempre): es el de los dos textos propios
+                    // de este frame, el marcador del campo de texto y el aviso de reto no disponible.
+                    globalThis.__vv_idiomaActual = idioma;
                     logger.info(`[hijo4][DEBUG] RETO.MOSTRAR handler — retoId="${retoId}", retosArray recibido=${retosArray?.length || 0}, caché local=${globalThis.__vv_retoCache?.size || 0}`);
                     logger.info(`[hijo4] RETO.MOSTRAR recibido para reto: ${retoId}`);
 

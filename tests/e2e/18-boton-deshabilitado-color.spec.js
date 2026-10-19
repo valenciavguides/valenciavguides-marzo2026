@@ -132,7 +132,7 @@ test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de l
   });
 
   test('BU-2e. video-intro.html — .boton.disabled resuelve a rgb(237,33,0)', async ({ page }) => {
-    await page.goto('/video-intro.html');
+    await page.goto('/video-intro.html?lang=es');
     const bg = await page.evaluate(() => {
       const el = document.createElement('button');
       el.className = 'boton disabled';

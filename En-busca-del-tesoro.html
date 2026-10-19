@@ -1353,15 +1353,14 @@
       if (momento === 'P12' && _pulsoValoracionMostrado12) return;
       if (momento === 'P12') _pulsoValoracionMostrado12 = true;
 
-      const idioma = idiomaSeleccionado || 'es';
-      const t = (globalThis.TEXTOS_VALORACION && (globalThis.TEXTOS_VALORACION[idioma] || globalThis.TEXTOS_VALORACION.es)) || {};
+      const t = globalThis.TEXTOS_VALORACION[idiomaSeleccionado];
 
       document.getElementById('pulso-valoracion')?.remove();
       const card = document.createElement('div');
       card.id = 'pulso-valoracion';
       card.className = 'pulso-valoracion';
       card.innerHTML = `
-        <div class="pulso-valoracion-texto">${t.preguntaLigera || '¿Qué tal por ahora?'}</div>
+        <div class="pulso-valoracion-texto">${t.preguntaLigera}</div>
         <div class="pulso-valoracion-estrellas">
           ${[1,2,3,4,5].map(n => `<button type="button" class="pulso-valoracion-estrella" data-n="${n}">★</button>`).join('')}
         </div>
@@ -1431,7 +1430,7 @@
         const modulo = await import('./js/terminos-aventuras.js');
         TERMINOS_DATOS = modulo.TERMINOS_AVENTURAS;
 
-        const idioma = idiomaSeleccionado || 'es';
+        const idioma = idiomaSeleccionado;
         const terminos = TERMINOS_DATOS?.terminos_idiomas?.[idioma];
 
         if (terminos && typeof terminos === 'string' && terminos.trim().length > 0) {
@@ -1502,8 +1501,8 @@
           AUDIOS_DATOS = modulo.AUDIOS_AVENTURAS;
         }
 
-        const idioma = idiomaSeleccionado || 'es';
-        const aventura = aventuraSeleccionada || 'Aventura1';
+        const idioma = idiomaSeleccionado;
+        const aventura = aventuraSeleccionada;
         const audiosIdioma = AUDIOS_DATOS?.[aventura]?.[idioma];
         const audioIntro = Array.isArray(audiosIdioma) ? audiosIdioma.find(a => a.id === `audio-intro-${idioma}`) : null;
 
@@ -1566,8 +1565,8 @@
       const opciones = document.getElementById('reto-r1-opciones');
       const caja = document.getElementById('reto-r1-box');
       try {
-        const idioma = idiomaSeleccionado || 'es';
-        const aventura = aventuraSeleccionada || 'Aventura1';
+        const idioma = idiomaSeleccionado;
+        const aventura = aventuraSeleccionada;
         const { cargarRetos: _cRt } = await import('./js/data-loader.js');
         const retosIdioma = await _cRt(aventura, idioma);
         if (retosIdioma && Array.isArray(retosIdioma)) {
@@ -1720,8 +1719,8 @@
           tipo: globalThis.TIPOS_MENSAJE.SELECCION.PREPARAR_HIJOS,
           destino: 'padre',
           datos: {
-            idioma: idiomaSeleccionado || 'es',
-            aventura: aventuraSeleccionada || 'Aventura1',
+            idioma: idiomaSeleccionado,
+            aventura: aventuraSeleccionada,
             timestamp: Date.now()
           }
         });
@@ -1782,9 +1781,7 @@
     // backend rechaza.
     function _mostrarErrorAccesoP14() {
       if (document.getElementById('_p14-error-overlay')) return;
-      const idioma = idiomaSeleccionado || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })() || 'es';
-      const dic = globalThis.TRADUCCIONES_ACCESO_ERRONEO || {};
-      const t = dic[idioma] || dic.es || { titulo: 'Código o email incorrectos', cuerpo: 'Revise los datos introducidos e inténtelo de nuevo.' };
+      const t = globalThis.TRADUCCIONES_ACCESO_ERRONEO[idiomaSeleccionado];
       const overlay = document.createElement('div');
       overlay.id = '_p14-error-overlay';
       overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999999;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;padding:1rem;box-sizing:border-box;';
@@ -1854,7 +1851,7 @@
           destino: 'padre',
           datos: {
             aventura: aventuraSeleccionada,
-            idioma: idiomaSeleccionado || 'es',
+            idioma: idiomaSeleccionado,
             email,
             timestamp: Date.now()
           }
@@ -1884,11 +1881,7 @@
       try {
         const modulo = await import('./js/agradecimientos-aventuras.js');
         const AGRADECIMIENTOS = modulo.AGRADECIMIENTOS_AVENTURAS;
-        const idioma = idiomaSeleccionado || 'es';
-        let contenido = AGRADECIMIENTOS?.agradecimientos_idiomas?.[idioma];
-        if (!contenido || contenido.trim() === '') {
-          contenido = AGRADECIMIENTOS?.agradecimientos_idiomas?.['es'];
-        }
+        const contenido = AGRADECIMIENTOS.agradecimientos_idiomas[idiomaSeleccionado];
         if (contenido && contenido.trim() !== '') {
           contenedor.innerHTML = contenido;
           agradecimientosCargados = true;
@@ -1926,10 +1919,8 @@
       _despedidaEjecutada = true;
       if (_desarmarAbandonoP18) { _desarmarAbandonoP18(); _desarmarAbandonoP18 = null; }
 
-      // Capturar idioma ANTES de limpiar localStorage
-      const idioma = idiomaSeleccionado || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })() || 'es';
-      const _despedida = globalThis.TRADUCCIONES_DESPEDIDA || {};
-      const txt = _despedida[idioma] || _despedida['es'];
+      // El idioma ya está en `idiomaSeleccionado`: _checkUrlParams lo saca de `vv_idioma` al cargar la despedida.
+      const txt = globalThis.TRADUCCIONES_DESPEDIDA[idiomaSeleccionado];
 
       // Ocultar botón
       const btn = document.getElementById('btn-siguiente-agradecimientos');
@@ -1970,11 +1961,7 @@
       try {
         const modulo = await import('./js/normativa-cumplimiento.js');
         const NORMATIVA = modulo.NORMATIVA_CUMPLIMIENTO;
-        const idioma = idiomaSeleccionado || 'es';
-        let contenido = NORMATIVA?.normativa_idiomas?.[idioma];
-        if (!contenido || contenido.trim() === '') {
-          contenido = NORMATIVA?.normativa_idiomas?.['es'];
-        }
+        const contenido = NORMATIVA.normativa_idiomas[idiomaSeleccionado];
         if (contenido && contenido.trim() !== '') {
           contenedor.innerHTML = contenido;
           normativaCargada = true;
@@ -2022,9 +2009,7 @@
     let _cargaUltimaFraseIdx = -1;
     function _iniciarFraseCargaAventura() {
       if (_cargaFraseTimer) { clearInterval(_cargaFraseTimer); _cargaFraseTimer = null; }
-      const reanudacion = globalThis.TRADUCCIONES_REANUDACION || {};
-      const idioma = idiomaSeleccionado || 'es';
-      const t = reanudacion[idioma] || reanudacion['es'];
+      const t = globalThis.TRADUCCIONES_REANUDACION[idiomaSeleccionado];
       const frasesCarga = Array.isArray(t?.frasesCarga) ? t.frasesCarga : [];
       const fraseEl = document.getElementById('carga-progreso-frase');
       if (!fraseEl || frasesCarga.length === 0) return;
@@ -2187,7 +2172,7 @@
     }
 
     function mostrarAvisoSinAudio(idioma) {
-      const textos = AUDIO_WARNING_TEXTS[idioma] || AUDIO_WARNING_TEXTS['es'];
+      const textos = AUDIO_WARNING_TEXTS[idioma];
       document.getElementById('audio-warning-text').textContent = textos.message;
       document.getElementById('audio-warning-yes').textContent = textos.yes;
       document.getElementById('audio-warning-no').textContent = textos.no;
@@ -2206,8 +2191,8 @@
     }
 
     async function confirmarAventura() {
-      const idioma = idiomaSeleccionado || 'es';
-      const aventura = aventuraSeleccionada || 'Aventura1';
+      const idioma = idiomaSeleccionado;
+      const aventura = aventuraSeleccionada;
       notificarPadrePreparacion();
       const hayAudios = await tieneAudiosDisponibles(aventura, idioma);
       if (hayAudios) {
@@ -2257,7 +2242,7 @@
 
     // Pinta los botones de P7 con lo que vale AHORA: el idioma y, si el pago está hecho, la categoría pagada.
     function _pintarBotonesDeAventura(contenedor) {
-      const idioma = idiomaSeleccionado || 'es';
+      const idioma = idiomaSeleccionado;
       contenedor.innerHTML = '';  // Limpiar contenido previo
       const aventurasArray = Object.values(INDICE_AVENTURAS_DATOS);
 
@@ -2307,7 +2292,7 @@
 
         const total = _pintarBotonesDeAventura(contenedor);
         _log.info('[SELECCION] Total aventuras a cargar:', total);
-        _log.info('[SELECCION] Aventuras cargadas dinámicamente para idioma:', idiomaSeleccionado || 'es');
+        _log.info('[SELECCION] Aventuras cargadas dinámicamente para idioma:', idiomaSeleccionado);
       } catch (error) {
         _log.error('[SELECCION] Error cargando aventuras:', error);
         contenedor.innerHTML = '<p style="color:#1a1a1a; text-align:center;">Error cargando aventuras</p>';
@@ -2322,7 +2307,7 @@
       const img = document.getElementById('mapa-vintage-img');
       if (!overlay || !img) return;
 
-      const aventura = aventuraSeleccionada || 'Aventura1';
+      const aventura = aventuraSeleccionada;
       // La ruta sale de la MISMA tabla que usa el botón de mapa vintage dentro de la
       // aventura (js/mapa-vintage-aventuras.js, §22.12). Antes se adivinaba sacando el
       // número del nombre de la aventura, y fallaba EN SILENCIO: `AventuraFallas` no tiene
@@ -2395,7 +2380,7 @@
         // Registrar ANTES del `src`: el bus solo acepta mensajes de un iframe que esta
         // pantalla haya registrado, y el video avisa al terminar.
         globalThis.mensajeria.registrarIframe('video-intro', iframe);
-        iframe.src = 'video-intro.html?lang=' + encodeURIComponent(idiomaSeleccionado || 'es');
+        iframe.src = 'video-intro.html?lang=' + encodeURIComponent(idiomaSeleccionado);
         iframe.style.cssText = 'width:100%;height:100%;border:none;';
         iframe.title = 'Video intro';
         container.appendChild(iframe);
@@ -2408,7 +2393,7 @@
     // ============================================================
     async function cargarTextoIntro() {
       const contenedor = document.getElementById('texto-intro-contenido');
-      const idioma = idiomaSeleccionado || 'es';
+      const idioma = idiomaSeleccionado;
       // Los 3 fallbacks de abajo (entrada ausente/incompleta, sin array real, excepción)
       // usaban texto español fijo sin mirar el idioma elegido — a diferencia del resto de
       // la app, que traduce siempre sus avisos de fallback a los 12 idiomas (auditoría
@@ -2416,7 +2401,7 @@
       const _mostrarFallbackIntro = async () => {
         try {
           const { MSG_TEXTO_INTRO_NO_DISPONIBLE } = await import('./js/traducciones-ui.js');
-          const mensaje = MSG_TEXTO_INTRO_NO_DISPONIBLE[idioma] || MSG_TEXTO_INTRO_NO_DISPONIBLE.es;
+          const mensaje = MSG_TEXTO_INTRO_NO_DISPONIBLE[idioma];
           contenedor.innerHTML = `<div style="padding:1.2rem;"><p>${mensaje}</p></div>`;
         } catch (e) {
           _log.error('[SELECCION] Error cargando traducción del fallback de texto intro:', e);
@@ -2424,7 +2409,7 @@
         }
       };
       try {
-        const aventura = aventuraSeleccionada || 'Aventura1';
+        const aventura = aventuraSeleccionada;
         const { cargarTextos } = await import('./js/data-loader.js');
         const textosIdioma = await cargarTextos(aventura, idioma);
         if (textosIdioma && Array.isArray(textosIdioma)) {
@@ -2478,8 +2463,8 @@
       const opciones = document.getElementById('reto-r2-opciones');
       const caja = document.getElementById('reto-r2-box');
       try {
-        const idioma = idiomaSeleccionado || 'es';
-        const aventura = aventuraSeleccionada || 'Aventura1';
+        const idioma = idiomaSeleccionado;
+        const aventura = aventuraSeleccionada;
         const { cargarRetos: _cRt } = await import('./js/data-loader.js');
         const retosIdioma = await _cRt(aventura, idioma);
         if (retosIdioma && Array.isArray(retosIdioma)) {
@@ -2566,16 +2551,11 @@
       _log.info('[SELECCION] Estado reiniciado');
     }
 
-    // Puentes para que el módulo de mensajería modifique variables del script regular.
-    // Hacen falta porque un `let` de este <script> clásico TAPA la propiedad del mismo nombre en
-    // globalThis: `globalThis.x = v` desde el módulo no cambia el `let` de aquí, y las lecturas
-    // sin prefijo de este script siguen viendo el valor viejo. Sin puente, el fallo es mudo — la
-    // variable se queda en su valor inicial y cada consumidor cae en su reserva (`|| 'Aventura1'`,
-    // `|| 'es'`), que carga bien y no da ningún error.
-    globalThis._setIdiomaSeleccionado = function(v) { idiomaSeleccionado = v; };
-    globalThis._setAventuraSeleccionada = function(v) { aventuraSeleccionada = v; };
-    globalThis._setAventuraIniciando = function(v) { aventuraIniciando = v; };
-    globalThis._setTimerProgresoCarga = function(v) { timerProgresoCarga = v; };
+    // Las variables de nivel superior de este <script> clásico (el idioma y la aventura elegidos, `aventuraIniciando`,
+    // `timerProgresoCarga`) las escribe también el módulo de más abajo, por su nombre (`idiomaSeleccionado = v`): un
+    // `let` de nivel superior de un script clásico es visible y asignable desde los módulos del mismo documento.
+    // Escribirlas como propiedad de `globalThis` no sirve: crea una propiedad aparte que este script no lee. El reinicio de los flags de
+    // contenido se queda en una función porque el módulo lo pide de una vez al cambiar de idioma.
     globalThis._resetearFlagsContenido = function() {
       terminosCargados = false;
       agradecimientosCargados = false;
@@ -2644,7 +2624,7 @@
     // a un sitio y este frame se presenta como otro, y ninguno de los dos se entera.
     await bus.inicializarMensajeria({ id: 'seleccion' });
 
-    const { enviarMensaje } = bus;
+    const { enviarMensaje, enviarMensajeConConfirmacion } = bus;
 
     // El bus rechaza por sí mismo, y en voz alta, un segundo handler para el mismo tipo, así que
     // sobra la capa de deduplicación que había aquí.
@@ -2729,10 +2709,11 @@
         const params = new URLSearchParams(globalThis.location.search);
         if (params.get('despedida') === '1') {
             modoDespedida = true;
-            // Recuperar idioma de localStorage ANTES de mostrar P18, para que
-            // cargarAgradecimientosOverlay() lo use en vez de caer al fallback 'es'
+            // La despedida llega con la página recargada: el idioma de la aventura que acaba está en `vv_idioma` (lo
+            // guarda el padre al elegirlo, y las dos salidas a la despedida no lo borran). Se lee ANTES de enseñar P18.
             if (!idiomaSeleccionado) {
-                idiomaSeleccionado = (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })() || 'es';
+                idiomaSeleccionado = (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })();
+                if (!idiomaSeleccionado) logger.error(`${logPrefix} Despedida sin el idioma de la aventura: vv_idioma está vacío`);
             }
             logger.info(`${logPrefix} Modo despedida activo → mostrando P18 agradecimientos (idioma: ${idiomaSeleccionado})`);
             void mostrar(18);
@@ -2914,15 +2895,15 @@
     globalThis.seleccionarIdioma = async function(idioma) {
         try {
             estadoComponente.ultimaInteraccion = Date.now();
-            globalThis._setIdiomaSeleccionado(idioma);
+            idiomaSeleccionado = idioma;
 
             // Restablecer flags de contenido al cambiar de idioma
             globalThis._resetearFlagsContenido();
 
             logger.info(`[SELECCION] Idioma seleccionado: ${idioma}`);
 
-            // Enviar mensaje al padre
-            await enviarMensaje({
+            // El padre tiene que saber el idioma antes de seguir: va con acuse, y sin él no se avanza (abajo).
+            await enviarMensajeConConfirmacion({
                 tipo: TIPOS_MENSAJE.SELECCION.IDIOMA_SELECCIONADO,
                 destino: 'padre',
                 datos: {
@@ -2937,14 +2918,15 @@
             const banderaIdioma = document.getElementById('idioma-bandera-confirmacion');
             if (banderaIdioma) {
                 const banderasIdiomas = { 'es': 'bandera_españa.png', 'en': 'bandera_inglesa.png', 'fr': 'bandera_francia.png', 'it': 'bandera_italia.png', 'nl': 'bandera_paises_bajos.png', 'ja': 'bandera_japon.png', 'de': 'bandera_alemania.png', 'zh': 'bandera_china.png', 'pl': 'bandera_polonia.png', 'pt': 'bandera_portugal.png', 'ru': 'bandera_rusia.png', 'uk': 'bandera_ucrania.png' };
-                banderaIdioma.src = `imagenes/imagenes-aplicación/${banderasIdiomas[idioma] || banderasIdiomas['es']}`;
+                banderaIdioma.src = `imagenes/imagenes-aplicación/${banderasIdiomas[idioma]}`;
             }
 
             // Navegar a confirmación de idioma
             void mostrar(3);
         } catch (error) {
-            logger.error(`[SELECCION] Error seleccionando idioma:`, error);
-            void mostrar(3);
+            // Sin el acuse del padre no se sigue: el padre no sabría el idioma elegido. La pantalla se queda en la
+            // elección de idioma, y al volver a pulsar se repite el aviso.
+            logger.error(`[SELECCION] El padre no ha confirmado el idioma ${idioma}; se queda en la elección de idioma:`, error);
         }
     };
 
@@ -2989,18 +2971,21 @@
     globalThis.seleccionarAventura = async function(aventura) {
         try {
             estadoComponente.ultimaInteraccion = Date.now();
-            globalThis._setAventuraSeleccionada(aventura);
+            aventuraSeleccionada = aventura;
             logger.info(`[SELECCION] Aventura seleccionada: ${aventura}`);
-            await enviarMensaje({
+            // El padre tiene que saber la aventura antes de seguir: va con acuse, y sin él no se avanza (abajo). El idioma
+            // no viaja aquí: el padre lo tiene desde IDIOMA_SELECCIONADO, que es el único que lo escribe.
+            await enviarMensajeConConfirmacion({
                 tipo: TIPOS_MENSAJE.SELECCION.AVENTURA_SELECCIONADA,
                 destino: 'padre',
-                datos: { aventura: aventura, idioma: idiomaSeleccionado || 'es', timestamp: Date.now() }
+                datos: { aventura: aventura, timestamp: Date.now() }
             });
             logger.debug(`[SELECCION] Mensaje AVENTURA_SELECCIONADA enviado al padre`);
             continuarTrasElegirAventura();
         } catch (error) {
-            logger.error(`[SELECCION] Error seleccionando aventura:`, error);
-            continuarTrasElegirAventura();
+            // Sin el acuse del padre no se sigue: el padre no sabría la aventura elegida. La pantalla se queda en la
+            // lista de aventuras, y al volver a pulsar se repite el aviso.
+            logger.error(`[SELECCION] El padre no ha confirmado la aventura ${aventura}; se queda en la lista de aventuras:`, error);
         }
     };
 
@@ -3009,7 +2994,7 @@
      */
     globalThis.iniciarAventura = async function() {
       if (aventuraIniciando) return;
-      globalThis._setAventuraIniciando(true);
+      aventuraIniciando = true;
 
       const btnNormativa = document.getElementById('btn-siguiente-normativa');
       if (btnNormativa) {
@@ -3036,8 +3021,8 @@
                 tipo: TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA,
                 destino: 'padre',
                 datos: {
-                    aventura: aventuraSeleccionada || 'Aventura1',
-                    idioma: idiomaSeleccionado || 'es',
+                    aventura: aventuraSeleccionada,
+                    idioma: idiomaSeleccionado,
                     terminosAceptados: estadoComponente.terminosAceptados,
                     timestamp: Date.now()
                 }
@@ -3046,7 +3031,7 @@
             actualizarProgresoCargaAventura(100);
             if (timerProgresoCarga) {
               clearInterval(timerProgresoCarga);
-              globalThis._setTimerProgresoCarga(null);
+              timerProgresoCarga = null;
             }
             logger.debug('🚀 [SELECCION] Mensaje AVENTURA_ACTIVADA enviado:', mensajeEnviado);
             logger.info(`[SELECCION] Mensaje AVENTURA_ACTIVADA enviado al padre (modo CASA mantenido)`);
@@ -3055,7 +3040,7 @@
             logger.error('❌ [SELECCION] Error en iniciarAventura:', error);
             logger.error(`[SELECCION] Error iniciando aventura:`, error);
             ocultarOverlayCargaAventura();
-            globalThis._setAventuraIniciando(false);
+            aventuraIniciando = false;
             if (btnNormativa) {
               btnNormativa.disabled = false;
               btnNormativa.style.opacity = '1';

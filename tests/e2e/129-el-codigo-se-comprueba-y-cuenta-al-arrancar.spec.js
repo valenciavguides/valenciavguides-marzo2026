@@ -92,13 +92,15 @@ const seleccion = (page) => page.frames().find((f) => f.name() === 'seleccion');
 async function arrancarElReloj(page, { dev = false, modo = 'aventura' } = {}) {
   await page.evaluate(async ([esDev, elModo]) => {
     globalThis._devModeActivo = esDev;
-    await globalThis._iniciarTemporizadorAventura('Aventura1', 'es', { modo: { actual: elModo } }, '[SPEC-129]');
+    await globalThis._iniciarTemporizadorAventura('Aventura1', { modo: { actual: elModo } }, '[SPEC-129]');
   }, [dev, modo]);
 }
 
 /** El recorrido de la selección hasta pulsar el botón de la pantalla del código, con el pago hecho. */
 async function hastaPulsarElCodigo(page) {
   const f = seleccion(page);
+  // El idioma se elige en P2, antes que la aventura.
+  await f.evaluate(() => globalThis.seleccionarIdioma('es'));
   const cargadas = page.waitForEvent('console', { predicate: (m) => m.text().includes('Aventuras cargadas dinámicamente'), timeout: 20_000 });
   await f.evaluate(() => mostrar(7));
   await cargadas;

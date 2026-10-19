@@ -305,6 +305,7 @@ test.describe('BR-R — El recordatorio «pulse retos» pregunta al mismo sitio'
       e.pendingCompleciones = { [p.clave]: { tipo: 'parada', llegada: true, audio: true, reto: false, retosTotal: 1, retosCompletadosCount: 0, timestamp: Date.now() } };
       e.gps = e.gps || {};
       e.gps.proximidadReal = true;
+      globalThis.idiomaSeleccionado = 'es'; // el que el usuario eligió en P2
     }, PARADA);
   });
 

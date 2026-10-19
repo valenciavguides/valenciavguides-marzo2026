@@ -127,7 +127,10 @@ function analizarArchivo(rel, src) {
         return b ? b.label : null; // fuera de cualquier <script> (HTML/texto)
     };
 
-    const asignRe = /globalThis\.([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=(?![=>])\s*([^;]*)/g;
+    // La parte derecha se lee hasta el `;` o el final de la línea, lo que llegue antes: solo sirve para clasificar (función u
+    // objeto, o estado). Con un `[^;]*` que cruzaba líneas, un `globalThis.x = v` escrito en un comentario sin punto y coma
+    // se tragaba la asignación real de la línea siguiente, y esa no salía en la tabla.
+    const asignRe = /globalThis\.([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=(?![=>])\s*([^;\n]*)/g;
     const asignaciones = new Map();
     let m;
     while ((m = asignRe.exec(src)) !== null) {

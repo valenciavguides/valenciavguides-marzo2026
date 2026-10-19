@@ -70,6 +70,7 @@ test.describe('TI — cargarTextoIntro(): fallback traducido cuando falla la car
 
     const resultado = await frame.evaluate(async () => {
       idiomaSeleccionado = 'ja'; // ligadura léxica real (let de script clásico) — no globalThis
+      aventuraSeleccionada = 'Aventura1'; // la elegida en P7: al llegar a P11 la app ya la tiene
       const contenedor = document.getElementById('texto-intro-contenido');
       await cargarTextoIntro();
       return contenedor.textContent;
@@ -85,6 +86,7 @@ test.describe('TI — cargarTextoIntro(): fallback traducido cuando falla la car
     const frame = await cargarComoIframe(page);
     const resultado = await frame.evaluate(async () => {
       idiomaSeleccionado = 'es';
+      aventuraSeleccionada = 'Aventura1'; // la elegida en P7: al llegar a P11 la app ya la tiene
       const contenedor = document.getElementById('texto-intro-contenido');
       await cargarTextoIntro();
       return contenedor.textContent;
@@ -99,6 +101,7 @@ test.describe('AI — cargarAudioIntro(): #btn-siguiente-audio-intro no se queda
     const frame = await cargarComoIframe(page);
     const resultado = await frame.evaluate(async () => {
       idiomaSeleccionado = 'en'; // audio-intro-en existe pero con file:""
+      aventuraSeleccionada = 'Aventura1'; // la elegida en P7: al llegar a P11 la app ya la tiene
       const btn = document.getElementById('btn-siguiente-audio-intro');
       const disabledAntes = btn.disabled;
       await cargarAudioIntro();
@@ -115,6 +118,7 @@ test.describe('AI — cargarAudioIntro(): #btn-siguiente-audio-intro no se queda
     const frame = await cargarComoIframe(page);
     const resultado = await frame.evaluate(async () => {
       idiomaSeleccionado = 'es'; // único idioma con fichero real grabado
+      aventuraSeleccionada = 'Aventura1'; // la elegida en P7: al llegar a P11 la app ya la tiene
       const btn = document.getElementById('btn-siguiente-audio-intro');
       await cargarAudioIntro();
       const audioSource = document.getElementById('audio-intro-source');
@@ -131,6 +135,7 @@ test.describe('AI — cargarAudioIntro(): #btn-siguiente-audio-intro no se queda
     const frame = await cargarComoIframe(page);
     await frame.evaluate(async () => {
       idiomaSeleccionado = 'es';
+      aventuraSeleccionada = 'Aventura1'; // la elegida en P7: al llegar a P11 la app ya la tiene
       await cargarAudioIntro();
       // btn-siguiente-audio-intro se habilita desde el listener 'play' que engancha
       // _iniciarGuantePlayHint() (no cargarAudioIntro()) — en la app real, el dispatcher
@@ -168,6 +173,7 @@ test.describe('AI — cargarAudioIntro(): #btn-siguiente-audio-intro no se queda
     const frame = await cargarComoIframe(page);
     await frame.evaluate(async () => {
       idiomaSeleccionado = 'es';
+      aventuraSeleccionada = 'Aventura1'; // la elegida en P7: al llegar a P11 la app ya la tiene
       await cargarAudioIntro();
     });
 

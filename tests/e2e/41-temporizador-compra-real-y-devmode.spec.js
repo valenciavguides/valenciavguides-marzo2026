@@ -6,7 +6,7 @@
  * reloj interno y, con él, el reloj visible del padre (#tiempo-display-padre). Dos reglas
  * gobiernan cuánto tiempo se le envía:
  *
- *  - Reanudación tras cerrar/reabrir la PWA (timestampInicioRest, el 6º parámetro): el
+ *  - Reanudación tras cerrar/reabrir la PWA (el parámetro timestampInicioRest): el
  *    tiempo comprado corre en tiempo real desde la compra (datosGuardados.timestamp de
  *    vv_aventura_iniciada), esté la app abierta o cerrada — igual que verificarTimeoutAventura()
  *    (js/reciclaje-digital.js), que ya corta el acceso con esa misma cuenta real. Sin este
@@ -72,7 +72,7 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
       };
       const UNA_HORA_MS = 60 * 60 * 1000;
       const timestampInicio = Date.now() - UNA_HORA_MS;
-      await globalThis._iniciarTemporizadorAventura('Aventura1', 'es', globalThis.estado, '[TEST]', null, timestampInicio);
+      await globalThis._iniciarTemporizadorAventura('Aventura1', globalThis.estado, '[TEST]', null, timestampInicio);
       const msg = capturados.find((m) => m.tipo === globalThis.TIPOS_MENSAJE.AVENTURA.INICIADA);
       return { tiempoEstimado: msg?.datos?.tiempoEstimado };
     });
@@ -98,7 +98,7 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
         capturados.push(data);
         return originalPostMessage(data, origin);
       };
-      await globalThis._iniciarTemporizadorAventura('Aventura1', 'es', globalThis.estado, '[TEST]', null, Date.now() - 3600000);
+      await globalThis._iniciarTemporizadorAventura('Aventura1', globalThis.estado, '[TEST]', null, Date.now() - 3600000);
       return capturados.some((m) => m.tipo === globalThis.TIPOS_MENSAJE.AVENTURA.INICIADA);
     });
     expect(capturoMensaje, 'en modo dev no debe enviarse AVENTURA.INICIADA en absoluto').toBe(false);
@@ -121,7 +121,7 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
         capturados.push(data);
         return originalPostMessage(data, origin);
       };
-      await globalThis._iniciarTemporizadorAventura('Aventura1', 'es', globalThis.estado, '[TEST]');
+      await globalThis._iniciarTemporizadorAventura('Aventura1', globalThis.estado, '[TEST]');
       const msg = capturados.find((m) => m.tipo === globalThis.TIPOS_MENSAJE.AVENTURA.INICIADA);
       return { tiempoEstimado: msg?.datos?.tiempoEstimado };
     });
