@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
+    <!-- El único camino hacia la app. La regla de HTTPS y el registro del service worker los hace codigo-padre.html al cargar;
+         aquí no se repiten. El enlace del cuerpo queda para quien no tiene JavaScript. -->
     <script>globalThis.location.replace('codigo-padre.html');</script>
     <title>Valencia VGuides - Redirigiendo...</title>
     <link rel="manifest" href="/manifest.json">
@@ -139,21 +141,6 @@
                 if (valor >= 100) clearInterval(paso);
             }, 60);
         })();
-        // Force HTTPS redirect for valenciavguides.es
-        if (globalThis.location.protocol !== 'https:' &&
-            globalThis.location.hostname === 'valenciavguides.es') {
-            globalThis.location.href = 'https://' + globalThis.location.hostname + globalThis.location.pathname + globalThis.location.search + globalThis.location.hash;
-        } else {
-            // Redirect to codigo-padre.html if meta refresh doesn't work
-            setTimeout(function() {
-                globalThis.location.href = 'codigo-padre.html';
-            }, 100);
-        }
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
-        }
     </script>
 </body>
 </html>

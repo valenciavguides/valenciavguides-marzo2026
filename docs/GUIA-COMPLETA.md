@@ -4751,7 +4751,7 @@ El círculo (`#loading-spinner-shell`) usa `min(85vmin,85vw,70vh)` con `margin-t
 
 `#overlay-carga-aventura` comparte círculo/logo, tamaño y color de porcentaje con `#loading-overlay` (`85vmin`/`64vmin`/`58vmin`, `clamp(1.1rem,3.4vmin,1.32rem)`, `#ffffff`). Bajo la barra, `#carga-progreso-frase` usa el mismo mecanismo que `_iniciarFrasesLoadingOverlay()` (función gemela `_iniciarFraseCargaAventura()`/`_detenerFraseCargaAventura()`, definida en el mismo `<script>` clásico que `mostrarOverlayCargaAventura()`), leyendo el mismo banco de frases `TRADUCCIONES_REANUDACION[idioma].frasesCarga` — expuesto a esta página vía `globalThis.TRADUCCIONES_REANUDACION` desde el bloque `<script type="module">` que ya importa `TRADUCCIONES_DESPEDIDA`/`TRADUCCIONES_ACCESO_ERRONEO`/`TEXTOS_VALORACION` de `js/traducciones-ui.js` (necesario porque `import` de ES módulos no funciona en el `<script>` clásico donde vive `mostrarOverlayCargaAventura()` — mismo patrón de `globalThis.X = X` que usa `codigo-padre.html` entre sus 5 scripts, ver nota de scope de CLAUDE.md). El orden del bloque es barra → porcentaje → frase, igual que en el padre. `actualizarProgresoCargaAventura(porcentaje)` solo recibe el porcentaje — la secuencia real de `iniciarAventura()` lo llama con 12→28→55→100 en sus 4 pasos.
 
-**Quinto sitio, puramente decorativo — `index.html`:** la pantalla de redirect (`<script>globalThis.location.replace('codigo-padre.html')` en `<head>`, además de un `setTimeout` de 100ms como fallback en el body) prácticamente nunca llega a pintarse — la navegación empieza casi antes de que el body se parsee. Aun así, comparte el mismo círculo/logo (`85vmin`) y la misma barra/porcentaje blanco que las otras dos pantallas, animados por un `setInterval` local de 60ms que sube el valor +18 hasta 100 — puramente decorativo, ya que un redirect no tiene ningún progreso real que medir; existe solo para que el lenguaje visual coincida en el rarísimo caso de que esta pantalla llegue a verse (conexión muy lenta retrasando la navegación).
+**Quinto sitio, puramente decorativo — `index.html`:** la pantalla de redirect (`<script>globalThis.location.replace('codigo-padre.html')` en `<head>`, el único camino hacia la app) prácticamente nunca llega a pintarse — la navegación empieza casi antes de que el body se parsee. Aun así, comparte el mismo círculo/logo (`85vmin`) y la misma barra/porcentaje blanco que las otras dos pantallas, animados por un `setInterval` local de 60ms que sube el valor +18 hasta 100 — puramente decorativo, ya que un redirect no tiene ningún progreso real que medir; existe solo para que el lenguaje visual coincida en el rarísimo caso de que esta pantalla llegue a verse (conexión muy lenta retrasando la navegación).
 
 #### Por qué nada puede verse nunca por encima de `#loading-overlay`, sea cual sea el orden de arranque
 
@@ -4816,7 +4816,7 @@ Los stats (paradas, tramos, retos, monumentos, audios) de los botones de aventur
 > **Archivos con comunicación (verificados):**
 >
 > - *Bus / postMessage entre componentes*: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/utils.js`
-> - *SW lifecycle*: `sw.js`, `index.html`
+> - *SW lifecycle*: `sw.js`, `codigo-padre.html` (el registro y el aviso de versión nueva)
 > - *HTTP fetch / API backend*: `js/api-client.js`, `js/data-loader.js`
 > - *localStorage / sessionStorage*: `js/api-client.js` (token sesión), `En-busca-del-tesoro.html` (lee `vv_idioma` en modo despedida), `js/suppress-warnings.js` (flag debug), `js/reciclaje-digital.js` (clear total + caché SW)
 >
@@ -4917,7 +4917,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a83f9c833433'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-38c1436762a8'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4925,7 +4925,7 @@ No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bu
 
 | Archivo | Comportamiento |
 |---------|----------------|
-| `index.html` | Solo registra el SW. Sin listener de actualización. La página redirige inmediatamente a `codigo-padre.html`. |
+| `index.html` | No registra el SW ni escucha actualizaciones: lleva a `codigo-padre.html` con un `location.replace` en el `<head>`, su único camino, y el padre registra el SW al cargar. |
 | `codigo-padre.html` | Muestra banner no bloqueante `#sw-update-banner` (`z-index:1100000`) con texto y botón en el idioma del usuario (`TRADUCCIONES_SW_UPDATE`, 12 idiomas, expuesta en `globalThis` desde Script 1). Idioma: el de la interfaz (`globalThis.idiomaDeLaInterfaz()`, §9.10, «Frases aleatorias durante la espera»); si la tabla aún no está publicada (el banner puede salir antes de que corra Script 1), el texto sale en español. El usuario decide cuándo recargar; el botón navega con `?_v=<timestamp>` para que la caché HTTP del navegador no resuelva esa navegación. Guard `previousController` evita el banner en primera instalación. Guard `_swBannerMostrado` evita duplicar si `controllerchange` y `SW_ACTIVADO` llegan simultáneamente. **Persistente entre sesiones.** La decisión de mostrarlo o retirarlo vive en una única función (`_evaluarVersiones`) que compara qué versión corre —se la pregunta al SW con `SW_VERSION_REQUEST`— contra la desplegada en `version.json`; ninguna otra rama muestra ni retira el banner por su cuenta. Ver detalle más abajo. |
 
 En ambos listeners (`controllerchange` y mensaje `SW_ACTIVADO`) se ignora la primera instalación (`!previousController → return`).
@@ -8073,6 +8073,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `133-hijo4-el-reto-abierto-es-uno-solo.spec.js` | 2 | En hijo4, «el reto abierto» (`estado.retoActualId`) es uno solo: con un reto abierto, el cambio de modo no limpia la ventana y lo avisa (UR-1, control); tras un `NAVEGACION.CAMBIO_PARADA` que nombra un reto, sin abrirlo, el cambio de modo limpia sin ese aviso (UR-2) |
 | `134-paginas-de-hijo1-con-x.spec.js` | 4 | Las cuatro páginas que abre hijo1 (gastronomía, información, historia y páginas oficiales), abiertas como las abre él (`window.open` en otra ventana), llevan la ✕ común con su aspecto, fija en la esquina, y la ✕ cierra la ventana (PH-1 y PH-2, una por página) |
 | `135-la-eleccion-se-sabe-siempre.spec.js` | 8 | La aventura y el idioma elegidos se saben en todo momento, por un solo camino y sin reservas: elegirlos los deja en las variables de la selección y en el padre (`globalThis.idiomaSeleccionado`, `globalThis.aventuraSeleccionada` y `vv_idioma`; EL-1, control); el padre guarda la aventura en un solo sitio (EL-2); si el padre no puede guardarla, la selección se queda en la lista de aventuras (EL-3); sin aventura elegida, la selección no carga los datos de ninguna (EL-4); el asistente no construye nada antes de que el padre le mande el idioma (EL-5); una sesión guardada sin idioma no se ofrece para reanudar, y se dice (EL-6); `video-intro.html` dice que no le han pasado `?lang=`, y con él no dice nada (EL-7); y lo que el código lee sin respaldo está completo en los doce idiomas: las tablas de `js/traducciones-ui.js` con sus claves, las escenas de Jaime, los textos de términos, agradecimientos y normativa, y los datos del padre, los retos y los audios de las siete aventuras (EL-8). |
+| `136-index-un-solo-camino.spec.js` | 3 | `index.html` lleva a la app por un solo camino: en su código hay una sola navegación, `location.replace('codigo-padre.html')`, sin registro del SW ni regla de HTTPS propios (IX-1); entrar por `/` y por `/index.html` deja en `/codigo-padre.html` (IX-2) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8301,13 +8302,13 @@ La bandera no se vuelve a bajar: una página que se está reciclando no tiene na
 
 La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendiente (`vv_sw_update_pendiente`) tiene que poder limpiarse alguna vez, o el banner reaparecería en cada arranque para siempre. Quien lo limpia es la fila `_versionDeCarga === _versionDesplegada` de la tabla, es decir, el arranque siguiente cuando comprueba que ya está al día. Por eso el botón "Actualizar" **no** limpia el aviso antes de navegar: si esa recarga no consigue traer la versión nueva, el aviso sigue pendiente y el banner vuelve a mostrarse solo, dando otra oportunidad de pulsarlo. `registration.update()` sigue reintentando en cada carga y cada cambio de visibilidad, así que la actualización real acaba completándose con el uso normal de la app.
 
-`index.html` solo registra el SW (`navigator.serviceWorker.register`) sin ningún listener de actualización, ya que esa página redirige inmediatamente a `codigo-padre.html`. El redirect (`location.replace()` en un `<script>` inline en `<head>`) es efectivamente instantáneo, así que el `<body>` casi nunca llega a pintarse — pero existe como respaldo visible si algo lo retrasa (red lenta, script bloqueado), y usa el mismo lenguaje visual que el resto de pantallas de espera de la app: fondo naranja `#ff8c00`, `logo-redondo.png` girando dentro del mismo círculo (`85vmin`) y con la misma animación de 7s que `#loading-overlay` (`codigo-padre.html`) y `.logo-carga-circular-bg` (`En-busca-del-tesoro.html`), más la misma barra de progreso y porcentaje blanco (decorativos, animados con un `setInterval` local ya que no hay nada real que medir en un redirect). Detalle completo en "Frases aleatorias durante la espera — todas las pantallas de carga", §9.10.
+`index.html` no registra el SW ni escucha actualizaciones: redirige a `codigo-padre.html`, que registra el SW y lleva el aviso de versión nueva; tampoco repite la regla de HTTPS del padre. El redirect (`location.replace()` en un `<script>` inline en `<head>`) es efectivamente instantáneo, así que el `<body>` casi nunca llega a pintarse — pero existe como respaldo visible si algo lo retrasa (red lenta, script bloqueado), y usa el mismo lenguaje visual que el resto de pantallas de espera de la app: fondo naranja `#ff8c00`, `logo-redondo.png` girando dentro del mismo círculo (`85vmin`) y con la misma animación de 7s que `#loading-overlay` (`codigo-padre.html`) y `.logo-carga-circular-bg` (`En-busca-del-tesoro.html`), más la misma barra de progreso y porcentaje blanco (decorativos, animados con un `setInterval` local ya que no hay nada real que medir en un redirect). Detalle completo en "Frases aleatorias durante la espera — todas las pantallas de carga", §9.10.
 
 > **En las pasadas E2E cada test estrena contexto, así que cada test registra el SW desde cero.** Eso no cuesta nada mientras la página vive, pero en el proyecto iphone12 una página cerrada con ese registro y la selección a medio cargar deja un proceso de WebKit ocupando un núcleo durante unos diez segundos. Por eso el arranque común de los specs espera a que el padre termine de arrancar antes de dar paso al test: el detalle y las mediciones están en §38.3.
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-a83f9c833433'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-38c1436762a8'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8551,7 +8552,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 132 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 133 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9060,7 +9061,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-a83f9c833433';
+const CACHE_VERSION = 'v-38c1436762a8';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12534,7 +12535,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-a83f9c833433';
+const CACHE_VERSION = 'v-38c1436762a8';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
