@@ -3572,6 +3572,15 @@ Al contestar al usuario qué queda del estudio, con un script sobre las 111 entr
 - **Lo que ve el usuario.** El cartel de transición (`mostrarCartelTransicion`) compone su texto con los dos nombres (`TRADUCCIONES_CARTEL_TRANSICION`): entre dos paradas con el mismo nombre dice que termina y empieza la misma.
 - **Opciones, sin recomendar (contenido):** *A)* nombres distintos en los datos; *B)* que el cartel tenga otro texto cuando los dos nombres coinciden; *C)* dejarlo.
 
+##### K-120 — La cola de retos del elemento se prepara por tres caminos, y el vaciado está escrito seis veces — ✅ (leído; por medir)
+
+- **Cómo salió.** Al leer de una en una las ocho funciones que escriben `estado.retoActual` (K-09, resto).
+- **Dónde** (`codigo-padre.html`). (1) `_asegurarRetoActualDe(elemento)` (`:11405`), el sitio que dejó K-90: prepara `{ id, cola, colaCompletados }` del elemento si no es ya el suyo, con los retos hechos si el elemento vuelve con su ficha; la llaman la activación del elemento (`:11703`) y el fin del audio (`:12135`). (2) `progresarSiguienteElemento()` (`:9798`) escribe la misma estructura directamente para el elemento siguiente, con `colaCompletados` vacío, sin pasar por (1); como después la cola ya casa, (1) no la vuelve a tocar en la activación. (3) `_hdl_RETO_SOLICITAR` (`:10411-10422`): si `estado.retoActual` no existe lo crea («puede ocurrir si estadoPadre fue recreado con el fallback mínimo») y, si la cola está vacía, la rellena con los retos del elemento («fallback: usar reto_id clásico»), sin decirlo. Y el vaciado `{ id: null, cola: [], colaCompletados: new Set() }` está escrito seis veces (`:7457`, `:7895`, `:9924`, `:10412`, `:10607`, `:12104`).
+- **Lo que no cuadra.** Tres sitios deciden qué cola tiene el elemento; el tercero es una reserva muda que, si alguna vez actúa, tapa que los otros dos no la prepararon. Que hoy no actúe no está medido.
+- **Método.** `extract-estado.cjs` (las ocho escritoras) y lectura de cada sitio; búsqueda desnuda de `_asegurarRetoActualDe` y del literal del vaciado. Sin ejecutar.
+- **Lo que ve el usuario.** Nada, mientras la reserva no actúe.
+- **Recomendación, por medir antes (comportamiento en AVENTURA):** que la cola la prepare solo (1), también al avanzar; que (3) no la rellene sino que lo diga con un `error` (o se quite, si una sonda demuestra que no se alcanza); y una función para el vaciado. Con spec en rojo antes, como K-90.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 
@@ -4243,8 +4252,9 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 108 | 2 | K-112 (resto) | la ventana de compra de `js/reciclaje-digital.js`: sin la entrada del índice, un `warn` y la aventura por no caducada | compra | — | decisión |
 | 109 | 1 | K-114 (resto) | el texto de `index.html` (de tú y solo en español) y la etiqueta HSTS en `<meta>` de quince páginas, que el navegador no atiende | VISIBLE (index), servidor (HSTS) | — | decisión |
 | 110 | 2 | R2.22 (3 px) | los 3 px que le faltan al desplegable del tipo de mapa en iPhone con las barras de Safari | VISIBLE | — | decisión |
-| 111 | 3 | K-09 (resto) | leer de una en una `estado.retoActual` (ocho escritoras), las tres limpiezas del mapa y `limpiarRecursosPorModo` | — | — | trabajo pendiente, sin decisión |
+| 111 | 3 | K-09 (resto) | leer de una en una `estado.retoActual` (ocho escritoras), las tres limpiezas del mapa y `limpiarRecursosPorModo` — **`retoActual`, leída (2026-10-19): K-120**; quedan las limpiezas | — | — | trabajo pendiente, sin decisión |
 | 112 | — | M-8 | la prueba de campo del reintento del GPS en frío (15 s frente a 5 s) | campo | K-17 B | del usuario |
+| 113 | 4 | K-120 | la cola de retos del elemento la prepara solo `_asegurarRetoActualDe()`; la reserva de `_hdl_RETO_SOLICITAR`, ruidosa o fuera; el vaciado, en una función | SPEC, MEDIR | blanda: K-87, K-90 | sí (medir antes) |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
