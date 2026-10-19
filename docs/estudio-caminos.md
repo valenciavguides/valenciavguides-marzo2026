@@ -1089,6 +1089,7 @@ Instrumento: nombres de campo escritos bajo ≥2 raíces de estado distintas (17
   desde `estado.gps.activo` que es el que decide `activarGPS()`.
 - **Veredicto:** ninguno de los 17 se ha demostrado roto; es el mapa de "mismo dato, dos dueños"
   para el estudio individual. 🔎 para todos salvo los ya documentados.
+- **Revisado uno a uno (2026-10-19), con el código de hoy.** `_llegada*`: K-06, cerrada. `gpsActivo`: en el padre hay dos dueños; `estadoMapa.gpsActivo` solo lo lee `diagnosticarGPS()`, que por eso informa mal (K-116); en hijo2 y en hijo5 son copias por frame. `posicionUsuario` y los demás campos del GPS: el espejo de `sincronizarEstadoGPSConPadre`, descrito como diseño (K-41 lo dejó fuera por eso). `modo`: por frame, documentado (§37.5 de la guía). `paradaActual` y `tramoActual`: los dos dueños del elemento actual en el padre son K-74, pendiente del usuario. `tiempoRestante`: el padre y la cuenta atrás de hijo1, por frame. `terminosAceptados` y `ultimaInteraccion`: ya solo viven en la selección y en hijo1 (K-41 los quitó del padre) y solo viajan en la respuesta al latido, que nadie lee (K-70). Las banderas por frame (`hijoListoEnviado`, `inicializado`, `datosRecibidos`): lo esperable. **Método:** búsqueda desnuda de cada campo y lectura de sus escritores y lectores.
 
 ##### K-09 — Escritores múltiples del estado del padre — 🔎
 
@@ -1108,6 +1109,7 @@ Dos formas concretas ya vistas al leer:
   (`:5596-5606`).
 - **Pendiente:** la lista completa está en el instrumento de estado; ninguna de las 49 rutas se
   ha leído una a una. Es el siguiente trabajo natural de "estudio individual".
+- **Revisado (2026-10-19), con el código de hoy.** `extract-estado.cjs` da 40 rutas con tres o más funciones escritoras (eran 49: K-41 y K-57 se llevaron varias). Clasificadas por sus funciones escritoras, y leídas las que no son de una máquina de estados: la mayoría son transiciones de un mismo dueño (la máquina del GPS del padre, los pares de activar y reiniciar de hijo2, las limpiezas del mapa) o banderas de frames distintos que el instrumento junta porque se llaman `estado` en cada uno. Con entrada propia: `estado.paradaListaParaAvanzar` (K-86), `estado.hijosInicializados` (K-07, revisión), `estadoMapa.paradaActual` y `tramoActual` (K-74), `_llegadaNotificada` (K-06) y `ultimaInteraccion` (K-70). **Nuevo:** K-117 (el elemento actual se fija dos veces al restaurar). **Quedan para una lectura de una en una** (sin hallazgo todavía, no se han ejecutado): `estado.retoActual`, ocho escritoras (la cola de retos; K-87 y K-90 ya pusieron un sitio para parte de ella); las tres limpiezas de `js/funciones-mapa.js` (`limpiarRecursosInactivos`, `limpiarRecursos`, `limpiarPorEstado`), que escriben los mismos campos de `estadoMapa`; y `limpiarRecursosPorModo` de `js/app.js`, que también escribe `estado.gps` y el elemento actual (el spec 52 vigila que no apague el GPS).
 
 ##### K-10 — Globals con varios escritores — 🔎 (más ➖ para los alias de scripts)
 
@@ -3538,6 +3540,24 @@ Al contestar al usuario qué queda del estudio, con un script sobre las 111 entr
 - **Recomendación (un solo camino; sin otro cambio visible):** `draw()` pinta siempre en el acto, pero solo programa el siguiente fotograma si no hay ya uno pendiente; la reanudación tras la pausa llama a `draw()` como los demás.
 - **Aplicada (2026-10-19, `ba98ae4`), la recomendación tal cual.** `fotogramaPendiente` guarda el fotograma programado; `draw()` solo programa otro si no lo hay. Spec 140: UB-1, UB-2 y UB-3 (uno al abrir, uno tras tres `resize`, uno tras reiniciar) en rojo con el puzzle anterior (3, 6 y 4 bucles) y en verde después. Chromium, specs 43, 91, 115, 116, 117 y 140: 53 de 53. Guía: la mecánica del puzzle, la cabecera de sus mensajes (G-86) y la fila del spec. **Censo (regla 3b):** tocado `puzzle.html`, el único frame con un bucle que se reprograma a sí mismo sin fin; lo abren hijo4 y la selección, que no cambian.
 
+##### K-116 — En el padre, `diagnosticarGPS()` dice que el GPS está apagado con el GPS encendido — ✅ (leído; por medir con su spec)
+
+- **Cómo salió.** Al revisar uno a uno los campos de K-08. K-08 ya lo anotaba como «un instrumento que informa la copia equivocada».
+- **Dónde.** `js/funciones-mapa.js`, `diagnosticarGPS()` (`:2401`): informa `gpsEstado.activo` y `gpsActivo` desde `estadoMapa.gpsActivo`. La publica el padre como herramienta de consola (`globalThis.diagnosticarGPS`, Script 4). En el padre, ese campo no llega a `true` por el camino normal: `manejarGPSActivar()` delega en `globalThis.activarGPS()` y solo lo marca en la rama de respaldo, cuando `activarGPS` no existe (lo dice el comentario de `sincronizarEstadoGPSConPadre`, `:1086-1100`). El dueño del dato es `estadoPadre.gps.activo` (con `watchId`), que pone `activarGPS()`. En hijo2, que también carga el módulo, `estadoMapa.gpsActivo` sí es su copia local.
+- **Método.** Búsqueda desnuda de `estadoMapa.gpsActivo`: tres escrituras (`:2493`, `:2519`, `:2531`) y dos lecturas, las dos en `diagnosticarGPS()` (`:2414`, `:2416`). Leídas las dos ramas de `manejarGPSActivar()`. Sin ejecutar.
+- **Lo que ve el usuario.** Nada: es una herramienta de consola. Pero miente a quien diagnostica, que es lo que la regla de «logs que mienten» quiere evitar.
+- **Recomendación (sin cambio visible):** que el diagnóstico lea el dato de su dueño en cada frame (en el padre, `estadoPadre.gps.activo && watchId !== null`; en hijo2, `estadoMapa.gpsActivo`), con un spec en rojo antes. Preparada, sin aplicar: el día 19 por la mañana no se podía lanzar Playwright (el usuario estaba usando el equipo).
+
+##### K-117 — Al restaurar el progreso, el elemento actual se fija dos veces, por el id guardado y por el índice guardado — ✅ (leído)
+
+- **Cómo salió.** Al revisar una a una las rutas de K-09 con tres o más escritores (`estado.elementoActual`, seis funciones).
+- **Dónde.** `codigo-padre.html`, Script 1. `restoreProgressFromStorage()` llama a `_restoreApplyState(obj)`, que fija `estado.elementoActual` buscando en `elementosIDpadre` el `elementoActualId` guardado (`:4322-4327`), y despacha el `CAMBIO_PARADA` del elemento (`_restoreBroadcast`). Al volver, `_restaurarProgresoRest()` (`:4897-4908`) escribe otra vez `estado.indiceProgreso` y fija `estado.elementoActual = obtenerElementoActual()`, que lo saca del índice.
+- **Lo que no cuadra.** Son dos respuestas a la misma pregunta («¿qué elemento estaba en curso?») con dos datos guardados distintos. Con los datos del día en que se guardó, coinciden. Si los datos cambian entre guardar y restaurar (lo que plantea K-51: el progreso no lleva versión), el índice puede apuntar a otro elemento y pisa al del id; después llega el `CAMBIO_PARADA` restaurado, que vuelve a fijarlo por su `paradaId`.
+- **Método.** Leídas las dos funciones, `_restoreApplyState`, `_restoreBroadcast` y sus llamadores (búsqueda desnuda de los cuatro nombres). Sin ejecutar.
+- **Lo que ve el usuario.** Nada mientras los datos no cambien entre una sesión y la siguiente.
+- **Relacionado.** K-51 (la versión de los datos en el progreso guardado), K-89 (la ficha guardada).
+- **Pendiente: decisión, con K-51.** Que el elemento lo decida un solo dato (el id, que no se mueve si se insertan elementos) y el índice salga de él. Toca la reanudación: se decide y se mide con K-51.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 
@@ -4197,6 +4217,8 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 93 | 1 | K-36 (dos claves) | fuera las claves de `SOLICITAR_DATOS_PARADAS` y el `incluirMetadatos` de dos peticiones de coordenadas, que nadie lee — **hecha (2026-10-19, `177e731`), también el `padreId` de esas peticiones** | GUÍA (la carga útil del mensaje) | blanda: K-41 (resto) | sí |
 | 97 | 1 | K-41 (hijo2) | fuera `estadoComponente.arrayParadasLocal` de hijo2, que solo lee el log de su handler — **hecha (2026-10-19, `304ceda`)** | — | — | sí |
 | 98 | 2 | K-115 | un solo bucle de dibujo en el puzzle: `draw()` solo programa el siguiente fotograma si no hay uno pendiente — **hecha (2026-10-19, `ba98ae4`)** | SPEC (140) | — | sí |
+| 99 | 1 | K-116 | que `diagnosticarGPS()` lea el «GPS activo» de su dueño en cada frame | SPEC | — | sí (preparada; falta poder lanzar su spec) |
+| 100 | 4 | K-117 | que el elemento actual tras restaurar lo decida un solo dato guardado (el id) | SPEC, MEDIR | **dura:** K-51 | con K-51 |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
