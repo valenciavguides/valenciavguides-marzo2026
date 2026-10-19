@@ -185,8 +185,7 @@ export const TIPOS_MENSAJE = {
         DATOS: 'MAPA_COMPLETO.DATOS',
         /** El overlay ya está visible: es cuando el mapa puede medirse y encuadrar. */
         VISIBLE: 'MAPA_COMPLETO.VISIBLE'
-    },
-    NAVEGACION_PANTALLA: 'NAVEGAR_PANTALLA'
+    }
 };
 
 if (globalThis.window !== undefined) {

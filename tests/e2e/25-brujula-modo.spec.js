@@ -31,10 +31,6 @@
  *   BR-7  Si la brújula no responde (permiso denegado/no soportada), "Seguir mi
  *         rumbo" revierte sola a "Norte fijo" ~1.5s después de elegirlo —
  *         `desactivarSeguimientoRumbo()` se invoca sin que el usuario haga nada más.
- *   BR-8  globalThis._resetBrujulaModo() (llamado desde ejecutarElegirOtra()
- *         al elegir otra aventura desde el diálogo de reanudación de sesión, que no
- *         recarga la página) fuerza el reset a "Norte fijo" bajo demanda —
- *         invoca `desactivarSeguimientoRumbo()`.
  *   BR-9  Corrección de una condición de carrera (auditoría): alternar rumbo→norte→
  *         rumbo dos veces en menos de 1.5s no deja que el timeout de auto-reversión
  *         de la PRIMERA elección revierta la SEGUNDA antes de que cumpla su propio
@@ -42,8 +38,8 @@
  *         contra el modo activo. Verificado contando cuántas veces se invoca
  *         `desactivarSeguimientoRumbo()`, no por ningún icono.
  *
- * El «Elegir otra aventura» del diálogo de vuelta (`_elegirOtra`) recarga la página: no pasa por
- * `_resetBrujulaModo()`. Su recorrido, con una aventura arrancada de verdad, lo cubre el spec 128.
+ * «Elegir otra aventura» recarga la página desde los dos diálogos (`_elegirOtraAventura`): la brújula vuelve a «Norte fijo»
+ * porque la página nace de nuevo. Sus recorridos los cubren los specs 128 (diálogo de vuelta) y 146 (diálogo de reanudación).
  */
 'use strict';
 
@@ -223,31 +219,6 @@ test.describe('BR — Menú de modo de cámara', () => {
     const trasEspera = await page.evaluate(() => globalThis.__llamadas());
 
     expect(trasEspera.llamadaDesactivar, 'Tras ~1.5s sin brújula activa, debe revertir llamando a desactivarSeguimientoRumbo()').toBe(true);
-  });
-
-  test('BR-8. globalThis._resetBrujulaModo() devuelve el menú a "Norte fijo" bajo demanda', async ({ page }) => {
-    await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
-
-    const resultado = await page.evaluate(() => {
-      document.getElementById('brujula-modo').style.display = 'flex';
-      let llamadaDesactivar = false;
-      const original = globalThis.funcionesMapa.desactivarSeguimientoRumbo;
-      globalThis.funcionesMapa.desactivarSeguimientoRumbo = () => { llamadaDesactivar = true; };
-
-      // Simula haber elegido "Seguir mi rumbo" en la aventura abandonada, sin esperar a
-      // la reversión automática de BR-7 (se llama al hook de reset directamente y rápido).
-      document.querySelector('#brujula-modo > div:first-child').click(); // abrir
-      document.querySelectorAll('#brujula-modo > div:last-child > div')[1].click(); // "Seguir mi rumbo"
-
-      const existe = typeof globalThis._resetBrujulaModo === 'function';
-      globalThis._resetBrujulaModo?.();
-
-      globalThis.funcionesMapa.desactivarSeguimientoRumbo = original;
-      return { existe, llamadaDesactivar };
-    });
-
-    expect(resultado.existe, 'globalThis._resetBrujulaModo debe existir como función').toBe(true);
-    expect(resultado.llamadaDesactivar, 'El reset debe invocar desactivarSeguimientoRumbo()').toBe(true);
   });
 
   test('BR-9. Un timeout de auto-reversión viejo no revierte una elección de "rumbo" más reciente', async ({ page }) => {

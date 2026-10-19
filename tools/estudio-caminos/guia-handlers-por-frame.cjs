@@ -43,7 +43,7 @@ const FRAMES = [
   { clave: 'hijo6', s7: /^### 7\.7 /, s8: /^### 8\.10 /, s26: /^#### 26\.12\.9 /, ficheros: ['chat-hijo6.html', ...COMPARTIDOS_HIJOS] },
 ];
 
-// Un tipo es `CATEGORIA.NOMBRE` (o con `:`), salvo los pocos que no llevan categoría (`NAVEGAR_PANTALLA`): esos solo cuentan si el
+// Un tipo es `CATEGORIA.NOMBRE` (o con `:`), salvo los que no llevan categoría: esos solo cuentan si el
 // código los declara como válidos, para que cualquier palabra en mayúsculas entre comillas no pase por tipo.
 const validos = new Set(Array.isArray(j.validos) ? j.validos : Object.keys(j.validos || {}));
 const reTipoConCategoria = /^[A-Z][A-Z0-9_]*([.:][A-Z0-9_]+)+$/;

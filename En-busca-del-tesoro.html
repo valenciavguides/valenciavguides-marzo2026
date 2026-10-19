@@ -768,7 +768,7 @@
       <img id="idioma-bandera-confirmacion" src="" alt="Bandera" style="width: 15rem; height: auto; border: none; border-radius: 0.625rem; margin-bottom: 0.9375rem;">
     </div>
     <div style="display:flex; gap:1.25rem; justify-content:center;">
-      <button class="btn btn-mundo-rojo" onclick="void mostrar(2)" title="No, cambiar">
+      <button class="btn btn-mundo-rojo" onclick="volverAElegirIdioma()" title="No, cambiar">
         <div class="contenedor-x"><span class="icono-x">✗</span></div>
         <div class="contenedor-x segunda"><span class="icono-x">✗</span></div>
       </button>
@@ -1318,7 +1318,7 @@
 
     const _ACCION_PANTALLA = {
       // La P1 abre un recorrido nuevo: el pago deja de darse por hecho. Se vuelve a ella sin recargar esta
-      // pantalla al responder «no» en el reto 2 y al elegir otra aventura en el diálogo de reanudación.
+      // pantalla al responder «no» en el reto 2.
       1:  () => { categoriaPagada = null; },
       4:  () => cargarVideoIntroIframe(),
       6:  () => void cargarPuzzle(),
@@ -2188,7 +2188,7 @@
 
     function rechazarSinAudio() {
       document.getElementById('audio-warning-overlay').style.display = 'none';
-      void mostrar(2);
+      volverAElegirIdioma();
     }
 
     async function confirmarAventura() {
@@ -2523,13 +2523,7 @@
         setTimeout(() => { void mostrar(17); }, 1500);
       } else {
         _log.info('[SELECCION] Reto R2: respuesta negativa → reinicio a P1');
-        if (globalThis.parent && globalThis.parent !== globalThis) {
-          // `destino: 'padre'` es obligatorio: sin destino, `enviarMensaje` lo manda a los iframes
-          // que registra esta pantalla (video-intro, puzzle), nunca al padre. El `origen` lo pone
-          // el bus (`'seleccion'`), y sin él el padre descartaría el aviso y
-          // _hdl_SELECCION_REINICIAR no llegaría a ejecutarse (spec 74).
-          globalThis.mensajeria.enviarMensaje({ tipo: globalThis.TIPOS_MENSAJE.SELECCION.REINICIAR, destino: 'padre' });
-        }
+        _avisarReinicioAlPadre();
         setTimeout(() => {
           reiniciarSeleccion();
           void mostrar(1);
@@ -2551,6 +2545,25 @@
       retoCargadoR1 = false;
       retoCargadoR2 = false;
       _log.info('[SELECCION] Estado reiniciado');
+    }
+
+    // El único envío de SELECCION.REINICIAR: el padre baja sus indicadores de P14/P15 y borra el idioma guardado
+    // (_hdl_SELECCION_REINICIAR). Lo usan el «no» del reto R-2 y la vuelta a las banderas. `destino: 'padre'` es
+    // obligatorio: sin destino, `enviarMensaje` lo manda a los iframes que registra esta pantalla (video-intro, puzzle),
+    // nunca al padre. El `origen` lo pone el bus (`'seleccion'`), y sin él el padre descartaría el aviso y
+    // _hdl_SELECCION_REINICIAR no llegaría a ejecutarse (spec 74).
+    function _avisarReinicioAlPadre() {
+      if (globalThis.parent && globalThis.parent !== globalThis) {
+        globalThis.mensajeria.enviarMensaje({ tipo: globalThis.TIPOS_MENSAJE.SELECCION.REINICIAR, destino: 'padre' });
+      }
+    }
+
+    // Volver a las banderas para cambiar de idioma: «No, cambiar» en la confirmación del idioma (P3) y el «No» del aviso
+    // sin audio. El idioma guardado se borra, como en todas las vueltas a la elección de idioma (docs/estudio-caminos.md,
+    // K-125), y la siguiente bandera lo vuelve a escribir.
+    function volverAElegirIdioma() {
+      _avisarReinicioAlPadre();
+      void mostrar(2);
     }
 
     // Las variables de nivel superior de este <script> clásico (el idioma y la aventura elegidos, `aventuraIniciando`,
@@ -2576,6 +2589,7 @@
     globalThis.aceptarNormativa = aceptarNormativa;
     globalThis.aceptarSinAudio = aceptarSinAudio;
     globalThis.rechazarSinAudio = rechazarSinAudio;
+    globalThis.volverAElegirIdioma = volverAElegirIdioma;
     globalThis.confirmarAventura = confirmarAventura;
     globalThis.continuarTrasPago = continuarTrasPago;
     globalThis.continuarTrasElegirAventura = continuarTrasElegirAventura;
@@ -3185,23 +3199,11 @@
         // Aquí se puede agregar lógica adicional que necesite ejecutarse después de la confirmación del padre
     }
 
-    // Los dos avisos que mueven esta pantalla, por el bus.
-    //
-    // Aqui habia una escucha cruda que solo miraba el origen del dominio, asi que
-    // cualquier frame podia hacerla saltar a otra pantalla. El bus solo acepta a su
-    // padre (el NAVEGAR_PANTALLA) y a los iframes que esta pantalla registra (el aviso
-    // de fin de video, que llega de su propio video-intro).
+    // El aviso que mueve esta pantalla desde fuera, por el bus: el fin del vídeo de introducción, que llega de su propio
+    // video-intro (el bus solo acepta a su padre y a los iframes que esta pantalla registra).
     void registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.VIDEO_INTRO_TERMINADO, async () => {
         _log.info('[SELECCION][P4] video-intro terminado → mostrando P5');
         void mostrar(5);
-        return true;
-    });
-
-    void registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION_PANTALLA, async (mensaje) => {
-        const pantalla = mensaje?.datos?.pantalla;
-        if (!pantalla) return false;
-        logger.debug('📋 [SELECCION] NAVEGAR_PANTALLA recibido → pantalla', pantalla);
-        void mostrar(pantalla);
         return true;
     });
   </script>

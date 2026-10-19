@@ -3503,15 +3503,6 @@
                         } catch (e) { (globalThis.logger || console).debug('[PADRE] Error cambiando modo de cámara', e && e.message); }
                     }
 
-                    // Expuesto para que ejecutarElegirOtra() (diálogo de reanudación de sesión), que no recarga la
-                    // página y queda fuera de este cierre, pueda resetear el modo de cámara en el mismo sitio donde
-                    // resetea estado.tiempoRestante y el resto de globals de la aventura abandonada. El «elegir otra»
-                    // del diálogo de vuelta (_elegirOtra) no lo necesita: recarga la página.
-                    globalThis._resetBrujulaModo = () => {
-                        globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
-                        _brujulaModoActivo = 'brujula-modo-norte';
-                    };
-
                     document.body.appendChild(_brujulaModoDiv);
 
                     // Initialize map service - wait for funciones-mapa to be available
@@ -4279,6 +4270,17 @@
             if (conIdioma) almacen.local.borrar(almacen.CLAVES.IDIOMA);
         }
 
+        // «Elegir otra aventura», la misma salida desde los dos diálogos (el de reanudación, al abrir la app con una aventura
+        // guardada, y el de vuelta, con la aventura en marcha), como «otra aventura» del modal de fin y del de tiempo agotado:
+        // borrar la aventura guardada, con el idioma, y recargar la página. Con una aventura en marcha hay estado suyo en tres
+        // sitios —el padre, los hijos y la selección, que conserva su pantalla de carga y su marca de «arrancando»—, y
+        // reiniciarlo pieza a pieza se dejaba cosas (spec 128). Recargando, todo nace como en un arranque normal y la app se
+        // abre en la P1 (docs/estudio-caminos.md, K-19 y K-95).
+        function _elegirOtraAventura() {
+            _borrarAventuraGuardada({ conIdioma: true });
+            globalThis.location.reload();
+        }
+
         function _restoreCheckStale(obj, logPrefix) {
             const TTL = TTL_PROGRESO_GUARDADO_MS;
             if (!obj.timestamp || Date.now() - obj.timestamp <= TTL) return false;
@@ -4422,32 +4424,6 @@
             return '';
         }
 
-        // Inversa de _mostrarUIActivada() (Script 2) — esa función nunca se revierte por sí
-        // sola. Necesaria en el "elegir otra aventura" del diálogo de reanudación porque
-        // hijo2/hijo3/hijo1-opciones/hijo5/chat/selector de mapa pueden llegar ya visibles
-        // de una restauración de bfcache del navegador al reabrir la pestaña. El del diálogo
-        // de vuelta (aventura realmente activa) recarga la página y no pasa por aquí.
-        function _ocultarUIActivada() {
-            const idsAOcultar = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte'];
-            for (const id of idsAOcultar) {
-                const el = document.getElementById(id);
-                if (el) { el.style.display = 'none'; el.style.visibility = 'hidden'; }
-            }
-            const selMapa = document.getElementById('selector-tipo-mapa');
-            if (selMapa) selMapa.style.display = 'none';
-            // #brujula-modo es flex (contenedor del botón principal + desplegable de
-            // modos), no block — fuera del bucle genérico de arriba, igual que
-            // #selector-tipo-mapa justo encima.
-            const brujulaModoDiv = document.getElementById('brujula-modo');
-            if (brujulaModoDiv) brujulaModoDiv.style.display = 'none';
-            const logoElement = document.getElementById('logo-aventura');
-            const fondoElement = document.getElementById('fondo-blanco');
-            const fondoInferiorElement = document.getElementById('fondo-blanco-inferior');
-            if (logoElement) logoElement.style.display = 'none';
-            if (fondoElement) fondoElement.style.display = 'none';
-            if (fondoInferiorElement) fondoInferiorElement.style.display = 'none';
-        }
-
         // El nombre de una aventura y el de un idioma salen del índice (`js/indice-aventuras.js`), que la fase 1 del arranque
         // carga antes de que nada lo lea. Las siete aventuras y los doce idiomas lo traen (lo comprueba npm run verificar-datos).
         // Si aun así falta una entrada, se dice con un error y se enseña el id o el código: la reserva existe, pero ruidosa.
@@ -4518,8 +4494,7 @@
                 document.body.appendChild(overlay);
                 // #brujula-modo/#selector-tipo-mapa/#btn-chat-soporte tienen z-index 1000000+,
                 // muy por encima del 99999 de este overlay — si ya estaban visibles (restauración
-                // de bfcache al reabrir la pestaña, ver comentario más arriba sobre
-                // _ocultarUIActivada()) se verían encima del diálogo sin esto. Misma regla CSS
+                // de bfcache al reabrir la pestaña) se verían encima del diálogo sin esto. Misma regla CSS
                 // que ya usa la pantalla de "cargando" de ejecutarReanudacion() más abajo.
                 document.body.classList.add('loading');
 
@@ -4570,50 +4545,8 @@
                     if (timerInterval) clearInterval(timerInterval);
                     overlay.remove();
                     (globalThis.logger || console).info(`${logPrefix} 🔄 Usuario eligió OTRA aventura - limpiando estado`);
-                    // Limpiar el estado persistido completo
-                    _borrarAventuraGuardada({ conIdioma: true });
-                    // Resetear globals
-                    globalThis.aventuraSeleccionada = null;
-                    globalThis.idiomaSeleccionado = null;
-                    // El tiempo restante es de ESTA aventura — sin resetearlo, la próxima
-                    // aventura seleccionada arrancaría su temporizador con el tiempo que le
-                    // quedaba a esta (ver _iniciarTemporizadorAventura, tieneRestante).
-                    estado.tiempoRestante = null;
-                    // Mismo motivo que tiempoRestante: los saltos de seguridad del TTL de
-                    // tramos (§31.7b) son de ESTA aventura — sin resetearlos aquí, la próxima
-                    // aventura heredaría los saltos ya gastados en la anterior.
-                    estado.tramoSkipsUsados = 0;
-                    // paradasCompletadas es de ESTA aventura — sin resetearlo, si el usuario
-                    // elige la misma aventura de nuevo, todas sus paradas aparecerían ya
-                    // completadas desde el primer momento.
-                    estado.paradasCompletadas = new Map();
-                    // Este camino (a diferencia de "otra aventura" desde el modal de fin, que
-                    // recarga la página) reutiliza el mismo module scope de funciones-mapa.js —
-                    // sin esto, el modo de cámara ("Seguir mi rumbo"/"Norte fijo") de la aventura
-                    // abandonada seguiría activo en la siguiente, con el icono ya desincronizado.
-                    globalThis._resetBrujulaModo?.();
-                    // Ocultar la UI de "aventura activada" (hijo2/hijo3/hijo1-opciones/hijo5/
-                    // chat/selector de mapa) por si ya estaba visible de una restauración de
-                    // bfcache al reabrir la pestaña — _mostrarUIActivada() (Script 2) es quien
-                    // las muestra y nunca se revierte por sí sola.
-                    _ocultarUIActivada();
-                    // Quitar 'loading' (añadida al mostrar este diálogo) ANTES de revelar el
-                    // iframe de selección: la regla CSS "body.loading iframe" es !important y
-                    // taparía el iframe pese al visibility:visible de abajo si siguiera activa.
-                    document.body.classList.remove('loading');
-                    // Mostrar iframe de selección y navegar a P1
-                    const iframeSeleccion = document.getElementById('seleccion');
-                    if (iframeSeleccion) {
-                        iframeSeleccion.style.display = 'block';
-                        iframeSeleccion.style.visibility = 'visible';
-                        // Por el bus: a pelo iba sin `origen`, y el bus descarta lo que llega sin remite.
-                        void enviarMensaje_S1({
-                            tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA,
-                            destino: 'seleccion',
-                            datos: { pantalla: 1 },
-                        });
-                    }
                     resolve('otra');
+                    _elegirOtraAventura();
                 }
 
                 // Timer auto-continuar 30s
@@ -4675,17 +4608,8 @@
 
                 async function _elegirOtra() {
                     overlay.remove();
-                    _borrarAventuraGuardada({ conIdioma: true });
-                    // Sin aventura guardada, se recarga la página: lo mismo que hace «otra aventura» en el modal
-                    // de fin y en el de tiempo agotado. Aquí la aventura SÍ estaba en curso, así que hay estado
-                    // suyo en tres sitios: el padre (parada, modo, tiempo restante, saltos, brújula), los hijos y
-                    // la pantalla de selección, que ya arrancó una aventura y conserva su pantalla de carga a la
-                    // vista y su marca de «arrancando» (solo las baja un arranque que falla). Reiniciarlo pieza a
-                    // pieza se dejaba fuera a la selección: volvía tapada por esa pantalla de carga y la segunda
-                    // aventura no podía arrancar, y el padre conservaba la parada de la abandonada (spec 128).
-                    // Recargando, todo nace como en un arranque normal y la app se abre en la P1.
                     resolve('otra');
-                    globalThis.location.reload();
+                    _elegirOtraAventura();
                 }
 
                 overlay.querySelector('#btn-vuelta-continuar').addEventListener('click', _continuar);
@@ -12439,10 +12363,16 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
+        // La selección vuelve a empezar: el «no» del reto R-2 (vuelve a la P1), y «No, cambiar» en la confirmación del idioma
+        // y el «No» del aviso sin audio (vuelven a las banderas). Bajan los dos indicadores de P14/P15, y el idioma guardado
+        // se borra, como en todas las vueltas a la elección de idioma (las dos «elegir otra» y la limpieza total del final
+        // lo borran también; docs/estudio-caminos.md, K-125): lo vuelve a escribir la siguiente bandera
+        // (_hdl_SELECCION_IDIOMA_SELECCIONADO). La copia en memoria (globalThis.idiomaSeleccionado) la sustituye esa misma bandera.
         function _hdl_SELECCION_REINICIAR() {
             globalThis._codigoValidadoP14 = false;
             globalThis._iframesPreCargadosP15 = false;
-            (globalThis.logger || console).info('[PADRE][SELECCION.REINICIAR] Flags P14/P15 reseteados — NO en R2');
+            almacen.local.borrar(almacen.CLAVES.IDIOMA);
+            (globalThis.logger || console).info('[PADRE][SELECCION.REINICIAR] Flags P14/P15 reseteados e idioma guardado borrado');
         }
 
         let _aventuraEnProceso = false; // guard contra double-fire de AVENTURA_SELECCIONADA/ACTIVADA
