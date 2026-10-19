@@ -8683,35 +8683,38 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 
 ### 22.0 Checklist rápida de despliegue
 
-Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌ bloqueada** (por hacer, pero hoy no se puede sin romper otra cosa) y **✅** (cerrada, con la decisión tomada).
+Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌ bloqueada** (por hacer, pero hoy no se puede sin romper otra cosa) y **✅** (cerrada, con la decisión tomada). «Hecha cuando» dice qué tiene que ser cierto para cerrar cada tarea.
 
-| # | Tarea | Subsección | Estado |
-|---|-------|-----------|--------|
-| 1 | HTTPS + DNS/hosting | §22.1 | ⏳ pendiente |
-| 2 | CSP sin `unsafe-inline` | §22.2 | ⏳ pendiente |
-| 3 | `console.log` → `logger.js`, y bajar `CONFIG.DEBUG.NIVEL_LOG` a `ERROR` | §22.3 | ⏳ pendiente — la palanca del nivel ya funciona; queda migrar los `console.*` sueltos |
-| 4 | `PROTECT_DATA=true` + backend autenticado + CORS restringido | §22.4 | ⏳ pendiente |
-| 5 | Sandboxing de iframes | §22.5 | ⏳ pendiente |
-| 6 | HSTS | §22.6 | ⏳ pendiente |
-| 7 | Legal y privacidad (RGPD) | §22.7 | ⏳ pendiente |
-| 8 | Protección del código JavaScript (minificación/obfuscación) | §22.8 | ⏳ pendiente |
-| 9 | Eliminar archivos sensibles del `APP_SHELL` del SW | §22.9 | ⏳ pendiente |
-| 10 | `CACHE_VERSION` al desplegar | §22.10 | ⏳ pendiente |
-| 11 | `BACKEND_READY = true` en `js/data-loader.js` (autoriza a preguntar; el modo `'api'` se activa solo donde `/api/health` conteste) | §22.11 | ⏳ pendiente |
-| 12 | Validación del código DEV en el backend (mover de hash cliente a endpoint autenticado) | §22.4 | ⏳ pendiente |
-| 13 | Decidir si `puzzles-aventuras.js` y `mapa-vintage-aventuras.js` entran en `PROTECTED_FILES`, y con qué función de `data-loader.js` se cargarían. `aventuras-ID-padre.js` queda fuera por decisión (§2.2) | §22.12 | ⏳ pendiente |
-| 14 | Compatibilidad iOS PWA y navegadores antiguos (meta tags, Permissions-Policy vía cabecera) | §22.13 | ⏳ pendiente |
-| 15 | Quitar el mensaje de error real del navegador del overlay de GPS sin señal (`#gps-signal-detalle`) | §22.14 | ⏳ pendiente |
-| 16 | Sacar `docs/` del repositorio público (contenido de aventuras + guía interna) | §22.15 | ❌ bloqueada — privatizar el repositorio hoy tumba el HTTPS de GitHub Pages |
-| 17 | Arreglar los dos huecos de `fetchWithRetry()` — el `AbortError` del timeout no reintenta, y `.includes('fetch')` deja fuera a WebKit: **hoy no se ejecuta ni un reintento en iPhone** | §16.1b | ⏳ pendiente |
-| 18 | Fusionar las dos rutas de red: `data-loader.js` debe usar `fetchWithRetry()` de `api-client.js` en vez de su propio `fetch` sin reintento ni timeout. Decidir antes la forma de la respuesta de éxito (`data.exito` vs `!data.error`) | §16.1b | ⏳ pendiente |
-| 19 | El botón "Actualizar" no puede forzar la versión nueva: el borde descarta la query string y la copia dura 10 min | §19 (cache-busting) | ✅ **restricción aceptada** — medido y asumido |
-| 20 | Los specs que necesitan a los hijos los cargan como **iframes reales** dentro de `codigo-padre.html`: con el ayudante `cargarHijosDelPadre()` (§18) o por el recorrido real de la selección, que llega a la normativa y deja que `_hdl_SELECCION_P15_MOSTRADA` los cargue (specs 127, 128 y 129) | §7.1 (modelo P15), §18 | ✅ |
-| 21 | Pasar las sugerencias y valoraciones de los dos Google Forms al backend propio —ruta `/api/...` del mismo origen— y quitar `https://docs.google.com` del `connect-src` de la CSP de `codigo-padre.html` | §10.21, §26.8 | ❌ bloqueada — sin backend no hay quien reciba los envíos |
-| 22 | Comprobar en un iPhone real el desbloqueo de los efectos de sonido (§12, punto 6): que tras un gesto en el puzzle, en hijo4 y en el padre suenan después, sin gesto, el fin de tiempo del puzzle y el modal de tiempo agotado por el temporizador de hijo1; que `pieza_colocada` y `reto_completado` suenan a la vez al colocar la última pieza (la guía de Apple para Safari dice que iOS no admite varias reproducciones simultáneas: se anota cuál sobrevive); y cuánto tarda el primer sonido | §12, §25.12 | ⏳ pendiente — el desbloqueo está hecho; solo se comprueba en un dispositivo, porque Playwright no reproduce la política de audio de iOS |
-| 23 | Consultar las licencias de los recursos de terceros antes de vender la PWA, empezando por los cuatro efectos de sonido de Pixabay (`audios-efectos/LICENCIAS.md`): su licencia prohíbe distribuirlos sueltos, y los ficheros del repositorio público son descargables uno a uno | §12 | ⏳ pendiente — sin prisa mientras solo los usa su autor; se resuelve al publicar la PWA para su venta |
-| 24 | Pasarela de pago y backend por **categoría de precio** (aventuras cortas y largas): la pasarela cobra el precio de la categoría de la aventura elegida, y el backend guarda la categoría con el código y la exige al comprobarlo. Al añadir una aventura hay que darle su categoría en `js/indice-aventuras.js` | §16.2 | ⏳ pendiente |
-| 25 | El botón atrás con una aventura en marcha (§34): comprobarlo en un Android real con la PWA instalada, que es donde existe ese botón | §34 | ⏳ pendiente — la lógica está hecha y medida en los cuatro navegadores de los tests (spec 131) |
+| # | Tarea | Hecha cuando | Subsección | Estado |
+|---|-------|--------------|-----------|--------|
+| 1 | HTTPS y hosting: la app en el servidor propio (opción B), con el DNS de `valenciavguides.es` apuntando a él | `https://valenciavguides.es` sirve la app desde el servidor propio, con certificado válido | §22.1 | ⏳ pendiente |
+| 2 | CSP sin `unsafe-inline` en todas las páginas de la app | ninguna página necesita `unsafe-inline`: los scripts en línea y los atributos de evento están en ficheros `.js`, y cada página declara su `script-src` | §22.2 | ⏳ pendiente — el primer camino de §22.2 no necesita servidor; es un trabajo grande |
+| 3 | Consola de producción: el nivel de log sale del entorno, y ningún `console.*` suelto se ve en producción | fuera de `localhost`, `CONFIG.DEBUG.NIVEL_LOG` vale `LOG_LEVELS.ERROR` sin editar ningún fichero al desplegar, y los tres `console.*` sueltos de §22.3 no se ven en producción | §22.3 | ⏳ pendiente — no necesita servidor |
+| 4 | `PROTECT_DATA=true`, backend autenticado y CORS restringido | pedir directamente un fichero de `PROTECTED_FILES` da 403, la app carga esos datos por la API con token, y CORS solo admite `https://valenciavguides.es` | §22.4 | ⏳ pendiente — necesita el backend |
+| 5 | Aislamiento de iframes (`sandbox`): decidir, iframe por iframe, si se aísla y con qué permisos | la decisión de cada iframe está escrita en §22.5, y los que llevan `sandbox` pasan los specs con él | §22.5 | ⏳ pendiente — decisión |
+| 6 | HSTS como cabecera del proxy de producción, sin la etiqueta `<meta http-equiv="Strict-Transport-Security">` de las quince páginas | la respuesta de `https://valenciavguides.es` lleva la cabecera, y ninguna página lleva la etiqueta | §22.6 | ⏳ pendiente — las etiquetas se pueden quitar sin servidor; la cabecera necesita el n.º 1 |
+| 7 | Legal y privacidad (RGPD) | los términos (12 idiomas) llevan las correcciones de §22.7.1, P12 lleva el aviso de §22.7.2 y `privacidad.html` tiene URL fija y enlace desde la app (§22.7.3) | §22.7 | ⏳ pendiente — parte del texto depende de la pasarela (n.º 24) |
+| 8 | Protección del código JavaScript: minificación, y ofuscación opcional | lo que se publica sale de un paso de compilación que minifica los módulos | §22.8 | ⏳ pendiente — va con el despliegue (n.º 1) |
+| 9 | Sacar del `APP_SHELL` del service worker los ficheros de `PROTECTED_FILES` | `APP_SHELL` no lleva ningún fichero protegido, y esos datos llegan solo por la API | §22.9 | ⏳ pendiente — necesita los n.º 4 y 11 |
+| 10 | `CACHE_VERSION` al desplegar | — | §22.10 | ✅ cerrada — el hook de pre-commit la recalcula en cada commit; `npm run build:sw`, si el hook falta |
+| 11 | `BACKEND_READY = true` en `js/data-loader.js` (autoriza a preguntar; el modo `'api'` se activa solo donde `/api/health` conteste) | producción en modo `'api'`, desplegado junto con los n.º 4 y 9 | §22.11 | ⏳ pendiente — necesita el backend |
+| 12 | Validación del código DEV en el backend (ver §24) | ni el código DEV ni su hash están en ningún fichero del cliente: lo comprueba el backend | §22.4, §24 | ⏳ pendiente — necesita el backend |
+| 13 | Qué ficheros de datos van en `PROTECTED_FILES` | — | §22.12 | ✅ cerrada — `puzzles-aventuras.js`, protegido; `mapa-vintage-aventuras.js` y sus imágenes, públicos, porque los enseña la demo gratis; `aventuras-ID-padre.js`, público (§2.2) |
+| 14 | Compatibilidad iOS PWA: la cabecera `Permissions-Policy: geolocation=(self)` (las etiquetas de iOS están en `codigo-padre.html`) | la respuesta de producción lleva la cabecera | §22.13 | ⏳ pendiente — necesita el n.º 1 |
+| 15 | Quitar el mensaje de error real del navegador del overlay de GPS sin señal (`#gps-signal-detalle`) | el overlay no enseña ningún mensaje técnico del navegador | §22.14 | ⏳ pendiente — justo antes de publicar: mientras se prueba, sirve para diagnosticar |
+| 16 | Repositorios nuevos y privados, creados a partir de la copia local, y borrar los actuales de GitHub | el código y `docs/` están solo en repositorios privados, y los repositorios actuales están borrados | §22.15 | ⏳ pendiente — necesita el n.º 1: GitHub Pages solo sirve HTTPS gratis a repositorios públicos |
+| 17 | Los dos huecos de `fetchWithRetry()`: el `AbortError` del timeout no reintenta, y `.includes('fetch')` deja fuera el fallo de red de WebKit, así que en iPhone no se reintenta ninguna petición | un timeout y el fallo de red de WebKit se reintentan, con un spec que lo mida en `iphone12` | §16.1b | ⏳ pendiente — no necesita servidor |
+| 18 | Una sola ruta de red: las llamadas a la API de `data-loader.js` van por `fetchWithRetry()` de `api-client.js` | `fetchFromAPI()` de `data-loader.js` usa `fetchWithRetry()`, y la forma de la respuesta de éxito (`data.exito` o `!data.error`) está decidida | §16.1b | ⏳ pendiente — no necesita servidor |
+| 19 | El botón "Actualizar" no puede forzar la versión nueva: el borde descarta la query string y la copia dura 10 min | — | §19 (cache-busting) | ✅ **restricción aceptada** — medido y asumido |
+| 20 | Los specs que necesitan a los hijos los cargan como **iframes reales** dentro de `codigo-padre.html`: con el ayudante `cargarHijosDelPadre()` (§18) o por el recorrido real de la selección, que llega a la normativa y deja que `_hdl_SELECCION_P15_MOSTRADA` los cargue (specs 127, 128 y 129) | — | §7.1 (modelo P15), §18 | ✅ |
+| 21 | Pasar las sugerencias y valoraciones de los dos Google Forms al backend propio —ruta `/api/...` del mismo origen— y quitar `https://docs.google.com` del `connect-src` de la CSP de `codigo-padre.html` | los envíos van a `/api/...`, y la CSP de `codigo-padre.html` no lista `https://docs.google.com` | §10.21, §26.8 | ❌ bloqueada — sin backend no hay quien reciba los envíos |
+| 22 | Comprobar en un iPhone real el desbloqueo de los efectos de sonido (§12, punto 6): que tras un gesto en el puzzle, en hijo4 y en el padre suenan después, sin gesto, el fin de tiempo del puzzle y el modal de tiempo agotado por el temporizador de hijo1; que `pieza_colocada` y `reto_completado` suenan a la vez al colocar la última pieza (la guía de Apple para Safari dice que iOS no admite varias reproducciones simultáneas: se anota cuál sobrevive); y cuánto tarda el primer sonido | comprobado en un iPhone real, con el resultado anotado en §12 | §12, §25.12 | ⏳ pendiente — el desbloqueo está hecho; solo se comprueba en un dispositivo, porque Playwright no reproduce la política de audio de iOS |
+| 23 | Consultar las licencias de los recursos de terceros antes de vender la PWA, empezando por los cuatro efectos de sonido de Pixabay (`audios-efectos/LICENCIAS.md`): su licencia prohíbe distribuirlos sueltos, y los ficheros del repositorio público son descargables uno a uno | cada recurso de terceros tiene su licencia revisada y anotada | §12 | ⏳ pendiente — sin prisa mientras solo los usa su autor; se resuelve al publicar la PWA para su venta |
+| 24 | Pasarela de pago y backend por **categoría de precio** (aventuras cortas y largas). Al añadir una aventura hay que darle su categoría en `js/indice-aventuras.js` | la pasarela cobra el precio de la categoría de la aventura elegida, y el backend guarda la categoría con el código y la exige al comprobarlo | §16.2 | ⏳ pendiente — necesita la pasarela y el backend |
+| 25 | El botón atrás con una aventura en marcha (§34): comprobarlo en un Android real con la PWA instalada, que es donde existe ese botón | comprobado en un Android real con la PWA instalada | §34 | ⏳ pendiente — la lógica está hecha y medida en los cuatro navegadores de los tests (spec 131) |
+| 26 | La demo gratis (P2-P11) con sus datos propios: un fichero público con solo las piezas de la introducción de cada aventura —el puzzle de introducción, el reto R-1, el audio y el texto de introducción, y si la aventura tiene audio en cada idioma—, generado por script a partir de los ficheros de datos, y sus audios en una carpeta pública. Nombres, carpetas y generación siguen el patrón del resto de la PWA | con `PROTECT_DATA=true`, la demo funciona entera sin pedir ningún fichero protegido | §22.12 | ⏳ pendiente — decidida; no necesita servidor |
+| 27 | La fase 2 del padre carga sus datos con las funciones de `js/data-loader.js`, no con `import()` directo (la de los puzzles, por crear) | con `PROTECT_DATA=true` y la API, la fase 2 no pide ningún fichero protegido | §22.12 | ⏳ pendiente — no necesita servidor |
+| 28 | El servidor de producción publica solo lo que usa la app: ni `docs/`, ni `tests/`, ni `tools/`, ni `debug-brujula.html` | pedir a producción cualquier fichero de esas rutas da 403 o 404 | §22.4 | ⏳ pendiente — va con el n.º 1 |
 
 ---
 
@@ -8760,35 +8763,22 @@ pm2 restart vv-static
 
 ### 22.2 CSP: eliminar `unsafe-inline`
 
-**Qué es:** `codigo-padre.html` lleva un `<meta>` CSP con `script-src 'self' 'unsafe-inline'`. El `unsafe-inline` anula la protección real del CSP — si alguien inyectara un script en la página, el navegador lo ejecutaría igualmente.
+**Qué es:** de las diecisiete páginas HTML de la raíz, quince llevan un `<meta>` CSP, y solo el de `codigo-padre.html` limita los scripts (`script-src 'self' 'unsafe-inline'`). Los otros catorce contienen únicamente `upgrade-insecure-requests`, y `video-intro.html` y `debug-brujula.html` no llevan CSP. El `unsafe-inline` anula la protección real de la CSP: si alguien inyectara un script en la página, el navegador lo ejecutaría igualmente.
 
-**Por qué no se toca ahora:** Con ficheros estáticos no hay forma de generar nonces dinámicos. La solución correcta es mover la CSP a cabeceras HTTP del servidor (no al meta tag), donde cada petición puede incluir un nonce único por script inline.
+**Dos caminos; el primero no necesita servidor:**
 
-**Qué hacer al desplegar:**
-
-1. Eliminar el `<meta http-equiv="Content-Security-Policy">` de `codigo-padre.html`.
-2. En `backend/server.js`, añadir la CSP como cabecera HTTP con `helmet.contentSecurityPolicy()` y nonces generados por petición.
-3. Pasar el nonce a cada `<script>` inline del padre mediante un paso de templating (o mover los scripts inline a ficheros externos `.js`).
+1. **El código en línea, a ficheros.** Los bloques `<script>` en línea y los atributos de evento (`onclick`, `oninput`, `onscroll`…, abundantes en `En-busca-del-tesoro.html`) pasan a ficheros `.js` con `addEventListener`. Así cada página puede declarar `script-src 'self'` en su propio `<meta>`, también en un hosting estático.
+2. **Nonces por petición.** La CSP como cabecera HTTP del servidor de producción, con un nonce distinto en cada respuesta para cada `<script>` en línea. Exige que el servidor genere el HTML con un paso de plantillas, así que depende del servidor propio (§22.1, opción B).
 
 ---
 
 ### 22.3 `console.log` → `logger.js` en producción
 
-**Qué es:** el patrón del proyecto es `(globalThis.logger || console).nivel(...)`, que respeta `CONFIG.DEBUG.NIVEL_LOG`. Un `console.*` suelto no lo respeta: en producción, cualquier usuario con DevTools ve estados internos, rutas de datos e IDs de mensajes por mucho que se baje el nivel.
+**Qué es:** el patrón del proyecto es `(globalThis.logger || console).nivel(...)`, que respeta `CONFIG.DEBUG.NIVEL_LOG`. Un `console.*` suelto no lo respeta: en producción, cualquier usuario con DevTools ve estados internos, rutas de datos e IDs de mensajes por mucho que se baje el nivel. Los `console.*` de `js/server.js` son otra cosa: salida de un proceso Node en el servidor, que ningún usuario ve.
 
-**Lo que queda, medido:** **tres** llamadas directas en todo el código de frontend —una en `En-busca-del-tesoro.html` y dos en `retos-hijo4.html`—. Los ficheros grandes ya están migrados (`codigo-padre.html` usa el patrón con respaldo 918 veces, `state-manager.js` 10, `api-client.js` 6). Los `console.*` de `js/server.js` son otra cosa: salida de un proceso Node en el servidor, que ningún usuario ve.
+**Lo que queda, medido:** tres llamadas directas en el código del navegador, todas en scripts clásicos que corren antes de que exista el logger: una en `En-busca-del-tesoro.html` (el aviso de página abierta suelta) y dos en `retos-hijo4.html` (el validador por defecto).
 
-**Por qué no se toca ahora:** En desarrollo los logs son útiles.
-
-**Qué hacer al desplegar** — dos opciones (elegir una):
-
-- **Opción A (rápida):** Override global en `backend/server.js` o en el HTML de producción:
-
-  ```javascript
-  if (process.env.NODE_ENV === 'production') { console.log = console.debug = () => {}; }
-  ```
-
-- **Opción B (limpia):** Reemplazar los `console.*` directos por llamadas a `logger.*` en cada archivo. `logger.js` ya tiene niveles configurables — en producción basta con cambiar `CONFIG.DEBUG.NIVEL_LOG` a `LOG_LEVELS.ERROR` (o `NONE` para silencio total) en `js/config.js`. El logger lo lee solo; no hay que llamar a nada. `logger.setNivel(LOG_LEVELS.ERROR)` sirve para forzarlo en caliente desde la consola — el método se llama `setNivel` y toma el valor numérico de `LOG_LEVELS`, no la cadena.
+**El nivel:** `CONFIG.DEBUG.NIVEL_LOG` vale `LOG_LEVELS.DEBUG` en `js/config.js`. En producción tiene que valer `LOG_LEVELS.ERROR` (o `NONE`, para silencio total) sin editar ningún fichero al desplegar: el valor sale del entorno, como el service worker distingue `localhost` (`IS_DEV`, `sw.js`). El logger lee el nivel en cada llamada; `logger.setNivel(LOG_LEVELS.ERROR)` lo fuerza en caliente desde la consola, y toma el valor numérico de `LOG_LEVELS`, no la cadena.
 
 ---
 
@@ -8890,6 +8880,7 @@ Esto solo tiene efecto cuando `PROTECT_DATA=true` (fase de despliegue con backen
 - **Path traversal (fuera del directorio raíz):** Cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) recibe `403 Forbidden`. Esta protección es distinta de la de `isProtectedFile()` de arriba: cubre salir de la raíz del proyecto, no evadir la lista de ficheros protegidos dentro de la raíz.
 - **MIME types:** Soporta `.html`, `.js`, `.css`, `.json`, `.png`, `.jpg`, `.gif`, `.svg`, `.mp3`, `.wav`, `.mp4`, `.woff`, `.ttf`, `.eot`, `.otf`, `.wasm`.
 - **Página por defecto:** `GET /` sirve `index.html`.
+- **Sirve el directorio raíz entero:** todo fichero del proyecto que no esté en `PROTECTED_FILES` se sirve tal cual, también `docs/`, `tests/`, `tools/` y `debug-brujula.html`. En producción tiene que servir solo lo que usa la app (§22.0, n.º 28).
 - **Proxy del backend:** todo lo que empieza por `/api/` se reenvía a `localhost:3001`
   (configurable con `API_PORT`). Es el mismo papel que hace Caddy en el VPS
   (`reverse_proxy`), y está aquí por una razón concreta: el `connect-src 'self'` del CSP
@@ -8912,37 +8903,21 @@ El servidor actual **no tiene autenticación**. Para producción habrá que impl
 - **CSP via cabeceras HTTP** en lugar del `<meta>` actual (ver §22.2).
 - **CORS restringido** al dominio de producción.
 - **Modo de datos `'api'`** en `js/data-loader.js` (ver §22.11).
-- **Validación del código DEV en el backend:** el modo DEV (ver §24) verifica su código actualmente en el propio cliente. Aunque el código no es visible en texto plano, un atacante con tiempo puede hacer fuerza bruta sobre esa verificación. En producción, la validación debe moverse a un endpoint protegido del backend: el cliente envía el código via POST (HTTPS), el servidor compara contra una variable de entorno (`DEV_CODE`) y devuelve un token de sesión de corta duración. El cliente solo activa `_devModeActivo = true` si recibe ese token. Así el código nunca está en ningún fichero del proyecto.
+- **Validación del código DEV en el backend** (ver §24).
 
 ---
 
 ### 22.5 Sandboxing de iframes
 
-**Qué es:** El atributo `sandbox` del elemento `<iframe>` limita lo que puede hacer un iframe aunque sea del mismo origen. Sin él, un iframe tiene acceso completo al contexto del padre.
+**Qué es:** el atributo `sandbox` del elemento `<iframe>` limita lo que puede hacer el documento que carga. Sin él, un iframe del mismo origen tiene acceso completo al contexto del padre.
 
-**Por qué no se activa ahora:** Los iframes hijo usan `postMessage` con `allow-same-origin` para comunicarse con el padre. Hay que verificar que cada handler sigue funcionando correctamente antes de activarlo en producción.
+**Qué hay que decidir, iframe por iframe** (§22.0, n.º 5), con estos datos:
 
-**Qué hacer al desplegar** — añadir el atributo a cada iframe. Ojo con dos cosas que la receta ingenua no contempla:
-
-**Ninguno de los `<iframe>` de `codigo-padre.html` lleva una URL en `src`** (ocho en el marcado —`#seleccion` y `#hijo6-chat` con `src=""`— y el del overlay del mapa completo, que sale de una plantilla): la página la asigna por JavaScript. Buscar `src="coordenadas-hijo2.html"` en el padre no encuentra nada. El `sandbox` sí va en el marcado, porque el navegador lo aplica al asignarse el `src`:
-
-```html
-<iframe id="hijo2" name="hijo2"
-  sandbox="allow-scripts allow-same-origin allow-forms"
-  ...></iframe>   <!-- el src lo pone el JS del padre, no el marcado -->
-```
-
-**Y hay tres iframes que no existen en ningún marcado**, creados con `document.createElement('iframe')`: el del puzzle en `retos-hijo4.html`, el de vídeo en `chat-hijo6.html` y otro en `En-busca-del-tesoro.html`. A esos hay que ponerles el atributo con `setAttribute('sandbox', …)` antes de asignarles el `src` — si se asigna después, el navegador ya ha creado el contexto sin restricción.
-
-| Permiso | Por qué incluirlo |
-|---------|------------------|
-| `allow-scripts` | Necesario — los hijos ejecutan JavaScript |
-| `allow-same-origin` | Necesario — permite `postMessage` con el padre |
-| `allow-forms` | Solo si el iframe tiene formularios (`chat-hijo6.html`) |
-
-**Sin incluir:** `allow-top-navigation`, `allow-popups`, `allow-downloads` — innecesarios y añaden superficie de ataque.
-
-**Afecta a los 7 iframes de `codigo-padre.html`:** `En-busca-del-tesoro.html` (`#seleccion`), `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html` y `chat-hijo6.html` — más `#fondo-blanco`, decorativo, si se quiere cubrir entero. **`puzzle.html` no es iframe del padre**: lo embebe `En-busca-del-tesoro.html` (`#puzzle-iframe`) y lo crea `retos-hijo4.html` por JS, así que se trata por el segundo camino.
+- **Todos los iframes cargan páginas de la propia app.** En el marcado de `codigo-padre.html` hay ocho (`#fondo-blanco`, `#seleccion`, `#hijo1-opciones`, `#hijo2`, `#hijo3`, `#hijo4`, `#hijo5` y `#hijo6-chat`), más el del overlay del mapa completo, que sale de una plantilla; en `En-busca-del-tesoro.html`, `#puzzle-iframe`; y tres se crean con `document.createElement('iframe')`: el del vídeo de introducción en la selección (`cargarVideoIntroIframe()`) y en el asistente (`chat-hijo6.html`, para volver a verlo), y el del puzzle en `retos-hijo4.html`. Ninguno lleva una URL en el marcado: el `src` lo asigna el JavaScript.
+- **`allow-same-origin` es imprescindible.** Sin él, el iframe tiene un origen opaco (`null`): el bus del padre descarta sus mensajes (`js/mensajeria.js` exige que `event.origin` sea el de la app) y el almacén no puede leer ni escribir.
+- **Con `allow-scripts` y `allow-same-origin` a la vez, un documento del mismo origen puede quitarse el aislamiento:** alcanza el `<iframe>` que lo contiene y le borra el atributo. En estos iframes, `sandbox` protege poco; su valor está en el contenido ajeno, y la app no carga ninguno en un iframe.
+- **`allow-popups`:** hijo1 abre sus enlaces en otra pestaña (`extrainfo-hijo1.html`, `open(url, '_blank')`), y sin este permiso el navegador los bloquea. Con `allow-popups-to-escape-sandbox`, la pestaña nueva no hereda el aislamiento.
+- **Dónde va el atributo:** en el marcado, para los iframes del padre (el navegador lo aplica al asignarse el `src`); con `setAttribute('sandbox', …)` antes de asignar el `src`, para los que se crean por JavaScript: asignado después, el contexto ya existe sin restricción.
 
 ---
 
@@ -8968,6 +8943,8 @@ header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 - `includeSubDomains` — cubre también `www.valenciavguides.es` y cualquier subdominio.
 - `preload` — permite solicitar inclusión en la lista HSTS preload de Chrome, Firefox y Safari.
 
+**La etiqueta `<meta http-equiv="Strict-Transport-Security">`:** quince páginas la llevan. Por especificación, HSTS solo vale como cabecera HTTP, así que la etiqueta no protege nada; `js/server.js` la retira al servir por HTTP, porque WebKit sí la aplica (§22.4). Hay que quitarla de las páginas (§22.0, n.º 6).
+
 **⚠️ Importante:** Una vez activado `preload` y aceptado en la lista, deshacerlo tarda meses. No activar hasta que el dominio sea definitivo y estable.
 
 ---
@@ -8976,15 +8953,16 @@ header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 
 La app recoge datos personales (correo electrónico, ubicación GPS) y procesa pagos a través de terceros. El RGPD exige que el usuario esté informado **en el momento de la recogida**, no solo en los términos generales.
 
-#### 22.7.1 Correcciones en `js/terminos-aventuras.js` (ya existe, 12 idiomas)
+#### 22.7.1 Correcciones en `js/terminos-aventuras.js` (12 idiomas)
+
+La cláusula de publicidad gestionada por terceros se mantiene: la PWA no tiene publicidad, pero la web de Valencia VGuides sí la tendrá.
 
 | # | Qué cambiar | Por qué |
 |---|-------------|---------|
-| 1 | **Eliminar** la frase "La aplicación puede incorporar publicidad gestionada por terceros" | No habrá publicidad en el modelo de negocio — la frase es engañosa |
-| 2 | **Añadir la pasarela de pago** como encargada del tratamiento, con su nombre y forma jurídica exactos | El RGPD exige identificar a los subencargados por nombre — **no se puede redactar hasta elegir pasarela** (§16.2) |
-| 3 | **Añadir** que los datos GPS se procesan únicamente en el dispositivo del usuario y no se transmiten a ningún servidor | Requisito de transparencia y ventaja competitiva |
-| 4 | **Añadir** el derecho a presentar reclamación ante la **AEPD** (Agencia Española de Protección de Datos, `aepd.es`) | Obligatorio en España |
-| 5 | **Añadir** el plazo de conservación del correo electrónico | El RGPD exige especificarlo — p.ej. "hasta 12 meses tras la compra, o hasta que el usuario solicite la supresión" |
+| 1 | **Añadir la pasarela de pago** como encargada del tratamiento, con su nombre y forma jurídica exactos | El RGPD exige identificar a los subencargados por nombre — **no se puede redactar hasta elegir pasarela** (§16.2) |
+| 2 | **Añadir** que los datos GPS se procesan únicamente en el dispositivo del usuario y no se transmiten a ningún servidor | Requisito de transparencia y ventaja competitiva |
+| 3 | **Añadir** el derecho a presentar reclamación ante la **AEPD** (Agencia Española de Protección de Datos, `aepd.es`) | Obligatorio en España |
+| 4 | **Añadir** el plazo de conservación del correo electrónico | El RGPD exige especificarlo — p.ej. "hasta 12 meses tras la compra, o hasta que el usuario solicite la supresión" |
 
 #### 22.7.2 Aviso de privacidad en la pantalla de pago P12
 
@@ -9001,7 +8979,7 @@ El enlace "Ver condiciones completas" debe navegar a P10 (pantalla de términos)
 
 #### 22.7.3 Política de privacidad accesible desde fuera de la aventura
 
-Las condiciones actuales (P10) solo son accesibles dentro del flujo de selección. Antes del lanzamiento, crear una página `privacidad.html` enlazada desde el `manifest.json` y desde el footer de `index.html`. Los motores de búsqueda y tiendas de apps exigen URL pública fija.
+Las condiciones (P10) solo son accesibles dentro del flujo de selección. Antes del lanzamiento, una página `privacidad.html` con URL pública fija —la exigen los buscadores y las tiendas de apps—, enlazada desde la pantalla de condiciones (P10).
 
 #### 22.7.4 Referencia legal aplicable
 
@@ -9027,9 +9005,9 @@ El JavaScript que ejecuta el navegador es **siempre visible** para cualquier usu
 | **Minificación + bundling** (esbuild, webpack, rollup) | Variables de 1 letra, sin espacios ni comentarios — difícil de leer | Build step antes de desplegar |
 | **Obfuscación** (`javascript-obfuscator`) | Strings cifrados, flujo de control alterado — muy difícil de seguir | Opcional, sobre el output minificado |
 | **Mover lógica crítica al servidor** | El código más valioso nunca llega al cliente | Requiere backend autenticado (§22.4) |
-| **`PROTECT_DATA=true`** (ya implementado) | Los datos valiosos solo vía API autenticada | Activar en producción |
+| **`PROTECT_DATA=true`** (implementado en `js/server.js`) | Los datos valiosos solo vía API autenticada | Activar en producción (§22.0, n.º 4) |
 
-**Perspectiva realista:** La IP más valiosa — rutas GPS, audios, textos narrativos de las aventuras — ya está protegida por `PROTECT_DATA`. El código de la PWA (iframes, mensajería, GPS) es complejo pero no es el producto en sí: sin los datos de aventura, el código no tiene valor comercial.
+**Perspectiva realista:** la propiedad intelectual más valiosa —rutas GPS, audios y textos narrativos de las aventuras— la protegen `PROTECT_DATA` una vez activado (§22.0, n.º 4), la salida de esos ficheros del `APP_SHELL` (n.º 9) y los repositorios privados (n.º 16). El código de la PWA (iframes, mensajería, GPS) es complejo pero no es el producto en sí: sin los datos de aventura, el código no tiene valor comercial.
 
 **Pendiente antes de desplegar:**
 
@@ -9115,13 +9093,13 @@ Voltear ese interruptor **no** rompe GitHub Pages: allí `/api/health` responde 
 | Archivo | Cómo se carga hoy | Función en data-loader | Estado |
 |---|---|---|---|
 | **`aventuras-ID-padre.js`** | **`import` estático en la cabecera del Script 1 de `codigo-padre.html`** (más un `await import()` en Script 2, que reaprovecha el módulo ya cacheado por el navegador) | **ninguna — `cargarDatosPadre()` no existe** | ❌ **el único bloqueante** |
-| `coordenadas-aventuras.js` | `await import()` en el `Promise.all` de FASE 2 | `cargarCoordenadas(aventuraId)` | ⚠️ la función existe pero FASE 2 no la usa |
-| `audios-aventuras.js` | `await import()` en FASE 2; también en `En-busca-del-tesoro.html` | `cargarAudios(aventuraId, idioma)` | ⚠️ ídem |
+| `coordenadas-aventuras.js` | `await import()` en el `Promise.all` de FASE 2 | `cargarCoordenadas(aventuraId)` | ⚠️ la función existe pero FASE 2 no la usa (§22.0, n.º 27) |
+| `audios-aventuras.js` | `await import()` en FASE 2; también en `En-busca-del-tesoro.html` | `cargarAudios(aventuraId, idioma)` | ⚠️ la función existe pero FASE 2 no la usa (§22.0, n.º 27) |
 | `indice-aventuras.js` | `await import()` en FASE 1 y en `En-busca-del-tesoro.html` | `cargarIndice()` | no está en `PROTECTED_FILES` (es el catálogo): no rompe |
-| `puzzles-aventuras.js` | `await import()` en FASE 2 y en `En-busca-del-tesoro.html` | ninguna — el pool es compartido, no está organizado por aventura, y no encaja con el patrón `cargarX(aventuraId)` | ⚠️ a decidir |
-| `mapa-vintage-aventuras.js` | `await import()` en FASE 2 | ninguna | ⚠️ a decidir |
-| `retos-aventuras.js` | solo vía `cargarRetos()` | `cargarRetos(aventuraId, idioma)` | ✅ ya migrado |
-| `textos-aventuras.js` | solo vía `cargarTextos()` | `cargarTextos(aventuraId, idioma)` | ✅ ya migrado |
+| `puzzles-aventuras.js` | `await import()` en FASE 2 y en `En-busca-del-tesoro.html` | ninguna — el pool es compartido, no está organizado por aventura, y no encaja con el patrón `cargarX(aventuraId)` | ⚠️ protegido; la fase 2 necesita su función (§22.0, n.º 27) |
+| `mapa-vintage-aventuras.js` | `await import()` en FASE 2 y en `En-busca-del-tesoro.html` | ninguna | público: lo enseña la demo gratis (§22.0, n.º 13) |
+| `retos-aventuras.js` | solo vía `cargarRetos()` | `cargarRetos(aventuraId, idioma)` | ✅ por su función |
+| `textos-aventuras.js` | solo vía `cargarTextos()` | `cargarTextos(aventuraId, idioma)` | ✅ por su función |
 
 **La diferencia entre estático y dinámico importa, y es la razón de que solo uno bloquee.** Con `PROTECT_DATA=true` el servidor responde 403 a los ficheros protegidos. Un `await import()` que recibe un 403 lanza una promesa rechazada, que se puede capturar y gestionar; un `import` estático que recibe un 403 impide que el `<script type="module">` **llegue a parsearse**, y con él se cae el arranque entero de la app. Por eso `aventuras-ID-padre.js` no puede entrar en `PROTECTED_FILES` mientras esa línea siga ahí — y por eso, mientras siga ahí, sus 1,7 MB se descargan en cada arranque, antes de P14, antes de que el usuario haya pagado o validado nada.
 
@@ -9132,9 +9110,9 @@ Voltear ese interruptor **no** rompe GitHub Pages: allí `/api/health` responde 
 **Qué queda por decidir y por hacer:**
 
 1. **`aventuras-ID-padre.js`: decidido, no se protege** (§2.2). Su `import` estático puede quedarse. Lo único que sigue abierto es si merece la pena cargarlo bajo demanda por sus 1,7 MB en el arranque — decisión de rendimiento, no de seguridad, y sin urgencia.
-2. **`puzzles-aventuras.js` y `mapa-vintage-aventuras.js`: sin decidir.** Ninguno tiene función en `data-loader.js`, y la forma de los puzzles (pool compartido, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)`. Si se deciden proteger, hay que inventarles su función primero.
-3. **Los cuatro ficheros que sí están en `PROTECTED_FILES`** (`coordenadas`, `textos`, `retos`, `audios`) se cargan hoy con `await import()` en FASE 2 en lugar de con sus funciones de `data-loader.js`, que ya existen. Con `PROTECT_DATA=true` esos `import()` recibirán un 403: hay que sustituirlos por `cargarCoordenadas()` / `cargarAudios()` / `cargarIndice()`, que son las que añadirán el token en modo `'api'`. **Este es el trabajo real del pendiente.**
-4. Verificar que `En-busca-del-tesoro.html` tampoco carga por su cuenta ninguno de los protegidos.
+2. **`puzzles-aventuras.js`, protegido; `mapa-vintage-aventuras.js`, público** (§22.0, n.º 13). El de los puzzles no tiene función en `data-loader.js`, y su forma (pool compartido, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)`: la fase 2 necesita una función propia para él (n.º 27). El mapa antiguo es público porque lo enseña la demo gratis.
+3. **Los cuatro ficheros que sí están en `PROTECTED_FILES`** (`coordenadas`, `textos`, `retos`, `audios`) se cargan hoy con `await import()` en FASE 2 en lugar de con sus funciones de `data-loader.js`, que ya existen. Con `PROTECT_DATA=true` esos `import()` recibirán un 403: hay que sustituirlos por `cargarCoordenadas()` / `cargarAudios()` / `cargarIndice()`, que son las que añadirán el token en modo `'api'`. **Este es el trabajo real del pendiente** (§22.0, n.º 27).
+4. **La demo gratis** (la selección hasta el pago) lee sus piezas de su propio fichero público —solo las de la introducción de cada aventura—, generado por script a partir de los ficheros de datos, y sus audios de una carpeta pública; nunca de los protegidos (§22.0, n.º 26).
 
 > **Nota:** `mapa-completo.html` recibe hoy las coordenadas del padre por mensaje, no las importa.
 
@@ -9144,7 +9122,7 @@ Voltear ese interruptor **no** rompe GitHub Pages: allí `/api/health` responde 
 
 #### iOS PWA — meta tags requeridos
 
-iOS Safari ignora el Web App Manifest para la instalación como PWA. Todos los meta tags específicos de iOS deben estar en `<head>` de `codigo-padre.html`:
+iOS Safari ignora el Web App Manifest para la instalación como PWA. Los meta tags específicos de iOS están en el `<head>` de `codigo-padre.html`:
 
 ```html
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -9237,11 +9215,11 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 
 **Por qué es público:** GitHub Pages en el plan gratuito solo sirve HTTPS a repositorios públicos; poner el repo en privado rompería el HTTPS del despliegue actual en `valenciavguides.es` sin una alternativa ya montada.
 
-**La solución (pendiente de planificar como parte de la migración a frontend/backend/PWA real):**
+**La solución, decidida (§22.0, n.º 16):**
 
-1. Sacar `docs/` (como mínimo `aventuras_ordenado/`) del repositorio que sirve GitHub Pages — a un repo privado aparte, o directamente al backend, nunca en el árbol público.
-2. Si hace falta purgar el contenido ya expuesto en el historial, reescribir el historial de git (`git filter-repo` o equivalente) — operación destructiva que requiere planificación y confirmación explícita, no una tarea de rutina de una sesión cualquiera.
-3. Evaluar si el despliegue de producción debe pasar de GitHub Pages a un VPS propio (§22.1, Opción B) para poder tener el repositorio en privado sin perder HTTPS.
+1. Repositorios nuevos y privados, creados a partir de la copia local del proyecto.
+2. Borrar los repositorios actuales de GitHub. Con ellos desaparece su historial en GitHub; las copias que otros hayan hecho (bifurcaciones, archivos web) no se borran.
+3. El despliegue de producción, en el servidor propio (§22.1, opción B): GitHub Pages solo sirve HTTPS gratis a repositorios públicos.
 
 **Mientras tanto:** no bloquea el desarrollo local. Pero mientras el repositorio sea público, cualquier commit a `docs/aventuras_ordenado/` publica ese contenido de inmediato.
 
@@ -9444,6 +9422,8 @@ async function _verificarCodigoDevPWA(codigo) {
 }
 globalThis._verificarCodigoDevPWA = _verificarCodigoDevPWA;
 ```
+
+**La comprobación de producción, pendiente (§22.0, n.º 12), va en el backend:** el cliente envía el código por POST (HTTPS), el servidor lo compara con una variable de entorno (`DEV_CODE`) y devuelve un token de sesión de corta duración. El cliente solo pone `_devModeActivo = true` si recibe ese token, y ni el código ni su hash están en ningún fichero del proyecto.
 
 **Contenido del panel:** cada línea muestra `[timestamp] [nivel] [contexto] mensaje args`, formateado desde `logger.getBuffer()` — el mismo buffer circular de 500 entradas que usa `logger.exportarJSON()`. "Copiar todo" usa `navigator.clipboard.writeText()` con fallback silencioso (si el navegador lo bloquea, el texto es seleccionable a mano). "Limpiar" vacía el buffer real del logger (`logger.limpiarBuffer()`), no solo la vista. Auto-scroll solo si el usuario ya estaba al final del scroll (no le arrebata el control si está revisando líneas anteriores).
 
