@@ -4450,16 +4450,30 @@
             if (fondoInferiorElement) fondoInferiorElement.style.display = 'none';
         }
 
+        // El nombre de una aventura y el de un idioma salen del índice (`js/indice-aventuras.js`), que el padre carga antes de
+        // ofrecer la reanudación y en la fase 2 de datos, antes de AVENTURA. Las siete aventuras y los doce idiomas lo traen.
+        // Si aun así falta, se dice con un error y se enseña el id o el código: la reserva existe, pero ruidosa.
+        function _nombreDeAventura(aventura) {
+            const nombre = globalThis.__vv_INDICE_AVENTURAS?.[aventura]?.nombre;
+            if (nombre) return nombre;
+            (globalThis.logger || console).error(`[PADRE] La aventura ${aventura} no tiene nombre en el índice: se enseña su id`);
+            return aventura || '';
+        }
+        function _nombreDeIdioma(idioma) {
+            const nombre = globalThis.__vv_MAPEO_IDIOMAS?.[idioma]?.nombre;
+            if (nombre) return nombre;
+            (globalThis.logger || console).error(`[PADRE] El idioma ${idioma} no tiene nombre en el índice: se enseña su código`);
+            return idioma || '';
+        }
+
         async function mostrarDialogoReanudacion(datosGuardados) {
             const logPrefix = '[PADRE][DIALOGO_REANUDACION]';
             const idioma = datosGuardados.idioma;
             const aventura = datosGuardados.aventura;
             const t = TRADUCCIONES_REANUDACION[idioma];
 
-            const indice = globalThis.__vv_INDICE_AVENTURAS;
-            const mapeoIdiomas = globalThis.__vv_MAPEO_IDIOMAS;
-            const nombreAventura = (indice && indice[aventura] && indice[aventura].nombre) || aventura;
-            const nombreIdioma = (mapeoIdiomas && mapeoIdiomas[idioma] && mapeoIdiomas[idioma].nombre) || idioma;
+            const nombreAventura = _nombreDeAventura(aventura);
+            const nombreIdioma = _nombreDeIdioma(idioma);
             const infoProgreso = _getInfoProgresoText(t);
 
             return new Promise((resolve) => {
@@ -8153,8 +8167,7 @@ await _comprobarReanudacionAventura(logPrefix);
             const idioma = globalThis.idiomaSeleccionado;
             const t = TRADUCCIONES_FINALIZACION[idioma];
             const tv = TEXTOS_VALORACION[idioma];
-            const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre
-                                || globalThis.aventuraSeleccionada || '';
+            const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
 
             // Evitar doble instancia
             document.getElementById('modal-finalizacion-aventura')?.remove();
@@ -8364,7 +8377,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     return;
                 }
 
-                const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre || globalThis.aventuraSeleccionada || '';
+                const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
                 const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
                 const plantillaTermina = tipo1 === 'tramo' ? t.terminaTramo : t.terminaParada;
@@ -8441,7 +8454,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     return;
                 }
 
-                const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre || globalThis.aventuraSeleccionada || '';
+                const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
                 const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
                 let cuerpo = t.mensaje || '';
@@ -8520,7 +8533,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     return;
                 }
 
-                const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre || globalThis.aventuraSeleccionada || '';
+                const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
                 const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
                 const cuerpo = (t.mensaje || '').replace('{nombre}', _escapar(nombreParada));
 
@@ -8584,7 +8597,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     return;
                 }
 
-                const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre || globalThis.aventuraSeleccionada || '';
+                const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
                 const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
                 const cuerpo = t.mensaje || '';
 
@@ -8647,7 +8660,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     return;
                 }
 
-                const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre || globalThis.aventuraSeleccionada || '';
+                const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
                 const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
                 const cuerpo = t.mensaje || '';
 
@@ -12726,13 +12739,14 @@ await _comprobarReanudacionAventura(logPrefix);
             void _avisarInicioDeAventuraAlServidor(aventura, logPrefix);
             try {
                 _cancelarTimerAnteriorSiCambia(aventura, logPrefix);
-                const indiceAventuras = globalThis.__vv_INDICE_AVENTURAS;
-                let tiempoEstimado = 216000; // segundos — fallback 60h
-                if (indiceAventuras && indiceAventuras[aventura]) {
-                    tiempoEstimado = indiceAventuras[aventura].tiempoEstimado || 216000;
+                // El tiempo de la aventura sale del índice, que las siete traen. Si falta (el índice no cargó, o la entrada no
+                // lo lleva), se dice con un error y se usan 60 h: la reserva existe, pero ruidosa.
+                let tiempoEstimado = globalThis.__vv_INDICE_AVENTURAS?.[aventura]?.tiempoEstimado;
+                if (tiempoEstimado) {
                     (globalThis.logger || console).info(`${logPrefix} ⏱️ Tiempo estimado para ${aventura}: ${tiempoEstimado}s (${Math.round(tiempoEstimado / 3600)}h)`);
                 } else {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ No se encontró tiempoEstimado para ${aventura}, usando default: ${tiempoEstimado}s`);
+                    tiempoEstimado = 216000; // segundos: 60 h
+                    (globalThis.logger || console).error(`${logPrefix} La aventura ${aventura} no tiene tiempoEstimado en el índice: se usan ${tiempoEstimado}s (60 h)`);
                 }
                 // Si ya había un tiempo restante conocido (se vuelve a AVENTURA tras pasar
                 // por CASA, o se reanuda tras recargar la página), se envía ese en vez de

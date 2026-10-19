@@ -2947,6 +2947,8 @@
     globalThis._pintarTarjetasDeAventura = function() {
         const aventura = aventuraSeleccionada;
         const meta = INDICE_AVENTURAS_DATOS?.[aventura];
+        // Las siete aventuras traen su entrada en el índice; si falta, la tarjeta enseña el id, y se dice.
+        if (!meta) logger.error(`[SELECCION] La aventura ${aventura} no tiene entrada en el índice: la tarjeta enseña su id`);
         const imgFondo = IMAGENES_AVENTURAS[aventura];
         document.querySelectorAll('.aventura-confirmacion-card').forEach((card) => {
             if (meta) {
