@@ -2265,8 +2265,9 @@
       // vuelve con el pago hecho tendría unos instantes encendidas las aventuras de la otra categoría.
       if (INDICE_AVENTURAS_DATOS) _pintarBotonesDeAventura(contenedor);
       try {
-        // 1. Cargar índice base (siempre disponible, sin imports)
-        const modulo = await import(`./js/indice-aventuras.js?v=${Date.now()}`);
+        // 1. Cargar el índice. Sin parámetros en la URL: el service worker ya lo pide a la red sin caché HTTP, y un
+        //    parámetro distinto en cada visita dejaba en su caché (sin límite) una copia más del índice.
+        const modulo = await import('./js/indice-aventuras.js');
         INDICE_AVENTURAS_DATOS = modulo.INDICE_AVENTURAS;
 
         // 2. Los totales vienen YA en el índice, precalculados.
@@ -2276,7 +2277,7 @@
         // ~2 MB de contenido de pago descargados en la pantalla de seleccion, antes de
         // introducir ningun codigo (§22.12).
         //
-        // El indice son 6 KB y ya se carga de todos modos. Que los numeros no se queden
+        // El indice son 8 KB y ya se carga de todos modos. Que los numeros no se queden
         // obsoletos lo vigila `npm run verificar-totales`, que los recalcula desde la fuente
         // y falla si difieren — un dato precalculado sin verificador miente en silencio.
         const _sinTotales = Object.entries(INDICE_AVENTURAS_DATOS)

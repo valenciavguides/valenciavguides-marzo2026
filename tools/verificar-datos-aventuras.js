@@ -231,6 +231,24 @@ async function main() {
     }
     check('Cada aventura del índice dice si es corta o larga', sinCategoria, `${reparto.corta} cortas, ${reparto.larga} largas`);
 
+    // ── 11. El índice trae lo que el padre enseña y cuenta
+    // El padre saca de aquí el nombre de la aventura (carteles, modal de fin, diálogo de reanudación), el del idioma (el mismo
+    // diálogo) y el tiempo de la aventura (el reloj y la ventana de compra). Si falta uno, enseña el id o el código, o usa 60 h,
+    // y lo dice con un error en el log; aquí se para antes de llegar ahí.
+    const sinDato = [];
+    for (const [aventuraId, info] of Object.entries(INDICE_AVENTURAS)) {
+        if (!info || typeof info !== 'object') { sinDato.push(`${aventuraId}: la entrada no es un objeto`); continue; }
+        if (typeof info.nombre !== 'string' || !info.nombre.trim()) sinDato.push(`${aventuraId}: sin \`nombre\``);
+        if (!Number.isFinite(info.tiempoEstimado) || info.tiempoEstimado <= 0) sinDato.push(`${aventuraId}: \`tiempoEstimado\` vale ${JSON.stringify(info.tiempoEstimado)} y tiene que ser un número de segundos mayor que 0`);
+    }
+    const { MAPEO_IDIOMAS } = await imp('js/indice-aventuras.js');
+    if (!MAPEO_IDIOMAS || typeof MAPEO_IDIOMAS !== 'object') sinDato.push('js/indice-aventuras.js no exporta MAPEO_IDIOMAS');
+    else for (const [idioma, info] of Object.entries(MAPEO_IDIOMAS)) {
+        if (typeof info?.nombre !== 'string' || !info.nombre.trim()) sinDato.push(`idioma ${idioma}: sin \`nombre\``);
+    }
+    check('El índice trae el nombre y el tiempo de cada aventura, y el nombre de cada idioma', sinDato,
+        `${Object.keys(INDICE_AVENTURAS).length} aventuras, ${Object.keys(MAPEO_IDIOMAS || {}).length} idiomas`);
+
     informe();
 }
 

@@ -3651,7 +3651,7 @@
         // NOTA: validacion.js DEBE estar aquí porque app.js y
         // funciones-mapa.js la importan estáticamente
         // =====================================================================
-        (globalThis.logger || console).info('[PADRE][FASE1] � Cargando 9 módulos en paralelo...');
+        (globalThis.logger || console).info('[PADRE][FASE1] Cargando los módulos de la fase 1...');
 
         // Preload modules that are imported statically by app.js / funciones-mapa.js
         await import('./js/validacion.js');
@@ -3671,6 +3671,8 @@
 
           { manejarCambioModo: manejarCambioModo_S1 },
 
+          { INDICE_AVENTURAS: INDICE_AVENTURAS_S1, MAPEO_IDIOMAS: MAPEO_IDIOMAS_S1 },
+
         ] = await Promise.all([
 
           import('./js/constants.js'),
@@ -3685,46 +3687,49 @@
 
           import('./js/app.js'),
 
+          import('./js/indice-aventuras.js'),
+
         ]);
+
+        // El índice de aventuras (8 KB de catálogo: nombre, plazo, categoría y disponibilidad; no es contenido de pago) se
+        // carga aquí, al arrancar, y solo aquí. Lo leen la comprobación de la aventura guardada (la ventana de compra), el diálogo
+        // de reanudación, los carteles, el modal de fin y el reloj de la aventura, y ninguno corre antes que esto: el dato no puede
+        // faltar. Si el módulo no llega, la fase 1 falla entera, como con cualquier otro de esta lista.
+        globalThis.__vv_INDICE_AVENTURAS = INDICE_AVENTURAS_S1;
+        globalThis.__vv_MAPEO_IDIOMAS = MAPEO_IDIOMAS_S1;
 
         // Nota: globalThis.mensajeria ya fue asignado arriba con todas las funciones centralizadas
         // No sobrescribir aquí para evitar perder las funciones de state-manager
 
         const fase1ModulosFin = performance.now();
         const fase1TotalTiempo = Math.round(fase1ModulosFin - fase1GlobalInicio);
-        (globalThis.logger || console).info(`%c[PADRE][FASE1] ✅ FASE 1 COMPLETADA - 10 módulos cargados (${fase1TotalTiempo}ms)`, 'color: #00ff00; font-weight: bold');
-        (globalThis.logger || console).info('[PADRE][FASE1] ✅ Módulos: state-manager, mensajeria, constants, utils, device-detection, validacion, logger, config, app, funciones-mapa');
+        (globalThis.logger || console).info(`%c[PADRE][FASE1] ✅ FASE 1 COMPLETADA - 11 módulos cargados (${fase1TotalTiempo}ms)`, 'color: #00ff00; font-weight: bold');
+        (globalThis.logger || console).info('[PADRE][FASE1] ✅ Módulos: state-manager, mensajeria, constants, utils, device-detection, validacion, logger, config, app, indice-aventuras, funciones-mapa');
 
         // =====================================================================
-        // DATOS CENTRALIZADOS DE AVENTURAS - CARGA DIFERIDA (Fase 2)
-        // ⚠️ OPTIMIZACIÓN: indice-aventuras.js NO se carga en Fase 1 porque
-        // En-busca-del-tesoro.html tiene las aventuras hardcodeadas en su HTML.
-        // TODOS los datos de aventuras se cargan DESPUÉS de seleccionar aventura.
+        // DATOS DE AVENTURA - CARGA DIFERIDA (Fase 2): coordenadas, audios, mapas vintage y puzzles, que son contenido de pago,
+        // se cargan en P15 o al reanudar (§7.1). El índice no lo es y lo carga la fase 1, al arrancar.
         // =====================================================================
         let DATOS_AVENTURAS = null;
         let AUDIOS_AVENTURAS = null;
-        let INDICE_AVENTURAS = null;
-        let MAPEO_IDIOMAS = null;
 
-        // Exponer globalmente - TODOS los datos se cargarán en Fase 2
+        // Se publican vacíos y los rellena la fase 2
         globalThis.__vv_DATOS_AVENTURAS = null;  // Se cargará en Fase 2
         globalThis.__vv_AUDIOS_AVENTURAS = null; // Se cargará en Fase 2
-        globalThis.__vv_INDICE_AVENTURAS = null; // Se cargará en Fase 2 (opcional, no usado por selección)
-        globalThis.__vv_MAPEO_IDIOMAS = null;    // Se cargará en Fase 2 (opcional, no usado por selección)
         globalThis.__vv_MAPAS_VINTAGE = null;    // Se cargará en Fase 2 (lo pide hijo2 vía MOSTRAR_MAPA_VINTAGE)
         globalThis.__vv_PUZZLES = null;          // Se cargará en Fase 2 (viaja dentro del reto hacia hijo4)
 
         /**
          * Carga diferida de datos pesados de aventura (Fase 2)
          * Se llama después de que el usuario selecciona aventura e idioma
-         * Incluye: coordenadas, audios, retos, índice (solo DATOS puros)
+         * Incluye: coordenadas, audios, mapas vintage y puzzles (solo DATOS puros)
          * @returns {Promise<boolean>} true si se cargaron correctamente
          */
         globalThis.__cargarDatosAventuraDiferidos = async function() {
             const logPrefix = '[PADRE][CARGA_DIFERIDA]';
 
             // Si ya están cargados, no recargar
-            // Sin __vv_RETOS_AVENTURAS: retos-aventuras.js ya no se carga aqui (ver abajo).
+            // Sin __vv_RETOS_AVENTURAS: los retos no se cargan aqui; el unico camino a ellos es cargarRetos() de data-loader.js.
             // Da igual cual se compruebe — los globales se asignan todos juntos tras un unico
             // Promise.all, en el mismo tick: no hay ventana en la que unos esten y otros no.
             if (globalThis.__vv_DATOS_AVENTURAS && globalThis.__vv_AUDIOS_AVENTURAS) {
@@ -3743,13 +3748,11 @@
                 const [
                     coordenadasModule,
                     audiosModule,
-                    indiceModule,
                     mapasVintageModule,
                     puzzlesModule
                 ] = await Promise.all([
                     import('./js/coordenadas-aventuras.js'),
                     import('./js/audios-aventuras.js'),
-                    import('./js/indice-aventuras.js'),
                     // El mapa vintage lo importaba coordenadas-hijo2.html por su cuenta —
                     // el unico hijo que se traia datos, saltandose el patron de sus cinco
                     // hermanos. Ahora vive aqui, con el resto: una sola puerta (§22.12).
@@ -3764,25 +3767,19 @@
                 // Asignar datos de aventuras
                 DATOS_AVENTURAS = coordenadasModule.DATOS_AVENTURAS;
                 AUDIOS_AVENTURAS = audiosModule.AUDIOS_AVENTURAS;
-                INDICE_AVENTURAS = indiceModule.INDICE_AVENTURAS;
-                MAPEO_IDIOMAS = indiceModule.MAPEO_IDIOMAS;
 
                 // Exponer globalmente datos de aventuras
                 globalThis.__vv_DATOS_AVENTURAS = DATOS_AVENTURAS;
                 globalThis.__vv_AUDIOS_AVENTURAS = AUDIOS_AVENTURAS;
-                globalThis.__vv_INDICE_AVENTURAS = INDICE_AVENTURAS;
-                globalThis.__vv_MAPEO_IDIOMAS = MAPEO_IDIOMAS;
                 globalThis.__vv_MAPAS_VINTAGE = mapasVintageModule.MAPAS_VINTAGE;
                 globalThis.__vv_PUZZLES = puzzlesModule.PUZZLES_AVENTURAS;
 
                 const fase2Fin = performance.now();
                 (globalThis.logger || console).info(`%c${logPrefix} ✅ FASE 2 COMPLETADA - Datos de aventuras cargados (${Math.round(fase2Fin - fase2Inicio)}ms)`, 'color: #00ff00; font-weight: bold');
-                (globalThis.logger || console).info(`${logPrefix} Módulos cargados: coordenadas-aventuras, audios-aventuras, indice-aventuras, mapa-vintage, puzzles`);
+                (globalThis.logger || console).info(`${logPrefix} Módulos cargados: coordenadas-aventuras, audios-aventuras, mapa-vintage, puzzles`);
                 (globalThis.logger || console).info(`${logPrefix} Datos disponibles:`, {
                     aventurasCoord: Object.keys(DATOS_AVENTURAS || {}),
-                    aventurasAudio: Object.keys(AUDIOS_AVENTURAS || {}),
-                    indiceAventuras: Object.keys(INDICE_AVENTURAS || {}),
-                    idiomasDisponibles: Object.keys(MAPEO_IDIOMAS || {})
+                    aventurasAudio: Object.keys(AUDIOS_AVENTURAS || {})
                 });
 
                 return true;
@@ -4449,9 +4446,9 @@
             if (fondoInferiorElement) fondoInferiorElement.style.display = 'none';
         }
 
-        // El nombre de una aventura y el de un idioma salen del índice (`js/indice-aventuras.js`), que el padre carga antes de
-        // ofrecer la reanudación y en la fase 2 de datos, antes de AVENTURA. Las siete aventuras y los doce idiomas lo traen.
-        // Si aun así falta, se dice con un error y se enseña el id o el código: la reserva existe, pero ruidosa.
+        // El nombre de una aventura y el de un idioma salen del índice (`js/indice-aventuras.js`), que la fase 1 del arranque
+        // carga antes de que nada lo lea. Las siete aventuras y los doce idiomas lo traen (lo comprueba npm run verificar-datos).
+        // Si aun así falta una entrada, se dice con un error y se enseña el id o el código: la reserva existe, pero ruidosa.
         function _nombreDeAventura(aventura) {
             const nombre = globalThis.__vv_INDICE_AVENTURAS?.[aventura]?.nombre;
             if (nombre) return nombre;
@@ -7842,11 +7839,11 @@
 
         // ============================================================
         // VALIDACIÓN DE MENSAJERÍA (parte de FASE 1)
-        // Se ejecuta después de cargar infraestructura, antes de FASE 2
+        // Se ejecuta después de cargar infraestructura, antes de la FASE 3
         // ============================================================
         /**
          * Valida que globalThis.mensajeria esté completamente inicializado
-         * antes de proceder a cargar datos y iframes.
+         * antes de cargar el iframe de selección (FASE 3).
          *
          * PROBLEMA QUE RESUELVE:
          * Los iframes se cargan y envían HIJO_PREPARADO antes de que
@@ -7953,26 +7950,10 @@
                         const _TTL_AVENTURA = TTL_PROGRESO_GUARDADO_MS;
                         const _ttlSuperado = !!datosGuardados.timestamp && (Date.now() - datosGuardados.timestamp > _TTL_AVENTURA);
 
-                        // El INDICE hace falta AQUI, antes de decidir. verificarTimeoutAventura()
-                        // lee `tiempoEstimado` de __vv_INDICE_AVENTURAS y, si no lo encuentra,
-                        // devuelve { excedido: false } — es decir, "no puedo medir" se convierte
-                        // en "no ha caducado" y se ofrece reanudar una sesión muerta. Falla
-                        // ABIERTO, que en una ventana de compra es el lado malo.
-                        //
-                        // El índice NO es contenido de pago: son 6 KB de catálogo (nombres,
-                        // duración, disponibilidad) que las pantallas gratuitas necesitan para
-                        // listar aventuras. Por eso se carga aquí y no espera a P15 — a
-                        // diferencia de coordenadas, audios, retos, mapas vintage y puzzles, que
-                        // sí lo son y siguen cargándose en P15 (§7.1).
-                        if (!globalThis.__vv_INDICE_AVENTURAS) {
-                            try {
-                                const { INDICE_AVENTURAS: _IDX, MAPEO_IDIOMAS: _MAP } = await import('./js/indice-aventuras.js');
-                                globalThis.__vv_INDICE_AVENTURAS = _IDX;
-                                globalThis.__vv_MAPEO_IDIOMAS = globalThis.__vv_MAPEO_IDIOMAS || _MAP;
-                            } catch (idxErr) {
-                                (globalThis.logger || console).error(`${logPrefix} No se pudo cargar el índice para comprobar la ventana de compra:`, idxErr?.message);
-                            }
-                        }
+                        // verificarTimeoutAventura() lee `tiempoEstimado` de __vv_INDICE_AVENTURAS, que la fase 1
+                        // del arranque ya ha cargado: sin él devolvería { excedido: false }, es decir, "no puedo medir"
+                        // se convertiría en "no ha caducado" y se ofrecería reanudar una sesión muerta (fallaría ABIERTO,
+                        // el lado malo en una ventana de compra).
 
                         let _ventanaCompraExcedida = false;
                         try {
@@ -8041,6 +8022,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // alguna. Medido: dejaba las 7 aventuras en memoria —coordenadas, audios,
                 // indice, mapas vintage, puzzles— con `aventuraSeleccionada` vacia y
                 // `_codigoValidadoP14` en false. Es decir, antes de pagar.
+                // (El indice no es contenido de pago: lo carga la fase 1, al arrancar.)
                 //
                 // Las pantallas anteriores a P12 son gratuitas: no deben descargar contenido
                 // de pago. La carga pertenece a _hdl_SELECCION_P15_MOSTRADA, que ya la hace
@@ -8054,7 +8036,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // tiene ademas su propia espera con timeout y error ruidoso.
 
                 // ============================================================
-                // 📄 FASE 3: CARGAR IFRAMES HTML (necesitan datos de FASE 2)
+                // 📄 FASE 3: CARGAR EL IFRAME DE SELECCION (no necesita los datos de la FASE 2)
                 // ============================================================
                 (globalThis.logger || console).info(`${logPrefix} 🚀 Ejecutando FASE 3: Carga de iframes HTML...`);
                 updateLoadingStatus('Cargando componentes...', 'Inicializando pantalla de selección');

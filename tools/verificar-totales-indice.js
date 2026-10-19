@@ -16,7 +16,7 @@
  * Es decir: ~2 MB de contenido de pago descargados en la PANTALLA DE SELECCIÓN, antes de
  * introducir ningún código, para obtener 35 números enteros (5 por aventura × 7).
  *
- * Ahora esos números viven precalculados en js/indice-aventuras.js, que son 6 KB y ya se
+ * Ahora esos números viven precalculados en js/indice-aventuras.js, que son 8 KB y ya se
  * cargaba de todos modos. Los cuatro imports desaparecen (pendiente 13, §22.12).
  *
  * EL RIESGO QUE ESTA HERRAMIENTA CUBRE
