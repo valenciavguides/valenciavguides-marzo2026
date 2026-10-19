@@ -4917,7 +4917,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-39f298672385'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-5aad64b944cc'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4926,7 +4926,7 @@ No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bu
 | Archivo | Comportamiento |
 |---------|----------------|
 | `index.html` | No registra el SW ni escucha actualizaciones: lleva a `codigo-padre.html` con un `location.replace` en el `<head>`, su único camino, y el padre registra el SW al cargar. |
-| `codigo-padre.html` | Muestra banner no bloqueante `#sw-update-banner` (`z-index:1100000`) con texto y botón en el idioma del usuario (`TRADUCCIONES_SW_UPDATE`, 12 idiomas, expuesta en `globalThis` desde Script 1). Idioma: el de la interfaz (`globalThis.idiomaDeLaInterfaz()`, §9.10, «Frases aleatorias durante la espera»); si la tabla aún no está publicada (el banner puede salir antes de que corra Script 1), el texto sale en español. El usuario decide cuándo recargar; el botón navega con `?_v=<timestamp>` para que la caché HTTP del navegador no resuelva esa navegación. Guard `previousController` evita el banner en primera instalación. Guard `_swBannerMostrado` evita duplicar si `controllerchange` y `SW_ACTIVADO` llegan simultáneamente. **Persistente entre sesiones.** La decisión de mostrarlo o retirarlo vive en una única función (`_evaluarVersiones`) que compara qué versión corre —se la pregunta al SW con `SW_VERSION_REQUEST`— contra la desplegada en `version.json`; ninguna otra rama muestra ni retira el banner por su cuenta. Ver detalle más abajo. |
+| `codigo-padre.html` | Muestra banner no bloqueante `#sw-update-banner` (`z-index:1100000`) con texto y botón en el idioma del usuario (`TRADUCCIONES_SW_UPDATE`, 12 idiomas, que el propio bloque del banner importa con `import()`: es un bloque clásico, corre antes que Script 1, y el banner puede salir al arrancar). Idioma: el de la interfaz (`globalThis.idiomaDeLaInterfaz()`, §9.10, «Frases aleatorias durante la espera»). Sin esos textos no hay banner: se dice con un error y el aviso sigue pendiente. El usuario decide cuándo recargar; el botón navega con `?_v=<timestamp>` para que la caché HTTP del navegador no resuelva esa navegación. Guard `previousController` evita el banner en primera instalación. Guard `_swBannerMostrado` evita duplicar si `controllerchange` y `SW_ACTIVADO` llegan simultáneamente. **Persistente entre sesiones.** La decisión de mostrarlo o retirarlo vive en una única función (`_evaluarVersiones`) que compara qué versión corre —se la pregunta al SW con `SW_VERSION_REQUEST`— contra la desplegada en `version.json`; ninguna otra rama muestra ni retira el banner por su cuenta. Ver detalle más abajo. |
 
 En ambos listeners (`controllerchange` y mensaje `SW_ACTIVADO`) se ignora la primera instalación (`!previousController → return`).
 
@@ -8075,6 +8075,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `135-la-eleccion-se-sabe-siempre.spec.js` | 8 | La aventura y el idioma elegidos se saben en todo momento, por un solo camino y sin reservas: elegirlos los deja en las variables de la selección y en el padre (`globalThis.idiomaSeleccionado`, `globalThis.aventuraSeleccionada` y `vv_idioma`; EL-1, control); el padre guarda la aventura en un solo sitio (EL-2); si el padre no puede guardarla, la selección se queda en la lista de aventuras (EL-3); sin aventura elegida, la selección no carga los datos de ninguna (EL-4); el asistente no construye nada antes de que el padre le mande el idioma (EL-5); una sesión guardada sin idioma no se ofrece para reanudar, y se dice (EL-6); `video-intro.html` dice que no le han pasado `?lang=`, y con él no dice nada (EL-7); y lo que el código lee sin respaldo está completo en los doce idiomas: las tablas de `js/traducciones-ui.js` con sus claves, las escenas de Jaime, los textos de términos, agradecimientos y normativa, y los datos del padre, los retos y los audios de las siete aventuras (EL-8). |
 | `136-index-un-solo-camino.spec.js` | 3 | `index.html` lleva a la app por un solo camino: en su código hay una sola navegación, `location.replace('codigo-padre.html')`, sin registro del SW ni regla de HTTPS propios (IX-1); entrar por `/` y por `/index.html` deja en `/codigo-padre.html` (IX-2) |
 | `137-nombres-del-indice-sin-reserva-muda.spec.js` | 2 | El nombre de la aventura sale del índice por `_nombreDeAventura()`: con el índice cargado, el cartel de transición enseña el nombre (NI-1, control); sin la entrada, enseña el id de la aventura y el padre lo dice con un error (NI-2) |
+| `138-banner-version-en-su-idioma.spec.js` | 3 | El banner de versión nueva sale en el idioma del usuario también al arrancar con el aviso pendiente (el bloque del banner importa sus textos): en inglés con el último idioma en inglés (SB-1), en español en español (SB-2, control), y uno solo (SB-3) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8196,7 +8197,7 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 
 Cuando un cliente (`codigo-padre.html`) recibe la señal de actualización — por `controllerchange` o por el mensaje `SW_ACTIVADO` — **no recarga automáticamente**. Muestra un banner no bloqueante en la parte superior de la pantalla:
 
-- **`#sw-update-banner`** (`position:fixed; top:0; z-index:1100000`): mensaje y botón [Actualizar] en el idioma del usuario (12 idiomas vía `TRADUCCIONES_SW_UPDATE` de `js/traducciones-ui.js`, expuesta en `globalThis.TRADUCCIONES_SW_UPDATE` desde Script 1). El idioma es el de la interfaz, `globalThis.idiomaDeLaInterfaz()`; si la tabla aún no está publicada (el banner puede salir antes de que corra Script 1), el texto sale en español. El botón navega a `location.href` con un parámetro `_v=Date.now()` añadido (en vez de `location.reload()`) — ver "Por qué la recarga necesita cache-busting propio", más abajo. El z-index 1100000 garantiza que aparece por encima del overlay del mapa (`z-index:1000010`).
+- **`#sw-update-banner`** (`position:fixed; top:0; z-index:1100000`): mensaje y botón [Actualizar] en el idioma del usuario (12 idiomas vía `TRADUCCIONES_SW_UPDATE` de `js/traducciones-ui.js`, que el propio bloque del banner importa con `import()`, porque corre antes que Script 1). El idioma es el de la interfaz, `globalThis.idiomaDeLaInterfaz()`. Mientras llegan los textos el banner espera (si entretanto se pide otra vez, sale uno solo, con la última versión), y sin ellos no sale: se dice con un error y el aviso sigue pendiente. El botón navega a `location.href` con un parámetro `_v=Date.now()` añadido (en vez de `location.reload()`) — ver "Por qué la recarga necesita cache-busting propio", más abajo. El z-index 1100000 garantiza que aparece por encima del overlay del mapa (`z-index:1000010`).
 - **Guard `previousController`**: si no había un SW previo (primera instalación), no se muestra el banner.
 - **Guard `_swBannerMostrado`**: bandera en scope del bloque, evita mostrar el banner dos veces si `controllerchange` y `SW_ACTIVADO` llegan casi simultáneamente.
 
@@ -8309,7 +8310,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-39f298672385'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-5aad64b944cc'`, línea 107 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8553,7 +8554,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 134 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 135 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9062,7 +9063,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 107 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-39f298672385';
+const CACHE_VERSION = 'v-5aad64b944cc';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12536,7 +12537,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` línea 107
 
 ```js
-const CACHE_VERSION = 'v-39f298672385';
+const CACHE_VERSION = 'v-5aad64b944cc';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14189,10 +14190,10 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 
 ### 37.2 `globalThis` compartido entre bloques `<script>` inline (todos los archivos)
 
-Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **116 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
+Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **115 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 98 identificadores cruzados, de 143 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 97 identificadores cruzados, de 142 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14208,92 +14209,91 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarImagenOverlay` | clásico 8 (L1660) | módulo 1, módulo 2 | función/objeto |
 | `mostrarVideoOverlay` | clásico 8 (L2000) | módulo 1 | función/objeto |
 | `rotationSuppressed` | clásico 8 (L1701) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3724) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5101) | clásico 12 | estado |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3712) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3711) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5915) | clásico 12 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6580) | clásico 12 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3713) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6720) | clásico 12 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3715) | módulo 2 | función/objeto |
-| `__vv_PUZZLES` | módulo 1 (L3716) | módulo 2 | función/objeto |
-| `__vv_registroScript1` | módulo 1 (L3598) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4822) | módulo 2 | función/objeto |
-| `_cerrarDesplegablesDelPadre` | módulo 1 (L4788) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L7453) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8816) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L9032) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8937) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L4041) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8906) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9116) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9008) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8912) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9124) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8786) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6085) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3853) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3860) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4583) | clásico 7, módulo 2 | función/objeto |
-| `cargarHijoCasa` | módulo 1 (L8133) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8132) | módulo 2 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L3958) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3847) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3848) | módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L4046) | clásico 7, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4370) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4150) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6484) | módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3723) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5100) | clásico 12 | estado |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3711) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3710) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5914) | clásico 12 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6579) | clásico 12 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3712) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6719) | clásico 12 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3714) | módulo 2 | función/objeto |
+| `__vv_PUZZLES` | módulo 1 (L3715) | módulo 2 | función/objeto |
+| `__vv_registroScript1` | módulo 1 (L3597) | módulo 2 | estado |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4821) | módulo 2 | función/objeto |
+| `_cerrarDesplegablesDelPadre` | módulo 1 (L4787) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L7452) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8815) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9031) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8936) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L4040) | módulo 2 | estado |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8905) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9115) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9007) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8911) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9123) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8785) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6084) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3852) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3859) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4582) | clásico 7, módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8132) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8131) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L3957) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3846) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3847) | módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4045) | clásico 7, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4369) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4149) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6483) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2852) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4584) | clásico 5, clásico 7, módulo 2 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4583) | clásico 5, clásico 7, módulo 2 | función/objeto |
 | `limpiarDatosAventura` | módulo 1 (L2887) | módulo 2 | función/objeto |
-| `MODOS` | módulo 1 (L3846) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8513) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8436) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8289) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8332) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4240) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5129) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5156) | módulo 2 | función/objeto |
-| `reproducirVideoConBuffer` | módulo 1 (L2893) | clásico 8 | función/objeto |
+| `MODOS` | módulo 1 (L3845) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8512) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8435) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8288) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8331) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4239) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5128) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5155) | módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L2892) | clásico 8 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2882) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2883) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6322) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6248) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6176) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6401) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6476) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6780) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6779) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6321) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6247) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6175) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6400) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6475) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6779) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6778) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2840) | módulo 2 | función/objeto |
 | `sleep` | módulo 1 (L2767) | módulo 2, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5852) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3845) | clásico 7, clásico 8, módulo 2 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L4019) | clásico 8, módulo 2 | función/objeto |
-| `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2891) | clásico 13 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5851) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3844) | clásico 7, clásico 8, módulo 2 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L4018) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2868) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9236) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14154) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10253) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L13128) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L14135) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L12033) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12790) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L10192) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11387) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11436) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12820) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9300) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10187) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9439) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9521) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L13053) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L10065) | módulo 1 | función/objeto |
-| `obtenerElementoActual` | módulo 2 (L9551) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L10057) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L10030) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14170) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9235) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14153) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10252) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L13127) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L14134) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L12032) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12789) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L10191) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11386) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11435) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12819) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9299) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10186) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9438) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9520) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13052) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10064) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9550) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10056) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10029) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14169) | módulo 2 | función/objeto |
 
 </details>
 

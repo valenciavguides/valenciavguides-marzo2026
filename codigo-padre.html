@@ -2886,9 +2886,8 @@
         import { limpiarDatosAventura, verificarTimeoutAventura, armarRedDeSeguridad } from './js/reciclaje-digital.js';
         globalThis.limpiarDatosAventura = limpiarDatosAventura;
         globalThis.verificarTimeoutAventura = verificarTimeoutAventura;
-        import { TRADUCCIONES_REANUDACION, TRADUCCIONES_FINALIZACION, TRADUCCIONES_SW_UPDATE, TEXTOS_VALORACION } from './js/traducciones-ui.js';
+        import { TRADUCCIONES_REANUDACION, TRADUCCIONES_FINALIZACION, TEXTOS_VALORACION } from './js/traducciones-ui.js';
         import { enviarValoracion } from './js/feedback-forms.js';
-        globalThis.TRADUCCIONES_SW_UPDATE = TRADUCCIONES_SW_UPDATE;
         import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
         globalThis.reproducirVideoConBuffer = reproducirVideoConBuffer;
 
@@ -14412,6 +14411,15 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 _swBannerMostrado = false;
             }
 
+            // Los textos del banner los pide este bloque. Es clásico y corre durante el parseo, antes que los módulos (Script 1),
+            // y el banner sale ya al arrancar si una sesión anterior dejó el aviso pendiente: esperar a que Script 1 publicara la
+            // tabla dejaba ese banner con un texto en español escrito a mano, fuera cual fuera el idioma. `import()` da el mismo
+            // módulo que carga Script 1 (el navegador no lo evalúa dos veces). Sin los textos no hay banner, y lo dice; el aviso
+            // sigue pendiente para la siguiente vez.
+            const _textosBanner = import('./js/traducciones-ui.js').then((m) => m.TRADUCCIONES_SW_UPDATE);
+            // La versión que anunciará el banner mientras llegan sus textos: la última que se haya pedido.
+            let _versionBannerPendiente = null;
+
             function _mostrarBannerSW(version) {
                 _marcarActualizacionPendiente(version);
                 const _existente = document.getElementById('sw-update-banner');
@@ -14425,10 +14433,30 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     }
                     return;
                 }
+                _versionBannerPendiente = version || _versionBannerPendiente;
+                // Ya se está creando: lo pinta la promesa de abajo, con la última versión.
+                if (_swBannerMostrado) return;
                 _swBannerMostrado = true;
-                const _lang = globalThis.idiomaDeLaInterfaz();
-                const _t = (globalThis.TRADUCCIONES_SW_UPDATE || {})[_lang]
-                    || { label: '🔄 Nueva versión disponible', boton: 'Actualizar' };
+                _textosBanner.then((tabla) => {
+                    // Mientras llegaban los textos se pudo retirar (el aviso se resolvió), empezar el reciclaje de datos o
+                    // pintarse ya por otra llamada.
+                    if (!_swBannerMostrado || _reciclandoDatos() || document.getElementById('sw-update-banner')) return;
+                    const _lang = globalThis.idiomaDeLaInterfaz();
+                    const _t = tabla?.[_lang];
+                    if (!_t) {
+                        _swBannerMostrado = false;
+                        (globalThis.logger || console).error(`[SW] Sin textos del banner para el idioma ${_lang}: no se enseña (el aviso sigue pendiente)`);
+                        return;
+                    }
+                    _crearBannerSW(_t, _versionBannerPendiente);
+                    _versionBannerPendiente = null;
+                }).catch((e) => {
+                    _swBannerMostrado = false;
+                    (globalThis.logger || console).error('[SW] No llegaron los textos del banner: no se enseña (el aviso sigue pendiente):', e?.message);
+                });
+            }
+
+            function _crearBannerSW(_t, version) {
                 const banner = document.createElement('div');
                 banner.id = 'sw-update-banner';
                 banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:1100000;background:#1a1a2e;color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;font-family:Verdana,sans-serif;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.4);';
