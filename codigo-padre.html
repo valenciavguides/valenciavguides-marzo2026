@@ -3882,7 +3882,6 @@
                 alert(MSG_ERROR_CARGA_APP[globalThis.idiomaDeLaInterfaz()]);
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
-        globalThis._avisarFalloCargaAppUnaVez = _avisarFalloCargaAppUnaVez;
 
         // 🔥 PROCESAR DISTRIBUCIONES PENDIENTES
         // Si hay distribuciones pendientes esperando a que enviarMensaje_S1 esté disponible
@@ -5226,10 +5225,6 @@
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             return { lat: 39.47876, lng: -0.37626 };
         }
-        // Expuesta en globalThis por consistencia con el resto de helpers GPS de este bloque
-        // (activarGPS, calcularDistancia...), accesibles así desde cualquiera
-        // de los cinco scripts de codigo-padre.html aunque hoy solo se llame desde este mismo script.
-        globalThis._obtenerCoordenadasP0Fallback = _obtenerCoordenadasP0Fallback;
 
         // ID real de la parada de inicio de la aventura activa (nunca el literal 'P-0',
         // que no coincide con ningún id real — ver _obtenerCoordenadasP0Fallback).
@@ -8122,7 +8117,6 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.cargarIframeSoloSeleccion = cargarIframeSoloSeleccion;
         globalThis.cargarRestoDeiframes = cargarRestoDeiframes;
         globalThis.cargarHijoCasa = cargarHijoCasa;
-        globalThis.waitForMapLibreAndInitialize = waitForMapLibreAndInitialize;
 
         // ============================================================
         // DT-1 OPCIÓN B: Controladores de datos extraídos
