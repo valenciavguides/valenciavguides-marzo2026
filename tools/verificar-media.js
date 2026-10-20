@@ -10,10 +10,10 @@
  *   node tools/verificar-media.js --quiet    → solo lo que excede el límite (para CI)
  *
  * Qué hace:
- *   1. Recorre las carpetas de media (todas las de imagenes/, los audios de
- *      las aventuras y de los efectos, los vídeos, y el audio, las fotos y el
- *      vídeo de la demo gratis, en publico/) y compara cada archivo contra un
- *      límite de tamaño de referencia.
+ *   1. Recorre las carpetas de media, que descubre sola (las subcarpetas de
+ *      imagenes/, las carpetas de la raíz que empiezan por audios- o videos-,
+ *      y la carpeta pública publico/), y compara cada archivo contra el límite
+ *      de tamaño de referencia de su tipo, que da su extensión.
  *   2. Si `ffmpeg`/`ffprobe` están disponibles en PATH, hace además una
  *      comprobación más precisa: bitrate real de audio, y perfil H.264 +
  *      fotogramas de referencia de vídeo (ver §15 — perfil High o >2 refs
@@ -40,32 +40,38 @@ const LIMITES = {
     video: { bytes: 12 * 1024 * 1024, label: '12 MB' },
 };
 
-const EXT_IMAGEN = ['.jpg', '.jpeg', '.jfif', '.png', '.webp'];
+// El tipo de cada fichero —y con él su límite y lo que mira ffmpeg— lo da su extensión, aquí y en ningún otro sitio.
+const EXTENSIONES = {
+    imagen: ['.jpg', '.jpeg', '.jfif', '.png', '.webp'],
+    audio: ['.mp3', '.wav', '.m4a'],
+    video: ['.mp4', '.webm', '.mov'],
+};
+const EXT_MEDIA = Object.values(EXTENSIONES).flat();
+const tipoDe = (fichero) => Object.keys(EXTENSIONES).find(t => EXTENSIONES[t].includes(path.extname(fichero).toLowerCase()));
 
 /**
- * Descubre las carpetas de imágenes en vez de mantener una lista fija: `imagenes/` gana
- * subcarpetas cada vez que se añade contenido (idiomas, tandas nuevas), y una lista escrita
- * a mano deja de cubrirlas en silencio — el informe sigue saliendo, pero sin mirarlas, que
- * es peor que no tener herramienta porque parece que sí las ha revisado.
- * @returns {Array<{dir: string, tipo: string, ext: string[]}>}
+ * Descubre las carpetas de media en vez de mantener una lista fija: se ganan carpetas cada vez
+ * que entra contenido (idiomas, tandas nuevas de imágenes, una carpeta de audio nueva), y una
+ * lista escrita a mano deja de cubrirlas en silencio — el informe sigue saliendo, pero sin
+ * mirarlas, que es peor que no tener herramienta porque parece que sí las ha revisado.
+ * Son las subcarpetas de `imagenes/`, las carpetas de la raíz que empiezan por `audios-` o
+ * `videos-`, y la carpeta pública `publico/`.
+ * @returns {string[]} rutas relativas a la raíz del proyecto
  */
-function carpetasDeImagenes() {
-    const base = path.join(ROOT, 'imagenes');
-    if (!fs.existsSync(base)) return [];
-    return fs.readdirSync(base, { withFileTypes: true })
-        .filter(d => d.isDirectory())
-        .map(d => ({ dir: `imagenes/${d.name}`, tipo: 'imagen', ext: EXT_IMAGEN }));
+function carpetasDeMedia() {
+    const subcarpetas = (rel) => {
+        const abs = path.join(ROOT, rel);
+        if (!fs.existsSync(abs)) return [];
+        return fs.readdirSync(abs, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name);
+    };
+    return [
+        ...subcarpetas('imagenes').map(n => `imagenes/${n}`),
+        ...subcarpetas('').filter(n => /^(audios|videos)-/.test(n)),
+        ...(fs.existsSync(path.join(ROOT, 'publico')) ? ['publico'] : []),
+    ];
 }
 
-const CARPETAS = [
-    ...carpetasDeImagenes(),
-    { dir: 'audios-aventuras', tipo: 'audio', ext: ['.mp3', '.wav', '.m4a'] },
-    { dir: 'publico/audios', tipo: 'audio', ext: ['.mp3', '.wav', '.m4a'] },
-    { dir: 'publico/imagenes', tipo: 'imagen', ext: EXT_IMAGEN },
-    { dir: 'publico/videos', tipo: 'video', ext: ['.mp4', '.webm', '.mov'] },
-    { dir: 'audios-efectos', tipo: 'audio', ext: ['.mp3', '.wav', '.m4a'] },
-    { dir: 'videos-aventuras', tipo: 'video', ext: ['.mp4', '.webm', '.mov'] },
-];
+const CARPETAS = carpetasDeMedia();
 
 function tieneFfmpeg() {
     try {
@@ -125,24 +131,24 @@ function main() {
     let totalBytes = 0;
 
     for (const carpeta of CARPETAS) {
-        const dirAbs = path.join(ROOT, carpeta.dir);
-        const archivos = listarArchivos(dirAbs, carpeta.ext);
-        const limite = LIMITES[carpeta.tipo];
+        const archivos = listarArchivos(path.join(ROOT, carpeta), EXT_MEDIA);
 
         for (const fileAbs of archivos) {
+            const tipo = tipoDe(fileAbs);
+            const limite = LIMITES[tipo];
             const stat = fs.statSync(fileAbs);
             totalArchivos++;
             totalBytes += stat.size;
             const rel = path.relative(ROOT, fileAbs);
 
             if (stat.size > limite.bytes) {
-                hallazgos.push({ rel, tipo: carpeta.tipo, motivo: `${mb(stat.size)} MB (límite de referencia: ${limite.label})` });
+                hallazgos.push({ rel, tipo, motivo: `${mb(stat.size)} MB (límite de referencia: ${limite.label})` });
                 continue; // ya está marcado por tamaño, no hace falta el detalle de ffprobe también
             }
 
             if (ffmpegDisponible) {
-                const detalle = inspeccionarConFfmpeg(fileAbs, carpeta.tipo);
-                if (detalle) hallazgos.push({ rel, tipo: carpeta.tipo, motivo: detalle });
+                const detalle = inspeccionarConFfmpeg(fileAbs, tipo);
+                if (detalle) hallazgos.push({ rel, tipo, motivo: detalle });
             }
         }
     }
