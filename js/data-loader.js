@@ -153,8 +153,9 @@ export async function cargarCoordenadas(aventuraId) {
     return result;
 }
 
-// Mapa idioma → nombre de archivo de párrafos
-const LANG_ARCHIVO_PARRAFOS = {
+// Mapa idioma → nombre de archivo de párrafos. Lo usa también tools/build-demo.js, que monta con él el texto de
+// introducción de la demo gratis.
+export const LANG_ARCHIVO_PARRAFOS = {
     es: 'espanol',        en: 'ingles',      fr: 'frances',
     it: 'italiano',       nl: 'neerlandes',  ja: 'japones',
     de: 'aleman',         zh: 'chino-simplificado',
@@ -190,6 +191,26 @@ async function cargarMapaParrafos(idioma) {
 }
 
 /**
+ * Un texto de aventura listo para enseñar: su id con el idioma, el título de su audio y el HTML de sus párrafos (o su
+ * `content` fijo). Es la única forma de montarlo: la usan cargarTextos() y tools/build-demo.js, que saca de aquí el texto
+ * de introducción de la demo gratis.
+ */
+export function ensamblarTexto(entrada, idioma, audioMap, mapa) {
+    const idLang = entrada.id + '-' + idioma;
+    const audioId = idLang
+        .replace('txt-', 'audio-')
+        .replace(/-(P|TR)(\d+)-/, '-$1-$2-');
+    const title = audioMap.get(audioId)?.title ?? '';
+    // Entrada con content fijo (ej. puzzle)
+    if (typeof entrada.content === 'string') return { ...entrada, id: idLang, title };
+    // Ensamblar HTML desde los números de párrafo
+    const content = (entrada.parrafos ?? [])
+        .map(n => mapa[String(n)] ?? '')
+        .join('');
+    return { id: idLang, title, content };
+}
+
+/**
  * Carga los textos de una aventura en un idioma.
  * Devuelve array [{id, title, content}] con el HTML ensamblado desde
  * el mapa de párrafos del idioma (modo local) o desde la API (producción).
@@ -218,20 +239,7 @@ export async function cargarTextos(aventuraId, idioma) {
             (globalThis.logger || console).warn(`[DataLoader][cargarTextos] ⚠️ Mapa de párrafos vacío para idioma="${idioma}" — contenido de paradas no disponible. Se reintentará en la próxima llamada.`);
         }
 
-        result = entradas.map(entrada => {
-            const idLang = entrada.id + '-' + idioma;
-            const audioId = idLang
-                .replace('txt-', 'audio-')
-                .replace(/-(P|TR)(\d+)-/, '-$1-$2-');
-            const title = audioMap.get(audioId)?.title ?? '';
-            // Entrada con content fijo (ej. puzzle)
-            if (typeof entrada.content === 'string') return { ...entrada, id: idLang, title };
-            // Ensamblar HTML desde los números de párrafo
-            const content = (entrada.parrafos ?? [])
-                .map(n => mapa[String(n)] ?? '')
-                .join('');
-            return { id: idLang, title, content };
-        });
+        result = entradas.map(entrada => ensamblarTexto(entrada, idioma, audioMap, mapa));
     } else {
         // PRODUCCIÓN: el endpoint debe devolver los textos YA ensamblados por
         // aventura+idioma ({ textos: [{id,title,content}] }, mismo contrato que

@@ -5,6 +5,7 @@
   "scripts": {
     "postinstall": "node tools/install-hooks.js",
     "build:sw": "node tools/build-sw.js",
+    "build:demo": "node tools/build-demo.js",
     "dev:watch": "node tools/watch-sw.js",
     "inventory": "node tools/inventory.js",
     "inventory:dupes": "node tools/inventory.js --duplicates",

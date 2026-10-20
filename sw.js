@@ -84,6 +84,7 @@ const APP_SHELL = [
   '/js/aventuras-ID-padre.js',
   '/js/agradecimientos-aventuras.js',
   '/js/mapa-vintage-aventuras.js',
+  '/js/demo-aventuras.js',
   // Iconos
   '/imagenes/imagenes-aplicación/logo-redondo.png',
   '/imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg',
@@ -108,7 +109,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell actualiza la versión de caché
 // automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-3009c5e5a520';
+const CACHE_VERSION = 'v-d4a24fb14566';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
@@ -225,6 +226,7 @@ self.addEventListener('fetch', event => {
   // depender de si esa parada ya se cacheó antes por casualidad.
   if (url.pathname.startsWith('/videos-aventuras/')) return;
   if (url.pathname.startsWith('/audios-aventuras/')) return;
+  if (url.pathname.startsWith('/audios-demo/')) return;
 
   // API: Network Only (sin caché)
   if (esApi(url)) {

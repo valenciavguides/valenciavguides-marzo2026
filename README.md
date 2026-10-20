@@ -160,7 +160,8 @@ valenciavguides/
 │   ├── *-aventuras.js         # Datos de aventuras
 │   └── ...
 │
-├── audios-aventuras/          # 12 idiomas × 7 aventuras
+├── audios-aventuras/          # MP3 de pago, una carpeta por idioma con audio grabado
+├── audios-demo/               # Audio de introducción de la demo gratis (público)
 ├── imagenes/                  # Assets visuales
 ├── videos-aventuras/          # Clips de tramos
 │

@@ -2,11 +2,11 @@
  * 45-texto-intro-fallback-idioma.spec.js
  *
  * Grupo TI — cargarTextoIntro() (En-busca-del-tesoro.html, P11) muestra el texto
- * introductorio real ensamblado por cargarTextos()/cargarMapaParrafos()
- * (js/data-loader.js) para el idioma elegido. Si esa carga falla — fallo de red al
- * pedir el JSON de párrafos del idioma, o la entrada txt-intro-{idioma} llega
- * vacía/ausente — los 3 caminos de fallback (entrada sin content, resultado sin array
- * real, excepción) usaban texto español fijo sin mirar idiomaSeleccionado, a diferencia
+ * introductorio del idioma elegido, que llega en js/demo-aventuras.js (lo genera
+ * tools/build-demo.js con ensamblarTexto() de js/data-loader.js; ver el spec 149). Si
+ * esa carga falla — el fichero de la demo no llega, o no trae el texto — los caminos de
+ * fallback (texto ausente o vacío, excepción) usaban texto español fijo sin mirar
+ * idiomaSeleccionado, a diferencia
  * del resto de la app, que sí traduce sus avisos de fallback a los 12 idiomas (auditoría
  * 2026-08-19). Corregido con MSG_TEXTO_INTRO_NO_DISPONIBLE (js/traducciones-ui.js, 12
  * idiomas), mismo patrón que MSG_TEXTO_PARADA_NO_DISPONIBLE.
@@ -61,11 +61,10 @@ async function cargarComoIframe(page) {
 }
 
 test.describe('TI — cargarTextoIntro(): fallback traducido cuando falla la carga del texto (P11)', () => {
-  test('TI-1. Fallo de red cargando párrafos en un idioma no español: el fallback sale en ese idioma, no en español fijo', async ({ page }) => {
-    // Español real de párrafos siempre disponible localmente — solo se intercepta la
-    // petición del idioma bajo prueba, para simular un fallo real de red/servidor
-    // específico de ese idioma (el escenario real que dispara el bug).
-    await page.route('**/parrafos-texto-japones.json', (route) => route.fulfill({ status: 500, body: 'error' }));
+  test('TI-1. Fallo de red cargando el fichero de la demo con un idioma no español: el fallback sale en ese idioma, no en español fijo', async ({ page }) => {
+    // El texto de introducción llega en js/demo-aventuras.js: se intercepta esa petición
+    // para simular un fallo real de red/servidor (el escenario real que dispara el bug).
+    await page.route('**/js/demo-aventuras.js', (route) => route.fulfill({ status: 500, body: 'error' }));
     const frame = await cargarComoIframe(page);
 
     const resultado = await frame.evaluate(async () => {

@@ -267,7 +267,8 @@ function main(opts = {}) {
     }
 }
 
-module.exports = { computeCacheVersion, aplicarCacheVersion, main, ficherosDelShell };
+// Los lectores también los usa tools/build-demo.js, que lee sus fuentes del mismo modo.
+module.exports = { computeCacheVersion, aplicarCacheVersion, main, ficherosDelShell, leerStaged, leerWorkingTree, normalizarFinalesLinea };
 
 if (require.main === module) {
     main();

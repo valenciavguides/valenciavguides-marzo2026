@@ -29,6 +29,8 @@
  *   8. Los retos tienen pregunta y opciones
  *   9. Lo que el índice marca como disponible existe de verdad en los datos
  *  10. Cada aventura del índice dice si es corta o larga (su categoría de precio)
+ *  11. El índice trae el nombre y el tiempo de cada aventura, y el nombre de cada idioma
+ *  12. La demo gratis (js/demo-aventuras.js) está al día con sus fuentes y no le falta ninguna pieza
  *
  * Lo que NO comprueba: que los ficheros de audio/vídeo/imagen existan en disco. Eso es
  * `npm run verificar-media`, y el usuario los está preparando.
@@ -248,6 +250,21 @@ async function main() {
     }
     check('El índice trae el nombre y el tiempo de cada aventura, y el nombre de cada idioma', sinDato,
         `${Object.keys(INDICE_AVENTURAS).length} aventuras, ${Object.keys(MAPEO_IDIOMAS || {}).length} idiomas`);
+
+    // ── 12. La demo gratis está al día con sus fuentes, y completa
+    // La demo (de P2 a P11, antes del pago) lee sus piezas de js/demo-aventuras.js, que genera tools/build-demo.js a partir
+    // de estos mismos ficheros de datos, y el hook de pre-commit lo rehace. Aquí se para si un dato de la demo cambia sin
+    // regenerarla, o si le falta una pieza.
+    const { generarDemo } = require('./build-demo.js');
+    const { normalizarFinalesLinea } = require('./build-sw.js');
+    const fs = require('node:fs');
+    const demo = await generarDemo({ staged: false });
+    const problemasDemo = [...demo.faltas];
+    const ficheroDemo = path.join(RAIZ, 'js/demo-aventuras.js');
+    const actualDemo = fs.existsSync(ficheroDemo) ? normalizarFinalesLinea(fs.readFileSync(ficheroDemo, 'utf8')) : null;
+    if (actualDemo !== demo.texto) problemasDemo.push('js/demo-aventuras.js no está al día con sus fuentes: npm run build:demo');
+    check('La demo gratis está al día con sus fuentes y no le falta ninguna pieza', problemasDemo,
+        `${Object.keys(INDICE_AVENTURAS).length} aventuras × ${Object.keys(MAPEO_IDIOMAS || {}).length} idiomas`);
 
     informe();
 }
