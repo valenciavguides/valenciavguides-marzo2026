@@ -37,6 +37,10 @@ const modo = (page, m) => page.evaluate((x) => globalThis.mensajeria.despacharLo
 const enModo = (page, m) => expect.poll(() => page.evaluate(() => globalThis.estado?.modo?.actual ?? null), { timeout: 30_000 }).toBe(m);
 
 async function prepararPadre(page) {
+  // Antes del goto: el cambio de modo real a AVENTURA arranca el seguimiento GPS, y sin el permiso concedido Firefox no
+  // contesta nunca a watchPosition (ni éxito ni error) y el cambio de modo no termina. La posición es la de la suite.
+  await page.context().grantPermissions(['geolocation']);
+  await page.context().setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
   await page.addInitScript({ path: MAPLIBRE_STUB });
   await injectInitSpy(page);
   await stubCDNResources(page);
