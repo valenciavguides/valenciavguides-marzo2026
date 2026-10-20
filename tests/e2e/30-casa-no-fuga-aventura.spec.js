@@ -28,8 +28,10 @@
  *         marca ni se persiste paradasCompletadas.
  *   CM-5  Defensa en profundidad: _hdl_NAVEGACION_USUARIO_FUERA_RANGO en CASA no activa
  *         estado.usuarioFueraRango.
- *   CM-6  _hdl_SISTEMA_CAMBIO_MODO(CASA) cierra los overlays de distancia GPS si estaban
- *         visibles (ya no se quedan pegados desde una AVENTURA anterior).
+ *   CM-6  _hdl_SISTEMA_CAMBIO_MODO(CASA) cierra todo lo del GPS que quedara abierto desde
+ *         AVENTURA: los seis carteles de distancia y precisión, la cuenta atrás del botón de
+ *         reintento del cartel de bloqueo (con el botón otra vez disponible) y el panel de
+ *         «siguiente punto». Todo en un solo sitio, la rama CASA del handler (estudio, K-49).
  */
 'use strict';
 
@@ -205,12 +207,32 @@ test.describe('CM — Nada de AVENTURA se ejecuta de verdad estando en modo CASA
       );
       expect(await visibles(), 'Precondición: los seis carteles están visibles antes de entrar en CASA').toEqual(CARTELES_DISTANCIA_GPS);
 
+      // Y lo que deja el botón de reintento del cartel de bloqueo al pulsarlo: su cuenta atrás en marcha, el botón apagado
+      // hasta que acabe, y el panel de «siguiente punto» abierto. Se ponen a mano, con los mismos elementos y el mismo
+      // temporizador que usa el padre: el reintento real, con la geolocalización concedida, resuelve enseguida y lo
+      // cerraría solo.
+      await page.evaluate(() => {
+        const asegura = (etiqueta, id) => document.getElementById(id) ?? document.body.appendChild(Object.assign(document.createElement(etiqueta), { id }));
+        asegura('div', 'gps-overlay-countdown').textContent = '15';
+        asegura('button', 'gps-error-action').disabled = true;
+        asegura('div', 'gps-next-entity-overlay').style.display = 'block';
+        globalThis.__VV_GPS_OVERLAY_TIMER = setInterval(() => {}, 1000);
+      });
+
       await page.evaluate(async () => {
         await globalThis.mensajeria.despacharLocal({ tipo: 'SISTEMA.CAMBIO_MODO', datos: { modo: 'casa' } });
       });
       await page.waitForTimeout(300);
 
       expect(await visibles(), 'Ningún cartel de distancia/precisión GPS debe seguir visible (clase "show") al entrar en CASA').toEqual([]);
+      const restoDelBloqueo = await page.evaluate(() => ({
+        cuentaAtras: globalThis.__VV_GPS_OVERLAY_TIMER === undefined ? 'parada' : 'en marcha',
+        texto: document.getElementById('gps-overlay-countdown')?.textContent ?? null,
+        botonApagado: document.getElementById('gps-error-action')?.disabled ?? null,
+        panelSiguiente: document.getElementById('gps-next-entity-overlay')?.style.display ?? null,
+      }));
+      expect(restoDelBloqueo, 'al entrar en CASA se para la cuenta atrás del reintento, el botón vuelve y el panel de siguiente punto se cierra')
+        .toEqual({ cuentaAtras: 'parada', texto: '', botonApagado: false, panelSiguiente: 'none' });
     });
   });
 });

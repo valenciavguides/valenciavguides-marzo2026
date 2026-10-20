@@ -332,7 +332,7 @@ sequenceDiagram
     P->>P: estado.sistema.cambiandoModo = true (guard, ver más abajo)
     P->>P: estado.paradaRealCongelada = estado.paradaActual (congela progreso real)
     P->>P: _detenerRecordatorioAudio() + _detenerRecordatorioReto() (§25.5c/d)
-    P->>P: _ocultarTodasPantallasDistanciaGPS()
+    P->>P: cierra todo lo del GPS: _ocultarTodasPantallasDistanciaGPS()<br/>+ hideNextEntityOverlay() + hideGpsOutOfRangeOverlay()<br/>(seis carteles, cuenta atrás del reintento y panel de siguiente punto)
     P->>P: funcionesMapa.limpiarPolylineNavegacion() — limpia la línea manual del botón ubicación si quedó dibujada de la sesión de AVENTURA anterior
     opt _devModeActivo === true
         P->>H5: hijo5 display:block · visibility:visible (vuelve a mostrarse)
@@ -347,7 +347,6 @@ sequenceDiagram
     HH-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
     Note over P: Solo si el cambio tuvo éxito, continúa:
     P->>P: _transicionarAModoCasa(): borra vv_aventura_iniciada + vv_progreso<br/>+ vv_paradas_completadas de localStorage (salvo modo dev)
-    P->>P: _gestionarGpsOverlays: oculta overlays GPS<br/>(hideNextEntityOverlay + hideGpsOutOfRangeOverlay)
     Note over P,HH: GPS watchPosition sigue activo<br/>pero sin validar distancias ni emitir CAMBIO_PARADA
     P->>P: finally: estado.sistema.cambiandoModo = false
 ```
@@ -2020,7 +2019,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 | **`RETO.ESTADO_CASA` (hijo4)** | Enviado en cada `CAMBIO_PARADA`: `{ habilitado: !esTramo }` — habilita el panel de retos en paradas, lo deshabilita en tramos | No se envía |
 | **Origen típico de `CAMBIO_PARADA`** | hijo5 (clic en lista de paradas) | El padre mismo, tras `progresarSiguienteElemento()` (usuario pulsa `btn-avanzar` en hijo2 una vez llegada+audio+reto están completos) — nunca hijo2 directamente; la llegada GPS solo marca `pending.llegada`, ver §2.2 |
 | **Persistencia de progreso** | Borra la aventura guardada (`_borrarAventuraGuardada({ conIdioma: false })`, §10.19), salvo en modo desarrollo (ver §24) o al reanudar | Reescribe `modo` y `dev` de `vv_aventura_iniciada` (`almacen.local.escribirJSON`), en cada cambio real de modo |
-| **Carteles de distancia GPS** (`gps-out-of-range-overlay`, `foto-fuera-rango-overlay`, `foto-lejos-overlay`) | Al entrar en CASA, `_hdl_SISTEMA_CAMBIO_MODO` los cierra explícitamente (`_ocultarTodasPantallasDistanciaGPS()`, que cierra los seis carteles de distancia y precisión: estos tres más `foto-perdido-overlay`, `foto-desviado-overlay` y `gps-precision-overlay`) y resetea `estado.usuarioFueraRango` — ninguno puede quedar visible desde una AVENTURA anterior | Gestionados por `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`/`_hdl_NAVEGACION_LLEGADA_DETECTADA`, cada uno con su propio guard de modo (defensa en profundidad, redundante con el guard de hijo2 que ya evita que se envíen desde CASA) |
+| **Carteles de distancia GPS** (`gps-out-of-range-overlay`, `foto-fuera-rango-overlay`, `foto-lejos-overlay`) | Al entrar en CASA, la rama CASA de `_hdl_SISTEMA_CAMBIO_MODO` cierra todo lo del GPS en un solo sitio y al empezar: los seis carteles de distancia y precisión (`_ocultarTodasPantallasDistanciaGPS()`: estos tres más `foto-perdido-overlay`, `foto-desviado-overlay` y `gps-precision-overlay`), y la cuenta atrás del botón de reintento del cartel de bloqueo, con el botón otra vez disponible, y el panel de siguiente punto (`hideNextEntityOverlay()` y `hideGpsOutOfRangeOverlay()`); y resetea `estado.usuarioFueraRango` — nada de eso puede quedar abierto desde una AVENTURA anterior (spec 30, CM-6) | Gestionados por `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`/`_hdl_NAVEGACION_LLEGADA_DETECTADA`, cada uno con su propio guard de modo (defensa en profundidad, redundante con el guard de hijo2 que ya evita que se envíen desde CASA) |
 | **Recordatorio "pulse play"** (§25.5c) | `_hdl_SISTEMA_CAMBIO_MODO` llama a `globalThis._detenerRecordatorioAudio()` explícitamente — el elemento activo no cambia solo por cambiar de modo, así que sin este apagado el recordatorio seguiría corriendo fuera de AVENTURA | Arranca en `_hdl_NAVEGACION_CAMBIO_PARADA` si el elemento tiene audio; exige tiempo Y proximidad GPS a la vez (ver §25.5c) |
 
 **Flujo de `CAMBIO_PARADA` según modo** — llamadas ejecutadas en `_hdl_NAVEGACION_CAMBIO_PARADA`:
@@ -4264,7 +4263,7 @@ flowchart LR
 | Modo | GPS | Heartbeat | Validación distancias | Overlays |
 |------|-----|-----------|-----------------------|----------|
 | SELECCIÓN (`modo.actual === null`) | ✗ hasta P15, ✅ **desde P15** | ✅ cada 5 s | ✗ | iframe seleccion |
-| CASA | ✅ activo | ✅ cada 5 s | ✗ (emoji 🛸) | `hideNextEntityOverlay()`, `hideGpsOutOfRangeOverlay()` |
+| CASA | ✅ activo | ✅ cada 5 s | ✗ (emoji 🛸) | todos cerrados al entrar, en la rama CASA de `_hdl_SISTEMA_CAMBIO_MODO` |
 | AVENTURA | ✅ activo | ✅ cada 5 s | ✅ llegada y franjas de lejanía | nextEntity + outOfRange visibles |
 
 **El GPS se enciende antes de que exista un modo.** `_hdl_SELECCION_P15_MOSTRADA` llama a `activarGPS()` mientras `estado.modo.actual` sigue valiendo `null` (§2, modo tri-estado): el modo no se fija hasta `AVENTURA_ACTIVADA`, en P16/P17. Así que durante el tramo final de la selección — normativa y reto R-2 — el sensor ya está corriendo aunque la app no esté todavía ni en CASA ni en AVENTURA.
@@ -4934,7 +4933,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c7baa4a22d08'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-64906f54aac9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7981,7 +7980,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `27-seguimiento-rumbo.spec.js` | 1 | Modo "Seguir mi rumbo" (§4.6b): con el modo desactivado (estado por defecto), una lectura de brújula no mueve el `bearing` del mapa (SR-1); `activarSeguimientoRumbo()` gira el mapa de inmediato (`easeTo`) al último rumbo conocido y, a partir de ahí, cada lectura de brújula sí mueve el `bearing` (`setBearing()`, dentro de `actualizarRotacionFlechaGPS()`) (SR-2); `desactivarSeguimientoRumbo()` fija el mapa a norte (`bearing:0`) de inmediato y las lecturas de brújula dejan de mover el `bearing` otra vez (SR-3) |
 | `28-audio-control-error.spec.js` | 3 | `_manejarAudioControl()` (§7.4 "Controles globales de audio", audio-hijo3.html): pedir `play` de un `audioId` que no está en caché local (`cargarYReproducirAudio()` devuelve `exito:false` de forma determinista en este contexto standalone) hace que el catch propio de la función registre el fallo explícitamente, en vez de perderse en el catch genérico externo o confirmar éxito de todos modos ignorando el `exito:false` (AC-1); en `codigo-padre.html`, `_hdl_SISTEMA_ERROR` despacha por código: con `AUDIO_CONTROL_FALLIDO` marca el audio activo como no disponible —`estado._audioFalloId`, que es lo que habilita el botón ⏩ de saltar (§25.5f)— y con cualquier otro código no toca el estado del audio (SE-2) |
 | `29-recordatorio-audio.spec.js` | 6 | Cartel recordatorio "pulse play" (§25.5c, `codigo-padre.html`), con `page.clock` simulado: no aparece solo por tiempo (10s) sin proximidad GPS real (`estado.gps.proximidadReal`), aparece en cuanto se cumplen ambas condiciones, se autocierra a los 7s, reaparece cada 20s, y pulsar play/replay en `#audio-control-dropdown` solo cierra el cartel visible sin apagarlo para siempre (RA-1); reiniciar el recordatorio al activarse un nuevo elemento cancela el timer del anterior en vez de acumularlo (RA-2); la proximidad real sola tampoco basta antes de los 10s, caso simétrico de RA-1 (RA-3); el fin de audio genuino (`_detenerRecordatorioAudio`, disparado desde `AUDIO.FIN_REPRODUCCION`) sí apaga el recordatorio para siempre, a diferencia de pulsar play (RA-4); el id de audio de OTRO elemento colgado en `audioActual` no bloquea el recordatorio del elemento activo real (RA-5); el id de audio del MISMO elemento activo, reproduciendo de verdad, sí lo bloquea (RA-6) |
-| `30-casa-no-fuga-aventura.spec.js` | 6 | El GPS nunca se detiene entre modos, así que en CASA hace falta comprobar explícitamente que ninguna pieza de la lógica de AVENTURA se cuela: el marcador de usuario usa 🛸 en CASA, no la flecha (CM-1); en CASA, `procesarPosicionGPSParaAventura()` no envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 (CM-2); con `estadoComponente.modo='casa'`, un `ACTUALIZAR_ESTADO` dentro de radio no dispara detección de llegada — cero `LLEGADA_DETECTADA` (CM-3, la comprobación más importante: sin ella, "ver" una parada en CASA con hijo5 podría marcarla como visitada de verdad); defensa en profundidad si `LLEGADA_DETECTADA` llegara igualmente en CASA, `_hdl_NAVEGACION_LLEGADA_DETECTADA` lo ignora (CM-4) y `_hdl_NAVEGACION_USUARIO_FUERA_RANGO` no activa `estado.usuarioFueraRango` (CM-5); `_hdl_SISTEMA_CAMBIO_MODO(CASA)` cierra los overlays de distancia GPS que hubieran quedado visibles desde una AVENTURA anterior (CM-6) |
+| `30-casa-no-fuga-aventura.spec.js` | 6 | El GPS nunca se detiene entre modos, así que en CASA hace falta comprobar explícitamente que ninguna pieza de la lógica de AVENTURA se cuela: el marcador de usuario usa 🛸 en CASA, no la flecha (CM-1); en CASA, `procesarPosicionGPSParaAventura()` no envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 (CM-2); con `estadoComponente.modo='casa'`, un `ACTUALIZAR_ESTADO` dentro de radio no dispara detección de llegada — cero `LLEGADA_DETECTADA` (CM-3, la comprobación más importante: sin ella, "ver" una parada en CASA con hijo5 podría marcarla como visitada de verdad); defensa en profundidad si `LLEGADA_DETECTADA` llegara igualmente en CASA, `_hdl_NAVEGACION_LLEGADA_DETECTADA` lo ignora (CM-4) y `_hdl_NAVEGACION_USUARIO_FUERA_RANGO` no activa `estado.usuarioFueraRango` (CM-5); `_hdl_SISTEMA_CAMBIO_MODO(CASA)` cierra todo lo del GPS que hubiera quedado abierto desde una AVENTURA anterior —los seis carteles de distancia y precisión, la cuenta atrás del botón de reintento del cartel de bloqueo (con el botón otra vez disponible) y el panel de siguiente punto— (CM-6) |
 | `31-sincronizar-modo-ambas-direcciones.spec.js` | 7 | hijo3/hijo4 cargados como página de nivel superior con postMessage sintético (mismo patrón que `26-reto-completado-boton-verde.spec.js`): las funciones locales `sincronizarEstadoModo` (hijo4) y `sincronizarSeekPorModo` (hijo3) funcionan en ambas direcciones del cambio de modo — hijo4 aplica `modo-casa`/`modo-aventura` al body en cada sentido (MD-1/MD-2); `RETO.LIMPIAR_ESTADO` con `retoSigueActivo:false` no reaparece `botonRetos-wrapper` en CASA (MD-3), con `true` sí reaparece (MD-4), y sin el campo (compatibilidad hacia atrás) también reaparece (MD-5); hijo3 aplica `modo-casa`/`modo-aventura` al body y la barra de progreso queda arrastrable en CASA (forzado) (MD-6) y no arrastrable en AVENTURA si el padre no la ha habilitado (MD-7) |
 | `32-llegada-inicio-gps-confirmada.spec.js` | 4 | Cartel de llegada al inicio de la aventura (tipo `'inicio'`, Av1-P-0), confirmado por GPS real vía el mismo sensor de ventana deslizante que el resto de paradas (`funcionesMapa.procesarPosicionGPSParaAventura`), nunca de forma instantánea al activar la parada: lejos del inicio en AVENTURA no sale (LI-1); cerca (2 lecturas) sí sale, con el nombre correcto (LI-2); repetir lecturas cerca no lo re-dispara — guard de una sola vez (LI-3); cerca en modo CASA nunca sale (LI-4) |
 | `33-bienvenida-carteles-solo-aventura.spec.js` | 3 | Carteles de "bienvenida de vuelta" (tramo/parada) en `js/funciones-mapa.js`, mostrados cuando el usuario pidió ayuda (polyline manual del botón ubicación) y vuelve a acercarse, protegidos por el modo actual: TRAMO en AVENTURA con polyline manual, vuelve a <=50m de `.inicio` → sale bienvenida-tramo (BV-1); mismo escenario en CASA → no sale ningún cartel de bienvenida (BV-2); PARADA en AVENTURA con polyline manual, vuelve cerca → sale bienvenida-parada (BV-3) |
@@ -8335,7 +8334,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-c7baa4a22d08'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-64906f54aac9'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9082,7 +9081,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c7baa4a22d08';
+const CACHE_VERSION = 'v-64906f54aac9';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12556,7 +12555,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-c7baa4a22d08';
+const CACHE_VERSION = 'v-64906f54aac9';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14241,24 +14240,24 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `__vv_registroScript1` | módulo 1 (L3587) | módulo 2 | estado |
 | `__vv_salidaEnlaceExterno` | módulo 1 (L4740) | módulo 2 | función/objeto |
 | `_cerrarDesplegablesDelPadre` | módulo 1 (L4706) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L7359) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8703) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8919) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8824) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L7364) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8708) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8924) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8829) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L4025) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8793) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9003) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8895) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8799) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9011) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8673) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L8247) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8798) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9008) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8900) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8804) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9016) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8678) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L8252) | módulo 2 | función/objeto |
 | `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5997) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3839) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexionSafe` | módulo 1 (L3846) | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4949) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L8017) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8016) | módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8022) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8021) | módulo 2 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L3942) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3833) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3834) | módulo 2 | función/objeto |
@@ -14270,10 +14269,10 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `idiomaSeleccionado` | módulo 1 (L4950) | clásico 5, clásico 7, módulo 2 | estado |
 | `limpiarDatosAventura` | módulo 1 (L2886) | módulo 2 | función/objeto |
 | `MODOS` | módulo 1 (L3832) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8400) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8323) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8173) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8216) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8405) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8328) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8178) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8221) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4227) | módulo 2 | función/objeto |
 | `registrarControladorSeguro` | módulo 1 (L5041) | módulo 2, módulo 4 | función/objeto |
 | `registrarEvento` | módulo 1 (L5068) | módulo 2 | función/objeto |
@@ -14293,27 +14292,27 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TIPOS_MENSAJE` | módulo 1 (L3831) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L4003) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2867) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9123) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14050) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10131) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L13024) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L14031) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11925) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12686) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L10070) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11266) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11328) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L11290) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12716) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9189) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10065) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9328) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9410) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12949) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9943) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9935) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L9908) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14066) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9128) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14055) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10136) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L13029) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L14036) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11930) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12691) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L10075) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11271) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11333) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L11295) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12721) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9194) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10070) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9333) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9415) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12954) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9948) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9940) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L9913) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14071) | módulo 2 | función/objeto |
 
 </details>
 

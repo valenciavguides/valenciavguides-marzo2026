@@ -7271,9 +7271,8 @@
             if (modo === 'aventura') {
                 (globalThis.logger || console).info(`${logPrefix} 🗺️ Modo AVENTURA → GPS activo con validación de distancias`);
             } else if (modo === 'casa') {
+                // Lo que quedara abierto del GPS lo cierra la rama CASA de _hdl_SISTEMA_CAMBIO_MODO, al empezar (K-49).
                 (globalThis.logger || console).info(`${logPrefix} 🏠 Modo CASA → GPS activo SIN validaciones (emoji 🛸)`);
-                try { hideNextEntityOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             }
         }
 
@@ -7343,7 +7342,13 @@
                     // indefinidamente (reporte de uso real 2026-08-10). estado.usuarioFueraRango también se
                     // resetea, para que no se reactiven controles/mensajes basados en un fuera-de-rango que
                     // ya no aplica en modo libre.
-                    try { globalThis._ocultarTodasPantallasDistanciaGPS?.(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    // Y lo que deja abierto el botón de reintento del cartel de bloqueo: su cuenta atrás (con el botón
+                    // apagado hasta que acabe) y el panel de «siguiente punto». Todo lo del GPS se cierra aquí, en un solo
+                    // sitio y al empezar el cambio (docs/estudio-caminos.md, K-49): repartido entre esta rama y el final
+                    // de la secuencia, cada camino cerraba una parte y la pérdida de uno no la veía ningún test.
+                    try { _ocultarTodasPantallasDistanciaGPS(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    try { hideNextEntityOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     estado.usuarioFueraRango = { activo: false, distancia: null, franja: null, elementoMasCercano: null, timestamp: null };
                     // La polyline manual de navegación (verde, botón ubicación) es exclusiva de
                     // AVENTURA — nada la limpiaba al cambiar de modo, así que se quedaba pegada
