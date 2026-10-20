@@ -1,7 +1,8 @@
 ﻿/**
  * sw.js — Valencia VGuides Service Worker
  *
- * Estrategia: Network First para el shell de la app, Network Only para media.
+ * Estrategia: Network First para el shell de la app, Cache First para las imágenes, y directos a red los audios, los
+ * vídeos y la API.
  *
  * ╔══════════════════════════════════════════════════════════════════╗
  * ║  CACHE_VERSION: SHA-256 auto-generada vía tools/build-sw.js,    ║
@@ -10,10 +11,12 @@
  * ║                                                                  ║
  * ║  ESTRATEGIAS DE CACHÉ:                                          ║
  * ║  · Shell (HTML/JS/manifest): Network First → caché SW           ║
- * ║  · Media (/audios-aventuras/, /videos-aventuras/,               ║
- * ║    /imagenes/imagenes-aventuras/, /imagenes/imagenes-mapas-      ║
- * ║    vintage/, /publico/imagenes/): Cache First + LRU (máx. 100     ║
- * ║    entradas)                                                      ║
+ * ║  · Imágenes (/imagenes/imagenes-aventuras/, /imagenes/imagenes-   ║
+ * ║    mapas-vintage/, /publico/imagenes/): Cache First + LRU         ║
+ * ║    (máx. 100 entradas)                                            ║
+ * ║  · Audios y vídeos (/audios-aventuras/, /videos-aventuras/,       ║
+ * ║    /publico/audios/, /publico/videos/): sin interceptar, directos ║
+ * ║    a red (por las peticiones Range)                               ║
  * ║  · API (/api/): Network Only, sin caché                         ║
  * ╚══════════════════════════════════════════════════════════════════╝
  */
@@ -110,20 +113,19 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell actualiza la versión de caché
 // automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-9060562e44ea';
+const CACHE_VERSION = 'v-c7baa4a22d08';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
 const MEDIA_CACHE_MAX_ENTRIES = 100; // Máximo 100 archivos media en caché
 
-// ─── Rutas de media (audios/videos/imágenes) cacheable con límite ────────────
+// ─── Imágenes de las aventuras y mapas antiguos, cacheables con límite ───────
 // Estrategia: Cache First con límite para permitir uso offline
-// y evitar re-descargas innecesarias
+// y evitar re-descargas innecesarias. Los audios y los vídeos no llegan aquí: el manejador
+// `fetch` los deja ir directos a red antes de mirar esta lista.
 function esMedia(url) {
   const p = url.pathname;
   return (
-    p.startsWith('/audios-aventuras/') ||
-    p.startsWith('/videos-aventuras/') ||
     p.startsWith('/imagenes/imagenes-aventuras/') ||
     p.startsWith('/publico/imagenes/') ||
     p.startsWith('/imagenes/imagenes-mapas-vintage/')

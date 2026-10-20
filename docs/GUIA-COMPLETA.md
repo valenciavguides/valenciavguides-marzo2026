@@ -4934,7 +4934,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-9060562e44ea'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c7baa4a22d08'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8100,6 +8100,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `148-reanudar-por-el-identificador.spec.js` | 3 | Al reanudar, el elemento en curso lo decide su identificador guardado (`elementoActualId`), y el índice y la parada salen de él: con el índice y la parada de otro elemento, reanuda en el del identificador (KR-1); con un identificador que no está en los datos, lo dice con un error, sigue desde la parada por defecto y repone los rescates usados (KR-2); con los tres datos de acuerdo, reanuda en ese elemento (KR-3, control). Por el camino real: la sesión guardada en el dispositivo, la recarga y «Continuar» |
 | `149-la-demo-gratis-con-su-carpeta-publica.spec.js` | 6 | La demo gratis lee lo suyo de la carpeta pública `publico/` y no pide nada protegido: la lista de rutas protegidas del spec es la de `PROTECTED_FILES` de `js/server.js` (DM-0); con todo lo protegido contestando 403 y el service worker bloqueado, en español el puzzle de introducción (P6), el reto R-1 (P8), el paso a P10 sin aviso y el audio (de `publico/audios/`) y el texto de introducción (P11) salen bien y no se pide nada protegido (DM-1); en inglés, sin audio, sale el aviso de P9, se sigue sin audio y P11 enseña el texto sin reproductor (DM-2); cada pieza de `publico/demo-aventuras.js` es la que dan los datos —el reto R-1, el audio de introducción, si hay audio, el texto que monta `cargarTextos()` y el puzzle— en las siete aventuras y los doce idiomas (DM-3); las siete tarjetas de P7 y la de P9 llevan su foto de `publico/imagenes/`, las siete fotos cargan y no se pide nada protegido (DM-4); y `video-intro.html` (P4) no nombra ninguna ruta protegida, y su foto y su clip están en `publico/` (DM-5) |
 | `150-los-desplegables-del-mapa-caben-enteros.spec.js` | 3 | Los dos desplegables del mapa (`#selector-tipo-mapa` y `#brujula-modo`) se abren enteros, sin desplazamiento interno, en tres pantallas: un iPhone con las barras de Safari (390×664), un Android corriente (393×727) y el iPhone con la app instalada (390×844). En cada una, con la banda del logo a la vista como al activarse la aventura, cada desplegable abierto enseña todo su contenido (DE-1) y su borde de arriba queda por debajo de la banda (DE-2) |
+| `151-cada-ruta-del-service-worker-en-un-sitio.spec.js` | 1 | Cada ruta de media la decide un solo sitio de `sw.js`: ninguna carpeta de `esMedia()` es de las que el manejador `fetch` deja ir antes directas a red (audios y vídeos), y las dos listas se leen enteras —cada `startsWith(` de `esMedia()` y cada vuelta temprana del manejador— (SW-1) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8202,7 +8203,7 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 
 **Network First (shell):** intenta la red; si falla, sirve desde caché. El shell (HTML/JS) siempre recibe la versión más reciente cuando hay conexión. `APP_SHELL` incluye los cuatro MP3 de `audios-efectos/` (§12, «Efectos de sonido»), que se sirven con esta estrategia y no con la de media.
 
-**Cache First con LRU (media, sin vídeos ni audios):** busca primero en caché local (rápido, sin consumir datos). Si no está, lo descarga y lo guarda. Si hay más de 100 entradas, elimina las más antiguas. Esto permite uso offline de las imágenes ya vistas. **Vídeos y audios quedan fuera de esta estrategia a propósito**: `esMedia()` (`sw.js`) incluye textualmente `/videos-aventuras/` y `/audios-aventuras/` en su lista, pero es código inerte para ambos casos — el `fetch` handler tiene un `return` explícito para esas dos rutas, y para `/publico/audios/` y `/publico/videos/` (el audio de introducción y el clip de la demo gratis), *antes* de consultar `esMedia()`, así que nunca llega a esa lógica. Vídeos y audios siempre van directos a red, sin caché SW en absoluto — para vídeo, ver §15 (`reproducirVideoConBuffer`, que gestiona el buffering en el propio `<video>`); para audio, la razón es la misma que para vídeo (evitar bugs de caché con peticiones Range/206 parciales), y además ya está aceptado que el audio requiere conexión en el momento de reproducirse (§25.17) — esta exclusión lo hace cierto siempre, sin la excepción oculta de una parada que ya se hubiera cacheado antes por casualidad.
+**Cache First con LRU (media, sin vídeos ni audios):** busca primero en caché local (rápido, sin consumir datos). Si no está, lo descarga y lo guarda. Si hay más de 100 entradas, elimina las más antiguas. Esto permite uso offline de las imágenes ya vistas. **Vídeos y audios quedan fuera de esta estrategia a propósito**: `esMedia()` (`sw.js`) solo nombra carpetas de imágenes, y el `fetch` handler devuelve sin interceptar las de audio y vídeo —`/videos-aventuras/`, `/audios-aventuras/`, y `/publico/audios/` y `/publico/videos/` (el audio de introducción y el clip de la demo gratis)— *antes* de consultar `esMedia()`. Vídeos y audios siempre van directos a red, sin caché SW en absoluto — para vídeo, ver §15 (`reproducirVideoConBuffer`, que gestiona el buffering en el propio `<video>`); para audio, la razón es la misma que para vídeo (evitar bugs de caché con peticiones Range/206 parciales), y además ya está aceptado que el audio requiere conexión en el momento de reproducirse (§25.17) — esta exclusión lo hace cierto siempre, sin la excepción oculta de una parada que ya se hubiera cacheado antes por casualidad.
 
 **Network Only (API):** las llamadas a la API nunca se cachean; si no hay red, devuelve 503 con mensaje legible.
 
@@ -8334,7 +8335,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-9060562e44ea'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c7baa4a22d08'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8580,7 +8581,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 147 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 148 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9081,7 +9082,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-9060562e44ea';
+const CACHE_VERSION = 'v-c7baa4a22d08';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12555,7 +12556,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-9060562e44ea';
+const CACHE_VERSION = 'v-c7baa4a22d08';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
