@@ -108,14 +108,14 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
       async () => (await vecesOverlay(page)) > 0, 'el overlay no se abrió'
     );
     const llamadas = await page.evaluate(() => globalThis.__vv_overlayLlamadas);
-    expect(llamadas[0].url, `url recibida: ${llamadas[0]?.url}`).toContain('imagenes-mapas-vintage');
+    expect(llamadas[0].url, `url recibida: ${llamadas[0]?.url}`).toContain('publico/imagenes/mapas-vintage/');
   });
 
   test('MV-3. Una aventura sin mapa vintage no muestra nada y deja aviso', async ({ page }) => {
     const logs = [];
     page.on('console', (m) => logs.push(m.text()));
     await prepararPadreConDatos(page);
-    // Aventura34km sigue comentada en mapa-vintage-aventuras.js: su mapa no existe aún.
+    // Aventura34km sigue comentada en mapa-vintage-aventuras.js: no tiene mapa enlazado (el fichero está en la carpeta).
     // Antes este caso usaba AventuraFallas, que ya tiene el suyo desde que se añadió
     // AvFallas_Mapa.jpg — con ella el test dejaba de probar lo que dice probar.
     // Se espera al AVISO, que es la señal de que el padre ya procesó el mensaje, y solo
@@ -142,7 +142,7 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
     );
     const llamadas = await page.evaluate(() => globalThis.__vv_overlayLlamadas);
     expect(llamadas[0].url, 'la url del mensaje no debe usarse').not.toContain('SUPLANTADA');
-    expect(llamadas[0].url).toContain('imagenes-mapas-vintage');
+    expect(llamadas[0].url).toContain('publico/imagenes/mapas-vintage/');
   });
 
   test('MV-5. El mapa vintage suprime el aviso de girar, y al cerrarlo lo devuelve', async ({ page }) => {
@@ -187,7 +187,7 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
       async () => (await vecesOverlay(page)) > 0, 'el overlay no se abrió con el mapa de la aventura elegida'
     );
     const llamadas = await page.evaluate(() => globalThis.__vv_overlayLlamadas);
-    expect(llamadas[0].url).toContain('imagenes-mapas-vintage');
+    expect(llamadas[0].url).toContain('publico/imagenes/mapas-vintage/');
     expect(llamadas[0].titulo).toContain('Aventura1');
   });
 });

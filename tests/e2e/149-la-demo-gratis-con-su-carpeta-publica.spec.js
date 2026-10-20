@@ -5,10 +5,11 @@
  *
  * La demo gratis (de P2 a P11, antes del pago, y P13, tras el pago y antes del código) usa cinco piezas de datos de cada
  * aventura: el puzzle de introducción (P6), el reto R-1 (P8), si la aventura tiene audio en el idioma (P9) y el audio y el
- * texto de introducción (P11). Enseña además una foto por aventura en su tarjeta (P7, P9 y P13) y, en `video-intro.html`
- * (P4), una foto y un vídeo. Todo eso vive en la carpeta pública `publico/`: los datos en `publico/demo-aventuras.js`, que
- * genera `tools/build-demo.js` a partir de los ficheros de datos, el audio en `publico/audios/`, las fotos en
- * `publico/imagenes/` y el vídeo en `publico/videos/`. La demo no pide nada de lo que el servidor protege con
+ * texto de introducción (P11). Enseña además una foto por aventura en su tarjeta (P7, P9 y P13), el mapa antiguo de la
+ * aventura al elegirla (P7) y, en `video-intro.html` (P4), una foto, el mapa antiguo de la Aventura 1 y un vídeo. Todo eso
+ * vive en la carpeta pública `publico/`: los datos en `publico/demo-aventuras.js`, que genera `tools/build-demo.js` a partir
+ * de los ficheros de datos, el audio en `publico/audios/`, las fotos en `publico/imagenes/`, los mapas antiguos en
+ * `publico/imagenes/mapas-vintage/` y el vídeo en `publico/videos/`. La demo no pide nada de lo que el servidor protege con
  * `PROTECT_DATA` (`PROTECTED_FILES` de `js/server.js`).
  *
  *   DM-0  La lista de rutas protegidas de este spec es la de `PROTECTED_FILES` de `js/server.js`.
@@ -18,12 +19,16 @@
  *   DM-3  Cada pieza de `publico/demo-aventuras.js` es la que dan los datos, en las siete aventuras y los doce idiomas: el
  *         reto R-1, el audio de introducción, si hay audio, el texto (el mismo que monta `cargarTextos()`) y el puzzle.
  *   DM-4  Con todo lo protegido contestando 403, las siete tarjetas de P7 y la de P9 llevan su foto de `publico/imagenes/`,
- *         y las siete fotos cargan.
- *   DM-5  `video-intro.html` (P4) no nombra ninguna ruta protegida, y su foto y su vídeo están en la carpeta pública.
+ *         y las siete fotos cargan; y el mapa antiguo que sale al elegir cada aventura en P7 (seis: Aventura34km no tiene
+ *         todavía) sale de `publico/imagenes/mapas-vintage/` y carga.
+ *   DM-5  `video-intro.html` (P4) no nombra ninguna ruta protegida, y su foto, su mapa antiguo y su vídeo están en la
+ *         carpeta pública.
+ *   DM-6  Cada mapa de la tabla `js/mapa-vintage-aventuras.js` (la misma que usa el contenido de pago) está en
+ *         `publico/imagenes/mapas-vintage/` y existe.
  *
  * ROJO ANTES QUE VERDE: con los ficheros de la demo en `js/` y `audios-demo/`, y las fotos y el vídeo en las carpetas de las
  * aventuras, caen DM-1 y DM-2 (la demo, el audio), DM-3 (no encuentra el fichero), DM-4 (las fotos, protegidas) y DM-5.
- * DM-0 vigila la lista.
+ * Con los mapas antiguos en `imagenes/imagenes-mapas-vintage/` caen DM-4, DM-5 y DM-6. DM-0 vigila la lista.
  */
 'use strict';
 
@@ -174,7 +179,7 @@ test.describe('DM — la demo gratis con su carpeta pública', () => {
     expect(problemas).toEqual([]);
   });
 
-  test('DM-4. Las fotos de las tarjetas de P7 y P9 salen de la carpeta pública y cargan', async ({ page }) => {
+  test('DM-4. Las fotos de las tarjetas de P7 y P9, y los mapas antiguos de P7, salen de la carpeta pública y cargan', async ({ page }) => {
     const pedidos = await arrancarConProteccion(page);
     const f = seleccion(page);
     await f.evaluate(() => globalThis.seleccionarIdioma('es'));
@@ -196,18 +201,52 @@ test.describe('DM — la demo gratis con su carpeta pública', () => {
     await f.evaluate(() => { aventuraSeleccionada = 'Aventura1'; mostrar(9); });
     await expect.poll(() => fotosDeFondo(f, '#pantalla9 .aventura-confirmacion-card'), { timeout: 10_000, message: 'P9: la tarjeta lleva la foto de la aventura' })
       .toEqual([fotosP7[0]]);
+    // El mapa antiguo que sale al elegir cada aventura en P7, por la función de verdad (`mostrarMapaVintage()`).
+    const mapas = await f.evaluate(async () => {
+      const rutas = [];
+      for (const a of ['Aventura1', 'Aventura2', 'Aventura3', 'Aventura4', 'Aventura5', 'AventuraFallas']) {
+        aventuraSeleccionada = a;
+        await mostrarMapaVintage();
+        const src = document.getElementById('mapa-vintage-img').getAttribute('src') || '';
+        rutas.push(src ? decodeURIComponent(new URL(src, location.href).pathname) : null);
+      }
+      return rutas;
+    });
+    expect(mapas.filter((r) => !r?.startsWith('/publico/imagenes/mapas-vintage/')), 'P7: mapas antiguos fuera de publico/imagenes/mapas-vintage/').toEqual([]);
+    const mapasSinCargar = await f.evaluate((rutas) => Promise.all(rutas.map((r) => new Promise((ok) => {
+      const img = new Image();
+      img.onload = () => ok(null);
+      img.onerror = () => ok(r);
+      img.src = r;
+    }))).then((r) => r.filter(Boolean)), mapas);
+    expect(mapasSinCargar, 'P7: mapas antiguos que no cargan').toEqual([]);
     expect(pedidos, 'nada protegido').toEqual([]);
   });
 
-  test('DM-5. video-intro.html (P4) no nombra ninguna ruta protegida, y su foto y su vídeo están en la carpeta pública', () => {
+  test('DM-5. video-intro.html (P4) no nombra ninguna ruta protegida, y su foto, su mapa antiguo y su vídeo están en la carpeta pública', () => {
     const html = fs.readFileSync(path.join(RAIZ, 'video-intro.html'), 'utf8');
     expect(PROTEGIDOS.filter((p) => html.includes(p.slice(1))), 'rutas protegidas que nombra video-intro.html').toEqual([]);
     const carpetaFotos = /^const IM = '([^']+)';/m.exec(html)?.[1];
     const video = /^const VIDEO_INTRO_SRC = '([^']+)';/m.exec(html)?.[1];
     const fotos = [...html.matchAll(/\$\{IM\}([^"'`]+)/g)].map((m) => carpetaFotos + m[1]);
     expect(fotos, 'la foto de las Torres de Serranos, la única').toHaveLength(1);
-    for (const r of [...fotos, video]) {
+    const carpetaMapas = /^const MV = '([^']+)';/m.exec(html)?.[1];
+    const mapas = [...html.matchAll(/\$\{MV\}([^"'`]+)/g)].map((m) => carpetaMapas + m[1]);
+    expect(mapas.length, 'el mapa antiguo de la Aventura 1, en sus dos escenas').toBe(2);
+    for (const r of [...fotos, ...mapas, video]) {
       expect(r, `${r}: en la carpeta pública`).toMatch(/^publico\/(imagenes|videos)\//);
+      expect(fs.existsSync(path.join(RAIZ, r)), `${r}: existe`).toBe(true);
+    }
+  });
+
+  test('DM-6. Cada mapa de la tabla de mapas antiguos está en la carpeta pública y existe', () => {
+    const tabla = fs.readFileSync(path.join(RAIZ, 'js/mapa-vintage-aventuras.js'), 'utf8').replace(/\r\n/g, '\n');
+    // Las entradas vivas de MAPAS_VINTAGE; las comentadas (una aventura sin mapa todavía) no cuentan.
+    const lineas = tabla.split('\n').filter((l) => /^\s*\w+:\s*'/.test(l));
+    const mapas = lineas.map((l) => /'([^']+)'/.exec(l)[1]);
+    expect(mapas.length, 'una entrada por aventura con mapa').toBe(6);
+    for (const r of mapas) {
+      expect(r, `${r}: en la carpeta pública`).toMatch(/^publico\/imagenes\/mapas-vintage\//);
       expect(fs.existsSync(path.join(RAIZ, r)), `${r}: existe`).toBe(true);
     }
   });
