@@ -253,8 +253,14 @@ test.describe('BR — El botón de retos de hijo3 sale de un solo sitio', () => 
     await abrirElReto(page);
     await esperarBoton(page, true, 'con el reto abierto, apagado');
 
+    // Salir de rango también hace hablar al padre con hijo3 (con el reto abierto, lo que manda es el reto). Ese aviso
+    // viaja aparte, por postMessage, y llega después de que el padre anote el fuera de rango: se espera a que llegue
+    // antes de contar, o al cerrar el reto se tomaría por el aviso del cierre.
+    const antesDeSalir = (await recibidoEnHijo3(page)).length;
     await salirDeRangoConLaGraciaAgotada(page);
     await expect.poll(() => page.evaluate(() => globalThis.estado.usuarioFueraRango?.activo), { timeout: 10_000, message: 'el padre anota que el usuario está fuera de rango' }).toBe(true);
+    const alSalir = await esperarAvisoNuevo(page, antesDeSalir, 'al salir de rango el padre le dice a hijo3 cómo queda su botón');
+    expect(alSalir, 'con el reto abierto, lo que manda es el reto').toMatchObject({ tipo: 'CONTROL.DESHABILITAR', razon: 'reto_solicitado' });
 
     const habia = (await recibidoEnHijo3(page)).length;
     await cerrarElReto(page);

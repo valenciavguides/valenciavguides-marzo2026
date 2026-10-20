@@ -330,8 +330,9 @@ test.describe('RS — El rescate deja avanzar', () => {
 
       await expect.poll(() => page.evaluate(() => !!globalThis.estado.paradasCompletadas?.has('Av1-P-1')), { timeout: 15_000, message: 'el rescate da el punto por visitado' }).toBe(true);
       await expect.poll(() => page.evaluate(() => globalThis.estado.paradaListaParaAvanzar === true), { timeout: 10_000, message: 'tras el rescate se puede avanzar' }).toBe(true);
-      const avisos = await recibidoEnHijo2(page);
-      expect(avisos[avisos.length - 1], 'y el padre le enciende «avanzar» a hijo2').toEqual({ tipo: 'CONTROL.HABILITAR', razon: 'parada_completada' });
+      // El aviso a hijo2 viaja aparte, por postMessage, y llega después de que el padre anote que se puede avanzar: se espera.
+      await expect.poll(async () => (await recibidoEnHijo2(page)).at(-1), { timeout: 10_000, message: 'y el padre le enciende «avanzar» a hijo2' })
+        .toEqual({ tipo: 'CONTROL.HABILITAR', razon: 'parada_completada' });
     });
   }
 });
