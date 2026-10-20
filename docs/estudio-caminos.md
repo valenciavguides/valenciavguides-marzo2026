@@ -3684,6 +3684,7 @@ Las ocho vueltas, a la P1 (desde la que se sigue a las banderas) o directamente 
 - **Lo que no cuadra.** Dos sitios deciden si un audio o un vídeo se guarda en caché, y el que manda es el primero; el segundo es código muerto, y el comentario describe el muerto. La guía (§19) lo cuenta bien: llama inerte a esa parte de `esMedia()`.
 - **Lo que ve el usuario.** Nada.
 - **Recomendación (sin cambio visible):** fuera las dos ramas de `esMedia()` (quedan las imágenes de las aventuras y los mapas antiguos), la cabecera de `sw.js` diciendo lo que hace, y la frase de §19 sin la parte inerte. Decide el usuario.
+- **Hecha (2026-10-20, `926459d`)**, con el permiso amplio del usuario («haz todo lo que puedas»: sin cambio visible y lo decide el principio de no dejar código muerto): fuera `/audios-aventuras/` y `/videos-aventuras/` de `esMedia()`; la cabecera de `sw.js` describe las dos estrategias (imágenes por Cache First; audios y vídeos sin interceptar) y su primera línea, que decía «Network Only para media», también; §19 de la guía igual. Spec 151 (SW-1): ninguna carpeta de `esMedia()` es de las que el manejador deja ir antes a red, con las dos listas leídas enteras; rojo contra `aca3d78` nombrando las dos carpetas, verde después.
 
 ##### K-128 — `verificar-media` descubre las carpetas de imágenes y lista a mano las de audio y vídeo — ✅ (leído)
 
@@ -3693,6 +3694,7 @@ Las ocho vueltas, a la P1 (desde la que se sigue a las banderas) o directamente 
 - **Lo que no cuadra.** Dos formas de saber qué carpetas mirar dentro de la misma herramienta, y la escrita a mano es la que el propio comentario descarta.
 - **Lo que ve el usuario.** Nada: es una herramienta de desarrollo.
 - **Recomendación:** descubrir también las carpetas de audio y vídeo de la raíz (las que empiezan por `audios-` y `videos-`), como las de imágenes. Decide el usuario.
+- **Hecha (2026-10-20, `26581b9`)**, con el mismo permiso (herramienta de desarrollo, una sola forma): descubre las subcarpetas de `imagenes/`, las carpetas de la raíz que empiezan por `audios-` o `videos-` y `publico/`, y el tipo de cada fichero lo da su extensión, en un solo sitio (`EXTENSIONES`, `tipoDe()`). Medido: salida idéntica a la de antes (768 ficheros, los mismos hallazgos) y al recuento independiente por extensión; control: con dos carpetas de prueba (`audios-zz-control/` y `publico/zz-control/`), la nueva cuenta 770 y la de antes 768. Guía §15 al día.
 
 ##### K-129 — Los guiones generados de `docs/aventuras_ordenado/` van por detrás de los datos, y nada los rehace ni lo avisa — ✅ (medido)
 
@@ -4387,8 +4389,8 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 118 | 2 | K-124 | pre-intro1 y pre-intro2 comparten `parada_id: "null"` (texto): contar los otros idiomas y decidir el dato | datos | — | decisión |
 | 119 | 3 | K-125 | el idioma guardado se borra en las ocho vueltas a la elección de idioma: el padre lo borra al recibir `SELECCION.REINICIAR`, que la selección pasa a enviar también en «No, cambiar» (P3) y en el «No» del aviso sin audio | SPEC, BUS, GUÍA | blanda: K-19 | **decidida (2026-10-19 noche, el usuario: A, borrarlo en las ocho); hecha con K-19 (2026-10-20, `de801ba`)** |
 | 120 | 2 | K-126 | las imágenes y el vídeo que enseña la demo gratis (las fotos de las tarjetas de P7, P9 y P13, y la foto y el vídeo de `video-intro.html`) están en carpetas protegidas: decidir dónde van, y dónde irán los audios de Jaime — **hecha (2026-10-20, `e8fcb77`): una sola carpeta pública, `publico/`**; abierto: los audios de Jaime (propuesta: `publico/audios/<idioma>/`) y si los mapas antiguos entran también en `publico/` | imágenes, GUÍA | blanda: la tanda de imágenes | decisión |
-| 121 | 1 | K-127 | `esMedia()` de `sw.js` lleva dos ramas que no corren (audio y vídeo vuelven antes), y la cabecera del fichero las da por Cache First | GUÍA | — | sí |
-| 122 | 1 | K-128 | `verificar-media` descubre las carpetas de imágenes y lista a mano las de audio y vídeo | — | — | sí |
+| 121 | 1 | K-127 | `esMedia()` de `sw.js` lleva dos ramas que no corren (audio y vídeo vuelven antes), y la cabecera del fichero las da por Cache First — **hecha (2026-10-20, `926459d`), spec 151** | GUÍA | — | sí |
+| 122 | 1 | K-128 | `verificar-media` descubre las carpetas de imágenes y lista a mano las de audio y vídeo — **hecha (2026-10-20, `26581b9`)** | — | — | sí |
 | 123 | 1 | K-129 | los guiones generados de `docs/aventuras_ordenado/` van por detrás de los datos y nada los rehace ni lo avisa | — | — | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
