@@ -1,26 +1,29 @@
 /**
- * 149 — La demo gratis lee lo suyo de su propio fichero público (guía, §22.0 n.º 26; estudio, G-88)
+ * 149 — La demo gratis lee lo suyo de la carpeta pública (guía, §22.0 n.º 26 y n.º 29; estudio, G-88 y K-126)
  *
  * POR QUE EXISTE
  *
- * La demo gratis (de P2 a P11, antes del pago) usa cinco piezas de cada aventura: el puzzle de introducción (P6), el reto
- * R-1 (P8), si la aventura tiene audio en el idioma (P9) y el audio y el texto de introducción (P11). Las lee de
- * `js/demo-aventuras.js`, que genera `tools/build-demo.js` a partir de los ficheros de datos, y no carga los ficheros de pago,
- * que el servidor protege con `PROTECT_DATA` (`PROTECTED_FILES` de `js/server.js`). El audio de introducción vive en la
- * carpeta pública `audios-demo/`.
+ * La demo gratis (de P2 a P11, antes del pago, y P13, tras el pago y antes del código) usa cinco piezas de datos de cada
+ * aventura: el puzzle de introducción (P6), el reto R-1 (P8), si la aventura tiene audio en el idioma (P9) y el audio y el
+ * texto de introducción (P11). Enseña además una foto por aventura en su tarjeta (P7, P9 y P13) y, en `video-intro.html`
+ * (P4), una foto y un vídeo. Todo eso vive en la carpeta pública `publico/`: los datos en `publico/demo-aventuras.js`, que
+ * genera `tools/build-demo.js` a partir de los ficheros de datos, el audio en `publico/audios/`, las fotos en
+ * `publico/imagenes/` y el vídeo en `publico/videos/`. La demo no pide nada de lo que el servidor protege con
+ * `PROTECT_DATA` (`PROTECTED_FILES` de `js/server.js`).
  *
  *   DM-0  La lista de rutas protegidas de este spec es la de `PROTECTED_FILES` de `js/server.js`.
- *   DM-1  Con los ficheros de datos de pago contestando 403, la demo funciona entera en español (con audio) y no pide
- *         ninguno: el puzzle, el reto R-1, el paso a P10 y el audio y el texto de introducción.
+ *   DM-1  Con todo lo protegido contestando 403, la demo funciona entera en español (con audio) y no pide nada protegido:
+ *         el puzzle, el reto R-1, el paso a P10 y el audio y el texto de introducción.
  *   DM-2  Lo mismo en inglés (sin audio): sale el aviso, se sigue sin audio y P11 enseña el texto sin reproductor.
- *   DM-3  Cada pieza de `js/demo-aventuras.js` es la que dan los datos, en las siete aventuras y los doce idiomas: el reto
- *         R-1, el audio de introducción, si hay audio, el texto (el mismo que monta `cargarTextos()`) y el puzzle.
+ *   DM-3  Cada pieza de `publico/demo-aventuras.js` es la que dan los datos, en las siete aventuras y los doce idiomas: el
+ *         reto R-1, el audio de introducción, si hay audio, el texto (el mismo que monta `cargarTextos()`) y el puzzle.
+ *   DM-4  Con todo lo protegido contestando 403, las siete tarjetas de P7 y la de P9 llevan su foto de `publico/imagenes/`,
+ *         y las siete fotos cargan.
+ *   DM-5  `video-intro.html` (P4) no nombra ninguna ruta protegida, y su foto y su vídeo están en la carpeta pública.
  *
- * Las fotos que la demo enseña de la carpeta de imágenes de las aventuras (las tarjetas de P7 y P9 y una del vídeo de
- * introducción) quedan fuera de este spec: su sitio está pendiente de decidir.
- *
- * ROJO ANTES QUE VERDE: con la selección anterior caen DM-1 y DM-2 (pedía los ficheros de pago: el reto R-1 y el texto no
- * llegaban). DM-0 vigila la lista; DM-3 no tiene «antes», porque el fichero de la demo es nuevo.
+ * ROJO ANTES QUE VERDE: con los ficheros de la demo en `js/` y `audios-demo/`, y las fotos y el vídeo en las carpetas de las
+ * aventuras, caen DM-1 y DM-2 (la demo, el audio), DM-3 (no encuentra el fichero), DM-4 (las fotos, protegidas) y DM-5.
+ * DM-0 vigila la lista.
  */
 'use strict';
 
@@ -29,22 +32,22 @@ const fs = require('fs');
 const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
 
+const RAIZ = path.join(__dirname, '../..');
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
-// Las rutas protegidas de js/server.js (DM-0 lo comprueba). Las imágenes de las aventuras se dejan pasar: ver la cabecera.
+// Las rutas protegidas de js/server.js (DM-0 lo comprueba): todas contestan 403 en los recorridos de este spec.
 const PROTEGIDOS = ['/js/coordenadas-aventuras.js', '/js/textos-aventuras.js', '/js/retos-aventuras.js', '/js/puzzles-aventuras.js',
   '/js/audios-aventuras.js', '/js/parrafos-textos/', '/audios-aventuras/', '/imagenes/imagenes-aventuras/', '/videos-aventuras/', '/backend/'];
-const BLOQUEADOS = PROTEGIDOS.filter((p) => p !== '/imagenes/imagenes-aventuras/');
 
 const seleccion = (page) => page.frames().find((f) => f.name() === 'seleccion');
 const aLaVista = (f) => f.evaluate(() => [...document.querySelectorAll('.pantalla.visible')].map((p) => p.id));
 
-/** Arranca la app con los ficheros de datos de pago contestando 403, y devuelve la lista de los que se pidieron. */
+/** Arranca la app con todo lo protegido contestando 403, y devuelve la lista de lo protegido que se pidió. */
 async function arrancarConProteccion(page) {
   const pedidos = [];
   await page.route('**/*', (route) => {
     const ruta = decodeURIComponent(new URL(route.request().url()).pathname);
-    if (BLOQUEADOS.some((p) => ruta.startsWith(p))) {
+    if (PROTEGIDOS.some((p) => ruta.startsWith(p))) {
       pedidos.push(ruta);
       return route.fulfill({ status: 403, contentType: 'application/json', body: '{"error":true,"codigo":"ACCESO_DENEGADO"}' });
     }
@@ -67,7 +70,7 @@ async function puzzleYRetoR1(f, idioma) {
   await expect.poll(() => aLaVista(f), { timeout: 10_000 }).toEqual(['pantalla3']);
   const esperado = await f.evaluate(async (i) => {
     aventuraSeleccionada = 'Aventura1';
-    const { DEMO_AVENTURAS } = await import('/js/demo-aventuras.js');
+    const { DEMO_AVENTURAS } = await import('/publico/demo-aventuras.js');
     const p = DEMO_AVENTURAS.aventuras.Aventura1[i];
     return { pregunta: p.retoR1.pregunta, audio: p.audioIntro?.file ?? null, texto: DEMO_AVENTURAS.textosIntro[i][p.textoIntro].content };
   }, idioma);
@@ -89,17 +92,23 @@ const textoIntroEnPantalla = (f, html) => f.evaluate((h) => {
   return visible.length > 0 && visible === referencia.textContent.trim();
 }, html);
 
-test.describe('DM — la demo gratis con su propio fichero', () => {
+/** Las fotos de fondo de los elementos que casan con el selector: la ruta de cada una, tal como la pide el documento. */
+const fotosDeFondo = (f, selector) => f.evaluate((s) => [...document.querySelectorAll(s)].map((el) => {
+  const url = /url\(["']?([^"')]+)["']?\)/.exec(el.style.backgroundImage)?.[1];
+  return url ? decodeURIComponent(new URL(url, location.href).pathname) : null;
+}), selector);
+
+test.describe('DM — la demo gratis con su carpeta pública', () => {
   test.use({ serviceWorkers: 'block' });
 
   test('DM-0. La lista de rutas protegidas es la de js/server.js', () => {
-    const servidor = fs.readFileSync(path.join(__dirname, '../../js/server.js'), 'utf8');
+    const servidor = fs.readFileSync(path.join(RAIZ, 'js/server.js'), 'utf8');
     const bloque = /const PROTECTED_FILES = \[([\s\S]*?)\];/.exec(servidor)?.[1] ?? '';
     const lista = [...bloque.matchAll(/'([^']+)'/g)].map((m) => m[1]);
     expect(lista, 'PROTECTED_FILES de js/server.js').toEqual(PROTEGIDOS);
   });
 
-  test('DM-1. En español, la demo funciona entera sin pedir ningún fichero de pago', async ({ page }) => {
+  test('DM-1. En español, la demo funciona entera sin pedir nada protegido', async ({ page }) => {
     const pedidos = await arrancarConProteccion(page);
     const f = seleccion(page);
     const esperado = await puzzleYRetoR1(f, 'es');
@@ -108,9 +117,9 @@ test.describe('DM — la demo gratis con su propio fichero', () => {
     await f.evaluate(() => mostrar(11));
     await expect.poll(() => f.evaluate(() => document.getElementById('audio-intro-source')?.getAttribute('src') || ''), { timeout: 10_000, message: 'P11: el audio de introducción, de la carpeta pública' })
       .toBe(esperado.audio);
-    expect(esperado.audio, 'el audio de la demo está en audios-demo/').toMatch(/^audios-demo\//);
+    expect(esperado.audio, 'el audio de la demo está en publico/audios/').toMatch(/^publico\/audios\//);
     await expect.poll(() => textoIntroEnPantalla(f, esperado.texto), { timeout: 10_000, message: 'P11: el texto de introducción' }).toBe(true);
-    expect(pedidos, 'ningún fichero de datos de pago').toEqual([]);
+    expect(pedidos, 'nada protegido').toEqual([]);
   });
 
   test('DM-2. En inglés (sin audio), el aviso sale, se sigue sin audio y P11 enseña el texto', async ({ page }) => {
@@ -126,7 +135,7 @@ test.describe('DM — la demo gratis con su propio fichero', () => {
     await f.evaluate(() => mostrar(11));
     await expect.poll(() => textoIntroEnPantalla(f, esperado.texto), { timeout: 10_000, message: 'P11: el texto de introducción' }).toBe(true);
     expect(await f.evaluate(() => getComputedStyle(document.getElementById('audio-player-container')).display), 'sin reproductor').toBe('none');
-    expect(pedidos, 'ningún fichero de datos de pago').toEqual([]);
+    expect(pedidos, 'nada protegido').toEqual([]);
   });
 
   test('DM-3. Cada pieza de la demo es la que dan los datos, en las siete aventuras y los doce idiomas', async ({ page }) => {
@@ -134,7 +143,7 @@ test.describe('DM — la demo gratis con su propio fichero', () => {
     await page.goto('/__spec149.html');
     const problemas = await page.evaluate(async () => {
       const imp = (f) => import(`/js/${f}`);
-      const { DEMO_AVENTURAS: demo } = await imp('demo-aventuras.js');
+      const { DEMO_AVENTURAS: demo } = await import('/publico/demo-aventuras.js');
       const { RETOS_AVENTURAS } = await imp('retos-aventuras.js');
       const { AUDIOS_AVENTURAS } = await imp('audios-aventuras.js');
       const { PUZZLES_AVENTURAS } = await imp('puzzles-aventuras.js');
@@ -163,5 +172,43 @@ test.describe('DM — la demo gratis con su propio fichero', () => {
       return fallos;
     });
     expect(problemas).toEqual([]);
+  });
+
+  test('DM-4. Las fotos de las tarjetas de P7 y P9 salen de la carpeta pública y cargan', async ({ page }) => {
+    const pedidos = await arrancarConProteccion(page);
+    const f = seleccion(page);
+    await f.evaluate(() => globalThis.seleccionarIdioma('es'));
+    await expect.poll(() => aLaVista(f), { timeout: 10_000 }).toEqual(['pantalla3']);
+    await f.evaluate(() => mostrar(7));
+    await expect.poll(() => f.evaluate(() => document.querySelectorAll('#aventuras-dinamicas button').length), { timeout: 10_000, message: 'P7: las siete aventuras' })
+      .toBe(7);
+    const fotosP7 = await fotosDeFondo(f, '#aventuras-dinamicas button');
+    expect(fotosP7.filter((r) => !r?.startsWith('/publico/imagenes/')), 'P7: fotos fuera de publico/imagenes/').toEqual([]);
+    expect(new Set(fotosP7).size, 'P7: una foto distinta por aventura').toBe(7);
+    // Que carguen: una ruta protegida contesta 403 y una que no existe, 404; las dos dan error al cargar la imagen.
+    const sinCargar = await f.evaluate((rutas) => Promise.all(rutas.map((r) => new Promise((ok) => {
+      const img = new Image();
+      img.onload = () => ok(null);
+      img.onerror = () => ok(r);
+      img.src = r;
+    }))).then((r) => r.filter(Boolean)), fotosP7);
+    expect(sinCargar, 'P7: fotos que no cargan').toEqual([]);
+    await f.evaluate(() => { aventuraSeleccionada = 'Aventura1'; mostrar(9); });
+    await expect.poll(() => fotosDeFondo(f, '#pantalla9 .aventura-confirmacion-card'), { timeout: 10_000, message: 'P9: la tarjeta lleva la foto de la aventura' })
+      .toEqual([fotosP7[0]]);
+    expect(pedidos, 'nada protegido').toEqual([]);
+  });
+
+  test('DM-5. video-intro.html (P4) no nombra ninguna ruta protegida, y su foto y su vídeo están en la carpeta pública', () => {
+    const html = fs.readFileSync(path.join(RAIZ, 'video-intro.html'), 'utf8');
+    expect(PROTEGIDOS.filter((p) => html.includes(p.slice(1))), 'rutas protegidas que nombra video-intro.html').toEqual([]);
+    const carpetaFotos = /^const IM = '([^']+)';/m.exec(html)?.[1];
+    const video = /^const VIDEO_INTRO_SRC = '([^']+)';/m.exec(html)?.[1];
+    const fotos = [...html.matchAll(/\$\{IM\}([^"'`]+)/g)].map((m) => carpetaFotos + m[1]);
+    expect(fotos, 'la foto de las Torres de Serranos, la única').toHaveLength(1);
+    for (const r of [...fotos, video]) {
+      expect(r, `${r}: en la carpeta pública`).toMatch(/^publico\/(imagenes|videos)\//);
+      expect(fs.existsSync(path.join(RAIZ, r)), `${r}: existe`).toBe(true);
+    }
   });
 });

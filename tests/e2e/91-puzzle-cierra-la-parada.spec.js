@@ -34,7 +34,7 @@ const RETO_PUZZLE = {
   id: 'PZ-01',
   tipo: 'puzzle',
   src: 'puzzle.html?id=PZ-01',
-  imagenPuzzle: 'imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg',
+  imagenPuzzle: 'publico/imagenes/plaza_de_la_virgen.jpg',
 };
 
 async function mostrarReto(page, hijo, reto, selectorEspera) {

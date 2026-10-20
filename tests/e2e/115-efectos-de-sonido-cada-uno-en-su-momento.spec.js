@@ -274,7 +274,7 @@ async function mostrarReto(page, hijo, reto, selectorEspera) {
 const RETO_OPCION = { id: 'rt-s-opcion', tipo: 'opcion', pregunta: '¿Test?', opciones: ['A', 'B', 'C'], correctas: ['B'] };
 const RETO_MULTIPLE = { id: 'rt-s-multiple', tipo: 'opcion-multiple', multiple: true, pregunta: '¿Test?', opciones: ['A', 'B', 'C'], correctas: ['A', 'C'] };
 const RETO_TEXTO = { id: 'rt-s-texto', tipo: 'texto', pregunta: '¿Test?', correctas: ['lo que sea'] };
-const RETO_PUZZLE = { id: 'PZ-01', tipo: 'puzzle', src: 'puzzle.html?id=PZ-01', imagenPuzzle: 'imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg' };
+const RETO_PUZZLE = { id: 'PZ-01', tipo: 'puzzle', src: 'puzzle.html?id=PZ-01', imagenPuzzle: 'publico/imagenes/plaza_de_la_virgen.jpg' };
 
 const enviar = (hijo) => hijo.locator('button.btn', { hasText: '🫵' });
 

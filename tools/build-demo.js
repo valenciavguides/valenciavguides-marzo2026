@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * build-demo.js — Genera js/demo-aventuras.js: lo que la demo gratis (de P2 a P11, antes del pago) usa de cada aventura,
- * y nada más. La demo lo lee de ese único fichero público y no carga los ficheros de datos de pago, que el servidor
- * protege (PROTECT_DATA, §22.4 de la guía).
+ * build-demo.js — Genera publico/demo-aventuras.js: lo que la demo gratis (de P2 a P11, antes del pago) usa de cada
+ * aventura, y nada más. La demo lo lee de ese único fichero, en la carpeta pública `publico/` junto a su audio, sus fotos
+ * y su vídeo, y no carga los ficheros de datos de pago, que el servidor protege (PROTECT_DATA, §22.4 de la guía).
  *
  * Uso:
  *   node tools/build-demo.js              → lee las fuentes del working tree y escribe el fichero si cambió
@@ -32,7 +32,7 @@ const { execFileSync } = require('child_process');
 const { leerStaged, leerWorkingTree, normalizarFinalesLinea } = require('./build-sw.js');
 
 const ROOT = path.resolve(__dirname, '..');
-const SALIDA = 'js/demo-aventuras.js';
+const SALIDA = 'publico/demo-aventuras.js';
 const FUENTES = {
     puzzles: 'js/puzzles-aventuras.js',
     retos: 'js/retos-aventuras.js',
@@ -43,8 +43,8 @@ const FUENTES = {
 };
 
 const CABECERA = [
-    '// js/demo-aventuras.js — GENERADO por tools/build-demo.js (npm run build:demo; el hook de pre-commit lo rehace). No se',
-    '// edita a mano: se cambia el dato en su fichero de origen.',
+    '// publico/demo-aventuras.js — GENERADO por tools/build-demo.js (npm run build:demo; el hook de pre-commit lo rehace).',
+    '// No se edita a mano: se cambia el dato en su fichero de origen.',
     '//',
     '// Lo que la demo gratis (de P2 a P11, antes del pago) usa de cada aventura, y nada más: el puzzle de introducción, el reto',
     '// R-1, el audio y el texto de introducción, y si la aventura tiene audio en cada idioma. `textosIntro[idioma]` guarda cada',

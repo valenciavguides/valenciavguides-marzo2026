@@ -161,9 +161,9 @@ valenciavguides/
 │   └── ...
 │
 ├── audios-aventuras/          # MP3 de pago, una carpeta por idioma con audio grabado
-├── audios-demo/               # Audio de introducción de la demo gratis (público)
+├── publico/                   # Datos, audio, fotos y vídeo de la demo gratis (público)
 ├── imagenes/                  # Assets visuales
-├── videos-aventuras/          # Clips de tramos
+├── videos-aventuras/          # Clips de tramos, de pago (la carpeta se crea al grabarlos)
 │
 ├── docs/                      # ⭐ Documentación técnica
 │   ├── README.md              # Índice de documentación

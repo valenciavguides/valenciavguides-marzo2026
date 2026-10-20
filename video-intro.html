@@ -558,7 +558,9 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 const AI = 'imagenes/imagenes-aplicación/';
 const VI = 'imagenes/imagenes video intro/';
 const MV = 'imagenes/imagenes-mapas-vintage/';
-const IM = 'imagenes/imagenes-aventuras/';
+// La foto de una aventura que enseña el vídeo (IM) y el clip de sceneVid viven en la carpeta pública: el vídeo se ve en la
+// demo gratis, antes del pago (guía, §22.0 n.º 29). El mapa antiguo (MV) también es público, en su propia carpeta (n.º 13).
+const IM = 'publico/imagenes/';
 
 // El idioma lo dice quien abre el vídeo, siempre: la selección (después de elegirlo en P2) y el asistente.
 const _lang = new URLSearchParams(globalThis.location.search).get('lang');
@@ -601,7 +603,7 @@ const G = {
   UR:VI+'guantelete_mira_oblicuo_arriba_derecha.png',
   UL:VI+'guantelete_mira_oblicuo_arriba_izquierda.png',
 };
-const VIDEO_INTRO_SRC = 'videos-aventuras/video_intro_ejemplo.mp4';
+const VIDEO_INTRO_SRC = 'publico/videos/video_intro_ejemplo.mp4';
 
 const B = {
   b1:   AI+'H2-fotomapa-moderno.png',

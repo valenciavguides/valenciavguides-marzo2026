@@ -1114,10 +1114,10 @@
     let retoCargadoR2 = false;
     // Datos cargados dinámicamente (se llenan desde los módulos)
     let TERMINOS_DATOS = null;
-    // La demo gratis (de P2 a P11, antes del pago) lee lo que usa de cada aventura de un solo fichero público,
-    // js/demo-aventuras.js, que genera tools/build-demo.js a partir de los ficheros de datos: la demo no carga los de
-    // pago (guía, §22.0 n.º 26). Lo leen el puzzle (P6), el reto R-1 (P8), el aviso «sin audio» (P9) y el audio y el
-    // texto de introducción (P11), por _datosDemo() y _piezasDemo().
+    // La demo gratis (de P2 a P11, antes del pago) lee lo que usa de cada aventura de un solo fichero de la carpeta
+    // pública, publico/demo-aventuras.js, que genera tools/build-demo.js a partir de los ficheros de datos: la demo no
+    // carga los de pago (guía, §22.0 n.º 26). Lo leen el puzzle (P6), el reto R-1 (P8), el aviso «sin audio» (P9) y el
+    // audio y el texto de introducción (P11), por _datosDemo() y _piezasDemo().
     let DEMO_DATOS = null;
     let INDICE_AVENTURAS_DATOS = null;
     let aventuraIniciando = false; // eslint-disable-line no-unused-vars -- lo usa el <script type="module" de abajo, que lo declara en su /* global */
@@ -1125,14 +1125,16 @@
     // _devCasaMode se comparte entre script clásico y módulo via globalThis
     globalThis._devCasaMode = globalThis._devCasaMode || false;
     let timerProgresoCarga = null;
+    // La foto de fondo de cada tarjeta de aventura (P7, P9 y P13). La enseña la demo, antes del código: por eso vive en la
+    // carpeta pública, con los datos, el audio y el vídeo de la demo (guía, §22.0 n.º 29).
     const IMAGENES_AVENTURAS = {
-      'Aventura1': 'imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg',
-      'Aventura2': 'imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg',
-      'Aventura3': 'imagenes/imagenes-aventuras/pano_CAC.jpg',
-      'Aventura4': 'imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg',
-      'Aventura5': 'imagenes/imagenes-aventuras/antiguo_orfanato.jpg',
-      'AventuraFallas': 'imagenes/imagenes-aventuras/fallas-castillo.png',
-      'Aventura34km': 'imagenes/imagenes-aventuras/aventura-34km.png',
+      'Aventura1': 'publico/imagenes/plaza_de_la_almoina.jpg',
+      'Aventura2': 'publico/imagenes/plaza_de_la_virgen.jpg',
+      'Aventura3': 'publico/imagenes/pano_CAC.jpg',
+      'Aventura4': 'publico/imagenes/parque_de_ cabecera_lake_side.jpg',
+      'Aventura5': 'publico/imagenes/antiguo_orfanato.jpg',
+      'AventuraFallas': 'publico/imagenes/fallas-castillo.png',
+      'Aventura34km': 'publico/imagenes/aventura-34km.png',
     };
 
     // ============================================================
@@ -1173,7 +1175,7 @@
     }
 
     async function _datosDemo() {
-      if (!DEMO_DATOS) DEMO_DATOS = (await import('./js/demo-aventuras.js')).DEMO_AVENTURAS;
+      if (!DEMO_DATOS) DEMO_DATOS = (await import('./publico/demo-aventuras.js')).DEMO_AVENTURAS;
       return DEMO_DATOS;
     }
 
@@ -1460,7 +1462,7 @@
     }
 
     // ============================================================
-    // P11: CARGAR AUDIO INTRO DESDE js/demo-aventuras.js
+    // P11: CARGAR AUDIO INTRO DESDE publico/demo-aventuras.js
     // (audio_id dinámico: audio-intro-xx según idioma)
     // ============================================================
     function _formatearTiempoAudioIntro(segundos) {
@@ -1539,7 +1541,7 @@
     }
 
     // ============================================================
-    // P8: CARGAR RETO R-1 DESDE js/demo-aventuras.js
+    // P8: CARGAR RETO R-1 DESDE publico/demo-aventuras.js
     // (reto_id dinámico: R1-AvX-xx según aventura e idioma)
     // ============================================================
     function _crearOpcionRetoR1(opcion, index, contenedor) {
@@ -1637,7 +1639,7 @@
     }
 
     // ============================================================
-    // PUZZLE DE INTRODUCCIÓN (pantalla6): CARGAR DESDE js/demo-aventuras.js
+    // PUZZLE DE INTRODUCCIÓN (pantalla6): CARGAR DESDE publico/demo-aventuras.js
     // ============================================================
     /*
      * El puzzle avisa por el bus, como todo lo demás.
@@ -2381,7 +2383,7 @@
     }
 
     // ============================================================
-    // P11: CARGAR TEXTO INTRO DESDE js/demo-aventuras.js (lo monta tools/build-demo.js con ensamblarTexto)
+    // P11: CARGAR TEXTO INTRO DESDE publico/demo-aventuras.js (lo monta tools/build-demo.js con ensamblarTexto)
     // (texto_id dinámico: txt-intro-xx según idioma)
     // ============================================================
     async function cargarTextoIntro() {

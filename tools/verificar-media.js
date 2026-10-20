@@ -11,8 +11,9 @@
  *
  * Qué hace:
  *   1. Recorre las carpetas de media (todas las de imagenes/, los audios de
- *      las aventuras, de la demo gratis y de los efectos, y los vídeos) y
- *      compara cada archivo contra un límite de tamaño de referencia.
+ *      las aventuras y de los efectos, los vídeos, y el audio, las fotos y el
+ *      vídeo de la demo gratis, en publico/) y compara cada archivo contra un
+ *      límite de tamaño de referencia.
  *   2. Si `ffmpeg`/`ffprobe` están disponibles en PATH, hace además una
  *      comprobación más precisa: bitrate real de audio, y perfil H.264 +
  *      fotogramas de referencia de vídeo (ver §15 — perfil High o >2 refs
@@ -59,7 +60,9 @@ function carpetasDeImagenes() {
 const CARPETAS = [
     ...carpetasDeImagenes(),
     { dir: 'audios-aventuras', tipo: 'audio', ext: ['.mp3', '.wav', '.m4a'] },
-    { dir: 'audios-demo', tipo: 'audio', ext: ['.mp3', '.wav', '.m4a'] },
+    { dir: 'publico/audios', tipo: 'audio', ext: ['.mp3', '.wav', '.m4a'] },
+    { dir: 'publico/imagenes', tipo: 'imagen', ext: EXT_IMAGEN },
+    { dir: 'publico/videos', tipo: 'video', ext: ['.mp4', '.webm', '.mov'] },
     { dir: 'audios-efectos', tipo: 'audio', ext: ['.mp3', '.wav', '.m4a'] },
     { dir: 'videos-aventuras', tipo: 'video', ext: ['.mp4', '.webm', '.mov'] },
 ];

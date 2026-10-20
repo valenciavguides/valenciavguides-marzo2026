@@ -1,5 +1,5 @@
-// js/demo-aventuras.js — GENERADO por tools/build-demo.js (npm run build:demo; el hook de pre-commit lo rehace). No se
-// edita a mano: se cambia el dato en su fichero de origen.
+// publico/demo-aventuras.js — GENERADO por tools/build-demo.js (npm run build:demo; el hook de pre-commit lo rehace).
+// No se edita a mano: se cambia el dato en su fichero de origen.
 //
 // Lo que la demo gratis (de P2 a P11, antes del pago) usa de cada aventura, y nada más: el puzzle de introducción, el reto
 // R-1, el audio y el texto de introducción, y si la aventura tiene audio en cada idioma. `textosIntro[idioma]` guarda cada
@@ -177,7 +177,7 @@ export const DEMO_AVENTURAS = {
         "audioIntro": {
           "id": "audio-intro-es",
           "title": "Intro",
-          "file": "audios-demo/español/01-Intro-ESPAÑOL-1.mp3"
+          "file": "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
         },
         "tieneAudio": true,
         "textoIntro": 0
@@ -435,7 +435,7 @@ export const DEMO_AVENTURAS = {
         "audioIntro": {
           "id": "audio-intro-es",
           "title": "Intro",
-          "file": "audios-demo/español/01-Intro-ESPAÑOL-1.mp3"
+          "file": "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
         },
         "tieneAudio": true,
         "textoIntro": 0
@@ -693,7 +693,7 @@ export const DEMO_AVENTURAS = {
         "audioIntro": {
           "id": "audio-intro-es",
           "title": "Intro",
-          "file": "audios-demo/español/01-Intro-ESPAÑOL-1.mp3"
+          "file": "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
         },
         "tieneAudio": true,
         "textoIntro": 0
@@ -951,7 +951,7 @@ export const DEMO_AVENTURAS = {
         "audioIntro": {
           "id": "audio-intro-es",
           "title": "Intro",
-          "file": "audios-demo/español/01-Intro-ESPAÑOL-1.mp3"
+          "file": "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
         },
         "tieneAudio": true,
         "textoIntro": 0
@@ -1209,7 +1209,7 @@ export const DEMO_AVENTURAS = {
         "audioIntro": {
           "id": "audio-intro-es",
           "title": "Intro",
-          "file": "audios-demo/español/01-Intro-ESPAÑOL-1.mp3"
+          "file": "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
         },
         "tieneAudio": true,
         "textoIntro": 0
@@ -1467,7 +1467,7 @@ export const DEMO_AVENTURAS = {
         "audioIntro": {
           "id": "audio-intro-es",
           "title": "Intro",
-          "file": "audios-demo/español/01-Intro-ESPAÑOL-1.mp3"
+          "file": "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
         },
         "tieneAudio": true,
         "textoIntro": 0
@@ -1725,7 +1725,7 @@ export const DEMO_AVENTURAS = {
         "audioIntro": {
           "id": "audio-intro-es",
           "title": "Intro",
-          "file": "audios-demo/español/01-Intro-ESPAÑOL-1.mp3"
+          "file": "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
         },
         "tieneAudio": true,
         "textoIntro": 1

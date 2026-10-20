@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * install-hooks.js — Instala el hook de pre-commit que mantiene al día, solos,
- * js/demo-aventuras.js y CACHE_VERSION (ver tools/build-demo.js y tools/build-sw.js). Se ejecuta solo desde
+ * publico/demo-aventuras.js y CACHE_VERSION (ver tools/build-demo.js y tools/build-sw.js). Se ejecuta solo desde
  * `postinstall` en package.json, tras cada `npm install`.
  *
  * Qué hace:
@@ -36,7 +36,7 @@ const MARKER = 'vvguides-managed-hook';
 
 const HOOK_CONTENT = `#!/usr/bin/env node
 // ${MARKER} — instalado por tools/install-hooks.js (se reinstala en cada npm install, no editar a mano)
-// Regenera js/demo-aventuras.js si cambiaron sus fuentes y después actualiza CACHE_VERSION si cambió algo del App Shell
+// Regenera publico/demo-aventuras.js si cambiaron sus fuentes y después actualiza CACHE_VERSION si cambió algo del App Shell
 // (la demo es parte del shell: por eso va primero); nunca bloquea el commit.
 (async () => {
   try {
