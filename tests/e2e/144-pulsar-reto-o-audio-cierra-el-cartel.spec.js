@@ -58,6 +58,7 @@ test.describe('CA — Pulsar el reto o el audio cierra el cartel', () => {
 
   test('CA-3. Control: sin pulsar nada, el cartel sigue a la vista', async ({ page }) => {
     await arrancarConCartel(page);
+    // VENTANA-OBSERVACION: sin pulsar nada, el cartel no se cierra en 1 s (algo que NO debe ocurrir).
     await page.waitForTimeout(1000);
     await expect(page.locator('#cartel-llegada-parada')).toHaveCount(1);
   });

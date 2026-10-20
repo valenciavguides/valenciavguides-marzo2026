@@ -45,6 +45,7 @@ test.describe('ER — «Elegir otra aventura» desde el diálogo de reanudación
 
     await page.waitForFunction(() => globalThis.sistemaInicializado === true, null, { timeout: 30_000 });
     // La comprobación de la aventura guardada corre 300 ms después del arranque: con margen.
+    // VENTANA-OBSERVACION: en 1,5 s el diálogo de reanudación no vuelve a salir (algo que NO debe ocurrir).
     await page.waitForTimeout(1500);
     await expect(page.locator('#dialogo-reanudacion-overlay'), 'no vuelve a ofrecer reanudar').toHaveCount(0);
     expect(await page.evaluate((claves) => claves.map((k) => localStorage.getItem(k)), CLAVES),

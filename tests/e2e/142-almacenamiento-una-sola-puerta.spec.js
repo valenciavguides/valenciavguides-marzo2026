@@ -67,6 +67,7 @@ test.describe('AL — El almacenamiento del dispositivo, por una sola puerta', (
       globalThis.almacen.local.leer(globalThis.almacen.CLAVES.DEBUG);
       globalThis.almacen.local.leer(globalThis.almacen.CLAVES.DEBUG);
     });
+    // VENTANA-OBSERVACION: las dos lecturas no añaden ningún aviso (algo que NO debe ocurrir).
     await page.waitForTimeout(300);
     expect(mensajes.length, 'sin avisos repetidos').toBe(antes);
 

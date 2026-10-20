@@ -70,6 +70,7 @@ test.describe('RC — La cola de retos, por un solo camino', () => {
     const errores = await arrancar(page);
     const r = await pedirRetoConCola(page, false);
     expect(r.cola).toEqual(r.deLaActual);
+    // VENTANA-OBSERVACION: con la cola ya preparada no sale el aviso (algo que NO debe ocurrir).
     await page.waitForTimeout(300);
     expect(errores.filter((t) => t.includes(AVISO))).toEqual([]);
   });

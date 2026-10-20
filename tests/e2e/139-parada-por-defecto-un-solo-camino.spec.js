@@ -72,8 +72,9 @@ test.describe('PD — La parada por defecto, por un solo camino', () => {
     await vaciar(page);
     await modo(page, 'aventura');
     await enModo(page, 'aventura');
-    // VENTANA-OBSERVACION: la vuelta a AVENTURA espera a los hijos y restaura el elemento en curso después del cambio de modo.
+    // La vuelta a AVENTURA espera a los hijos y restaura el elemento en curso después del cambio de modo.
     await expect.poll(() => cambios(page), { timeout: 30_000 }).not.toEqual([]);
+    // VENTANA-OBSERVACION: en 3 s no se activa ningún elemento distinto del que estaba en curso (algo que NO debe ocurrir).
     await page.waitForTimeout(3_000);
     const vistos = await cambios(page);
     expect(vistos.filter((c) => c.id !== EN_CURSO), `activaciones de la vuelta: ${JSON.stringify(vistos)}`).toEqual([]);

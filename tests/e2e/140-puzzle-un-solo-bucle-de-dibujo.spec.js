@@ -61,6 +61,7 @@ test.describe('UB — El puzzle dibuja con un solo bucle', () => {
   test('UB-2. Tras tres resize seguidos, sigue habiendo uno', async ({ page }) => {
     const puzzle = await abrirPuzzleEnMarcha(page);
     await puzzle.evaluate(() => { for (let i = 0; i < 3; i++) globalThis.dispatchEvent(new Event('resize')); });
+    // VENTANA-OBSERVACION: los tres resize no dejan un segundo bucle (algo que NO debe ocurrir).
     await puzzle.waitForTimeout(300);
     expect(await bucles(puzzle)).toBe(1);
   });
@@ -68,6 +69,7 @@ test.describe('UB — El puzzle dibuja con un solo bucle', () => {
   test('UB-3. Reiniciar con el puzzle en marcha no deja un segundo bucle', async ({ page }) => {
     const puzzle = await abrirPuzzleEnMarcha(page);
     await puzzle.click('#restartBtn');
+    // VENTANA-OBSERVACION: reiniciar no deja un segundo bucle (algo que NO debe ocurrir).
     await puzzle.waitForTimeout(300);
     expect(await bucles(puzzle)).toBe(1);
   });
