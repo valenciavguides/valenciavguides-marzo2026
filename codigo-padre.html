@@ -3306,29 +3306,32 @@
                         _dropdownDiv.appendChild(btn);
                     });
 
-                    // Hueco real disponible entre el botón principal (su posición ANTES de
-                    // expandirse, con el desplegable aún colapsado) y el borde inferior del
-                    // fondo blanco del logo — medido con getBoundingClientRect(), no calc()
-                    // en cascada, para que el límite sea exacto pase lo que pase con el alto
-                    // real de la ventana (orientación, teclado en pantalla, notch, etc.).
-                    function _alturaDisponibleParaDropdown() {
-                        const MARGEN_SEGURIDAD = 8;
+                    // Alto que puede abrir un desplegable que crece hacia arriba (este del tipo de mapa y el del modo de
+                    // la brújula, más abajo): el hueco real entre su botón principal (su posición ANTES de expandirse, con
+                    // el desplegable aún colapsado) y el borde inferior del fondo blanco del logo, medido con
+                    // getBoundingClientRect() —no con calc() en cascada, para que el límite sea exacto pase lo que pase con
+                    // el alto real de la ventana (orientación, teclado en pantalla, notch, etc.)—, menos la misma separación
+                    // que hay entre las opciones del desplegable (su `gap`, en unidades relativas). Así el desplegable
+                    // abierto queda a una separación de opción de la banda en cualquier pantalla, sin un margen fijo en
+                    // píxeles: con los 8 px fijos que había, en un iPhone con las barras de Safari (390×664) a los dos les
+                    // faltaban 3 px y se cortaban (estudio, R2.22). Una sola función para los dos: cada uno tenía su copia.
+                    function _alturaDisponibleParaDesplegable(contenedor, desplegable) {
                         const fondoBlanco = document.getElementById('fondo-blanco');
                         const limiteSuperior = fondoBlanco ? fondoBlanco.getBoundingClientRect().bottom : 0;
-                        const topBotonPrincipal = _selectorDiv.getBoundingClientRect().top;
-                        return Math.max(0, topBotonPrincipal - limiteSuperior - MARGEN_SEGURIDAD);
+                        const separacion = Number.parseFloat(getComputedStyle(desplegable).rowGap) || 0;
+                        return Math.max(0, contenedor.getBoundingClientRect().top - limiteSuperior - separacion);
                     }
 
                     _btnPrincipal.addEventListener('click', (e) => {
                         e.stopPropagation();
                         _dropdownAbierto = !_dropdownAbierto;
-                        _dropdownDiv.style.maxHeight = _dropdownAbierto ? `${_alturaDisponibleParaDropdown()}px` : '0';
+                        _dropdownDiv.style.maxHeight = _dropdownAbierto ? `${_alturaDisponibleParaDesplegable(_selectorDiv, _dropdownDiv)}px` : '0';
                     });
 
                     // Si la ventana cambia de tamaño/orientación con el desplegable abierto,
                     // recalcular — el hueco disponible pudo cambiar.
                     globalThis.addEventListener('resize', debounce(() => {
-                        if (_dropdownAbierto) _dropdownDiv.style.maxHeight = `${_alturaDisponibleParaDropdown()}px`;
+                        if (_dropdownAbierto) _dropdownDiv.style.maxHeight = `${_alturaDisponibleParaDesplegable(_selectorDiv, _dropdownDiv)}px`;
                     }, 200));
 
                     document.addEventListener('click', () => { if (_dropdownAbierto) _cerrarDropdown(); });
@@ -3448,22 +3451,15 @@
                         _brujulaModoDropdownDiv.appendChild(btn);
                     });
 
-                    function _alturaDisponibleParaBrujulaModoDropdown() {
-                        const MARGEN_SEGURIDAD = 8;
-                        const fondoBlanco = document.getElementById('fondo-blanco');
-                        const limiteSuperior = fondoBlanco ? fondoBlanco.getBoundingClientRect().bottom : 0;
-                        const topBotonPrincipal = _brujulaModoDiv.getBoundingClientRect().top;
-                        return Math.max(0, topBotonPrincipal - limiteSuperior - MARGEN_SEGURIDAD);
-                    }
-
+                    // El alto del desplegable lo da _alturaDisponibleParaDesplegable(), la misma que el del tipo de mapa.
                     _brujulaModoBtnPrincipal.addEventListener('click', (e) => {
                         e.stopPropagation();
                         _brujulaModoDropdownAbierto = !_brujulaModoDropdownAbierto;
-                        _brujulaModoDropdownDiv.style.maxHeight = _brujulaModoDropdownAbierto ? `${_alturaDisponibleParaBrujulaModoDropdown()}px` : '0';
+                        _brujulaModoDropdownDiv.style.maxHeight = _brujulaModoDropdownAbierto ? `${_alturaDisponibleParaDesplegable(_brujulaModoDiv, _brujulaModoDropdownDiv)}px` : '0';
                     });
 
                     globalThis.addEventListener('resize', debounce(() => {
-                        if (_brujulaModoDropdownAbierto) _brujulaModoDropdownDiv.style.maxHeight = `${_alturaDisponibleParaBrujulaModoDropdown()}px`;
+                        if (_brujulaModoDropdownAbierto) _brujulaModoDropdownDiv.style.maxHeight = `${_alturaDisponibleParaDesplegable(_brujulaModoDiv, _brujulaModoDropdownDiv)}px`;
                     }, 200));
 
                     document.addEventListener('click', () => { if (_brujulaModoDropdownAbierto) _cerrarBrujulaModoDropdown(); });

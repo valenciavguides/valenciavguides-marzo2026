@@ -1057,7 +1057,7 @@ La cámara del mapa de aventura no se mueve solo con los `flyTo` puntuales de ca
 - **`estadoMapa.zoomEnCurso`** — mientras un `flyTo` de cambio de parada/tramo está en curso (`completarCambioParada()`), el seguimiento se salta para no competir con esa animación ya en marcha.
 - **Arrastre manual del usuario** — `_registrarSeguimientoCamara()` (llamada una vez desde `inicializarServicioMapa()`) escucha el evento nativo `'dragstart'` del mapa; si `event.originalEvent` está presente (el gesto viene de verdad de un ratón/dedo, no de un `easeTo()`/`flyTo()` programático — el propio seguimiento incluido), pone `_camaraSiguiendoUsuario = false` y dejan de aplicarse los `easeTo()` de seguimiento. Así el usuario conserva la libertad de arrastrar el mapa para mirar algo (p. ej. una referencia 🏛️ más adelante) sin que la siguiente lectura GPS deshaga el gesto de golpe.
 
-Retomar el seguimiento de posición es una de las tres opciones del **menú de modo de cámara** (`#brujula-modo`, `codigo-padre.html`): un desplegable de 3 modos, construido en JS puro dentro del cierre de `initializeMap()`, que mirror-ea al detalle el patrón ya usado por `#selector-tipo-mapa` (botón principal circular + contenedor `flex-direction:column-reverse` con `max-height` animado que crece hacia arriba, cerrado por defecto y al pulsar fuera). No existe HTML/CSS estático para él — todo el árbol (`_brujulaModoDiv`, `_brujulaModoBtnPrincipal`, `_brujulaModoDropdownDiv` y sus 3 hijos) se crea con `document.createElement`. El botón principal muestra siempre `imagenes/imagenes-aplicación/boton-brujula.png` (icono de brújula fijo, con su propio anillo dorado ya integrado en la imagen) — no refleja qué modo está activo; el estado real (`_brujulaModoActivo`) es interno, solo observable por sus efectos (qué función invoca, qué revierte solo con el tiempo), igual que el botón principal de `#selector-tipo-mapa` (§11) tampoco refleja el modo de mapa activo.
+Retomar el seguimiento de posición es una de las tres opciones del **menú de modo de cámara** (`#brujula-modo`, `codigo-padre.html`): un desplegable de 3 modos, construido en JS puro dentro del cierre de `initializeMap()`, que mirror-ea al detalle el patrón ya usado por `#selector-tipo-mapa` (botón principal circular + contenedor `flex-direction:column-reverse` con `max-height` animado que crece hacia arriba, cerrado por defecto y al pulsar fuera, y con el alto que da la misma función, `_alturaDisponibleParaDesplegable()`). No existe HTML/CSS estático para él — todo el árbol (`_brujulaModoDiv`, `_brujulaModoBtnPrincipal`, `_brujulaModoDropdownDiv` y sus 3 hijos) se crea con `document.createElement`. El botón principal muestra siempre `imagenes/imagenes-aplicación/boton-brujula.png` (icono de brújula fijo, con su propio anillo dorado ya integrado en la imagen) — no refleja qué modo está activo; el estado real (`_brujulaModoActivo`) es interno, solo observable por sus efectos (qué función invoca, qué revierte solo con el tiempo), igual que el botón principal de `#selector-tipo-mapa` (§11) tampoco refleja el modo de mapa activo.
 
 Las 3 opciones, definidas en `_MODOS_BRUJULA` (array de `{id, nombre, imagen}`, ids `brujula-modo-norte`/`brujula-modo-seguimiento`/`brujula-modo-centrado`) y mostradas en este orden en el desplegable — los iconos solo se ven en estas 3 opciones, nunca en el botón principal:
 
@@ -4934,7 +4934,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d4a24fb14566'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-3248349a777f'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6797,7 +6797,7 @@ right: calc(4px + (var(--franja-lateral) / 2) - (clamp(46.92px,12.852vmin,68.34p
 
 `bottom` se calcula sumando al `bottom` del propio botón de chat su altura (`var(--franja-lateral)`) más un hueco de 8px, para quedar apilado justo encima.
 
-**Límite del desplegable — nunca puede tapar el fondo blanco del logo (`#fondo-blanco`):** al abrir el desplegable (que crece hacia arriba desde el botón principal), `_alturaDisponibleParaDropdown()` mide con `getBoundingClientRect()` — no con `calc()` en cascada, para que el límite sea exacto pase lo que pase con el alto real de la ventana (orientación, notch, etc.) — la distancia real entre la posición del botón principal (antes de expandirse) y el borde inferior de `#fondo-blanco`, resta un margen de seguridad de 8px, y usa ese valor como `max-height` del desplegable. Se recalcula también en `resize` si el desplegable está abierto en ese momento.
+**Límite del desplegable — nunca puede tapar el fondo blanco del logo (`#fondo-blanco`):** al abrir el desplegable (que crece hacia arriba desde el botón principal), `_alturaDisponibleParaDesplegable(contenedor, desplegable)` —la misma para este desplegable y para el del modo de la cámara (`#brujula-modo`)— mide con `getBoundingClientRect()` — no con `calc()` en cascada, para que el límite sea exacto pase lo que pase con el alto real de la ventana (orientación, notch, etc.) — la distancia real entre la posición del botón principal (antes de expandirse) y el borde inferior de `#fondo-blanco`, le resta la separación entre las opciones del desplegable (su `gap`, `clamp(3px,0.8vmin,6px)`: relativa a la pantalla, sin un margen fijo) y usa ese valor como `max-height` del desplegable. Así los dos caben enteros en un iPhone con las barras de Safari (390×664), en un Android corriente y con la app instalada (spec 150). Se recalcula también en `resize` si el desplegable está abierto en ese momento.
 
 Además, el selector no permanece siempre visible: una función centralizada (`actualizarVisibilidadSelectorMapa()`) lo oculta temporalmente cuando se abre el chat, un reto (`hijo4`) o cualquiera de los overlays de imagen, vídeo, error o iframe, y lo vuelve a mostrar al cerrarlos. Esa misma función oculta y muestra `#brujula-modo` (§4.6b) bajo el mismo criterio, con una sola llamada — es lo que impide que se vea por delante del chat/overlays pese a tener, igual que el selector, un z-index mayor que el de `#hijo6-chat` (1000020): el `display:none` explícito de esta función es el mecanismo real, no el z-index por sí solo.
 
@@ -8099,6 +8099,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `147-volver-a-elegir-idioma-borra-el-idioma.spec.js` | 3 | Volver a la elección de idioma sin recargar borra el idioma guardado (`vv_idioma`): el «no» del reto R-2 vuelve a P1 (VI-1), y el ✗ de la confirmación del idioma (VI-2) y el «No» del aviso sin audio (VI-3) vuelven a las banderas. Cada test elige primero el idioma con `seleccionarIdioma()` y comprueba que el padre lo ha guardado |
 | `148-reanudar-por-el-identificador.spec.js` | 3 | Al reanudar, el elemento en curso lo decide su identificador guardado (`elementoActualId`), y el índice y la parada salen de él: con el índice y la parada de otro elemento, reanuda en el del identificador (KR-1); con un identificador que no está en los datos, lo dice con un error, sigue desde la parada por defecto y repone los rescates usados (KR-2); con los tres datos de acuerdo, reanuda en ese elemento (KR-3, control). Por el camino real: la sesión guardada en el dispositivo, la recarga y «Continuar» |
 | `149-la-demo-gratis-con-su-propio-fichero.spec.js` | 4 | La demo gratis (P2 a P11) lee sus piezas de `js/demo-aventuras.js` y no pide ningún fichero de datos protegido: la lista de rutas protegidas del spec es la de `PROTECTED_FILES` de `js/server.js` (DM-0); con los ficheros de datos protegidos contestando 403 y el service worker bloqueado, en español el puzzle de introducción (P6), el reto R-1 (P8), el paso a P10 sin aviso y el audio (de `audios-demo/`) y el texto de introducción (P11) salen bien y no se pide ninguno (DM-1); en inglés, sin audio, sale el aviso de P9, se sigue sin audio y P11 enseña el texto sin reproductor (DM-2); cada pieza del fichero es la que dan los datos —el reto R-1, el audio de introducción, si hay audio, el texto que monta `cargarTextos()` y el puzzle— en las siete aventuras y los doce idiomas (DM-3). Las imágenes no se bloquean (§22.0, n.º 29) |
+| `150-los-desplegables-del-mapa-caben-enteros.spec.js` | 3 | Los dos desplegables del mapa (`#selector-tipo-mapa` y `#brujula-modo`) se abren enteros, sin desplazamiento interno, en tres pantallas: un iPhone con las barras de Safari (390×664), un Android corriente (393×727) y el iPhone con la app instalada (390×844). En cada una, con la banda del logo a la vista como al activarse la aventura, cada desplegable abierto enseña todo su contenido (DE-1) y su borde de arriba queda por debajo de la banda (DE-2) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8333,7 +8334,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-d4a24fb14566'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-3248349a777f'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8577,7 +8578,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 146 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 147 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9076,7 +9077,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-d4a24fb14566';
+const CACHE_VERSION = 'v-3248349a777f';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12550,7 +12551,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-d4a24fb14566';
+const CACHE_VERSION = 'v-3248349a777f';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14222,92 +14223,92 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarImagenOverlay` | clásico 8 (L1659) | módulo 1, módulo 2 | función/objeto |
 | `mostrarVideoOverlay` | clásico 8 (L1999) | módulo 1 | función/objeto |
 | `rotationSuppressed` | clásico 8 (L1700) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3722) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5017) | clásico 12 | estado |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3712) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3711) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5831) | clásico 12 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6496) | clásico 12 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3692) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6636) | clásico 12 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3713) | módulo 2 | función/objeto |
-| `__vv_PUZZLES` | módulo 1 (L3714) | módulo 2 | función/objeto |
-| `__vv_registroScript1` | módulo 1 (L3591) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4744) | módulo 2 | función/objeto |
-| `_cerrarDesplegablesDelPadre` | módulo 1 (L4710) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L7363) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8707) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8923) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8828) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L4029) | módulo 2 | estado |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8797) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L9007) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8899) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8803) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9015) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8677) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L8251) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6001) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3843) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3850) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4953) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L8021) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L8020) | módulo 2 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L3946) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3837) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3838) | módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L4034) | clásico 7, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4384) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4138) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6400) | módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3718) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5013) | clásico 12 | estado |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3708) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3707) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5827) | clásico 12 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6492) | clásico 12 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3688) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6632) | clásico 12 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3709) | módulo 2 | función/objeto |
+| `__vv_PUZZLES` | módulo 1 (L3710) | módulo 2 | función/objeto |
+| `__vv_registroScript1` | módulo 1 (L3587) | módulo 2 | estado |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4740) | módulo 2 | función/objeto |
+| `_cerrarDesplegablesDelPadre` | módulo 1 (L4706) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L7359) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8703) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8919) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8824) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L4025) | módulo 2 | estado |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8793) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9003) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8895) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8799) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9011) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8673) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L8247) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5997) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3839) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3846) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4949) | clásico 7, módulo 2 | estado |
+| `cargarHijoCasa` | módulo 1 (L8017) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8016) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L3942) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3833) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3834) | módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4030) | clásico 7, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4380) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4134) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6396) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2851) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4954) | clásico 5, clásico 7, módulo 2 | estado |
+| `idiomaSeleccionado` | módulo 1 (L4950) | clásico 5, clásico 7, módulo 2 | estado |
 | `limpiarDatosAventura` | módulo 1 (L2886) | módulo 2 | función/objeto |
-| `MODOS` | módulo 1 (L3836) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8404) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8327) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8177) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8220) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4231) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5045) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5072) | módulo 2 | función/objeto |
+| `MODOS` | módulo 1 (L3832) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8400) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8323) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8173) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8216) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4227) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5041) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5068) | módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2891) | clásico 8 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2881) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2882) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6238) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6164) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6092) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6317) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6392) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6696) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6695) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6234) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6160) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6088) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6313) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6388) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6692) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6691) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2839) | módulo 2 | función/objeto |
 | `sleep` | módulo 1 (L2766) | módulo 2, módulo 4 | función/objeto |
-| `solicitarCoordenadasHijo` | módulo 1 (L5768) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3835) | clásico 7, clásico 8, módulo 2 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L4007) | clásico 8, módulo 2 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5764) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3831) | clásico 7, clásico 8, módulo 2 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L4003) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2867) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9127) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L14054) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10135) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L13028) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L14035) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11929) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12690) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L10074) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11270) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11332) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L11294) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12720) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9193) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10069) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9332) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9414) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12953) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9947) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9939) | módulo 1 | función/objeto |
-| `solicitarCoordenadasAHijo2` | módulo 2 (L9912) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L14070) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9123) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14050) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L10131) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L13024) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L14031) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11925) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12686) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L10070) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11266) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11328) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L11290) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12716) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9189) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10065) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9328) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9410) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12949) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9943) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9935) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L9908) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14066) | módulo 2 | función/objeto |
 
 </details>
 
