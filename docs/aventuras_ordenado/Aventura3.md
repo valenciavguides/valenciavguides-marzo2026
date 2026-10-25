@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Plaza de la Crída
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
 **Párrafos:** 229, 5
 
@@ -105,7 +105,7 @@
 
 ## Tramo 4 — Ruinas del Jardín del Turia → Jardines del Real (Viveros)
 
-**Imágenes:** imagenes/imagenes-aventuras/ruinas_turia.jpg, imagenes/imagenes-aventuras/puente_real.jpg, imagenes/imagenes-aventuras/puente_real_down.jpg, imagenes/imagenes-aventuras/viveros-tunel_turia.jpg, imagenes/imagenes-aventuras/viveros_tunel_2.jpg, imagenes/imagenes-aventuras/viveros_entrada.jpg
+**Imágenes:** imagenes/imagenes-aventuras/ruinas_turia.jpg, imagenes/imagenes-aventuras/puente_real.jpg, imagenes/imagenes-aventuras/puente_real_down.jpg, imagenes/imagenes-aventuras/viveros_tunel_turia.jpg, imagenes/imagenes-aventuras/viveros_tunel_2.jpg, imagenes/imagenes-aventuras/viveros_entrada.jpg
 
 **Párrafos:** 647, 11-D
 
@@ -116,7 +116,7 @@
 
 ## Parada 5 — Jardines del Real (Viveros)
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_ paseo_palmeras.jpg, imagenes/imagenes-aventuras/viveros_libre_6.jpg, imagenes/imagenes-aventuras/viveros_rosaleda.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg, imagenes/imagenes-aventuras/viveros_libre_6.jpg, imagenes/imagenes-aventuras/viveros_rosaleda.jpg
 
 **Párrafos:** 648-B, 649-B
 
@@ -150,7 +150,7 @@
 
 ## Tramo 6 — Puente de la Exposición → Puente de las Flores
 
-**Imágenes:** imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg, imagenes/imagenes-aventuras/puente_flores-down.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg, imagenes/imagenes-aventuras/puente_flores_down.jpg
 
 **Párrafos:** 225, 14-B
 
@@ -161,7 +161,7 @@
 
 ## Parada 7 — Puente de las Flores
 
-**Imágenes:** imagenes/imagenes-aventuras/puente-de_las_flores.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puente_de_las_flores.jpg
 
 **Párrafos:** 241, 570
 
@@ -172,7 +172,7 @@
 
 ## Tramo 7 — Puente de las Flores → Puente de Aragón (parte superior)
 
-**Imágenes:** imagenes/imagenes-aventuras/puente-de_las_flores.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg, imagenes/imagenes-aventuras/puente_aragon_subida.jpg, imagenes/imagenes-aventuras/puente_aragon_top.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puente_de_las_flores.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg, imagenes/imagenes-aventuras/puente_aragon_subida.jpg, imagenes/imagenes-aventuras/puente_aragon_top.jpg
 
 **Párrafos:** 242, 15, 243, 20-B
 
@@ -185,7 +185,7 @@
 
 ## Parada 8 — Puente de Aragón
 
-**Imágenes:** imagenes/imagenes-aventuras/puente_aragon_top.jpg, imagenes/imagenes-aventuras/Puente_de_aragon_vista.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puente_aragon_top.jpg, imagenes/imagenes-aventuras/puente_de_aragon_vista.jpg
 
 **Párrafos:** 244, 246
 
@@ -196,7 +196,7 @@
 
 ## Parada 9 — Puente de Aragón 2
 
-**Imágenes:** imagenes/imagenes-aventuras/Puente_de_aragon_vista.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puente_de_aragon_vista.jpg
 
 **Párrafos:** 339
 
@@ -204,7 +204,7 @@
 
 ---
 
-## Tramo 8 — Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)
+## Tramo 8 — Puente de Aragón (parte superior) → Puente de la Mar (parte superior)
 
 **Imágenes:** imagenes/imagenes-aventuras/puente_aragon_top.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_top.jpg
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Parada 10 — Puente de la Mar (Parte Superior)
+## Parada 10 — Puente de la Mar (parte superior)
 
 **Imágenes:** imagenes/imagenes-aventuras/pont_de_la_mar_top.jpg
 
@@ -278,7 +278,7 @@
 
 ## Tramo 11 — Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
 
-**Imágenes:** imagenes/imagenes-aventuras/gulliver.jpg, imagenes/imagenes-aventuras/puente_reino.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/CAC_patinaje.jpg
+**Imágenes:** imagenes/imagenes-aventuras/gulliver.jpg, imagenes/imagenes-aventuras/puente_reino.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/cac_patinaje.jpg
 
 **Párrafos:** 261, 24-D, 113
 
@@ -290,7 +290,7 @@
 
 ## Parada 13 — Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
 
-**Imágenes:** imagenes/imagenes-aventuras/CAC_patinaje.jpg
+**Imágenes:** imagenes/imagenes-aventuras/cac_patinaje.jpg
 
 **Párrafos:** 262, 17-B, 264, 265, 266, 18-B, 267, 27-B
 
@@ -307,7 +307,7 @@
 
 ## Tramo 12 — Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
 
-**Imágenes:** imagenes/imagenes-aventuras/CAC_patinaje.jpg, imagenes/imagenes-aventuras/cac_mapa.jpg, imagenes/imagenes-aventuras/pano_CAC.jpg
+**Imágenes:** imagenes/imagenes-aventuras/cac_patinaje.jpg, imagenes/imagenes-aventuras/cac_mapa.jpg, publico/imagenes/pano_CAC.jpg
 
 **Párrafos:** 268, 269
 
@@ -318,7 +318,7 @@
 
 ## Parada 14 — Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/reina_sofia_side.jpg
+**Imágenes:** publico/imagenes/pano_CAC.jpg, imagenes/imagenes-aventuras/reina_sofia_side.jpg
 
 **Párrafos:** 270, 27-B, 271
 
@@ -330,7 +330,7 @@
 
 ## Parada 15 — Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/museo_principe_felipe.jpg, imagenes/imagenes-aventuras/CAC-6.jpg
+**Imágenes:** publico/imagenes/pano_CAC.jpg, imagenes/imagenes-aventuras/museo_principe_felipe.jpg, imagenes/imagenes-aventuras/cac_6.jpg
 
 **Párrafos:** 272, 31, 273, 275
 
@@ -343,7 +343,7 @@
 
 ## Tramo 13 — Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l'Assut de l'Or
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/puente_Assut_2.jpg
+**Imágenes:** publico/imagenes/pano_CAC.jpg, imagenes/imagenes-aventuras/puente_assut_2.jpg
 
 **Párrafos:** 276, 32-B
 
@@ -354,7 +354,7 @@
 
 ## Parada 16 — Puente l'Assut de l'Or
 
-**Imágenes:** imagenes/imagenes-aventuras/puente_Assut_2.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puente_assut_2.jpg
 
 **Párrafos:** 277, 278
 
@@ -365,7 +365,7 @@
 
 ## Tramo 14 — Puente l'Assut de l'Or → Ágora y Oceanogràfic
 
-**Imágenes:** imagenes/imagenes-aventuras/puente_Assut_2.jpg, imagenes/imagenes-aventuras/agora.jpg, imagenes/imagenes-aventuras/oceanografic.jpg, imagenes/imagenes-aventuras/agora_oceanografic.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puente_assut_2.jpg, imagenes/imagenes-aventuras/agora.jpg, imagenes/imagenes-aventuras/oceanografic.jpg, imagenes/imagenes-aventuras/agora_oceanografic.jpg
 
 **Párrafos:** 116
 
@@ -427,14 +427,14 @@
 
 **Párrafos:** 291, 707
 
-- **291:** l’Hemisfèric fue el primer edificio que abrió sus puertas al público en la Ciudad de las Artes y de las Ciencias. Inaugurado en 1998 y con capacidad para 300 personas, este espacio se dedica al cine IMAX en 3 Dimensiones Arquitectónicamente hablando, el monumento destaca por la originalidad de sus compuertas que, gracias a un mecanismo especial, se abren y se cierran como si de un ojo real se tratase. le incita a presionar pausa y a disfrutar a su gusto por este complejo futurístico con líneas innovadoras en un entorno de inspiración milenaria. Queda de nuestra mano aportar ciertos detalles que enriquecen nuestra visión de la Ciudad de las Artes y de las Ciencias. Note que la decoración del complejo es un mosaico de cerámica valenciana, legado árabe durante su periodo de colonización; de nuevo volvemos a la cultura árabe cuando admiramos los enormes espacios repletos de agua que magnifican y engrandecen los monumentos que rodea. Una vez decida continuar simplemente pulse el botón correspondiente y continúe en busca del tesoro. El entorno de la Ciudad de las Artes y de las Ciencias es perfecto para gozar del sol de Valencia y disfrutar de una Orxata tradicional valenciana.
-- **707:** ¿De qué está hecha la Orxata? ¿De chufa, de arroz o de cebada?
+- **291:** l’Hemisfèric fue el primer edificio que abrió sus puertas al público en la Ciudad de las Artes y de las Ciencias. Inaugurado en 1998 y con capacidad para 300 personas, este espacio se dedica al cine IMAX en 3 Dimensiones Arquitectónicamente hablando, el monumento destaca por la originalidad de sus compuertas que, gracias a un mecanismo especial, se abren y se cierran como si de un ojo real se tratase. le incita a presionar pausa y a disfrutar a su gusto por este complejo futurístico con líneas innovadoras en un entorno de inspiración milenaria. Queda de nuestra mano aportar ciertos detalles que enriquecen nuestra visión de la Ciudad de las Artes y de las Ciencias. Note que la decoración del complejo es un mosaico de cerámica valenciana, legado árabe durante su periodo de colonización; de nuevo volvemos a la cultura árabe cuando admiramos los enormes espacios repletos de agua que magnifican y engrandecen los monumentos que rodea. Una vez decida continuar simplemente pulse el botón correspondiente y continúe en busca del tesoro. El entorno de la Ciudad de las Artes y de las Ciencias es perfecto para gozar del sol de Valencia y disfrutar de una Horchata tradicional valenciana.
+- **707:** ¿De qué está hecha la Horchata? ¿De chufa, de arroz o de cebada?
 
 ---
 
 ## Tramo 17 — Ciudad de las Artes y las Ciencias → Puente de la Mar
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/hemisferic.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/puente_angel_custodio.jpg, imagenes/imagenes-aventuras/palau_de_la_musica.jpg, imagenes/imagenes-aventuras/puente_aragon-down.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg
+**Imágenes:** publico/imagenes/pano_CAC.jpg, imagenes/imagenes-aventuras/hemisferic.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/puente_angel_custodio.jpg, imagenes/imagenes-aventuras/palau_de_la_musica.jpg, imagenes/imagenes-aventuras/puente_aragon_down.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg
 
 **Párrafos:** 293, 30-B
 
@@ -456,7 +456,7 @@
 
 ## Tramo 18 — Puente de la Mar → Puerta de la Mar
 
-**Imágenes:** imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg, imagenes/imagenes-aventuras/puente_flores_subida.jpg, imagenes/imagenes-aventuras/puente_flores_subida_2.jpg, imagenes/imagenes-aventuras/puente-de_las_flores.jpg, imagenes/imagenes-aventuras/puente_flores_top.jpg, imagenes/imagenes-aventuras/puente_flores_agua.jpg, imagenes/imagenes-aventuras/puerta_mar.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg, imagenes/imagenes-aventuras/puente_flores_subida.jpg, imagenes/imagenes-aventuras/puente_flores_subida_2.jpg, imagenes/imagenes-aventuras/puente_de_las_flores.jpg, imagenes/imagenes-aventuras/puente_flores_top.jpg, imagenes/imagenes-aventuras/puente_flores_agua.jpg, imagenes/imagenes-aventuras/puerta_mar.jpg
 
 **Párrafos:** 296-C, 297, 14-B, 298, 299, 245-B, 37
 
@@ -649,7 +649,7 @@
 
 ## Tramo 26 — Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)
 
-**Imágenes:** imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg, imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg, publico/imagenes/plaza_de_la_almoina.jpg
 
 **Párrafos:** 45-B
 
@@ -659,7 +659,7 @@
 
 ## Parada 30 — Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg, imagenes/imagenes-aventuras/panel_ceramico_muro_norte_catedral.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg, imagenes/imagenes-aventuras/panel_ceramico_muro_norte_catedral.jpg
 
 **Párrafos:** 441, 442
 
@@ -703,7 +703,7 @@
 
 ---
 
-## Parada 34 — Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo
+## Parada 34 — Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo
 
 **Imágenes:** imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg
 
@@ -719,7 +719,7 @@
 
 ## Tramo 27 — Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico
 
-**Imágenes:** imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg, imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg, publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
 
 **Párrafos:** 457, 45-E
 
@@ -730,7 +730,7 @@
 
 ## Parada 35 — Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_almoina_2.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_almoina_2.jpg
 
 **Párrafos:** 458
 
@@ -740,7 +740,7 @@
 
 ## Parada 36 — Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
 
 **Párrafos:** 459, 460, 461
 
@@ -752,7 +752,7 @@
 
 ## Tramo 28 — Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico → Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/Paso_Plaza_Almoina.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/paso_plaza_almoina.jpg
 
 **Párrafos:** 465, 47-B
 
@@ -763,7 +763,7 @@
 
 ## Parada 37 — Plaza de la Virgen (Fuente de Neptuno)
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 466, 467
 
@@ -774,7 +774,7 @@
 
 ## Parada 38 — Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia)
 
-**Imágenes:** imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 477-B, 479, 141, 468
 
@@ -787,7 +787,7 @@
 
 ## Tramo 29 — Plaza de la Virgen → Torres de Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/Calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 433, 2-F
 
@@ -798,7 +798,7 @@
 
 ## Parada 39 — Torres de Serranos Final
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

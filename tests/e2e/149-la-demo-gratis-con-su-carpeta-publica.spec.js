@@ -19,8 +19,8 @@
  *   DM-3  Cada pieza de `publico/demo-aventuras.js` es la que dan los datos, en las siete aventuras y los doce idiomas: el
  *         reto R-1, el audio de introducción, si hay audio, el texto (el mismo que monta `cargarTextos()`) y el puzzle.
  *   DM-4  Con todo lo protegido contestando 403, las siete tarjetas de P7 y la de P9 llevan su foto de `publico/imagenes/`,
- *         y las siete fotos cargan; y el mapa antiguo que sale al elegir cada aventura en P7 (seis: Aventura34km no tiene
- *         todavía) sale de `publico/imagenes/mapas-vintage/` y carga.
+ *         y las siete fotos cargan; y el mapa antiguo que sale al elegir cada una de las siete aventuras en P7 sale de
+ *         `publico/imagenes/mapas-vintage/` y carga.
  *   DM-5  `video-intro.html` (P4) no nombra ninguna ruta protegida, y su foto, su mapa antiguo y su vídeo están en la
  *         carpeta pública.
  *   DM-6  Cada mapa de la tabla `js/mapa-vintage-aventuras.js` (la misma que usa el contenido de pago) está en
@@ -204,7 +204,7 @@ test.describe('DM — la demo gratis con su carpeta pública', () => {
     // El mapa antiguo que sale al elegir cada aventura en P7, por la función de verdad (`mostrarMapaVintage()`).
     const mapas = await f.evaluate(async () => {
       const rutas = [];
-      for (const a of ['Aventura1', 'Aventura2', 'Aventura3', 'Aventura4', 'Aventura5', 'AventuraFallas']) {
+      for (const a of ['Aventura1', 'Aventura2', 'Aventura3', 'Aventura4', 'Aventura5', 'AventuraFallas', 'Aventura34km']) {
         aventuraSeleccionada = a;
         await mostrarMapaVintage();
         const src = document.getElementById('mapa-vintage-img').getAttribute('src') || '';
@@ -241,10 +241,10 @@ test.describe('DM — la demo gratis con su carpeta pública', () => {
 
   test('DM-6. Cada mapa de la tabla de mapas antiguos está en la carpeta pública y existe', () => {
     const tabla = fs.readFileSync(path.join(RAIZ, 'js/mapa-vintage-aventuras.js'), 'utf8').replace(/\r\n/g, '\n');
-    // Las entradas vivas de MAPAS_VINTAGE; las comentadas (una aventura sin mapa todavía) no cuentan.
+    // Las entradas vivas de MAPAS_VINTAGE (una línea comentada, de una aventura sin mapa, no contaría).
     const lineas = tabla.split('\n').filter((l) => /^\s*\w+:\s*'/.test(l));
     const mapas = lineas.map((l) => /'([^']+)'/.exec(l)[1]);
-    expect(mapas.length, 'una entrada por aventura con mapa').toBe(6);
+    expect(mapas.length, 'una entrada por aventura, las siete').toBe(7);
     for (const r of mapas) {
       expect(r, `${r}: en la carpeta pública`).toMatch(/^publico\/imagenes\/mapas-vintage\//);
       expect(fs.existsSync(path.join(RAIZ, r)), `${r}: existe`).toBe(true);

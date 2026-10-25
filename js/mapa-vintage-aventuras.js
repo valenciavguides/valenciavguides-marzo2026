@@ -11,6 +11,6 @@ export const MAPAS_VINTAGE = {
     Aventura4: 'publico/imagenes/mapas-vintage/Av4_Mapa.jpg',
     Aventura5: 'publico/imagenes/mapas-vintage/Av5_Mapa.jpg',
     AventuraFallas: 'publico/imagenes/mapas-vintage/AvFallas_Mapa.jpg',
-    // Aventura34km: 'publico/imagenes/mapas-vintage/Av34km_Mapa.jpg',    // pendiente: mapa aún no disponible
+    Aventura34km: 'publico/imagenes/mapas-vintage/Av34km_Mapa.jpg',
 };
 

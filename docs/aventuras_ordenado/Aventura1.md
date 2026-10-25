@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Plaza de la crida (Puente de Serranos)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
 **Párrafos:** 229, 2
 
@@ -29,7 +29,7 @@
 
 ---
 
-## Parada 1 — Plaza de la crida (Puente de Serranos)
+## Parada 1 — Plaza de la Crída (Puente de Serranos)
 
 **Imágenes:** imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
@@ -40,9 +40,9 @@
 
 ---
 
-## Tramo 2 — Plaza de la crída → Calle Muro de Santa Ana
+## Tramo 2 — Plaza de la Crída → Calle Muro de Santa Ana
 
-**Imágenes:** imagenes/imagenes-aventuras/torres_de_serranos_front.jpg, imagenes/imagenes-aventuras/serranos_pont_fusta.jpg, imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg
+**Imágenes:** imagenes/imagenes-aventuras/torres_de_serranos_front.jpg, imagenes/imagenes-aventuras/serranos_pont_fusta.jpg, imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg
 
 **Párrafos:** 81
 
@@ -52,7 +52,7 @@
 
 ## Parada 2 — Calle Muro de Santa Ana
 
-**Imágenes:** imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg
+**Imágenes:** imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg
 
 **Párrafos:** 68
 
@@ -62,7 +62,7 @@
 
 ## Tramo 3 — Calle Muro de Santa Ana → Palacio de los Borgia
 
-**Imágenes:** imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg, imagenes/imagenes-aventuras/cortes_valencianas.jpg
+**Imágenes:** imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg, imagenes/imagenes-aventuras/cortes_valencianas.jpg
 
 **Párrafos:** 52, 686
 
@@ -86,7 +86,7 @@
 
 ## Tramo 4 — Iglesia de San Lorenzo → Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg, publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 465-B
 
@@ -96,7 +96,7 @@
 
 ## Parada 4 — Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/Puerta_gotica_catedral.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
 
 **Párrafos:** 466, 467
 
@@ -107,7 +107,7 @@
 
 ## Parada 5 — Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/Puerta_gotica_catedral.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
 
 **Párrafos:** 477-B, 479, 141, 468
 
@@ -120,7 +120,7 @@
 
 ## Parada 6 — Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/Puerta_gotica_catedral.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
 
 **Párrafos:** (ninguno)
 
@@ -129,7 +129,7 @@
 
 ## Tramo 5 — Plaza de la Virgen → Plaza Décimo Junio Bruto (Almoína)
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/Paso_Plaza_Almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/paso_plaza_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg
 
 **Párrafos:** 83
 
@@ -151,7 +151,7 @@
 
 ---
 
-## Parada 8 — Capilla exterior catedral
+## Parada 8 — Capilla exterior Catedral
 
 **Imágenes:** imagenes/imagenes-aventuras/capilla_exterior_catedral.jpg
 
@@ -162,7 +162,7 @@
 
 ---
 
-## Parada 9 — Capilla exterior catedral
+## Parada 9 — Capilla exterior Catedral
 
 **Imágenes:** imagenes/imagenes-aventuras/capilla_exterior_catedral.jpg
 
@@ -202,9 +202,9 @@
 
 ---
 
-## Tramo 6 — Plaza de la Almoína → Plaza Decimo Junio Bruto (Museo Arqueológico de la Almoína)
+## Tramo 6 — Plaza de la Almoína → Plaza Décimo Junio Bruto (Museo Arqueológico de la Almoína)
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
 
 **Párrafos:** 457, 10-B
 
@@ -213,7 +213,7 @@
 
 ---
 
-## Parada 12 — Museo arqueológico La Almoína
+## Parada 12 — Museo Arqueológico La Almoína
 
 **Imágenes:** imagenes/imagenes-aventuras/museo_la_almoina.jpg, imagenes/imagenes-aventuras/museo_almoina_2.jpg
 
@@ -223,7 +223,7 @@
 
 ---
 
-## Parada 13 — Museo arqueológico La Almoína
+## Parada 13 — Museo Arqueológico La Almoína
 
 **Imágenes:** imagenes/imagenes-aventuras/museo_la_almoina.jpg
 
@@ -237,7 +237,7 @@
 
 ## Parada 14 — Vista de la Catedral, Cimborrio
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg
 
 **Párrafos:** 8-C, 464
 
@@ -246,9 +246,9 @@
 
 ---
 
-## Tramo 7 — Museo arqueológico La Almoína → Palacio Arzobispal
+## Tramo 7 — Museo Arqueológico La Almoína → Palacio Arzobispal
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/palacio_arzobispal.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/palacio_arzobispal.jpg
 
 **Párrafos:** 85
 
@@ -283,7 +283,7 @@
 
 ## Tramo 8 — Puerta Románica de la Catedral → Plaza del Ayuntamiento
 
-**Imágenes:** imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg, imagenes/imagenes-aventuras/catedral_hacia_plaza_reina.jpg, imagenes/imagenes-aventuras/Plaza_Reina_2.jpg, imagenes/imagenes-aventuras/calle_san_Vicente_2.jpg, imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg, imagenes/imagenes-aventuras/catedral_hacia_plaza_reina.jpg, imagenes/imagenes-aventuras/plaza_reina_2.jpg, imagenes/imagenes-aventuras/calle_san_vicente_2.jpg, imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg
 
 **Párrafos:** 125
 
@@ -353,7 +353,7 @@
 
 ## Parada 20 — Estación del Norte
 
-**Imágenes:** imagenes/imagenes-aventuras/Estacion_Norte.jpg, imagenes/imagenes-aventuras/estacion_interior_2.jpeg
+**Imágenes:** imagenes/imagenes-aventuras/estacion_norte.jpg, imagenes/imagenes-aventuras/estacion_interior_2.jpeg
 
 **Párrafos:** 326
 
@@ -363,7 +363,7 @@
 
 ## Tramo 11 — Estación del Norte → Plaza de Toros de València
 
-**Imágenes:** imagenes/imagenes-aventuras/Estacion_Norte.jpg, imagenes/imagenes-aventuras/plaza_de_toros_y_estacion_del_norte.jpg, imagenes/imagenes-aventuras/Plaza_Toros.jpg
+**Imágenes:** imagenes/imagenes-aventuras/estacion_norte.jpg, imagenes/imagenes-aventuras/plaza_de_toros_y_estacion_del_norte.jpg, imagenes/imagenes-aventuras/plaza_toros.jpg
 
 **Párrafos:** 20-C
 
@@ -373,7 +373,7 @@
 
 ## Parada 21 — Plaza de Toros
 
-**Imágenes:** imagenes/imagenes-aventuras/Plaza_Toros.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_toros.jpg
 
 **Párrafos:** 323-B, 88
 
@@ -382,9 +382,9 @@
 
 ---
 
-## Tramo 12 — Plaza de Toros → Casa estilo Árabe
+## Tramo 12 — Plaza de Toros → Casa estilo árabe
 
-**Imágenes:** imagenes/imagenes-aventuras/Plaza_Toros.jpg, imagenes/imagenes-aventuras/Casa_arabe.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_toros.jpg, imagenes/imagenes-aventuras/casa_arabe.jpg
 
 **Párrafos:** 89, 3-D
 
@@ -393,9 +393,9 @@
 
 ---
 
-## Parada 22 — Casa estilo Árabe
+## Parada 22 — Casa estilo árabe
 
-**Imágenes:** imagenes/imagenes-aventuras/Casa_arabe.jpg
+**Imágenes:** imagenes/imagenes-aventuras/casa_arabe.jpg
 
 **Párrafos:** 100, 99
 
@@ -404,9 +404,9 @@
 
 ---
 
-## Tramo 13 — Casa estilo Árabe → Palacio de Comunicaciones (Correos)
+## Tramo 13 — Casa estilo árabe → Palacio de Comunicaciones (Correos)
 
-**Imágenes:** imagenes/imagenes-aventuras/Casa_arabe.jpg, imagenes/imagenes-aventuras/correos.jpg
+**Imágenes:** imagenes/imagenes-aventuras/casa_arabe.jpg, imagenes/imagenes-aventuras/correos.jpg
 
 **Párrafos:** 21-B
 
@@ -439,7 +439,7 @@
 
 ## Tramo 14 — Palacio de Comunicaciones → Banco de València
 
-**Imágenes:** imagenes/imagenes-aventuras/correos.jpg, imagenes/imagenes-aventuras/Calle_barcas.jpg, imagenes/imagenes-aventuras/banco_de_valencia.jpg
+**Imágenes:** imagenes/imagenes-aventuras/correos.jpg, imagenes/imagenes-aventuras/calle_barcas.jpg, imagenes/imagenes-aventuras/banco_de_valencia.jpg
 
 **Párrafos:** 345, 347, 348, 22
 
@@ -463,7 +463,7 @@
 
 ## Tramo 15 — Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)
 
-**Imágenes:** imagenes/imagenes-aventuras/banco_de_valencia.jpg, imagenes/imagenes-aventuras/Iglesia_San_juan_cruz.jpg, imagenes/imagenes-aventuras/Marques_dos_aguas_2.jpg
+**Imágenes:** imagenes/imagenes-aventuras/banco_de_valencia.jpg, imagenes/imagenes-aventuras/iglesia_san_juan_cruz.jpg, imagenes/imagenes-aventuras/marques_dos_aguas_2.jpg
 
 **Párrafos:** 351, 23-B, 352, 354
 
@@ -476,7 +476,7 @@
 
 ## Parada 26 — Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)
 
-**Imágenes:** imagenes/imagenes-aventuras/Marques_dos_aguas_1.jpg, imagenes/imagenes-aventuras/museo_ceramica_9.jpg, imagenes/imagenes-aventuras/museo_ceramica_8.jpg
+**Imágenes:** imagenes/imagenes-aventuras/marques_dos_aguas_1.jpg, imagenes/imagenes-aventuras/museo_ceramica_9.jpg, imagenes/imagenes-aventuras/museo_ceramica_8.jpg
 
 **Párrafos:** 356, 357
 
@@ -487,7 +487,7 @@
 
 ## Tramo 16 — Palacio del Marqués → Mercado Central
 
-**Imágenes:** imagenes/imagenes-aventuras/Marques_dos_aguas_1.jpg, imagenes/imagenes-aventuras/Calle_San_Vicente.jpg, imagenes/imagenes-aventuras/mercado_central.jpg
+**Imágenes:** imagenes/imagenes-aventuras/marques_dos_aguas_1.jpg, imagenes/imagenes-aventuras/calle_san_vicente.jpg, imagenes/imagenes-aventuras/mercado_central.jpg
 
 **Párrafos:** 358, 359-B, 101
 
@@ -573,7 +573,7 @@
 
 ## Parada 31 — Lonja (Mercado de la Seda)
 
-**Imágenes:** imagenes/imagenes-aventuras/Lonja_puerta_pecados.jpg, imagenes/imagenes-aventuras/lonja4.jpg
+**Imágenes:** imagenes/imagenes-aventuras/lonja_puerta_pecados.jpg, imagenes/imagenes-aventuras/lonja4.jpg
 
 **Párrafos:** 375, 376, 377, 378, 379
 
@@ -630,7 +630,7 @@
 
 ## Tramo 19 — Lonja (Mercado de la Seda)
 
-**Imágenes:** imagenes/imagenes-aventuras/Lonja_esquina_izquierda.jpg, imagenes/imagenes-aventuras/Lonja_patio_naranjos_far_view.jpg, imagenes/imagenes-aventuras/Lonja_patio_naranjos_close_view.jpg
+**Imágenes:** imagenes/imagenes-aventuras/lonja_esquina_izquierda.jpg, imagenes/imagenes-aventuras/lonja_patio_naranjos_far_view.jpg, imagenes/imagenes-aventuras/lonja_patio_naranjos_close_view.jpg
 
 **Párrafos:** 388
 
@@ -651,7 +651,7 @@
 
 ## Tramo 20 — Lonja Patio de los naranjos → Lonja entrada visitantes
 
-**Imágenes:** imagenes/imagenes-aventuras/Lonja_patio_naranjos_close_view.jpg, imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg
+**Imágenes:** imagenes/imagenes-aventuras/lonja_patio_naranjos_close_view.jpg, imagenes/imagenes-aventuras/lonja_puerta_visitante.jpg
 
 **Párrafos:** 392
 
@@ -659,9 +659,9 @@
 
 ---
 
-## Tramo 21 — Lonja entrada visitantes →  Plaza Doctor López Collado
+## Tramo 21 — Lonja entrada visitantes → Plaza Doctor López Collado
 
-**Imágenes:** imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg, imagenes/imagenes-aventuras/lonja2.jpg, imagenes/imagenes-aventuras/Plaza_collado.jpg
+**Imágenes:** imagenes/imagenes-aventuras/lonja_puerta_visitante.jpg, imagenes/imagenes-aventuras/lonja2.jpg, imagenes/imagenes-aventuras/plaza_collado.jpg
 
 **Párrafos:** 333, 397, 31
 
@@ -673,7 +673,7 @@
 
 ## Parada 37 — Plaza Doctor López Collado
 
-**Imágenes:** imagenes/imagenes-aventuras/lonja7.jpg, imagenes/imagenes-aventuras/Plaza_collado.jpg
+**Imágenes:** imagenes/imagenes-aventuras/lonja7.jpg, imagenes/imagenes-aventuras/plaza_collado.jpg
 
 **Párrafos:** 398
 
@@ -683,7 +683,7 @@
 
 ## Tramo 22 — Plaza del Doctor Collado → Plaza del Negrito (Fuente del Negrito)
 
-**Imágenes:** imagenes/imagenes-aventuras/Plaza_collado.jpg, imagenes/imagenes-aventuras/Plaza_negrito.jpg, imagenes/imagenes-aventuras/fuente_del_negrito.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_collado.jpg, imagenes/imagenes-aventuras/plaza_negrito.jpg, imagenes/imagenes-aventuras/fuente_del_negrito.jpg
 
 **Párrafos:** 198, 671, 522, 32-C
 
@@ -696,7 +696,7 @@
 
 ## Parada 38 — Fuente del Negrito
 
-**Imágenes:** imagenes/imagenes-aventuras/Plaza_negrito.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_negrito.jpg
 
 **Párrafos:** 382, 501
 
@@ -707,7 +707,7 @@
 
 ## Tramo 23 — Plaza del Negrito → Calle Caballeros
 
-**Imágenes:** imagenes/imagenes-aventuras/fuente_del_negrito.jpg, imagenes/imagenes-aventuras/Calle_caballeros.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg
+**Imágenes:** imagenes/imagenes-aventuras/fuente_del_negrito.jpg, imagenes/imagenes-aventuras/calle_caballeros.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg
 
 **Párrafos:** 33-B, 486, 480-B
 
@@ -730,7 +730,7 @@
 
 ## Tramo 24 — Palacio de la Generalitat → Calle de los Serranos (FINAL)
 
-**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/Calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 2-D
 
@@ -740,7 +740,7 @@
 
 ## Parada 40 — Torres de Serranos Final
 
-**Imágenes:** imagenes/imagenes-aventuras/Calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

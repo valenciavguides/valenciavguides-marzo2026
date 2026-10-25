@@ -1,10 +1,11 @@
 # Fotos de las referencias: lo que falta por emparejar
 
-Estado a 2026-09-15. Documento de trabajo, no de arquitectura: cuando no quede nada
+Estado actualizado a 2026-10-21. Documento de trabajo, no de arquitectura: cuando no quede nada
 pendiente, se borra.
 
 Cada referencia de `js/coordenadas-aventuras.js` lleva un campo `imagen` con la foto del
-monumento. La usa el popup de `mapa-completo.html` y la va a usar el mapa de Aventura 34 km.
+monumento. La usa el popup de `mapa-completo.html`; las 89 asignaciones de Aventura34km se
+usaron para componer las tarjetas fotográficas de su mapa vintage.
 Cuando el campo falta —o apunta a un fichero que no existe— **no casca nada**: sale un icono
 genérico y el fallo pasa desapercibido.
 
@@ -19,127 +20,98 @@ El emparejador compara nombres por palabras, descartando las que no distinguen (
 `plaza`, `san`, `valencia`…). **Propone, no decide.** Marca `PROBABLE` cuando una candidata
 gana claramente a las demás, y `dudosa` cuando hay empate o nada parecido.
 
-## Dónde estamos
+## Estado actual de referencias
 
-| Aventura | Referencias | Con foto | Sin foto |
-|---|---|---|---|
-| Aventura1 | 23 | 23 | — |
-| Aventura2 | 17 | 17 | — |
-| Aventura3 | 35 | 35 | — |
-| Aventura4 | 27 | 27 | — |
-| **Aventura5** | 21 | 19 | **2** |
-| AventuraFallas | 21 | 21 | — |
-| **Aventura34km** | 89 | 70 | **19** |
+Todas las referencias de las siete aventuras tienen una asignación `imagen`. En Aventura34km no se cuentan `REF-V1` ni `REF-V5`, porque no se dibujan en el mapa.
 
-Cinco aventuras están cerradas. Quedan **21 referencias** entre la 5 y la de 34 km.
+| Aventura | Referencias | Con asignación | Sin asignación |
+|---|---:|---:|---:|
+| Aventura1 | 23 | 23 | 0 |
+| Aventura2 | 17 | 17 | 0 |
+| Aventura3 | 35 | 35 | 0 |
+| Aventura4 | 44 | 44 | 0 |
+| Aventura5 | 21 | 21 | 0 |
+| AventuraFallas | 21 | 21 | 0 |
+| Aventura34km | 89 | 89 | 0 |
 
-## Aventura 5 — 2 pendientes
+Las referencias ya no están pendientes de emparejar. Los nombres de archivo y sus referencias usan la misma convención: minúsculas, guiones bajos, sin acentos y una sola extensión. Quedan por integrar más adelante las imágenes dependientes del idioma. El mapa vintage de Aventura34km ya se ha compuesto con las 89 fotos asignadas en las coordenadas; no hace falta consultar el USB.
 
-Las dos **sin campo `imagen`**, no es que apunten mal:
+## Convención de nombres de imagen
 
-| Nº | Referencia | Candidatas |
-|---|---|---|
-| 18 | Museo de Prehistoria de Valencia | `museo_prehistoria-front.jpg`, `museo_prehistoria_close.jpg` |
-| 19 | Museo de Etnología de Valencia | ninguna clara |
+Los archivos de `imagenes/imagenes-aventuras/` y sus referencias en el código y los documentos usan nombres en minúsculas, con guiones bajos, sin acentos y con una sola extensión. Se conserva la extensión real de cada archivo, como `.jpg` o `.jpeg`.
 
-Son las mismas dos que faltan en la de 34 km (allí con los números 58 y 59), así que se
-resuelven juntas.
+## Mapa vintage de Aventura 34 km
 
-## Aventura 34 km — 19 pendientes
+Composición actualizada el 2026-10-21 y conectada en `js/mapa-vintage-aventuras.js`.
+Usa como base el recorrido satélite con sus 89 marcadores. Las 41 fotos del núcleo más denso
+se ordenan por referencia en una cuadrícula abajo a la izquierda: cinco filas de siete tarjetas
+y una última fila de seis tarjetas más anchas, sin huecos y con un marco naranja. La foto 01,
+que marca el inicio de la ruta, queda fuera de la cuadrícula como tarjeta destacada, con marco y
+chapa naranja de mayor tamaño; la foto 75 ocupa su antigua casilla de la cuadrícula. Las fotos
+25 y 26 quedan completas y visibles, fuera de la cuadrícula, sin que las cubran las fotos 33 y
+34. Un círculo naranja señala el centro urbano y pasa por debajo de los marcadores, la ruta azul
+y las tarjetas 61, 62 y 63.
 
-### Las que el nombre canta
-
-| Nº | Referencia | Fichero que parece el suyo |
-|---|---|---|
-| 33 | Real Parroquia de los Santos Juanes | `iglesia_san_juan_del_mercado.jpg` |
-| 35 | Plaza del Doctor López Collado | `Plaza_collado.jpg` *(única candidata)* |
-| 65 | Jardín de las Hespérides | `Jardin_de_las_Hesperides.jpg.jpg` |
-| 82 | Santo Tomás Apóstol y San Felipe Neri | `iglesia_san_felipe_neri.jpg` |
-| 83 | Iglesia de San Juan del Hospital | `iglesia_san_juan_del_hospital.jpg` |
-| 86 | Cripta de San Vicente Mártir | `cripta_san_vicente_martir.jpg` |
-| 30 | Banco Central de Valencia | `banco_de_valencia.jpg` |
-| 51 | Torre del Ángel (árabe) | `torre-del_angel_arabe.jpg` |
-| 64 | Jardín Botánico | `botanico.jpeg` |
-| 79 | Jardín de la Glorieta | `jardin-glorieta.jpeg` |
-
-### Las que tienen varias versiones — hay que elegir cuál
-
-| Nº | Referencia | Opciones |
-|---|---|---|
-| 42 | Museo Arqueológico de la Almoína | `museo_la_almoina.jpg` · `museo_almoina_2.jpg` · `almoina_escultura.jpg` |
-| 58 | Museo de Prehistoria | `museo_prehistoria-front.jpg` · `museo_prehistoria_close.jpg` |
-| 85 | Museo de la Ciudad | `museo_ciudad.jpg` · `museo_ciudad_2.jpg` · `museo_ciudad_3.jpg` |
-| 34 | Lonja de la Seda | `lonja.jpg` · `Lonja-puerta-visitante.jpg` |
-| 6 | Puente del Mar | `puente_mar_bajada.jpg` · `puente_amarillo.jpg` |
-
-### Las que necesitan tu ojo
-
-| Nº | Referencia | Situación |
-|---|---|---|
-| **87** | Almudín | **Existe, pero mal escrita**: `Museo_Amudín_Exterior.jpg`, sin la ele. Por eso el emparejador no la encontró. Hay dos: `_Exterior` y `_Exterior_2` |
-| 21 | Puerta del Mar | Ninguna candidata se parece |
-| 41 | Real Basílica de los Desamparados | Las candidatas son de **otras** basílicas |
-| 59 | Museo de Etnología | Ninguna candidata se parece |
-
-## Trampas de nombres de fichero
-
-Esto no es manía: **en GitHub Pages una ruta que no coincida exactamente es un 404**, y en
-Windows no se nota. Es justo la clase de fallo que solo aparece en la PWA real.
-
-**Doble extensión**, siete ficheros. Funcionan, pero el `.jpg.jpg` hay que escribirlo entero
-en la referencia:
-
-`Jardin_de_las_Hesperides.jpg.jpg` · `mel.jpg.jpg` · `plataforma_naturia.jpg.jpg` ·
-`ruinas_metro_colon.jpg.jpg` · `santo_domimgo_pano.jpg.jpg` · `torre-del_angel_arabe_2.jpg.jpg` ·
-`turia_zona_descanso.jpg.jpg`
-
-**Mayúsculas sueltas**: `Plaza_collado.jpg`, `Iglesia_San_juan_cruz.jpg`,
-`Lonja-puerta-visitante.jpg`, `Museo_Amudín_Exterior.jpg`, `Jardin_de_las_Hesperides.jpg.jpg`.
-
-**Dos extensiones conviviendo**: las fotos subidas el 2026-09-14 son `.jpeg` y el resto
-`.jpg`. Da igual cuál, pero la referencia tiene que decir exactamente la del fichero.
-
-**Erratas dentro del nombre**: además del `Amudín` sin ele, queda
-`santo_domimgo_pano.jpg.jpg` (*domimgo*). Se pueden dejar así mientras la referencia las
-copie tal cual.
-
-`cripta_san_vicemte_martir_2.jpg` (*vicemte*) **ya está corregida** a
-`cripta_san_vicente_martir_2.jpg`. No hubo que tocar ninguna referencia: ese fichero aún no
-lo usaba nadie, era solo una candidata para la número 86.
-
-## El mapa de Aventura 34 km
-
-Generado el 2026-09-15, **sin conectar todavía**: la línea de `Aventura34km` sigue comentada
-en `js/mapa-vintage-aventuras.js`.
+Las fotos 03 y 57 aprovechan espacios libres; las tarjetas 01, 03 y 57 se conectan con sus
+marcadores mediante líneas guía naranjas. Se ampliaron las chapas de las tarjetas sueltas y de
+la cuadrícula; también se eliminaron las chapas blancas residuales de las referencias 88 y 89.
+Las referencias 27/28 y 58/59 comparten imagen en `js/coordenadas-aventuras.js` y se muestran
+una sola vez, con los números unidos en su tarjeta. El mapa muestra 87 tarjetas para las 89
+referencias y mantiene legibles los números de los marcadores y la polilínea azul.
 
 | Fichero | Tamaño | Peso |
 |---|---|---|
-| `Av34km_Mapa.jpg` | 2481×1755 | 2,31 MB |
-| `Av34km_Mapa_ALTA_RESOLUCION.jpg` | 3968×2808 | 4,60 MB |
+| `Av34km_Mapa.jpg` | 2481×1755 | 2,27 MB |
+| `Av34km_Mapa_ALTA_RESOLUCION.jpg` | 3968×2808 | 4,96 MB |
+| `Av34km_Mapa_base_sin_fotos.jpg` | 3968×2808 | 4,82 MB |
 
 Satélite de **ArcGIS World_Imagery** —la misma capa del selector de tipo de mapa—, los 1.084
 puntos reales de la ruta con doble trazo (halo blanco debajo, azul de la app encima) y las 89
 chapas numeradas. Las referencias `v1` y `v5` **no se dibujan**: caen dentro de Jardines de
 Viveros y con el número de Viveros basta.
 
-Se generan con los scripts de la carpeta temporal de la sesión; si hay que rehacerlo, el
-procedimiento es cargar Leaflet con esa capa, pintar ruta y chapas, esperar a que **no quede
-ninguna tesela pendiente** (contando `tileloadstart` contra `tileload`/`tileerror`, no un
-tiempo fijo) y capturar con Playwright a `deviceScaleFactor: 1` y viewport grande — así las
-teselas salen a resolución nativa en vez de estiradas.
+`Av34km_Mapa_base_sin_fotos.jpg` conserva la base original para rehacer la composición. El
+mapa de alta resolución es el que enlaza Aventura34km. Los mapas vintage de las siete
+aventuras admiten zoom y desplazamiento en los dos sitios donde se muestran: pellizco y
+arrastre en móvil, rueda y doble clic en ordenador, y controles visibles para acercar, alejar
+y restablecer.
 
-### Lo que hay que decidir
+## Asignaciones confirmadas
 
-**Las fotos no caben encima del mapa.** Son ~30 referencias en 600 m en el casco antiguo: a
-la escala a la que 5,3 km entran en una pantalla, no hay resolución que lo arregle. Es
-geometría.
+Las asignaciones del bloque de coordenadas del Word están reflejadas en `js/coordenadas-aventuras.js`, con las rutas y grafías reales de los archivos del proyecto.
 
-**La propuesta sobre la mesa:** el hueco inferior izquierdo son unos 1.400×900 px sin usar
-—casi el 40 % de la imagen— porque la ruta es diagonal y el recorte rectangular. Ahí caben
-las 89 miniaturas en una rejilla, numeradas, como en los mapas turísticos de siempre. No
-tapan la ruta, se ven todas del mismo tamaño y el hueco deja de desperdiciarse.
+- Aventura34km REF-42 → `museo_almoina_2.jpg`.
+- `Av34km-P-137` y `Av34km-TR-97` → `cortes_valencianas.jpg` (Palacio de los Borgia).
+- También están aplicadas las elecciones anotadas para las referencias 6, 21, 30, 33, 34, 35, 41, 51, 58, 59, 64, 65, 82, 83, 85, 86 y 87 de Aventura34km.
+- Aventura4 REF-32 → `viveros_paseo_poetas_2.jpg`.
+- Aventura5 REF-18 → `museo_prehistoria_far.jpg`; REF-19 → `museo_prehistoria_front.jpg`.
+- Aventura34km REF-79 → `jardin_glorieta.jpeg`.
+- `Av34km-P-60` (Plaza Décimo Junio Bruto, bloque sobre la historia de la Basílica) → `publico/imagenes/plaza_de_la_almoina.jpg`.
 
-**Y un límite que condiciona todo:** el overlay del mapa vintage **no hace zoom**
-(`object-fit: fill` dentro de un contenedor con `overflow: hidden`). La imagen se aplasta al
-tamaño de la pantalla, mida lo que mida el original. Mientras siga así, la versión de alta
-resolución no aporta nada; si se le añade pinch-zoom, pasa a ser la buena.
+### Imágenes que dependen del idioma — pendientes de integrar
+
+Esta lista se transcribe del inicio del Word para implementarla más adelante según el idioma elegido por el usuario. No está aplicada a `coordenadas-aventuras.js`. Se mantienen los nombres tal como aparecen en el Word; extensiones, rutas exactas y posibles erratas se comprobarán al integrar estas imágenes desde `imagenes/imagenes-idiomas/`.
+
+| Aventura | Parada o alcance | Nombre(s) indicado(s) en el Word |
+|---|---|---|
+| AventuraFallas | Parada 5 | `arquitectura-gotica`, `arquitectura-detalles`, `arquitectura-detalles-2`, `arquitectura-iglesia`, `arquitectura-iglesias` |
+| AventuraFallas | Paradas 6 y 11 | `fallero`, `Fallera` |
+| AventuraFallas | Parada 2 | `soldado-cristiano`, `castillofuego-partes` |
+| AventuraFallas | Parada 14 | `mascletafuego-partes` |
+| Aventura1 | Parada 5 | `arquitectura-gotica`, `arquitectura-detalles`, `arquitectura-detalles-2`, `arquitectura-iglesia`, `arquitectura-iglesias` |
+| Aventura1 | Parada 10 | `arcos` |
+| Aventura1 | Parada 28 | `arcos`, `arcos-evolucion` |
+| Aventura2 | Parada 6 | `arquitectura-iglesia`, `arquitectura-iglesias` |
+| Aventura2 | Parada 19 | `arquitectura-gotica`, `arquitectura-detalles`, `arquitectura-detalles-2`, `arquitectura-iglesia`, `arquitectura-iglesias` |
+| Aventura2 | Parada 5 | `arcos`, `arcos-evolucion`, `arquitectura-gotica`, `arquitectura-detalles`, `arquitectura-detalles-2` |
+| Aventura3 | Parada 29 | `arquitectura-gotica`, `arquitectura-detalles`, `arquitectura-detalles-2`, `arquitectura-iglesia`, `arquitectura-iglesias` |
+| Aventura34km | Parada 54 | `arquitectura-gotica`, `arquitectura-detalles`, `arquitectura-detalles-2`, `arquitectura-iglesia`, `arquitectura-iglesias` |
+| Aventura4 | Parada 2 | `arquitectura-iglesia`, `arquitectura-iglesias` |
+| Aventura5 | Parada 34 | `arquitectura-gotica`, `arquitectura-detalles`, `arquitectura-detalles-2`, `arquitectura-iglesia`, `arquitectura-iglesias` |
+| Aventura3 | Parada 25 | `arcos`, `arcos-evolucion` |
+| Aventura5 | Parada 9 | `arcos`, `arcos-evolucion`, `puentes` |
+| Aventura4 | Parada 23 | `arcos`, `arcos-evolucion`, `puentes` |
+| AventuraFallas | Parada 16 | `falla-partes` |
+| Todas | Paradas de Torres de Serranos | `murallas-valencia`, `arquitectura-defensiva`, `arquitectura-civil`, `muralla-construccion-partes` |
+
+Las grafías `castillofuego-partes` y `mascletafuego-partes` se mantienen tal como aparecen en el Word; podrían ser erratas y se verificarán contra los archivos reales al integrar la lista.

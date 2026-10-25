@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Parada 1 — Torres de Serranos (Historia de la bandera)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 229, 233
 
@@ -31,7 +31,7 @@
 
 ## Parada 2 — Torres de Serranos (Historia de la bandera)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 641, 642, 643
 
@@ -43,7 +43,7 @@
 
 ## Tramo 1 — Torres de Serranos → Refugio Guerra Civil
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/refugio_guerra_civil.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/refugio_guerra_civil.jpg
 
 **Párrafos:** 103
 
@@ -64,7 +64,7 @@
 
 ## Tramo 2 — Refugio Guerra Civil → Palau de la Generalitat
 
-**Imágenes:** imagenes/imagenes-aventuras/refugio_guerra_civil.jpg, imagenes/imagenes-aventuras/Calle_serranos.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg
+**Imágenes:** imagenes/imagenes-aventuras/refugio_guerra_civil.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg
 
 **Párrafos:** 104
 
@@ -87,7 +87,7 @@
 
 ## Tramo 3 — Palau de la Generalitat → Calle Caballeros
 
-**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/Calle_caballeros.jpg
+**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_caballeros.jpg
 
 **Párrafos:** 104, 484, 485-B, 486
 
@@ -100,7 +100,7 @@
 
 ## Tramo 4 — Calle Caballeros → Iglesia de San Nicolás
 
-**Imágenes:** imagenes/imagenes-aventuras/Calle_caballeros.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg
+**Imágenes:** imagenes/imagenes-aventuras/calle_caballeros.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg
 
 **Párrafos:** 487-B
 
@@ -133,7 +133,7 @@
 
 ## Parada 6 — Iglesia de San Nicolás BACK
 
-**Imágenes:** imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg
 
 **Párrafos:** 493, 494-B, 495, 496
 
@@ -157,7 +157,7 @@
 
 ## Parada 8 — Iglesia de San Nicolás BACK
 
-**Imágenes:** imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg
 
 **Párrafos:** 504, 505
 
@@ -168,7 +168,7 @@
 
 ## Tramo 6 — Iglesia de San Nicolás BACK → Plaza del Negrito
 
-**Imágenes:** imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_3.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_4.jpg, imagenes/imagenes-aventuras/Plaza_negrito.jpg, imagenes/imagenes-aventuras/fuente_del_negrito.jpg
+**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_3.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_4.jpg, imagenes/imagenes-aventuras/plaza_negrito.jpg, imagenes/imagenes-aventuras/fuente_del_negrito.jpg
 
 **Párrafos:** 499, 500-B
 
@@ -179,7 +179,7 @@
 
 ## Parada 9 — Plaza del Negrito
 
-**Imágenes:** imagenes/imagenes-aventuras/Plaza_negrito.jpg, imagenes/imagenes-aventuras/fuente_del_negrito.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_negrito.jpg, imagenes/imagenes-aventuras/fuente_del_negrito.jpg
 
 **Párrafos:** 382, 501
 
@@ -190,7 +190,7 @@
 
 ## Tramo 7 — Plaza del Negrito → Calle Caballeros → Plaza del Tossal
 
-**Imágenes:** imagenes/imagenes-aventuras/fuente_del_negrito.jpg, imagenes/imagenes-aventuras/Calle_caballeros.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg, imagenes/imagenes-aventuras/plaza_del_tossal.jpg
+**Imágenes:** imagenes/imagenes-aventuras/fuente_del_negrito.jpg, imagenes/imagenes-aventuras/calle_caballeros.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg, imagenes/imagenes-aventuras/plaza_del_tossal.jpg
 
 **Párrafos:** 502-B, 506, 12
 
@@ -225,7 +225,7 @@
 
 ## Tramo 8 — Plaza del Tossal → Portal de la Valldigna
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_del_tossal.jpg, imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_del_tossal.jpg, imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg
 
 **Párrafos:** 512, 13-C
 
@@ -236,7 +236,7 @@
 
 ## Parada 12 — Portal de la Valldigna
 
-**Imágenes:** imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg
+**Imágenes:** imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg
 
 **Párrafos:** 513, 589, 144
 
@@ -248,7 +248,7 @@
 
 ## Tramo 9 — Portal de la Valldigna → Torre del Ángel (Torre árabe)
 
-**Imágenes:** imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg, imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg
+**Imágenes:** imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg, imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg
 
 **Párrafos:** 560, 514, 14-C
 
@@ -260,7 +260,7 @@
 
 ## Parada 13 — Torre del Ángel (Torre árabe)
 
-**Imágenes:** imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg
+**Imágenes:** imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg
 
 **Párrafos:** 515, 516, 517, 518, 519
 
@@ -274,7 +274,7 @@
 
 ## Tramo 10 — Torre del Ángel (Torre árabe) → Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg, publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 521, 522, 671, 520, 105, 15-B
 
@@ -289,19 +289,19 @@
 
 ## Parada 14 — Plaza de la Virgen - Introducción
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 702, 346, 143
 
 - **702:** ¿Ya se encuentra en el punto indicado con el número 11 en su mapa? ¡Bien! ¡Continuemos en busca del tesoro!
-- **346:** Si viene en horario de visita, , be le anima a hacer una pausa y elegir un buen sitio. Es el lugar perfecto para hacer una parada y tomar unas magníficas fotos de los tesoros arquitectónicos que ofrece la ciudad, y disfrutar de una bebida típica: Agua de Valencia, un cóctel alcohólico a base de Vodka, cava y zumo fresco de naranja. O mejor aún... también puede degustar una Orxata nuestro zumo de chufa vegano, siempre acompañada de sus queridos Fartons, un bizcocho en forma de barra que hay que mojar, para que empape, y luego comer. Así disfrutan los valencianos de esta refrescante bebida cultural. Recuerde que no hay prisa, haga lo que le apetezca y no se presione; ¡se supone que es una excursión divertida! Puede volver a su Aventura cuando sienta que el es momento, simplemente pulsando play.
+- **346:** Si viene en horario de visita, , be le anima a hacer una pausa y elegir un buen sitio. Es el lugar perfecto para hacer una parada y tomar unas magníficas fotos de los tesoros arquitectónicos que ofrece la ciudad, y disfrutar de una bebida típica: Agua de Valencia, un cóctel alcohólico a base de Vodka, cava y zumo fresco de naranja. O mejor aún... también puede degustar una Horchata nuestro zumo de chufa vegano, siempre acompañada de sus queridos Fartons, un bizcocho en forma de barra que hay que mojar, para que empape, y luego comer. Así disfrutan los valencianos de esta refrescante bebida cultural. Recuerde que no hay prisa, haga lo que le apetezca y no se presione; ¡se supone que es una excursión divertida! Puede volver a su Aventura cuando sienta que el es momento, simplemente pulsando play.
 - **143:** Si no se encuentra en horario de apertura, siempre podrá hacer una pausa en un punto desde el cual podrá contemplar la totalidad de la plaza y simplemente disfrute del audio de su Aventura. En este claro urbano se desvela un fragmento de varios tesoros arquitectónicos que ofrece la ciudad, reunidos en una sola plaza.
 
 ---
 
 ## Parada 15 — Plaza de la Virgen - Fuente Neptuno
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 466, 467
 
@@ -312,7 +312,7 @@
 
 ## Parada 16 — Plaza de la Virgen - Ofrenda
 
-**Imágenes:** imagenes/imagenes-aventuras/Ofrenda_Virgen_back.jpg, imagenes/imagenes-aventuras/Ofrenda_virgen_front.jpg
+**Imágenes:** imagenes/imagenes-aventuras/ofrenda_virgen_back.jpg, imagenes/imagenes-aventuras/ofrenda_virgen_front.jpg
 
 **Párrafos:** 469, 472, 473, 690, 468
 
@@ -326,7 +326,7 @@
 
 ## Parada 17 — Plaza de la Virgen - Basílica
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 146, 450, 451, 452
 
@@ -339,7 +339,7 @@
 
 ## Parada 18 — Plaza de la Virgen - Cimborrio Catedral de Valencia
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 476, 355, 464
 
@@ -351,7 +351,7 @@
 
 ## Parada 19 — Plaza de la Virgen - Historia de la Catedral de Valencia
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 147, 149, 150
 
@@ -363,7 +363,7 @@
 
 ## Tramo 11 — Plaza de la Virgen → Puerta Gótica de la Catedral de Valencia
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, imagenes/imagenes-aventuras/Puerta_gotica_catedral.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
 
 **Párrafos:** 477, 478, 479
 
@@ -420,7 +420,7 @@
 
 ## Tramo 13 — Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina
 
-**Imágenes:** imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg, imagenes/imagenes-aventuras/Plaza_Reina_2.jpg, imagenes/imagenes-aventuras/torre_santa_catalina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg, imagenes/imagenes-aventuras/plaza_reina_2.jpg, imagenes/imagenes-aventuras/torre_santa_catalina.jpg
 
 **Párrafos:** 21-C, 694, 419
 
@@ -570,7 +570,7 @@
 
 ## Tramo 19 — Palau de la Generalitat → Torres de Serranos - Final
 
-**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/Calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 2-B
 
@@ -580,7 +580,7 @@
 
 ## Parada 30 — Torres de Serranos Final
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Plaza de la Crída
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
 **Párrafos:** 229, 5
 
@@ -109,7 +109,7 @@
 
 ## Tramo 4 — Ruinas del Jardín del Turia → Jardines del Real (Viveros)
 
-**Imágenes:** imagenes/imagenes-aventuras/ruinas_turia.jpg, imagenes/imagenes-aventuras/puente_real.jpg, imagenes/imagenes-aventuras/puente_real_down.jpg, imagenes/imagenes-aventuras/viveros-tunel_turia.jpg, imagenes/imagenes-aventuras/viveros_tunel_2.jpg, imagenes/imagenes-aventuras/viveros_entrada.jpg
+**Imágenes:** imagenes/imagenes-aventuras/ruinas_turia.jpg, imagenes/imagenes-aventuras/puente_real.jpg, imagenes/imagenes-aventuras/puente_real_down.jpg, imagenes/imagenes-aventuras/viveros_tunel_turia.jpg, imagenes/imagenes-aventuras/viveros_tunel_2.jpg, imagenes/imagenes-aventuras/viveros_entrada.jpg
 
 **Párrafos:** 647, 7
 
@@ -120,7 +120,7 @@
 
 ## Parada 5 — Jardines del Real (Viveros)
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_ paseo_palmeras.jpg, imagenes/imagenes-aventuras/viveros_libre_6.jpg, imagenes/imagenes-aventuras/viveros_rosaleda.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg, imagenes/imagenes-aventuras/viveros_libre_6.jpg, imagenes/imagenes-aventuras/viveros_rosaleda.jpg
 
 **Párrafos:** 648-B, 649-B
 
@@ -154,7 +154,7 @@
 
 ## Tramo 6 — Puente de la Exposición → Puente de las Flores
 
-**Imágenes:** imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg, imagenes/imagenes-aventuras/puente_flores-down.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg, imagenes/imagenes-aventuras/puente_flores_down.jpg
 
 **Párrafos:** 605, 225, 10
 
@@ -166,7 +166,7 @@
 
 ## Parada 7 — Puente de las Flores
 
-**Imágenes:** imagenes/imagenes-aventuras/puente-de_las_flores.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puente_de_las_flores.jpg
 
 **Párrafos:** 241, 298
 
@@ -177,7 +177,7 @@
 
 ## Tramo 7 — Puente de las Flores → Puerta de la Mar
 
-**Imágenes:** imagenes/imagenes-aventuras/puente_flores-down.jpg, imagenes/imagenes-aventuras/puente_flores_subida.jpg, imagenes/imagenes-aventuras/puente_flores_subida_2.jpg, imagenes/imagenes-aventuras/puente-de_las_flores.jpg, imagenes/imagenes-aventuras/puente_flores_top.jpg, imagenes/imagenes-aventuras/puente_flores_agua.jpg, imagenes/imagenes-aventuras/puerta_mar.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puente_flores_down.jpg, imagenes/imagenes-aventuras/puente_flores_subida.jpg, imagenes/imagenes-aventuras/puente_flores_subida_2.jpg, imagenes/imagenes-aventuras/puente_de_las_flores.jpg, imagenes/imagenes-aventuras/puente_flores_top.jpg, imagenes/imagenes-aventuras/puente_flores_agua.jpg, imagenes/imagenes-aventuras/puerta_mar.jpg
 
 **Párrafos:** 296-B, 299, 245, 11-D
 
@@ -232,7 +232,7 @@
 
 - **306:** Dejando este edificio a su izquierda, centre su atención en la plaza siguiente. Su aventura le lleva a uno de los puntos modernos más icónicos de Valencia.
 - **13:** En su mapa corresponde con el número 9.
-- **307:** Este es un punto perfecto para parar a tomar unas fotos magníficas de los tesoros arquitectónicos que ofrece la ciudad y disfrutar de un cóctel peculiar como es el Agua de Valencia, o la tradicional Orxata; una refrescante bebida natural que calma la sed, acompañada de sus inseparables bollos esponjosos llamados Fartons.
+- **307:** Este es un punto perfecto para parar a tomar unas fotos magníficas de los tesoros arquitectónicos que ofrece la ciudad y disfrutar de un cóctel peculiar como es el Agua de Valencia, o la tradicional Horchata; una refrescante bebida natural que calma la sed, acompañada de sus inseparables bollos esponjosos llamados Fartons.
 
 ---
 
@@ -276,7 +276,7 @@
 **Párrafos:** 314, 307
 
 - **314:** Su Aventura continúa en la otra portada de este monumento. Justo en el lado opuesto del edificio. Si se encuentra en horas de visita, le incita a pulsar pausa y entrar a descubrir la gastronomía local que ofrece este maravilloso espacio. Puede retomar su aventura una vez lo crea conveniente.
-- **307:** Este es un punto perfecto para parar a tomar unas fotos magníficas de los tesoros arquitectónicos que ofrece la ciudad y disfrutar de un cóctel peculiar como es el Agua de Valencia, o la tradicional Orxata; una refrescante bebida natural que calma la sed, acompañada de sus inseparables bollos esponjosos llamados Fartons.
+- **307:** Este es un punto perfecto para parar a tomar unas fotos magníficas de los tesoros arquitectónicos que ofrece la ciudad y disfrutar de un cóctel peculiar como es el Agua de Valencia, o la tradicional Horchata; una refrescante bebida natural que calma la sed, acompañada de sus inseparables bollos esponjosos llamados Fartons.
 
 ---
 
@@ -324,7 +324,7 @@
 
 ## Tramo 12 — Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros
 
-**Imágenes:** imagenes/imagenes-aventuras/ruinas_calle_colon.jpg, imagenes/imagenes-aventuras/calle_colon_2.jpg, imagenes/imagenes-aventuras/Plaza_Toros.jpg
+**Imágenes:** imagenes/imagenes-aventuras/ruinas_calle_colon.jpg, imagenes/imagenes-aventuras/calle_colon_2.jpg, imagenes/imagenes-aventuras/plaza_toros.jpg
 
 **Párrafos:** 319, 15
 
@@ -335,7 +335,7 @@
 
 ## Parada 16 — Plaza de Toros
 
-**Imágenes:** imagenes/imagenes-aventuras/Plaza_Toros.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_toros.jpg
 
 **Párrafos:** 320, 321, 323, 322
 
@@ -348,7 +348,7 @@
 
 ## Tramo 13 — Plaza de Toros → Estación del Norte
 
-**Imágenes:** imagenes/imagenes-aventuras/Plaza_Toros.jpg, imagenes/imagenes-aventuras/Estacion_Norte.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_toros.jpg, imagenes/imagenes-aventuras/estacion_norte.jpg
 
 **Párrafos:** 324, 20
 
@@ -359,7 +359,7 @@
 
 ## Parada 17 — Estación del Norte (Tren)
 
-**Imágenes:** imagenes/imagenes-aventuras/Estacion_Norte.jpg
+**Imágenes:** imagenes/imagenes-aventuras/estacion_norte.jpg
 
 **Párrafos:** 325, 326
 
@@ -370,7 +370,7 @@
 
 ## Tramo 14 — Estación del Norte → Estación del Norte
 
-**Imágenes:** imagenes/imagenes-aventuras/Estacion_Norte.jpg
+**Imágenes:** imagenes/imagenes-aventuras/estacion_norte.jpg, imagenes/imagenes-aventuras/estacion_interior_2.jpeg
 
 **Párrafos:** 327, 330
 
@@ -392,7 +392,7 @@
 
 ## Tramo 15 — Estación del Norte → Calle del Hospital
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_toros_y_estacion_del_norte.jpg, imagenes/imagenes-aventuras/guillem-castro-1.jpg, imagenes/imagenes-aventuras/iglesia_calle_hospital.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_toros_y_estacion_del_norte.jpg, imagenes/imagenes-aventuras/guillem_castro_1.jpg, imagenes/imagenes-aventuras/biblioteca_hospital_fuente.jpg, imagenes/imagenes-aventuras/iglesia_calle_hospital.jpg
 
 **Párrafos:** 576, 3-E, 3-B
 
@@ -471,7 +471,7 @@
 
 ## Tramo 17 — Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital
 
-**Imágenes:** imagenes/imagenes-aventuras/museo_de_la_seda.jpg, imagenes/imagenes-aventuras/biblioteca_hospital.jpg, imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg
+**Imágenes:** imagenes/imagenes-aventuras/museo_de_la_seda.jpg, imagenes/imagenes-aventuras/biblioteca_hospital.jpg, imagenes/imagenes-aventuras/biblioteca_hospital_trasera.jpg, imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg
 
 **Párrafos:** 588, 589, 590, 591, 592
 
@@ -495,7 +495,7 @@
 
 ## Tramo 18 — Biblioteca del Hospital → Mercado Central
 
-**Imágenes:** imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg, imagenes/imagenes-aventuras/biblioteca_hospital.jpg, imagenes/imagenes-aventuras/museo_de_la_seda.jpg, imagenes/imagenes-aventuras/mercado_central.jpg, imagenes/imagenes-aventuras/avenida-oeste.jpg, imagenes/imagenes-aventuras/avenida-oeste-mercado-central.jpg
+**Imágenes:** imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg, imagenes/imagenes-aventuras/biblioteca_hospital.jpg, imagenes/imagenes-aventuras/museo_de_la_seda.jpg, imagenes/imagenes-aventuras/calle_hospital_avenida_oeste.jpg, imagenes/imagenes-aventuras/avenida_oeste.jpg, imagenes/imagenes-aventuras/avenida_oeste_mercado_central.jpg, imagenes/imagenes-aventuras/mercado_central.jpg
 
 **Párrafos:** 691
 
@@ -552,7 +552,7 @@
 
 ## Parada 28 — Lonja (Mercado de la Seda)
 
-**Imágenes:** imagenes/imagenes-aventuras/Lonja_puerta_pecados.jpg, imagenes/imagenes-aventuras/lonja4.jpg
+**Imágenes:** imagenes/imagenes-aventuras/lonja_puerta_pecados.jpg, imagenes/imagenes-aventuras/lonja4.jpg
 
 **Párrafos:** 375, 376, 377, 378, 379
 
@@ -612,7 +612,7 @@
 
 ## Parada 32 — Torres de Quart
 
-**Imágenes:** imagenes/imagenes-aventuras/torres_de_quart.jpg, imagenes/imagenes-aventuras/torres-quart-palleter.jpg
+**Imágenes:** imagenes/imagenes-aventuras/torres_de_quart.jpg, imagenes/imagenes-aventuras/torres_quart_palleter.jpg
 
 **Párrafos:** 574, 575
 
@@ -623,7 +623,7 @@
 
 ## Tramo 21 — Torres de Quart → Museo de Prehistoria y Etnología
 
-**Imágenes:** imagenes/imagenes-aventuras/torres_de_quart.jpg, imagenes/imagenes-aventuras/torres-quart-guillem-castro.jpg, imagenes/imagenes-aventuras/museo_prehistoria_far.jpg, imagenes/imagenes-aventuras/museo_prehistoria_close.jpg, imagenes/imagenes-aventuras/museo_prehistoria-front.jpg
+**Imágenes:** imagenes/imagenes-aventuras/torres_de_quart.jpg, imagenes/imagenes-aventuras/torres_quart_guillem_castro.jpg, imagenes/imagenes-aventuras/museo_prehistoria_far.jpg, imagenes/imagenes-aventuras/museo_prehistoria_close.jpg, imagenes/imagenes-aventuras/museo_prehistoria_front.jpg
 
 **Párrafos:** 333, 27-D
 
@@ -634,7 +634,7 @@
 
 ## Parada 33 — Museo de Prehistoria y Etnología
 
-**Imágenes:** imagenes/imagenes-aventuras/museo_prehistoria-front.jpg
+**Imágenes:** imagenes/imagenes-aventuras/museo_prehistoria_front.jpg
 
 **Párrafos:** 565, 566
 
@@ -645,7 +645,7 @@
 
 ## Tramo 22 — Museo de Prehistoria y Etnología → Iglesia de la Milagrosa
 
-**Imágenes:** imagenes/imagenes-aventuras/museo_prehistoria-front.jpg, imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg
+**Imágenes:** imagenes/imagenes-aventuras/museo_prehistoria_front.jpg, imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg
 
 **Párrafos:** 567, 31
 
@@ -668,7 +668,7 @@
 
 ## Tramo 23 — Iglesia de la Milagrosa → Instituto Valenciano de Arte Moderno (IVAM)
 
-**Imágenes:** imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg, imagenes/imagenes-aventuras/museo_prehistoria-front.jpg, imagenes/imagenes-aventuras/museo_prehistoria_close.jpg, imagenes/imagenes-aventuras/museo_prehistoria_guillem_castro.jpg, imagenes/imagenes-aventuras/ivam.jpg
+**Imágenes:** imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg, imagenes/imagenes-aventuras/museo_prehistoria_front.jpg, imagenes/imagenes-aventuras/museo_prehistoria_close.jpg, imagenes/imagenes-aventuras/museo_prehistoria_guillem_castro.jpg, imagenes/imagenes-aventuras/ivam.jpg
 
 **Párrafos:** 564, 563-B
 
@@ -699,7 +699,7 @@
 
 ## Parada 36 — Torres de Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/ivam.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/ivam.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

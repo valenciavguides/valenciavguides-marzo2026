@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/casa_rocas.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/casa_rocas.jpg
 
 **Párrafos:** 229, 525-B, 527, 528, 529
 
@@ -402,7 +402,7 @@
 
 ## Tramo 14 — Molino de Sol → Museo de Historia
 
-**Imágenes:** imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg, imagenes/imagenes-aventuras/cabecera_izquierda.jpg, imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg, imagenes/imagenes-aventuras/museo_de_historia.jpg
+**Imágenes:** imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg, imagenes/imagenes-aventuras/cabecera_izquierda.jpg, publico/imagenes/parque_de_ cabecera_lake_side.jpg, imagenes/imagenes-aventuras/museo_de_historia.jpg
 
 **Párrafos:** 710, 24-D
 
@@ -542,7 +542,7 @@
 
 ## Tramo 20 — Ruinas del Jardín del Turia → Jardines del Real (Viveros)
 
-**Imágenes:** imagenes/imagenes-aventuras/ruinas_turia.jpg, imagenes/imagenes-aventuras/puente_real.jpg, imagenes/imagenes-aventuras/puente_real_down.jpg, imagenes/imagenes-aventuras/viveros-tunel_turia.jpg, imagenes/imagenes-aventuras/viveros_tunel_2.jpg, imagenes/imagenes-aventuras/viveros_entrada.jpg
+**Imágenes:** imagenes/imagenes-aventuras/ruinas_turia.jpg, imagenes/imagenes-aventuras/puente_real.jpg, imagenes/imagenes-aventuras/puente_real_down.jpg, imagenes/imagenes-aventuras/viveros_tunel_turia.jpg, imagenes/imagenes-aventuras/viveros_tunel_2.jpg, imagenes/imagenes-aventuras/viveros_entrada.jpg
 
 **Párrafos:** 647, 36
 
@@ -563,7 +563,7 @@
 
 ## Tramo 21 — Jardines del Real (Viveros) → Paseo de las Palmeras
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_ paseo_palmeras.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg
 
 **Párrafos:** 649
 
@@ -571,7 +571,7 @@
 
 ---
 
-## Parada 28 — Ruinas del Palacio real de Valencia y Montículo del General Javier Elio
+## Parada 28 — Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio
 
 **Imágenes:** imagenes/imagenes-aventuras/viveros_maqueta_palacio.jpg, imagenes/imagenes-aventuras/viveros_restos_palacio.jpg, imagenes/imagenes-aventuras/viveros_monte_elio.jpg, imagenes/imagenes-aventuras/viveros_plano.png
 
@@ -582,9 +582,9 @@
 
 ---
 
-## Tramo 22 — Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial
+## Tramo 22 — Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_monte_elio.jpg, imagenes/imagenes-aventuras/viveros_casa_jardinero.jpg, imagenes/imagenes-aventuras/viveros_libre_4.jpg, imagenes/imagenes-aventuras/viveros_libre_2.jpg, imagenes/imagenes-aventuras/viveros_ circuito_vial.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_monte_elio.jpg, imagenes/imagenes-aventuras/viveros_casa_jardinero.jpg, imagenes/imagenes-aventuras/viveros_libre_4.jpg, imagenes/imagenes-aventuras/viveros_libre_2.jpg, imagenes/imagenes-aventuras/viveros_circuito_vial.jpg
 
 **Párrafos:** viv3
 
@@ -594,7 +594,7 @@
 
 ## Tramo 23 — Circuito urbano de educación vial → Museo de Ciencias Naturales
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_ circuito_vial.jpg, imagenes/imagenes-aventuras/viveros_pajarera.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg, imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_circuito_vial.jpg, imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg, imagenes/imagenes-aventuras/viveros_pajarera.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg, imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg
 
 **Párrafos:** viv4
 
@@ -645,7 +645,7 @@
 
 ---
 
-## Tramo 25 — Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos
+## Tramo 25 — Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos
 
 **Imágenes:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_patos.jpg
 
@@ -655,7 +655,7 @@
 
 ---
 
-## Parada 32 — Estanque de los patos
+## Parada 32 — Estanque de los Patos
 
 **Imágenes:** imagenes/imagenes-aventuras/viveros_patos.jpg, imagenes/imagenes-aventuras/viveros_plano.png
 
@@ -666,7 +666,7 @@
 
 ---
 
-## Tramo 26 — Estanque de los patos → Portón del Convento de San Julián
+## Tramo 26 — Estanque de los Patos → Portón del Convento de San Julián
 
 **Imágenes:** imagenes/imagenes-aventuras/viveros_patos.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_san_julian.jpg
 
@@ -687,7 +687,7 @@
 
 ---
 
-## Tramo 27 — Entrada Jardínes del Real (Viveros) → Puente del Real
+## Tramo 27 — Entrada Jardines del Real (Viveros) → Puente del Real
 
 **Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/puente_real_up.jpg
 
@@ -712,7 +712,7 @@
 
 ## Tramo 28 — Puente del Real → Torres de Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/puente_real_up.jpg, imagenes/imagenes-aventuras/pont_real_serranos.jpg, imagenes/imagenes-aventuras/iglesia_del_temple.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puente_real_up.jpg, imagenes/imagenes-aventuras/pont_real_serranos.jpg, imagenes/imagenes-aventuras/iglesia_del_temple.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 2-E
 
@@ -722,7 +722,7 @@
 
 ## Parada 35 — Torres de Serranos Final
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Plaza de la Crída
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
+**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
 **Párrafos:** 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135
 
@@ -94,7 +94,7 @@
 
 ## Tramo 3 — Plaza de la Crída → Calle Muro de Santa Ana
 
-**Imágenes:** imagenes/imagenes-aventuras/torres_de_serranos_front.jpg, imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg
+**Imágenes:** imagenes/imagenes-aventuras/torres_de_serranos_front.jpg, imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg
 
 **Párrafos:** 81, 6-B
 
@@ -105,7 +105,7 @@
 
 ## Parada 3 — Calle Muro de Santa Ana
 
-**Imágenes:** imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg
+**Imágenes:** imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg
 
 **Párrafos:** 68
 
@@ -115,7 +115,7 @@
 
 ## Tramo 4 — Calle Muro de Santa Ana → Iglesia de San Lorenzo
 
-**Imágenes:** imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg, imagenes/imagenes-aventuras/cortes_valencianas.jpg
+**Imágenes:** imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg, imagenes/imagenes-aventuras/cortes_valencianas.jpg
 
 **Párrafos:** 156, 682-B, 7
 
@@ -139,7 +139,7 @@
 
 ## Tramo 5 — Iglesia de San Lorenzo → Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg, publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 159, 8
 
@@ -150,7 +150,7 @@
 
 ## Parada 5 — Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
+**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
 
 **Párrafos:** 466, 467
 
@@ -161,7 +161,7 @@
 
 ## Parada 6 — Plaza de la Virgen
 
-**Imágenes:** (ninguna)
+**Imágenes:** imagenes/imagenes-aventuras/ofrenda_virgen_back.jpg, imagenes/imagenes-aventuras/ofrenda_virgen_front.jpg
 
 **Párrafos:** 469, 473, 474, 62, 146, 10-B
 
@@ -176,7 +176,7 @@
 
 ## Parada 7 — Plaza de la Virgen
 
-**Imágenes:** (ninguna)
+**Imágenes:** imagenes/imagenes-aventuras/ofrenda_virgen_front.jpg, imagenes/imagenes-aventuras/ofrenda_virgen_back.jpg
 
 **Párrafos:** 451, 452, 160
 
@@ -251,14 +251,14 @@
 
 ## Tramo 7 — Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina
 
-**Imágenes:** imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg, imagenes/imagenes-aventuras/Plaza_Reina_2.jpg, imagenes/imagenes-aventuras/torre_santa_catalina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg, imagenes/imagenes-aventuras/plaza_reina_2.jpg, imagenes/imagenes-aventuras/torre_santa_catalina.jpg
 
 **Párrafos:** 21-D, 694, 13-C, 307, 699
 
 - **21-D:** Dejando la portada Barroca de la Catedral a su espalda, enfrente, se abre una plaza que da paso para continuar con su búsqueda del Tesoro. Siga el trazado de su mapa que le lleva a cruzar la plaza. Cruzada la Plaza, a su mano derecha, emerge su próximo objetivo. Una esbelta torre barroca se divisa modestamente a la derecha. En su mapa corresponde con el número 10 ¿Puede verla? No pause esta audioguía y diríjase al punto indicado, gracias.
 - **694:** En el transcurso, deberá cruzar la famosa Plaza de la Reina, una reciente restauración ha actualizado una de las plazas más conocidas del casco histórico, eliminando el tráfico y reformando el parking subterráneo. Tras 18 meses de restauración, la céntrica Plaza de la Reina renace con una peatonalización de más de 12.000 metros cuadrados, ofreciendo unas maravillosas vistas de la Catedral de Valencia. Observe con atención mientras camina, podrá ver la piedra calcárea utilizada en la plaza, la misma con la que se construyó la Catedral. La piedra calcárea se emplea tradicionalmente en Valencia porque no absorbe el calor, tanto como el granito, con lo que ayuda en los días calurosos de verano.
 - **13-C:** En su mapa corresponde al número 9.
-- **307:** Este es un punto perfecto para parar a tomar unas fotos magníficas de los tesoros arquitectónicos que ofrece la ciudad y disfrutar de un cóctel peculiar como es el Agua de Valencia, o la tradicional Orxata; una refrescante bebida natural que calma la sed, acompañada de sus inseparables bollos esponjosos llamados Fartons.
+- **307:** Este es un punto perfecto para parar a tomar unas fotos magníficas de los tesoros arquitectónicos que ofrece la ciudad y disfrutar de un cóctel peculiar como es el Agua de Valencia, o la tradicional Horchata; una refrescante bebida natural que calma la sed, acompañada de sus inseparables bollos esponjosos llamados Fartons.
 - **699:** Utilice el botón de pausa a su propio antojo. Cuando usted lo decida, simplemente continúe resolviendo nuestros retos mientras descubre la ciudad. Su próximo objetivo queda al final de la plaza a su mano derecha. En su mapa corresponde con el número 10.
 
 ---
@@ -280,7 +280,7 @@
 
 ## Tramo 8 — Torre Barroca de Santa Catalina → Plaza del Ayuntamiento
 
-**Imágenes:** imagenes/imagenes-aventuras/torre_santa_catalina.jpg, imagenes/imagenes-aventuras/calle_san_Vicente_2.jpg, imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg
+**Imágenes:** imagenes/imagenes-aventuras/torre_santa_catalina.jpg, imagenes/imagenes-aventuras/calle_san_vicente_2.jpg, imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg, imagenes/imagenes-aventuras/fallas_1.jpg
 
 **Párrafos:** 170, 15
 
@@ -291,19 +291,19 @@
 
 ## Parada 13 — Plaza del Ayuntamiento
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg, imagenes/imagenes-aventuras/fallas_3.jpg
 
 **Párrafos:** 263, 346, 143
 
 - **263:** Esta plaza, de planta triangular, recibe el nombre de Plaza del Ayuntamiento desde 1987. Un entorno urbano que ha sufrido diferentes reformas, entre ellas el derribo del Convento de San Francisco en 1891, que permitió un paso directo entre dos barrios comerciales de la ciudad. También en la propia plaza se instauró el mercado de las flores, que desde 1924 hasta nuestros días, ameniza y enriquece la ciudad. En Valencia hay una gran cantidad de fuentes que refrescan el entorno que las rodea. La fuente que podemos ver hoy en día fue construida por Carlos Buigues, e inaugurada en marzo de 1962.
-- **346:** Si viene en horario de visita, , be le anima a hacer una pausa y elegir un buen sitio. Es el lugar perfecto para hacer una parada y tomar unas magníficas fotos de los tesoros arquitectónicos que ofrece la ciudad, y disfrutar de una bebida típica: Agua de Valencia, un cóctel alcohólico a base de Vodka, cava y zumo fresco de naranja. O mejor aún... también puede degustar una Orxata nuestro zumo de chufa vegano, siempre acompañada de sus queridos Fartons, un bizcocho en forma de barra que hay que mojar, para que empape, y luego comer. Así disfrutan los valencianos de esta refrescante bebida cultural. Recuerde que no hay prisa, haga lo que le apetezca y no se presione; ¡se supone que es una excursión divertida! Puede volver a su Aventura cuando sienta que el es momento, simplemente pulsando play.
+- **346:** Si viene en horario de visita, , be le anima a hacer una pausa y elegir un buen sitio. Es el lugar perfecto para hacer una parada y tomar unas magníficas fotos de los tesoros arquitectónicos que ofrece la ciudad, y disfrutar de una bebida típica: Agua de Valencia, un cóctel alcohólico a base de Vodka, cava y zumo fresco de naranja. O mejor aún... también puede degustar una Horchata nuestro zumo de chufa vegano, siempre acompañada de sus queridos Fartons, un bizcocho en forma de barra que hay que mojar, para que empape, y luego comer. Así disfrutan los valencianos de esta refrescante bebida cultural. Recuerde que no hay prisa, haga lo que le apetezca y no se presione; ¡se supone que es una excursión divertida! Puede volver a su Aventura cuando sienta que el es momento, simplemente pulsando play.
 - **143:** Si no se encuentra en horario de apertura, siempre podrá hacer una pausa en un punto desde el cual podrá contemplar la totalidad de la plaza y simplemente disfrute del audio de su Aventura. En este claro urbano se desvela un fragmento de varios tesoros arquitectónicos que ofrece la ciudad, reunidos en una sola plaza.
 
 ---
 
 ## Parada 14 — Plaza del Ayuntamiento
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg, publico/imagenes/fallas-castillo.png
 
 **Párrafos:** 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181
 
@@ -404,7 +404,7 @@
 
 ---
 
-## Parada 19 — Mercado central
+## Parada 19 — Mercado Central
 
 **Imágenes:** imagenes/imagenes-aventuras/mercado_central.jpg
 
@@ -495,7 +495,7 @@
 
 ## Tramo 14 — Lonja (Mercado de la Seda)
 
-**Imágenes:** imagenes/imagenes-aventuras/Lonja_esquina_izquierda.jpg, imagenes/imagenes-aventuras/Lonja_patio_naranjos_far_view.jpg, imagenes/imagenes-aventuras/Lonja_patio_naranjos_close_view.jpg, imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg
+**Imágenes:** imagenes/imagenes-aventuras/lonja_esquina_izquierda.jpg, imagenes/imagenes-aventuras/lonja_patio_naranjos_far_view.jpg, imagenes/imagenes-aventuras/lonja_patio_naranjos_close_view.jpg, imagenes/imagenes-aventuras/lonja_puerta_visitante.jpg
 
 **Párrafos:** 388, 392, 333
 
@@ -507,7 +507,7 @@
 
 ## Tramo 15 — Lonja (Mercado de la Seda) → Plaza Doctor López Collado
 
-**Imágenes:** imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg, imagenes/imagenes-aventuras/lonja2.jpg, imagenes/imagenes-aventuras/Plaza_collado.jpg
+**Imágenes:** imagenes/imagenes-aventuras/lonja_puerta_visitante.jpg, imagenes/imagenes-aventuras/lonja2.jpg, imagenes/imagenes-aventuras/plaza_collado.jpg
 
 **Párrafos:** 197, 397, 27-B
 
@@ -519,7 +519,7 @@
 
 ## Parada 24 — Plaza Doctor López Collado
 
-**Imágenes:** imagenes/imagenes-aventuras/lonja7.jpg, imagenes/imagenes-aventuras/Plaza_collado.jpg
+**Imágenes:** imagenes/imagenes-aventuras/lonja7.jpg, imagenes/imagenes-aventuras/plaza_collado.jpg
 
 **Párrafos:** 398
 
@@ -529,7 +529,7 @@
 
 ## Tramo 16 — Plaza del Doctor Collado → Plaza del Negrito (Fuente del Negrito)
 
-**Imágenes:** imagenes/imagenes-aventuras/Plaza_collado.jpg, imagenes/imagenes-aventuras/Plaza_negrito.jpg, imagenes/imagenes-aventuras/fuente_del_negrito.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_collado.jpg, imagenes/imagenes-aventuras/plaza_negrito.jpg, imagenes/imagenes-aventuras/fuente_del_negrito.jpg
 
 **Párrafos:** 198, 671, 522, 199
 
@@ -542,7 +542,7 @@
 
 ## Parada 25 — Fuente del Negrito
 
-**Imágenes:** imagenes/imagenes-aventuras/Plaza_negrito.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_negrito.jpg
 
 **Párrafos:** 382, 501
 
@@ -553,7 +553,7 @@
 
 ## Tramo 17 — Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat
 
-**Imágenes:** imagenes/imagenes-aventuras/fuente_del_negrito.jpg, imagenes/imagenes-aventuras/Calle_caballeros.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg
+**Imágenes:** imagenes/imagenes-aventuras/fuente_del_negrito.jpg, imagenes/imagenes-aventuras/calle_caballeros.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg
 
 **Párrafos:** 280, 486, 288
 
@@ -576,7 +576,7 @@
 
 ## Tramo 18 — Palacio de la Generalitat → Calle de los Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/Calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 2-D, 289, 436, 448, 449
 
@@ -590,7 +590,7 @@
 
 ## Parada 27 — Torres de Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/Calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

@@ -23,6 +23,8 @@
   <script src="js/almacenamiento.js"></script>
   <script src="js/proteccion.js"></script>
   <script src="js/suppress-warnings.js"></script>
+  <link rel="stylesheet" href="css/mapa-vintage-zoom.css">
+  <script src="js/mapa-vintage-zoom.js"></script>
   <script>
   /* Escalado proporcional PURO: sincronizar con viewport del iframe SIN LÍMITES */
   (function(){
@@ -1028,7 +1030,7 @@
          sobraba media pantalla a cada lado. Esas eran las franjas negras.
          Va al 100% del overlay y no a 100dvh a propósito: el overlay ya reserva la muesca y
          la barra inferior con su propio padding, y saltarselo metería el mapa debajo. -->
-    <div style="position:relative; width:100%; height:100%; background:#fff8e7; overflow:hidden;">
+    <div id="mapa-vintage-wrapper" style="position:relative; width:100%; height:100%; background:#fff8e7; overflow:hidden;">
       <button onclick="cerrarMapaVintage()" title="Cerrar mapa" style="position:absolute; top:0; right:0; width:3.25rem; height:3.25rem; background:#F28500; border:0.3125rem solid #50C878; border-radius:50%; font-size:1.5rem; font-weight:bold; color:#0F0616; cursor:pointer; z-index:10000; display:flex; align-items:center; justify-content:center;"><span class="icono-x-cerrar">✗</span></button>
       <img id="mapa-vintage-img" src="" alt="Mapa vintage" style="width:100%; height:100%; object-fit:fill;">
     </div>
@@ -2328,6 +2330,7 @@
       }
 
       img.src = rutaMapa;
+      globalThis.configurarZoomMapaVintage?.(document.getElementById('mapa-vintage-wrapper'), img);
       overlay.style.display = 'flex';
       _avisarRotacion(true);
       _log.info('[SELECCION] Mapa vintage mostrado:', rutaMapa);

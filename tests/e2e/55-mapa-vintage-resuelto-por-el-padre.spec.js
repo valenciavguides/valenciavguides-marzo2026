@@ -14,13 +14,13 @@
  *
  *   MV-1  hijo2 cargado suelto NO descarga mapa-vintage-aventuras.js.
  *   MV-2  El padre resuelve la URL de una aventura que sí tiene mapa.
- *   MV-3  Una aventura sin mapa (Aventura34km) no muestra nada y deja aviso — no revienta.
+ *   MV-3  Aventura34km resuelve su mapa (Av34km_Mapa.jpg) y habilita el zoom.
  *   MV-4  El padre ignora la URL que venga en el mensaje: manda su propia fuente.
  *   MV-6  El padre ignora también una aventura que venga en el mensaje: el mapa es el de la aventura elegida
  *         (`aventuraSeleccionada`), la decide solo él (docs/estudio-caminos.md, K-107). hijo2 pide el mapa sin datos.
  *
- * ROJO ANTES QUE VERDE (MV-6): con el padre que tomaba la aventura del mensaje, pedir el mapa de Aventura34km con
- * Aventura1 elegida no abre nada (Aventura34km no tiene mapa) y el test agota su espera.
+ * ROJO ANTES QUE VERDE (MV-6): el mensaje pide Aventura34km pero el usuario eligió Aventura1.
+ * El padre debe abrir el mapa de Aventura1, decidido por la selección real.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -49,7 +49,7 @@ async function prepararPadreConDatos(page) {
     globalThis.__vv_overlayLlamadas = [];
     const original = globalThis.mostrarImagenOverlay;
     globalThis.mostrarImagenOverlay = function (url, titulo, ...resto) {
-      globalThis.__vv_overlayLlamadas.push({ url, titulo });
+      globalThis.__vv_overlayLlamadas.push({ url, titulo, opciones: resto.at(-1) });
       return original ? original.call(this, url, titulo, ...resto) : undefined;
     };
   });
@@ -111,24 +111,17 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
     expect(llamadas[0].url, `url recibida: ${llamadas[0]?.url}`).toContain('publico/imagenes/mapas-vintage/');
   });
 
-  test('MV-3. Una aventura sin mapa vintage no muestra nada y deja aviso', async ({ page }) => {
-    const logs = [];
-    page.on('console', (m) => logs.push(m.text()));
+  test('MV-3. Aventura34km carga su mapa con zoom', async ({ page }) => {
     await prepararPadreConDatos(page);
-    // Aventura34km sigue comentada en mapa-vintage-aventuras.js: no tiene mapa enlazado (el fichero está en la carpeta).
-    // Antes este caso usaba AventuraFallas, que ya tiene el suyo desde que se añadió
-    // AvFallas_Mapa.jpg — con ella el test dejaba de probar lo que dice probar.
-    // Se espera al AVISO, que es la señal de que el padre ya procesó el mensaje, y solo
-    // entonces se comprueba que no abrió nada. Al revés se daría por bueno un "no pasó
-    // nada" que en realidad era "aún no ha pasado".
     await page.evaluate(() => { globalThis.aventuraSeleccionada = 'Aventura34km'; });
     await pedirMapaVintageHasta(
       page, {},
-      async () => logs.some((l) => l.includes('No hay mapa vintage')), 'no hubo aviso en consola'
+      async () => (await vecesOverlay(page)) > 0, 'el mapa de Aventura34km no se abrió'
     );
 
     const llamadas = await page.evaluate(() => globalThis.__vv_overlayLlamadas);
-    expect(llamadas.length, 'sin mapa no debe abrirse ningún overlay').toBe(0);
+    expect(llamadas[0].url).toMatch(/\/Av34km_Mapa\.jpg$/);
+    expect(llamadas[0].opciones.zoomable).toBe(true);
   });
 
   test('MV-4. El padre ignora una url enviada en el mensaje y usa su propia fuente', async ({ page }) => {
@@ -181,7 +174,7 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
 
   test('MV-6. El padre ignora la aventura que venga en el mensaje: el mapa es el de la elegida', async ({ page }) => {
     await prepararPadreConDatos(page); // con Aventura1 elegida
-    // Aventura34km no tiene mapa vintage: si el padre hiciera caso al mensaje, no se abriría nada.
+    // El mensaje intenta cambiar la selección a Aventura34km; el mapa debe seguir siendo el de Aventura1.
     await pedirMapaVintageHasta(
       page, { aventura: 'Aventura34km' },
       async () => (await vecesOverlay(page)) > 0, 'el overlay no se abrió con el mapa de la aventura elegida'

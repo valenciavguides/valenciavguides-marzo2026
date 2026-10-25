@@ -155,7 +155,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 11,
         coordenadas: { lat: Number('39.467080'), lng: Number('-0.377190') },
         nombre: "Estación del Norte 🚂",
-        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg"
+        imagen: "imagenes/imagenes-aventuras/estacion_norte.jpg"
     },
     {
         tipo: "referencia",
@@ -163,7 +163,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 12,
         coordenadas: { lat: Number('39.466660'), lng: Number('-0.376140') },
         nombre: "Plaza de Toros 🐂",
-        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg"
+        imagen: "imagenes/imagenes-aventuras/plaza_toros.jpg"
     },
     {
         tipo: "referencia",
@@ -171,7 +171,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 13,
         coordenadas: { lat: Number('39.467580'), lng: Number('-0.375150') },
         nombre: "Casa estilo árabe",
-        imagen: "imagenes/imagenes-aventuras/Casa_arabe.jpg"
+        imagen: "imagenes/imagenes-aventuras/casa_arabe.jpg"
     },
     {
         tipo: "referencia",
@@ -195,7 +195,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 16,
         coordenadas: { lat: Number('39.472720'), lng: Number('-0.374680') },
         nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
-        imagen: "imagenes/imagenes-aventuras/Marques_dos_aguas_2.jpg"
+        imagen: "imagenes/imagenes-aventuras/marques_dos_aguas_2.jpg"
     },
     {
         tipo: "referencia",
@@ -227,7 +227,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 20,
         coordenadas: { lat: Number('39.474330'), lng: Number('-0.377780') },
         nombre: "Plaza del Doctor López Collado",
-        imagen: "imagenes/imagenes-aventuras/Plaza_collado.jpg"
+        imagen: "imagenes/imagenes-aventuras/plaza_collado.jpg"
     },
     {
         tipo: "referencia",
@@ -235,7 +235,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 21,
         coordenadas: { lat: Number('39.476080'), lng: Number('-0.377360') },
         nombre: "Plaza del Negrito",
-        imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg"
+        imagen: "imagenes/imagenes-aventuras/plaza_negrito.jpg"
     },
     {
         tipo: "referencia",
@@ -243,7 +243,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 22,
         coordenadas: { lat: Number('39.476620'), lng: Number('-0.377130') },
         nombre: "Calle Caballeros",
-        imagen: "imagenes/imagenes-aventuras/Calle_caballeros.jpg"
+        imagen: "imagenes/imagenes-aventuras/calle_caballeros.jpg"
     },
     {
         tipo: "referencia",
@@ -315,7 +315,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.478660'), lng: Number('-0.374700') },
         imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         imagen2: "imagenes/imagenes-aventuras/serranos_pont_fusta.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg",
+        imagen3: "imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg",
         video: "",
     },
 
@@ -327,7 +327,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: null,
         nombre: "Calle Muro de Santa Ana",
         coordenadas: { lat: Number('39.478660'), lng: Number('-0.374700') },
-        imagen: "imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg",
+        imagen: "imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg",
     },
 
     // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia (Párrafos: 52, 686)
@@ -342,7 +342,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.478210'), lng: Number('-0.374790')},
         ],
         fin: { lat: Number('39.477840'), lng: Number('-0.374850') },
-        imagen: "imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg",
+        imagen: "imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg",
         imagen2: "imagenes/imagenes-aventuras/cortes_valencianas.jpg",
         video: "",
     },
@@ -384,7 +384,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza de la Virgen",
         coordenadas: { lat: Number('39.476620'), lng: Number('-0.375240') },
         imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
-        imagen2:"imagenes/imagenes-aventuras/Puerta_gotica_catedral.jpg"
+        imagen2:"imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg"
     },
 
     // Parada 5: Plaza de la Virgen (Reto 8) (Párrafos: 477-B, 479, 141, 468)
@@ -395,7 +395,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 3,
         nombre: "Plaza de la Virgen",
         coordenadas: { lat: Number('39.476570'), lng: Number('-0.375240') },
-        imagen: "imagenes/imagenes-aventuras/Puerta_gotica_catedral.jpg",
+        imagen: "imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg",
     },
 
     // Parada 6: Plaza de la Virgen (Reto9Puzzle PZ-01)
@@ -407,7 +407,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza de la Virgen",
         coordenadas: { lat: Number('39.476560'), lng: Number('-0.375160') },
         imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Puerta_gotica_catedral.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg",
     },
 
     // Tramo 5: Plaza de la Virgen → Plaza Décimo Junio Bruto (Almoína) (Párrafos: 83)
@@ -425,7 +425,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.476290'), lng: Number('-0.374600') },
         imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Paso_Plaza_Almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/paso_plaza_almoina.jpg",
         imagen3: "imagenes/imagenes-aventuras/catedral_almoina.jpg",
         video: "",
     },
@@ -610,8 +610,8 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.470560'), lng: Number('-0.376770') },
         imagen: "imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg",
         imagen2: "imagenes/imagenes-aventuras/catedral_hacia_plaza_reina.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Plaza_Reina_2.jpg",
-        imagen4: "imagenes/imagenes-aventuras/calle_san_Vicente_2.jpg",
+        imagen3: "imagenes/imagenes-aventuras/plaza_reina_2.jpg",
+        imagen4: "imagenes/imagenes-aventuras/calle_san_vicente_2.jpg",
         imagen5: "imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg",
         video: "",
     },
@@ -693,7 +693,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 11,
         nombre: "Estación del Norte",
         coordenadas: { lat: Number('39.467220'), lng: Number('-0.377020') },
-        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen: "imagenes/imagenes-aventuras/estacion_norte.jpg",
         imagen2:"imagenes/imagenes-aventuras/estacion_interior_2.jpeg",
     },
 
@@ -709,9 +709,9 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.467220'), lng: Number('-0.376440') },
         ],
         fin: { lat: Number('39.467140'), lng: Number('-0.375930') },
-        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen: "imagenes/imagenes-aventuras/estacion_norte.jpg",
         imagen2: "imagenes/imagenes-aventuras/plaza_de_toros_y_estacion_del_norte.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+        imagen3: "imagenes/imagenes-aventuras/plaza_toros.jpg",
         video: "",
     },
 
@@ -723,7 +723,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 12,
         nombre: "Plaza de Toros",
         coordenadas: { lat: Number('39.467140'), lng: Number('-0.375930') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_toros.jpg",
     },
 
     // Tramo 12: Plaza de Toros → Casa estilo Árabe (Párrafos: 89, 3-D)
@@ -738,8 +738,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.467140'), lng: Number('-0.374980') },
         ],
         fin: { lat: Number('39.467520'), lng: Number('-0.375110') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Casa_arabe.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_toros.jpg",
+        imagen2: "imagenes/imagenes-aventuras/casa_arabe.jpg",
         video: "",
     },
 
@@ -751,7 +751,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 13,
         nombre: "Casa estilo árabe",
         coordenadas: { lat: Number('39.467520'), lng: Number('-0.375110') },
-        imagen: "imagenes/imagenes-aventuras/Casa_arabe.jpg",
+        imagen: "imagenes/imagenes-aventuras/casa_arabe.jpg",
     },
 
     // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos) (Párrafos: 21-B)
@@ -767,7 +767,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.468910'), lng: Number('-0.375420') },
         ],
         fin: { lat: Number('39.469420'), lng: Number('-0.375590') },
-        imagen: "imagenes/imagenes-aventuras/Casa_arabe.jpg",
+        imagen: "imagenes/imagenes-aventuras/casa_arabe.jpg",
         imagen2: "imagenes/imagenes-aventuras/correos.jpg",
         video: "",
     },
@@ -810,7 +810,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.470610'), lng: Number('-0.374080') },
         imagen: "imagenes/imagenes-aventuras/correos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_barcas.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_barcas.jpg",
         imagen3: "imagenes/imagenes-aventuras/banco_de_valencia.jpg",
         video: "",
     },
@@ -841,8 +841,8 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.472760'), lng: Number('-0.374670') },
         imagen: "imagenes/imagenes-aventuras/banco_de_valencia.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Iglesia_San_juan_cruz.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Marques_dos_aguas_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/iglesia_san_juan_cruz.jpg",
+        imagen3: "imagenes/imagenes-aventuras/marques_dos_aguas_2.jpg",
         video: "",
     },
 
@@ -854,7 +854,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 16,
         nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
         coordenadas: { lat: Number('39.472760'), lng: Number('-0.374670') },
-        imagen: "imagenes/imagenes-aventuras/Marques_dos_aguas_1.jpg",
+        imagen: "imagenes/imagenes-aventuras/marques_dos_aguas_1.jpg",
         imagen2:"imagenes/imagenes-aventuras/museo_ceramica_9.jpg",
         imagen3: "imagenes/imagenes-aventuras/museo_ceramica_8.jpg",
     },
@@ -877,8 +877,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.473190'), lng: Number('-0.377650') },
         ],
         fin: { lat: Number('39.473770'), lng: Number('-0.378320') },
-        imagen: "imagenes/imagenes-aventuras/Marques_dos_aguas_1.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_San_Vicente.jpg",
+        imagen: "imagenes/imagenes-aventuras/marques_dos_aguas_1.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_san_vicente.jpg",
         imagen3: "imagenes/imagenes-aventuras/mercado_central.jpg",
         video: "",
     },
@@ -967,7 +967,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 19,
         nombre: "Lonja (Mercado de la Seda)",
         coordenadas: { lat: Number('39.474170'), lng: Number('-0.378600') },
-        imagen: "imagenes/imagenes-aventuras/Lonja_puerta_pecados.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_puerta_pecados.jpg",
         imagen2: "imagenes/imagenes-aventuras/lonja4.jpg",
     },
 
@@ -1027,9 +1027,9 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.474450'), lng: Number('-0.378890') },
         ],
         fin: { lat: Number('39.474560'), lng: Number('-0.378700') },
-        imagen: "imagenes/imagenes-aventuras/Lonja_esquina_izquierda.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_far_view.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_close_view.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_esquina_izquierda.jpg",
+        imagen2: "imagenes/imagenes-aventuras/lonja_patio_naranjos_far_view.jpg",
+        imagen3: "imagenes/imagenes-aventuras/lonja_patio_naranjos_close_view.jpg",
         video: "",
     },
 
@@ -1056,8 +1056,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.474750'), lng: Number('-0.378420') },
         ],
         fin: { lat: Number('39.474660'), lng: Number('-0.378340') },
-        imagen: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_close_view.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_patio_naranjos_close_view.jpg",
+        imagen2: "imagenes/imagenes-aventuras/lonja_puerta_visitante.jpg",
         video: "",
     },
 
@@ -1074,9 +1074,9 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.474360'), lng: Number('-0.378000') },
         ],
         fin: { lat: Number('39.474440'), lng: Number('-0.377900') },
-        imagen: "imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_puerta_visitante.jpg",
         imagen2: "imagenes/imagenes-aventuras/lonja2.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
+        imagen3: "imagenes/imagenes-aventuras/plaza_collado.jpg",
         video: "",
     },
 
@@ -1089,7 +1089,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza Doctor López Collado",
         coordenadas: { lat: Number('39.474440'), lng: Number('-0.377900') },
         imagen: "imagenes/imagenes-aventuras/lonja7.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_collado.jpg",
     },
 
     // Tramo 22: Plaza del Doctor López Collado → Plaza del Negrito (Párrafos: 198, 671, 522, 32-C)
@@ -1109,8 +1109,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.475850'), lng: Number('-0.377590') },
         ],
         fin: { lat: Number('39.476110'), lng: Number('-0.377410') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_collado.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_negrito.jpg",
         imagen3: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
         video: "",
     },
@@ -1123,7 +1123,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 21,
         nombre: "Fuente del Negrito",
         coordenadas: { lat: Number('39.476110'), lng: Number('-0.377410') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_negrito.jpg",
         image2: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
     },
 
@@ -1142,7 +1142,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.476610'), lng: Number('-0.376730') },
         imagen: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_caballeros.jpg",
         imagen3: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
         video: "",
     },
@@ -1173,7 +1173,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen:"imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_serranos.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_serranos.jpg",
         imagen3: "publico/imagenes/00_ torres_de serranos_back.jpg",
         video: ""
     },
@@ -1186,7 +1186,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos Final",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-        imagen: "imagenes/imagenes-aventuras/Calle_serranos.jpg",
+        imagen: "imagenes/imagenes-aventuras/calle_serranos.jpg",
         imagen2: "publico/imagenes/00_ torres_de serranos_back.jpg"
     },
 
@@ -1228,7 +1228,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 4,
         coordenadas: { lat: Number('39.476620'), lng: Number('-0.377130') },
         nombre: "Calle Caballeros",
-        imagen: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+        imagen: "imagenes/imagenes-aventuras/calle_caballeros.jpg",
     },
     {
         tipo: "referencia",
@@ -1244,7 +1244,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 6,
         coordenadas: { lat: Number('39.476070'), lng: Number('-0.379160') },
         nombre: "Parroquia de San Nicolás (Puerta Gótica)",
-        imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
     },
     {
        tipo: "referencia",
@@ -1252,7 +1252,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 7,
         coordenadas: { lat: Number('39.476080'), lng: Number('-0.377360') },
         nombre: "Plaza del Negrito",
-        imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg"
+        imagen: "imagenes/imagenes-aventuras/plaza_negrito.jpg"
     },
     {
         tipo: "referencia",
@@ -1268,7 +1268,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 9,
         coordenadas: { lat: Number('39.477550'), lng: Number('-0.378600') },
         nombre: "Portal de la Valldigna",
-        imagen: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
+        imagen: "imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg",
     },
     {
         tipo: "referencia",
@@ -1276,7 +1276,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 10,
         coordenadas: { lat: Number('39.478160'), lng: Number('-0.377700') },
         nombre: "Torre del Ángel (árabe)",
-        imagen: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+        imagen: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
     },
     {
        tipo: "referencia",
@@ -1419,7 +1419,7 @@ export const DATOS_AVENTURAS = {
                     ],
                     fin: { lat: Number('39.476680'), lng: Number('-0.376710') },
                     imagen: "imagenes/imagenes-aventuras/refugio_guerra_civil.jpg",
-                    imagen2:"imagenes/imagenes-aventuras/Calle_serranos.jpg",
+                    imagen2:"imagenes/imagenes-aventuras/calle_serranos.jpg",
                     imagen3: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
                     video: ""
                 },
@@ -1446,7 +1446,7 @@ export const DATOS_AVENTURAS = {
                     waypoints: [],
                     fin: { lat: Number('39.476590'), lng: Number('-0.376940') },
                     imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
-                    imagen2: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+                    imagen2: "imagenes/imagenes-aventuras/calle_caballeros.jpg",
                     video: ""
                 },
 
@@ -1466,7 +1466,7 @@ export const DATOS_AVENTURAS = {
                         { lat: Number('39.476620'), lng: Number('-0.378650') },
                     ],
                     fin: { lat: Number('39.476570'), lng: Number('-0.378830') },
-                    imagen: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+                    imagen: "imagenes/imagenes-aventuras/calle_caballeros.jpg",
                     imagen2: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
                     video: ""
                 },
@@ -1509,7 +1509,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 6,
                     nombre: "Iglesia de San Nicolás BACK",
                     coordenadas: { lat: Number('39.476100'), lng: Number('-0.379180') },
-                    imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
                 },
 
                 // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498)
@@ -1531,7 +1531,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 6,
                     nombre: "Iglesia de San Nicolás BACK",
                     coordenadas: { lat: Number('39.476050'), lng: Number('-0.379150') },
-                    imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
                 },
 
                 // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B)
@@ -1553,10 +1553,10 @@ export const DATOS_AVENTURAS = {
 
                     ],
                     fin: { lat: Number('39.476110'), lng: Number('-0.377410') },
-                    imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
                     imagen2: "imagenes/imagenes-aventuras/iglesia_san_nicolas_3.jpg",
                     imagen3: "imagenes/imagenes-aventuras/iglesia_san_nicolas_4.jpg",
-                    imagen4: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+                    imagen4: "imagenes/imagenes-aventuras/plaza_negrito.jpg",
                     imagen5: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
                     video: ""
                 },
@@ -1569,7 +1569,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 7,
                     nombre: "Plaza del Negrito",
                     coordenadas: { lat: Number('39.476110'), lng: Number('-0.377410') },
-                    imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+                    imagen: "imagenes/imagenes-aventuras/plaza_negrito.jpg",
                     imagen2: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
                 },
 
@@ -1595,7 +1595,7 @@ export const DATOS_AVENTURAS = {
                     ],
                     fin: { lat: Number('39.476390'), lng: Number('-0.380010') },
                     imagen: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
-                    imagen2: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+                    imagen2: "imagenes/imagenes-aventuras/calle_caballeros.jpg",
                     imagen3: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
                     imagen4: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
                     video: ""
@@ -1643,7 +1643,7 @@ export const DATOS_AVENTURAS = {
                     ],
                     fin: { lat: Number('39.477550'), lng: Number('-0.378600') },
                     imagen: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
-                    imagen2: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
+                    imagen2: "imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg",
                     video: ""
                 },
 
@@ -1655,7 +1655,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 9,
                     nombre: "Portal de la Valldigna",
                     coordenadas: { lat: Number('39.477550'), lng: Number('-0.378600') },
-                    imagen: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
+                    imagen: "imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg",
                 },
 
                 // Tramo 9 - Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 560, 514, 14-C)
@@ -1675,8 +1675,8 @@ export const DATOS_AVENTURAS = {
                         { lat: Number('39.478010'), lng: Number('-0.377860') },
                     ],
                     fin: { lat: Number('39.478030'), lng: Number('-0.377910') },
-                    imagen: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
-                    imagen2: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+                    imagen: "imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg",
+                    imagen2: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
                     video: ""
                 },
 
@@ -1688,7 +1688,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 10,
                     nombre: "Torre del Ángel (Torre árabe)",
                     coordenadas: { lat: Number('39.478030'), lng: Number('-0.377910') },
-                    imagen: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+                    imagen: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
                     video: ""
                 },
 
@@ -1727,7 +1727,7 @@ export const DATOS_AVENTURAS = {
                         { lat: Number('39.476620'), lng: Number('-0.375150') },
                     ],
                     fin: { lat: Number('39.476600'), lng: Number('-0.375290') },
-                    imagen: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+                    imagen: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
                     imagen2: "publico/imagenes/plaza_de_la_virgen.jpg",
                     video: ""
                 },
@@ -1762,8 +1762,8 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 11,
                     nombre: "Plaza de la Virgen - Ofrenda",
                     coordenadas: { lat: Number('39.476600'), lng: Number('-0.375270') },
-                    imagen: "imagenes/imagenes-aventuras/Ofrenda_Virgen_back.jpg",
-                    imagen2: "imagenes/imagenes-aventuras/Ofrenda_virgen_front.jpg",
+                    imagen: "imagenes/imagenes-aventuras/ofrenda_virgen_back.jpg",
+                    imagen2: "imagenes/imagenes-aventuras/ofrenda_virgen_front.jpg",
                 },
 
                 // Parada 17 - Plaza de la Virgen - Basílica (Párrafos: 146, 450, 451, 452)
@@ -1816,7 +1816,7 @@ export const DATOS_AVENTURAS = {
                     fin: { lat: Number('39.476040'), lng: Number('-0.375150') },
                     imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
                     imagen2: "imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg",
-                    imagen3: "imagenes/imagenes-aventuras/Puerta_gotica_catedral.jpg",
+                    imagen3: "imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg",
                     video: ""
                 },
 
@@ -1896,7 +1896,7 @@ export const DATOS_AVENTURAS = {
                     ],
                     fin: { lat: Number('39.473830'), lng: Number('-0.375710') },
                     imagen: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg",
-                    imagen2: "imagenes/imagenes-aventuras/Plaza_Reina_2.jpg",
+                    imagen2: "imagenes/imagenes-aventuras/plaza_reina_2.jpg",
                     imagen3: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
                     video: ""
                 },
@@ -2107,7 +2107,7 @@ export const DATOS_AVENTURAS = {
                     ],
                     fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
                     imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
-                    imagen2: "imagenes/imagenes-aventuras/Calle_serranos.jpg",
+                    imagen2: "imagenes/imagenes-aventuras/calle_serranos.jpg",
                     imagen3: "publico/imagenes/00_ torres_de serranos_back.jpg",
                     video: ""
                 },
@@ -2210,7 +2210,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 10,
         coordenadas: { lat: Number('39.471100'), lng: Number('-0.364240') },
         nombre: "Puente de las Flores",
-        imagen: "imagenes/imagenes-aventuras/puente_flores-down.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_flores_down.jpg",
     },
     {
         tipo: "referencia",
@@ -2226,7 +2226,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 12,
         coordenadas: { lat: Number('39.468880'), lng: Number('-0.362800') },
         nombre: "Puente de Aragón",
-        imagen: "imagenes/imagenes-aventuras/puente_aragon-down.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_aragon_down.jpg",
     },
     {
         tipo: "referencia",
@@ -2266,7 +2266,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 17,
         coordenadas: { lat: Number('39.459980'), lng: Number('-0.357500') },
         nombre: "Pistas de Patinaje",
-        imagen: "imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+        imagen: "imagenes/imagenes-aventuras/cac_patinaje.jpg",
     },
     {
         tipo: "referencia",
@@ -2591,7 +2591,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_real.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_real_down.jpg",
-        imagen4: "imagenes/imagenes-aventuras/viveros-tunel_turia.jpg",
+        imagen4: "imagenes/imagenes-aventuras/viveros_tunel_turia.jpg",
         imagen5: "imagenes/imagenes-aventuras/viveros_tunel_2.jpg",
         imagen6: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
         video: "",
@@ -2605,7 +2605,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Jardines del Real (Viveros)",
         coordenadas: { lat: Number('39.477480'), lng: Number('-0.368360') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_ paseo_palmeras.jpg",
+        imagen2: "imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_libre_6.jpg",
         imagen4: "imagenes/imagenes-aventuras/viveros_rosaleda.jpg",
     },
@@ -2671,7 +2671,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.470800'), lng: Number('-0.365070') },
         imagen: "imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg",
-        imagen2: "imagenes/imagenes-aventuras/puente_flores-down.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_flores_down.jpg",
         video: "",
     },
     // Parada 7: Puente de las Flores (Párrafos: 241, 570)
@@ -2682,7 +2682,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 10,
         nombre: "Puente de las Flores",
         coordenadas: { lat: Number('39.470800'), lng: Number('-0.365070') },
-        imagen: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_de_las_flores.jpg",
     },
     // Tramo 7: Puente de las Flores → Puente de Aragón (parte superior) (Párrafos: 242, 15, 243, 20-B)
     {
@@ -2708,7 +2708,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.468940'), lng: Number('-0.362310') },
         ],
         fin: { lat: Number('39.468910'), lng: Number('-0.362860') },
-        imagen: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_de_las_flores.jpg",
         imagen2: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_aragon_subida.jpg",
         imagen4: "imagenes/imagenes-aventuras/puente_aragon_top.jpg",
@@ -2723,7 +2723,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Puente de Aragón",
         coordenadas: { lat: Number('39.468910'), lng: Number('-0.362860') },
         imagen: "imagenes/imagenes-aventuras/puente_aragon_top.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Puente_de_aragon_vista.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_de_aragon_vista.jpg",
     },
     // Parada 9: Puente de Aragón 2 (Párrafos: 339)
     {
@@ -2733,7 +2733,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 12,
         nombre: "Puente de Aragón 2",
         coordenadas: { lat: Number('39.468920'), lng: Number('-0.362880') },
-        imagen: "imagenes/imagenes-aventuras/Puente_de_aragon_vista.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_de_aragon_vista.jpg",
     },
     // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior) (Párrafos: 247, 15)
     {
@@ -2863,7 +2863,7 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/puente_reino.jpg",
         imagen3:"imagenes/imagenes-aventuras/puente_reino_gargola.jpg",
         imagen4: "imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg",
-        imagen5:"imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+        imagen5:"imagenes/imagenes-aventuras/cac_patinaje.jpg",
         video: "",
     },
     // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias (Párrafos: 262, 17-B, 264, 265, 266, 18-B, 267, 27-B)
@@ -2874,7 +2874,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 17,
         nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias",
         coordenadas:  { lat: Number('39.459850'), lng: Number('-0.357590') },
-        imagen: "imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+        imagen: "imagenes/imagenes-aventuras/cac_patinaje.jpg",
     },
     // Tramo 12: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269)
     {
@@ -2971,7 +2971,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.456843'), lng: Number('-0.349310') },
         ],
         fin: { lat: Number('39.456730'), lng: Number('-0.349399') },
-        imagen: "imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+        imagen: "imagenes/imagenes-aventuras/cac_patinaje.jpg",
         imagen2: "imagenes/imagenes-aventuras/cac_mapa.jpg",
         imagen3:"publico/imagenes/pano_CAC.jpg",
         video: "",
@@ -2997,7 +2997,7 @@ export const DATOS_AVENTURAS = {
         coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
         imagen: "publico/imagenes/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_principe_felipe.jpg",
-        imagen3: "imagenes/imagenes-aventuras/CAC-6.jpg",
+        imagen3: "imagenes/imagenes-aventuras/cac_6.jpg",
     },
     // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l'Assut de l'Or (Párrafos: 276, 32-B)
     {
@@ -3025,7 +3025,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.455825'), lng: Number('-0.348149') },
         imagen: "publico/imagenes/pano_CAC.jpg",
-        imagen2: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_assut_2.jpg",
         video: "",
     },
     // Parada 16: Puente l'Assut de l'Or (Reto12puzzle PZ-09) (Párrafos: 277, 278)
@@ -3036,7 +3036,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 21,
         nombre: "Puente l'Assut de l'Or",
         coordenadas:  { lat: Number('39.455825'), lng: Number('-0.348149') },
-        imagen: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_assut_2.jpg",
     },
     // Tramo 14: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 116)
     {
@@ -3055,7 +3055,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.453620'), lng: Number('-0.351120') },
         ],
         fin: { lat: Number('39.453520'), lng: Number('-0.350810') },
-        imagen: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_assut_2.jpg",
         imagen2: "imagenes/imagenes-aventuras/agora.jpg",
         imagen3: "imagenes/imagenes-aventuras/oceanografic.jpg",
         imagen4:"imagenes/imagenes-aventuras/agora_oceanografic.jpg",
@@ -3178,7 +3178,7 @@ export const DATOS_AVENTURAS = {
         imagen4: "imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg",
         imagen5: "imagenes/imagenes-aventuras/puente_angel_custodio.jpg",
         imagen6: "imagenes/imagenes-aventuras/palau_de_la_musica.jpg",
-        imagen7: "imagenes/imagenes-aventuras/puente_aragon-down.jpg",
+        imagen7: "imagenes/imagenes-aventuras/puente_aragon_down.jpg",
         imagen8: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
         video: "",
     },
@@ -3225,7 +3225,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_flores_subida.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_flores_subida_2.jpg",
-        imagen4: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente_de_las_flores.jpg",
         imagen5: "imagenes/imagenes-aventuras/puente_flores_top.jpg",
         imagen6: "imagenes/imagenes-aventuras/puente_flores_agua.jpg",
         imagen7: "imagenes/imagenes-aventuras/puerta_mar.jpg",
@@ -3583,7 +3583,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.476600'), lng: Number('-0.375270') },
         imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Paso_Plaza_Almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/paso_plaza_almoina.jpg",
         video: "",
     },
     // Parada 37: Plaza de la Virgen (Fuente de Neptuno) (Reto 26) (Párrafos: 466, 467)
@@ -3627,7 +3627,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
         imagen2:"imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Calle_serranos.jpg",
+        imagen3: "imagenes/imagenes-aventuras/calle_serranos.jpg",
         imagen4: "publico/imagenes/00_ torres_de serranos_back.jpg",
         video: "",
     },
@@ -3865,7 +3865,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "v1",
         coordenadas: { lat: Number('39.477710'), lng: Number('-0.368240') },
         nombre: "Paseo de las Palmeras",
-        imagen: "imagenes/imagenes-aventuras/viveros_ paseo_palmeras.jpg"
+        imagen: "imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg"
     },
     {
         tipo: "referencia",
@@ -3897,7 +3897,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "v5",
         coordenadas: { lat: Number('39.479790'), lng: Number('-0.367200') },
         nombre: "Circuito Vial Urbano",
-        imagen: "imagenes/imagenes-aventuras/viveros_ circuito_vial.jpg"
+        imagen: "imagenes/imagenes-aventuras/viveros_circuito_vial.jpg"
     },
     {
         tipo: "referencia",
@@ -3905,7 +3905,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "v6",
         coordenadas: { lat: Number('39.479490'), lng: Number('-0.367840') },
         nombre: "Calle de los Jardineros Mayores",
-        imagen: ""
+        imagen: "imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg"
     },
     {
         tipo: "referencia",
@@ -4884,7 +4884,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_real.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_real_down.jpg",
-        imagen4: "imagenes/imagenes-aventuras/viveros-tunel_turia.jpg",
+        imagen4: "imagenes/imagenes-aventuras/viveros_tunel_turia.jpg",
         imagen5: "imagenes/imagenes-aventuras/viveros_tunel_2.jpg",
         imagen6: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
         video: "",
@@ -4915,7 +4915,7 @@ export const DATOS_AVENTURAS = {
         fin: {lat: Number('39.478239'), lng: Number('-0.367925') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
-        imagen3: "imagenes/imagenes-aventuras/viveros_ paseo_palmeras.jpg",
+        imagen3: "imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg",
         video: "",
     },
     // Parada 28: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2)
@@ -4949,7 +4949,7 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/viveros_casa_jardinero.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_libre_4.jpg",
         imagen4: "imagenes/imagenes-aventuras/viveros_libre_2.jpg",
-        imagen5: "imagenes/imagenes-aventuras/viveros_ circuito_vial.jpg",
+        imagen5: "imagenes/imagenes-aventuras/viveros_circuito_vial.jpg",
         video: "",
     },
     // Tramo 23: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4)
@@ -4965,12 +4965,12 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479497'), lng: Number('-0.367881') },
          ],
         fin: { lat: Number('39.479455'), lng: Number('-0.368610') },
-        imagen: "imagenes/imagenes-aventuras/viveros_ circuito_vial.jpg",
+        imagen: "imagenes/imagenes-aventuras/viveros_circuito_vial.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_pajarera.jpg",
-        imagen3: "imagenes/imagenes-aventuras/viveros_plano.png",
-        imagen4: "imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg",
-        imagen5: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
+        imagen3: "imagenes/imagenes-aventuras/viveros_pajarera.jpg",
+        imagen4: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen5: "imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg",
+        imagen6: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
         video: "",
     },
     // Parada 29: Museo de Ciencias Naturales (Reto 19) (Párrafos: viv6, viv5)
@@ -5224,7 +5224,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 6,
         coordenadas: { lat: Number('39.471100'), lng: Number('-0.364240') },
         nombre: "Puente de las Flores",
-        imagen: "imagenes/imagenes-aventuras/puente_flores-down.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_flores_down.jpg",
     },
     {
         tipo: "referencia",
@@ -5264,7 +5264,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 11,
          coordenadas: { lat: Number('39.466660'), lng: Number('-0.376140') },
         nombre: "Plaza de Toros 🐂",
-        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg"
+        imagen: "imagenes/imagenes-aventuras/plaza_toros.jpg"
     },
     {
         tipo: "referencia",
@@ -5272,7 +5272,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 12,
        coordenadas: { lat: Number('39.467080'), lng: Number('-0.377190') },
         nombre: "Estación del Norte 🚂",
-        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg"
+        imagen: "imagenes/imagenes-aventuras/estacion_norte.jpg"
     },
     {
         tipo: "referencia",
@@ -5320,7 +5320,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 18,
         coordenadas: { lat: Number('39.478245'), lng: Number('-0.383135') },
         nombre: "Museo de Prehistoria de Valencia",
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria_far.jpg",
     },
     {
         tipo: "referencia",
@@ -5328,7 +5328,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 19,
         coordenadas: { lat: Number('39.478241'), lng: Number('-0.383093') },
         nombre: "Museo de Etnología de Valencia",
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
     },
     {
         tipo: "referencia",
@@ -5527,7 +5527,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_real.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_real_down.jpg",
-        imagen4: "imagenes/imagenes-aventuras/viveros-tunel_turia.jpg",
+        imagen4: "imagenes/imagenes-aventuras/viveros_tunel_turia.jpg",
         imagen5: "imagenes/imagenes-aventuras/viveros_tunel_2.jpg",
         imagen6: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
         video: "",
@@ -5541,7 +5541,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Jardines del Real (Viveros)",
         coordenadas: { lat: Number('39.477480'), lng: Number('-0.368360') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_ paseo_palmeras.jpg",
+        imagen2: "imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_libre_6.jpg",
         imagen4: "imagenes/imagenes-aventuras/viveros_rosaleda.jpg",
     },
@@ -5607,7 +5607,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.470997'), lng: Number('-0.365178') },
         imagen: "imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg",
-        imagen2: "imagenes/imagenes-aventuras/puente_flores-down.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_flores_down.jpg",
         video: "",
     },
     // Parada 7: Puente de las Flores (Párrafos: 241, 298,)
@@ -5618,7 +5618,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 6,
         nombre: "Puente de las Flores",
         coordenadas: { lat: Number('39.470997'), lng: Number('-0.365178') },
-        imagen: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_de_las_flores.jpg",
     },
      // Tramo 7: Puente de las Flores → Puerta de la Mar (Párrafos: 296-B, 299, 245, 11-D)
     {
@@ -5648,10 +5648,10 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.472380'), lng: Number('-0.368756') },
         ],
         fin: { lat: Number('39.472081'), lng: Number('-0.368912')},
-        imagen: "imagenes/imagenes-aventuras/puente_flores-down.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_flores_down.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_flores_subida.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_flores_subida_2.jpg",
-        imagen4: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente_de_las_flores.jpg",
         imagen5: "imagenes/imagenes-aventuras/puente_flores_top.jpg",
         imagen6: "imagenes/imagenes-aventuras/puente_flores_agua.jpg",
         imagen7: "imagenes/imagenes-aventuras/puerta_mar.jpg",
@@ -5868,7 +5868,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.467031'), lng: Number('-0.375683') },
         imagen: "imagenes/imagenes-aventuras/ruinas_calle_colon.jpg",
         imagen2: "imagenes/imagenes-aventuras/calle_colon_2.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+        imagen3: "imagenes/imagenes-aventuras/plaza_toros.jpg",
         video: "",
     },
     // Parada 16: Plaza de Toros(Reto: 14) (Párrafos: 320, 321, 323, 322)
@@ -5879,7 +5879,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 11,
         nombre: "Plaza de Toros",
         coordenadas: { lat: Number('39.467031'), lng: Number('-0.375683') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_toros.jpg",
     },
     // Tramo 13: Plaza de Toros → Estación del Norte (Párrafos: 324, 20)
     {
@@ -5896,8 +5896,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.467411'), lng: Number('-0.376851') },
         ],
         fin: { lat: Number('39.467381'), lng: Number('-0.377117') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_toros.jpg",
+        imagen2: "imagenes/imagenes-aventuras/estacion_norte.jpg",
         video: "",
     },
     // Parada 17: (Reto: 15) (Párrafos: 325, 326)
@@ -5908,7 +5908,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 12,
         nombre: "Estación del Norte (Tren)",
         coordenadas: { lat: Number('39.467381'), lng: Number('-0.377117') },
-        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen: "imagenes/imagenes-aventuras/estacion_norte.jpg",
     },
     // Tramo 14: Estación del Norte (exterior) → Estación del Norte (interior) (Párrafos: 327, 330)
     {
@@ -5923,8 +5923,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.467149'), lng: Number('-0.377185') },
         ],
         fin: { lat: Number('39.467000'), lng: Number('-0.377270') },
-        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
-        imagen2: "",
+        imagen: "imagenes/imagenes-aventuras/estacion_norte.jpg",
+        imagen2: "imagenes/imagenes-aventuras/estacion_interior_2.jpeg",
         video: "",
     },
     // Parada 18: (Reto: 16) (Párrafos: 328, 329)
@@ -5971,9 +5971,9 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.470638'), lng: Number('-0.383312') },
         imagen: "imagenes/imagenes-aventuras/plaza_de_toros_y_estacion_del_norte.jpg",
-        imagen2: "imagenes/imagenes-aventuras/guillem-castro-1.jpg",
+        imagen2: "imagenes/imagenes-aventuras/guillem_castro_1.jpg",
         imagen3: "imagenes/imagenes-aventuras/biblioteca_hospital_fuente.jpg",
-        imagen3: "imagenes/imagenes-aventuras/iglesia_calle_hospital.jpg",
+        imagen4: "imagenes/imagenes-aventuras/iglesia_calle_hospital.jpg",
         video: "",
     },
     // Parada 19: Calle del Hospital (Ermita de Santa Lucía) (Reto: 17) (Párrafos: 578, 579)
@@ -6075,8 +6075,8 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.469930'), lng: Number('-0.381871') },
         imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
         imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital.jpg",
-        imagen3: "imagenes/imagenes-aventuras/biblioteca-hospital-trasera.jpg",
-        imagen3: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
+        imagen3: "imagenes/imagenes-aventuras/biblioteca_hospital_trasera.jpg",
+        imagen4: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
         video: "",
     },
     // Parada 24: Biblioteca del Hospital 2 (Reto21Puzzle PZ-14 ) (Párrafos: 592-B)
@@ -6127,9 +6127,9 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital.jpg",
         imagen3: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
         imagen4: "imagenes/imagenes-aventuras/calle_hospital_avenida_oeste.jpg",
-        imagen5: "imagenes/imagenes-aventuras/avenida-oeste.jpg",
-        imagen6: "imagenes/imagenes-aventuras/avenida-oeste-mercado-central.jpg",
-        imagen4: "imagenes/imagenes-aventuras/mercado_central.jpg",
+        imagen5: "imagenes/imagenes-aventuras/avenida_oeste.jpg",
+        imagen6: "imagenes/imagenes-aventuras/avenida_oeste_mercado_central.jpg",
+        imagen7: "imagenes/imagenes-aventuras/mercado_central.jpg",
         video: "",
     },
     // Parada 25: Mercado Central (Reto 22 ) (Párrafos: 701,22-B, 361, 362, 363, 364)
@@ -6188,7 +6188,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 16,
         nombre: "Lonja (Mercado de la Seda)",
         coordenadas: { lat: Number('39.474170'), lng: Number('-0.378600') },
-        imagen: "imagenes/imagenes-aventuras/Lonja_puerta_pecados.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_puerta_pecados.jpg",
         imagen2: "imagenes/imagenes-aventuras/lonja4.jpg",
     },
 
@@ -6261,7 +6261,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Quart",
         coordenadas: { lat: Number('39.475815'), lng: Number('-0.384196') },
         imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
-        imagen2: "imagenes/imagenes-aventuras/torres-quart-palleter.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torres_quart_palleter.jpg",
     },
     // Tramo 21: Torres de Quart → Museo de Prehistoria y Etnología (Párrafos: 333, 27-D)
     {
@@ -6285,10 +6285,10 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.478248'), lng: Number('-0.383117') },
         imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
-        imagen2: "imagenes/imagenes-aventuras/torres-quart-guillem-castro.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torres_quart_guillem_castro.jpg",
         imagen3: "imagenes/imagenes-aventuras/museo_prehistoria_far.jpg",
         imagen4: "imagenes/imagenes-aventuras/museo_prehistoria_close.jpg",
-        imagen5: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+        imagen5: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
         video: "",
     },
     // Parada 33: Museo de prehistoria y Etnología (Párrafos: 565, 566)
@@ -6299,7 +6299,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "18/19",
         nombre: "Museo de Prehistoria y Etnología",
         coordenadas: { lat: Number('39.478248'), lng: Number('-0.383117') },
-        imagen: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
     },
     // Tramo 22: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 31)
     {
@@ -6314,7 +6314,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.478208'), lng: Number('-0.382867') },
         ],
         fin: { lat: Number('39.478176'), lng: Number('-0.382630') },
-        imagen: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
         imagen2: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
         video: "",
     },
@@ -6352,7 +6352,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.480042'), lng: Number('-0.382967') },
         imagen: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
-        imagen2: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
         imagen3: "imagenes/imagenes-aventuras/museo_prehistoria_close.jpg",
         imagen4: "imagenes/imagenes-aventuras/museo_prehistoria_guillem_castro.jpg",
         imagen5: "imagenes/imagenes-aventuras/ivam.jpg",
@@ -6450,7 +6450,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 3,
         coordenadas: { lat: Number('39.478660'), lng: Number('-0.374700') },
         nombre: "Calle Muro de Santa Ana",
-        imagen: "imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg",
+        imagen: "imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg",
     },
     {
         tipo: "referencia",
@@ -6498,7 +6498,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 9,
         coordenadas: { lat: Number('39.474567'), lng: Number('-0.375496')},
         nombre: "Plaza de la Reina",
-        imagen: "imagenes/imagenes-aventuras/Plaza_Reina_3.jpg"
+        imagen: "imagenes/imagenes-aventuras/plaza_reina_3.jpg"
     },
     {
         tipo: "referencia",
@@ -6570,7 +6570,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 18,
         coordenadas: { lat: Number('39.474330'), lng: Number('-0.377780') },
         nombre: "Plaza del Doctor López Collado",
-        imagen: "imagenes/imagenes-aventuras/Plaza_collado.jpg"
+        imagen: "imagenes/imagenes-aventuras/plaza_collado.jpg"
     },
     {
         tipo: "referencia",
@@ -6578,7 +6578,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 19,
         coordenadas: { lat: Number('39.476080'), lng: Number('-0.377360') },
         nombre: "Plaza del Negrito",
-        imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg"
+        imagen: "imagenes/imagenes-aventuras/plaza_negrito.jpg"
     },
     {
         tipo: "referencia",
@@ -6586,7 +6586,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 20,
         coordenadas: { lat: Number('39.476620'), lng: Number('-0.377130') },
         nombre: "Calle Caballeros",
-        imagen: "imagenes/imagenes-aventuras/Calle_caballeros.jpg"
+        imagen: "imagenes/imagenes-aventuras/calle_caballeros.jpg"
     },
     {
         tipo: "referencia",
@@ -6683,7 +6683,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.478660'), lng: Number('-0.374700') },
         imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg",
         video: "",
     },
     // Parada 3: calle Muro Santa Ana (Reto 5) (Párrafos: 68)
@@ -6694,7 +6694,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 3,
         nombre: "Calle Muro de Santa Ana",
         coordenadas: { lat: Number('39.478660'), lng: Number('-0.374700') },
-        imagen: "imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg",
+        imagen: "imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg",
     },
     // Tramo 4: Calle Muro de Santa Ana → Iglesia de San Lorenzo (Párrafos: 156, 682-B, 7, )
     {
@@ -6708,7 +6708,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.478210'), lng: Number('-0.374790') },
         ],
         fin: { lat: Number('39.477820'), lng: Number('-0.374870') },
-        imagen: "imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg",
+        imagen: "imagenes/imagenes-aventuras/calle_muro_santa_ana.jpg",
         imagen2: "imagenes/imagenes-aventuras/cortes_valencianas.jpg",
         video: "",
     },
@@ -6757,7 +6757,8 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 5,
         nombre: "Plaza de la Virgen",
         coordenadas: { lat: Number('39.476570'), lng: Number('-0.375240') },
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/ofrenda_virgen_back.jpg",
+        imagen2: "imagenes/imagenes-aventuras/ofrenda_virgen_front.jpg",
     },
     // Parada 7: Plaza de la Virgen 3 (Basílica) (Reto8Puzzle PZ-01) (Párrafos: 451, 452, 160)
     {
@@ -6767,7 +6768,8 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 6,
         nombre: "Plaza de la Virgen",
         coordenadas: { lat: Number('39.476560'), lng: Number('-0.375160') },
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/ofrenda_virgen_front.jpg",
+        imagen2: "imagenes/imagenes-aventuras/ofrenda_virgen_back.jpg",
     },
     // Tramo 6 - Plaza de la Virgen → Torre del Miguelete (Párrafos: 161, 477-B, 147, 141, 150, 426, 11-B)
                 {
@@ -6856,7 +6858,7 @@ export const DATOS_AVENTURAS = {
                     ],
                     fin: { lat: Number('39.473830'), lng: Number('-0.375710') },
                     imagen: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg",
-                    imagen2: "imagenes/imagenes-aventuras/Plaza_Reina_2.jpg",
+                    imagen2: "imagenes/imagenes-aventuras/plaza_reina_2.jpg",
                     imagen3: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
                     video: ""
                 },
@@ -6888,8 +6890,9 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.470560'), lng: Number('-0.376770') },
         imagen: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
-        imagen2: "imagenes/imagenes-aventuras/calle_san_Vicente_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_san_vicente_2.jpg",
         imagen3: "imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg",
+        imagen4: "imagenes/imagenes-aventuras/fallas_1.jpg",
         video: "",
     },
     // Parada 13: Plaza del Ayuntamiento (Párrafos: 263, 346, 143)
@@ -6901,6 +6904,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza del Ayuntamiento",
         coordenadas: { lat: Number('39.470560'), lng: Number('-0.376770') },
         imagen: "imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg",
+        imagen2: "imagenes/imagenes-aventuras/fallas_3.jpg",
     },
     // Parada 14: Plaza del Ayuntamiento 2 (Mascletà) (Párrafos: 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181)
     {
@@ -6911,6 +6915,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza del Ayuntamiento",
         coordenadas: { lat: Number('39.470567'), lng: Number('-0.376732') },
         imagen: "imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg",
+        imagen2: "publico/imagenes/fallas-castillo.png",
     },
     // Tramo 9: Plaza del Ayuntamiento → Edificio del Ayuntamiento de València (Párrafos: 187, 332, 334, 340, 19)
     {
@@ -7009,8 +7014,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.473770'), lng: Number('-0.378320') },
         imagen: "imagenes/imagenes-aventuras/edificio_suay.jpg",
-        imagen2: "",
-        imagen3: "imagenes/imagenes-aventuras/mercado_central.jpg",
+        imagen2: "imagenes/imagenes-aventuras/mercado_central.jpg",
         video: "",
     },
     // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364)
@@ -7110,10 +7114,10 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.474750'), lng: Number('-0.378420') },
         ],
         fin: { lat: Number('39.474660'), lng: Number('-0.378340') },
-        imagen: "imagenes/imagenes-aventuras/Lonja_esquina_izquierda.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_far_view.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_close_view.jpg",
-        imagen4: "imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_esquina_izquierda.jpg",
+        imagen2: "imagenes/imagenes-aventuras/lonja_patio_naranjos_far_view.jpg",
+        imagen3: "imagenes/imagenes-aventuras/lonja_patio_naranjos_close_view.jpg",
+        imagen4: "imagenes/imagenes-aventuras/lonja_puerta_visitante.jpg",
         video: "",
     },
      // Tramo 15: Lonja (Mercado de la Seda) -entrada visitantes →  Plaza Doctor López Collado (Párrafos: 197, 397, 27-B)
@@ -7129,9 +7133,9 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.474360'), lng: Number('-0.378000') },
         ],
         fin: { lat: Number('39.474440'), lng: Number('-0.377900') },
-        imagen: "imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_puerta_visitante.jpg",
         imagen2: "imagenes/imagenes-aventuras/lonja2.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
+        imagen3: "imagenes/imagenes-aventuras/plaza_collado.jpg",
         video: "",
     },
 
@@ -7144,7 +7148,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza Doctor López Collado",
         coordenadas: { lat: Number('39.474440'), lng: Number('-0.377900') },
         imagen: "imagenes/imagenes-aventuras/lonja7.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_collado.jpg",
     },
 
     // Tramo 16: Plaza del Doctor López Collado → Plaza del Negrito (Párrafos: 198, 671, 522, 199)
@@ -7164,8 +7168,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.475850'), lng: Number('-0.377590') },
         ],
         fin: { lat: Number('39.476110'), lng: Number('-0.377410') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_collado.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_negrito.jpg",
         imagen3: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
         video: "",
     },
@@ -7178,7 +7182,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 19,
         nombre: "Fuente del Negrito",
         coordenadas: { lat: Number('39.476110'), lng: Number('-0.377410') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_negrito.jpg",
         image2: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
     },
 
@@ -7197,7 +7201,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.476610'), lng: Number('-0.376730') },
         imagen: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_caballeros.jpg",
         imagen3: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
         video: "",
     },
@@ -7228,7 +7232,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen:"imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_serranos.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_serranos.jpg",
         imagen3: "publico/imagenes/00_ torres_de serranos_back.jpg",
         video: ""
     },
@@ -7241,7 +7245,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-        imagen: "imagenes/imagenes-aventuras/Calle_serranos.jpg",
+        imagen: "imagenes/imagenes-aventuras/calle_serranos.jpg",
         imagen2: "publico/imagenes/00_ torres_de serranos_back.jpg"
     },
        ]
@@ -7289,7 +7293,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 5,
         coordenadas: { lat: Number('39.4711'), lng: Number('-0.36424') },
         nombre: "Puente de las Flores",
-        imagen: "imagenes/imagenes-aventuras/puente_flores-down.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_flores_down.jpg",
     },
     {
         tipo: "referencia",
@@ -7297,7 +7301,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 6,
         coordenadas: { lat: Number('39.47026'), lng: Number('-0.3637') },
         nombre: "Puente del Mar",
-        imagen: "imagenes/imagenes-aventuras/pont_de_la_mar.jpg",
+        imagen: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
     },
     {
         tipo: "referencia",
@@ -7305,7 +7309,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 7,
         coordenadas: { lat: Number('39.46888'), lng: Number('-0.3628') },
         nombre: "Puente de Aragón",
-        imagen: "imagenes/imagenes-aventuras/puente_aragon-down.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_aragon_down.jpg",
     },
     {
         tipo: "referencia",
@@ -7337,7 +7341,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 11,
         coordenadas: { lat: Number('39.45998'), lng: Number('-0.3575') },
         nombre: "Pistas de Patinaje",
-        imagen: "imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+        imagen: "imagenes/imagenes-aventuras/cac_patinaje.jpg",
     },
     {
         tipo: "referencia",
@@ -7417,7 +7421,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 21,
         coordenadas: { lat: Number('39.47211'), lng: Number('-0.36848') },
         nombre: "Puerta del Mar",
-        imagen: "imagenes/imagenes-aventuras/puerta_del_mar.jpg",
+        imagen: "imagenes/imagenes-aventuras/puerta_mar.jpg",
     },
     {
         tipo: "referencia",
@@ -7449,7 +7453,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 25,
         coordenadas: { lat: Number('39.46666'), lng: Number('-0.37614') },
         nombre: "Plaza de Toros 🐂",
-        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_toros.jpg",
     },
     {
         tipo: "referencia",
@@ -7457,7 +7461,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 26,
         coordenadas: { lat: Number('39.46708'), lng: Number('-0.37719') },
         nombre: "Estación del Norte 🚂",
-        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen: "imagenes/imagenes-aventuras/estacion_norte.jpg",
     },
     {
         tipo: "referencia",
@@ -7489,7 +7493,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 30,
         coordenadas: { lat: Number('39.4707'), lng: Number('-0.37391') },
         nombre: "Banco Central de Valencia",
-        imagen: "imagenes/imagenes-aventuras/banco_valencia.jpg",
+        imagen: "imagenes/imagenes-aventuras/banco_de_valencia.jpg",
     },
     {
         tipo: "referencia",
@@ -7497,7 +7501,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 31,
         coordenadas: { lat: Number('39.47272'), lng: Number('-0.37468') },
         nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
-        imagen: "imagenes/imagenes-aventuras/Marques_dos_aguas_2.jpg",
+        imagen: "imagenes/imagenes-aventuras/marques_dos_aguas_2.jpg",
     },
     {
         tipo: "referencia",
@@ -7513,7 +7517,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 33,
         coordenadas: { lat: Number('39.47421'), lng: Number('-0.37919') },
         nombre: "Real Parroquia de los Santos Juanes (San Juan del Mercado)",
-        imagen: "imagenes/imagenes-aventuras/santos_juanes.jpg",
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_mercado.jpg",
     },
     {
         tipo: "referencia",
@@ -7521,7 +7525,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 34,
         coordenadas: { lat: Number('39.47438'), lng: Number('-0.37834') },
         nombre: "Lonja de la Seda",
-        imagen: "imagenes/imagenes-aventuras/lonja_seda.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja.jpg",
     },
     {
         tipo: "referencia",
@@ -7529,7 +7533,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 35,
         coordenadas: { lat: Number('39.47433'), lng: Number('-0.37778') },
         nombre: "Plaza del Doctor López Collado",
-        imagen: "imagenes/imagenes-aventuras/plaza_doctor_lopez_collado.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_collado.jpg",
     },
     {
         tipo: "referencia",
@@ -7577,7 +7581,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 41,
         coordenadas: { lat: Number('39.47626'), lng: Number('-0.37484') },
         nombre: "Real Basílica de Nuestra Señora de los Desamparados",
-        imagen: "imagenes/imagenes-aventuras/basilica_desamparados.jpg",
+        imagen: "imagenes/imagenes-aventuras/basilica_almoina.jpg",
     },
     {
         tipo: "referencia",
@@ -7585,7 +7589,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 42,
         coordenadas: { lat: Number('39.47626'), lng: Number('-0.37416') },
         nombre: "Museo Arqueológico de la Almoína",
-        imagen: "imagenes/imagenes-aventuras/museo_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_almoina_2.jpg",
     },
     {
         tipo: "referencia",
@@ -7609,7 +7613,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 45,
         coordenadas: { lat: Number('39.47662'), lng: Number('-0.37713') },
         nombre: "Calle Caballeros",
-        imagen: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+        imagen: "imagenes/imagenes-aventuras/calle_caballeros.jpg",
     },
     {
         tipo: "referencia",
@@ -7625,7 +7629,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 47,
         coordenadas: { lat: Number('39.47607'), lng: Number('-0.37916') },
         nombre: "Parroquia de San Nicolás (Puerta Gótica)",
-        imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
     },
     {
         tipo: "referencia",
@@ -7633,7 +7637,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 48,
         coordenadas: { lat: Number('39.47608'), lng: Number('-0.37736') },
         nombre: "Plaza del Negrito",
-        imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_negrito.jpg",
     },
     {
         tipo: "referencia",
@@ -7649,7 +7653,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 50,
         coordenadas: { lat: Number('39.47755'), lng: Number('-0.3786') },
         nombre: "Portal de la Valldigna",
-        imagen: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
+        imagen: "imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg",
     },
     {
         tipo: "referencia",
@@ -7657,7 +7661,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 51,
         coordenadas: { lat: Number('39.47816'), lng: Number('-0.3777') },
         nombre: "Torre del Ángel (árabe)",
-        imagen: "imagenes/imagenes-aventuras/torre_del_angel.jpg",
+        imagen: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
     },
     {
         tipo: "referencia",
@@ -7713,7 +7717,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 58,
         coordenadas: { lat: Number('39.478245'), lng: Number('-0.383135') },
         nombre: "Museo de Prehistoria de Valencia",
-        imagen: "imagenes/imagenes-aventuras/museo_prehistoria.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
     },
     {
         tipo: "referencia",
@@ -7721,7 +7725,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 59,
         coordenadas: { lat: Number('39.478241'), lng: Number('-0.383093') },
         nombre: "Museo de Etnología de Valencia",
-        imagen: "imagenes/imagenes-aventuras/museo_etnologia.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
     },
     {
         tipo: "referencia",
@@ -7761,7 +7765,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 64,
         coordenadas: { lat: Number('39.476083'), lng: Number('-0.386579') },
         nombre: "Jardín Botánico",
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/botanico.jpeg",
     },
     {
         tipo: "referencia",
@@ -7769,7 +7773,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 65,
         coordenadas: { lat: Number('39.477613'), lng: Number('-0.388283') },
         nombre: "Jardín de las Hespérides",
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/jardin_de_las_hesperides.jpg",
     },
     {
         tipo: "referencia",
@@ -7881,7 +7885,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 79,
         coordenadas: { lat: Number('39.472999'), lng: Number('-0.369576') },
         nombre: "Jardín de la Glorieta",
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/jardin_glorieta.jpeg",
     },
     {
         tipo: "referencia",
@@ -7905,7 +7909,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 82,
         coordenadas: { lat: Number('39.47412'), lng: Number('-0.37249') },
         nombre: "Parroquia de Santo Tomás Apostol y San Felipe Neri",
-        imagen: "imagenes/imagenes-aventuras/santo_tomas_felipe_neri.jpg",
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_felipe_neri.jpg",
     },
     {
         tipo: "referencia",
@@ -7913,7 +7917,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 83,
         coordenadas: { lat: Number('39.47438'), lng: Number('-0.37282') },
         nombre: "Iglesia de San Juan del Hospital",
-        imagen: "imagenes/imagenes-aventuras/san_juan_hospital.jpg",
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_hospital.jpg",
     },
     {
         tipo: "referencia",
@@ -7929,7 +7933,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 85,
         coordenadas: { lat: Number('39.47593'), lng: Number('-0.373852') },
         nombre: "Museo de la Ciudad",
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/museo_ciudad.jpg",
     },
     {
         tipo: "referencia",
@@ -7937,7 +7941,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 86,
         coordenadas: { lat: Number('39.475814'), lng: Number('-0.374132') },
         nombre: "Cripta de San Vicente Mártir",
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/cripta_san_vicente_martir.jpg",
     },
     {
         tipo: "referencia",
@@ -7945,7 +7949,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 87,
         coordenadas: { lat: Number('39.476579'), lng: Number('-0.373912') },
         nombre: "Almudín",
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/museo_almudin_exterior_2.jpg",
     },
     {
         tipo: "referencia",
@@ -7969,7 +7973,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "v1",
         coordenadas: { lat: Number('39.477710'), lng: Number('-0.368240') },
         nombre: "Paseo de las Palmeras",
-        imagen: "imagenes/imagenes-aventuras/viveros_ paseo_palmeras.jpg"
+        imagen: "imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg"
     },
     {
         tipo: "referencia",
@@ -7977,7 +7981,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "v5",
         coordenadas: { lat: Number('39.479790'), lng: Number('-0.367200') },
         nombre: "Circuito Vial Urbano",
-        imagen: "imagenes/imagenes-aventuras/viveros_ circuito_vial.jpg"
+        imagen: "imagenes/imagenes-aventuras/viveros_circuito_vial.jpg"
     },
 
       // ────---------------------------------------------
@@ -8103,8 +8107,8 @@ export const DATOS_AVENTURAS = {
         imagen3: "imagenes/imagenes-aventuras/serranos_pont_fusta.jpg",
         imagen4: "imagenes/imagenes-aventuras/pont_fusta.jpg",
         imagen5: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
-        imagen2: "imagenes/imagenes-aventuras/puente_real_down.jpg",
-        imagen3: "imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg",
+        imagen6: "imagenes/imagenes-aventuras/puente_real_down.jpg",
+        imagen7: "imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg",
         video: "",
     },
     // Parada 3: Puente de la Exposición (Peineta) (Reto 5) (Párrafos: 237, 238, 70, 480, 240, 239)
@@ -8135,7 +8139,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.470800'), lng: Number('-0.365070') },
         imagen: "imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg",
-        imagen2: "imagenes/imagenes-aventuras/puente_flores-down.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_flores_down.jpg",
         video: "",
     },
     // Parada 4: Puente de las Flores (Párrafos: 241, 570)
@@ -8146,7 +8150,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 5,
         nombre: "Puente de las Flores",
         coordenadas: { lat: Number('39.470800'), lng: Number('-0.365070') },
-        imagen: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_de_las_flores.jpg",
     },
     // Tramo 5: Puente de las Flores → Puente de Aragón (parte superior) (Párrafos: 242, 10, 243, 11)
     {
@@ -8172,7 +8176,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.468940'), lng: Number('-0.362310') },
         ],
         fin: { lat: Number('39.468910'), lng: Number('-0.362860') },
-        imagen: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_de_las_flores.jpg",
         imagen2: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_aragon_subida.jpg",
         imagen4: "imagenes/imagenes-aventuras/puente_aragon_top.jpg",
@@ -8187,7 +8191,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Puente de Aragón",
         coordenadas: { lat: Number('39.468910'), lng: Number('-0.362860') },
         imagen: "imagenes/imagenes-aventuras/puente_aragon_top.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Puente_de_aragon_vista.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_de_aragon_vista.jpg",
     },
     // Tramo 6: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior) (Párrafos: 247, 10)
     {
@@ -8317,7 +8321,7 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/puente_reino.jpg",
         imagen3:"imagenes/imagenes-aventuras/puente_reino_gargola.jpg",
         imagen4: "imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg",
-        imagen5:"imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+        imagen5:"imagenes/imagenes-aventuras/cac_patinaje.jpg",
         video: "",
     },
     // Parada 9: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19)
@@ -8328,7 +8332,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 11,
         nombre: "Pistas de Patinaje",
         coordenadas:  { lat: Number('39.459850'), lng: Number('-0.357590') },
-        imagen: "imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+        imagen: "imagenes/imagenes-aventuras/cac_patinaje.jpg",
     },
     // Tramo 10: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269)
     {
@@ -8425,7 +8429,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.456843'), lng: Number('-0.349310') },
         ],
         fin: { lat: Number('39.456730'), lng: Number('-0.349399') },
-        imagen: "imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+        imagen: "imagenes/imagenes-aventuras/cac_patinaje.jpg",
         imagen2: "imagenes/imagenes-aventuras/cac_mapa.jpg",
         imagen3:"publico/imagenes/pano_CAC.jpg",
         video: "",
@@ -8451,7 +8455,7 @@ export const DATOS_AVENTURAS = {
         coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
         imagen: "publico/imagenes/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_principe_felipe.jpg",
-        imagen3: "imagenes/imagenes-aventuras/CAC-6.jpg",
+        imagen3: "imagenes/imagenes-aventuras/cac_6.jpg",
     },
     // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l'Assut de l'Or (Párrafos: 276, 22)
     {
@@ -8479,7 +8483,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.455825'), lng: Number('-0.348149') },
         imagen: "publico/imagenes/pano_CAC.jpg",
-        imagen2: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_assut_2.jpg",
         video: "",
     },
     // Parada 12: Puente l'Assut de l'Or (Reto10puzzle PZ-09) (Párrafos: 277, 278)
@@ -8490,7 +8494,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 15,
         nombre: "Puente l'Assut de l'Or",
         coordenadas:  { lat: Number('39.455825'), lng: Number('-0.348149') },
-        imagen: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_assut_2.jpg",
     },
     // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279)
     {
@@ -8509,7 +8513,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.453620'), lng: Number('-0.351120') },
         ],
         fin: { lat: Number('39.453520'), lng: Number('-0.350810') },
-        imagen: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_assut_2.jpg",
         imagen2: "imagenes/imagenes-aventuras/agora.jpg",
         imagen3: "imagenes/imagenes-aventuras/oceanografic.jpg",
         imagen4:"imagenes/imagenes-aventuras/agora_oceanografic.jpg",
@@ -8632,7 +8636,7 @@ export const DATOS_AVENTURAS = {
         imagen4: "imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg",
         imagen5: "imagenes/imagenes-aventuras/puente_angel_custodio.jpg",
         imagen6: "imagenes/imagenes-aventuras/palau_de_la_musica.jpg",
-        imagen7: "imagenes/imagenes-aventuras/puente_aragon-down.jpg",
+        imagen7: "imagenes/imagenes-aventuras/puente_aragon_down.jpg",
         imagen8: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
         video: "",
     },
@@ -8679,7 +8683,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_flores_subida.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_flores_subida_2.jpg",
-        imagen4: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente_de_las_flores.jpg",
         imagen5: "imagenes/imagenes-aventuras/puente_flores_top.jpg",
         imagen6: "imagenes/imagenes-aventuras/puente_flores_agua.jpg",
         imagen7: "imagenes/imagenes-aventuras/puerta_mar.jpg",
@@ -8886,7 +8890,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.467031'), lng: Number('-0.375683') },
         imagen: "imagenes/imagenes-aventuras/ruinas_calle_colon.jpg",
         imagen2: "imagenes/imagenes-aventuras/calle_colon_2.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+        imagen3: "imagenes/imagenes-aventuras/plaza_toros.jpg",
         video: "",
     },
     // Parada 24: Plaza de Toros(Reto: 20) (Párrafos: 320, 321, 323, 322)
@@ -8897,7 +8901,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 25,
         nombre: "Plaza de Toros",
         coordenadas: { lat: Number('39.467031'), lng: Number('-0.375683') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_toros.jpg",
     },
     // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37)
     {
@@ -8914,8 +8918,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.467411'), lng: Number('-0.376851') },
         ],
         fin: { lat: Number('39.467381'), lng: Number('-0.377117') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_toros.jpg",
+        imagen2: "imagenes/imagenes-aventuras/estacion_norte.jpg",
         video: "",
     },
     // Parada 25: (Reto: 21) (Párrafos: 325, 326)
@@ -8926,7 +8930,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 26,
         nombre: "Estación del Norte (Tren)",
         coordenadas: { lat: Number('39.467381'), lng: Number('-0.377117') },
-        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen: "imagenes/imagenes-aventuras/estacion_norte.jpg",
     },
     // Tramo 23: Estación del Norte (exterior) → Estación del Norte (interior) (Párrafos: 327, 330)
     {
@@ -8941,7 +8945,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.467149'), lng: Number('-0.377185') },
         ],
         fin: { lat: Number('39.467000'), lng: Number('-0.377270') },
-        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen: "imagenes/imagenes-aventuras/estacion_norte.jpg",
         imagen2: "imagenes/imagenes-aventuras/estacion_interior_2.jpeg",
         video: "",
     },
@@ -8978,7 +8982,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.469518'), lng: Number('-0.376830') },
         ],
         fin: { lat: Number('39.469710'), lng: Number('-0.376930') },
-        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen: "imagenes/imagenes-aventuras/estacion_norte.jpg",
         imagen2: "imagenes/imagenes-aventuras/ayuntamiento.jpg",
         video: "",
     },
@@ -9059,7 +9063,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.470610'), lng: Number('-0.374080') },
         imagen: "imagenes/imagenes-aventuras/correos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_barcas.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_barcas.jpg",
         imagen3: "imagenes/imagenes-aventuras/banco_de_valencia.jpg",
         video: "",
     },
@@ -9090,8 +9094,8 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.472760'), lng: Number('-0.374670') },
         imagen: "imagenes/imagenes-aventuras/banco_de_valencia.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Iglesia_San_juan_cruz.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Marques_dos_aguas_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/iglesia_san_juan_cruz.jpg",
+        imagen3: "imagenes/imagenes-aventuras/marques_dos_aguas_2.jpg",
         video: "",
     },
 
@@ -9103,7 +9107,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 31,
         nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
         coordenadas: { lat: Number('39.472760'), lng: Number('-0.374670') },
-        imagen: "imagenes/imagenes-aventuras/Marques_dos_aguas_1.jpg",
+        imagen: "imagenes/imagenes-aventuras/marques_dos_aguas_1.jpg",
         imagen2:"imagenes/imagenes-aventuras/museo_ceramica_9.jpg",
         imagen3: "imagenes/imagenes-aventuras/museo_ceramica_8.jpg",
     },
@@ -9126,8 +9130,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.473190'), lng: Number('-0.377650') },
         ],
         fin: { lat: Number('39.473770'), lng: Number('-0.378320') },
-        imagen: "imagenes/imagenes-aventuras/Marques_dos_aguas_1.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_San_Vicente.jpg",
+        imagen: "imagenes/imagenes-aventuras/marques_dos_aguas_1.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_san_vicente.jpg",
         imagen3: "imagenes/imagenes-aventuras/mercado_central.jpg",
         video: "",
     },
@@ -9216,7 +9220,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 34,
         nombre: "Lonja (Mercado de la Seda)",
         coordenadas: { lat: Number('39.474170'), lng: Number('-0.378600') },
-        imagen: "imagenes/imagenes-aventuras/Lonja_puerta_pecados.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_puerta_pecados.jpg",
         imagen2: "imagenes/imagenes-aventuras/lonja4.jpg",
     },
 
@@ -9276,9 +9280,9 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.474450'), lng: Number('-0.378890') },
         ],
         fin: { lat: Number('39.474560'), lng: Number('-0.378700') },
-        imagen: "imagenes/imagenes-aventuras/Lonja_esquina_izquierda.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_far_view.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_close_view.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_esquina_izquierda.jpg",
+        imagen2: "imagenes/imagenes-aventuras/lonja_patio_naranjos_far_view.jpg",
+        imagen3: "imagenes/imagenes-aventuras/lonja_patio_naranjos_close_view.jpg",
         video: "",
     },
 
@@ -9305,8 +9309,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.474750'), lng: Number('-0.378420') },
         ],
         fin: { lat: Number('39.474660'), lng: Number('-0.378340') },
-        imagen: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_close_view.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_patio_naranjos_close_view.jpg",
+        imagen2: "imagenes/imagenes-aventuras/lonja_puerta_visitante.jpg",
         video: "",
     },
 
@@ -9322,7 +9326,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.474564'), lng: Number('-0.378228') },
         ],
         fin: { lat: Number('39.474391'), lng: Number('-0.378047') },
-        imagen: "imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg",
+        imagen: "imagenes/imagenes-aventuras/lonja_puerta_visitante.jpg",
         imagen2: "imagenes/imagenes-aventuras/lonja2.jpg",
         video: "",
     },
@@ -9349,7 +9353,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.474440'), lng: Number('-0.377900') },
         imagen: "imagenes/imagenes-aventuras/lonja2.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_collado.jpg",
         video: "",
     },
     // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402)
@@ -9360,7 +9364,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 35,
         nombre: "Plaza Doctor López Collado",
         coordenadas: { lat: Number('39.474440'), lng: Number('-0.377900') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_collado.jpg",
     },
     // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405)
     {
@@ -9381,7 +9385,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.473569'), lng: Number('-0.376650') },
         ],
         fin: { lat: Number('39.473690'), lng: Number('-0.376680') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_collado.jpg",
         imagen2: "imagenes/imagenes-aventuras/Plaza_redonda.jpg",
         video: "",
     },
@@ -9508,7 +9512,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.475220'), lng: Number('-0.375650') },
         imagen: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Plaza_Reina_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_reina_2.jpg",
         imagen3: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg",
         video: ""
     },
@@ -9642,7 +9646,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto",
         coordenadas:  { lat: Number('39.476000'), lng: Number('-0.374533') },
-        imagen: "",
+        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
     },
     // Parada 61: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo (Reto 48) (Párrafos: 51, 454, 455, 455-B, 456)
     {
@@ -9733,7 +9737,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.476600'), lng: Number('-0.375270') },
         imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Paso_Plaza_Almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/paso_plaza_almoina.jpg",
         video: "",
     },
     // Parada 66: Plaza de la Virgen (intro) (Párrafos: 346, 143)
@@ -9808,7 +9812,7 @@ export const DATOS_AVENTURAS = {
         waypoints: [],
         fin: { lat: Number('39.476590'), lng: Number('-0.376940') },
         imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_caballeros.jpg",
         video: ""
     },
 
@@ -9828,7 +9832,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.476620'), lng: Number('-0.378650') },
         ],
         fin: { lat: Number('39.476570'), lng: Number('-0.378830') },
-        imagen: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+        imagen: "imagenes/imagenes-aventuras/calle_caballeros.jpg",
         imagen2: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
         video: ""
     },
@@ -9871,7 +9875,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 47,
         nombre: "Iglesia de San Nicolás",
         coordenadas: { lat: Number('39.476100'), lng: Number('-0.379180') },
-        imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
     },
 
     // Parada 72 - Iglesia de San Nicolás BACK (Reto 58) (Párrafos: 497, 498)
@@ -9902,10 +9906,10 @@ export const DATOS_AVENTURAS = {
 
         ],
         fin: { lat: Number('39.476110'), lng: Number('-0.377410') },
-        imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/iglesia_san_nicolas_3.jpg",
         imagen3: "imagenes/imagenes-aventuras/iglesia_san_nicolas_4.jpg",
-        imagen4: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+        imagen4: "imagenes/imagenes-aventuras/plaza_negrito.jpg",
         imagen5: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
         video: ""
     },
@@ -9918,7 +9922,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 48,
         nombre: "Plaza del Negrito",
         coordenadas: { lat: Number('39.476110'), lng: Number('-0.377410') },
-        imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_negrito.jpg",
         imagen2: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
     },
 
@@ -9944,7 +9948,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.476390'), lng: Number('-0.380010') },
         imagen: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_caballeros.jpg",
         imagen3: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
         imagen4: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
         video: ""
@@ -9992,7 +9996,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.477550'), lng: Number('-0.378600') },
         imagen: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
-        imagen2: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
+        imagen2: "imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg",
         video: ""
     },
 
@@ -10004,7 +10008,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 50,
         nombre: "Portal de la Valldigna",
         coordenadas: { lat: Number('39.477550'), lng: Number('-0.378600') },
-        imagen: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
+        imagen: "imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg",
     },
 
     // Tramo 50 - Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67)
@@ -10024,8 +10028,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.478010'), lng: Number('-0.377860') },
         ],
         fin: { lat: Number('39.478030'), lng: Number('-0.377910') },
-        imagen: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
-        imagen2: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+        imagen: "imagenes/imagenes-aventuras/portal_de_la_valldigna.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
         video: ""
     },
 
@@ -10037,7 +10041,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 51,
         nombre: "Torre del Ángel (Torre árabe)",
         coordenadas: { lat: Number('39.478030'), lng: Number('-0.377910') },
-        imagen: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+        imagen: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
         video: ""
     },
     // Tramo 51 - Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523)
@@ -10058,7 +10062,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.478183'), lng: Number('-0.376511') },
              ],
         fin: { lat: Number('39.478310'), lng: Number('-0.376540') },
-        imagen: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+        imagen: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
         imagen2: "imagenes/imagenes-aventuras/refugio_guerra_civil.jpg",
         video: ""
     },
@@ -10265,7 +10269,6 @@ export const DATOS_AVENTURAS = {
         nombre: "Instituto Valenciano de Arte Moderno (IVAM)",
         coordenadas: { lat: Number('39.480022'), lng: Number('-0.382899') },
         imagen: "imagenes/imagenes-aventuras/ivam.jpg",
-        imagen2:"imagenes/imagenes-aventuras/torres_de_quart.jpg",
     },
     // Parada 89: Instituto Valenciano de Arte Moderno (IVAM): Museo (Párrafos: 563, 4)
     {
@@ -10300,9 +10303,9 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.478248'), lng: Number('-0.383117') },
         imagen: "imagenes/imagenes-aventuras/ivam.jpg",
-        imagen3: "imagenes/imagenes-aventuras/museo_prehistoria_far.jpg",
-        imagen4: "imagenes/imagenes-aventuras/museo_prehistoria_close.jpg",
-        imagen5: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_prehistoria_far.jpg",
+        imagen3: "imagenes/imagenes-aventuras/museo_prehistoria_close.jpg",
+        imagen4: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
         video: "",
     },
     // Parada 90: Museo de prehistoria y Etnología (Párrafos: 565, 566)
@@ -10313,7 +10316,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "58/59",
         nombre: "Museo de Prehistoria y Etnología",
         coordenadas: { lat: Number('39.478248'), lng: Number('-0.383117') },
-        imagen: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
     },
     // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218)
     {
@@ -10328,7 +10331,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.478208'), lng: Number('-0.382867') },
         ],
         fin: { lat: Number('39.478176'), lng: Number('-0.382630') },
-        imagen: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
         imagen2: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
         video: "",
     },
@@ -10391,7 +10394,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Quart",
         coordenadas: { lat: Number('39.475780'), lng: Number('-0.384202') },
         imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
-        imagen2: "imagenes/imagenes-aventuras/torres-quart-palleter.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torres_quart_palleter.jpg",
     },
     // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77)
     {
@@ -10513,8 +10516,8 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.469930'), lng: Number('-0.381871') },
         imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
         imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital.jpg",
-        imagen3: "imagenes/imagenes-aventuras/biblioteca-hospital-trasera.jpg",
-        imagen3: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
+        imagen3: "imagenes/imagenes-aventuras/biblioteca_hospital_trasera.jpg",
+        imagen4: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
         video: "",
     },
     // Parada 99: Biblioteca del Hospital 2 (Reto77Puzzle PZ-14 ) (Párrafos: 592-B)
@@ -10567,7 +10570,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.475780'), lng: Number('-0.384202') },
         imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
         imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital.jpg",
-        imagen3: "imagenes/imagenes-aventuras/biblioteca-hospital-trasera.jpg",
+        imagen3: "imagenes/imagenes-aventuras/biblioteca_hospital_trasera.jpg",
         imagen4: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
         video: "",
     },
@@ -10580,7 +10583,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Quart",
         coordenadas: { lat: Number('39.475780'), lng: Number('-0.384202') },
         imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
-        imagen2: "imagenes/imagenes-aventuras/torres-quart-palleter.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torres_quart_palleter.jpg",
     },
     // Tramo 64: Torres de Quart 2 → jardín Botánico (Párrafos: 595)
     {
@@ -10598,10 +10601,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.475442'), lng: Number('-0.386010') },
         ],
         fin: { lat: Number('39.475395'), lng: Number('-0.386364') },
-        imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
-        imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital.jpg",
-        imagen3: "imagenes/imagenes-aventuras/biblioteca-hospital-trasera.jpg",
-        imagen4: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
+        imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
+        imagen2: "imagenes/imagenes-aventuras/botanico.jpeg",
         video: "",
     },
     // Parada 101: Jardín Botánico (Párrafos: 596)
@@ -10612,7 +10613,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "64",
         nombre: "Jardín Botánico",
         coordenadas: { lat: Number('39.475395'), lng: Number('-0.386364') },
-        imagen: "imagenes/imagenes-aventuras/jardin_botanico.jpg",
+        imagen: "imagenes/imagenes-aventuras/botanico.jpeg",
     },
     // Tramo 65 : Jardín Botánico → Jardín de las Hespérides (Párrafos: 598)
     {
@@ -10635,10 +10636,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.477468'), lng: Number('-0.388224') },
         ],
         fin: { lat: Number('39.477646'), lng: Number('-0.388293') },
-        imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
-        imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital.jpg",
-        imagen3: "imagenes/imagenes-aventuras/biblioteca-hospital-trasera.jpg",
-        imagen4: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
+        imagen: "imagenes/imagenes-aventuras/botanico.jpeg",
+        imagen2: "imagenes/imagenes-aventuras/jardin_de_las_hesperides.jpg",
         video: "",
     },
     // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600)
@@ -10649,8 +10648,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "65",
         nombre: "Jardín de las Hespérides",
         coordenadas: { lat: Number('39.477646'), lng: Number('-0.388293') },
-        imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
-        imagen2: "imagenes/imagenes-aventuras/torres-quart-palleter.jpg",
+        imagen: "imagenes/imagenes-aventuras/jardin_de_las_hesperides.jpg",
     },
     // Tramo 66: Jardín de las Hespérides → estadio de Atletismo (Párrafos: 601)
     {
@@ -10684,10 +10682,9 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.476403'), lng: Number('-0.394072') },
         ],
         fin: {lat: Number('39.476680'), lng: Number('-0.394290')},
-        imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
-        imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital.jpg",
-        imagen3: "imagenes/imagenes-aventuras/biblioteca-hospital-trasera.jpg",
-        imagen4: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
+        imagen: "imagenes/imagenes-aventuras/jardin_de_las_hesperides.jpg",
+        imagen2: "imagenes/imagenes-aventuras/bajada_hesperides_atletismo.jpeg",
+        imagen3: "imagenes/imagenes-aventuras/estadio_atletismo.jpg",
         video: "",
     },
     // Parada 103: Estadio de Atletismo (Reto78puzzle PZ-10) (Párrafos: 602, 603)
@@ -11279,7 +11276,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_real.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_real_down.jpg",
-        imagen4: "imagenes/imagenes-aventuras/viveros-tunel_turia.jpg",
+        imagen4: "imagenes/imagenes-aventuras/viveros_tunel_turia.jpg",
         imagen5: "imagenes/imagenes-aventuras/viveros_tunel_2.jpg",
         imagen6: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
         video: "",
@@ -11310,7 +11307,7 @@ export const DATOS_AVENTURAS = {
         fin: {lat: Number('39.478239'), lng: Number('-0.367925') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
-        imagen3: "imagenes/imagenes-aventuras/viveros_ paseo_palmeras.jpg",
+        imagen3: "imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg",
         video: "",
     },
     // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2)
@@ -11344,7 +11341,7 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/viveros_casa_jardinero.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_libre_4.jpg",
         imagen4: "imagenes/imagenes-aventuras/viveros_libre_2.jpg",
-        imagen5: "imagenes/imagenes-aventuras/viveros_ circuito_vial.jpg",
+        imagen5: "imagenes/imagenes-aventuras/viveros_circuito_vial.jpg",
         video: "",
     },
     // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4)
@@ -11360,12 +11357,12 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479497'), lng: Number('-0.367881') },
          ],
         fin: { lat: Number('39.479455'), lng: Number('-0.368610') },
-        imagen: "imagenes/imagenes-aventuras/viveros_ circuito_vial.jpg",
+        imagen: "imagenes/imagenes-aventuras/viveros_circuito_vial.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_pajarera.jpg",
-        imagen3: "imagenes/imagenes-aventuras/viveros_plano.png",
-        imagen4: "imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg",
-        imagen5: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
+        imagen3: "imagenes/imagenes-aventuras/viveros_pajarera.jpg",
+        imagen4: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen5: "imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg",
+        imagen6: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
         video: "",
     },
     // Parada 119: Museo de Ciencias Naturales (Reto 85) (Párrafos: viv6, viv5)
@@ -11544,9 +11541,10 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.473509'), lng: Number('-0.369616') },
          ],
         fin: { lat: Number('39.473359'), lng: Number('-0.369589') },
-        imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
-        imagen3: "imagenes/imagenes-aventuras/puente_real_up.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_real_up.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_del_real_top.jpg",
+        imagen3: "imagenes/imagenes-aventuras/plaza_tetuan.jpeg",
+        imagen4: "imagenes/imagenes-aventuras/jardin_glorieta_3.jpeg",
         video: "",
     },
     // Parada 125: Jardín de la Glorieta (Párrafos: 657)
@@ -11557,7 +11555,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 79,
         nombre: "Jardín de la Glorieta",
         coordenadas: { lat: Number('39.473359'), lng: Number('-0.369589') },
-        imagen: "imagenes/imagenes-aventuras/puente_real_up.jpg",
+        imagen: "imagenes/imagenes-aventuras/jardin_glorieta_3.jpeg",
     },
     // Tramo 88: Jardin de la Glorieta 1 (Plaza de Tetuán) → Jardín de la Glorieta 2 (Palacio de Justicia) (Párrafos: 658, 95)
     {
@@ -11574,9 +11572,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.472226'), lng: Number('-0.368892') },
          ],
         fin: { lat: Number('39.472081'), lng: Number('-0.368912') },
-        imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
-        imagen3: "imagenes/imagenes-aventuras/puente_real_up.jpg",
+        imagen: "imagenes/imagenes-aventuras/jardin_glorieta_3.jpeg",
+        imagen2: "imagenes/imagenes-aventuras/palacio_justicia.jpg",
         video: "",
     },
     // Parada 126: Palacio de Justicia (Párrafos: 659)
@@ -11764,10 +11761,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.475853'), lng: Number('-0.374087') },
         ],
         fin: { lat: Number('39.475889'), lng: Number('-0.374065') },
-        imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_hospital.jpg",
-        imagen2: "imagenes/imagenes-aventuras/plaza_napones_y_sicilia.jpg",
-        imagen3: "imagenes/imagenes-aventuras/plaza_napones_y_sicilia_2.jpg",
-        imagen4: "imagenes/imagenes-aventuras/palacio_arzobispal.jpg",
+        imagen: "imagenes/imagenes-aventuras/palacio_arzobispal.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_ciudad.jpg",
         video: "",
     },
     // Parada 133: Museo de la Ciudad (Párrafos: 674-B)
@@ -11778,7 +11773,9 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "85",
         nombre: "Museo de la Ciudad",
         coordenadas:  { lat: Number('39.475889'), lng: Number('-0.374065') },
-        imagen: "imagenes/imagenes-aventuras/museo_de_la_ciudad.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_ciudad.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_ciudad_3.jpg",
+        imagen3: "imagenes/imagenes-aventuras/museo_ciudad_2.jpg",
     },
     // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675)
     {
@@ -11788,7 +11785,8 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "86",
         nombre: "Cripta de San Vicente Mártir",
         coordenadas:  { lat: Number('39.475939'), lng: Number('-0.374076') },
-        imagen: "imagenes/imagenes-aventuras/.jpg",
+        imagen: "imagenes/imagenes-aventuras/cripta_san_vicente_martir.jpg",
+        imagen2: "imagenes/imagenes-aventuras/cripta_san_vicente_martir_2.jpg",
     },
     // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676)
     {
@@ -11803,10 +11801,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.476179'), lng: Number('-0.373995') },
         ],
         fin: { lat: Number('39.476429'), lng: Number('-0.373911') },
-        imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_hospital.jpg",
-        imagen2: "imagenes/imagenes-aventuras/plaza_napones_y_sicilia.jpg",
-        imagen3: "imagenes/imagenes-aventuras/plaza_napones_y_sicilia_2.jpg",
-        imagen4: "imagenes/imagenes-aventuras/palacio_arzobispal.jpg",
+        imagen: "imagenes/imagenes-aventuras/cripta_san_vicente_martir.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_almudin_exterior_2.jpg",
         video: "",
     },
     // Parada 135: Almudín (Párrafos: 678, 677)
@@ -11817,7 +11813,10 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "87",
         nombre: "Almudín",
         coordenadas:  { lat: Number('39.475939'), lng: Number('-0.374076') },
-        imagen: "imagenes/imagenes-aventuras/museo_de_la_ciudad.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_almudin_exterior_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_almudin_exterior.jpg",
+        imagen3: "imagenes/imagenes-aventuras/museo_almudin_interior.jpg",
+        imagen4: "imagenes/imagenes-aventuras/museo_almudin_interior_2.jpg",
     },
      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681)
     {
@@ -11837,10 +11836,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.477642'), lng: Number('-0.374895') },
         ],
         fin: { lat: Number('39.477820'), lng: Number('-0.374870') },
-        imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_hospital.jpg",
-        imagen2: "imagenes/imagenes-aventuras/plaza_napones_y_sicilia.jpg",
-        imagen3: "imagenes/imagenes-aventuras/plaza_napones_y_sicilia_2.jpg",
-        imagen4: "imagenes/imagenes-aventuras/palacio_arzobispal.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_almudin_exterior_2.jpg",
+        imagen2: "publico/imagenes/plaza_de_la_virgen.jpg",
         video: "",
     },
     // Parada 136: Iglesia de San Lorenzo (Reto 89) (Párrafos:682, 462, 684, 683)
@@ -11861,7 +11858,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "89",
         nombre: "Palacio de los Borgia",
         coordenadas: { lat: Number('39.477840'), lng: Number('-0.374850') },
-        imagen: "imagenes/imagenes-aventuras/palacio_de_los_borgia.jpg",
+        imagen: "imagenes/imagenes-aventuras/cortes_valencianas.jpg",
     },
     // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680)
     {
@@ -11880,10 +11877,8 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.478877'), lng: Number('-0.376177') },
         ],
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
-        imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_hospital.jpg",
-        imagen2: "imagenes/imagenes-aventuras/plaza_napones_y_sicilia.jpg",
-        imagen3: "imagenes/imagenes-aventuras/plaza_napones_y_sicilia_2.jpg",
-        imagen4: "imagenes/imagenes-aventuras/palacio_arzobispal.jpg",
+        imagen: "imagenes/imagenes-aventuras/cortes_valencianas.jpg",
+        imagen2: "publico/imagenes/00_ torres_de serranos_back.jpg",
         video: "",
     },
     // Parada 138 - FINAL: Torres de Serranos Final (Reto90Puzzle PZ-05) (Párrafos: 475, 503, 507, 526)

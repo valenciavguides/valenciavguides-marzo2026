@@ -30,6 +30,8 @@
 
     <!-- MapLibre GL JS — servido localmente desde js/vendor/ (build CSP-safe, sin dependencia CDN) -->
     <link rel="stylesheet" href="js/vendor/maplibre-gl.css" />
+    <link rel="stylesheet" href="css/mapa-vintage-zoom.css" />
+    <script src="js/mapa-vintage-zoom.js"></script>
     <script src="js/vendor/maplibre-gl-csp.js"></script>
 
     <!-- Compatibilidad: navegadores sin soporte de módulos ES (Chrome <61, Safari <10.1, Firefox <60) -->
@@ -1596,7 +1598,7 @@
         // ============================================================
         // SISTEMA DE GALERÍA DE IMÁGENES (navegación + badges + texto)
         // ============================================================
-        let _galeriaEstado = { imagenes: [], indice: 0, tipo: null, mapa_numero: null };
+        let _galeriaEstado = { imagenes: [], indice: 0, tipo: null, mapa_numero: null, zoomable: false };
 
         function _mostrarOverlaySinImagenes(mensajeError) {
             let overlay = document.getElementById('imagen-overlay');
@@ -1620,8 +1622,8 @@
             }
         }
 
-        function _mostrarOverlayGaleria(imagenes, titulo, textoParada, tipo, mapa_numero, objectFit, fullHeight) {
-            _galeriaEstado = { imagenes, indice: 0, tipo, mapa_numero, objectFit, fullHeight };
+        function _mostrarOverlayGaleria(imagenes, titulo, textoParada, tipo, mapa_numero, objectFit, fullHeight, zoomable) {
+            _galeriaEstado = { imagenes, indice: 0, tipo, mapa_numero, objectFit, fullHeight, zoomable };
 
             const _tituloHTML = (textoParada && textoParada.title) ? `<h3 class="texto-parada-titulo" style="color:#003366;">${_galeriaEscaparHTML(textoParada.title)}</h3>` : '';
             const textoHTML = textoParada ? `
@@ -1668,6 +1670,7 @@
             const mapa_numero = opciones.mapa_numero ?? null;
             const objectFit = opciones.objectFit || 'fill';
             const fullHeight = opciones.fullHeight || false;
+            const zoomable = opciones.zoomable === true;
 
             if (imagenes.length === 0) {
                 _mostrarOverlaySinImagenes(mensajeError);
@@ -1677,7 +1680,7 @@
                 mostrarErrorOverlay(mensajeError, 'imagen');
                 return;
             }
-            _mostrarOverlayGaleria(imagenes, titulo, textoParada, tipo, mapa_numero, objectFit, fullHeight);
+            _mostrarOverlayGaleria(imagenes, titulo, textoParada, tipo, mapa_numero, objectFit, fullHeight, zoomable);
         };
 
         globalThis.cerrarImagenOverlay = function() {
@@ -1915,7 +1918,7 @@
         }
 
         function _galeriaRenderizar() {
-            const { imagenes, indice, tipo, mapa_numero, objectFit, fullHeight } = _galeriaEstado;
+            const { imagenes, indice, tipo, mapa_numero, objectFit, fullHeight, zoomable } = _galeriaEstado;
             const wrapper = document.getElementById('galeria-wrapper');
             const img = document.getElementById('galeria-img');
             if (!wrapper || !img) return;
@@ -1923,6 +1926,7 @@
             wrapper.querySelectorAll('.galeria-flecha, .galeria-badge-mapa, .galeria-badge-emoji').forEach(el => el.remove());
             img.style.objectFit = objectFit || 'fill';
             if (fullHeight) { wrapper.style.flex = '1 1 100%'; wrapper.style.height = '100%'; }
+            if (zoomable) globalThis.configurarZoomMapaVintage?.(wrapper, img);
 
             img.style.opacity = '0';
             _escaleraCargaImagen(wrapper, img, imagenes[indice]);
@@ -10959,8 +10963,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const url = globalThis.__vv_MAPAS_VINTAGE?.[aventura] || null;
                 (globalThis.logger || console).info(`${logPrefix} Solicitud de mapa vintage — aventura: ${aventura}, url: ${url}`);
                 if (!url) {
-                    // Hoy solo le pasa a Aventura34km: su linea sigue comentada en
-                    // js/mapa-vintage-aventuras.js. No se ensena el mapa de otra aventura.
+                    // No se enseña el mapa de otra aventura cuando la seleccionada no tiene entrada.
                     (globalThis.logger || console).warn(`${logPrefix} No hay mapa vintage para ${aventura}`);
                     return { exito: false, error: `Sin mapa vintage para ${aventura}` };
                 }
@@ -10971,7 +10974,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // que es el unico camino de cierre del overlay.
                 globalThis.rotationSuppressed = true;
                 globalThis.toggleRotationMessage?.();
-                globalThis.mostrarImagenOverlay(url, `Mapa vintage — ${aventura || 'Aventura'}`, null, null, { objectFit: 'fill', fullHeight: true });
+                globalThis.mostrarImagenOverlay(url, `Mapa vintage — ${aventura || 'Aventura'}`, null, null, { objectFit: 'fill', fullHeight: true, zoomable: true });
                 return { exito: true, url, aventura };
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error mostrando mapa vintage:`, error);
