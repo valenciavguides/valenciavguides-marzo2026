@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Plaza de la crida (Puente de Serranos)
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
 **Párrafos:** 229, 2
 
@@ -86,7 +86,7 @@
 
 ## Tramo 4 — Iglesia de San Lorenzo → Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg, publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 465-B
 
@@ -96,7 +96,7 @@
 
 ## Parada 4 — Plaza de la Virgen
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
 
 **Párrafos:** 466, 467
 
@@ -120,7 +120,7 @@
 
 ## Parada 6 — Plaza de la Virgen
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
 
 **Párrafos:** (ninguno)
 
@@ -129,7 +129,7 @@
 
 ## Tramo 5 — Plaza de la Virgen → Plaza Décimo Junio Bruto (Almoína)
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/paso_plaza_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/paso_plaza_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg
 
 **Párrafos:** 83
 
@@ -204,7 +204,7 @@
 
 ## Tramo 6 — Plaza de la Almoína → Plaza Décimo Junio Bruto (Museo Arqueológico de la Almoína)
 
-**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
 
 **Párrafos:** 457, 10-B
 
@@ -237,7 +237,7 @@
 
 ## Parada 14 — Vista de la Catedral, Cimborrio
 
-**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg
 
 **Párrafos:** 8-C, 464
 
@@ -248,7 +248,7 @@
 
 ## Tramo 7 — Museo Arqueológico La Almoína → Palacio Arzobispal
 
-**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/palacio_arzobispal.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/palacio_arzobispal.jpg
 
 **Párrafos:** 85
 
@@ -730,7 +730,7 @@
 
 ## Tramo 24 — Palacio de la Generalitat → Calle de los Serranos (FINAL)
 
-**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 2-D
 
@@ -740,7 +740,7 @@
 
 ## Parada 40 — Torres de Serranos Final
 
-**Imágenes:** imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

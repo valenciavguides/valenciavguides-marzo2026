@@ -1,0 +1,58 @@
+{
+  "Aventura1": {
+    "intro": {
+      "id": "audio-intro-fr",
+      "title": "Intro",
+      "file": ""
+    },
+    "tieneAudio": false
+  },
+  "Aventura2": {
+    "intro": {
+      "id": "audio-intro-fr",
+      "title": "Intro",
+      "file": ""
+    },
+    "tieneAudio": false
+  },
+  "Aventura3": {
+    "intro": {
+      "id": "audio-intro-fr",
+      "title": "Intro",
+      "file": ""
+    },
+    "tieneAudio": false
+  },
+  "Aventura4": {
+    "intro": {
+      "id": "audio-intro-fr",
+      "title": "Intro",
+      "file": ""
+    },
+    "tieneAudio": false
+  },
+  "Aventura5": {
+    "intro": {
+      "id": "audio-intro-fr",
+      "title": "Intro",
+      "file": ""
+    },
+    "tieneAudio": false
+  },
+  "AventuraFallas": {
+    "intro": {
+      "id": "audio-intro-fr",
+      "title": "Intro",
+      "file": ""
+    },
+    "tieneAudio": false
+  },
+  "Aventura34km": {
+    "intro": {
+      "id": "audio-intro-fr",
+      "title": "Intro",
+      "file": ""
+    },
+    "tieneAudio": false
+  }
+}

@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Plaza de la Crída
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
 **Párrafos:** 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135
 
@@ -139,7 +139,7 @@
 
 ## Tramo 5 — Iglesia de San Lorenzo → Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg, publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 159, 8
 
@@ -150,7 +150,7 @@
 
 ## Parada 5 — Plaza de la Virgen
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 466, 467
 
@@ -303,7 +303,7 @@
 
 ## Parada 14 — Plaza del Ayuntamiento
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg, publico/imagenes/fallas-castillo.png
+**Imágenes:** imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg, imagenes/imagenes-aventuras/fallas-castillo.png
 
 **Párrafos:** 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181
 
@@ -576,7 +576,7 @@
 
 ## Tramo 18 — Palacio de la Generalitat → Calle de los Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 2-D, 289, 436, 448, 449
 
@@ -590,7 +590,7 @@
 
 ## Parada 27 — Torres de Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

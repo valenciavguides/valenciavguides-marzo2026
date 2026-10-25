@@ -5,18 +5,19 @@
  * vídeos y la API.
  *
  * ╔══════════════════════════════════════════════════════════════════╗
- * ║  CACHE_VERSION: SHA-256 auto-generada vía tools/build-sw.js,    ║
- * ║  disparada por el hook de pre-commit (tools/install-hooks.js)   ║
- * ║  y por `npm run dev:watch` (tools/watch-sw.js) — ver §21.       ║
+ * ║  CACHE_VERSION: SHA-256 auto-generada vía tools/build-sw.js,     ║
+ * ║  disparada por el hook de pre-commit (tools/install-hooks.js)    ║
+ * ║  y por `npm run dev:watch` (tools/watch-sw.js) — ver §21.        ║
  * ║                                                                  ║
- * ║  ESTRATEGIAS DE CACHÉ:                                          ║
- * ║  · Shell (HTML/JS/manifest): Network First → caché SW           ║
- * ║  · Imágenes (/imagenes/imagenes-aventuras/ y /publico/imagenes/,  ║
- * ║    con los mapas antiguos): Cache First + LRU (máx. 100 entradas) ║
- * ║  · Audios y vídeos (/audios-aventuras/, /videos-aventuras/,       ║
- * ║    /publico/audios/, /publico/videos/): sin interceptar, directos ║
- * ║    a red (por las peticiones Range)                               ║
- * ║  · API (/api/): Network Only, sin caché                         ║
+ * ║  ESTRATEGIAS DE CACHÉ:                                           ║
+ * ║  · Shell (HTML/JS/manifest): Network First → caché SW            ║
+ * ║  · Imágenes (/imagenes/imagenes-aventuras/, /imagenes/mapas-     ║
+ * ║    vintage/ y /publico/imagenes/): Cache First + LRU (máx. 100   ║
+ * ║    entradas)                                                     ║
+ * ║  · Audios y vídeos (/audios-aventuras/, /videos-aventuras/,      ║
+ * ║    /publico/audios/ y /publico/videos/): sin interceptar, van    ║
+ * ║    directos a red (por las peticiones Range)                     ║
+ * ║  · API (/api/): Network Only, sin caché                          ║
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
@@ -87,12 +88,14 @@ const APP_SHELL = [
   '/js/aventuras-ID-padre.js',
   '/js/agradecimientos-aventuras.js',
   '/js/mapa-vintage-aventuras.js',
-  '/publico/demo-aventuras.js',
   // Iconos
   '/imagenes/imagenes-aplicación/logo-redondo.png',
   '/imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg',
   '/imagenes/imagenes-aplicación/logo-splash-192.png',
   '/imagenes/imagenes-aplicación/logo-splash-512.png',
+  // La imagen del aviso de sin conexión (_ensureInternetOverlay de codigo-padre.html): el aviso sale justo cuando no hay
+  // red, y entonces ya no se puede descargar (spec 151, SW-2).
+  '/imagenes/imagenes-aplicación/imagen-no-internet.png',
   // Efectos de sonido (js/efectos-sonido.js). No son /audios-aventuras/: esa ruta no la intercepta
   // el SW y el servidor la protege como contenido de pago, y estos suenan antes de pagar.
   '/audios-efectos/sonido_eleccion_respuesta_reto.mp3',
@@ -112,7 +115,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell actualiza la versión de caché
 // automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-02f171462751';
+const CACHE_VERSION = 'v-37df4700d438';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
@@ -126,6 +129,7 @@ function esMedia(url) {
   const p = url.pathname;
   return (
     p.startsWith('/imagenes/imagenes-aventuras/') ||
+    p.startsWith('/imagenes/mapas-vintage/') ||
     p.startsWith('/publico/imagenes/')
   );
 }

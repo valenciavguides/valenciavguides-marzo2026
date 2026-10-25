@@ -5,7 +5,7 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-intro-es",
         title: "Intro",
-        file: "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
       },
 
       // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228) (mapa 1)
@@ -5564,7 +5564,7 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-intro-es",
         title: "Intro",
-        file: "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
       },
 
       // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228) (mapa 1)
@@ -9863,7 +9863,7 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-intro-es",
         title: "Intro",
-        file: "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
       },
 
       // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228) (mapa 1)
@@ -15758,7 +15758,7 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-intro-es",
         title: "Intro",
-        file: "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
       },
 
       // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228) (mapa 1)
@@ -21233,7 +21233,7 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-intro-es",
         title: "Intro",
-        file: "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
       },
 
       // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228) (mapa 1)
@@ -26456,7 +26456,7 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-intro-es",
         title: "Intro",
-        file: "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
       },
 
       // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228) (mapa 1)
@@ -30419,7 +30419,7 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-intro-es",
         title: "Intro",
-        file: "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
       },
 
       // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)

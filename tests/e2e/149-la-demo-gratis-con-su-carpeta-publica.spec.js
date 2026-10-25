@@ -1,34 +1,34 @@
 /**
- * 149 — La demo gratis lee lo suyo de la carpeta pública (guía, §22.0 n.º 26 y n.º 29; estudio, G-88 y K-126)
+ * 149 — La demo gratis lee lo suyo de la carpeta pública, y el resto de la app, de los originales (guía, §22.0 n.º 26 y
+ * n.º 29; estudio, G-88 y K-126)
  *
  * POR QUE EXISTE
  *
- * La demo gratis (de P2 a P11, antes del pago, y P13, tras el pago y antes del código) usa cinco piezas de datos de cada
- * aventura: el puzzle de introducción (P6), el reto R-1 (P8), si la aventura tiene audio en el idioma (P9) y el audio y el
- * texto de introducción (P11). Enseña además una foto por aventura en su tarjeta (P7, P9 y P13), el mapa antiguo de la
- * aventura al elegirla (P7) y, en `video-intro.html` (P4), una foto, el mapa antiguo de la Aventura 1 y un vídeo. Todo eso
- * vive en la carpeta pública `publico/`: los datos en `publico/demo-aventuras.js`, que genera `tools/build-demo.js` a partir
- * de los ficheros de datos, el audio en `publico/audios/`, las fotos en `publico/imagenes/`, los mapas antiguos en
- * `publico/imagenes/mapas-vintage/` y el vídeo en `publico/videos/`. La demo no pide nada de lo que el servidor protege con
- * `PROTECT_DATA` (`PROTECTED_FILES` de `js/server.js`).
+ * Lo que enseña la demo gratis —la selección hasta el código, el vídeo de introducción y el puzzle de P6— vive dos veces:
+ * el original, completo, en su carpeta (lo que irá al backend), y una copia de solo lo que enseña la demo en la carpeta
+ * pública `publico/`, que hace `tools/build-demo.js`. La demo pide solo a `publico/`; el resto de la app, solo a los
+ * originales. Con `PROTECT_DATA` el servidor protege los originales (`PROTECTED_FILES` de `js/server.js`).
  *
- *   DM-0  La lista de rutas protegidas de este spec es la de `PROTECTED_FILES` de `js/server.js`.
- *   DM-1  Con todo lo protegido contestando 403, la demo funciona entera en español (con audio) y no pide nada protegido:
- *         el puzzle, el reto R-1, el paso a P10 y el audio y el texto de introducción.
- *   DM-2  Lo mismo en inglés (sin audio): sale el aviso, se sigue sin audio y P11 enseña el texto sin reproductor.
- *   DM-3  Cada pieza de `publico/demo-aventuras.js` es la que dan los datos, en las siete aventuras y los doce idiomas: el
- *         reto R-1, el audio de introducción, si hay audio, el texto (el mismo que monta `cargarTextos()`) y el puzzle.
- *   DM-4  Con todo lo protegido contestando 403, las siete tarjetas de P7 y la de P9 llevan su foto de `publico/imagenes/`,
- *         y las siete fotos cargan; y el mapa antiguo que sale al elegir cada una de las siete aventuras en P7 sale de
- *         `publico/imagenes/mapas-vintage/` y carga.
- *   DM-5  `video-intro.html` (P4) no nombra ninguna ruta protegida, y su foto, su mapa antiguo y su vídeo están en la
- *         carpeta pública.
- *   DM-6  Cada mapa de la tabla `js/mapa-vintage-aventuras.js` (la misma que usa el contenido de pago) está en
- *         `publico/imagenes/mapas-vintage/` y existe.
+ *   DM-0  La lista de rutas protegidas del spec es la de `PROTECTED_FILES` de `js/server.js`.
+ *   DM-1  En español, con todo lo protegido contestando 403: el puzzle de P6, el reto R-1 de P8, el paso a P10, los
+ *         términos de P10, el audio y el texto de introducción de P11, la normativa de P15, el reto R-2 de P16 y los
+ *         agradecimientos de P18 salen de `publico/`, y no se pide nada protegido.
+ *   DM-2  En inglés (sin audio), igual: sale el aviso de P9, P11 enseña el texto sin reproductor y el R-2 sale.
+ *   DM-3  Cada copia pública es la de su original, en las siete aventuras y los doce idiomas: los retos 1 y 2, el audio
+ *         de introducción, si hay audio, el texto (el que monta `cargarTextos()` con los originales), el puzzle, los
+ *         términos, la normativa, los agradecimientos y los textos de Jaime. Comparado en el navegador, sin el generador.
+ *   DM-4  Con todo lo protegido en 403, las siete tarjetas de P7 y la de P9 llevan su foto de `publico/imagenes/`, el mapa
+ *         que sale al elegir cada una de las siete aventuras en P7 es el de `publico/imagenes/mapas-vintage/`, y todo carga.
+ *   DM-5  `video-intro.html` (P4) no nombra ninguna ruta protegida ni importa los textos de Jaime de `js/`; su foto, su
+ *         mapa y su clip están en `publico/`; y su primer bocadillo es el texto público del idioma, con lo protegido en 403.
+ *   DM-6  El resto de la app no apunta a `publico/`: ni los datos ni las páginas que no son de la demo. Cada mapa de la
+ *         tabla está en su original (`imagenes/mapas-vintage/`) y en su copia pública.
+ *   DM-7  `publico/` está al día: el generador no ve copias desfasadas, ficheros de más ni piezas que falten; y cada fichero
+ *         de medios de `publico/` es idéntico, byte a byte, a su original (comparado aquí, sin el generador).
  *
- * ROJO ANTES QUE VERDE: con los ficheros de la demo en `js/` y `audios-demo/`, y las fotos y el vídeo en las carpetas de las
- * aventuras, caen DM-1 y DM-2 (la demo, el audio), DM-3 (no encuentra el fichero), DM-4 (las fotos, protegidas) y DM-5.
- * Con los mapas antiguos en `imagenes/imagenes-mapas-vintage/` caen DM-4, DM-5 y DM-6. DM-0 vigila la lista.
+ * ROJO ANTES QUE VERDE: con la demo leyendo `publico/demo-aventuras.js`, el R-2 de los retos de pago, los términos, la
+ * normativa, los agradecimientos y los textos de Jaime de `js/`, y los datos de la app apuntando a `publico/`, caen todos
+ * menos DM-0 (que vigila la lista) y DM-4.
  */
 'use strict';
 
@@ -42,13 +42,14 @@ const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 // Las rutas protegidas de js/server.js (DM-0 lo comprueba): todas contestan 403 en los recorridos de este spec.
 const PROTEGIDOS = ['/js/coordenadas-aventuras.js', '/js/textos-aventuras.js', '/js/retos-aventuras.js', '/js/puzzles-aventuras.js',
-  '/js/audios-aventuras.js', '/js/parrafos-textos/', '/audios-aventuras/', '/imagenes/imagenes-aventuras/', '/videos-aventuras/', '/backend/'];
+  '/js/audios-aventuras.js', '/js/parrafos-textos/', '/audios-aventuras/', '/imagenes/imagenes-aventuras/', '/imagenes/mapas-vintage/',
+  '/videos-aventuras/', '/backend/'];
 
 const seleccion = (page) => page.frames().find((f) => f.name() === 'seleccion');
 const aLaVista = (f) => f.evaluate(() => [...document.querySelectorAll('.pantalla.visible')].map((p) => p.id));
 
-/** Arranca la app con todo lo protegido contestando 403, y devuelve la lista de lo protegido que se pidió. */
-async function arrancarConProteccion(page) {
+/** Todo lo protegido contesta 403; devuelve la lista de lo protegido que se pidió. */
+async function protegerConTodo(page) {
   const pedidos = [];
   await page.route('**/*', (route) => {
     const ruta = decodeURIComponent(new URL(route.request().url()).pathname);
@@ -58,6 +59,12 @@ async function arrancarConProteccion(page) {
     }
     return route.fallback();
   });
+  return pedidos;
+}
+
+/** Arranca la app con todo lo protegido contestando 403, y devuelve la lista de lo protegido que se pidió. */
+async function arrancarConProteccion(page) {
+  const pedidos = await protegerConTodo(page);
   await page.addInitScript({ path: MAPLIBRE_STUB });
   await injectInitSpy(page);
   await stubCDNResources(page);
@@ -69,39 +76,47 @@ async function arrancarConProteccion(page) {
   return pedidos;
 }
 
-/** Elige idioma (P2) y aventura como el usuario, y recorre P6 y P8; devuelve lo esperado de la demo para comprobarlo. */
-async function puzzleYRetoR1(f, idioma) {
-  await f.evaluate((i) => globalThis.seleccionarIdioma(i), idioma);
-  await expect.poll(() => aLaVista(f), { timeout: 10_000 }).toEqual(['pantalla3']);
-  const esperado = await f.evaluate(async (i) => {
-    aventuraSeleccionada = 'Aventura1';
-    const { DEMO_AVENTURAS } = await import('/publico/demo-aventuras.js');
-    const p = DEMO_AVENTURAS.aventuras.Aventura1[i];
-    return { pregunta: p.retoR1.pregunta, audio: p.audioIntro?.file ?? null, texto: DEMO_AVENTURAS.textosIntro[i][p.textoIntro].content };
-  }, idioma);
-  await f.evaluate(() => mostrar(6));
-  await expect.poll(() => f.evaluate(() => document.getElementById('puzzle-iframe')?.getAttribute('src') || ''), { timeout: 10_000, message: 'P6: el puzzle de introducción carga' })
-    .toContain('id=PZ-intro');
-  await f.evaluate(() => mostrar(8));
-  await expect.poll(() => f.evaluate(() => document.getElementById('reto-r1-pregunta')?.textContent || ''), { timeout: 10_000, message: 'P8: el reto R-1 sale' })
-    .toBe(esperado.pregunta);
-  expect(await f.evaluate(() => document.querySelectorAll('input[name="reto-r1"]').length), 'P8: con sus opciones').toBeGreaterThanOrEqual(2);
-  return esperado;
-}
+/** Lo que la demo tiene que enseñar de una aventura en un idioma, leído de las copias públicas (en el frame de la selección). */
+const esperadoPublico = (f, idioma, aventura) => f.evaluate(async ({ idioma, aventura }) => {
+  const { LANG_ARCHIVO_PARRAFOS, ensamblarTexto } = await import('/js/data-loader.js');
+  const carpeta = LANG_ARCHIVO_PARRAFOS[idioma];
+  const leer = async (r) => { const x = await fetch(`/publico/${r}`); if (!x.ok) throw new Error(`${r}: ${x.status}`); return x.json(); };
+  const [retos, audios, parrafos, intro, terminos, normativa, agradecimientos] = await Promise.all([
+    leer(`retos/${carpeta}/retos.json`), leer(`audios/${carpeta}/audios.json`), leer(`textos/${carpeta}/parrafos.json`),
+    leer('textos/intro.json'), leer(`textos/${carpeta}/terminos.json`), leer(`textos/${carpeta}/normativa.json`),
+    leer(`textos/${carpeta}/agradecimientos.json`),
+  ]);
+  const audio = audios[aventura];
+  const texto = ensamblarTexto(intro[aventura], idioma, new Map([[audio.intro.id, audio.intro]]), parrafos);
+  return {
+    carpeta, r1: retos[aventura].r1, r2: retos[aventura].r2, audio: audio.intro.file, texto: texto.content,
+    terminos: terminos.html, normativa: normativa.html, agradecimientos: agradecimientos.html,
+  };
+}, { idioma, aventura });
 
-/** P11: si el texto de introducción en pantalla es el de la demo (su texto visible, el que deja el HTML en el navegador). */
-const textoIntroEnPantalla = (f, html) => f.evaluate((h) => {
+/** Si el texto visible de un elemento es el de un HTML (el que deja el navegador al pintarlo). */
+const textoIgual = (f, selector, html) => f.evaluate(({ selector, html }) => {
   const referencia = document.createElement('div');
-  referencia.innerHTML = h;
-  const visible = (document.getElementById('texto-intro-contenido')?.textContent || '').trim();
+  referencia.innerHTML = html;
+  const visible = (document.querySelector(selector)?.textContent || '').trim();
   return visible.length > 0 && visible === referencia.textContent.trim();
-}, html);
+}, { selector, html });
+
+const textoDe = (f, selector) => f.evaluate((s) => document.querySelector(s)?.textContent || '', selector);
 
 /** Las fotos de fondo de los elementos que casan con el selector: la ruta de cada una, tal como la pide el documento. */
 const fotosDeFondo = (f, selector) => f.evaluate((s) => [...document.querySelectorAll(s)].map((el) => {
   const url = /url\(["']?([^"')]+)["']?\)/.exec(el.style.backgroundImage)?.[1];
   return url ? decodeURIComponent(new URL(url, location.href).pathname) : null;
 }), selector);
+
+/** Las rutas que no cargan como imagen (un 403 o un 404 dan error al cargar). */
+const queNoCargan = (f, rutas) => f.evaluate((rs) => Promise.all(rs.map((r) => new Promise((ok) => {
+  const img = new Image();
+  img.onload = () => ok(null);
+  img.onerror = () => ok(r);
+  img.src = r;
+}))).then((r) => r.filter(Boolean)), rutas);
 
 test.describe('DM — la demo gratis con su carpeta pública', () => {
   test.use({ serviceWorkers: 'block' });
@@ -113,63 +128,103 @@ test.describe('DM — la demo gratis con su carpeta pública', () => {
     expect(lista, 'PROTECTED_FILES de js/server.js').toEqual(PROTEGIDOS);
   });
 
-  test('DM-1. En español, la demo funciona entera sin pedir nada protegido', async ({ page }) => {
+  test('DM-1. En español, la demo saca de publico/ cada pieza, de P6 a P18, y no pide nada protegido', async ({ page }) => {
     const pedidos = await arrancarConProteccion(page);
     const f = seleccion(page);
-    const esperado = await puzzleYRetoR1(f, 'es');
+    await f.evaluate(() => globalThis.seleccionarIdioma('es'));
+    await expect.poll(() => aLaVista(f), { timeout: 10_000 }).toEqual(['pantalla3']);
+    await f.evaluate(() => { aventuraSeleccionada = 'Aventura1'; });
+    const esperado = await esperadoPublico(f, 'es', 'Aventura1');
+    expect(esperado.carpeta, 'la carpeta del español').toBe('espanol');
+    expect(esperado.audio, 'el audio de la demo es la copia de publico/audios/espanol/').toMatch(/^publico\/audios\/espanol\/.+\.mp3$/);
+
+    await f.evaluate(() => mostrar(6));
+    await expect.poll(() => f.evaluate(() => document.getElementById('puzzle-iframe')?.getAttribute('src') || ''), { timeout: 10_000, message: 'P6: el puzzle de introducción' })
+      .toContain('id=PZ-intro');
+    await f.evaluate(() => mostrar(8));
+    await expect.poll(() => textoDe(f, '#reto-r1-pregunta'), { timeout: 10_000, message: 'P8: el reto R-1' }).toBe(esperado.r1.pregunta);
     await f.evaluate(() => { void confirmarAventura(); });
     await expect.poll(() => aLaVista(f), { timeout: 10_000, message: 'P9: con audio en español se sigue a P10, sin aviso' }).toEqual(['pantalla10']);
+    await expect.poll(() => textoIgual(f, '#terminos-contenido', esperado.terminos), { timeout: 10_000, message: 'P10: los términos' }).toBe(true);
     await f.evaluate(() => mostrar(11));
-    await expect.poll(() => f.evaluate(() => document.getElementById('audio-intro-source')?.getAttribute('src') || ''), { timeout: 10_000, message: 'P11: el audio de introducción, de la carpeta pública' })
+    await expect.poll(() => f.evaluate(() => document.getElementById('audio-intro-source')?.getAttribute('src') || ''), { timeout: 10_000, message: 'P11: el audio de introducción' })
       .toBe(esperado.audio);
-    expect(esperado.audio, 'el audio de la demo está en publico/audios/').toMatch(/^publico\/audios\//);
-    await expect.poll(() => textoIntroEnPantalla(f, esperado.texto), { timeout: 10_000, message: 'P11: el texto de introducción' }).toBe(true);
+    await expect.poll(() => textoIgual(f, '#texto-intro-contenido', esperado.texto), { timeout: 10_000, message: 'P11: el texto de introducción' }).toBe(true);
+    await f.evaluate(() => { void cargarNormativaOverlay(); });
+    await expect.poll(() => textoIgual(f, '#normativa-contenido', esperado.normativa), { timeout: 10_000, message: 'P15: la normativa' }).toBe(true);
+    await f.evaluate(() => { void cargarRetoR2(); });
+    await expect.poll(() => textoDe(f, '#reto-r2-pregunta'), { timeout: 10_000, message: 'P16: el reto R-2' }).toBe(esperado.r2.pregunta);
+    await f.evaluate(() => { void cargarAgradecimientosOverlay(); });
+    await expect.poll(() => textoIgual(f, '#agradecimientos-contenido', esperado.agradecimientos), { timeout: 10_000, message: 'P18: los agradecimientos' }).toBe(true);
     expect(pedidos, 'nada protegido').toEqual([]);
   });
 
-  test('DM-2. En inglés (sin audio), el aviso sale, se sigue sin audio y P11 enseña el texto', async ({ page }) => {
+  test('DM-2. En inglés (sin audio), el aviso sale, P11 enseña el texto sin reproductor y el R-2 sale de publico/', async ({ page }) => {
     const pedidos = await arrancarConProteccion(page);
     const f = seleccion(page);
-    const esperado = await puzzleYRetoR1(f, 'en');
-    expect(esperado.audio, 'en inglés no hay audio de introducción').toBeNull();
+    await f.evaluate(() => globalThis.seleccionarIdioma('en'));
+    await expect.poll(() => aLaVista(f), { timeout: 10_000 }).toEqual(['pantalla3']);
+    await f.evaluate(() => { aventuraSeleccionada = 'Aventura1'; });
+    const esperado = await esperadoPublico(f, 'en', 'Aventura1');
+    expect(esperado.audio, 'en inglés no hay audio de introducción').toBe('');
+    await f.evaluate(() => mostrar(8));
+    await expect.poll(() => textoDe(f, '#reto-r1-pregunta'), { timeout: 10_000, message: 'P8: el reto R-1' }).toBe(esperado.r1.pregunta);
     await f.evaluate(() => { void confirmarAventura(); });
     await expect.poll(() => f.evaluate(() => getComputedStyle(document.getElementById('audio-warning-overlay')).display), { timeout: 10_000, message: 'P9: sale el aviso sin audio' })
       .toBe('flex');
     await f.evaluate(() => document.getElementById('audio-warning-yes').closest('button').click());
     await expect.poll(() => aLaVista(f), { timeout: 10_000 }).toEqual(['pantalla10']);
     await f.evaluate(() => mostrar(11));
-    await expect.poll(() => textoIntroEnPantalla(f, esperado.texto), { timeout: 10_000, message: 'P11: el texto de introducción' }).toBe(true);
+    await expect.poll(() => textoIgual(f, '#texto-intro-contenido', esperado.texto), { timeout: 10_000, message: 'P11: el texto de introducción' }).toBe(true);
     expect(await f.evaluate(() => getComputedStyle(document.getElementById('audio-player-container')).display), 'sin reproductor').toBe('none');
+    await f.evaluate(() => { void cargarRetoR2(); });
+    await expect.poll(() => textoDe(f, '#reto-r2-pregunta'), { timeout: 10_000, message: 'P16: el reto R-2' }).toBe(esperado.r2.pregunta);
     expect(pedidos, 'nada protegido').toEqual([]);
   });
 
-  test('DM-3. Cada pieza de la demo es la que dan los datos, en las siete aventuras y los doce idiomas', async ({ page }) => {
+  test('DM-3. Cada copia pública es la de su original, en las siete aventuras y los doce idiomas', async ({ page }) => {
     await page.route('**/__spec149.html', (route) => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>spec 149</title>' }));
     await page.goto('/__spec149.html');
     const problemas = await page.evaluate(async () => {
       const imp = (f) => import(`/js/${f}`);
-      const { DEMO_AVENTURAS: demo } = await import('/publico/demo-aventuras.js');
       const { RETOS_AVENTURAS } = await imp('retos-aventuras.js');
       const { AUDIOS_AVENTURAS } = await imp('audios-aventuras.js');
       const { PUZZLES_AVENTURAS } = await imp('puzzles-aventuras.js');
       const { INDICE_AVENTURAS, MAPEO_IDIOMAS } = await imp('indice-aventuras.js');
-      const { cargarTextos } = await imp('data-loader.js');
+      const { cargarTextos, ensamblarTexto, LANG_ARCHIVO_PARRAFOS } = await imp('data-loader.js');
+      const { TERMINOS_AVENTURAS } = await imp('terminos-aventuras.js');
+      const { NORMATIVA_CUMPLIMIENTO } = await imp('normativa-cumplimiento.js');
+      const { AGRADECIMIENTOS_AVENTURAS } = await imp('agradecimientos-aventuras.js');
+      const { JAIME_SCENES } = await imp('traducciones-ui.js');
+      const leer = async (r) => { const x = await fetch(`/publico/${r}`); if (!x.ok) throw new Error(`${r}: ${x.status}`); return x.json(); };
       const igual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const fallos = [];
-      if (!igual(demo.puzzleIntro, PUZZLES_AVENTURAS.INTRO['puzzle.html'].puzzle_id.find((p) => p.id === 'PZ-intro'))) fallos.push('puzzleIntro');
+      const puzzles = await leer('puzzles/puzzles.json');
+      if (!igual(puzzles, { 'PZ-intro': PUZZLES_AVENTURAS.INTRO['puzzle.html'].puzzle_id.find((p) => p.id === 'PZ-intro') })) fallos.push('el puzzle');
+      const intro = await leer('textos/intro.json');
       let vistas = 0;
-      for (const a of Object.keys(INDICE_AVENTURAS)) {
-        for (const i of Object.keys(MAPEO_IDIOMAS)) {
-          const p = demo.aventuras?.[a]?.[i];
-          if (!p) { fallos.push(`${a}/${i}: no está en la demo`); continue; }
-          const audios = AUDIOS_AVENTURAS[a][i];
-          if (!igual(p.retoR1, RETOS_AVENTURAS[a][i].find((r) => r.reto === 1))) fallos.push(`${a}/${i}: retoR1`);
-          const intro = audios.find((x) => x.id === `audio-intro-${i}`);
-          const audioEsperado = intro && intro.file && intro.file.trim() ? { id: intro.id, title: intro.title, file: intro.file } : null;
-          if (!igual(p.audioIntro, audioEsperado)) fallos.push(`${a}/${i}: audioIntro`);
-          if (p.tieneAudio !== audios.some((x) => x.file && x.file.trim() !== '')) fallos.push(`${a}/${i}: tieneAudio`);
-          const texto = (await cargarTextos(a, i)).find((t) => t.id === `txt-intro-${i}`);
-          if (!igual(demo.textosIntro[i]?.[p.textoIntro], texto)) fallos.push(`${a}/${i}: textoIntro`);
+      for (const i of Object.keys(MAPEO_IDIOMAS)) {
+        const c = LANG_ARCHIVO_PARRAFOS[i];
+        const [retos, audios, parrafos, terminos, normativa, agradecimientos, jaime] = await Promise.all(
+          ['retos/' + c + '/retos.json', 'audios/' + c + '/audios.json', 'textos/' + c + '/parrafos.json', 'textos/' + c + '/terminos.json',
+            'textos/' + c + '/normativa.json', 'textos/' + c + '/agradecimientos.json', 'textos/' + c + '/jaime.json'].map(leer));
+        if (terminos.html !== TERMINOS_AVENTURAS.terminos_idiomas[i]) fallos.push(`${i}: los términos`);
+        if (normativa.html !== NORMATIVA_CUMPLIMIENTO.normativa_idiomas[i]) fallos.push(`${i}: la normativa`);
+        if (agradecimientos.html !== AGRADECIMIENTOS_AVENTURAS.agradecimientos_idiomas[i]) fallos.push(`${i}: los agradecimientos`);
+        if (!igual(jaime.escenas, JAIME_SCENES.map((e) => (e === null ? null : e[i])))) fallos.push(`${i}: los textos de Jaime`);
+        for (const a of Object.keys(INDICE_AVENTURAS)) {
+          const originales = RETOS_AVENTURAS[a][i];
+          if (!igual(retos[a].r1, originales.find((r) => r.reto === 1))) fallos.push(`${a}/${i}: el reto R-1`);
+          if (!igual(retos[a].r2, originales.find((r) => r.reto === 2))) fallos.push(`${a}/${i}: el reto R-2`);
+          const lista = AUDIOS_AVENTURAS[a][i];
+          const e = lista.find((x) => x.id === `audio-intro-${i}`);
+          const original = (e.file || '').trim();
+          const copia = original ? `publico/audios/${c}/${original.split('/').pop()}` : '';
+          if (!igual(audios[a].intro, { id: e.id, title: e.title, file: copia })) fallos.push(`${a}/${i}: el audio de introducción`);
+          if (audios[a].tieneAudio !== lista.some((x) => x.file && x.file.trim() !== '')) fallos.push(`${a}/${i}: si tiene audio`);
+          const publico = ensamblarTexto(intro[a], i, new Map([[audios[a].intro.id, audios[a].intro]]), parrafos);
+          const delOriginal = (await cargarTextos(a, i)).find((t) => t.id === `txt-intro-${i}`);
+          if (!igual(publico, delOriginal)) fallos.push(`${a}/${i}: el texto de introducción`);
           vistas++;
         }
       }
@@ -179,7 +234,7 @@ test.describe('DM — la demo gratis con su carpeta pública', () => {
     expect(problemas).toEqual([]);
   });
 
-  test('DM-4. Las fotos de las tarjetas de P7 y P9, y los mapas antiguos de P7, salen de la carpeta pública y cargan', async ({ page }) => {
+  test('DM-4. Las fotos de las tarjetas (P7 y P9) y el mapa de cada aventura (P7) salen de publico/ y cargan', async ({ page }) => {
     const pedidos = await arrancarConProteccion(page);
     const f = seleccion(page);
     await f.evaluate(() => globalThis.seleccionarIdioma('es'));
@@ -187,21 +242,14 @@ test.describe('DM — la demo gratis con su carpeta pública', () => {
     await f.evaluate(() => mostrar(7));
     await expect.poll(() => f.evaluate(() => document.querySelectorAll('#aventuras-dinamicas button').length), { timeout: 10_000, message: 'P7: las siete aventuras' })
       .toBe(7);
-    const fotosP7 = await fotosDeFondo(f, '#aventuras-dinamicas button');
-    expect(fotosP7.filter((r) => !r?.startsWith('/publico/imagenes/')), 'P7: fotos fuera de publico/imagenes/').toEqual([]);
-    expect(new Set(fotosP7).size, 'P7: una foto distinta por aventura').toBe(7);
-    // Que carguen: una ruta protegida contesta 403 y una que no existe, 404; las dos dan error al cargar la imagen.
-    const sinCargar = await f.evaluate((rutas) => Promise.all(rutas.map((r) => new Promise((ok) => {
-      const img = new Image();
-      img.onload = () => ok(null);
-      img.onerror = () => ok(r);
-      img.src = r;
-    }))).then((r) => r.filter(Boolean)), fotosP7);
-    expect(sinCargar, 'P7: fotos que no cargan').toEqual([]);
+    const fotos = await fotosDeFondo(f, '#aventuras-dinamicas button');
+    expect(fotos.filter((r) => !r?.startsWith('/publico/imagenes/')), 'P7: fotos fuera de publico/imagenes/').toEqual([]);
+    expect(new Set(fotos).size, 'P7: una foto distinta por aventura').toBe(7);
+    expect(await queNoCargan(f, fotos), 'P7: fotos que no cargan').toEqual([]);
     await f.evaluate(() => { aventuraSeleccionada = 'Aventura1'; mostrar(9); });
     await expect.poll(() => fotosDeFondo(f, '#pantalla9 .aventura-confirmacion-card'), { timeout: 10_000, message: 'P9: la tarjeta lleva la foto de la aventura' })
-      .toEqual([fotosP7[0]]);
-    // El mapa antiguo que sale al elegir cada aventura en P7, por la función de verdad (`mostrarMapaVintage()`).
+      .toEqual([fotos[0]]);
+    // El mapa que sale al elegir cada aventura en P7, por la función de verdad (`mostrarMapaVintage()`).
     const mapas = await f.evaluate(async () => {
       const rutas = [];
       for (const a of ['Aventura1', 'Aventura2', 'Aventura3', 'Aventura4', 'Aventura5', 'AventuraFallas', 'Aventura34km']) {
@@ -212,42 +260,92 @@ test.describe('DM — la demo gratis con su carpeta pública', () => {
       }
       return rutas;
     });
-    expect(mapas.filter((r) => !r?.startsWith('/publico/imagenes/mapas-vintage/')), 'P7: mapas antiguos fuera de publico/imagenes/mapas-vintage/').toEqual([]);
-    const mapasSinCargar = await f.evaluate((rutas) => Promise.all(rutas.map((r) => new Promise((ok) => {
-      const img = new Image();
-      img.onload = () => ok(null);
-      img.onerror = () => ok(r);
-      img.src = r;
-    }))).then((r) => r.filter(Boolean)), mapas);
-    expect(mapasSinCargar, 'P7: mapas antiguos que no cargan').toEqual([]);
+    expect(mapas.filter((r) => !r?.startsWith('/publico/imagenes/mapas-vintage/')), 'P7: mapas fuera de publico/imagenes/mapas-vintage/').toEqual([]);
+    expect(await queNoCargan(f, mapas), 'P7: mapas que no cargan').toEqual([]);
     expect(pedidos, 'nada protegido').toEqual([]);
   });
 
-  test('DM-5. video-intro.html (P4) no nombra ninguna ruta protegida, y su foto, su mapa antiguo y su vídeo están en la carpeta pública', () => {
+  test('DM-5. video-intro.html (P4) lo saca todo de publico/, también el texto de Jaime', async ({ page }) => {
     const html = fs.readFileSync(path.join(RAIZ, 'video-intro.html'), 'utf8');
-    expect(PROTEGIDOS.filter((p) => html.includes(p.slice(1))), 'rutas protegidas que nombra video-intro.html').toEqual([]);
-    const carpetaFotos = /^const IM = '([^']+)';/m.exec(html)?.[1];
-    const video = /^const VIDEO_INTRO_SRC = '([^']+)';/m.exec(html)?.[1];
-    const fotos = [...html.matchAll(/\$\{IM\}([^"'`]+)/g)].map((m) => carpetaFotos + m[1]);
+    // Una ruta es una cadena entre comillas que empieza por ella (`'publico/imagenes/mapas-vintage/'` no es la protegida).
+    const pideRuta = (texto, ruta) => new RegExp(`['"\`]/?${ruta.replace(/^\//, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).test(texto);
+    expect(PROTEGIDOS.filter((p) => pideRuta(html, p)), 'rutas protegidas que pide video-intro.html').toEqual([]);
+    expect(/import\s*\{[^}]*\bJAIME_SCENES\b/.test(html), 'los textos de Jaime no se importan de js/').toBe(false);
+    const carpeta = (nombre) => new RegExp(`^const ${nombre} = '([^']+)';`, 'm').exec(html)?.[1];
+    const video = carpeta('VIDEO_INTRO_SRC');
+    const fotos = [...html.matchAll(/\$\{IM\}([^"'`]+)/g)].map((m) => carpeta('IM') + m[1]);
+    const mapas = [...html.matchAll(/\$\{MV\}([^"'`]+)/g)].map((m) => carpeta('MV') + m[1]);
     expect(fotos, 'la foto de las Torres de Serranos, la única').toHaveLength(1);
-    const carpetaMapas = /^const MV = '([^']+)';/m.exec(html)?.[1];
-    const mapas = [...html.matchAll(/\$\{MV\}([^"'`]+)/g)].map((m) => carpetaMapas + m[1]);
-    expect(mapas.length, 'el mapa antiguo de la Aventura 1, en sus dos escenas').toBe(2);
+    expect(mapas.length, 'el mapa de la Aventura 1, en sus dos escenas').toBe(2);
     for (const r of [...fotos, ...mapas, video]) {
       expect(r, `${r}: en la carpeta pública`).toMatch(/^publico\/(imagenes|videos)\//);
       expect(fs.existsSync(path.join(RAIZ, r)), `${r}: existe`).toBe(true);
     }
+
+    // Y en marcha: el primer bocadillo, en inglés, es el texto público del idioma, sin pedir nada protegido.
+    const pedidos = await protegerConTodo(page);
+    await stubCDNResources(page);
+    await page.goto('/video-intro.html?lang=en');
+    const esperado = JSON.parse(fs.readFileSync(path.join(RAIZ, 'publico/textos/ingles/jaime.json'), 'utf8')).escenas[0];
+    expect(typeof esperado === 'string' && esperado.length > 0, 'el texto público del primer bocadillo').toBe(true);
+    const bocadillo = await page.evaluate(async () => {
+      await _textosJaimeListos;
+      showBubble(0);
+      return document.getElementById('jaime-band-text').textContent;
+    });
+    expect(bocadillo, 'el primer bocadillo, del texto público').toBe(esperado);
+    expect(pedidos, 'nada protegido').toEqual([]);
   });
 
-  test('DM-6. Cada mapa de la tabla de mapas antiguos está en la carpeta pública y existe', () => {
+  test('DM-6. El resto de la app no apunta a publico/, y cada mapa está en su original y en su copia', () => {
+    const datos = ['js/coordenadas-aventuras.js', 'js/textos-aventuras.js', 'js/retos-aventuras.js', 'js/puzzles-aventuras.js',
+      'js/audios-aventuras.js', 'js/mapa-vintage-aventuras.js', 'js/terminos-aventuras.js', 'js/normativa-cumplimiento.js',
+      'js/agradecimientos-aventuras.js', 'js/traducciones-ui.js'];
+    const paginas = ['codigo-padre.html', 'extrainfo-hijo1.html', 'coordenadas-hijo2.html', 'audio-hijo3.html', 'retos-hijo4.html',
+      'boton-casa-hijo5.html', 'chat-hijo6.html', 'mapa-completo.html', 'index.html', 'consejos-valencia.html', 'gastronomia.html',
+      'paginas-oficiales-valencia.html', 'videos-valencia-historica.html'];
+    // Una ruta es una cadena entre comillas que empieza por publico/ (un comentario que la nombra no la pide).
+    const apuntanAPublico = [...datos, ...paginas].filter((r) => /['"`]\/?publico\//.test(fs.readFileSync(path.join(RAIZ, r), 'utf8')));
+    expect(apuntanAPublico, 'fuera de la demo, nadie apunta a publico/').toEqual([]);
+
     const tabla = fs.readFileSync(path.join(RAIZ, 'js/mapa-vintage-aventuras.js'), 'utf8').replace(/\r\n/g, '\n');
-    // Las entradas vivas de MAPAS_VINTAGE (una línea comentada, de una aventura sin mapa, no contaría).
-    const lineas = tabla.split('\n').filter((l) => /^\s*\w+:\s*'/.test(l));
-    const mapas = lineas.map((l) => /'([^']+)'/.exec(l)[1]);
-    expect(mapas.length, 'una entrada por aventura, las siete').toBe(7);
+    const mapas = tabla.split('\n').filter((l) => /^\s*\w+:\s*'/.test(l)).map((l) => /'([^']+)'/.exec(l)[1]);
+    expect(mapas.length, 'un mapa por aventura, las siete').toBe(7);
     for (const r of mapas) {
-      expect(r, `${r}: en la carpeta pública`).toMatch(/^publico\/imagenes\/mapas-vintage\//);
+      expect(r, `${r}: el original`).toMatch(/^imagenes\/mapas-vintage\//);
       expect(fs.existsSync(path.join(RAIZ, r)), `${r}: existe`).toBe(true);
+      expect(fs.existsSync(path.join(RAIZ, 'publico/imagenes/mapas-vintage', path.basename(r))), `${r}: su copia pública existe`).toBe(true);
     }
+  });
+
+  test('DM-7. publico/ está al día con sus originales, sin ficheros de más', async () => {
+    const { revisarPublico } = require('../../tools/build-demo.js');
+    const r = await revisarPublico();
+    expect({ faltas: r.faltas, desfasados: r.desfasados, copiasMal: r.copiasMal, sobran: r.sobran }, 'lo que dice el generador')
+      .toEqual({ faltas: [], desfasados: [], copiasMal: [], sobran: [] });
+
+    // Y sin el generador: cada fichero de medios de publico/ es idéntico a su original, que está en la carpeta de su tipo.
+    const ORIGEN = [
+      [/^publico\/imagenes\/mapas-vintage\/([^/]+)$/, 'imagenes/mapas-vintage/'],
+      [/^publico\/imagenes\/([^/]+)$/, 'imagenes/imagenes-aventuras/'],
+      [/^publico\/videos\/([^/]+)$/, 'videos-aventuras/'],
+      [/^publico\/audios\/[^/]+\/([^/]+\.mp3)$/, 'audios-aventuras/español/'],
+    ];
+    const medios = [];
+    (function recorrer(rel) {
+      for (const e of fs.readdirSync(path.join(RAIZ, rel), { withFileTypes: true })) {
+        const r = `${rel}/${e.name}`;
+        if (e.isDirectory()) recorrer(r);
+        else if (!r.endsWith('.json')) medios.push(r);
+      }
+    })('publico');
+    expect(medios.length, 'hay ficheros de medios en publico/').toBeGreaterThan(0);
+    const distintos = medios.filter((r) => {
+      const regla = ORIGEN.find(([re]) => re.test(r));
+      if (!regla) return true;
+      const original = path.join(RAIZ, regla[1], regla[0].exec(r)[1]);
+      return !fs.existsSync(original) || !fs.readFileSync(original).equals(fs.readFileSync(path.join(RAIZ, r)));
+    });
+    expect(distintos, 'ficheros de medios de publico/ sin original idéntico').toEqual([]);
   });
 });

@@ -2,9 +2,10 @@
  * 45-texto-intro-fallback-idioma.spec.js
  *
  * Grupo TI — cargarTextoIntro() (En-busca-del-tesoro.html, P11) muestra el texto
- * introductorio del idioma elegido, que llega en publico/demo-aventuras.js (lo genera
- * tools/build-demo.js con ensamblarTexto() de js/data-loader.js; ver el spec 149). Si
- * esa carga falla — el fichero de la demo no llega, o no trae el texto — los caminos de
+ * introductorio del idioma elegido, que monta ensamblarTexto() de js/data-loader.js con las
+ * copias públicas de la entrada txt-intro y de sus párrafos (publico/textos/, las hace
+ * tools/build-demo.js; ver el spec 149). Si esa carga falla — las copias no llegan, o no
+ * traen el texto — los caminos de
  * fallback (texto ausente o vacío, excepción) usaban texto español fijo sin mirar
  * idiomaSeleccionado, a diferencia
  * del resto de la app, que sí traduce sus avisos de fallback a los 12 idiomas (auditoría
@@ -61,10 +62,11 @@ async function cargarComoIframe(page) {
 }
 
 test.describe('TI — cargarTextoIntro(): fallback traducido cuando falla la carga del texto (P11)', () => {
-  test('TI-1. Fallo de red cargando el fichero de la demo con un idioma no español: el fallback sale en ese idioma, no en español fijo', async ({ page }) => {
-    // El texto de introducción llega en publico/demo-aventuras.js: se intercepta esa petición
-    // para simular un fallo real de red/servidor (el escenario real que dispara el bug).
-    await page.route('**/publico/demo-aventuras.js', (route) => route.fulfill({ status: 500, body: 'error' }));
+  test('TI-1. Fallo de red cargando las copias públicas del texto con un idioma no español: el fallback sale en ese idioma, no en español fijo', async ({ page }) => {
+    // El texto de introducción se monta con las copias de publico/textos/ (la entrada txt-intro y sus párrafos): se
+    // interceptan esas peticiones para simular un fallo real de red/servidor (el escenario real que dispara el bug). Si la
+    // ruta no casara, el texto real en japonés saldría en vez del aviso y el test caería.
+    await page.route('**/publico/textos/**', (route) => route.fulfill({ status: 500, body: 'error' }));
     const frame = await cargarComoIframe(page);
 
     const resultado = await frame.evaluate(async () => {

@@ -31,10 +31,10 @@ const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./help
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
-const VIDEO_ABIERTO = 'publico/videos/video_intro_ejemplo.mp4';
+const VIDEO_ABIERTO = 'videos-aventuras/video_intro_ejemplo.mp4';
 // URL inyectada como vídeo del tramo siguiente: distinta de la que el usuario está
 // viendo, para que PV-3 distinga "no ha cambiado" de "ha cambiado a otra cosa".
-const VIDEO_SIGUIENTE_TRAMO = 'publico/videos/video_intro_ejemplo.mp4?tramo-siguiente=1';
+const VIDEO_SIGUIENTE_TRAMO = 'videos-aventuras/video_intro_ejemplo.mp4?tramo-siguiente=1';
 
 async function prepararPadre(page) {
   await page.addInitScript({ path: MAPLIBRE_STUB });

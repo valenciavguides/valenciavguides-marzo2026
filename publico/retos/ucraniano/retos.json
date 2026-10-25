@@ -1,0 +1,226 @@
+{
+  "Aventura1": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av1-uk",
+      "tipo": "opcion",
+      "pregunta": "Скільки пригод можна здійснити з Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av1-uk",
+      "tipo": "opcion",
+      "pregunta": "Чи зараз гарний момент для початку пригоди?",
+      "opciones": [
+        "Так",
+        "Ні"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura2": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av2-uk",
+      "tipo": "opcion",
+      "pregunta": "Скільки пригод можна здійснити з Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av2-uk",
+      "tipo": "opcion",
+      "pregunta": "Чи зараз гарний момент для початку пригоди?",
+      "opciones": [
+        "Так",
+        "Ні"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura3": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av3-uk",
+      "tipo": "opcion",
+      "pregunta": "Скільки пригод можна здійснити з Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av3-uk",
+      "tipo": "opcion",
+      "pregunta": "Чи зараз гарний момент для початку пригоди?",
+      "opciones": [
+        "Так",
+        "Ні"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura4": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av4-uk",
+      "tipo": "opcion",
+      "pregunta": "Скільки пригод можна здійснити з Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av4-uk",
+      "tipo": "opcion",
+      "pregunta": "Чи зараз гарний момент для початку пригоди?",
+      "opciones": [
+        "Так",
+        "Ні"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura5": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av5-uk",
+      "tipo": "opcion",
+      "pregunta": "Скільки пригод можна здійснити з Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av5-uk",
+      "tipo": "opcion",
+      "pregunta": "Чи зараз гарний момент для початку пригоди?",
+      "opciones": [
+        "Так",
+        "Ні"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "AventuraFallas": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-AvFallas-uk",
+      "tipo": "opcion",
+      "pregunta": "Скільки пригод можна здійснити з Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-AvFallas-uk",
+      "tipo": "opcion",
+      "pregunta": "Чи зараз гарний момент для початку пригоди?",
+      "opciones": [
+        "Так",
+        "Ні"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura34km": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av34km-uk",
+      "tipo": "opcion",
+      "pregunta": "Скільки пригод можна здійснити з Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av34km-uk",
+      "tipo": "opcion",
+      "pregunta": "Чи зараз гарний момент для початку пригоди?",
+      "opciones": [
+        "Так",
+        "Ні"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  }
+}

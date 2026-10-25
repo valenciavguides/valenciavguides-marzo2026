@@ -241,16 +241,15 @@ module.exports = [
   // page.evaluate(), o sea en el navegador, donde `/js/…` resuelve desde la raíz del
   // servidor y `./js/…` desde la URL de la página. Las dos formas funcionan; ninguna existe
   // como ruta de disco, que es lo único que ESLint sabe mirar. El código es correcto y lo
-  // demuestra que esos tests pasan. Lo mismo con los módulos de la carpeta pública
-  // (`/publico/demo-aventuras.js`, los datos de la demo gratis).
+  // demuestra que esos tests pasan.
   //
-  // Se ignoran SOLO esas formas (`/js/…`, `./js/…`, `/publico/…` y `./publico/…`). Un
-  // `require('../../js/x.js')` de verdad roto se sigue detectando, porque no casa con el patrón.
+  // Se ignoran SOLO esas dos formas (`/js/…` y `./js/…`). Un `require('../../js/x.js')`
+  // de verdad roto se sigue detectando, porque no casa con el patrón.
   {
     files: ["tests/**/*.js"],
     rules: {
       "no-console": "off",
-      "import/no-unresolved": ["error", { ignore: ["^\\.?/(js|publico)/"] }],
+      "import/no-unresolved": ["error", { ignore: ["^\\.?/js/"] }],
     },
   },
 

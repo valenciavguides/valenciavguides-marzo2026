@@ -97,7 +97,7 @@ La aplicación soporta **12 idiomas**: español, inglés, francés, italiano, ne
 Actualmente hay **7 aventuras** definidas en `js/indice-aventuras.js`, todas con `disponible: true` (aparecen en la pantalla de selección): **Aventuras 1, 2, 3, 4, 5, Fallas y 34km**. `disponible: true` solo controla si la aventura es seleccionable — no garantiza que el contenido esté completo, y el nivel de completitud varía mucho según el tipo de contenido:
 
 - **Rutas GPS** (`coordenadas-aventuras.js`): completas en las 7 aventuras, incluidas las referencias visuales (una entrada `tipo:"referencia"` por cada pin numerado del mapa de cada aventura — ver §26.10).
-- **Audios narrados** (`audios-aventuras.js`, campo `file`): la estructura de metadatos (título, id) existe con el mismo número de entradas en cada idioma en las 7 aventuras. **11 de los 12 idiomas** (todos salvo español) tienen `file:""` en el 100% de sus entradas (verificado por conteo exhaustivo: 0 excepciones en 6.578 entradas no-español repartidas en las 7 aventuras — 598 entradas × 11 idiomas) — sin audio real, el sistema lo gestiona sin romper el flujo (`file:""` → sin reproducción, ver §7.4). **El español es distinto y no está simplemente "más avanzado":** sus `file` nunca están vacíos (598 entradas en total, entre 47 en Aventura Fallas y 237 en Av34km según la aventura — verificado), pero todas apuntan solo a 2 ficheros compartidos: el audio de introducción de cada aventura (`audio-intro-es`, 7 entradas) a `publico/audios/español/01-Intro-ESPAÑOL-1.mp3`, y las otras 591 a `audios-aventuras/español/02-Intro ESPAÑOL-2.mp3` (verificado por conteo) — no hay ninguna narración distinta por parada todavía. `_resolverAudioData()` (`codigo-padre.html`) no distingue placeholder de contenido real — simplemente reenvía el `file` que encuentre, así que **un usuario en español oye el mismo clip (`02-Intro ESPAÑOL-2.mp3`) repetido en cada parada de cada aventura**, no silencio. Ver §12 para el detalle completo por aventura.
+- **Audios narrados** (`audios-aventuras.js`, campo `file`): la estructura de metadatos (título, id) existe con el mismo número de entradas en cada idioma en las 7 aventuras. **11 de los 12 idiomas** (todos salvo español) tienen `file:""` en el 100% de sus entradas (verificado por conteo exhaustivo: 0 excepciones en 6.578 entradas no-español repartidas en las 7 aventuras — 598 entradas × 11 idiomas) — sin audio real, el sistema lo gestiona sin romper el flujo (`file:""` → sin reproducción, ver §7.4). **El español es distinto y no está simplemente "más avanzado":** sus `file` nunca están vacíos (598 entradas en total, entre 47 en Aventura Fallas y 237 en Av34km según la aventura — verificado), pero todas apuntan solo a 2 ficheros compartidos: el audio de introducción de cada aventura (`audio-intro-es`, 7 entradas) a `audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3` (la demo gratis enseña su copia de `publico/audios/espanol/`), y las otras 591 a `audios-aventuras/español/02-Intro ESPAÑOL-2.mp3` (verificado por conteo) — no hay ninguna narración distinta por parada todavía. `_resolverAudioData()` (`codigo-padre.html`) no distingue placeholder de contenido real — simplemente reenvía el `file` que encuentre, así que **un usuario en español oye el mismo clip (`02-Intro ESPAÑOL-2.mp3`) repetido en cada parada de cada aventura**, no silencio. Ver §12 para el detalle completo por aventura.
 - **Textos narrativos** (párrafos): completos en las 7 aventuras y los 12 idiomas — ver §14.
 - **Retos**: completos en las 7 aventuras y los 12 idiomas.
 
@@ -2228,30 +2228,41 @@ graph TD
 | P17 | `#pantalla17` | `.btn-mundo-verde` (→) | Logos (logo redondo + logo alargado). El botón llama a `iniciarAventura()`, que enseña `#overlay-carga-aventura` y envía la activación al padre | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados, timestamp }` |
 | P18 *(solo `?despedida=1`)* | `#pantalla18` | `#btn-siguiente-agradecimientos` | Scroll hasta el final del texto → `_ejecutarDespedida()` | — |
 
-**De dónde lee la demo gratis lo que enseña de cada aventura.** De P2 a P11 la selección es la demo gratis, antes del pago. Lo que usa de la aventura y el idioma elegidos —el puzzle de introducción (P6), el reto R-1 (P8), si la aventura tiene audio en ese idioma (el aviso de P9) y el audio y el texto de introducción (P11)— lo lee de un solo fichero, `publico/demo-aventuras.js`: `_datosDemo()` lo importa la primera vez y lo guarda en `DEMO_DATOS`, y `_piezasDemo(aventura, idioma)` devuelve lo de una aventura en un idioma. Ese fichero vive en la carpeta pública, `publico/`, junto al audio de introducción (`publico/audios/`, §12), la foto de cada tarjeta de aventura (P7, P9 y P13) y la de `video-intro.html` (`publico/imagenes/`), el mapa antiguo de cada aventura, que sale al elegirla en P7 (`publico/imagenes/mapas-vintage/`, §22.0, n.º 13), y el clip de su `sceneVid` (`publico/videos/`, §15). La demo no carga ningún fichero de `PROTECTED_FILES` (§22.4), así que con `PROTECT_DATA=true` llega igual; el reto R-2 (P16) va por `cargarRetos()`, después del código. El fichero lo genera `tools/build-demo.js` a partir de los ficheros de datos, y lo rehace el hook de pre-commit (§21.1):
+**De dónde lee la demo gratis lo que enseña de cada aventura.** La selección es la demo gratis hasta el código de compra, y enseña además, de la aventura y el idioma elegidos, la normativa (P15), el reto R-2 (P16) y, con `?despedida=1`, los agradecimientos (P18). Todo lo que usa de las aventuras lo lee de la carpeta pública, `publico/`: copias que hace `tools/build-demo.js` de los originales, solo de las piezas que la demo enseña, con una carpeta por tipo y, dentro, una por idioma con el nombre de su fichero de párrafos (`espanol`, `ingles`…; `LANG_ARCHIVO_PARRAFOS` de `js/data-loader.js`). Los originales siguen completos en sus carpetas —son los que irán al backend— y la demo no pide ninguno: no carga nada de `PROTECTED_FILES` (§22.4), así que con `PROTECT_DATA=true` llega igual. El resto de la app pide solo los originales (§22.0, n.º 26 y 29). Las copias las rehace el hook de pre-commit (§21.1).
 
-```javascript
-// publico/demo-aventuras.js — generado, no se edita a mano
-export const DEMO_AVENTURAS = {
-  puzzleIntro: { id: 'PZ-intro', imagen: 'imagenes/imagenes-aplicación/logo-luna.png' },
-  // cada texto de introducción distinto de un idioma, una sola vez (dos por idioma: el de Aventura34km y el de las otras seis)
-  textosIntro: { es: [ { id: 'txt-intro-es', title: 'Intro', content: '<p>…</p>' }, … ], en: [ … ], … },
-  aventuras: {
-    Aventura1: {
-      es: { retoR1: { reto: 1, id, tipo, pregunta, opciones, correctas, multiple },
-            audioIntro: { id: 'audio-intro-es', title: 'Intro', file: 'publico/audios/español/01-Intro-ESPAÑOL-1.mp3' },
-            tieneAudio: true, textoIntro: 0 },   // textoIntro: su posición en textosIntro.es
-      en: { retoR1: { … }, audioIntro: null, tieneAudio: false, textoIntro: 0 },
-      // … los doce idiomas
-    },
-    // … las siete aventuras del índice
-  },
-};
+Todo pasa por un lector, `_leerPublico(ruta)`: pide un JSON de `publico/` por su ruta entera, una vez por ruta (un fallo no se guarda: la siguiente llamada lo vuelve a pedir). Encima de él:
+
+- `_textoPublico(nombre, idioma)`: el HTML de los términos (P10), la normativa (P15) o los agradecimientos (P18), de `publico/textos/<idioma>/<nombre>.json`.
+- `_piezasDemo(aventura, idioma)`: los retos R-1 (P8) y R-2 (P16), el audio de introducción (`null` si el original no tiene fichero), si la aventura tiene audio en ese idioma (el aviso de P9) y el texto de introducción (P11), que monta `ensamblarTexto()` de `js/data-loader.js` —la función con la que `cargarTextos()` monta los textos de la aventura— con la entrada `txt-intro` y la copia pública de sus párrafos. Devuelve `null` si a la aventura le falta alguna pieza.
+- El puzzle de introducción (P6): `PZ-intro` de `publico/puzzles/puzzles.json`.
+
+La foto de cada tarjeta (P7, P9 y P13, `IMAGENES_AVENTURAS`) sale de `publico/imagenes/`; el mapa antiguo que se ve al elegir una aventura en P7 (`mostrarMapaVintage()`) es la copia, con el mismo nombre, del que nombra `js/mapa-vintage-aventuras.js` (`publico/imagenes/mapas-vintage/`, §22.0, n.º 13); y `video-intro.html` (P4) lee de `publico/` sus textos de Jaime, su foto, su mapa y su clip (§35). Lo que hay en la carpeta:
+
+```text
+publico/                               ← copias hechas por tools/build-demo.js; no se editan a mano
+├── textos/
+│   ├── intro.json                     ← { aventura: entrada txt-intro } (la misma en los doce idiomas)
+│   └── <idioma>/
+│       ├── parrafos.json              ← solo los párrafos que nombran esas entradas, en el orden del original
+│       ├── terminos.json              ← { html } (P10)
+│       ├── normativa.json             ← { html } (P15)
+│       ├── agradecimientos.json       ← { html } (P18)
+│       └── jaime.json                 ← { escenas }: el texto de cada bocadillo de video-intro.html, o null
+├── retos/<idioma>/retos.json          ← { aventura: { r1, r2 } }: los retos 1 (P8) y 2 (P16)
+├── puzzles/puzzles.json               ← { "PZ-intro": { id, imagen } } (P6)
+├── audios/<idioma>/
+│   ├── audios.json                    ← { aventura: { intro: { id, title, file }, tieneAudio } } (P9 y P11)
+│   └── 01-Intro-ESPAÑOL-1.mp3         ← la copia del audio de introducción (solo en espanol/)
+├── imagenes/                          ← la copia de cada foto de tarjeta y de la de video-intro.html
+│   └── mapas-vintage/                 ← la copia de cada mapa antiguo
+└── videos/video_intro_ejemplo.mp4     ← la copia del clip de sceneVid
 ```
 
-**Texto introductorio en P11** (`cargarTextoIntro()`, `#texto-intro-contenido`): pinta el texto de bienvenida de la aventura y el idioma elegidos, que lee de `publico/demo-aventuras.js` (`aventuras[aventura][idioma].textoIntro` es su posición en `textosIntro[idioma]`): la entrada `txt-intro-{idioma}`, montada desde los párrafos por `ensamblarTexto()` de `js/data-loader.js`, la misma función con la que `cargarTextos()` monta los textos de las paradas. Dos caminos de fallback: el texto falta o llega sin `content`, o la carga lanza (el fichero de la demo no llega: fallo real de red o del servidor). Los dos muestran `MSG_TEXTO_INTRO_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas, mismo patrón que `MSG_TEXTO_PARADA_NO_DISPONIBLE`, ver §4.7f) traducido al idioma elegido — igual que el resto de fallbacks de contenido de la app, ninguno cae a español fijo. Import dinámico porque este script es clásico, no módulo (no puede usar `import` estático). Cubierto por `tests/e2e/45-texto-intro-fallback-idioma.spec.js` (TI-1: con el japonés elegido, un fallo de red real al cargar `publico/demo-aventuras.js` muestra el fallback en japonés, nunca español fijo; TI-2: sin fallo, sigue mostrando el texto real de la aventura). Arnés de test: al no poder navegarse directamente (guardia de redirección a `codigo-padre.html` salvo `?despedida=1`), el archivo se inserta como `<iframe>` real y se localiza el frame resultante por URL.
+El `file` de `audios.json` nombra ya la copia (`publico/audios/espanol/01-Intro-ESPAÑOL-1.mp3`), y vale `''` cuando el original no tiene fichero.
 
-**Audio introductorio en P11** (`cargarAudioIntro()`, `#audio-intro-player`): lee de `publico/demo-aventuras.js` el `audioIntro` de la aventura y el idioma elegidos (`{ id, title, file }` de la entrada `audio-intro-{idioma}` de `js/audios-aventuras.js`, o `null` si su `file` está vacío) y asigna `audioIntro.file` como fuente; el MP3 está en la carpeta pública, en `publico/audios/` (§12). Solo español tiene fichero grabado — los otros 11 idiomas tienen la entrada `file:""` (mismo hueco que el audio de las paradas, §25.5f). Si `audioIntro.file` está vacío o no existe, `#audio-player-container` se oculta entero (`display:none` — nada que reproducir) y `#btn-siguiente-audio-intro` se habilita directamente, sin esperar ningún evento de reproducción — coherente con el aviso de P9 (`tieneAudiosDisponibles()`/`mostrarAvisoSinAudio()`, más abajo en esta sección), donde el usuario ya aceptó continuar sin audio.
+**Texto introductorio en P11** (`cargarTextoIntro()`, `#texto-intro-contenido`): pinta el texto de bienvenida de la aventura y el idioma elegidos, que le da `_piezasDemo()`: la entrada `txt-intro-{idioma}`, montada por `ensamblarTexto()` de `js/data-loader.js` con la copia pública de sus párrafos, la misma función con la que `cargarTextos()` monta los textos de las paradas. Dos caminos de fallback: el texto falta o llega sin `content`, o la carga lanza (las copias públicas no llegan: fallo real de red o del servidor). Los dos muestran `MSG_TEXTO_INTRO_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas, mismo patrón que `MSG_TEXTO_PARADA_NO_DISPONIBLE`, ver §4.7f) traducido al idioma elegido — igual que el resto de fallbacks de contenido de la app, ninguno cae a español fijo. Import dinámico porque este script es clásico, no módulo (no puede usar `import` estático). Cubierto por `tests/e2e/45-texto-intro-fallback-idioma.spec.js` (TI-1: con el japonés elegido, un fallo de red real al pedir las copias de `publico/textos/` muestra el fallback en japonés, nunca español fijo; TI-2: sin fallo, sigue mostrando el texto real de la aventura). Arnés de test: al no poder navegarse directamente (guardia de redirección a `codigo-padre.html` salvo `?despedida=1`), el archivo se inserta como `<iframe>` real y se localiza el frame resultante por URL.
+
+**Audio introductorio en P11** (`cargarAudioIntro()`, `#audio-intro-player`): toma de `_piezasDemo()` el `audioIntro` de la aventura y el idioma elegidos (`{ id, title, file }` de la entrada `audio-intro-{idioma}`, con `file` apuntando a su copia de `publico/audios/<idioma>/`, o `null` si el original no tiene fichero) y asigna `audioIntro.file` como fuente (§12). Solo español tiene fichero grabado — los otros 11 idiomas tienen la entrada `file:""` (mismo hueco que el audio de las paradas, §25.5f). Si `audioIntro.file` está vacío o no existe, `#audio-player-container` se oculta entero (`display:none` — nada que reproducir) y `#btn-siguiente-audio-intro` se habilita directamente, sin esperar ningún evento de reproducción — coherente con el aviso de P9 (`tieneAudiosDisponibles()`/`mostrarAvisoSinAudio()`, más abajo en esta sección), donde el usuario ya aceptó continuar sin audio.
 
 **Reproductor propio, no `<audio controls>` nativo:** el control nativo del navegador se dibuja de forma distinta en cada navegador/SO, así que nada de esta página puede señalar de forma fiable un punto fijo dentro de él (ver el guante-hint más abajo). `#audio-intro-player` existe (necesario para la reproducción real) pero oculto (`display:none`, sin atributo `controls`); la interfaz visible es propia:
 
@@ -2319,7 +2330,7 @@ El spinner es el contenido inicial del elemento; cuando la función de carga asi
 | ID | Cuándo aparece | Elementos clave | Cómo se cierra |
 |----|----------------|-----------------|----------------|
 | `#mapa-vintage-overlay` | Al seleccionar aventura en P7 | `#mapa-vintage-img` (imagen del recorrido) + botón cerrar (top-right, naranja/rojo) | Click en botón cerrar → `cerrarMapaVintage()` (definida en `En-busca-del-tesoro.html`, que es donde vive este overlay) |
-| `#audio-warning-overlay` | Al confirmar en P9 una aventura que no tiene ningún audio en el idioma elegido (`tieneAudio` de `publico/demo-aventuras.js`) | `#audio-warning-text` + `#audio-warning-yes` (verde) / `#audio-warning-no` (rojo) | Click yes (continúa sin audio) / no (`rechazarSinAudio()` → `volverAElegirIdioma()`: `SELECCION.REINICIAR` al padre y P2) |
+| `#audio-warning-overlay` | Al confirmar en P9 una aventura que no tiene ningún audio en el idioma elegido (`tieneAudio` de `publico/audios/<idioma>/audios.json`) | `#audio-warning-text` + `#audio-warning-yes` (verde) / `#audio-warning-no` (rojo) | Click yes (continúa sin audio) / no (`rechazarSinAudio()` → `volverAElegirIdioma()`: `SELECCION.REINICIAR` al padre y P2) |
 | `#overlay-carga-aventura` | Al pulsar el botón de P17 (`iniciarAventura()`, arranque de aventura) | Logo giratorio (`animation: spin 7s linear infinite`) + `#carga-progreso-barra` + `#carga-progreso-porcentaje` + `#carga-progreso-frase` (frase rotativa, mismo banco que `#loading-overlay` del padre, ver "Frases aleatorias durante la espera") | Se oculta automáticamente cuando el padre confirma carga completa |
 
 #### Sub-iframe puzzle.html en P6
@@ -2327,7 +2338,7 @@ El spinner es el contenido inicial del elemento; cuando la función de carga asi
 ```javascript
 // En cargarPuzzle() dentro de En-busca-del-tesoro.html
 const iframe = document.getElementById('puzzle-iframe');
-const puzzleIntro = (await _datosDemo()).puzzleIntro;   // de publico/demo-aventuras.js
+const puzzleIntro = (await _leerPublico('publico/puzzles/puzzles.json'))['PZ-intro'];
 const imagenPuzzle = puzzleIntro.imagen || 'imagenes/imagenes-aplicación/logo-luna.png';
 iframe.src = `puzzle.html?id=${puzzleIntro.id}&imagen=${encodeURIComponent(imagenPuzzle)}`;
 ```
@@ -3354,8 +3365,8 @@ Cuando `RESPUESTAS_CHAT[clave][idioma].enlace` no es `null`, `construirFAQ()` a�
 
 | `enlace` | Qué hace `abrirModalEnlace()` | Origen del contenido |
 |---|---|---|
-| `'terminos'` | `import('./js/terminos-aventuras.js')` (lazy, cacheado en `_cacheModuloEnlace` tras la primera vez) → pinta `TERMINOS_AVENTURAS.terminos_idiomas[idioma]` como HTML dentro de `#chat-modal-contenido` | Mismo módulo que usa `En-busca-del-tesoro.html` P5 |
-| `'agradecimientos'` | Igual, con `import('./js/agradecimientos-aventuras.js')` → `AGRADECIMIENTOS_AVENTURAS.agradecimientos_idiomas[idioma]` | Mismo módulo que usa `En-busca-del-tesoro.html` P18 |
+| `'terminos'` | `import('./js/terminos-aventuras.js')` (lazy, cacheado en `_cacheModuloEnlace` tras la primera vez) → pinta `TERMINOS_AVENTURAS.terminos_idiomas[idioma]` como HTML dentro de `#chat-modal-contenido` | El original; la selección (P10) enseña su copia pública (§7.1) |
+| `'agradecimientos'` | Igual, con `import('./js/agradecimientos-aventuras.js')` → `AGRADECIMIENTOS_AVENTURAS.agradecimientos_idiomas[idioma]` | El original; la selección (P18) enseña su copia pública (§7.1) |
 | `'video-intro'` | Crea un `<iframe src="video-intro.html?lang=IDIOMA&replay=1">` dentro de `#chat-modal-contenido` (sin cachear — se recrea cada vez) | `video-intro.html`, el mismo fichero que reproduce la introducción en `En-busca-del-tesoro.html` P4; avisa por el bus a su ventana de arriba, que aquí es hijo6 (lo registra como `'video-intro'` antes de darle `src`, y lo da de baja al cerrar el modal). El `&replay=1` sí lo condiciona a este contexto: habilita `#btn-skip` desde el arranque en vez de esperar a la escena 4 (§35.5b) — el usuario ya ha visto la intro antes, así que puede salir en cualquier momento |
 
 El modal se muestra y se oculta en dos únicos sitios, `mostrarModal()` y `cerrarModal()`. `cerrarModal()` vacía `#chat-modal-contenido.innerHTML` al cerrar —esto detiene el `<iframe>` del vídeo si estaba reproduciéndose (destruye su documento) en vez de solo ocultarlo— y da de baja `'video-intro'` en el bus. Lo llaman la ✕ del modal (`#chat-modal-cerrar`), el handler de `SELECCION.VIDEO_INTRO_TERMINADO` —el aviso que `video-intro.html` emite siempre al terminar, por el bus— y el botón atrás del dispositivo: el modal es la capa de hijo6 que «atrás» cierra antes que el propio asistente (`js/capa-con-atras.js`, §34.3). Cada uno de los dos sitios avisa al padre (`UI.CAPA_ABIERTA { abierta }`).
@@ -4859,7 +4870,7 @@ Estos ficheros se cargan directamente en el navegador:
 | `terminos-aventuras.js` | Texto legal de términos y condiciones en 12 idiomas | `TERMINOS_AVENTURAS.terminos_idiomas.es`, `.en`, … |
 | `agradecimientos-aventuras.js` | Texto de créditos/agradecimientos en 12 idiomas | `AGRADECIMIENTOS_AVENTURAS.agradecimientos_idiomas.es`, … |
 | `normativa-cumplimiento.js` | Aviso legal de seguridad vial (requerido antes de iniciar aventura) en 12 idiomas | `NORMATIVA_CUMPLIMIENTO.normativa_idiomas.es`, … |
-| `traducciones-ui.js` | Textos cortos de interfaz en 12 idiomas, centralizados desde 7 archivos consumidores: modal de reanudación, fin de aventura, tiempo agotado, despedida (P5), retos, chat, video-intro, banner SW de actualización | `TRADUCCIONES_REANUDACION`, `TRADUCCIONES_FINALIZACION`, `TRADUCCIONES_TIEMPO_AGOTADO`, `TRADUCCIONES_DESPEDIDA`, `PLACEHOLDER_RESPUESTA_TEXTO`, `TITULOS_CHAT`, `JAIME_SCENES` (array 21 entradas × 12 idiomas, índice 15 = `null`), `TRADUCCIONES_SW_UPDATE` (label + boton del banner de actualización) |
+| `traducciones-ui.js` | Textos cortos de interfaz en 12 idiomas, que importan cuatro páginas (`codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` y `chat-hijo6.html`): modal de reanudación, fin de aventura, tiempo agotado, despedida, retos, chat, banner SW de actualización. Guarda también los textos de Jaime (`JAIME_SCENES`), de los que `video-intro.html` lee la copia pública que hace `tools/build-demo.js` (§35) | `TRADUCCIONES_REANUDACION`, `TRADUCCIONES_FINALIZACION`, `TRADUCCIONES_TIEMPO_AGOTADO`, `TRADUCCIONES_DESPEDIDA`, `PLACEHOLDER_RESPUESTA_TEXTO`, `TITULOS_CHAT`, `JAIME_SCENES` (array 21 entradas × 12 idiomas, índice 15 = `null`), `TRADUCCIONES_SW_UPDATE` (label + boton del banner de actualización) |
 
 ### 10.2 Datos en el backend (`backend/data/`) — pendiente de crear
 
@@ -4933,7 +4944,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-02f171462751'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-37df4700d438'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6555,7 +6566,7 @@ Cada parada tiene esta estructura:
     parada: 8,                              // Posición global en la aventura completa (= número del id + 3)
     nombre: "Plaza de la Virgen",           // Nombre del lugar
     coordenadas: { lat: 39.47546, lng: -0.37524 },
-    imagen: "publico/imagenes/plaza_de_la_virgen.jpg",   // la enseña también la demo: carpeta pública (§7.1); las demás, en imagenes/imagenes-aventuras/
+    imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",   // el original; la demo enseña su copia de publico/imagenes/ (§7.1)
     video: "videos-aventuras/av1/parada_5.mp4"
 }
 ```
@@ -6896,18 +6907,19 @@ El `.catch` es solo para logging — nunca bloquea. `audio` se excluye deliberad
 
 ### Ubicación de los ficheros
 
-Los audios narrados van en dos carpetas, con una carpeta por idioma dentro de cada una: `publico/audios/` guarda el audio de introducción (`audio-intro-{idioma}`), que suena en la demo gratis antes del pago (P11, §7.1) y es público, como todo lo que hay en la carpeta pública `publico/`; `audios-aventuras/` guarda todos los demás, contenido de pago que el servidor protege (§22.4):
+Los audios narrados van en `audios-aventuras/`, con una carpeta por idioma: contenido de pago que el servidor protege (§22.4). El audio de introducción (`audio-intro-{idioma}`) suena también en la demo gratis, antes del pago (P11, §7.1): la demo pide su copia, que `tools/build-demo.js` hace con el mismo nombre en la carpeta pública, en la carpeta de su idioma (con el nombre de su fichero de párrafos):
 
 ```text
-publico/audios/
-└── español/
-    └── 01-Intro-ESPAÑOL-1.mp3    ← audio-intro-es, el mismo en las siete aventuras
 audios-aventuras/
 └── español/
+    ├── 01-Intro-ESPAÑOL-1.mp3    ← audio-intro-es, el mismo en las siete aventuras
     └── 02-Intro ESPAÑOL-2.mp3    ← las otras 591 entradas en español
+publico/audios/
+└── espanol/
+    └── 01-Intro-ESPAÑOL-1.mp3    ← la copia del audio de introducción, la que pide la demo
 ```
 
-Solo hay audio grabado en español, así que en cada carpeta solo existe `español/`; los otros 11 idiomas tienen `file: ""` en todas sus entradas (§1). La carpeta de un idioma se crea al añadir su primer MP3.
+Solo hay audio grabado en español, así que en `audios-aventuras/` solo existe `español/`; los otros 11 idiomas tienen `file: ""` en todas sus entradas (§1). La carpeta de un idioma se crea al añadir su primer MP3.
 
 ### ✅ Estándar de codificación de audio: 128 kbps CBR
 
@@ -6972,7 +6984,7 @@ export const AUDIOS_AVENTURAS = {
             {
                 id: "audio-intro-es",
                 title: "Intro",
-                file: "publico/audios/español/01-Intro-ESPAÑOL-1.mp3"   // carpeta pública: la demo gratis lo usa antes del pago (§7.1)
+                file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"   // el original; la demo gratis pide su copia de publico/audios/espanol/ (§7.1)
             },
             {
                 id: "audio-Av1-P-0-es",
@@ -7002,11 +7014,11 @@ export const AUDIOS_AVENTURAS = {
 
 Si `cargarYReproducirAudio()` recibe un `audioId` que no está en la caché local (p. ej. el usuario retrocede a una parada visitada hace más de un salto), hijo3 pide `DATOS.SOLICITAR_AUDIOS { audioId }` al padre, que resuelve solo ese audio y responde con el mismo `AUDIO.REPRODUCIR_REQUEST`.
 
-> **Cómo añadir un audio:** el MP3 va en la carpeta de su idioma —en `publico/audios/[idioma]/` el de introducción (`audio-intro-[idioma]`), en `audios-aventuras/[idioma]/` todos los demás—, y su ruta, en el campo `file` de su entrada de `js/audios-aventuras.js`. El hook de pre-commit regenera con ello `publico/demo-aventuras.js` (§21.1), y `npm run verificar-media` comprueba el MP3 (§15). Todo lo demás funciona automáticamente.
+> **Cómo añadir un audio:** el MP3 va en `audios-aventuras/[idioma]/`, y su ruta, en el campo `file` de su entrada de `js/audios-aventuras.js`. Si es el de introducción (`audio-intro-[idioma]`), el hook de pre-commit hace su copia en `publico/audios/` y pone al día su `audios.json` (§21.1). `npm run verificar-media` comprueba el MP3 (§15). Todo lo demás funciona automáticamente.
 
 ### Aviso de audio no disponible
 
-Al confirmar la aventura (P9 de `En-busca-del-tesoro.html`, función `confirmarAventura()`), `tieneAudiosDisponibles(aventura, idioma)` comprueba si la aventura elegida tiene algún audio grabado en el idioma elegido: lee `tieneAudio` de `publico/demo-aventuras.js`, que `tools/build-demo.js` pone a `true` cuando alguna entrada de esa aventura en ese idioma tiene `file` no vacío en `js/audios-aventuras.js`. Si no tiene ninguno, aparece un **modal overlay**:
+Al confirmar la aventura (P9 de `En-busca-del-tesoro.html`, función `confirmarAventura()`), `tieneAudiosDisponibles(aventura, idioma)` comprueba si la aventura elegida tiene algún audio grabado en el idioma elegido: lee `tieneAudio` de `publico/audios/<idioma>/audios.json`, que `tools/build-demo.js` pone a `true` cuando alguna entrada de esa aventura en ese idioma tiene `file` no vacío en `js/audios-aventuras.js`. Si no tiene ninguno, aparece un **modal overlay**:
 
 > "Los audios para este idioma aún no están disponibles. Puedes continuar la aventura sin audio. ¿Deseas continuar?"
 >
@@ -7295,7 +7307,7 @@ La galería que muestra imágenes de cada parada en el overlay de `codigo-padre.
 
 - **El título del overlay se ve en pantalla** y va además como texto alternativo de la imagen.
 
-#### Imágenes de mapas vintage (`publico/imagenes/mapas-vintage/`)
+#### Imágenes de mapas vintage (`imagenes/mapas-vintage/`)
 
 | Archivo | Dimensiones reales | Orientación | Peso |
 |---|---|---|---|
@@ -7307,9 +7319,9 @@ La galería que muestra imágenes de cada parada en el overlay de `codigo-padre.
 | `AvFallas_Mapa.jpg` | 1755×2481 | Vertical | 3,7 MB |
 | `Av34km_Mapa.jpg` | 1755×1241 | **Horizontal** | 2,6 MB |
 
-Dimensiones medidas del fichero, no supuestas. **`Av3`, `Av4` y `Av34km` son horizontales**. El overlay llena la ventana y permite acercar y desplazar el mapa con pellizco/arrastre, rueda/doble clic o controles en pantalla.
+Son los originales, los que enseña la aventura (protegidos: `PROTECTED_FILES`, §22.4); la demo gratis enseña la copia de cada uno, con el mismo nombre, en `publico/imagenes/mapas-vintage/` (§7.1). Dimensiones medidas del fichero, no supuestas. **`Av3`, `Av4` y `Av34km` son horizontales**. El overlay llena la ventana y permite acercar y desplazar el mapa con pellizco/arrastre, rueda/doble clic o controles en pantalla.
 
-En el mapa de Aventura34km, las 41 fotos del núcleo más denso van ordenadas por referencia en una cuadrícula abajo a la izquierda: cinco filas de siete y una última de seis tarjetas más anchas. Las imágenes se tocan, sin huecos, y la cuadrícula lleva un marco naranja. Las fotos 25 y 26 quedan completas y visibles, fuera de la cuadrícula, sin que las cubran las imágenes 33 y 34. Un círculo naranja señala el centro urbano y queda por debajo de las tarjetas, los marcadores y la polilínea azul. Las demás fotos quedan junto a su marcador, en el hueco despejado más cercano. Las referencias 27/28 y 58/59 comparten imagen en `coordenadas-aventuras.js` y aparecen una sola vez con los números unidos; así se muestran 87 tarjetas para las 89 referencias. `Av34km_Mapa.jpg` es la versión reducida; la tabla enlaza la versión de alta resolución para que el zoom conserve detalle. La base de ruta anterior se conserva como `Av34km_Mapa_base_sin_fotos.jpg`.
+En el mapa de Aventura34km, las 41 fotos del núcleo más denso van ordenadas por referencia en una cuadrícula abajo a la izquierda: cinco filas de siete y una última de seis tarjetas más anchas. Las imágenes se tocan, sin huecos, y la cuadrícula lleva un marco naranja. Las fotos 25 y 26 quedan completas y visibles, fuera de la cuadrícula, sin que las cubran las imágenes 33 y 34. Un círculo naranja señala el centro urbano y queda por debajo de las tarjetas, los marcadores y la polilínea azul. Las demás fotos quedan junto a su marcador, en el hueco despejado más cercano. Las referencias 27/28 y 58/59 comparten imagen en `coordenadas-aventuras.js` y aparecen una sola vez con los números unidos; así se muestran 87 tarjetas para las 89 referencias. La tabla enlaza `Av34km_Mapa.jpg`.
 
 #### Una sola tabla decide qué mapa se enseña
 
@@ -7365,14 +7377,16 @@ Recorre **todas** las carpetas de media —las subcarpetas de `imagenes/`, las c
 
 ### Ubicación
 
-Dos carpetas: los vídeos de dron de las paradas y los tramos van en `videos-aventuras/`, contenido de pago que el servidor protege (§22.4), y el clip del vídeo de introducción, que se ve en la demo gratis, en la carpeta pública:
+Los vídeos van en `videos-aventuras/`, contenido de pago que el servidor protege (§22.4): el clip del vídeo de introducción y, cuando se graben, los de dron de las paradas y los tramos. El clip se ve también en la demo gratis: `video-intro.html` pide su copia, que `tools/build-demo.js` hace en la carpeta pública:
 
 ```text
+videos-aventuras/
+└── video_intro_ejemplo.mp4    ← el original del clip de sceneVid (§35)
 publico/videos/
-└── video_intro_ejemplo.mp4    ← el clip de sceneVid (§35)
+└── video_intro_ejemplo.mp4    ← su copia, la que pide video-intro.html
 ```
 
-**Todavía no hay vídeos de parada, ni las carpetas para ellos:** `videos-aventuras/` se crea con el primero, con una carpeta por aventura (`av1/`, `av2/`…) y un fichero por parada. El código no depende de que existan: los **241** campos `video:` de `js/coordenadas-aventuras.js` valen `""` sin excepción, y con el campo vacío `#btn-video` muestra su mensaje de "sin vídeo" en vez de intentar cargar nada.
+**Todavía no hay vídeos de parada:** van en `videos-aventuras/`, con una carpeta por aventura (`av1/`, `av2/`…) y un fichero por parada. El código no depende de que existan: los **241** campos `video:` de `js/coordenadas-aventuras.js` valen `""` sin excepción, y con el campo vacío `#btn-video` muestra su mensaje de "sin vídeo" en vez de intentar cargar nada.
 
 ### Cómo se usan
 
@@ -7823,7 +7837,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 |------|---------|--------|
 | **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`. Todos los receptores verifican `event.origin` antes de procesar. El bus central (`js/mensajeria.js`) exige en `manejarMensajeEntrante` que `event.origin` sea exactamente el propio y nada más —el protocolo `file://` no se contempla, porque los módulos ES no cargan ahí—, y en `_fuenteAutorizada` solo admite como fuente a su padre, a un iframe que él mismo haya registrado, o a sí mismo (auto-mensajes). No hay ninguna escucha de `message` fuera del bus: buscar `addEventListener('message'` en los diez frames deja una sola coincidencia, la de `navigator.serviceWorker` en `codigo-padre.html`, que no es tráfico entre iframes. Sobre esa validación de fuente, el bus comprueba además la identidad declarada: un iframe registrado solo habla con su nombre de registro (§26.8). | `js/mensajeria.js`, `codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` |
 | **Acuse correlacionado por ID** | Cada mensaje con confirmación lleva un `id` único; el bus guarda su promesa en `confirmacionesPendientes` bajo ese `id` y el acuse la resuelve por `idOriginal`, así que dos mensajes concurrentes del mismo tipo no se cruzan | `js/mensajeria.js` |
-| **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3), `imagenes/imagenes-aventuras/` (fotos), `videos-aventuras/` (vídeos), `backend/` — todos son contenido de pago. **`js/aventuras-ID-padre.js` no está en la lista, y es deliberado**: contiene el itinerario y los ids, no el contenido (ver §2.2). Que se vea el orden de las paradas no compromete nada; lo que hay detrás de cada `texto_id`/`audio_id`/`reto_id` sí está protegido. **La carpeta `publico/` tampoco está, también a propósito**: lleva solo lo que la demo gratis enseña de las aventuras antes del pago —sus datos, el audio de introducción, las fotos de las tarjetas y la del vídeo de introducción, los mapas antiguos y su clip— (§7.1). | `js/server.js` |
+| **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3), `imagenes/imagenes-aventuras/` (fotos), `imagenes/mapas-vintage/` (mapas antiguos), `videos-aventuras/` (vídeos), `backend/` — todos son contenido de pago. **`js/aventuras-ID-padre.js` no está en la lista, y es deliberado**: contiene el itinerario y los ids, no el contenido (ver §2.2). Que se vea el orden de las paradas no compromete nada; lo que hay detrás de cada `texto_id`/`audio_id`/`reto_id` sí está protegido. **La carpeta `publico/` tampoco está, también a propósito**: guarda copias de solo lo que la demo gratis enseña de las aventuras —textos, retos, el puzzle de introducción, el audio de introducción, las fotos, los mapas antiguos y el clip—, y sus originales siguen protegidos en sus carpetas (§7.1, §22.4). | `js/server.js` |
 | **Path traversal** | Rechaza cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) | `js/server.js` |
 | **CORS** | Cabeceras `Access-Control-Allow-Origin: *` en el servidor estático. Deberá restringirse al dominio en producción. | `js/server.js` |
 | **Permissions Policy** | Permite solo geolocalización (`self`); bloquea explícitamente cámara, micrófono, pagos, USB y bluetooth. También se envía la cabecera `Feature-Policy` (alias legacy). | `js/server.js` |
@@ -7913,7 +7927,7 @@ test de navegador: es más rápido, no depende del reloj y se puede meter en cua
 | Comando | Qué vigila |
 |---------|-----------|
 | `npm run lint` | ESLint sobre `js/**/*.js` y los `*.html` de la raíz: logger centralizado, sin variables muertas, sin espacios al final de línea |
-| `npm run verificar-datos` | Integridad de los datos de las 7 aventuras: exportaciones, extensiones de imagen y vídeo, ids repetidos, coordenadas en rango, campos de cada tipo de reto, que lo que el índice marca disponible exista, que el índice traiga el nombre y el plazo (`tiempoEstimado`) de cada aventura y el nombre de cada idioma, y que la demo gratis (`publico/demo-aventuras.js`) esté al día con sus fuentes y no le falte ninguna pieza |
+| `npm run verificar-datos` | Integridad de los datos de las 7 aventuras: exportaciones, extensiones de imagen y vídeo, ids repetidos, coordenadas en rango, campos de cada tipo de reto, que lo que el índice marca disponible exista, que el índice traiga el nombre y el plazo (`tiempoEstimado`) de cada aventura y el nombre de cada idioma, y que la carpeta pública de la demo gratis (`publico/`) esté al día con los originales —los textos y las copias de medios, idénticas byte a byte—, sin ficheros de más y sin piezas que falten |
 | `npm run verificar-totales` | Que los totales precalculados del índice cuadren con los datos |
 | `npm run verificar-mensajeria` | Cruza cada tipo de `TIPOS_MENSAJE` con quién lo emite y quién lo escucha, y comprueba que lo emitido llega a un frame que lo atiende |
 | `npm run verificar-citas` | Que las citas por número de línea de esta guía apunten a donde dicen |
@@ -7996,7 +8010,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `73-rescate-reloj-recordatorio.spec.js` | 8 | El reloj del rescate (§25.19) avisa y no gasta: antes de los 8 min no dice nada (RR-1); a los 8 avisa una vez y no repite hasta el 10 (RR-2); cuatro avisos y después silencio, ni a las dos horas insiste (RR-3); a un punto con la llegada ya confirmada no se le ofrece ayuda (RR-4); mira solo el elemento ACTUAL, no todas las fichas (RR-5); fuera de AVENTURA no hace nada (RR-6, heredado de TTL-5); los topes son por aventura —12 y 35— y nunca `undefined` (RR-7, heredado de RT-3); y la ficha nace al ACTIVARSE el elemento, no con su primer evento (RR-8) |
 | `43-saltar-reto-puzzle-roto.spec.js` | 4 | Botón ⏩ (§13, "Saltar un reto o puzzle roto"): en `puzzle.html`, un puzzle válido se salta montando las piezas de verdad y avisando `PUZZLE.COMPLETADO` (PZ-1); uno roto/no encontrado hace lo mismo sin excepciones (PZ-2); en `retos-hijo4.html`, un reto de opción válido se salta marcando la respuesta correcta en el selector y habilita el mundo verde, que sí intenta el envío de `RETO.COMPLETADO` al pulsarlo (RT-1); un reto roto/no encontrado deja el botón de saltar habilitado (a diferencia del resto de controles) y también habilita el mundo verde (RT-2) |
 | `44-boton-saltar-audio.spec.js` | 27 | Botón ⏩ de saltar audio no disponible (`#audio-action-skip`, §25.5f): cubre el caso "la parada o el tramo tiene `audio_id` asignado pero el fichero real no existe" —hoy la norma en 11 de los 12 idiomas mientras no se termine de grabar— y también un fallo de reproducción en runtime. |
-| `45-texto-intro-fallback-idioma.spec.js` | 6 | P11 (`En-busca-del-tesoro.html`, §7.1) — grupo TI, `cargarTextoIntro()`: con un idioma no español, un fallo real de red cargando `publico/demo-aventuras.js` muestra el fallback traducido en ESE idioma, nunca español fijo (TI-1); sin fallo, sigue mostrando el texto real de la aventura (TI-2). Grupo AI, `cargarAudioIntro()`: sin fichero real de audio (inglés), `#btn-siguiente-audio-intro` se habilita directamente en vez de quedar bloqueado esperando un evento `play` que nunca llega (AI-1); con fichero real (español), el botón sigue exigiendo el `play` real como siempre (AI-2). `En-busca-del-tesoro.html` se inserta como `<iframe>` real en el arnés — navegarlo directamente dispara su guardia de redirección a `codigo-padre.html` |
+| `45-texto-intro-fallback-idioma.spec.js` | 6 | P11 (`En-busca-del-tesoro.html`, §7.1) — grupo TI, `cargarTextoIntro()`: con un idioma no español, un fallo real de red pidiendo las copias de `publico/textos/` muestra el fallback traducido en ESE idioma, nunca español fijo (TI-1); sin fallo, sigue mostrando el texto real de la aventura (TI-2). Grupo AI, `cargarAudioIntro()`: sin fichero real de audio (inglés), `#btn-siguiente-audio-intro` se habilita directamente en vez de quedar bloqueado esperando un evento `play` que nunca llega (AI-1); con fichero real (español), el botón sigue exigiendo el `play` real como siempre (AI-2). `En-busca-del-tesoro.html` se inserta como `<iframe>` real en el arnés — navegarlo directamente dispara su guardia de redirección a `codigo-padre.html` |
 | `46-reanudacion-un-solo-camino.spec.js` | 9 | La reanudación de sesión usa el mismo camino que cualquier cambio de modo (§9.10 paso 8). Grupo RU: el modo arranca sin decidir (`null`), no en CASA (RU-0); reanudar aplica el modo persistido pasando por `_hdl_SISTEMA_CAMBIO_MODO` — verificado por un efecto que solo produce el handler, la sincronización del mapa de su rama `restaurado:true` (`sincronizarModoMapa`), no por el mero valor del modo, y con el latido —que es del bus y no depende del modo— encendido (RU-1); el flag `dev` se restaura del campo persistido, de modo que dev+AVENTURA es representable (RU-2) y dev+CASA deja `#hijo5` visible (RU-2b); **reanudar en CASA sin dev no borra la sesión que está restaurando** (RU-3, el caso que `_transicionarAModoCasa()` destruiría sin su guard); un cambio a CASA que no es reanudación sí limpia el progreso, o sea que el guard no desactiva el abandono real (RU-4); y "ya estoy en ese modo" reenvía la propagación a los hijos en vez de devolver `exito:true` sin que nadie se entere (RU-5). Grupo RC, por arranque real con `localStorage` sembrado: una sesión de Aventura1 con 61 h (ventana de compra 60 h) no se ofrece para reanudar (RC-1) y una de 2 h sí (RC-2) |
 | `47-reescalado-marcador-usuario-y-chat.spec.js` | 7 | Dos contratos que comparten arranque. Grupo MU (§4.6, escalado dinámico): con una única lectura de GPS y el zoom cambiado después, el marcador de posición propia se reescala, y encoge al acercar como corresponde a su familia — se ejercita disparando el evento de zoom del mapa, no llamando a `reescalarMarcadorUsuario()` a mano, porque el fallo que cubre no es que esa función no funcione sino que nadie la invoque (MU-1); y ese reescalado conserva `.gps-arrow-heading`, el div que `actualizarRotacionFlechaGPS()` busca en cada lectura de brújula — sin él la flecha dejaría de girar en silencio (MU-2); y el invariante de fondo de todo el sistema de escalado — al acercar el zoom, la polyline ENGORDA y el icono ENCOGE, cada familia en su sentido — medido sobre los valores reales con los que nacen (MU-3, el que cae si alguien intenta "unificar" las dos curvas). Y los 📌/🎯 de ruta reaccionan al zoom, disparando el pipeline real de cambio de parada (`NAVEGACION.CAMBIO_PARADA` despachado con `despacharLocal`, el mismo que usa el botón avanzar) en vez de fabricar el marcador a mano (MU-4). **MU-4 solo puede fallar porque `tests/e2e/helpers/maplibre-stub.js` reproduce las clases que el MapLibre real añade a cada `Marker`**: sin ellas, una comparación estricta de `className` funciona en el arnés y falla en producción, así que ninguna prueba puede detectar ese fallo por mucho que lo intente. Grupo CH (§7.7): al cargar los hijos con `cargarRestoDeiframes()` (el camino de P15, la reanudación y la ruta fallback), `hijo6-chat` queda en `iframesRegistrados` (CH-1) y un envío del padre a ese destino no resuelve `false` por destino desconocido (CH-2); y lo que el padre le entrega —el `PADRE_DATOS` del apretón de manos y el `CHAT.ESTADO_PADRE` de cada apertura, escuchados dentro del propio asistente— lleva solo los campos que este lee: `idioma`, `rescate`, `aventura` y `paradaActualNombre` (CH-3). El arnés envuelve `maplibregl.Map`/`Marker` del stub para poder cambiar el zoom y leer el elemento real del marcador — el `addTo()` del stub es un no-op y el elemento nunca llega al documento |
 | `48-precarga-video-no-pisa-abierto.spec.js` | 3 | `_precargarVideoParada()` (§15). El `<video>` que precarga y el que reproduce son EL MISMO elemento, así que precargar el vídeo del tramo siguiente no puede pisar uno que el usuario tenga abierto. |
@@ -8098,9 +8112,9 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `146-elegir-otra-aventura-desde-la-reanudacion.spec.js` | 1 | «Elegir otra aventura» en el diálogo de reanudación, al abrir la app con una aventura guardada: borra la aventura guardada y el idioma y recarga la página; la app arranca sin diálogo y el padre sin ninguna aventura en memoria, así que la siguiente empieza de cero (ER-1). La del diálogo de vuelta, con una aventura arrancada de verdad, la cubre el spec 128 |
 | `147-volver-a-elegir-idioma-borra-el-idioma.spec.js` | 3 | Volver a la elección de idioma sin recargar borra el idioma guardado (`vv_idioma`): el «no» del reto R-2 vuelve a P1 (VI-1), y el ✗ de la confirmación del idioma (VI-2) y el «No» del aviso sin audio (VI-3) vuelven a las banderas. Cada test elige primero el idioma con `seleccionarIdioma()` y comprueba que el padre lo ha guardado |
 | `148-reanudar-por-el-identificador.spec.js` | 3 | Al reanudar, el elemento en curso lo decide su identificador guardado (`elementoActualId`), y el índice y la parada salen de él: con el índice y la parada de otro elemento, reanuda en el del identificador (KR-1); con un identificador que no está en los datos, lo dice con un error, sigue desde la parada por defecto y repone los rescates usados (KR-2); con los tres datos de acuerdo, reanuda en ese elemento (KR-3, control). Por el camino real: la sesión guardada en el dispositivo, la recarga y «Continuar» |
-| `149-la-demo-gratis-con-su-carpeta-publica.spec.js` | 7 | La demo gratis lee lo suyo de la carpeta pública `publico/` y no pide nada protegido: la lista de rutas protegidas del spec es la de `PROTECTED_FILES` de `js/server.js` (DM-0); con todo lo protegido contestando 403 y el service worker bloqueado, en español el puzzle de introducción (P6), el reto R-1 (P8), el paso a P10 sin aviso y el audio (de `publico/audios/`) y el texto de introducción (P11) salen bien y no se pide nada protegido (DM-1); en inglés, sin audio, sale el aviso de P9, se sigue sin audio y P11 enseña el texto sin reproductor (DM-2); cada pieza de `publico/demo-aventuras.js` es la que dan los datos —el reto R-1, el audio de introducción, si hay audio, el texto que monta `cargarTextos()` y el puzzle— en las siete aventuras y los doce idiomas (DM-3); las siete tarjetas de P7 y la de P9 llevan su foto de `publico/imagenes/`, el mapa antiguo que sale al elegir cada aventura en P7 (`mostrarMapaVintage()`, las siete) es de `publico/imagenes/mapas-vintage/`, todos cargan y no se pide nada protegido (DM-4); `video-intro.html` (P4) no nombra ninguna ruta protegida, y su foto, su mapa antiguo y su clip están en `publico/` (DM-5); y cada mapa de `js/mapa-vintage-aventuras.js` está en `publico/imagenes/mapas-vintage/` y existe (DM-6) |
+| `149-la-demo-gratis-con-su-carpeta-publica.spec.js` | 8 | La demo gratis lee lo suyo de las copias de `publico/` y el resto de la app, de los originales: la lista de rutas protegidas del spec es la de `PROTECTED_FILES` de `js/server.js` (DM-0); con todo lo protegido contestando 403 y el service worker bloqueado, en español el puzzle de P6, el reto R-1 de P8, el paso a P10 sin aviso, los términos de P10, el audio (de `publico/audios/espanol/`) y el texto de P11, la normativa de P15, el reto R-2 de P16 y los agradecimientos de P18 salen de `publico/`, y no se pide nada protegido (DM-1); en inglés, sin audio, sale el aviso de P9, P11 enseña el texto sin reproductor y sale el R-2 (DM-2); cada copia pública es la de su original —los retos 1 y 2, el audio de introducción, si hay audio, el texto que monta `cargarTextos()`, el puzzle, los términos, la normativa, los agradecimientos y los textos de Jaime— en las siete aventuras y los doce idiomas (DM-3); las siete tarjetas de P7 y la de P9 llevan su foto de `publico/imagenes/` y el mapa que sale al elegir cada aventura en P7 (`mostrarMapaVintage()`) es de `publico/imagenes/mapas-vintage/`, todo carga y no se pide nada protegido (DM-4); `video-intro.html` (P4) no pide ninguna ruta protegida ni importa los textos de Jaime de `js/`, su foto, su mapa y su clip están en `publico/`, y su primer bocadillo es el texto público del idioma (DM-5); fuera de la demo nadie apunta a `publico/`, y cada mapa de `js/mapa-vintage-aventuras.js` está en `imagenes/mapas-vintage/` y tiene su copia (DM-6); y `publico/` está al día: el generador no ve copias desfasadas, ficheros de más ni piezas que falten, y cada medio de `publico/` es idéntico byte a byte a su original (DM-7) |
 | `150-los-desplegables-del-mapa-caben-enteros.spec.js` | 3 | Los dos desplegables del mapa (`#selector-tipo-mapa` y `#brujula-modo`) se abren enteros, sin desplazamiento interno, en tres pantallas: un iPhone con las barras de Safari (390×664), un Android corriente (393×727) y el iPhone con la app instalada (390×844). En cada una, con la banda del logo a la vista como al activarse la aventura, cada desplegable abierto enseña todo su contenido (DE-1) y su borde de arriba queda por debajo de la banda (DE-2) |
-| `151-cada-ruta-del-service-worker-en-un-sitio.spec.js` | 1 | Cada ruta de media la decide un solo sitio de `sw.js`: ninguna carpeta de `esMedia()` es de las que el manejador `fetch` deja ir antes directas a red (audios y vídeos), y las dos listas se leen enteras —cada `startsWith(` de `esMedia()` y cada vuelta temprana del manejador— (SW-1) |
+| `151-cada-ruta-del-service-worker-en-un-sitio.spec.js` | 2 | Cada ruta de media la decide un solo sitio de `sw.js`: ninguna carpeta de `esMedia()` es de las que el manejador `fetch` deja ir antes directas a red (audios y vídeos), y las dos listas se leen enteras —cada `startsWith(` de `esMedia()` y cada vuelta temprana del manejador— (SW-1); y la imagen del aviso de sin conexión del padre (`_ensureInternetOverlay`) está en `APP_SHELL`, porque el aviso sale justo cuando no hay red (SW-2) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8195,13 +8209,13 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 | Caché | Nombre | Estrategia | Contenido |
 |-------|--------|-----------|-----------|
 | Shell | `vvguides-shell-{CACHE_VERSION}` | **Network First** | HTML, JS, manifest, iconos — contenido versionado |
-| Media | `vvguides-media-v1` | **Cache First + LRU (100 entradas)** | Imágenes de las aventuras (`imagenes/imagenes-aventuras/` y `publico/imagenes/`, con los mapas vintage) — **NI vídeos ni audios** |
+| Media | `vvguides-media-v1` | **Cache First + LRU (100 entradas)** | Imágenes de las aventuras y mapas antiguos: los originales (`imagenes/imagenes-aventuras/` e `imagenes/mapas-vintage/`) y sus copias de la demo (`publico/imagenes/`) — **NI vídeos ni audios** |
 | Vídeos y audios (`/videos-aventuras/`, `/audios-aventuras/`, `/publico/audios/`, `/publico/videos/`) | — | **Network Only (sin interceptar)** | El `fetch` handler devuelve sin gestionar la petición (`return` en el listener, antes de llegar a `esMedia()`) para que las peticiones `Range` del `<video>` y del `<audio>` vayan directas a red — cachear respuestas `206 Partial Content` es una fuente conocida de bugs |
 | API | — | **Network Only** | Peticiones a `/api/*` — sin caché, 503 si sin conexión |
 
 #### Estrategia detallada
 
-**Network First (shell):** intenta la red; si falla, sirve desde caché. El shell (HTML/JS) siempre recibe la versión más reciente cuando hay conexión. `APP_SHELL` incluye los cuatro MP3 de `audios-efectos/` (§12, «Efectos de sonido»), que se sirven con esta estrategia y no con la de media.
+**Network First (shell):** intenta la red; si falla, sirve desde caché. El shell (HTML/JS) siempre recibe la versión más reciente cuando hay conexión. `APP_SHELL` incluye los cuatro MP3 de `audios-efectos/` (§12, «Efectos de sonido»), que se sirven con esta estrategia y no con la de media, y la imagen del aviso de sin conexión (`imagen-no-internet.png`, §30.1): ese aviso sale justo cuando no hay red, y sin red la imagen no se puede descargar (spec 151, SW-2). Los `.json` de `publico/` van también por esta estrategia: se guardan la primera vez que se usan, no al instalar.
 
 **Cache First con LRU (media, sin vídeos ni audios):** busca primero en caché local (rápido, sin consumir datos). Si no está, lo descarga y lo guarda. Si hay más de 100 entradas, elimina las más antiguas. Esto permite uso offline de las imágenes ya vistas. **Vídeos y audios quedan fuera de esta estrategia a propósito**: `esMedia()` (`sw.js`) solo nombra carpetas de imágenes, y el `fetch` handler devuelve sin interceptar las de audio y vídeo —`/videos-aventuras/`, `/audios-aventuras/`, y `/publico/audios/` y `/publico/videos/` (el audio de introducción y el clip de la demo gratis)— *antes* de consultar `esMedia()`. Vídeos y audios siempre van directos a red, sin caché SW en absoluto — para vídeo, ver §15 (`reproducirVideoConBuffer`, que gestiona el buffering en el propio `<video>`); para audio, la razón es la misma que para vídeo (evitar bugs de caché con peticiones Range/206 parciales), y además ya está aceptado que el audio requiere conexión en el momento de reproducirse (§25.17) — esta exclusión lo hace cierto siempre, sin la excepción oculta de una parada que ya se hubiera cacheado antes por casualidad.
 
@@ -8335,7 +8349,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-02f171462751'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-37df4700d438'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8550,23 +8564,26 @@ proyecto/
 │
 ├── audios-efectos/                   ← Los cuatro efectos de sonido (MP3 a 128 kbps) y `LICENCIAS.md`. Los precarga el SW (`APP_SHELL`) y no están protegidos (ver §12)
 │
-├── videos-aventuras/                 ← Vídeos MP4 de dron de las paradas, contenido de pago (protegidos por PROTECT_DATA): sin grabar todavía; la carpeta, con una por aventura, se crea con el primero (§15)
+├── videos-aventuras/                 ← Vídeos MP4, contenido de pago (protegidos por PROTECT_DATA): el original del clip de `video-intro.html` y, cuando se graben, los de dron de las paradas, con una carpeta por aventura (§15)
 │
-├── publico/                          ← Los datos, el audio, las fotos, los mapas antiguos y el vídeo de la demo gratis: público, fuera de PROTECTED_FILES (§7.1; §22.0, n.º 13, 26 y 29)
-│   ├── demo-aventuras.js             ← Lo que la demo usa de cada aventura (P2 a P11), generado por tools/build-demo.js (§21.1)
-│   ├── audios/                       ← El audio de introducción (P11), con la misma carpeta por idioma que `audios-aventuras/`: solo `español/` (ver §12)
-│   ├── imagenes/                     ← La foto de cada tarjeta de aventura (P7, P9 y P13) y la de `video-intro.html` (P4); cinco las usa también el contenido de pago
-│   │   └── mapas-vintage/            ← Los mapas vintage, un JPG completo por aventura (no son tiles): siete enlazados en `js/mapa-vintage-aventuras.js`; el de Av34km lleva las fotos de sus 89 referencias. Los enseña la demo (P7 y `video-intro.html`) y los usa también el contenido de pago
-│   └── videos/                       ← El clip de `sceneVid` de `video-intro.html` (§15, §35)
+├── publico/                          ← La carpeta pública de la demo gratis: copias, hechas por tools/build-demo.js, de solo lo que la demo enseña de las aventuras; los originales siguen en sus carpetas (§7.1; §21.1; §22.0, n.º 13, 26 y 29). No se edita a mano
+│   ├── textos/                       ← intro.json y, por idioma, parrafos.json (solo los que usa), terminos.json, normativa.json, agradecimientos.json y jaime.json
+│   ├── retos/                        ← Por idioma, retos.json: los retos 1 (P8) y 2 (P16) de cada aventura
+│   ├── puzzles/                      ← puzzles.json: solo el puzzle de introducción, PZ-intro (P6)
+│   ├── audios/                       ← Por idioma (con el nombre de su fichero de párrafos), audios.json y la copia del MP3 de introducción, si lo hay: solo `espanol/` (§12)
+│   ├── imagenes/                     ← La copia de la foto de cada tarjeta de aventura (P7, P9 y P13) y de la de `video-intro.html` (P4)
+│   │   └── mapas-vintage/            ← La copia de cada mapa antiguo (P7 y `video-intro.html`)
+│   └── videos/                       ← La copia del clip de `sceneVid` de `video-intro.html` (§15, §35)
 │
 ├── imagenes/                         ← Imágenes estáticas
-│   ├── imagenes-aplicación/          ← Iconos de botones, logos, UI, banderas
-│   ├── imagenes-aventuras/           ← Fotos de monumentos por aventura, contenido de pago (protegidas por PROTECT_DATA); las que enseña la demo, en `publico/imagenes/`
+│   ├── imagenes-aplicación/          ← Iconos de botones, logos, UI, banderas, avisos: las imágenes de la propia app, públicas, no van al backend (§22.4)
+│   ├── imagenes-aventuras/           ← Fotos de monumentos por aventura, contenido de pago (protegidas por PROTECT_DATA); la demo enseña su copia de `publico/imagenes/`
+│   ├── mapas-vintage/                ← Los mapas antiguos, un JPG completo por aventura (no son tiles), los siete de `js/mapa-vintage-aventuras.js`; contenido de pago (protegidos); la demo enseña su copia de `publico/imagenes/mapas-vintage/`
 │   ├── imagenes video intro/         ← Caballeros, guantelete y decorados de `video-intro.html` (§35)
 │   └── ...                           (material de trabajo, sin referencias en el código. `01-imagenes-español/` a `04-imagenes-italiano/` están **en `.gitignore` por decisión explícita** — no se versionan mientras no se usen, porque el repositorio es público y lo que entra en el historial se queda. `Banderas aplicacion/` y `Botones fondo transparente/` sí están versionadas)
 │
 ├── tools/                            ← Scripts de mantenimiento, no forman parte de la PWA (ver §21, "Scripts npm disponibles")
-│   ├── build-demo.js                 ← Genera publico/demo-aventuras.js, lo que la demo gratis usa de cada aventura (§21.1)
+│   ├── build-demo.js                 ← Hace la carpeta pública, publico/: copias de lo que enseña la demo gratis (§21.1)
 │   ├── build-sw.js                   ← Recalcula CACHE_VERSION en sw.js, version.json y la guía (§21.1)
 │   ├── install-hooks.js              ← Instala el hook de pre-commit que dispara build-demo.js y build-sw.js
 │   ├── inventory.js                  ← Inventario de funciones del proyecto (`npm run inventory`)
@@ -8611,7 +8628,7 @@ Solo hace falta una vez al clonar el proyecto:
 npm install
 ```
 
-Instala Playwright y ESLint. El `postinstall` (`tools/install-hooks.js`) instala automáticamente el hook de pre-commit que mantiene al día `publico/demo-aventuras.js` y `CACHE_VERSION` — ver §21.1.
+Instala Playwright y ESLint. El `postinstall` (`tools/install-hooks.js`) instala automáticamente el hook de pre-commit que mantiene al día la carpeta pública de la demo (`publico/`) y `CACHE_VERSION` — ver §21.1.
 
 ### 2. Arrancar el servidor
 
@@ -8651,13 +8668,13 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 | `npm run verificar-mensajeria` | Detecta tipos de `TIPOS_MENSAJE` sin emisor, sin receptor o sin ninguna referencia, envíos con destino literal que caen en un frame sin handler de ese tipo y handlers que ninguna emisión alcanza (`tools/verificar-mensajeria.js`). Lee el código con un parser, resuelve alias, `?.` y constantes locales por ámbito e imprime su residuo; los destinos que no son literales se dan por buenos. Cada hallazgo se verifica leyendo emisor y receptor |
 | `npm run verificar-frames` | Matriz de frames × patrones (`tools/verificar-frames.js`): una fila por página del proyecto, una columna por cada patrón que debería ser igual en todas — ocultado del body, uso del bus, capa privada, escuchas y envíos crudos, registro de iframes, acceso a otro frame (cualquier propiedad de `parent` o de `contentWindow` salvo `postMessage`, llamada o lectura, con `?.` incluido; los comentarios no cuentan; `-- --detalle` lista cada coincidencia con su línea y, debajo de la matriz, salen los `js/*.js` compartidos que lo hacen). Es la herramienta para la pregunta **"¿quién *no* lo tiene?"**: un `grep` por nombre devuelve la lista de quien sí lo tiene, y quien no lo tiene no aparece en ninguna parte. Aquí las filas salen del disco y la ausencia es una casilla vacía que se ve |
 | `npm run verificar-docs` | Señala qué secciones de esta guía mencionan ficheros HTML/JS/CSS cambiados en la sesión/rama actual (`tools/verificar-docs.js`) — no verifica que el texto sea correcto, solo evita el fallo de no pararse a mirar. Admite `--since=REF` para comparar contra un punto concreto |
-| `npm run build:demo` | Regenera a mano `publico/demo-aventuras.js` desde el working tree (`tools/build-demo.js`); con `-- --comprobar` no escribe y sale con código 1 si no está al día o le falta una pieza — normalmente no hace falta, el hook de pre-commit ya lo hace solo |
+| `npm run build:demo` | Pone al día a mano la carpeta pública, `publico/`, desde el working tree (`tools/build-demo.js`): escribe los textos y las copias que no coinciden con sus originales; con `-- --comprobar` no escribe y sale con código 1 si algo no está al día, sobra un fichero o falta una pieza — normalmente no hace falta, el hook de pre-commit ya lo hace solo |
 | `npm run build:sw` | Recalcula `CACHE_VERSION` a mano desde el working tree (`tools/build-sw.js`) — normalmente no hace falta, el hook de pre-commit ya lo hace solo |
 | `npm run dev:watch` | Vigila `sw.js` y los ficheros del shell y recalcula `CACHE_VERSION` en vivo mientras se desarrolla (`tools/watch-sw.js`) |
 | `npm run generar-guiones` | Regenera `docs/aventuras_ordenado/AventuraN.md` (`tools/generar-guiones-aventuras.mjs`) — cruza coordenadas, textos y párrafos de las 7 aventuras en un guión legible. Ver §21.2 |
 | `npm run generar-tramos-video` | Regenera `docs/aventuras_ordenado/tramos-para-videos.md` (`tools/generar-tramos-para-videos.mjs`) — lista los recorridos físicos únicos de todas las aventuras, para planificar dónde grabar. Ver §21.2 |
 
-> `postinstall` (`tools/install-hooks.js`) instala el hook de pre-commit que mantiene al día automáticamente `publico/demo-aventuras.js` y `CACHE_VERSION` — se ejecuta solo tras `npm install`, sin acción manual. Ver §21.1 para el sistema completo.
+> `postinstall` (`tools/install-hooks.js`) instala el hook de pre-commit que mantiene al día automáticamente la carpeta pública `publico/` y `CACHE_VERSION` — se ejecuta solo tras `npm install`, sin acción manual. Ver §21.1 para el sistema completo.
 
 ### 21.1 Lo que el hook de pre-commit mantiene al día: `CACHE_VERSION` y la demo gratis
 
@@ -8677,17 +8694,20 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 
 **Por qué `computeCacheVersion` normaliza CRLF→LF explícitamente en los DOS modos (no solo al leer vía `git show`):** al menos un fichero del shell tiene el propio blob de git con CRLF embebido (no todo el historial del repositorio se commiteó con `core.autocrlf` ya activo), así que "`git show` ya da LF" no es cierto al 100% — sin normalizar explícitamente, el modo `--staged` y el modo working-tree podrían calcular hashes distintos para el mismo contenido lógico, de forma consistente y no solo en una condición de carrera puntual: `npm run dev:watch` reescribiría `CACHE_VERSION` nada más arrancar tras cualquier commit (sin ningún cambio real de por medio), y el siguiente commit lo revertiría vía el hook — un vaivén perpetuo entre dos valores igual de "correctos" para el mismo contenido. La función `normalizarFinalesLinea()` (`contenido.replace(/\r\n/g, '\n')`) se aplica a `sw.js` y a cada fichero del shell justo antes de alimentar el hash, en ambos modos — así los dos convergen siempre al mismo valor mientras el contenido lógico no cambie, sin importar qué modo se ejecute último ni qué SO haya escrito el blob originalmente.
 
-**`tools/build-demo.js`** genera `publico/demo-aventuras.js`, el único fichero del que la demo gratis lee lo que usa de cada aventura (§7.1), en la carpeta pública. Lo saca de los ficheros de datos, para las aventuras y los idiomas de `js/indice-aventuras.js`:
+**`tools/build-demo.js`** hace la carpeta pública, `publico/`: copias de solo lo que enseña la demo gratis —la selección hasta el código, el vídeo de introducción y el puzzle de P6— (§7.1). Los originales siguen completos en sus carpetas, que son las que irán al backend. Las aventuras y los idiomas salen de `js/indice-aventuras.js`, y la carpeta de cada idioma es la de su fichero de párrafos (`LANG_ARCHIVO_PARRAFOS` de `js/data-loader.js`). Lo que escribe:
 
-1. `puzzleIntro`: el puzzle `PZ-intro` de `js/puzzles-aventuras.js`, el mismo para todas.
-2. `aventuras[aventura][idioma].retoR1`: el reto con `reto === 1` de `js/retos-aventuras.js`, con sus respuestas (P8 comprueba la respuesta en el dispositivo).
-3. `aventuras[aventura][idioma].audioIntro`: `{ id, title, file }` de la entrada `audio-intro-{idioma}` de `js/audios-aventuras.js`, o `null` si su `file` está vacío.
-4. `aventuras[aventura][idioma].tieneAudio`: `true` si alguna entrada de audio de la aventura tiene `file` no vacío en ese idioma (el aviso de P9).
-5. `textosIntro[idioma]` y `aventuras[aventura][idioma].textoIntro`: el texto `txt-intro` de `js/textos-aventuras.js`, montado con el JSON de párrafos del idioma por `ensamblarTexto()` de `js/data-loader.js` —la misma función que usa `cargarTextos()`—; cada texto distinto se guarda una sola vez por idioma, y cada aventura guarda su posición.
+1. `publico/textos/intro.json`: la entrada `txt-intro` de cada aventura (`js/textos-aventuras.js`).
+2. `publico/textos/<idioma>/parrafos.json`: solo los párrafos que nombran esas entradas, con el orden y el formato del original.
+3. `publico/textos/<idioma>/terminos.json`, `normativa.json` y `agradecimientos.json`: `{ html }`, de `js/terminos-aventuras.js`, `js/normativa-cumplimiento.js` y `js/agradecimientos-aventuras.js`.
+4. `publico/textos/<idioma>/jaime.json`: `{ escenas }`, el texto de cada bocadillo de `video-intro.html` en ese idioma, de `JAIME_SCENES` (`js/traducciones-ui.js`).
+5. `publico/retos/<idioma>/retos.json`: los retos con `reto === 1` (P8) y `reto === 2` (P16) de cada aventura (`js/retos-aventuras.js`), con sus respuestas (la demo las comprueba en el dispositivo).
+6. `publico/puzzles/puzzles.json`: solo el puzzle `PZ-intro` (`js/puzzles-aventuras.js`).
+7. `publico/audios/<idioma>/audios.json`: de cada aventura, la entrada `audio-intro-{idioma}` (`js/audios-aventuras.js`) con `file` apuntando a su copia, o `''`, y `tieneAudio`: si alguna entrada de la aventura tiene fichero en ese idioma (el aviso de P9).
+8. Las copias, idénticas byte a byte y con el mismo nombre: el MP3 de introducción (en `publico/audios/<idioma>/`), cada mapa de `js/mapa-vintage-aventuras.js` (en `publico/imagenes/mapas-vintage/`) y cada fichero de su lista `MEDIA_DEMO` —la foto de cada tarjeta, la de `video-intro.html` y su clip— (en `publico/imagenes/` y `publico/videos/`).
 
-Una pieza que falta no se inventa: `generarDemo()` la nombra en su lista `faltas`, y el fichero no se da por bueno. Lee las fuentes del working tree (`npm run build:demo`) o del índice de git (`--staged`, el modo del hook, que además hace `git add` del resultado), con `leerStaged()`, `leerWorkingTree()` y `normalizarFinalesLinea()` de `tools/build-sw.js`. `--comprobar` no escribe y sale con código 1 si el fichero no está al día o le falta una pieza; `npm run verificar-datos` hace lo mismo en su comprobación 12. `npm run dev:watch` no lo regenera: en desarrollo, un cambio de las fuentes llega a la demo con el commit o con `npm run build:demo`.
+Una pieza que falta en los originales no se inventa: se nombra en la lista `faltas`, y la carpeta no se da por buena. Un fichero de `publico/` que no sale de aquí se nombra como «sobra» y no se borra. `revisarPublico()` compara la carpeta con lo que tiene que haber; lee los originales del working tree (`npm run build:demo`) o del índice de git (`--staged`, el modo del hook, que además hace `git add` de lo que escribe), con `leerStaged()`, `leerWorkingTree()` y `normalizarFinalesLinea()` de `tools/build-sw.js`. `--comprobar` no escribe y sale con código 1 si una copia no está al día, sobra un fichero o falta una pieza; `npm run verificar-datos` hace lo mismo en su comprobación 12. `npm run dev:watch` no la rehace: en desarrollo, un cambio de los originales llega a la demo con el commit o con `npm run build:demo`.
 
-**`tools/install-hooks.js`** se ejecuta solo desde `postinstall`. Crea `.git/hooks/` si no existe (este repositorio no lo trae por defecto — ni siquiera los ficheros `.sample` habituales de `git init`), y escribe `.git/hooks/pre-commit` marcado con el comentario `vvguides-managed-hook` — la marca permite reinstalarlo de forma idempotente en cada `npm install` sin duplicar nada, y evita pisar un hook de otra herramienta (Husky u otra) si no lleva esa marca, avisando en su lugar. El hook en sí es un envoltorio mínimo: llama a `build-demo.js` y después a `build-sw.js`, los dos en modo `--staged` y cada uno dentro de su `try/catch`, que nunca bloquea el commit (es auto-fix, no un gate de validación), y termina siempre con código 0. El orden importa: `publico/demo-aventuras.js` es parte del shell, y `CACHE_VERSION` tiene que contar ya la demo regenerada. Si se ejecuta fuera de un repositorio git (sin `.git`), se omite en silencio — no debe romper `npm install` en ese contexto.
+**`tools/install-hooks.js`** se ejecuta solo desde `postinstall`. Crea `.git/hooks/` si no existe (este repositorio no lo trae por defecto — ni siquiera los ficheros `.sample` habituales de `git init`), y escribe `.git/hooks/pre-commit` marcado con el comentario `vvguides-managed-hook` — la marca permite reinstalarlo de forma idempotente en cada `npm install` sin duplicar nada, y evita pisar un hook de otra herramienta (Husky u otra) si no lleva esa marca, avisando en su lugar. El hook en sí es un envoltorio mínimo: llama a `build-demo.js` y después a `build-sw.js`, los dos en modo `--staged` y cada uno dentro de su `try/catch`, que nunca bloquea el commit (es auto-fix, no un gate de validación), y termina siempre con código 0. El orden importa: los `.json` de `publico/` cuentan para `CACHE_VERSION`, que tiene que contarlos ya al día. Si se ejecuta fuera de un repositorio git (sin `.git`), se omite en silencio — no debe romper `npm install` en ese contexto.
 
 **`tools/watch-sw.js`** (`npm run dev:watch`) usa `fs.watch` sobre `sw.js` y cada fichero devuelto por `ficherosDelShell()` — la misma fuente que alimenta el hash, para que lo que se vigila en desarrollo y lo que cuenta como versión no puedan divergir —, con un debounce de 300ms para no recalcular en cada evento suelto del filesystem. Llama al mismo núcleo en modo working-tree (sin `--staged`, no tiene sentido leer del índice de git en modo desarrollo) y no hace `git add` — el usuario decide cuándo commitear.
 
@@ -8727,7 +8747,7 @@ Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌
 | 10 | `CACHE_VERSION` al desplegar | — | §22.10 | ✅ cerrada — el hook de pre-commit la recalcula en cada commit; `npm run build:sw`, si el hook falta |
 | 11 | `BACKEND_READY = true` en `js/data-loader.js` (autoriza a preguntar; el modo `'api'` se activa solo donde `/api/health` conteste) | producción en modo `'api'`, desplegado junto con los n.º 4 y 9 | §22.11 | ⏳ pendiente — necesita el backend |
 | 12 | Validación del código DEV en el backend (ver §24) | ni el código DEV ni su hash están en ningún fichero del cliente: lo comprueba el backend | §22.4, §24 | ⏳ pendiente — necesita el backend |
-| 13 | Qué ficheros de datos van en `PROTECTED_FILES` | — | §22.12 | ✅ cerrada — `puzzles-aventuras.js`, protegido; `mapa-vintage-aventuras.js` y sus imágenes, públicos, porque los enseña la demo gratis (las imágenes, en la carpeta pública: `publico/imagenes/mapas-vintage/`); `aventuras-ID-padre.js`, público (§2.2) |
+| 13 | Qué ficheros de datos van en `PROTECTED_FILES` | — | §22.12 | ✅ cerrada — `puzzles-aventuras.js`, protegido; `mapa-vintage-aventuras.js`, público (es la tabla de los mapas: la demo gratis la lee para saber el nombre de cada uno); los mapas, protegidos en `imagenes/mapas-vintage/`, con su copia pública en `publico/imagenes/mapas-vintage/`, que es la que enseña la demo; `aventuras-ID-padre.js`, público (§2.2) |
 | 14 | Compatibilidad iOS PWA: la cabecera `Permissions-Policy: geolocation=(self)` (las etiquetas de iOS están en `codigo-padre.html`) | la respuesta de producción lleva la cabecera | §22.13 | ⏳ pendiente — necesita el n.º 1 |
 | 15 | Quitar el mensaje de error real del navegador del overlay de GPS sin señal (`#gps-signal-detalle`) | el overlay no enseña ningún mensaje técnico del navegador | §22.14 | ⏳ pendiente — justo antes de publicar: mientras se prueba, sirve para diagnosticar |
 | 16 | Repositorios nuevos y privados, creados a partir de la copia local, y borrar los actuales de GitHub | el código y `docs/` están solo en repositorios privados, y los repositorios actuales están borrados | §22.15 | ⏳ pendiente — necesita el n.º 1: GitHub Pages solo sirve HTTPS gratis a repositorios públicos |
@@ -8740,10 +8760,10 @@ Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌
 | 23 | Consultar las licencias de los recursos de terceros antes de vender la PWA, empezando por los cuatro efectos de sonido de Pixabay (`audios-efectos/LICENCIAS.md`): su licencia prohíbe distribuirlos sueltos, y los ficheros del repositorio público son descargables uno a uno | cada recurso de terceros tiene su licencia revisada y anotada | §12 | ⏳ pendiente — sin prisa mientras solo los usa su autor; se resuelve al publicar la PWA para su venta |
 | 24 | Pasarela de pago y backend por **categoría de precio** (aventuras cortas y largas). Al añadir una aventura hay que darle su categoría en `js/indice-aventuras.js` | la pasarela cobra el precio de la categoría de la aventura elegida, y el backend guarda la categoría con el código y la exige al comprobarlo | §16.2 | ⏳ pendiente — necesita la pasarela y el backend |
 | 25 | El botón atrás con una aventura en marcha (§34): comprobarlo en un Android real con la PWA instalada, que es donde existe ese botón | comprobado en un Android real con la PWA instalada | §34 | ⏳ pendiente — la lógica está hecha y medida en los cuatro navegadores de los tests (spec 131) |
-| 26 | La demo gratis (P2-P11) con sus datos propios: un fichero público con solo las piezas de la introducción de cada aventura —el puzzle de introducción, el reto R-1, el audio y el texto de introducción, y si la aventura tiene audio en cada idioma—, generado por script a partir de los ficheros de datos, y sus audios en una carpeta pública. Nombres, carpetas y generación siguen el patrón del resto de la PWA | con `PROTECT_DATA=true`, la demo no pide ningún fichero de datos protegido, y su audio sale de una carpeta pública | §22.12 | ✅ cerrada — `publico/demo-aventuras.js`, generado por `tools/build-demo.js`, y `publico/audios/` (§7.1, §21.1); lo vigila el spec 149 |
+| 26 | La demo gratis con sus datos propios: copias públicas de solo las piezas que enseña de cada aventura —el puzzle de introducción, los retos R-1 y R-2, el audio y el texto de introducción (con solo los párrafos que usa), si la aventura tiene audio en cada idioma, los términos, la normativa, los agradecimientos y los textos de Jaime—, hechas por script a partir de los originales, con una carpeta por tipo y una por idioma. Los originales siguen completos en sus carpetas. Nombres, carpetas y generación siguen el patrón del resto de la PWA | con `PROTECT_DATA=true`, la demo no pide ningún fichero protegido, y el resto de la app no pide ninguna copia | §22.12 | ✅ cerrada — `publico/textos/`, `publico/retos/`, `publico/puzzles/` y `publico/audios/`, hechas por `tools/build-demo.js` (§7.1, §21.1); lo vigila el spec 149 |
 | 27 | La fase 2 del padre carga sus datos con las funciones de `js/data-loader.js`, no con `import()` directo (la de los puzzles, por crear) | con `PROTECT_DATA=true` y la API, la fase 2 no pide ningún fichero protegido | §22.12 | ⏳ pendiente — no necesita servidor |
 | 28 | El servidor de producción publica solo lo que usa la app: ni `docs/`, ni `tests/`, ni `tools/`, ni `debug-brujula.html` | pedir a producción cualquier fichero de esas rutas da 403 o 404 | §22.4 | ⏳ pendiente — va con el n.º 1 |
-| 29 | Las imágenes y el vídeo que enseña la demo gratis, en la carpeta pública con sus datos y su audio: la foto de fondo de cada tarjeta de aventura (P7, P9 y P13; `IMAGENES_AVENTURAS` de `En-busca-del-tesoro.html`) y la foto y el vídeo de `video-intro.html` (P4), y el mapa antiguo de cada aventura (P7 y `video-intro.html`) | con `PROTECT_DATA=true`, la demo no pide ninguna imagen ni ningún vídeo protegido | §22.12 | ✅ cerrada — una sola carpeta pública, `publico/`, con subcarpetas: el fichero de datos de la demo, `audios/`, `imagenes/` (con los mapas antiguos en `mapas-vintage/`) y `videos/`; las cinco fotos que la demo comparte con el contenido de pago viven solo en `publico/imagenes/`, y los datos de pago apuntan allí; lo vigila el spec 149 |
+| 29 | Las imágenes y el vídeo que enseña la demo gratis, con su copia en la carpeta pública junto a sus datos y su audio: la foto de fondo de cada tarjeta de aventura (P7, P9 y P13; `IMAGENES_AVENTURAS` de `En-busca-del-tesoro.html`), la foto y el vídeo de `video-intro.html` (P4) y el mapa antiguo de cada aventura (P7 y `video-intro.html`) | con `PROTECT_DATA=true`, la demo no pide ninguna imagen ni ningún vídeo protegido, y el resto de la app no pide ninguna copia | §22.12 | ✅ cerrada — una sola carpeta pública, `publico/`, con `imagenes/` (los mapas antiguos, en `mapas-vintage/`) y `videos/` junto a los textos, los retos, el puzzle y el audio de la demo; los originales, en sus carpetas protegidas; lo vigilan el spec 149 y la comprobación 12 de `npm run verificar-datos` |
 
 ---
 
@@ -8849,7 +8869,7 @@ Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier 
 
 > ⚠️ **Dependencia cruzada con `BACKEND_READY`**: `PROTECT_DATA=true` solo tiene sentido junto con `BACKEND_READY=true` en `js/data-loader.js` (§22.11) — si `BACKEND_READY` sigue en `false`, el modo seguirá siendo `'local'` y la Fase 2 del padre (`codigo-padre.html`) seguirá importando directamente los ficheros que `PROTECT_DATA` bloquearía, rompiendo la carga de aventuras con 403. `js/server.js` emite un `console.warn` al arrancar con `PROTECT_DATA=true` recordando esta dependencia. Ver también §22.12 para los imports directos aún pendientes de migrar.
 
-**Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 30–41):
+**Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 30–42):
 
 ```text
 /js/coordenadas-aventuras.js    ← coordenadas GPS de paradas y tramos
@@ -8860,11 +8880,22 @@ Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier 
 /js/parrafos-textos/            ← directorio completo (JSON por idioma)
 /audios-aventuras/              ← MP3 del contenido de pago (directorio completo)
 /imagenes/imagenes-aventuras/   ← fotos del contenido de pago (directorio completo)
+/imagenes/mapas-vintage/        ← mapas antiguos de la aventura (directorio completo); la demo enseña su copia de publico/
 /videos-aventuras/               ← vídeos del contenido de pago — dron por parada (directorio completo)
 /backend/                       ← directorio completo (reservado)
 ```
 
-La carpeta pública, `publico/`, no está en la lista: guarda lo que la demo gratis enseña de las aventuras antes del pago —sus datos, el audio de introducción, las fotos de las tarjetas y la del vídeo de introducción, los mapas antiguos y su clip— (§7.1; §22.0, n.º 13, 26 y 29). Las cinco fotos que la demo comparte con el contenido de pago viven solo ahí, y los datos de pago apuntan a ellas.
+La carpeta pública, `publico/`, no está en la lista: guarda copias de solo lo que la demo gratis enseña de las aventuras —textos, retos, el puzzle de introducción, el audio de introducción, las fotos, los mapas antiguos y el clip— (§7.1; §22.0, n.º 13, 26 y 29). Los originales siguen en sus carpetas, protegidos, y el resto de la app pide solo los originales.
+
+**Qué va al backend y qué no.** Las carpetas del proyecto son de tres clases, y solo una va detrás del backend:
+
+| Clase | Qué es | Carpetas | En producción |
+|---|---|---|---|
+| Contenido de las aventuras | Lo que se paga: datos, párrafos, audios, fotos, mapas antiguos y vídeos | Las de `PROTECTED_FILES` (arriba) | Detrás del backend, solo por la API autenticada |
+| La app | El código y lo que la app enseña de suyo | Las páginas, `js/` (salvo los ficheros de datos de la lista), `css/`, `sw.js`, `manifest.json`, `imagenes/imagenes-aplicación/`, `imagenes/imagenes video intro/` y `audios-efectos/` | Pública, servida tal cual (`docs/`, `tests/` y `tools/` no se sirven: §22.0, n.º 28) |
+| La carpeta pública de la demo | Copias de lo que la demo gratis enseña de las aventuras, hechas por `tools/build-demo.js` | `publico/` | Pública, servida tal cual |
+
+**`imagenes/imagenes-aplicación/` no va al backend, y es a propósito.** Son las imágenes de la propia app —botones, logos, banderas, los avisos de GPS e internet— y las usan todas las pantallas, también antes del pago: la selección, el padre (donde se ve la demo), los hijos y `video-intro.html`. Además, los textos de las aventuras, que sí van al backend, llevan dentro el logo alargado (`logo_alargado_3.png`). Detrás del backend, la app no podría enseñarlas antes del pago. Tampoco van a `publico/`: esa carpeta solo guarda copias generadas del contenido de las aventuras. Moverlas allí haría que la aventura de pago apuntara a `publico/`, y copiarlas dejaría dos ficheros de cada imagen. Lo mismo vale para `imagenes/imagenes video intro/` y `audios-efectos/`. Al construir el backend, lo que va detrás de él es la lista de `PROTECTED_FILES`; el DM-0 del spec 149 comprueba que la lista del spec es la del servidor.
 
 `PROTECTED_FILES` cubre todo tipo de contenido de pago, no solo audio/texto/retos/coordenadas — imágenes y vídeos están tan expuestos como cualquier otro fichero estático si su carpeta no aparece en la lista (ver razón completa en §16). Cualquier carpeta de contenido de pago que se añada en el futuro debe incorporarse aquí explícitamente; la lista no protege nada por defecto.
 
@@ -9082,7 +9113,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-02f171462751';
+const CACHE_VERSION = 'v-37df4700d438';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9129,7 +9160,7 @@ Voltear ese interruptor **no** rompe GitHub Pages: allí `/api/health` responde 
 | `indice-aventuras.js` | `await import()` en FASE 1 y en `En-busca-del-tesoro.html` | `cargarIndice()` | no está en `PROTECTED_FILES` (es el catálogo): no rompe |
 | `puzzles-aventuras.js` | `await import()` en FASE 2 | ninguna — el pool es compartido, no está organizado por aventura, y no encaja con el patrón `cargarX(aventuraId)` | ⚠️ protegido; la fase 2 necesita su función (§22.0, n.º 27) |
 | `mapa-vintage-aventuras.js` | `await import()` en FASE 2 y en `En-busca-del-tesoro.html` | ninguna | público: lo enseña la demo gratis (§22.0, n.º 13) |
-| `publico/demo-aventuras.js` | `await import()` en `En-busca-del-tesoro.html` (P6 a P11) | ninguna | público: lo que usa la demo gratis, generado por `tools/build-demo.js` (§22.0, n.º 26) |
+| `publico/` (los `.json` de la demo) | `fetch()` en `En-busca-del-tesoro.html` (`_leerPublico()`) y en `video-intro.html` | ninguna | público: copias de lo que enseña la demo gratis, hechas por `tools/build-demo.js` (§22.0, n.º 26) |
 | `retos-aventuras.js` | solo vía `cargarRetos()` | `cargarRetos(aventuraId, idioma)` | ✅ por su función |
 | `textos-aventuras.js` | solo vía `cargarTextos()` | `cargarTextos(aventuraId, idioma)` | ✅ por su función |
 
@@ -9137,14 +9168,14 @@ Voltear ese interruptor **no** rompe GitHub Pages: allí `/api/health` responde 
 
 `puzzle.html` no importa `puzzles-aventuras.js`: recibe la imagen por URL de quien lo invoca.
 
-`js/data-loader.js` también exporta `validarRespuesta()`, `limpiarCacheDatos()`, `getDataMode()`, `asegurarModo()` y `hayBackendDisponible()`, que son independientes de PROTECT_DATA, y `ensamblarTexto()` y `LANG_ARCHIVO_PARRAFOS`, con los que `tools/build-demo.js` monta el texto de introducción de la demo (§21.1).
+`js/data-loader.js` también exporta `validarRespuesta()`, `limpiarCacheDatos()`, `getDataMode()`, `asegurarModo()` y `hayBackendDisponible()`, que son independientes de PROTECT_DATA, y `ensamblarTexto()`, con la que la demo gratis monta el texto de introducción con la copia pública de sus párrafos, y `LANG_ARCHIVO_PARRAFOS`, que da también el nombre de la carpeta de cada idioma en `publico/` (§7.1, §21.1).
 
 **Qué queda por decidir y por hacer:**
 
 1. **`aventuras-ID-padre.js`: decidido, no se protege** (§2.2). Su `import` estático puede quedarse. Lo único que sigue abierto es si merece la pena cargarlo bajo demanda por sus 1,7 MB en el arranque — decisión de rendimiento, no de seguridad, y sin urgencia.
-2. **`puzzles-aventuras.js`, protegido; `mapa-vintage-aventuras.js`, público** (§22.0, n.º 13). El de los puzzles no tiene función en `data-loader.js`, y su forma (pool compartido, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)`: la fase 2 necesita una función propia para él (n.º 27). El mapa antiguo es público porque lo enseña la demo gratis: sus imágenes viven en la carpeta pública (`publico/imagenes/mapas-vintage/`), y la tabla que las nombra, en `js/`, como el índice, que también es público.
+2. **`puzzles-aventuras.js`, protegido; `mapa-vintage-aventuras.js`, público** (§22.0, n.º 13). El de los puzzles no tiene función en `data-loader.js`, y su forma (pool compartido, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)`: la fase 2 necesita una función propia para él (n.º 27). La tabla de los mapas antiguos es pública, como el índice, porque la demo gratis la lee para saber el nombre de cada mapa; los mapas son de la aventura y están protegidos en `imagenes/mapas-vintage/`, y la demo enseña su copia de `publico/imagenes/mapas-vintage/`.
 3. **Tres ficheros de `PROTECTED_FILES` se cargan con `await import()` directo** en el `Promise.all` de la FASE 2 (`__cargarDatosAventuraDiferidos`): `coordenadas-aventuras.js`, `audios-aventuras.js` y `puzzles-aventuras.js`; el cuarto `import()` de esa fase, `mapa-vintage-aventuras.js`, es público. `textos` y `retos` llegan por `cargarTextos()` y `cargarRetos()`. Con `PROTECT_DATA=true` esos tres `import()` recibirán un 403: hay que sustituirlos por `cargarCoordenadas()` y `cargarAudios()`, que existen y añadirán el token en modo `'api'`, y por la función de los puzzles que falta (punto 2). **Este es el trabajo real del pendiente** (§22.0, n.º 27).
-4. **La demo gratis** (la selección hasta el pago) lee sus piezas de datos de `publico/demo-aventuras.js` —solo las de la introducción de cada aventura—, que genera `tools/build-demo.js` a partir de los ficheros de datos, y su audio, sus fotos, los mapas antiguos y su vídeo de `publico/audios/`, `publico/imagenes/` (los mapas, en `publico/imagenes/mapas-vintage/`, punto 2) y `publico/videos/`: nada protegido (§7.1; §22.0, n.º 26 y 29).
+4. **La demo gratis** (la selección hasta el código, el vídeo de introducción y el puzzle de P6) lee todo lo que enseña de las aventuras de las copias de `publico/` que hace `tools/build-demo.js`: nada protegido (§7.1; §22.0, n.º 26 y 29).
 
 > **Nota:** `mapa-completo.html` recibe hoy las coordenadas del padre por mensaje, no las importa.
 
@@ -9772,7 +9803,7 @@ Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia 
 
 - **Banda de texto de Jaime I (las 20 escenas):** El caballero (`#knight`) aparece abajo a la izquierda, y el texto de la escena en el idioma seleccionado sale en `#jaime-band` — **una banda a todo el ancho anclada al fondo, no un bocadillo sobre el caballero**: `position:absolute; bottom:0; left:0; width:100%; min-height:20vh`, fondo `#fff8e7`, `z-index:350`, que aparece y desaparece por `opacity` (`.4s`) al poner o quitar la clase `.on`. El texto vive en el `<p>` `#jaime-band-text` (`clamp(15px,4.5vmin,19px)`, color `#1a3a1a`), y a su derecha la banda aloja `#band-next-btn`.
 
-  **La banda ocupa sitio de verdad, no se superpone.** Su altura se publica en la variable CSS `--band-h` del `#stage`, y tanto `#scene-layer` como `#overlay-layer` llevan `bottom:var(--band-h,0px)` con `transition:bottom .4s`: la escena se encoge exactamente lo que crece la banda, a la misma velocidad con la que la banda se funde. El propio caballero se apoya en ella (`bottom:max(20vh,var(--band-h,0px))`). Al ocultarse se devuelve `--band-h` a `0px` y se llama a `MC.map.invalidateSize()`, porque el mapa de la escena acaba de cambiar de tamaño. Las 20 escenas llaman a `showBubble(idx)`, así que todas llevan bocadillo. Los textos viven en `JAIME_SCENES`, exportado desde `js/traducciones-ui.js` en 12 idiomas y expuesto vía `globalThis` a un `<script>` clásico. El helper `showBubble(idx)` crea el elemento y devuelve `hideBubble()` para eliminarlo al terminar la escena.
+  **La banda ocupa sitio de verdad, no se superpone.** Su altura se publica en la variable CSS `--band-h` del `#stage`, y tanto `#scene-layer` como `#overlay-layer` llevan `bottom:var(--band-h,0px)` con `transition:bottom .4s`: la escena se encoge exactamente lo que crece la banda, a la misma velocidad con la que la banda se funde. El propio caballero se apoya en ella (`bottom:max(20vh,var(--band-h,0px))`). Al ocultarse se devuelve `--band-h` a `0px` y se llama a `MC.map.invalidateSize()`, porque el mapa de la escena acaba de cambiar de tamaño. Las 20 escenas llaman a `showBubble(idx)`, así que todas llevan bocadillo. Los textos son los de `JAIME_SCENES` (`js/traducciones-ui.js`, 12 idiomas), y `video-intro.html` lee su copia pública: el `<script type="module">` pide `publico/textos/<idioma>/jaime.json` —el texto de cada bocadillo, ya en el idioma de `?lang=`— y se lo entrega al `<script>` clásico por `globalThis.__entregarTextosJaime`. `run()` espera a recibirlos (`_textosJaimeListos`, 8 s como mucho) antes de la primera escena; si no llegan, o falta `?lang=` (el módulo dice entonces «Sin ?lang=»), lo dice como error y el vídeo sigue sin bocadillos. El helper `showBubble(idx)` crea el elemento y devuelve `hideBubble()` para eliminarlo al terminar la escena.
 
   **El índice no es el número de escena.** `JAIME_SCENES` tiene **21** entradas (0–20) para 20 escenas, y el orden del array no es el orden de reproducción: `scene2` pide el índice 1 pero se reproduce la segunda, `scene8` pide el 5 y se reproduce la sexta, `sceneListadoParadas` pide el 20 y se reproduce la decimoséptima. Los índices que sí se usan son 0–14 y 16–20; **el 15 vale `null` y ninguna escena lo pide** — es un hueco del array, no una escena muda.
 - **20 escenas animadas** que muestran el mapa, los botones de hijo2, el audio, los retos, los overlays de error GPS/internet, y el modal de fin de aventura. El guantelete (`guantelete_*.png`) actúa de cursor animado.
@@ -9789,7 +9820,7 @@ Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia 
 València centro histórico 1    👣±4km 🏛️19 📍41 🧩30 ⏳max60h
 ```
 
-Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTURAS` en `En-busca-del-tesoro.html`), aplicada como `backgroundImage` con una capa blanca semi-transparente (`rgba(255,255,255,0.75)`) para mantener la legibilidad del texto. Las imágenes están en la carpeta pública, `publico/imagenes/`, porque las enseña la demo gratis (§22.0, n.º 29):
+Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTURAS` en `En-busca-del-tesoro.html`), aplicada como `backgroundImage` con una capa blanca semi-transparente (`rgba(255,255,255,0.75)`) para mantener la legibilidad del texto. La selección pide la copia de cada una de la carpeta pública, `publico/imagenes/`, porque las enseña la demo gratis; los originales están en `imagenes/imagenes-aventuras/` (§22.0, n.º 29):
 
 | ID | Imagen |
 |----|--------|
@@ -9803,11 +9834,11 @@ Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTU
 
 Actualmente todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponibles. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. Al cerrar el mapa vintage → `cerrarMapaVintage()` → avanza a P8. Envía `SELECCION.AVENTURA_SELECCIONADA { aventura, timestamp }` al padre; el idioma viaja solo en `SELECCION.IDIOMA_SELECCIONADO` (P2).
 
-**Pantalla 8 — Reto R-1 (prueba de conocimiento previa).** Mientras `cargarRetoR1()` lee la pregunta de `publico/demo-aventuras.js`, se muestra brevemente un spinner inline (logo giratorio pequeño) en el lugar de la pregunta. Una pregunta con opciones tipo test que el usuario debe superar antes de confirmar la aventura. Si acierta, el borde se pone verde, aparece un ✓ y avanza automáticamente a P9 a los 1,5 segundos. Si falla, puede reintentar.
+**Pantalla 8 — Reto R-1 (prueba de conocimiento previa).** Mientras `cargarRetoR1()` lee la pregunta de su copia pública (`publico/retos/<idioma>/retos.json`), se muestra brevemente un spinner inline (logo giratorio pequeño) en el lugar de la pregunta. Una pregunta con opciones tipo test que el usuario debe superar antes de confirmar la aventura. Si acierta, el borde se pone verde, aparece un ✓ y avanza automáticamente a P9 a los 1,5 segundos. Si falla, puede reintentar.
 
 **Pantalla 9 — Confirmación de aventura.** Similar a P3: se muestra el nombre de la aventura elegida con sus estadísticas en una card (`.aventura-confirmacion-card`), que se pinta al mostrarse la pantalla (§7.1). La card aplica la misma foto de fondo que el botón de P7 (misma entrada de `IMAGENES_AVENTURAS`, misma capa semi-transparente). Dos botones: → (confirmar) / ✗ (volver a P7). Al confirmar, `confirmarAventura()` envía `SELECCION.PREPARAR_HIJOS` al padre y avanza a P10; si la aventura no tiene audio en el idioma elegido, primero sale el aviso sin audio (§12).
 
-**Pantalla 10 — Términos y condiciones.** Mientras `cargarTerminos()` importa el texto desde `js/terminos-aventuras.js`, el cuadro muestra brevemente un spinner inline en vez de texto. El cuadro de texto con scroll ocupa toda la pantalla disponible (`flex: 1`, `width: min(95vw, 92vmin)`) sin altura máxima fija. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final del texto. Usa `padding-bottom: var(--gap-inferior)` para respetar la safe area. Al aceptar, envía `SELECCION.TERMINOS_ACEPTADOS` y avanza a P11.
+**Pantalla 10 — Términos y condiciones.** Mientras `cargarTerminos()` lee el texto de su copia pública (`publico/textos/<idioma>/terminos.json`), el cuadro muestra brevemente un spinner inline en vez de texto. El cuadro de texto con scroll ocupa toda la pantalla disponible (`flex: 1`, `width: min(95vw, 92vmin)`) sin altura máxima fija. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final del texto. Usa `padding-bottom: var(--gap-inferior)` para respetar la safe area. Al aceptar, envía `SELECCION.TERMINOS_ACEPTADOS` y avanza a P11.
 
 **Pantalla 11 — Audio y texto de introducción.** El usuario escucha un audio narrativo de bienvenida mientras lee un texto descriptivo con fondo naranja. Ambos se cargan desde `js/audios-aventuras.js` y `js/textos-aventuras.js` respectivamente, en el idioma seleccionado. Un botón `→` avanza a P12.
 
@@ -9817,13 +9848,13 @@ Actualmente todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponible
 
 **Pantalla 14 — Código de activación.** El usuario introduce su email y el **código de activación** recibido tras la compra. Mientras escribe, `validarCodigo()` solo mira la forma —email con formato de correo y código de al menos 4 caracteres— para habilitar el botón →. Al pulsar → se ejecuta `_irANormativa()`: con backend, pide la activación con el código y el email (`ApiClient.activar()`, §16.2) y, si no se concede, muestra el aviso de acceso erróneo; sin backend la rechaza siempre. Con la activación concedida, comprueba si el GPS ya está denegado en el navegador (`navigator.permissions.query`); si lo está, muestra un aviso en la propia pantalla P14 con instrucciones para ir a ajustes, y el usuario no avanza. Si el permiso es `prompt` o `granted`, la selección envía `SELECCION.CODIGO_VALIDADO` al padre (que solo lo anota: el GPS, los iframes y los datos se cargan al mostrarse P15) y avanza a P15.
 
-**Pantalla 15 — Normativa y Cumplimiento.** Pantalla con fondo naranja más **imagen de fondo sutil** (`imagen-normativa.png` con capa naranja al 82% de opacidad). Mientras `cargarNormativaOverlay()` importa el aviso legal desde `js/normativa-cumplimiento.js`, la caja muestra brevemente un spinner inline. El aviso legal de seguridad vial (en el idioma seleccionado) aparece en una caja `.texto-box.borde-azul` con scroll. El botón `→` está **deshabilitado** hasta llegar al final. Al aceptar → avanza a P16.
+**Pantalla 15 — Normativa y Cumplimiento.** Pantalla con fondo naranja más **imagen de fondo sutil** (`imagen-normativa.png` con capa naranja al 82% de opacidad). Mientras `cargarNormativaOverlay()` lee el aviso legal de su copia pública (`publico/textos/<idioma>/normativa.json`), la caja muestra brevemente un spinner inline. El aviso legal de seguridad vial (en el idioma seleccionado) aparece en una caja `.texto-box.borde-azul` con scroll. El botón `→` está **deshabilitado** hasta llegar al final. Al aceptar → avanza a P16.
 
-**Pantalla 16 — Reto R-2 (pregunta de confirmación).** Mientras `cargarRetoR2()` importa la pregunta desde `js/retos-aventuras.js`, se muestra brevemente un spinner inline en el lugar de la pregunta. Una pregunta SÍ/NO traducida al idioma del usuario. Es la **puerta final**: si elige la respuesta afirmativa, avanza a P17 a los 1,5 s. Si elige la negativa, **todo se reinicia** desde P1.
+**Pantalla 16 — Reto R-2 (pregunta de confirmación).** Mientras `cargarRetoR2()` lee la pregunta de su copia pública (`publico/retos/<idioma>/retos.json`), se muestra brevemente un spinner inline en el lugar de la pregunta. Una pregunta SÍ/NO traducida al idioma del usuario. Es la **puerta final**: si elige la respuesta afirmativa, avanza a P17 a los 1,5 s. Si elige la negativa, **todo se reinicia** desde P1.
 
 **Pantalla 17 — Logos.** Pantalla con fondo naranja, logo redondo y logo alargado de Valencia VGuides. Su botón `→` da el paso oficial a la aventura: llama a `iniciarAventura()`, que enseña la pantalla de carga y envía `SELECCION.AVENTURA_ACTIVADA` al padre.
 
-**Pantalla 18 — Agradecimientos y Fuentes** *(solo accesible vía `?despedida=1`, no en el flujo normal de onboarding)*. Pantalla con fondo naranja `#ff8c00`. Mientras `cargarAgradecimientosOverlay()` importa el texto desde `js/agradecimientos-aventuras.js`, la caja muestra brevemente un spinner inline. El texto de créditos y fuentes (en el idioma seleccionado) aparece en una caja `.texto-box.borde-azul` con scroll. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final. Al confirmar ejecuta `_ejecutarDespedida()`: muestra el mensaje de despedida en el idioma del usuario, limpia con `limpiarDatosAventura('completada')`, espera 2 s para que el usuario lea el mensaje y va a P1 con `location.replace('codigo-padre.html')` (recargar la dirección actual, que lleva `?despedida=1`, volvería a mostrar P18).
+**Pantalla 18 — Agradecimientos y Fuentes** *(solo accesible vía `?despedida=1`, no en el flujo normal de onboarding)*. Pantalla con fondo naranja `#ff8c00`. Mientras `cargarAgradecimientosOverlay()` lee el texto de su copia pública (`publico/textos/<idioma>/agradecimientos.json`), la caja muestra brevemente un spinner inline. El texto de créditos y fuentes (en el idioma seleccionado) aparece en una caja `.texto-box.borde-azul` con scroll. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final. Al confirmar ejecuta `_ejecutarDespedida()`: muestra el mensaje de despedida en el idioma del usuario, limpia con `limpiarDatosAventura('completada')`, espera 2 s para que el usuario lea el mensaje y va a P1 con `location.replace('codigo-padre.html')` (recargar la dirección actual, que lleva `?despedida=1`, volvería a mostrar P18).
 
 Cuando el padre recibe `SELECCION.AVENTURA_ACTIVADA`:
 
@@ -10650,7 +10681,7 @@ Estos overlays **solo aparecen en modo AVENTURA**. En modo CASA no se muestran a
 
 Durante la aventura, los audios se descargan en el momento en que el usuario llega a cada parada. Si en ese instante el teléfono no tiene conexión, el audio no puede reproducirse.
 
-La aplicación detecta el fallo y muestra un overlay con la imagen de "sin internet" (`imagen-no-internet.png`) y un botón 🌐🔄 con una cuenta atrás de 15 segundos. Cuando el tiempo llega a cero, el botón se reactiva y el usuario puede volver a intentarlo. Si el teléfono recupera la conexión por sí solo, el overlay desaparece automáticamente sin que el usuario tenga que hacer nada.
+La aplicación detecta el fallo y muestra un overlay con la imagen de "sin internet" (`imagen-no-internet.png`, guardada desde la instalación para que salga sin red, §19) y un botón 🌐🔄 con una cuenta atrás de 15 segundos. Cuando el tiempo llega a cero, el botón se reactiva y el usuario puede volver a intentarlo. Si el teléfono recupera la conexión por sí solo, el overlay desaparece automáticamente sin que el usuario tenga que hacer nada.
 
 > El resto de la aventura —el mapa, el texto de las paradas, los retos— sigue funcionando porque el Service Worker ya los tiene en caché. Solo los audios requieren conexión en el momento de reproducirse.
 
@@ -12340,7 +12371,7 @@ El handshake principal sigue usando los tipos estándar `SISTEMA.*` (como todos 
 
 El asistente es 100% offline:
 
-- `js/traducciones-ui.js`, `js/terminos-aventuras.js`, `js/agradecimientos-aventuras.js` y `video-intro.html` están en el precache del Service Worker — los tres modales internos (términos, agradecimientos, vídeo de introducción) funcionan sin red
+- `js/traducciones-ui.js`, `js/terminos-aventuras.js` y `js/agradecimientos-aventuras.js` están en el precache del Service Worker, así que los modales de términos y agradecimientos funcionan sin red; el del vídeo de introducción necesita red: `video-intro.html` está en el precache, pero sus imágenes, su clip y la copia pública de los textos de Jaime no
 - No hace ninguna petición de red durante el uso (el buzón de sugerencias es la única excepción — ver §7.7)
 - `estadoPadre` es estado en memoria del cliente, usado solo para el idioma del acordeón y el contexto del buzón
 
@@ -12556,7 +12587,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-02f171462751';
+const CACHE_VERSION = 'v-37df4700d438';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12596,7 +12627,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 
 **Qué ocurre:** el dispositivo pierde la conexión a internet durante la aventura. Se detecta de tres formas complementarias: al instante, vía el evento `offline` del navegador (`globalThis.addEventListener('offline', showInternetOverlay)`, registrado incondicionalmente — `showInternetOverlay()` ya filtra por modo AVENTURA internamente); y de forma reactiva, como red de seguridad, cuando una petición real (p. ej. un audio) falla con `!navigator.onLine` — por si `offline` no llegara a dispararse en algún dispositivo; y por el supervisor de hijos (§2.7), que al recargar un hijo con `navigator.onLine === false` pide el overlay con `showInternetOverlay({ forzar: true })`, lo que salta el filtro de modo AVENTURA: así sale también al arrancar, con la aplicación aún sin modo decidido, cuando un hijo —típicamente la pantalla de selección— no llega a cargar.
 
-**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-internet.png` (el `<img>` se crea, y la imagen se pide, la primera vez que se enseña el overlay: sin red solo se ve si está ya en caché, y el service worker guarda en su caché cada respuesta del shell que obtiene con red, entre ellas la que provoca `video-intro.html` al cargarla en su segunda escena). En la parte inferior centrada, botón de reintento sin texto: 🌐🔄. Botón de cierre ✗ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha — cerrarlo manualmente no soluciona la falta de conexión, solo oculta el aviso; si la conexión sigue caída, el overlay puede volver a aparecer en el siguiente fallo de red.
+**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-internet.png` (el `<img>` se crea, y la imagen se pide, la primera vez que se enseña el overlay; la imagen está en la precarga del service worker, `APP_SHELL`, así que llega aunque no haya red: spec 151, SW-2). En la parte inferior centrada, botón de reintento sin texto: 🌐🔄. Botón de cierre ✗ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha — cerrarlo manualmente no soluciona la falta de conexión, solo oculta el aviso; si la conexión sigue caída, el overlay puede volver a aparecer en el siguiente fallo de red.
 
 **Comportamiento del botón:**
 
@@ -13432,7 +13463,7 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 - Las escenas `sceneImg` y `sceneVid` (posiciones 9-10) aparecen DESPUÉS de `scene10` (avanzar) en el array `scenes[]` de `run()`.
 - `JAIME_SCENES[15]` es `null` — ninguna escena del array `run()` llama a `showBubble(15)`; documenta un beat visual sin texto dentro de `scene16` (el caballero regresa caminando), no una escena propia.
 - `JAIME_SCENES` tiene 21 entradas (0-20) para 20 escenas, y su índice no es el número de escena: `sceneListadoParadas` pide la `[20]` pero es la decimoséptima en reproducirse. El índice 15 vale `null` y ninguna escena lo pide.
-- `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_lang` y `$` son locales al clásico.
+- `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_textosJaime` y `$` son locales al clásico.
 - `scene2` gestiona GPS/internet (el nombre no lo sugiere) y ocupa la posición 2 del array `run()`, consistente con el orden de display.
 - `sceneVid` **no** tiene atributo `loop`: por especificación, con `loop` el evento `ended` nunca se dispara, lo que dejaría `waitForVideoEnd()` muerto y la única salida real dependiendo de tocar la banda inferior. El vídeo dura 17,6 s reales; la escena avanza cuando termina (`ended`) o el usuario pulsa el botón siguiente (`waitForNextBtn`) — lo que ocurra primero (`Promise.race`). Si el usuario quiere volver a verlo, usa los controles nativos del `<video>`.
 - `sceneVid` usa `reproducirVideoConBuffer()` (`js/video-playback-utils.js`, ver §15) para arrancar la reproducción, sobre un `<video>` que no se crea en esta escena: `run()` lo precarga oculto desde el arranque de la intro (`globalThis._vidPreload`, ver §15) y `sceneVid` lo reutiliza moviéndolo a un hueco (`#vid-slot`) dentro de su overlay — para cuando el usuario llega aquí (escena 10 de 20) suele estar ya bufferizado del todo. Spinner (`#vid-loading`) visible mientras `reproducirVideoConBuffer()` resuelve (evento `canplaythrough`, `error` tras agotar reintentos, o timeout de 15s); al resolver se oculta el spinner y se muestra el vídeo ya reproduciéndose. Mismo helper que usa `mostrarVideoOverlay()` en `codigo-padre.html` — no hay descarga completa previa (blob), el mecanismo escala igual a vídeos de segundos que de minutos.
@@ -13632,7 +13663,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 ### 36.11 EJE 11 — Coherencia cross-módulo de aventuras y coordenadas
 
 1. Lista todas las aventuras definidas en `js/indice-aventuras.js`.
-2. Para cada aventura, verifica presencia en: `js/coordenadas-aventuras.js`, `js/audios-aventuras.js`, `js/textos-aventuras.js`, `js/retos-aventuras.js`, `js/puzzles-aventuras.js`, `js/mapa-vintage-aventuras.js` y `publico/demo-aventuras.js` (generado: `npm run verificar-datos` comprueba que está al día).
+2. Para cada aventura, verifica presencia en: `js/coordenadas-aventuras.js`, `js/audios-aventuras.js`, `js/textos-aventuras.js`, `js/retos-aventuras.js`, `js/puzzles-aventuras.js`, `js/mapa-vintage-aventuras.js` y las copias de `publico/` (generadas: `npm run verificar-datos` comprueba que están al día).
 3. Para cada parada (ID) en coordenadas: verifica que existe también en audios y textos de la misma aventura.
 4. Detecta paradas en audios/textos **sin coordenadas** → la parada nunca se activaría al aproximarse el usuario.
 5. Verifica que el campo `aventura` dentro de cada objeto de parada coincide exactamente con la clave del objeto padre (sin typos ni variantes de capitalización).
@@ -14322,17 +14353,17 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
-| `_devCasaMode` | clásico 3 (L1128) | módulo 1 | estado |
-| `_resetearFlagsContenido` | clásico 3 (L2566) | módulo 1 | función/objeto |
-| `continuarTrasElegirAventura` | clásico 3 (L2587) | módulo 1 | función/objeto |
-| `_pintarTarjetasDeAventura` | módulo 1 (L2955) | clásico 3 | función/objeto |
-| `enviarValoracion` | módulo 1 (L2614) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 1 (L2981) | clásico 3 | función/objeto |
-| `TEXTOS_VALORACION` | módulo 1 (L2612) | clásico 3 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L2653) | clásico 3 | función/objeto |
-| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 1 (L2611) | clásico 3 | función/objeto |
-| `TRADUCCIONES_DESPEDIDA` | módulo 1 (L2610) | clásico 3 | función/objeto |
-| `TRADUCCIONES_REANUDACION` | módulo 1 (L2613) | clásico 3 | función/objeto |
+| `_devCasaMode` | clásico 3 (L1127) | módulo 1 | estado |
+| `_resetearFlagsContenido` | clásico 3 (L2585) | módulo 1 | función/objeto |
+| `continuarTrasElegirAventura` | clásico 3 (L2606) | módulo 1 | función/objeto |
+| `_pintarTarjetasDeAventura` | módulo 1 (L2974) | clásico 3 | función/objeto |
+| `enviarValoracion` | módulo 1 (L2633) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 1 (L3000) | clásico 3 | función/objeto |
+| `TEXTOS_VALORACION` | módulo 1 (L2631) | clásico 3 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L2672) | clásico 3 | función/objeto |
+| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 1 (L2630) | clásico 3 | función/objeto |
+| `TRADUCCIONES_DESPEDIDA` | módulo 1 (L2629) | clásico 3 | función/objeto |
+| `TRADUCCIONES_REANUDACION` | módulo 1 (L2632) | clásico 3 | función/objeto |
 
 **El estado que el módulo escribe y el clásico lee.** Un `let` de nivel superior del `<script>` clásico es visible y asignable desde los módulos del mismo documento: el módulo de la selección escribe `idiomaSeleccionado`, `aventuraSeleccionada`, `aventuraIniciando`, `timerProgresoCarga` o `modoDespedida` por su nombre, y el clásico lee el valor nuevo. `globalThis.x = v` no sirve: crea una propiedad aparte que el clásico, que lee el `let`, no ve. Si la elección no llegara a su variable, nada la sustituye: la selección no encuentra datos de ninguna aventura, y la activación lleva la aventura vacía, que el padre rechaza en voz alta. Lo cubren `tests/e2e/82-seleccion-usa-la-aventura-elegida.spec.js` y `tests/e2e/135-la-eleccion-se-sabe-siempre.spec.js`.
 
@@ -14345,9 +14376,9 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 
 | Archivo | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|---|
-| `video-intro.html` | `JAIME_SCENES` | módulo 1 (L537) | clásico 1 | función/objeto |
-| `video-intro.html` | `reproducirVideoConBuffer` | módulo 1 (L538) | clásico 1 | función/objeto |
-| `video-intro.html` | `TIPOS_MENSAJE` | módulo 1 (L553) | clásico 1 | función/objeto |
+| `video-intro.html` | `__entregarTextosJaime` | clásico 1 (L588) | módulo 1 | función/objeto |
+| `video-intro.html` | `reproducirVideoConBuffer` | módulo 1 (L551) | clásico 1 | función/objeto |
+| `video-intro.html` | `TIPOS_MENSAJE` | módulo 1 (L566) | clásico 1 | función/objeto |
 | `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L360) | módulo 2 | función/objeto |
 | `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L369) | módulo 2 | función/objeto |
 | `retos-hijo4.html` | `ejecutarValidacion` | clásico 2 (L27) | módulo 1 | función/objeto |
@@ -14462,30 +14493,32 @@ Generado con `node tools/verificar-mensajeria.js --todos`. 93 tipos de mensaje. 
 
 ### 37.4 Assets compartidos (imágenes usadas en 2+ archivos)
 
-Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `publico/**`, `tools/**`, `sw.js` y `manifest.json` (80 archivos) — **77 imágenes compartidas de 358 referenciadas en total**. Muchas de las apariciones en `video-intro.html` son porque esa página reutiliza los mismos iconos de audio/mapa en sus propias escenas, no porque dependa del padre — pero un cambio de nombre de fichero rompe ambos igual. Los pares `js/coordenadas-aventuras.js` ↔ `js/puzzles-aventuras.js` (fotos de parada reutilizadas como imagen de puzzle) son el grupo más numeroso — mover o renombrar una de esas fotos rompe el puzzle de esa parada sin que nada lo avise hasta que se prueba.
+Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tools/**`, `sw.js` y `manifest.json` (79 archivos); `publico/` no, porque son copias de originales que ya se barren — **79 imágenes compartidas de 358 referenciadas en total**. Muchas de las apariciones en `video-intro.html` son porque esa página reutiliza los mismos iconos de audio/mapa en sus propias escenas, no porque dependa del padre — pero un cambio de nombre de fichero rompe ambos igual. Los pares `js/coordenadas-aventuras.js` ↔ `js/puzzles-aventuras.js` (fotos de parada reutilizadas como imagen de puzzle) son el grupo más numeroso — mover o renombrar una de esas fotos rompe el puzzle de esa parada sin que nada lo avise hasta que se prueba. Las fotos que enseña la demo gratis salen también en `tools/build-demo.js` (`MEDIA_DEMO`, la lista de lo que copia a `publico/imagenes/`): si se renombra el original, el generador dice que falta y la comprobación 12 de `npm run verificar-datos` y el DM-7 del spec 149 se ponen en rojo.
 
 <details>
-<summary>Tabla completa (77 filas) — clic para desplegar</summary>
+<summary>Tabla completa (79 filas) — clic para desplegar</summary>
 
 | Asset | Usado en |
 |---|---|
 | `logo-redondo.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `index.html`, `manifest.json`, `sw.js`, `video-intro.html` |
-| `logo_alargado_3.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `js/agradecimientos-aventuras.js`, `js/normativa-cumplimiento.js`, `js/terminos-aventuras.js`, `publico/demo-aventuras.js` |
+| `logo_alargado_3.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `js/agradecimientos-aventuras.js`, `js/normativa-cumplimiento.js`, `js/terminos-aventuras.js` |
+| `plaza_de_la_almoina.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js`, `tools/build-demo.js` |
+| `plaza_de_la_virgen.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js`, `tools/build-demo.js` |
+| `serranos_back.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js`, `tools/build-demo.js`, `video-intro.html` |
 | `H4-fotoretos.png` | `audio-hijo3.html`, `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-play.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-pausa.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `video-intro.html` |
 | `imagen-no-gps.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `video-intro.html` |
+| `imagen-no-internet.png` | `codigo-padre.html`, `sw.js`, `video-intro.html` |
 | `fotoruta-A-B.png` | `codigo-padre.html`, `coordenadas-hijo2.html`, `video-intro.html` |
-| `plaza_de_la_almoina.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
-| `plaza_de_la_virgen.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
-| `Av1_mapa.jpg` | `js/mapa-vintage-aventuras.js`, `video-intro.html` |
-| `serranos_back.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js`, `video-intro.html` |
+| `pano_CAC.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
+| `cabecera_lake_side.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
+| `fallas-castillo.png` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
 | `fotochat-boton.png` | `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-central.png` | `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-stop.png` | `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-replay.png` | `codigo-padre.html`, `video-intro.html` |
 | `foto-rango-fuera.png` | `codigo-padre.html`, `video-intro.html` |
-| `imagen-no-internet.png` | `codigo-padre.html`, `video-intro.html` |
 | `caballero_llorando.png` | `codigo-padre.html`, `video-intro.html` |
 | `ol.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
 | `en-busca-ingles.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
@@ -14516,10 +14549,9 @@ Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `publ
 | `bandera_portugal.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
 | `bandera_rusia.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
 | `bandera_ucrania.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
-| `pano_CAC.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js` |
-| `cabecera_lake_side.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js` |
-| `fallas-castillo.png` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js` |
-| `logo-luna.png` | `En-busca-del-tesoro.html`, `js/puzzles-aventuras.js`, `publico/demo-aventuras.js` |
+| `antiguo_orfanato.jpg` | `En-busca-del-tesoro.html`, `tools/build-demo.js` |
+| `aventura-34km.png` | `En-busca-del-tesoro.html`, `tools/build-demo.js` |
+| `logo-luna.png` | `En-busca-del-tesoro.html`, `js/puzzles-aventuras.js` |
 | `foto-opciones.png` | `extrainfo-hijo1.html`, `video-intro.html` |
 | `boton_listado_paradas.png` | `extrainfo-hijo1.html`, `video-intro.html` |
 | `H1-fotogastronomia.png` | `extrainfo-hijo1.html`, `video-intro.html` |
@@ -14527,6 +14559,7 @@ Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `publ
 | `H1-videohistoriavalencia.png` | `extrainfo-hijo1.html`, `video-intro.html` |
 | `foto-paginas-oficiales.png` | `extrainfo-hijo1.html`, `video-intro.html` |
 | `foto-temporizador.png` | `extrainfo-hijo1.html`, `video-intro.html` |
+| `Av1_mapa.jpg` | `js/mapa-vintage-aventuras.js`, `video-intro.html` |
 | `mercado_central.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
 | `lonja.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
 | `torres_de_serranos_front.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |

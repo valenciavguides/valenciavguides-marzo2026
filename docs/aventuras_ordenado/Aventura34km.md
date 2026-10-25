@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Plaza de la Crída
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
 **Párrafos:** 229, 5
 
@@ -239,7 +239,7 @@
 
 ## Tramo 10 — Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
 
-**Imágenes:** imagenes/imagenes-aventuras/cac_patinaje.jpg, imagenes/imagenes-aventuras/cac_mapa.jpg, publico/imagenes/pano_CAC.jpg
+**Imágenes:** imagenes/imagenes-aventuras/cac_patinaje.jpg, imagenes/imagenes-aventuras/cac_mapa.jpg, imagenes/imagenes-aventuras/pano_CAC.jpg
 
 **Párrafos:** 268, 269
 
@@ -250,7 +250,7 @@
 
 ## Parada 10 — Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
 
-**Imágenes:** publico/imagenes/pano_CAC.jpg, imagenes/imagenes-aventuras/reina_sofia_side.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/reina_sofia_side.jpg
 
 **Párrafos:** 270, 19, 271
 
@@ -262,7 +262,7 @@
 
 ## Parada 11 — Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
 
-**Imágenes:** publico/imagenes/pano_CAC.jpg, imagenes/imagenes-aventuras/museo_principe_felipe.jpg, imagenes/imagenes-aventuras/cac_6.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/museo_principe_felipe.jpg, imagenes/imagenes-aventuras/cac_6.jpg
 
 **Párrafos:** 272, 21, 273, 275
 
@@ -275,7 +275,7 @@
 
 ## Tramo 11 — Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or
 
-**Imágenes:** publico/imagenes/pano_CAC.jpg, imagenes/imagenes-aventuras/puente_assut_2.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/puente_assut_2.jpg
 
 **Párrafos:** 276, 22
 
@@ -366,7 +366,7 @@
 
 ## Tramo 15 — Ciudad de las Artes y las Ciencias → Puente de la Mar
 
-**Imágenes:** publico/imagenes/pano_CAC.jpg, imagenes/imagenes-aventuras/hemisferic.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/puente_angel_custodio.jpg, imagenes/imagenes-aventuras/palau_de_la_musica.jpg, imagenes/imagenes-aventuras/puente_aragon_down.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/hemisferic.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/puente_angel_custodio.jpg, imagenes/imagenes-aventuras/palau_de_la_musica.jpg, imagenes/imagenes-aventuras/puente_aragon_down.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg
 
 **Párrafos:** 293, 30
 
@@ -1118,7 +1118,7 @@
 
 ## Tramo 40 — Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)
 
-**Imágenes:** imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg, publico/imagenes/plaza_de_la_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg, imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg
 
 **Párrafos:** 714
 
@@ -1128,7 +1128,7 @@
 
 ## Parada 56 — Plaza Décimo Junio Bruto
 
-**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg, imagenes/imagenes-aventuras/panel_ceramico_muro_norte_catedral.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg, imagenes/imagenes-aventuras/panel_ceramico_muro_norte_catedral.jpg
 
 **Párrafos:** 441, 442
 
@@ -1174,7 +1174,7 @@
 
 ## Parada 60 — Plaza Décimo Junio Bruto
 
-**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg
 
 **Párrafos:** 450, 451
 
@@ -1210,7 +1210,7 @@
 
 ## Tramo 41 — Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)
 
-**Imágenes:** imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg, publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg, imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
 
 **Párrafos:** 457, 51-D
 
@@ -1221,7 +1221,7 @@
 
 ## Parada 63 — Plaza Décimo Junio Bruto (Museo Arqueológico)
 
-**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_almoina_2.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_almoina_2.jpg
 
 **Párrafos:** 458
 
@@ -1231,7 +1231,7 @@
 
 ## Parada 64 — Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico
 
-**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
 
 **Párrafos:** 459, 460, 461
 
@@ -1243,7 +1243,7 @@
 
 ## Parada 65 — Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)
 
-**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
 
 **Párrafos:** 49-B, 464
 
@@ -1254,7 +1254,7 @@
 
 ## Tramo 42 — Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen
 
-**Imágenes:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/paso_plaza_almoina.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/paso_plaza_almoina.jpg
 
 **Párrafos:** 465, 59
 
@@ -1265,7 +1265,7 @@
 
 ## Parada 66 — Plaza de la Virgen
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 346, 143
 
@@ -1276,7 +1276,7 @@
 
 ## Parada 67 — Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 466, 467
 
@@ -1287,7 +1287,7 @@
 
 ## Parada 68 — Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478
 
@@ -1308,7 +1308,7 @@
 
 ## Tramo 43 — Plaza de la Virgen → Palacio de la Generalitat Valenciana
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg
 
 **Párrafos:** 60
 
@@ -2147,7 +2147,7 @@
 
 ## Tramo 74 — Molino de Sol → Museo de Historia
 
-**Imágenes:** imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg, imagenes/imagenes-aventuras/cabecera_izquierda.jpg, publico/imagenes/parque_de_ cabecera_lake_side.jpg, imagenes/imagenes-aventuras/museo_de_historia.jpg
+**Imágenes:** imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg, imagenes/imagenes-aventuras/cabecera_izquierda.jpg, imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg, imagenes/imagenes-aventuras/museo_de_historia.jpg
 
 **Párrafos:** 710, 90
 
@@ -2645,7 +2645,7 @@
 
 ## Tramo 96 — Almudín → Iglesia de San Lorenzo y Cortes Valencianas
 
-**Imágenes:** imagenes/imagenes-aventuras/museo_almudin_exterior_2.jpg, publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/museo_almudin_exterior_2.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 679, 681
 
@@ -2680,7 +2680,7 @@
 
 ## Tramo 97 — Palacio de los Borgia → Torres de Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/cortes_valencianas.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/cortes_valencianas.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 680
 
@@ -2690,7 +2690,7 @@
 
 ## Parada 138 — Torres de Serranos Final
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

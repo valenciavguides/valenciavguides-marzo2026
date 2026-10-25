@@ -36,6 +36,7 @@ const PROTECTED_FILES = [
     '/js/parrafos-textos/',       // En producción se sirve vía GET /api/textos/:aventuraId/:idioma
     '/audios-aventuras/',         // MP3 de contenido de pago — acceso solo vía API autenticada
     '/imagenes/imagenes-aventuras/',   // Fotos de contenido de pago — acceso solo vía API autenticada
+    '/imagenes/mapas-vintage/',        // Los mapas antiguos de la aventura; la demo enseña su copia de publico/
     '/videos-aventuras/',              // Vídeos de contenido de pago (dron por parada) — igual que audio
     '/backend/'
 ];

@@ -1,0 +1,58 @@
+{
+  "Aventura1": {
+    "intro": {
+      "id": "audio-intro-es",
+      "title": "Intro",
+      "file": "publico/audios/espanol/01-Intro-ESPAÑOL-1.mp3"
+    },
+    "tieneAudio": true
+  },
+  "Aventura2": {
+    "intro": {
+      "id": "audio-intro-es",
+      "title": "Intro",
+      "file": "publico/audios/espanol/01-Intro-ESPAÑOL-1.mp3"
+    },
+    "tieneAudio": true
+  },
+  "Aventura3": {
+    "intro": {
+      "id": "audio-intro-es",
+      "title": "Intro",
+      "file": "publico/audios/espanol/01-Intro-ESPAÑOL-1.mp3"
+    },
+    "tieneAudio": true
+  },
+  "Aventura4": {
+    "intro": {
+      "id": "audio-intro-es",
+      "title": "Intro",
+      "file": "publico/audios/espanol/01-Intro-ESPAÑOL-1.mp3"
+    },
+    "tieneAudio": true
+  },
+  "Aventura5": {
+    "intro": {
+      "id": "audio-intro-es",
+      "title": "Intro",
+      "file": "publico/audios/espanol/01-Intro-ESPAÑOL-1.mp3"
+    },
+    "tieneAudio": true
+  },
+  "AventuraFallas": {
+    "intro": {
+      "id": "audio-intro-es",
+      "title": "Intro",
+      "file": "publico/audios/espanol/01-Intro-ESPAÑOL-1.mp3"
+    },
+    "tieneAudio": true
+  },
+  "Aventura34km": {
+    "intro": {
+      "id": "audio-intro-es",
+      "title": "Intro",
+      "file": "publico/audios/espanol/01-Intro-ESPAÑOL-1.mp3"
+    },
+    "tieneAudio": true
+  }
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * install-hooks.js — Instala el hook de pre-commit que mantiene al día, solos,
- * publico/demo-aventuras.js y CACHE_VERSION (ver tools/build-demo.js y tools/build-sw.js). Se ejecuta solo desde
+ * la carpeta pública de la demo (publico/) y CACHE_VERSION (ver tools/build-demo.js y tools/build-sw.js). Se ejecuta solo desde
  * `postinstall` en package.json, tras cada `npm install`.
  *
  * Qué hace:
@@ -21,8 +21,8 @@
  * build-sw.js, los dos en modo `--staged` (leen del índice de git, no del
  * disco — ver cabecera de build-sw.js), y nunca bloquea el commit, ni siquiera
  * si uno de los dos lanza una excepción — es auto-fix, no un gate de validación.
- * El orden importa: la demo es parte del App Shell, y CACHE_VERSION tiene que
- * contar ya la demo regenerada.
+ * El orden importa: los textos de publico/ (.json) cuentan para CACHE_VERSION, que
+ * tiene que contarlos ya al día.
  */
 
 const fs = require('fs');
@@ -36,8 +36,8 @@ const MARKER = 'vvguides-managed-hook';
 
 const HOOK_CONTENT = `#!/usr/bin/env node
 // ${MARKER} — instalado por tools/install-hooks.js (se reinstala en cada npm install, no editar a mano)
-// Regenera publico/demo-aventuras.js si cambiaron sus fuentes y después actualiza CACHE_VERSION si cambió algo del App Shell
-// (la demo es parte del shell: por eso va primero); nunca bloquea el commit.
+// Pone al día publico/ (las copias de la demo) si cambiaron sus originales y después actualiza CACHE_VERSION si cambió algo
+// del shell (los .json de publico/ cuentan: por eso va primero); nunca bloquea el commit.
 (async () => {
   try {
     await require('../../tools/build-demo.js').main({ staged: true, hookMode: true });

@@ -1,0 +1,226 @@
+{
+  "Aventura1": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av1-ru",
+      "tipo": "opcion",
+      "pregunta": "Сколько приключений можно совершить с Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av1-ru",
+      "tipo": "opcion",
+      "pregunta": "Сейчас хорошее время для начала приключения?",
+      "opciones": [
+        "Да",
+        "Нет"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura2": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av2-ru",
+      "tipo": "opcion",
+      "pregunta": "Сколько приключений можно совершить с Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av2-ru",
+      "tipo": "opcion",
+      "pregunta": "Сейчас хорошее время для начала приключения?",
+      "opciones": [
+        "Да",
+        "Нет"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura3": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av3-ru",
+      "tipo": "opcion",
+      "pregunta": "Сколько приключений можно совершить с Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av3-ru",
+      "tipo": "opcion",
+      "pregunta": "Сейчас хорошее время для начала приключения?",
+      "opciones": [
+        "Да",
+        "Нет"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura4": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av4-ru",
+      "tipo": "opcion",
+      "pregunta": "Сколько приключений можно совершить с Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av4-ru",
+      "tipo": "opcion",
+      "pregunta": "Сейчас хорошее время для начала приключения?",
+      "opciones": [
+        "Да",
+        "Нет"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura5": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av5-ru",
+      "tipo": "opcion",
+      "pregunta": "Сколько приключений можно совершить с Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av5-ru",
+      "tipo": "opcion",
+      "pregunta": "Сейчас хорошее время для начала приключения?",
+      "opciones": [
+        "Да",
+        "Нет"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "AventuraFallas": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-AvFallas-ru",
+      "tipo": "opcion",
+      "pregunta": "Сколько приключений можно совершить с Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-AvFallas-ru",
+      "tipo": "opcion",
+      "pregunta": "Сейчас хорошее время для начала приключения?",
+      "opciones": [
+        "Да",
+        "Нет"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura34km": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av34km-ru",
+      "tipo": "opcion",
+      "pregunta": "Сколько приключений можно совершить с Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av34km-ru",
+      "tipo": "opcion",
+      "pregunta": "Сейчас хорошее время для начала приключения?",
+      "opciones": [
+        "Да",
+        "Нет"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  }
+}

@@ -75,7 +75,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -91,7 +91,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 3,
         coordenadas: { lat: Number('39.476340'), lng: Number('-0.375310') },
         nombre: "Plaza de la Virgen",
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     {
         tipo: "referencia",
@@ -99,7 +99,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 4,
         coordenadas: { lat: Number('39.476150'), lng: Number('-0.374400') },
         nombre: "Plaza Décimo Junio Bruto (Almoína)",
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg"
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg"
     },
     {
         tipo: "referencia",
@@ -266,7 +266,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
 
     // Tramo 1: Torres de Serranos → Plaza de la crida (Puente de Serranos)(Párrafos: 229, 2)
@@ -284,7 +284,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479430'), lng: Number('-0.375970') }
         ],
         fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
@@ -371,7 +371,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.476610'), lng: Number('-0.375160') },
         imagen: "imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg",
-        imagen2: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         video: "",
     },
 
@@ -383,7 +383,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 3,
         nombre: "Plaza de la Virgen",
         coordenadas: { lat: Number('39.476620'), lng: Number('-0.375240') },
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         imagen2:"imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg"
     },
 
@@ -406,7 +406,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 3,
         nombre: "Plaza de la Virgen",
         coordenadas: { lat: Number('39.476560'), lng: Number('-0.375160') },
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         imagen2: "imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg",
     },
 
@@ -424,7 +424,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.476560'), lng: Number('-0.374530') }
         ],
         fin: { lat: Number('39.476290'), lng: Number('-0.374600') },
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         imagen2: "imagenes/imagenes-aventuras/paso_plaza_almoina.jpg",
         imagen3: "imagenes/imagenes-aventuras/catedral_almoina.jpg",
         video: "",
@@ -501,7 +501,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.476110'), lng: Number('-0.374220') },
         ],
         fin: { lat: Number('39.476240'), lng: Number('-0.374250') },
-       imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+       imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
         video: "",
     },
@@ -537,7 +537,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 5,
         nombre: "Vista de la Catedral, Cimborrio",
         coordenadas: { lat: Number('39.476220'), lng: Number('-0.374280') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/catedral_almoina.jpg"
     },
 
@@ -555,7 +555,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.475610'), lng: Number('-0.374450') }
         ],
         fin: { lat: Number('39.475490'), lng: Number('-0.374270') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/palacio_arzobispal.jpg",
         video: "",
     },
@@ -1174,7 +1174,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen:"imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
         imagen2: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen3: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen3: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         video: ""
     },
 
@@ -1187,7 +1187,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos Final",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen2: "publico/imagenes/00_ torres_de serranos_back.jpg"
+        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
     },
 
       ]
@@ -1204,7 +1204,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -1284,7 +1284,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 11,
         coordenadas: { lat: Number('39.476340'), lng: Number('-0.375310') },
         nombre: "Plaza de la Virgen",
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     {
         tipo: "referencia",
@@ -1346,7 +1346,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos (start)",
                     coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-                    imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
                 },
 
                 // Parada 1 - Torres de Serranos (Reto 4) (Reto de la Bandera) (Párrafos: 229, 233)
@@ -1357,7 +1357,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos (Historia de la bandera)",
                     coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-                    imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
                 },
 
                 // Parada 2 - Torres de Serranos (Historia de la bandera) (Párrafos: 641, 642, 643)
@@ -1368,7 +1368,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos (Historia de la bandera)",
                     coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-                    imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
                 },
 
                 // Tramo 1 - Torres de Serranos → Refugio Guerra Civil (Párrafos: 103)
@@ -1384,7 +1384,7 @@ export const DATOS_AVENTURAS = {
                         { lat: Number('39.478550'), lng: Number('-0.376350') },
                     ],
                     fin: { lat: Number('39.478310'), lng: Number('-0.376540') },
-                    imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
                     imagen2: "imagenes/imagenes-aventuras/refugio_guerra_civil.jpg",
                     video: ""
                 },
@@ -1728,7 +1728,7 @@ export const DATOS_AVENTURAS = {
                     ],
                     fin: { lat: Number('39.476600'), lng: Number('-0.375290') },
                     imagen: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
-                    imagen2: "publico/imagenes/plaza_de_la_virgen.jpg",
+                    imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
                     video: ""
                 },
 
@@ -1740,7 +1740,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 11,
                     nombre: "Plaza de la Virgen - Introducción",
                     coordenadas: { lat: Number('39.476600'), lng: Number('-0.375290') },
-                    imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+                    imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
                 },
 
                 // Parada 15 - Plaza de la Virgen - Fuente Neptuno (Reto 14) (Párrafos: 466, 467)
@@ -1751,7 +1751,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 11,
                     nombre: "Plaza de la Virgen - Fuente Neptuno",
                     coordenadas: { lat: Number('39.476600'), lng: Number('-0.375280') },
-                    imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+                    imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
                 },
 
                 // Parada 16 - Plaza de la Virgen - Ofrenda (Reto 15) (Párrafos: 469, 472, 473, 690, 468)
@@ -1774,7 +1774,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 11,
                     nombre: "Plaza de la Virgen - Basílica",
                     coordenadas: { lat: Number('39.476600'), lng: Number('-0.375260') },
-                    imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+                    imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
                 },
 
                 // Parada 18 - Plaza de la Virgen - Cimborrio Catedral de Valencia (Reto 16) (Párrafos: 476, 355, 464)
@@ -1785,7 +1785,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 11,
                     nombre: "Plaza de la Virgen - Cimborrio Catedral de Valencia",
                     coordenadas: { lat: Number('39.476600'), lng: Number('-0.375250') },
-                    imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+                    imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
                 },
 
                 // Parada 19 - Plaza de la Virgen - Historia de la Catedral de Valencia (Párrafos: 147, 149, 150)
@@ -1796,7 +1796,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 11,
                     nombre: "Plaza de la Virgen - Historia de la Catedral de Valencia",
                     coordenadas: { lat: Number('39.476600'), lng: Number('-0.375240') },
-                    imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+                    imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
                 },
 
                 // Tramo 11 - Plaza de la Virgen → Puerta Gótica de la Catedral de Valencia (Párrafos: 477, 478, 479)
@@ -1814,7 +1814,7 @@ export const DATOS_AVENTURAS = {
                       { lat: Number('39.476080'), lng: Number('-0.375070') },
                     ],
                     fin: { lat: Number('39.476040'), lng: Number('-0.375150') },
-                    imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+                    imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
                     imagen2: "imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg",
                     imagen3: "imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg",
                     video: ""
@@ -2108,7 +2108,7 @@ export const DATOS_AVENTURAS = {
                     fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
                     imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
                     imagen2: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-                    imagen3: "publico/imagenes/00_ torres_de serranos_back.jpg",
+                    imagen3: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
                     video: ""
                 },
 
@@ -2120,7 +2120,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos Final",
                     coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-                    imagen: "publico/imagenes/00_ torres_de serranos_back.jpg"
+                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
                 },
             ]
     }
@@ -2137,7 +2137,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -2394,7 +2394,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 33,
         coordenadas: { lat: Number('39.476150'), lng: Number('-0.374400') },
         nombre: "Plaza Décimo Junio Bruto (Almoína)",
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
     },
     {
         tipo: "referencia",
@@ -2410,7 +2410,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 35,
         coordenadas: { lat: Number('39.476340'), lng: Number('-0.375310') },
         nombre: "Plaza de la Virgen",
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     // ────---------------------------------------------
 
@@ -2423,7 +2423,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
 
     // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 5)
@@ -2441,7 +2441,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479430'), lng: Number('-0.375970') }
         ],
         fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
@@ -2973,7 +2973,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.456730'), lng: Number('-0.349399') },
         imagen: "imagenes/imagenes-aventuras/cac_patinaje.jpg",
         imagen2: "imagenes/imagenes-aventuras/cac_mapa.jpg",
-        imagen3:"publico/imagenes/pano_CAC.jpg",
+        imagen3:"imagenes/imagenes-aventuras/pano_CAC.jpg",
         video: "",
     },
     // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 27-B, 271)
@@ -2984,7 +2984,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 18,
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
         coordenadas:  { lat: Number('39.456730'), lng: Number('-0.349399') },
-        imagen: "publico/imagenes/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/reina_sofia_side.jpg"
     },
     // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 31, 273, 275)
@@ -2995,7 +2995,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 20,
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
         coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
-        imagen: "publico/imagenes/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_principe_felipe.jpg",
         imagen3: "imagenes/imagenes-aventuras/cac_6.jpg",
     },
@@ -3024,7 +3024,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.455986'), lng: Number('-0.348276') },
         ],
         fin: { lat: Number('39.455825'), lng: Number('-0.348149') },
-        imagen: "publico/imagenes/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_assut_2.jpg",
         video: "",
     },
@@ -3172,7 +3172,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.470406'), lng: Number('-0.364173') },
         ],
         fin: { lat: Number('39.470617'), lng: Number('-0.363887') },
-        imagen: "publico/imagenes/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/hemisferic.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_reino_gargola.jpg",
         imagen4: "imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg",
@@ -3468,7 +3468,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.475986'), lng: Number('-0.374472') },
         imagen: "imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg",
-        imagen2: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         video: "",
     },
     // Parada 30: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 1, Panel cerámico (reto 20) (Párrafos: 441, 442)
@@ -3479,7 +3479,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "33",
         nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia",
         coordenadas:  { lat: Number('39.475986'), lng: Number('-0.374472') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/catedral_almoina.jpg",
         imagen3: "imagenes/imagenes-aventuras/panel_ceramico_muro_norte_catedral.jpg",
     },
@@ -3540,7 +3540,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.476240'), lng: Number('-0.374270') },
         imagen: "imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg",
-        imagen2: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen3: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
         video: "",
     },
@@ -3552,7 +3552,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "33",
         nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
         coordenadas:  { lat: Number('39.476240'), lng: Number('-0.374270') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_almoina_2.jpg",
     },
     // Parada 36: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico 2 (Reto25puzzle PZ-02) (Párrafos: 459, 460, 461)
@@ -3563,7 +3563,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "33",
         nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
         coordenadas:  { lat: Number('39.476240'), lng: Number('-0.374290') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
     },
     // Tramo 28: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico → Plaza de la Virgen (Párrafos: 465, 47-B)
@@ -3582,7 +3582,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.476660'), lng: Number('-0.375180') },
         ],
         fin: { lat: Number('39.476600'), lng: Number('-0.375270') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/paso_plaza_almoina.jpg",
         video: "",
     },
@@ -3594,7 +3594,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "35",
         nombre: "Plaza de la Virgen (Fuente de Neptuno)",
         coordenadas:  { lat: Number('39.476600'), lng: Number('-0.375270') },
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     // Parada 38: Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia) (Reto 27) (Párrafos: 477-B, 479, 141, 468)
     {
@@ -3605,7 +3605,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia)",
         coordenadas:  { lat: Number('39.476600'), lng: Number('-0.375290') },
         imagen: "imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg",
-        imagen2: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg)
     {
@@ -3625,10 +3625,10 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.478270'), lng: Number('-0.376481') },
         ],
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         imagen2:"imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
         imagen3: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen4: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen4: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         video: "",
     },
         // Parada 39 - FINAL: Torres de Serranos Final (Reto28Puzzle PZ-05) (Párrafos: 475, 503, 507, 526)
@@ -3639,7 +3639,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos Final",
                     coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-                    imagen: "publico/imagenes/00_ torres_de serranos_back.jpg"
+                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
                 }
       ]
     }
@@ -3654,7 +3654,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -4013,7 +4013,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
     // Tramo 1: Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 229, 525-B, 527, 528, 529)
     {
@@ -4030,7 +4030,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.478920'), lng: Number('-0.376770') },
          ],
         fin: { lat: Number('39.478960'), lng: Number('-0.376920') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/casa_rocas.jpg",
         video: "",
     },
@@ -4599,7 +4599,7 @@ export const DATOS_AVENTURAS = {
         fin: {lat: Number('39.472788'), lng: Number('-0.408349') },
         imagen: "imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg",
         imagen2: "imagenes/imagenes-aventuras/cabecera_izquierda.jpg",
-        imagen3: "publico/imagenes/parque_de_ cabecera_lake_side.jpg",
+        imagen3: "imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg",
         imagen4: "imagenes/imagenes-aventuras/museo_de_historia.jpg",
         video: "",
     },
@@ -5158,7 +5158,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/puente_real_up.jpg",
         imagen2: "imagenes/imagenes-aventuras/pont_real_serranos.jpg",
         imagen3: "imagenes/imagenes-aventuras/iglesia_del_temple.jpg",
-        imagen4: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen4: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         video: "",
     },
     // Parada 35 - FINAL: Torres de Serranos Final (Reto21Puzzle PZ-05) (Párrafos: 475, 503, 507, 526,)
@@ -5169,7 +5169,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos Final",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg"
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
     },
     ]
     }
@@ -5184,7 +5184,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -5358,7 +5358,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
 
     // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 5)
@@ -5376,7 +5376,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479430'), lng: Number('-0.375970') }
         ],
         fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
@@ -6419,7 +6419,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/ivam.jpg",
-        imagen2: "publico/imagenes/00_ torres_de serranos_back.jpg"
+        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
     },
     ]
     }
@@ -6434,7 +6434,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -6466,7 +6466,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 5,
         coordenadas: { lat: Number('39.476340'), lng: Number('-0.375310') },
         nombre: "Plaza de la Virgen",
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     {
         tipo: "referencia",
@@ -6606,7 +6606,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
 
     // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135)
@@ -6624,7 +6624,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479430'), lng: Number('-0.375970') }
         ],
         fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
@@ -6735,7 +6735,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.476610'), lng: Number('-0.375160') },
         imagen: "imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg",
-        imagen2: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         video: "",
     },
     // Parada 5: Plaza de la Virgen (Reto 7) (Párrafos: 466, 467)
@@ -6746,7 +6746,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 5,
         nombre: "Plaza de la Virgen",
         coordenadas: { lat: Number('39.476620'), lng: Number('-0.375240') },
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         imagen2:"",
     },
     // Parada 6: Plaza de la Virgen 2 (Ofrenda) (Párrafos: 469, 473, 474, 62, 146, 10-B)
@@ -6915,7 +6915,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza del Ayuntamiento",
         coordenadas: { lat: Number('39.470567'), lng: Number('-0.376732') },
         imagen: "imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg",
-        imagen2: "publico/imagenes/fallas-castillo.png",
+        imagen2: "imagenes/imagenes-aventuras/fallas-castillo.png",
     },
     // Tramo 9: Plaza del Ayuntamiento → Edificio del Ayuntamiento de València (Párrafos: 187, 332, 334, 340, 19)
     {
@@ -7233,7 +7233,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen:"imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
         imagen2: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen3: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen3: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         video: ""
     },
 
@@ -7246,7 +7246,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen2: "publico/imagenes/00_ torres_de serranos_back.jpg"
+        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
     },
        ]
     }
@@ -7261,7 +7261,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.47921'), lng: Number('-0.37604') },
         nombre: "Torres de Serranos",
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -7597,7 +7597,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 43,
         coordenadas: { lat: Number('39.47634'), lng: Number('-0.37531') },
         nombre: "Plaza de la Virgen",
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     {
         tipo: "referencia",
@@ -7995,7 +7995,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
 
     // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front) (Párrafos: 229, 5)
@@ -8013,7 +8013,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479430'), lng: Number('-0.375970') }
         ],
         fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
@@ -8431,7 +8431,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.456730'), lng: Number('-0.349399') },
         imagen: "imagenes/imagenes-aventuras/cac_patinaje.jpg",
         imagen2: "imagenes/imagenes-aventuras/cac_mapa.jpg",
-        imagen3:"publico/imagenes/pano_CAC.jpg",
+        imagen3:"imagenes/imagenes-aventuras/pano_CAC.jpg",
         video: "",
     },
     // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271)
@@ -8442,7 +8442,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 12,
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
         coordenadas:  { lat: Number('39.456730'), lng: Number('-0.349399') },
-        imagen: "publico/imagenes/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/reina_sofia_side.jpg"
     },
     // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275)
@@ -8453,7 +8453,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 14,
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
         coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
-        imagen: "publico/imagenes/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_principe_felipe.jpg",
         imagen3: "imagenes/imagenes-aventuras/cac_6.jpg",
     },
@@ -8482,7 +8482,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.455986'), lng: Number('-0.348276') },
         ],
         fin: { lat: Number('39.455825'), lng: Number('-0.348149') },
-        imagen: "publico/imagenes/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_assut_2.jpg",
         video: "",
     },
@@ -8630,7 +8630,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.470406'), lng: Number('-0.364173') },
         ],
         fin: { lat: Number('39.470617'), lng: Number('-0.363887') },
-        imagen: "publico/imagenes/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/hemisferic.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_reino_gargola.jpg",
         imagen4: "imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg",
@@ -9591,7 +9591,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.475986'), lng: Number('-0.374472') },
         imagen: "imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg",
-        imagen2: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         video: "",
     },
     // Parada 56: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 1, Panel cerámico (reto 45) (Párrafos: 441, 442)
@@ -9602,7 +9602,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto",
         coordenadas:  { lat: Number('39.475986'), lng: Number('-0.374472') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/catedral_almoina.jpg",
         imagen3: "imagenes/imagenes-aventuras/panel_ceramico_muro_norte_catedral.jpg",
     },
@@ -9646,7 +9646,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto",
         coordenadas:  { lat: Number('39.476000'), lng: Number('-0.374533') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
     },
     // Parada 61: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo (Reto 48) (Párrafos: 51, 454, 455, 455-B, 456)
     {
@@ -9683,7 +9683,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.476240'), lng: Number('-0.374270') },
         imagen: "imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg",
-        imagen2: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen3: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
         video: "",
     },
@@ -9695,7 +9695,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)",
         coordenadas:  { lat: Number('39.476240'), lng: Number('-0.374270') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_almoina_2.jpg",
     },
     // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico 2 (Reto51puzzle PZ-02) (Párrafos: 459, 460, 461)
@@ -9706,7 +9706,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "33",
         nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
         coordenadas:  { lat: Number('39.476240'), lng: Number('-0.374290') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
     },
     // Parada 65: Plaza Décimo Junio Bruto (Plaza de la Almoína) Cimborrio de la Catedral de Valencia (Reto 52) (Párrafos: 49-B, 464)
@@ -9717,7 +9717,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
         coordenadas:  { lat: Number('39.476297'), lng: Number('-0.374291') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
     },
     // Tramo 42: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico → Plaza de la Virgen (Párrafos: 465, 59)
@@ -9736,7 +9736,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.476660'), lng: Number('-0.375180') },
         ],
         fin: { lat: Number('39.476600'), lng: Number('-0.375270') },
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/paso_plaza_almoina.jpg",
         video: "",
     },
@@ -9748,7 +9748,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "43",
         nombre: "Plaza de la Virgen",
         coordenadas:  { lat: Number('39.476600'), lng: Number('-0.375270') },
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     // Parada 67: Plaza de la Virgen (Fuente de Neptuno) (Reto 53) (Párrafos: 466, 467)
     {
@@ -9759,7 +9759,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza de la Virgen",
         coordenadas:  { lat: Number('39.476600'), lng: Number('-0.375290') },
         imagen: "imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg",
-        imagen2: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     // Parada 68: Plaza de la Virgen (Fallas y Basílica, Arco Novo Catedral, Puerta Gótica Catedral, reto fuente neptuno) (Reto 54) (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478)
     {
@@ -9770,7 +9770,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza de la Virgen",
         coordenadas:  { lat: Number('39.476600'), lng: Number('-0.375290') },
         imagen: "imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg",
-        imagen2: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60)
     {
@@ -9787,7 +9787,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.476885'), lng: Number('-0.376760') },
         ],
         fin: { lat: Number('39.476680'), lng: Number('-0.376710') },
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         imagen2: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
         video: "",
     },
@@ -11022,7 +11022,7 @@ export const DATOS_AVENTURAS = {
         fin: {lat: Number('39.472788'), lng: Number('-0.408349') },
         imagen: "imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg",
         imagen2: "imagenes/imagenes-aventuras/cabecera_izquierda.jpg",
-        imagen3: "publico/imagenes/parque_de_ cabecera_lake_side.jpg",
+        imagen3: "imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg",
         imagen4: "imagenes/imagenes-aventuras/museo_de_historia.jpg",
         video: "",
     },
@@ -11837,7 +11837,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.477820'), lng: Number('-0.374870') },
         imagen: "imagenes/imagenes-aventuras/museo_almudin_exterior_2.jpg",
-        imagen2: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         video: "",
     },
     // Parada 136: Iglesia de San Lorenzo (Reto 89) (Párrafos:682, 462, 684, 683)
@@ -11878,7 +11878,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/cortes_valencianas.jpg",
-        imagen2: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         video: "",
     },
     // Parada 138 - FINAL: Torres de Serranos Final (Reto90Puzzle PZ-05) (Párrafos: 475, 503, 507, 526)
@@ -11889,7 +11889,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos Final",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg"
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
     },
     ]
     }

@@ -1,0 +1,226 @@
+{
+  "Aventura1": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av1-it",
+      "tipo": "opcion",
+      "pregunta": "Quante avventure si possono fare con Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av1-it",
+      "tipo": "opcion",
+      "pregunta": "È un buon momento per iniziare la sua avventura?",
+      "opciones": [
+        "Sì",
+        "No"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura2": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av2-it",
+      "tipo": "opcion",
+      "pregunta": "Quante avventure si possono fare con Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av2-it",
+      "tipo": "opcion",
+      "pregunta": "È un buon momento per iniziare la sua avventura?",
+      "opciones": [
+        "Sì",
+        "No"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura3": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av3-it",
+      "tipo": "opcion",
+      "pregunta": "Quante avventure si possono fare con Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av3-it",
+      "tipo": "opcion",
+      "pregunta": "È un buon momento per iniziare la sua avventura?",
+      "opciones": [
+        "Sì",
+        "No"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura4": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av4-it",
+      "tipo": "opcion",
+      "pregunta": "Quante avventure si possono fare con Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av4-it",
+      "tipo": "opcion",
+      "pregunta": "È un buon momento per iniziare la sua avventura?",
+      "opciones": [
+        "Sì",
+        "No"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura5": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av5-it",
+      "tipo": "opcion",
+      "pregunta": "Quante avventure si possono fare con Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av5-it",
+      "tipo": "opcion",
+      "pregunta": "È un buon momento per iniziare la sua avventura?",
+      "opciones": [
+        "Sì",
+        "No"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "AventuraFallas": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-AvFallas-it",
+      "tipo": "opcion",
+      "pregunta": "Quante avventure si possono fare con Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-AvFallas-it",
+      "tipo": "opcion",
+      "pregunta": "È un buon momento per iniziare la sua avventura?",
+      "opciones": [
+        "Sì",
+        "No"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura34km": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av34km-it",
+      "tipo": "opcion",
+      "pregunta": "Quante avventure si possono fare con Valencia be Guides?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av34km-it",
+      "tipo": "opcion",
+      "pregunta": "È un buon momento per iniziare la sua avventura?",
+      "opciones": [
+        "Sì",
+        "No"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  }
+}

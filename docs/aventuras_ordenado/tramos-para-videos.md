@@ -15,7 +15,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.479590, -0.375830
 **Waypoints intermedios:** 4
 
-**Imágenes de referencia:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
 ---
 
@@ -87,7 +87,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.476610, -0.375160
 **Waypoints intermedios:** 1
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg, publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 ---
 
@@ -207,7 +207,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.478590, -0.376330
 **Waypoints intermedios:** 3
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 ---
 
@@ -387,7 +387,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.456730, -0.349399
 **Waypoints intermedios:** 30
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/cac_patinaje.jpg, imagenes/imagenes-aventuras/cac_mapa.jpg, publico/imagenes/pano_CAC.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/cac_patinaje.jpg, imagenes/imagenes-aventuras/cac_mapa.jpg, imagenes/imagenes-aventuras/pano_CAC.jpg
 
 ---
 
@@ -399,7 +399,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.455825, -0.348149
 **Waypoints intermedios:** 5
 
-**Imágenes de referencia:** publico/imagenes/pano_CAC.jpg, imagenes/imagenes-aventuras/puente_assut_2.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/puente_assut_2.jpg
 
 ---
 
@@ -447,7 +447,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.470617, -0.363887
 **Waypoints intermedios:** 16
 
-**Imágenes de referencia:** publico/imagenes/pano_CAC.jpg, imagenes/imagenes-aventuras/hemisferic.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/puente_angel_custodio.jpg, imagenes/imagenes-aventuras/palau_de_la_musica.jpg, imagenes/imagenes-aventuras/puente_aragon_down.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/hemisferic.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/puente_angel_custodio.jpg, imagenes/imagenes-aventuras/palau_de_la_musica.jpg, imagenes/imagenes-aventuras/puente_aragon_down.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg
 
 ---
 
@@ -519,7 +519,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.475986, -0.374472
 **Waypoints intermedios:** 1
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg, publico/imagenes/plaza_de_la_almoina.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg, imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg
 
 ---
 
@@ -531,7 +531,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.476240, -0.374270
 **Waypoints intermedios:** 2
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg, publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg, imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
 
 ---
 
@@ -543,7 +543,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.476600, -0.375270
 **Waypoints intermedios:** 4
 
-**Imágenes de referencia:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/paso_plaza_almoina.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/paso_plaza_almoina.jpg
 
 ---
 
@@ -675,7 +675,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.472788, -0.408349
 **Waypoints intermedios:** 31
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg, imagenes/imagenes-aventuras/cabecera_izquierda.jpg, publico/imagenes/parque_de_ cabecera_lake_side.jpg, imagenes/imagenes-aventuras/museo_de_historia.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg, imagenes/imagenes-aventuras/cabecera_izquierda.jpg, imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg, imagenes/imagenes-aventuras/museo_de_historia.jpg
 
 ---
 
@@ -963,7 +963,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.476290, -0.374600
 **Waypoints intermedios:** 3
 
-**Imágenes de referencia:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/paso_plaza_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/paso_plaza_almoina.jpg, imagenes/imagenes-aventuras/catedral_almoina.jpg
 
 ---
 
@@ -975,7 +975,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.476240, -0.374250
 **Waypoints intermedios:** 1
 
-**Imágenes de referencia:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/museo_la_almoina.jpg
 
 ---
 
@@ -987,7 +987,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.475490, -0.374270
 **Waypoints intermedios:** 3
 
-**Imágenes de referencia:** publico/imagenes/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/palacio_arzobispal.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg, imagenes/imagenes-aventuras/palacio_arzobispal.jpg
 
 ---
 
@@ -1059,7 +1059,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.478310, -0.376540
 **Waypoints intermedios:** 1
 
-**Imágenes de referencia:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/refugio_guerra_civil.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/refugio_guerra_civil.jpg
 
 ---
 
@@ -1083,7 +1083,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.476600, -0.375290
 **Waypoints intermedios:** 23
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg, publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 ---
 
@@ -1095,7 +1095,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.476040, -0.375150
 **Waypoints intermedios:** 3
 
-**Imágenes de referencia:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
 
 ---
 
@@ -1191,7 +1191,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.478590, -0.376330
 **Waypoints intermedios:** 4
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 ---
 
@@ -1239,7 +1239,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.478590, -0.376330
 **Waypoints intermedios:** 6
 
-**Imágenes de referencia:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 ---
 
@@ -1251,7 +1251,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.478960, -0.376920
 **Waypoints intermedios:** 4
 
-**Imágenes de referencia:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/casa_rocas.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/casa_rocas.jpg
 
 ---
 
@@ -1299,7 +1299,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.478590, -0.376330
 **Waypoints intermedios:** 22
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/puente_real_up.jpg, imagenes/imagenes-aventuras/pont_real_serranos.jpg, imagenes/imagenes-aventuras/iglesia_del_temple.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/puente_real_up.jpg, imagenes/imagenes-aventuras/pont_real_serranos.jpg, imagenes/imagenes-aventuras/iglesia_del_temple.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 ---
 
@@ -1623,7 +1623,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.476680, -0.376710
 **Waypoints intermedios:** 3
 
-**Imágenes de referencia:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg
 
 ---
 
@@ -1827,7 +1827,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.477820, -0.374870
 **Waypoints intermedios:** 6
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/museo_almudin_exterior_2.jpg, publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/museo_almudin_exterior_2.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 ---
 
@@ -1839,6 +1839,6 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.478590, -0.376330
 **Waypoints intermedios:** 5
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/cortes_valencianas.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/cortes_valencianas.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 ---

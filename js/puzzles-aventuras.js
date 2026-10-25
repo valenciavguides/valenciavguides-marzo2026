@@ -8,11 +8,11 @@ export const PUZZLES_AVENTURAS = {
     },
     {
         id: "PZ-01",
-        imagen: "publico/imagenes/plaza_de_la_virgen.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     {
         id: "PZ-02",
-        imagen: "publico/imagenes/plaza_de_la_almoina.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
     },
     {
         id: "PZ-03",
@@ -24,7 +24,7 @@ export const PUZZLES_AVENTURAS = {
     },
     {
         id: "PZ-05",
-        imagen: "publico/imagenes/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
     {
         id: "PZ-06",

@@ -531,12 +531,25 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 <script type="module">
   import * as bus from './js/mensajeria.js';
   import { TIPOS_MENSAJE } from './js/constants.js';
-  import { JAIME_SCENES } from './js/traducciones-ui.js';
+  import { LANG_ARCHIVO_PARRAFOS } from './js/data-loader.js';
   import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
   import logger from './js/logger.js';
-  globalThis.JAIME_SCENES = JAIME_SCENES;
+  // Los textos de Jaime: la copia pública del idioma (publico/textos/<idioma>/jaime.json, la hace tools/build-demo.js).
+  // El <script> clásico de abajo corre antes que este módulo y los espera (_textosJaimeListos); si no llegan, se dice
+  // como error y el vídeo sigue sin bocadillos.
+  const _pedidoTextosJaime = (async () => {
+    // El idioma lo dice quien abre el vídeo, siempre: la selección (después de elegirlo en P2) y el asistente.
+    const idioma = new URLSearchParams(globalThis.location.search).get('lang');
+    if (!idioma) throw new Error('Sin ?lang=: quien abre el vídeo tiene que decir el idioma');
+    const carpeta = LANG_ARCHIVO_PARRAFOS[idioma];
+    if (!carpeta) throw new Error(`sin carpeta pública para el idioma ${idioma}`);
+    const respuesta = await fetch(`publico/textos/${carpeta}/jaime.json`);
+    if (!respuesta.ok) throw new Error(`publico/textos/${carpeta}/jaime.json: ${respuesta.status}`);
+    return (await respuesta.json()).escenas;
+  })().catch((error) => { logger.error('[video-intro] Sin los textos de Jaime:', error?.message); return null; });
+  void _pedidoTextosJaime.then((escenas) => globalThis.__entregarTextosJaime(escenas));
   globalThis.reproducirVideoConBuffer = reproducirVideoConBuffer;
-  // Mismo motivo que JAIME_SCENES: el `<script>` clasico de abajo no puede leer los
+  // El `<script>` clasico de abajo no puede leer los
   // bindings de este modulo, asi que lo que necesita viaja por globalThis. Sus dos
   // `(globalThis.logger || console).warn` estan dentro de catch, en funciones que corren
   // durante la animacion —mucho despues de que este modulo diferido haya terminado—,
@@ -549,7 +562,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   //
   // El envio vive en el <script> clasico de abajo, que no puede importar: usa
   // `globalThis.mensajeria` —que el bus publica al cargarse— y este puente para los tipos,
-  // mismo patron que JAIME_SCENES aqui arriba y que el de seleccion y el puzzle.
+  // mismo patron que reproducirVideoConBuffer aqui arriba y que el de seleccion y el puzzle.
   globalThis.TIPOS_MENSAJE = TIPOS_MENSAJE;
   await bus.inicializarMensajeria({ id: 'video-intro' });
 </script>
@@ -558,19 +571,22 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 const AI = 'imagenes/imagenes-aplicación/';
 const VI = 'imagenes/imagenes video intro/';
 // Lo que el vídeo enseña de las aventuras —el mapa antiguo de la Aventura 1 (MV), una foto (IM) y el clip de sceneVid—
-// vive en la carpeta pública: el vídeo se ve en la demo gratis, antes del pago (guía, §22.0 n.º 13 y n.º 29).
+// lo pide a su copia de la carpeta pública (los originales son del backend): el vídeo se ve en la demo gratis, antes del
+// pago (guía, §22.0 n.º 13 y n.º 29).
 const MV = 'publico/imagenes/mapas-vintage/';
 const IM = 'publico/imagenes/';
 
-// El idioma lo dice quien abre el vídeo, siempre: la selección (después de elegirlo en P2) y el asistente.
-const _lang = new URLSearchParams(globalThis.location.search).get('lang');
-if (!_lang) (globalThis.logger || console).error('[video-intro] Sin ?lang=: quien abre el vídeo tiene que decir el idioma');
 // Reapertura desde chat-hijo6.html ("¿puedo ver el video-intro de nuevo?"): el usuario
 // ya lo ha visto antes, así que el botón de saltar se habilita desde el arranque en vez
 // de esperar a que termine la escena 4 — ver run().
 const _replay = new URLSearchParams(globalThis.location.search).get('replay') === '1';
-// JAIME_SCENES vive en js/traducciones-ui.js; se expone via globalThis
-// desde el <script type="module"> previo porque este es un <script> clasico.
+// Los textos de Jaime del idioma (un texto por pantalla; null en las que no llevan bocadillo) los trae el
+// <script type="module"> de arriba de su copia pública. Este <script> clásico corre antes, así que se los entrega por
+// __entregarTextosJaime, y run() los espera antes de la primera escena.
+let _textosJaime = null;
+const _textosJaimeListos = new Promise((entregados) => {
+  globalThis.__entregarTextosJaime = (escenas) => { _textosJaime = escenas; entregados(); };
+});
 
 /* ── ASSETS ──────────────────────────────────── */
 const K = {
@@ -750,12 +766,11 @@ function _flushBandHide() {
   if (_bandHidePending) { const fn = _bandHidePending; _bandHidePending = null; fn(); }
 }
 function showBubble(idx) {
-  const scenes = globalThis.JAIME_SCENES;
-  const entry = scenes && scenes[idx];
+  const entry = _textosJaime && _textosJaime[idx];
   const band = $('jaime-band');
   const txt  = $('jaime-band-text');
   if (!entry || !band) return () => {};
-  txt.textContent = entry[_lang];
+  txt.textContent = entry;
   band.classList.add('on');
   requestAnimationFrame(ajustarScena);
   return () => {
@@ -1923,7 +1938,10 @@ globalThis._skipVideoIntro = function() {
 };
 
 async function run(){
-  MC.init(); await wait(350);
+  MC.init();
+  // La primera escena ya lleva bocadillo: espera a los textos (8 s como mucho; sin ellos, el vídeo sigue sin bocadillos).
+  const [, textosALaHora] = await Promise.all([wait(350), Promise.race([_textosJaimeListos.then(() => true), wait(8000).then(() => false)])]);
+  if (!textosALaHora) (globalThis.logger || console).error('[video-intro] Los textos de Jaime no han llegado en 8 s: el vídeo sigue sin bocadillos');
   if (_replay) $('btn-skip').classList.add('on');
   // Precarga en segundo plano desde el arranque de la intro: sceneVid (P10) es
   // la escena 10 de 20, así que el vídeo tiene 9 escenas de animación (varios

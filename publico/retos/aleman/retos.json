@@ -1,0 +1,226 @@
+{
+  "Aventura1": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av1-de",
+      "tipo": "opcion",
+      "pregunta": "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av1-de",
+      "tipo": "opcion",
+      "pregunta": "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+      "opciones": [
+        "Ja",
+        "Nein"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura2": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av2-de",
+      "tipo": "opcion",
+      "pregunta": "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av2-de",
+      "tipo": "opcion",
+      "pregunta": "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+      "opciones": [
+        "Ja",
+        "Nein"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura3": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av3-de",
+      "tipo": "opcion",
+      "pregunta": "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av3-de",
+      "tipo": "opcion",
+      "pregunta": "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+      "opciones": [
+        "Ja",
+        "Nein"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura4": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av4-de",
+      "tipo": "opcion",
+      "pregunta": "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av4-de",
+      "tipo": "opcion",
+      "pregunta": "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+      "opciones": [
+        "Ja",
+        "Nein"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura5": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av5-de",
+      "tipo": "opcion",
+      "pregunta": "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av5-de",
+      "tipo": "opcion",
+      "pregunta": "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+      "opciones": [
+        "Ja",
+        "Nein"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "AventuraFallas": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-AvFallas-de",
+      "tipo": "opcion",
+      "pregunta": "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-AvFallas-de",
+      "tipo": "opcion",
+      "pregunta": "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+      "opciones": [
+        "Ja",
+        "Nein"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura34km": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av34km-de",
+      "tipo": "opcion",
+      "pregunta": "Wie viele Abenteuer können mit Valencia be Guides unternommen werden?",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av34km-de",
+      "tipo": "opcion",
+      "pregunta": "Ist es ein guter Zeitpunkt, Ihr Abenteuer zu beginnen?",
+      "opciones": [
+        "Ja",
+        "Nein"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  }
+}

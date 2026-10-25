@@ -10,7 +10,8 @@
  * carga en Fase 2 con el resto de datos. Un solo camino (§22.12, pendiente 13).
  *
  * Ojo con el reparto: la URL la decide el PADRE. Si el hijo la mandara igualmente,
- * volveríamos a tener dos fuentes para el mismo dato.
+ * volveríamos a tener dos fuentes para el mismo dato. Y es la del original, en
+ * `imagenes/mapas-vintage/`: la aventura no pide la copia de la demo de `publico/`.
  *
  *   MV-1  hijo2 cargado suelto NO descarga mapa-vintage-aventuras.js.
  *   MV-2  El padre resuelve la URL de una aventura que sí tiene mapa.
@@ -108,7 +109,7 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
       async () => (await vecesOverlay(page)) > 0, 'el overlay no se abrió'
     );
     const llamadas = await page.evaluate(() => globalThis.__vv_overlayLlamadas);
-    expect(llamadas[0].url, `url recibida: ${llamadas[0]?.url}`).toContain('publico/imagenes/mapas-vintage/');
+    expect(llamadas[0].url, `url recibida: ${llamadas[0]?.url}`).toMatch(/^imagenes\/mapas-vintage\//);
   });
 
   test('MV-3. Aventura34km carga su mapa con zoom', async ({ page }) => {
@@ -135,7 +136,7 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
     );
     const llamadas = await page.evaluate(() => globalThis.__vv_overlayLlamadas);
     expect(llamadas[0].url, 'la url del mensaje no debe usarse').not.toContain('SUPLANTADA');
-    expect(llamadas[0].url).toContain('publico/imagenes/mapas-vintage/');
+    expect(llamadas[0].url).toMatch(/^imagenes\/mapas-vintage\//);
   });
 
   test('MV-5. El mapa vintage suprime el aviso de girar, y al cerrarlo lo devuelve', async ({ page }) => {
@@ -180,7 +181,7 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
       async () => (await vecesOverlay(page)) > 0, 'el overlay no se abrió con el mapa de la aventura elegida'
     );
     const llamadas = await page.evaluate(() => globalThis.__vv_overlayLlamadas);
-    expect(llamadas[0].url).toContain('publico/imagenes/mapas-vintage/');
+    expect(llamadas[0].url).toMatch(/^imagenes\/mapas-vintage\//);
     expect(llamadas[0].titulo).toContain('Aventura1');
   });
 });

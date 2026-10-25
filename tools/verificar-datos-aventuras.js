@@ -30,10 +30,11 @@
  *   9. Lo que el índice marca como disponible existe de verdad en los datos
  *  10. Cada aventura del índice dice si es corta o larga (su categoría de precio)
  *  11. El índice trae el nombre y el tiempo de cada aventura, y el nombre de cada idioma
- *  12. La demo gratis (publico/demo-aventuras.js) está al día con sus fuentes y no le falta ninguna pieza
+ *  12. La carpeta pública de la demo gratis (publico/) está al día con los originales y no le falta ninguna pieza
  *
  * Lo que NO comprueba: que los ficheros de audio/vídeo/imagen existan en disco. Eso es
- * `npm run verificar-media`, y el usuario los está preparando.
+ * `npm run verificar-media`, y el usuario los está preparando. La excepción son los que enseña la demo (12): su
+ * copia de publico/ tiene que ser idéntica a su original.
  *
  * Uso:
  *   npm run verificar-datos            informe completo
@@ -251,20 +252,20 @@ async function main() {
     check('El índice trae el nombre y el tiempo de cada aventura, y el nombre de cada idioma', sinDato,
         `${Object.keys(INDICE_AVENTURAS).length} aventuras, ${Object.keys(MAPEO_IDIOMAS || {}).length} idiomas`);
 
-    // ── 12. La demo gratis está al día con sus fuentes, y completa
-    // La demo (de P2 a P11, antes del pago) lee sus piezas de publico/demo-aventuras.js, que genera tools/build-demo.js a partir
-    // de estos mismos ficheros de datos, y el hook de pre-commit lo rehace. Aquí se para si un dato de la demo cambia sin
-    // regenerarla, o si le falta una pieza.
-    const { generarDemo } = require('./build-demo.js');
-    const { normalizarFinalesLinea } = require('./build-sw.js');
-    const fs = require('node:fs');
-    const demo = await generarDemo({ staged: false });
-    const problemasDemo = [...demo.faltas];
-    const ficheroDemo = path.join(RAIZ, 'publico/demo-aventuras.js');
-    const actualDemo = fs.existsSync(ficheroDemo) ? normalizarFinalesLinea(fs.readFileSync(ficheroDemo, 'utf8')) : null;
-    if (actualDemo !== demo.texto) problemasDemo.push('publico/demo-aventuras.js no está al día con sus fuentes: npm run build:demo');
-    check('La demo gratis está al día con sus fuentes y no le falta ninguna pieza', problemasDemo,
-        `${Object.keys(INDICE_AVENTURAS).length} aventuras × ${Object.keys(MAPEO_IDIOMAS || {}).length} idiomas`);
+    // ── 12. La carpeta pública de la demo gratis está al día con los originales, y completa
+    // La demo (la selección hasta el código, el vídeo de introducción y el puzzle de P6) lee lo que enseña de las copias de
+    // publico/, que hace tools/build-demo.js a partir de estos mismos ficheros de datos y de los medios que enseña; el hook
+    // de pre-commit las rehace. Aquí se para si un original cambia sin rehacer su copia, si falta una pieza o si sobra un
+    // fichero en publico/.
+    const { revisarPublico } = require('./build-demo.js');
+    const publico = await revisarPublico({ staged: false });
+    const problemasDemo = [
+        ...publico.faltas,
+        ...[...publico.desfasados, ...publico.copiasMal].map((f) => `${f} no está al día con su original: npm run build:demo`),
+        ...publico.sobran.map((f) => `${f} sobra en publico/: no es copia de ningún original`),
+    ];
+    check('La carpeta pública de la demo gratis está al día con los originales y no le falta ninguna pieza', problemasDemo,
+        `${publico.textos.size} textos y ${publico.copias.size} copias`);
 
     informe();
 }

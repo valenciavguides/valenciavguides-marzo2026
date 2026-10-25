@@ -10,7 +10,8 @@ const DATOS = new Set(['aventuras-ID-padre', 'coordenadas-aventuras', 'retos-ave
 const files = [];
 for (const f of fs.readdirSync(ROOT)) if (f.endsWith('.html') || f === 'sw.js' || f === 'manifest.json') files.push(f);
 for (const f of fs.readdirSync(path.join(ROOT, 'js'))) if (f.endsWith('.js') && f !== 'server.js') files.push('js/' + f);
-for (const f of fs.readdirSync(path.join(ROOT, 'publico'))) if (f.endsWith('.js')) files.push('publico/' + f);
+// publico/: las copias de la demo (tools/build-demo.js), con sus subcarpetas; también las rutas que llevan sus .json.
+(function publico(rel) { for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) { const r = rel + '/' + e.name; if (e.isDirectory()) publico(r); else if (/\.(js|json)$/.test(e.name)) files.push(r); } })('publico');
 const exists = (p) => { try { return fs.existsSync(path.join(ROOT, p)); } catch (e) { return false; } };
 // índice de nombres base de TODO el repo (sin node_modules/.git/test-results): un nombre suelto (sin carpeta) cuenta como existente si hay un fichero con ese nombre en cualquier carpeta
 const BASE = new Set(); const BASEPATH = {};

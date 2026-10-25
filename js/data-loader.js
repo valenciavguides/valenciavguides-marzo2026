@@ -153,8 +153,8 @@ export async function cargarCoordenadas(aventuraId) {
     return result;
 }
 
-// Mapa idioma → nombre de archivo de párrafos. Lo usa también tools/build-demo.js, que monta con él el texto de
-// introducción de la demo gratis.
+// Mapa idioma → nombre de archivo de párrafos. Es también el nombre de la carpeta de cada idioma en la carpeta pública de
+// la demo gratis (publico/<tipo>/<idioma>/): con él escribe tools/build-demo.js las copias y las lee la selección.
 export const LANG_ARCHIVO_PARRAFOS = {
     es: 'espanol',        en: 'ingles',      fr: 'frances',
     it: 'italiano',       nl: 'neerlandes',  ja: 'japones',
@@ -192,8 +192,8 @@ async function cargarMapaParrafos(idioma) {
 
 /**
  * Un texto de aventura listo para enseñar: su id con el idioma, el título de su audio y el HTML de sus párrafos (o su
- * `content` fijo). Es la única forma de montarlo: la usan cargarTextos() y tools/build-demo.js, que saca de aquí el texto
- * de introducción de la demo gratis.
+ * `content` fijo). Es la única forma de montarlo: la usan cargarTextos() y la demo gratis (En-busca-del-tesoro.html), que
+ * monta así el texto de introducción con la copia pública de sus párrafos.
  */
 export function ensamblarTexto(entrada, idioma, audioMap, mapa) {
     const idLang = entrada.id + '-' + idioma;

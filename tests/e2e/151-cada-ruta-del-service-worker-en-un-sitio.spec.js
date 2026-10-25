@@ -10,8 +10,11 @@
  *
  *   SW-1  Ninguna carpeta de `esMedia()` es de las que el manejador ya ha dejado ir a red. Las dos listas se leen enteras:
  *         cada `startsWith(` de `esMedia()` y cada vuelta temprana del manejador tiene que haber casado.
+ *   SW-2  La imagen del aviso de sin conexión del padre (`_ensureInternetOverlay`) está en la precarga (`APP_SHELL`): el
+ *         aviso sale justo cuando no hay red, y una imagen que no se guardó antes no se puede descargar entonces.
  *
- * ROJO ANTES QUE VERDE: con `/audios-aventuras/` y `/videos-aventuras/` en `esMedia()`, SW-1 cae nombrando las dos.
+ * ROJO ANTES QUE VERDE: con `/audios-aventuras/` y `/videos-aventuras/` en `esMedia()`, SW-1 cae nombrando las dos; sin la
+ * imagen en `APP_SHELL`, SW-2 cae nombrándola.
  */
 'use strict';
 
@@ -36,5 +39,16 @@ test.describe('SW — cada ruta de media en un solo sitio del service worker', (
 
     const muertas = enMedia.filter((p) => directos.some((d) => p.startsWith(d)));
     expect(muertas, 'carpetas de esMedia() que el manejador ya ha dejado ir a red: esa rama no corre nunca').toEqual([]);
+  });
+  test('SW-2. La imagen del aviso de sin conexión está en la precarga: el aviso sale justo cuando no hay red', () => {
+    const padre = fs.readFileSync(path.join(RAIZ, 'codigo-padre.html'), 'utf8').replace(/\r\n/g, '\n');
+    const aviso = /function _ensureInternetOverlay\(\) \{([\s\S]*?)\n {8}\}/.exec(padre)?.[1] ?? '';
+    const imagenes = [...aviso.matchAll(/\.src = '([^']+)'/g)].map((m) => m[1]);
+    expect(imagenes, 'el aviso de sin conexión enseña una imagen').toHaveLength(1);
+
+    const sw = fs.readFileSync(path.join(RAIZ, 'sw.js'), 'utf8').replace(/\r\n/g, '\n');
+    const precarga = [...(/const APP_SHELL = \[([\s\S]*?)\];/.exec(sw)?.[1] ?? '').matchAll(/^\s*'([^']+)',/gm)].map((m) => m[1]);
+    expect(precarga.length, 'APP_SHELL se ha leído').toBeGreaterThan(0);
+    expect(precarga, `${imagenes[0]}: en APP_SHELL`).toContain(`/${imagenes[0]}`);
   });
 });

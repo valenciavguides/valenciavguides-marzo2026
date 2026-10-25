@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Parada 1 — Torres de Serranos (Historia de la bandera)
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 229, 233
 
@@ -31,7 +31,7 @@
 
 ## Parada 2 — Torres de Serranos (Historia de la bandera)
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 641, 642, 643
 
@@ -43,7 +43,7 @@
 
 ## Tramo 1 — Torres de Serranos → Refugio Guerra Civil
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/refugio_guerra_civil.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/refugio_guerra_civil.jpg
 
 **Párrafos:** 103
 
@@ -274,7 +274,7 @@
 
 ## Tramo 10 — Torre del Ángel (Torre árabe) → Plaza de la Virgen
 
-**Imágenes:** imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg, publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg, imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 521, 522, 671, 520, 105, 15-B
 
@@ -289,7 +289,7 @@
 
 ## Parada 14 — Plaza de la Virgen - Introducción
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 702, 346, 143
 
@@ -301,7 +301,7 @@
 
 ## Parada 15 — Plaza de la Virgen - Fuente Neptuno
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 466, 467
 
@@ -326,7 +326,7 @@
 
 ## Parada 17 — Plaza de la Virgen - Basílica
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 146, 450, 451, 452
 
@@ -339,7 +339,7 @@
 
 ## Parada 18 — Plaza de la Virgen - Cimborrio Catedral de Valencia
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 476, 355, 464
 
@@ -351,7 +351,7 @@
 
 ## Parada 19 — Plaza de la Virgen - Historia de la Catedral de Valencia
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg
 
 **Párrafos:** 147, 149, 150
 
@@ -363,7 +363,7 @@
 
 ## Tramo 11 — Plaza de la Virgen → Puerta Gótica de la Catedral de Valencia
 
-**Imágenes:** publico/imagenes/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg, imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg
 
 **Párrafos:** 477, 478, 479
 
@@ -570,7 +570,7 @@
 
 ## Tramo 19 — Palau de la Generalitat → Torres de Serranos - Final
 
-**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 2-B
 
@@ -580,7 +580,7 @@
 
 ## Parada 30 — Torres de Serranos Final
 
-**Imágenes:** publico/imagenes/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

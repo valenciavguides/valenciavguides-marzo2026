@@ -1,0 +1,226 @@
+{
+  "Aventura1": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av1-zh",
+      "tipo": "opcion",
+      "pregunta": "使用Valencia be Guides可以进行多少次冒险？",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av1-zh",
+      "tipo": "opcion",
+      "pregunta": "现在是开始冒险的好时机吗？",
+      "opciones": [
+        "是",
+        "否"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura2": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av2-zh",
+      "tipo": "opcion",
+      "pregunta": "使用Valencia be Guides可以进行多少次冒险？",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av2-zh",
+      "tipo": "opcion",
+      "pregunta": "现在是开始冒险的好时机吗？",
+      "opciones": [
+        "是",
+        "否"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura3": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av3-zh",
+      "tipo": "opcion",
+      "pregunta": "使用Valencia be Guides可以进行多少次冒险？",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av3-zh",
+      "tipo": "opcion",
+      "pregunta": "现在是开始冒险的好时机吗？",
+      "opciones": [
+        "是",
+        "否"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura4": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av4-zh",
+      "tipo": "opcion",
+      "pregunta": "使用Valencia be Guides可以进行多少次冒险？",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av4-zh",
+      "tipo": "opcion",
+      "pregunta": "现在是开始冒险的好时机吗？",
+      "opciones": [
+        "是",
+        "否"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura5": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av5-zh",
+      "tipo": "opcion",
+      "pregunta": "使用Valencia be Guides可以进行多少次冒险？",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av5-zh",
+      "tipo": "opcion",
+      "pregunta": "现在是开始冒险的好时机吗？",
+      "opciones": [
+        "是",
+        "否"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "AventuraFallas": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-AvFallas-zh",
+      "tipo": "opcion",
+      "pregunta": "使用Valencia be Guides可以进行多少次冒险？",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-AvFallas-zh",
+      "tipo": "opcion",
+      "pregunta": "现在是开始冒险的好时机吗？",
+      "opciones": [
+        "是",
+        "否"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  },
+  "Aventura34km": {
+    "r1": {
+      "reto": 1,
+      "id": "R1-Av34km-zh",
+      "tipo": "opcion",
+      "pregunta": "使用Valencia be Guides可以进行多少次冒险？",
+      "opciones": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "correctas": [
+        "7"
+      ],
+      "multiple": false
+    },
+    "r2": {
+      "reto": 2,
+      "id": "R2-Av34km-zh",
+      "tipo": "opcion",
+      "pregunta": "现在是开始冒险的好时机吗？",
+      "opciones": [
+        "是",
+        "否"
+      ],
+      "correctas": [
+        "?"
+      ],
+      "multiple": false
+    }
+  }
+}

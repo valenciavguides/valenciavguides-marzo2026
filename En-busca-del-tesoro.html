@@ -851,7 +851,7 @@
     </div>
   </div>
 
-  <!-- P10: Términos y Condiciones (carga dinámica desde js/terminos-aventuras.js) -->
+  <!-- P10: Términos y Condiciones (carga dinámica desde publico/textos/<idioma>/terminos.json) -->
   <div class="pantalla" id="pantalla10">
     <div class="free-demo">FREE DEMO</div>
     <div id="terminos-contenido" class="texto-box borde-azul" style="overflow-y:auto;" onscroll="checkTerminosScroll()">
@@ -1114,21 +1114,20 @@
     let textoCargado = false;
     let retoCargadoR1 = false;
     let retoCargadoR2 = false;
-    // Datos cargados dinámicamente (se llenan desde los módulos)
-    let TERMINOS_DATOS = null;
-    // La demo gratis (de P2 a P11, antes del pago) lee lo que usa de cada aventura de un solo fichero de la carpeta
-    // pública, publico/demo-aventuras.js, que genera tools/build-demo.js a partir de los ficheros de datos: la demo no
-    // carga los de pago (guía, §22.0 n.º 26). Lo leen el puzzle (P6), el reto R-1 (P8), el aviso «sin audio» (P9) y el
-    // audio y el texto de introducción (P11), por _datosDemo() y _piezasDemo().
-    let DEMO_DATOS = null;
+    // La demo gratis (la selección hasta el código) lee lo que enseña de las aventuras de la carpeta pública, `publico/`:
+    // copias que hace tools/build-demo.js de los originales —solo de las piezas que enseña—, con una carpeta por tipo y, en
+    // ella, una por idioma (la de su fichero de párrafos). Los originales son del backend y la demo no los pide (guía,
+    // §22.0 n.º 26 y n.º 29). Todo pasa por _leerPublico(): el puzzle (P6), los retos R-1 (P8) y R-2 (P16), el aviso «sin
+    // audio» (P9), los términos (P10), el audio y el texto de introducción (P11), la normativa (P15) y los agradecimientos (P18).
+    const _publicoLeido = new Map();
     let INDICE_AVENTURAS_DATOS = null;
     let aventuraIniciando = false; // eslint-disable-line no-unused-vars -- lo usa el <script type="module" de abajo, que lo declara en su /* global */
     let timerMensajeCarga = null;
     // _devCasaMode se comparte entre script clásico y módulo via globalThis
     globalThis._devCasaMode = globalThis._devCasaMode || false;
     let timerProgresoCarga = null;
-    // La foto de fondo de cada tarjeta de aventura (P7, P9 y P13). La enseña la demo, antes del código: por eso vive en la
-    // carpeta pública, con los datos, el audio y el vídeo de la demo (guía, §22.0 n.º 29).
+    // La foto de fondo de cada tarjeta de aventura (P7, P9 y P13). La enseña la demo, antes del código: por eso pide su
+    // copia de la carpeta pública (el original, en imagenes/imagenes-aventuras/, es del backend; guía, §22.0 n.º 29).
     const IMAGENES_AVENTURAS = {
       'Aventura1': 'publico/imagenes/plaza_de_la_almoina.jpg',
       'Aventura2': 'publico/imagenes/plaza_de_la_virgen.jpg',
@@ -1176,19 +1175,53 @@
       });
     }
 
-    async function _datosDemo() {
-      if (!DEMO_DATOS) DEMO_DATOS = (await import('./publico/demo-aventuras.js')).DEMO_AVENTURAS;
-      return DEMO_DATOS;
+    /** Un JSON de la carpeta pública, por su ruta entera (publico/…), una vez por ruta (un fallo no se guarda: se puede volver a pedir). */
+    function _leerPublico(ruta) {
+      if (!_publicoLeido.has(ruta)) {
+        _publicoLeido.set(ruta, fetch(ruta)
+          .then((r) => { if (!r.ok) throw new Error(`${ruta}: ${r.status}`); return r.json(); })
+          .catch((error) => { _publicoLeido.delete(ruta); throw error; }));
+      }
+      return _publicoLeido.get(ruta);
     }
 
-    /** Lo de la demo de una aventura en un idioma (el reto R-1, el audio y el texto de introducción, si tiene audio), o null. */
+    /** La carpeta pública de un idioma: la de su fichero de párrafos (LANG_ARCHIVO_PARRAFOS de js/data-loader.js). */
+    async function _carpetaIdioma(idioma) {
+      const { LANG_ARCHIVO_PARRAFOS } = await import('./js/data-loader.js');
+      const carpeta = LANG_ARCHIVO_PARRAFOS[idioma];
+      if (!carpeta) throw new Error(`Sin carpeta pública para el idioma ${idioma}`);
+      return carpeta;
+    }
+
+    /** Un texto de la demo en un idioma ('terminos', 'normativa' o 'agradecimientos'): su HTML. */
+    async function _textoPublico(nombre, idioma) {
+      return (await _leerPublico(`publico/textos/${await _carpetaIdioma(idioma)}/${nombre}.json`)).html;
+    }
+
+    /**
+     * Lo de la demo de una aventura en un idioma, o null: los retos R-1 y R-2, el audio de introducción (null si no tiene
+     * fichero), si la aventura tiene audio y el texto de introducción, montado por ensamblarTexto() —la función con la que
+     * la aventura monta los suyos— con la copia pública de sus párrafos.
+     */
     async function _piezasDemo(aventura, idioma) {
-      return (await _datosDemo()).aventuras?.[aventura]?.[idioma] ?? null;
+      const carpeta = await _carpetaIdioma(idioma);
+      const [retos, audios, parrafos, intro, { ensamblarTexto }] = await Promise.all([
+        _leerPublico(`publico/retos/${carpeta}/retos.json`), _leerPublico(`publico/audios/${carpeta}/audios.json`),
+        _leerPublico(`publico/textos/${carpeta}/parrafos.json`), _leerPublico('publico/textos/intro.json'),
+        import('./js/data-loader.js'),
+      ]);
+      const audio = audios[aventura];
+      if (!retos[aventura] || !audio || !intro[aventura]) return null;
+      const textoIntro = ensamblarTexto(intro[aventura], idioma, new Map(audio.intro ? [[audio.intro.id, audio.intro]] : []), parrafos);
+      return {
+        retoR1: retos[aventura].r1, retoR2: retos[aventura].r2, audioIntro: audio.intro?.file ? audio.intro : null,
+        tieneAudio: audio.tieneAudio === true, textoIntro,
+      };
     }
 
     async function _verificarPuzzleMostrar() {
       try {
-        const puzzleIntro = (await _datosDemo()).puzzleIntro;
+        const puzzleIntro = (await _leerPublico('publico/puzzles/puzzles.json'))['PZ-intro'];
         const imagenPuzzle = puzzleIntro?.imagen || 'imagenes/imagenes-aplicación/logo-luna.png';
         if (!await verificarImagenExiste(imagenPuzzle)) {
           _log.warn('[SELECCION] Imagen del puzzle no encontrada:', imagenPuzzle, '- Saltando');
@@ -1437,17 +1470,13 @@
     }
 
     // ============================================================
-    // P10: CARGAR TÉRMINOS DESDE js/terminos-aventuras.js
+    // P10: CARGAR TÉRMINOS DESDE publico/textos/<idioma>/terminos.json
     // ============================================================
     async function cargarTerminos() {
       const contenedor = document.getElementById('terminos-contenido');
       try {
-        // Importar dinámicamente el módulo de términos
-        const modulo = await import('./js/terminos-aventuras.js');
-        TERMINOS_DATOS = modulo.TERMINOS_AVENTURAS;
-
         const idioma = idiomaSeleccionado;
-        const terminos = TERMINOS_DATOS?.terminos_idiomas?.[idioma];
+        const terminos = await _textoPublico('terminos', idioma);
 
         if (terminos && typeof terminos === 'string' && terminos.trim().length > 0) {
           // El contenido ya es un string HTML
@@ -1464,7 +1493,7 @@
     }
 
     // ============================================================
-    // P11: CARGAR AUDIO INTRO DESDE publico/demo-aventuras.js
+    // P11: CARGAR AUDIO INTRO DESDE publico/audios/<idioma>/
     // (audio_id dinámico: audio-intro-xx según idioma)
     // ============================================================
     function _formatearTiempoAudioIntro(segundos) {
@@ -1543,7 +1572,7 @@
     }
 
     // ============================================================
-    // P8: CARGAR RETO R-1 DESDE publico/demo-aventuras.js
+    // P8: CARGAR RETO R-1 DESDE publico/retos/<idioma>/retos.json
     // (reto_id dinámico: R1-AvX-xx según aventura e idioma)
     // ============================================================
     function _crearOpcionRetoR1(opcion, index, contenedor) {
@@ -1641,7 +1670,7 @@
     }
 
     // ============================================================
-    // PUZZLE DE INTRODUCCIÓN (pantalla6): CARGAR DESDE publico/demo-aventuras.js
+    // PUZZLE DE INTRODUCCIÓN (pantalla6): CARGAR DESDE publico/puzzles/puzzles.json
     // ============================================================
     /*
      * El puzzle avisa por el bus, como todo lo demás.
@@ -1667,7 +1696,7 @@
       const iframe = document.getElementById('puzzle-iframe');
       const btnContinuar = document.getElementById('btn-continuar-puzzle');
       try {
-        const puzzleIntro = (await _datosDemo()).puzzleIntro;
+        const puzzleIntro = (await _leerPublico('publico/puzzles/puzzles.json'))['PZ-intro'];
         if (puzzleIntro) {
           const imagenPuzzle = puzzleIntro.imagen || 'imagenes/imagenes-aplicación/logo-luna.png';
           // La imagen se pasa por URL: puzzle.html ya no importa puzzles-aventuras.js.
@@ -1881,9 +1910,7 @@
       const boton = document.getElementById('btn-siguiente-agradecimientos');
       if (boton) { boton.disabled = true; boton.style.opacity = '0.3'; }
       try {
-        const modulo = await import('./js/agradecimientos-aventuras.js');
-        const AGRADECIMIENTOS = modulo.AGRADECIMIENTOS_AVENTURAS;
-        const contenido = AGRADECIMIENTOS.agradecimientos_idiomas[idiomaSeleccionado];
+        const contenido = await _textoPublico('agradecimientos', idiomaSeleccionado);
         if (contenido && contenido.trim() !== '') {
           contenedor.innerHTML = contenido;
           agradecimientosCargados = true;
@@ -1961,9 +1988,7 @@
       const boton = document.getElementById('btn-siguiente-normativa');
       if (boton) { boton.disabled = true; boton.style.opacity = '0.3'; }
       try {
-        const modulo = await import('./js/normativa-cumplimiento.js');
-        const NORMATIVA = modulo.NORMATIVA_CUMPLIMIENTO;
-        const contenido = NORMATIVA.normativa_idiomas[idiomaSeleccionado];
+        const contenido = await _textoPublico('normativa', idiomaSeleccionado);
         if (contenido && contenido.trim() !== '') {
           contenedor.innerHTML = contenido;
           normativaCargada = true;
@@ -2318,7 +2343,10 @@
       let rutaMapa = null;
       try {
         const { MAPAS_VINTAGE } = await import('./js/mapa-vintage-aventuras.js');
-        rutaMapa = MAPAS_VINTAGE[aventura] || null;
+        // La tabla nombra el original (del backend); la demo enseña su copia pública, con el mismo nombre en
+        // publico/imagenes/mapas-vintage/ (la hace tools/build-demo.js).
+        const original = MAPAS_VINTAGE[aventura] || null;
+        rutaMapa = original ? `publico/imagenes/mapas-vintage/${original.split('/').pop()}` : null;
       } catch (error) {
         _log.error('[SELECCION] No se pudo cargar la tabla de mapas vintage:', error?.message);
       }
@@ -2386,7 +2414,7 @@
     }
 
     // ============================================================
-    // P11: CARGAR TEXTO INTRO DESDE publico/demo-aventuras.js (lo monta tools/build-demo.js con ensamblarTexto)
+    // P11: CARGAR TEXTO INTRO DESDE publico/textos/ (lo monta ensamblarTexto con la copia pública de sus párrafos)
     // (texto_id dinámico: txt-intro-xx según idioma)
     // ============================================================
     async function cargarTextoIntro() {
@@ -2407,10 +2435,7 @@
         }
       };
       try {
-        const aventura = aventuraSeleccionada;
-        const datos = await _datosDemo();
-        const posicion = datos.aventuras?.[aventura]?.[idioma]?.textoIntro;
-        const textoIntro = Number.isInteger(posicion) ? datos.textosIntro?.[idioma]?.[posicion] : null;
+        const textoIntro = (await _piezasDemo(aventuraSeleccionada, idioma))?.textoIntro ?? null;
         if (textoIntro && textoIntro.content) {
           contenedor.innerHTML = `<div style="padding:1.2rem;">${textoIntro.content}</div>`;
           textoCargado = true;
@@ -2425,7 +2450,7 @@
     }
 
     // ============================================================
-    // P16: CARGAR RETO R-2 DESDE js/retos-aventuras.js
+    // P16: CARGAR RETO R-2 DESDE publico/retos/<idioma>/retos.json
     // (reto_id dinámico: R2-AvX-xx según aventura e idioma)
     // ============================================================
     function _crearOpcionRetoR2(opcion, index, contenedor) {
@@ -2459,17 +2484,11 @@
       try {
         const idioma = idiomaSeleccionado;
         const aventura = aventuraSeleccionada;
-        const { cargarRetos: _cRt } = await import('./js/data-loader.js');
-        const retosIdioma = await _cRt(aventura, idioma);
-        if (retosIdioma && Array.isArray(retosIdioma)) {
-          const retoR2 = retosIdioma.find(r => r.reto === 2);
-          if (retoR2) {
-            _procesarRetoR2Cargado(retoR2, pregunta, opciones, caja);
-          } else {
-            pregunta.textContent = 'Reto R-2 no encontrado';
-          }
+        const retoR2 = (await _piezasDemo(aventura, idioma))?.retoR2 ?? null;
+        if (retoR2) {
+          _procesarRetoR2Cargado(retoR2, pregunta, opciones, caja);
         } else {
-          pregunta.textContent = 'No hay retos para este idioma';
+          pregunta.textContent = 'Reto R-2 no encontrado';
         }
       } catch (error) {
         _log.error('[SELECCION] Error cargando reto R2:', error);

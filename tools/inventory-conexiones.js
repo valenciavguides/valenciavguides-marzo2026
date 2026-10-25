@@ -52,7 +52,8 @@ function modoAssets() {
     const files = [
         ...walk(ROOT, ['.html'], EXCLUDE.concat(['docs'])), // docs/ tiene sus propias referencias de ejemplo, no reales
         ...walk(path.join(ROOT, 'js'), ['.js'], EXCLUDE, []),
-        ...walk(path.join(ROOT, 'publico'), ['.js'], EXCLUDE, []),
+        // publico/ no se barre: son copias que hace tools/build-demo.js de originales que ya se barren aquí (y build-demo.js,
+        // en tools/, nombra los medios que copia).
         ...walk(path.join(ROOT, 'tools'), ['.js', '.mjs'], EXCLUDE, []),
         path.join(ROOT, 'sw.js'),
         path.join(ROOT, 'manifest.json'),
@@ -81,7 +82,7 @@ function modoAssets() {
         .filter(([, fs_]) => fs_.size >= 2)
         .sort((a, b) => b[1].size - a[1].size);
 
-    console.log(`| Asset | Usado en (${compartidos.length} compartidos de ${map.size} totales, ${files.length} archivos escaneados: *.html raíz, js/**, publico/**, tools/**, sw.js, manifest.json) |`);
+    console.log(`| Asset | Usado en (${compartidos.length} compartidos de ${map.size} totales, ${files.length} archivos escaneados: *.html raíz, js/**, tools/**, sw.js, manifest.json) |`);
     console.log('|---|---|');
     for (const [asset, fs_] of compartidos) {
         console.log(`| \`${asset}\` | ${[...fs_].sort().map(f => `\`${f}\``).join(', ')} |`);
