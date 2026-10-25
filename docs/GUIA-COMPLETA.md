@@ -4511,7 +4511,7 @@ Audios y retos **no se distribuyen aquí** — protección pasiva por parada (ve
 
 | Paso | Destino | Mensaje | Datos enviados |
 |------|---------|---------|----------------|
-| 1 | hijo2 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` — array de paradas/tramos con coords GPS (bulk: hijo2 necesita la ruta completa para el mapa y el cálculo de proximidad GPS) |
+| 1 | hijo2 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` — array de paradas/tramos con coords GPS: la lista entera de la aventura elegida, y solo de ella. hijo2 busca en ella el elemento actual y el de inicio; no tiene mapa, y las distancias le llegan ya calculadas en `NAVEGACION.ACTUALIZAR_ESTADO` |
 | 2 | hijo2 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` — array `[{id, title, content}]` ensamblado por `cargarTextos(aventura, idioma)` desde `data-loader.js` (combina `TEXTOS_AVENTURAS[aventura]` + parrafos JSON del idioma + títulos de `AUDIOS_AVENTURAS[aventura][idioma]`) |
 | 3 | hijo5 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], aventura, timestamp }` — paradas normalizadas con campos `id`, `parada_id`, `tipo`, `nombre`, `coordenadas` |
 
@@ -7039,6 +7039,9 @@ El modal se muestra en el idioma que el usuario ha seleccionado.
 | `opcion-multiple` | El usuario elige VARIAS respuestas correctas | "Selecciona los monumentos góticos:" → [Lonja, Catedral] |
 | `texto` | El usuario escribe libremente — la respuesta siempre se acepta como correcta (pregunta de reflexión libre, sin validación) | "¿Sabría decirme el nombre de la calle?" |
 | `puzzle` | Se carga un puzzle visual que hay que resolver | Recomponer una imagen del monumento |
+### Un reto por parada
+
+**La PWA está diseñada con un solo reto por elemento.** Cada parada o tramo que necesita un reto lleva uno, de uno de los tipos de arriba —elección entre opciones (`opcion`, con una respuesta, u `opcion-multiple`, con varias), escritura libre (`texto`) o puzzle (`puzzle`)—, y ninguno lleva dos. Es una regla de diseño del contenido, y quien añada retos a una aventura la respeta: en `js/aventuras-ID-padre.js`, el `reto_id` de cada elemento es un solo id, nunca una lista, y así está en las 3.060 filas que llevan reto. La cola de retos del padre (`estado.retoActual`, que prepara `_asegurarRetoActualDe`) y `obtenerRetosIds()` admiten más de uno, y los specs 103 y 145 la prueban con dos retos inventados, pero ningún elemento los lleva.
 
 ### Estructura de un reto
 
