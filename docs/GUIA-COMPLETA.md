@@ -8801,7 +8801,7 @@ Dos consecuencias: **el CSP de producción no rompe la app en iPhone**, y una vi
 
 Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier petición GET directa a los ficheros sensibles. El frontend debe obtener esos datos a través de una API autenticada (pendiente de implementar).
 
-> ⚠️ **Dependencia cruzada con `BACKEND_READY`**: `PROTECT_DATA=true` solo tiene sentido junto con `BACKEND_READY=true` en `js/data-loader.js` (§22.11) — si `BACKEND_READY` sigue en `false`, el modo seguirá siendo `'local'` y la Fase 2 del padre (`codigo-padre.html`) seguirá importando directamente los ficheros que `PROTECT_DATA` bloquearía, rompiendo la carga de aventuras con 403. `js/server.js` emite un `console.warn` al arrancar con `PROTECT_DATA=true` recordando esta dependencia. Ver también §22.12 para los imports directos aún pendientes de migrar.
+> ⚠️ **Dependencia cruzada con `BACKEND_READY`**: `PROTECT_DATA=true` solo tiene sentido junto con `BACKEND_READY=true` en `js/data-loader.js` (§22.11) — si `BACKEND_READY` sigue en `false`, el modo es `'local'` y las funciones de `js/data-loader.js` (la fase 2 del padre entre ellas) importan directamente los ficheros que `PROTECT_DATA` bloquea, y la carga de aventuras se rompe con 403. `js/server.js` emite un `console.warn` al arrancar con `PROTECT_DATA=true` recordando esta dependencia. Cómo se carga cada fichero de datos, en §22.12.
 
 **Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 30–42):
 
@@ -8833,11 +8833,7 @@ La carpeta pública, `publico/`, no está en la lista: guarda copias de solo lo 
 
 `PROTECTED_FILES` cubre todo tipo de contenido de pago, no solo audio/texto/retos/coordenadas — imágenes y vídeos están tan expuestos como cualquier otro fichero estático si su carpeta no aparece en la lista (ver razón completa en §16). Cualquier carpeta de contenido de pago que se añada en el futuro debe incorporarse aquí explícitamente; la lista no protege nada por defecto.
 
-**Pendiente añadir a `PROTECTED_FILES` antes de producción:**
-
-```text
-/js/aventuras-ID-padre.js       ← itinerario e ids. NO se considera sensible (ver §2.2): sin textos, audios ni respuestas
-```
+`/js/aventuras-ID-padre.js` (el itinerario y los ids, sin textos, audios ni respuestas) no está en la lista, a propósito: es público (§2.2; §22.0, n.º 13).
 
 **Arrancar con protección activa:**
 
@@ -8900,6 +8896,27 @@ El servidor actual **no tiene autenticación**. Para producción habrá que impl
 - **CORS restringido** al dominio de producción.
 - **Modo de datos `'api'`** en `js/data-loader.js` (ver §22.11).
 - **Validación del código DEV en el backend** (ver §24).
+
+**Lo que ya pide el frontend, y el backend tiene que cubrir:**
+
+1. **Las rutas y la forma de cada respuesta**, las de §16: el padre lee los datos de la API con la misma forma que los de sus ficheros de `js/`.
+2. **La activación.** En P14, `ApiClient.comprobarCodigo(codigo, email, aventura)` (`En-busca-del-tesoro.html`) llama a `/auth/comprobar` y guarda el token que devuelve (`TokenManager`, `js/api-client.js`); al arrancar la aventura, `ApiClient.activar(aventura)` (`codigo-padre.html`) llama a `/auth/activar`, y desde entonces cuenta el tiempo del código (§16.2). `js/data-loader.js` manda ese token en cada petición (`Authorization: Bearer`).
+3. **La reanudación, con su token.** El token vive en `sessionStorage` (`almacen.sesion`, clave `TOKEN_SESION`), que se vacía al cerrar la app: la reanudación (§25.10) arranca sin él, y la API le contestaría 401. Cómo se reanuda con la API está por decidir: el token en `localStorage` con su caducidad, o una cookie de sesión del mismo origen.
+4. **Los medios de pago** —audios, fotos, mapas antiguos y vídeos— no pasan por `js/data-loader.js`: los pide el navegador por su URL (el `<audio>` de hijo3, las `<img>` de la ventana de la imagen y del mapa antiguo, el `<video>`, y las precargas de imagen y de vídeo), y esas peticiones no llevan la cabecera `Authorization`. Con `PROTECT_DATA=true` su carpeta da 403, así que el backend tiene que autorizarlas de otra manera, también por decidir: una cookie de sesión del mismo origen que compruebe el proxy, o URLs firmadas que la API devuelva en los campos `file`, `imagen` y `video` de cada dato.
+5. **El orden del cambio.** El backend, desplegado detrás de `/api/`; `BACKEND_READY = true` en `js/data-loader.js`, que decide el modo preguntando a `/api/health` (§22.11); y `PROTECT_DATA=true` en el servidor estático, con la lista de arriba. Después, con el backend real, los specs 113 (la API en el mismo origen), 149 (la demo gratis con lo de pago en 403) y 153 (F2-3, la fase 2 por la API).
+6. **La protección elemento a elemento** (§22.0, n.º 9; la opción que prefiere el usuario). El padre pide a `js/data-loader.js` la aventura entera de cada dato —las coordenadas, los textos, los retos y los audios de la aventura elegida— y reparte a los hijos un elemento cada vez; las rutas por elemento de §16 son las que lo bajan al padre. Lo que necesita cada lector:
+
+| Lector del padre | Qué usa | Con la API, por elemento |
+|---|---|---|
+| La ventana de la imagen y la del vídeo, la línea de vuelta a la ruta y las precargas (`_entradaDeCoordenadas`) | la entrada del elemento actual o del siguiente | sí: `/coordenadas/:id/parada/:paradaId` o `/coordenadas/:id/tramo/:tramoId` |
+| El texto de la ventana de la imagen (`_buscarTextoDelElemento`) | un texto de `cargarTextos()` | sí, con una ruta de texto por elemento, que §16 no tiene |
+| El audio (`_solicitarAudioParaParada`, `SOLICITAR_AUDIOS`) y `hayFicheroAudioReal()` | una entrada de `cargarAudios()` | sí: `/audios/:id/:idioma/parada/:paradaId` |
+| El reto (`_hdl_RETO_SOLICITAR`, `SOLICITAR_RETOS`) | uno de `cargarRetos()` | sí: `/retos/:id/:idioma/:retoId` |
+| El puzzle del reto | `cargarPuzzle()` | ya es por elemento: `/puzzles/:id/:puzzleId` |
+| El elemento siguiente, su distancia y la llegada (`AVENTURA_PARADAS`, `js/funciones-mapa.js`) | las entradas del elemento actual y del siguiente | sí, las de esos dos |
+| El mapa completo, el listado de paradas y la comprobación de los 5 km | la ruta entera: todos los elementos y las referencias | no: la ruta de la aventura elegida |
+
+El mapa completo enseña la ruta entera de la aventura elegida, y solo tras el pago (o en el modo de desarrollo, ver §24): no tiene copia en `publico/`. Para que el resto vaya por elemento, la tabla de coordenadas tiene que llegar en dos partes —la ruta (trazado, nombres, tipos y números de mapa) y los datos de cada elemento (fotos, vídeo), que se piden al llegar a él y se borran al avanzar, como hacen hijo3 e hijo4, que guardan el actual y el anterior—; qué campos van en cada parte está por decidir con el backend.
 
 ---
 
