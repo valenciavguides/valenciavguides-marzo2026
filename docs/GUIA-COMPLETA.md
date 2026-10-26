@@ -4915,7 +4915,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f2aea2d2aa73'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-62c8cc9f4694'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8285,7 +8285,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-f2aea2d2aa73'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-62c8cc9f4694'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9047,7 +9047,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-f2aea2d2aa73';
+const CACHE_VERSION = 'v-62c8cc9f4694';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11048,16 +11048,9 @@ Después  Padre recibe HIJO_PREPARADO de cada hijo (independiente, por hijo):
 
 `registrarEvento(tipo, datos, nivel)` escribe una línea en el log por el logger centralizado (§26.3), en el nivel pedido: `'debug'`, `'info'` (el de por defecto), `'warn'` o `'error'`. Un nivel distinto de esos cuatro no escribe nada. No guarda historial, no cuenta nada y no devuelve nada: lo que queda es la línea de log, que pasa por `CONFIG.DEBUG.NIVEL_LOG` como cualquier otra.
 
-Hay dos implementaciones, y en el padre manda la suya:
+Es una sola: `globalThis.registrarEvento`, de Script 1 de `codigo-padre.html`, que escribe `[PADRE] Evento: <tipo>, Nivel: <nivel>`, con `datos` como segundo argumento del logger.
 
-| Implementación | Dónde | Línea que escribe |
-|----------------|-------|-------------------|
-| `globalThis.registrarEvento` | Script 1 de `codigo-padre.html` | `[PADRE] Evento: <tipo>, Nivel: <nivel>`, con `datos` como segundo argumento del logger |
-| `registrarEvento` (local) | `js/app.js`, sin exponer en `globalThis` | `Evento: <tipo>, Nivel: <nivel>, Datos: <JSON de datos>` |
-
-`js/app.js` la llama como `(globalThis.registrarEvento ?? registrarEvento)(…)`: en el padre gana la global, y la local no se expone para no pisarla.
-
-La llaman el padre —`TODOS_HIJOS_LISTOS`, `APLICACION_INICIALIZADA` y los cuatro `GPS_*`—, su Script 2 por el alias local `registrarEventoScript2` (`AUDIO_ESTADO_CAMBIADO`, `AUDIO_SALTADO`, `AUDIO_FINALIZADO` y `AUDIO_ERROR`) y `js/app.js` (`CAMBIO_MODO`).
+La llaman el propio Script 1 —`TODOS_HIJOS_LISTOS`, `APLICACION_INICIALIZADA` y los cuatro `GPS_*`—, Script 2 (`AUDIO_ESTADO_CAMBIADO`, `AUDIO_SALTADO`, `AUDIO_FINALIZADO` y `AUDIO_ERROR`) y `js/app.js` (`CAMBIO_MODO`), que solo se carga en el padre.
 
 ---
 
@@ -12486,7 +12479,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-f2aea2d2aa73';
+const CACHE_VERSION = 'v-62c8cc9f4694';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14218,25 +14211,25 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TIPOS_MENSAJE` | módulo 1 (L3823) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3984) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2859) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13692) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9929) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12674) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13673) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11638) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12336) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9868) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11029) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11091) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L11053) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12366) | módulo 5 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13683) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9920) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12665) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13664) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11629) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12327) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9859) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11020) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11082) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L11044) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12357) | módulo 5 | función/objeto |
 | `_vv_afterHijoListo` | módulo 2 (L9105) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9863) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9246) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9287) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12599) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9741) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9733) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13708) | módulo 2 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9854) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9237) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9278) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12590) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9732) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9724) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13699) | módulo 2 | función/objeto |
 
 </details>
 

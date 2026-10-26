@@ -5755,7 +5755,7 @@
             btn.addEventListener('click', (ev) => {
                 try {
                     (globalThis.logger || console).info('[PADRE][GPS][OVERLAY] Botón pulsado por el usuario');
-                    registrarEvento && typeof registrarEvento === 'function' && registrarEvento('GPS_OVERLAY_BUTTON_CLICK', { timestamp: Date.now() });
+                    registrarEvento('GPS_OVERLAY_BUTTON_CLICK', { timestamp: Date.now() });
                     const cd = document.getElementById('gps-overlay-countdown');
                     if (globalThis.__VV_GPS_OVERLAY_TIMER) clearInterval(globalThis.__VV_GPS_OVERLAY_TIMER);
                     globalThis.__VV_GPS_OVERLAY_TIMER = _startOverlayCountdown(cd, btn, 15);
@@ -6653,7 +6653,7 @@
                         if (navigator.clipboard && navigator.clipboard.writeText) {
                             await navigator.clipboard.writeText(txt);
                             (globalThis.logger || console).info('[PADRE][GPS][OVERLAY] Coordenadas copiadas al portapapeles');
-                            registrarEvento && typeof registrarEvento === 'function' && registrarEvento('GPS_NEXT_COPY', { timestamp: Date.now(), parada: datos.id || null });
+                            registrarEvento('GPS_NEXT_COPY', { timestamp: Date.now(), parada: datos.id || null });
                         } else {
                             const dummy = document.createElement('textarea');
                             dummy.value = txt;
@@ -6679,7 +6679,7 @@
                                 await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true });
                             } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error centrando mapa en objetivo:', e); }
                         }
-                        registrarEvento && typeof registrarEvento === 'function' && registrarEvento('GPS_NEXT_SHOWMAP', { timestamp: Date.now(), parada: datos.id || null });
+                        registrarEvento('GPS_NEXT_SHOWMAP', { timestamp: Date.now(), parada: datos.id || null });
                         hideNextEntityOverlay();
                         try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error mostrando en mapa:', e); }
@@ -6865,7 +6865,7 @@
                         };
 
                         el.style.display = 'block';
-                        registrarEvento && typeof registrarEvento === 'function' && registrarEvento('GPS_NEXT_SHOWN', { paradaId: el._entityData.id, timestamp: Date.now() });
+                        registrarEvento('GPS_NEXT_SHOWN', { paradaId: el._entityData.id, timestamp: Date.now() });
                     } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error mostrando overlay próxima entidad:', e); }
                 }
 
@@ -9161,10 +9161,6 @@ await _comprobarReanudacionAventura(logPrefix);
             throw new Error('[PADRE Script2] mensajeria no disponible tras 10s — Script 2 abortado: sus controladores (reto, audio, parada) no se registran');
         }
         const { enviarMensaje: enviarMensaje_S2 } = globalThis.mensajeria;
-        // Capturar la implementación de Script 1 ANTES de importar app.js — ese módulo asigna
-        // su propio globalThis.registrarEvento en su top-level (misma propiedad, formato de log
-        // distinto), y sobrescribiría la de Script 1 si se leyera después del import (auditoría).
-        const registrarEventoGlobal = globalThis.registrarEvento;
         await import('./js/app.js');
         const { invalidarTamañoMapa, diagnosticarMapa, setMapView, dibujarPolylineNavegacion } = await import('./js/funciones-mapa.js');
 
@@ -9175,11 +9171,6 @@ await _comprobarReanudacionAventura(logPrefix);
         // Crear referencias con nombres diferentes para evitar conflicto del linter
         // Make resolverIdsParada available under the simple name used in handlers
         const resolverIdsParada = resolverIdsParada_S2;
-
-        // Aliases locales que no chocan con Script 1
-        // NOTE: CONFIG_PADRE_LOCAL alias intentionally avoided; use CONFIG_PADRE where possible
-        // const CONFIG_PADRE_LOCAL = configGlobal;
-        const registrarEventoScript2 = registrarEventoGlobal;
 
         // Aliases adicionales para mantener compatibilidad con código que usa nombres cortos
         // CRITICAL FIX: Use getter to always reference current globalThis.estadoPadre with validation
@@ -11669,7 +11660,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 actualizarEstadoControlesAudioPadre();
 
                 // Registrar evento
-                registrarEventoScript2('AUDIO_ESTADO_CAMBIADO', {
+                globalThis.registrarEvento('AUDIO_ESTADO_CAMBIADO', {
                     audioId,
                     estado: estadoAudio,
                     timestamp: audioTimestamp
@@ -11789,7 +11780,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
             await _procesarFinAudioElemento(audioId, estado, logPrefix);
 
-            registrarEventoScript2('AUDIO_SALTADO', { audioId, motivo: 'boton_saltar_usuario' }, 'info');
+            globalThis.registrarEvento('AUDIO_SALTADO', { audioId, motivo: 'boton_saltar_usuario' }, 'info');
         }
 
         async function _hdl_AUDIO_FIN_REPRODUCCION(mensaje) {
@@ -11815,7 +11806,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // junto a pending.llegada. Aqui no hace falta anotarlo por segunda vez.
 
                 // Registrar evento
-                registrarEventoScript2('AUDIO_FINALIZADO', {
+                globalThis.registrarEvento('AUDIO_FINALIZADO', {
                     audioId,
                     duracion,
                     timestamp: audioTimestamp
@@ -11924,7 +11915,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 // Registrar evento de error
-                registrarEventoScript2('AUDIO_ERROR', {
+                globalThis.registrarEvento('AUDIO_ERROR', {
                     audioId,
                     error: errorMsg,
                     timestamp: audioTimestamp,

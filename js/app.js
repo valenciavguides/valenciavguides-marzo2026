@@ -380,7 +380,8 @@ export async function manejarCambioModo(estado, mensaje) {
             opciones
         };
 
-        (globalThis.registrarEvento ?? registrarEvento)('CAMBIO_MODO', eventoCambioModo);
+        // El registro de eventos es uno solo, el del padre (Script 1 de codigo-padre.html), el único sitio que carga este módulo.
+        globalThis.registrarEvento('CAMBIO_MODO', eventoCambioModo);
 
         // 5. Notificar inicio del cambio de modo
         logger.info(`${logPrefix} Iniciando cambio de modo '${modoActual}' a '${modoNormalized}'`, {
@@ -635,36 +636,6 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
     });
 }
 
-/**
- * Función para registrar un evento en el log
- * @param {string} tipo - Tipo de evento
- * @param {Object} datos - Datos del evento
- * @param {string} [nivel='info'] - Nivel de severidad ('debug', 'info', 'warn', 'error')
- */
-function registrarEvento(tipo, datos = {}, nivel = 'info') {
-    const mensaje = `Evento: ${tipo}, Nivel: ${nivel}, Datos: ${JSON.stringify(datos)}`;
-    switch (nivel) {
-        case 'debug':
-            logger.debug(mensaje);
-            break;
-        case 'info':
-            logger.info(mensaje);
-            break;
-        case 'warn':
-            logger.warn(mensaje);
-            break;
-        case 'error':
-            logger.error(mensaje);
-            break;
-    }
-}
-
-// registrarEvento NO se expone aquí — codigo-padre.html Script 1 ya define su propia
-// globalThis.registrarEvento (con el prefijo [PADRE]). Exponer también la de aquí
-// sobrescribía la del padre en cuanto este módulo se importaba (auditoría 2026-08-03) —
-// las llamadas internas de este fichero usan (globalThis.registrarEvento ?? registrarEvento)
-// para preferir la del padre cuando ya está disponible.
-
 // Controladores AUDIO implementados en audio-hijo3.html (hijo3)
 // Controladores NAVEGACIóN en funciones-mapa.js
 
@@ -696,8 +667,7 @@ if (globalThis.window !== undefined) {
         }
         try {
             // Limpiar globales de la aplicación agresivamente
-            // registrarEvento no se borra aquí — no es de este módulo (ver nota más arriba,
-            // donde se deja de exponer); borrarlo aquí borraría la del padre por error.
+            // registrarEvento no se borra aquí: es del padre, no de este módulo.
             if (globalThis.estado) delete globalThis.estado;
 
             logger.info('Limpieza agresiva de globales de la aplicación completada');

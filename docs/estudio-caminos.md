@@ -1751,6 +1751,15 @@ La ronda 1 comparó 3. Aquí, los 26 (más 5 que solo ve `inventory:dupes`):
 - **Estado final (2026-10-02).** `intentar` pasa de tres definiciones a dos (`js/utils.js:228` y
   `js/funciones-mapa.js:490`): la rama «legacy» de `retryUntilAvailable` se retira (K-23). El resto de la
   tabla no cambia (`npm run inventory:dupes`).
+- **`registrarEvento`, una sola (2026-10-26).** Eran dos, con dos formatos de línea: la global de Script 1 del padre y una
+  local de `js/app.js`, que la llamaba como `(globalThis.registrarEvento ?? registrarEvento)(…)`. `js/app.js` solo lo
+  importa el padre (sus tres `import`, en Script 1, 2 y 4; y el spec 46, sobre el padre), donde la global existe desde el
+  nivel superior de Script 1: el `??` no tomaba nunca la local. Con ella, fuera también lo que solo la rodeaba: las cuatro
+  guardas `registrarEvento && typeof registrarEvento === 'function' && …` de Script 1 (la función está siempre), y en
+  Script 2 la copia «antes de importar `app.js`», que se apoyaba en que `app.js` sobrescribía la global (hoy no la toca:
+  búsqueda desnuda de `globalThis.registrarEvento =`, solo Script 1), con su alias `registrarEventoScript2` y una línea
+  de código comentada. La guía (§26.4) describía las dos implementaciones: describe una. Specs de cambio de modo, audio y
+  carteles del GPS en chromium (26, 28, 29, 30, 32, 34, 46, 56, 84 y 120), 50 de 50.
 
 #### Familia I — Recursos, listas, arnés, CSS y herramientas
 
