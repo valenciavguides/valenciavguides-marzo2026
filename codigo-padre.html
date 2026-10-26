@@ -4944,16 +4944,14 @@
                     }
                 } catch (pErr) { (globalThis.logger || console).warn(`${logPrefix} Error restaurando paradas completadas`, pErr); }
 
-                if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') {
-                    await globalThis.__cargarDatosAventuraDiferidos();
-                }
+                await globalThis.__cargarDatosAventuraDiferidos();
 
-                // La restauración de sesión nunca pasa por P15 — _hdl_SELECCION_P15_MOSTRADA
-                // es el ÚNICO otro sitio que carga hijo1-5 (los iframes hijo contienen lógica
-                // de pago y no se cargan antes). Sin esto, ningún iframe tiene src asignado
+                // La restauración de sesión nunca pasa por P15. Los otros dos sitios que cargan los hijos son
+                // _hdl_SELECCION_P15_MOSTRADA y la ruta de respaldo de _hdl_SELECCION_AVENTURA_ACTIVADA (los iframes
+                // hijo contienen lógica de pago y no se cargan antes). Sin esto, ningún iframe tiene src asignado
                 // aquí y nadie les diría que carguen. Los cargadores no terminan hasta que cada
                 // hijo completa el apretón de manos (sin plazo: lo recupera el supervisor del
-                // bus), así que al seguir los cinco están listos.
+                // bus), así que al seguir los seis están listos.
                 await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()]);
                 await _distribuirDatosRest(logPrefix, datosGuardados);
                 await _enviarRespuestaParadasHijosRest(logPrefix, datosGuardados);
