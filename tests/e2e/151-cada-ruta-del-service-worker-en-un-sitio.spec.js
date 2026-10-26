@@ -14,9 +14,13 @@
  *         aviso sale justo cuando no hay red, y una imagen que no se guardó antes no se puede descargar entonces.
  *   SW-3  La precarga no trae nada de lo que el servidor protege (`PROTECTED_FILES` de `js/server.js`, la misma lista): los
  *         datos de pago se descargan cuando la app los importa, tras el pago, nunca al instalarse el service worker.
+ *   SW-4  Lo que cargan las páginas de la precarga también está en ella: sus `<script src>`, sus hojas de estilo y los
+ *         imports estáticos de sus páginas y de sus módulos. Lo que falte no llega al arrancar sin red. Cada etiqueta se
+ *         tiene que haber leído; los imports dinámicos (los datos de pago, entre ellos) no cuentan.
  *
  * ROJO ANTES QUE VERDE: con `/audios-aventuras/` y `/videos-aventuras/` en `esMedia()`, SW-1 cae nombrando las dos; sin la
- * imagen en `APP_SHELL`, SW-2 cae nombrándola; con los ficheros de datos de pago en `APP_SHELL`, SW-3 cae nombrándolos.
+ * imagen en `APP_SHELL`, SW-2 cae nombrándola; con los ficheros de datos de pago en `APP_SHELL`, SW-3 cae nombrándolos; sin
+ * el zoom de los mapas antiguos en `APP_SHELL` (los cargan el padre y la selección), SW-4 cae nombrando sus dos ficheros.
  */
 'use strict';
 
@@ -69,5 +73,27 @@ test.describe('SW — cada ruta de media en un solo sitio del service worker', (
 
     const enPrecarga = precargaDelServiceWorker().filter((u) => protegidos.some((p) => u.toLowerCase().startsWith(p.toLowerCase())));
     expect(enPrecarga, 'ficheros protegidos en APP_SHELL: se descargarían al instalar la app, antes de pagar').toEqual([]);
+  });
+  test('SW-4. Lo que cargan las páginas de la precarga está en la precarga: sus scripts, sus hojas de estilo y sus imports estáticos', () => {
+    const precarga = precargaDelServiceWorker();
+    const leer = (u) => fs.readFileSync(path.join(RAIZ, decodeURIComponent(u)), 'utf8');
+    const resolver = (ref, desde) => decodeURIComponent(new URL(ref, `http://x${desde}`).pathname);
+    const externa = (ref) => /^(https?:)?\/\//i.test(ref) || ref.startsWith('data:');
+    const faltan = new Set();
+    for (const pagina of precarga.filter((u) => u.endsWith('.html'))) {
+      const html = leer(pagina);
+      const scripts = [...html.matchAll(/<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/gi)].map((m) => m[1]);
+      expect(scripts.length, `${pagina}: cada <script src> se ha leído`).toBe((html.match(/<script\b[^>]*\bsrc\s*=/gi) || []).length);
+      const hojas = [...html.matchAll(/<link\b[^>]*>/gi)].map((m) => m[0]).filter((t) => /\brel\s*=\s*["']?stylesheet\b/i.test(t));
+      const estilos = hojas.map((t) => /\bhref\s*=\s*["']([^"']+)["']/i.exec(t)?.[1]);
+      expect(estilos.filter((h) => !h), `${pagina}: cada hoja de estilo se ha leído`).toEqual([]);
+      for (const ref of [...scripts, ...estilos]) if (!externa(ref) && !precarga.includes(resolver(ref, pagina))) faltan.add(resolver(ref, pagina));
+    }
+    for (const fichero of precarga.filter((u) => u.endsWith('.html') || u.endsWith('.js'))) {
+      for (const m of leer(fichero).matchAll(/^\s*(?:import\s[^'"();]*?from\s*|import\s*)['"]([^'"]+)['"]/gm)) {
+        if (!externa(m[1]) && !precarga.includes(resolver(m[1], fichero))) faltan.add(resolver(m[1], fichero));
+      }
+    }
+    expect([...faltan], 'lo carga una página de la precarga y no está en ella: al arrancar sin red no llega').toEqual([]);
   });
 });
