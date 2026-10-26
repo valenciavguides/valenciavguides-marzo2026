@@ -249,38 +249,6 @@ async function esperarRespuestas(mapaRespuestas, hijosEsperados, timeoutMs, tipo
     logger.warn(`[esperarRespuestas] Timeout esperando ${tipoRespuesta} de: ${noRespondieron.join(', ')}`);
 }
 
-// Constantes para los modos de operación del sistema (diferentes a MODOS de constants.js que son 'casa'/'aventura')
-const MODOS_OPERACION = {
-    casa: {
-        nombre: 'Casa',
-        descripcion: 'Modo Casa (funcionamiento por defecto)',
-        puedeCambiar: true
-    },
-    aventura: {
-        nombre: 'Aventura',
-        descripcion: 'Modo Aventura (usuario en ruta)',
-        puedeCambiar: true
-    },
-    mantenimiento: {
-        nombre: 'Mantenimiento',
-        descripcion: 'Modo para realizar tareas de mantenimiento',
-        puedeCambiar: true,
-        requiereAutenticacion: true
-    },
-    depuracion: {
-        nombre: 'Depuración',
-        descripcion: 'Modo para depuración con logs detallados',
-        puedeCambiar: true,
-        requiereAutenticacion: true
-    },
-    emergencia: {
-        nombre: 'Emergencia',
-        descripcion: 'Modo para situaciones de emergencia',
-        puedeCambiar: true,
-        requiereAutenticacion: true
-    }
-};
-
 // Al entrar en AVENTURA, la interfaz no se actualiza hasta que los hijos están listos (o pasa el plazo). La parada por defecto
 // no se elige aquí: la elige un solo sitio, ensureDefaultParada() del padre, que no hace nada si ya hay un elemento en curso
 // (estudio K-61: un segundo camino aquí activaba la parada de inicio en cada vuelta a AVENTURA desde CASA).
@@ -369,7 +337,6 @@ export async function manejarCambioModo(estado, mensaje) {
     // Normalizar modo usando helper centralizado
     const modoNormalized = canonicalizarModo(modo); // 'casa'|'aventura' or null
     const modosKeys = Object.keys(MODOS); // ['CASA','AVENTURA']
-    const modoKey = modosKeys.find(k => MODOS[k] === modoNormalized) || null;
 
     try {
         // 2. Validar modo solicitado (ahora normalizado)
@@ -415,19 +382,7 @@ export async function manejarCambioModo(estado, mensaje) {
 
         (globalThis.registrarEvento ?? registrarEvento)('CAMBIO_MODO', eventoCambioModo);
 
-        // 5. Validar permisos (si es necesario) - comprobar en MODOS_OPERACION de forma segura
-        // Buscar configuración de permisos en MODOS_OPERACION usando varias formas de key
-        const permisoCfg = MODOS_OPERACION?.[modoNormalized] || MODOS_OPERACION?.[modoKey?.toLowerCase?.()] || MODOS_OPERACION?.[modoKey];
-        if (permisoCfg?.requiereAutenticacion) {
-            const tienePermisos = await validarPermisosCambioModo(mensaje.origen, modoNormalized);
-            if (!tienePermisos) {
-                const errorMsg = 'No tiene permisos para cambiar a este modo';
-                logger.warn(`${logPrefix} ${errorMsg}`, { origen: mensaje.origen, modo: modoNormalized });
-                return { exito: false, error: errorMsg };
-            }
-        }
-
-        // 6. Notificar inicio del cambio de modo
+        // 5. Notificar inicio del cambio de modo
         logger.info(`${logPrefix} Iniciando cambio de modo '${modoActual}' a '${modoNormalized}'`, {
             motivo,
             origen: mensaje.origen,
@@ -464,14 +419,10 @@ export async function manejarCambioModo(estado, mensaje) {
             // handlers de SISTEMA.NOTIFICACION del proyecto (hijo2, hijo4) solo miran
             // datos.evento, nunca datos.tipo — sin consumidor posible por diseño.
 
-            // 8.1 Al entrar en AVENTURA, esperar a los hijos antes de actualizar la interfaz (valores normalizados)
-            if (modoKey === 'AVENTURA' || modoNormalized === MODOS.AVENTURA) await _esperarHijosAlEntrarEnAventura();
+            // 6. Al entrar en AVENTURA, esperar a los hijos antes de actualizar la interfaz
+            if (modoNormalized === MODOS.AVENTURA) await _esperarHijosAlEntrarEnAventura();
 
-            // (Estado ya actualizado de forma optimista antes) - asegurar campos mínimos
-            estado.modo = estado.modo || {};
-            estado.modo.actual = estado.modo.actual || modoNormalized;
-
-            // 10. Actualizar interfaz según el modo (no bloquear>5s por interfaz)
+            // 7. Actualizar interfaz según el modo (no bloquear>5s por interfaz)
             const hijosInicializados = estado.hijosInicializados ? Array.from(estado.hijosInicializados) : [];
             logger.info(`${logPrefix} Iniciando actualización de interfaz para ${hijosInicializados.length} hijos: ${hijosInicializados.join(', ')}`);
             await withTimeout(actualizarInterfazModo(estado, modoNormalized), 15000, 'actualizarInterfazModo');
@@ -487,7 +438,7 @@ export async function manejarCambioModo(estado, mensaje) {
             // — se mandaba un SISTEMA.NOTIFICACION{datos.tipo:'cambio_modo_completado'} a
             // broadcast sin consumidor posible.
 
-            // 12. Registrar éxito
+            // 8. Registrar éxito
             logger.info(`${logPrefix} Cambio de modo completado exitosamente`, {
                 modoAnterior: modoActual,
                 modoNuevo: modoNormalized,
@@ -548,15 +499,6 @@ export async function manejarCambioModo(estado, mensaje) {
             modoActual: estado.modo?.actual
         };
     }
-}
-
-/**
- * Valida los permisos para cambiar a un modo específico
- * @private
- */
-async function validarPermisosCambioModo(origen, modo) {
-    // Implementar lógica de validación de permisos
-    return true;
 }
 
 /**

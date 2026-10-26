@@ -468,6 +468,17 @@ de andamiaje original, nunca modificado desde entonces, mismo patrón que C4. An
 transparencia (no se descarta un hallazgo real solo por no encajar en la plantilla), pero no
 forma parte de la Parte II de este estudio.
 
+**Retirado (2026-10-26), por el principio del usuario (sin código muerto).** Releído antes: `manejarCambioModo()` normaliza el
+modo con `canonicalizarModo()` y sale con error si no es `'casa'` ni `'aventura'`; las dos entradas de `MODOS_OPERACION` para
+esos modos no llevan `requiereAutenticacion`, así que la rama de permisos no se toma nunca, y `nombre`, `descripcion` y
+`puedeCambiar` no los lee nadie (búsqueda desnuda). Fuera `MODOS_OPERACION`, el paso de permisos y
+`validarPermisosCambioModo()`. De paso, dos cosas del mismo cuerpo: `modoKey` solo servía a ese paso y a una condición doble,
+`modoKey === 'AVENTURA' || modoNormalized === MODOS.AVENTURA`, que son la misma pregunta; y la segunda escritura del modo
+(«asegurar campos mínimos», `estado.modo.actual || modoNormalized`) no cambiaba nada: entre la primera y ella no escribe el
+modo nadie (búsqueda de escrituras de `modo.actual`: la primera, ella y la restauración del `catch`). Los pasos numerados del
+cuerpo se renumeran del 1 al 8. Specs de cambio de modo y reanudación en chromium (06, 09, 25, 30, 36, 40, 46, 84, 112 y
+128), 63 de 63. La guía no describía nada de esto.
+
 ## Candidatos ya cerrados por la propia guía (no reabrir sin decir qué cambió — regla 1b)
 
 - `NAVEGACION.LLEGADA_DETECTADA` — dos sensores redundantes (`funciones-mapa.js` +
