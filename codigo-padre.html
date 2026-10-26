@@ -2764,11 +2764,6 @@
         //
         // ─────────────────────────────────────────────────────────────────
 
-        // Helper function for sleep/delay - defined early to avoid ReferenceError
-        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-        // Make sleep available globally for all scripts
-        globalThis.sleep = sleep;
-
                 // Inicializar todos los hijos críticos usando la mejora de onload
         // ✅ Helper para actualizar mensaje de carga
         let _loadingProgressValue = 0;
@@ -2881,7 +2876,7 @@
             (globalThis.logger || console).debug(`[LOADING] ${message}${details ? ' - ' + details : ''}`);
         };
 
-        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable } from './js/utils.js';
+        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep } from './js/utils.js';
         globalThis.resolverIdsParada = resolverIdsParada;
         globalThis.retryUntilAvailable = retryUntilAvailable;
         import { DATOS_PADRE } from './js/aventuras-ID-padre.js';
@@ -9063,7 +9058,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // ============================================================
         // Importación de módulos
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_S2, MODOS: MODOS_S2 } = await import('./js/constants.js');
-        const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2, normalizarParadas: normalizarParadas_S2 } = await import('./js/utils.js');
+        const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2, normalizarParadas: normalizarParadas_S2, sleep } = await import('./js/utils.js');
         const { DATOS_PADRE } = await import('./js/aventuras-ID-padre.js');
 
         const loggerScript2 = (await import('./js/logger.js')).default;
@@ -9083,9 +9078,6 @@ await _comprobarReanudacionAventura(logPrefix);
         // El reproductor de TIEMPO_ACABADO existe desde el arranque: el primer gesto en el padre lo desbloquea (iOS)
         // y así puede sonar cuando el aviso llega sin gesto (temporizador de hijo1).
         precargarEfectos_S2([EFECTOS_S2.TIEMPO_ACABADO]);
-
-
-        const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
 
         // ============================================================
         // SISTEMA DE SNAPSHOT — recuperación de estado tras heartbeat reload
@@ -13829,7 +13821,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         // NOTA: inicializarMensajeria ya fue llamada en Script 1
         // ============================================================
 
-        const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
+        import { sleep } from './js/utils.js';
         // mensajeria.js ya importado en Script 1 - esperar a que esté disponible antes de destructurar
         let _waitMs4 = 0;
         while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function') {
