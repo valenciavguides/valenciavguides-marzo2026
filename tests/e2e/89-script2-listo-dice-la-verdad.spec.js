@@ -127,7 +127,7 @@ test.describe('S2 — script2Listo dice la verdad', () => {
 /**
  * S2-4 — el marcado espera a Script 1 aunque su último import tarde.
  *
- * Script 1 registra los tres DATOS.SOLICITAR_* detrás de `await import('./js/controladores-padre.js')`.
+ * Script 1 registra los DATOS.SOLICITAR_* (audios y retos) detrás de `await import('./js/controladores-padre.js')`.
  * S2-1 solo lo caza cuando ese import pierde la carrera por sí solo (en firefox, 3 de cada 4
  * arranques; en chromium casi nunca). Aquí se fuerza: el fichero llega 2 s tarde, y el marcado
  * tiene que esperarlo igual.
@@ -135,7 +135,7 @@ test.describe('S2 — script2Listo dice la verdad', () => {
  * Sin service worker a propósito: `page.route` no ve lo que sirve un service worker, y en
  * firefox el retraso no llegaba a aplicarse (medido).
  *
- * ROJO ANTES QUE VERDE: medido sin la espera a `__vv_registroScript1`, los tres faltan al
+ * ROJO ANTES QUE VERDE: medido sin la espera a `__vv_registroScript1`, todos faltaban al
  * marcar en 4 de 4 arranques, en chromium y en firefox.
  */
 test.describe('S2-5 — el arranque espera a Script 2', () => {
@@ -181,7 +181,6 @@ test.describe('S2-4 — el marcado espera a Script 1 aunque su último import ta
     const alMarcar = await page.evaluate(() => globalThis.__marcados[0].tipos);
     expect(alMarcar).toEqual(expect.arrayContaining([
       'DATOS.SOLICITAR_AUDIOS',
-      'DATOS.SOLICITAR_TEXTOS',
       'DATOS.SOLICITAR_RETOS',
     ]));
   });

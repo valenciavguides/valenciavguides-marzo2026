@@ -4,21 +4,22 @@
  * Cobertura de js/controladores-padre.js (DT-1 Opción B).
  *
  * Verifica que tras FASE 1 (globalThis.__MENSAJERIA_INICIADA === true):
- *   CP-1  Los 4 tipos extraídos están en __CONTROLADOR_REGISTRADOS
+ *   CP-1  Los 3 tipos extraídos están en __CONTROLADOR_REGISTRADOS
  *         (confirma que el dynamic import de controladores-padre.js completó)
- *   CP-2  Los 4 tipos NO están en __vv_manejadoresLocales
+ *   CP-2  Los 3 tipos NO están en __vv_manejadoresLocales
  *         (confirma que llegaron al state-manager, no al fallback)
- *   CP-3  El total de tipos en __CONTROLADOR_REGISTRADOS incluye los 4 extraídos
+ *   CP-3  El total de tipos en __CONTROLADOR_REGISTRADOS incluye los 3 extraídos
  *         (regresión: el refactor no redujo el número total de controladores)
  *   CP-4  Enviar SOLICITAR_AUDIOS sintético: el padre responde con
  *         AUDIO.REPRODUCIR_REQUEST (protección pasiva por parada — ya no
  *         reenvía CARGAR_AUDIOS con la aventura completa, ver §16 de la guía)
- *   CP-5  Enviar SOLICITAR_TEXTOS sintético: el padre devuelve CARGAR_TEXTOS
- *   CP-6  Enviar SOLICITAR_RETOS sintético: el padre responde con RETO.MOSTRAR
+ *   CP-5  Enviar SOLICITAR_RETOS sintético: el padre responde con RETO.MOSTRAR
  *         (mismo motivo que CP-4)
- *   CP-7  Enviar SOLICITAR_COORDENADAS sintético: el padre devuelve CARGAR_COORDENADAS
- *   CP-8  Enviar SOLICITAR_DATOS_PARADAS sintético: el padre devuelve
+ *   CP-6  Enviar SOLICITAR_DATOS_PARADAS sintético: el padre devuelve
  *         RESPUESTA_DATOS_PARADAS (o maneja la ausencia de datos sin lanzar)
+ *
+ * Los textos y las coordenadas no se piden: hijo2 no guarda ninguna lista, y lo que enseñan sus
+ * botones lo resuelve el padre (docs/estudio-caminos.md, K-130; spec 152).
  */
 'use strict';
 
@@ -28,11 +29,10 @@ const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./help
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
-/** Los 4 tipos extraídos a js/controladores-padre.js */
+/** Los 3 tipos extraídos a js/controladores-padre.js */
 const TIPOS_EXTRAIDOS = [
   'NAVEGACION.SOLICITAR_DATOS_PARADAS',
   'DATOS.SOLICITAR_AUDIOS',
-  'DATOS.SOLICITAR_TEXTOS',
   'DATOS.SOLICITAR_RETOS',
 ];
 
@@ -44,7 +44,7 @@ test.describe('CP — Controladores de datos extraídos (js/controladores-padre.
     await gotoAndWaitForFase1(page);
     // Script 2 registra los handlers de controladores-padre.js de forma asíncrona,
     // después de que __MENSAJERIA_INICIADA sea true (FASE 1). Esperamos a que
-    // los 4 tipos aparezcan antes de que los tests los verifiquen.
+    // los 3 tipos aparezcan antes de que los tests los verifiquen.
     await page.waitForFunction(
       (tipos) => {
         const s = globalThis.__CONTROLADOR_REGISTRADOS;
@@ -56,7 +56,7 @@ test.describe('CP — Controladores de datos extraídos (js/controladores-padre.
   });
 
   // ── CP-1: Tipos extraídos en __CONTROLADOR_REGISTRADOS ──────────────────
-  test('CP-1. Los 4 tipos extraídos están en __CONTROLADOR_REGISTRADOS', async ({ page }) => {
+  test('CP-1. Los 3 tipos extraídos están en __CONTROLADOR_REGISTRADOS', async ({ page }) => {
     const result = await page.evaluate((tipos) => {
       const registrados = globalThis.__CONTROLADOR_REGISTRADOS;
       if (!(registrados instanceof Set)) return { ok: false, razon: 'Set no existe' };
@@ -81,7 +81,7 @@ test.describe('CP — Controladores de datos extraídos (js/controladores-padre.
   });
 
   // ── CP-3: El total no se redujo respecto al baseline (≥ 11 tipos) ────────
-  test('CP-3. El total de controladores registrados es >= 11 (incluye los 4 extraídos)', async ({ page }) => {
+  test('CP-3. El total de controladores registrados es >= 11 (incluye los 3 extraídos)', async ({ page }) => {
     const setSize = await page.evaluate(() => {
       const s = globalThis.__CONTROLADOR_REGISTRADOS;
       return (s instanceof Set) ? s.size : -1;
@@ -89,7 +89,7 @@ test.describe('CP — Controladores de datos extraídos (js/controladores-padre.
     expect(setSize).toBeGreaterThanOrEqual(11);
   });
 
-  // ── CP-4 a CP-7: Smoke tests de bidireccionalidad ───────────────────────
+  // ── CP-4 a CP-6: Smoke tests de bidireccionalidad ───────────────────────
   // Enviamos un mensaje sintético de "solicitar datos" y verificamos que el
   // padre responde con el tipo de respuesta correspondiente (o maneja
   // correctamente la ausencia de datos sin lanzar excepción).
@@ -142,16 +142,7 @@ test.describe('CP — Controladores de datos extraídos (js/controladores-padre.
     expect(result.ok || result.razon.includes('timeout')).toBe(true);
   });
 
-  test('CP-5. SOLICITAR_TEXTOS → handler registrado y no lanza', async ({ page }) => {
-    const result = await enviarSolicitudYEsperarRespuesta(
-      page,
-      'DATOS.SOLICITAR_TEXTOS',
-      'DATOS.CARGAR_TEXTOS'
-    );
-    expect(result.ok || result.razon.includes('timeout')).toBe(true);
-  });
-
-  test('CP-6. SOLICITAR_RETOS → handler registrado y no lanza', async ({ page }) => {
+  test('CP-5. SOLICITAR_RETOS → handler registrado y no lanza', async ({ page }) => {
     // Mismo motivo que CP-4: CARGAR_RETOS retirado, ahora responde con RETO.MOSTRAR.
     const result = await enviarSolicitudYEsperarRespuesta(
       page,
@@ -161,16 +152,7 @@ test.describe('CP — Controladores de datos extraídos (js/controladores-padre.
     expect(result.ok || result.razon.includes('timeout')).toBe(true);
   });
 
-  test('CP-7. SOLICITAR_COORDENADAS → handler registrado y no lanza', async ({ page }) => {
-    const result = await enviarSolicitudYEsperarRespuesta(
-      page,
-      'DATOS.SOLICITAR_COORDENADAS',
-      'DATOS.CARGAR_COORDENADAS'
-    );
-    expect(result.ok || result.razon.includes('timeout')).toBe(true);
-  });
-
-  test('CP-8. SOLICITAR_DATOS_PARADAS → handler registrado y no lanza', async ({ page }) => {
+  test('CP-6. SOLICITAR_DATOS_PARADAS → handler registrado y no lanza', async ({ page }) => {
     const result = await enviarSolicitudYEsperarRespuesta(
       page,
       'NAVEGACION.SOLICITAR_DATOS_PARADAS',

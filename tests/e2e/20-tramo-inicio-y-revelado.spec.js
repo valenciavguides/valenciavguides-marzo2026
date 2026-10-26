@@ -8,14 +8,14 @@
  * mientras el tramo no esté completo. Volver al radio de .inicio limpia esa línea y
  * revela el trazado persistente de nuevo.
  *
- *   PC-1  La polyline verde manual (botón ubicación, NAVEGACION.MOSTRAR_UBICACION_POLYLINE)
- *         apuntaba siempre a Torres de Serranos (P-0) cuando el elemento activo era un
- *         TRAMO, nunca a su punto real de inicio. Causa: _resolverCoordenadasElemento()
- *         (codigo-padre.html) leía únicamente `entrada.coordenadas` de la respuesta de
- *         hijo2 — un campo que solo existe en paradas; los tramos solo tienen
- *         `.inicio`/`.fin`/`.waypoints`, así que la función devolvía null y todo tramo
- *         caía siempre al fallback fijo `_obtenerCoordenadasFallbackP0()`. El fix añade
- *         el fallback `entrada.coordenadas || entrada.inicio`.
+ *   PC-1  Con un TRAMO activo, la polyline verde manual (botón ubicación,
+ *         NAVEGACION.MOSTRAR_UBICACION_POLYLINE) va hasta su punto real de inicio: ni hasta el
+ *         punto de inicio de la aventura (Torres de Serranos, P-0) ni hasta su .fin. El destino lo
+ *         decide el padre, con el elemento en el que está el usuario y su propia tabla de
+ *         coordenadas (docs/estudio-caminos.md, K-130): _resolverCoordenadasElemento() lee
+ *         `entrada.coordenadas || entrada.inicio`, porque un tramo no tiene `.coordenadas`
+ *         (solo `.inicio`/`.fin`/`.waypoints`); sin el `.inicio`, todo tramo caía al punto de
+ *         inicio fijo de `_obtenerCoordenadasFallbackP0()`.
  *   RV-1  El trazado se revela sin depender de ninguna lectura GPS — completarCambioParada()
  *         llama a revelarNavegacion() sin condición al activar el elemento.
  *   RV-2  Una vez revelado, el trazado permanece visible aunque el usuario esté lejos de
@@ -109,59 +109,54 @@ test.describe('PC — Polyline manual a .inicio en tramos (no P-0)', () => {
     test.skip(!prep.tieneFunciones, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
     const resultado = await page.evaluate(async () => {
-      const inicioEsperado = { lat: 39.47000, lng: -0.38000 };
-      const finLejano = { lat: 39.47500, lng: -0.37500 }; // deliberadamente lejos de .inicio
-      const original = globalThis.solicitarCoordenadasHijo;
-      // Simula la respuesta real de hijo2 a DATOS.COORDENADAS_PARADAS_REQUEST para un
-      // tramo: el objeto crudo de coordenadas-aventuras.js, sin campo .coordenadas.
-      globalThis.solicitarCoordenadasHijo = async () => ({
-        coordenadas: [{ id: 'Av1-TR-1', tipo: 'tramo', inicio: inicioEsperado, fin: finLejano, waypoints: [] }],
-        total: 1,
-        exito: true,
-      });
-      try {
-        globalThis.postMessage({
-          tipo: 'NAVEGACION.MOSTRAR_UBICACION_POLYLINE',
-          origen: 'hijo2',
-          destino: 'padre',
-          datos: {
-            elementoId: 'Av1-TR-1',
-            ubicacionUsuario: { lat: 39.46000, lng: -0.39000 },
-            centrar: false,
-          },
-        }, globalThis.location.origin);
+      // Un tramo real de Aventura1 cuyo .inicio no coincide ni con el punto de inicio de la aventura
+      // ni con su .fin, así que el destino dibujado dice cuál de los tres eligió el padre. Se le pone
+      // como elemento actual del padre (atajo del arnés, como limpiarPorEstado() más arriba): hijo2
+      // solo manda su posición, y el destino sale de ahí.
+      const { DATOS_PADRE } = await import('/js/aventuras-ID-padre.js');
+      const fila = DATOS_PADRE.Aventura1.es.elementosIDpadre.find((f) => f.tramo_id === 'Av1-TR-4');
+      const entradas = globalThis.__vv_DATOS_AVENTURAS.Aventura1['coordenadas-hijo2.html'].coordenadas;
+      const tramo = entradas.find((e) => e.id === 'Av1-TR-4');
+      const inicioAventura = entradas.find((e) => e.tipo === 'inicio').coordenadas;
+      globalThis.estadoPadre.elementoActual = fila;
+      globalThis.postMessage({
+        tipo: 'NAVEGACION.MOSTRAR_UBICACION_POLYLINE',
+        origen: 'hijo2',
+        destino: 'padre',
+        datos: { ubicacionUsuario: { lat: 39.46000, lng: -0.39000 }, centrar: false },
+      }, globalThis.location.origin);
 
-        // Sondeo en vez de espera fija: el roundtrip async (postMessage → mock de
-        // solicitarCoordenadasHijo → dibujarPolylineNavegacion) puede tardar más de lo
-        // habitual bajo carga (toda la suite corriendo a la vez) — un delay fijo corto
-        // volvía el test intermitente en proyectos más lentos (pixel5), aunque la función
-        // real fuera correcta. Sondear hasta 3s, devolver en cuanto aparezca la fuente.
-        let fuentes = [];
-        const limite = Date.now() + 3000;
-        while (Date.now() < limite) {
-          const mapa = globalThis.__testUltimoMapa;
-          fuentes = mapa ? Object.entries(mapa._sources).filter(([id]) => id.startsWith('vv-polyline-')) : [];
-          if (fuentes.length > 0) break;
-          await new Promise(r => setTimeout(r, 100));
-        }
-        const ultima = fuentes[fuentes.length - 1];
-        const coords = ultima ? ultima[1].data?.geometry?.coordinates : null;
-        // El último punto de la polyline (usuario→destino) es el destino resuelto, en
-        // formato MapLibre [lng, lat].
-        const destinoDibujado = coords ? coords[coords.length - 1] : null;
-        return { ok: true, destinoDibujado, totalFuentes: fuentes.length };
-      } finally {
-        globalThis.solicitarCoordenadasHijo = original;
+      // Sondeo en vez de espera fija: el roundtrip async (postMessage → handler del padre →
+      // dibujarPolylineNavegacion) puede tardar más de lo habitual bajo carga (toda la suite
+      // corriendo a la vez) — un delay fijo corto volvía el test intermitente en proyectos más
+      // lentos (pixel5), aunque la función real fuera correcta. Sondear hasta 3s, devolver en
+      // cuanto aparezca la fuente.
+      let fuentes = [];
+      const limite = Date.now() + 3000;
+      while (Date.now() < limite) {
+        const mapa = globalThis.__testUltimoMapa;
+        fuentes = mapa ? Object.entries(mapa._sources).filter(([id]) => id.startsWith('vv-polyline-')) : [];
+        if (fuentes.length > 0) break;
+        await new Promise(r => setTimeout(r, 100));
       }
+      const ultima = fuentes[fuentes.length - 1];
+      const coords = ultima ? ultima[1].data?.geometry?.coordinates : null;
+      // El último punto de la polyline (usuario→destino) es el destino resuelto, en
+      // formato MapLibre [lng, lat].
+      const destinoDibujado = coords ? coords[coords.length - 1] : null;
+      return { hayFila: !!fila, destinoDibujado, totalFuentes: fuentes.length, inicio: tramo.inicio, fin: tramo.fin, inicioAventura };
     });
 
-    test.skip(!resultado.ok || resultado.totalFuentes === 0, `No se dibujó ninguna polyline: ${JSON.stringify(resultado)}`);
+    expect(resultado.hayFila, 'Av1-TR-4 tiene fila en el itinerario de Aventura1').toBe(true);
+    // Control: los tres destinos posibles están separados (si coincidieran, acertar no probaría nada).
+    const separacion = (a, b) => Math.abs(a.lat - b.lat) + Math.abs(a.lng - b.lng);
+    expect(separacion(resultado.inicio, resultado.inicioAventura), 'el .inicio del tramo no es el punto de inicio de la aventura').toBeGreaterThan(0.0005);
+    expect(separacion(resultado.inicio, resultado.fin), 'el .inicio del tramo no es su .fin').toBeGreaterThan(0.0005);
+    expect(resultado.totalFuentes, `se dibuja la polyline: ${JSON.stringify(resultado)}`).toBeGreaterThan(0);
 
     const [lngDibujado, latDibujado] = resultado.destinoDibujado;
-    // Debe coincidir con inicioEsperado (39.47000, -0.38000), no con P-0 (Torres de
-    // Serranos, ~39.4762/-0.3762) ni con finLejano (39.47500, -0.37500).
-    expect(latDibujado, `La polyline debe apuntar a .inicio del tramo, no a P-0 ni a .fin. Destino dibujado: ${JSON.stringify(resultado.destinoDibujado)}`).toBeCloseTo(39.47000, 3);
-    expect(lngDibujado, `La polyline debe apuntar a .inicio del tramo, no a P-0 ni a .fin. Destino dibujado: ${JSON.stringify(resultado.destinoDibujado)}`).toBeCloseTo(-0.38000, 3);
+    expect(latDibujado, `La polyline debe apuntar a .inicio del tramo, no a P-0 ni a .fin. Destino dibujado: ${JSON.stringify(resultado.destinoDibujado)}`).toBeCloseTo(resultado.inicio.lat, 5);
+    expect(lngDibujado, `La polyline debe apuntar a .inicio del tramo, no a P-0 ni a .fin. Destino dibujado: ${JSON.stringify(resultado.destinoDibujado)}`).toBeCloseTo(resultado.inicio.lng, 5);
   });
 });
 
@@ -380,7 +375,7 @@ test.describe('UB — _obtenerUbicacionUsuario(): fallback a GPS fresco cuando e
           tipo: globalThis.TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE,
           origen: 'hijo2',
           destino: 'padre',
-          datos: { ubicacionUsuario: null, proximoElemento: null, elementoId: 'Av1-P-1' },
+          datos: { ubicacionUsuario: null },
         }, globalThis.location.origin);
         setTimeout(() => resolve({ llamado: false }), 4000);
       });

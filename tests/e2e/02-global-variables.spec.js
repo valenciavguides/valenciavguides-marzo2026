@@ -109,11 +109,6 @@ test.describe('Globals requeridas tras FASE 1', () => {
     expect(ok).toBe(true);
   });
 
-  test('1f. globalThis.ajustarTimeoutPorConexionSafe existe como función (wrapper seguro)', async ({ page }) => {
-    const ok = await page.evaluate(() => typeof globalThis.ajustarTimeoutPorConexionSafe === 'function');
-    expect(ok).toBe(true);
-  });
-
   // ── CONFIG_PADRE ───────────────────────────────────────────────────────
 
   // CONFIG_PADRE lleva solo la clave que el código lee (LOG_PREFIX). Las otras cuatro del prerequisito de arriba

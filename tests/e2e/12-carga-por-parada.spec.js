@@ -21,8 +21,9 @@
  *         audio-intro-es a hijo3 (protección por parada activa, no bloque completo).
  *   PP-2  Activar 3 paradas secuenciales: cada una resuelve su propio audio_id
  *         distinto (intro / audio-Av1-P-0-es / audio-Av1-P-1-es).
- *   PP-3  distribuirDatosAventura() ya no reporta 'audios'/'retos' — el
- *         broadcast masivo (DATOS.CARGAR_AUDIOS/CARGAR_RETOS) está retirado.
+ *   PP-3  distribuirDatosAventura() no reparte nada en bloque: ni audios ni retos ni las
+ *         coordenadas y los textos que recibía hijo2 (K-130). Llega hasta el final sin
+ *         reportar ninguno de los cuatro.
  *   PP-4  Sin aventura elegida, un cambio de parada no se resuelve contra ninguna
  *         otra (ni una guardada en el navegador ni Aventura1): no cambia la parada,
  *         contesta el error y lo dice en la consola.
@@ -125,7 +126,7 @@ test.describe('PP — Protección pasiva por parada (audio/reto en línea, sin b
     }
   });
 
-  test('PP-3. distribuirDatosAventura() ya no reporta audios/retos en bloque', async ({ page }) => {
+  test('PP-3. distribuirDatosAventura() no reparte nada en bloque', async ({ page }) => {
     await esperarPipelineListo(page);
     const prep = await page.evaluate(async () => {
       globalThis.aventuraSeleccionada = 'Aventura1';
@@ -139,13 +140,14 @@ test.describe('PP — Protección pasiva por parada (audio/reto en línea, sin b
 
     const resultado = await page.evaluate(async () => {
       const r = await globalThis.distribuirDatosAventura(globalThis.aventuraSeleccionada, globalThis.idiomaSeleccionado);
-      return { resultados: r?.resultados ? Object.keys(r.resultados) : [] };
+      return { pospuesto: r?.pospuesto, resultados: r?.resultados ? Object.keys(r.resultados) : [] };
     });
 
-    expect(resultado.resultados).not.toContain('audios');
-    expect(resultado.resultados).not.toContain('retos');
-    // Coordenadas y textos SÍ siguen siendo bulk — no forman parte de esta protección.
-    expect(resultado.resultados).toContain('coordenadas');
+    // Control: la distribución llegó hasta el final (sin él, una lista vacía no probaría nada).
+    expect(resultado.pospuesto, 'la distribución no se pospone: los datos de la fase 2 están cargados').toBe(false);
+    for (const enBloque of ['audios', 'retos', 'coordenadas', 'textos']) {
+      expect(resultado.resultados, `no reparte ${enBloque} en bloque`).not.toContain(enBloque);
+    }
   });
 
   test('PP-4. Sin aventura elegida, un cambio de parada no se resuelve contra ninguna otra', async ({ page }) => {

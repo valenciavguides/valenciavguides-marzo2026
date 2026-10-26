@@ -16,7 +16,8 @@
  * (`_hijosConCapaAbierta`): el aviso tarda lo que un mensaje, y un dedo no pulsa tan rápido.
  *
  * Aquí «atrás» es `history.back()` en el padre, el mismo `popstate` que da el botón del móvil. Ningún otro spec lo
- * pulsa: los que abren el diálogo de vuelta lo hacen llamando a su función.
+ * pulsa: los que abren el diálogo de vuelta lo hacen llamando a su función. Cada caso arranca en el punto de inicio, y
+ * antes de empezar cierra el cartel de llegada que sale allí (`arrancarAventura`).
  *
  *   BA-1  Sesión recién abierta: el primer «atrás» enseña el diálogo; el segundo lo cierra («Continuar») y la
  *         aventura sigue; el tercero lo vuelve a enseñar. La aplicación no se abandona en ningún momento.
@@ -52,6 +53,8 @@ const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./help
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 const seleccion = (page) => page.frames().find((f) => f.name() === 'seleccion');
+/** Donde está el usuario: el punto de inicio de la Aventura1 (Torres de Serranos). */
+const INICIO = { latitude: 39.47876, longitude: -0.37626 };
 
 async function arranqueTerminado(page) {
   await page.waitForFunction(() => globalThis.sistemaInicializado === true, null, { timeout: 45_000 });
@@ -83,6 +86,17 @@ async function arrancarAventura(page, aventura) {
       && getComputedStyle(document.getElementById('loading-overlay')).display === 'none',
     aventura, { timeout: 60_000 },
   );
+  // En el punto de inicio sale el cartel de llegada, con la ✕ común: una capa más, y «atrás» la cierra antes que nada.
+  // Sale cuando una lectura del GPS se procesa ya en AVENTURA. El GPS real da una cada poco; el emulado da una sola, al
+  // encenderse en P15, y llegar antes o después del paso a AVENTURA es una carrera de milisegundos: con el cartel a la
+  // vista, el «atrás» del caso lo cerraba a él, y el caso fallaba unas veces sí y otras no. Aquí se da la lectura
+  // siguiente, la que daría el GPS real (como el spec 32), y el cartel se cierra con su ✕, como lo cerraría el usuario:
+  // cada caso empieza sin nada delante.
+  await page.evaluate((c) => globalThis.funcionesMapa.procesarPosicionGPSParaAventura({ coords: { ...c, accuracy: 8 } }), INICIO);
+  const cartel = page.locator('#cartel-llegada-parada');
+  await expect(cartel, 'el cartel de llegada al inicio').toHaveCount(1);
+  await cartel.locator('.btn-cerrar-overlay').click();
+  await expect(cartel).toHaveCount(0);
 }
 
 const hayDialogo = (page) => page.evaluate(() => !!document.getElementById('btn-vuelta-continuar'));
@@ -108,7 +122,7 @@ test.describe('BA — el botón atrás, como en una app nativa', () => {
   test.beforeEach(async ({ page, context }) => {
     // La normativa enciende el GPS: el permiso y la posición se dan ANTES de abrir la página.
     await context.grantPermissions(['geolocation']);
-    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    await context.setGeolocation(INICIO);
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);

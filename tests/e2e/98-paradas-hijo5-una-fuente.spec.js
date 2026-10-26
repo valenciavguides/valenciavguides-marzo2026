@@ -8,7 +8,7 @@
  * distinta:
  *   - Empuje (`distribuirDatosAventura()`, activación real; `_enviarRespuestaParadasHijosRest()`,
  *     reanudación): mapeaba a mano `__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html']
- *     .coordenadas` — el fichero crudo de coordenadas, pensado para el mapa de hijo2, que incluye
+ *     .coordenadas` — el fichero crudo de coordenadas, que incluye
  *     entradas `tipo: "referencia"` (Torres de Serranos, Palacio de los Borgia...).
  *   - Petición (`SOLICITAR_DATOS_PARADAS`, cuando hijo5 se autoconsulta): usa
  *     `normalizarParadas_S1(DATOS_PADRE[aventura][idioma].elementosIDpadre)` — la fuente que el

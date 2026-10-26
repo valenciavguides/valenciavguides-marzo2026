@@ -11,8 +11,7 @@
 
 // Importar mensajería y configuración
 import {
-    enviarMensaje,
-    registrarControlador
+    enviarMensaje
 } from './mensajeria.js';
 import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
@@ -1914,52 +1913,28 @@ async function manejarCambiarParada(mensaje) {
 
         logger.info(`${logPrefix} Iniciando consulta de coordenadas para parada ${paradaId}`);
 
-        // Red de seguridad: si hijo2 no responde en 8s, limpiar el lock para no bloquear zooms futuros
-        const _timeoutSeguridad = setTimeout(() => {
-            if (estadoMapa.consultaParadaPendiente?.paradaId === resolvedParadaId) {
-                logger.warn(`${logPrefix} Timeout de seguridad: sin respuesta de hijo2 para ${resolvedParadaId} — limpiando lock`);
-                estadoMapa.consultaParadaPendiente = null;
-                estadoMapa.esperandoCoordenadas = false;
-                estadoMapa.datosRecopilados = {};
-                _procesarSiguienteEnCola();
-            }
-        }, 8000);
-
-        // Ruta 1: caché local del padre (mismo window, sin postMessage, sin race condition)
-        const _aventura = globalThis.aventuraSeleccionada;
-        const _datosAv = globalThis.__vv_DATOS_AVENTURAS?.[_aventura];
-        const _todasCoords = _datosAv?.['coordenadas-hijo2.html']?.coordenadas || [];
-        const _entrada = _todasCoords.find(c => c.id === resolvedParadaId);
-        if (_entrada) {
-            const _lat = _entrada.lat ?? _entrada.coordenadas?.lat ?? _entrada.inicio?.lat;
-            const _lng = _entrada.lng ?? _entrada.coordenadas?.lng ?? _entrada.inicio?.lng;
-            if (_lat != null && _lng != null) {
-                clearTimeout(_timeoutSeguridad);
-                logger.info(`${logPrefix} Coordenadas del caché local (globalThis.__vv_DATOS_AVENTURAS) — zoom sin postMessage`);
-                await procesarRespuestaConsulta('coordenadas', {
-                    paradaId: resolvedParadaId,
-                    id: _entrada.id,
-                    tipo: _entrada.tipo,
-                    nombre: _entrada.nombre,
-                    lat: _lat,
-                    lng: _lng,
-                    coordenadas: _entrada.coordenadas || _entrada.inicio || { lat: _lat, lng: _lng },
-                    coordenadasFin: _entrada.fin || null,
-                    waypoints: _entrada.waypoints || [],
-                    imagen: _entrada.imagen || null,
-                    video: _entrada.video || null
-                });
-                return { exito: true, estado: 'coordenadas_cache_local' };
-            }
+        // Las coordenadas son las de la entrada que se acaba de encontrar, en la tabla de la aventura que
+        // el padre ya tiene (AVENTURA_PARADAS): en este mismo window, sin pedírselas a ningún hijo
+        // (docs/estudio-caminos.md, K-130). Una parada trae .coordenadas; un tramo, .inicio/.fin/.waypoints.
+        const _lat = paradaBase.lat ?? paradaBase.coordenadas?.lat ?? paradaBase.inicio?.lat;
+        const _lng = paradaBase.lng ?? paradaBase.coordenadas?.lng ?? paradaBase.inicio?.lng;
+        if (_lat == null || _lng == null) {
+            throw new Error(`El elemento ${resolvedParadaId} no tiene coordenadas en la tabla de la aventura`);
         }
-
-        // Ruta 2 (fallback): pedir coordenadas a hijo2 vía postMessage
-        logger.info(`${logPrefix} Parada ${resolvedParadaId} no encontrada en caché local — solicitando a hijo2`);
-        await enviarConsultaCoordenadas(resolvedParadaId, resolvedPadreId);
-
-        logger.info(`${logPrefix} Consulta enviada a hijo2, esperando respuesta`);
-
-        return { exito: true, estado: 'consultas_enviadas' };
+        await procesarRespuestaConsulta('coordenadas', {
+            paradaId: resolvedParadaId,
+            id: paradaBase.id,
+            tipo: paradaBase.tipo,
+            nombre: paradaBase.nombre,
+            lat: _lat,
+            lng: _lng,
+            coordenadas: paradaBase.coordenadas || paradaBase.inicio || { lat: _lat, lng: _lng },
+            coordenadasFin: paradaBase.fin || null,
+            waypoints: paradaBase.waypoints || [],
+            imagen: paradaBase.imagen || null,
+            video: paradaBase.video || null
+        });
+        return { exito: true, estado: 'coordenadas_cache_local' };
 
     } catch (error) {
         logger.error(`${logPrefix} Error al procesar cambio de parada: ${error.message}`, error);
@@ -1990,31 +1965,6 @@ async function manejarCambiarParada(mensaje) {
 }
 
 /**
- * Envía consulta de coordenadas a hijo2
- * @param {string} paradaId - ID de la parada
- */
-async function enviarConsultaCoordenadas(paradaId, padreId) {
-    const mensajeId = generarIdUnico();
-    enviarMensaje({
-        destino: 'hijo2',
-        tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_COORDENADAS,
-        mensajeId,
-        datos: {
-            paradaId,
-            padreId,
-            // Literal a propósito: el handler en coordenadas-hijo2.html exige
-            // tipoConsulta === 'COORDENADAS' exacto. Sacarlo de lo que hijo2 declara de sí mismo
-            // en su HIJO_PREPARADO serían dos sitios sin relación declarada entre sí, en archivos
-            // distintos, que solo coinciden porque hijo2 elige ese mismo string por su cuenta:
-            // cambiar uno sin tocar el otro rompe en silencio esta consulta de respaldo, que se
-            // usa solo cuando la caché local del padre no tiene la parada.
-            tipoConsulta: 'COORDENADAS'
-        }
-    });
-}
-
-
-/**
  * Procesa respuestas de consultas y actualiza mapa cuando todas llegan
  */
 async function procesarRespuestaConsulta(tipo, datos) {
@@ -2039,17 +1989,6 @@ async function procesarRespuestaConsulta(tipo, datos) {
         if (tipo === 'coordenadas') {
             estadoMapa.datosRecopilados.coordenadas = datos;
             estadoMapa.esperandoCoordenadas = false;
-            // No hace falta reenviar imagen/video a hijo2 aquí: hijo2 ya tiene la aventura
-            // completa (con imagen/video de cada parada) en globalThis.__vv_coordenadasAventura
-            // desde DATOS.CARGAR_COORDENADAS, que llega una vez al activar la aventura, antes de
-            // que exista ningún CAMBIO_PARADA — esta consulta (Route 2 de manejarCambiarParada)
-            // solo se dispara cuando la CACHÉ DEL PADRE no tiene la parada, algo independiente de
-            // si hijo2 la tiene. Reenviarlo aquí reutilizaba NAVEGACION.RESPUESTA_DATOS_PARADAS
-            // (pensado para el array completo) con un solo elemento; el guard antiduplicados de
-            // ese handler en hijo2 (paradas.length > 5) no distinguía este caso, así que
-            // sobreescribía estadoComponente.arrayParadasLocal con un array de 1 elemento —
-            // sin efecto real (arrayParadasLocal solo se usa para logging en ese mismo handler),
-            // pero confuso de leer y con un envío que no aportaba nada.
         }
 
         logger.info(`${logPrefix} Datos recopilados para ${paradaId}`);
@@ -2605,15 +2544,11 @@ export function sincronizarModoMapa(modo) {
 }
 
 /**
- * Registra los manejadores de mensajes para el mapa.
+ * Registra el oyente del cambio de parada para el mapa: el evento vv-parada-cambiada que dispara el padre.
+ * Ningún mensaje del bus llega a este módulo; los atiende el padre.
  */
 export function registrarManejadoresMensajes() {
     try {
-        // Validar que la función registrarControlador está disponible
-        if (typeof registrarControlador !== 'function') {
-            throw new TypeError('La función registrarControlador no está disponible');
-        }
-
         // Controladores de navegación adicionales
         // NOTA: SISTEMA.CAMBIO_MODO lo registra _hdl_SISTEMA_CAMBIO_MODO en codigo-padre.html Script 1
         // (permanente: true). Ese handler llama a globalThis.funcionesMapa.manejarCambioModoMapa()
@@ -2642,16 +2577,6 @@ export function registrarManejadoresMensajes() {
         // paradaListaParaAvanzar y revelarNavegacion; GPS.DESACTIVAR no tiene handler).
         // Si se registrasen aquí primero, state-manager bloquearía el registro de Script 2
         // por "Controlador duplicado" y el handler incompleto de funciones-mapa ganaría.
-
-
-        // Controlador para solicitar paradas con proximidad avanzada
-        // ...existing code...
-
-
-        // Controladores para respuestas de consultas de cambio de parada
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.RESPUESTA_COORDENADAS, async (mensaje) => {
-            await procesarRespuestaConsulta('coordenadas', mensaje.datos);
-        });
 
         logger.debug('[funciones-mapa] Manejadores de mensajes del mapa registrados correctamente');
         return true;

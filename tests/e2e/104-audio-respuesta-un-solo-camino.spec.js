@@ -14,10 +14,10 @@
  * que `estado.audioActual` lo fija únicamente `AUDIO.ESTADO_ACTUALIZADO` — así que el mensaje
  * aparte no tenía ya ningún consumidor real, solo logging.
  *
- * De los otros 4 envíos con acuse del proyecto (`solicitarCoordenadasHijo`/
- * `_solicitarParadaAHijo2` → hijo2, `CHAT.RESCATE_SOLICITADO` → padre, `NAVEGACION.GPS.ACTIVAR`
- * → padre, `RETO.COMPLETADO` → padre) ninguno tiene este patrón: cada uno contesta solo con el
- * valor de retorno.
+ * De los otros envíos con acuse del proyecto (`SELECCION.IDIOMA_SELECCIONADO` y
+ * `SELECCION.AVENTURA_SELECCIONADA` → padre, `CHAT.RESCATE_SOLICITADO` → padre,
+ * `NAVEGACION.GPS.ACTIVAR` → padre, `RETO.COMPLETADO` → padre) ninguno tiene este patrón: cada
+ * uno contesta solo con el valor de retorno.
  *
  * RR-1  Camino real: tras un AUDIO.REPRODUCIR_REQUEST con éxito, hijo3 ya no manda
  *       AUDIO.REPRODUCIR_RESPONSE — la información viaja solo por el acuse.

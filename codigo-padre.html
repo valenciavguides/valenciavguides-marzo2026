@@ -3783,6 +3783,20 @@
             }
         };
 
+        // La entrada de un elemento en la tabla de coordenadas de la aventura elegida, por su id
+        // (`parada_id`/`tramo_id` de su fila de DATOS_PADRE): su punto (una parada) o su camino (un
+        // tramo: .inicio, .waypoints y .fin), su nombre, sus imágenes, su vídeo y su número de mapa. La
+        // usan la ventana de la imagen y la del vídeo (UI.ACCION_USUARIO, en este script) y, por
+        // globalThis, la línea de vuelta a la ruta y las precargas de la imagen y del vídeo (Script 2).
+        // hijo2 no guarda la tabla: pide, y el padre resuelve con esta función (docs/estudio-caminos.md,
+        // K-130).
+        function _entradaDeCoordenadas(id) {
+            if (!id) return null;
+            const entradas = globalThis.__vv_DATOS_AVENTURAS?.[globalThis.aventuraSeleccionada]?.['coordenadas-hijo2.html']?.coordenadas || [];
+            return entradas.find((e) => e.id === id) || null;
+        }
+        globalThis._entradaDeCoordenadas = _entradaDeCoordenadas;
+
         // 🔥 AUTO-DISTRIBUCIÓN: Si ya hay una aventura seleccionada, marcar como pendiente hasta que el sistema esté listo
         if (globalThis.aventuraSeleccionada && globalThis.idiomaSeleccionado) {
             (globalThis.logger || console).info('[PADRE] 🔄 Detectada aventura ya seleccionada, marcando distribución como pendiente hasta inicialización completa...');
@@ -3842,17 +3856,6 @@
             if (globalThis.ajustarTimeoutPorConexion === undefined && ajustarTimeoutPorConexion_S1 !== undefined) {
                 globalThis.ajustarTimeoutPorConexion = ajustarTimeoutPorConexion_S1;
             }
-            // Única definición de ajustarTimeoutPorConexionSafe — expuesta lo antes posible en
-            // Script 1 para que Script 2+ (que no tiene declaración local propia) pueda llamarla
-            // sin ReferenceError incluso si aún no ha llegado el timeout real (línea 3316-3318
-            // ya deja globalThis.ajustarTimeoutPorConexion listo antes de esta línea, así que no
-            // hace falta comprobar ajustarTimeoutPorConexion_S1 aparte).
-            globalThis.ajustarTimeoutPorConexionSafe = function ajustarTimeoutPorConexionSafe(ms) {
-                try {
-                    if (typeof globalThis.ajustarTimeoutPorConexion === 'function') return globalThis.ajustarTimeoutPorConexion(ms);
-                } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                return ms;
-            };
         }
 
         // Aviso de último recurso, compartido por los 2 fallos de infraestructura que
@@ -4797,21 +4800,17 @@
         async function _enviarRespuestaParadasHijosRest(logPrefix, datosGuardados) {
             const av = datosGuardados.aventura;
             const id = datosGuardados.idioma;
-            // Un solo camino (paso 8.2 de la lavadora): hijo2 e hijo5 reciben el mismo
+            // Un solo camino (paso 8.2 de la lavadora): hijo5 recibe el mismo
             // normalizarParadas_S1(DATOS_PADRE...) que ya usa el camino de petición
-            // (SOLICITAR_DATOS_PARADAS, más abajo) — antes hijo5 recibía una construcción a
-            // mano desde __vv_DATOS_AVENTURAS (el fichero crudo de coordenadas, pensado para
-            // el mapa de hijo2), que incluye entradas tipo:"referencia" que DATOS_PADRE nunca
-            // mezcla. hijo5 las filtraba al generar botones, pero las dos fuentes podían
-            // divergir sin que nada lo detectase.
-            if (!DATOS_PADRE[av]?.[id]) { (globalThis.logger || console).warn(`${logPrefix} Sin DATOS_PADRE para ${av}/${id} — hijo2 e hijo5 quedan sin paradas`); return; }
+            // (SOLICITAR_DATOS_PARADAS, más abajo) — antes recibía una construcción a mano desde
+            // __vv_DATOS_AVENTURAS (la tabla cruda de coordenadas), que incluye entradas
+            // tipo:"referencia" que DATOS_PADRE nunca mezcla. hijo5 las filtraba al generar botones,
+            // pero las dos fuentes podían divergir sin que nada lo detectase. hijo2 no recibe ninguna
+            // lista: solo su elemento, por CAMBIO_PARADA (docs/estudio-caminos.md, K-130).
+            if (!DATOS_PADRE[av]?.[id]) { (globalThis.logger || console).warn(`${logPrefix} Sin DATOS_PADRE para ${av}/${id} — hijo5 queda sin paradas`); return; }
             const pNorm = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
             if (pNorm.length === 0) { (globalThis.logger || console).warn(`${logPrefix} DATOS_PADRE sin elementosIDpadre para ${av}/${id}`); return; }
             if (typeof enviarMensaje_S1 !== 'function') return;
-            try {
-                await enviarMensaje_S1({ destino: 'hijo2', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pNorm, timestamp: Date.now() } });
-                (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo2 (${pNorm.length} paradas)`);
-            } catch (_e2) { (globalThis.logger || console).warn(`${logPrefix} Error enviando RESPUESTA_DATOS_PARADAS a hijo2:`, _e2); }
             try {
                 await enviarMensaje_S1({ destino: 'hijo5', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pNorm, aventura: av, timestamp: Date.now() } });
                 (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo5 (${pNorm.length} paradas)`);
@@ -4928,17 +4927,9 @@
 
         async function _solicitarRecursosRest(logPrefix) {
             if (!estado.elementoActual) return;
-            const paradaId = _normalizarIdRest(estado.elementoActual.parada_id || estado.elementoActual.tramo_id);
-            if (paradaId) {
-                try {
-                    await solicitarCoordenadasAHijo2({ ...estado.elementoActual, parada_id: estado.elementoActual.parada_id ? paradaId : estado.elementoActual.parada_id, tramo_id: estado.elementoActual.tramo_id ? paradaId : estado.elementoActual.tramo_id });
-                    (globalThis.logger || console).info(`${logPrefix} ✅ Coordenadas de destino solicitadas a hijo2 (${paradaId})`);
-                } catch (coordErr) { (globalThis.logger || console).warn(`${logPrefix} Error solicitando coordenadas tras reanudación:`, coordErr); }
-            } else {
-                (globalThis.logger || console).warn(`${logPrefix} ⚠️ Reanudación sin parada/tramo válido; se omite solicitud de coordenadas`, { parada_id: estado.elementoActual.parada_id, tramo_id: estado.elementoActual.tramo_id });
-            }
-            // El audio lo pide el pipeline de CAMBIO_PARADA que despacha _restoreBroadcast. Si ese
-            // handler aún no estuviera registrado, se pide aquí directamente.
+            // El elemento y su audio los pide el pipeline de CAMBIO_PARADA que despacha
+            // _restoreBroadcast, y hijo2 recibe su elemento en ese mismo aviso. Si ese handler aún no
+            // estuviera registrado, el audio se pide aquí directamente.
             if (!globalThis.mensajeria?.tieneControlador?.(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA)) {
                 const audioId = _normalizarIdRest(estado.elementoActual.audio_id);
                 if (audioId) {
@@ -5156,13 +5147,6 @@
             return { lat: 39.47876, lng: -0.37626 };
         }
 
-        // ID real de la parada de inicio de la aventura activa (nunca el literal 'P-0',
-        // que no coincide con ningún id real — ver _obtenerCoordenadasP0Fallback).
-        function _idParadaInicioAventura() {
-            const coords = globalThis.AVENTURA_PARADAS || [];
-            return Array.isArray(coords) ? (coords.find(e => e.tipo === 'inicio')?.id || null) : null;
-        }
-
         async function _gpsEsperarHijosListos(logPrefix) {
             try {
                 const sm = globalThis.__stateManager || globalThis.__vv_stateManager;
@@ -5219,33 +5203,16 @@
             est.gps = est.gps || {};
         }
 
-        async function _aplicarFallbackCoordenadasGPS(est, logPrefix, maxAttempts) {
-            (globalThis.logger || console).warn(`${logPrefix} No se obtuvo posición inicial aceptable tras ${maxAttempts} intentos; intentando fallback a coordenadas de inicio`);
-            try {
-                const idInicio = _idParadaInicioAventura();
-                const coordenadasResponse = await solicitarCoordenadasHijo('hijo2', { paradaId: idInicio, contexto: 'gps_fallback' }, ajustarTimeoutPorConexionSafe(5000));
-                const primerCoord = coordenadasResponse?.coordenadas?.[0]?.coordenadas;
-                if (coordenadasResponse?.exito && primerCoord) {
-                    const c = primerCoord;
-                    est.gps.posicionUsuario = { lat: c.lat || c[0], lng: c.lng || c[1], accuracy: 1000, timestamp: Date.now() };
-                    est.gps.ultimaUbicacion = est.gps.posicionUsuario;
-                    est.gps.precision = 1000;
-                    (globalThis.logger || console).info(`${logPrefix} Coordenadas de fallback obtenidas de hijo2 y aplicadas: [${est.gps.posicionUsuario.lat}, ${est.gps.posicionUsuario.lng}]`);
-                } else {
-                    (globalThis.logger || console).warn(`${logPrefix} Respuesta inválida de coordenadas de fallback:`, coordenadasResponse);
-                    const fallbackCoords = _obtenerCoordenadasP0Fallback();
-                    est.gps.posicionUsuario = { ...fallbackCoords, accuracy: 1000, timestamp: Date.now() };
-                    est.gps.ultimaUbicacion = est.gps.posicionUsuario;
-                    est.gps.precision = 1000;
-                    (globalThis.logger || console).info(`${logPrefix} Fallback a inicio aplicado: [${est.gps.posicionUsuario.lat}, ${est.gps.posicionUsuario.lng}]`);
-                }
-            } catch (err) {
-                const fallbackCoords = _obtenerCoordenadasP0Fallback();
-                est.gps.posicionUsuario = { ...fallbackCoords, accuracy: 1000, timestamp: Date.now() };
-                est.gps.ultimaUbicacion = est.gps.posicionUsuario;
-                est.gps.precision = 1000;
-                (globalThis.logger || console).warn(`${logPrefix} Error solicitando coordenadas a hijo2 para fallback (${err.message}); fallback a inicio`);
-            }
+        function _aplicarFallbackCoordenadasGPS(est, logPrefix, maxAttempts) {
+            // Las coordenadas del punto de inicio salen de los datos del propio padre: hijo2 no guarda
+            // ninguna (docs/estudio-caminos.md, K-130). Qué se devuelve cuando no hay entrada de inicio, y
+            // si esta función y _obtenerCoordenadasFallbackP0() de Script 2 quedan en una, está por decidir
+            // (K-83).
+            const fallbackCoords = _obtenerCoordenadasP0Fallback();
+            est.gps.posicionUsuario = { ...fallbackCoords, accuracy: 1000, timestamp: Date.now() };
+            est.gps.ultimaUbicacion = est.gps.posicionUsuario;
+            est.gps.precision = 1000;
+            (globalThis.logger || console).warn(`${logPrefix} No se obtuvo posición inicial aceptable tras ${maxAttempts} intentos; fallback a inicio aplicado: [${est.gps.posicionUsuario.lat}, ${est.gps.posicionUsuario.lng}]`);
         }
 
         async function _gpsIntentarPosicion(i, maxAttempts, baseTimeout, acceptThreshold, est, logPrefix) {
@@ -5305,7 +5272,7 @@
                                 showGpsSignalOverlay(ultimoError?.code || 2, ultimoError?.message || 'No se obtuvo una posición con precisión suficiente tras varios intentos.');
                             }
                         } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                        await _aplicarFallbackCoordenadasGPS(est, logPrefix, maxAttempts);
+                        _aplicarFallbackCoordenadasGPS(est, logPrefix, maxAttempts);
                     }
                 }
             } catch (e) {
@@ -5752,30 +5719,6 @@
 
         // Exponer funciones GPS en `window` para garantizar disponibilidad
         // entre distintos bloques <script> que puedan ejecutarse en otro scope.
-
-        // solicitarCoordenadasHijo (paso 8 de la lavadora): un solo camino de respuesta.
-        // DATOS.COORDENADAS_PARADAS_REQUEST es uno de los 5 envíos con acuse del proyecto
-        // (GUIA-COMPLETA.md §10.5, "mismo contrato... con confirmación exigida") — el return del handler de hijo2 ya
-        // llega aquí por enviarMensajeConConfirmacion, igual que en _solicitarParadaAHijo2() (solicitarCoordenadasAHijo2()
-        // manda el mismo tipo por enviarMensaje_S2, sin acuse, y no espera respuesta). Antes montaba su propio
-        // pedidoId + Map de espera + handler correlador para
-        // DATOS.COORDENADAS_PARADAS_RESPONSE, y hijo2 respondía dos veces (el return de
-        // acuse + un enviarMensaje "para compatibilidad" que solo ese camino consumía).
-        // Medido: en un boot limpio la vía del pedidoId se quedaba colgada hasta el timeout
-        // mientras enviarMensajeConConfirmacion resolvía al instante.
-        try {
-            if (globalThis.window !== undefined) {
-                globalThis.solicitarCoordenadasHijo = function(destino, payload, timeoutMs) {
-                    const timeout = typeof timeoutMs === 'number' ? timeoutMs : ajustarTimeoutPorConexionSafe(5000);
-                    return enviarMensajeConConfirmacion({
-                        tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_REQUEST,
-                        destino,
-                        datos: payload,
-                        timeout
-                    });
-                };
-            }
-        } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
         try {
             if (globalThis.window !== undefined) {
@@ -7078,26 +7021,6 @@
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error enviando PADRE_CONFIRMA_HIJO_LISTO a ${hijoId}:`, error); }
         }
 
-        async function _hijoListo_enviarDatosHijo2(logPrefix) {
-            try {
-                const av = globalThis.aventuraSeleccionada, id = globalThis.idiomaSeleccionado;
-                // ⚠️ CRÍTICO: Solo enviar datos si la aventura YA está seleccionada
-                // Si no hay aventura, distribuirDatosAventura se encargará más tarde
-                if (!av || !id) {
-                    (globalThis.logger || console).debug(`${logPrefix} Aventura no seleccionada aún, omitiendo envío de datos de paradas a hijo2`);
-                    return;
-                }
-
-                if (DATOS_PADRE[av] && DATOS_PADRE[av][id]) {
-                    const paradasNormalizadas = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ destino: 'hijo2', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: paradasNormalizadas, timestamp: Date.now() } });
-                        (globalThis.logger || console).info(`${logPrefix} Datos de paradas enviados a hijo2 para inicialización (normalizados)`);
-                    }
-                }
-            } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error enviando datos de paradas a hijo2:`, error); }
-        }
-
         async function _hijoListo_onTodosListos(logPrefix, hijosCriticos, timestamp) {
             estado.todosHijosListos = true;
             (globalThis.logger || console).success(`${logPrefix} ✅ ¡Todos los hijos críticos están listos!`);
@@ -7140,7 +7063,6 @@
                 if (typeof globalThis._vv_afterHijoListo === 'function') {
                     try { await globalThis._vv_afterHijoListo(hijoId); } catch (_snapErr) { /* non-critical */ }
                 }
-                if (hijoId === 'hijo2') { await _hijoListo_enviarDatosHijo2(logPrefix); }
                 if (hijoId === 'hijo3') {
                     // hijo3 llega con su botón de retos apagado de fábrica: se le manda el estado que
                     // le toca AHORA. Lo decide un solo sitio, _sincronizarRetoBtn, que vive en Script 2
@@ -7514,77 +7436,91 @@
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} ✅ Controladores SISTEMA registrados (Script 1)`);
 
         // CONTROLADOR: UI.ACCION_USUARIO
-        // Recibe acciones de usuario desde hijos (mostrar-imagen, etc.)
-        async function _buscarTextoParaParada(paradaActual, logPrefix) {
+        // Recibe acciones de usuario desde hijos: mostrar-imagen y reproducir-video (hijo2) y audio_control
+        // (hijo1). hijo2 solo pide la imagen o el vídeo: qué se enseña lo resuelve el padre con el elemento en
+        // el que está el usuario y sus propios datos (docs/estudio-caminos.md, K-130), como el mapa completo y
+        // el antiguo (K-107).
+
+        // El elemento actual (su fila de DATOS_PADRE) y su entrada en la tabla de coordenadas, que es donde
+        // están el nombre, las imágenes, el vídeo y el número de mapa.
+        function _elementoActualYEntrada() {
+            const fila = estado.elementoActual || null;
+            const id = fila ? (fila.parada_id || fila.tramo_id || null) : null;
+            return { fila, id, entrada: _entradaDeCoordenadas(id) };
+        }
+
+        // El texto de un elemento es el de su texto_id, el que lleva su fila de DATOS_PADRE.
+        async function _buscarTextoDelElemento(fila, logPrefix) {
+            if (!fila?.texto_id) return null;
             try {
-                const aventuraActual = globalThis.aventuraSeleccionada;
-                const idiomaActual = globalThis.idiomaSeleccionado;
-                if (!aventuraActual) return null;
                 const { cargarTextos: _cTx } = await import('./js/data-loader.js');
-                const textos = await _cTx(aventuraActual, idiomaActual);
-                const paradaNorm = paradaActual.replaceAll('-', '');
-                const textoEncontrado = textos.find(t => t?.id && t.id.replaceAll('-', '').includes(paradaNorm));
-                if (textoEncontrado) {
-                    (globalThis.logger || console).info(`${logPrefix} Texto encontrado para ${paradaActual}: "${textoEncontrado.title}"`);
-                } else {
-                    (globalThis.logger || console).debug(`${logPrefix} No se encontró texto para parada ${paradaActual} (norm: ${paradaNorm})`);
-                }
-                return textoEncontrado || null;
+                const textos = await _cTx(globalThis.aventuraSeleccionada, globalThis.idiomaSeleccionado);
+                const texto = (textos || []).find((t) => t?.id === fila.texto_id) || null;
+                if (!texto) (globalThis.logger || console).warn(`${logPrefix} No hay texto ${fila.texto_id} en ${globalThis.aventuraSeleccionada}/${globalThis.idiomaSeleccionado}`);
+                return texto;
             } catch (textoErr) {
-                (globalThis.logger || console).warn(`${logPrefix} Error buscando texto para parada:`, textoErr);
+                (globalThis.logger || console).warn(`${logPrefix} Error buscando el texto ${fila.texto_id}:`, textoErr);
                 return null;
             }
         }
 
-        async function _handleMostrarImagen({ urlImagen, nombre, mensajeError, textoParada, paradaActual, imagenes, tipo, mapa_numero, logPrefix }) {
-            let textoFinal = textoParada;
-            // Si el texto llegó sin contenido (párrafos no cargados aún), cargar fresco desde padre
-            if (paradaActual && (!textoFinal || !textoFinal.content)) {
-                const textoFresco = await _buscarTextoParaParada(paradaActual, logPrefix);
-                if (textoFresco?.content) textoFinal = textoFresco;
-                else if (!textoFinal) textoFinal = textoFresco;
-            }
-            // Si tras el reintento sigue sin contenido real, mostrar un aviso en el propio
-            // hueco del texto — mismo patrón que _mostrarVideoSinUrl()/_mostrarOverlaySinImagenes()
-            // para vídeo/imagen — en vez de dejarlo en blanco sin ninguna explicación
-            // (auditoría 2026-08-19). `content` pasa por _galeriaSanitizarHTML() en
-            // _mostrarOverlayGaleria(), que permite <p>/style, así que el HTML sobrevive.
+        async function _handleMostrarImagen(logPrefix) {
+            const { fila, id, entrada } = _elementoActualYEntrada();
+            const imagenes = entrada
+                ? [entrada.imagen, entrada.imagen2, entrada.imagen3, entrada.imagen4].filter((url) => typeof url === 'string' && url.trim() !== '')
+                : [];
+            let mensajeError = null;
+            if (!id) mensajeError = 'No hay parada seleccionada';
+            else if (!entrada) mensajeError = 'No hay imagen disponible para esta parada';
+            else if (imagenes.length === 0) mensajeError = 'No hay imagen disponible para esta parada/tramo';
+            let textoFinal = await _buscarTextoDelElemento(fila, logPrefix);
+            // Sin texto con contenido real, un aviso en el propio hueco del texto — mismo patrón que
+            // _mostrarVideoSinUrl()/_mostrarOverlaySinImagenes() para vídeo/imagen — en vez de dejarlo en
+            // blanco sin ninguna explicación (auditoría 2026-08-19). `content` pasa por
+            // _galeriaSanitizarHTML() en _mostrarOverlayGaleria(), que permite <p>/style, así que el HTML
+            // sobrevive.
             if (!textoFinal?.content) {
                 try {
                     const { MSG_TEXTO_PARADA_NO_DISPONIBLE } = await import('./js/traducciones-ui.js');
-                    const idioma = globalThis.idiomaSeleccionado;
-                    const mensaje = MSG_TEXTO_PARADA_NO_DISPONIBLE[idioma];
+                    const mensaje = MSG_TEXTO_PARADA_NO_DISPONIBLE[globalThis.idiomaSeleccionado];
                     textoFinal = { title: '', content: `<p style="color:#666;font-size:0.9em;text-align:center;margin:0;">📖 ${mensaje}</p>` };
                 } catch (e) { (globalThis.logger || console).debug(`${logPrefix} Error cargando aviso de texto no disponible:`, e?.message); }
             }
             if (typeof globalThis.mostrarImagenOverlay === 'function') {
-                globalThis.mostrarImagenOverlay(urlImagen, nombre || '', mensajeError, textoFinal, {
-                    imagenes: imagenes || [],
-                    tipo: tipo || 'parada',
-                    mapa_numero: mapa_numero
+                globalThis.mostrarImagenOverlay(imagenes[0] || null, entrada?.nombre || '', mensajeError, textoFinal, {
+                    imagenes,
+                    tipo: entrada?.tipo === 'tramo' ? 'tramo' : 'parada',
+                    mapa_numero: entrada?.mapa_numero ?? null
                 });
             } else {
                 (globalThis.logger || console).error(`${logPrefix} mostrarImagenOverlay no disponible`);
             }
+            (globalThis.logger || console).info(`${logPrefix} Imagen de ${id || 'ningún elemento'}: ${imagenes.length} imagen(es), texto ${fila?.texto_id || 'sin texto_id'}`);
         }
 
-        function _handleReproducirVideo(urlVideo, nombre, mensajeError, logPrefix) {
+        function _handleReproducirVideo(logPrefix) {
+            const { id, entrada } = _elementoActualYEntrada();
+            const urlVideo = (typeof entrada?.video === 'string' && entrada.video.trim() !== '') ? entrada.video : null;
+            let mensajeError = null;
+            if (!id) mensajeError = 'No hay parada/tramo seleccionado';
+            else if (!urlVideo) mensajeError = 'No hay video disponible para esta parada/tramo';
             if (typeof globalThis.mostrarVideoOverlay === 'function') {
-                globalThis.mostrarVideoOverlay(urlVideo, nombre || '', mensajeError);
+                globalThis.mostrarVideoOverlay(urlVideo, entrada?.nombre || '', mensajeError);
             } else {
                 (globalThis.logger || console).error(`${logPrefix} mostrarVideoOverlay no disponible`);
             }
+            (globalThis.logger || console).info(`${logPrefix} Vídeo de ${id || 'ningún elemento'}: ${urlVideo || 'sin vídeo'}`);
         }
 
         async function _hdl_UI_ACCION_USUARIO(mensaje) {
             const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[ACCION_USUARIO]`;
             try {
-                const { accion, paradaActual, urlImagen, urlVideo, nombre, mensajeError, textoParada, imagenes, tipo, mapa_numero } = mensaje.datos || {};
+                const { accion } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} Acción recibida desde ${mensaje.origen}: ${accion}`);
                 if (accion === 'mostrar-imagen') {
-                    await _handleMostrarImagen({ urlImagen, nombre, mensajeError, textoParada, paradaActual, imagenes, tipo, mapa_numero, logPrefix });
+                    await _handleMostrarImagen(logPrefix);
                 } else if (accion === 'reproducir-video') {
-                    _handleReproducirVideo(urlVideo, nombre, mensajeError, logPrefix);
+                    _handleReproducirVideo(logPrefix);
                 } else if (accion === 'audio_control') {
                     // hijo1 pide pausar el audio al abrir una página informativa, para que el
                     // usuario lo retome él. hijo1 no puede pedírselo a hijo3 directamente —
@@ -9291,11 +9227,11 @@ await _comprobarReanudacionAventura(logPrefix);
 
         // ============================================================
         // 🔥 FUNCIÓN CRÍTICA: distribuirDatosAventura
-        // Distribuye proactivamente datos a todos los hijos
+        // Deja la tabla de coordenadas de la aventura para el padre y manda a hijo5 su lista de paradas
         // ============================================================
         async function distribuirDatosAventura(aventura, idioma) {
             const logPrefix = '[PADRE][DISTRIBUIR_DATOS]';
-            (globalThis.logger || console).info(`${logPrefix} 🔥 INICIANDO distribución de ${aventura} (${idioma}) a todos los hijos...`);
+            (globalThis.logger || console).info(`${logPrefix} 🔥 INICIANDO distribución de ${aventura} (${idioma})...`);
 
             try {
                 // USAR ESTADO GLOBAL CORRECTO
@@ -9324,74 +9260,34 @@ await _comprobarReanudacionAventura(logPrefix);
                     return { pospuesto: true, mensaje: 'Datos centralizados no disponibles' };
                 }
 
-                const resultados = {
-                    coordenadas: { enviado: false, destinos: [] },
-                    textos: { enviado: false, destinos: [] }
-                };
+                const resultados = {};
 
-                // 1. Enviar coordenadas a hijo2
+                // 1. La tabla de coordenadas de la aventura, para el padre: AVENTURA_PARADAS es la lista que
+                // leen funciones-mapa.js y _obtenerCoordenadasP0Fallback(). No sale de aquí hacia ningún hijo:
+                // hijo2 recibe solo el elemento en el que está, en CAMBIO_PARADA, y lo que enseñan sus botones
+                // lo resuelve el padre (docs/estudio-caminos.md, K-130).
                 const coords = globalThis.__vv_DATOS_AVENTURAS?.[aventura]?.['coordenadas-hijo2.html']?.coordenadas || [];
                 (globalThis.logger || console).info(`${logPrefix} 📍 Coordenadas disponibles: ${coords.length} para ${aventura}`);
 
                 if (coords.length > 0) {
                     globalThis.AVENTURA_PARADAS = coords;
                     globalThis.dispatchEvent(new CustomEvent('vv:paradas-disponibles', { detail: coords }));
-                }
-
-                if (coords.length > 0 && hijosInicializados.has('hijo2')) {
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_COORDENADAS,
-                        destino: 'hijo2',
-                        datos: { aventura, idioma, coordenadas: coords, total: coords.length, timestamp: Date.now() }
-                    });
-                    resultados.coordenadas.enviado = true;
-                    resultados.coordenadas.destinos.push('hijo2');
-                    (globalThis.logger || console).info(`${logPrefix} ✅ ${coords.length} coordenadas enviadas a hijo2`);
-                } else if (coords.length > 0) {
-                    (globalThis.logger || console).info(`${logPrefix} 📍 hijo2 no listo aún — usará SOLICITAR_COORDENADAS cuando lo esté`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay coordenadas para ${aventura}`);
                 }
 
-                // 2. Audios y retos NO se distribuyen en bloque — protección pasiva por parada
-                // (ver §16 GUIA-COMPLETA.md). _hdl_NAVEGACION_CAMBIO_PARADA resuelve y envía
-                // el audio/reto de cada parada individualmente en el momento en que se activa
-                // (parada inicial, avance GPS/manual, o reanudación de sesión), vía
-                // _solicitarAudioParaParada()/_enviarRetoMostrar().
+                // 2. Audios, retos, imágenes, vídeos y textos NO se distribuyen en bloque — protección pasiva
+                // por parada (ver §16 GUIA-COMPLETA.md). _hdl_NAVEGACION_CAMBIO_PARADA resuelve y envía el
+                // audio de cada parada en el momento en que se activa (parada inicial, avance GPS/manual, o
+                // reanudación de sesión), vía _solicitarAudioParaParada(); el reto lo envía _enviarRetoMostrar()
+                // cuando hijo4 lo pide (RETO.SOLICITAR_RETO); la imagen, el vídeo y el texto los resuelve el
+                // padre cuando hijo2 los pide (UI.ACCION_USUARIO).
 
-                // 3. Enviar textos procesados a hijo2
-                // Los textos NO estan en ningun global: textos-aventuras.js ya no se carga en
-                // Fase 2 (nadie leia su contenido). cargarTextos() de data-loader.js es el
-                // unico camino, y ademas ensambla {id, title, content} con los parrafos del
-                // idioma — el fichero crudo son arrays planos sin clave de idioma (§22.12).
-                let textos = [];
-                try {
-                    const { cargarTextos: _cargarTx } = await import('./js/data-loader.js');
-                    textos = await _cargarTx(aventura, idioma) || [];
-                } catch (txErr) {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ cargarTextos falló, sin textos:`, txErr?.message);
-                }
-                (globalThis.logger || console).info(`${logPrefix} 📝 Textos procesados disponibles: ${textos.length} para ${aventura}/${idioma}`);
-                if (textos.length > 0 && hijosInicializados.has('hijo2')) {
-                    await enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_TEXTOS,
-                        destino: 'hijo2',
-                        datos: { aventura, idioma, textos, total: textos.length, timestamp: Date.now() }
-                    });
-                    resultados.textos.enviado = true;
-                    resultados.textos.destinos.push('hijo2');
-                    (globalThis.logger || console).info(`${logPrefix} ✅ ${textos.length} textos enviados a hijo2`);
-                } else if (textos.length > 0) {
-                    (globalThis.logger || console).info(`${logPrefix} 📝 hijo2 no listo aún — usará SOLICITAR_TEXTOS cuando lo esté`);
-                } else {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay textos para ${aventura}/${idioma}`);
-                }
-
-                // 4. Enviar paradas a hijo5 (botones de navegación CASA)
+                // 3. Enviar paradas a hijo5 (botones de navegación CASA)
                 // Fire-and-forget: si hijo5 no está listo, solicitará paradas él mismo vía SOLICITAR_DATOS_PARADAS.
                 // Un solo camino (paso 8.2 de la lavadora): la misma normalizarParadas_S2(DATOS_PADRE...)
-                // que usa el camino de petición — no la construcción a mano desde `coords` (el
-                // fichero crudo de coordenadas para el mapa de hijo2, que incluye tipo:"referencia").
+                // que usa el camino de petición — no la construcción a mano desde `coords` (la tabla
+                // cruda de coordenadas, que incluye tipo:"referencia").
                 const pNormH5 = DATOS_PADRE[aventura]?.[idioma] ? normalizarParadas_S2(DATOS_PADRE[aventura][idioma].elementosIDpadre || []) : [];
                 if (pNormH5.length > 0 && hijosInicializados.has('hijo5')) {
                     await enviarMensaje_S2({
@@ -9499,10 +9395,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // elementos se visitan libremente.
                 if (estado.modo?.actual === MODOS.AVENTURA && _elementoCompletado(elemento)) return null;
                 const retosIds = obtenerRetosIds(elemento);
-                estado.pendingCompleciones[key] = { tipo: tipo || 'parada', llegada: false, audio: false, reto: false, retosTotal: retosIds.length, retosCompletadosCount: 0, timestamp: Date.now(), destinoCoords: null, ttlMs };
-                (async () => {
-                    try { await populatePendingCoords(key); } catch (err) { (globalThis.logger || console).debug('[PADRE][PENDING] populatePendingCoords failed:', err); }
-                })();
+                estado.pendingCompleciones[key] = { tipo: tipo || 'parada', llegada: false, audio: false, reto: false, retosTotal: retosIds.length, retosCompletadosCount: 0, timestamp: Date.now(), ttlMs };
                 try {
                     // Un solo camino (paso 8.5 de la lavadora): hijo3 no registra ningún
                     // handler para SISTEMA.NOTIFICACION — el envío no tenía consumidor. Solo
@@ -9535,52 +9428,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 ficha.reto = true;
                 ficha.retosCompletadosCount = typeof hecho.retosCompletados === 'number' ? hecho.retosCompletados : ficha.retosTotal;
             }
-            if (hecho.destinoCoords) ficha.destinoCoords = hecho.destinoCoords;
             ficha.timestamp = Date.now();
             try { persistProgressState(); } catch (e) { (globalThis.logger || console).warn('[PADRE][PENDING] No se pudo guardar la ficha', e); }
             return ficha;
-        }
-
-        function _extractCoordsFromElemento(elemento) {
-            if (!elemento) return null;
-            if (elemento.coordenadas?.lat && elemento.coordenadas?.lng) return { lat: elemento.coordenadas.lat, lng: elemento.coordenadas.lng };
-            if (Array.isArray(elemento.coordinates) && elemento.coordinates.length > 0) {
-                const c = elemento.coordinates[0];
-                if (c?.lat && c?.lng) return { lat: c.lat, lng: c.lng };
-            }
-            return null;
-        }
-
-        function _normalizarCoordsRespuesta(coordsResponse) {
-            if (!coordsResponse) return null;
-            let obj = null;
-            if (Array.isArray(coordsResponse) && coordsResponse.length > 0) obj = coordsResponse[0].coordenadas || coordsResponse[0];
-            else if (coordsResponse.coordenadas) obj = coordsResponse.coordenadas;
-            else obj = coordsResponse;
-            return (obj?.lat && obj?.lng) ? { lat: obj.lat, lng: obj.lng } : null;
-        }
-
-        async function populatePendingCoords(pendKey) {
-            try {
-                if (!pendKey) return null;
-                if (!estado.pendingCompleciones || !estado.pendingCompleciones[pendKey]) return null;
-                const pending = estado.pendingCompleciones[pendKey];
-                if (pending.destinoCoords) return pending.destinoCoords;
-
-                const elemento = findElementoPorPadreId(pendKey) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.padreid === pendKey || p.parada_id === pendKey || p.tramo_id === pendKey);
-                const fromElemento = _extractCoordsFromElemento(elemento);
-                if (fromElemento) { pending.destinoCoords = fromElemento; return pending.destinoCoords; }
-
-                const paradaId = (elemento && (elemento.parada_id || elemento.tramo_id)) || String(pendKey).replace(/^padre-/, '');
-                const timeoutMs = 5000;
-                const coordsResponse = await solicitarCoordenadasHijo('hijo2', { paradaId }, timeoutMs).catch(_err => null);
-                const fromResponse = _normalizarCoordsRespuesta(coordsResponse);
-                if (fromResponse) { pending.destinoCoords = fromResponse; return pending.destinoCoords; }
-                return null;
-            } catch (error) {
-                (globalThis.logger || console).warn('[PADRE][PENDING] Error populating pending coords:', error);
-                return null;
-            }
         }
 
         function _paradaConditionsMet(pending, elemento) {
@@ -9887,34 +9737,6 @@ await _comprobarReanudacionAventura(logPrefix);
             // (mostrarCartelTransicion, etc.): otros módulos/tests pueden necesitar
             // invocarla fuera de este scope de script.
             globalThis.marcarParadaCompletada = marcarParadaCompletada;
-
-        /**
-         * Solicita coordenadas a hijo2 para el elemento especificado
-         */
-        async function solicitarCoordenadasAHijo2(elemento) {
-            const logPrefix = '[PADRE][COORDENADAS]';
-
-            try {
-                const destinoId = elemento.parada_id || elemento.tramo_id;
-
-                (globalThis.logger || console).info(`${logPrefix} Solicitando coordenadas para ${destinoId}`);
-
-                await enviarMensaje_S2({
-                    tipo: TIPOS_MENSAJE_S2.DATOS.COORDENADAS_PARADAS_REQUEST,
-                    destino: 'hijo2',
-                    datos: {
-                        paradaId: destinoId,
-                        padreId: elemento.padreid || `padre-${destinoId}`,
-                        tipo: elemento.tipo,
-                        contexto: 'progresion_aventura'
-                    }
-                });
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error solicitando coordenadas:`, error);
-            }
-        }
-        globalThis.solicitarCoordenadasAHijo2 = solicitarCoordenadasAHijo2;
 
         /**
          * Solicita reproducción de audio a hijo3
@@ -10837,30 +10659,14 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _resolverCoordenadasElemento(elementoId, logPrefix) {
-            const elemento = DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p =>
-                p.parada_id === elementoId ||
-                p.padreid === elementoId ||
-                p.padreid === `padre-${elementoId}`
-            );
-            if (elemento && elemento.lat && elemento.lng) return { lat: elemento.lat, lng: elemento.lng };
-            (globalThis.logger || console).debug(`${logPrefix} Solicitando coordenadas de ${elementoId} a hijo2...`);
-            try {
-                const res = await solicitarCoordenadasHijo('hijo2', { paradaId: elementoId }, ajustarTimeoutPorConexionSafe(5000));
-                // El objeto que devuelve hijo2 es la entrada cruda de coordenadas-aventuras.js:
-                // una parada trae .coordenadas, un tramo nunca tiene ese campo (trae .inicio/
-                // .fin/.waypoints) — sin este fallback, CUALQUIER tramo activo hacía que esta
-                // función devolviera null y cayera siempre al P-0 fijo de
-                // _obtenerCoordenadasFallbackP0(), la línea verde de "ir a ubicación" apuntaba
-                // a Torres de Serranos en vez de al inicio real del tramo.
-                const entrada = res?.coordenadas?.[0];
-                const coords = entrada?.coordenadas || entrada?.inicio;
-                if (coords) return coords;
-                (globalThis.logger || console).warn(`${logPrefix} Respuesta inválida de coordenadas para ${elementoId}:`, res);
-            } catch (error) {
-                (globalThis.logger || console).warn(`${logPrefix} Error solicitando coordenadas a hijo2: ${error.message}`);
-            }
-            return null;
+        // Las coordenadas de un elemento, de la tabla de la aventura elegida que el padre ya tiene
+        // (_entradaDeCoordenadas, Script 1; docs/estudio-caminos.md, K-130). Una parada trae .coordenadas;
+        // un tramo no tiene ese campo (trae .inicio/.fin/.waypoints), y de un tramo vale su .inicio: sin
+        // él, la línea verde de "ir a ubicación" de cualquier tramo acababa en el punto de inicio de
+        // _obtenerCoordenadasFallbackP0(), Torres de Serranos, en vez de en el inicio real del tramo.
+        function _resolverCoordenadasElemento(elementoId) {
+            const entrada = globalThis._entradaDeCoordenadas(elementoId);
+            return entrada?.coordenadas || entrada?.inicio || null;
         }
 
         // No confundir con _obtenerCoordenadasP0Fallback() (Script 1, mismo propósito
@@ -10884,7 +10690,7 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MOSTRAR_UBICACION_POLYLINE][${mensaje?.origen || 'desconocido'}]`;
             try {
                 (globalThis.logger || console).debug(`${logPrefix} Solicitud de mostrar ubicación y polyline recibida de ${mensaje.origen}`);
-                const { ubicacionUsuario, proximoElemento, elementoId, centrar = true, zoom = 15 } = mensaje.datos || {};
+                const { ubicacionUsuario, centrar = true, zoom = 15 } = mensaje.datos || {};
 
                 // El usuario ya vio el aviso y pulsó ubicación — quitar la pantalla de por medio.
                 try { if (typeof _ocultarTodasPantallasDistanciaGPS === 'function') _ocultarTodasPantallasDistanciaGPS(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
@@ -10892,13 +10698,10 @@ await _comprobarReanudacionAventura(logPrefix);
                 const coordenadasUsuario = await _obtenerUbicacionUsuario(ubicacionUsuario, logPrefix);
                 if (!coordenadasUsuario) return { exito: false, error: 'No se pudo obtener ubicación del usuario' };
 
-                let coordenadasDestino = null;
-                if (proximoElemento?.lat && proximoElemento?.lng) {
-                    coordenadasDestino = { lat: proximoElemento.lat, lng: proximoElemento.lng };
-                    (globalThis.logger || console).debug(`${logPrefix} Usando coordenadas del elemento proporcionado`);
-                } else if (elementoId) {
-                    coordenadasDestino = await _resolverCoordenadasElemento(elementoId, logPrefix);
-                }
+                // El destino lo decide el padre, que sabe en qué elemento está el usuario: el actual o, sin
+                // ninguno, el punto de inicio (más abajo). hijo2 solo manda su posición (K-130).
+                const elementoId = estado.elementoActual?.parada_id || estado.elementoActual?.tramo_id || null;
+                let coordenadasDestino = _resolverCoordenadasElemento(elementoId);
 
                 if (!coordenadasDestino) {
                     coordenadasDestino = _obtenerCoordenadasFallbackP0(logPrefix);
@@ -11104,16 +10907,14 @@ await _comprobarReanudacionAventura(logPrefix);
                 // nota porque los 239 tramos tienen `video: ""`, pero habría seguido sin
                 // funcionar el día que se graben.
                 //
-                // Se lee de la misma fuente que el camino de reproducción: hijo2 saca la URL
-                // de coordenadas-aventuras.js y la manda en UI.ACCION_USUARIO { urlVideo } al
-                // pulsar #btn-video (ver _hdl_UI_ACCION_USUARIO). Una sola fuente para el mismo
-                // dato: si discreparan, se precargaría un vídeo distinto del que se reproduce.
+                // Se lee con la misma función que el camino de reproducción (_entradaDeCoordenadas, la que
+                // usa _hdl_UI_ACCION_USUARIO al pulsar #btn-video): una sola fuente para el mismo dato; si
+                // discreparan, se precargaría un vídeo distinto del que se reproduce.
                 //
                 // elementosIDpadre sigue mandando en el ORDEN — cuál es el elemento siguiente,
                 // que es su cometido; solo el campo `video` viene de la otra estructura.
                 const _idSiguiente = siguiente.tramo_id || siguiente.parada_id || siguiente.id;
-                const _coordsAv = globalThis.__vv_DATOS_AVENTURAS?.[globalThis.aventuraSeleccionada]?.['coordenadas-hijo2.html']?.coordenadas;
-                const _entradaSiguiente = Array.isArray(_coordsAv) ? _coordsAv.find(c => c && c.id === _idSiguiente) : null;
+                const _entradaSiguiente = globalThis._entradaDeCoordenadas(_idSiguiente);
                 const _urlVideoSiguiente = _entradaSiguiente?.video;
                 if (!_urlVideoSiguiente || !_urlVideoSiguiente.trim()) return;
 
@@ -11171,11 +10972,11 @@ await _comprobarReanudacionAventura(logPrefix);
         // sw.js), así que esto solo cuesta la primera vez que se ve cada una; después la
         // petición ni sale a la red. No se guarda el objeto Image: basta con que la respuesta
         // entre en la caché del SW.
-        function _precargarImagenParada(paradaNormalized, logPrefix) {
-            if (!paradaNormalized) return;
+        function _precargarImagenParada(entrada, logPrefix) {
+            if (!entrada) return;
             try {
-                const urls = [paradaNormalized.imagen, paradaNormalized.imagen2]
-                    .concat(Array.isArray(paradaNormalized.imagenes) ? paradaNormalized.imagenes : [])
+                const urls = [entrada.imagen, entrada.imagen2]
+                    .concat(Array.isArray(entrada.imagenes) ? entrada.imagenes : [])
                     .filter(u => typeof u === 'string' && u.trim());
                 if (!urls.length) return;
                 const unicas = [...new Set(urls)];
@@ -11192,17 +10993,6 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         globalThis._precargarImagenParada = _precargarImagenParada;
-
-        function _normalizarParadaDataResponse(paradaData, logPrefix) {
-            try {
-                if (paradaData && paradaData.parada) return paradaData.parada;
-                if (paradaData && Array.isArray(paradaData.coordenadas) && paradaData.coordenadas.length > 0) return paradaData.coordenadas[0];
-                if (paradaData && paradaData.coordenadas && paradaData.coordenadas.lat && paradaData.coordenadas.lng) return { coordenadas: paradaData.coordenadas };
-            } catch (e) {
-                (globalThis.logger || console).warn(`${logPrefix} Error normalizando paradaData:`, e);
-            }
-            return null;
-        }
 
         // ============================================================
         // EL BOTÓN DE RETOS DE HIJO3: UN SOLO SITIO LO DECIDE
@@ -11335,27 +11125,6 @@ await _comprobarReanudacionAventura(logPrefix);
         // Publicada porque el HIJO_LISTO de hijo3 se atiende en Script 1 (scope de módulo separado).
         globalThis._sincronizarRetoBtn = _sincronizarRetoBtn;
 
-        async function _solicitarParadaAHijo2(parada, logPrefix) {
-            if (!parada.parada_id && !parada.tramo_id) return null;
-            const paradaIdSolicitud = parada.parada_id || parada.tramo_id;
-            const esTramo = (parada.tipo && parada.tipo === 'tramo') || !!parada.tramo_id;
-            (globalThis.logger || console).debug(`${logPrefix} Solicitando datos de parada a hijo2 con ID: ${paradaIdSolicitud} (esTramo=${esTramo})`);
-            return Promise.resolve(enviarMensajeConConfirmacion({
-                tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_REQUEST,
-                destino: 'hijo2',
-                datos: {
-                    paradaId: paradaIdSolicitud,
-                    padreId: parada.padreid || `padre-${paradaIdSolicitud}`,
-                    incluirRutas: esTramo,
-                    incluirHorario: false,
-                    incluirEstadisticas: false
-                }
-            })).catch(error => {
-                (globalThis.logger || console).warn(`${logPrefix} Error solicitando datos a hijo2:`, error);
-                return null;
-            });
-        }
-
         function _actualizarEstadoParada(paradaId, parada, estado) {
             estado.paradaActual = paradaId;
             estado.elementoActual = parada;
@@ -11366,7 +11135,7 @@ await _comprobarReanudacionAventura(logPrefix);
             try { persistProgressState(); } catch (e) { (globalThis.logger || console).warn('[CAMBIO_PARADA] persistProgressState failed', e); }
         }
 
-        async function _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, paradaNormalized, mensaje, estado, logPrefix }) {
+        async function _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, mensaje, estado, logPrefix }) {
             const notificaciones = [];
             if (mensaje.origen !== 'hijo5') {
                 notificaciones.push(
@@ -11395,12 +11164,8 @@ await _comprobarReanudacionAventura(logPrefix);
                         parada_id: paradaIdBase,
                         padreId: padreIdNorm,
                         padreid: padreIdNorm,
-                        parada: parada.parada || parada.tramo,
-                        nombre: parada.nombre || parada.title,
+                        // Solo el id y el tipo: lo que enseñan los botones de hijo2 lo resuelve el padre (K-130).
                         tipo: parada.tipo,
-                        imagen: paradaNormalized?.imagen ?? null,
-                        video: paradaNormalized?.video ?? null,
-                        coordenadas: paradaNormalized?.coordenadas ?? null,
                         timestamp: Date.now(),
                         origenCambio: mensaje.origen
                     }
@@ -11551,25 +11316,12 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).success(`${logPrefix} Estado actualizado: ${paradaAnterior} → ${paradaId}`);
 
                 const solicitudes = {};
-                const paradaDataPromise = _solicitarParadaAHijo2(parada, logPrefix);
                 _solicitarAudioParaParada(parada, estado, solicitudes, logPrefix);
                 _precargarVideoParada(_elementosIDpadre, parada, logPrefix);
-                const paradaData = await (paradaDataPromise || Promise.resolve(null));
                 solicitudes.audio?.catch(e => (globalThis.logger || console).warn(`${logPrefix} Audio fire-and-forget error:`, e));
-                const reto = null;
-
-                (globalThis.logger || console).debug(`${logPrefix} Respuestas recibidas:`, {
-                    paradaData: paradaData ? 'OK' : 'FALLO',
-                    audio: 'FALLO',
-                    reto: 'FALLO'
-                });
-
-                const paradaNormalized = _normalizarParadaDataResponse(paradaData, logPrefix);
-                _precargarImagenParada(paradaNormalized, logPrefix);
-
-                // 🔍 DEBUG: Verificar estructura de datos multimedia de hijo2 (normalizada)
-                (globalThis.logger || console).debug(`${logPrefix} DEBUG paradaData completo (raw):`, paradaData);
-                (globalThis.logger || console).debug(`${logPrefix} DEBUG paradaNormalized:`, paradaNormalized);
+                // Las imágenes del elemento salen de la tabla de la aventura que el padre ya tiene
+                // (_entradaDeCoordenadas, Script 1): no se le piden a hijo2, que no la guarda (K-130).
+                _precargarImagenParada(globalThis._entradaDeCoordenadas(paradaIdBase), logPrefix);
 
                 const datosNotificacion = {
                     paradaId,
@@ -11579,24 +11331,15 @@ await _comprobarReanudacionAventura(logPrefix);
                     paradaActual: paradaId,
                     parada: parada.parada_id || parada.tramo_id,
                     tipo: parada.tipo,
-                    coordenadas: paradaNormalized,
                     audioId: parada.audio_id,
                     retoId: parada.reto_id,
                     retoIds: obtenerRetosIds(parada),
-                    retoDisponible: Boolean(reto?.reto),
                     exito: true,
                     timestamp: Date.now(),
                     origenCambio: mensaje.origen
                 };
 
-                (globalThis.logger || console).debug(`${logPrefix} Enviando a hijo2:`, {
-                    paradaId,
-                    imagen: paradaNormalized?.imagen,
-                    video: paradaNormalized?.video,
-                    coordenadas: paradaNormalized?.coordenadas
-                });
-
-                await _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, paradaNormalized, mensaje, estado, logPrefix });
+                await _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, mensaje, estado, logPrefix });
 
                 // El estado del reto pasa a ser el del elemento actual (si ya lo era, no se toca) y
                 // el botón de retos de hijo3 queda como le toca: lo decide un solo sitio.
@@ -11663,7 +11406,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // Disparar CustomEvent para que funciones-mapa.js dibuje marcadores/polylines/zoom
                 // (funciones-mapa escucha 'vv-parada-cambiada' en vez de registrar CAMBIO_PARADA)
-                // Se incluyen las coordenadas ya resueltas para evitar una segunda petición a hijo2
                 try {
                     // `paradaId` va con el id REAL del elemento (`Av1-P-2`), no con el que
                     // llegó en el mensaje. Importa porque hijo5 pide los cambios de parada con
@@ -11676,7 +11418,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     // marcador ni centraba la vista.
                     //
                     // El padre ya tiene el id resuelto aquí (`paradaIdBase`, unas líneas más
-                    // arriba) y de hecho lo usa para pedirle los datos a hijo2 — solo faltaba
+                    // arriba) y lo usa para la entrada de coordenadas del elemento — solo faltaba
                     // pasárselo también al mapa en vez del id crudo.
                     //
                     // Para la progresión real de la aventura esto es un no-op:
@@ -11744,11 +11486,9 @@ await _comprobarReanudacionAventura(logPrefix);
                     exito: true,
                     paradaId,
                     paradaActual: paradaId,
-                    coordenadas: paradaNormalized,
                     audioId: parada.audio_id,
                     audioIniciado: false,
                     retoId: parada.reto_id,
-                    retoDisponible: Boolean(reto?.reto),
                     mensaje: `Cambio a parada ${paradaId} procesado exitosamente`
                 };
 
@@ -11778,11 +11518,11 @@ await _comprobarReanudacionAventura(logPrefix);
                 .catch(err => { (globalThis.logger || console).warn(`${logPrefix} Error centrando mapa en llegada:`, err); });
         }
 
-        function _marcarPendingPorLlegada(paradaId, coordenadas, logPrefix) {
+        function _marcarPendingPorLlegada(paradaId, logPrefix) {
             try {
                 const elemento = findElementoPorPadreId(paradaId) || findElementoPorPadreId(`padre-${paradaId}`) || findElementoPorPadreId(paradaId.replace(/^padre-/, ''));
                 const key = elemento?.padreid || (`padre-${paradaId}`);
-                _anotarEnFicha(key, elemento?.tipo || 'parada', { llegada: true, destinoCoords: (coordenadas?.lat && coordenadas?.lng) ? coordenadas : null });
+                _anotarEnFicha(key, elemento?.tipo || 'parada', { llegada: true });
                 // El cartel de "ha llegado" (mostrarCartelLlegadaParada) ya no dispara aquí:
                 // ahora se decide en marcarParadaCompletada(), con el elemento SIGUIENTE ya
                 // resuelto — necesario para saber su nombre y tipo, que este punto no tiene.
@@ -11828,7 +11568,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Audio ya cargado en CAMBIO_PARADA para paradas y tramos (ambos modos, autoplay: false)
                 // Aquí solo se marca la llegada GPS para la lógica de pending
                 (globalThis.logger || console).info(`${logPrefix} Llegada GPS a ${estado.elementoActual?.tipo} ${paradaId} — marcando pending.llegada`);
-                _marcarPendingPorLlegada(paradaId, coordenadas, logPrefix);
+                _marcarPendingPorLlegada(paradaId, logPrefix);
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando llegada detectada:`, error);
@@ -12275,69 +12015,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ERROR, _hdl_SISTEMA_ERROR, { permanente: true });
-        }
-
-        async function _hdl_DATOS_COORDENADAS_CARGADAS(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[COORDENADAS_CARGADAS]`;
-
-            try {
-                const { exito, aventura, idioma, totalCargadas, error: errorMsg } = mensaje.datos || {};
-
-                if (exito) {
-                    (globalThis.logger || console).success(`${logPrefix} ✅ hijo2 confirmó: ${totalCargadas} coordenadas cargadas (${aventura}/${idioma})`);
-
-                    // 🔥 CRÍTICO: Dibujar marcadores y polylines ahora que tenemos los datos
-                    try {
-                        const coords = globalThis.__vv_DATOS_AVENTURAS?.[aventura]?.['coordenadas-hijo2.html']?.coordenadas || [];
-                        if (coords.length > 0) {
-                            (globalThis.logger || console).success(`${logPrefix} 🗺️ Datos de coordenadas disponibles: ${coords.length} elementos`);
-                        }
-                    } catch (dibujarError) {
-                        (globalThis.logger || console).error(`${logPrefix} Error procesando coordenadas:`, dibujarError);
-                    }
-                } else {
-                    (globalThis.logger || console).error(`${logPrefix} ⚠️ hijo2 reportó error: ${errorMsg}`);
-                }
-                // Lo muerto (paso 9 de la lavadora): aquí se mandaba además un
-                // DATOS.CARGADOS_RECIBIDO a hijo2 — confirmación de la confirmación. Su
-                // handler en hijo2 solo hacía logger.info(...), sin ningún efecto real.
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
-            }
-        }
-
-        async function _hdl_DATOS_TEXTOS_CARGADOS(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[TEXTOS_CARGADOS]`;
-            try {
-                const { exito, aventura, idioma, totalCargados, error: errorMsg } = mensaje.datos || {};
-                if (exito) {
-                    (globalThis.logger || console).success(`${logPrefix} ✅ hijo2 confirmó: ${totalCargados} textos cargados (${aventura}/${idioma})`);
-                } else {
-                    (globalThis.logger || console).error(`${logPrefix} ⚠️ hijo2 reportó error cargando textos: ${errorMsg}`);
-                }
-                // Lo muerto (paso 9 de la lavadora): ver nota gemela en
-                // _hdl_DATOS_COORDENADAS_CARGADAS — mismo DATOS.CARGADOS_RECIBIDO sin consumidor.
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
-            }
-        }
-
-        function _regCtrl_DatosRespuestas(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.COORDENADAS_CARGADAS, _hdl_DATOS_COORDENADAS_CARGADAS, { permanente: true });
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.TEXTOS_CARGADOS, _hdl_DATOS_TEXTOS_CARGADOS, { permanente: true });
-        }
-
-        async function _hdl_DATOS_SOLICITAR_COORDENADAS(mensaje) {
-            const av = globalThis.aventuraSeleccionada;
-            const id = globalThis.idiomaSeleccionado;
-            const coords = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas || [];
-            if (!av || coords.length === 0) return;
-            (globalThis.logger || console).info(`[PADRE][SOLICITAR_COORDENADAS] Reenviando ${coords.length} coordenadas a ${mensaje.origen}`);
-            await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS, destino: mensaje.origen, datos: { aventura: av, idioma: id, coordenadas: coords, total: coords.length, timestamp: Date.now() } });
-        }
-
-        function _regCtrl_DatosSolicitudes(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_COORDENADAS, _hdl_DATOS_SOLICITAR_COORDENADAS, { permanente: true });
         }
 
         async function _hdl_SELECCION_IDIOMA_SELECCIONADO(mensaje) {
@@ -13113,8 +12790,10 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 textos = await _cargarTx(aventura, idioma) || [];
             } catch (e) { (globalThis.logger || console).warn('[PARADAS.LISTADO] cargarTextos falló:', e?.message); } // NOSONAR
 
-            // Mismo patrón de coincidencia que usa coordenadas-hijo2.html para resolver
-            // el título localizado de una parada a partir del array de textos.
+            // El título localizado de una parada, por el id de su entrada sin guiones. La ventana de
+            // la imagen busca el texto de otra manera, por el `texto_id` de la fila del elemento
+            // (_buscarTextoDelElemento, Script 1): dos maneras para el mismo dato, registradas en
+            // docs/estudio-caminos.md (K-133).
             function tituloLocalizado(paradaId) {
                 const norm = paradaId.replaceAll('-', '');
                 // Límite de palabra tras el número: sin esto, "Av1P1" empareja como
@@ -13388,8 +13067,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             _regCtrl_NavegacionMovimiento(TIPOS_MENSAJE);
             _regCtrl_NavegacionEventos(TIPOS_MENSAJE);
             _regCtrl_Audio(TIPOS_MENSAJE);
-            _regCtrl_DatosRespuestas(TIPOS_MENSAJE);
-            _regCtrl_DatosSolicitudes(TIPOS_MENSAJE);
             _regCtrl_Seleccion(TIPOS_MENSAJE);
             _regCtrl_AventuraYTiempo(TIPOS_MENSAJE);
             _regCtrl_UI(TIPOS_MENSAJE);

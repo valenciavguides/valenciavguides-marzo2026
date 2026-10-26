@@ -254,7 +254,6 @@
         </button>
     </div>
 
-    <!-- ARRAY DE COORDENADAS - COMENTADO: Los datos ahora vienen centralizados del padre via CARGAR_COORDENADAS -->
     <script type="module">
         import * as bus from './js/mensajeria.js';
         // Importado por su efecto: al cargarse instala la captura de `error` y
@@ -263,32 +262,10 @@
         import './js/utils.js';
         import { esIdDeTramo } from './js/utils.js';
 
-        // ============================================================
-        // 🔄 DATOS CENTRALIZADOS: Las coordenadas ahora se reciben del padre
-        // El array vacío sirve como fallback de emergencia
-        // Los datos reales se almacenan en globalThis.__vv_coordenadasAventura (igual que audios/retos)
-        // ============================================================
-
-        // Getter para obtener coordenadas (usa datos centralizados con fallback)
-        function obtenerCoordenadasParadas() {
-            // Prioridad: datos centralizados del padre (igual que audios y retos)
-            if (globalThis.__vv_coordenadasAventura && Array.isArray(globalThis.__vv_coordenadasAventura)) {
-                return globalThis.__vv_coordenadasAventura;
-            }
-            // Fallback: array vacío
-            return [];
-        }
-
-        /* ============================================================
-         * 📦 ARRAY DE BACKUP (COMENTADO) - NO ELIMINAR
-         * Mantener como referencia en caso de necesitar revertir cambios
-         * Los datos ahora están en: js/coordenadas-aventuras.js
-         * ============================================================
-
-        const CoordenadasParadas_BACKUP = [
-         * FIN DEL ARRAY DE BACKUP COMENTADO
-         * ============================================================
-         */
+        // Este frame no guarda datos de la aventura, ni coordenadas ni textos: sabe en qué
+        // elemento está (el id y el tipo, de NAVEGACION.CAMBIO_PARADA) y a qué distancia (de
+        // NAVEGACION.ACTUALIZAR_ESTADO). Sus botones solo piden, y lo que enseñan lo resuelve el
+        // padre con sus propios datos (docs/estudio-caminos.md, K-130).
 
 // ==================== INICIALIZACIÓN DE MENSAJERÍA ====================
 
@@ -398,11 +375,6 @@ const elementosDOM = {
 
 // Asignar referencias DOM al estado
 estadoComponente.elementosDOM = elementosDOM;
-
-// Función para actualizar estado visual
-function actualizarEstado() {
-    // Estado visual deshabilitado
-}
 
 // Función para marcar botón como activo
 function setBotonActivo(botonId) {
@@ -613,20 +585,6 @@ function actualizarEstadoBotones() {
 // FUNCIONES HELPER PARA VALIDACIÓN GPS
 // ============================================================
 
-/**
- * ID real de la parada de inicio ("Torres de Serranos") de la aventura activa.
- * Se usa como destino por defecto cuando todavía no hay ninguna parada/tramo
- * activo (estadoComponente.idParadaActual vacío). El ID lleva siempre el
- * prefijo de la aventura (p.ej. "Av1-P-0", "Av34km-P-0") — nunca el literal
- * "P-0" a secas, que no coincide con ningún id real en ninguna aventura.
- * Se busca en el array ya cargado localmente, así que sirve para cualquier
- * aventura sin necesitar saber su prefijo de antemano.
- */
-function _idParadaInicio() {
-    const paradas = globalThis.__vv_coordenadasAventura || [];
-    return paradas.find(p => p.tipo === 'inicio')?.id || null;
-}
-
 function _procesarDentroDeRango(btn, logPrefix) {
     // desactivarBoton() (no un color puesto a mano) porque el fondo base de .boton es
     // un degradado CSS (background, no background-color) — un background-color inline
@@ -760,51 +718,6 @@ function verificarDistanciaYActualizarBotones() {
     }
 }
 
-// Inicializar estado de botones al cargar
-function _buscarTextoParada(idParadaActual) {
-    try {
-        const textos = globalThis.__vv_textosAventura;
-        if (textos && Array.isArray(textos) && textos.length > 0) {
-            const paradaNorm = idParadaActual.replaceAll('-', '');
-            const textoParada = textos.find(t => t && t.id && t.id.replaceAll('-', '').includes(paradaNorm)) || null;
-            if (textoParada) logger.info(`[hijo2] Texto encontrado para ${idParadaActual}: "${textoParada.title}"`);
-            return textoParada;
-        }
-    } catch (textoErr) {
-        logger.warn(`[hijo2] Error buscando texto para parada:`, textoErr);
-    }
-    return null;
-}
-
-async function _reproducirVideoParada(idParadaActual) {
-    if (!idParadaActual) {
-        logger.warn(`[hijo2] No hay parada seleccionada - abriendo ventana de video vacía`);
-        await enviarMensaje({ tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO, destino: 'padre', datos: { accion: 'reproducir-video', sinContenido: true, mensajeError: 'No hay parada/tramo seleccionado' } });
-        actualizarEstado('Ventana video abierta (sin parada)', 'warn');
-        return;
-    }
-    const datosDisponibles = obtenerCoordenadasParadas();
-    const parada = datosDisponibles.find(p => p.id === idParadaActual || p.parada_id === idParadaActual);
-    if (!parada) {
-        logger.warn(`[hijo2] No se encontró parada/tramo ${idParadaActual} - abriendo ventana de video vacía`);
-        logger.debug(`[hijo2][DEBUG] IDs disponibles:`, datosDisponibles?.map(p => ({ id: p.id, parada_id: p.parada_id })));
-        await enviarMensaje({ tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO, destino: 'padre', datos: { accion: 'reproducir-video', sinContenido: true, mensajeError: 'No hay video disponible para esta parada/tramo' } });
-        actualizarEstado('Ventana video abierta (sin datos)', 'warn');
-        return;
-    }
-    logger.debug(`[hijo2][DEBUG_VIDEO] Parada encontrada:`, { id: parada.id, nombre: parada.nombre, tieneVideo: !!parada.video, urlVideo: parada.video, tieneImagen: !!parada.imagen });
-    const urlVideo = parada.video;
-    const hayVideo = urlVideo && urlVideo.trim() !== '';
-    if (!hayVideo) logger.warn(`[hijo2] No hay video para parada/tramo ${idParadaActual} - abriendo ventana con mensaje`);
-    await enviarMensaje({
-        tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
-        destino: 'padre',
-        datos: { accion: 'reproducir-video', paradaActual: idParadaActual, urlVideo: hayVideo ? urlVideo : null, nombre: parada.nombre || parada.title, sinContenido: !hayVideo, mensajeError: hayVideo ? null : 'No hay video disponible para esta parada/tramo' }
-    });
-    actualizarEstado(hayVideo ? 'Reproduciendo video' : 'Ventana de video abierta (sin contenido)', hayVideo ? 'success' : 'warn');
-    logger.info(`[hijo2] Ventana video solicitada para parada/tramo ${idParadaActual}:`, { hayVideo, urlVideo });
-}
-
 // ── Spin behavior (AVENTURA) ──
 // Botones glow-activo giran cada 3 s hasta ser pulsados; se reinicia en cada CAMBIO_PARADA.
 // Definido a nivel de módulo para que _resetSpinsAventura sea accesible desde los controladores
@@ -896,114 +809,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         });
 
-        actualizarEstado(estadoComponente.gpsActivo ? 'GPS activado' : 'GPS desactivado', 'success');
         logger.info(`[hijo2] GPS ${estadoComponente.gpsActivo ? 'activado' : 'desactivado'}`);
     } catch (error) {
         logger.error(`[hijo2] Error al activar GPS:`, error);
-        actualizarEstado('Error GPS', 'error');
     }
 });
 
 elementosDOM.btnImagen?.addEventListener('click', async () => {
     try {
         setBotonActivo('btnImagen');
-        logger.info(`[hijo2][BOTON_IMAGEN] Botón pulsado, verificando estado:`, {
-            idParadaActual: estadoComponente.idParadaActual,
-            tipoParada: estadoComponente.tipoParadaActual,
-            modo: estadoComponente.modo,
-            datosRecibidos: estadoComponente.datosRecibidos
-        });
-        logger.info(`[hijo2][BOTON_IMAGEN] ID actual confirmado: "${estadoComponente.idParadaActual}" (tipo: ${typeof estadoComponente.idParadaActual})`);
-
-        if (!estadoComponente.idParadaActual) {
-            logger.warn(`[hijo2] No hay parada seleccionada - abriendo ventana de imagen vacía`);
-            await enviarMensaje({ tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO, destino: 'padre', datos: { accion: 'mostrar-imagen', sinContenido: true, mensajeError: 'No hay parada seleccionada' } });
-            actualizarEstado('Ventana imagen abierta (sin parada)', 'warn');
-            return;
-        }
-
-        let datosDisponibles = obtenerCoordenadasParadas();
-        if (datosDisponibles.length === 0 && estadoComponente.idParadaActual) {
-            // Coordenadas aún no propagadas — esperar hasta 2 s
-            let intentos = 0;
-            while (datosDisponibles.length === 0 && intentos < 20) {
-                await new Promise(r => setTimeout(r, 100));
-                datosDisponibles = obtenerCoordenadasParadas();
-                intentos++;
-            }
-            if (datosDisponibles.length === 0) logger.warn('[hijo2][BOTON_IMAGEN] Coordenadas no disponibles tras espera');
-        }
-        const parada = datosDisponibles.find(p => p.id === estadoComponente.idParadaActual || p.parada_id === estadoComponente.idParadaActual);
-
-        if (!parada) {
-            logger.warn(`[hijo2] No se encontró parada ${estadoComponente.idParadaActual} - abriendo ventana de imagen vacía`);
-            logger.debug(`[hijo2][DEBUG] IDs disponibles:`, datosDisponibles?.map(p => ({ id: p.id, parada_id: p.parada_id })));
-            await enviarMensaje({ tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO, destino: 'padre', datos: { accion: 'mostrar-imagen', sinContenido: true, mensajeError: 'No hay imagen disponible para esta parada' } });
-            actualizarEstado('Ventana imagen abierta (sin datos)', 'warn');
-            return;
-        }
-
-        logger.debug(`[hijo2][DEBUG_IMAGEN] Parada encontrada:`, { id: parada.id, nombre: parada.nombre, tieneImagen: !!parada.imagen, urlImagen: parada.imagen, tieneVideo: !!parada.video });
-
-        const todasImagenes = [parada.imagen, parada.imagen2, parada.imagen3, parada.imagen4]
-            .filter(url => url && typeof url === 'string' && url.trim() !== '');
-        const urlImagen = todasImagenes.length > 0 ? todasImagenes[0] : null;
-        const hayImagen = todasImagenes.length > 0;
-        const tipoEntrada = esIdDeTramo(parada.id) || estadoComponente.tipoParadaActual === 'tramo' ? 'tramo' : 'parada';
-        const mapaNumero = parada.mapa_numero == null ? null : parada.mapa_numero;
-
-        if (!hayImagen) logger.warn(`[hijo2] No hay imagen para parada ${estadoComponente.idParadaActual} - abriendo ventana con mensaje`);
-
-        const textoParada = _buscarTextoParada(estadoComponente.idParadaActual);
-
-        await enviarMensaje({
-            tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
-            destino: 'padre',
-            datos: {
-                accion: 'mostrar-imagen',
-                paradaActual: estadoComponente.idParadaActual,
-                urlImagen: hayImagen ? urlImagen : null,
-                nombre: parada.nombre || parada.title,
-                sinContenido: !hayImagen,
-                mensajeError: hayImagen ? null : 'No hay imagen disponible para esta parada/tramo',
-                textoParada,
-                imagenes: todasImagenes,
-                tipo: tipoEntrada,
-                mapa_numero: mapaNumero
-            }
-        });
-
-        const mensaje = hayImagen ? 'Mostrando imagen' : 'Ventana de imagen abierta (sin contenido)';
-        actualizarEstado(mensaje, hayImagen ? 'success' : 'warn');
-        logger.info(`[hijo2] Ventana imagen solicitada para parada ${estadoComponente.idParadaActual}:`, { hayImagen, urlImagen, totalImagenes: todasImagenes.length, tipo: tipoEntrada, mapa_numero: mapaNumero });
+        // Solo pide la imagen: cuál, con qué texto y de qué elemento lo decide el padre, que tiene
+        // los datos de la aventura (docs/estudio-caminos.md, K-130). Igual que los dos mapas (K-107).
+        await enviarMensaje({ tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO, destino: 'padre', datos: { accion: 'mostrar-imagen' } });
+        logger.info(`[hijo2] Imagen pedida al padre (elemento ${estadoComponente.idParadaActual || 'ninguno'})`);
     } catch (error) {
-        logger.error(`[hijo2] Error al mostrar imagen:`, error);
-        actualizarEstado('Error imagen', 'error');
+        logger.error(`[hijo2] Error al pedir la imagen:`, error);
     }
 });
 
 elementosDOM.btnVideo?.addEventListener('click', async () => {
     try {
         setBotonActivo('btnVideo');
-        logger.info(`[hijo2][BOTON_VIDEO] Botón pulsado, verificando estado:`, {
-            idParadaActual: estadoComponente.idParadaActual,
-            tipoParada: estadoComponente.tipoParadaActual,
-            modo: estadoComponente.modo,
-            datosRecibidos: estadoComponente.datosRecibidos
-        });
-        logger.info(`[hijo2][BOTON_VIDEO] ID actual confirmado: "${estadoComponente.idParadaActual}" (tipo: ${typeof estadoComponente.idParadaActual})`);
-
         const esTramo = estadoComponente.tipoParadaActual === 'tramo' ||
                        esIdDeTramo(estadoComponente.idParadaActual);
-
-        if (esTramo && !estadoComponente.retoActivo) {
-            await _reproducirVideoParada(estadoComponente.idParadaActual);
-        } else {
-            actualizarEstado('Video no disponible en esta ubicación', 'warn');
-        }
+        // El vídeo es de los tramos, y no durante un reto: las mismas condiciones que encienden el botón.
+        if (!esTramo || estadoComponente.retoActivo) return;
+        // Solo pide el vídeo: cuál lo decide el padre (K-130).
+        await enviarMensaje({ tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO, destino: 'padre', datos: { accion: 'reproducir-video' } });
+        logger.info(`[hijo2] Vídeo pedido al padre (tramo ${estadoComponente.idParadaActual})`);
     } catch (error) {
-        logger.error(`[hijo2] Error al reproducir video:`, error);
-        actualizarEstado('Error video', 'error');
+        logger.error(`[hijo2] Error al pedir el vídeo:`, error);
     }
 });
 
@@ -1011,43 +846,22 @@ elementosDOM.btnUbicacion?.addEventListener('click', async () => {
     const logPrefix = '[hijo2][btnUbicacion.click]';
     try {
         // La pantalla de aviso (foto-fuera-rango / foto_lejos_ubicación / fotogpserror) vive
-        // en el padre — al recibir MOSTRAR_UBICACION_POLYLINE más abajo, el propio padre la
-        // oculta (no hace falta pedirlo aparte).
-        logger.info(`${logPrefix} 📍 Usuario solicita volver a la ruta`);
-
-        // Obtener elemento actual/próximo del padre
-        let elementoDestino = null;
-        let elementoId = null;
-
-        try {
-            elementoId = estadoComponente.idParadaActual || _idParadaInicio();
-            const paradas = globalThis.__vv_coordenadasAventura || [];
-            elementoDestino = paradas.find(p => p.id === elementoId || p.parada_id === elementoId || p.tramo_id === elementoId);
-            logger.debug(`${logPrefix} Elemento destino: ${elementoId}`);
-        } catch (e) {
-            logger.warn(`${logPrefix} Error obteniendo elemento destino:`, e);
-            elementoId = _idParadaInicio();
-        }
-
-        // Solicitar al padre que muestre polyline desde ubicación actual hasta destino
+        // en el padre — al recibir MOSTRAR_UBICACION_POLYLINE, el propio padre la oculta (no
+        // hace falta pedirlo aparte). Hasta dónde va la línea también lo decide él: el elemento
+        // en el que está el usuario o, sin ninguno, el punto de inicio (K-130). Aquí solo va la
+        // posición que tiene este frame.
         await enviarMensaje({
             tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE,
             destino: 'padre',
             datos: {
                 ubicacionUsuario: estadoComponente.posicionActualUsuario,
-                proximoElemento: elementoDestino,
-                elementoId: elementoId,
                 centrar: true,
                 zoom: 16
             }
         });
-
-        actualizarEstado(`Mostrando ruta hacia ${elementoId}`, 'success');
-        logger.info(`${logPrefix} ✅ Polyline solicitada hacia ${elementoId}`);
-
+        logger.info(`${logPrefix} 📍 Línea de vuelta a la ruta pedida al padre`);
     } catch (error) {
-        logger.error(`${logPrefix} Error al mostrar ruta:`, error);
-        actualizarEstado('Error al mostrar ruta', 'error');
+        logger.error(`${logPrefix} Error al pedir la línea de vuelta a la ruta:`, error);
     }
 });
 
@@ -1063,11 +877,9 @@ elementosDOM.btnMapaCompleto?.addEventListener('click', async () => {
             datos: {}
         });
 
-        actualizarEstado('Mapa completo', 'success');
         logger.info(`[hijo2] Solicitado mapa completo`);
     } catch (error) {
         logger.error(`[hijo2] Error al mostrar mapa completo:`, error);
-        actualizarEstado('Error mapa', 'error');
     }
 });
 
@@ -1087,7 +899,6 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
         logger.info('[hijo2] Solicitado mapa vintage al padre');
     } catch (error) {
         logger.error(`[hijo2] Error al mostrar mapa JPG:`, error);
-        actualizarEstado('Error mapa JPG', 'error');
     }
 });
 
@@ -1371,7 +1182,7 @@ try {
     // Esto garantiza que el padre no envíe PADRE_DATOS antes de que los controladores estén listos.
     // Ver: "// Enviar HIJO_PREPARADO para indicar que estamos listos para recibir datos del padre"
 
-    // ==================== CONTROLADORES DE DATOS (hijo2 es el experto en coordenadas) ====================
+    // ==================== CONTROLADORES DE ARRANQUE Y DE MODO ====================
 
     logger.info(`Hijo ${CONFIG_HIJO.IFRAME_ID} registrado el controlador PADRE_DATOS`);
     // ============================================================
@@ -1411,7 +1222,6 @@ try {
             logger.info(`${logPrefix} Procesando modo inicial del padre:`, { original: modo, normalizado: modoSeguro });
             estadoComponente.modo = modoSeguro || modo;
             actualizarEstadoBotones();
-            actualizarEstado(`Modo inicial: ${modoSeguro || modo}`, 'info');
         }
     }
 
@@ -1438,7 +1248,7 @@ try {
      * Controlador: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
      * Descripción: Recibe confirmación del padre de que los controladores están listos
      * Origen esperado: padre
-     * Respuesta: Ninguna (preparado para futuras solicitudes de datos)
+     * Respuesta: ninguna
      */
     registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, async (mensaje) => {
         const logPrefix = `[hijo2][PADRE_CONFIRMA_HIJO_LISTO][${mensaje?.origen || 'desconocido'}]`;
@@ -1457,29 +1267,6 @@ try {
                 actualizarEstadoBotones(); // Actualiza botones según modo
                 logger.debug(`${logPrefix} Estado de botones actualizado según modo inicial`);
             }
-
-            // Preparado para futuras solicitudes de datos adicionales del padre
-            logger.debug(`${logPrefix} Componente listo para recibir datos adicionales si es necesario`);
-
-            // Verificación diferida: si CARGAR_COORDENADAS o CARGAR_TEXTOS no llegaron, solicitarlos
-            setTimeout(() => {
-                if (!globalThis.__vv_coordenadasAventura || !Array.isArray(globalThis.__vv_coordenadasAventura) || globalThis.__vv_coordenadasAventura.length === 0) {
-                    logger.debug('[hijo2] Coordenadas no recibidas tras 3s — solicitando al padre');
-                    enviarMensaje({
-                        tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_COORDENADAS,
-                        destino: 'padre',
-                        datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
-                    }).catch(err => logger.error('[hijo2] Error solicitando coordenadas:', err));
-                }
-                if (!globalThis.__vv_textosAventura || !Array.isArray(globalThis.__vv_textosAventura) || globalThis.__vv_textosAventura.length === 0) {
-                    logger.debug('[hijo2] Textos no recibidos tras 3s — solicitando al padre');
-                    enviarMensaje({
-                        tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_TEXTOS,
-                        destino: 'padre',
-                        datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
-                    }).catch(err => logger.error('[hijo2] Error solicitando textos:', err));
-                }
-            }, 3000);
 
             // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 — ver GUIA-COMPLETA.md §10.11).
 
@@ -1635,212 +1422,6 @@ try {
         }
     });
 
-    // ============================================================
-    // CONTROLADOR: DATOS.CARGAR_COORDENADAS
-    // Recibe coordenadas centralizadas del padre al iniciar aventura
-    // ============================================================
-
-    /**
-     * Controlador: DATOS.CARGAR_COORDENADAS
-     * Descripción: Recibe y almacena las coordenadas de la aventura seleccionada
-     * Origen: padre (codigo-padre.html)
-     * Datos recibidos: { aventura, idioma, coordenadas: Array, total, timestamp }
-     */
-    registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS, async (mensaje) => {
-        const logPrefix = `[hijo2][CARGAR_COORDENADAS]`;
-
-        try {
-            const { aventura, idioma, coordenadas, total } = mensaje.datos || {};
-
-            logger.info(`${logPrefix} 📥 Recibiendo coordenadas de ${aventura} (${idioma}): ${total} elementos`);
-
-            if (!coordenadas || !Array.isArray(coordenadas)) {
-                throw new Error('Datos de coordenadas inválidos o no son un array');
-            }
-
-            // Almacenar en estado global (igual que audios y retos)
-            globalThis.__vv_coordenadasAventura = coordenadas;
-
-            logger.info(`${logPrefix} ✅ ${coordenadas.length} coordenadas almacenadas en globalThis.__vv_coordenadasAventura`);
-
-            // Enviar confirmación al padre
-            await enviarMensaje({
-                tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_CARGADAS,
-                destino: 'padre',
-                datos: {
-                    exito: true,
-                    aventura: aventura,
-                    idioma: idioma,
-                    totalCargadas: coordenadas.length,
-                    timestamp: Date.now()
-                }
-            });
-
-            logger.success(`${logPrefix} ✅ Confirmación COORDENADAS_CARGADAS enviada al padre`);
-
-        } catch (error) {
-            logger.error(`${logPrefix} Error cargando coordenadas:`, error);
-
-            // Enviar error al padre
-            try {
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_CARGADAS,
-                    destino: 'padre',
-                    datos: {
-                        exito: false,
-                        error: error.message,
-                        timestamp: Date.now()
-                    }
-                });
-            } catch (sendError) {
-                logger.error(`${logPrefix} Error enviando confirmación de error:`, sendError);
-            }
-        }
-    });
-
-    // CONTROLADOR: DATOS.CARGAR_TEXTOS
-    // Recibe textos centralizados del padre al iniciar aventura
-    // ============================================================
-    registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_TEXTOS, async (mensaje) => {
-        const logPrefix = `[hijo2][CARGAR_TEXTOS]`;
-
-        try {
-            const { aventura, idioma, textos, total } = mensaje.datos || {};
-
-            logger.info(`${logPrefix} Recibiendo textos de ${aventura} (${idioma}): ${total} elementos`);
-
-            if (!textos || !Array.isArray(textos)) {
-                throw new Error('Datos de textos inválidos o no son un array');
-            }
-
-            // Almacenar en estado global
-            globalThis.__vv_textosAventura = textos;
-
-            logger.info(`${logPrefix} ${textos.length} textos almacenados en globalThis.__vv_textosAventura`);
-
-            // Enviar confirmación al padre
-            await enviarMensaje({
-                tipo: TIPOS_MENSAJE.DATOS.TEXTOS_CARGADOS,
-                destino: 'padre',
-                datos: {
-                    exito: true,
-                    aventura: aventura,
-                    idioma: idioma,
-                    totalCargados: textos.length,
-                    timestamp: Date.now()
-                }
-            });
-
-        } catch (error) {
-            logger.error(`${logPrefix} Error cargando textos:`, error);
-
-            try {
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.DATOS.TEXTOS_CARGADOS,
-                    destino: 'padre',
-                    datos: {
-                        exito: false,
-                        error: error.message,
-                        timestamp: Date.now()
-                    }
-                });
-            } catch (sendError) {
-                logger.error(`${logPrefix} Error enviando confirmación de error:`, sendError);
-            }
-        }
-    });
-
-    /**
-     * Controlador: DATOS.COORDENADAS_PARADAS_REQUEST
-     * Descripción: Envía coordenadas filtradas por paradaId o el array completo al solicitante
-     * Origen esperado: padre
-     * Respuesta: acuse automático (enviarMensajeConConfirmacion) — return del handler
-     *
-     * Datos recibidos: {
-     *     paradaId?: string (opcional - filtra por ID específico),
-     *     incluirRutas?: boolean,
-     *     incluirMarcadores?: boolean,
-     *     actualizarMapa?: boolean,
-     *     contexto?: string
-     * }
-     * Datos enviados: { coordenadas: Array, total: number, exito: boolean, mensajeOriginal: string, paradaId?: string }
-     */
-    registrarControladorSeguro(TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_REQUEST, async (mensaje) => {
-        const logPrefix = `[hijo2][COORDENADAS_PARADAS_REQUEST]`;
-
-        try {
-            const { paradaId, incluirRutas, incluirMarcadores, actualizarMapa, contexto } = mensaje.datos || {};
-
-            logger.info(`${logPrefix} 📥 Solicitud recibida - paradaId: ${paradaId || 'TODAS'}, contexto: ${contexto}`);
-
-            // Obtener coordenadas almacenadas
-            const todasCoordenadas = obtenerCoordenadasParadas();
-
-            if (!todasCoordenadas || todasCoordenadas.length === 0) {
-                logger.warn(`${logPrefix} No hay coordenadas cargadas todavía`);
-                // Return para confirmación automática
-                return {
-                    coordenadas: [],
-                    total: 0,
-                    exito: false,
-                    error: 'No hay coordenadas cargadas',
-                    contexto: contexto
-                };
-            }
-
-            // Filtrar por paradaId si se especifica
-            let coordenadasFiltradas;
-            if (paradaId) {
-                // Buscar SOLO la parada o tramo específico por ID exacto
-                coordenadasFiltradas = todasCoordenadas.filter(c => c.id === paradaId);
-                logger.debug(`${logPrefix} Filtrado exacto por ${paradaId}: ${coordenadasFiltradas.length} coordenadas`);
-
-                // ✅ Actualizar tipoParadaActual e idParadaActual para que los botones reflejen
-                // el elemento seleccionado (especialmente el botón de video en modo casa)
-                const tipoDetectado = coordenadasFiltradas[0]?.tipo
-                    || (esIdDeTramo(paradaId) ? 'tramo' : 'parada');
-                estadoComponente.idParadaActual = paradaId;
-                estadoComponente.tipoParadaActual = tipoDetectado;
-                actualizarEstadoBotones();
-                logger.debug(`${logPrefix} Estado botones actualizado: id=${paradaId} tipo=${tipoDetectado}`);
-            } else {
-                // Sin filtro = todas las coordenadas
-                coordenadasFiltradas = todasCoordenadas;
-                logger.debug(`${logPrefix} Enviando TODAS las coordenadas: ${coordenadasFiltradas.length}`);
-            }
-
-            const respuesta = {
-                coordenadas: coordenadasFiltradas,
-                total: coordenadasFiltradas.length,
-                exito: true,
-                paradaId: paradaId || null,
-                incluirRutas: incluirRutas !== false,
-                incluirMarcadores: incluirMarcadores !== false,
-                actualizarMapa: actualizarMapa !== false,
-                contexto: contexto
-            };
-
-            logger.success(`${logPrefix} ✅ Respondidas ${coordenadasFiltradas.length} coordenadas`);
-
-            // Return para confirmación automática
-            return respuesta;
-
-        } catch (error) {
-            logger.error(`${logPrefix} Error procesando solicitud:`, error);
-
-            const errorResponse = {
-                coordenadas: [],
-                total: 0,
-                exito: false,
-                error: error.message,
-                contexto: mensaje.datos?.contexto
-            };
-
-            // Return para confirmación automática
-            return errorResponse;
-        }
-    });
-
     /**
      * Controlador: SISTEMA.HEARTBEAT
      * Descripción: Responde al latido del bus del padre para verificar que el componente está activo
@@ -1864,139 +1445,12 @@ try {
                     timestamp: Date.now(),
                     estado: estadoComponente.inicializado ? 'activo' : 'inicializando',
                     gpsActivo: estadoComponente.gpsActivo,
-                    paradaActual: estadoComponente.idParadaActual,
-                    coordenadasCargadas: obtenerCoordenadasParadas().length
+                    paradaActual: estadoComponente.idParadaActual
                 }
             });
 
         } catch (error) {
             logger.error(`${logPrefix} Error respondiendo heartbeat:`, error);
-        }
-    });
-
-
-    // Controlador para respuesta de datos de paradas del padre
-    registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS, async (mensaje) => {
-        const logPrefix = `[hijo2][NAVEGACION.RESPUESTA_DATOS_PARADAS][${mensaje?.origen || 'desconocido'}]`;
-
-        try {
-            // Solo bloquear el primer envío masivo de datos (carga inicial).
-            // Actualizaciones posteriores (cambio de parada) deben procesarse.
-            const esCargaInicial = !estadoComponente.datosRecibidos;
-
-            if (!esCargaInicial && mensaje.datos?.paradas?.length > 5) {
-                logger.debug(`${logPrefix} Datos iniciales ya recibidos, ignorando envío masivo duplicado`);
-                return;
-            }
-
-            logger.debug(`${logPrefix} Respuesta de paradas recibida`);
-
-            // Validación de datos
-            if (!mensaje.datos || !mensaje.datos.paradas || !Array.isArray(mensaje.datos.paradas)) {
-                logger.error(`${logPrefix} Datos de paradas inválidos`, mensaje.datos);
-                return;
-            }
-
-            estadoComponente.datosRecibidos = true;
-
-            // ✅ Si se especifica paradaActual, actualizar el estado
-            if (mensaje.datos.paradaActual) {
-                estadoComponente.idParadaActual = mensaje.datos.paradaActual;
-                estadoComponente.tipoParadaActual = esIdDeTramo(mensaje.datos.paradaActual) ? 'tramo' : 'parada';
-
-                logger.debug(`${logPrefix} Parada actual actualizada: ${mensaje.datos.paradaActual}`);
-            }
-
-            // ✅ Refrescar botones tras actualizar estado de parada
-            actualizarEstadoBotones();
-
-            logger.info(`${logPrefix} Paradas recibidas:`, {
-                totalParadas: mensaje.datos.paradas.length,
-                paradaActual: estadoComponente.idParadaActual,
-                tipoParada: estadoComponente.tipoParadaActual
-            });
-
-            // El padre no registra ningún handler de SISTEMA.CONFIRMACION para este
-            // aviso, y el campo idOriginal que llevaba se descartaba en el envío —
-            // enviarMensaje() solo construye tipo/datos/id/timestamp/origen/destino.
-            // No tenía ningún efecto: retirado (verificado en vivo — el
-            // mecanismo completo del acuse está en GUIA-COMPLETA.md §10.17).
-
-        } catch (error) {
-            logger.error(`${logPrefix} Error al procesar respuesta de datos de paradas:`, error);
-        }
-    });
-
-    // Controlador para solicitud de coordenadas del padre
-    registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.SOLICITAR_COORDENADAS, async (mensaje) => {
-        const logPrefix = `[hijo2][NAVEGACION.SOLICITAR_COORDENADAS][${mensaje?.origen || 'desconocido'}]`;
-
-        try {
-            const { paradaId, tipoConsulta } = mensaje.datos;
-
-            // Validar datos requeridos
-            if (!paradaId) {
-                logger.error(`${logPrefix} paradaId requerido faltante`);
-                return;
-            }
-            if (!tipoConsulta) {
-                logger.error(`${logPrefix} tipoConsulta requerido faltante`);
-                return;
-            }
-            if (tipoConsulta !== 'COORDENADAS') {
-                logger.error(`${logPrefix} tipoConsulta inválido: ${tipoConsulta}, esperado: COORDENADAS`);
-                return;
-            }
-
-            logger.info(`${logPrefix} Solicitud de información COMPLETA para ${paradaId}`);
-
-            // Buscar parada en datos centralizados (prioriza datos del padre)
-            const parada = obtenerCoordenadasParadas().find(p => p.id === paradaId);
-
-            if (!parada) {
-                logger.warn(`${logPrefix} Parada no encontrada en datos centralizados para ${paradaId}`);
-                return;
-            }
-
-            // Obtener coordenadas según tipo de parada
-            const coordenadas = parada.coordenadas || parada.inicio;
-
-            // Validar que las coordenadas sean válidas
-            if (!coordenadas || !coordenadas.lat || !coordenadas.lng) {
-                logger.error(`${logPrefix} Coordenadas inválidas para ${paradaId}:`, coordenadas);
-                return;
-            }
-
-            // ✅ INFORMACIÓN COMPLETA con multimedia
-            const informacionCompleta = {
-                paradaId,
-                id: parada.id,
-                tipo: parada.tipo,
-                nombre: parada.nombre,
-                lat: coordenadas.lat,
-                lng: coordenadas.lng,
-                coordenadas: coordenadas,
-                coordenadasFin: parada.fin, // Para tramos
-                waypoints: parada.waypoints,
-                // 🎯 MULTIMEDIA COMPLETA
-                imagen: parada.imagen || null,
-                video: parada.video || null
-            };
-
-            // Responder al padre con información completa
-            await enviarMensaje({
-                destino: 'padre',
-                tipo: TIPOS_MENSAJE.NAVEGACION.RESPUESTA_COORDENADAS,
-                datos: informacionCompleta
-            });
-
-            logger.info(`${logPrefix} Información completa enviada para ${paradaId}:`, {
-                tieneImagen: !!informacionCompleta.imagen,
-                tieneVideo: !!informacionCompleta.video
-            });
-
-        } catch (error) {
-            logger.error(`${logPrefix} Error respondiendo coordenadas:`, error);
         }
     });
 
@@ -2098,7 +1552,6 @@ try {
             tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
             datos: {
                 componenteId: CONFIG_HIJO.COMPONENTE_ID,
-                coordenadasDisponibles: obtenerCoordenadasParadas().length,
                 tipo: 'COORDENADAS',
                 capacidades: ['navegacion', 'coordenadas'],
                 timestamp: Date.now()
@@ -2127,7 +1580,6 @@ globalThis.addEventListener('pagehide', () => {
         logger.info(`${logPrefix} PENDING_INICIADO para ${padreId} ttl=${ttlMs}`);
         if (_esPadreIdActual(padreId)) {
             if (elementosDOM.btnUbicacion) desactivarBoton(elementosDOM.btnUbicacion);
-            actualizarEstado('Pendiente creado: esperando condiciones', 'info');
         }
     }
 
@@ -2158,7 +1610,6 @@ globalThis.addEventListener('pagehide', () => {
     });
 } catch (error) {
     logger.error('[hijo2] Error durante la inicialización:', error);
-    actualizarEstado('Error de inicialización', 'error');
 }
     </script>
 </body>

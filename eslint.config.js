@@ -141,7 +141,6 @@ module.exports = [
         // ── Globals propios — funciones de utilidad ───────────────────────
         logger: "readonly",
         getEstadoSafe: "readonly",
-        ajustarTimeoutPorConexionSafe: "readonly",
         findIndexByPadreIdOrId: "readonly",
         persistProgressState: "readonly",
         calcularDistancia: "readonly",
@@ -169,8 +168,6 @@ module.exports = [
         activarGPS: "readonly",
         _ocultarTodasPantallasDistanciaGPS: "readonly",
         _iniciarTemporizadorAventura: "readonly",
-        solicitarCoordenadasHijo: "readonly",
-        solicitarCoordenadasAHijo2: "readonly",
         seleccionarAventura: "readonly",
 
         // ── Globals propios — funciones de audio/aventura ────────────────

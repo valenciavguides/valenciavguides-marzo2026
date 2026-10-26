@@ -152,7 +152,6 @@
             // Borrar referencias globales a datos de aventura
             if (globalThis.RETOS_AVENTURAS) { Object.keys(globalThis.RETOS_AVENTURAS).forEach(function(k) { delete globalThis.RETOS_AVENTURAS[k]; }); }
             if (globalThis.TEXTOS_AVENTURAS) { Object.keys(globalThis.TEXTOS_AVENTURAS).forEach(function(k) { delete globalThis.TEXTOS_AVENTURAS[k]; }); }
-            if (globalThis.__vv_coordenadasAventura) { globalThis.__vv_coordenadasAventura = null; }
             if (globalThis.AVENTURA_PARADAS) { globalThis.AVENTURA_PARADAS = null; }
         } catch(e) { /* fail silently */ }
     }
@@ -165,7 +164,7 @@
         var args = Array.prototype.slice.call(arguments);
         var hayDatosSensibles = args.some(function(a) {
             return a && (a === globalThis.RETOS_AVENTURAS || a === globalThis.TEXTOS_AVENTURAS ||
-                         a === globalThis.DATOS_AVENTURAS || a === globalThis.__vv_coordenadasAventura);
+                         a === globalThis.DATOS_AVENTURAS);
         });
         if (hayDatosSensibles) return;
         return _origTable.apply(console, args);
@@ -174,7 +173,7 @@
         var args = Array.prototype.slice.call(arguments);
         var hayDatosSensibles = args.some(function(a) {
             return a && (a === globalThis.RETOS_AVENTURAS || a === globalThis.TEXTOS_AVENTURAS ||
-                         a === globalThis.DATOS_AVENTURAS || a === globalThis.__vv_coordenadasAventura);
+                         a === globalThis.DATOS_AVENTURAS);
         });
         if (hayDatosSensibles) return;
         return _origDir.apply(console, args);

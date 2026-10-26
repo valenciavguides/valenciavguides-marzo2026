@@ -153,10 +153,10 @@ test.describe('EI — Escalera de espera para imágenes (§25.18)', () => {
   });
 
   test('EI-4. _precargarImagenParada() calienta la caché con las imágenes de la parada', async ({ page }) => {
-    // Se invoca la función directamente en vez de a través de _hdl_NAVEGACION_CAMBIO_PARADA:
-    // en este entorno las páginas hijas no completan el handshake (misma limitación que
-    // documenta 12-carga-por-parada.spec.js), así que `paradaData` llega null desde hijo2 y
-    // `paradaNormalized` —el argumento real de la precarga— nunca se resuelve.
+    // Se invoca la función directamente, con imágenes inventadas y marcadas, en vez de a través
+    // de _hdl_NAVEGACION_CAMBIO_PARADA: así se mide solo la precarga, con URLs que no pide nadie
+    // más. En el cambio de parada real, su argumento es la entrada del elemento en la tabla de
+    // coordenadas del padre (_entradaDeCoordenadas).
     // Se mide con la API de Resource Timing del propio navegador, NO con page.route():
     // en WebKit, Playwright no intercepta las peticiones que nacen de un `new Image()`,
     // así que la interceptación daba una lista vacía y el test fallaba solo en iphone12

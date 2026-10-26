@@ -42,9 +42,9 @@ export function registrarControladoresDatos({
 }) {
 
     // ============================================================
-    // CONTROLADORES: SOLICITAR_AUDIOS / SOLICITAR_TEXTOS / SOLICITAR_RETOS
+    // CONTROLADORES: SOLICITAR_AUDIOS / SOLICITAR_RETOS
     // Patrón request-response: un hijo al que le falta un dato lo pide.
-    // El padre responde con el de la aventura actual: AUDIO.REPRODUCIR_REQUEST, DATOS.CARGAR_TEXTOS o RETO.MOSTRAR
+    // El padre responde con el de la aventura actual: AUDIO.REPRODUCIR_REQUEST o RETO.MOSTRAR
     // ============================================================
 
     // Protección pasiva por parada (ver docs/GUIA-COMPLETA.md §16): SOLICITAR_AUDIOS ya no
@@ -80,36 +80,6 @@ export function registrarControladoresDatos({
             logger.info(`${logPrefix} ✅ Audio ${audioId} reenviado a ${mensaje.origen}`);
         } catch (error) {
             logger.error(`${logPrefix} Error reenviando audio:`, error);
-        }
-    }, { permanente: true });
-
-    registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_TEXTOS, async (mensaje) => {
-        const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[SOLICITAR_TEXTOS][${mensaje?.origen || 'desconocido'}]`;
-        try {
-            logger.info(`${logPrefix} Hijo solicita textos — cargando con cargarTextos()`);
-            const aventura = globalThis.aventuraSeleccionada;
-            const idioma = globalThis.idiomaSeleccionado;
-            if (!aventura || !idioma) {
-                logger.debug(`${logPrefix} Contexto no listo (aventura/idioma), omitiendo envío`);
-                return;
-            }
-            // cargarTextos() es el unico camino a los textos: textos-aventuras.js ya no se
-            // carga en ningun global (§22.12). Ademas ensambla {id, title, content} con los
-            // parrafos del idioma — el fichero crudo son arrays planos sin clave de idioma.
-            const { cargarTextos } = await import('./data-loader.js');
-            const textos = await cargarTextos(aventura, idioma) || [];
-            if (textos.length === 0) {
-                logger.debug(`${logPrefix} Sin textos disponibles para ${aventura}/${idioma}`);
-                return;
-            }
-            await enviarMensaje({
-                tipo: TIPOS_MENSAJE.DATOS.CARGAR_TEXTOS,
-                destino: mensaje.origen,
-                datos: { aventura, idioma, textos, total: textos.length, timestamp: Date.now() }
-            });
-            logger.info(`${logPrefix} ✅ ${textos.length} textos reenviados a ${mensaje.origen}`);
-        } catch (error) {
-            logger.error(`${logPrefix} Error reenviando textos:`, error);
         }
     }, { permanente: true });
 

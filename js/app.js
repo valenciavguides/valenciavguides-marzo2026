@@ -770,8 +770,8 @@ if (globalThis.window !== undefined) {
 // script inline de codigo-padre.html (Script 1 — controladores del padre).
 
 // NAVEGACION.RESPUESTA_DATOS_PARADAS no se maneja aqui: lo emite codigo-padre.html y lo
-// reciben hijo2 (coordenadas-hijo2.html) y hijo5 (boton-casa-hijo5.html), cada uno con su
-// propio registrarControladorSeguro(). El payload real es { paradas, aventura?, timestamp },
+// recibe hijo5 (boton-casa-hijo5.html), con su propio registrarControladorSeguro(). hijo2 no
+// recibe ninguna lista (docs/estudio-caminos.md, K-130). El payload real es { paradas, aventura?, timestamp },
 // y cada parada tiene la forma que le da normalizarParada() en js/utils.js.
 
 // Hacer funciones disponibles globalmente para compatibilidad con carga como script
