@@ -1864,18 +1864,21 @@ Es el catálogo (nombre, plazo, categoría, disponibilidad y totales de cada ave
 
 #### FASE 2 — Datos de aventura
 
-`__cargarDatosAventuraDiferidos()` no corre en el arranque. La llaman dos sitios: `_hdl_SELECCION_P15_MOSTRADA`, vía `_fase2CargarDatos()`, en el mismo `Promise.all` que `cargarRestoDeiframes()` y `cargarHijoCasa()`; y `ejecutarRestauracionAventura()`, la reanudación, que nunca pasa por P15 y la llama antes de cargar los hijos. Si `__vv_DATOS_AVENTURAS` y `__vv_AUDIOS_AVENTURAS` ya están, no recarga nada. Los **4 módulos** de datos no tienen imports cruzados: se cargan en paralelo con un solo `Promise.all` y sus resultados se exponen en **4 variables globales**, que valen `null` hasta entonces:
+`__cargarDatosAventuraDiferidos()` no corre en el arranque. La llaman dos sitios: `_hdl_SELECCION_P15_MOSTRADA`, vía `_fase2CargarDatos()`, en el mismo `Promise.all` que `cargarRestoDeiframes()` y `cargarHijoCasa()`; y `ejecutarRestauracionAventura()`, la reanudación, que nunca pasa por P15, escribe la aventura y el idioma guardados y la llama antes de cargar los hijos.
+
+Carga **la aventura y el idioma elegidos** (`globalThis.aventuraSeleccionada` y `globalThis.idiomaSeleccionado`) y nada más; sin alguno de los dos no carga nada y lo dice con un error. Si ya tiene esa aventura y ese idioma, no recarga; si cambian —la selección puede volver atrás sin recargar la página (`SELECCION.REINICIAR`)—, vuelve a cargar. Pide los datos de pago a `js/data-loader.js` —en modo `'local'` importan su fichero de `js/`; en modo `'api'`, la API, sin pedir ningún fichero protegido (§16, §22.12)— y la tabla pública de los mapas antiguos con un `import()`, los tres en un solo `Promise.all`, y publica **3 variables globales**, que valen `null` hasta entonces y se asignan las tres en el mismo tick:
 
 ```text
-coordenadas-aventuras.js    →  globalThis.__vv_DATOS_AVENTURAS
-audios-aventuras.js         →  globalThis.__vv_AUDIOS_AVENTURAS
-mapa-vintage-aventuras.js   →  globalThis.__vv_MAPAS_VINTAGE
-puzzles-aventuras.js        →  globalThis.__vv_PUZZLES
+cargarCoordenadas(aventura)      →  globalThis.__vv_DATOS_AVENTURAS   = { [aventura]: { 'coordenadas-hijo2.html': { coordenadas } } }
+cargarAudios(aventura, idioma)   →  globalThis.__vv_AUDIOS_AVENTURAS  = { [aventura]: { [idioma]: [ … ] } }
+mapa-vintage-aventuras.js        →  globalThis.__vv_MAPAS_VINTAGE     (la tabla entera: es pública)
 ```
 
-**Los retos y los textos no están aquí, y es deliberado.** Son los dos módulos grandes, y precargarlos enteros aquí supondría traerse un mega (952 KB de retos y 93 KB de textos) para acabar consultando un par de campos. No existe ningún `globalThis.__vv_RETOS_AVENTURAS` ni `globalThis.__vv_TEXTOS_AVENTURAS`: el único camino a esos datos es `cargarRetos()` / `cargarTextos()` de `js/data-loader.js`, que importan su módulo bajo demanda y resuelven solo el id que se pide (protección pasiva por parada, §16).
+Llevan la forma de los ficheros de `js/` con una sola aventura dentro, y sus lectores las indexan por la aventura elegida: la búsqueda de una entrada (`_entradaDeCoordenadas`), el reparto (`distribuirDatosAventura`, que pospone si no están los datos de la aventura que se le pide), el listado de paradas, el mapa completo, el fallback del GPS, `hayFicheroAudioReal()` y el mapa antiguo (spec 153).
 
-Por el mismo motivo `mapa-vintage-aventuras.js` y `puzzles-aventuras.js` sí están en esta lista aunque no sean "datos de parada": de no estar aquí, los importarían `coordenadas-hijo2.html` y `puzzle.html` por su cuenta, saltándose la puerta única de §22.12.
+**Los retos, los textos y los puzzles no están aquí, y es deliberado.** No existe ningún `globalThis.__vv_RETOS_AVENTURAS`, `__vv_TEXTOS_AVENTURAS` ni `__vv_PUZZLES`: el único camino a esos datos es `cargarRetos()`, `cargarTextos()` y `cargarPuzzle()` de `js/data-loader.js`, que se piden bajo demanda y resuelven solo lo que se pide (protección pasiva por parada, §16). El puzzle de un reto lo pide el padre al pedirse ese reto (`_hdl_RETO_SOLICITAR`), y su imagen viaja con él a hijo4 (`reto.imagenPuzzle`).
+
+La tabla de los mapas antiguos sí está en esta fase aunque no sea "dato de parada": de no estar aquí, la importaría `coordenadas-hijo2.html` por su cuenta, saltándose la puerta única de §22.12.
 
 #### FASE 3 — Iframes
 
@@ -1901,7 +1904,7 @@ Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el 
 ```mermaid
 flowchart TD
     F1["FASE 1 — Infraestructura\nstate-manager → mensajeria → validacion+mapa\n→ 7 módulos en Promise.all, el índice entre ellos"]
-    F2["FASE 2 — Datos de aventura\nPromise.all 4 módulos .js\n→ globalThis.__vv_*"]
+    F2["FASE 2 — Datos de la aventura elegida\ndata-loader: coordenadas y audios\n+ mapas antiguos → globalThis.__vv_*"]
     F3A["FASE 3.1\ncargarIframeSoloSeleccion()\nseleccion cargado + handshake"]
     FIN["✅ Sistema listo, con Script 2 listo\noverlay oculto — usuario ve seleccion"]
     SEL_A["AVENTURA_SELECCIONADA (P7)\nguarda la aventura elegida\nreset _codigoValidadoP14 y _iframesPreCargadosP15"]
@@ -4913,7 +4916,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-3272c6ffde46'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-5b8694f9413a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7465,11 +7468,24 @@ La carpeta `backend/` **no existe todavía**. El backend con API REST autenticad
 | Puzzles | `/puzzles/:id` · `/puzzles/:id/:puzzleId` |
 | Textos | `/textos/:id/:idioma` — **solo en `data-loader.js`**; `ApiClient` no tiene `getTextos()` (§16.1b) |
 
-Las rutas granulares (`/parada/`, `/tramo/`, `:retoId`) son las que pide la protección pasiva por parada: no son un extra, son el camino normal de la app en marcha.
+Las rutas granulares (`/parada/`, `/tramo/`, `:retoId`, `:puzzleId`) son las que pide la protección pasiva por parada: no son un extra, son el camino normal de la app en marcha.
 
-El módulo `js/data-loader.js` implementa las dos ramas (modo `'local'` / modo `'api'`) para `cargarTextos`, `cargarCoordenadas`, `cargarAudios`, `cargarRetos` e `cargarIndice`, pero el arranque real del padre no las usa todas por igual: `globalThis.__cargarDatosAventuraDiferidos` (Fase 2, `codigo-padre.html`) importa `coordenadas-aventuras.js`, `audios-aventuras.js` e `indice-aventuras.js` con un `await import()` incondicional, saltandose `data-loader.js` — pasar a modo `'api'` hoy no tiene ningún efecto sobre esa carga inicial. Los otros dos grandes, `retos-aventuras.js` y `textos-aventuras.js`, **no están en la Fase 2**: se resuelven bajo demanda por `cargarRetos()`/`cargarTextos()` (§6). `cargarTextos()` está conectada al flujo real (usada para ensamblar `{id,title,content}` a partir de los párrafos, ver `distribuirDatosAventura()`). **`cargarAudios()` y `cargarRetos()` sí están conectadas**, como parte de la protección pasiva por parada (ver arriba): `_solicitarAudioParaParada()` (`codigo-padre.html`) y los handlers `SOLICITAR_AUDIOS`/`SOLICITAR_RETOS` (`js/controladores-padre.js`) las llaman para resolver el contenido de cada parada individualmente en el momento en que se activa — el mismo código funciona en ambos modos, sin cambios pendientes cuando exista backend. `cargarCoordenadas()` no tiene ningún call site (la carga de coordenadas es bulk por import directo, no forma parte de esta protección).
+**Lo que lee el frontend de cada respuesta.** Todas llevan `{ exito: true, … }` (`fetchFromAPI` de `js/data-loader.js` rechaza la que no lo lleva) y el dato con la forma de su fichero de `js/`, para que el padre lo lea igual en los dos modos:
 
-**Puzzles — la imagen viaja con el reto, no la busca `puzzle.html`:** los retos de `tipo:'puzzle'` (`retos-aventuras.js`) llevan un campo `src` con la página y el id (p. ej. `"puzzle.html?id=PZ-01"`). El padre resuelve la imagen al resolver el reto y la añade como `reto.imagenPuzzle`; hijo4 la concatena a ese `src` y crea el `<iframe>`. **`puzzle.html` no importa `puzzles-aventuras.js`** — la única mención que queda en el fichero es un comentario — ni busca nada: lee `id` e `imagen` de su URL y monta con eso (§13). Quien sí carga el pool completo es la Fase 2 del padre, con un `await import('./js/puzzles-aventuras.js')` que expone `globalThis.__vv_PUZZLES`; y `En-busca-del-tesoro.html` hace el suyo para el puzzle de P6. `data-loader.js` no tiene función para puzzles: la forma real de los datos (pool compartido bajo la clave `INTRO`, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)` que usan `cargarAudios`/`cargarRetos`/`cargarCoordenadas`/`cargarTextos`. Si se quiere proteger, hace falta inventarle esa función primero (§22.12).
+| Ruta | Campo | Forma |
+|---|---|---|
+| `/coordenadas/:id` | `coordenadas` | la de `DATOS_AVENTURAS[id]` (`js/coordenadas-aventuras.js`): `{ 'coordenadas-hijo2.html': { coordenadas: [ … ] } }` |
+| `/audios/:id/:idioma` | `audios` | la de `AUDIOS_AVENTURAS[id][idioma]`: `[{ id, title, file }]` |
+| `/retos/:id/:idioma` | `retos` | la de `RETOS_AVENTURAS[id][idioma]`, sin las respuestas correctas |
+| `/textos/:id/:idioma` | `textos` | ya ensamblados: `[{ id, title, content }]` |
+| `/puzzles/:id/:puzzleId` | `puzzle` | una entrada de `PUZZLES_AVENTURAS`: `{ id, imagen }` |
+| `/aventuras` | `aventuras` | la de `INDICE_AVENTURAS` |
+
+El spec 153 (F2-3) lo comprueba con la API simulada: la fase 2 y el puzzle de un reto leen sus datos de esas respuestas, con los ficheros protegidos en 403.
+
+El módulo `js/data-loader.js` implementa las dos ramas (modo `'local'` / modo `'api'`) para `cargarTextos`, `cargarCoordenadas`, `cargarAudios`, `cargarRetos`, `cargarPuzzle` y `cargarIndice`, y todo lo de pago que lee el padre pasa por ellas. La fase 2 (`globalThis.__cargarDatosAventuraDiferidos`, `codigo-padre.html`) carga con `cargarCoordenadas()` y `cargarAudios()` las coordenadas y los audios de la aventura elegida en su idioma, y nada más (§7.1). Los retos y los textos se resuelven bajo demanda por `cargarRetos()`/`cargarTextos()` (§6): `cargarTextos()` la usan la ventana de la imagen, para el texto del elemento (`_buscarTextoDelElemento`), y el listado de paradas. **`cargarAudios()` y `cargarRetos()` forman parte de la protección pasiva por parada** (ver arriba): `_solicitarAudioParaParada()` (`codigo-padre.html`) y los handlers `SOLICITAR_AUDIOS`/`SOLICITAR_RETOS` (`js/controladores-padre.js`) las llaman para resolver el contenido de cada parada en el momento en que se activa — el mismo código funciona en los dos modos. `cargarIndice()` no la llama nadie: el índice no es de pago y lo importa la fase 1.
+
+**Puzzles — la imagen viaja con el reto, no la busca `puzzle.html`:** los retos de `tipo:'puzzle'` (`retos-aventuras.js`) llevan el id de su puzzle (`PZ-01`) y un campo `src` con la página (`"puzzle.html?id=PZ-01"`). Al pedirse el reto (`_hdl_RETO_SOLICITAR`), el padre pide ese puzzle a `cargarPuzzle(aventura, id)` —en modo `'local'`, el grupo de `puzzles-aventuras.js` bajo la clave `INTRO`, con sus ids únicos; en modo `'api'`, `/puzzles/:id/:puzzleId`— y añade su imagen al reto como `reto.imagenPuzzle`; hijo4 la concatena a ese `src` y crea el `<iframe>`. **`puzzle.html` no importa `puzzles-aventuras.js`** ni busca nada: lee `id` e `imagen` de su URL y monta con eso (§13). El puzzle de P6 de la demo gratis sale de la copia pública (`publico/puzzles/puzzles.json`, §7.1).
 
 ### 16.1b Prevenir cuellos de botella del backend antes de que exista
 
@@ -7747,7 +7763,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 
 **Por qué `PROTECTED_FILES` (`js/server.js`) cubre también imágenes y vídeos, no solo audio/texto/retos/coordenadas:** un fichero estático fuera de esa lista es descargable directamente por su URL (deducible por patrón de nombre, o vista en el tráfico de red durante un uso normal) sin pasar por ninguna autenticación, aunque `PROTECT_DATA=true` esté activo — la lista es la única barrera real, no hay protección implícita por tipo de archivo. La protección pasiva por parada (`_solicitarAudioParaParada()`, resolver solo el contenido de la parada activa, ver §16) es una medida del lado **cliente** — evita que la propia interfaz de la app revele todo el contenido de golpe en la memoria/estado de JavaScript. Eso **no sustituye** la protección real, que ocurre en el servidor (`PROTECT_DATA`/`PROTECTED_FILES`): un fichero estático sin proteger es descargable directamente por su URL sin importar cuán granular sea la lógica de la interfaz que lo referencia. Cualquier tipo de contenido de pago nuevo (imágenes, vídeos, y lo que se añada en el futuro) necesita añadirse explícitamente a `PROTECTED_FILES` — no basta con que la app lo cargue "uno a uno".
 
-**¿El modo CASA expone más contenido que AVENTURA?** No. `coordenadas-aventuras.js` (que contiene las URLs de imagen/vídeo de *toda* la aventura, no solo la parada activa) se carga en la Fase 2 (en P15, o al reanudar), **antes** de que se decida el modo CASA o AVENTURA — ocurre igual en ambos casos. El resto del contenido (audio, retos, imágenes mostradas) se resuelve por el mismo camino único (`_hdl_NAVEGACION_CAMBIO_PARADA`) tanto en CASA como en AVENTURA (ver §16, "mismo camino para CASA y AVENTURA"). CASA solo cambia cómo se dispara el cambio de parada (navegación manual vía hijo5 en vez de detección GPS) — no qué datos hay disponibles en cada momento. Además, hijo5 (la barra de navegación de CASA) es una herramienta de desarrollo que no aparece en la PWA real (ver §7.6).
+**¿El modo CASA expone más contenido que AVENTURA?** No. Las coordenadas de la aventura elegida (con las URLs de imagen y vídeo de *toda* la aventura, no solo de la parada activa) se cargan en la Fase 2 (en P15, o al reanudar), **antes** de que se decida el modo CASA o AVENTURA — ocurre igual en ambos casos. El resto del contenido (audio, retos, imágenes mostradas) se resuelve por el mismo camino único (`_hdl_NAVEGACION_CAMBIO_PARADA`) tanto en CASA como en AVENTURA (ver §16, "mismo camino para CASA y AVENTURA"). CASA solo cambia cómo se dispara el cambio de parada (navegación manual vía hijo5 en vez de detección GPS) — no qué datos hay disponibles en cada momento. Además, hijo5 (la barra de navegación de CASA) es una herramienta de desarrollo que no aparece en la PWA real (ver §7.6).
 
 ### Seguridad actualmente implementada
 
@@ -7888,7 +7904,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `01-fase1-boot.spec.js` | 8 | Orden de carga de módulos en FASE 1: mensajería, state-manager, logger, config, constants |
 | `02-global-variables.spec.js` | 11 | Variables globales expuestas tras FASE 1: TIPOS_MENSAJE, MODOS, enviarMensaje, CONFIG_PADRE…; y que no hay `globalThis.registrarControlador`: los handlers se registran por el bus (`globalThis.mensajeria.registrarControlador`) |
 | `03-handler-registration.spec.js` | 6 | Handlers registrados en state-manager (no en el fallback local) |
-| `04-iframe-dom.spec.js` | 17 | Datos diferidos nulos antes de selección (`__vv_DATOS/AUDIOS/RETOS_AVENTURAS`); `__cargarDatosAventuraDiferidos` expuesta |
+| `04-iframe-dom.spec.js` | 17 | Datos diferidos nulos antes de la selección (`__vv_DATOS_AVENTURAS`, `__vv_AUDIOS_AVENTURAS`); `__cargarDatosAventuraDiferidos` expuesta, y una segunda llamada con la misma aventura y el mismo idioma no recarga |
 | `05-queues-draining.spec.js` | 3 | Colas drenadas tras el arranque: ni `__pendingDistribucion` ni `__pendingBroadcast` existen sin aventura seleccionada, y el bus del padre está inicializado, se identifica y es el frame de arriba |
 | `06-race-conditions.spec.js` | 10 | 5 condiciones de carrera: doble registro, inicialización concurrente, stub de mapa, estado idempotente |
 | `07-performance-baseline.spec.js` | 4 | Baseline de tiempo de arranque (< umbrales definidos) y conteo de handlers |
@@ -8032,6 +8048,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `150-los-desplegables-del-mapa-caben-enteros.spec.js` | 3 | Los dos desplegables del mapa (`#selector-tipo-mapa` y `#brujula-modo`) se abren enteros, sin desplazamiento interno, en tres pantallas: un iPhone con las barras de Safari (390×664), un Android corriente (393×727) y el iPhone con la app instalada (390×844). En cada una, con la banda del logo a la vista como al activarse la aventura, cada desplegable abierto enseña todo su contenido (DE-1) y su borde de arriba queda por debajo de la banda (DE-2) |
 | `151-cada-ruta-del-service-worker-en-un-sitio.spec.js` | 4 | Cada ruta de media la decide un solo sitio de `sw.js`: ninguna carpeta de `esMedia()` es de las que el manejador `fetch` deja ir antes directas a red (audios y vídeos), y las dos listas se leen enteras —cada `startsWith(` de `esMedia()` y cada vuelta temprana del manejador— (SW-1); la imagen del aviso de sin conexión del padre (`_ensureInternetOverlay`) está en `APP_SHELL`, porque el aviso sale justo cuando no hay red (SW-2); y `APP_SHELL` no lleva nada de `PROTECTED_FILES` (`js/server.js`): las dos listas se leen enteras y se comparan como las compara el servidor, por prefijo y sin distinguir mayúsculas (SW-3, §22.9); y lo que cargan las páginas de `APP_SHELL` —sus `<script src>`, sus hojas de estilo y los imports estáticos de sus páginas y módulos— está en `APP_SHELL`, con cada etiqueta leída (SW-4) |
 | `152-hijo2-pide-y-el-padre-resuelve.spec.js` | 4 | hijo2 no guarda listas: pide, y el padre resuelve con sus datos (§9.6, §10.5): al repartir los datos y activar una parada, hijo2 no recibe ninguna lista ni petición de coordenadas, y no pide ni confirma nada de eso (H2-1); el botón de imagen solo manda la acción y el padre abre su ventana con la imagen, las imágenes y el texto del elemento actual —el texto, por su `texto_id`— (H2-2); el de vídeo, en un tramo, igual con el vídeo y el nombre del tramo (H2-3); y «volver a la ruta» solo manda la posición, sin el elemento ni su id (H2-4) |
+| `153-la-fase-2-carga-solo-la-aventura-elegida.spec.js` | 4 | La fase 2 carga solo la aventura y el idioma elegidos, por `js/data-loader.js` (§7.1, §22.12): sus globales llevan esa aventura y ese idioma y no hay global de puzzles (F2-1); si cambian, vuelve a cargar (F2-2); con la API simulada y los ficheros protegidos en 403, la fase 2 y `cargarPuzzle()` leen de la API y no piden ningún fichero protegido (F2-3); y el reto de puzzle llega a hijo4 con la imagen de su puzzle (F2-4) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8266,7 +8283,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-3272c6ffde46'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-5b8694f9413a'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8678,7 +8695,7 @@ Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌
 | 24 | Pasarela de pago y backend por **categoría de precio** (aventuras cortas y largas). Al añadir una aventura hay que darle su categoría en `js/indice-aventuras.js` | la pasarela cobra el precio de la categoría de la aventura elegida, y el backend guarda la categoría con el código y la exige al comprobarlo | §16.2 | ⏳ pendiente — necesita la pasarela y el backend |
 | 25 | El botón atrás con una aventura en marcha (§34): comprobarlo en un Android real con la PWA instalada, que es donde existe ese botón | comprobado en un Android real con la PWA instalada | §34 | ⏳ pendiente — la lógica está hecha y medida en los cuatro navegadores de los tests (spec 131) |
 | 26 | La demo gratis con sus datos propios: copias públicas de solo las piezas que enseña de cada aventura —el puzzle de introducción, los retos R-1 y R-2, el audio y el texto de introducción (con solo los párrafos que usa), si la aventura tiene audio en cada idioma, los términos, la normativa, los agradecimientos y los textos de Jaime—, hechas por script a partir de los originales, con una carpeta por tipo y una por idioma. Los originales siguen completos en sus carpetas. Nombres, carpetas y generación siguen el patrón del resto de la PWA | con `PROTECT_DATA=true`, la demo no pide ningún fichero protegido, y el resto de la app no pide ninguna copia | §22.12 | ✅ cerrada — `publico/textos/`, `publico/retos/`, `publico/puzzles/` y `publico/audios/`, hechas por `tools/build-demo.js` (§7.1, §21.1); lo vigila el spec 149 |
-| 27 | La fase 2 del padre carga sus datos con las funciones de `js/data-loader.js`, no con `import()` directo (la de los puzzles, por crear) | con `PROTECT_DATA=true` y la API, la fase 2 no pide ningún fichero protegido | §22.12 | ⏳ pendiente — no necesita servidor |
+| 27 | La fase 2 del padre carga sus datos con las funciones de `js/data-loader.js`, no con `import()` directo | con `PROTECT_DATA=true` y la API, la fase 2 no pide ningún fichero protegido | §22.12 | ✅ cerrada — la fase 2 carga solo la aventura y el idioma elegidos, con `cargarCoordenadas()` y `cargarAudios()`, y el reto de puzzle su imagen con `cargarPuzzle()`; con la API simulada y los ficheros protegidos en 403, no pide ninguno (spec 153) |
 | 28 | El servidor de producción publica solo lo que usa la app: ni `docs/`, ni `tests/`, ni `tools/`, ni `debug-brujula.html` | pedir a producción cualquier fichero de esas rutas da 403 o 404 | §22.4 | ⏳ pendiente — va con el n.º 1 |
 | 29 | Las imágenes y el vídeo que enseña la demo gratis, con su copia en la carpeta pública junto a sus datos y su audio: la foto de fondo de cada tarjeta de aventura (P7, P9 y P13; `IMAGENES_AVENTURAS` de `En-busca-del-tesoro.html`), la foto y el vídeo de `video-intro.html` (P4) y el mapa antiguo de cada aventura (P7 y `video-intro.html`) | con `PROTECT_DATA=true`, la demo no pide ninguna imagen ni ningún vídeo protegido, y el resto de la app no pide ninguna copia | §22.12 | ✅ cerrada — una sola carpeta pública, `publico/`, con `imagenes/` (los mapas antiguos, en `mapas-vintage/`) y `videos/` junto a los textos, los retos, el puzzle y el audio de la demo; los originales, en sus carpetas protegidas; lo vigilan el spec 149 y la comprobación 12 de `npm run verificar-datos` |
 
@@ -9011,7 +9028,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-3272c6ffde46';
+const CACHE_VERSION = 'v-5b8694f9413a';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9046,33 +9063,33 @@ Voltear ese interruptor **no** rompe GitHub Pages: allí `/api/health` responde 
 
 ---
 
-### 22.12 Imports directos a migrar antes de activar `PROTECT_DATA=true`
+### 22.12 Cómo se carga cada fichero de datos (`PROTECT_DATA=true`)
 
-`js/data-loader.js` ya tiene funciones para la mayoría de los archivos de datos sensibles, salvo dos. La tabla siguiente lista cada import directo que romperá con `PROTECT_DATA=true` y su equivalente en data-loader:
+Cada fichero de datos de `PROTECTED_FILES` se carga por su función de `js/data-loader.js`, que en modo `'api'` lo pide a la API: con `PROTECT_DATA=true` ninguno se pide directamente. La tabla dice cómo se carga cada fichero de datos y su función en data-loader:
 
 | Archivo | Cómo se carga hoy | Función en data-loader | Estado |
 |---|---|---|---|
-| **`aventuras-ID-padre.js`** | **`import` estático en la cabecera del Script 1 de `codigo-padre.html`** (más un `await import()` en Script 2, que reaprovecha el módulo ya cacheado por el navegador) | **ninguna — `cargarDatosPadre()` no existe** | ❌ **el único bloqueante** |
-| `coordenadas-aventuras.js` | `await import()` en el `Promise.all` de FASE 2 | `cargarCoordenadas(aventuraId)` | ⚠️ la función existe pero FASE 2 no la usa (§22.0, n.º 27) |
-| `audios-aventuras.js` | `await import()` en FASE 2 | `cargarAudios(aventuraId, idioma)` | ⚠️ la función existe pero FASE 2 no la usa (§22.0, n.º 27) |
+| `aventuras-ID-padre.js` | `import` estático en la cabecera del Script 1 de `codigo-padre.html` (más un `await import()` en Script 2, que reaprovecha el módulo ya cargado) | ninguna | público (§2.2; §22.0, n.º 13): no rompe |
+| `coordenadas-aventuras.js` | solo vía `cargarCoordenadas()`: la fase 2, la aventura elegida | `cargarCoordenadas(aventuraId)` | ✅ por su función |
+| `audios-aventuras.js` | vía `cargarAudios()` (la fase 2, la aventura y el idioma elegidos, y el audio de cada parada) y, para los títulos, `cargarTextos()` | `cargarAudios(aventuraId, idioma)` | ✅ por su función |
 | `indice-aventuras.js` | `await import()` en FASE 1 y en `En-busca-del-tesoro.html` | `cargarIndice()` | no está en `PROTECTED_FILES` (es el catálogo): no rompe |
-| `puzzles-aventuras.js` | `await import()` en FASE 2 | ninguna — el pool es compartido, no está organizado por aventura, y no encaja con el patrón `cargarX(aventuraId)` | ⚠️ protegido; la fase 2 necesita su función (§22.0, n.º 27) |
+| `puzzles-aventuras.js` | solo vía `cargarPuzzle()`, al pedirse un reto de puzzle | `cargarPuzzle(aventuraId, puzzleId)` | ✅ por su función |
 | `mapa-vintage-aventuras.js` | `await import()` en FASE 2 y en `En-busca-del-tesoro.html` | ninguna | público: lo enseña la demo gratis (§22.0, n.º 13) |
 | `publico/` (los `.json` de la demo) | `fetch()` en `En-busca-del-tesoro.html` (`_leerPublico()`) y en `video-intro.html` | ninguna | público: copias de lo que enseña la demo gratis, hechas por `tools/build-demo.js` (§22.0, n.º 26) |
 | `retos-aventuras.js` | solo vía `cargarRetos()` | `cargarRetos(aventuraId, idioma)` | ✅ por su función |
 | `textos-aventuras.js` | solo vía `cargarTextos()` | `cargarTextos(aventuraId, idioma)` | ✅ por su función |
 
-**La diferencia entre estático y dinámico importa, y es la razón de que solo uno bloquee.** Con `PROTECT_DATA=true` el servidor responde 403 a los ficheros protegidos. Un `await import()` que recibe un 403 lanza una promesa rechazada, que se puede capturar y gestionar; un `import` estático que recibe un 403 impide que el `<script type="module">` **llegue a parsearse**, y con él se cae el arranque entero de la app. Por eso `aventuras-ID-padre.js` no puede entrar en `PROTECTED_FILES` mientras esa línea siga ahí — y por eso, mientras siga ahí, sus 1,7 MB se descargan en cada arranque, antes de P14, antes de que el usuario haya pagado o validado nada.
+**La diferencia entre estático y dinámico importa.** Con `PROTECT_DATA=true` el servidor responde 403 a los ficheros protegidos. Un `await import()` que recibe un 403 lanza una promesa rechazada, que se puede capturar y gestionar; un `import` estático que recibe un 403 impide que el `<script type="module">` **llegue a parsearse**, y con él se cae el arranque entero de la app. Por eso `aventuras-ID-padre.js`, con su `import` estático, no podría entrar en `PROTECTED_FILES` mientras se cargue así; es público (punto 1), y sus 1,7 MB se descargan en cada arranque, antes de P14, antes de que el usuario haya pagado o validado nada.
 
 `puzzle.html` no importa `puzzles-aventuras.js`: recibe la imagen por URL de quien lo invoca.
 
 `js/data-loader.js` también exporta `validarRespuesta()`, `limpiarCacheDatos()`, `getDataMode()`, `asegurarModo()` y `hayBackendDisponible()`, que son independientes de PROTECT_DATA, y `ensamblarTexto()`, con la que la demo gratis monta el texto de introducción con la copia pública de sus párrafos, y `LANG_ARCHIVO_PARRAFOS`, que da también el nombre de la carpeta de cada idioma en `publico/` (§7.1, §21.1).
 
-**Qué queda por decidir y por hacer:**
+**Lo decidido:**
 
 1. **`aventuras-ID-padre.js`: decidido, no se protege** (§2.2). Su `import` estático puede quedarse. Lo único que sigue abierto es si merece la pena cargarlo bajo demanda por sus 1,7 MB en el arranque — decisión de rendimiento, no de seguridad, y sin urgencia.
-2. **`puzzles-aventuras.js`, protegido; `mapa-vintage-aventuras.js`, público** (§22.0, n.º 13). El de los puzzles no tiene función en `data-loader.js`, y su forma (pool compartido, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)`: la fase 2 necesita una función propia para él (n.º 27). La tabla de los mapas antiguos es pública, como el índice, porque la demo gratis la lee para saber el nombre de cada mapa; los mapas son de la aventura y están protegidos en `imagenes/mapas-vintage/`, y la demo enseña su copia de `publico/imagenes/mapas-vintage/`.
-3. **Tres ficheros de `PROTECTED_FILES` se cargan con `await import()` directo** en el `Promise.all` de la FASE 2 (`__cargarDatosAventuraDiferidos`): `coordenadas-aventuras.js`, `audios-aventuras.js` y `puzzles-aventuras.js`; el cuarto `import()` de esa fase, `mapa-vintage-aventuras.js`, es público. `textos` y `retos` llegan por `cargarTextos()` y `cargarRetos()`. Con `PROTECT_DATA=true` esos tres `import()` recibirán un 403: hay que sustituirlos por `cargarCoordenadas()` y `cargarAudios()`, que existen y añadirán el token en modo `'api'`, y por la función de los puzzles que falta (punto 2). **Este es el trabajo real del pendiente** (§22.0, n.º 27).
+2. **`puzzles-aventuras.js`, protegido; `mapa-vintage-aventuras.js`, público** (§22.0, n.º 13). Los puzzles se piden de uno en uno, por el id que lleva el reto de puzzle, con `cargarPuzzle()` (en modo `'api'`, `/puzzles/:id/:puzzleId`, §16). La tabla de los mapas antiguos es pública, como el índice, porque la demo gratis la lee para saber el nombre de cada mapa; los mapas son de la aventura y están protegidos en `imagenes/mapas-vintage/`, y la demo enseña su copia de `publico/imagenes/mapas-vintage/`.
+3. **La fase 2** (`__cargarDatosAventuraDiferidos`) carga la aventura y el idioma elegidos con `cargarCoordenadas()` y `cargarAudios()`, que en modo `'api'` los piden a la API; su único `import()` directo es el de `mapa-vintage-aventuras.js`, que es público (§7.1; §22.0, n.º 27; spec 153).
 4. **La demo gratis** (la selección hasta el código, el vídeo de introducción y el puzzle de P6) lee todo lo que enseña de las aventuras de las copias de `publico/` que hace `tools/build-demo.js`: nada protegido (§7.1; §22.0, n.º 26 y 29).
 
 > **Nota:** `mapa-completo.html` recibe hoy las coordenadas del padre por mensaje, no las importa.
@@ -12459,7 +12476,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-3272c6ffde46';
+const CACHE_VERSION = 'v-5b8694f9413a';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14112,10 +14129,10 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 
 ### 37.2 `globalThis` compartido entre bloques `<script>` inline (todos los archivos)
 
-Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **114 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
+Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **113 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 96 identificadores cruzados, de 140 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 95 identificadores cruzados, de 139 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14131,90 +14148,89 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarImagenOverlay` | clásico 8 (L1661) | módulo 1, módulo 2 | función/objeto |
 | `mostrarVideoOverlay` | clásico 8 (L2003) | módulo 1 | función/objeto |
 | `rotationSuppressed` | clásico 8 (L1703) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3722) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5008) | clásico 12 | estado |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3712) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3711) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5774) | clásico 12 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6439) | clásico 12 | estado |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3725) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4992) | clásico 12 | estado |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3709) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3708) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5758) | clásico 12 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6423) | clásico 12 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3692) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6579) | clásico 12 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3713) | módulo 2 | función/objeto |
-| `__vv_PUZZLES` | módulo 1 (L3714) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6563) | clásico 12 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3710) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3591) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4747) | módulo 2 | función/objeto |
-| `_cerrarDesplegablesDelPadre` | módulo 1 (L4713) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L7290) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8648) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8864) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8769) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L4032) | módulo 2 | estado |
-| `_entradaDeCoordenadas` | módulo 1 (L3798) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8738) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L8948) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8840) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8744) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8956) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8618) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L8192) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5944) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3857) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4944) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L7962) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L7961) | módulo 2 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L3949) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3851) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3852) | módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L4037) | clásico 7, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4387) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4141) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6343) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4731) | módulo 2 | función/objeto |
+| `_cerrarDesplegablesDelPadre` | módulo 1 (L4697) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L7274) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8632) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8848) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8753) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L4016) | módulo 2 | estado |
+| `_entradaDeCoordenadas` | módulo 1 (L3782) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8722) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8932) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8824) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8728) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8940) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8602) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L8176) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5928) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3841) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4928) | clásico 7, módulo 2 | estado |
+| `cargarHijoCasa` | módulo 1 (L7946) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L7945) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L3933) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3835) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3836) | módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4021) | clásico 7, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4371) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4125) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6327) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2855) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4945) | clásico 5, clásico 7, módulo 2 | estado |
+| `idiomaSeleccionado` | módulo 1 (L4929) | clásico 5, clásico 7, módulo 2 | estado |
 | `limpiarDatosAventura` | módulo 1 (L2890) | módulo 2 | función/objeto |
-| `MODOS` | módulo 1 (L3850) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8345) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8268) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8118) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8161) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4234) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5036) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5063) | módulo 2 | función/objeto |
+| `MODOS` | módulo 1 (L3834) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8329) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8252) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8102) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8145) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4218) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5020) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5047) | módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2895) | clásico 8 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2885) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2886) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6181) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6107) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6035) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6260) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6335) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6639) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6638) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6165) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6091) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6019) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6244) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6319) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6623) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6622) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2843) | módulo 2 | función/objeto |
 | `sleep` | módulo 1 (L2770) | módulo 2, módulo 4 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3849) | clásico 7, clásico 8, módulo 2 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L4010) | clásico 8, módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3833) | clásico 7, clásico 8, módulo 2 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L3994) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2871) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9068) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13734) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9961) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12708) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13715) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11672) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12370) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9900) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11063) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11125) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L11087) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12400) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9134) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9895) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9273) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9314) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12633) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9773) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9765) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13750) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9052) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13719) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9948) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12693) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13700) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11657) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12355) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9887) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11048) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11110) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L11072) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12385) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9118) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9882) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9259) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9301) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12618) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9760) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9752) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13735) | módulo 2 | función/objeto |
 
 </details>
 

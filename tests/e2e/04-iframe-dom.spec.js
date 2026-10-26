@@ -103,9 +103,10 @@ test.describe('DOM de iframes — estructura antes de selección de aventura', (
   });
 
   /**
-   * La Fase 2 se llama desde TRES sitios (P15, restauración y AVENTURA_ACTIVADA), así que
-   * su corto-circuito de "ya cargado" no es una optimización opcional: sin él, cada llamada
-   * reimporta y reasigna los datos.
+   * La Fase 2 se llama desde dos sitios (P15 y la restauración), así que su corto-circuito de
+   * "ya cargado" —la misma aventura y el mismo idioma— no es una optimización opcional: sin él,
+   * cada llamada vuelve a pedir y a reasignar los datos. Que con otra aventura u otro idioma sí
+   * recarga lo vigila el spec 153 (F2-2).
    *
    * Este test existe porque ese corto-circuito comprobaba `__vv_RETOS_AVENTURAS`, un global
    * que dejó de poblarse al sacar retos-aventuras.js de la Fase 2 (§22.12).

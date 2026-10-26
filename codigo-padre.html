@@ -3701,84 +3701,68 @@
         (globalThis.logger || console).info('[PADRE][FASE1] ✅ Módulos: state-manager, mensajeria, constants, utils, device-detection, validacion, logger, config, app, indice-aventuras, funciones-mapa');
 
         // =====================================================================
-        // DATOS DE AVENTURA - CARGA DIFERIDA (Fase 2): coordenadas, audios, mapas vintage y puzzles, que son contenido de pago,
-        // se cargan en P15 o al reanudar (§7.1). El índice no lo es y lo carga la fase 1, al arrancar.
+        // DATOS DE AVENTURA - CARGA DIFERIDA (Fase 2): las coordenadas y los audios de la aventura elegida, que son contenido
+        // de pago, y la tabla pública de los mapas antiguos. Se cargan en P15 o al reanudar (§7.1). El índice no es de pago
+        // y lo carga la fase 1, al arrancar.
         // =====================================================================
-        let DATOS_AVENTURAS = null;
-        let AUDIOS_AVENTURAS = null;
-
-        // Se publican vacíos y los rellena la fase 2
         globalThis.__vv_DATOS_AVENTURAS = null;  // Se cargará en Fase 2
         globalThis.__vv_AUDIOS_AVENTURAS = null; // Se cargará en Fase 2
         globalThis.__vv_MAPAS_VINTAGE = null;    // Se cargará en Fase 2 (lo pide hijo2 vía MOSTRAR_MAPA_VINTAGE)
-        globalThis.__vv_PUZZLES = null;          // Se cargará en Fase 2 (viaja dentro del reto hacia hijo4)
+
+        // La aventura y el idioma que llevan los globales de la fase 2 (`aventura|idioma`); null antes de cargar.
+        let _fase2Cargada = null;
 
         /**
-         * Carga diferida de datos pesados de aventura (Fase 2)
-         * Se llama después de que el usuario selecciona aventura e idioma
-         * Incluye: coordenadas, audios, mapas vintage y puzzles (solo DATOS puros)
-         * @returns {Promise<boolean>} true si se cargaron correctamente
+         * Carga diferida de los datos de la aventura elegida (Fase 2): sus coordenadas y sus audios en el idioma elegido, por
+         * las funciones de js/data-loader.js —en modo 'local', un import de js/; en modo 'api', la API, sin pedir ningún
+         * fichero protegido—, y la tabla pública de los mapas antiguos. La aventura y el idioma son los elegidos
+         * (`aventuraSeleccionada` e `idiomaSeleccionado`; la reanudación los escribe antes de llamar), y los globales llevan
+         * esa aventura y ese idioma y nada más, con la forma que leen sus lectores (`[aventura]`, `[aventura][idioma]`). Si
+         * cambian, se vuelven a cargar: la selección puede volver atrás sin recargar la página (SELECCION.REINICIAR). Los
+         * puzzles no van aquí: el reto que es un puzzle trae su imagen con cargarPuzzle(), al pedirse (spec 153).
+         * @returns {Promise<boolean>} true si se cargaron
          */
         globalThis.__cargarDatosAventuraDiferidos = async function() {
             const logPrefix = '[PADRE][CARGA_DIFERIDA]';
-
-            // Si ya están cargados, no recargar
-            // Sin __vv_RETOS_AVENTURAS: los retos no se cargan aqui; el unico camino a ellos es cargarRetos() de data-loader.js.
-            // Da igual cual se compruebe — los globales se asignan todos juntos tras un unico
-            // Promise.all, en el mismo tick: no hay ventana en la que unos esten y otros no.
-            if (globalThis.__vv_DATOS_AVENTURAS && globalThis.__vv_AUDIOS_AVENTURAS) {
-                (globalThis.logger || console).info(`${logPrefix} Datos ya cargados, omitiendo recarga`);
+            const aventura = globalThis.aventuraSeleccionada;
+            const idioma = globalThis.idiomaSeleccionado;
+            if (!aventura || !idioma) {
+                (globalThis.logger || console).error(`${logPrefix} ❌ Sin aventura o sin idioma elegidos (${aventura || '—'} / ${idioma || '—'}): no se carga nada`);
+                return false;
+            }
+            const clave = `${aventura}|${idioma}`;
+            if (_fase2Cargada === clave) {
+                (globalThis.logger || console).info(`${logPrefix} Datos de ${aventura} (${idioma}) ya cargados, omitiendo recarga`);
                 return true;
             }
 
-            (globalThis.logger || console).info(`%c${logPrefix} 🚀 Iniciando FASE 2: Carga diferida de DATOS...`, 'color: #ffff00; font-weight: bold');
+            (globalThis.logger || console).info(`%c${logPrefix} 🚀 Iniciando FASE 2: datos de ${aventura} (${idioma})...`, 'color: #ffff00; font-weight: bold');
             const fase2Inicio = performance.now();
 
             try {
-                // =====================================================================
-                // FASE 2: Cargar SOLO módulos de DATOS puros en paralelo
-                // (sin imports cruzados, solo exportan objetos de datos)
-                // =====================================================================
-                const [
-                    coordenadasModule,
-                    audiosModule,
-                    mapasVintageModule,
-                    puzzlesModule
-                ] = await Promise.all([
-                    import('./js/coordenadas-aventuras.js'),
-                    import('./js/audios-aventuras.js'),
-                    // El mapa vintage lo importaba coordenadas-hijo2.html por su cuenta —
-                    // el unico hijo que se traia datos, saltandose el patron de sus cinco
-                    // hermanos. Ahora vive aqui, con el resto: una sola puerta (§22.12).
-                    import('./js/mapa-vintage-aventuras.js'),
-                    // Los puzzles los importaba puzzle.html por su cuenta. Ahora la imagen
-                    // viaja DENTRO del reto que la invoca (§22.12): el reto ya esta
-                    // organizado por aventura e idioma, asi que no hace falta una funcion
-                    // aparte en data-loader — solo enriquecer lo que ya se envia.
-                    import('./js/puzzles-aventuras.js')
+                const { cargarCoordenadas, cargarAudios } = await import('./js/data-loader.js');
+                const [coordenadas, audios, mapasVintageModule] = await Promise.all([
+                    cargarCoordenadas(aventura),
+                    cargarAudios(aventura, idioma),
+                    // La tabla de los mapas antiguos es pública (la lee también la demo gratis): import directo (§22.12).
+                    import('./js/mapa-vintage-aventuras.js')
                 ]);
+                const entradas = coordenadas?.['coordenadas-hijo2.html']?.coordenadas;
+                if (!Array.isArray(entradas) || !entradas.length) throw new Error(`${aventura} no tiene coordenadas`);
+                if (!Array.isArray(audios)) {
+                    (globalThis.logger || console).error(`${logPrefix} ❌ ${aventura} no tiene lista de audios en ${idioma}: ningún elemento tendrá audio`);
+                }
 
-                // Asignar datos de aventuras
-                DATOS_AVENTURAS = coordenadasModule.DATOS_AVENTURAS;
-                AUDIOS_AVENTURAS = audiosModule.AUDIOS_AVENTURAS;
-
-                // Exponer globalmente datos de aventuras
-                globalThis.__vv_DATOS_AVENTURAS = DATOS_AVENTURAS;
-                globalThis.__vv_AUDIOS_AVENTURAS = AUDIOS_AVENTURAS;
+                // Los tres a la vez, en el mismo tick, tras un único Promise.all: no hay ventana en la que unos estén y otros no.
+                globalThis.__vv_DATOS_AVENTURAS = { [aventura]: coordenadas };
+                globalThis.__vv_AUDIOS_AVENTURAS = { [aventura]: { [idioma]: audios } };
                 globalThis.__vv_MAPAS_VINTAGE = mapasVintageModule.MAPAS_VINTAGE;
-                globalThis.__vv_PUZZLES = puzzlesModule.PUZZLES_AVENTURAS;
+                _fase2Cargada = clave;
 
-                const fase2Fin = performance.now();
-                (globalThis.logger || console).info(`%c${logPrefix} ✅ FASE 2 COMPLETADA - Datos de aventuras cargados (${Math.round(fase2Fin - fase2Inicio)}ms)`, 'color: #00ff00; font-weight: bold');
-                (globalThis.logger || console).info(`${logPrefix} Módulos cargados: coordenadas-aventuras, audios-aventuras, mapa-vintage, puzzles`);
-                (globalThis.logger || console).info(`${logPrefix} Datos disponibles:`, {
-                    aventurasCoord: Object.keys(DATOS_AVENTURAS || {}),
-                    aventurasAudio: Object.keys(AUDIOS_AVENTURAS || {})
-                });
-
+                (globalThis.logger || console).info(`%c${logPrefix} ✅ FASE 2 COMPLETADA - ${aventura} (${idioma}): ${entradas.length} entradas, ${Array.isArray(audios) ? audios.length : 0} audios (${Math.round(performance.now() - fase2Inicio)}ms)`, 'color: #00ff00; font-weight: bold');
                 return true;
             } catch (datosError) {
-                (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando datos de aventuras:`, datosError);
+                (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando los datos de ${aventura} (${idioma}):`, datosError);
                 return false;
             }
         };
@@ -9255,9 +9239,11 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Quitarlos de este guard NO abre ninguna ventana de carrera: los globales
                 // que quedan se asignan junto a los demas tras un unico Promise.all, en el
                 // mismo tick (medido: de todos null a todos poblados en una sola vuelta).
-                if (!globalThis.__vv_DATOS_AVENTURAS || !globalThis.__vv_AUDIOS_AVENTURAS) {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ Datos no disponibles aún, pospuesto`);
-                    return { pospuesto: true, mensaje: 'Datos centralizados no disponibles' };
+                //
+                // La fase 2 trae solo la aventura elegida: lo que se mira son los datos de ESTA aventura.
+                if (!globalThis.__vv_DATOS_AVENTURAS?.[aventura] || !globalThis.__vv_AUDIOS_AVENTURAS?.[aventura]) {
+                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ Datos de ${aventura} no disponibles aún, pospuesto`);
+                    return { pospuesto: true, mensaje: `Datos de ${aventura} no disponibles` };
                 }
 
                 const resultados = {};
@@ -10162,20 +10148,18 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (!_retoData) {
                     (globalThis.logger || console).warn(`${logPrefix} Reto ${retoIdToUsar} no encontrado en ${_aventura}/${_idioma}`);
                 }
-                // Si el reto es un puzzle, su imagen viaja CON el: puzzle.html ya no
-                // importa puzzles-aventuras.js. Los 21 ids son unicos, asi que basta el id
-                // para localizarlo — y lo unico que necesita la pagina es `imagen` (los
-                // otros campos que lee, filas/columnas/tiempo/nombre, no existen en ningun
-                // puzzle y siempre caen a sus valores por defecto).
+                // Si el reto es un puzzle, su imagen viaja CON el: puzzle.html no importa
+                // puzzles-aventuras.js. El reto lleva el id de su puzzle, y el puzzle se pide
+                // solo a el, por data-loader (cargarPuzzle: el fichero en modo 'local', la API
+                // en modo 'api'). Lo unico que necesita la pagina es `imagen` (los otros campos
+                // que lee, filas/columnas/tiempo/nombre, no existen en ningun puzzle y siempre
+                // caen a sus valores por defecto).
                 if (_retoData && _retoData.tipo === 'puzzle') {
                     const _idPuzzle = _retoData.id;
-                    let _imagenPuzzle = null;
-                    for (const _d of Object.values(globalThis.__vv_PUZZLES || {})) {
-                        const _hallado = (_d?.['puzzle.html']?.puzzle_id || []).find(p => p.id === _idPuzzle);
-                        if (_hallado) { _imagenPuzzle = _hallado.imagen; break; }
-                    }
-                    if (_imagenPuzzle) _retoData.imagenPuzzle = _imagenPuzzle;
-                    else (globalThis.logger || console).error(`${logPrefix} Puzzle ${_idPuzzle} sin imagen en __vv_PUZZLES — el puzzle no podra montarse`);
+                    const { cargarPuzzle: _cPz } = await import('./js/data-loader.js');
+                    const _puzzle = await _cPz(_aventura, _idPuzzle);
+                    if (_puzzle?.imagen) _retoData.imagenPuzzle = _puzzle.imagen;
+                    else (globalThis.logger || console).error(`${logPrefix} Puzzle ${_idPuzzle} sin imagen — el puzzle no podra montarse`);
                 }
                 const _retosArray = _retoData ? [_retoData] : [];
 

@@ -134,7 +134,9 @@ async function fetchFromAPI(endpoint) {
 // ═══════════════════════════════════════════════════
 
 /**
- * Carga las coordenadas de una aventura
+ * Carga las coordenadas de una aventura. En modo 'api', `/coordenadas/:aventuraId` responde
+ * `{ exito, coordenadas }` con la misma forma que `DATOS_AVENTURAS[aventuraId]` de
+ * coordenadas-aventuras.js: `{ 'coordenadas-hijo2.html': { coordenadas: [ …entradas… ] } }`.
  */
 export async function cargarCoordenadas(aventuraId) {
     const key = getCacheKey('coords', aventuraId);
@@ -279,7 +281,9 @@ export async function cargarRetos(aventuraId, idioma) {
 }
 
 /**
- * Carga los audios de una aventura en un idioma
+ * Carga los audios de una aventura en un idioma. En modo 'api', `/audios/:aventuraId/:idioma`
+ * responde `{ exito, audios }` con la misma forma que `AUDIOS_AVENTURAS[aventuraId][idioma]` de
+ * audios-aventuras.js: `[{ id, title, file }]`.
  */
 export async function cargarAudios(aventuraId, idioma) {
     const key = getCacheKey('audios', aventuraId, idioma);
@@ -292,6 +296,32 @@ export async function cargarAudios(aventuraId, idioma) {
     } else {
         const data = await fetchFromAPI(`/audios/${aventuraId}/${idioma}`);
         result = data.audios;
+    }
+
+    dataCache.set(key, result);
+    return result;
+}
+
+/**
+ * Un puzzle, por su id: el del reto que lo pide (el reto de tipo puzzle lleva el id de su puzzle).
+ * En modo 'local' se busca en puzzles-aventuras.js, un solo grupo con todos los puzzles y sus ids
+ * únicos; en modo 'api', `/puzzles/:aventuraId/:puzzleId` responde `{ exito, puzzle }` con la forma de
+ * una entrada de ese grupo: `{ id, imagen }`. Devuelve null si no existe.
+ */
+export async function cargarPuzzle(aventuraId, puzzleId) {
+    const key = getCacheKey('puzzle', aventuraId, puzzleId);
+    if (dataCache.has(key)) return dataCache.get(key);
+
+    let result = null;
+    if (await asegurarModo() === 'local') {
+        const { PUZZLES_AVENTURAS } = await import('./puzzles-aventuras.js');
+        for (const grupo of Object.values(PUZZLES_AVENTURAS)) {
+            const hallado = (grupo?.['puzzle.html']?.puzzle_id || []).find((p) => p.id === puzzleId);
+            if (hallado) { result = hallado; break; }
+        }
+    } else {
+        const data = await fetchFromAPI(`/puzzles/${aventuraId}/${puzzleId}`);
+        result = data.puzzle ?? null;
     }
 
     dataCache.set(key, result);

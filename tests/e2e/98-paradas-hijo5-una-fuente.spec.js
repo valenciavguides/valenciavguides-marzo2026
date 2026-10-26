@@ -63,7 +63,12 @@ test.describe('PD — Paradas de hijo5, una sola fuente', () => {
       });
     });
     await page.waitForFunction(() => typeof globalThis.__cargarDatosAventuraDiferidos === 'function', null, { timeout: 15_000 });
-    await page.evaluate(() => globalThis.__cargarDatosAventuraDiferidos());
+    // La fase 2 carga la aventura elegida: se elige antes, como en la app (P15 o la reanudación).
+    await page.evaluate(() => {
+      globalThis.aventuraSeleccionada = 'Aventura1';
+      globalThis.idiomaSeleccionado = 'es';
+      return globalThis.__cargarDatosAventuraDiferidos();
+    });
     await page.evaluate(() => globalThis.distribuirDatosAventura('Aventura1', 'es'));
     await expect.poll(() => frameHijo5.evaluate(() => globalThis.__paradasHijo5Recibidas.length), { timeout: 5_000 }).toBeGreaterThan(0);
     const recibidas = await frameHijo5.evaluate(() => globalThis.__paradasHijo5Recibidas);
