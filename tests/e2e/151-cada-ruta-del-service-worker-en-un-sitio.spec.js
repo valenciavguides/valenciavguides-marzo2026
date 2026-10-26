@@ -12,9 +12,11 @@
  *         cada `startsWith(` de `esMedia()` y cada vuelta temprana del manejador tiene que haber casado.
  *   SW-2  La imagen del aviso de sin conexión del padre (`_ensureInternetOverlay`) está en la precarga (`APP_SHELL`): el
  *         aviso sale justo cuando no hay red, y una imagen que no se guardó antes no se puede descargar entonces.
+ *   SW-3  La precarga no trae nada de lo que el servidor protege (`PROTECTED_FILES` de `js/server.js`, la misma lista): los
+ *         datos de pago se descargan cuando la app los importa, tras el pago, nunca al instalarse el service worker.
  *
  * ROJO ANTES QUE VERDE: con `/audios-aventuras/` y `/videos-aventuras/` en `esMedia()`, SW-1 cae nombrando las dos; sin la
- * imagen en `APP_SHELL`, SW-2 cae nombrándola.
+ * imagen en `APP_SHELL`, SW-2 cae nombrándola; con los ficheros de datos de pago en `APP_SHELL`, SW-3 cae nombrándolos.
  */
 'use strict';
 
@@ -23,6 +25,16 @@ const fs = require('fs');
 const path = require('path');
 
 const RAIZ = path.join(__dirname, '../..');
+
+/** Las entradas de `APP_SHELL` de sw.js, todas: si alguna no se lee, falla aquí y no en el test que la usa. */
+function precargaDelServiceWorker() {
+  const sw = fs.readFileSync(path.join(RAIZ, 'sw.js'), 'utf8').replace(/\r\n/g, '\n');
+  const lista = /const APP_SHELL = \[([\s\S]*?)\];/.exec(sw)?.[1] ?? '';
+  const precarga = [...lista.matchAll(/^\s*'([^']+)',/gm)].map((m) => m[1]);
+  expect(precarga.length, 'APP_SHELL se ha leído').toBeGreaterThan(0);
+  expect(precarga.length, 'cada entrada de APP_SHELL se ha leído').toBe((lista.match(/^\s*'/gm) || []).length);
+  return precarga;
+}
 
 test.describe('SW — cada ruta de media en un solo sitio del service worker', () => {
   test('SW-1. Ninguna carpeta de esMedia() es de las que el manejador deja ir antes a red', () => {
@@ -46,9 +58,16 @@ test.describe('SW — cada ruta de media en un solo sitio del service worker', (
     const imagenes = [...aviso.matchAll(/\.src = '([^']+)'/g)].map((m) => m[1]);
     expect(imagenes, 'el aviso de sin conexión enseña una imagen').toHaveLength(1);
 
-    const sw = fs.readFileSync(path.join(RAIZ, 'sw.js'), 'utf8').replace(/\r\n/g, '\n');
-    const precarga = [...(/const APP_SHELL = \[([\s\S]*?)\];/.exec(sw)?.[1] ?? '').matchAll(/^\s*'([^']+)',/gm)].map((m) => m[1]);
-    expect(precarga.length, 'APP_SHELL se ha leído').toBeGreaterThan(0);
-    expect(precarga, `${imagenes[0]}: en APP_SHELL`).toContain(`/${imagenes[0]}`);
+    expect(precargaDelServiceWorker(), `${imagenes[0]}: en APP_SHELL`).toContain(`/${imagenes[0]}`);
+  });
+  test('SW-3. La precarga no trae nada de lo protegido: los datos de pago se descargan al importarlos, tras el pago', () => {
+    const servidor = fs.readFileSync(path.join(RAIZ, 'js/server.js'), 'utf8').replace(/\r\n/g, '\n');
+    const lista = /const PROTECTED_FILES = \[([\s\S]*?)\];/.exec(servidor)?.[1] ?? '';
+    const protegidos = [...lista.matchAll(/^\s*'([^']+)'/gm)].map((m) => m[1]);
+    expect(protegidos.length, 'PROTECTED_FILES se ha leído').toBeGreaterThan(0);
+    expect(protegidos.length, 'cada entrada de PROTECTED_FILES se ha leído').toBe((lista.match(/^\s*'/gm) || []).length);
+
+    const enPrecarga = precargaDelServiceWorker().filter((u) => protegidos.some((p) => u.toLowerCase().startsWith(p.toLowerCase())));
+    expect(enPrecarga, 'ficheros protegidos en APP_SHELL: se descargarían al instalar la app, antes de pagar').toEqual([]);
   });
 });

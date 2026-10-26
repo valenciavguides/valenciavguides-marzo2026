@@ -4913,7 +4913,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-94e274b897b8'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-bcf5ab24e208'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8030,7 +8030,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `148-reanudar-por-el-identificador.spec.js` | 3 | Al reanudar, el elemento en curso lo decide su identificador guardado (`elementoActualId`), y el índice y la parada salen de él: con el índice y la parada de otro elemento, reanuda en el del identificador (KR-1); con un identificador que no está en los datos, lo dice con un error, sigue desde la parada por defecto y repone los rescates usados (KR-2); con los tres datos de acuerdo, reanuda en ese elemento (KR-3, control). Por el camino real: la sesión guardada en el dispositivo, la recarga y «Continuar» |
 | `149-la-demo-gratis-con-su-carpeta-publica.spec.js` | 8 | La demo gratis lee lo suyo de las copias de `publico/` y el resto de la app, de los originales: la lista de rutas protegidas del spec es la de `PROTECTED_FILES` de `js/server.js` (DM-0); con todo lo protegido contestando 403 y el service worker bloqueado, en español el puzzle de P6, el reto R-1 de P8, el paso a P10 sin aviso, los términos de P10, el audio (de `publico/audios/espanol/`) y el texto de P11, la normativa de P15, el reto R-2 de P16 y los agradecimientos de P18 salen de `publico/`, y no se pide nada protegido (DM-1); en inglés, sin audio, sale el aviso de P9, P11 enseña el texto sin reproductor y sale el R-2 (DM-2); cada copia pública es la de su original —los retos 1 y 2, el audio de introducción, si hay audio, el texto que monta `cargarTextos()`, el puzzle, los términos, la normativa, los agradecimientos y los textos de Jaime— en las siete aventuras y los doce idiomas (DM-3); las siete tarjetas de P7 y la de P9 llevan su foto de `publico/imagenes/` y el mapa que sale al elegir cada aventura en P7 (`mostrarMapaVintage()`) es de `publico/imagenes/mapas-vintage/`, todo carga y no se pide nada protegido (DM-4); `video-intro.html` (P4) no pide ninguna ruta protegida ni importa los textos de Jaime de `js/`, su foto, su mapa y su clip están en `publico/`, y su primer bocadillo es el texto público del idioma (DM-5); fuera de la demo nadie apunta a `publico/`, y cada mapa de `js/mapa-vintage-aventuras.js` está en `imagenes/mapas-vintage/` y tiene su copia (DM-6); y `publico/` está al día: el generador no ve copias desfasadas, ficheros de más ni piezas que falten, y cada medio de `publico/` es idéntico byte a byte a su original (DM-7) |
 | `150-los-desplegables-del-mapa-caben-enteros.spec.js` | 3 | Los dos desplegables del mapa (`#selector-tipo-mapa` y `#brujula-modo`) se abren enteros, sin desplazamiento interno, en tres pantallas: un iPhone con las barras de Safari (390×664), un Android corriente (393×727) y el iPhone con la app instalada (390×844). En cada una, con la banda del logo a la vista como al activarse la aventura, cada desplegable abierto enseña todo su contenido (DE-1) y su borde de arriba queda por debajo de la banda (DE-2) |
-| `151-cada-ruta-del-service-worker-en-un-sitio.spec.js` | 2 | Cada ruta de media la decide un solo sitio de `sw.js`: ninguna carpeta de `esMedia()` es de las que el manejador `fetch` deja ir antes directas a red (audios y vídeos), y las dos listas se leen enteras —cada `startsWith(` de `esMedia()` y cada vuelta temprana del manejador— (SW-1); y la imagen del aviso de sin conexión del padre (`_ensureInternetOverlay`) está en `APP_SHELL`, porque el aviso sale justo cuando no hay red (SW-2) |
+| `151-cada-ruta-del-service-worker-en-un-sitio.spec.js` | 3 | Cada ruta de media la decide un solo sitio de `sw.js`: ninguna carpeta de `esMedia()` es de las que el manejador `fetch` deja ir antes directas a red (audios y vídeos), y las dos listas se leen enteras —cada `startsWith(` de `esMedia()` y cada vuelta temprana del manejador— (SW-1); la imagen del aviso de sin conexión del padre (`_ensureInternetOverlay`) está en `APP_SHELL`, porque el aviso sale justo cuando no hay red (SW-2); y `APP_SHELL` no lleva nada de `PROTECTED_FILES` (`js/server.js`): las dos listas se leen enteras y se comparan como las compara el servidor, por prefijo y sin distinguir mayúsculas (SW-3, §22.9) |
 | `152-hijo2-pide-y-el-padre-resuelve.spec.js` | 4 | hijo2 no guarda listas: pide, y el padre resuelve con sus datos (§9.6, §10.5): al repartir los datos y activar una parada, hijo2 no recibe ninguna lista ni petición de coordenadas, y no pide ni confirma nada de eso (H2-1); el botón de imagen solo manda la acción y el padre abre su ventana con la imagen, las imágenes y el texto del elemento actual —el texto, por su `texto_id`— (H2-2); el de vídeo, en un tramo, igual con el vídeo y el nombre del tramo (H2-3); y «volver a la ruta» solo manda la posición, sin el elemento ni su id (H2-4) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
@@ -8132,7 +8132,7 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 
 #### Estrategia detallada
 
-**Network First (shell):** intenta la red; si falla, sirve desde caché. El shell (HTML/JS) siempre recibe la versión más reciente cuando hay conexión. `APP_SHELL` incluye los cuatro MP3 de `audios-efectos/` (§12, «Efectos de sonido»), que se sirven con esta estrategia y no con la de media, y la imagen del aviso de sin conexión (`imagen-no-internet.png`, §30.1): ese aviso sale justo cuando no hay red, y sin red la imagen no se puede descargar (spec 151, SW-2). Los `.json` de `publico/` van también por esta estrategia: se guardan la primera vez que se usan, no al instalar.
+**Network First (shell):** intenta la red; si falla, sirve desde caché. El shell (HTML/JS) siempre recibe la versión más reciente cuando hay conexión. `APP_SHELL` incluye los cuatro MP3 de `audios-efectos/` (§12, «Efectos de sonido»), que se sirven con esta estrategia y no con la de media, y la imagen del aviso de sin conexión (`imagen-no-internet.png`, §30.1): ese aviso sale justo cuando no hay red, y sin red la imagen no se puede descargar (spec 151, SW-2). Los `.json` de `publico/` van también por esta estrategia: se guardan la primera vez que se usan, no al instalar. Los ficheros de datos de pago —los de `PROTECTED_FILES` de `js/server.js`— no están en `APP_SHELL`: el service worker no los descarga al instalarse, y llegan cuando la app los importa, tras el pago (§22.9; spec 151, SW-3).
 
 **Cache First con LRU (media, sin vídeos ni audios):** busca primero en caché local (rápido, sin consumir datos). Si no está, lo descarga y lo guarda. Si hay más de 100 entradas, elimina las más antiguas. Esto permite uso offline de las imágenes ya vistas. **Vídeos y audios quedan fuera de esta estrategia a propósito**: `esMedia()` (`sw.js`) solo nombra carpetas de imágenes, y el `fetch` handler devuelve sin interceptar las de audio y vídeo —`/videos-aventuras/`, `/audios-aventuras/`, y `/publico/audios/` y `/publico/videos/` (el audio de introducción y el clip de la demo gratis)— *antes* de consultar `esMedia()`. Vídeos y audios siempre van directos a red, sin caché SW en absoluto — para vídeo, ver §15 (`reproducirVideoConBuffer`, que gestiona el buffering en el propio `<video>`); para audio, la razón es la misma que para vídeo (evitar bugs de caché con peticiones Range/206 parciales), y además ya está aceptado que el audio requiere conexión en el momento de reproducirse (§25.17) — esta exclusión lo hace cierto siempre, sin la excepción oculta de una parada que ya se hubiera cacheado antes por casualidad.
 
@@ -8266,7 +8266,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-94e274b897b8'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-bcf5ab24e208'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8660,7 +8660,7 @@ Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌
 | 6 | HSTS como cabecera del proxy de producción, sin la etiqueta `<meta http-equiv="Strict-Transport-Security">` de las quince páginas | la respuesta de `https://valenciavguides.es` lleva la cabecera, y ninguna página lleva la etiqueta | §22.6 | ⏳ pendiente — las etiquetas se pueden quitar sin servidor; la cabecera necesita el n.º 1 |
 | 7 | Legal y privacidad (RGPD) | los términos (12 idiomas) llevan las correcciones de §22.7.1, P12 lleva el aviso de §22.7.2 y `privacidad.html` tiene URL fija y enlace desde la app (§22.7.3) | §22.7 | ⏳ pendiente — parte del texto depende de la pasarela (n.º 24) |
 | 8 | Protección del código JavaScript: minificación, y ofuscación opcional | lo que se publica sale de un paso de compilación que minifica los módulos | §22.8 | ⏳ pendiente — va con el despliegue (n.º 1) |
-| 9 | Sacar del `APP_SHELL` del service worker los ficheros de `PROTECTED_FILES` | `APP_SHELL` no lleva ningún fichero protegido, y esos datos llegan solo por la API | §22.9 | ⏳ pendiente — necesita los n.º 4 y 11 |
+| 9 | Sacar del `APP_SHELL` del service worker los ficheros de `PROTECTED_FILES` | `APP_SHELL` no lleva ningún fichero protegido, y esos datos llegan solo por la API | §22.9 | ⏳ a medias — `APP_SHELL` no lleva ningún fichero protegido (spec 151, SW-3); que esos datos lleguen solo por la API necesita los n.º 4 y 11 |
 | 10 | `CACHE_VERSION` al desplegar | — | §22.10 | ✅ cerrada — el hook de pre-commit la recalcula en cada commit; `npm run build:sw`, si el hook falta |
 | 11 | `BACKEND_READY = true` en `js/data-loader.js` (autoriza a preguntar; el modo `'api'` se activa solo donde `/api/health` conteste) | producción en modo `'api'`, desplegado junto con los n.º 4 y 9 | §22.11 | ⏳ pendiente — necesita el backend |
 | 12 | Validación del código DEV en el backend (ver §24) | ni el código DEV ni su hash están en ningún fichero del cliente: lo comprueba el backend | §22.4, §24 | ⏳ pendiente — necesita el backend |
@@ -8995,32 +8995,13 @@ El JavaScript que ejecuta el navegador es **siempre visible** para cualquier usu
 
 ---
 
-### 22.9 Gap de seguridad: archivos sensibles en `APP_SHELL`
+### 22.9 Los datos de pago y la precarga del service worker
 
-⚠️ **Este es el gap de seguridad más importante actualmente.**
+`APP_SHELL` (`sw.js`) no lleva ningún fichero de `PROTECTED_FILES` (`js/server.js`): ni `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js` y `audios-aventuras.js`, ni nada de las carpetas protegidas. Un dispositivo que instala la app no descarga ningún dato de pago: los pide la app cuando los importa, tras el pago —la fase 2 del padre, en P15 o al reanudar la sesión, y `cargarTextos()`, `cargarRetos()` y `cargarAudios()` durante la aventura—. `aventuras-ID-padre.js` sí va en `APP_SHELL`: es público (§2.2; §22.0, n.º 13).
 
-El archivo `sw.js` incluye en `APP_SHELL` ficheros sensibles que el Service Worker cachea en el dispositivo del cliente al instalar la app:
+El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECTED_FILES`, las compara como el servidor (por prefijo y sin distinguir mayúsculas) y falla nombrando cualquier fichero protegido que entre en la precarga.
 
-```text
-Actualmente en APP_SHELL (sw.js):
-/js/coordenadas-aventuras.js    ← datos de rutas GPS
-/js/textos-aventuras.js         ← textos completos de la audioguía
-/js/retos-aventuras.js          ← preguntas Y respuestas de todos los retos
-/js/puzzles-aventuras.js        ← datos de puzzles
-/js/audios-aventuras.js         ← índice de audios
-/js/aventuras-ID-padre.js       ← itinerario e ids — deliberadamente sin proteger (§2.2)
-```
-
-**El problema:** Aunque `PROTECT_DATA=true` bloquea el acceso HTTP directo a estos ficheros, la copia que el SW ha guardado en caché **bypasa completamente el servidor**. Un usuario que haya instalado la app puede acceder a estos archivos desde la caché del navegador sin necesidad de conexión ni autenticación.
-
-**La solución (requiere §22.4 y §22.11 completados):**
-
-1. Eliminar los archivos sensibles del array `APP_SHELL` en `sw.js`.
-2. Implementar el backend autenticado con JWT (§22.4).
-3. Poner `BACKEND_READY = true` en `js/data-loader.js` (§22.11).
-4. Los datos sensibles se cargarán exclusivamente vía API autenticada en runtime — nunca pre-cacheados.
-
-**Mientras tanto:** No es un problema en desarrollo local. Pero esta tarea es **bloqueante para producción con protección real de datos**.
+**Con el backend** (§22.4, §22.11): esos datos llegan por la API autenticada (`/api/`), que el service worker no guarda nunca (Network Only, §21), y la petición directa a sus ficheros da 403 (`PROTECT_DATA=true`). Es el n.º 9 de §22.0.
 
 ---
 
@@ -9030,7 +9011,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-94e274b897b8';
+const CACHE_VERSION = 'v-bcf5ab24e208';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9184,14 +9165,14 @@ Es diagnóstico, no una pantalla pensada para un cliente final: expone un mensaj
 
 ### 22.15 Gap de seguridad: `docs/` completo es público en GitHub
 
-⚠️ **Más urgente que §22.9 — no requiere ni siquiera acceder a la app en ejecución.**
+⚠️ **No requiere ni siquiera acceder a la app en ejecución.**
 
 El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitHub, y `docs/` está versionado dentro de él sin ninguna restricción. Esto expone:
 
 - `docs/aventuras_ordenado/*.md` — el texto completo de las 7 aventuras, el producto de pago en sí, consultable por cualquiera sin activar ni pagar ninguna aventura.
 - `docs/GUIA-COMPLETA.md` — arquitectura interna completa de la aplicación.
 
-**El problema:** a diferencia del gap de §22.9 (que exige instalar la app y acceder a la caché del Service Worker), este contenido es visible navegando el repositorio directamente en github.com — sin ejecutar la app ni descargar nada. Y persiste en el **historial de git** aunque se elimine del árbol actual: un `git rm` normal no borra las versiones antiguas de esos ficheros, siguen siendo accesibles en cualquier commit previo.
+**El problema:** este contenido es visible navegando el repositorio directamente en github.com — sin ejecutar la app ni descargar nada. Y persiste en el **historial de git** aunque se elimine del árbol actual: un `git rm` normal no borra las versiones antiguas de esos ficheros, siguen siendo accesibles en cualquier commit previo.
 
 **Por qué es público:** GitHub Pages en el plan gratuito solo sirve HTTPS a repositorios públicos; poner el repo en privado rompería el HTTPS del despliegue actual en `valenciavguides.es` sin una alternativa ya montada.
 
@@ -12478,7 +12459,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-94e274b897b8';
+const CACHE_VERSION = 'v-bcf5ab24e208';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

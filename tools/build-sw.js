@@ -154,8 +154,9 @@ function leerWorkingTree(rutaRelativa) {
 }
 
 // maxBuffer generoso: el límite por defecto de execFileSync (1MB) lo superan
-// sin problema ficheros reales de APP_SHELL como audios-aventuras.js o
-// aventuras-ID-padre.js (~1.8MB cada uno) — confirmado con ENOBUFS en pruebas.
+// sin problema ficheros reales del shell (los que entran en el hash, ver
+// ficherosDelShell) como audios-aventuras.js o aventuras-ID-padre.js (~1.8MB
+// cada uno) — confirmado con ENOBUFS en pruebas.
 const GIT_SHOW_MAX_BUFFER = 64 * 1024 * 1024; // 64MB
 
 function leerStaged(rutaRelativa) {

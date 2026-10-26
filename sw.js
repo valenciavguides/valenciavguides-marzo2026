@@ -77,13 +77,10 @@ const APP_SHELL = [
   '/js/vendor/maplibre-gl-csp-worker.js',
   '/js/vendor/maplibre-gl.css',
   '/js/vendor/page-flip.browser.js',
-  // Datos de aventuras (se actualizan con Network First en runtime)
+  // Datos de las aventuras que el servidor no protege (se actualizan con Network First en runtime). Los de pago —los de
+  // PROTECTED_FILES en js/server.js— no se precargan: se descargan cuando la app los importa, tras el pago (spec 151,
+  // SW-3).
   '/js/indice-aventuras.js',
-  '/js/coordenadas-aventuras.js',
-  '/js/audios-aventuras.js',
-  '/js/retos-aventuras.js',
-  '/js/puzzles-aventuras.js',
-  '/js/textos-aventuras.js',
   '/js/terminos-aventuras.js',
   '/js/aventuras-ID-padre.js',
   '/js/agradecimientos-aventuras.js',
@@ -115,7 +112,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell actualiza la versión de caché
 // automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-94e274b897b8';
+const CACHE_VERSION = 'v-bcf5ab24e208';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
