@@ -4659,8 +4659,14 @@
             const reto = document.getElementById('hijo4');
             if (reto?.classList.contains('visible')) capas.push({ el: reto, z: alturaDe(reto), cerrar: null });
             for (const x of document.querySelectorAll('.btn-cerrar-overlay')) {
+                // Una ventana de medios (`.media-overlay`: imagen, vídeo, error, mapa completo) está abierta si lleva la
+                // clase `visible`, la que ponen y quitan su apertura y su cierre y mira la precarga del vídeo. Por su caja
+                // no se sabe: la del vídeo se queda presente e imperceptible mientras precarga (docs/estudio-caminos.md,
+                // K-135). Las demás capas, por si se ven.
+                const ventana = x.closest('.media-overlay');
+                const abierta = ventana ? ventana.classList.contains('visible') : seVe(x);
                 // La altura es la de su capa: la ✕ lleva un z-index propio que no dice nada de dónde está.
-                if (seVe(x)) capas.push({ el: x.parentElement, z: alturaDe(x.parentElement), cerrar: () => x.click() });
+                if (abierta) capas.push({ el: x.parentElement, z: alturaDe(x.parentElement), cerrar: () => x.click() });
             }
             const chat = document.getElementById('hijo6-chat');
             if (chat && seVe(chat) && typeof globalThis.cerrarChatSoporte === 'function') {

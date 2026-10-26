@@ -3786,13 +3786,14 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 - **Opciones.** *A)* renombrar la clave (p. ej. `coordenadas`) en los datos, el índice y todos sus lectores a la vez; *B)* dejarla.
 - **Relacionado.** K-130; K-131 (con la API, lo que llega lo decide la ruta `/coordenadas/:id`, y la forma de la respuesta sería del servidor).
 
-##### K-135 — «Atrás» da por abierta la ventana del vídeo mientras se precarga — ✅ (leído)
+##### K-135 — «Atrás» da por abierta la ventana del vídeo mientras se precarga — ✅ (leído; aplicada la A, 2026-10-26)
 
 - **Cómo salió.** Buscando por qué fallaba el spec 131 en firefox (la causa era otra, el cartel de llegada al inicio; en K-130), al listar las capas que «atrás» tiene en cuenta.
 - **Dónde.** `_capaDeArriba()` (`codigo-padre.html`, Script 1) cuenta toda ✕ común (`.btn-cerrar-overlay`) que se vea, y para ella verse es tener cajas (`getClientRects()`) y no estar en `visibility: hidden`. La precarga del vídeo del tramo siguiente (`_precargarVideoParada()`, Script 2) crea `#video-overlay` sin abrirlo, y su CSS lo deja presente pero imperceptible —`display: flex`, 1 px, `opacity: 0`, `pointer-events: none`— para que el navegador no pare la descarga (`codigo-padre.html:1000-1010`). Su ✕ tiene caja y no está oculta: para `_capaDeArriba()`, la ventana está abierta.
 - **Lo que no cuadra.** Dos maneras de decidir si la ventana del vídeo está abierta: su clase `visible` (la ponen `mostrarVideoOverlay()` y la quita `cerrarVideoOverlay()`; la miran el cierre con Escape y la propia precarga, que no pisa una ventana abierta) y la geometría de `_capaDeArriba()`. Mientras se precarga, discrepan.
 - **Lo que ve el usuario.** Hoy nada: los 241 campos `video` de `js/coordenadas-aventuras.js` están vacíos (contado) y la precarga sale antes de crear la ventana. Con un tramo con vídeo, en la parada anterior el primer «atrás» cerraría la ventana invisible —y con ella la precarga— sin que en pantalla pasara nada.
 - **Opciones.** *A)* `_capaDeArriba()` decide por la clase `visible` en las ventanas que la llevan: una sola manera. *B)* que su comprobación tenga en cuenta la opacidad: siguen siendo dos.
+- **Aplicada la A (2026-10-26), la que decide el principio de un solo camino:** una ✕ dentro de una ventana de medios (`.media-overlay`: imagen, vídeo, error y mapa completo) cuenta si su ventana lleva `visible`; las demás capas, por si se ven. Sin cambio visible hoy (ningún tramo tiene vídeo). Spec 131, BA-12: la ventana del vídeo con el marcado de `_crearVideoOverlayEl`, sin abrir; en rojo con la comprobación por la caja (el «atrás» se gasta en su ✕ y no sale el diálogo) y en verde con la A. Spec 131 entero en chromium y firefox, 24 de 24; los de las ventanas de medios (48, 72 y 152), 13 de 13.
 - **Relacionado.** K-105 (el botón atrás); guía §15 (la precarga del vídeo).
 
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
@@ -4486,7 +4487,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 126 | 2 | K-132 | la bandera de cada idioma en un solo sitio (el catálogo o P2) | — | — | decisión |
 | 127 | 2 | K-133 | el texto de un elemento por un solo camino: el `texto_id` de su fila (la ventana de la imagen) o un trozo de su id (el listado de paradas) | GUÍA | — | decisión |
 | 128 | 3 | K-134 | el nombre de la tabla de coordenadas de cada aventura (`'coordenadas-hijo2.html'`), que hijo2 no usa | GUÍA | blanda: K-131 | decisión |
-| 129 | 3 | K-135 | «atrás» decide si la ventana del vídeo está abierta por su clase `visible`, no por la geometría (hoy la da por abierta mientras se precarga) | SPEC | — | sí |
+| 129 | 3 | K-135 | «atrás» decide si la ventana del vídeo está abierta por su clase `visible`, no por la geometría —**hecha (2026-10-26)**: las ventanas de medios, por su clase; spec 131, BA-12— | SPEC | — | sí |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |

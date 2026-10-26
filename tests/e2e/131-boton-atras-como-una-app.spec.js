@@ -36,6 +36,8 @@
  *   BA-10 La ventana del temporizador (sin ✕: la abre y la cierra el icono de hijo1) se cierra con «atrás».
  *   BA-11 La ventana del reto encima del menú abierto de hijo1: «atrás» enseña el diálogo y el menú de debajo no se
  *         toca. Al continuar, siguen los dos.
+ *   BA-12 La ventana del vídeo mientras se precarga —presente, sin la clase `visible` e imperceptible— no es una capa
+ *         abierta: «atrás» enseña el diálogo y la ventana se queda (estudio, K-135).
  *
  * ROJO ANTES QUE VERDE: con el escucha anterior (miraba el estado de la entrada a la que se llega, y la aventura y
  * el idioma elegidos), BA-1 a BA-4 y BA-6 fallan: el primer «atrás» no enseña el diálogo ni cierra nada (BA-6 cae ya
@@ -43,7 +45,8 @@
  * solo veía sus propias capas, BA-7 a BA-10 fallan: el menú de hijo1, el modal del asistente, la ficha del monumento y
  * la ventana del temporizador siguen abiertos tras su «atrás», que enseña el diálogo o cierra lo de detrás (el
  * asistente, el mapa). BA-11 vigila el otro lado: sin la ventana del reto en la cuenta, su «atrás» cerraba el menú de
- * debajo en vez de enseñar el diálogo.
+ * debajo en vez de enseñar el diálogo. BA-12 cae cuando la ventana del vídeo se da por abierta por su caja y no por su
+ * clase: el «atrás» se gasta en pulsar la ✕ de una ventana que no se ve.
  */
 'use strict';
 
@@ -347,6 +350,27 @@ test.describe('BA — el botón atrás, como en una app nativa', () => {
 
     await atras(page);
     await expect.poll(() => hayDialogo(page), { timeout: 5_000 }).toBe(true);
+  });
+
+  test('BA-12. La ventana del vídeo mientras se precarga (presente e invisible) no cuenta: atrás enseña el diálogo', async ({ page }) => {
+    test.setTimeout(180_000);
+    await arrancarAventura(page, 'Aventura1');
+    // La ventana del vídeo como la deja la precarga del vídeo del tramo siguiente (_precargarVideoParada): creada con el
+    // marcado de _crearVideoOverlayEl, sin abrir (sin la clase `visible`). Su CSS la deja presente e imperceptible
+    // (1 px, opacidad 0) para que el navegador no pare la descarga.
+    await page.evaluate(() => {
+      const ventana = document.createElement('div');
+      ventana.id = 'video-overlay';
+      ventana.className = 'media-overlay';
+      ventana.innerHTML = '<div class="media-contenedor video-contenedor"><button type="button" class="btn-cerrar-overlay" title="Cerrar video"><span class="icono-x-cerrar">✗</span></button><video controls preload="auto"><source type="video/mp4"></video></div>';
+      document.body.appendChild(ventana);
+    });
+    expect(await page.evaluate(() => document.querySelector('#video-overlay .btn-cerrar-overlay').getClientRects().length > 0),
+      'su ✕ tiene caja: por su geometría, la ventana se daría por abierta').toBe(true);
+
+    await atras(page);
+    await expect.poll(() => hayDialogo(page), { timeout: 5_000 }).toBe(true);
+    expect(await page.evaluate(() => !!document.getElementById('video-overlay')), 'la ventana que se precarga sigue ahí').toBe(true);
   });
 
   test('BA-11. Con la ventana del reto encima del menú de hijo1, atrás enseña el diálogo y no toca el menú', async ({ page }) => {
