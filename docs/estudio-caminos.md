@@ -3767,7 +3767,7 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 - **Lo que ve el usuario.** Nada mientras las tres coincidan.
 - **Opciones.** *A)* el catálogo (`MAPEO_IDIOMAS`) como única fuente: P2 pinta sus doce botones desde él y P3 lee de él (la selección importaría el índice ya en P2; hoy lo importa en P7). *B)* P2 como única fuente: P3 toma la bandera del botón pulsado, y fuera la tabla y el campo del catálogo. Decide el usuario.
 
-##### K-133 — El texto de un elemento se busca de dos maneras: por su `texto_id` y por un trozo de su id — ✅ (leído y medido)
+##### K-133 — El texto de un elemento se busca de dos maneras: por su `texto_id` y por un trozo de su id — ✅ (leído y medido; aplicada la A, 2026-10-26)
 
 - **Cómo salió.** Al aplicar la decisión 12 (K-130): el texto que acompaña a la imagen lo busca el padre, por el `texto_id` de la fila del elemento.
 - **Dónde.** (a) La ventana de la imagen (`_buscarTextoDelElemento`, `codigo-padre.html`, Script 1): de `cargarTextos()`, el texto cuyo `id` es el `texto_id` de la fila de `DATOS_PADRE`. (b) El listado de paradas (`tituloLocalizado()`, dentro de `_construirFilasListadoParadas`, Script 2): de `cargarTextos()`, el texto cuyo id, sin guiones, contiene el id de la entrada de coordenadas sin guiones y sin un dígito detrás. Las entradas de coordenadas no llevan `texto_id`; las filas de `DATOS_PADRE`, sí.
@@ -3775,6 +3775,7 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 - **Medido** (sonda `v2/k133-mide.mjs` del scratchpad, solo con los ids): en las siete aventuras y los doce idiomas, las 4.224 paradas e inicios dan el mismo texto por los dos caminos; ninguna sin fila ni sin texto.
 - **Lo que ve el usuario.** Nada mientras los ids sigan ese formato.
 - **Opciones.** *A)* el listado busca la fila de cada entrada (por `parada_id`) y usa su `texto_id`: una sola manera. *B)* dejar las dos.
+- **Aplicada la A (2026-10-26), la que decide el principio de un solo camino:** `tituloLocalizado()` busca la fila de la parada en `DATOS_PADRE` y toma el texto de su `texto_id`. Sin cambio visible (las 4.224 paradas daban el mismo título por los dos caminos). Como comparar con los títulos esperados pasaría con las dos maneras, el spec 154 distingue con una fila cuyo `texto_id` no es el de su id: con el `texto_id` de Av1-P-1 apuntando al texto de Av1-P-2, el título de Av1-P-2 sale dos veces y el de Av1-P-1 ninguna (LT-2, en rojo con la manera anterior; LT-1, el control sin cambiar nada). Specs 154 y 131 en chromium y firefox, 28 de 28.
 - **Relacionado.** K-130.
 
 ##### K-134 — La tabla de coordenadas de cada aventura se llama `'coordenadas-hijo2.html'`, y hijo2 no la usa — ✅ (búsqueda desnuda)
@@ -4485,7 +4486,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 124 | 4 | K-130 | la decisión 12 —**hecha (2026-10-26)**: hijo2 no guarda listas; pide, y el padre resuelve (V2, la que eligió el usuario)—, la 13 (el aviso de pendiente a hijo2: quitarlo o hacerlo funcionar, pregunta al usuario) y la cola de varios retos, que el diseño ya no prevé (un reto por parada) | BUS, SPEC, GUÍA | — | sí, con OK expreso |
 | 125 | 5 | K-131 | hasta dónde carga el padre: la aventura elegida —**A, hecha (2026-10-26)**: la fase 2 por data-loader, solo la elegida, y el puzzle por `cargarPuzzle()`— o elemento a elemento borrando los anteriores (B, lo que prefiere el usuario: **preparada**, el mapa del cambio en la guía, §22.4; el mapa completo enseña la ruta entera tras el pago) | GUÍA, VISIBLE | dura: el backend | decisión |
 | 126 | 2 | K-132 | la bandera de cada idioma en un solo sitio (el catálogo o P2) | — | — | decisión |
-| 127 | 2 | K-133 | el texto de un elemento por un solo camino: el `texto_id` de su fila (la ventana de la imagen) o un trozo de su id (el listado de paradas) | GUÍA | — | decisión |
+| 127 | 2 | K-133 | el texto de un elemento por un solo camino: el `texto_id` de su fila (la ventana de la imagen) o un trozo de su id (el listado de paradas) —**hecha (2026-10-26)**: los dos por el `texto_id`; spec 154— | GUÍA | — | sí |
 | 128 | 3 | K-134 | el nombre de la tabla de coordenadas de cada aventura (`'coordenadas-hijo2.html'`), que hijo2 no usa | GUÍA | blanda: K-131 | decisión |
 | 129 | 3 | K-135 | «atrás» decide si la ventana del vídeo está abierta por su clase `visible`, no por la geometría —**hecha (2026-10-26)**: las ventanas de medios, por su clase; spec 131, BA-12— | SPEC | — | sí |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |

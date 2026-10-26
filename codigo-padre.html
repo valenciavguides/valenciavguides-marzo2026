@@ -12779,19 +12779,16 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 textos = await _cargarTx(aventura, idioma) || [];
             } catch (e) { (globalThis.logger || console).warn('[PARADAS.LISTADO] cargarTextos falló:', e?.message); } // NOSONAR
 
-            // El título localizado de una parada, por el id de su entrada sin guiones. La ventana de
-            // la imagen busca el texto de otra manera, por el `texto_id` de la fila del elemento
-            // (_buscarTextoDelElemento, Script 1): dos maneras para el mismo dato, registradas en
-            // docs/estudio-caminos.md (K-133).
+            // El título localizado de una parada: el del texto de su fila de DATOS_PADRE, por su
+            // `texto_id`, la misma regla que la ventana de la imagen (_buscarTextoDelElemento,
+            // Script 1). Qué texto es el de un elemento lo dicen los datos, no el formato de los ids
+            // (docs/estudio-caminos.md, K-133; spec 154).
+            const filaPorId = new Map((DATOS_PADRE[aventura]?.[idioma]?.elementosIDpadre || [])
+                .map((f) => [f.parada_id || f.tramo_id, f]));
+            const textoPorId = new Map(textos.map((t) => [t?.id, t]));
             function tituloLocalizado(paradaId) {
-                const norm = paradaId.replaceAll('-', '');
-                // Límite de palabra tras el número: sin esto, "Av1P1" empareja como
-                // subcadena dentro de "Av1P10" (verificado que hoy no pasa gracias al
-                // orden ascendente del array, pero ese orden no está garantizado por
-                // el código — este límite lo hace correcto también si cambiara).
-                const re = new RegExp(norm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?!\\d)');
-                const t = textos.find(x => x?.id && re.test(x.id.replaceAll('-', '')));
-                return t?.title || null;
+                const textoId = filaPorId.get(paradaId)?.texto_id;
+                return (textoId && textoPorId.get(textoId)?.title) || null;
             }
 
             const secuencia = coords.filter(c => c.tipo === 'inicio' || c.tipo === 'parada' || c.tipo === 'tramo');

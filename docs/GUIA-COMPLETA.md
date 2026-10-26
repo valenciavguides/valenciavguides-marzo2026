@@ -2578,7 +2578,7 @@ Ventana flotante gestionada íntegramente por el padre (mismo patrón que la ven
 
 **Construcción de la lista — `_construirFilasListadoParadas(aventura, idioma)`** (`codigo-padre.html`, junto a `marcarParadaCompletada`): recorre `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas` en orden de fichero (que es orden real de recorrido) y genera dos tipos de fila:
 
-1. **Fila `parada`** — una por cada entrada `tipo:'inicio'|'parada'`. El nombre mostrado es el título localizado: `tituloLocalizado()` toma de `cargarTextos(aventura, idioma)` el texto cuyo id, sin guiones, contiene el id de la parada sin guiones y sin un dígito detrás (para que `Av1P1` no case con `Av1P10`), con el `nombre` interno en español si no hay texto. La ventana de la imagen busca el texto de otra manera, por el `texto_id` de la fila del elemento (§10.5, FASE 11). Completada si `estado.paradasCompletadas.has(el.id)` — mismo Map, misma clave (`parada_id` sin prefijo `padre-`), que usa `marcarParadaCompletada()`.
+1. **Fila `parada`** — una por cada entrada `tipo:'inicio'|'parada'`. El nombre mostrado es el título localizado: `tituloLocalizado()` busca la fila de la parada en `DATOS_PADRE` (por su `parada_id`) y toma de `cargarTextos(aventura, idioma)` el texto de su `texto_id`, la misma regla que la ventana de la imagen (§10.5, FASE 11); si no hay texto, el `nombre` interno en español. Lo comprueba el spec 154. Completada si `estado.paradasCompletadas.has(el.id)` — mismo Map, misma clave (`parada_id` sin prefijo `padre-`), que usa `marcarParadaCompletada()`.
 2. **Fila `puente`** — un número de mapa que la ruta pasa pero donde **nunca hay parada propia** (p. ej. Aventura1 pasa por el punto 4 sin detenerse — ver el resumen por aventura más abajo). Se detecta parseando el campo `mapa_numero` de cada `tipo:'tramo'`: los tramos usan notación de flechas (`"7→4→8"`, `"-→2"`, `"21→22"`) con hops que a veces son compuestos (`"5,9"` o `"22/23"` — coma o barra — y ocasionalmente guión, `"v7-v8"`, distinguible del sentinela de "sin número" `"-"` porque ese es un hop *completo* de un solo carácter, nunca parte de un token más largo). Cualquier número mencionado en un hop que **no** tenga ya una parada real en toda la aventura se acumula como candidato puente; al llegar a la siguiente parada real se vuelcan los candidatos pendientes (deduplicados **dentro del mismo hueco entre dos paradas reales** — dos tramos consecutivos que comparten límite, p. ej. `"3→4"` seguido de `"4→5"`, mencionan el mismo punto físico dos veces y cuentan como un solo paso, no como dos visitas). El nombre de una fila puente sale de la `referencia` (`tipo:'referencia'`) que comparte ese mismo `mapa_numero`.
 
 **Regla de relleno de los puentes**: una fila puente se marca completada cuando se completa la **siguiente parada real de la secuencia** (`completaConId`, calculado recorriendo las filas de atrás hacia adelante) — si el usuario ha llegado a esa parada, necesariamente ya pasó por el punto intermedio. No tiene marcador de finalización propio.
@@ -4916,7 +4916,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-cc7ddc69a7ad'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a1a9fe775da3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8048,6 +8048,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `151-cada-ruta-del-service-worker-en-un-sitio.spec.js` | 4 | Cada ruta de media la decide un solo sitio de `sw.js`: ninguna carpeta de `esMedia()` es de las que el manejador `fetch` deja ir antes directas a red (audios y vídeos), y las dos listas se leen enteras —cada `startsWith(` de `esMedia()` y cada vuelta temprana del manejador— (SW-1); la imagen del aviso de sin conexión del padre (`_ensureInternetOverlay`) está en `APP_SHELL`, porque el aviso sale justo cuando no hay red (SW-2); y `APP_SHELL` no lleva nada de `PROTECTED_FILES` (`js/server.js`): las dos listas se leen enteras y se comparan como las compara el servidor, por prefijo y sin distinguir mayúsculas (SW-3, §22.9); y lo que cargan las páginas de `APP_SHELL` —sus `<script src>`, sus hojas de estilo y los imports estáticos de sus páginas y módulos— está en `APP_SHELL`, con cada etiqueta leída (SW-4) |
 | `152-hijo2-pide-y-el-padre-resuelve.spec.js` | 4 | hijo2 no guarda listas: pide, y el padre resuelve con sus datos (§9.6, §10.5): al repartir los datos y activar una parada, hijo2 no recibe ninguna lista ni petición de coordenadas, y no pide ni confirma nada de eso (H2-1); el botón de imagen solo manda la acción y el padre abre su ventana con la imagen, las imágenes y el texto del elemento actual —el texto, por su `texto_id`— (H2-2); el de vídeo, en un tramo, igual con el vídeo y el nombre del tramo (H2-3); y «volver a la ruta» solo manda la posición, sin el elemento ni su id (H2-4) |
 | `153-la-fase-2-carga-solo-la-aventura-elegida.spec.js` | 4 | La fase 2 carga solo la aventura y el idioma elegidos, por `js/data-loader.js` (§7.1, §22.12): sus globales llevan esa aventura y ese idioma y no hay global de puzzles (F2-1); si cambian, vuelve a cargar (F2-2); con la API simulada y los ficheros protegidos en 403, la fase 2 y `cargarPuzzle()` leen de la API y no piden ningún fichero protegido (F2-3); y el reto de puzzle llega a hijo4 con la imagen de su puzzle (F2-4) |
+| `154-el-listado-titula-por-texto-id.spec.js` | 2 | El listado de paradas titula cada parada con el texto del `texto_id` de su fila de `DATOS_PADRE`, la regla de la ventana de la imagen (§7.2, «Listado de paradas»): en el listado de Aventura1 en español, el título de Av1-P-1 y el de Av1-P-2 salen una vez cada uno (LT-1, control); y con el `texto_id` de Av1-P-1 apuntando al texto de Av1-P-2, el de Av1-P-2 sale dos veces y el de Av1-P-1 ninguna (LT-2) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8282,7 +8283,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-cc7ddc69a7ad'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-a1a9fe775da3'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9044,7 +9045,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-cc7ddc69a7ad';
+const CACHE_VERSION = 'v-a1a9fe775da3';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12492,7 +12493,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-cc7ddc69a7ad';
+const CACHE_VERSION = 'v-a1a9fe775da3';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14228,10 +14229,10 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `toggleRotationMessage` | módulo 1 (L3994) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2871) | módulo 2 | función/objeto |
 | `__distribuirReadyPromise` | módulo 2 (L9058) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13724) | clásico 12 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13721) | clásico 12 | estado |
 | `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9953) | módulo 1 | función/objeto |
 | `_cerrarVentanaTemporizador` | módulo 2 (L12698) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13705) | clásico 7 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13702) | clásico 7 | función/objeto |
 | `_hijosConCapaAbierta` | módulo 2 (L11662) | módulo 1 | función/objeto |
 | `_iniciarTemporizadorAventura` | módulo 2 (L12360) | módulo 1 | función/objeto |
 | `_reenviarProgressBarAHijo3` | módulo 2 (L9892) | módulo 1 | función/objeto |
@@ -14246,7 +14247,7 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarModalTiempoAgotado` | módulo 2 (L12623) | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 (L9765) | módulo 1 | función/objeto |
 | `solicitarAudioAHijo3` | módulo 2 (L9757) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13740) | módulo 2 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13737) | módulo 2 | función/objeto |
 
 </details>
 
