@@ -1268,7 +1268,7 @@ Vive en un `<script>` clásico propio de `codigo-padre.html` (no un `type="modul
 
 - **Flechas** (`_galeriaRenderizarFlechas`) — solo aparecen si `imagenes.length > 1`. `◀`/`▶` con opacidad reducida (`.inactiva`) y sin listener en el extremo correspondiente cuando `indice` ya está en el primer/último elemento — no hacen wrap-around.
 - **Badges de posición** (`_galeriaRenderizarBadges`) — su lógica depende de `tipo`: para una **parada** (o una galería de una sola imagen) solo muestra el número de mapa (`mapa_numero`) si existe, sin emoji. Para un **tramo** con varias imágenes, la primera lleva 📌 (inicio) y la última 🎯 (fin), cada una con su propio número de mapa — `mapa_numero` de un tramo viene como cadena `"1→2"`, y el badge parte esa cadena por `→` para mostrar solo el número que corresponde a esa imagen concreta (inicio: `partes[0]`; fin: `partes[1]`).
-- **Texto de parada** (`textoParada = {title, content}`, opcional) — se muestra en un panel bajo la imagen. El título pasa por `_galeriaEscaparHTML()` (equivalente a `textContent`, sin HTML). El contenido pasa por `_galeriaSanitizarHTML()` — permite un conjunto reducido de etiquetas (`p, br, strong, b, em, i, u, h1-h4, span, ul, ol, li, img, mark`) y solo el atributo `style` en general más `src`/`alt` en `img`; cualquier otra etiqueta se desenvuelve conservando su contenido (no se borra el texto de dentro). Las imágenes inline solo se permiten si `src` empieza por `imagenes/` — cualquier otra ruta se elimina y se sustituye por `alt="[imagen no permitida]"`.
+- **Texto de parada** (`textoParada = {title, content}`, opcional) — se muestra en un panel bajo la imagen. El título pasa por `escaparHTML()` (`js/utils.js`, la misma con que escapa todo el padre): sale como texto, sin HTML. La galería vive en un script clásico, que no puede importar, y la toma de `globalThis.escaparHTML`, que publica Script 1. El contenido pasa por `_galeriaSanitizarHTML()` — permite un conjunto reducido de etiquetas (`p, br, strong, b, em, i, u, h1-h4, span, ul, ol, li, img, mark`) y solo el atributo `style` en general más `src`/`alt` en `img`; cualquier otra etiqueta se desenvuelve conservando su contenido (no se borra el texto de dentro). Las imágenes inline solo se permiten si `src` empieza por `imagenes/` — cualquier otra ruta se elimina y se sustituye por `alt="[imagen no permitida]"`.
 - **Si el elemento no tiene texto con contenido** (`_handleMostrarImagen()` lo busca por el `texto_id` de su fila con `cargarTextos()`, §10.21, "HTTP / fetch — capa de datos"): en vez de dejar el panel vacío y sin explicación, `_handleMostrarImagen()` construye un `textoParada` sintético — `{title:'', content:'<p style="...">📖 [mensaje traducido]</p>'}` — con `MSG_TEXTO_PARADA_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas, `globalThis.idiomaSeleccionado`). Sobrevive `_galeriaSanitizarHTML()` sin problema (`p`/`style` están permitidos) y se renderiza exactamente igual que un texto real, solo que con el aviso en vez del contenido de la parada — mismo patrón visual (icono + texto atenuado) que `_mostrarOverlaySinImagenes()`/`_mostrarVideoSinUrl()` para imagen/vídeo.
 - **`objectFit`/`fullHeight`** (`opciones`, ambos opcionales) — los pasa **solo el mapa vintage** —el completo se abre en un iframe, no en este overlay— (§14, "Mapa vintage (botón H2 y En-busca-del-tesoro)"): `objectFit:'fill'` estira la imagen hasta llenar el hueco sin recortar, y `fullHeight:true` marca el contenedor como mapa para que ocupe la pantalla entera. Las fotos de parada no pasan ninguno de los dos y se quedan en su ventana con marco.
 
@@ -1323,7 +1323,7 @@ Cubierto por `tests/e2e/22-carteles-informativos.spec.js`, prueba CI-6: dispara 
 **Contenido:** dos líneas de texto sobre fondo `#fff8e7` (mismo celeste-crema que el panel de texto en `btn-imagen` de hijo2), borde `clamp(2.5px,0.6vmin,4px)` sólido `#FF8C00` (el naranja estándar de toda la app — badges, selector de mapa, círculo de activación de 15m), esquinas redondeadas `0.75rem`:
 
 - Línea 1 (eyebrow, mayúsculas, `#8b5e1a`): el nombre de la aventura, de `_nombreDeAventura(aventuraSeleccionada)` (Script 1). Es la única función que lo lee de `INDICE_AVENTURAS[…].nombre`, para los cinco carteles, el modal de fin y el diálogo de reanudación (que saca el del idioma de `MAPEO_IDIOMAS` con `_nombreDeIdioma()`); si el índice no lo trae, enseña el id y lo dice con un error en el log.
-- Línea 2 (`#333`): el mensaje combinado, construido a partir de `TRADUCCIONES_CARTEL_TRANSICION` (`js/traducciones-ui.js`, 12 idiomas) — plantilla `terminaParada`/`terminaTramo` según `tipo1`, con `{nombre}` sustituido por `nombre1` (escapado con `_escapar()`, previene inyección HTML si un nombre de parada llegara a contener caracteres especiales); si hay elemento siguiente, se concatena ` — ` + plantilla `empiezaParada`/`empiezaTramo` según `tipo2` con `nombre2`. En español: *"Ha terminado la parada Torres de Serranos — va a empezar la parada Portal de la Mar"*. Todas las plantillas usan registro formal ("usted"/equivalente por idioma — mismo criterio que `TRADUCCIONES_FINALIZACION`, ver más abajo) y frases naturales por idioma, no traducciones literales palabra por palabra (p. ej. polaco usa una construcción impersonal — "następny przystanek: {nombre}" — en vez de un pronombre de género que no se puede inferir).
+- Línea 2 (`#333`): el mensaje combinado, construido a partir de `TRADUCCIONES_CARTEL_TRANSICION` (`js/traducciones-ui.js`, 12 idiomas) — plantilla `terminaParada`/`terminaTramo` según `tipo1`, con `{nombre}` sustituido por `nombre1` (escapado con `escaparHTML()` de `js/utils.js`, previene inyección HTML si un nombre de parada llegara a contener caracteres especiales); si hay elemento siguiente, se concatena ` — ` + plantilla `empiezaParada`/`empiezaTramo` según `tipo2` con `nombre2`. En español: *"Ha terminado la parada Torres de Serranos — va a empezar la parada Portal de la Mar"*. Todas las plantillas usan registro formal ("usted"/equivalente por idioma — mismo criterio que `TRADUCCIONES_FINALIZACION`, ver más abajo) y frases naturales por idioma, no traducciones literales palabra por palabra (p. ej. polaco usa una construcción impersonal — "następny przystanek: {nombre}" — en vez de un pronombre de género que no se puede inferir).
 
 **Cierre:** botón `.btn-cerrar-overlay` estándar (mismo componente circular naranja/verde/negro que el resto de la app — ✗, esquina superior derecha) y cierre automático a los 10 segundos (`setTimeout`) si el usuario no interactúa. Un flag `cerrado` local evita que ambos disparadores intenten eliminar el nodo dos veces. `document.getElementById('cartel-transicion')?.remove()` al principio de la función asegura que un segundo cartel (dos completados seguidos muy rápido) reemplaza al anterior en vez de apilarse.
 
@@ -3196,7 +3196,7 @@ Generados dinámicamente por `generarBotonesParadas()`. Cada botón tiene dos fi
 </button>
 ```
 
-`_crearBotonParada()` construye este HTML con un template literal; el atributo `data-nombre` del `.btn-nombre-wrap` guarda el nombre sin escapar para otros usos (marquee, comparaciones), separado del `<span class="btn-nombre">` visible.
+`_crearBotonParada()` construye este HTML con un template literal, con el nombre escapado por `escaparHTML()` (`js/utils.js`). Si el nombre no cabe, `_activarMarquee()` lo repite dentro del `<span class="btn-nombre">` (con `textContent`) y lo hace desplazarse.
 
 Distinción de tipos:
 
@@ -4916,7 +4916,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-8041f31da5da'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-de32328370b6'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8050,6 +8050,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `152-hijo2-pide-y-el-padre-resuelve.spec.js` | 4 | hijo2 no guarda listas: pide, y el padre resuelve con sus datos (§9.6, §10.5): al repartir los datos y activar una parada, hijo2 no recibe ninguna lista ni petición de coordenadas, y no pide ni confirma nada de eso (H2-1); el botón de imagen solo manda la acción y el padre abre su ventana con la imagen, las imágenes y el texto del elemento actual —el texto, por su `texto_id`— (H2-2); el de vídeo, en un tramo, igual con el vídeo y el nombre del tramo (H2-3); y «volver a la ruta» solo manda la posición, sin el elemento ni su id (H2-4) |
 | `153-la-fase-2-carga-solo-la-aventura-elegida.spec.js` | 4 | La fase 2 carga solo la aventura y el idioma elegidos, por `js/data-loader.js` (§7.1, §22.12): sus globales llevan esa aventura y ese idioma y no hay global de puzzles (F2-1); si cambian, vuelve a cargar (F2-2); con la API simulada y los ficheros protegidos en 403, la fase 2 y `cargarPuzzle()` leen de la API y no piden ningún fichero protegido (F2-3); y el reto de puzzle llega a hijo4 con la imagen de su puzzle (F2-4) |
 | `154-el-listado-titula-por-texto-id.spec.js` | 2 | El listado de paradas titula cada parada con el texto del `texto_id` de su fila de `DATOS_PADRE`, la regla de la ventana de la imagen (§7.2, «Listado de paradas»): en el listado de Aventura1 en español, el título de Av1-P-1 y el de Av1-P-2 salen una vez cada uno (LT-1, control); y con el `texto_id` de Av1-P-1 apuntando al texto de Av1-P-2, el de Av1-P-2 sale dos veces y el de Av1-P-1 ninguna (LT-2) |
+| `155-una-sola-copia-de-cada-ayudante.spec.js` | 4 | Cada ayudante de uso común tiene una sola definición, en `js/` (estudio, K-28): `sleep` solo en `js/utils.js` y sin publicar en `globalThis` (UC-1); el mapa de escape de HTML, una vez, en `escaparHTML` de `js/utils.js` (UC-2); la galería escapa como el resto, y un nombre con comillas dobles llega entero al `alt` de la imagen (UC-3); el título del texto de la galería con etiquetas sale como texto (UC-4, control) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8284,7 +8285,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-8041f31da5da'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-de32328370b6'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9046,7 +9047,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-8041f31da5da';
+const CACHE_VERSION = 'v-de32328370b6';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11005,7 +11006,7 @@ Después  Padre recibe HIJO_PREPARADO de cada hijo (independiente, por hijo):
 | `constants.js` | Los tipos de mensaje y las constantes compartidas. Define `TIPOS_MENSAJE` (árbol jerárquico de 94 tipos), `MODOS`, `LOG_LEVELS` y `TTL_LIMPIEZA` (solo la parte de mensajería: el TTL de limpieza en móvil y en desktop). | Solo exports. La copia `globalThis.TIPOS_MENSAJE` para los `<script>` clásicos no la publica este módulo: la publica cada frame que la usa (el padre, la selección y `video-intro.html`); los seis hijos no la tienen |
 | `state-manager.js` | Estado compartido del padre, con acceso serializado: un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por cada uno de los cuatro campos que se leen o escriben desde fuera —`script2Listo`, `estadoPadre`, `controladores` (el Map de handlers) y `heartbeat`—, más `hijosListosPromises`, sin mutex. Solo lo carga el padre. Detalle en «El state-manager (gestor de estado)». | `globalThis.__vv_stateManager` (y `globalThis.__stateManager`) |
 | `logger.js` | Logging centralizado con los cinco niveles de `LOG_LEVELS` (`constants.js`): DEBUG, INFO, WARN, ERROR y NONE. El nivel efectivo sale de `CONFIG.DEBUG.NIVEL_LOG`, que `logger.js` lee **en cada llamada**: primero de `globalThis.__vv_config` y, si su ventana no lo tiene, del `__vv_config` de la ventana padre. No lo importa, porque `logger.js` y `config.js` van en el mismo `Promise.all` de la FASE 1 sin orden garantizado entre ellos, y resolverlo una sola vez dejaría el nivel clavado si el primer log ocurriera antes que `config.js`. **El salto a la ventana padre es lo que hace que el nivel alcance a los hijos**: cada iframe tiene su propio `globalThis` y `config.js` solo publica `__vv_config` en la ventana de arriba, así que sin él ningún hijo recibiría el nivel y todos seguirían logueándolo todo. Mirar hacia arriba en vez de importar `config.js` en cada hijo deja además **una sola fuente del nivel para toda la app**. `setNivel()` permite forzarlo en runtime y, desde esa llamada, gana sobre `CONFIG`. Con `NONE` no sale nada, ni los errores. Cada página que loguea publica su logger en su propio `globalThis` justo tras importarlo — los siete hijos más `puzzle.html`, `video-intro.html` y `mapa-completo.html`. Sin esa línea, sus `(globalThis.logger \|\| console).x` caen al `console` crudo y se saltan el nivel, y **eslint no lo detecta**: su regla `no-console` no marca ese patrón porque el objeto va envuelto en el `\|\|`. Las únicas llamadas a `console` que quedan son tres en scripts clásicos pre-módulo, donde `logger.js` aún no se ha importado; llevan su `// eslint-disable-line no-console` con el motivo, según la convención de `eslint.config.js`. Cubierto por `tests/e2e/59-nivel-de-log.spec.js` y `60-nivel-de-log-alcanza-hijos.spec.js`. Buffer en memoria de 500 entradas (FIFO — elimina la entrada más antigua cuando se llena). **Sin limpieza periódica por TTL** — `TTL_LIMPIEZA.LOGGER` está definido en `constants.js` pero `logger.js` no lo importa ni lo usa. Colorea la consola por nivel. | `default export logger` |
-| `utils.js` | Funciones compartidas: `generarIdUnico(prefijo)` → `prefijo_timestamp_aleatorio`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `normalizarParadas()`, `esIdDeTramo()`, `resolverIdsParada()`, `ajustarTimeoutPorConexion()`, `retryUntilAvailable()`, `debounce()`, `sleep()`, `calcularDistancia()` y `puntoMasCercanoEnLinea()`. Al cargarse instala, solo en los frames que tienen padre, el reporte de errores no controlados hacia el padre (`instalarReporteErroresAlPadre()`, §10.17). | Named exports |
+| `utils.js` | Funciones compartidas: `generarIdUnico(prefijo)` → `prefijo_timestamp_aleatorio`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `normalizarParadas()`, `esIdDeTramo()`, `resolverIdsParada()`, `ajustarTimeoutPorConexion()`, `retryUntilAvailable()`, `debounce()`, `sleep()`, `escaparHTML()` (la única forma de escapar texto para pintarlo en HTML), `calcularDistancia()` y `puntoMasCercanoEnLinea()`. Al cargarse instala, solo en los frames que tienen padre, el reporte de errores no controlados hacia el padre (`instalarReporteErroresAlPadre()`, §10.17). | Named exports |
 | `device-detection.js` | Detecta tipo de dispositivo analizando `userAgent`. Resultados cacheados en el primer acceso. Solo exporta `esMovil()` (usada en `mensajeria.js` para elegir el TTL de limpieza de mensajes, `TTL_LIMPIEZA.MENSAJERIA.MOVIL`/`.DESKTOP`, definido en `constants.js`; y en `funciones-mapa.js`, para los umbrales de la limpieza de recursos inactivos) y `esTelefonoMovil()` (usada en `codigo-padre.html` para el aviso de "gira el móvil" en horizontal). No expone ninguna otra detección (tablet/iOS/Android/navegador/táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA instalada) — ningún caller en todo el proyecto las necesita, y no hay ningún agregador de debug alrededor. | `esMovil()`, `esTelefonoMovil()` |
 | `validacion.js` | Solo exporta `validarCoordenadas()` (usada en `funciones-mapa.js`) — sin validación por tipo con soporte de opciones, validación de mensajes, validación de paradas, validación por schema, sanitización XSS de strings/objetos, ni registro de validadores personalizados; el módulo no tiene nada de eso. | `validarCoordenadas()` |
 | `suppress-warnings.js` | Silencia advertencias de consola de librerías de terceros (patrón `mapbox-gl` — MapLibre GL hereda mensajes internos de su origen como fork de Mapbox GL —, fuentes, cookies de terceros, DevTools/source maps, extensiones del navegador). Se carga con `defer` justo tras `proteccion.js`. | — |
@@ -12485,7 +12486,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-8041f31da5da';
+const CACHE_VERSION = 'v-de32328370b6';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14138,10 +14139,10 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 
 ### 37.2 `globalThis` compartido entre bloques `<script>` inline (todos los archivos)
 
-Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **112 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
+Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **113 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 94 identificadores cruzados, de 138 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 95 identificadores cruzados, de 139 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14153,92 +14154,93 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `actualizarVisibilidadSelectorMapa` | clásico 7 (L1467) | clásico 8, módulo 1, módulo 2, módulo 3 | función/objeto |
 | `cerrarChatSoporte` | clásico 7 (L1563) | módulo 1, módulo 2 | función/objeto |
 | `construirEstadoChat` | clásico 7 (L1566) | módulo 1 | función/objeto |
-| `mostrarIframeOverlay` | clásico 8 (L2166) | módulo 2 | función/objeto |
+| `mostrarIframeOverlay` | clásico 8 (L2159) | módulo 2 | función/objeto |
 | `mostrarImagenOverlay` | clásico 8 (L1661) | módulo 1, módulo 2 | función/objeto |
-| `mostrarVideoOverlay` | clásico 8 (L2003) | módulo 1 | función/objeto |
+| `mostrarVideoOverlay` | clásico 8 (L1996) | módulo 1 | función/objeto |
 | `rotationSuppressed` | clásico 8 (L1703) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3720) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4993) | clásico 12 | estado |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3704) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3703) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5759) | clásico 12 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6424) | clásico 12 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3687) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6564) | clásico 12 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3705) | módulo 2 | función/objeto |
-| `__vv_registroScript1` | módulo 1 (L3586) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4732) | módulo 2 | función/objeto |
-| `_cerrarDesplegablesDelPadre` | módulo 1 (L4698) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L7275) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8633) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8849) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8754) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L4011) | módulo 2 | estado |
-| `_entradaDeCoordenadas` | módulo 1 (L3777) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8723) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L8933) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8825) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8729) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8941) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8603) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L8177) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5929) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3836) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4929) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L7947) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L7946) | módulo 2 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L3928) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3830) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3831) | módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L4016) | clásico 7, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4366) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4120) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6328) | módulo 2 | función/objeto |
-| `hideParentLoadingOverlay` | módulo 1 (L2850) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4930) | clásico 5, clásico 7, módulo 2 | estado |
-| `limpiarDatosAventura` | módulo 1 (L2885) | módulo 2 | función/objeto |
-| `MODOS` | módulo 1 (L3829) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8330) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8253) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8103) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8146) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4213) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5021) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5048) | módulo 2 | función/objeto |
-| `reproducirVideoConBuffer` | módulo 1 (L2890) | clásico 8 | función/objeto |
-| `resolverIdsParada` | módulo 1 (L2880) | módulo 2 | función/objeto |
-| `retryUntilAvailable` | módulo 1 (L2881) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6166) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6092) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6020) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6245) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6320) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6624) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6623) | módulo 2 | función/objeto |
-| `showParentLoadingOverlay` | módulo 1 (L2838) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3828) | clásico 7, clásico 8, módulo 2 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L3989) | clásico 8, módulo 2 | función/objeto |
-| `updateLoadingStatus` | módulo 1 (L2866) | módulo 2 | función/objeto |
-| `__distribuirReadyPromise` | módulo 2 (L9053) | módulo 1 | estado |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13713) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9945) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12690) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13694) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11654) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12352) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9884) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11045) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11107) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L11069) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12382) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9116) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9879) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9257) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9298) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12615) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9757) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9749) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13729) | módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3715) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4988) | clásico 12 | estado |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3699) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3698) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5754) | clásico 12 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6419) | clásico 12 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3682) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6559) | clásico 12 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3700) | módulo 2 | función/objeto |
+| `__vv_registroScript1` | módulo 1 (L3581) | módulo 2 | estado |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4727) | módulo 2 | función/objeto |
+| `_cerrarDesplegablesDelPadre` | módulo 1 (L4693) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L7270) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8622) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8838) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8743) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L4006) | módulo 2 | estado |
+| `_entradaDeCoordenadas` | módulo 1 (L3772) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8712) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8922) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8814) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8718) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8930) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8592) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L8172) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5924) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3831) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4924) | clásico 7, módulo 2 | estado |
+| `cargarHijoCasa` | módulo 1 (L7942) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L7941) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L3923) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3825) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3826) | módulo 2 | función/objeto |
+| `escaparHTML` | módulo 1 (L2876) | clásico 8, módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4011) | clásico 7, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4361) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4115) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6323) | módulo 2 | función/objeto |
+| `hideParentLoadingOverlay` | módulo 1 (L2843) | módulo 2 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4925) | clásico 5, clásico 7, módulo 2 | estado |
+| `limpiarDatosAventura` | módulo 1 (L2880) | módulo 2 | función/objeto |
+| `MODOS` | módulo 1 (L3824) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8323) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8247) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8098) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8141) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4208) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5016) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5043) | módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L2885) | clásico 8 | función/objeto |
+| `resolverIdsParada` | módulo 1 (L2873) | módulo 2 | función/objeto |
+| `retryUntilAvailable` | módulo 1 (L2874) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6161) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6087) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6015) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6240) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6315) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6619) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6618) | módulo 2 | función/objeto |
+| `showParentLoadingOverlay` | módulo 1 (L2831) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3823) | clásico 7, clásico 8, módulo 2 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L3984) | clásico 8, módulo 2 | función/objeto |
+| `updateLoadingStatus` | módulo 1 (L2859) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9042) | módulo 1 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13697) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9934) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12679) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13678) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11643) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12341) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9873) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L11034) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11096) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L11058) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12371) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9105) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9868) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9246) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9287) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12604) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9746) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9738) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13713) | módulo 2 | función/objeto |
 
 </details>
 

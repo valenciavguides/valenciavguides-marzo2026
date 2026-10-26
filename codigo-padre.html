@@ -1610,7 +1610,7 @@
                     <div class="media-contenedor imagen-contenedor" style="justify-content:center;align-items:center;display:flex;flex-direction:column;gap:1rem;">
                         <button type="button" class="btn-cerrar-overlay" title="Cerrar imagen"><span class="icono-x-cerrar">✗</span></button>
                         <div style="font-size:3rem;opacity:0.3;">🖼️</div>
-                        <p style="color:#666;font-size:0.9em;text-align:center;margin:0;padding:0 1rem;">${_galeriaEscaparHTML(mensajeError || 'No hay imagen disponible para esta parada')}</p>
+                        <p style="color:#666;font-size:0.9em;text-align:center;margin:0;padding:0 1rem;">${globalThis.escaparHTML(mensajeError || 'No hay imagen disponible para esta parada')}</p>
                     </div>
                 `;
             document.body.appendChild(overlay);
@@ -1625,7 +1625,7 @@
         function _mostrarOverlayGaleria(imagenes, titulo, textoParada, tipo, mapa_numero, objectFit, fullHeight, zoomable) {
             _galeriaEstado = { imagenes, indice: 0, tipo, mapa_numero, objectFit, fullHeight, zoomable };
 
-            const _tituloHTML = (textoParada && textoParada.title) ? `<h3 class="texto-parada-titulo" style="color:#003366;">${_galeriaEscaparHTML(textoParada.title)}</h3>` : '';
+            const _tituloHTML = (textoParada && textoParada.title) ? `<h3 class="texto-parada-titulo" style="color:#003366;">${globalThis.escaparHTML(textoParada.title)}</h3>` : '';
             const textoHTML = textoParada ? `
                 <div id="texto-parada-overlay" class="texto-parada-overlay">
                     ${_tituloHTML}
@@ -1642,7 +1642,7 @@
                 <div class="media-contenedor imagen-contenedor${fullHeight ? ' mapa-a-pantalla-completa' : ''}">
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar imagen"><span class="icono-x-cerrar">✗</span></button>
                     <div class="galeria-imagen-wrapper" id="galeria-wrapper">
-                        <img id="galeria-img" alt="${_galeriaEscaparHTML(titulo || 'Imagen de la parada')}">
+                        <img id="galeria-img" alt="${globalThis.escaparHTML(titulo || 'Imagen de la parada')}">
                     </div>
                     ${textoHTML}
                 </div>
@@ -1714,13 +1714,6 @@
                 });
             }
         };
-
-        function _galeriaEscaparHTML(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
 
         // Sanitizador que permite etiquetas HTML seguras (incluido img para logo inline)
         function _galeriaSanitizarHTML(str) {
@@ -2876,9 +2869,11 @@
             (globalThis.logger || console).debug(`[LOADING] ${message}${details ? ' - ' + details : ''}`);
         };
 
-        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep } from './js/utils.js';
+        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep, escaparHTML } from './js/utils.js';
         globalThis.resolverIdsParada = resolverIdsParada;
         globalThis.retryUntilAvailable = retryUntilAvailable;
+        // La galería de imágenes vive en un script clásico, que no puede importar: la toma de aquí.
+        globalThis.escaparHTML = escaparHTML;
         import { DATOS_PADRE } from './js/aventuras-ID-padre.js';
         // DATOS_PADRE is now imported from module
         import { limpiarDatosAventura, verificarTimeoutAventura, armarRedDeSeguridad } from './js/reciclaje-digital.js';
@@ -8195,13 +8190,12 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
-                const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
                 const plantillaTermina = tipo1 === 'tramo' ? t.terminaTramo : t.terminaParada;
-                let cuerpo = plantillaTermina.replace('{nombre}', _escapar(nombre1));
+                let cuerpo = plantillaTermina.replace('{nombre}', escaparHTML(nombre1));
                 if (tipo2 && nombre2) {
                     const plantillaEmpieza = tipo2 === 'tramo' ? t.empiezaTramo : t.empiezaParada;
-                    cuerpo += ` — ${plantillaEmpieza.replace('{nombre}', _escapar(nombre2))}`;
+                    cuerpo += ` — ${plantillaEmpieza.replace('{nombre}', escaparHTML(nombre2))}`;
                 }
 
                 _ocultarCualquierCartel();
@@ -8229,12 +8223,12 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 cartel.innerHTML = `
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
-                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${_escapar(nombreAventura)}</p>
+                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${escaparHTML(nombreAventura)}</p>
                     <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${cuerpo}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;">
                         <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
                         <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <p style="margin:0;font-size:clamp(0.8rem,3.2vmin,0.95rem);color:#333;line-height:1.4;">${_escapar(t.instrucciones || '')}</p>
+                        <p style="margin:0;font-size:clamp(0.8rem,3.2vmin,0.95rem);color:#333;line-height:1.4;">${escaparHTML(t.instrucciones || '')}</p>
                     </div>
                 `;
                 document.body.appendChild(cartel);
@@ -8272,7 +8266,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
-                const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
                 let cuerpo = t.mensaje || '';
                 if (nombreAnterior && nombreTramoNuevo) {
@@ -8307,11 +8300,11 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 cartel.innerHTML = `
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
-                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${_escapar(nombreAventura)}</p>
+                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${escaparHTML(nombreAventura)}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
                         <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
                         <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${_escapar(cuerpo)}</p>
+                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${escaparHTML(cuerpo)}</p>
                     </div>
                 `;
                 document.body.appendChild(cartel);
@@ -8351,8 +8344,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
-                const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-                const cuerpo = (t.mensaje || '').replace('{nombre}', _escapar(nombreParada));
+                const cuerpo = (t.mensaje || '').replace('{nombre}', escaparHTML(nombreParada));
 
                 _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
@@ -8376,7 +8368,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 cartel.innerHTML = `
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
-                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${_escapar(nombreAventura)}</p>
+                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${escaparHTML(nombreAventura)}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
                         <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
                         <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
@@ -8415,7 +8407,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
-                const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
                 const cuerpo = t.mensaje || '';
 
                 _ocultarCualquierCartel();
@@ -8440,11 +8431,11 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 cartel.innerHTML = `
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
-                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${_escapar(nombreAventura)}</p>
+                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${escaparHTML(nombreAventura)}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
                         <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
                         <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${_escapar(cuerpo)}</p>
+                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${escaparHTML(cuerpo)}</p>
                     </div>
                 `;
                 document.body.appendChild(cartel);
@@ -8478,7 +8469,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
-                const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
                 const cuerpo = t.mensaje || '';
 
                 _ocultarCualquierCartel();
@@ -8503,11 +8493,11 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 cartel.innerHTML = `
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
-                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${_escapar(nombreAventura)}</p>
+                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${escaparHTML(nombreAventura)}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
                         <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
                         <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${_escapar(cuerpo)}</p>
+                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${escaparHTML(cuerpo)}</p>
                     </div>
                 `;
                 document.body.appendChild(cartel);
@@ -8552,7 +8542,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     (globalThis.logger || console).warn('[PADRE][CARTEL_RECORDATORIO_RESCATE] Traducciones no disponibles');
                     return;
                 }
-                const _escapar = (v) => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
                 _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
@@ -8577,9 +8566,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 ].join(';');
                 cartel.innerHTML = `
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="x-cerrar">X</span></button>
-                    <p style="margin:0 0 0.35rem 0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;font-weight:bold;">${_escapar(t.titulo)}</p>
-                    <p style="margin:0 0 0.7rem 0;font-size:clamp(0.8rem,3.2vmin,0.95rem);color:#333;line-height:1.4;">${_escapar(t.cuerpo)}</p>
-                    <button type="button" id="btn-recordatorio-rescate" style="display:block;width:100%;padding:0.7rem;background:#2e7d32;color:#fff;border:none;border-radius:0.6rem;cursor:pointer;font-family:inherit;font-size:clamp(0.85rem,3.5vmin,1rem);font-weight:bold;touch-action:manipulation;">${_escapar(t.boton)}</button>
+                    <p style="margin:0 0 0.35rem 0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;font-weight:bold;">${escaparHTML(t.titulo)}</p>
+                    <p style="margin:0 0 0.7rem 0;font-size:clamp(0.8rem,3.2vmin,0.95rem);color:#333;line-height:1.4;">${escaparHTML(t.cuerpo)}</p>
+                    <button type="button" id="btn-recordatorio-rescate" style="display:block;width:100%;padding:0.7rem;background:#2e7d32;color:#fff;border:none;border-radius:0.6rem;cursor:pointer;font-family:inherit;font-size:clamp(0.85rem,3.5vmin,1rem);font-weight:bold;touch-action:manipulation;">${escaparHTML(t.boton)}</button>
                 `;
                 document.body.appendChild(cartel);
                 _vibrarCartel();
@@ -9058,7 +9047,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // ============================================================
         // Importación de módulos
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_S2, MODOS: MODOS_S2 } = await import('./js/constants.js');
-        const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2, normalizarParadas: normalizarParadas_S2, sleep } = await import('./js/utils.js');
+        const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2, normalizarParadas: normalizarParadas_S2, sleep, escaparHTML } = await import('./js/utils.js');
         const { DATOS_PADRE } = await import('./js/aventuras-ID-padre.js');
 
         const loggerScript2 = (await import('./js/logger.js')).default;
@@ -12837,12 +12826,11 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             const numeros = f.tipo === 'parada' ? (f.numeros || []) : [f.numero];
             const pin = numeros.length ? `📍${numeros.join(',')}` : '';
             const nombre = f.nombre || (f.tipo === 'puente' ? `(sin nombre) ${pin}` : '');
-            const _esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
             return `
                 <div class="listado-parada-fila">
                     <div class="listado-parada-circulo${f.completada ? ' completada' : ''}"></div>
-                    <div class="listado-parada-texto">${f.fila}. ${_esc(nombre)}</div>
-                    <div class="listado-parada-pin">${_esc(pin)}</div>
+                    <div class="listado-parada-texto">${f.fila}. ${escaparHTML(nombre)}</div>
+                    <div class="listado-parada-pin">${escaparHTML(pin)}</div>
                 </div>
             `;
         }
@@ -13266,10 +13254,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         // accidente que la primera confirmación existe para filtrar.
         const _ID_DECISION_RESCATE = 'decision-rescate';
 
-        function _escaparTextoRescate(v) {
-            return String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        }
-
         /**
          * Sustituye los marcadores del texto traducido y comprueba que no quede ninguno.
          *
@@ -13281,7 +13265,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         function _rellenarTextoRescate(plantilla, valores, logPrefix) {
             let txt = String(plantilla ?? '');
             for (const [k, v] of Object.entries(valores)) {
-                txt = txt.split('{' + k + '}').join(_escaparTextoRescate(v));
+                txt = txt.split('{' + k + '}').join(escaparHTML(v));
             }
             const sobrante = txt.match(/\{[a-zA-Z_]+\}/);
             if (sobrante) {
@@ -13298,7 +13282,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
          * `botones` es una lista de `{ clave, rotulo, tono }`, en el orden en que se pintan.
          * El tono solo decide el aspecto: 'seguro' es la opción que no gasta nada.
          *
-         * El cuerpo llega ya escapado (de _rellenarTextoRescate o de _escaparTextoRescate);
+         * El cuerpo llega ya escapado (de _rellenarTextoRescate o de escaparHTML);
          * el título y los rótulos se escapan aquí. Los párrafos se separan por la doble
          * línea que usan las traducciones.
          */
@@ -13325,13 +13309,13 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     const estilo = b.tono === 'seguro'
                         ? 'background:#2e7d32;color:#fff;border:none;'
                         : 'background:transparent;color:#8a4b00;border:0.125rem solid #F28500;';
-                    return '<button type="button" data-clave="' + _escaparTextoRescate(b.clave) + '" style="' + estilo
+                    return '<button type="button" data-clave="' + escaparHTML(b.clave) + '" style="' + estilo
                         + 'display:block;width:100%;padding:0.85rem 0.75rem;border-radius:0.7rem;cursor:pointer;font-family:inherit;font-size:clamp(14px,3.5vmin,18px);font-weight:bold;touch-action:manipulation;">'
-                        + _escaparTextoRescate(b.rotulo) + '</button>';
+                        + escaparHTML(b.rotulo) + '</button>';
                 }).join('');
 
                 overlay.innerHTML = '<div role="dialog" aria-modal="true" style="background:#fff8e7;border:clamp(2.5px,0.6vmin,4px) solid #F28500;border-radius:1rem;box-shadow:0 0.5rem 2rem rgba(0,0,0,0.5);width:min(95vw,30rem);max-height:100%;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'
-                    + '<h2 style="flex:0 0 auto;margin:0;padding:1.1rem 1.1rem 0.6rem 1.1rem;font-size:clamp(15px,4vmin,20px);color:#8a4b00;line-height:1.35;">' + _escaparTextoRescate(titulo) + '</h2>'
+                    + '<h2 style="flex:0 0 auto;margin:0;padding:1.1rem 1.1rem 0.6rem 1.1rem;font-size:clamp(15px,4vmin,20px);color:#8a4b00;line-height:1.35;">' + escaparHTML(titulo) + '</h2>'
                     + '<div style="flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 1.1rem;font-size:clamp(14px,3.5vmin,18px);color:#333;line-height:1.45;">' + parrafos + '</div>'
                     + '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.6rem;padding:0.8rem 1.1rem 1.1rem 1.1rem;">' + htmlBotones + '</div>'
                     + '</div>';
@@ -13375,7 +13359,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
             const r1 = await _mostrarDecisionRescate({
                 titulo: t1.titulo,
-                cuerpo: _escaparTextoRescate(t1.cuerpo),
+                cuerpo: escaparHTML(t1.cuerpo),
                 botones: [
                     { clave: 'no', rotulo: t1.no, tono: 'seguro' },
                     { clave: 'si', rotulo: t1.si },
@@ -13426,7 +13410,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             if (titulo === null) return;
             await _mostrarDecisionRescate({
                 titulo,
-                cuerpo: _escaparTextoRescate(t.cuerpo),
+                cuerpo: escaparHTML(t.cuerpo),
                 botones: [{ clave: 'cerrar', rotulo: tc.cerrar, tono: 'seguro' }],
             });
             (globalThis.logger || console).info(`${logPrefix} Pantalla de rescates agotados cerrada (${total}/${total})`);
@@ -14228,11 +14212,12 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
          igual que Factor 2, para no depender de un estado que puede llevar minutos u
          horas sin refrescarse. -->
     <script type="module">
+    import { sleep } from './js/utils.js';
     (async () => {
         try {
             let intentos = 0;
             while (typeof globalThis.__vv_logger === 'undefined' && intentos < 200) {
-                await new Promise(r => setTimeout(r, 50));
+                await sleep(50);
                 intentos++;
             }
             if (typeof globalThis.__vv_logger === 'undefined') return;

@@ -44,7 +44,7 @@ mensajeriaReadyPromise.then(() => {
 
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import logger from './logger.js';
-import { generarIdUnico, canonicalizarModo, retryUntilAvailable } from './utils.js';
+import { generarIdUnico, canonicalizarModo, retryUntilAvailable, sleep } from './utils.js';
 
 
 // Access global mensajeria functions - ahora esperan a que esté lista
@@ -241,7 +241,7 @@ async function esperarRespuestas(mapaRespuestas, hijosEsperados, timeoutMs, tipo
         }
 
         // Esperar un poco antes del siguiente chequeo
-        await new Promise(resolve => setTimeout(resolve, intervaloChequeo));
+        await sleep(intervaloChequeo);
     }
 
     // Timeout: reportar quiénes no respondieron

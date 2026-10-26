@@ -1693,6 +1693,25 @@ Otras tablas indexadas por idioma (12/12): `LANG_ARCHIVO_PARRAFOS` (`data-loader
   Script 2 en su importación dinámica de `js/utils.js`. Búsqueda desnuda de `globalThis.sleep` antes del cambio: esas tres
   líneas del padre y dos sitios de la guía (§6, «Estructura interna: los cinco scripts module», y §30.2, que decía que la
   tomaban también Scripts 3), corregidos; ningún spec ni otro frame la lee.
+  Las otras formas de «esperar N ms» (`await new Promise(r => setTimeout(r, N))` escrito en línea): las tres que están en
+  módulos (`esperarRespuestas` de `js/app.js`, la espera del mapa en `completarCambioParada` de `js/funciones-mapa.js` y la
+  del logger en Script 5 del padre) pasan a `sleep`; se quedan la de `esperarHijosListos` de `js/mensajeria.js` (es del
+  bus: regla 1) y las dos de scripts clásicos, que no pueden importar (`const wait` de `video-intro.html` y la pausa de la
+  despedida de la selección). Spec 155, UC-1: `sleep` se define solo en `js/utils.js` y nadie la publica en `globalThis`.
+- **Escapar HTML, una sola (2026-10-26).** Eran nueve copias en el padre, de dos maneras: ocho con el mismo mapa de
+  escape (`_escapar` en las seis funciones de carteles de Script 1, `_esc` del listado de paradas y `_escaparTextoRescate`
+  en Script 2) y `_galeriaEscaparHTML` en el script clásico de la galería, que escapaba con `textContent`/`innerHTML` y no
+  escapa las comillas; y una décima en hijo5, que solo escapaba las comillas dobles del atributo `data-nombre`. Queda
+  `escaparHTML` de `js/utils.js`: Script 1 la importa y la publica en `globalThis` para la galería (un script clásico no
+  puede importar), Script 2 la importa en su cabecera, e hijo5 la importa. La diferencia de las dos maneras se ve en el
+  `alt` de la imagen de la galería: medido (spec 155, UC-3, chromium) con el código anterior, un nombre `Puerta "del" Mar`
+  daba `alt="Puerta "`; con `escaparHTML`, entero. En los datos de hoy ningún nombre lleva comillas dobles (búsqueda de
+  `\"` en `js/aventuras-ID-padre.js`: 0), así que no cambia nada a la vista. UC-2 vigila que el mapa de escape está una
+  sola vez; con el código anterior, ocho veces en `codigo-padre.html`. **Código muerto de paso:** el atributo `data-nombre`
+  de los botones de hijo5 no lo leía nadie (búsqueda desnuda de `data-nombre` y de `dataset.nombre` en todo el repositorio
+  y en su historia: solo su línea); fuera, y la guía (§7.6) decía que lo usaban el desplazamiento del nombre y
+  comparaciones. Los demás frames que pintan datos con `innerHTML` (la selección, hijo4, hijo6, video-intro y el mapa
+  completo) no escapan: no son copias de esta familia, sino otra pregunta (si hay que escapar), que no se ha tocado.
 
 ##### K-29 — Los 26 homónimos del parser, clasificados — ➖ / 🧩
 
@@ -4375,7 +4394,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | # | Nivel | Entrada | Qué es | Marcas | Depende de | ¿Se puede sola? |
 |---|---|---|---|---|---|---|
 | 1 | 0 | K-17 B | dejar los seis `getCurrentPosition` hasta la prueba de campo M-8 | — | — | sí |
-| 2 | 0 | K-28 | las familias de copias, una a una (la B, dejarlas, choca con «sin duplicados») — **en curso (2026-10-26): hecha `sleep`** | — | — | sí |
+| 2 | 0 | K-28 | las familias de copias, una a una (la B, dejarlas, choca con «sin duplicados») — **en curso (2026-10-26): hechas `sleep` y escapar HTML; spec 155** | — | — | sí |
 | 3 | 0 | K-37 A | dejar `'casa'`, `'aventura'` y `destino: 'padre'` | — | — | sí |
 | 4 | 0 | K-43 B | dejar los cuatro nombres del id de parada (A al tocar el contrato de `CAMBIO_PARADA`) | — | — | sí |
 | 5 | 1 | K-45 B | hijo6: bandera «estado recibido» y `debug` hasta el primero — **hecha (2026-10-04)** | — | — | sí |

@@ -280,6 +280,15 @@ export function sleep(ms) {
 }
 
 /**
+ * Escapa un valor para pintarlo en HTML, como texto o como valor de un atributo entre comillas
+ * @param {*} valor - Lo que se va a pintar (se convierte a cadena)
+ * @returns {string}
+ */
+export function escaparHTML(valor) {
+    return String(valor).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/**
  * Distancia entre dos coordenadas geográficas (fórmula Haversine)
  * @param {number} lat1 - Latitud del primer punto
  * @param {number} lon1 - Longitud del primer punto

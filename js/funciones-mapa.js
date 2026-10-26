@@ -16,7 +16,7 @@ import {
 import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import { validarCoordenadas } from './validacion.js';
-import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, resolverIdsParada, puntoMasCercanoEnLinea } from './utils.js';
+import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, resolverIdsParada, puntoMasCercanoEnLinea, sleep } from './utils.js';
 import logger from './logger.js';
 
 /**
@@ -2039,7 +2039,7 @@ async function completarCambioParada() {
                 const checkInterval = 100;
                 let waited = 0;
                 while (!_mapaInstance && waited < maxWaitTime) {
-                    await new Promise(resolve => setTimeout(resolve, checkInterval));
+                    await sleep(checkInterval);
                     waited += checkInterval;
                 }
                 if (!_mapaInstance) {

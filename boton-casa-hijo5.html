@@ -304,7 +304,7 @@
     }
     </style>
     <script type="module">
-    import { resolverIdsParada } from './js/utils.js';
+    import { resolverIdsParada, escaparHTML } from './js/utils.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
     // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
@@ -447,8 +447,8 @@
                             <span class="btn-icon">${cfg.emoji}</span>
                             <span class="btn-title">${titulo}</span>
                         </div>
-                        <div class="btn-nombre-wrap" data-nombre="${nombre.replaceAll('"', '&quot;')}">
-                            <span class="btn-nombre">${nombre}</span>
+                        <div class="btn-nombre-wrap">
+                            <span class="btn-nombre">${escaparHTML(nombre)}</span>
                         </div>
                     `;
             if (nombre) _activarMarquee(btn, nombre);
