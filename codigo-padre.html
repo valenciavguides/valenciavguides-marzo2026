@@ -3897,7 +3897,7 @@
         // Inicialización de servicios
         // NOTA: inicializarServicioMapa se llama desde initializeMap() con la instancia del mapa
         // No llamar aquí para evitar doble inicialización del contenedor del mapa
-        // NOTA: inicializarMensajeria ya se llamó en línea 1862, no duplicar
+        // NOTA: inicializarMensajeria ya se llamó más arriba, al principio de este script: no duplicar
 
         (globalThis.logger || console).info('Todos los módulos inicializados correctamente');        // ============================================================
 
@@ -4991,13 +4991,12 @@
             }
         }
 
-        // Guards/flags globales para evitar doble inicialización/registro
-        globalThis.__MENSAJERIA_INICIADA = globalThis.__MENSAJERIA_INICIADA || false;
+        // Los tipos que ya tienen controlador crítico, para no registrarlos dos veces (registrarControladorSeguro, abajo)
         globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
 
         // Wrapper seguro para evitar doble registro de controladores críticos.
         // DISEÑO INTENCIONAL — comportamiento "first wins": el primer módulo que registra
-        // un tipo de mensaje gana; los siguientes intentos se ignoran silenciosamente.
+        // un tipo de mensaje gana; los siguientes intentos se ignoran con un warn.
         // El espacio de nombres está particionado por prefijo:
         //   SISTEMA.*       → Script 1 (este script)
         //   NAVEGACION.*    → funciones-mapa.js
@@ -7086,7 +7085,7 @@
         // Registrado en Script 1 para responder incluso antes de que Script 2 esté listo.
         // Fuente UNICA: DATOS_PADRE (aventuras-ID-padre.js, idioma-aware, normalizarParadas_S1).
         // Habia un segundo camino a __vv_DATOS_AVENTURAS "por si DATOS_PADRE no ha cargado aun";
-        // era inalcanzable y se elimino: DATOS_PADRE es un import ESTATICO (L2982) y cubre las
+        // era inalcanzable y se elimino: DATOS_PADRE es un import ESTATICO de la cabecera de este script y cubre las
         // 7 aventuras x los 12 idiomas de la app, asi que la fuente primaria no puede faltar.
         // Si algun dia falta, se responde con lista vacia y un warn — ruidoso, no disimulado.
         registrarControladorSeguro(TIPOS_MENSAJE_S1.NAVEGACION.SOLICITAR_DATOS_PARADAS, async (mensaje) => {
@@ -7334,7 +7333,7 @@
                     (globalThis.logger || console).success(`${logPrefix} Cambio de modo exitoso: ${resultado.modoActual}`);
 
                     // Sincronizar vv_aventura_iniciada.modo con el modo real — antes de este
-                    // fix solo se escribía una vez, en la activación inicial (línea ~12245),
+                    // fix solo se escribía una vez, en la activación inicial (_hdl_SELECCION_AVENTURA_ACTIVADA),
                     // así que cualquier cambio de modo hecho en caliente (activar dev mode vía
                     // Factor 2, alternar CASA↔AVENTURA con el botón GPS de hijo5) se perdía al
                     // cerrar y reabrir la app: _activarModoRest() siempre restauraba el modo de
@@ -7396,8 +7395,7 @@
 
         registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.CAMBIO_MODO, _hdl_SISTEMA_CAMBIO_MODO, { permanente: true });
 
-        // NOTA: AUDIO.FIN_REPRODUCCION se maneja en Script 2 para evitar duplicados
-        // (Controlador eliminado de aquí - ver línea ~6993 en Script 2)
+        // NOTA: AUDIO.FIN_REPRODUCCION tiene un solo handler, en Script 2 (_hdl_AUDIO_FIN_REPRODUCCION).
 
         // CONTROLADOR: SISTEMA.HEARTBEAT_RESPONSE
         registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_RESPONSE, async (mensaje) => {
@@ -10601,14 +10599,14 @@ await _comprobarReanudacionAventura(logPrefix);
                         (error) => { reject(error); },
                         // Bug real (auditoría 2026-08-17): esta línea usaba CONFIG y
                         // ajustarTimeoutPorConexion_S1 — ambos son alias LOCALES de Script 1
-                        // (const CONFIG = CONFIG_S1, línea ~3703; import con sufijo _S1), pero
+                        // (const CONFIG = CONFIG_S1 e import con sufijo _S1, en Script 1), pero
                         // esta función vive en Script 2, donde ninguno de los dos existe como
                         // identificador. Lanzaba ReferenceError en el executor de la Promise,
                         // rechazándola en silencio (capturada por el catch de abajo) — el
                         // intento de GPS fresco por getCurrentPosition() nunca llegaba siquiera
                         // a ejecutarse. globalThis.__vv_config lo expone js/config.js para
                         // cualquier script (ver §10.21); ajustarTimeoutPorConexion_S2 es el
-                        // alias propio de Script 2 (línea ~9552), no el de Script 1.
+                        // alias propio de Script 2 (su importación de js/utils.js), no el de Script 1.
                         { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S2(globalThis.__vv_config?.MENSAJERIA?.TIMEOUTS?.CONFIRMACION ?? 5000), maximumAge: 30000 }
                     );
                 });
@@ -10643,7 +10641,7 @@ await _comprobarReanudacionAventura(logPrefix);
         function _obtenerCoordenadasFallbackP0(logPrefix) {
             // DATOS_PADRE (aventuras-ID-padre.js) nunca tiene lat/lng — son solo IDs de
             // secuencia. Las coordenadas reales viven en __vv_DATOS_AVENTURAS (mismo
-            // patrón ya usado en el resto de este fichero, ver líneas 4329/6599/7916/etc.).
+            // patrón que el resto de este fichero).
             const coords = globalThis.__vv_DATOS_AVENTURAS?.[globalThis.aventuraSeleccionada]?.['coordenadas-hijo2.html']?.coordenadas || [];
             const paradaInicio = coords.find(p => p.tipo === 'inicio');
             if (paradaInicio?.coordenadas?.lat && paradaInicio?.coordenadas?.lng) {
@@ -13738,10 +13736,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             }
         };
 
-        // NOTA: El controlador del backdrop ya se registra en el DOMContentLoaded unificado
-        // (ver líneas ~1185 del listener consolidado)
-        // No duplicar aquí para evitar conflictos.
-
     </script>
 
     <!-- Revalidar el mapa al volver a la pestaña -->
@@ -13809,7 +13803,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             if (++_waitMs4 > 200) { (globalThis.logger || console).error('[PADRE Script4] mensajeria no disponible tras 10s'); break; }
             await sleep(50);
         }
-        // Script 1 define globalThis.registrarControladorSeguro en su propio top-level (línea ~4305),
+        // Script 1 define globalThis.registrarControladorSeguro en su propio nivel superior,
         // pero sus await tempranos (state-manager, imports…) pueden hacer que Script 4 llegue aquí
         // antes de que Script 1 la haya alcanzado — visto en producción como
         // "Uncaught TypeError: globalThis.registrarControladorSeguro is not a function".
