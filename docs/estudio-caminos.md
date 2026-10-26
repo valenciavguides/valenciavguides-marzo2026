@@ -3891,6 +3891,15 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 - **Relacionado.** K-72 (el aviso), K-130.
 - **Pendiente: decisión** (es un respaldo: el principio pide que sea ruidoso o que no esté). *A)* quitarlo: con Script 2 roto ya sale el aviso, y un audio sin sus handlers no sirve; *B)* dejarlo, ruidoso: un `error` que diga que se usa la vía de respaldo; *C)* dejarlo. Recomendación: *A*.
 
+##### K-139 — `globalThis.estado` es un getter de Script 2 que, sin `estadoPadre`, devuelve un objeto vacío — ✅ (leído; búsqueda desnuda)
+
+- **Cómo salió.** Al clasificar las guardas `typeof` del padre (nota en K-68), leyendo la cabecera de Script 2.
+- **Dónde.** Script 2 de `codigo-padre.html` publica `globalThis.estado` con `Object.defineProperty`: un getter que devuelve `globalThis.estadoPadre` o, si aún no existe, `{}` («Script 2 se ejecuta antes que Script 1, retornar objeto vacío temporal»). Justo después lo lee una vez: `const estado = globalThis.estado;`, y esa constante es el objeto de ese momento para todo Script 2. Script 1 publica el estado como `globalThis.estadoPadre`.
+- **Lo que no cuadra.** Un respaldo callado: sin `estadoPadre`, todo lo que Script 2 escribiera en `estado` iría a un objeto vacío que no ve nadie, y sin un aviso. Hoy no pasa, porque Script 2 espera a `estadoPadre` antes de llegar ahí (la espera de su cabecera, una de las doce de K-62). Y son dos nombres para el mismo estado: `estadoPadre` y `estado` (la familia «leer el estado del padre» de R2.10).
+- **Quién lo lee** (búsqueda de `globalThis.estado` sin la P de `estadoPadre`). En producción, esa constante y la limpieza de `pagehide` de `js/app.js`, que mira `globalThis.estado?.sistema?.cambiandoModo` y hace `delete globalThis.estado` al cerrar la página. Y 41 ficheros de specs.
+- **Relacionado.** K-62 (la espera de la cabecera de Script 2), R2.10 (el estado del padre).
+- **Pendiente: decisión.** *A)* un solo nombre, `estadoPadre`: fuera el getter; Script 2 lee `globalThis.estadoPadre` (que ya ha esperado), `js/app.js` también, y los 41 specs cambian de nombre; *B)* dejar el alias, sin el objeto vacío: si falta `estadoPadre`, un `error`; *C)* dejarlo.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -4587,6 +4596,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 130 | 3 | K-136 | hijo5 recibe su lista de paradas por un solo camino: pide y el padre contesta (el patrón de la decisión 12), o un solo empuje del padre | BUS, SPEC, MEDIR (hijo5 recargado en AVENTURA) | blanda: K-130 | decisión |
 | 131 | 2 | K-137 | una sola forma para la carpeta de idioma de los audios de pago (hoy `español`, frente a `espanol` de la copia pública y de los párrafos) y para sus nombres de fichero, antes de grabar los otros once idiomas | DATOS (598 rutas de relleno) | blanda: K-126 | decisión |
 | 132 | 2 | K-138 | el audio de la reanudación por un solo camino: fuera el respaldo que lo pide por su cuenta cuando falta el handler de `CAMBIO_PARADA` (solo corre con Script 2 roto), o que sea ruidoso | GUÍA | blanda: K-72 | decisión |
+| 133 | 3 | K-139 | el estado del padre con un solo nombre (`estadoPadre`), o el alias `globalThis.estado` sin el objeto vacío de respaldo | SPEC (41 ficheros lo usan) | blanda: K-62, R2.10 | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
