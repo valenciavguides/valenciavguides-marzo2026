@@ -3852,7 +3852,7 @@
 
         // 🔥 PROCESAR DISTRIBUCIONES PENDIENTES
         // Si hay distribuciones pendientes esperando a que enviarMensaje_S1 esté disponible
-        if (globalThis.__pendingDistribucion && typeof enviarMensaje_S1 === 'function') {
+        if (globalThis.__pendingDistribucion) {
             const { aventura, idioma } = globalThis.__pendingDistribucion;
             (globalThis.logger || console).info('[PADRE] 🔄 Procesando distribución pendiente de aventura:', aventura, idioma);
             try {
@@ -3880,7 +3880,7 @@
 
         // 🔥 PROCESAR BROADCASTS PENDIENTES
         // Si hay broadcasts pendientes esperando a que enviarMensaje_S1 esté disponible
-        if (globalThis.__pendingBroadcast && Array.isArray(globalThis.__pendingBroadcast) && typeof enviarMensaje_S1 === 'function') {
+        if (globalThis.__pendingBroadcast && Array.isArray(globalThis.__pendingBroadcast)) {
             (globalThis.logger || console).info('[PADRE] 🔄 Procesando broadcasts pendientes:', globalThis.__pendingBroadcast.length);
             try {
                 for (const mensaje of globalThis.__pendingBroadcast) {
@@ -4798,7 +4798,6 @@
             if (!DATOS_PADRE[av]?.[id]) { (globalThis.logger || console).warn(`${logPrefix} Sin DATOS_PADRE para ${av}/${id} — hijo5 queda sin paradas`); return; }
             const pNorm = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
             if (pNorm.length === 0) { (globalThis.logger || console).warn(`${logPrefix} DATOS_PADRE sin elementosIDpadre para ${av}/${id}`); return; }
-            if (typeof enviarMensaje_S1 !== 'function') return;
             try {
                 await enviarMensaje_S1({ destino: 'hijo5', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pNorm, aventura: av, timestamp: Date.now() } });
                 (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo5 (${pNorm.length} paradas)`);
@@ -4905,8 +4904,7 @@
             try {
                 const fnAudio = globalThis.solicitarAudioAHijo3 || (typeof solicitarAudioAHijo3 === 'function' ? solicitarAudioAHijo3 : null);
                 if (fnAudio) { await fnAudio(audioId); }
-                else if (typeof enviarMensaje_S1 === 'function') { await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.AUDIO.REPRODUCIR_REQUEST, destino: 'hijo3', datos: { audioId, contexto: 'progresion_aventura', autoplay: false } }); }
-                else { throw new TypeError('No hay función ni canal disponible para solicitar audio a hijo3'); }
+                else { await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.AUDIO.REPRODUCIR_REQUEST, destino: 'hijo3', datos: { audioId, contexto: 'progresion_aventura', autoplay: false } }); }
                 const fnControles = globalThis.actualizarEstadoControlesAudioPadre || (typeof actualizarEstadoControlesAudioPadre === 'function' ? actualizarEstadoControlesAudioPadre : null);
                 if (fnControles) { fnControles(); } else { (globalThis.logger || console).debug(`${logPrefix} actualizarEstadoControlesAudioPadre aún no disponible en esta fase`); }
                 (globalThis.logger || console).info(`${logPrefix} ✅ Audio solicitado a hijo3: ${audioId}`);
@@ -6966,24 +6964,22 @@
 
                 // Enviar PADRE_DATOS para completar el handshake (sigue siendo necesario)
                 try {
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        const datosPadreDatos = {
-                            modo: estado.modo?.actual || globalThis.estadoPadre?.modo?.actual || MODOS.CASA,
-                            timestamp: Date.now()
-                        };
-                        // hijo6-chat construye su FAQ con el idioma de este mismo mensaje — sin esto
-                        // renderiza siempre en español en su primera apertura (construirEstadoChat()
-                        // solo se usaba antes al reabrir el chat, vía CHAT.ESTADO_PADRE).
-                        if (hijoId === 'hijo6-chat' && typeof globalThis.construirEstadoChat === 'function') {
-                            Object.assign(datosPadreDatos, globalThis.construirEstadoChat());
-                        }
-                        await enviarMensaje_S1({
-                            destino: hijoId,
-                            tipo: TIPOS_MENSAJE_S1.SISTEMA.PADRE_DATOS,
-                            datos: datosPadreDatos
-                        });
-                        (globalThis.logger || console).info(`${logPrefix} PADRE_DATOS enviado a ${hijoId}`);
+                    const datosPadreDatos = {
+                        modo: estado.modo?.actual || globalThis.estadoPadre?.modo?.actual || MODOS.CASA,
+                        timestamp: Date.now()
+                    };
+                    // hijo6-chat construye su FAQ con el idioma de este mismo mensaje — sin esto
+                    // renderiza siempre en español en su primera apertura (construirEstadoChat()
+                    // solo se usaba antes al reabrir el chat, vía CHAT.ESTADO_PADRE).
+                    if (hijoId === 'hijo6-chat' && typeof globalThis.construirEstadoChat === 'function') {
+                        Object.assign(datosPadreDatos, globalThis.construirEstadoChat());
                     }
+                    await enviarMensaje_S1({
+                        destino: hijoId,
+                        tipo: TIPOS_MENSAJE_S1.SISTEMA.PADRE_DATOS,
+                        datos: datosPadreDatos
+                    });
+                    (globalThis.logger || console).info(`${logPrefix} PADRE_DATOS enviado a ${hijoId}`);
                 } catch (error) {
                     (globalThis.logger || console).error(`${logPrefix} Error enviando PADRE_DATOS a ${hijoId}:`, error);
                 }
@@ -7001,10 +6997,8 @@
         // para garantizar que esté activo cuando los hijos envíen sus mensajes
         async function _hijoListo_confirmarAlHijo(hijoId, logPrefix) {
             try {
-                if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({ destino: hijoId, tipo: TIPOS_MENSAJE_S1.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, datos: { timestamp: Date.now(), mensaje: 'Hijo confirmado como listo', modoInicial: estado?.modo?.actual || MODOS.CASA } });
-                    (globalThis.logger || console).info(`${logPrefix} PADRE_CONFIRMA_HIJO_LISTO enviado a ${hijoId}`);
-                }
+                await enviarMensaje_S1({ destino: hijoId, tipo: TIPOS_MENSAJE_S1.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, datos: { timestamp: Date.now(), mensaje: 'Hijo confirmado como listo', modoInicial: estado?.modo?.actual || MODOS.CASA } });
+                (globalThis.logger || console).info(`${logPrefix} PADRE_CONFIRMA_HIJO_LISTO enviado a ${hijoId}`);
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error enviando PADRE_CONFIRMA_HIJO_LISTO a ${hijoId}:`, error); }
         }
 
@@ -7097,27 +7091,21 @@
 
                 if (!av) {
                     (globalThis.logger || console).debug(`${logPrefix} Sin aventura seleccionada — enviando lista vacía`);
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: [], aventura: null, timestamp: Date.now() } });
-                    }
+                    await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: [], aventura: null, timestamp: Date.now() } });
                     return;
                 }
 
                 // Fuente primaria: DATOS_PADRE (más rico, idioma-aware)
                 if (DATOS_PADRE[av]?.[id]) {
                     const pNorm = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pNorm, aventura: av, timestamp: Date.now() } });
-                        (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → ${destino} (${pNorm.length} paradas, fuente: DATOS_PADRE)`);
-                    }
+                    await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: pNorm, aventura: av, timestamp: Date.now() } });
+                    (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → ${destino} (${pNorm.length} paradas, fuente: DATOS_PADRE)`);
                     return;
                 }
 
                 // Sin datos — array vacío explícito
                 (globalThis.logger || console).warn(`${logPrefix} Sin datos para ${av}/${id} — enviando lista vacía`);
-                if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: [], aventura: av, timestamp: Date.now() } });
-                }
+                await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, datos: { paradas: [], aventura: av, timestamp: Date.now() } });
             } catch (err) { (globalThis.logger || console).error(`${logPrefix} Error:`, err); }
         }, { permanente: true });
 
@@ -7641,7 +7629,7 @@
             (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Cargando el iframe de selección...`);
             await cargarHijo({ id: 'seleccion', src: 'En-busca-del-tesoro.html' }, { visibilidad: 'desde-el-principio' });
 
-            if (globalThis.__pendingDistribucion && typeof enviarMensaje_S1 === 'function') {
+            if (globalThis.__pendingDistribucion) {
                 const { aventura, idioma } = globalThis.__pendingDistribucion;
                 (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} 🔄 Procesando distribución pendiente de aventura ${aventura} (${idioma}) después de carga de iframes...`);
                 try {
@@ -7726,11 +7714,6 @@
             // Asegurar propiedades mínimas sin destruir el objeto existente
             if (!globalThis.estadoPadre.hijosInicializados) globalThis.estadoPadre.hijosInicializados = new Set();
             if (!globalThis.estadoPadre.hijosPreparados) globalThis.estadoPadre.hijosPreparados = new Set();
-
-            // Verificar que enviarMensaje_S1 también esté disponible (alias usado en iframes)
-            if (typeof enviarMensaje_S1 !== 'function') {
-                (globalThis.logger || console).warn(`${logPrefix} ⚠️ enviarMensaje_S1 no disponible como función global`);
-            }
 
             (globalThis.logger || console).success(`${logPrefix} ✅ Mensajería validada correctamente`);
             (globalThis.logger || console).info(`${logPrefix} 📊 Validación exitosa en ${intentos} intento(s)`);
