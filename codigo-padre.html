@@ -9257,7 +9257,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 if (coords.length > 0) {
                     globalThis.AVENTURA_PARADAS = coords;
-                    globalThis.dispatchEvent(new CustomEvent('vv:paradas-disponibles', { detail: coords }));
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay coordenadas para ${aventura}`);
                 }

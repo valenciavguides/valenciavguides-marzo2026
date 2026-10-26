@@ -16,7 +16,7 @@ import {
 import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import { validarCoordenadas } from './validacion.js';
-import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, normalizarParadas, resolverIdsParada, puntoMasCercanoEnLinea } from './utils.js';
+import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, resolverIdsParada, puntoMasCercanoEnLinea } from './utils.js';
 import logger from './logger.js';
 
 /**
@@ -383,9 +383,6 @@ let _brujulaEventoActivo = null; // 'deviceorientationabsolute' o 'deviceorienta
 let _mapaInstance = null; // Instancia del mapa MapLibre
 let _camaraSiguiendoUsuario = true; // false tras un arrastre manual del usuario — ver _registrarSeguimientoCamara()
 let _camaraSiguiendoRumbo = false; // true tras elegir "Seguir mi rumbo" en el menú de #brujula-modo — ver _registrarSeguimientoRumbo()
-
-// Array de paradas locales
-let arrayParadasLocal = [];
 
 // Estado del mapa. Este módulo solo lo carga el padre.
 // Lo que escribe el mapa al procesar las posiciones (posición, precisión, última ubicación, `gpsVisualActivo` y
@@ -1178,7 +1175,6 @@ export function inicializarServicioMapa(mapaInstance) {
     // no crea mapas. Sin ella devuelve false y quien llama reintenta.
     if (mapaInstance) {
         _mapaInstance = mapaInstance;
-        arrayParadasLocal = normalizarParadas(globalThis.AVENTURA_PARADAS || []);
         registrarListenerZoom(); // Habilitar escalado dinámico según zoom
         _registrarSeguimientoCamara(); // Pausar seguimiento de cámara al arrastrar el mapa a mano
         _registrarSeguimientoRumbo(); // Pausar seguimiento de rumbo al girar el mapa a mano
@@ -2610,21 +2606,6 @@ try {
     logger.error('Error al registrar manejadores de mensajes del mapa:', error);
 }
 
-// Bug H fix: actualizar arrayParadasLocal cuando el padre asigna globalThis.AVENTURA_PARADAS
-// tras seleccionar aventura (puede ocurrir después de que inicializarServicioMapa ya corrió).
-// Solo actualiza el caché local — no dibuja nada: pintar aquí un pin por CADA parada de la
-// aventura entera (pasadas y futuras) sin ocultado por distancia sería la misma fuga que
-// diana/chincheta si este evento llega con el mapa ya en modo AVENTURA (p.ej. recarga de la
-// PWA a mitad de aventura, restaurando estado guardado).
-if (globalThis.window !== undefined) {
-    globalThis.addEventListener('vv:paradas-disponibles', (e) => {
-        const paradas = e.detail;
-        if (Array.isArray(paradas) && paradas.length > 0) {
-            arrayParadasLocal = normalizarParadas(paradas);
-        }
-    }, { passive: true });
-}
-
 // Integration tests removed from production code (was: probarFlujosError)
 
 // Llamar pruebas en inicialización si está en entorno de prueba
@@ -3157,7 +3138,6 @@ if (globalThis.window !== undefined) {
             rutasActivas.length = 0;
             marcadorUsuario = null;
             marcadorDestino = null;
-            arrayParadasLocal.length = 0;
 
             // Limpiar estado del mapa
             Object.keys(estadoMapa).forEach(key => {

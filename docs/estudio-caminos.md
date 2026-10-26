@@ -1293,6 +1293,13 @@ los arranques (a) y (c) como vivos y con políticas opuestas. El barrido de nomb
   cambia (el evento corre *después* del handler del padre; `despacharLocal` se encola en la fila
   del bus). Cualquier unificación pasa antes por los specs `51-mapa-id-parada-resuelto` y los de
   cambio de parada.
+- **`vv:paradas-disponibles`, fuera (2026-10-26):** su escucha de `js/funciones-mapa.js` solo escribía
+  `arrayParadasLocal`, que no leía nadie (búsqueda desnuda en el repositorio: la declaración, dos
+  asignaciones y su vaciado en la limpieza, y nada más). Salen el evento, su emisión en
+  `distribuirDatosAventura`, la variable y el `normalizarParadas` que solo usaban ellos en ese módulo;
+  no cambia ningún comportamiento. Salió al comprobar qué lee `js/funciones-mapa.js` para la opción B
+  de K-131. Quedan en K-14 `vv-parada-cambiada`, que sí tiene efecto (el mapa recibe el id resuelto),
+  y `mensajeriaReady` (K-13), con la decisión de arriba.
 
 ##### K-15 — `SISTEMA.NACK` y la validación del modo — 📌 + 🧩
 
