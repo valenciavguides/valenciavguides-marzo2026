@@ -3063,6 +3063,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Método.** Censo de `while (` en el código de producción (`*.html` de la raíz, `js/*.js` y `sw.js`, sobre `4bea83e`): 20 líneas, de las que 6 no son esperas (dos recortes de caché, dos colas que se vacían, un recorrido del DOM y un desenvolver de nodos) y 2 son las de K-63; las otras 14 líneas con `while` son comentarios y textos en inglés. Lectura de cada bucle y de lo que hace al agotarse.
 - **Lo que este documento ya decía.** R2.10 cuenta seis de estos bucles, los que llevan un `setTimeout` dentro del `while` (cuatro de los doce y los dos de K-63), entre las formas de la familia «esperas y plazos», cuya decisión sigue abierta; K-54 leyó las dos esperas de `distribuirDatosAventura` como «espera acotada» (K-72 lo corrige); el EJE 2 pide una espera acotada para cada dependencia de Script 2 hacia Script 1. Ninguna entrada los trata como un segundo camino frente al helper, y R2.3 decía «Polling: un solo camino» (E10).
 - **Pendiente: decisión.** *A)* llevar los doce bucles a `retryUntilAvailable`, conservando el plazo, el mensaje y la salida de cada sitio (lanzar, seguir o abortar); *B)* dejarlos. Sin recomendar: el helper solo resuelve `false`, así que lo que cada sitio hace al agotarse habría que mantenerlo sitio a sitio. `distribuirDatosAventura` se decide en K-72.
+- **Con K-72 (2026-10-26).** La espera de `_distribuirDatosRest` es solo su sondeo (120 × 250 ms), con un `error` y el aviso al agotarse; sigue siendo una de las doce. Y tres de los bucles (`esperarRespuestas` de `js/app.js`, la espera del mapa de `completarCambioParada` y la del logger en Script 5) esperan cada vuelta con `sleep` de `js/utils.js` en vez de una promesa escrita en línea (K-28).
 
 ##### K-63 — La espera de «padre listo» de la selección y de hijo1 no esperaba nada — ✅ (medido; aplicada la opción A)
 
@@ -3143,7 +3144,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Pendiente: decisión.** *A)* que el círculo tome su radio de `radioLlegada()`; *B)* dejarlo.
 - **Aplicada (2026-10-13, `8f36e78`): A.** `actualizarMarcadorUsuario` dibuja el círculo con `_crearCirculoGeografico({ lat, lng }, radioLlegada(), …)`. El valor es el mismo (15 m): no cambia nada a la vista. Specs del mapa en chromium (13, 17, 21, 24, 25, 27, 47, 53 y 57), 54 de 54. Guía: G-75.
 
-##### K-72 — La reanudación espera `distribuirDatosAventura` por una promesa sin plazo — ✅ (medido; decisión abierta)
+##### K-72 — La reanudación espera `distribuirDatosAventura` por una promesa sin plazo — ✅ (medido; aplicada la A, 2026-10-26)
 
 - **Dónde** (`4bea83e`). `_distribuirDatosRest` (`codigo-padre.html:4864`), la distribución de la reanudación, a la que `ejecutarRestauracionAventura` llama (`:5079`) antes de mandar las paradas, activar el modo y restaurar el progreso, espera la función así: si existe `__distribuirReadyPromise`, la espera (`:4867`); si no, con un sondeo de 120 × 250 ms (`:4868`). Script 2 crea la promesa antes de su primer `await` (`:9244`; no tiene `import` estáticos, así que siempre llega ahí) y solo la resuelve después de publicar la función (`:9533`); entre las dos hay diez `await import(...)` fuera de `try` (`:9248-9256`, `:9371` y `:9372`) y el `throw` de `:9364`.
 - **Lo que dice el código.** Si Script 2 se corta en ese tramo, la promesa no se resuelve nunca y `_distribuirDatosRest` la espera sin plazo, con el resto de la reanudación detrás y sin escribir nada. El sondeo, en cambio, acaba a los 30 s llamando a una función que no existe, y su `catch` (`:4882-4884`) escribe un `warn` y llama a `_avisarFalloCargaAppUnaVez`, que muestra un `alert` con `MSG_ERROR_CARGA_APP` (`:3949-3957`). La rama del sondeo solo se toma si Script 2 no ha llegado a crear la promesa (por ejemplo, un error de sintaxis que le impide arrancar).
@@ -3152,6 +3153,17 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 - **Corrección a K-54.** K-54 da las dos esperas de `distribuirDatosAventura` (hoy `:3967` y `:4864-4868`) por «espera acotada (40 y 120 iteraciones): sin hallazgo»; la segunda tiene la rama de la promesa, sin plazo.
 - **Relacionado.** K-62 (las otras formas de esperar), K-53 (los imports en posición fatal, que son los que cortan Script 2) y K-54.
 - **Pendiente: decisión.** *A)* una sola forma de esperar la función, con plazo y con el aviso: el sondeo, o la promesa con un plazo; *B)* dejarlo.
+- **Aplicada (2026-10-26): A, el sondeo.** La decide el principio: un solo camino, y una espera sin plazo ni aviso es una
+  reserva callada. `_distribuirDatosRest` espera con el mismo sondeo que la distribución pendiente (120 × 250 ms) y, si la
+  función no llega, escribe un `error`, saca el aviso de fallo de carga y la reanudación sigue, como ya hacía la rama del
+  sondeo. La promesa `__distribuirReadyPromise` se queda sin lector y sale de Script 2 con su resolución (búsqueda desnuda
+  antes del cambio: esas tres líneas, la tabla generada de §37.2 y este documento). **Spec 156:** RE-1 (Script 2 cortado en
+  su primera instrucción y la reanudación por «Continuar», el camino real) en rojo contra `8483135` —el aviso no sale— y
+  en verde después; RE-2, de control, en verde con los dos. Con los specs del arranque y de la reanudación (05, 40, 46,
+  89, 124, 126 y 148), 39 de 39 en chromium; el 155 y el 156 en firefox, 6 de 6. La guía corrige además los pasos 6 y 7
+  de la restauración (§9.10): `distribuirDatosAventura` ya no repartía coordenadas, audios, retos ni textos, y el paso 7
+  no manda nada a hijo2; manda a hijo5 la misma lista que el paso 6 (K-136). La forma de las doce esperas (K-62) sigue
+  abierta: esta es una de ellas.
 
 #### Familia U — Lo que encontró el recorrido real con espía del 2026-10-07 (R2.13)
 
@@ -3827,6 +3839,18 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 - **Aplicada la A (2026-10-26), la que decide el principio de un solo camino:** una ✕ dentro de una ventana de medios (`.media-overlay`: imagen, vídeo, error y mapa completo) cuenta si su ventana lleva `visible`; las demás capas, por si se ven. Sin cambio visible hoy (ningún tramo tiene vídeo). Spec 131, BA-12: la ventana del vídeo con el marcado de `_crearVideoOverlayEl`, sin abrir; en rojo con la comprobación por la caja (el «atrás» se gasta en su ✕ y no sale el diálogo) y en verde con la A. Spec 131 entero en chromium y firefox, 24 de 24; los de las ventanas de medios (48, 72 y 152), 13 de 13.
 - **Relacionado.** K-105 (el botón atrás); guía §15 (la precarga del vídeo).
 
+#### Familia AD — Lo que salió al cerrar K-72 (2026-10-26)
+
+##### K-136 — hijo5 recibe su lista de paradas por cinco caminos y solo usa la primera — ✅ (leído y medido)
+
+- **Cómo salió.** Al corregir en la guía los pasos 6 y 7 de la reanudación (§9.10), con K-72.
+- **Dónde.** Dos envíos del padre sin que nadie los pida: `distribuirDatosAventura()` (Script 2), que corre en la activación, en la reanudación y en la distribución pendiente, si hijo5 está en `hijosInicializados`; y `_enviarRespuestaParadasHijosRest()` (Script 1), el paso 7 de la reanudación, siempre. Y tres peticiones de hijo5 (`solicitarParadasDelPadre`, `boton-casa-hijo5.html`), que contesta el handler de `NAVEGACION.SOLICITAR_DATOS_PARADAS` (Script 1): al recibir `PADRE_CONFIRMA_HIJO_LISTO` (solo fuera de AVENTURA), tras un `CAMBIO_MODO` a AVENTURA (forzada) y al volver a la pestaña sin lista (solo fuera de AVENTURA). Los cinco mandan lo mismo, `NAVEGACION.RESPUESTA_DATOS_PARADAS` con `normalizarParadas` de `DATOS_PADRE[aventura][idioma].elementosIDpadre`. Método: búsqueda de `RESPUESTA_DATOS_PARADAS` en `codigo-padre.html` y `js/*.js` (los tres envíos del handler son su respuesta: con la lista, o vacía si no hay aventura o datos) y de `solicitarParadasDelPadre(` en hijo5 (tres llamadas).
+- **Lo que hace hijo5 con ellas** (leído). Se queda con la primera y descarta las demás: `_validarMensajeParadas` devuelve `'dup'` en cuanto `estado.datosRecibidos` está puesto, con un `debug` y nada más.
+- **Medido** (chromium, sonda desechable con el padre y los hijos reales, contando los logs de cada envío y el de hijo5 al procesar una lista). En P15, al cargarse los hijos: hijo5 pide una vez, el padre contesta, y hijo5 la procesa (1 envío, 1 procesada). Al arrancar la aventura por la selección: el empuje de `distribuirDatosAventura` y la respuesta a su petición tras el `CAMBIO_MODO` (2 envíos, 0 procesadas). Al reanudar una sesión guardada con «Continuar»: los dos empujes y dos respuestas, la de su petición tras el apretón y la del `CAMBIO_MODO` (4 envíos, 1 procesada; por el orden de la reanudación —el apretón de hijo5 es el paso 4 y los empujes, los pasos 6 y 7— la respuesta a su petición; cuál de los cuatro fue no se midió).
+- **Lo que no se ha medido.** Un hijo5 recargado por el supervisor del bus (§2.7) durante AVENTURA: si `PADRE_CONFIRMA_HIJO_LISTO` le pone el modo antes de pedir, la petición se omite, y la lista solo le llegaría por un empuje o por la petición forzada de otro `CAMBIO_MODO` a AVENTURA; al volver a CASA no corre ninguno de los cinco caminos (leído, sin medir).
+- **Relacionado.** K-130 (la decisión 12: hijo2 pide y el padre resuelve), K-72.
+- **Pendiente: decisión** (toca quién emite `RESPUESTA_DATOS_PARADAS`: regla 1). *A)* el patrón de la decisión 12: hijo5 pide y el padre contesta, y salen los dos empujes; con una sola petición, la del apretón, también en AVENTURA; *B)* un solo empuje del padre y fuera las tres peticiones; *C)* dejarlo. Recomendación: *A*, el mismo patrón que hijo2; antes, medir el caso del hijo5 recargado.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -4439,7 +4463,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 44 | — | K-69 | CSS sin uso: leer cada caso antes de proponer — **hecha (2026-10-13, `7f415a8`; `video-intro.html` el 2026-10-14, `9ee6c05`); las tres reglas de hijo3 con nota de «se mantiene», hechas (2026-10-19, `3b2eefa`); abre una decisión: el color del ✓ y la ✗ de los retos de la selección (K-92)** | — | — | sí; lo que abre, decisión (K-92) |
 | 45 | 4 | K-70 | una sola forma de la respuesta al latido, en los siete frames; aparte, la de hijo5 sin latido | BUS, GUÍA | — | sí |
 | 46 | 1 | K-71 | el círculo naranja toma su radio de `radioLlegada()` — **hecha (2026-10-13, `8f36e78`)** | — | blanda: K-05 (las constantes del radio) | sí |
-| 47 | 3 | K-72 | la reanudación espera `distribuirDatosAventura` con plazo y con el aviso | SPEC (Script 2 cortado), GUÍA | blanda: K-62, K-53 resto | sí |
+| 47 | 3 | K-72 | la reanudación espera `distribuirDatosAventura` con plazo y con el aviso —**hecha (2026-10-26)**: el sondeo de 30 s con el aviso; fuera la promesa; spec 156— | SPEC (Script 2 cortado), GUÍA | blanda: K-62, K-53 resto | sí |
 | 48 | 3 | K-73 | que la llegada de un elemento ya cerrado no cree ficha, o un solo sensor (K-06) — **hecha (2026-10-13, `479b06a`): A, en `ensurePending`** | SPEC | blanda: K-74 (el mismo par de sensores) | sí |
 | 49 | 4 | K-74 | un solo dueño del elemento actual para el mapa y para hijo2 | SPEC, VISIBLE (el cartel de inicio y el botón de vídeo), MEDIR | blanda: K-14 (el orden de `vv-parada-cambiada`), K-73 | sí |
 | 50 | 2 | K-75 | el reloj de la ficha empieza al activarse en AVENTURA (solo desarrollo), y cuatro comentarios que no se sostienen — **los comentarios, corregidos (2026-10-13, `583b3aa`); el reloj, por decidir** | — | — | sí |
@@ -4519,6 +4543,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 127 | 2 | K-133 | el texto de un elemento por un solo camino: el `texto_id` de su fila (la ventana de la imagen) o un trozo de su id (el listado de paradas) —**hecha (2026-10-26)**: los dos por el `texto_id`; spec 154— | GUÍA | — | sí |
 | 128 | 3 | K-134 | el nombre de la tabla de coordenadas de cada aventura (`'coordenadas-hijo2.html'`), que hijo2 no usa | GUÍA | blanda: K-131 | decisión |
 | 129 | 3 | K-135 | «atrás» decide si la ventana del vídeo está abierta por su clase `visible`, no por la geometría —**hecha (2026-10-26)**: las ventanas de medios, por su clase; spec 131, BA-12— | SPEC | — | sí |
+| 130 | 3 | K-136 | hijo5 recibe su lista de paradas por un solo camino: pide y el padre contesta (el patrón de la decisión 12), o un solo empuje del padre | BUS, SPEC, MEDIR (hijo5 recargado en AVENTURA) | blanda: K-130 | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |

@@ -4756,9 +4756,17 @@
         }
         async function _distribuirDatosRest(logPrefix, datosGuardados) {
             try {
+                // Una sola espera, con plazo y con el aviso, como la de la distribución pendiente: si Script 2 no llega a
+                // publicar la función (se ha cortado a medias o no ha arrancado), el usuario ve el aviso de fallo de carga
+                // en vez de la pantalla de carga para siempre (docs/estudio-caminos.md, K-72).
+                let _intentos = 0;
+                while (typeof globalThis.distribuirDatosAventura !== 'function' && _intentos++ < 120) {
+                    await sleep(250);
+                }
                 if (typeof globalThis.distribuirDatosAventura !== 'function') {
-                    if (globalThis.__distribuirReadyPromise) { await globalThis.__distribuirReadyPromise; }
-                    else { let _i = 0; while (typeof globalThis.distribuirDatosAventura !== 'function' && _i++ < 120) { await sleep(250); } }
+                    (globalThis.logger || console).error(`${logPrefix} ❌ distribuirDatosAventura no disponible tras 30s — la reanudación sigue sin repartir los datos`);
+                    await _avisarFalloCargaAppUnaVez();
+                    return;
                 }
                 let res = await globalThis.distribuirDatosAventura(datosGuardados.aventura, datosGuardados.idioma);
                 if (res?.pospuesto) {
@@ -9035,12 +9043,6 @@ await _comprobarReanudacionAventura(logPrefix);
     <!-- ============================================================ -->
     <script type="module">
         /* global showGpsSignalOverlay, limpiarDatosAventura, _crearVideoOverlayEl, _videoLoadError */
-        // Promesa que se resuelve cuando distribuirDatosAventura está lista.
-        // Se crea aquí (síncrono, antes de cualquier await) para que Script 1
-        // pueda awaitar sin polling ni timeout fijo.
-        let _resolveDistribuirReady;
-        globalThis.__distribuirReadyPromise = new Promise(r => { _resolveDistribuirReady = r; });
-
         // El almacenamiento del dispositivo pasa siempre por js/almacenamiento.js (ver Script 1).
         const almacen = globalThis.almacen;
 
@@ -9285,12 +9287,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
         // Exponer globalmente
         globalThis.distribuirDatosAventura = distribuirDatosAventura;
-
-        // Resolver promesa de espera
-        if (_resolveDistribuirReady) {
-            _resolveDistribuirReady();
-            (globalThis.logger || console).info('[PADRE] ✅ distribuirDatosAventura disponible globalmente');
-        }
+        (globalThis.logger || console).info('[PADRE] ✅ distribuirDatosAventura disponible globalmente');
 
         // ============================================================
         // FUNCIONES AUXILIARES DE PROGRESIÓN DE AVENTURA
