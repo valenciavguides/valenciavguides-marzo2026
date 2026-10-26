@@ -3882,6 +3882,15 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 - **Relacionado.** K-126 (la carpeta pública y sus copias), la propuesta de las imágenes por idioma (la tanda de imágenes).
 - **Pendiente: decisión** (es la carpeta donde el usuario coloca sus grabaciones). *A)* una sola forma, la de `LANG_ARCHIVO_PARRAFOS`: `audios-aventuras/espanol/`, `ingles/`…, nombres de fichero en minúsculas y sin espacios ni acentos, y las 598 rutas de relleno reescritas con un script; *B)* dejar `español` y fijar la forma solo para los demás idiomas; *C)* dejarlo.
 
+##### K-138 — Al reanudar, si el handler de `CAMBIO_PARADA` no está, la reanudación pide el audio por su cuenta, sin decirlo — ✅ (leído)
+
+- **Cómo salió.** Al quitar las guardas de `enviarMensaje_S1` (nota en K-68): una de sus ramas era el último recurso de este camino.
+- **Dónde.** `_solicitarRecursosRest` (Script 1 de `codigo-padre.html`), el último paso de `ejecutarRestauracionAventura`: si `globalThis.mensajeria.tieneControlador(NAVEGACION.CAMBIO_PARADA)` es falso, pide el audio del elemento actual a hijo3 con `_solicitarAudioRest`, que a su vez lo intenta por tres sitios: `globalThis.solicitarAudioAHijo3`, la misma función por su nombre suelto, y si no, un `AUDIO.REPRODUCIR_REQUEST` directo; y actualiza los controles de audio del padre con `globalThis.actualizarEstadoControlesAudioPadre`, si está. Lo único que escribe es un `info` («Audio solicitado a hijo3»).
+- **Cuándo corre.** El handler de `CAMBIO_PARADA`, `solicitarAudioAHijo3` y `actualizarEstadoControlesAudioPadre` son de Script 2: el respaldo solo corre si Script 2 no ha terminado. En ese caso la reanudación ya ha sacado el aviso de fallo de carga (K-72) y el padre está sin los handlers de audio, reto y parada; el audio que pide no se puede seguir. Con Script 2 entero, el audio llega por el camino de siempre: el `CAMBIO_PARADA` que despacha `_restoreBroadcast`.
+- **La guía** (§9.10, paso 10) decía que `_solicitarRecursosRest` pide coordenadas a hijo2; no lo hace desde K-130 (corregido con esta entrada).
+- **Relacionado.** K-72 (el aviso), K-130.
+- **Pendiente: decisión** (es un respaldo: el principio pide que sea ruidoso o que no esté). *A)* quitarlo: con Script 2 roto ya sale el aviso, y un audio sin sus handlers no sirve; *B)* dejarlo, ruidoso: un `error` que diga que se usa la vía de respaldo; *C)* dejarlo. Recomendación: *A*.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -4577,6 +4586,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 129 | 3 | K-135 | «atrás» decide si la ventana del vídeo está abierta por su clase `visible`, no por la geometría —**hecha (2026-10-26)**: las ventanas de medios, por su clase; spec 131, BA-12— | SPEC | — | sí |
 | 130 | 3 | K-136 | hijo5 recibe su lista de paradas por un solo camino: pide y el padre contesta (el patrón de la decisión 12), o un solo empuje del padre | BUS, SPEC, MEDIR (hijo5 recargado en AVENTURA) | blanda: K-130 | decisión |
 | 131 | 2 | K-137 | una sola forma para la carpeta de idioma de los audios de pago (hoy `español`, frente a `espanol` de la copia pública y de los párrafos) y para sus nombres de fichero, antes de grabar los otros once idiomas | DATOS (598 rutas de relleno) | blanda: K-126 | decisión |
+| 132 | 2 | K-138 | el audio de la reanudación por un solo camino: fuera el respaldo que lo pide por su cuenta cuando falta el handler de `CAMBIO_PARADA` (solo corre con Script 2 roto), o que sea ruidoso | GUÍA | blanda: K-72 | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
