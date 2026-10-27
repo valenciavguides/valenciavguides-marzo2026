@@ -10190,34 +10190,26 @@ await _comprobarReanudacionAventura(logPrefix);
 
         async function _retoColaCompletada(retoId, completados, estado, logPrefix) {
             (globalThis.logger || console).info(`${logPrefix} Todos los retos de la cola completados (${completados.size}/${(estado.retoActual.cola || []).length}) -> marcando pending.reto`);
-            const modoActual = estado.modo?.actual;
             try {
                 const elementoReto = findElementoPorReto(retoId) || findElementoPorPadreId(estado.elementoActual?.padreid);
                 const claveR = elementoReto?.padreid || (elementoReto?.parada_id ? `padre-${elementoReto.parada_id}` : null);
-                if (claveR) {
-                    _anotarEnFicha(claveR, elementoReto?.tipo || 'parada', { reto: true, retosCompletados: completados.size });
-                    intentarCompletarElemento(claveR); // marcarParadaCompletada ya distingue por modo
-                    // Apagado permanente real del recordatorio "pulse retos" — aquí, no al abrir
-                    // el reto (ver globalThis._marcarRetoPulsadoRecordatorio): esto es la
-                    // confirmación genuina de que toda la cola de retos se resolvió.
-                    globalThis._detenerRecordatorioReto?.();
-                } else {
-                    // Sin clave: fallback — respetar modo
-                    if (modoActual === MODOS.CASA) {
-                        _vaciarRetoActual();
-                        (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
-                    } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
-                        estado.paradaListaParaAvanzar = true;
-                        (globalThis.logger || console).info(`${logPrefix} Parada aventura (sin clave): lista para avanzar, a la espera de que el usuario pulse`);
-                        _sincronizarAvanzar(logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error sincronizando btnAvanzar:`, e));
-                    }
+                if (!claveR) {
+                    // Un reto que no es de ningún elemento, sin elemento actual: no hay nada que completar. «Listo para
+                    // avanzar» tiene un solo camino, marcarParadaCompletada, que guarda el elemento (docs/estudio-caminos.md,
+                    // K-140; spec 160).
+                    (globalThis.logger || console).error(`${logPrefix} El reto ${retoId} no es de ningún elemento y no hay elemento actual: no se completa nada`);
+                    return;
                 }
+                _anotarEnFicha(claveR, elementoReto?.tipo || 'parada', { reto: true, retosCompletados: completados.size });
+                intentarCompletarElemento(claveR); // marcarParadaCompletada ya distingue por modo
+                // Apagado permanente real del recordatorio "pulse retos" — aquí, no al abrir
+                // el reto (ver globalThis._marcarRetoPulsadoRecordatorio): esto es la
+                // confirmación genuina de que toda la cola de retos se resolvió.
+                globalThis._detenerRecordatorioReto?.();
             } catch (error_) {
-                (globalThis.logger || console).warn(`${logPrefix} Error marcando pending por cola completa:`, error_);
-                // Exige AVENTURA confirmada, no "cualquier cosa que no sea CASA": el modo
-                // puede estar todavía sin decidir (null) y avanzar de elemento sin modo es
-                // una acción exclusiva de AVENTURA.
-                if (modoActual === MODOS.AVENTURA) await progresarSiguienteElemento();
+                // Un fallo se dice y no avanza: la aventura avanza con la pulsación del usuario, nunca con un error
+                // (docs/estudio-caminos.md, K-140; spec 160).
+                (globalThis.logger || console).error(`${logPrefix} Error completando el elemento por la cola de retos:`, error_);
             }
         }
 
@@ -11662,59 +11654,12 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _audioFinalizadoSinReto(audioId, estado, logPrefix) {
-            (globalThis.logger || console).info(`${logPrefix} Audio finalizado sin reto — intentando completar elemento`);
-            const modoActual = estado.modo?.actual;
-            try {
-                // _hdl_AUDIO_FIN_REPRODUCCION (el único caller, vía _procesarFinAudioElemento) ya
-                // resuelve findElementoPorAudio(audioId), marca pending.audio=true y llama
-                // intentarCompletarElemento() para la misma clave ANTES de llegar aquí — repetirlo
-                // duplicaba la llamada a marcarParadaCompletada() en cada audio sin reto (se
-                // detectó en auditoría: no causaba avance doble solo porque marcarParadaCompletada
-                // tiene su propio guard por estado.paradasCompletadas, una protección en un sitio
-                // distinto de donde se esperaría). Aquí solo hace falta actuar cuando ESA
-                // resolución falló (audioId no mapea a ningún elemento) y hay que caer al
-                // elemento activo como respaldo — en ese caso el handler de arriba no marcó nada.
-                const elementoResuelto = findElementoPorAudio(audioId);
-                if (elementoResuelto) {
-                    (globalThis.logger || console).debug(`${logPrefix} Elemento ya resuelto y completado por el handler de fin de audio — sin duplicar`);
-                    return;
-                }
-                const elementoAudio = estado.elementoActual;
-                const claveA = elementoAudio?.padreid || (elementoAudio?.parada_id ? `padre-${elementoAudio.parada_id}` : null);
-                if (claveA) {
-                    _anotarEnFicha(claveA, elementoAudio?.tipo || 'parada', { audio: true });
-                    // marcarParadaCompletada (vía intentarCompletarElemento) ya distingue por modo y tipo
-                    intentarCompletarElemento(claveA);
-                } else {
-                    // Sin clave: fallback directo, respetar modo
-                    if (modoActual === MODOS.CASA) {
-                        _vaciarRetoActual();
-                        (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
-                    } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
-                        // Tramo y parada se tratan igual aquí también — listo para avanzar y a la
-                        // espera de la pulsación, nunca progresar solo (ver marcarParadaCompletada).
-                        estado.paradaListaParaAvanzar = true;
-                        (globalThis.logger || console).info(`${logPrefix} ${elementoAudio?.tipo === 'tramo' ? 'Tramo' : 'Parada'} aventura (sin clave): listo para avanzar, a la espera de que el usuario pulse`);
-                        _sincronizarAvanzar(logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error sincronizando btnAvanzar:`, e));
-                    }
-                }
-            } catch (error_) {
-                (globalThis.logger || console).warn(`${logPrefix} Error intentando completar tras fin de audio:`, error_);
-                // En aventura se puede intentar progresar; en casa no avanzar sin confirmación
-                // del usuario. Se exige AVENTURA confirmada, no "cualquier cosa que no sea
-                // CASA": el modo puede estar todavía sin decidir (null).
-                if (modoActual === MODOS.AVENTURA) await progresarSiguienteElemento();
-            }
-        }
-
         async function _procesarFinAudioElemento(audioId, estado, logPrefix) {
             if (!estado.elementoActual || estado.elementoActual.audio_id !== audioId) return;
             const retosDelElemento = obtenerRetosIds(estado.elementoActual);
-            if (retosDelElemento.length === 0) {
-                await _audioFinalizadoSinReto(audioId, estado, logPrefix);
-                return;
-            }
+            // Sin reto no queda nada que hacer aquí: quien llama (el fin de audio, el botón de saltar o el audio no
+            // disponible) ya ha anotado el audio terminado en la ficha y ha intentado completar el elemento.
+            if (retosDelElemento.length === 0) return;
 
             // El audio de este elemento ha terminado —escuchado entero, saltado o dado por no
             // disponible: es lo mismo— y su reto se puede abrir. El estado del reto solo se
@@ -11791,10 +11736,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 actualizarEstadoControlesAudioPadre();
-
-                // Que el audio de este elemento ha terminado lo registra pending.audio, en
-                // _procesarFinAudioElemento() — es lo que lee intentarCompletarElemento()
-                // junto a pending.llegada. Aqui no hace falta anotarlo por segunda vez.
 
                 // Registrar evento
                 globalThis.registrarEvento('AUDIO_FINALIZADO', {

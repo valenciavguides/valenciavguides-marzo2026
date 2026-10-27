@@ -4310,7 +4310,7 @@ estado.pendingCompleciones[padreid] = {
 
 La lógica de completado en `intentarCompletarElemento` exige `pending.llegada = true` para **todos** los tipos (paradas, inicio y tramos): la llegada GPS siempre es necesaria, sin excepciones por tipo de elemento.
 
-**Un solo sitio escribe en la ficha: `_anotarEnFicha(clave, tipo, hecho)`.** `hecho` nombra lo que se da por hecho (`{ llegada, audio, reto, retosCompletados }`): lo que no se nombra no se toca, y nada vuelve de hecho a sin hacer. Con `reto`, la cuenta `retosCompletadosCount` toma `retosCompletados` o, si no viene, `retosTotal`. Pone `timestamp` a `Date.now()` y llama a `persistProgressState()`, que guarda en `vv_progreso` la ficha del elemento actual (§25.10): cada cosa hecha queda guardada en el momento. La llaman `_marcarPendingPorLlegada` (la llegada), `_hdl_AUDIO_FIN_REPRODUCCION`, `_saltarAudioPulsado`, `_marcarAudioNoDisponible` y `_audioFinalizadoSinReto` (el audio), `_retoColaCompletada` (el reto y su cuenta), `_concederRescate` (las tres cosas, §25.19) y la activación del elemento en una reanudación (lo guardado en `vv_progreso`). Cubierto por `tests/e2e/124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` (FG-1).
+**Un solo sitio escribe en la ficha: `_anotarEnFicha(clave, tipo, hecho)`.** `hecho` nombra lo que se da por hecho (`{ llegada, audio, reto, retosCompletados }`): lo que no se nombra no se toca, y nada vuelve de hecho a sin hacer. Con `reto`, la cuenta `retosCompletadosCount` toma `retosCompletados` o, si no viene, `retosTotal`. Pone `timestamp` a `Date.now()` y llama a `persistProgressState()`, que guarda en `vv_progreso` la ficha del elemento actual (§25.10): cada cosa hecha queda guardada en el momento. La llaman `_marcarPendingPorLlegada` (la llegada), `_hdl_AUDIO_FIN_REPRODUCCION`, `_saltarAudioPulsado` y `_marcarAudioNoDisponible` (el audio), `_retoColaCompletada` (el reto y su cuenta), `_concederRescate` (las tres cosas, §25.19) y la activación del elemento en una reanudación (lo guardado en `vv_progreso`). Cubierto por `tests/e2e/124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` (FG-1).
 
 Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` a hijo2 e hijo4 — los únicos dos frames que registran handler para `SISTEMA.NOTIFICACION` en todo el proyecto (hijo3 no registra ninguno, y no recibe este aviso).
 
@@ -4914,7 +4914,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-36d6fd30f388'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-44d1c5b1c208'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8052,6 +8052,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `156-la-reanudacion-avisa-si-script-2-no-llega.spec.js` | 2 | La reanudación espera a que Script 2 publique `distribuirDatosAventura` con plazo y, si no llega, avisa (§11, el aviso de último recurso de `_avisarFalloCargaAppUnaVez()`; estudio, K-72): con Script 2 cortado en su primera instrucción (la respuesta de `codigo-padre.html` se reescribe, con el service worker bloqueado), tras pulsar «Continuar» sale el aviso de fallo de carga, y ninguno antes de pulsarlo (RE-1; más de un minuto: el arranque espera hasta 30 s a Script 2 y la reanudación otros 30 s); sin corte, la reanudación termina sin ningún aviso (RE-2, control) |
 | `157-avanzar-lo-decide-un-solo-sitio.spec.js` | 4 | «Avanzar» de hijo2 lo decide un solo sitio del padre (§29.4), medido con el padre, los hijos y el botón reales: un tramo sin completar no lo enciende al acercarse a su final, y completado sí (AV-1); una parada a medias no lo enciende al volver de los 5 km, y completada sí (AV-2); con la parada completada, salir de rango sin gracia lo apaga y volver lo enciende (AV-3, control); una pulsación con el botón apagado, fuera de rango, no avanza, y con el botón encendido sí (AV-4) |
 | `159-el-rescate-deja-seguir.spec.js` | 6 | El rescate deja seguir (§25.19, §29.4), medido con el padre, los hijos, el botón del rescate del asistente y el botón «avanzar» reales: rescatado fuera de rango con la gracia agotada, «avanzar» se enciende (RZ-1); completado sin rescate y fuera de rango, sigue apagado (RZ-2, control); se cobra al concederlo, y el cobro y el registro quedan en `vv_progreso` (RZ-3); tras el rescate no sale el cartel de transición (RZ-4); al avanzar se gasta el registro sin cobrar otra vez (RZ-5); y tras recargar y reanudar, el punto rescatado sigue dejando seguir, cobrado una vez (RZ-6) |
+| `160-sin-reservas-ni-avances-solos.spec.js` | 3 | Un elemento solo queda listo para avanzar si se completa, y la aventura solo avanza con la pulsación (§29.4), medido con el padre, los hijos y el botón «avanzar» reales: un reto que no es de ningún elemento, sin elemento actual, no deja nada listo para avanzar (KR-1); si algo falla al completar el elemento por la cola de retos, la aventura no avanza sola (KR-2); y, de control, el reto de la parada la completa y enciende «avanzar» sin cambiar de elemento (KR-3) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8286,7 +8287,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-36d6fd30f388'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-44d1c5b1c208'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9048,7 +9049,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-36d6fd30f388';
+const CACHE_VERSION = 'v-44d1c5b1c208';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12391,7 +12392,7 @@ Esta sección describe las restricciones GPS y el comportamiento visual de polyl
 | Sitio | Qué cambia |
 |---|---|
 | `_hdl_NAVEGACION_CAMBIO_PARADA` | Se activa un elemento: `paradaListaParaAvanzar` vale `false`, o `true` si el elemento ya está completado (`_elementoCompletado()`); se llama en los dos modos |
-| `marcarParadaCompletada()` y las dos reservas «sin clave» (`_retoColaCompletada`, `_audioFinalizadoSinReto`) | El elemento queda listo para avanzar |
+| `marcarParadaCompletada()` | El elemento queda completado, guardado y listo para avanzar: es el único camino; si `_retoColaCompletada()` no encuentra el elemento del reto, lo deja escrito como error y no completa nada, y un fallo al completar tampoco avanza (spec 160) |
 | `_hdl_RETO_SOLICITAR` / `_hdl_RETO_OCULTAR` | Se abre o se cierra un reto |
 | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO` / `_hdl_NAVEGACION_GPS_DENTRO_DE_RANGO` | El usuario sale de rango con la gracia agotada, o vuelve |
 | `_check5kmFromRoute()` (Script 1, por `globalThis`) | Empieza o termina el bloqueo de 5 km |
@@ -12405,7 +12406,7 @@ El cambio de modo no la llama: el `SISTEMA.CAMBIO_MODO` que recibe hijo2 deja «
 
 **Archivo: `codigo-padre.html`**
 
-Cuando se completa un elemento —parada: `pending.llegada + pending.audio + retosOk`; tramo: llegada y audio—, `marcarParadaCompletada()` (vía `intentarCompletarElemento`) pone `estado.paradaListaParaAvanzar = true` y llama a `_sincronizarAvanzar()`. Si el reto sigue a la vista —el usuario lo acaba de resolver y aún no ha cerrado su ventana—, «avanzar» sigue apagado y se enciende al cerrarla (`_hdl_RETO_OCULTAR`). Las dos reservas «sin clave» (`_retoColaCompletada` y `_audioFinalizadoSinReto`, cuando el elemento no se resuelve a una clave) ponen el mismo `paradaListaParaAvanzar = true` y llaman a la misma función, sin pasar por `marcarParadaCompletada()`.
+Cuando se completa un elemento —parada: `pending.llegada + pending.audio + retosOk`; tramo: llegada y audio—, `marcarParadaCompletada()` (vía `intentarCompletarElemento`) pone `estado.paradaListaParaAvanzar = true` y llama a `_sincronizarAvanzar()`. Si el reto sigue a la vista —el usuario lo acaba de resolver y aún no ha cerrado su ventana—, «avanzar» sigue apagado y se enciende al cerrarla (`_hdl_RETO_OCULTAR`). Es el único camino a `paradaListaParaAvanzar = true`: si `_retoColaCompletada()` no encuentra el elemento del reto, lo deja escrito como error y no completa nada (spec 160, KR-1).
 
 ### 29.6 hijo2 solo obedece (`avanzarHabilitadoPorPadre`)
 
@@ -12422,10 +12423,10 @@ Cubierto por `tests/e2e/157-avanzar-lo-decide-un-solo-sitio.spec.js` (AV-1 a AV-
 **Archivo: `codigo-padre.html`**
 
 - En `_hdl_AUDIO_FIN_REPRODUCCION`:
-  - No decide nada sobre retos: refresca los controles de audio y delega en `_procesarFinAudioElemento`, que es quien envía `RETO.HABILITAR`
+  - Si el audio que termina es el del elemento actual, lo anota en su ficha (`_anotarEnFicha`, `audio: true`) e intenta completarlo (`intentarCompletarElemento`). No decide nada sobre retos: refresca los controles de audio y delega en `_procesarFinAudioElemento`, que es quien envía `RETO.HABILITAR`
 - En `_procesarFinAudioElemento` (función separada):
   - Si el elemento tiene retos: prepara `estado.retoActual` si no es el de ese elemento (`_asegurarRetoActualDe`) y llama a `_sincronizarRetoBtn()` (botón de retos de hijo3, §7.4); en AVENTURA envía además `RETO.HABILITAR` → hijo4 (si figura en `estado.hijosInicializados`) y arranca el recordatorio "pulse retos" si queda algún reto por hacer
-  - Si la parada no tiene retos: llama directamente `_audioFinalizadoSinReto()` sin enviar nada a hijo4
+  - Si el elemento no tiene retos: no hace nada más. Quien la llama —el fin de audio, el botón de saltar (`_saltarAudioPulsado`) o el audio no disponible (`_marcarAudioNoDisponible`)— ya ha anotado el audio terminado en la ficha y ha intentado completar el elemento
 
 **Archivo: `retos-hijo4.html`**
 
@@ -12500,7 +12501,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-36d6fd30f388';
+const CACHE_VERSION = 'v-44d1c5b1c208';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14233,26 +14234,26 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TIPOS_MENSAJE` | módulo 1 (L3800) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3961) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2836) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13592) | clásico 12 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13533) | clásico 12 | estado |
 | `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9850) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12648) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13574) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11620) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12312) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12589) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13515) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11612) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12253) | módulo 1 | función/objeto |
 | `_reenviarProgressBarAHijo3` | módulo 2 (L9789) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L10967) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L11090) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11029) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L10991) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12342) | módulo 5 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10959) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L11082) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11021) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L10983) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12283) | módulo 5 | función/objeto |
 | `_vv_afterHijoListo` | módulo 2 (L9034) | módulo 1 | función/objeto |
 | `actualizarEstadoControlesAudioPadre` | módulo 2 (L9784) | módulo 1 | función/objeto |
 | `AVENTURA_PARADAS` | módulo 2 (L9166) | módulo 1 | función/objeto |
 | `distribuirDatosAventura` | módulo 2 (L9207) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12573) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12514) | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 (L9662) | módulo 1 | función/objeto |
 | `solicitarAudioAHijo3` | módulo 2 (L9654) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13608) | módulo 2 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13549) | módulo 2 | función/objeto |
 
 </details>
 
