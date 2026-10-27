@@ -924,14 +924,15 @@ export function migrarManejadoresTempranos() {
  * Marca script2 como listo en el state-manager centralizado.
  *
  * El dato vive SOLO ahí: el bus no guarda copia propia. Tenerla era una segunda verdad que
- * nadie leía — quien consulta esto (`getScript2Listo`) lo hace contra el state-manager.
+ * nadie leía — quien lo consulta lo hace contra el state-manager (la espera del final del arranque
+ * del padre, con `getEstado().flags`; el arnés de los tests, con `getScript2Listo()`).
+ *
+ * Solo la llama el padre (Script 2), que inicializa el state-manager en su FASE 1, antes de importar
+ * este módulo. Devuelve la escritura: quien la llama la espera, y un fallo le llega a su `catch`.
  */
 export function marcarScript2Listo() {
     logger.info('[mensajeria] Script2 marcado como listo');
-    const sm = obtenerStateManager();
-    if (sm && typeof sm.setScript2Listo === 'function') {
-        sm.setScript2Listo(true).catch(e => logger.debug('[mensajeria] Error sincronizando script2Listo:', e?.message));
-    }
+    return obtenerStateManager().setScript2Listo(true);
 }
 
 // =====================================================
@@ -985,9 +986,10 @@ export async function iniciarHeartbeat(intervalo = 5000) {
     }
 }
 
-// Espera a que todos los iframes registrados hayan completado el handshake HIJO_LISTO, como mucho `timeout` ms.
-// Se usa como optimización pre-aventura; si el SM no está disponible o no hay iframes,
-// resuelve inmediatamente igual que el fallback de app.js.
+// Espera, como mucho `timeout` ms, a que todos los iframes registrados en el bus de este frame hayan completado el
+// apretón de manos (HIJO_LISTO). Solo la llama el padre, al entrar en AVENTURA (`_esperarHijosAlEntrarEnAventura`,
+// js/app.js). Sin state-manager o sin iframes registrados, resuelve al instante. Contesta `{ ready: true }` también
+// cuando vence el plazo, y cuenta también los iframes que no hacen el apretón: docs/estudio-caminos.md, K-144.
 export async function esperarHijosListos(timeout = 5000) {
     const sm = obtenerStateManager();
     if (!sm || typeof sm.crearPromiseHijoListo !== 'function') return { ready: true };

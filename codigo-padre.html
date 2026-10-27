@@ -13013,8 +13013,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 await globalThis.__vv_registroScript1;
                 await globalThis.__vv_stateManager.esperarRegistrosPendientes();
                 (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} ✅ Controladores de Script 1 y Script 2 registrados`);
-                const resultado = await globalThis.mensajeria.marcarScript2Listo();
-                (globalThis.logger || console).info(`[SCRIPT2] ✅ Script 2 marcado como LISTO (controladores registrados)`, resultado);
+                await globalThis.mensajeria.marcarScript2Listo();
+                (globalThis.logger || console).info(`[SCRIPT2] ✅ Script 2 marcado como LISTO (controladores registrados)`);
             } catch (error) {
                 (globalThis.logger || console).error('[SCRIPT2] Error marcando Script 2 como listo:', error);
             }

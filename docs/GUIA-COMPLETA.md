@@ -2092,9 +2092,9 @@ El estado compartido del padre se guarda en un único lugar: `js/state-manager.j
 
 `esperarRegistrosPendientes()` resuelve cuando han terminado todos los registros de controladores lanzados hasta ese momento. Registrar un controlador no es inmediato —cada `registrarControladorCentral` escribe en el mapa dentro del mutex `controladores`, esperando al anterior— y el Script 2 del padre lanza decenas de registros sin `await`. Como `SimpleMutex` es FIFO, esta espera se encola detrás de todos ellos y no espera a los que se lancen después de llamarla.
 
-`marcarScript2Listo()` de `js/mensajeria.js` guarda el dato solo en el state-manager (`sm.setScript2Listo(true)`): el bus no lleva copia propia. Los tests lo esperan con `getScript2Listo()` (el helper de arranque de `tests/e2e/helpers/boot.js` lo sondea con `page.evaluate`, porque es una función asíncrona).
+`marcarScript2Listo()` de `js/mensajeria.js` guarda el dato solo en el state-manager (`setScript2Listo(true)`) y devuelve esa escritura, que Script 2 espera: el bus no lleva copia propia. Lo lee la espera del final del arranque de Script 1, con `getEstado().flags.script2Listo`; los tests lo esperan con `getScript2Listo()` (el helper de arranque de `tests/e2e/helpers/boot.js` lo sondea con `page.evaluate`, porque es una función asíncrona).
 
-El objeto API del state-manager (`globalThis.__vv_stateManager`, también publicado como `globalThis.__stateManager`) lleva dos instrumentos de consola: `getEstado()` devuelve `{ controladores: nº, estadoPadre, flags: { script2Listo } }`, y `diagnosticar()` (alias de `diagnosticarStateManager()`) registra y devuelve `{ timestamp, totalControladores, controladoresRegistrados, controladoresPorTipo, flags, estadoPadre: { modo, hijosInicializados, todosHijosListos, gps } }`; `gps` sale de `globalThis.estadoPadre` cuando existe, y el resto de `estadoPadre`, de la copia del arranque.
+El objeto API del state-manager (`globalThis.__vv_stateManager`, también publicado como `globalThis.__stateManager`) lleva dos instrumentos de consola: `getEstado()` devuelve `{ controladores: nº, estadoPadre, flags: { script2Listo } }` (y es, además, lo que lee la espera del final del arranque), y `diagnosticar()` (alias de `diagnosticarStateManager()`) registra y devuelve `{ timestamp, totalControladores, controladoresRegistrados, controladoresPorTipo, flags, estadoPadre: { modo, hijosInicializados, todosHijosListos, gps } }`; `gps` sale de `globalThis.estadoPadre` cuando existe, y el resto de `estadoPadre`, de la copia del arranque.
 
 La estructura del estado (`state`) tiene dos niveles diferenciados:
 
@@ -4914,7 +4914,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-37d38d12f7aa'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a3bc2960294f'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8285,7 +8285,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-37d38d12f7aa'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-a3bc2960294f'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9047,7 +9047,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-37d38d12f7aa';
+const CACHE_VERSION = 'v-a3bc2960294f';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12498,7 +12498,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-37d38d12f7aa';
+const CACHE_VERSION = 'v-a3bc2960294f';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
