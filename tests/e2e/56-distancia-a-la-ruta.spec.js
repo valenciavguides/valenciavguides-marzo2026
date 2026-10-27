@@ -2,7 +2,7 @@
  * 56-distancia-a-la-ruta.spec.js
  *
  * `_check5kmFromRoute()` corta la aventura si el GPS sitúa al usuario a más de 5 km de
- * TODA la ruta (§30.5). Estaba inerte por tres fallos, y ninguno tenía cobertura:
+ * TODA la ruta (§31.5). Estaba inerte por tres fallos, y ninguno tenía cobertura:
  *
  *  1. Buscaba las coordenadas en `elementosIDpadre`, que no las tiene. `minDistM` se
  *     quedaba en `Infinity` siempre, e `Infinity > 5000` es siempre cierto: creía que

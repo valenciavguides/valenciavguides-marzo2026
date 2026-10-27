@@ -5326,13 +5326,6 @@
             try {
                 globalThis.funcionesMapa.procesarPosicionGPSParaAventura(position);
                 (globalThis.logger || console).debug(`${logPrefix} ✅ Posición GPS procesada por funciones-mapa`);
-                // El ocultado NO puede ser incondicional: se ejecuta en CADA posicion GPS y
-                // borraba el aviso de "fuera de zona" dos lineas despues de mostrarlo
-                // (_check5kmFromRoute corre justo antes). Mientras haya bloqueo por distancia,
-                // el aviso se queda.
-                if (globalThis.__VV_5KM_BLOCKED !== true) {
-                    try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                }
             } catch (procesarError) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error procesando posición GPS:`, procesarError);
             }
@@ -5366,7 +5359,8 @@
 
             (globalThis.logger || console).debug(`${logPrefix} 📍 Ubicación GPS: [${lat.toFixed(6)}, ${lng.toFixed(6)}] (±${Math.round(accuracy)}m)`);
 
-            // Chequeo de integridad: usuario a >5km de la ruta (§30.5) — throttle 3 minutos.
+            // Chequeo de integridad: usuario a >5km de la ruta (§31.5) — la comprobación, cada 3 minutos;
+            // su cartel, en cada lectura mientras dura el bloqueo.
             // Se le pasa la precisión: una lectura mala no puede bastar para bloquear.
             _check5kmFromRoute(lat, lng, accuracy);
 
@@ -5391,9 +5385,11 @@
          *     porque minDistM jamás bajaba de Infinity. Resultado: en cada aventura, el botón
          *     de reintentar GPS desaparecía a los pocos segundos y no volvía.
          *
-         *  3. EL AVISO SE BORRABA SOLO. _gpsProcesarPosicion() llama a
+         *  3. EL AVISO SE BORRABA SOLO. _gpsProcesarPosicion() llamaba a
          *     hideGpsOutOfRangeOverlay() en CADA posición, sin mirar si hay bloqueo — dos
-         *     líneas después de mostrarlo. Ahora ese ocultado respeta __VV_5KM_BLOCKED.
+         *     líneas después de mostrarlo. El cartel lo enseña y lo quita esta función, y nadie
+         *     más: sale al declararse el bloqueo y en cada lectura mientras dura, y se quita al
+         *     levantarse (docs/estudio-caminos.md, K-84).
          *
          * AUSENCIA DE DATO NO ES VEREDICTO. Si no se puede medir, no se bloquea: se registra
          * un error ruidoso y se sale. Confundir "no pude medir" con "está lejos" es el fallo
@@ -5411,6 +5407,10 @@
             try {
                 const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
                 if (modoActual !== MODOS.AVENTURA) return;
+
+                // Mientras dura el bloqueo, su cartel vuelve a salir en cada lectura, como las pantallas de
+                // franja; _puedeSalirPantallaDistanciaGPS() respeta el descanso de su ✗ (K-84).
+                if (globalThis.__VV_5KM_BLOCKED === true) showGpsOutOfRangeOverlay();
 
                 const now = Date.now();
                 const THROTTLE_MS = 3 * 60 * 1000;
@@ -5465,7 +5465,7 @@
                         globalThis.__VV_5KM_BLOCKED = true;
                         const actionBtn = document.getElementById('gps-error-action');
                         if (actionBtn) actionBtn.style.display = 'none';
-                        try { showGpsOutOfRangeOverlay(0, `Ubicación fuera de la zona de la aventura, a más de ${Math.round(minDistM / 1000)} km`); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                        try { showGpsOutOfRangeOverlay(`Ubicación fuera de la zona de la aventura, a más de ${Math.round(minDistM / 1000)} km`); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                         // «Avanzar» lo decide un solo sitio (Script 2), que mira este bloqueo cada vez
                         // que decide: basta con avisarle del cambio, y nada lo enciende mientras dure.
                         try {
@@ -5478,6 +5478,10 @@
                     const actionBtn = document.getElementById('gps-error-action');
                     if (actionBtn) actionBtn.style.display = '';
                     try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    // Lo que el bloqueo tapaba vuelve: el aviso de precisión, si hijo2 lo pidió y la precisión
+                    // no ha vuelto (lo pide una vez por episodio). Las pantallas de franja vuelven solas con la
+                    // lectura siguiente.
+                    try { if (_avisoPrecisionPedido) showGpsPrecisionOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     try {
                         globalThis._sincronizarAvanzar('[PADRE][GPS][5KM]').catch(e => (globalThis.logger || console).warn('[PADRE][GPS][5KM] Error sincronizando btnAvanzar:', e?.message));
                     } catch (e) { (globalThis.logger || console).error('[PADRE][GPS][5KM] No se pudo avisar a «avanzar» del fin del bloqueo:', e?.message); }
@@ -5679,7 +5683,7 @@
         try { globalThis.__setRealActivarGPS(activarGPS); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
         // ============================================================
-        // UI: Overlay para posicionamientos GPS descartados
+        // UI: el cartel del bloqueo de los 5 km (§31.5)
         // ============================================================
         function _ensureGpsOverlay() {
             if (document.getElementById('gps-out-of-range-overlay')) return;
@@ -5696,13 +5700,7 @@
             img.id = 'gps-error-img';
             img.className = 'gps-overlay-img';
             img.src = 'imagenes/imagenes-aplicación/fotogpserror.png';
-            img.alt = 'Error GPS - baja precisión';
-
-            const distanciaRow = document.createElement('div');
-            distanciaRow.className = 'gps-distancia-row';
-            distanciaRow.id = 'gps-error-distancia-row';
-            distanciaRow.style.display = 'none';
-            distanciaRow.innerHTML = '<span class="gps-distancia-actual">0</span><span class="gps-distancia-unidad">m</span><span class="gps-distancia-separador">/</span><span class="gps-distancia-max">2000</span><span class="gps-distancia-unidad">m</span>';
+            img.alt = 'Fuera de la zona de la aventura, a más de 5 km';
 
             const btn = document.createElement('button');
             btn.id = 'gps-error-action';
@@ -5769,7 +5767,6 @@
             bandaInferior.appendChild(btn);
 
             inner.appendChild(img);
-            inner.appendChild(distanciaRow);
             inner.appendChild(countdown);
             inner.appendChild(bandaInferior);
             inner.appendChild(closeBtnMain);
@@ -5777,25 +5774,15 @@
             document.body.appendChild(el);
         }
 
-        function showGpsOutOfRangeOverlay(accuracy, motivo, distancia) {
+        function showGpsOutOfRangeOverlay(motivo) {
             try {
-                // Solo mostrar en modo aventura
-                let modoActual = (globalThis.estadoPadre && globalThis.estadoPadre.modo && globalThis.estadoPadre.modo.actual) || (estado !== undefined && estado.modo && estado.modo.actual);
-                if (modoActual !== MODOS.AVENTURA) {
-                    (globalThis.logger || console).info('[PADRE][GPS][OVERLAY] Overlay GPS oculto: solo se muestra en modo aventura. Modo actual:', modoActual);
-                    hideGpsOutOfRangeOverlay();
-                    return;
-                }
-                if (_overlayDistanciaEnSnooze('gps-out-of-range-overlay')) return;
+                if (!_puedeSalirPantallaDistanciaGPS('gps-out-of-range-overlay')) return;
                 _ensureGpsOverlay();
                 const el = document.getElementById('gps-out-of-range-overlay');
-                const img = document.getElementById('gps-error-img');
                 if (!el) return;
-                // update accessible text — `motivo` cubre casos que reutilizan este overlay
-                // por algo distinto a baja precisión (p.ej. bloqueo por distancia a la ruta)
-                el.setAttribute('aria-label', motivo || `Ubicación descartada por baja precisión ${Math.round(accuracy)} metros`);
-                if (img) img.dataset.lastAccuracy = String(Math.round(accuracy));
-                _actualizarFilaDistanciaOverlay('gps-error-distancia-row', distancia, 2000);
+                // El texto accesible lleva la distancia medida al declararse el bloqueo; cuando el cartel
+                // vuelve a salir en una lectura, sin `motivo`, conserva el que tenía.
+                if (motivo) el.setAttribute('aria-label', motivo);
                 _ocultarOtrasPantallasDistanciaGPS('gps-out-of-range-overlay');
                 el.classList.add('show');
             } catch (e) {
@@ -5825,7 +5812,8 @@
         // (>2000m del elemento actual), foto-lejos (150-2000m), foto-desviado (50-150m),
         // foto-fuera-rango (15m(parada)/toleranciaGPS(tramo)-50m). Solo una visible a la vez.
         // fotogpserror/gps-out-of-range-overlay NO es una franja más — es el aviso aparte
-        // de anti-piratería (§31.5, >5km de TODA la ruta, no del elemento actual).
+        // de anti-piratería (§31.5, >5km de TODA la ruta, no del elemento actual), y manda
+        // sobre las otras cinco mientras dura el bloqueo (_puedeSalirPantallaDistanciaGPS).
         // gps-precision-overlay (accuracy insuficiente) es otro aviso aparte: no mide
         // distancia, así que puede mostrarse en vez de cualquiera de las 4 franjas.
         // ──────────────────────────────────────────────────────────────
@@ -5889,6 +5877,29 @@
             _limpiarSnoozeOverlaysDistancia();
         }
         globalThis._ocultarTodasPantallasDistanciaGPS = _ocultarTodasPantallasDistanciaGPS;
+
+        // El aviso de precisión que hijo2 ha pedido y no ha retirado: lo pide una vez por episodio
+        // (GPS.PRECISION_INSUFICIENTE) y lo retira al volver la precisión (GPS.PRECISION_RECUPERADA).
+        // Se apunta aunque el bloqueo de los 5 km no lo deje salir, para que salga al levantarse.
+        let _avisoPrecisionPedido = false;
+
+        // Si una pantalla de esta familia puede salir lo decide este sitio, y ningún otro
+        // (docs/estudio-caminos.md, K-84), con todo lo que cuenta: el modo (solo en AVENTURA); el
+        // bloqueo de los 5 km, que manda mientras dura (solo sale su cartel, y las otras cinco se
+        // quitan de en medio); y el descanso que dio la ✗ de cada una. Sin bloqueo, su cartel no
+        // sale. Cada show…Overlay() de la familia empieza preguntando aquí.
+        function _puedeSalirPantallaDistanciaGPS(id) {
+            const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
+            if (modoActual !== MODOS.AVENTURA) {
+                if (id === 'gps-out-of-range-overlay') hideGpsOutOfRangeOverlay();
+                else document.getElementById(id)?.classList.remove('show');
+                return false;
+            }
+            const bloqueo = globalThis.__VV_5KM_BLOCKED === true;
+            if (bloqueo) _ocultarOtrasPantallasDistanciaGPS('gps-out-of-range-overlay');
+            if (bloqueo !== (id === 'gps-out-of-range-overlay')) return false;
+            return !_overlayDistanciaEnSnooze(id);
+        }
 
         // Reintento compartido por todas las pantallas de esta familia: recalcula posición y
         // deja que el pipeline normal (hijo2 recibe la posición actualizada, recalcula
@@ -5968,9 +5979,7 @@
 
         function showFotoLejosOverlay(distancia) {
             try {
-                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
-                if (modoActual !== MODOS.AVENTURA) { hideFotoLejosOverlay(); return; }
-                if (_overlayDistanciaEnSnooze('foto-lejos-overlay')) return;
+                if (!_puedeSalirPantallaDistanciaGPS('foto-lejos-overlay')) return;
                 _ensureFotoLejosOverlay();
                 const el = document.getElementById('foto-lejos-overlay');
                 if (!el) return;
@@ -6040,9 +6049,7 @@
 
         function showFotoFueraRangoOverlay(distancia, rangoMaximo) {
             try {
-                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
-                if (modoActual !== MODOS.AVENTURA) { hideFotoFueraRangoOverlay(); return; }
-                if (_overlayDistanciaEnSnooze('foto-fuera-rango-overlay')) return;
+                if (!_puedeSalirPantallaDistanciaGPS('foto-fuera-rango-overlay')) return;
                 _ensureFotoFueraRangoOverlay();
                 const el = document.getElementById('foto-fuera-rango-overlay');
                 if (!el) return;
@@ -6114,9 +6121,7 @@
 
         function showFotoDesviadoOverlay(distancia) {
             try {
-                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
-                if (modoActual !== MODOS.AVENTURA) { hideFotoDesviadoOverlay(); return; }
-                if (_overlayDistanciaEnSnooze('foto-desviado-overlay')) return;
+                if (!_puedeSalirPantallaDistanciaGPS('foto-desviado-overlay')) return;
                 _ensureFotoDesviadoOverlay();
                 const el = document.getElementById('foto-desviado-overlay');
                 if (!el) return;
@@ -6193,9 +6198,7 @@
 
         function showFotoPerdidoOverlay(distancia) {
             try {
-                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
-                if (modoActual !== MODOS.AVENTURA) { hideFotoPerdidoOverlay(); return; }
-                if (_overlayDistanciaEnSnooze('foto-perdido-overlay')) return;
+                if (!_puedeSalirPantallaDistanciaGPS('foto-perdido-overlay')) return;
                 _ensureFotoPerdidoOverlay();
                 const el = document.getElementById('foto-perdido-overlay');
                 if (!el) return;
@@ -6268,10 +6271,9 @@
         }
 
         function showGpsPrecisionOverlay() {
+            _avisoPrecisionPedido = true;
             try {
-                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
-                if (modoActual !== MODOS.AVENTURA) { hideGpsPrecisionOverlay(); return; }
-                if (_overlayDistanciaEnSnooze('gps-precision-overlay')) return;
+                if (!_puedeSalirPantallaDistanciaGPS('gps-precision-overlay')) return;
                 _ensureGpsPrecisionOverlay();
                 const el = document.getElementById('gps-precision-overlay');
                 if (!el) return;
@@ -6282,6 +6284,7 @@
         globalThis.showGpsPrecisionOverlay = showGpsPrecisionOverlay;
 
         function hideGpsPrecisionOverlay() {
+            _avisoPrecisionPedido = false;
             try {
                 const el = document.getElementById('gps-precision-overlay');
                 if (el) el.classList.remove('show');
@@ -10424,7 +10427,8 @@ await _comprobarReanudacionAventura(logPrefix);
         // toleranciaGPS tramo), así que aquí no hace falta volver a comprobarlo.
         // fotogpserror.png / gps-out-of-range-overlay quedan exclusivos del bloqueo
         // anti-piratería de >5km de TODA la ruta (§31.5, _check5kmFromRoute) — no se
-        // muestran nunca desde aquí.
+        // muestran nunca desde aquí; y mientras dura ese bloqueo, la pantalla que se pide
+        // aquí no sale (_puedeSalirPantallaDistanciaGPS, Script 1).
         async function _hdl_NAVEGACION_GPS_RESTRINGIDO(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.RESTRINGIDO][${mensaje?.origen || 'desconocido'}]`;
 
