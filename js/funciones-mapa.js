@@ -2569,8 +2569,8 @@ export function registrarManejadoresMensajes() {
             }
         });
         // GPS handlers NO se registran aquí — los registra Script 2 de codigo-padre.html
-        // con _hdl_NAVEGACION_GPS_ACTIVAR (verifica modo AVENTURA, gestiona
-        // paradaListaParaAvanzar y revelarNavegacion; GPS.DESACTIVAR no tiene handler).
+        // con _hdl_NAVEGACION_GPS_ACTIVAR (verifica modo AVENTURA y avanza si lo permite
+        // _decidirAvanzar; GPS.DESACTIVAR no tiene handler).
         // Si se registrasen aquí primero, state-manager bloquearía el registro de Script 2
         // por "Controlador duplicado" y el handler incompleto de funciones-mapa ganaría.
 
@@ -2771,9 +2771,9 @@ async function procesarPosicionGPSParaAventura(posicion) {
         }
 
         // Calcular distancia a siguiente parada — SIEMPRE contra el destino real (.fin en
-        // tramos), nunca contra el camino: esta es la que decide llegada (más abajo) y la
-        // que activa el override manual de avanzar en hijo2, ambas exigen estar cerca del
-        // final de verdad, no solo en algún punto del trayecto.
+        // tramos), nunca contra el camino: es la que decide llegada (aquí más abajo y en
+        // hijo2), que exige estar cerca del final de verdad, no solo en algún punto del
+        // trayecto.
         const distancia = calcularDistancia(latitude, longitude,
             coordsSiguiente.lat, coordsSiguiente.lng);
 

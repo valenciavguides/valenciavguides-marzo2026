@@ -652,8 +652,8 @@ export const TRADUCCIONES_RESCATE_AGOTADOS = {
 
 // Pantalla de rescate concedido (_mostrarDecisionRescate, codigo-padre.html).
 //
-// Se nombra EL BOTON DE AVANZAR, no "el boton que corresponda": tras el rescate quedan
-// encendidos avanzar y ubicacion, y solo avanzar continua la aventura.
+// Se nombra EL BOTON DE AVANZAR, no "el boton que corresponda": tras el rescate lo que
+// continua la aventura es avanzar (la ubicacion se apaga mientras avanzar esta encendido).
 //
 // El recuento va como "{usadas} de {total}" por el mismo motivo que en el cartel del TTL:
 // una frase del tipo "le quedan N" exige concordancia de plural, y ruso, polaco y ucraniano

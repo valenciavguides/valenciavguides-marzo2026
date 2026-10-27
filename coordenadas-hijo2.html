@@ -330,13 +330,13 @@ const estadoComponente = {
     tipoParadaActual: null, // 'parada' o 'tramo'
     idParadaActual: null,  // 'P-X' o 'TR-X'
     toleranciaGPS: 50, // Valor de arranque, solo vigente hasta el primer ACTUALIZAR_ESTADO.
-    btnAvanzarDeshabilitadoExternamente: false,
-    // true desde que el padre confirma audio+llegada(+reto) hasta el próximo CAMBIO_PARADA.
-    // Sin esto, cada lectura GPS posterior (actualizarEstadoBotones) recalculaba btn-avanzar
-    // solo por distancia vía _actualizarGpsEnModoAventura — y para un tramo exige >=5m del
-    // destino, así que el usuario que acaba de LLEGAR de verdad (a menudo <5m de .fin) veía
-    // el botón recién habilitado apagarse otra vez en el siguiente tick, sin poder avanzar.
-    btnAvanzarCompletadoPorPadre: false,
+    // «Avanzar» lo decide el padre, en un solo sitio (_decidirAvanzar en codigo-padre.html): el
+    // modo, un reto abierto, el bloqueo de 5 km, el fuera de rango con la gracia agotada y el
+    // elemento completado. Aquí solo se obedece: CONTROL.HABILITAR lo enciende y
+    // CONTROL.DESHABILITAR lo apaga. Un elemento nuevo o un cambio de modo lo dejan apagado hasta
+    // que el padre diga otra cosa. Este frame no lo enciende por cercanía: con sus propios
+    // umbrales, se encendía en un tramo antes de la llegada (docs/estudio-caminos.md, K-86).
+    avanzarHabilitadoPorPadre: false,
     inicializado: false, // Estado de inicialización del componente
     elementosDOM: {}, // Referencias a botones
     retoActivo: false, // Flag para saber si hay un reto en progreso
@@ -344,7 +344,7 @@ const estadoComponente = {
     posicionActualUsuario: null, // {lat, lng} Posición GPS recibida del padre
     timestampSalioDeRango: null, // Timestamp cuando salió del rango real (rangoMaximo: 15m parada / toleranciaGPS tramo)
     ayudaFueraDeRangoActiva: false, // Flag: true en cuanto se detecta fuera de rango real — habilita ubicación/mapas AL INSTANTE, sin esperar la gracia (ver _habilitarAyudaFueraDeRango)
-    fueraDeRangoActivo: false, // Flag: true cuando la GRACIA de la franja ya expiró — vídeo/avanzar deshabilitados y padre notificado (ver _procesarFueraDeRangoConfirmado)
+    fueraDeRangoActivo: false, // Flag: true cuando la GRACIA de la franja ya expiró — vídeo deshabilitado y padre notificado, que apaga «avanzar» (ver _procesarFueraDeRangoConfirmado)
     _notificacionFueraRangoEnviada: false, // Evita reenviar NAVEGACION.USUARIO_FUERA_RANGO en cada tick mientras la restricción sigue activa
     _notificacionSenalNoFiableEnviada: false, // Evita reenviar NAVEGACION.GPS.PRECISION_INSUFICIENTE en cada tick de mala precisión
     hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
@@ -409,12 +409,10 @@ function activarBoton(boton, titulo = '') {
 // la distancia y decide sus propios botones; ver GUIA-COMPLETA §31.
 
 // Actualizar los estados de todos los botones según reglas específicas
-// ARQUITECTURA TOLERANCIA GPS:
-// - PARADAS: rangos fijos (GPS 0-15m, Ubicación fuera de ese rango)
-// - TRAMOS: tolerancia DINÁMICA calculada en funciones-mapa.js
-//   * GPS habilitado: 5m hasta toleranciaGPS (puede ser 150m+ en tramos largos)
-//   * VIDEO habilitado: 5m hasta toleranciaGPS (para ver video completo del tramo)
-//   * Razón: Usuario necesita seguir polyline completa con waypoints del tramo
+// - «Avanzar»: lo que diga el padre (avanzarHabilitadoPorPadre); aquí no se mide nada para él.
+// - Fuera de rango (verificarDistanciaYActualizarBotones): 15 m en paradas; en tramos, la
+//   tolerancia DINÁMICA calculada en funciones-mapa.js (puede pasar de 150 m en tramos largos),
+//   porque el usuario sigue la polyline completa, con sus waypoints.
 
 function _actualizarBotonVideo(elementosDOM, retoActivo, tipoParadaActual, idParadaActual) {
     if (!elementosDOM.btnVideo) return;
@@ -431,50 +429,14 @@ function _actualizarBotonVideo(elementosDOM, retoActivo, tipoParadaActual, idPar
     }
 }
 
-function _actualizarBotonGps(elementosDOM, modo, retoActivo, tipoParadaActual, idParadaActual, distanciaAlDestino, toleranciaGPS) {
+function _actualizarBotonGps(elementosDOM) {
     if (!elementosDOM.btnAvanzar) return;
-    if (estadoComponente.btnAvanzarDeshabilitadoExternamente) {
-        desactivarBoton(elementosDOM.btnAvanzar);
-        return;
-    }
-    const esTramo = tipoParadaActual === 'tramo' || esIdDeTramo(idParadaActual);
-    if (modo === 'casa') {
-        desactivarBoton(elementosDOM.btnAvanzar);
-        logger.debug('🛰️ Botón GPS DESACTIVADO: modo casa (forzado)');
-        return;
-    }
-    if (retoActivo) {
-        desactivarBoton(elementosDOM.btnAvanzar);
-        logger.debug('🛰️ Botón GPS DESACTIVADO: reto activo');
-        return;
-    }
-    if (modo === 'aventura' && estadoComponente.btnAvanzarCompletadoPorPadre) {
-        // El padre ya confirmó audio+llegada(+reto) para este elemento — no volver a
-        // apagar el botón por distancia GPS en cada tick (ver comentario junto al flag).
+    if (estadoComponente.avanzarHabilitadoPorPadre) {
         activarBoton(elementosDOM.btnAvanzar);
-        return;
-    }
-    if (modo === 'aventura') {
-        _actualizarGpsEnModoAventura(elementosDOM.btnAvanzar, esTramo, idParadaActual, distanciaAlDestino, toleranciaGPS);
-    }
-}
-
-function _actualizarGpsEnModoAventura(btnAvanzar, esTramo, idParadaActual, distanciaAlDestino, toleranciaGPS) {
-    const rangoMinimo = esTramo ? 5 : 0;
-    const rangoMaximo = esTramo ? toleranciaGPS : 15;
-    const distanciaEnRango = distanciaAlDestino !== null &&
-                           distanciaAlDestino >= rangoMinimo &&
-                           distanciaAlDestino <= rangoMaximo;
-    if (distanciaEnRango) {
-        activarBoton(btnAvanzar);
-        logger.debug(`🛰️ Botón GPS ACTIVADO (${esTramo ? 'TRAMO' : 'PARADA'}): distancia ${distanciaAlDestino.toFixed(1)}m en rango ${rangoMinimo}-${rangoMaximo}m`);
+        logger.debug('🛰️ Botón avanzar ACTIVADO: lo ha encendido el padre');
     } else {
-        desactivarBoton(btnAvanzar);
-        logger.debug(`🛰️ Botón GPS DESACTIVADO: distancia ${distanciaAlDestino?.toFixed(1) || 'desconocida'}m fuera de rango ${rangoMinimo}-${rangoMaximo}m`);
-        // GPS.RESTRINGIDO (con la distancia real, para las pantallas del padre) lo envía
-        // verificarDistanciaYActualizarBotones() en cada posición, no esta función — así
-        // sigue enviándose aunque btn-ubicacion ya esté habilitado y este bloque deje de
-        // ejecutarse (actualizarEstadoBotones() corta antes de llegar aquí en ese caso).
+        desactivarBoton(elementosDOM.btnAvanzar);
+        logger.debug('🛰️ Botón avanzar DESACTIVADO: el padre no lo ha encendido');
     }
 }
 
@@ -509,20 +471,19 @@ function _habilitarAyudaFueraDeRango(logPrefix) {
 
 function _desactivarBotonesRangoExcedido(elementosDOM) {
     if (elementosDOM.btnVideo) desactivarBoton(elementosDOM.btnVideo);
-    if (elementosDOM.btnAvanzar) desactivarBoton(elementosDOM.btnAvanzar);
+    // «Avanzar» no se toca aquí: lo apaga el padre al recibir USUARIO_FUERA_RANGO.
     // Los mapas (completo y vintage) ayudan a un usuario perdido a orientarse — el mismo
     // motivo por el que btn-ubicacion se mantiene activo, no un motivo distinto — así que
-    // se habilitan junto a él en vez de bloquearse con vídeo/avanzar.
+    // se habilitan junto a él en vez de bloquearse con el vídeo.
     if (elementosDOM.btnMapaCompleto) activarBoton(elementosDOM.btnMapaCompleto);
     if (elementosDOM.btnMapaJpg) activarBoton(elementosDOM.btnMapaJpg);
     if (elementosDOM.btnUbicacion) activarBoton(elementosDOM.btnUbicacion);
-    logger.debug('⚠️ Fuera de rango real: ubicación y mapas habilitados, vídeo/avanzar deshabilitados');
+    logger.debug('⚠️ Fuera de rango real: ubicación y mapas habilitados, vídeo deshabilitado');
 }
 
 function actualizarEstadoBotones() {
     const {
         modo,
-        distanciaAlDestino,
         tipoParadaActual,
         idParadaActual,
         toleranciaGPS,
@@ -535,6 +496,9 @@ function actualizarEstadoBotones() {
     if (tipoParadaActual === 'tramo' && toleranciaGPS !== 50) {
         logger.debug(`[hijo2] 📏 Usando tolerancia GPS dinámica: ${toleranciaGPS}m para ${idParadaActual}`);
     }
+
+    // «Avanzar», antes que nada: no depende de nada de este frame, tampoco del fuera de rango.
+    _actualizarBotonGps(elementosDOM);
 
     if (estadoComponente.fueraDeRangoActivo) {
         _desactivarBotonesRangoExcedido(elementosDOM);
@@ -553,23 +517,18 @@ function actualizarEstadoBotones() {
         }
     }
 
-    _actualizarBotonGps(elementosDOM, modo, retoActivo, tipoParadaActual, idParadaActual, distanciaAlDestino, toleranciaGPS);
-
     // Ayuda (ubicación) al instante en cuanto se detecta fuera de rango real, aunque la
     // gracia de esa franja todavía no haya expirado (fueraDeRangoActivo sigue false) —
     // pedir el mapa no tiene coste, no hay motivo para esperar. Gana a
     // _actualizarBotonUbicacion salvo que haya un reto activo o estemos en CASA, que
     // siguen teniendo prioridad (mismo criterio que ya tenía este botón antes de la gracia).
-    if (estadoComponente.btnAvanzarCompletadoPorPadre) {
-        // Entre el rescate y el botón de avanzar, hijo2 sigue teniendo como actual el
-        // elemento que el usuario acaba de dejar atrás. La ubicación le dibujaría la ruta de
-        // vuelta a la valla de la que acaba de salir, que es lo contrario de ayudarle.
-        //
-        // El flag también se pone al completar un elemento andando, así que la ubicación
-        // queda apagada también en ese hueco. Es lo correcto por el mismo motivo: quien ya ha
-        // completado el punto no necesita que le guien hasta donde está parado, necesita
-        // pulsar avanzar. En cuanto pulsa, el elemento cambia y el botón vuelve a su vida
-        // normal.
+    if (estadoComponente.avanzarHabilitadoPorPadre) {
+        // Con «avanzar» encendido el elemento ya está completado —por el rescate o andando— y
+        // hijo2 sigue teniendo como actual el que el usuario va a dejar atrás. Tras un rescate,
+        // la ubicación le dibujaría la ruta de vuelta a la valla de la que acaba de salir, que es
+        // lo contrario de ayudarle; tras completarlo andando, quien ya ha completado el punto no
+        // necesita que le guíen hasta donde está parado, necesita pulsar avanzar. En cuanto
+        // pulsa, el elemento cambia y el botón vuelve a su vida normal.
         desactivarBoton(elementosDOM.btnUbicacion);
     } else if (!retoActivo && modo === 'aventura' && estadoComponente.ayudaFueraDeRangoActiva) {
         activarBoton(elementosDOM.btnUbicacion);
@@ -614,14 +573,15 @@ function _procesarDentroDeRango(btn, logPrefix) {
     if (cambioBotones) actualizarEstadoBotones();
 }
 
-// Aplica la RESTRICCIÓN (vídeo/avanzar deshabilitados; el padre deshabilita su audio y
-// el retosBtn de hijo3) una vez agotada la gracia de la franja — la ayuda (ubicación/
-// mapas) ya se habilitó al instante en _habilitarAyudaFueraDeRango, antes de llegar aquí.
+// Aplica la RESTRICCIÓN (aquí, el vídeo deshabilitado; el padre, al recibir
+// USUARIO_FUERA_RANGO, apaga su audio, el retosBtn de hijo3 y «avanzar») una vez agotada la
+// gracia de la franja — la ayuda (ubicación/mapas) ya se habilitó al instante en
+// _habilitarAyudaFueraDeRango, antes de llegar aquí.
 function _procesarFueraDeRangoConfirmado(logPrefix, franja, distanciaParaRango) {
     if (!estadoComponente.fueraDeRangoActivo) {
         estadoComponente.fueraDeRangoActivo = true;
         actualizarEstadoBotones();
-        logger.info(`${logPrefix} ✅ Fuera de rango ACTIVADO (franja: ${franja}, gracia agotada): vídeo/avanzar deshabilitados`);
+        logger.info(`${logPrefix} ✅ Fuera de rango ACTIVADO (franja: ${franja}, gracia agotada): vídeo deshabilitado; «avanzar» lo apaga el padre`);
     }
     if (!estadoComponente._notificacionFueraRangoEnviada) {
         estadoComponente._notificacionFueraRangoEnviada = true;
@@ -637,7 +597,7 @@ function _procesarFueraDeRangoConfirmado(logPrefix, franja, distanciaParaRango) 
 
 /**
  * Verifica si el usuario está dentro/fuera del rango real de la parada/tramo actual
- * (15m parada / toleranciaGPS tramo — el mismo umbral que btn-avanzar) y actualiza
+ * (15m parada / toleranciaGPS tramo) y actualiza
  * el botón de ubicación. Fuera de ese rango, informa al padre de la distancia real
  * en cada posición (GPS.RESTRINGIDO) para que decida qué pantalla de aviso mostrar
  * (§30 de la guía) — las 4 franjas (fuera/desviado/lejos/perdido) habilitan ubicación
@@ -665,10 +625,10 @@ function verificarDistanciaYActualizarBotones() {
     // ahí distanciaAlCamino llega igual a distanciaAlDestino (mismo valor, ver
     // procesarPosicionGPSParaAventura), así que el fallback es solo por si el mensaje
     // aún no lo incluye. La llegada real (_detectarLlegadaTramo/_detectarLlegadaParada)
-    // y el override manual de avanzar siguen midiendo contra distanciaAlDestino, sin
-    // cambios — llegar exige estar cerca del final, no solo del camino.
+    // sigue midiendo contra distanciaAlDestino — llegar exige estar cerca del final, no
+    // solo del camino.
     const distanciaParaRango = (esTramo && typeof distanciaAlCamino === 'number') ? distanciaAlCamino : distanciaAlDestino;
-    const rangoMaximo = esTramo ? toleranciaGPS : 15; // mismo umbral real que usa btn-avanzar
+    const rangoMaximo = esTramo ? toleranciaGPS : 15; // 15 m en paradas; en tramos, la tolerancia del tramo
     const dentroDeRango = distanciaParaRango <= rangoMaximo;
     const ahora = Date.now();
     const btn = elementosDOM.btnUbicacion;
@@ -1094,17 +1054,11 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (mensaje) => {
 
     try {
         const { motivo, control, razon } = mensaje.datos || {};
-        logger.info(`${logPrefix} Recibido - control: ${control}, motivo: ${motivo}`);
+        logger.info(`${logPrefix} Recibido - control: ${control}, motivo: ${motivo}, razon: ${razon}`);
 
         if (control === 'btnAvanzar') {
-            estadoComponente.btnAvanzarDeshabilitadoExternamente = false;
-            // Solo las razones de completado real "pegan" el botón habilitado (ver comentario
-            // junto al flag). 'de_vuelta_en_zona' (recuperación del bloqueo por >5km, no una
-            // llegada real al elemento activo) debe dejar que la lógica normal de proximidad
-            // GPS decida — si no, el usuario podría avanzar sin haber completado nada.
-            if (razon && razon.includes('completad')) {
-                estadoComponente.btnAvanzarCompletadoPorPadre = true;
-            }
+            // Lo decide el padre (ver avanzarHabilitadoPorPadre): la `razon` solo viaja para la traza.
+            estadoComponente.avanzarHabilitadoPorPadre = true;
             actualizarEstadoBotones();
             return;
         }
@@ -1134,13 +1088,12 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (mensaje) =
     const logPrefix = '[hijo2][CONTROL.DESHABILITAR]';
 
     try {
-        const { motivo, control } = mensaje.datos || {};
-        logger.info(`${logPrefix} Recibido - control: ${control}, motivo: ${motivo}`);
+        const { motivo, control, razon } = mensaje.datos || {};
+        logger.info(`${logPrefix} Recibido - control: ${control}, motivo: ${motivo}, razon: ${razon}`);
 
         if (control === 'btnAvanzar') {
-            estadoComponente.btnAvanzarDeshabilitadoExternamente = true;
-            estadoComponente.btnAvanzarCompletadoPorPadre = false;
-            if (elementosDOM.btnAvanzar) desactivarBoton(elementosDOM.btnAvanzar);
+            estadoComponente.avanzarHabilitadoPorPadre = false;
+            actualizarEstadoBotones();
             return;
         }
 
@@ -1288,8 +1241,7 @@ try {
         estadoComponente.idParadaActual = null;
         estadoComponente.distanciaAlDestino = null;
         estadoComponente.posicionActualUsuario = null;
-        estadoComponente.btnAvanzarCompletadoPorPadre = false;
-        estadoComponente.btnAvanzarDeshabilitadoExternamente = false;
+        estadoComponente.avanzarHabilitadoPorPadre = false;
         estadoComponente.retoActivo = false;
         estadoComponente.ubicacionActiva = false;
         estadoComponente.gpsActivo = false;
@@ -1524,8 +1476,8 @@ try {
             estadoComponente.tipoParadaActual = tipoRecibido;
             estadoComponente.distanciaAlDestino = null;
             estadoComponente._llegadaNotificada = null;
-            // Elemento nuevo: nunca hereda el "completado" del anterior.
-            estadoComponente.btnAvanzarCompletadoPorPadre = false;
+            // Elemento nuevo: «avanzar» apagado hasta que el padre diga cómo queda (se lo dice al activarlo).
+            estadoComponente.avanzarHabilitadoPorPadre = false;
 
             logger.debug(`[hijo2][CAMBIO_PARADA] parada=${parada_id} tipo=${tipoRecibido}`);
 

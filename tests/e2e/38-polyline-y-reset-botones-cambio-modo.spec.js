@@ -6,7 +6,7 @@
  *   A) La polyline manual del botón ubicación (funcionesMapa.dibujarPolylineNavegacion)
  *      debe limpiarse al entrar en CASA — antes podía quedar dibujada de una sesión de
  *      AVENTURA anterior.
- *   B) coordenadas-hijo2.html: idParadaActual/btnAvanzarCompletadoPorPadre y el resto
+ *   B) coordenadas-hijo2.html: idParadaActual/avanzarHabilitadoPorPadre y el resto
  *      de estado de progreso deben resetear al volver a CASA, aunque avanzar hubiera
  *      quedado genuinamente habilitado en AVENTURA (parada completada) — antes
  *      _resetarEstadoParaModo() no tocaba estas propiedades, así que un cambio de modo
@@ -85,8 +85,8 @@ test.describe('PB-B — Reset de idParadaActual/botones en hijo2 al cambiar de m
       idParada: 'Av1-TR-1', tipoParada: 'tramo', distanciaAlDestino: 5, toleranciaGPS: 50,
     });
     // 2. Habilitar avanzar de verdad (mismo mensaje real que envía marcarParadaCompletada()
-    //    al confirmar audio+llegada+reto — btnAvanzarCompletadoPorPadre=true).
-    await enviarAHijo2(page, 'CONTROL.HABILITAR', { control: 'btnAvanzar', razon: 'parada_completada' });
+    //    al confirmar audio+llegada+reto — avanzarHabilitadoPorPadre=true).
+    await enviarAHijo2(page, 'CONTROL.HABILITAR', { control: 'btnAvanzar', razon: 'elemento_completado' });
     await expect.poll(avanzarDeshabilitado, {
       message: 'Precondición: avanzar debe estar genuinamente habilitado antes de cambiar de modo',
     }).toBe(false);

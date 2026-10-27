@@ -6,7 +6,7 @@
  * confirmada por 2 lecturas GPS seguidas dentro de radio — ver 13-gps-tramo-fix.spec.js)
  * marca `pending.llegada = true` en el padre; AUDIO.FIN_REPRODUCCION marca `pending.audio
  * = true`. Con ambos resueltos, intentarCompletarElemento() llama a
- * marcarParadaCompletada(), que habilita btn-avanzar y espera la confirmación explícita
+ * marcarParadaCompletada(), que deja el elemento listo para avanzar y espera la confirmación explícita
  * del usuario — parada y tramo por igual (§4.7d de la guía, Caso D). Solo al recibir
  * NAVEGACION.GPS.ACTIVAR (el mensaje real que hijo2 envía al pulsar btn-avanzar) se llama
  * progresarSiguienteElemento(), que limpia el pending del elemento anterior ANTES de
@@ -17,7 +17,7 @@
  *   AP-1  NAVEGACION.LLEGADA_DETECTADA sintético marca pending.llegada=true para el
  *         elemento activo (estado.elementoActual).
  *   AP-2  Con llegada (AP-1) y AUDIO.FIN_REPRODUCCION del audio del tramo, el tramo se
- *         marca completado y habilita btn-avanzar — pero NO avanza indiceProgreso por sí
+ *         marca completado y queda listo para avanzar — pero NO avanza indiceProgreso por sí
  *         solo, ni cambia estado.elementoActual: espera la pulsación del usuario.
  *   AP-3  Al recibir NAVEGACION.GPS.ACTIVAR (btn-avanzar pulsado), progresarSiguienteElemento()
  *         avanza indiceProgreso y estado.elementoActual ya apunta al siguiente — no hay solape
@@ -123,7 +123,7 @@ test.describe('AP — Llegada confirmada → pending → progresión (CAMBIO_PAR
     expect(pendingLlegada, 'pending.llegada debe ser true tras el mensaje sintético de llegada').toBe(true);
   });
 
-  test('AP-2. Llegada + fin de audio completan el tramo: habilita btn-avanzar, no progresa solo', async ({ page }) => {
+  test('AP-2. Llegada + fin de audio completan el tramo: queda listo para avanzar, no progresa solo', async ({ page }) => {
     const logs = [];
     page.on('console', msg => logs.push(msg.text()));
 
@@ -144,7 +144,7 @@ test.describe('AP — Llegada confirmada → pending → progresión (CAMBIO_PAR
 
     // 2) Fin de audio (mismo mensaje real que envía hijo3) — con llegada ya true, esto
     // completa el tramo. Desde la unificación de la progresión (§4.7d), un tramo
-    // completado se comporta exactamente igual que una parada: habilita btn-avanzar y
+    // completado se comporta exactamente igual que una parada: queda listo para avanzar y
     // espera la confirmación explícita del usuario, nunca avanza por sí solo.
     await enviarMensajeSintetico(page, 'AUDIO.FIN_REPRODUCCION', {
       audioId: TRAMO_AUDIO_ID, duracion: 42, timestamp: Date.now(),
@@ -165,8 +165,8 @@ test.describe('AP — Llegada confirmada → pending → progresión (CAMBIO_PAR
     expect(despues.pendingAnteriorLimpio, 'El pending del tramo completado debe quedar limpio aunque todavía no haya progresado (se borra al completar, no al progresar)').toBe(true);
     expect(despues.completada, `El tramo debe quedar registrado como completado: ${JSON.stringify(despues.completada)}`).toContain(TRAMO_ID);
 
-    const huboHabilitar = logs.some(l => l.includes('Tramo completado en aventura') && l.includes('habilitando btnAvanzar'));
-    expect(huboHabilitar, `Debe registrarse el log de habilitación de btn-avanzar para el tramo. Logs: ${JSON.stringify(logs.filter(l => /btnAvanzar|Tramo completado/i.test(l)))}`).toBe(true);
+    const huboListo = logs.some(l => l.includes('Tramo completado en aventura') && l.includes('listo para avanzar'));
+    expect(huboListo, `Debe registrarse el log del tramo listo para avanzar. Logs: ${JSON.stringify(logs.filter(l => /btnAvanzar|Tramo completado/i.test(l)))}`).toBe(true);
   });
 
   test('AP-3/AP-4/AP-5. Al pulsar btn-avanzar, progresarSiguienteElemento() avanza, limpia el pending y pide el audio correcto', async ({ page }) => {

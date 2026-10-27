@@ -4959,13 +4959,13 @@
                 // el NAVEGACION.CAMBIO_PARADA real del elemento restaurado (_restoreBroadcast
                 // -> despacharLocal -> _hdl_NAVEGACION_CAMBIO_PARADA), cuya lógica
                 // depende de estado.modo?.actual === MODOS.AVENTURA (arranque del recordatorio
-                // de audio/reto, botón GPS en tramos, deshabilitar btnAvanzar hasta completar) —
+                // de audio/reto, cómo queda «avanzar») —
                 // y estado.modo.actual solo se fija dentro de _activarModoRest(). En el orden
                 // anterior, ese CAMBIO_PARADA se procesaba con el modo aún en su valor por
                 // defecto de arranque (CASA), así que esas ramas nunca se activaban para el
                 // elemento restaurado. Además, el CAMBIO_MODO que _activarModoRest() difunde a
                 // los hijos dispara en hijo2 _resetarEstadoParaModo(), que resetea
-                // idParadaActual/btnAvanzarCompletadoPorPadre — con el orden anterior ese reset
+                // idParadaActual y «avanzar» — con el orden anterior ese reset
                 // llegaba DESPUÉS del CAMBIO_PARADA restaurado y podía borrar los datos de la
                 // parada que se acababan de fijar.
                 await _activarModoRest(logPrefix, datosGuardados);
@@ -5501,13 +5501,12 @@
                         const actionBtn = document.getElementById('gps-error-action');
                         if (actionBtn) actionBtn.style.display = 'none';
                         try { if (typeof showGpsOutOfRangeOverlay === 'function') showGpsOutOfRangeOverlay(0, `Ubicación fuera de la zona de la aventura, a más de ${Math.round(minDistM / 1000)} km`); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                        // «Avanzar» lo decide un solo sitio (Script 2), que mira este bloqueo cada vez
+                        // que decide: basta con avisarle del cambio, y nada lo enciende mientras dure.
+                        try {
+                            globalThis._sincronizarAvanzar('[PADRE][GPS][5KM]').catch(e => (globalThis.logger || console).warn('[PADRE][GPS][5KM] Error sincronizando btnAvanzar:', e?.message));
+                        } catch (e) { (globalThis.logger || console).error('[PADRE][GPS][5KM] No se pudo avisar a «avanzar» del bloqueo:', e?.message); }
                     }
-                    // Se REAFIRMA en cada comprobación mientras siga bloqueado: la progresión
-                    // normal reenvía CONTROL.HABILITAR para btnAvanzar desde otros tres sitios,
-                    // y un bloqueo de un solo disparo se perdía en cuanto uno de ellos saltaba.
-                    try {
-                        enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.DESHABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'fuera_de_zona_5km' } });
-                    } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 } else if (!fuera && wasBlocked) {
                     (globalThis.logger || console).info(`[PADRE][GPS][5KM] Usuario volvió dentro de la ruta (${Math.round(minDistM)}m) — desbloqueando`);
                     globalThis.__VV_5KM_BLOCKED = false;
@@ -5515,8 +5514,8 @@
                     if (actionBtn) actionBtn.style.display = '';
                     try { if (typeof hideGpsOutOfRangeOverlay === 'function') hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     try {
-                        enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'de_vuelta_en_zona' } });
-                    } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                        globalThis._sincronizarAvanzar('[PADRE][GPS][5KM]').catch(e => (globalThis.logger || console).warn('[PADRE][GPS][5KM] Error sincronizando btnAvanzar:', e?.message));
+                    } catch (e) { (globalThis.logger || console).error('[PADRE][GPS][5KM] No se pudo avisar a «avanzar» del fin del bloqueo:', e?.message); }
                 }
             } catch (e) {
                 (globalThis.logger || console).debug('[PADRE][GPS][5KM] Error en chequeo 5km:', e?.message);
@@ -9602,8 +9601,9 @@ await _comprobarReanudacionAventura(logPrefix);
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA: estado limpiado, usuario elige siguiente parada via hijo5`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
-                        (globalThis.logger || console).info(`${logPrefix} ${esTramo ? 'Tramo' : 'Parada'} completado en aventura — habilitando btnAvanzar, esperando confirmación del usuario`);
-                        enviarMensaje_S2({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: esTramo ? 'tramo_completado' : 'parada_completada' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                        (globalThis.logger || console).info(`${logPrefix} ${esTramo ? 'Tramo' : 'Parada'} completado en aventura — listo para avanzar, a la espera de que el usuario pulse`);
+                        // Cómo queda el botón lo decide un solo sitio: con el reto todavía a la vista, por ejemplo, sigue apagado hasta cerrarlo.
+                        _sincronizarAvanzar(logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error sincronizando btnAvanzar:`, e));
 
                         // Cartel al completarse el elemento — cuál de los 4 exactamente depende
                         // de qué acaba de terminar y qué sigue, mira el elemento siguiente en la
@@ -10118,9 +10118,11 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 await _enviarRetoMostrar(retoIdToUsar, _retosArray, logPrefix);
 
-                // El reto ya está a la vista: el botón de retos de hijo3 queda como le toca con un
-                // reto abierto, apagado. Lo decide un solo sitio (_sincronizarRetoBtn).
+                // El reto ya está a la vista: el botón de retos de hijo3 y «avanzar» de hijo2 quedan
+                // como les toca con un reto abierto, apagados. Lo decide un solo sitio para cada uno
+                // (_sincronizarRetoBtn, _sincronizarAvanzar).
                 await _sincronizarRetoBtn(logPrefix);
+                await _sincronizarAvanzar(logPrefix);
 
                 // 📤 Notificar a hijo2 que reto está activo (para deshabilitar botones según reglas)
                 try {
@@ -10214,6 +10216,9 @@ await _comprobarReanudacionAventura(logPrefix);
                     // también si el usuario está fuera de rango y cuál es el elemento actual — antes se
                     // encendía con tal de que el reto cerrado fuese de la cola actual, sin mirar más.
                     _sincronizarRetoBtn(logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error sincronizando retosBtn al cerrar el reto:`, e && e.message));
+                    // «Avanzar», igual: con el reto cerrado se enciende si el elemento ya está completado
+                    // y nada más lo impide (_sincronizarAvanzar).
+                    _sincronizarAvanzar(logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error sincronizando btnAvanzar al cerrar el reto:`, e && e.message));
 
                     // Notificar a hijo4 para limpiar estado interno y restaurar botonRetos en modo CASA.
                     // retoSigueActivo dice si el reto cerrado es del elemento actual: si el usuario ya
@@ -10256,8 +10261,8 @@ await _comprobarReanudacionAventura(logPrefix);
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
-                        (globalThis.logger || console).info(`${logPrefix} Parada aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
-                        enviarMensaje_S2({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                        (globalThis.logger || console).info(`${logPrefix} Parada aventura (sin clave): lista para avanzar, a la espera de que el usuario pulse`);
+                        _sincronizarAvanzar(logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error sincronizando btnAvanzar:`, e));
                     }
                 }
             } catch (error_) {
@@ -10420,15 +10425,23 @@ await _comprobarReanudacionAventura(logPrefix);
                         }
                     } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
-                // Si la parada está completada y esperando que el usuario confirme avance, progresar
-                // primero — completarCambioParada() revela siempre de inmediato al activar el
-                // siguiente elemento (§4.5), así que no hace falta ningún flag ni llamada aparte
-                // para revelar nada aquí: ni para el elemento que se progresa, ni para uno ya
-                // activo (que, si su trazado está oculto, es porque el usuario pulsó btn-ubicacion
-                // — revelarlo a ciegas aquí volvería a mostrar las dos capas de guía a la vez).
-                if (estado.paradaListaParaAvanzar) {
+                // Se avanza con la misma respuesta que enciende el botón (_decidirAvanzar): una
+                // pulsación que ya iba de camino cuando se abrió un reto, o cuando el usuario salió de
+                // rango o de la zona de 5 km, no avanza. Con el botón encendido, progresar primero —
+                // completarCambioParada() revela siempre de inmediato al activar el siguiente
+                // elemento (§4.5), así que no hace falta ningún flag ni llamada aparte para revelar
+                // nada aquí: ni para el elemento que se progresa, ni para uno ya activo (que, si su
+                // trazado está oculto, es porque el usuario pulsó btn-ubicacion — revelarlo a ciegas
+                // aquí volvería a mostrar las dos capas de guía a la vez).
+                const decisionAvanzar = _decidirAvanzar();
+                if (!decisionAvanzar.habilitar && estado.paradaListaParaAvanzar) {
+                    (globalThis.logger || console).warn(`${logPrefix} «Avanzar» pulsado con el elemento completado pero el botón apagado (${decisionAvanzar.razon}): no se avanza`);
+                }
+                if (decisionAvanzar.habilitar) {
                     estado.paradaListaParaAvanzar = false;
                     (globalThis.logger || console).info(`${logPrefix} Parada completada confirmada — progresando al siguiente elemento antes de activar GPS`);
+                    // El botón se apaga en el acto: el elemento ya no espera la pulsación.
+                    await _sincronizarAvanzar(logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error sincronizando btnAvanzar:`, e));
                     try {
                         await progresarSiguienteElemento();
                     } catch (progErr) {
@@ -10502,17 +10515,23 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).error(`${logPrefix} Error ocultando pantallas de distancia:`, error);
             }
 
-            // Contrapartida de USUARIO_FUERA_RANGO: limpiar el flag y dejar el audio y el botón de
-            // retos como les toca AHORA. hijo2 manda este aviso en cada vuelta dentro de rango,
-            // también cuando la gracia no llegó a agotarse y aquí no se había apagado nada: por
-            // eso no se reconfigura nada desde cero — el botón de retos lo decide un solo sitio
-            // (_sincronizarRetoBtn) mirando el estado que ya hay, con el audio terminado incluido.
+            // Contrapartida de USUARIO_FUERA_RANGO: limpiar el flag y dejar el audio, el botón de
+            // retos y «avanzar» como les toca AHORA. hijo2 manda este aviso en cada vuelta dentro de
+            // rango, también cuando la gracia no llegó a agotarse y aquí no se había apagado nada: por
+            // eso no se reconfigura nada desde cero — cada botón lo decide un solo sitio
+            // (_sincronizarRetoBtn, _sincronizarAvanzar) mirando el estado que ya hay, con el audio
+            // terminado y el elemento completado incluidos.
             try {
                 estado.usuarioFueraRango = { activo: false };
                 if (typeof actualizarEstadoControlesAudioPadre === 'function') actualizarEstadoControlesAudioPadre();
                 await _sincronizarRetoBtn(logPrefix);
             } catch (error) {
                 (globalThis.logger || console).warn(`${logPrefix} Error sincronizando audio/retosBtn al volver dentro de rango:`, error);
+            }
+            try {
+                await _sincronizarAvanzar(logPrefix);
+            } catch (error) {
+                (globalThis.logger || console).warn(`${logPrefix} Error sincronizando btnAvanzar al volver dentro de rango:`, error);
             }
         }
 
@@ -11062,6 +11081,58 @@ await _comprobarReanudacionAventura(logPrefix);
         // Publicada porque el HIJO_LISTO de hijo3 se atiende en Script 1 (scope de módulo separado).
         globalThis._sincronizarRetoBtn = _sincronizarRetoBtn;
 
+        // ============================================================
+        // EL BOTÓN «AVANZAR» DE HIJO2: UN SOLO SITIO LO DECIDE
+        // ============================================================
+        // Lo encendían o apagaban siete envíos repartidos por el padre (la compleción, dos reservas
+        // «sin clave», la activación del elemento y el bloqueo de 5 km), y hijo2 lo encendía además
+        // por su cuenta, por cercanía y con sus propios umbrales: en un tramo, a menos de su
+        // tolerancia del final y antes de que el padre diera la llegada; en una parada a medias, al
+        // volver de los 5 km. Pulsarlo entonces no avanzaba (docs/estudio-caminos.md, K-86; lo fija
+        // el spec 157).
+        //
+        // Ahora todos preguntan aquí, y aquí se miran TODAS las variables a la vez. «Avanzar» se
+        // enciende solo si se cumplen las cinco:
+        //   · el modo es AVENTURA;
+        //   · no hay un reto abierto (hijo4 a la vista);
+        //   · el usuario no está a más de 5 km de la ruta (__VV_5KM_BLOCKED, Script 1);
+        //   · no está fuera de rango con la gracia agotada (estado.usuarioFueraRango: lo levanta
+        //     USUARIO_FUERA_RANGO y lo baja GPS.DENTRO_DE_RANGO, los dos de hijo2);
+        //   · el elemento está completado y espera la pulsación (estado.paradaListaParaAvanzar).
+        // Quien cambia una de ellas llama a _sincronizarAvanzar() y no decide nada por su cuenta;
+        // hijo2 solo obedece. La pulsación también pregunta aquí (_hdl_NAVEGACION_GPS_ACTIVAR): se
+        // avanza con la misma respuesta que enciende el botón.
+
+        // La decisión, sin efectos: qué le toca al botón AHORA y por qué. La `razon` viaja en el
+        // mensaje a hijo2 y es lo que se lee en una traza.
+        function _decidirAvanzar() {
+            if (estado.modo?.actual !== MODOS.AVENTURA) return { habilitar: false, razon: 'no_aventura' };
+            if (document.getElementById('hijo4')?.classList.contains('visible')) return { habilitar: false, razon: 'reto_abierto' };
+            if (globalThis.__VV_5KM_BLOCKED === true) return { habilitar: false, razon: 'fuera_de_zona_5km' };
+            if (estado.usuarioFueraRango?.activo === true) return { habilitar: false, razon: 'fuera_de_rango' };
+            if (estado.paradaListaParaAvanzar === true) return { habilitar: true, razon: 'elemento_completado' };
+            return { habilitar: false, razon: 'elemento_sin_completar' };
+        }
+
+        // Manda a hijo2 el estado que le toca a «avanzar» AHORA. Es el único sitio desde el que se
+        // le enciende o se le apaga, y el mensaje lleva siempre la misma forma.
+        async function _sincronizarAvanzar(logPrefix) {
+            if (!estado.hijosInicializados?.has('hijo2')) {
+                (globalThis.logger || console).warn(`${logPrefix} hijo2 no inicializado, btnAvanzar no sincronizado`);
+                return null;
+            }
+            const decision = _decidirAvanzar();
+            (globalThis.logger || console).info(`${logPrefix} btnAvanzar → ${decision.habilitar ? 'encendido' : 'apagado'} (${decision.razon})`);
+            await enviarMensaje_S2({
+                tipo: decision.habilitar ? TIPOS_MENSAJE.CONTROL.HABILITAR : TIPOS_MENSAJE.CONTROL.DESHABILITAR,
+                destino: 'hijo2',
+                datos: { control: 'btnAvanzar', razon: decision.razon }
+            });
+            return decision;
+        }
+        // Publicada porque el bloqueo de 5 km (_check5kmFromRoute) vive en Script 1 (scope de módulo separado).
+        globalThis._sincronizarAvanzar = _sincronizarAvanzar;
+
         function _actualizarEstadoParada(paradaId, parada, estado) {
             estado.paradaActual = paradaId;
             estado.elementoActual = parada;
@@ -11292,35 +11363,19 @@ await _comprobarReanudacionAventura(logPrefix);
                     });
                 }
 
-                // Lógica de botón GPS en tramos y paradas
+                // «Avanzar»: un elemento ya completado queda listo para avanzar, igual que lo dejó
+                // marcarParadaCompletada(); uno sin completar, a la espera. Cómo queda el botón lo decide
+                // un solo sitio (_sincronizarAvanzar), que a un elemento recién activado le contesta
+                // siempre: parada o tramo, en cualquier modo.
                 const esTramo = parada.tipo === 'tramo';
                 if (yaCompletado) {
-                    // Ya estaba completado: queda listo para avanzar, igual que lo dejó marcarParadaCompletada().
                     (globalThis.logger || console).info(`${logPrefix} ${esTramo ? 'Tramo' : 'Parada'} ya completado: listo para avanzar, sin volver a pedir nada`);
                     estado.paradaListaParaAvanzar = true;
-                    try {
-                        await enviarMensaje_S2({
-                            tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                            destino: 'hijo2',
-                            datos: { control: 'btnAvanzar', razon: esTramo ? 'tramo_completado' : 'parada_completada' }
-                        });
-                    } catch (e) {
-                        (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar en un elemento ya completado:`, e);
-                    }
-                } else if (esTramo && estado.modo?.actual === MODOS.AVENTURA) {
-                    // En tramo: botón GPS controlado por distancia en hijo2 (rojo lejos, verde al acercarse al destino)
-                    (globalThis.logger || console).info(`${logPrefix} Tramo detectado, audio pendiente de llegada`);
-                } else if (!esTramo && estado.modo?.actual === MODOS.AVENTURA) {
-                    (globalThis.logger || console).info(`${logPrefix} Parada detectada, btnAvanzar deshabilitado hasta completar audio+reto`);
-                    try {
-                        await enviarMensaje_S2({
-                            tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                            destino: 'hijo2',
-                            datos: { control: 'btnAvanzar', razon: 'parada_pendiente_completar' }
-                        });
-                    } catch (e) {
-                        (globalThis.logger || console).warn(`${logPrefix} Error deshabilitando btnAvanzar en parada:`, e);
-                    }
+                }
+                try {
+                    await _sincronizarAvanzar(logPrefix);
+                } catch (e) {
+                    (globalThis.logger || console).warn(`${logPrefix} Error sincronizando btnAvanzar al activar el elemento:`, e);
                 }
 
                 // Lógica de retos en modo CASA: habilitado solo en paradas que tienen reto
@@ -11561,16 +11616,19 @@ await _comprobarReanudacionAventura(logPrefix);
                     timestamp: timestamp || Date.now()
                 };
 
-                // Deshabilitar audio (padre) y retosBtn (hijo3) — mismo criterio que
-                // _desactivarBotonesRangoExcedido en hijo2 para btn-video/avanzar/mapas:
-                // no tiene sentido interactuar con el contenido de una parada/tramo al
-                // que no se ha llegado. hijo1 (extrainfo), chat y btn-imagen quedan fuera
-                // a propósito — no dependen de la proximidad real. El botón de retos lo apaga
-                // el sitio único que lo decide (_sincronizarRetoBtn), que ya ve el flag de arriba.
+                // Deshabilitar audio (padre), retosBtn (hijo3) y «avanzar» (hijo2) — mismo criterio que
+                // _desactivarBotonesRangoExcedido en hijo2 para btn-video: no tiene sentido interactuar
+                // con el contenido de una parada/tramo al que no se ha llegado. hijo1 (extrainfo), chat y
+                // btn-imagen quedan fuera a propósito — no dependen de la proximidad real. Los dos botones
+                // los apaga el sitio único que decide cada uno (_sincronizarRetoBtn, _sincronizarAvanzar),
+                // que ya ve el flag de arriba.
                 try { actualizarEstadoControlesAudioPadre(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 try {
                     await _sincronizarRetoBtn(logPrefix);
                 } catch (e) { (globalThis.logger || console).warn(`${logPrefix} Error sincronizando retosBtn:`, e); }
+                try {
+                    await _sincronizarAvanzar(logPrefix);
+                } catch (e) { (globalThis.logger || console).warn(`${logPrefix} Error sincronizando btnAvanzar:`, e); }
 
                 (globalThis.logger || console).info(`${logPrefix} Estado actualizado: usuario fuera de rango (franja: ${franja || 'desconocida'})`);
 
@@ -11682,11 +11740,11 @@ await _comprobarReanudacionAventura(logPrefix);
                         _vaciarRetoActual();
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
-                        // Tramo y parada se tratan igual aquí también — habilitar btnAvanzar y
-                        // esperar confirmación, nunca progresar solo (ver marcarParadaCompletada).
+                        // Tramo y parada se tratan igual aquí también — listo para avanzar y a la
+                        // espera de la pulsación, nunca progresar solo (ver marcarParadaCompletada).
                         estado.paradaListaParaAvanzar = true;
-                        (globalThis.logger || console).info(`${logPrefix} ${elementoAudio?.tipo === 'tramo' ? 'Tramo' : 'Parada'} aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
-                        enviarMensaje_S2({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback2' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                        (globalThis.logger || console).info(`${logPrefix} ${elementoAudio?.tipo === 'tramo' ? 'Tramo' : 'Parada'} aventura (sin clave): listo para avanzar, a la espera de que el usuario pulse`);
+                        _sincronizarAvanzar(logPrefix).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error sincronizando btnAvanzar:`, e));
                     }
                 }
             } catch (error_) {
@@ -13485,11 +13543,11 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             const clave = elemento.padreid || `padre-${elemento.parada_id || elemento.tramo_id}`;
 
             // Cerrar el reto, si había uno abierto. Sin esto el usuario paga y se queda con
-            // MENOS que antes: en hijo2, `retoActivo` se comprueba ANTES que
-            // `btnAvanzarCompletadoPorPadre` y sale apagando el botón de avanzar, y la ayuda de
-            // ubicación también exige `!retoActivo`. Resultado: los dos botones apagados
-            // después de pagar. Se reutiliza el cierre normal de un reto —no un camino nuevo—,
-            // que es quien ya sabe ocultar hijo4, avisar a hijo2 y limpiar el estado de hijo4.
+            // MENOS que antes: con un reto a la vista «avanzar» queda apagado (_decidirAvanzar), y
+            // la ayuda de ubicación de hijo2 también exige `!retoActivo`. Resultado: los dos
+            // botones apagados después de pagar. Se reutiliza el cierre normal de un reto —no un
+            // camino nuevo—, que es quien ya sabe ocultar hijo4, avisar a hijo2 y limpiar el
+            // estado de hijo4.
             if (document.getElementById('hijo4')?.classList.contains('visible')) {
                 (globalThis.logger || console).info(`${logPrefix} Había un reto abierto: se cierra antes de conceder`);
                 await globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.RETO.OCULTAR, datos: { retoId: estado.retoActual?.id || null } });

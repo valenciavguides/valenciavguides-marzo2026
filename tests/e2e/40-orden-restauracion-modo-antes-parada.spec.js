@@ -10,8 +10,8 @@
  * dispara el NAVEGACION.CAMBIO_PARADA real del elemento restaurado (_restoreBroadcast()
  * -> despacharLocal -> _hdl_NAVEGACION_CAMBIO_PARADA), y esa función
  * decide varias cosas según estado.modo?.actual === MODOS.AVENTURA: si arranca el
- * recordatorio de audio, la lógica de botón GPS en tramos, y si deshabilita btnAvanzar
- * hasta completar audio+reto.
+ * recordatorio de audio, si el elemento ya completado queda listo para avanzar y cómo
+ * queda «avanzar».
  *
  * estado.modo.actual se aplica en un único punto de la reanudación: dentro de
  * _activarModoRest() (hoy, vía el handler único).

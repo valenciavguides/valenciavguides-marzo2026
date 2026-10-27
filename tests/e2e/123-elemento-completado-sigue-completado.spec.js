@@ -156,7 +156,7 @@ test.describe('EC — Un elemento completado sigue completado', () => {
     await expect.poll(async () => (await recibidoEnHijo2(page)).length, { timeout: 10_000, message: 'la reactivación le dice a hijo2 cómo queda «avanzar»' }).toBeGreaterThan(0);
 
     const avisos = await recibidoEnHijo2(page);
-    expect(avisos[avisos.length - 1], 'el elemento ya está completado: «avanzar» encendido').toEqual({ tipo: 'CONTROL.HABILITAR', razon: 'parada_completada' });
+    expect(avisos[avisos.length - 1], 'el elemento ya está completado: «avanzar» encendido').toEqual({ tipo: 'CONTROL.HABILITAR', razon: 'elemento_completado' });
     await sigueListaParaAvanzar(page, 'tras reactivarse');
   });
 
@@ -214,7 +214,7 @@ test.describe('EC — Un elemento completado sigue completado', () => {
     await expect.poll(async () => (await recibidoEnHijo2(page)).length, { timeout: 10_000, message: 'la reactivación le dice a hijo2 cómo queda «avanzar»' }).toBeGreaterThan(0);
 
     const avisos = await recibidoEnHijo2(page);
-    expect(avisos[avisos.length - 1], 'la parada no está completada: «avanzar» sigue a la espera').toEqual({ tipo: 'CONTROL.DESHABILITAR', razon: 'parada_pendiente_completar' });
+    expect(avisos[avisos.length - 1], 'la parada no está completada: «avanzar» sigue a la espera').toEqual({ tipo: 'CONTROL.DESHABILITAR', razon: 'elemento_sin_completar' });
     const padre = await estadoDelPadre(page);
     expect(padre, 'ni completada ni lista, y la ficha conserva lo que ya estaba hecho').toMatchObject({ completada: false, listaParaAvanzar: false, ficha: { audio: true, reto: false } });
   });
@@ -332,7 +332,7 @@ test.describe('RS — El rescate deja avanzar', () => {
       await expect.poll(() => page.evaluate(() => globalThis.estado.paradaListaParaAvanzar === true), { timeout: 10_000, message: 'tras el rescate se puede avanzar' }).toBe(true);
       // El aviso a hijo2 viaja aparte, por postMessage, y llega después de que el padre anote que se puede avanzar: se espera.
       await expect.poll(async () => (await recibidoEnHijo2(page)).at(-1), { timeout: 10_000, message: 'y el padre le enciende «avanzar» a hijo2' })
-        .toEqual({ tipo: 'CONTROL.HABILITAR', razon: 'parada_completada' });
+        .toEqual({ tipo: 'CONTROL.HABILITAR', razon: 'elemento_completado' });
     });
   }
 });
