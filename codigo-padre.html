@@ -1426,30 +1426,15 @@
 
     <!-- Create map container early with inline script -->
     <script>
-        // ÚNICO DOMContentLoaded listener consolidado para evitar duplicaciones
-        document.addEventListener('DOMContentLoaded', function() {
-            (globalThis.logger || console).info('[PADRE] DOMContentLoaded - Inicialización unificada');
-
-            // 1. Crear contenedor de mapa si no existe
-            if (!document.getElementById('mapa')) {
-                (globalThis.logger || console).info('Creating #mapa container during early DOM initialization');
-                const mapContainer = document.createElement('div');
-                mapContainer.id = 'mapa';
-                mapContainer.dataset.createdBy = 'early-initialization';
-                mapContainer.style.cssText = 'width: 100%; height: 400px; position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 10; background-color: #f0f0f0;';
-
-                // Insert at the beginning of container or body
-                const container = document.querySelector('.container') || document.body;
-                if (container && container.firstChild) {
-                    container.insertBefore(mapContainer, container.firstChild);
-                } else if (container) {
-                    container.appendChild(mapContainer);
-                } else {
-                    document.body.appendChild(mapContainer);
-                }
-                (globalThis.logger || console).info('#mapa container created successfully during early initialization');
-            }
-
+        // Visibilidad centralizada del selector de tipo de mapa y del menú de modo de
+        // cámara (#brujula-modo) — mismo criterio para los dos, mismo z-index por encima
+        // del chat/overlays (1000020-1000030) que sin esto los dejaba viéndose por
+        // delante. Se ocultan cuando hay ventanas/modales encima (chat, retos, overlays)
+        // y vuelven a mostrarse al cerrar. Se publica aquí y no en el DOMContentLoaded:
+        // este script clásico corre antes que cualquier módulo y la función busca sus
+        // elementos en cada llamada, así que existe para todos sus llamadores (Script 1,
+        // Script 2, Script 3, la galería y el asistente) sin que tengan que comprobarlo.
+        (function() {
             function esVisible(el) {
                 if (!el) return false;
                 let style = globalThis.getComputedStyle(el);
@@ -1459,11 +1444,6 @@
                 return !!(el && (el.classList.contains('visible') || esVisible(el)));
             }
 
-            // Visibilidad centralizada del selector de tipo de mapa y del menú de modo de
-            // cámara (#brujula-modo) — mismo criterio para los dos, mismo z-index por encima
-            // del chat/overlays (1000020-1000030) que sin esto los dejaba viéndose por
-            // delante. Se ocultan cuando hay ventanas/modales encima (chat, retos, overlays)
-            // y vuelven a mostrarse al cerrar.
             globalThis.actualizarVisibilidadSelectorMapa = function() {
                 let selector = document.getElementById('selector-tipo-mapa');
                 let brujulaModo = document.getElementById('brujula-modo');
@@ -1489,6 +1469,31 @@
                 if (selector) selector.style.display = hayVentanaActiva ? 'none' : 'flex';
                 if (brujulaModo) brujulaModo.style.display = hayVentanaActiva ? 'none' : 'flex';
             };
+        })();
+
+        // ÚNICO DOMContentLoaded listener consolidado para evitar duplicaciones
+        document.addEventListener('DOMContentLoaded', function() {
+            (globalThis.logger || console).info('[PADRE] DOMContentLoaded - Inicialización unificada');
+
+            // 1. Crear contenedor de mapa si no existe
+            if (!document.getElementById('mapa')) {
+                (globalThis.logger || console).info('Creating #mapa container during early DOM initialization');
+                const mapContainer = document.createElement('div');
+                mapContainer.id = 'mapa';
+                mapContainer.dataset.createdBy = 'early-initialization';
+                mapContainer.style.cssText = 'width: 100%; height: 400px; position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 10; background-color: #f0f0f0;';
+
+                // Insert at the beginning of container or body
+                const container = document.querySelector('.container') || document.body;
+                if (container && container.firstChild) {
+                    container.insertBefore(mapContainer, container.firstChild);
+                } else if (container) {
+                    container.appendChild(mapContainer);
+                } else {
+                    document.body.appendChild(mapContainer);
+                }
+                (globalThis.logger || console).info('#mapa container created successfully during early initialization');
+            }
 
             // 3. Asistente de soporte (hijo6) — se abre con su botón y se cierra por mensaje
             (function() {
@@ -1535,9 +1540,7 @@
                 function _mostrarChat() {
                     iframeChat.style.display     = 'block';
                     iframeChat.style.visibility  = 'visible';
-                    if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                        globalThis.actualizarVisibilidadSelectorMapa();
-                    }
+                    globalThis.actualizarVisibilidadSelectorMapa();
                 }
 
                 function abrirChat() {
@@ -1554,9 +1557,7 @@
                 function cerrarChat() {
                     iframeChat.style.display    = 'none';
                     iframeChat.style.visibility = 'hidden';
-                    if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                        globalThis.actualizarVisibilidadSelectorMapa();
-                    }
+                    globalThis.actualizarVisibilidadSelectorMapa();
                 }
 
                 // Puente entre scopes: `_hdl_CHAT_CERRAR` vive en Script 2 y necesita esta `cerrarChat`.
@@ -1617,9 +1618,7 @@
             overlay.querySelector('.btn-cerrar-overlay')?.addEventListener('click', cerrarImagenOverlay);
             _galeriaProtegerBoton(overlay);
             overlay.classList.add('visible');
-            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                globalThis.actualizarVisibilidadSelectorMapa();
-            }
+            globalThis.actualizarVisibilidadSelectorMapa();
         }
 
         function _mostrarOverlayGaleria(imagenes, titulo, textoParada, tipo, mapa_numero, objectFit, fullHeight, zoomable) {
@@ -1651,9 +1650,7 @@
             overlay.querySelector('.btn-cerrar-overlay')?.addEventListener('click', cerrarImagenOverlay);
             _galeriaProtegerBoton(overlay);
             overlay.classList.add('visible');
-            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                globalThis.actualizarVisibilidadSelectorMapa();
-            }
+            globalThis.actualizarVisibilidadSelectorMapa();
             _galeriaRenderizar();
             (globalThis.logger || console).info('Galería mostrada:', imagenes.length, 'imágenes, tipo:', tipo, 'mapa:', mapa_numero);
         }
@@ -1687,9 +1684,7 @@
             const overlay = document.getElementById('imagen-overlay');
             if (overlay) {
                 overlay.classList.remove('visible');
-                if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                    globalThis.actualizarVisibilidadSelectorMapa();
-                }
+                globalThis.actualizarVisibilidadSelectorMapa();
                 setTimeout(() => {
                     overlay.remove();
                 }, 400);
@@ -1961,9 +1956,7 @@
                 btn.addEventListener('pointerdown', _stopPropEvent);
             }
             overlay.classList.add('visible');
-            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                globalThis.actualizarVisibilidadSelectorMapa();
-            }
+            globalThis.actualizarVisibilidadSelectorMapa();
         }
 
         function _crearVideoOverlayEl() {
@@ -2040,9 +2033,7 @@
 
             // Mostrar overlay
             overlay.classList.add('visible');
-            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                globalThis.actualizarVisibilidadSelectorMapa();
-            }
+            globalThis.actualizarVisibilidadSelectorMapa();
 
             // reproducirVideoConBuffer (js/video-playback-utils.js) espera a canplaythrough
             // antes de arrancar — mismo mecanismo para cualquier duración de vídeo, sin
@@ -2063,9 +2054,7 @@
                 }
 
                 overlay.classList.remove('visible');
-                if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                    globalThis.actualizarVisibilidadSelectorMapa();
-                }
+                globalThis.actualizarVisibilidadSelectorMapa();
                 setTimeout(() => {
                     overlay.remove();
                 }, 400);
@@ -2128,9 +2117,7 @@
 
             // Mostrar overlay
             overlay.classList.add('visible');
-            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                globalThis.actualizarVisibilidadSelectorMapa();
-            }
+            globalThis.actualizarVisibilidadSelectorMapa();
 
             (globalThis.logger || console).info('Error mostrado en overlay:', mensajeError);
         };
@@ -2139,9 +2126,7 @@
             const overlay = document.getElementById('error-overlay');
             if (overlay) {
                 overlay.classList.remove('visible');
-                if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                    globalThis.actualizarVisibilidadSelectorMapa();
-                }
+                globalThis.actualizarVisibilidadSelectorMapa();
                 setTimeout(() => {
                     overlay.remove();
                 }, 400);
@@ -2211,9 +2196,7 @@
                 _iframeEl.addEventListener('load', () => requestAnimationFrame(_sendMapaVisible), { once: true });
                 _mapaVisibleFallback = setTimeout(_sendMapaVisible, 1500);
             }
-            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                globalThis.actualizarVisibilidadSelectorMapa();
-            }
+            globalThis.actualizarVisibilidadSelectorMapa();
             (globalThis.logger || console).info('Iframe mostrado en overlay:', urlIframe);
         };
 
@@ -2230,9 +2213,7 @@
             const overlay = document.getElementById('iframe-overlay');
             if (overlay) {
                 overlay.classList.remove('visible');
-                if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                    globalThis.actualizarVisibilidadSelectorMapa();
-                }
+                globalThis.actualizarVisibilidadSelectorMapa();
                 setTimeout(() => {
                     overlay.remove();
                 }, 400);
@@ -4741,7 +4722,7 @@
             if (selMapa) selMapa.style.display = 'flex';
             const brujulaModoDiv3 = document.getElementById('brujula-modo');
             if (brujulaModoDiv3) { brujulaModoDiv3.style.display = 'flex'; brujulaModoDiv3.style.visibility = 'visible'; }
-            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') globalThis.actualizarVisibilidadSelectorMapa();
+            globalThis.actualizarVisibilidadSelectorMapa();
             const logoEl = document.getElementById('logo-aventura');
             const fondoEl = document.getElementById('fondo-blanco');
             const fondoInferiorEl = document.getElementById('fondo-blanco-inferior');
@@ -10156,9 +10137,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     setTimeout(() => {
                         backdrop.style.cssText = 'display:none;';
                         hijo4.style.cssText = 'display:none;';
-                        if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                            globalThis.actualizarVisibilidadSelectorMapa();
-                        }
+                        globalThis.actualizarVisibilidadSelectorMapa();
                     }, 300); // Tiempo de transición
 
                     (globalThis.logger || console).info(`${logPrefix} Reto ${retoId} ocultado correctamente`);
@@ -12109,9 +12088,7 @@ await _comprobarReanudacionAventura(logPrefix);
             // genérico de arriba, que fuerza 'block' (rompería su flex-direction:column-reverse).
             const brujulaModoDiv2 = document.getElementById('brujula-modo');
             if (brujulaModoDiv2) { brujulaModoDiv2.style.display = 'flex'; brujulaModoDiv2.style.visibility = 'visible'; }
-            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                globalThis.actualizarVisibilidadSelectorMapa();
-            }
+            globalThis.actualizarVisibilidadSelectorMapa();
             const logoElement = document.getElementById('logo-aventura');
             const fondoElement = document.getElementById('fondo-blanco');
             const fondoInferiorElement = document.getElementById('fondo-blanco-inferior');
@@ -13654,9 +13631,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
                 hijo4.style.cssText = 'display:block !important; opacity:1 !important; visibility:visible !important; position:fixed !important; top:50% !important; left:50% !important; transform:translate(-50%,-50%) !important; width:min(90vw, 85vmin) !important; height:90dvh !important; z-index:1000010 !important; border:0.125rem solid #3399ff; border-radius:0.625rem; background-color:white; box-shadow:0 0 1.25rem rgba(0,0,0,0.5); overflow:hidden;';
                 hijo4.classList.add('visible');
-                if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                    globalThis.actualizarVisibilidadSelectorMapa();
-                }
+                globalThis.actualizarVisibilidadSelectorMapa();
 
                 hijo4.getBoundingClientRect(); // force reflow before animation
 
