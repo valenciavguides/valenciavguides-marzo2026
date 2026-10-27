@@ -4003,6 +4003,11 @@
             // diferencia de la distancia recorrida de funciones-mapa.js, que se reinicia
             // adrede al reabrir la PWA): son un límite antiabuso, no contabilidad de progreso.
             tramoSkipsUsados: 0,
+            // El rescate concedido sobre el elemento actual, hasta que se avanza: `{ elementoId }` o null
+            // (docs/estudio-caminos.md, K-86, K-78 y K-91). Lo crea _concederRescate, lo gasta
+            // progresarSiguienteElemento y se guarda en vv_progreso. Lo leen _decidirAvanzar (un punto rescatado
+            // no mira la zona) y la compleción (sin cartel de transición encima de la pantalla del rescate).
+            rescateEnCurso: null,
             paradas: [],
             todosHijosListos: false,
 
@@ -4151,6 +4156,9 @@
                     // contabilidad de progreso — sin persistirlo, cerrar y reabrir la PWA
                     // antes de cada rescate los daría ilimitados, sin el tope de la aventura.
                     tramoSkipsUsados: typeof estado.tramoSkipsUsados === 'number' ? estado.tramoSkipsUsados : 0,
+                    // El rescate concedido sobre el elemento actual: sin guardarlo, tras una recarga el punto rescatado
+                    // volvería a mirar la zona y el usuario que no puede llegar se quedaría sin avanzar.
+                    rescateEnCurso: estado.rescateEnCurso ? { elementoId: estado.rescateEnCurso.elementoId } : null,
                     // Lo hecho dentro del elemento actual. Sin esto, al recargarse la app la parada
                     // empezaba de cero: el audio ya escuchado o saltado y el reto ya resuelto había
                     // que repetirlos (docs/estudio-caminos.md, K-89).
@@ -4268,6 +4276,7 @@
                 (globalThis.logger || console).info(`${logPrefix} tiempoRestante restaurado: ${estado.tiempoRestante}s`);
             }
             if (typeof obj.tramoSkipsUsados === 'number') estado.tramoSkipsUsados = obj.tramoSkipsUsados;
+            estado.rescateEnCurso = typeof obj.rescateEnCurso?.elementoId === 'string' ? { elementoId: obj.rescateEnCurso.elementoId } : null;
             // El elemento en curso lo decide un solo dato guardado, su identificador (elementoActualId), y el índice y la
             // parada salen de él. Aquí se reponían también el índice y la parada guardados, y _restaurarProgresoRest volvía
             // a fijar el elemento por el índice: tres respuestas a la misma pregunta, que solo coinciden mientras los datos
@@ -9404,7 +9413,8 @@ await _comprobarReanudacionAventura(logPrefix);
                     }
                 }
 
-                _cobrarRescateSiProcede(elementoAnterior, logPrefix);
+                // El registro del rescate es del elemento que se deja: se gasta aquí. El cobro ya se hizo al concederlo.
+                estado.rescateEnCurso = null;
 
                 // Incrementar índice de progreso
                 estado.indiceProgreso++;
@@ -9585,11 +9595,10 @@ await _comprobarReanudacionAventura(logPrefix);
                             // ninguno: la pantalla de "rescate utilizado" ya se lo ha contado al
                             // usuario, con su nombre y su cuenta, y con más detalle del que cabe
                             // en un cartel. Encadenarle detrás el de transición sería contarle
-                            // dos veces lo mismo. Se consume una sola vez, igual que la marca del
-                            // barrido de aquí abajo.
-                            const _pedido = estado._rescatePeticionPendiente;
-                            if (_pedido && _pedido.clave === idLimpio) {
-                                estado._rescatePeticionPendiente = null;
+                            // dos veces lo mismo. Aquí solo se pregunta: el registro del rescate lo
+                            // gasta el avance.
+                            if (estado.rescateEnCurso?.elementoId === idLimpio) {
+                                (globalThis.logger || console).debug(`${logPrefix} ${idLimpio}, rescatado: sin cartel de transición`);
                             } else if (elementoSiguiente?.tipo === 'tramo') {
                                 globalThis.mostrarCartelInicioTramo?.(
                                     esTramo ? 'tramo' : 'parada',
@@ -11035,11 +11044,19 @@ await _comprobarReanudacionAventura(logPrefix);
         //   · no hay un reto abierto (hijo4 a la vista);
         //   · el usuario no está a más de 5 km de la ruta (__VV_5KM_BLOCKED, Script 1);
         //   · no está fuera de rango con la gracia agotada (estado.usuarioFueraRango: lo levanta
-        //     USUARIO_FUERA_RANGO y lo baja GPS.DENTRO_DE_RANGO, los dos de hijo2);
+        //     USUARIO_FUERA_RANGO y lo baja GPS.DENTRO_DE_RANGO, los dos de hijo2), salvo que el elemento
+        //     sea el rescatado: el rescate existe para quien no puede llegar (estado.rescateEnCurso);
         //   · el elemento está completado y espera la pulsación (estado.paradaListaParaAvanzar).
         // Quien cambia una de ellas llama a _sincronizarAvanzar() y no decide nada por su cuenta;
         // hijo2 solo obedece. La pulsación también pregunta aquí (_hdl_NAVEGACION_GPS_ACTIVAR): se
         // avanza con la misma respuesta que enciende el botón.
+
+        // ¿El elemento actual es el rescatado? Un punto rescatado no mira la zona: el rescate existe para quien
+        // no puede llegar (decisión del usuario, docs/estudio-caminos.md, K-86). Los 5 km siguen mandando.
+        function _elementoActualRescatado() {
+            const id = estado.elementoActual?.parada_id || estado.elementoActual?.tramo_id || null;
+            return !!id && estado.rescateEnCurso?.elementoId === id;
+        }
 
         // La decisión, sin efectos: qué le toca al botón AHORA y por qué. La `razon` viaja en el
         // mensaje a hijo2 y es lo que se lee en una traza.
@@ -11047,8 +11064,9 @@ await _comprobarReanudacionAventura(logPrefix);
             if (estado.modo?.actual !== MODOS.AVENTURA) return { habilitar: false, razon: 'no_aventura' };
             if (document.getElementById('hijo4')?.classList.contains('visible')) return { habilitar: false, razon: 'reto_abierto' };
             if (globalThis.__VV_5KM_BLOCKED === true) return { habilitar: false, razon: 'fuera_de_zona_5km' };
-            if (estado.usuarioFueraRango?.activo === true) return { habilitar: false, razon: 'fuera_de_rango' };
-            if (estado.paradaListaParaAvanzar === true) return { habilitar: true, razon: 'elemento_completado' };
+            const fueraDeRango = estado.usuarioFueraRango?.activo === true;
+            if (fueraDeRango && !_elementoActualRescatado()) return { habilitar: false, razon: 'fuera_de_rango' };
+            if (estado.paradaListaParaAvanzar === true) return { habilitar: true, razon: fueraDeRango ? 'elemento_rescatado' : 'elemento_completado' };
             return { habilitar: false, razon: 'elemento_sin_completar' };
         }
 
@@ -13357,43 +13375,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         }
 
         /**
-         * Cobra el rescate en el momento en que el elemento avanza de verdad.
-         *
-         * NO se cobra al pulsar Sí: el gasto se apunta en memoria
-         * (estado._rescateGastoPendiente) y se cobra aquí, al avanzar. El elemento, en cambio,
-         * queda completado y guardado en el acto (vv_paradas_completadas). Si la app se cierra
-         * entre el Sí y el botón de avanzar —un móvil sin batería mientras el usuario lee el
-         * cartel y mira alrededor—, al reanudar el elemento sigue completado y el apunte ya no
-         * existe: ese rescate no se cobra. El fallo cae a favor del usuario.
-         *
-         * El cobro se difirió porque el gasto y su efecto no eran atómicos: una recarga en esa
-         * ventana dejaba el elemento sin poder avanzar (docs/estudio-caminos.md, K-85), y
-         * cobrando al pulsar Sí el usuario habría pagado sin recibir nada. Qué hacer con el
-         * rescate que hoy queda sin cobrar está por decidir (docs/estudio-caminos.md, K-91).
-         */
-        function _cobrarRescateSiProcede(elementoQueSeDeja, logPrefix) {
-            const pendiente = estado._rescateGastoPendiente;
-            if (!pendiente) return;
-
-            const clave = elementoQueSeDeja
-                ? (elementoQueSeDeja.padreid || `padre-${elementoQueSeDeja.parada_id || elementoQueSeDeja.tramo_id}`)
-                : null;
-            if (clave !== pendiente.clave) {
-                (globalThis.logger || console).warn(`${logPrefix} Se avanza desde ${clave}, pero el rescate pendiente era de ${pendiente.clave} — no se cobra, y la marca se retira`);
-                estado._rescateGastoPendiente = null;
-                return;
-            }
-
-            estado._rescateGastoPendiente = null;
-            const usadas = (typeof estado.tramoSkipsUsados === 'number' ? estado.tramoSkipsUsados : 0) + 1;
-            estado.tramoSkipsUsados = usadas;
-            (globalThis.logger || console).info(`${logPrefix} Rescate cobrado al avanzar de verdad desde ${clave} — ${usadas} usados`);
-            try {
-                globalThis.persistProgressState();
-            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-        }
-
-        /**
          * Concede el rescate: da por resuelto el elemento actual y deja al usuario listo para
          * avanzar. Devuelve la cuenta de después, o null si al final no se concede nada.
          *
@@ -13439,12 +13420,20 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             // _paradaConditionsMet mira las dos y grita si discrepan.
             _anotarEnFicha(clave, elemento.tipo === 'tramo' ? 'tramo' : 'parada', { llegada: true, audio: true, reto: true });
 
-            estado._rescateGastoPendiente = { clave };
-            estado._rescatePeticionPendiente = { clave: String(clave).replace(/^padre-/, '').trim() };
+            // El registro del rescate, antes de completar: la compleción ya pregunta por él (sin cartel de
+            // transición) y «avanzar» también (un punto rescatado no mira la zona).
+            const elementoId = elemento.parada_id || elemento.tramo_id;
+            estado.rescateEnCurso = { elementoId };
 
             await intentarCompletarElemento(clave);
-            (globalThis.logger || console).info(`${logPrefix} Rescate concedido en ${clave} — se cobrará al avanzar`);
-            return { nombre: ahora.nombre, usadas: ahora.usadas + 1, total: ahora.total };
+
+            // Se cobra al concederlo: el punto ya queda completado y guardado (vv_paradas_completadas), así que
+            // pagar y recibirlo van juntos (decisión del usuario, docs/estudio-caminos.md, K-91). El cobro y el
+            // registro se guardan con el progreso.
+            estado.tramoSkipsUsados = ahora.usadas + 1;
+            globalThis.persistProgressState();
+            (globalThis.logger || console).info(`${logPrefix} Rescate concedido y cobrado en ${elementoId} — ${estado.tramoSkipsUsados} usados`);
+            return { nombre: ahora.nombre, usadas: estado.tramoSkipsUsados, total: ahora.total };
         }
 
         /**
@@ -13584,10 +13573,9 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             if (globalThis.window !== undefined && globalThis._estadoRescate === undefined) {
                 globalThis._estadoRescate = _estadoRescate;
             }
-            // Expuesta por el mismo motivo que el barrido de recordatorios: el cobro del
-            // rescate ocurre justo aquí, al avanzar de verdad, y sin poder invocar el avance
-            // no hay forma de comprobar que un fallo en la ventana entre el "Sí" y el botón
-            // le devuelve el rescate al usuario. Mismo cuerpo, mismo comportamiento.
+            // Expuesta para los specs que avanzan sin pasar por el botón: el 72 (al avanzar se gasta el
+            // registro del rescate y no se cobra otra vez) y el 145 (la cola de retos). Mismo cuerpo,
+            // mismo comportamiento.
             if (globalThis.window !== undefined && globalThis.progresarSiguienteElemento === undefined) {
                 globalThis.progresarSiguienteElemento = progresarSiguienteElemento;
             }

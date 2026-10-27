@@ -306,7 +306,7 @@ async function ponerParadaParaRescate(page, audioTerminado) {
     e.indiceProgreso = elementos.indexOf(parada);
     e.paradasCompletadas = new Map();
     e.tramoSkipsUsados = 0;
-    e._rescateGastoPendiente = null;
+    e.rescateEnCurso = null;
     e.paradaListaParaAvanzar = false;
     e.pendingCompleciones = { [parada.padreid]: { tipo: 'parada', llegada: false, audio: audioTerminado, reto: false, retosTotal: retos.length, retosCompletadosCount: 0, timestamp: Date.now(), ttlMs: 600000 } };
     e.retoActual = { id: retos[0], cola: retos, colaCompletados: new Set() };

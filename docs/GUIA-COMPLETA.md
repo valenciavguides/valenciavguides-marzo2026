@@ -4009,7 +4009,7 @@ Gestiona los 6 botones de navegación —solo piden: lo que enseñan lo resuelve
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, tipo, timestamp, origenCambio }` — el id y el tipo de su elemento, sin su contenido | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea estado GPS/llegada y deja «avanzar» apagado hasta que el padre diga cómo queda; llama `actualizarEstadoBotones()` | ✓ | ✓ |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | `{ activo, permisos, precision }` | En CASA deja el botón de ubicación rojo y deshabilitado; en AVENTURA no hace nada (el botón lo decide la distancia) | ✓ | ✓ |
 | `NAVEGACION.GPS.ERROR` | `{ codigo, mensaje, contexto }` | Deja el error en el log; no muestra nada | ✓ | ✓ |
-| `CONTROL.HABILITAR` | `{ control:'btnAvanzar', razon:'elemento_completado' }` | Enciende «avanzar» (`avanzarHabilitadoPorPadre = true`, §29.6) | — | ✓ |
+| `CONTROL.HABILITAR` | `{ control:'btnAvanzar', razon }` — `'elemento_completado'` o `'elemento_rescatado'` | Enciende «avanzar» (`avanzarHabilitadoPorPadre = true`, §29.6) | — | ✓ |
 | `CONTROL.DESHABILITAR` | `{ control:'btnAvanzar', razon }` — `'no_aventura'`, `'reto_abierto'`, `'fuera_de_zona_5km'`, `'fuera_de_rango'` o `'elemento_sin_completar'` | Apaga «avanzar» (`avanzarHabilitadoPorPadre = false`) | ✓ | ✓ |
 | `CONTROL.HABILITAR` | `{ motivo:'reto_cerrado'/'vista_cerrada' }` | Rehabilita todos los botones de mapa (sin `control` explícito — hijo2 decide qué re-habilitar según `motivo`) | ✓ | ✓ |
 | `NAVEGACION.ACTUALIZAR_ESTADO` | `{ distanciaAlDestino, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng }` | Almacena posición en `posicionActualUsuario`; detecta llegada; activa la lógica de fuera de rango (§31.4) | — | ✓ |
@@ -4914,7 +4914,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a3bc2960294f'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-36d6fd30f388'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6003,7 +6003,7 @@ El padre usa `localStorage` para restaurar el estado de la aventura entre recarg
 | Clave | Escritor | Lector adicional | Contenido | Cuándo se borra |
 |-------|---------|-----------------|-----------|-----------------|
 | `vv_aventura_iniciada` | padre (activación inicial) + padre (`_hdl_SISTEMA_CAMBIO_MODO`, en cada cambio de modo real de la sesión — incluida la activación de dev mode) | `reciclaje-digital.js` (lee para log antes de borrar; `verificarTimeoutAventura()` lee `aventura`+`timestamp` para la ventana de compra) | `{ aventura, idioma, modo, dev, timestamp }` — punto de entrada de `ejecutarRestauracionAventura()`. `modo` (`'casa'`\|`'aventura'`) y `dev` (booleano) son **dimensiones independientes**, no derivables una de otra: existen dev/CASA, dev/AVENTURA y prod/AVENTURA. Ambos reflejan el estado real de la sesión en cada momento — se escriben en la activación y se resincronizan en cada cambio de modo. Un payload sin `dev` (guardado antes de que el campo existiera) se sigue restaurando: se deduce `dev = true` solo si `modo === 'casa'` | `limpiarDatosAventura()` (fin/reset) y `_borrarAventuraGuardada()` («elegir otra» y la vuelta a CASA); si no es JSON válido, `leerJSON` la borra al leerla |
-| `vv_progreso` | padre (`persistProgressState()`, solo en AVENTURA: en cada `CAMBIO_PARADA`, al fijar la parada por defecto, al completarse un elemento, al cobrarse un rescate y en cada anotación de la ficha del elemento, `_anotarEnFicha()`) | padre al restaurar (el elemento sale de `elementoActualId`, §9.10) y el diálogo de reanudación (enseña «parada N de M» con `indiceProgreso` y `totalParadas`) | `{ indiceProgreso, elementoActualId, totalParadas, tiempoRestante, tramoSkipsUsados, ficha, aventura, idioma, timestamp }`; `ficha` es `{ clave, llegada, audio, reto, retosCompletadosCount }` del elemento actual, o `null` si todavía no tiene ficha | `limpiarDatosAventura()`, `_borrarAventuraGuardada()`, y el progreso caducado, de otra aventura o de otro idioma (`_restoreCheckStale`, `_restoreCheckMismatch`) o roto (`leerJSON`) |
+| `vv_progreso` | padre (`persistProgressState()`, solo en AVENTURA: en cada `CAMBIO_PARADA`, al fijar la parada por defecto, al completarse un elemento, al cobrarse un rescate y en cada anotación de la ficha del elemento, `_anotarEnFicha()`) | padre al restaurar (el elemento sale de `elementoActualId`, §9.10) y el diálogo de reanudación (enseña «parada N de M» con `indiceProgreso` y `totalParadas`) | `{ indiceProgreso, elementoActualId, totalParadas, tiempoRestante, tramoSkipsUsados, rescateEnCurso, ficha, aventura, idioma, timestamp }`; `ficha` es `{ clave, llegada, audio, reto, retosCompletadosCount }` del elemento actual, o `null` si todavía no tiene ficha; `rescateEnCurso` es `{ elementoId }` del elemento rescatado hasta que se avanza, o `null` (§25.19) | `limpiarDatosAventura()`, `_borrarAventuraGuardada()`, y el progreso caducado, de otra aventura o de otro idioma (`_restoreCheckStale`, `_restoreCheckMismatch`) o roto (`leerJSON`) |
 | `vv_idioma` | padre (`_hdl_SELECCION_IDIOMA_SELECCIONADO`, su único escritor) | `En-busca-del-tesoro.html` `_checkUrlParams()` (el idioma de la despedida, tras la recarga) y `globalThis.idiomaDeLaInterfaz()` del padre (el idioma de la interfaz antes de elegir) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()`, «elegir otra» (`_elegirOtraAventura()` → `_borrarAventuraGuardada({ conIdioma: true })`, en sus dos diálogos) y `_hdl_SELECCION_REINICIAR` (la vuelta a la elección de idioma sin recargar: el «no» del reto R-2, el ✗ de P3 y el «No» del aviso sin audio) |
 | `vv_paradas_completadas` | padre | padre al restaurar | Array de pares `[[id, registro], ...]` — formato nativo de `Map.entries()`. Se restaura con `new Map(paradasObj)`, **no** con `Object.entries()` (este último produce claves numéricas y rompe el dedup). | `limpiarDatosAventura()` y `_borrarAventuraGuardada()` |
 | `vv_debug` | Manual (DevTools) | `js/proteccion.js` | `'1'` = modo debug activo (desactiva algunas protecciones) | Manual, **y también `limpiarDatosAventura()`**, que vacía el almacenamiento entero |
@@ -7960,7 +7960,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `67-flecha-una-sola-fuente.spec.js` | 3 | El rumbo de la flecha GPS tiene una sola fuente, la brújula (§4.5). `actualizarMarcadorUsuario()` no acepta ningún rumbo: se comprueban su aridad y su fuente para que nadie reintroduzca el parámetro y deje a los llamadores posicionales pasando la precisión donde va el modo (FS-1); `coords.heading` no aparece en ninguna línea de código de `js/funciones-mapa.js` —solo en el comentario que explica por qué no se usa, que el test excluye a propósito— ni se construye un `heading` antes de la llamada real (FS-2); y sin ninguna lectura de brújula la flecha se dibuja a `rotate(0deg)` emitiendo **un** aviso, no uno por cada lectura de GPS (FS-3) |
 | `70-rescate-peticion-ida-y-vuelta.spec.js` | 6 | La petición del asistente llega al padre y su respuesta vuelve (§25.19): `_estadoRescate()` devuelve SIEMPRE un objeto con la cuenta dentro, aunque diga que no (RP-1); fuera de AVENTURA niega con motivo (RP-2); el punto de inicio queda fuera (RP-3); con los rescates agotados lo dice y por qué (RP-4); un elemento ya confirmado no se rescata (RP-5); y el camino real —pulsando el botón dentro del iframe— recibe la respuesta sin agotar plazo (RP-6) |
 | `71-rescate-boton-y-pantallas.spec.js` | 4 | El botón del asistente solo aparece si sirve (§25.19): en el punto de partida no se pinta pero el asistente sigue entero (OB-1); con los rescates agotados SÍ se pinta y su pantalla explica por qué (OB-2); el `{total}` del texto lo rellena el padre y ninguna llave cruda llega a pantalla (OB-3); y la pantalla de decisión ni se autocierra a los 11 s ni la borra un cartel de evento que llame a `_ocultarCualquierCartel()` (OB-4) |
-| `72-rescate-concesion.spec.js` | 6 | Qué se da y cuándo se cobra (§25.19): dos síes dejan el punto atrás y el rescate **no** se ha cobrado todavía (CR-1); el cobro llega al avanzar de verdad, no al confirmar (CR-2); volver al recorrido en la primera pantalla no gasta ni completa nada (CR-3); si el punto cambia mientras decide no se concede sobre otro distinto (CR-4); y si la aventura termina mientras decide —por tiempo (CR-5) o completada (CR-6)— no hay rescate posible |
+| `72-rescate-concesion.spec.js` | 6 | Qué se da y cuándo se cobra (§25.19): dos síes dejan el punto atrás y el rescate se cobra en ese momento, con su registro (CR-1); al avanzar no se cobra otra vez y el registro se gasta (CR-2); volver al recorrido en la primera pantalla no gasta ni completa nada (CR-3); si el punto cambia mientras decide no se concede sobre otro distinto (CR-4); y si la aventura termina mientras decide —por tiempo (CR-5) o completada (CR-6)— no hay rescate posible |
 | `65-cartel-tramo-a-parada.spec.js` | 3 | Al completarse un tramo seguido de parada, el cartel nombra lo que se cierra y lo que se abre (`terminaTramo` + `empiezaParada`, ya traducidas a los 12 idiomas), en vez de afirmar una llegada que el usuario todavía no ha confirmado con el botón (CT-1); ninguna rama enruta ya tramo→parada a `mostrarCartelLlegadaParada` (CT-2); y esa función sigue viva con su único llamador legítimo, la llegada al punto de inicio, donde «ha llegado» sí es literal (CT-3) |
 | `64-radio-llegada-tramo.spec.js` | 3 | Los dos números se separan: un tramo conserva su tolerancia dinámica grande (ruido GPS, revelado de trazado, aviso de fuera de rango) pero declara la llegada con `radioLlegada()` = 15 m, el radio del círculo naranja que ve el usuario (RL-1); a 30 m del fin de un tramo NO se ha llegado y a 10 m sí (RL-2); y el padre manda los DOS números a hijo2 en `ACTUALIZAR_ESTADO`, distintos entre sí en un tramo, para que los dos sensores de llegada midan lo mismo (RL-3) |
 | `63-es-id-de-tramo.spec.js` | 3 | `esIdDeTramo()` (`js/utils.js`) es la única autoridad sobre "¿este id es de un tramo?". Reconoce las formas reales y rechaza paradas, referencias y lo que no sea cadena (TR-1); recorre las 846 entradas de `coordenadas-aventuras.js` y comprueba que el helper coincide con su campo `.tipo` en **todas**, y que **ninguna** empieza por `TR`, así que `startsWith('TR-')` no reconoce ningún tramo real (TR-2); y un tramo cuyo filtro no encuentra entrada se clasifica igualmente como tramo, por su id (TR-3) |
@@ -8051,6 +8051,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `155-una-sola-copia-de-cada-ayudante.spec.js` | 4 | Cada ayudante de uso común tiene una sola definición, en `js/` (estudio, K-28): `sleep` solo en `js/utils.js` y sin publicar en `globalThis` (UC-1); el mapa de escape de HTML, una vez, en `escaparHTML` de `js/utils.js` (UC-2); la galería escapa como el resto, y un nombre con comillas dobles llega entero al `alt` de la imagen (UC-3); el título del texto de la galería con etiquetas sale como texto (UC-4, control) |
 | `156-la-reanudacion-avisa-si-script-2-no-llega.spec.js` | 2 | La reanudación espera a que Script 2 publique `distribuirDatosAventura` con plazo y, si no llega, avisa (§11, el aviso de último recurso de `_avisarFalloCargaAppUnaVez()`; estudio, K-72): con Script 2 cortado en su primera instrucción (la respuesta de `codigo-padre.html` se reescribe, con el service worker bloqueado), tras pulsar «Continuar» sale el aviso de fallo de carga, y ninguno antes de pulsarlo (RE-1; más de un minuto: el arranque espera hasta 30 s a Script 2 y la reanudación otros 30 s); sin corte, la reanudación termina sin ningún aviso (RE-2, control) |
 | `157-avanzar-lo-decide-un-solo-sitio.spec.js` | 4 | «Avanzar» de hijo2 lo decide un solo sitio del padre (§29.4), medido con el padre, los hijos y el botón reales: un tramo sin completar no lo enciende al acercarse a su final, y completado sí (AV-1); una parada a medias no lo enciende al volver de los 5 km, y completada sí (AV-2); con la parada completada, salir de rango sin gracia lo apaga y volver lo enciende (AV-3, control); una pulsación con el botón apagado, fuera de rango, no avanza, y con el botón encendido sí (AV-4) |
+| `159-el-rescate-deja-seguir.spec.js` | 6 | El rescate deja seguir (§25.19, §29.4), medido con el padre, los hijos, el botón del rescate del asistente y el botón «avanzar» reales: rescatado fuera de rango con la gracia agotada, «avanzar» se enciende (RZ-1); completado sin rescate y fuera de rango, sigue apagado (RZ-2, control); se cobra al concederlo, y el cobro y el registro quedan en `vv_progreso` (RZ-3); tras el rescate no sale el cartel de transición (RZ-4); al avanzar se gasta el registro sin cobrar otra vez (RZ-5); y tras recargar y reanudar, el punto rescatado sigue dejando seguir, cobrado una vez (RZ-6) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8285,7 +8286,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-a3bc2960294f'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-36d6fd30f388'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9047,7 +9048,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-a3bc2960294f';
+const CACHE_VERSION = 'v-36d6fd30f388';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10117,7 +10118,7 @@ Ubicación y los dos mapas se habilitan juntos, no solo ubicación: los tres ayu
 
 - **Audio (propio padre)**: `actualizarEstadoControlesAudioPadre()` deshabilita `#audio-main-toggle-btn` (y con él, indirectamente, cierra y bloquea el desplegable de acción) mientras `estado.usuarioFueraRango.activo` sea `true` en modo AVENTURA — no tiene sentido escuchar el audio de un monumento al que no se ha llegado (ver §4.7d/apartado de audio para el detalle de por qué solo el botón principal lleva `disabled`).
 - **Retos (hijo3)**: `_sincronizarRetoBtn()` apaga el botón (`CONTROL.DESHABILITAR { control:'retosBtn', razon:'fuera_de_rango', retoId }`).
-- **Avanzar (hijo2)**: `_sincronizarAvanzar()` lo apaga (`CONTROL.DESHABILITAR { control:'btnAvanzar', razon:'fuera_de_rango' }`), también con el elemento completado (§29.4).
+- **Avanzar (hijo2)**: `_sincronizarAvanzar()` lo apaga (`CONTROL.DESHABILITAR { control:'btnAvanzar', razon:'fuera_de_rango' }`), también con el elemento completado, salvo el elemento rescatado (§29.4, §25.19).
 
 hijo1 (extrainfo), el chat de soporte y `#btn-imagen` quedan fuera a propósito — no dependen de la proximidad real al monumento.
 
@@ -10780,11 +10781,12 @@ sequenceDiagram
     P-->>U: 2.ª confirmación (dice el precio)
     U->>P: "Sí"
     Note over P: vuelve a comprobarlo TODO antes de conceder
-    P->>H2: cierra el reto y habilita avanzar
+    Note over P: concede y cobra en el mismo paso
+    P->>H2: cierra el reto y habilita avanzar, también fuera de la zona
     P-->>U: "Rescate utilizado"
     U->>H2: pulsa avanzar
     H2->>P: NAVEGACION.GPS.ACTIVAR
-    Note over P: AQUÍ se cobra el rescate, no antes
+    Note over P: se gasta el registro del rescate
 ```
 
 Las flechas discontinuas son lo que el usuario ve en pantalla; las sólidas, mensajes y
@@ -10797,8 +10799,8 @@ pulsaciones. Paso a paso:
 5. **Dos confirmaciones, un solo gasto.** `_pedirConfirmacionRescate()` pinta las dos pantallas de `_mostrarDecisionRescate()`. **El orden de los botones se invierte** entre ellas —la opción segura arriba en la primera, abajo en la segunda—, así que pulsar dos veces en el mismo sitio nunca concede un rescate. Cerrar por cualquier vía equivale a **No**.
 6. **Se vuelve a comprobar todo antes de conceder.** `_concederRescate()` repite `_estadoRescate()`, exige que el elemento siga siendo **el mismo que se prometió**, y comprueba que la aventura no haya terminado (`#modal-tiempo-agotado` / `#modal-finalizacion-aventura`). Entre el botón y el Sí final hay dos pantallas que el usuario lee sin prisa.
 7. **Cierra el reto si lo había.** Reutiliza `_hdl_RETO_OCULTAR()`. Sin esto el usuario paga y se queda con **menos** que antes: con un reto a la vista, `_decidirAvanzar()` deja «avanzar» apagado (§29.4), y la ayuda de ubicación de hijo2 también exige `!retoActivo`.
-8. **Completa el punto y lo anuncia.** Rellena la ficha con `_anotarEnFicha()` (`llegada`, `audio`, `reto` y la cuenta de retos) y llama a `intentarCompletarElemento()`. `marcarParadaCompletada()` saca además su cartel de transición: la marca `estado._rescatePeticionPendiente`, que lo evitaría, guarda la clave corta del elemento (`TR2`) y se compara con su id de coordenadas (`Av1-TR-2`). `marcarParadaCompletada()` no vuelve a preguntar por los retos: decide la ficha que le llega completa, también con un reto disponible y sin resolver (spec 123, RS-1).
-9. **El usuario pulsa avanzar.** No hay avance automático: le da sensación de control sobre su aventura.
+8. **Completa el punto y lo cobra.** Crea el registro del rescate (`estado.rescateEnCurso = { elementoId }`, con el `parada_id` o el `tramo_id` del elemento), rellena la ficha con `_anotarEnFicha()` (`llegada`, `audio`, `reto` y la cuenta de retos) y llama a `intentarCompletarElemento()`. `marcarParadaCompletada()` pregunta por el registro y no saca el cartel de transición: la pantalla del rescate se lo cuenta al usuario, con su nombre y su cuenta (spec 159, RZ-4). `marcarParadaCompletada()` no vuelve a preguntar por los retos: decide la ficha que le llega completa, también con un reto disponible y sin resolver (spec 123, RS-1). En el mismo paso cobra el rescate (`estado.tramoSkipsUsados`) y guarda el cobro y el registro con el progreso (`persistProgressState()`, `vv_progreso`).
+9. **El usuario pulsa avanzar.** No hay avance automático: le da sensación de control sobre su aventura. «Avanzar» se enciende aunque el usuario esté fuera de la zona con la gracia agotada: un punto rescatado no mira la zona, porque el rescate existe para quien no puede llegar (§29.4; spec 159, RZ-1); el bloqueo de 5 km sigue mandando. Al avanzar, `progresarSiguienteElemento()` gasta el registro, sin cobrar otra vez.
 
 #### Cuándo se ve el botón, y qué decide el padre
 
@@ -10838,13 +10840,13 @@ deliberada**: el botón se pinta igual, porque es lo único que hace llegar al u
 cartel que le explica que se le han acabado. Escondiéndolo también ahí, ese texto no lo
 leería nadie nunca.
 
-#### El cobro va diferido, y es lo que protege al usuario
+#### Se cobra al concederlo, con un solo registro del rescate
 
-`_concederRescate()` deja el punto completado al instante —`marcarParadaCompletada()` lo registra en `estado.paradasCompletadas` y lo guarda en `vv_paradas_completadas`—, pero el gasto solo se apunta en memoria (`estado._rescateGastoPendiente`). Si la app se cierra entre el Sí y el botón de avanzar —un móvil sin batería mientras el usuario lee el cartel y mira alrededor—, al reanudar el punto sigue completado y listo para avanzar (§25.10) y el apunte del gasto no existe: ese rescate no se cobra.
+`_concederRescate()` completa el punto —`marcarParadaCompletada()` lo registra en `estado.paradasCompletadas` y lo guarda en `vv_paradas_completadas`— y en el mismo paso cobra el rescate y guarda el cobro y el registro del rescate en `vv_progreso`. Pagar y recibir el punto van juntos: si la app se cierra entre el Sí y el botón de avanzar —un móvil sin batería mientras el usuario lee el cartel y mira alrededor—, al reanudar el punto sigue completado y listo para avanzar (§25.10), el rescate sigue cobrado una sola vez y el registro sigue en pie (spec 159, RZ-6).
 
-El cobro llega al avanzar: `_cobrarRescateSiProcede()` se llama desde `progresarSiguienteElemento()`, justo antes de `estado.indiceProgreso++`, y solo si el elemento que se deja atrás es el que tiene el rescate apuntado (`estado._rescateGastoPendiente`). El fallo solo puede caer **a favor** del usuario: o avanza y la cuenta cuadra, o algo se rompe y conserva su rescate.
+El registro (`estado.rescateEnCurso = { elementoId }`) dice qué elemento se ha rescatado hasta que el usuario avanza, y lo leen dos sitios: `_decidirAvanzar()`, que no mira la zona para el elemento rescatado (§29.4), y `marcarParadaCompletada()`, que no saca el cartel de transición para él. Lo crea `_concederRescate()`, lo gasta `progresarSiguienteElemento()` al dejar el elemento, y lo restaura `_restoreApplyState()` al reanudar.
 
-**La pantalla de concedido enseña la cuenta de después** (`usadas + 1`), no el valor interno del contador. El usuario acaba de gastarlo y el texto tiene que decirle la verdad de lo que ha hecho.
+**La pantalla de concedido enseña la cuenta con este rescate dentro**, la que ya está cobrada (`estado.tramoSkipsUsados`). El usuario acaba de gastarlo y el texto le dice la verdad de lo que ha hecho.
 
 #### La pantalla de decisión NO es un cartel
 
@@ -12379,8 +12381,8 @@ Esta sección describe las restricciones GPS y el comportamiento visual de polyl
 1. El modo es AVENTURA (`estado.modo.actual`). Si no: `razon: 'no_aventura'`.
 2. No hay un reto abierto: `#hijo4` sin la clase `visible`. Si lo hay: `'reto_abierto'`.
 3. El usuario no está a más de 5 km de la ruta: `globalThis.__VV_5KM_BLOCKED` distinto de `true` (§31.5). Si lo está: `'fuera_de_zona_5km'`.
-4. No está fuera de rango con la gracia agotada: `estado.usuarioFueraRango.activo` distinto de `true` (§31.4). Si lo está: `'fuera_de_rango'`.
-5. El elemento está completado y espera la pulsación: `estado.paradaListaParaAvanzar === true` → `habilitar: true`, `razon: 'elemento_completado'`. Si no: `'elemento_sin_completar'`.
+4. No está fuera de rango con la gracia agotada: `estado.usuarioFueraRango.activo` distinto de `true` (§31.4). Si lo está: `'fuera_de_rango'`, salvo que el elemento sea el rescatado (`estado.rescateEnCurso`, `_elementoActualRescatado()`): el rescate existe para quien no puede llegar, y un punto rescatado no mira la zona (§25.19). El bloqueo de 5 km, el punto 3, manda también sobre él.
+5. El elemento está completado y espera la pulsación: `estado.paradaListaParaAvanzar === true` → `habilitar: true`, con `razon: 'elemento_completado'`, o `'elemento_rescatado'` si el usuario está fuera de rango y el elemento es el rescatado. Si no: `'elemento_sin_completar'`.
 
 `_sincronizarAvanzar(logPrefix)` le manda a hijo2 lo que decide: `CONTROL.HABILITAR` o `CONTROL.DESHABILITAR` con `{ control: 'btnAvanzar', razon }`. Si `hijo2` no figura en `estado.hijosInicializados`, no manda nada y lo anota con `logger.warn`. Está publicada como `globalThis._sincronizarAvanzar` para Script 1.
 
@@ -12498,7 +12500,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-a3bc2960294f';
+const CACHE_VERSION = 'v-36d6fd30f388';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14168,89 +14170,89 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarVideoOverlay` | clásico 8 (L1989) | módulo 1 | función/objeto |
 | `rotationSuppressed` | clásico 8 (L1698) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 (L3692) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4967) | clásico 12 | estado |
-| `__VV_5KM_BLOCKED` | módulo 1 (L5456) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4976) | clásico 12 | estado |
+| `__VV_5KM_BLOCKED` | módulo 1 (L5465) | módulo 2 | función/objeto |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3676) | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3675) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5712) | clásico 12 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6377) | clásico 12 | estado |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5721) | clásico 12 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6386) | clásico 12 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3659) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6517) | clásico 12 | estado |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6526) | clásico 12 | estado |
 | `__vv_MAPAS_VINTAGE` | módulo 1 (L3677) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3558) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4703) | módulo 2 | función/objeto |
-| `_cerrarDesplegablesDelPadre` | módulo 1 (L4669) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L7216) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8548) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8764) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8669) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4712) | módulo 2 | función/objeto |
+| `_cerrarDesplegablesDelPadre` | módulo 1 (L4678) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L7225) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8557) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8773) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8678) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L3983) | módulo 2 | estado |
 | `_entradaDeCoordenadas` | módulo 1 (L3749) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8638) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L8848) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8740) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8644) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8856) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8518) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L8098) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5882) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8647) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8857) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8749) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8653) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8865) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8527) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L8107) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5891) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3808) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4906) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L7870) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L7869) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4915) | clásico 7, módulo 2 | estado |
+| `cargarHijoCasa` | módulo 1 (L7879) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L7878) | módulo 2 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L3900) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3802) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3803) | módulo 2 | función/objeto |
 | `escaparHTML` | módulo 1 (L2853) | clásico 8, módulo 2 | función/objeto |
 | `estadoPadre` | módulo 1 (L3988) | clásico 7, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4337) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4092) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6281) | módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4346) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4097) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6290) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2820) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4907) | clásico 5, clásico 7, módulo 2 | estado |
+| `idiomaSeleccionado` | módulo 1 (L4916) | clásico 5, clásico 7, módulo 2 | estado |
 | `limpiarDatosAventura` | módulo 1 (L2857) | módulo 2 | función/objeto |
 | `MODOS` | módulo 1 (L3801) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8249) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8173) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8024) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8067) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4185) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L4995) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5022) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8258) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8182) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8033) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8076) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4193) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5004) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5031) | módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2862) | clásico 8 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2850) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2851) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6119) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6045) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L5973) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6198) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6273) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6577) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6576) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6128) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6054) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L5982) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6207) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6282) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6586) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6585) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2808) | módulo 2 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L3800) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3961) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2836) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13604) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9841) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12630) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13585) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11602) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12294) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9780) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L10958) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L11072) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11020) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L10982) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12324) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9025) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9775) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9157) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9198) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12555) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9653) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9645) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13620) | módulo 2 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13592) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9850) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12648) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13574) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11620) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12312) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9789) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10967) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L11090) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11029) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L10991) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12342) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9034) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9784) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9166) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9207) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12573) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9662) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9654) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13608) | módulo 2 | función/objeto |
 
 </details>
 

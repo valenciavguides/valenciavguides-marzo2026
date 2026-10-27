@@ -303,6 +303,6 @@ test.describe('FG — Lo hecho en la parada sobrevive a una recarga', () => {
     // `totalParadas`, que enseña el diálogo de reanudar.
     const claves = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('vv_progreso'))).sort());
     expect(claves, 'una clave de más es un dato que se guarda para nadie; una de menos, algo que la reanudación ya no recibe')
-      .toEqual(['aventura', 'elementoActualId', 'ficha', 'idioma', 'indiceProgreso', 'tiempoRestante', 'timestamp', 'totalParadas', 'tramoSkipsUsados']);
+      .toEqual(['aventura', 'elementoActualId', 'ficha', 'idioma', 'indiceProgreso', 'rescateEnCurso', 'tiempoRestante', 'timestamp', 'totalParadas', 'tramoSkipsUsados']);
   });
 });

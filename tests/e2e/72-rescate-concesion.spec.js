@@ -7,11 +7,11 @@
  * dos veces y el punto queda atrás. Lo que se prueba aquí no es que funcione el camino feliz
  * —eso se ve mirando— sino las tres cosas que cuestan dinero al usuario si fallan:
  *
- *  1. EL COBRO VA DIFERIDO (hueco 23). `persistProgressState()` guarda `tramoSkipsUsados` al
- *     instante pero NO guarda `pendingCompleciones`. Cobrando al pulsar Sí, un móvil sin
- *     batería entre el cartel y el botón de avanzar dejaría al usuario con un rescate menos
- *     y delante de la misma valla: pagó y no recibió nada. Cobrando al avanzar, ese mismo
- *     fallo le devuelve el rescate.
+ *  1. SE COBRA AL CONCEDERLO. El punto rescatado queda completado y guardado en ese mismo
+ *     paso (`vv_paradas_completadas`), así que pagar y recibirlo van juntos: un móvil sin
+ *     batería entre la pantalla y «avanzar» no le quita nada al usuario, y una recarga
+ *     tampoco deja el rescate sin cobrar. Queda el registro del rescate (`estado.rescateEnCurso`),
+ *     que se guarda con el progreso y se gasta al avanzar (`docs/estudio-caminos.md`, K-91 y K-86).
  *
  *  2. SE VUELVE A COMPROBAR TODO (huecos 4 y 20). Entre el botón y el Sí final hay dos
  *     pantallas que el usuario lee sin prisa. En ese rato pudo llegar andando, pudo cambiar
@@ -21,8 +21,8 @@
  *  3. DECIR QUE NO ES GRATIS. Cerrar por cualquier vía equivale a no: el gasto ocurre
  *     únicamente al pulsar Sí en la segunda pantalla.
  *
- * ROJO ANTES QUE VERDE: sin `_cobrarRescateSiProcede` el contador sube al confirmar y CR-2
- * falla; sin las comprobaciones de `_concederRescate`, CR-4 y CR-5 conceden y fallan.
+ * ROJO ANTES QUE VERDE: con el cobro al avanzar (el código anterior) caen CR-1 y CR-2; sin las
+ * comprobaciones de `_concederRescate`, CR-4 y CR-5 conceden y fallan.
  */
 'use strict';
 
@@ -51,7 +51,7 @@ async function prepararAventura(page) {
     globalThis.estado.pendingCompleciones = {};
     globalThis.estado.paradasCompletadas = new Map();
     globalThis.estado.tramoSkipsUsados = 0;
-    globalThis.estado._rescateGastoPendiente = null;
+    globalThis.estado.rescateEnCurso = null;
     return {
       listo: true,
       nombre: tramo.nombre,
@@ -113,11 +113,11 @@ async function recorrerFlujo(page, { primera = 'si', segunda = 'si', entreConfir
   await page.waitForTimeout(800);
 }
 
-/** Lo que hay que mirar después: qué se completó, qué se cobró y qué quedó pendiente. */
+/** Lo que hay que mirar después: qué se completó, qué se cobró y qué registro del rescate quedó. */
 const leerEstado = (page, idLimpio) => page.evaluate((id) => ({
   completado: !!globalThis.estado.paradasCompletadas?.has(id),
   usadas: globalThis.estado.tramoSkipsUsados,
-  gastoPendiente: globalThis.estado._rescateGastoPendiente?.clave ?? null,
+  registro: globalThis.estado.rescateEnCurso?.elementoId ?? null,
   pantalla: document.getElementById('decision-rescate')?.innerText ?? null,
 }), idLimpio);
 
@@ -130,7 +130,7 @@ test.describe('CR — La concesión del rescate', () => {
     await page.waitForFunction(() => typeof globalThis._estadoRescate === 'function', null, { timeout: 15_000 });
   });
 
-  test('CR-1. Dos síes dejan el punto atrás, y el rescate NO se ha cobrado todavía', async ({ page }) => {
+  test('CR-1. Dos síes dejan el punto atrás, y el rescate se cobra en ese momento', async ({ page }) => {
     const prep = await prepararAventura(page);
     test.skip(!prep.listo, `Precondición no disponible: ${JSON.stringify(prep)}`);
     await abrirAsistenteConBoton(page);
@@ -139,27 +139,26 @@ test.describe('CR — La concesión del rescate', () => {
     const r = await leerEstado(page, prep.idLimpio);
 
     expect(r.completado, 'el punto tiene que quedar dado por visitado').toBe(true);
-    expect(r.usadas, 'pero el cobro todavía NO: el usuario aún no ha avanzado').toBe(0);
-    expect(r.gastoPendiente, 'y queda apuntado sobre qué punto se cobrará').toBe(prep.clave);
+    expect(r.usadas, 'y se cobra en el acto: el punto ya queda completado y guardado').toBe(1);
+    expect(r.registro, 'con el registro del rescate sobre ese punto').toBe(prep.idLimpio);
     expect(r.pantalla, 'la pantalla le dice lo que ha gastado, contando este').toMatch(/1 de 12/);
     expect(r.pantalla, 'y jamás una llave sin rellenar').not.toMatch(/\{[a-z]+\}/i);
   });
 
-  test('CR-2. El cobro llega al avanzar de verdad, no al confirmar', async ({ page }) => {
-    // El corazón del hueco 23. Si el contador subiera al pulsar Sí, un fallo entre el
-    // cartel y el botón de avanzar le costaría un rescate al usuario a cambio de nada.
+  test('CR-2. Al avanzar no se cobra otra vez, y el registro del rescate se gasta', async ({ page }) => {
+    // El cobro ya se hizo al concederlo: avanzar solo gasta el registro.
     const prep = await prepararAventura(page);
     test.skip(!prep.listo, `Precondición no disponible: ${JSON.stringify(prep)}`);
     await abrirAsistenteConBoton(page);
 
     await recorrerFlujo(page);
-    expect((await leerEstado(page, prep.idLimpio)).usadas, 'antes de avanzar, nada cobrado').toBe(0);
+    expect((await leerEstado(page, prep.idLimpio)).usadas, 'antes de avanzar, ya cobrado').toBe(1);
 
     await page.evaluate(async () => { await globalThis.progresarSiguienteElemento(); });
     const r = await leerEstado(page, prep.idLimpio);
 
-    expect(r.usadas, 'al avanzar de verdad, ahora sí se cobra').toBe(1);
-    expect(r.gastoPendiente, 'y la marca se consume una sola vez').toBeNull();
+    expect(r.usadas, 'al avanzar no se vuelve a cobrar').toBe(1);
+    expect(r.registro, 'y el registro del rescate se gasta').toBeNull();
   });
 
   test('CR-3. Volver al recorrido en la primera pantalla no gasta ni completa nada', async ({ page }) => {
@@ -173,7 +172,7 @@ test.describe('CR — La concesión del rescate', () => {
 
     expect(r.completado, 'no se completa nada').toBe(false);
     expect(r.usadas, 'no se cobra nada').toBe(0);
-    expect(r.gastoPendiente, 'y no queda ninguna deuda apuntada').toBeNull();
+    expect(r.registro, 'y no queda ningún registro de rescate').toBeNull();
     expect(r.pantalla, 'y la pantalla se cierra').toBeNull();
   });
 
@@ -196,7 +195,7 @@ test.describe('CR — La concesión del rescate', () => {
 
     expect(r.completado, 'el punto prometido no se completa').toBe(false);
     expect(r.usadas, 'y no se cobra nada').toBe(0);
-    expect(r.gastoPendiente, 'ni queda deuda apuntada sobre ningún punto').toBeNull();
+    expect(r.registro, 'ni queda registro de rescate sobre ningún punto').toBeNull();
   });
 
   test('CR-5. Si la aventura termina mientras decide, no hay rescate posible', async ({ page }) => {
@@ -217,7 +216,7 @@ test.describe('CR — La concesión del rescate', () => {
 
     expect(r.completado, 'con el tiempo agotado no se completa nada').toBe(false);
     expect(r.usadas, 'y no se cobra nada').toBe(0);
-    expect(r.gastoPendiente, 'ni queda deuda apuntada').toBeNull();
+    expect(r.registro, 'ni queda registro de rescate').toBeNull();
   });
 
   test('CR-6. Si la aventura se completa mientras decide, tampoco hay rescate', async ({ page }) => {
@@ -237,6 +236,6 @@ test.describe('CR — La concesión del rescate', () => {
 
     expect(r.completado, 'con la aventura completada no se completa nada más').toBe(false);
     expect(r.usadas, 'y no se cobra nada').toBe(0);
-    expect(r.gastoPendiente, 'ni queda deuda apuntada').toBeNull();
+    expect(r.registro, 'ni queda registro de rescate').toBeNull();
   });
 });
