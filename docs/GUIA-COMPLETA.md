@@ -4914,7 +4914,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-574b39eeb361'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-5f2b55978b69'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8285,7 +8285,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-574b39eeb361'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-5f2b55978b69'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9047,7 +9047,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-574b39eeb361';
+const CACHE_VERSION = 'v-5f2b55978b69';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12498,7 +12498,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-574b39eeb361';
+const CACHE_VERSION = 'v-5f2b55978b69';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14259,17 +14259,17 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
-| `_devCasaMode` | clásico 3 (L1127) | módulo 1 | estado |
-| `_resetearFlagsContenido` | clásico 3 (L2585) | módulo 1 | función/objeto |
-| `continuarTrasElegirAventura` | clásico 3 (L2606) | módulo 1 | función/objeto |
-| `_pintarTarjetasDeAventura` | módulo 1 (L2974) | clásico 3 | función/objeto |
-| `enviarValoracion` | módulo 1 (L2633) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 1 (L3000) | clásico 3 | función/objeto |
-| `TEXTOS_VALORACION` | módulo 1 (L2631) | clásico 3 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L2672) | clásico 3 | función/objeto |
-| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 1 (L2630) | clásico 3 | función/objeto |
-| `TRADUCCIONES_DESPEDIDA` | módulo 1 (L2629) | clásico 3 | función/objeto |
-| `TRADUCCIONES_REANUDACION` | módulo 1 (L2632) | clásico 3 | función/objeto |
+| `_devCasaMode` | clásico 3 (L1126) | módulo 1 | estado |
+| `_resetearFlagsContenido` | clásico 3 (L2584) | módulo 1 | función/objeto |
+| `continuarTrasElegirAventura` | clásico 3 (L2605) | módulo 1 | función/objeto |
+| `_pintarTarjetasDeAventura` | módulo 1 (L2973) | clásico 3 | función/objeto |
+| `enviarValoracion` | módulo 1 (L2632) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 1 (L2999) | clásico 3 | función/objeto |
+| `TEXTOS_VALORACION` | módulo 1 (L2630) | clásico 3 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L2671) | clásico 3 | función/objeto |
+| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 1 (L2629) | clásico 3 | función/objeto |
+| `TRADUCCIONES_DESPEDIDA` | módulo 1 (L2628) | clásico 3 | función/objeto |
+| `TRADUCCIONES_REANUDACION` | módulo 1 (L2631) | clásico 3 | función/objeto |
 
 **El estado que el módulo escribe y el clásico lee.** Un `let` de nivel superior del `<script>` clásico es visible y asignable desde los módulos del mismo documento: el módulo de la selección escribe `idiomaSeleccionado`, `aventuraSeleccionada`, `aventuraIniciando`, `timerProgresoCarga` o `modoDespedida` por su nombre, y el clásico lee el valor nuevo. `globalThis.x = v` no sirve: crea una propiedad aparte que el clásico, que lee el `let`, no ve. Si la elección no llegara a su variable, nada la sustituye: la selección no encuentra datos de ninguna aventura, y la activación lleva la aventura vacía, que el padre rechaza en voz alta. Lo cubren `tests/e2e/82-seleccion-usa-la-aventura-elegida.spec.js` y `tests/e2e/135-la-eleccion-se-sabe-siempre.spec.js`.
 
