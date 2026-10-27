@@ -454,7 +454,7 @@ function aLngLat(coord) {
  * después, así que es una comprobación defensiva, no una espera activa.
  */
 function _estiloListo() {
-    try { return !!_mapaInstance && typeof _mapaInstance.isStyleLoaded === 'function' && _mapaInstance.isStyleLoaded(); } catch (_e) { return false; } // NOSONAR
+    try { return !!_mapaInstance && _mapaInstance.isStyleLoaded(); } catch (_e) { return false; } // NOSONAR
 }
 
 /**
@@ -1677,7 +1677,7 @@ function _anguloDeltaCorto(actual, objetivo) {
  * usuario. Confirmado en campo.
  */
 function _rumboEnPantalla(heading) {
-    const bearing = (_mapaInstance && typeof _mapaInstance.getBearing === 'function') ? _mapaInstance.getBearing() : 0;
+    const bearing = _mapaInstance ? _mapaInstance.getBearing() : 0;
     return heading - bearing;
 }
 

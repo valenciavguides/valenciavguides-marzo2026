@@ -63,6 +63,7 @@ test.describe('CAM — Cámara siguiendo al usuario', () => {
         getLayer() { return {}; },
         removeLayer() {}, removeSource() {}, setPaintProperty() {},
         getZoom() { return 15; },
+        getBearing() { return 0; },
         easeTo(opts) { fakeMap._easeToCalls.push(opts); },
       };
 

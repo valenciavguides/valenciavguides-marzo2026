@@ -64,6 +64,7 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
         getLayer(id) { return fakeMap._addLayerCalls.includes(id) ? {} : undefined; },
         removeLayer() {}, removeSource() {}, setPaintProperty() {},
         getZoom() { return 15; },
+        getBearing() { return 0; },
       };
 
       globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
@@ -110,6 +111,7 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
         removeLayer() {}, removeSource() {},
         setPaintProperty(id, prop, val) { paintCalls.push({ id, prop, val }); },
         getZoom() { return 15; },
+        getBearing() { return 0; },
       };
 
       globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
@@ -155,6 +157,7 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
         getLayer(id) { return fakeMap._addLayerCalls.includes(id) ? {} : undefined; },
         removeLayer() {}, removeSource() {}, setPaintProperty() {},
         getZoom() { return 15; },
+        getBearing() { return 0; },
       };
 
       globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);

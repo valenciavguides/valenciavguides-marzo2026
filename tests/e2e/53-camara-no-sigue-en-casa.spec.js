@@ -58,6 +58,7 @@ test.describe('CC — la cámara no persigue al usuario en modo CASA', () => {
         getLayer() { return {}; },
         removeLayer() {}, removeSource() {}, setPaintProperty() {},
         getZoom() { return 15; },
+        getBearing() { return 0; },
         easeTo(opts) { fakeMap._easeToCalls.push(opts); },
       };
       const conCentro = () => fakeMap._easeToCalls.filter(o => o && o.center).length;
