@@ -2047,11 +2047,7 @@
             // reproducirVideoConBuffer (js/video-playback-utils.js) espera a canplaythrough
             // antes de arrancar — mismo mecanismo para cualquier duración de vídeo, sin
             // depender del tamaño del archivo. Ver docs/GUIA-COMPLETA.md §15.
-            if (typeof globalThis.reproducirVideoConBuffer === 'function') {
-                globalThis.reproducirVideoConBuffer(video);
-            } else {
-                video.play().catch(() => {});
-            }
+            globalThis.reproducirVideoConBuffer(video);
 
             (globalThis.logger || console).info('Video mostrado en overlay:', urlVideo);
         };
@@ -4212,7 +4208,6 @@
         }
 
         function _restoreCheckTimeout(logPrefix) {
-            if (typeof verificarTimeoutAventura !== 'function') return false;
             const result = verificarTimeoutAventura();
             if (!result.excedido) return false;
             (globalThis.logger || console).warn(`${logPrefix} ⏰ Aventura excedió el tiempo estimado (${result.tiempoTranscurridoMinutos} min / ${result.tiempoEstimadoMinutos} min)`);
@@ -5134,19 +5129,7 @@
             try {
                 const sm = globalThis.__stateManager || globalThis.__vv_stateManager;
                 const dynamicTimeout = globalThis.ajustarTimeoutPorConexion ? globalThis.ajustarTimeoutPorConexion(5000) : 5000;
-                let waitPromise;
-                if (sm && typeof sm.crearPromiseHijoListo === 'function') {
-                    waitPromise = sm.crearPromiseHijoListo('hijo2');
-                } else {
-                    // Fallback sin state-manager. Polling ACOTADO (25 x 200ms = 5s), no un
-                    // setTimeout recursivo a mano: la carrera contra el timeout de abajo hacia
-                    // que el `await` terminase pero la cadena de temporizadores siguiera viva
-                    // indefinidamente si hijo2 no llegaba nunca (EJE 23, ver §11).
-                    waitPromise = globalThis.retryUntilAvailable(
-                        () => globalThis.estadoPadre?.hijosInicializados?.has('hijo2') === true,
-                        { maxIntentos: 25, intervalo: 200, mensaje: `${logPrefix} hijo2 listo (fallback polling)` }
-                    );
-                }
+                const waitPromise = sm.crearPromiseHijoListo('hijo2');
                 const race = await Promise.race([waitPromise, new Promise(r => setTimeout(() => r({ timeout: true }), dynamicTimeout))]);
                 if (race && race.timeout) {
                     (globalThis.logger || console).warn(`${logPrefix} Espera de hijo2 expiró (${dynamicTimeout}ms); iniciando GPS de todos modos`);
@@ -5159,7 +5142,7 @@
         function _gpsCheckIframePermission(logPrefix) {
             try {
                 const iframeHijo2 = document.getElementById('hijo2');
-                if (iframeHijo2 && typeof iframeHijo2.getAttribute === 'function') {
+                if (iframeHijo2) {
                     const allowAttr = iframeHijo2.getAttribute('allow') || '';
                     if (allowAttr.includes('geolocation')) {
                         (globalThis.logger || console).debug(`${logPrefix} Iframe 'hijo2' tiene allow="geolocation"`);
@@ -5200,9 +5183,7 @@
 
         async function _gpsIntentarPosicion(i, maxAttempts, baseTimeout, acceptThreshold, est, logPrefix) {
             const rawTimeout = Math.round(baseTimeout * Math.pow(1.8, i));
-            const timeoutMs = (typeof ajustarTimeoutPorConexion_S1 === 'function')
-                ? ajustarTimeoutPorConexion_S1(rawTimeout)
-                : rawTimeout;
+            const timeoutMs = ajustarTimeoutPorConexion_S1(rawTimeout);
             try {
                 const fresh = await new Promise((resolve, reject) => {
                     navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 });
@@ -5251,9 +5232,7 @@
                         // de nada. Mostrar el motivo real (o un mensaje genérico si todos los
                         // intentos fallaron por precisión insuficiente, no por error del navegador).
                         try {
-                            if (typeof showGpsSignalOverlay === 'function') {
-                                showGpsSignalOverlay(ultimoError?.code || 2, ultimoError?.message || 'No se obtuvo una posición con precisión suficiente tras varios intentos.');
-                            }
+                            showGpsSignalOverlay(ultimoError?.code || 2, ultimoError?.message || 'No se obtuvo una posición con precisión suficiente tras varios intentos.');
                         } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                         _aplicarFallbackCoordenadasGPS(est, logPrefix, maxAttempts);
                     }
@@ -5354,10 +5333,6 @@
         }
 
         function _gpsProcesarPosicion(position, logPrefix) {
-            if (!globalThis.funcionesMapa || typeof globalThis.funcionesMapa.procesarPosicionGPSParaAventura !== 'function') {
-                (globalThis.logger || console).warn(`${logPrefix} ⚠️ funcionesMapa.procesarPosicionGPSParaAventura no disponible`);
-                return;
-            }
             try {
                 globalThis.funcionesMapa.procesarPosicionGPSParaAventura(position);
                 (globalThis.logger || console).debug(`${logPrefix} ✅ Posición GPS procesada por funciones-mapa`);
@@ -5366,7 +5341,7 @@
                 // (_check5kmFromRoute corre justo antes). Mientras haya bloqueo por distancia,
                 // el aviso se queda.
                 if (globalThis.__VV_5KM_BLOCKED !== true) {
-                    try { if (typeof hideGpsOutOfRangeOverlay === 'function') hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 }
             } catch (procesarError) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error procesando posición GPS:`, procesarError);
@@ -5380,7 +5355,7 @@
             if (globalThis._gpsHistorial.length > 20) globalThis._gpsHistorial.shift();
 
             // GPS ha vuelto: ocultar overlay de señal perdida (§30.2/§30.3)
-            try { if (typeof hideGpsSignalOverlay === 'function') hideGpsSignalOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            try { hideGpsSignalOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
             // La precisión ya no descarta la lectura: en calles estrechas del centro
             // histórico se degrada constantemente, y descartar aquí congelaba a la vez
@@ -5500,7 +5475,7 @@
                         globalThis.__VV_5KM_BLOCKED = true;
                         const actionBtn = document.getElementById('gps-error-action');
                         if (actionBtn) actionBtn.style.display = 'none';
-                        try { if (typeof showGpsOutOfRangeOverlay === 'function') showGpsOutOfRangeOverlay(0, `Ubicación fuera de la zona de la aventura, a más de ${Math.round(minDistM / 1000)} km`); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                        try { showGpsOutOfRangeOverlay(0, `Ubicación fuera de la zona de la aventura, a más de ${Math.round(minDistM / 1000)} km`); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                         // «Avanzar» lo decide un solo sitio (Script 2), que mira este bloqueo cada vez
                         // que decide: basta con avisarle del cambio, y nada lo enciende mientras dure.
                         try {
@@ -5512,7 +5487,7 @@
                     globalThis.__VV_5KM_BLOCKED = false;
                     const actionBtn = document.getElementById('gps-error-action');
                     if (actionBtn) actionBtn.style.display = '';
-                    try { if (typeof hideGpsOutOfRangeOverlay === 'function') hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     try {
                         globalThis._sincronizarAvanzar('[PADRE][GPS][5KM]').catch(e => (globalThis.logger || console).warn('[PADRE][GPS][5KM] Error sincronizando btnAvanzar:', e?.message));
                     } catch (e) { (globalThis.logger || console).error('[PADRE][GPS][5KM] No se pudo avisar a «avanzar» del fin del bloqueo:', e?.message); }
@@ -5555,7 +5530,7 @@
             _gpsRetryOnTimeout(error, est, logPrefix);
 
             // Mostrar overlay de GPS sin señal / sin permiso (solo en modo AVENTURA) (§30.2/§30.3)
-            try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(error.code, error.message); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            try { showGpsSignalOverlay(error.code, error.message); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
             // Notificar error de GPS a hijo2 (único hijo con controles de navegación GPS)
             try {
@@ -5690,7 +5665,7 @@
                 rejectActivacion && rejectActivacion(error);
                 // Si los permisos fueron denegados antes de iniciar watchPosition,
                 // _watchPositionError nunca se llama → mostrar overlay manualmente.
-                try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(1, error.message); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                try { showGpsSignalOverlay(1, error.message); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 throw error;
             } finally {
                 // Limpiar bandera de activación en curso
@@ -5711,7 +5686,7 @@
         }
 
         // If an early stub registered pending calls, provide the real implementation
-        try { if (typeof globalThis.__setRealActivarGPS === 'function') globalThis.__setRealActivarGPS(activarGPS); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        try { globalThis.__setRealActivarGPS(activarGPS); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
         // ============================================================
         // UI: Overlay para posicionamientos GPS descartados
@@ -5773,12 +5748,12 @@
                             // congelado sin explicar qué pasó.
                             try {
                                 hideGpsOutOfRangeOverlay();
-                                if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(err?.code || 2, err?.message);
+                                showGpsSignalOverlay(err?.code || 2, err?.message);
                             } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
                         }, { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION), maximumAge: 0 });
                     } catch (gerr) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error invocando getCurrentPosition:', gerr); }
 
-                    try { if (typeof globalThis._gpsOverlayButtonCallback === 'function') globalThis._gpsOverlayButtonCallback(ev); } catch (cbErr) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error en callback del botón:', cbErr); }
+                    try { globalThis._gpsOverlayButtonCallback(ev); } catch (cbErr) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error en callback del botón:', cbErr); }
                 } catch (e) {
                     (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error manejando click:', e && e.message);
                 }
@@ -5945,7 +5920,7 @@
                 }, (err) => {
                     (globalThis.logger || console).warn(`${logPrefix} Reintento falló:`, err && err.message);
                     try {
-                        if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(err?.code || 2, err?.message);
+                        showGpsSignalOverlay(err?.code || 2, err?.message);
                     } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
                 }, { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION), maximumAge: 0 });
             } catch (gerr) { (globalThis.logger || console).warn(`${logPrefix} Error invocando getCurrentPosition:`, gerr); }
@@ -6432,7 +6407,7 @@
                         // cuenta atrás y, si volvía a fallar, la pantalla no cambiaba ni avisaba.
                         // Volvemos a mostrar el overlay con el código real para que quede claro
                         // que sí se reintentó y cuál es el motivo actual.
-                        try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(err?.code || 2, err?.message); } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
+                        try { showGpsSignalOverlay(err?.code || 2, err?.message); } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
                     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
                 } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] Error en reintento:', e?.message); }
             });
@@ -7030,9 +7005,7 @@
                 const hijoId = mensaje.origen;
                 estado.hijosInicializados.add(hijoId);
                 // Marcar hijo como listo en sistema de eventos
-                if (globalThis.__stateManager && typeof globalThis.__stateManager.marcarHijoListo === 'function') {
-                    await globalThis.__stateManager.marcarHijoListo(hijoId);
-                }
+                await globalThis.__stateManager.marcarHijoListo(hijoId);
                 const { version = '1.0.0', capacidades = [], tiempoInicializacion = 0 } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} Hijo listo: ${hijoId}`, { version, capacidades: capacidades.length, tiempoInicializacion });
                 (globalThis.logger || console).info(`${logPrefix} ✅ ${hijoId} listo.`);
@@ -7388,9 +7361,7 @@
 
             try {
                 // Procesar heartbeat response en mensajeria.js (detección de hijos caídos)
-                if (globalThis.mensajeria && typeof globalThis.mensajeria.procesarHeartbeatResponse === 'function') {
-                    await globalThis.mensajeria.procesarHeartbeatResponse(mensaje);
-                }
+                await globalThis.mensajeria.procesarHeartbeatResponse(mensaje);
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando respuesta heartbeat:`, error);
@@ -7457,15 +7428,11 @@
                     textoFinal = { title: '', content: `<p style="color:#666;font-size:0.9em;text-align:center;margin:0;">📖 ${mensaje}</p>` };
                 } catch (e) { (globalThis.logger || console).debug(`${logPrefix} Error cargando aviso de texto no disponible:`, e?.message); }
             }
-            if (typeof globalThis.mostrarImagenOverlay === 'function') {
-                globalThis.mostrarImagenOverlay(imagenes[0] || null, entrada?.nombre || '', mensajeError, textoFinal, {
-                    imagenes,
-                    tipo: entrada?.tipo === 'tramo' ? 'tramo' : 'parada',
-                    mapa_numero: entrada?.mapa_numero ?? null
-                });
-            } else {
-                (globalThis.logger || console).error(`${logPrefix} mostrarImagenOverlay no disponible`);
-            }
+            globalThis.mostrarImagenOverlay(imagenes[0] || null, entrada?.nombre || '', mensajeError, textoFinal, {
+                imagenes,
+                tipo: entrada?.tipo === 'tramo' ? 'tramo' : 'parada',
+                mapa_numero: entrada?.mapa_numero ?? null
+            });
             (globalThis.logger || console).info(`${logPrefix} Imagen de ${id || 'ningún elemento'}: ${imagenes.length} imagen(es), texto ${fila?.texto_id || 'sin texto_id'}`);
         }
 
@@ -7475,11 +7442,7 @@
             let mensajeError = null;
             if (!id) mensajeError = 'No hay parada/tramo seleccionado';
             else if (!urlVideo) mensajeError = 'No hay video disponible para esta parada/tramo';
-            if (typeof globalThis.mostrarVideoOverlay === 'function') {
-                globalThis.mostrarVideoOverlay(urlVideo, entrada?.nombre || '', mensajeError);
-            } else {
-                (globalThis.logger || console).error(`${logPrefix} mostrarVideoOverlay no disponible`);
-            }
+            globalThis.mostrarVideoOverlay(urlVideo, entrada?.nombre || '', mensajeError);
             (globalThis.logger || console).info(`${logPrefix} Vídeo de ${id || 'ningún elemento'}: ${urlVideo || 'sin vídeo'}`);
         }
 
@@ -7771,7 +7734,7 @@
 
                         let _ventanaCompraExcedida = false;
                         try {
-                            _ventanaCompraExcedida = (typeof verificarTimeoutAventura === 'function') && verificarTimeoutAventura()?.excedido === true;
+                            _ventanaCompraExcedida = verificarTimeoutAventura()?.excedido === true;
                         } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                         if (_ttlSuperado || _ventanaCompraExcedida) {
                             (globalThis.logger || console).info(`${logPrefix} Sesión guardada caducada (${_ventanaCompraExcedida ? 'ventana de compra agotada' : 'TTL de 7 días'}, ${Math.round((Date.now() - datosGuardados.timestamp) / 3600000)}h) — mostrando modal de tiempo agotado en vez de ofrecer reanudarla`);
@@ -7798,10 +7761,8 @@
         }
 
         async function _finalizarInicializacion(logPrefix) {
-            if (typeof globalThis.hideParentLoadingOverlay === 'function') {
-                globalThis.hideParentLoadingOverlay();
-                (globalThis.logger || console).info(`${logPrefix} 🎉 Overlay de carga ocultado`);
-            }
+            globalThis.hideParentLoadingOverlay();
+            (globalThis.logger || console).info(`${logPrefix} 🎉 Overlay de carga ocultado`);
             (globalThis.logger || console).info(`${logPrefix} 🎉 UI VISIBLE - Sistema completamente inicializado`);
 await _comprobarReanudacionAventura(logPrefix);
         }
@@ -8041,9 +8002,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 modal.remove();
                 (globalThis.logger || console).info(`[PADRE][MODAL_FIN] Finalizando aventura — motivo: ${motivo}`);
                 try {
-                    if (typeof limpiarDatosAventura === 'function') {
-                        await limpiarDatosAventura(motivo);
-                    }
+                    await limpiarDatosAventura(motivo);
                 } catch (e) {
                     (globalThis.logger || console).error('[PADRE][MODAL_FIN] Error en limpieza:', e);
                 }
@@ -9452,7 +9411,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
             try {
                 // Reiniciar spin del botón de audio al cambiar de elemento
-                try { if (typeof globalThis._resetSpinAudioMainPadre === 'function') globalThis._resetSpinAudioMainPadre(); } catch(_e) {} // NOSONAR
+                try { globalThis._resetSpinAudioMainPadre(); } catch(_e) {} // NOSONAR
 
                 // Limpieza: eliminar pendientes de elemento anterior si existían
                 const elementoAnterior = obtenerElementoActual();
@@ -10523,7 +10482,7 @@ await _comprobarReanudacionAventura(logPrefix);
             // terminado y el elemento completado incluidos.
             try {
                 estado.usuarioFueraRango = { activo: false };
-                if (typeof actualizarEstadoControlesAudioPadre === 'function') actualizarEstadoControlesAudioPadre();
+                actualizarEstadoControlesAudioPadre();
                 await _sincronizarRetoBtn(logPrefix);
             } catch (error) {
                 (globalThis.logger || console).warn(`${logPrefix} Error sincronizando audio/retosBtn al volver dentro de rango:`, error);
@@ -10649,7 +10608,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const { ubicacionUsuario, centrar = true, zoom = 15 } = mensaje.datos || {};
 
                 // El usuario ya vio el aviso y pulsó ubicación — quitar la pantalla de por medio.
-                try { if (typeof _ocultarTodasPantallasDistanciaGPS === 'function') _ocultarTodasPantallasDistanciaGPS(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                try { _ocultarTodasPantallasDistanciaGPS(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
                 const coordenadasUsuario = await _obtenerUbicacionUsuario(ubicacionUsuario, logPrefix);
                 if (!coordenadasUsuario) return { exito: false, error: 'No se pudo obtener ubicación del usuario' };
@@ -11443,7 +11402,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // sin fichero → insistir en saltar, §25.5f). Reemplaza cualquier recordatorio
                 // del elemento anterior (parada o tramo, mismo criterio) — se detiene siempre
                 // explícitamente el que no aplica, no basta con arrancar el otro.
-                const _audioIdParaRecordatorio = typeof obtenerAudioIdActivoPadre === 'function' ? obtenerAudioIdActivoPadre() : null;
+                const _audioIdParaRecordatorio = obtenerAudioIdActivoPadre();
                 // Un audio ya terminado no se recuerda. Pasa cuando se reactiva el mismo elemento
                 // con su audio escuchado o saltado (lo hace la recuperación de hijo2): sin esto el
                 // aviso volvía a pedir un botón de saltar que ya no hace nada.
@@ -11500,10 +11459,6 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         function _centrarMapaEnLlegada(coordenadas, logPrefix) {
-            if (!(globalThis.funcionesMapa && typeof globalThis.funcionesMapa.setMapView === 'function')) {
-                (globalThis.logger || console).warn(`${logPrefix} Mapa no inicializado todavía (ni setMapView disponible)`);
-                return;
-            }
             (globalThis.logger || console).info(`${logPrefix} Centrando mapa en llegada: [${coordenadas.lat}, ${coordenadas.lng}]`);
             globalThis.funcionesMapa.setMapView([coordenadas.lat, coordenadas.lng], 17, { animate: true, duration: 0.8 })
                 .then(() => { (globalThis.logger || console).success(`${logPrefix} Mapa centrado en llegada detectada`); })
@@ -11967,7 +11922,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // Mostrar overlay de no-internet si el error coincide con pérdida de conexión
                 if (!navigator.onLine) {
-                    try { if (typeof globalThis.showInternetOverlay === 'function') globalThis.showInternetOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    try { globalThis.showInternetOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 }
 
             } catch (error) {
@@ -11993,7 +11948,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     // función que usan los otros dos caminos de fallo de audio (AUDIO.ERROR de
                     // hijo3, TTL de tramos) — activa el botón de saltar (§25.5f) para que el
                     // usuario tenga una vía de rescate real, no solo un mensaje.
-                    const audioIdActivo = typeof obtenerAudioIdActivoPadre === 'function' ? obtenerAudioIdActivoPadre() : null;
+                    const audioIdActivo = obtenerAudioIdActivoPadre();
                     await _marcarAudioNoDisponible(audioIdActivo, logPrefix);
                 }
             } catch (error) {
@@ -12029,15 +11984,11 @@ await _comprobarReanudacionAventura(logPrefix);
         async function _fase2CargarDatos(logPrefix) {
             (globalThis.logger || console).info(`${logPrefix} 🚀 Iniciando Fase 2: Cargando datos de aventura...`);
             try {
-                if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') {
-                    const datosCargados = await globalThis.__cargarDatosAventuraDiferidos();
-                    if (datosCargados) {
-                        (globalThis.logger || console).success(`${logPrefix} ✅ Datos de aventura cargados correctamente (Fase 2)`);
-                    } else {
-                        (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando datos de aventura`);
-                    }
+                const datosCargados = await globalThis.__cargarDatosAventuraDiferidos();
+                if (datosCargados) {
+                    (globalThis.logger || console).success(`${logPrefix} ✅ Datos de aventura cargados correctamente (Fase 2)`);
                 } else {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ Función de carga diferida no disponible`);
+                    (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando datos de aventura`);
                 }
             } catch (cargaError) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error en carga diferida:`, cargaError);
@@ -12258,7 +12209,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).error(`${logPrefix} Error registrando aventura:`, error, error?.stack);
                 (globalThis.logger || console).error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, !!estado);
                 (globalThis.logger || console).error(`${logPrefix} DEBUG en catch - globalThis.estadoPadre:`, typeof globalThis.estadoPadre, !!globalThis.estadoPadre);
-                if (typeof globalThis.hideParentLoadingOverlay === 'function') { globalThis.hideParentLoadingOverlay(); }
+                globalThis.hideParentLoadingOverlay();
             } finally {
                 _aventuraEnProceso = false;
             }
@@ -12556,9 +12507,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     const _limpiarYRecargarTiempoAgotado = async (motivo) => {
                         modalTiempoAgotado.remove();
                         try {
-                            if (typeof limpiarDatosAventura === 'function') {
-                                await limpiarDatosAventura(motivo);
-                            }
+                            await limpiarDatosAventura(motivo);
                         } catch (e) {
                             (globalThis.logger || console).error(`${logPrefix} Error en limpieza digital:`, e);
                         }
@@ -13019,7 +12968,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             const rotMsg = document.getElementById('rotation-message');
             if (rotMsg) {
                 if (globalThis.rotationSuppressed) rotMsg.classList.remove('show');
-                else if (typeof globalThis.toggleRotationMessage === 'function') globalThis.toggleRotationMessage();
+                else globalThis.toggleRotationMessage();
             }
             return { suprimido: globalThis.rotationSuppressed };
         }
@@ -13128,51 +13077,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         });
 
         (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} ✅ Proceso de inicialización completado`);
-        // Defensive: ensure estado exists before setting tiempoInicio
-        if (estado) {
-            estado.tiempoInicio = Date.now();
-        } else if (globalThis.estadoPadre) {
-            globalThis.estadoPadre.tiempoInicio = Date.now();
-        }
-
-        // ===================================================================
-        // TIMEOUT DE SEGURIDAD PARA OVERLAY
-        // ===================================================================
-
-        // ⏰ TIMEOUT DE SEGURIDAD: Forzar cierre del overlay si tarda más de 25 segundos
-        const timeoutSeguridad = setTimeout(() => {
-            (globalThis.logger || console).warn('[TIMEOUT] Forzando cierre del overlay después de 25 segundos');
-            if (typeof globalThis.hideParentLoadingOverlay === 'function') {
-                globalThis.hideParentLoadingOverlay();
-            }
-        }, 25000); // 25 segundos como timeout de emergencia
-
-        // ℹ️ NOTA: marcarScript2Listo() ya se llamó arriba, en cuanto terminaron de registrarse los controladores
-        // Aquí solo cancelamos el timeout cuando la UI esté lista
-
-        (async () => {
-            try {
-                // ✅ CANCELAR TIMEOUT DE SEGURIDAD (inicialización está progresando correctamente)
-                clearTimeout(timeoutSeguridad);
-
-                // ℹ️ NOTA: El overlay se removerá DESPUÉS de cargar todos los iframes
-                // (ver waitForMapLibreAndInitialize() donde se llama a cargarIframeSoloSeleccion())
-
-            } catch (error) {
-                (globalThis.logger || console).error('[SCRIPT2][SINCRONIZACIÓN] Error en finalización:', error);
-
-                // ✅ CANCELAR TIMEOUT DE SEGURIDAD en caso de error
-                clearTimeout(timeoutSeguridad);
-
-                // En caso de error, mostrar UI de todos modos (fallback)
-                setTimeout(() => {
-                    if (typeof globalThis.hideParentLoadingOverlay === 'function') {
-                        globalThis.hideParentLoadingOverlay();
-                    }
-                    (globalThis.logger || console).warn('[SCRIPT2][SINCRONIZACIÓN] UI mostrada por fallback de error');
-                }, 2000);
-            }
-        })();
+        estado.tiempoInicio = Date.now();
 
         /**
          * Topes de rescate por aventura. Vivía dentro del barrido de TTL, pero la petición
@@ -13507,7 +13412,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             estado.tramoSkipsUsados = usadas;
             (globalThis.logger || console).info(`${logPrefix} Rescate cobrado al avanzar de verdad desde ${clave} — ${usadas} usados`);
             try {
-                if (typeof globalThis.persistProgressState === 'function') globalThis.persistProgressState();
+                globalThis.persistProgressState();
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
 
@@ -13811,7 +13716,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         for (const key of ['__VV_GPS_OVERLAY_TIMER', '__VV_GPS_SIGNAL_TIMER', '__VV_INET_OVERLAY_TIMER']) {
             if (globalThis[key]) { try { clearInterval(globalThis[key]); } catch { } globalThis[key] = undefined; }
         }
-        if (globalThis.__CONTROLADOR_REGISTRADOS && typeof globalThis.__CONTROLADOR_REGISTRADOS.clear === 'function') {
+        if (globalThis.__CONTROLADOR_REGISTRADOS) {
             try { globalThis.__CONTROLADOR_REGISTRADOS.clear(); } catch { }
         }
         (globalThis.logger || console).info('Recursos limpiados completamente');
@@ -13886,7 +13791,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 globalThis.consultarHeartbeat = async function() {
                     try {
                         const sm = globalThis.__stateManager || globalThis.__vv_stateManager;
-                        const hb = (sm && typeof sm.getHeartbeat === 'function') ? await sm.getHeartbeat() : null;
+                        const hb = await sm.getHeartbeat();
                         const respuesta = { estado: { activo: !!hb?.activo, intervaloActivo: !!hb?.intervalo } };
                         (globalThis.logger || console).info('[PADRE] Estado heartbeat:', respuesta);
                         return respuesta;

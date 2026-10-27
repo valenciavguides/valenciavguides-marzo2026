@@ -4914,7 +4914,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-9d63288385da'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-759f2c7f2bb6'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6269,14 +6269,16 @@ No hay ninguna pausa fija (`sleep`) en este punto de la cadena: la única espera
 
 #### Patrón `retryUntilAvailable()` — polling acotado, no `setTimeout` recursivo a mano
 
-`js/utils.js` (`retryUntilAvailable(checkFn, {maxIntentos, intervalo, mensaje})`) es el helper único para "reintentar hasta que una condición sea verdadera": resuelve `true` en cuanto `checkFn()` devuelve verdadero, o `false` tras agotar `maxIntentos` (con un `logger.warn` automático usando `mensaje`). Los 4 sitios de `codigo-padre.html` y el de `js/app.js` que necesitan este patrón lo usan en vez de un `check()`/`setTimeout(check, ms)` autoreprogramado a mano: sin el límite acotado que da este helper, si la condición esperada nunca se cumple (módulo que falla al cargar, hijo que nunca confirma `HIJO_LISTO`), el bucle quedaría corriendo para siempre, sin log de error ni feedback al usuario.
+`js/utils.js` (`retryUntilAvailable(checkFn, {maxIntentos, intervalo, mensaje})`) es el helper único para "reintentar hasta que una condición sea verdadera": resuelve `true` en cuanto `checkFn()` devuelve verdadero, o `false` tras agotar `maxIntentos` (con un `logger.warn` automático usando `mensaje`). Los cuatro sitios de `codigo-padre.html`, el de `js/app.js` y el de `js/utils.js` que necesitan este patrón lo usan en vez de un `check()`/`setTimeout(check, ms)` autoreprogramado a mano: sin el límite acotado que da este helper, si la condición esperada nunca se cumple (módulo que falla al cargar, hijo que nunca confirma `HIJO_LISTO`), el bucle quedaría corriendo para siempre, sin log de error ni feedback al usuario.
 
 | Función | Condición esperada | Límite | Efecto si se agota |
 |---|---|---|---|
 | `initializeMapService()` / `tryInit` (dentro de `initializeMap()`) | `funcionesMapa.inicializarServicioMapa(map)` devuelve `true` | 150×200ms = 30s | `initializeMap()` rechaza con error explícito |
 | `waitForMapLibreAndInitialize()` / `checkMapLibre` | `globalThis.maplibregl` cargado (CDN local, `js/vendor/`) | 150×100ms = 15s | `logger.error`, `_avisarFalloCargaAppUnaVez()` (ver nota debajo de la tabla) y continúa sin mapa (mismo comportamiento de "resolver igual para no bloquear el arranque") |
-| `_gpsEsperarHijosListos()` (fallback sin `__stateManager`, dentro de una carrera con un plazo de 5 s ajustado por la conexión) | `hijo2` en `estado.hijosInicializados` | 25×200ms = 5s | el helper resuelve `false` con su `logger.warn` y el GPS se inicia igualmente |
+| La espera de Script 2 al final del arranque (Script 1) | `script2Listo` del state-manager (lo marca el registro de los handlers de los dos scripts) | 600×50ms = 30s | `logger.error` y el arranque sigue sin los handlers de Script 2 |
+| `esperarMapaListo()` (Script 2, tras el arranque) | `funcionesMapa.isMapInitialized()` | 100×100ms = 10s | no se ajusta el tamaño del mapa ni se lanza su diagnóstico; queda el `logger.warn` del helper |
 | `limpiarRecursosPorModo()` (`js/app.js`) | `funcionesMapa.isMapInitialized()` | 50×100ms = 5s | la limpieza se hace igualmente |
+| `_drenarColaErrores()` (`js/utils.js`, en los hijos) | `globalThis.mensajeria.enviarMensaje` disponible | 40×250ms = 10s | `logger.error` con la cola entera de errores de arranque que no llegaron al padre |
 
 **`_avisarFalloCargaAppUnaVez()` (`codigo-padre.html`, Script 1) — aviso de último recurso compartido por dos fallos de infraestructura reales, no solo `waitForMapLibreAndInitialize()`:**
 
@@ -6315,7 +6317,7 @@ El nombre lleva el sufijo "P0", pero la función no compara contra ese literal �
 Los pasos 1-2 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 3-5 solo ocurren en **modo AVENTURA** — en CASA el GPS no fuerza ningún avance automático ni notifica nada a hijo2.
 
 1. El padre activa el GPS del dispositivo usando `navigator.geolocation.watchPosition()` en `activarGPS()` de `codigo-padre.html`. `watchPosition` solo se detiene al destruirse el documento (navegación de fin o abandono de aventura); ninguna función de la app lo cancela en vida de la página.
-2. Toda posición válida, sea cual sea su precisión, pasa de `_watchPositionSuccess()` a `_gpsProcesarPosicion(position, logPrefix)` — un puente delgado que comprueba que `funcionesMapa.procesarPosicionGPSParaAventura` existe (si no, solo avisa por log y no lanza), llama a esa función dentro de un try/catch propio, y si tiene éxito llama también a `hideGpsOutOfRangeOverlay()`. Esto es independiente del `hideGpsSignalOverlay()` que `_watchPositionSuccess()` ya llamó antes: cada overlay de error GPS (sin señal vs. fuera de rango real) se oculta por su cuenta en cuanto llega una posición que lo desmiente. El handler real, `procesarPosicionGPSParaAventura()`, vive en `funciones-mapa.js` (cargado en padre). El mapa (`<div id="mapa">`, instancia MapLibre GL) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage — con el icono que corresponde al modo real (`estadoMapa.modo`): ▲ triángulo en AVENTURA, 🛸 en CASA (ver tabla de marcadores, §4.5).
+2. Toda posición válida, sea cual sea su precisión, pasa de `_watchPositionSuccess()` a `_gpsProcesarPosicion(position, logPrefix)` — un puente delgado que llama a `funcionesMapa.procesarPosicionGPSParaAventura` dentro de un try/catch propio y, si tiene éxito y no hay bloqueo por distancia (`__VV_5KM_BLOCKED`), llama también a `hideGpsOutOfRangeOverlay()`. Esto es independiente del `hideGpsSignalOverlay()` al que `_watchPositionSuccess()` llama justo antes: cada overlay de error GPS (sin señal vs. fuera de rango real) se oculta por su cuenta en cuanto llega una posición que lo desmiente. El handler real, `procesarPosicionGPSParaAventura()`, vive en `funciones-mapa.js` (cargado en padre). El mapa (`<div id="mapa">`, instancia MapLibre GL) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage — con el icono que corresponde al modo real (`estadoMapa.modo`): ▲ triángulo en AVENTURA, 🛸 en CASA (ver tabla de marcadores, §4.5).
 3. *(solo AVENTURA)* `funciones-mapa.js` calcula la **distancia** al siguiente elemento y envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 con `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada }`. En CASA, `siguienteParada` puede ser cualquier elemento que el usuario esté simplemente mirando con hijo5 (reutiliza el mismo `CAMBIO_PARADA`), no uno que esté visitando de verdad — enviar este mensaje igualmente en CASA no aporta nada (hijo2 lo ignora, ver paso 4) y solo añadiría tráfico de mensajería sin propósito.
 4. *(solo AVENTURA)* hijo2 actualiza sus **controles de navegación** (botones GPS, vídeo, reto) según la distancia recibida y ejecuta `_detectarLlegadaParada()` o `_detectarLlegadaTramo()`. El propio handler de `NAVEGACION.ACTUALIZAR_ESTADO` en hijo2 exige `estadoComponente.modo === 'aventura'` antes de llamar a cualquiera de las dos — sin este guard, una posición GPS real que cayera dentro del radio de una parada que el usuario solo está "viendo" en CASA dispararía una llegada real para un elemento nunca visitado.
 5. *(solo AVENTURA)* Cuando el usuario entra en el radio del elemento, hijo2 envía `NAVEGACION.LLEGADA_DETECTADA` al padre — tanto para tramos (radio dinámico) como para paradas (radio fijo de 15 m hardcodeado en hijo2, `RADIO_PARADA`). El padre, en `_hdl_NAVEGACION_LLEGADA_DETECTADA` y `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`, vuelve a comprobar `estado.modo?.actual === MODOS.AVENTURA` antes de actuar — defensa en profundidad: el emisor (hijo2) ya filtra por modo, pero el padre conoce su propio modo con certeza absoluta y no depende de que ningún remitente se porte bien siempre.
@@ -8283,7 +8285,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-9d63288385da'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-759f2c7f2bb6'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -9045,7 +9047,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-9d63288385da';
+const CACHE_VERSION = 'v-759f2c7f2bb6';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12496,7 +12498,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-9d63288385da';
+const CACHE_VERSION = 'v-759f2c7f2bb6';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13774,7 +13776,7 @@ Para cada `sleep`/`setTimeout` que preceda a código que depende de que algo ext
 
 **Por qué hace falta este eje:** el resto del proyecto ya sigue mayoritariamente el patrón correcto — polling sobre una condición real con límite de iteraciones (`checkMapLibre` esperando `maplibregl`, `tryInit` esperando `inicializarServicioMapa()`, `crearPromiseHijoListo` esperando confirmación real por mensaje). Un `sleep` sin condición asociada es la excepción que rompe ese patrón, no la norma — y por eso es fácil que pase desapercibido en una lectura superficial: parece encajar con el resto del código de espera que lo rodea.
 
-> **El polling sin límite es la misma familia de defecto, y aquí cuenta.** Una condición real correcta consultada en un `setTimeout` recursivo **sin tope de iteraciones** tiene el mismo problema que el `sleep` ciego, solo que del otro lado: nunca acaba en vez de acabar demasiado pronto. Los cuatro sitios de `codigo-padre.html` que necesitan este patrón — `checkMapLibre`, `tryInit`, `_gpsEsperarHijosListos()` y `esperarMapaListo()` — se apoyan por eso en `retryUntilAvailable()` (`js/utils.js`, ver §11 "Patrón `retryUntilAvailable()`"), que acota los intentos y deja un `logger.warn` al agotarlos, en vez de reprogramarse a sí mismos indefinidamente. Una variante más sutil de este patrón es una condición real que comprueba lo incorrecto: `initializeMap()` (`codigo-padre.html`) no resuelve su promesa hasta `map.isStyleLoaded()===true` (o `map.once('load', ...)` si aún no lo está) — no basta con que el módulo JS tenga la referencia al mapa, hace falta que el **estilo** (tiles/sprite/glyphs, todo vía red) haya terminado de cargar, algo que en conexión lenta puede tardar más que cualquier cronómetro fijo. `_crearCirculoGeografico()`/`_crearPolyline()` (`js/funciones-mapa.js`) exigen `isStyleLoaded()===true`; si no lo está, `_crearCapaDiferida()` (§4.6a) monta un proxy que crea la capa real en cuanto el mapa dispara `'load'` — en vez de un stub inerte sin reintento, así el círculo naranja de 15m o una polyline nunca se quedan sin dibujar, sea cual sea el instante en que el estilo tarde en estar listo.
+> **El polling sin límite es la misma familia de defecto, y aquí cuenta.** Una condición real correcta consultada en un `setTimeout` recursivo **sin tope de iteraciones** tiene el mismo problema que el `sleep` ciego, solo que del otro lado: nunca acaba en vez de acabar demasiado pronto. Los cuatro sitios de `codigo-padre.html` que necesitan este patrón — `checkMapLibre`, `tryInit`, la espera de Script 2 al final del arranque y `esperarMapaListo()` — se apoyan por eso en `retryUntilAvailable()` (`js/utils.js`, ver §11 "Patrón `retryUntilAvailable()`"), que acota los intentos y deja un `logger.warn` al agotarlos, en vez de reprogramarse a sí mismos indefinidamente. Una variante más sutil de este patrón es una condición real que comprueba lo incorrecto: `initializeMap()` (`codigo-padre.html`) no resuelve su promesa hasta `map.isStyleLoaded()===true` (o `map.once('load', ...)` si aún no lo está) — no basta con que el módulo JS tenga la referencia al mapa, hace falta que el **estilo** (tiles/sprite/glyphs, todo vía red) haya terminado de cargar, algo que en conexión lenta puede tardar más que cualquier cronómetro fijo. `_crearCirculoGeografico()`/`_crearPolyline()` (`js/funciones-mapa.js`) exigen `isStyleLoaded()===true`; si no lo está, `_crearCapaDiferida()` (§4.6a) monta un proxy que crea la capa real en cuanto el mapa dispara `'load'` — en vez de un stub inerte sin reintento, así el círculo naranja de 15m o una polyline nunca se quedan sin dibujar, sea cual sea el instante en que el estilo tarde en estar listo.
 
 ---
 
@@ -14161,94 +14163,94 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `actualizarVisibilidadSelectorMapa` | clásico 7 (L1467) | clásico 8, módulo 1, módulo 2, módulo 3 | función/objeto |
 | `cerrarChatSoporte` | clásico 7 (L1563) | módulo 1, módulo 2 | función/objeto |
 | `construirEstadoChat` | clásico 7 (L1566) | módulo 1 | función/objeto |
-| `mostrarIframeOverlay` | clásico 8 (L2159) | módulo 2 | función/objeto |
+| `mostrarIframeOverlay` | clásico 8 (L2155) | módulo 2 | función/objeto |
 | `mostrarImagenOverlay` | clásico 8 (L1661) | módulo 1, módulo 2 | función/objeto |
 | `mostrarVideoOverlay` | clásico 8 (L1996) | módulo 1 | función/objeto |
 | `rotationSuppressed` | clásico 8 (L1703) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3715) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4991) | clásico 12 | estado |
-| `__VV_5KM_BLOCKED` | módulo 1 (L5500) | módulo 2 | función/objeto |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3699) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3698) | módulo 2 | función/objeto |
-| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5756) | clásico 12 | estado |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6421) | clásico 12 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3682) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6561) | clásico 12 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3700) | módulo 2 | función/objeto |
-| `__vv_registroScript1` | módulo 1 (L3581) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4727) | módulo 2 | función/objeto |
-| `_cerrarDesplegablesDelPadre` | módulo 1 (L4693) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L7262) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8608) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8824) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8729) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L4006) | módulo 2 | estado |
-| `_entradaDeCoordenadas` | módulo 1 (L3772) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8698) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L8908) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8800) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8704) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8916) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8578) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L8158) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5926) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3831) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4930) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L7928) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L7927) | módulo 2 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L3923) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3825) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3826) | módulo 2 | función/objeto |
-| `escaparHTML` | módulo 1 (L2876) | clásico 8, módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L4011) | clásico 7, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4361) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4115) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6325) | módulo 2 | función/objeto |
-| `hideParentLoadingOverlay` | módulo 1 (L2843) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4931) | clásico 5, clásico 7, módulo 2 | estado |
-| `limpiarDatosAventura` | módulo 1 (L2880) | módulo 2 | función/objeto |
-| `MODOS` | módulo 1 (L3824) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8309) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L8233) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L8084) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L8127) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4208) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5019) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5046) | módulo 2 | función/objeto |
-| `reproducirVideoConBuffer` | módulo 1 (L2885) | clásico 8 | función/objeto |
-| `resolverIdsParada` | módulo 1 (L2873) | módulo 2 | función/objeto |
-| `retryUntilAvailable` | módulo 1 (L2874) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6163) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6089) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L6017) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6242) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6317) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6621) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6620) | módulo 2 | función/objeto |
-| `showParentLoadingOverlay` | módulo 1 (L2831) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3823) | clásico 7, clásico 8, módulo 2 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L3984) | clásico 8, módulo 2 | función/objeto |
-| `updateLoadingStatus` | módulo 1 (L2859) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13722) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9901) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12704) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13703) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11668) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12366) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9840) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L11020) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L11134) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L11082) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L11044) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L12396) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L9085) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9835) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L9217) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L9258) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12629) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9713) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9705) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13738) | módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3711) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4986) | clásico 12 | estado |
+| `__VV_5KM_BLOCKED` | módulo 1 (L5475) | módulo 2 | función/objeto |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3695) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3694) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5731) | clásico 12 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6396) | clásico 12 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3678) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6536) | clásico 12 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3696) | módulo 2 | función/objeto |
+| `__vv_registroScript1` | módulo 1 (L3577) | módulo 2 | estado |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4722) | módulo 2 | función/objeto |
+| `_cerrarDesplegablesDelPadre` | módulo 1 (L4688) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L7235) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8567) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8783) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8688) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L4002) | módulo 2 | estado |
+| `_entradaDeCoordenadas` | módulo 1 (L3768) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8657) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8867) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8759) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8663) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8875) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8537) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L8117) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5901) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3827) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4925) | clásico 7, módulo 2 | estado |
+| `cargarHijoCasa` | módulo 1 (L7889) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L7888) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L3919) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3821) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3822) | módulo 2 | función/objeto |
+| `escaparHTML` | módulo 1 (L2872) | clásico 8, módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4007) | clásico 7, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4356) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4111) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6300) | módulo 2 | función/objeto |
+| `hideParentLoadingOverlay` | módulo 1 (L2839) | módulo 2 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4926) | clásico 5, clásico 7, módulo 2 | estado |
+| `limpiarDatosAventura` | módulo 1 (L2876) | módulo 2 | función/objeto |
+| `MODOS` | módulo 1 (L3820) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8268) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8192) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8043) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8086) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4204) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5014) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5041) | módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L2881) | clásico 8 | función/objeto |
+| `resolverIdsParada` | módulo 1 (L2869) | módulo 2 | función/objeto |
+| `retryUntilAvailable` | módulo 1 (L2870) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6138) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6064) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L5992) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6217) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6292) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6596) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6595) | módulo 2 | función/objeto |
+| `showParentLoadingOverlay` | módulo 1 (L2827) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3819) | clásico 7, clásico 8, módulo 2 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L3980) | clásico 8, módulo 2 | función/objeto |
+| `updateLoadingStatus` | módulo 1 (L2855) | módulo 2 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13627) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9860) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12653) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13608) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11623) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12317) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9799) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10979) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L11093) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L11041) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L11003) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L12347) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9044) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9794) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9176) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9217) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12578) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9672) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9664) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13643) | módulo 2 | función/objeto |
 
 </details>
 

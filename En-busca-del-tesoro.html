@@ -2801,7 +2801,7 @@
 
     function _activarUI(logPrefix) {
         try {
-            if (typeof inicializarLogicaSeleccion === 'function') { inicializarLogicaSeleccion(); }
+            inicializarLogicaSeleccion();
         } catch (e) {
             logger.warn(`${logPrefix} inicializarLogicaSeleccion falló:`, e);
         }

@@ -256,9 +256,7 @@ async function _esperarHijosAlEntrarEnAventura() {
     // 10 s de espera a los hijos antes de seguir. CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION (5 s) no se lee aquí: ver docs/estudio-caminos.md (K-01).
     const cfgConfirmTimeout = 10000;
 
-    const hijosPromise = (globalThis.mensajeria && typeof globalThis.mensajeria.esperarHijosListos === 'function')
-        ? globalThis.mensajeria.esperarHijosListos(cfgConfirmTimeout)
-        : Promise.resolve({ ready: true });
+    const hijosPromise = globalThis.mensajeria.esperarHijosListos(cfgConfirmTimeout);
 
     try {
         const race = await Promise.race([

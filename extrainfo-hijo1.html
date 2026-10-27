@@ -259,7 +259,7 @@
                     logger.debug(`${controladorPrefix} Componente listo para recibir datos adicionales si es necesario`);
 
                     // Inicializar la lógica de menú visible y mostrar UI ahora que el padre confirmó
-                    try { if (typeof inicializarLogicaMenu === 'function') inicializarLogicaMenu(); } catch (e) { logger.warn(`${controladorPrefix} inicializarLogicaMenu falló:`, e); }
+                    try { inicializarLogicaMenu(); } catch (e) { logger.warn(`${controladorPrefix} inicializarLogicaMenu falló:`, e); }
                     globalThis._uiConfirmado = true;
                     mostrarUI();
 
