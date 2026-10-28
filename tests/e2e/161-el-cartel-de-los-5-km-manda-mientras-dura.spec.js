@@ -19,8 +19,10 @@
  *   CK-4  Dice lo que es: su imagen y su texto accesible hablan de la zona de la aventura, no de la precisión.
  *   CK-5  El aviso de precisión no lo tapa; al levantarse el bloqueo con la precisión todavía mala, sale el aviso.
  *   CK-6  Control: sin bloqueo, a más de 2 km del elemento sale «muy lejos», como siempre.
+ *   CK-7  Sin reintento: el único botón del cartel es su ✗. Decisión del usuario: fuera el reintento, que no puede
+ *         levantar el bloqueo, y el panel «Próxima parada» que abría, sin coordenadas que enseñar.
  *
- * ROJO ANTES QUE VERDE: con el código anterior caen CK-1 a CK-5; CK-6 pasa.
+ * ROJO ANTES QUE VERDE: con el código anterior caen CK-1 a CK-5 y CK-7; CK-6 pasa.
  */
 'use strict';
 
@@ -189,6 +191,14 @@ test.describe('CK — El cartel de los 5 km manda mientras dura el bloqueo', () 
     await comprobar5km(page, VALENCIA, { medir: true });
     expect(await bloqueado(page), 'de vuelta dentro de los 5 km, el bloqueo se levanta').toBe(false);
     expect(await pantallasDeDistancia(page), 'sin bloqueo, sale el aviso de precisión que hijo2 había pedido').toEqual([PRECISION]);
+  });
+
+  test('CK-7. Sin reintento: el único botón del cartel es su ✗', async ({ page, context }) => {
+    test.setTimeout(150_000);
+    await arrancar(page, context);
+    await bloquear(page);
+    const botones = await page.evaluate(() => [...document.querySelectorAll('#gps-out-of-range-overlay button')].map((b) => b.className));
+    expect(botones, 'un solo botón, el de cerrar').toEqual(['btn-cerrar-overlay']);
   });
 
   test('CK-6. Control: sin bloqueo, a más de 2 km sale «muy lejos»', async ({ page, context }) => {

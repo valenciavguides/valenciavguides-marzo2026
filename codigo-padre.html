@@ -256,11 +256,6 @@
         /* Hijo4 styling - Ver CSS detallado más abajo */
         /* #hijo4 { CSS movido a sección detallada } */
 
-            /* Overlay shown when GPS positions are discarded due to low accuracy
-               This overlay should visually match the media/image overlays used
-               by hijo2 (same borders, close X, button sizes), appear above
-               other children, and allow the secondary dialog to float above it.
-            */
             /* Base compartida por las pantallas de aviso GPS por distancia/precisión (§30/§31.4
                de la guía): foto-perdido (>2000m del elemento actual), foto-lejos (150-2000m),
                foto-desviado (50-150m), foto-fuera-rango (15m(parada)/toleranciaGPS(tramo)-50m),
@@ -361,13 +356,6 @@
                     height: 55vh;
                     padding: 0.625rem;
                     border-radius: 0.625rem;
-                }
-                #gps-next-entity-overlay {
-                    width: 80% !important;
-                    height: auto !important;
-                    top: 0.375rem !important;
-                    left: 50% !important;
-                    transform: translateX(-50%) !important;
                 }
             }
 
@@ -5383,7 +5371,9 @@
          *  2. EL DAÑO REAL: al "bloquear" ocultaba #gps-error-action (el botón de reintentar
          *     GPS) y solo lo restauraba en la rama de desbloqueo — que nunca se ejecutaba
          *     porque minDistM jamás bajaba de Infinity. Resultado: en cada aventura, el botón
-         *     de reintentar GPS desaparecía a los pocos segundos y no volvía.
+         *     de reintentar GPS desaparecía a los pocos segundos y no volvía. Ese botón y el
+         *     panel «Próxima parada» que abría ya no existen: el cartel del bloqueo no tiene
+         *     reintento (K-84; ver _ensureGpsOverlay).
          *
          *  3. EL AVISO SE BORRABA SOLO. _gpsProcesarPosicion() llamaba a
          *     hideGpsOutOfRangeOverlay() en CADA posición, sin mirar si hay bloqueo — dos
@@ -5463,8 +5453,6 @@
                     if (!wasBlocked) {
                         (globalThis.logger || console).warn(`[PADRE][GPS][5KM] Usuario a ${Math.round(minDistM / 1000)}km de la ruta tras ${globalThis.__VV_5KM_SEGUIDAS} lecturas — bloqueando aventura`);
                         globalThis.__VV_5KM_BLOCKED = true;
-                        const actionBtn = document.getElementById('gps-error-action');
-                        if (actionBtn) actionBtn.style.display = 'none';
                         try { showGpsOutOfRangeOverlay(`Ubicación fuera de la zona de la aventura, a más de ${Math.round(minDistM / 1000)} km`); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                         // «Avanzar» lo decide un solo sitio (Script 2), que mira este bloqueo cada vez
                         // que decide: basta con avisarle del cambio, y nada lo enciende mientras dure.
@@ -5475,8 +5463,6 @@
                 } else if (!fuera && wasBlocked) {
                     (globalThis.logger || console).info(`[PADRE][GPS][5KM] Usuario volvió dentro de la ruta (${Math.round(minDistM)}m) — desbloqueando`);
                     globalThis.__VV_5KM_BLOCKED = false;
-                    const actionBtn = document.getElementById('gps-error-action');
-                    if (actionBtn) actionBtn.style.display = '';
                     try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     // Lo que el bloqueo tapaba vuelve: el aviso de precisión, si hijo2 lo pidió y la precisión
                     // no ha vuelto (lo pide una vez por episodio). Las pantallas de franja vuelven solas con la
@@ -5702,55 +5688,6 @@
             img.src = 'imagenes/imagenes-aplicación/fotogpserror.png';
             img.alt = 'Fuera de la zona de la aventura, a más de 5 km';
 
-            const btn = document.createElement('button');
-            btn.id = 'gps-error-action';
-            btn.className = 'gps-overlay-retry-btn';
-            btn.type = 'button';
-            btn.setAttribute('aria-label', 'Reintentar ubicación');
-            btn.title = 'Reintentar ubicación';
-            // Use icon-only label for universal understanding (🛰️🔄)
-            btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
-            btn.addEventListener('click', (ev) => {
-                try {
-                    (globalThis.logger || console).info('[PADRE][GPS][OVERLAY] Botón pulsado por el usuario');
-                    registrarEvento('GPS_OVERLAY_BUTTON_CLICK', { timestamp: Date.now() });
-                    const cd = document.getElementById('gps-overlay-countdown');
-                    if (globalThis.__VV_GPS_OVERLAY_TIMER) clearInterval(globalThis.__VV_GPS_OVERLAY_TIMER);
-                    globalThis.__VV_GPS_OVERLAY_TIMER = _startOverlayCountdown(cd, btn, 15);
-                    try {
-                        navigator.geolocation.getCurrentPosition((pos) => {
-                            (globalThis.logger || console).info('[PADRE][GPS][OVERLAY] getCurrentPosition desde overlay OK (intento manual)');
-                            if (typeof globalThis.funcionesMapa?.procesarPosicionGPSParaAventura === 'function') {
-                                globalThis.funcionesMapa.procesarPosicionGPSParaAventura(pos);
-                            }
-                            // La posición se procesa siempre, sea cual sea su precisión — este
-                            // overlay ya solo se dispara por distancia real, no por precisión, así
-                            // que basta con ocultarlo y dejar que el pipeline normal lo reabra si
-                            // la distancia recalculada lo sigue justificando.
-                            hideGpsOutOfRangeOverlay();
-                        }, (err) => {
-                            (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] getCurrentPosition desde overlay falló:', err && err.message);
-                            // Este overlay es el del bloqueo por distancia; si el reintento falla del todo
-                            // (sin posición en absoluto) el problema real es
-                            // "sin señal" — cambiamos al overlay correcto en vez de dejar este
-                            // congelado sin explicar qué pasó.
-                            try {
-                                hideGpsOutOfRangeOverlay();
-                                showGpsSignalOverlay(err?.code || 2, err?.message);
-                            } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
-                        }, { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION), maximumAge: 0 });
-                    } catch (gerr) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error invocando getCurrentPosition:', gerr); }
-
-                    try { globalThis._gpsOverlayButtonCallback(ev); } catch (cbErr) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error en callback del botón:', cbErr); }
-                } catch (e) {
-                    (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error manejando click:', e && e.message);
-                }
-            });
-
-            const countdown = document.createElement('div');
-            countdown.className = 'vv-overlay-countdown';
-            countdown.id = 'gps-overlay-countdown';
-
             // Close (X) button for overlay principal (use shared media style)
             const closeBtnMain = document.createElement('button');
             closeBtnMain.className = 'btn-cerrar-overlay';
@@ -5762,13 +5699,10 @@
                 try { _snoozearOverlayDistancia('gps-out-of-range-overlay'); hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             });
 
-            const bandaInferior = document.createElement('div');
-            bandaInferior.className = 'gps-banda-inferior';
-            bandaInferior.appendChild(btn);
-
+            // Sin botón de reintento, a diferencia de las otras cinco: mientras dura el bloqueo, una lectura nueva no
+            // lo levanta (solo la comprobación de cada 3 minutos), y para volver están la ubicación y los mapas de
+            // hijo2 (docs/estudio-caminos.md, K-84).
             inner.appendChild(img);
-            inner.appendChild(countdown);
-            inner.appendChild(bandaInferior);
             inner.appendChild(closeBtnMain);
             el.appendChild(inner);
             document.body.appendChild(el);
@@ -5792,18 +5726,8 @@
 
         function hideGpsOutOfRangeOverlay() {
             try {
-                if (globalThis.__VV_GPS_OVERLAY_TIMER) { clearInterval(globalThis.__VV_GPS_OVERLAY_TIMER); globalThis.__VV_GPS_OVERLAY_TIMER = undefined; }
-                const cd = document.getElementById('gps-overlay-countdown');
-                if (cd) cd.textContent = '';
-                const actionBtn = document.getElementById('gps-error-action');
-                if (actionBtn) actionBtn.disabled = false;
                 const el = document.getElementById('gps-out-of-range-overlay');
-                if (!el) return;
-                el.classList.remove('show');
-                try {
-                    const next = document.getElementById('gps-next-entity-overlay');
-                    if (next) next.style.display = 'none';
-                } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                if (el) el.classList.remove('show');
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
 
@@ -5891,8 +5815,7 @@
         function _puedeSalirPantallaDistanciaGPS(id) {
             const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
             if (modoActual !== MODOS.AVENTURA) {
-                if (id === 'gps-out-of-range-overlay') hideGpsOutOfRangeOverlay();
-                else document.getElementById(id)?.classList.remove('show');
+                document.getElementById(id)?.classList.remove('show');
                 return false;
             }
             const bloqueo = globalThis.__VV_5KM_BLOCKED === true;
@@ -5901,13 +5824,14 @@
             return !_overlayDistanciaEnSnooze(id);
         }
 
-        // Reintento compartido por todas las pantallas de esta familia: recalcula posición y
+        // Reintento compartido por las pantallas de esta familia que lo tienen (todas menos el
+        // cartel del bloqueo de 5 km): recalcula posición y
         // deja que el pipeline normal (hijo2 recibe la posición actualizada, recalcula
         // distancia/precisión y reenvía GPS.RESTRINGIDO, GPS.DENTRO_DE_RANGO,
         // GPS.PRECISION_INSUFICIENTE o GPS.PRECISION_RECUPERADA) decida sola qué pantalla
         // corresponde ahora.
         // Si el intento falla del todo (código 1 permiso / 2 sin señal / 3 timeout), cede a
-        // showGpsSignalOverlay — misma lógica que ya usa fotogpserror hoy, sin duplicarla.
+        // showGpsSignalOverlay, que ya cubre esos tres códigos, sin duplicarla.
         function _gpsReintentarDesdeOverlayDistancia(logPrefix) {
             try {
                 navigator.geolocation.getCurrentPosition((pos) => {
@@ -6600,292 +6524,6 @@
             });
         } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
-                // ============================================================
-                // Overlay secundario: Mostrar próxima parada/tramo cuando el usuario pulsa el botón
-                // ============================================================
-                async function _onNextEntityCopyClick(el) {
-                    try {
-                        const datos = el._entityData || {};
-                        let txt = '';
-                        if (typeof datos.lat === 'number' && typeof datos.lng === 'number') {
-                            txt = `${datos.lat.toFixed(6)}, ${datos.lng.toFixed(6)}`;
-                        } else {
-                            txt = document.getElementById('gps-next-entity-coords')?.textContent || '';
-                        }
-                        if (!txt) return;
-                        if (navigator.clipboard && navigator.clipboard.writeText) {
-                            await navigator.clipboard.writeText(txt);
-                            (globalThis.logger || console).info('[PADRE][GPS][OVERLAY] Coordenadas copiadas al portapapeles');
-                            registrarEvento('GPS_NEXT_COPY', { timestamp: Date.now(), parada: datos.id || null });
-                        } else {
-                            const dummy = document.createElement('textarea');
-                            dummy.value = txt;
-                            document.body.appendChild(dummy);
-                            dummy.select();
-                            document.execCommand('copy');
-                            dummy.remove();
-                        }
-                    } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error copiando coordenadas:', e); }
-                }
-                async function _onNextEntityShowMapClick(el) {
-                    try {
-                        const datos = el._entityData;
-                        if (!datos) return;
-                        let lat = datos.lat, lng = datos.lng;
-                        if (!(typeof lat === 'number' && typeof lng === 'number') && datos.id) {
-                            const av = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado];
-                            const parada = av?.elementosIDpadre?.find(item => item.parada_id === datos.id || item.padreid === datos.id);
-                            if (parada?.lat && parada?.lng) { lat = parada.lat; lng = parada.lng; }
-                        }
-                        if (typeof lat === 'number' && typeof lng === 'number') {
-                            try {
-                                await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true });
-                            } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error centrando mapa en objetivo:', e); }
-                        }
-                        registrarEvento('GPS_NEXT_SHOWMAP', { timestamp: Date.now(), parada: datos.id || null });
-                        hideNextEntityOverlay();
-                        try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                    } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error mostrando en mapa:', e); }
-                }
-                function _ensureNextEntityOverlay() {
-                    if (document.getElementById('gps-next-entity-overlay')) return;
-                    const el = document.createElement('div');
-                    el.id = 'gps-next-entity-overlay';
-                    // Attach inside the gps overlay inner box when available so sizing is relative
-                    el.style.position = 'absolute';
-                    el.style.left = '50%';
-                    // Pegado a 0.125rem del borde superior de la caja padre
-                    el.style.top = '0.125rem';
-                    el.style.transform = 'translateX(-50%)';
-                    // Ensure this secondary dialog floats above GPS overlay inner box
-                    el.style.zIndex = 1000050;
-                    // occupy ~52% of the parent box (increased ~30% from previous 40%)
-                    el.style.width = '52%';
-                    el.style.height = '52%';
-                    el.style.minWidth = '16.25rem';
-                    // Slightly more transparent to let underlying map be more visible
-                    el.style.background = 'rgba(255,255,255,0.72)';
-                    el.style.color = '#111';
-                    el.style.padding = '0.75rem';
-                    el.style.borderRadius = '0.5rem';
-                    el.style.boxShadow = '0 0.5rem 1.5rem rgba(0,0,0,0.35)';
-                    el.style.display = 'none';
-                    el.setAttribute('role', 'dialog');
-
-                    const title = document.createElement('div');
-                    title.id = 'gps-next-entity-title';
-                    title.style.fontSize = '1.125rem';
-                    title.style.fontWeight = '700';
-                    title.style.marginBottom = '0.5rem';
-                    title.textContent = 'Próxima parada';
-
-                    const name = document.createElement('div');
-                    name.id = 'gps-next-entity-name';
-                    name.style.fontSize = '1rem';
-                    name.style.marginBottom = '0.5rem';
-
-                    const meta = document.createElement('div');
-                    meta.id = 'gps-next-entity-meta';
-                    meta.style.fontSize = '0.8125rem';
-                    meta.style.color = '#444';
-                    meta.style.marginBottom = '0.75rem';
-
-                    const coords = document.createElement('div');
-                    coords.id = 'gps-next-entity-coords';
-                    coords.style.fontSize = '0.8125rem';
-                    coords.style.color = '#333';
-                    coords.style.marginBottom = '0.75rem';
-
-                    const btnRow = document.createElement('div');
-                    btnRow.style.display = 'flex';
-                    btnRow.style.gap = '0.5rem';
-                    btnRow.style.justifyContent = 'center';
-
-                    const btnShowMap = document.createElement('button');
-                    btnShowMap.id = 'gps-next-entity-showmap';
-                    btnShowMap.type = 'button';
-                    btnShowMap.setAttribute('aria-label', 'Mostrar en mapa');
-                    btnShowMap.title = 'Mostrar en mapa';
-                    // Icon-only large map pin (📍) - larger and soft green background
-                    btnShowMap.innerHTML = '<span style="font-size:2.25rem;line-height:1">📍</span>';
-                    btnShowMap.style.padding = '0.875rem';
-                    btnShowMap.style.borderRadius = '0.75rem';
-                    btnShowMap.style.border = 'none';
-                    btnShowMap.style.background = 'linear-gradient(135deg, #daf5e0, #bfeecf)';
-                    btnShowMap.style.color = '#0b5f3a';
-                    btnShowMap.style.cursor = 'pointer';
-                    btnShowMap.style.boxShadow = '0 0.375rem 1.125rem rgba(11,95,58,0.12)';
-
-                    const btnCopy = document.createElement('button');
-                    btnCopy.id = 'gps-next-entity-copy';
-                    btnCopy.type = 'button';
-                    btnCopy.setAttribute('aria-label', 'Copiar coordenadas (lat/lon)');
-                    btnCopy.title = 'Copiar coordenadas (lat/lon)';
-                    // Icon + label clipboard: emoji with centered "lat/lon" text below
-                    // make copy button visually consistent with others (soft green background)
-                    btnCopy.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.25rem"><span style="font-size:2.25rem;line-height:1">📋</span><span style="font-size:0.75rem;line-height:1;color:#0b5f3a">lat/lon</span></div>';
-                    btnCopy.style.padding = '0.5rem 0.375rem';
-                    btnCopy.style.borderRadius = '0.75rem';
-                    btnCopy.style.border = '0.0625rem solid rgba(11,95,58,0.08)';
-                    btnCopy.style.background = 'linear-gradient(135deg, #f0fbf2, #e0f8e8)';
-                    btnCopy.style.cursor = 'pointer';
-                    btnCopy.style.width = '4rem';
-                    btnCopy.style.height = '4.5rem';
-                    btnCopy.style.display = 'inline-flex';
-                    btnCopy.style.alignItems = 'center';
-                    btnCopy.style.justifyContent = 'center';
-                    btnCopy.style.zIndex = '1015';
-
-                    const btnClose = document.createElement('button');
-                    btnClose.id = 'gps-next-entity-close';
-                    btnClose.type = 'button';
-                    btnClose.setAttribute('aria-label', 'Cerrar');
-                    btnClose.title = 'Cerrar';
-                    btnClose.innerHTML = '<span class="icono-x-cerrar">✗</span>';
-                    // Mismo patrón visual que el resto de botones de cerrar de la app
-                    // (naranja clementine + borde verde esmeralda + X negro púrpura + círculo)
-                    // — solo la posición (centrado bajo el resto del contenido, no esquina
-                    // superior) es propia de este diálogo anidado.
-                    btnClose.style.marginTop = '12px';
-                    btnClose.style.display = 'flex';
-                    btnClose.style.alignItems = 'center';
-                    btnClose.style.justifyContent = 'center';
-                    btnClose.style.marginLeft = 'auto';
-                    btnClose.style.marginRight = 'auto';
-                    btnClose.style.width = '3.25rem';
-                    btnClose.style.height = '3.25rem';
-                    btnClose.style.borderRadius = '50%';
-                    btnClose.style.border = '0.3125rem solid #50C878';
-                    btnClose.style.background = '#F28500';
-                    btnClose.style.color = '#0F0616';
-                    btnClose.style.fontSize = '3.4375rem';
-                    btnClose.style.fontWeight = 'bold';
-                    btnClose.style.lineHeight = '1';
-                    btnClose.style.cursor = 'pointer';
-
-                    btnRow.appendChild(btnShowMap);
-                    btnRow.appendChild(btnCopy);
-
-                    el.appendChild(title);
-                    el.appendChild(name);
-                    el.appendChild(meta);
-                    el.appendChild(coords);
-                    el.appendChild(btnRow);
-                    el.appendChild(btnClose);
-
-                    // Append to gps inner box if available, otherwise fallback to body
-                    const gpsInner = document.querySelector('#gps-out-of-range-overlay .gps-inner');
-                    if (gpsInner) gpsInner.appendChild(el); else document.body.appendChild(el);
-
-                    // Attach handlers
-                    btnClose.addEventListener('click', () => {
-                        hideNextEntityOverlay();
-                        try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                    });
-
-                    btnCopy.addEventListener('click', () => _onNextEntityCopyClick(el));
-                    btnShowMap.addEventListener('click', () => _onNextEntityShowMapClick(el));
-                }
-
-                function showNextEntityOverlay(entity) {
-                    try {
-                            // Ensure GPS overlay exists (we want the next-entity dialog inside it)
-                            _ensureGpsOverlay();
-                            _ensureNextEntityOverlay();
-                        const el = document.getElementById('gps-next-entity-overlay');
-                            // If the gps inner box is present, ensure the dialog is its child
-                            const gpsInner = document.querySelector('#gps-out-of-range-overlay .gps-inner');
-                            if (gpsInner && el && el.parentNode !== gpsInner) {
-                                try { gpsInner.appendChild(el); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                            }
-                        if (!el) return;
-                        const title = document.getElementById('gps-next-entity-title');
-                        const name = document.getElementById('gps-next-entity-name');
-                        const meta = document.getElementById('gps-next-entity-meta');
-                        const coords = document.getElementById('gps-next-entity-coords');
-
-                        if (!entity) {
-                            title.textContent = 'Próxima parada';
-                            name.textContent = 'No hay información disponible';
-                            meta.textContent = '';
-                            coords.textContent = '';
-                            el._entityData = null;
-                            el.style.display = 'block';
-                            return;
-                        }
-
-                        title.textContent = entity.tipo === 'tramo' ? 'Próximo tramo' : 'Próxima parada';
-                        name.textContent = entity.nombre || entity.titulo || entity.padreid || (entity.parada_id || entity.tramo_id) || 'Sin nombre';
-                        const idxSuffix = (estado !== undefined && estado && estado.indiceProgreso !== null) ? ` · índice ${estado.indiceProgreso}` : '';
-                        meta.textContent = `Tipo: ${entity.tipo || 'desconocido'}${idxSuffix}`;
-                        coords.textContent = entity.lat && entity.lng ? `Coordenadas: ${entity.lat.toFixed(6)}, ${entity.lng.toFixed(6)}` : 'Coordenadas: no disponibles';
-
-                        el._entityData = {
-                            id: entity.parada_id || entity.tramo_id || entity.padreid || null,
-                            lat: entity.lat,
-                            lng: entity.lng,
-                            nombre: entity.nombre || entity.titulo || null
-                        };
-
-                        el.style.display = 'block';
-                        registrarEvento('GPS_NEXT_SHOWN', { paradaId: el._entityData.id, timestamp: Date.now() });
-                    } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error mostrando overlay próxima entidad:', e); }
-                }
-
-                function hideNextEntityOverlay() {
-                    try {
-                        const el = document.getElementById('gps-next-entity-overlay');
-                        if (!el) return;
-                        el.style.display = 'none';
-                        // Also hide main GPS overlay to avoid orphaned overlays
-                        try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                    } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error ocultando overlay próxima entidad:', e); }
-                }
-
-                // Construir la información de la siguiente entidad usando estado.indiceProgreso y DATOS_PADRE
-                function _resolverIndiceProgreso(paradas) {
-                    if (estado !== undefined && typeof estado.indiceProgreso === 'number') return estado.indiceProgreso;
-                    if (estado !== undefined && estado.paradaActual) {
-                        const found = paradas.findIndex(p => p.padreid === estado.paradaActual || p.parada_id === estado.paradaActual || p.tramo_id === estado.paradaActual);
-                        if (found >= 0) return found;
-                    }
-                    return null;
-                }
-
-                function construirProximaEntidad() {
-                    try {
-                        const paradas = DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre || [];
-                        if (!Array.isArray(paradas) || paradas.length === 0) return null;
-                        const idx = _resolverIndiceProgreso(paradas);
-                        const siguiente = idx === null ? paradas[0] : (paradas[idx + 1] ?? null);
-                        if (!siguiente) return null;
-                        return {
-                            tipo: siguiente.tipo || (siguiente.tramo_id ? 'tramo' : 'parada'),
-                            nombre: siguiente.nombre || siguiente.titulo || siguiente.padreid || null,
-                            parada_id: siguiente.parada_id || null,
-                            tramo_id: siguiente.tramo_id || null,
-                            padreid: siguiente.padreid || null,
-                            lat: siguiente.lat || siguiente.ubicacion?.lat || null,
-                            lng: siguiente.lng || siguiente.ubicacion?.lng || null
-                        };
-                    } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error construyendo próxima entidad:', e); return null; }
-                }
-
-                // Register default button callback: show next entity overlay
-                try {
-                    globalThis._gpsOverlayButtonCallback = async function (_ev) {
-                        try {
-                            const entidad = construirProximaEntidad();
-                            if (!entidad) {
-                                showNextEntityOverlay(null);
-                                return;
-                            }
-                            // Mostrar overlay con info de la próxima entidad
-                            showNextEntityOverlay(entidad);
-                        } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error en callback por defecto del botón:', e); }
-                    };
-                } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-
         // ============================================================
         // CONTROLADOR CRÍTICO: SISTEMA.HIJO_PREPARADO
         // ============================================================
@@ -7206,13 +6844,10 @@
                     // indefinidamente (reporte de uso real 2026-08-10). estado.usuarioFueraRango también se
                     // resetea, para que no se reactiven controles/mensajes basados en un fuera-de-rango que
                     // ya no aplica en modo libre.
-                    // Y lo que deja abierto el botón de reintento del cartel de bloqueo: su cuenta atrás (con el botón
-                    // apagado hasta que acabe) y el panel de «siguiente punto». Todo lo del GPS se cierra aquí, en un solo
-                    // sitio y al empezar el cambio (docs/estudio-caminos.md, K-49): repartido entre esta rama y el final
-                    // de la secuencia, cada camino cerraba una parte y la pérdida de uno no la veía ningún test.
+                    // Todo lo del GPS se cierra aquí, en un solo sitio y al empezar el cambio
+                    // (docs/estudio-caminos.md, K-49): repartido entre esta rama y el final de la secuencia, cada
+                    // camino cerraba una parte y la pérdida de uno no la veía ningún test.
                     try { _ocultarTodasPantallasDistanciaGPS(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                    try { hideNextEntityOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                    try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     estado.usuarioFueraRango = { activo: false, distancia: null, franja: null, elementoMasCercano: null, timestamp: null };
                     // La polyline manual de navegación (verde, botón ubicación) es exclusiva de
                     // AVENTURA — nada la limpiaba al cambiar de modo, así que se quedaba pegada
@@ -13621,7 +13256,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             try { clearInterval(globalThis.__VV_PENDING_CLEANUP); } catch { }
             globalThis.__VV_PENDING_CLEANUP = undefined;
         }
-        for (const key of ['__VV_GPS_OVERLAY_TIMER', '__VV_GPS_SIGNAL_TIMER', '__VV_INET_OVERLAY_TIMER']) {
+        for (const key of ['__VV_GPS_SIGNAL_TIMER', '__VV_INET_OVERLAY_TIMER']) {
             if (globalThis[key]) { try { clearInterval(globalThis[key]); } catch { } globalThis[key] = undefined; }
         }
         if (globalThis.__CONTROLADOR_REGISTRADOS) {

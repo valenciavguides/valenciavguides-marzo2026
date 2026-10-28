@@ -9,15 +9,16 @@
  *     todo el mundo estaba lejos.
  *  2. Al "bloquear" ocultaba `#gps-error-action` (reintentar GPS) y solo lo restauraba
  *     en la rama de desbloqueo, que nunca se ejecutaba. En cada aventura, ese botón
- *     desaparecía a los pocos segundos y no volvía. **Este es el daño real de hoy.**
+ *     desaparecía a los pocos segundos y no volvía. El cartel del bloqueo no tiene ya
+ *     botón de reintento (K-84): lo que se mira es el cartel.
  *  3. `_gpsProcesarPosicion()` llamaba a `hideGpsOutOfRangeOverlay()` en cada posición,
  *     sin mirar el bloqueo — borrando el aviso dos líneas después de mostrarlo.
  *
- *   DR-1  Dentro de la ruta: no bloquea y el botón de reintentar GPS sigue visible.
+ *   DR-1  Dentro de la ruta: no bloquea ni enseña el cartel del bloqueo.
  *   DR-2  Sin coordenadas: NO bloquea (ausencia de dato no es veredicto) y deja error.
  *   DR-3  Lejos, pero con precisión mala: se ignora la lectura, no bloquea.
  *   DR-4  Lejos con buena precisión: hacen falta 3 lecturas seguidas para bloquear.
- *   DR-5  Volver dentro desbloquea y devuelve el botón de reintentar.
+ *   DR-5  Volver dentro desbloquea y quita el cartel del bloqueo.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -71,17 +72,17 @@ async function comprobar(page, { lat, lng }, accuracy, veces = 1) {
   return page.evaluate(() => ({
     bloqueado: globalThis.__VV_5KM_BLOCKED === true,
     seguidas: globalThis.__VV_5KM_SEGUIDAS || 0,
-    botonReintentar: document.getElementById('gps-error-action')?.style.display ?? '(sin elemento)',
+    cartel: (() => { const el = document.getElementById('gps-out-of-range-overlay'); return !!el && getComputedStyle(el).display !== 'none'; })(),
   }));
 }
 
 test.describe('DR — distancia a la ruta: no bloquear sin haber medido', () => {
 
-  test('DR-1. Dentro de la ruta: no bloquea y el botón de reintentar sigue visible', async ({ page }) => {
+  test('DR-1. Dentro de la ruta: no bloquea ni enseña el cartel', async ({ page }) => {
     await prepararAventura(page);
     const r = await comprobar(page, DENTRO, 20, 3);
     expect(r.bloqueado, 'estando en Valencia no puede bloquearse').toBe(false);
-    expect(r.botonReintentar, 'el botón de reintentar GPS no debe ocultarse').not.toBe('none');
+    expect(r.cartel, 'ni enseña el cartel del bloqueo').toBe(false);
   });
 
   test('DR-2. Sin coordenadas no bloquea: ausencia de dato no es veredicto', async ({ page }) => {
@@ -96,7 +97,7 @@ test.describe('DR — distancia a la ruta: no bloquear sin haber medido', () => 
     const r = await comprobar(page, LEJOS, 20, 3);
 
     expect(r.bloqueado, 'sin datos NO se puede bloquear a nadie').toBe(false);
-    expect(r.botonReintentar, 'ni ocultar el botón de reintentar GPS').not.toBe('none');
+    expect(r.cartel, 'ni enseñar el cartel del bloqueo').toBe(false);
     expect(
       logs.some((l) => l.includes('[5KM]') && l.includes('Sin coordenadas')),
       'y debe quejarse en voz alta, no callar'
@@ -122,13 +123,14 @@ test.describe('DR — distancia a la ruta: no bloquear sin haber medido', () => 
     expect(tres.bloqueado, 'a la tercera sí').toBe(true);
   });
 
-  test('DR-5. Volver dentro desbloquea y devuelve el botón de reintentar', async ({ page }) => {
+  test('DR-5. Volver dentro desbloquea y quita el cartel', async ({ page }) => {
     await prepararAventura(page);
     const fuera = await comprobar(page, LEJOS, 20, 3);
     expect(fuera.bloqueado, 'precondición: debe haber bloqueado').toBe(true);
 
     const vuelta = await comprobar(page, DENTRO, 20, 1);
     expect(vuelta.bloqueado, 'volver dentro debe desbloquear').toBe(false);
-    expect(vuelta.botonReintentar, 'y devolver el botón de reintentar GPS').not.toBe('none');
+    expect(fuera.cartel, 'precondición: con el bloqueo, su cartel a la vista').toBe(true);
+    expect(vuelta.cartel, 'y quitar el cartel del bloqueo').toBe(false);
   });
 });
