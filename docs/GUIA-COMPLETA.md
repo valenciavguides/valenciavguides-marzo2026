@@ -9839,10 +9839,10 @@ La pantalla de aventura se compone de varios elementos superpuestos:
 
 | Botón | Icono | Función |
 |-------|-------|---------|
-| avanzar | Ruta A→B | Envía `NAVEGACION.GPS.ACTIVAR` al padre. Es la **única puerta de confirmación explícita** para pasar al siguiente elemento: en parada o tramo completado, progresa. En un tramo activo aún sin completar **no hace nada** — su trazado ya está visible desde que se activó (§4.7d), así que no hay nada que revelar |
+| avanzar | Ruta A→B | Envía `NAVEGACION.GPS.ACTIVAR` al padre. Es la **única puerta de confirmación explícita** para pasar al siguiente elemento. Solo está encendido cuando lo decide el padre (`_decidirAvanzar()`, §29.4): el elemento está completado, en AVENTURA, sin un reto a la vista, sin el bloqueo de 5 km y sin estar fuera de rango con la gracia agotada (salvo el elemento rescatado, §25.19) |
 | Imagen | Foto monumento | Muestra una foto de la parada actual en un overlay y el texto relacionado con ella |
 | Vídeo | Fotograma dron | Reproduce un vídeo aéreo del tramo de A a B |
-| Ubicación | Foto distancia | Dibuja una polyline discontinua de vuelta al destino actual. Deshabilitado (rojo) mientras el usuario está en rango; se habilita (verde) cuando se confirma que está fuera de rango (§11, "Sistema fuera de rango real") |
+| Ubicación | Foto distancia | Pide al padre una línea discontinua hasta el elemento actual. Apagado (rojo) mientras el usuario está en rango; se enciende (verde) en cuanto sale del rango, sin esperar la gracia, y se apaga mientras «avanzar» está encendido (§25.7, §29.6) |
 | Mapa completo | Mapa moderno | Abre `mapa-completo.html` a pantalla completa: todas las paradas, la polyline de la ruta y los marcadores `tipo:"referencia"` de `coordenadas-aventuras.js` |
 | Mapa vintage | Mapa antiguo | Abre el mapa artístico a pantalla completa |
 
@@ -9897,11 +9897,11 @@ En su lugar, la fiabilidad se resuelve donde de verdad importa: en la confirmaci
 
 Mientras el usuario está **dentro de los 15 metros** de la parada actual (o dentro del rangoMaximo del tramo):
 
-- ✅ **Botón avanzar**: dos estados posibles — **rojo (deshabilitado)** mientras la parada no está completada (el usuario aún tiene pendiente el audio o el reto); **verde (habilitado)** cuando la parada está completada, para progresar al siguiente elemento.
+- ✅ **Botón avanzar**: dos estados posibles — **rojo (deshabilitado)** mientras la parada no está completada (el usuario aún tiene pendiente el audio o el reto); **verde (habilitado)** cuando la parada está completada y no hay un reto a la vista, para progresar al siguiente elemento (§29.4).
 - ⚠️ **Botón Vídeo**: solo se habilita si el elemento actual es un **tramo** — en una parada permanece deshabilitado siempre, por muy cerca que esté el usuario, porque el vídeo aéreo muestra el trayecto de A a B, no un monumento fijo. No depende de la distancia en absoluto, solo del tipo de elemento (y de que no haya un reto abierto en pantalla, que lo deshabilita temporalmente en cualquier caso).
 - ⚠️ **Botón Imagen**: su condición real es que **no haya un reto abierto en ese momento** (`retoActivo`), no la distancia — se deshabilita mientras la ventana del reto está en pantalla y se rehabilita al cerrarla, en cualquier punto de la aventura. Dentro del radio suele coincidir con "habilitado" simplemente porque lo normal es no tener un reto abierto todavía.
 - ✅ **Botón Ubicación**: deshabilitado (rojo) — no necesita ver dónde ir.
-- ✅ **Botones Mapas**: habilitados — puede ver el mapa completo o vintage. Tampoco dependen de la distancia real, solo de que no se esté en la pantalla de "fuera de rango excedido".
+- ✅ **Botones Mapas**: habilitados — puede ver el mapa completo o vintage. No dependen de la distancia: fuera de rango siguen encendidos, porque ayudan a orientarse (§25.7).
 - ✅ **Audio**: habilitado si el elemento actual tiene un audio asignado — puede escucharlo.
 - ⚠️ **Retos**: si la parada tiene reto **y** audio, el botón permanece deshabilitado hasta que **el audio termina de reproducirse** — no hasta que el usuario llega. Un usuario que lleva rato parado junto al monumento pero no ha terminado de escuchar la narración se encuentra el botón de retos todavía en rojo. Solo si la parada tiene reto pero no tiene audio asignado se habilita de inmediato al llegar.
 
@@ -10070,7 +10070,7 @@ La detección de **llegada** a la siguiente parada ocurre cuando el GPS indica q
 
 1. Se envía `NAVEGACION.LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento activo.
 2. Si audio (+ reto, en paradas) ya estaban completos, `marcarParadaCompletada()` habilita `btn-avanzar` en hijo2 y muestra el cartel que corresponda según qué acaba de completarse y qué sigue (§4.7g) — la parada queda marcada como completada en `estado.paradasCompletadas`, pero el elemento activo es el mismo.
-3. Solo cuando el usuario pulsa `btn-avanzar`, `progresarSiguienteElemento()` incrementa `indiceProgreso`, actualiza `estado.paradaActual` y envía `CAMBIO_PARADA` a los hijos críticos (hijo2, hijo3, hijo4, hijo5).
+3. Solo cuando el usuario pulsa `btn-avanzar`, `progresarSiguienteElemento()` incrementa `indiceProgreso` y despacha `NAVEGACION.CAMBIO_PARADA` por el bus (`despacharLocal`); su handler actualiza `estado.paradaActual` y avisa a hijo2, hijo3, hijo4 y hijo5 (`_notificarCambioParadaHijos`).
 4. Cada hijo carga los datos del nuevo elemento (audio, coordenadas, retos).
 5. Se persiste el progreso en `localStorage` → `vv_progreso`.
 
@@ -10101,7 +10101,7 @@ A partir de ahí, la distancia se reparte en **4 franjas**, dos de ellas con mar
 |-------------|------------------|
 | `#btn-avanzar` / `#btn-video` / `#btn-imagen` | Sin cambio — siguen las reglas normales de progreso, como si no estuviera fuera de rango |
 | `#btn-ubicacion` (ver dónde estoy) | ✅ habilitado (verde) — al instante |
-| `#btn-mapa-completo` / `#btn-mapa-jpg` | ✅ habilitados (verde) — siempre lo están salvo que todos los controles estén deshabilitados |
+| `#btn-mapa-completo` / `#btn-mapa-jpg` | ✅ habilitados (verde) — no dependen de la distancia |
 
 **Botones de hijo2 una vez la gracia expira, o al instante en "lejos"/"perdido"** (`_desactivarBotonesRangoExcedido()`, `fueraDeRangoActivo=true`):
 
@@ -10126,7 +10126,7 @@ hijo1 (extrainfo), el chat de soporte y `#btn-imagen` quedan fuera a propósito 
 
 Al volver dentro de rango (`NAVEGACION.GPS.DENTRO_DE_RANGO`), `_hdl_NAVEGACION_GPS_DENTRO_DE_RANGO` limpia `estado.usuarioFueraRango`, vuelve a llamar `actualizarEstadoControlesAudioPadre()` (audio), llama a `_sincronizarRetoBtn()`, que manda a hijo3 el estado que le toca a `retosBtn` (§7.4): encendido si el audio del elemento ha terminado, apagado si no, y llama a `_sincronizarAvanzar()`, que vuelve a encender «avanzar» si el elemento está completado y nada más lo impide. hijo2 envía este aviso en cada vuelta dentro de rango, también cuando la gracia no llega a agotarse y el botón sigue encendido; el estado del reto (`estado.retoActual`) no cambia.
 
-**El razonamiento:** si el usuario se ha perdido, lo único útil es ayudarle a volver. El botón Ubicación pide una posición nueva y, solo entonces, traza una polyline en el mapa desde la posición actual del usuario hasta la parada que le toca — nunca se dibuja sola, siempre requiere ese pulsación explícita (así el GPS tiene tiempo de asentarse antes de trazar la línea).
+**El razonamiento:** si el usuario se ha perdido, lo único útil es ayudarle a volver. Al pulsar el botón Ubicación, hijo2 manda al padre la última posición que tiene (sin ninguna, el padre pide una) y el padre traza una polyline en el mapa desde ella hasta el elemento que le toca — nunca se dibuja sola, siempre requiere esa pulsación explícita (así el GPS tiene tiempo de asentarse antes de trazar la línea). La pantalla de aviso que el usuario cerró con su ✗ para llegar al botón no vuelve encima de la línea hasta que pase su tiempo de espera (§31.4).
 
 **¿Cómo se recupera?** Cuando `distanciaAlDestino`/`distanciaAlCamino` vuelve a estar dentro del rango real:
 
@@ -10198,7 +10198,7 @@ Si el usuario **cierra el navegador** o **recarga la página** (por accidente, p
 |-------|-----------|------------------|
 | `vv_idioma` | Idioma seleccionado (ej: `es`) | Al seleccionar idioma en P2 |
 | `vv_aventura_iniciada` | JSON con aventura, idioma, modo, `dev` y timestamp (§10.19) | Al pulsar el botón de los logos (P17), tras el «sí» del Reto R-2 — el padre lo guarda al recibir `SELECCION.AVENTURA_ACTIVADA`, y lo resincroniza en cada cambio de modo real |
-| `vv_progreso` | JSON con índice, parada actual, total de paradas y la ficha del elemento actual (llegada, audio y reto) | En cada cambio de parada y cada vez que se hace algo en el elemento actual |
+| `vv_progreso` | JSON con el identificador del elemento actual, el índice, el total de paradas, la ficha del elemento actual (llegada, audio y reto), los rescates usados y el rescate en curso (§25.19) | En cada cambio de parada y cada vez que se hace algo en el elemento actual |
 | `vv_paradas_completadas` | Mapa serializado de paradas completadas | Al completar cada parada |
 
 Cuando el usuario vuelve a abrir la aplicación y el sistema detecta que hay una aventura activa (`vv_aventura_iniciada` existe), en lugar de empezar desde cero, aparece un **diálogo de reanudación** en el idioma guardado. Los textos de los 12 idiomas (`TRADUCCIONES_REANUDACION`) están centralizados en `js/traducciones-ui.js` e importados en `codigo-padre.html` Script 1 — ver §10 (tabla "Datos en el frontend").
@@ -10230,7 +10230,7 @@ Si el usuario no toca nada, a los **30 segundos** se reanuda automáticamente (p
 5. Se cargan los datos de la aventura.
 6. Se activa el modo AVENTURA, el GPS y el reloj de compra de hijo1 — incluida la sincronización de `estadoMapa.modo` en `funciones-mapa.js` (ver "Sincronización de `estadoMapa.modo` al reanudar sesión", §11), necesaria porque este paso no pasa por el mismo handler que un cambio de modo en vivo (`_activarModoRest()`, no `_hdl_SISTEMA_CAMBIO_MODO`).
 7. Se restaura el progreso: el elemento en curso, por su identificador guardado (si no está en los datos, se dice con un error y se sigue desde la parada por defecto) — dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado.
-8. El usuario continúa en el elemento en que lo deja, con lo que lleva hecho en él. `vv_progreso` guarda la ficha del elemento actual (`ficha`: `clave`, `llegada`, `audio`, `reto` y `retosCompletadosCount`) cada vez que se anota algo en ella (`_anotarEnFicha()`, §9.2.3). Al reanudar, `_restoreApplyState()` la deja en `estado._fichaGuardada` y la activación del elemento restaurado, si la `clave` es la suya y el modo es AVENTURA, la vuelca en la ficha recién creada. El audio terminado sigue terminado: el botón de retos de hijo3 se enciende sin volver a escucharlo ni a saltarlo (§7.4). El reto resuelto sigue resuelto, y la cola de retos nace con él hecho. La llegada confirmada sigue confirmada. Si con lo guardado la ficha está completa y el elemento no figura como completado, se completa en esa misma activación. El recordatorio «pulse retos» corre de nuevo si el audio está terminado y queda reto (§25.5d). El reloj de la ficha (`timestamp`, el que mide el recordatorio de rescate, §25.19) empieza de nuevo. No se guardan la distancia andada dentro de un tramo (ver §"Distancia recorrida") ni, en un elemento con varios retos, los retos sueltos de una cola a medias. Un `vv_progreso` sin `ficha`, o con la ficha de otro elemento, deja la del elemento a cero. Un elemento completado y a falta de pulsar «avanzar» se activa listo para avanzar: `_elementoCompletado()` lo encuentra en `paradasCompletadas`, no se le crea ficha, `estado.paradaListaParaAvanzar` queda a `true` y `_sincronizarAvanzar()` enciende «avanzar» en hijo2 si nada más lo impide (§29.4). Cubierto por `tests/e2e/124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` (FG-1 a FG-9) y `tests/e2e/123-elemento-completado-sigue-completado.spec.js` (EC-1 a EC-3).
+8. El usuario continúa en el elemento en que lo deja, con lo que lleva hecho en él. `vv_progreso` guarda la ficha del elemento actual (`ficha`: `clave`, `llegada`, `audio`, `reto` y `retosCompletadosCount`) cada vez que se anota algo en ella (`_anotarEnFicha()`, §9.2.3). Al reanudar, `_restoreApplyState()` la deja en `estado._fichaGuardada` y la activación del elemento restaurado, si la `clave` es la suya y el modo es AVENTURA, la vuelca en la ficha recién creada. El audio terminado sigue terminado: el botón de retos de hijo3 se enciende sin volver a escucharlo ni a saltarlo (§7.4). El reto resuelto sigue resuelto, y la cola de retos nace con él hecho. La llegada confirmada sigue confirmada. Si con lo guardado la ficha está completa y el elemento no figura como completado, se completa en esa misma activación. El recordatorio «pulse retos» corre de nuevo si el audio está terminado y queda reto (§25.5d). El reloj de la ficha (`timestamp`, el que mide el recordatorio de rescate, §25.19) empieza de nuevo. No se guardan la distancia andada dentro de un tramo (ver §"Distancia recorrida") ni, en un elemento con varios retos, los retos sueltos de una cola a medias. Un `vv_progreso` sin `ficha`, o con la ficha de otro elemento, deja la del elemento a cero. Un rescate concedido y a falta de pulsar «avanzar» sigue registrado (`estado.rescateEnCurso`, §25.19): «avanzar» se enciende aunque el usuario siga fuera de la zona, y el rescate no se cobra otra vez. Un elemento completado y a falta de pulsar «avanzar» se activa listo para avanzar: `_elementoCompletado()` lo encuentra en `paradasCompletadas`, no se le crea ficha, `estado.paradaListaParaAvanzar` queda a `true` y `_sincronizarAvanzar()` enciende «avanzar» en hijo2 si nada más lo impide (§29.4). Cubierto por `tests/e2e/124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` (FG-1 a FG-9) y `tests/e2e/123-elemento-completado-sigue-completado.spec.js` (EC-1 a EC-3).
 
 **Por qué el modo se activa antes de restaurar el progreso, no después:** `_restaurarProgresoRest()` (paso 7) dispara el `CAMBIO_PARADA` real del elemento restaurado (`_restoreBroadcast()` → `despacharLocal()` → `_hdl_NAVEGACION_CAMBIO_PARADA`), y ese handler decide varias cosas según `estado.modo?.actual === MODOS.AVENTURA` — si arranca el recordatorio de audio (§25.5c), si el elemento ya completado queda listo para avanzar y cómo queda «avanzar». `estado.modo.actual` **no lo escribe `codigo-padre.html` en ningún sitio**: sus tres únicas asignaciones están en `manejarCambioModo()` de `js/app.js` (el *optimistic update* del principio, la reafirmación de campos mínimos después de esperar a los hijos, y `restaurarEstadoModoAnterior()` si el cambio falla). En una reanudación, `_activarModoRest()` (paso 6) llega ahí por la vía normal — invoca `_hdl_SISTEMA_CAMBIO_MODO` con `modo: _modoRest` en vez de reimplementar la mitad de sus efectos —, así que es el único punto de la reanudación que provoca ese cambio. Con el modo ya aplicado antes de que se procese la parada restaurada, esas ramas reciben el valor real (`aventura`), no el valor de arranque (`null`) con el que empieza `estado.modo.actual` antes de cualquier restauración. El mismo orden evita un segundo problema: el `CAMBIO_MODO` que `_activarModoRest()` difunde a los hijos llega a hijo2 antes que el `CAMBIO_PARADA` — así `_resetarEstadoParaModo()` (§24) limpia el estado antes de que lleguen los datos reales de la parada, en vez de después, donde los borraría justo tras fijarlos. Cubierto por `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
 
@@ -10458,7 +10458,7 @@ El flag `activado` garantiza que `accionLimpieza()` se ejecuta como máximo una 
 
 **Caso hipotético: el tiempo se agota mientras el usuario está en una pestaña externa.**
 
-`extrainfo-hijo1.html` tiene varios iconos flotantes (Gastronomía, Información, Historia, Páginas Oficiales — configurados en `iconosArriba`/`iconosAbajo`,-779) que abren páginas auxiliares (`gastronomia.html`, `consejos-valencia.html`, etc.) mediante `globalThis.open(icono.url, '_blank')` (`extrainfo-hijo1.html`) — es decir, **pestañas de navegador reales**, no navegación interna del iframe. Cuando una de esas pestañas gana el foco, el documento padre pasa a `visibilityState: 'hidden'`.
+`extrainfo-hijo1.html` tiene varios iconos flotantes (Gastronomía, Información, Historia, Páginas Oficiales — configurados en `iconosArriba`/`iconosAbajo`) que abren páginas auxiliares (`gastronomia.html`, `consejos-valencia.html`, etc.) mediante `globalThis.open(icono.url, '_blank')` (`extrainfo-hijo1.html`) — es decir, **pestañas de navegador reales**, no navegación interna del iframe. Cuando una de esas pestañas gana el foco, el documento padre pasa a `visibilityState: 'hidden'`.
 
 Esto no interfiere con la red de seguridad durante el juego normal: los tres puntos de integración solo se arman *después* de `AVENTURA.FINALIZADA`/`AVENTURA.TIEMPO_AGOTADO`/`?despedida=1` — mientras el usuario juega con tiempo restante, ningún listener de `armarRedDeSeguridad` existe todavía, así que abrir esas pestañas no tiene ningún efecto sobre esta función.
 
@@ -10539,7 +10539,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 │    │  └────────────────────┘              │                 │
 │    │                                      │                 │
 │    │  ┌── FUERA de rango real (§31.4) ─┐   │                 │
-│    │  │ Imagen ❌ Vídeo ❌     │           │                 │
+│    │  │ Imagen ✅ Vídeo ❌     │           │                 │
 │    │  │ Audio  ❌ Retos ❌     │           │                 │
 │    │  │ Mapas  ✅              │           │                 │
 │    │  │ GPS    ❌ Ubic. ✅     │           │                 │
@@ -10605,7 +10605,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 
 ### 25.17. ¿Qué pasa si algo falla durante la aventura?
 
-La aplicación está diseñada para que ningún error externo deje al usuario bloqueado sin explicación. Cuando algo sale mal, aparece un overlay a pantalla completa con una imagen descriptiva, un botón de acción y, en la mayoría de casos, una cuenta atrás que reactiva el botón automáticamente.
+La aplicación está diseñada para que ningún error externo deje al usuario bloqueado sin explicación. Cuando algo sale mal, aparece un overlay a pantalla completa con una imagen descriptiva y, casi siempre, un botón de acción; en los de sin internet y sin señal GPS, el botón lleva una cuenta atrás que lo reactiva solo.
 
 Estos overlays **solo aparecen en modo AVENTURA**. En modo CASA no se muestran aunque la señal sea mala o la conexión esté cortada.
 
@@ -10657,7 +10657,7 @@ Detalle técnico completo en §31.4.
 
 Esto no es un error técnico sino una comprobación de integridad: si el GPS sitúa al usuario a más de 5 kilómetros de cualquier punto de la aventura, la aplicación entiende que algo no encaja —puede que el teléfono esté dando coordenadas erróneas, o que alguien intente completar la aventura desde casa.
 
-A la tercera comprobación seguida fuera de esos 5 km aparece un cartel propio (`fotogpserror.png`) y el **botón de avanzar se bloquea** de forma persistente hasta que una comprobación vuelva a situar al usuario dentro del área de la ruta. La comprobación se hace como mucho una vez cada 3 minutos y no cuenta las lecturas con más de 100 m de margen de error.
+A la tercera comprobación seguida fuera de esos 5 km aparece un cartel propio (`fotogpserror.png`) y el **botón de avanzar se bloquea** hasta que una comprobación vuelva a situar al usuario dentro del área de la ruta. Mientras dura el bloqueo, el cartel vuelve a salir con cada lectura del GPS y ninguna otra pantalla de distancia lo tapa; cerrado con su ✗, descansa 150 segundos. No tiene botón de reintento: una lectura nueva no levanta el bloqueo. La comprobación se hace como mucho una vez cada 3 minutos y no cuenta las lecturas con más de 100 m de margen de error (§31.5).
 
 ---
 
@@ -12390,7 +12390,7 @@ Esta sección describe las restricciones GPS y el comportamiento visual de polyl
 | Sitio | Qué cambia |
 |---|---|
 | `_hdl_NAVEGACION_CAMBIO_PARADA` | Se activa un elemento: `paradaListaParaAvanzar` vale `false`, o `true` si el elemento ya está completado (`_elementoCompletado()`); se llama en los dos modos |
-| `marcarParadaCompletada()` | El elemento queda completado, guardado y listo para avanzar: es el único camino; si `_retoColaCompletada()` no encuentra el elemento del reto, lo deja escrito como error y no completa nada, y un fallo al completar tampoco avanza (spec 160) |
+| `marcarParadaCompletada()` | El elemento queda completado, guardado y listo para avanzar: es el único camino que completa; si `_retoColaCompletada()` no encuentra el elemento del reto, lo deja escrito como error y no completa nada, y un fallo al completar tampoco avanza (spec 160). Un elemento ya completado que se vuelve a activar en AVENTURA queda listo para avanzar en `_hdl_NAVEGACION_CAMBIO_PARADA` |
 | `_hdl_RETO_SOLICITAR` / `_hdl_RETO_OCULTAR` | Se abre o se cierra un reto |
 | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO` / `_hdl_NAVEGACION_GPS_DENTRO_DE_RANGO` | El usuario sale de rango con la gracia agotada, o vuelve |
 | `_check5kmFromRoute()` (Script 1, por `globalThis`) | Empieza o termina el bloqueo de 5 km |
@@ -12404,7 +12404,7 @@ El cambio de modo no la llama: el `SISTEMA.CAMBIO_MODO` que recibe hijo2 deja «
 
 **Archivo: `codigo-padre.html`**
 
-Cuando se completa un elemento —parada: `pending.llegada + pending.audio + retosOk`; tramo: llegada y audio—, `marcarParadaCompletada()` (vía `intentarCompletarElemento`) pone `estado.paradaListaParaAvanzar = true` y llama a `_sincronizarAvanzar()`. Si el reto sigue a la vista —el usuario lo acaba de resolver y aún no ha cerrado su ventana—, «avanzar» sigue apagado y se enciende al cerrarla (`_hdl_RETO_OCULTAR`). Es el único camino a `paradaListaParaAvanzar = true`: si `_retoColaCompletada()` no encuentra el elemento del reto, lo deja escrito como error y no completa nada (spec 160, KR-1).
+Cuando se completa un elemento —parada: `pending.llegada + pending.audio + retosOk`; tramo: llegada y audio—, `marcarParadaCompletada()` (vía `intentarCompletarElemento`) pone `estado.paradaListaParaAvanzar = true` y llama a `_sincronizarAvanzar()`. Si el reto sigue a la vista —el usuario lo acaba de resolver y aún no ha cerrado su ventana—, «avanzar» sigue apagado y se enciende al cerrarla (`_hdl_RETO_OCULTAR`). Es el único camino que completa un elemento y lo deja listo para avanzar: si `_retoColaCompletada()` no encuentra el elemento del reto, lo deja escrito como error y no completa nada (spec 160, KR-1). Al activarse en AVENTURA un elemento ya completado —la reanudación, la recuperación de hijo2—, `_hdl_NAVEGACION_CAMBIO_PARADA` lo deja también listo para avanzar, sin volver a completarlo (§6, «Diferencias de comportamiento CASA vs AVENTURA», paso 8).
 
 ### 29.6 hijo2 solo obedece (`avanzarHabilitadoPorPadre`)
 
