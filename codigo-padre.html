@@ -5796,9 +5796,13 @@
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
 
-        function _ocultarTodasPantallasDistanciaGPS() {
+        // Oculta las seis. Volver dentro del rango (GPS.DENTRO_DE_RANGO) y entrar en CASA empiezan de cero y vacían
+        // también los descansos de sus ✗. El botón de ubicación los conserva (`conservarDescansos`): para llegar a él el
+        // usuario ha cerrado la pantalla con su ✗, y lo que pide es ver la línea, no que la pantalla vuelva encima
+        // (docs/estudio-caminos.md, K-145).
+        function _ocultarTodasPantallasDistanciaGPS({ conservarDescansos = false } = {}) {
             _ocultarOtrasPantallasDistanciaGPS(null);
-            _limpiarSnoozeOverlaysDistancia();
+            if (!conservarDescansos) _limpiarSnoozeOverlaysDistancia();
         }
         globalThis._ocultarTodasPantallasDistanciaGPS = _ocultarTodasPantallasDistanciaGPS;
 
@@ -10226,8 +10230,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).debug(`${logPrefix} Solicitud de mostrar ubicación y polyline recibida de ${mensaje.origen}`);
                 const { ubicacionUsuario, centrar = true, zoom = 15 } = mensaje.datos || {};
 
-                // El usuario ya vio el aviso y pulsó ubicación — quitar la pantalla de por medio.
-                try { _ocultarTodasPantallasDistanciaGPS(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                // El usuario ya vio el aviso y pulsó ubicación — quitar la pantalla de por medio, sin tocar el descanso
+                // que le dio su ✗: si no, la pantalla vuelve encima de la línea con la lectura siguiente (K-145).
+                try { _ocultarTodasPantallasDistanciaGPS({ conservarDescansos: true }); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
                 const coordenadasUsuario = await _obtenerUbicacionUsuario(ubicacionUsuario, logPrefix);
                 if (!coordenadasUsuario) return { exito: false, error: 'No se pudo obtener ubicación del usuario' };
