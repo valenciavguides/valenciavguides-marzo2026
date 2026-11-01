@@ -3989,7 +3989,7 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 ##### K-148 — Cuatro ✗ del padre paran `pointerdown` y `touchstart` de algo que nadie escucha — ✅ (búsqueda desnuda; sin medir)
 
 - **Cómo salió.** Al mirar alrededor de K-146: cómo protege el padre su ✗ en la galería, que también usa el zoom.
-- **Dónde.** `codigo-padre.html`: `_galeriaProtegerBoton` (la ✗ de la galería y la de la ventana sin imágenes), la ✗ de las dos ventanas del vídeo y la de la ventana de error (`ibtn`) llaman a `stopPropagation` en su `touchstart` y en su `pointerdown`. Búsqueda desnuda de escuchas de `pointerdown` y `touchstart` en el padre y en `js/`: ninguna en un antepasado de esas ✗. Las del zoom van en `#galeria-wrapper`, que es hermano de la ✗, no antepasado.
+- **Dónde.** `codigo-padre.html`: `_galeriaProtegerBoton` (la ✗ de la galería y la de la ventana sin imágenes), la ✗ de las dos ventanas del vídeo (`_mostrarVideoSinUrl`, `_crearVideoOverlayEl`) y la de la ventana del mapa completo (`ibtn`, `mostrarIframeOverlay`) llaman a `stopPropagation` en su `touchstart` y en su `pointerdown`. Búsqueda desnuda de escuchas de `pointerdown` y `touchstart` en el padre y en `js/`: ninguna en un antepasado de esas ✗. Las del zoom van en `#galeria-wrapper`, que es hermano de la ✗, no antepasado.
 - **Lo que no cuadra.** Guardas que no protegen de nada, como las de K-68: hacen creer que algo más arriba se comería el toque.
 - **Pendiente.** Medirlo (una escucha en captura en `document` que diga si algo más recibe esos eventos) y decidir: *A)* quitarlas; *B)* dejarlas.
 
