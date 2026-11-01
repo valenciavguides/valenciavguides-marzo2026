@@ -8142,7 +8142,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     'font-family:Verdana,sans-serif',
                 ].join(';');
                 cartel.innerHTML = `
-                    <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="x-cerrar">X</span></button>
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
                     <p style="margin:0 0 0.35rem 0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;font-weight:bold;">${escaparHTML(t.titulo)}</p>
                     <p style="margin:0 0 0.7rem 0;font-size:clamp(0.8rem,3.2vmin,0.95rem);color:#333;line-height:1.4;">${escaparHTML(t.cuerpo)}</p>
                     <button type="button" id="btn-recordatorio-rescate" style="display:block;width:100%;padding:0.7rem;background:#2e7d32;color:#fff;border:none;border-radius:0.6rem;cursor:pointer;font-family:inherit;font-size:clamp(0.85rem,3.5vmin,1rem);font-weight:bold;touch-action:manipulation;">${escaparHTML(t.boton)}</button>

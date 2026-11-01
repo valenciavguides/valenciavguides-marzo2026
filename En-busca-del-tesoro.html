@@ -308,7 +308,6 @@
     .tick.correcto { display: inline; color: #1a5c2e; }
     .x.incorrecto { display: inline; color: #9b1c1c; }
     .visual-feedback { font-size: 2rem; font-weight: bold; }
-    .visual-feedback.success { color: #1a5c2e; }
     .visual-feedback.error { color: #9b1c1c; }
     .aventuras-lista { display: flex; flex-direction: column; gap: clamp(0.15rem, 0.5vmin, 0.35rem); width: 98vw; max-width: 98vw; flex: 1; }
     .aventuras-lista .btn { margin-top: 0; min-height: 0; flex: 1; padding: 0.15rem 0.5rem; flex-direction: column; align-items: center; font-size: var(--btn-font-size, clamp(0.75rem, 3vmin, 1.8rem)); }
@@ -1021,8 +1020,13 @@
     </div>
   </div>
 
-  <!-- Overlay: Mapa vintage de la aventura (se muestra al seleccionar aventura en P7) -->
-  <div id="mapa-vintage-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:9999; background:rgba(0,0,0,0.95); justify-content:center; align-items:center; padding: var(--gap-superior) 0 var(--gap-inferior) 0; box-sizing:border-box;">
+  <!-- Overlay: Mapa vintage de la aventura (se muestra al seleccionar aventura en P7).
+       Por encima de los dos carteles de la selección, decisión del usuario: con MODO DEV/CASA (z-index 99999) encima, su
+       esquina tapaba la ✗ en las pantallas sin muesca, y FREE DEMO se pintaba sobre los botones del zoom. FREE DEMO lleva
+       el z-index más alto que existe (2147483647): esta capa lleva el mismo, y a igual z-index se pinta encima lo que va
+       después en el documento, y esta capa va después de todas las pantallas. Mientras el mapa está abierto, los carteles
+       quedan tapados; al cerrarlo se vuelven a ver (spec 163). -->
+  <div id="mapa-vintage-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483647; background:rgba(0,0,0,0.95); justify-content:center; align-items:center; padding: var(--gap-superior) 0 var(--gap-inferior) 0; box-sizing:border-box;">
     <!-- Ocupa TODO el overlay, sin marco ni tope de tamaño. Antes medía
          `min(95vw, 92vmin)`, y `vmin` es el lado CORTO de la pantalla: en vertical daba
          igual, pero al girar el móvil el recuadro se quedaba con el ancho del lado corto y

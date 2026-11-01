@@ -67,8 +67,14 @@
       const puntoMedio = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
       const distancia = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
+      // Lo que se pulsa sobre un botón de dentro del mapa (los del zoom, o la ✗ que la selección pone en la esquina) es
+      // del botón, no del arrastre. Si el contenedor capturase ese puntero, el `click` le llegaría a él y no al botón:
+      // con ratón, la ✗ del mapa antiguo de la selección no cerraba nada (spec 163). Es el único sitio que decide qué
+      // pulsaciones son del zoom; el panel de los controles cuenta entero, también el hueco entre sus botones.
+      const esDeUnBoton = (evento) => !!evento.target.closest('button, a, .mapa-zoom-controles');
+
       contenedor.addEventListener('pointerdown', (evento) => {
-        if (evento.target.closest('.mapa-zoom-controles')) return;
+        if (esDeUnBoton(evento)) return;
         if (evento.pointerType === 'mouse' && evento.button !== 0) return;
         evento.preventDefault();
         contenedor.setPointerCapture(evento.pointerId);
@@ -133,12 +139,11 @@
       }, { passive: false });
 
       contenedor.addEventListener('dblclick', (evento) => {
-        if (evento.target.closest('.mapa-zoom-controles')) return;
+        if (esDeUnBoton(evento)) return;
         evento.preventDefault();
         acercarEn(estado.escala === 1 ? 2 : 1, evento.clientX, evento.clientY);
       });
 
-      controles.addEventListener('pointerdown', (evento) => evento.stopPropagation());
       controles.addEventListener('click', (evento) => {
         const accion = evento.target.closest('button')?.dataset.zoom;
         if (!accion) return;

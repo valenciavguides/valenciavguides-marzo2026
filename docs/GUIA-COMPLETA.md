@@ -2330,7 +2330,7 @@ El spinner es el contenido inicial del elemento; cuando la función de carga asi
 
 | ID | Cuándo aparece | Elementos clave | Cómo se cierra |
 |----|----------------|-----------------|----------------|
-| `#mapa-vintage-overlay` | Al seleccionar aventura en P7 | `#mapa-vintage-img` (imagen del recorrido) + botón cerrar (top-right, naranja/rojo) | Click en botón cerrar → `cerrarMapaVintage()` (definida en `En-busca-del-tesoro.html`, que es donde vive este overlay) |
+| `#mapa-vintage-overlay` | Al seleccionar aventura en P7 | `#mapa-vintage-img` (imagen del recorrido, con el zoom de `js/mapa-vintage-zoom.js`: botones − + ↺ arriba a la izquierda) + la ✗ en la esquina superior derecha (naranja con borde verde, como la ✗ común), las dos dentro de `#mapa-vintage-wrapper`. La capa lleva `z-index: 2147483647`, el mismo que FREE DEMO, y va después de todas las pantallas en el documento: a igual z-index se pinta encima lo que va después, así que la capa tapa FREE DEMO y MODO DEV/CASA (99999, ver §24) mientras está abierta, y la ✗ y los botones del zoom quedan libres | Clic o toque en la ✗ → `cerrarMapaVintage()` (definida en `En-busca-del-tesoro.html`, que es donde vive este overlay) → P8; los dos carteles se vuelven a ver |
 | `#audio-warning-overlay` | Al confirmar en P9 una aventura que no tiene ningún audio en el idioma elegido (`tieneAudio` de `publico/audios/<idioma>/audios.json`) | `#audio-warning-text` + `#audio-warning-yes` (verde) / `#audio-warning-no` (rojo) | Click yes (continúa sin audio) / no (`rechazarSinAudio()` → `volverAElegirIdioma()`: `SELECCION.REINICIAR` al padre y P2) |
 | `#overlay-carga-aventura` | Al pulsar el botón de P17 (`iniciarAventura()`, arranque de aventura) | Logo giratorio (`animation: spin 7s linear infinite`) + `#carga-progreso-barra` + `#carga-progreso-porcentaje` + `#carga-progreso-frase` (frase rotativa, mismo banco que `#loading-overlay` del padre, ver "Frases aleatorias durante la espera") | Se oculta automáticamente cuando el padre confirma carga completa |
 
@@ -4914,7 +4914,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-fcadc1fcca3a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-2f34fc04c038'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7239,6 +7239,8 @@ La galería que muestra imágenes de cada parada en el overlay de `codigo-padre.
 
 Son los originales, los que enseña la aventura (protegidos: `PROTECTED_FILES`, §22.4); la demo gratis enseña la copia de cada uno, con el mismo nombre, en `publico/imagenes/mapas-vintage/` (§7.1). Dimensiones medidas del fichero, no supuestas. **`Av3`, `Av4` y `Av34km` son horizontales**. El overlay llena la ventana y permite acercar y desplazar el mapa con pellizco/arrastre, rueda/doble clic o controles en pantalla.
 
+**El zoom (`configurarZoomMapaVintage(contenedor, imagen)`, `js/mapa-vintage-zoom.js`)** lo usan los dos sitios que enseñan un mapa vintage: la galería del padre (`#galeria-wrapper`, cuando el mapa llega con `zoomable: true`) y la capa de la selección (`#mapa-vintage-wrapper`). Escucha en el contenedor: al pulsar, el contenedor se queda el puntero (`setPointerCapture`) para arrastrar la imagen —solo la mueve si está ampliada— o, con dos dedos, para el pellizco; la rueda acerca o aleja hacia el puntero, y el doble clic alterna entre 1× y 2×. La escala va de 1× a 6×. **Lo que se pulsa sobre un botón de dentro del contenedor es del botón, no del zoom** (`esDeUnBoton`, el único sitio que lo decide: `button`, `a` o el panel `.mapa-zoom-controles` entero): el contenedor no captura ese puntero ni el doble clic, y el `click` le llega al botón. La ✗ de la selección vive dentro del contenedor y depende de esto; la del padre va fuera, en `.media-contenedor`. Cubierto por `tests/e2e/163-la-x-del-mapa-antiguo-se-pulsa.spec.js`.
+
 En el mapa de Aventura34km, las 41 fotos del núcleo más denso van ordenadas por referencia en una cuadrícula abajo a la izquierda: cinco filas de siete y una última de seis tarjetas más anchas. Las imágenes se tocan, sin huecos, y la cuadrícula lleva un marco naranja. Las fotos 25 y 26 quedan completas y visibles, fuera de la cuadrícula, sin que las cubran las imágenes 33 y 34. Un círculo naranja señala el centro urbano y queda por debajo de las tarjetas, los marcadores y la polilínea azul. Las demás fotos quedan junto a su marcador, en el hueco despejado más cercano. Las referencias 27/28 y 58/59 comparten imagen en `coordenadas-aventuras.js` y aparecen una sola vez con los números unidos; así se muestran 87 tarjetas para las 89 referencias. La tabla enlaza `Av34km_Mapa.jpg`.
 
 #### Una sola tabla decide qué mapa se enseña
@@ -8054,6 +8056,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `160-sin-reservas-ni-avances-solos.spec.js` | 3 | Un elemento solo queda listo para avanzar si se completa, y la aventura solo avanza con la pulsación (§29.4), medido con el padre, los hijos y el botón «avanzar» reales: un reto que no es de ningún elemento, sin elemento actual, no deja nada listo para avanzar (KR-1); si algo falla al completar el elemento por la cola de retos, la aventura no avanza sola (KR-2); y, de control, el reto de la parada la completa y enciende «avanzar» sin cambiar de elemento (KR-3) |
 | `161-el-cartel-de-los-5-km-manda-mientras-dura.spec.js` | 7 | El cartel del bloqueo de 5 km manda sobre las otras pantallas de distancia mientras dura el bloqueo (§31.4, §31.5), medido con el padre, los hijos y el bus reales, con lecturas que entran por la comprobación de los 5 km y por hijo2: bloqueado, la franja «muy lejos» que pide la lectura siguiente no lo tapa (CK-1); cerrado con su ✗, durante su tiempo de espera no sale ninguna pantalla de distancia (CK-2); pasado ese tiempo, la lectura siguiente lo vuelve a enseñar (CK-3); su imagen y su texto accesible hablan de la zona de la aventura, también cuando vuelve a salir (CK-4); el aviso de precisión no lo tapa, y sale al levantarse el bloqueo si la precisión sigue mala (CK-5); de control, sin bloqueo sale «muy lejos» (CK-6); y el único botón del cartel es su ✗ (CK-7) |
 | `162-ubicacion-respeta-el-descanso-de-las-pantallas.spec.js` | 3 | El botón de ubicación oculta las pantallas de distancia sin tocar sus tiempos de espera (§31.4), medido con el padre, los hijos, el bus y el botón de ubicación de hijo2 reales: «muy lejos», cerrada con su ✗, conserva su espera tras pulsar ubicación y la lectura siguiente no la trae (UD-1); lo mismo el cartel del bloqueo de 5 km (UD-2); y, de control, volver dentro del rango vacía las esperas y, al salir otra vez, «muy lejos» sale enseguida (UD-3) |
+| `163-la-x-del-mapa-antiguo-se-pulsa.spec.js` | 5 | La ✗ del mapa antiguo de la selección (§7.1, «3 overlays adicionales») se pulsa con pulsaciones de verdad, sin llamar a `cerrarMapaVintage()`: un clic de ratón a 1920×1080 cierra el mapa y lleva a P8 (MX-1), y un toque con el dedo a 390×844 también (MX-2); con FREE DEMO y MODO DEV/CASA a la vista, donde un cartel se cruza con la ✗ o con un botón del zoom, lo que se pinta arriba es el botón, y los dos cruces existen (MX-3; el cartel MODO DEV/CASA, §24, se enseña con `display: block`); de control, al cerrar los dos carteles se siguen viendo en P8 (MX-4), y «+» acerca el mapa y arrastrar la imagen ampliada la mueve (MX-5) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8288,7 +8291,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-fcadc1fcca3a'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-2f34fc04c038'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8537,7 +8540,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 148 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 157 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9050,7 +9053,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-fcadc1fcca3a';
+const CACHE_VERSION = 'v-2f34fc04c038';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9504,7 +9507,7 @@ A partir del segundo tap, `_gestureInProgress = true` hace que el listener captu
 | Persistencia | Las variables (`_devModeActivo`, `_devCasaMode`) son solo de memoria. Con una aventura ya activada, el hecho de que la sesión sea dev sí se persiste en el campo `dev` de `vv_aventura_iniciada` y se restaura al reanudarla (ver arriba); el código de acceso nunca se guarda en ningún sitio |
 | Recarga de página | Reinicia el modo DEV; hijo5 vuelve a `display:none` |
 | Código de acceso | [solo conocido por el desarrollador — verificado por hash SHA-256 en `codigo-padre.html` y `En-busca-del-tesoro.html`; no documentado en materiales de usuario, soporte ni chat] |
-| Visibilidad al usuario final | Badge naranja `MODO DEV/CASA` en esquina superior-derecha de P1-P5 cuando está activo; hijo5 visible durante la aventura |
+| Visibilidad al usuario final | Badge naranja `MODO DEV/CASA` en la esquina superior derecha de todas las pantallas de la selección desde que se activa en P1 (nada lo vuelve a ocultar); hijo5 visible durante la aventura |
 | Logs en consola del navegador | `[DEV_MODE] 🟢 ACTIVADO` · `[DEV] Modo dev activado en P1 — se saltarán P12, P13 y P14` |
 | Panel de logs (7 toques) | Mismo código de acceso que Factor 1/2, verificado por la misma función (`_verificarCodigoDevPWA`) — no tiene su propio código ni un nivel de seguridad más débil. No activa `_devModeActivo` ni deja ningún flag persistente propio; cada apertura vuelve a pedir el código |
 
@@ -9527,7 +9530,7 @@ En este momento se setean dos variables en memoria:
 - `globalThis._devCasaMode = true` — en la pantalla de selección (`En-busca-del-tesoro.html`)
 - `globalThis._devModeActivo = true` — en el padre (`codigo-padre.html`)
 
-Aparece un badge naranja `MODO DEV/CASA` en la esquina superior-derecha de P1-P5. Es el único indicador visual: el usuario final que no conoce el gesto no tiene forma de saber que está activo (el badge no explica por sí solo qué hace ni cómo se activó).
+Aparece un badge naranja `MODO DEV/CASA` (`#_dev-badge`, `position: fixed`, `z-index: 99999`, `pointer-events: none`) en la esquina superior derecha, y se queda en todas las pantallas de la selección: nada lo vuelve a ocultar. Solo lo tapa la capa del mapa antiguo de P7, que va por encima de él (§7.1). Es el único indicador visual: el usuario final que no conoce el gesto no tiene forma de saber que está activo (el badge no explica por sí solo qué hace ni cómo se activa).
 
 ---
 
@@ -12499,7 +12502,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-fcadc1fcca3a';
+const CACHE_VERSION = 'v-2f34fc04c038';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
