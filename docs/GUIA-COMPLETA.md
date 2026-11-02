@@ -13624,7 +13624,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 3. Para cada parada (ID) en coordenadas: verifica que existe también en audios y textos de la misma aventura.
 4. Detecta paradas en audios/textos **sin coordenadas** → la parada nunca se activaría al aproximarse el usuario.
 5. Verifica que el campo `aventura` dentro de cada objeto de parada coincide exactamente con la clave del objeto padre (sin typos ni variantes de capitalización).
-6. Verifica que el estado de la aventura (activa/bloqueada) y el código de acceso en `js/proteccion.js` son consistentes con `js/indice-aventuras.js`.
+6. Verifica que el estado de la aventura (activa/bloqueada, `disponible`) es consistente con `js/indice-aventuras.js` en cada sitio que lo use.
 7. **La misma cosa, descrita en dos sitios.** Un elemento con un nombre en `js/coordenadas-aventuras.js` y otro en `js/aventuras-ID-padre.js`, o las fotos de un elemento repartidas en listas que no leen los mismos lectores. Por cada dato que el usuario ve, se traza desde el código que lo pinta hasta su fuente, y se comparan elemento a elemento todas las tablas que lo contienen: cuando dos fuentes difieren, el usuario lee un nombre en un cartel y otro en la ventana de al lado.
 
 ---
@@ -13634,7 +13634,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 1. **IDs DOM duplicados** en el mismo HTML → `getElementById` devuelve el primero en silencio.
 2. **Funciones duplicadas** → `npm run inventory:dupes`. Para cada duplicado: ¿son versiones distintas? ¿Una está obsoleta? No te quedes en "¿existen las dos?": compara sus garantías de comportamiento real (¿usa mutex/lock? ¿deduplica por fingerprint? ¿es idempotente ante llamadas repetidas? ¿en qué orden ejecuta sus efectos?). Dos funciones con el mismo nombre y propósito declarado pueden diferir precisamente en la garantía que importa — la que no tiene mutex es la que falla bajo concurrencia, no bajo uso normal.
 3. **Constantes de mensaje duplicadas** → dos keys distintas en `TIPOS_MENSAJE` con el mismo valor string → los handlers se confunden.
-4. **Handlers duplicados** para el mismo tipo de mensaje en el mismo contexto → el último registrado sobrescribe al anterior.
+4. **Handlers duplicados** para el mismo tipo de mensaje en el mismo contexto → gana el primero y el segundo se rechaza con un `logger.error` (BC-6, §10.25); en el padre, `registrarControladorSeguro` lo para antes con un `warn`.
 5. **Imports duplicados** del mismo módulo en el mismo archivo → posible inconsistencia de instancias.
 6. **Traducciones duplicadas** → misma clave en dos secciones distintas del JSON de párrafos.
 7. **Exposiciones `globalThis` duplicadas** → dos scripts que asignan `globalThis.fn` a funciones distintas → la segunda sobrescribe a la primera.
@@ -14046,7 +14046,7 @@ Es la regla del inventario un nivel más arriba, aplicada al instrumento: un `gr
 
 **El caso de referencia.** Un extractor de las claves de `globalThis.funcionesMapa` con la forma `/^\s{4}(\w+)\s*[,:]/gm` exige coma o dos puntos tras cada clave. `setMapView` es la **última** entrada del objeto y no lleva coma final: la regex la descarta en silencio y devuelve 19 nombres en vez de 20. De ahí sale una cadena de inferencia impecable y enteramente falsa — la clave no está expuesta, luego `globalThis.funcionesMapa?.setMapView(...)` lanza `TypeError`, luego el botón «mostrar en mapa» del overlay de GPS está roto. Basta abrir el objeto y leerlo para ver la clave en su sitio.
 
-**Lo que hace creíble la trampa es que la guía diga también 19.** En una auditoría el documento es el acusado: que la medición coincida con él no corrobora nada. Obliga a la pregunta contraria — ¿de dónde sacan los dos el mismo número?
+**Lo que haría creíble la trampa es que la guía dijera también 19.** En una auditoría el documento es el acusado: que la medición coincida con él no corrobora nada. Obliga a la pregunta contraria — ¿de dónde sacan los dos el mismo número?
 
 | Clase de afirmación | Por qué no basta el patrón | Qué sí la sostiene |
 |---|---|---|
@@ -14572,11 +14572,11 @@ A diferencia de las tres tablas anteriores, esta es curada a mano: no hay forma 
 | Elemento | Por qué no es obvio | Qué se rompe si se ignora | Detalle |
 |---|---|---|---|
 | `_TODOS_LOS_CARTELES_IDS` (`codigo-padre.html`) | Un cartel nuevo parece autocontenido — solo su propio `id`, su propia función | Si no se añade a esta lista, puede solaparse visualmente con cualquiera de los otros 9 | §25.5e |
-| `page.clock.install()` + arranque real de `codigo-padre.html` en tests | El polling de MapLibre corre sobre el mismo reloj simulado que el test avanza a mano — nada en el test lo sugiere | Un test puede cruzar el umbral de 15s y disparar un `alert()` real a mitad de ejecución, desincronizando cualquier timer que esté verificando | §10.19 |
+| `page.clock.install()` + arranque real de `codigo-padre.html` en tests | El polling de MapLibre corre sobre el mismo reloj simulado que el test avanza a mano — nada en el test lo sugiere | Un test puede cruzar el umbral de 15s y disparar un `alert()` real a mitad de ejecución, desincronizando cualquier timer que esté verificando | §11 («Patrón `retryUntilAvailable()`») |
 | `.file: ""` en `audios-aventuras.js`/`textos-aventuras.js` para idiomas sin grabar/traducir | La entrada existe (no falta), así que un `if (entry)` simple no lo detecta | Cualquier código que lea `.file`/`.content` sin comprobar vacío se cuelga esperando un evento que nunca llega, o se queda en blanco | §7.1, §25.5f |
-| `logo-redondo.png` | Es "solo una imagen", parece intercambiable con cualquier otra | Tiene que seguir siendo transparente — 7+ usos como logo suelto sobre fondos de color; ponerle fondo opaco rompe todos esos usos | §7 |
+| `logo-redondo.png` | Es "solo una imagen", parece intercambiable con cualquier otra | Tiene que seguir siendo transparente — se usa como logo suelto sobre fondos de color en `codigo-padre.html`, `En-busca-del-tesoro.html`, `index.html` y `video-intro.html`; ponerle fondo opaco rompe todos esos usos | §19 |
 | `CONFIG`/`ajustarTimeoutPorConexion_S1` y equivalentes con sufijo `_S1`/`_S2` | El nombre sin sufijo (`CONFIG`, sin más) parece disponible desde cualquier script del mismo archivo | Es un alias LOCAL de un solo script — usarlo desde otro lanza `ReferenceError` en tiempo de ejecución, no en tiempo de escritura | §10.21, CLAUDE.md "Funciones en scope separado" |
-| `purpose:"maskable"` en `manifest.json` | Parece que solo gobierna el icono del launcher/pantalla de inicio | También genera la pantalla de splash nativa de Android — un maskable transparente pinta ambos de negro | §7 |
+| `purpose:"maskable"` en `manifest.json` | Parece que solo gobierna el icono del launcher/pantalla de inicio | Un icono `maskable` con transparencia sale con fondo negro tras el recorte; qué icono usa el splash nativo está en §19, sin comprobar en un Android | §19 |
 | `<audio controls>`/`<video controls>` nativos | Parecen un elemento HTML normal, estilizable como cualquier otro | Su UI interna la dibuja el navegador — ningún CSS/JS de la página puede conocer ni la posición ni el tamaño exacto de sus botones internos | §7.1 |
 | `watchPosition()` del GPS | Cambiar de modo (CASA↔AVENTURA) parece el momento natural para parar/arrancar sensores | Nunca se detiene entre modos — solo deja de validar distancias; pararlo rompe la reanudación de posición al volver a AVENTURA | §2.6 |
 | `background-image` vs `background-color` en botones | Un `style.backgroundColor` inline parece suficiente para forzar un color puntual | `background-image` (incluido un `linear-gradient()` de un único color) siempre pinta por encima de `background-color` — de ahí que todos los estados de color de botones usen `linear-gradient()`, nunca `background-color` | §4.8 |
