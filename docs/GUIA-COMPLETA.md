@@ -11098,8 +11098,8 @@ Todo el tráfico entre padre e hijos pasa por `js/mensajeria.js` usando `postMes
 ```javascript
 {
     tipo:                 'NAVEGACION.CAMBIO_PARADA',   // del árbol TIPOS_MENSAJE
-    datos:                { paradaId: 'P-5' },
-    id:                   'msg-1712456789-ab3f',         // generarIdUnico('msg')
+    datos:                { paradaId: 'padre-P5' },      // así lo pide hijo5 (§10.5)
+    id:                   'msg_lv3k2a1c_ab3f9xq',        // generarIdUnico('msg'): prefijo_tiempo-en-base-36_aleatorio
     timestamp:            1712456789123,
     origen:               'hijo5',                       // lo pone el bus; sin él se descarta
     destino:              'padre',                        // obligatorio: 'padre', un iframe registrado o 'broadcast'
@@ -11115,7 +11115,7 @@ El papel de cada frame **no viaja en el mensaje**: el bus lo deduce (es hijo si 
 |-----------|---------------------|
 | `SISTEMA` | `HIJO_PREPARADO`, `HIJO_LISTO`, `PADRE_DATOS`, `PADRE_CONFIRMA_HIJO_LISTO`, `CAMBIO_MODO`, `CAMBIO_MODO_ENTENDIDO`, `CAMBIO_MODO_EFECTUADO`, `CAMBIO_MODO_APLICADO`, `HEARTBEAT`, `NACK`, `ERROR`, `CONFIRMACION` |
 | `NAVEGACION` | `CAMBIO_PARADA`, `GPS.ACTIVAR`, `SOLICITAR_DATOS_PARADAS`, `RESPUESTA_DATOS_PARADAS` |
-| `DATOS` | Solicitudes y respuestas de coordenadas, audios, textos, retos |
+| `DATOS` | `SOLICITAR_AUDIOS` y `SOLICITAR_RETOS`: un hijo pide el audio o el reto que no tiene; la respuesta llega como `AUDIO.REPRODUCIR_REQUEST` o `RETO.MOSTRAR` (§10.14) |
 | `AUDIO` | `REPRODUCIR_REQUEST`, `FIN_REPRODUCCION`, `ESTADO_ACTUALIZADO` |
 | `RETO` | `MOSTRAR`, `COMPLETADO`, `SOLICITAR_RETO`, `OCULTAR`, `HABILITAR` |
 | `UI` | Notificaciones visuales, navegación externa |
@@ -11123,7 +11123,7 @@ El papel de cada frame **no viaja en el mensaje**: el bus lo deduce (es hijo si 
 | `CONTROL` | `HABILITAR`, `DESHABILITAR` de controles concretos en cada hijo |
 | `PARADAS` | `READY`, `LISTADO_TOGGLE` |
 | `PUZZLE` | `COMPLETADO`, `TIMEOUT` |
-| `CHAT` | `ESTADO_PADRE`, `CERRAR` |
+| `CHAT` | `ESTADO_PADRE`, `CERRAR`, `RESCATE_SOLICITADO` |
 | `MAPA_COMPLETO` | `SOLICITAR_DATOS`, `DATOS`, `VISIBLE` — el overlay, no el mapa de aventura |
 | `SELECCION` | Cambios de idioma y aventura en la pantalla de selección |
 | `AVENTURA` | Inicio, finalización y eventos de la aventura activa |
@@ -11132,7 +11132,7 @@ El papel de cada frame **no viaja en el mensaje**: el bus lo deduce (es hijo si 
 
 ```javascript
 // El padre llama a:
-enviarMensaje({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: 'P-5' }, destino: 'hijo2' });
+enviarMensaje({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: 'Av1-P-5', parada_id: 'Av1-P-5', tipo: 'parada' }, destino: 'hijo2' });
 
 // Internamente en mensajeria.js — enviarMensajeInterno():
 const iframeInfo = iframesRegistrados.get('hijo2');
@@ -11206,8 +11206,6 @@ if (handler) {
 ha terminado de cargar (`_enviarAudioRequestConReintento()`, §31.7). El acuse significa
 «alguien lo ha atendido», no «ha llegado al buzón».
 
-> **Nota de depuración:** si un hijo muestra `Error: Timeout esperando confirmación` en el handler de carga de datos, la causa no es que los ficheros no existan — los datos ya se cargaron de los JSON centrales. El timeout ocurre en el paso de notificación al padre, no en la carga en sí.
-
 #### El heartbeat
 
 El padre enciende el reloj del supervisor una vez, al cargar, y cada 5 segundos (ajustados por la conexión), en cualquier modo, envía `SISTEMA.HEARTBEAT` a los iframes supervisados de `iframesRegistrados` (`mensajeria.js`) que ya completaron su apretón de manos. El registro se puebla al cargar: cada cargador llama a `globalThis.registrarIframeHijo()` antes de asignar el `src` — no se necesita cambio de código en el bus para añadir nuevos hijos. Cada hijo responde con `SISTEMA.HEARTBEAT_RESPONSE`. Si uno no responde en 3 latidos consecutivos (`MAX_LATIDOS_SIN_RESPUESTA` en `js/mensajeria.js`), o si uno que aún no completó su apretón agota su gracia de arranque, el bus lo dice por consola (`logger.error`) y lo recarga —a todos por igual—, y el padre le devuelve su estado (§2.7, §2.7a).
@@ -11239,13 +11237,13 @@ El padre enciende el reloj del supervisor una vez, al cargar, y cada 5 segundos 
 ### 26.7 El flujo completo de un cambio de parada
 
 ```text
-USUARIO pulsa "Parada 5" en hijo5
+USUARIO pulsa «Plaza de la Virgen» (padre-P5, Aventura1) en hijo5 — modo DEV, en CASA (§24)
 │
 ▼ hijo5 → padre:
   enviarMensaje({
       tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
       destino: 'padre',
-      datos: { paradaId: 'P-5' }
+      datos: { paradaId: 'padre-P5', parada_id: 'P5', padreId: 'padre-P5', padreid: 'padre-P5', timestamp, origen: 'hijo5' }
   })
   El bus le añade id, timestamp y origen: 'hijo5' — el nombre de este frame.
 │
@@ -11255,35 +11253,40 @@ USUARIO pulsa "Parada 5" en hijo5
   3. Trae origen, y es el nombre con el que hijo5 está registrado  ✓
   4. mensaje.origen ('hijo5') ≠ componenteId ('padre')  ✓
   5. Busca handler en manejadores.get('NAVEGACION.CAMBIO_PARADA')
-  6. Encuentra handler registrado en Script 1 de codigo-padre.html
+  6. Encuentra _hdl_NAVEGACION_CAMBIO_PARADA, registrado en Script 2 de codigo-padre.html
   7. Lo encola en la fila de su tipo y lo ejecuta async
 │
-▼ Handler en codigo-padre.html:
-  - Actualiza state-manager: paradaActual = 'P-5'
-  - Obtiene datos de P-5 desde DATOS_PADRE[aventura][idioma]
-  - Envía en paralelo a los hijos afectados:
-      padre → hijo2: NAVEGACION.CAMBIO_PARADA  { coordenadas, imagen }
-      padre → hijo3: AUDIO.REPRODUCIR_REQUEST  { audioId: 'P-5', audioData, autoplay: false }
-      (RETO.MOSTRAR NO se envía aquí — solo cuando el usuario pulsa el botón de retos)
-│
-▼ mensajeria.js padre — enviarMensajeInterno() para cada hijo:
-  iframesRegistrados.get('hijo2').elemento.contentWindow
-      .postMessage(msg, globalThis.location.origin)
+▼ _hdl_NAVEGACION_CAMBIO_PARADA (padre, Script 2):
+  - Resuelve el elemento en DATOS_PADRE[aventura][idioma].elementosIDpadre:
+      { padreid: 'padre-P5', parada_id: 'Av1-P-5', audio_id: 'audio-Av1-P-5-es', reto_id: 'R8-Av1-es', … }
+  - _actualizarEstadoParada: estado.paradaActual, estado.indiceProgreso, estado.elementoActual
+    (en CASA, el progreso real queda congelado aparte, §11 «Navegar libremente en CASA»)
+  - Crea la ficha del elemento (ensurePending) o recupera la guardada
+  - _solicitarAudioParaParada → padre → hijo3: AUDIO.REPRODUCIR_REQUEST, con acuse
+        { audioId: 'audio-Av1-P-5-es', audioData: { id, title, file }, autoplay: false, contexto: { parada, tipo } }
+  - Precarga el vídeo del tramo siguiente y las imágenes del elemento (de la tabla del propio padre)
+  - _notificarCambioParadaHijos → NAVEGACION.CAMBIO_PARADA a hijo2 (solo los ids y el tipo), hijo3 e hijo4
+    (a hijo5 no: el cambio lo pidió él)
+  - _sincronizarRetoBtn → CONTROL.HABILITAR/DESHABILITAR { control: 'retosBtn' } → hijo3
+  - En CASA: RETO.ESTADO_CASA { tipo, habilitado } → hijo4; en AVENTURA, sin audio y con reto: RETO.HABILITAR
+  - vv-parada-cambiada (CustomEvent) → funciones-mapa.js: completarCambioParada() mueve el mapa
+    y contesta a hijo5 con NAVEGACION.CAMBIO_PARADA_CONFIRMADO, que marca su botón
+  (RETO.MOSTRAR no se envía aquí: solo cuando el usuario pulsa el botón de retos)
 │
 ▼ mensajeria.js hijo2 — manejarMensajeEntrante():
   1. Valida origen  ✓
-  2. Handler 'NAVEGACION.CAMBIO_PARADA': actualiza estado GPS local, resetea botones
+  2. Handler 'NAVEGACION.CAMBIO_PARADA': guarda el id y el tipo, borra la distancia y apaga «avanzar»
   3. Si requiereConfirmacion, contesta el bus por él: SISTEMA.CONFIRMACION
        { idOriginal: mensaje.id, datos: lo que devolviera el handler }
 │
-USUARIO responde al reto correctamente (en hijo4)
-│
-▼ hijo4 → padre:  RETO.COMPLETADO  { retoId: 'R-3', correcto: true }
+En AVENTURA, el elemento se completa con su ficha: llegada (LLEGADA_DETECTADA) + audio (FIN_REPRODUCCION)
++ reto, si lo tiene (RETO.COMPLETADO { retoId: 'R8-Av1-es', correcto: true }, al pulsar el botón verde de hijo4)
 │
 ▼ Padre:
-  - Desbloquea el avance a la siguiente parada
-  - Determina el siguiente elemento: P-5 → TR-5 → P-6
-  - Repite el flujo completo para el siguiente elemento
+  - intentarCompletarElemento → marcarParadaCompletada → enciende «avanzar» en hijo2 (§29.4)
+  - El usuario pulsa «avanzar» → NAVEGACION.GPS.ACTIVAR → progresarSiguienteElemento()
+  - Siguiente elemento de elementosIDpadre (padre-P6) → despacharLocal(NAVEGACION.CAMBIO_PARADA) → el mismo flujo
+  (En CASA no se completa ni se avanza nada: el usuario elige el siguiente en hijo5)
 ```
 
 ---
