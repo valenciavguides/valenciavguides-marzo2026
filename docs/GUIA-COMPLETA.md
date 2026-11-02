@@ -5114,7 +5114,7 @@ Con la aventura y el idioma elegidos, `distribuirDatosAventura()` deja la tabla 
 | Payload | `{ audioId, audioData:{id,title,file}, autoplay:false, contexto }` |
 | Handler en hijo3 | `registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, ...)` |
 | Acción | Guarda `audioData` en la caché local acotada (máx. 2 ids) y carga el audio de esa única parada; no lo reproduce: lo arranca el usuario con los controles del padre |
-| Cuándo se envía | Por cada parada activada, dentro de `_hdl_NAVEGACION_CAMBIO_PARADA` → `_solicitarAudioParaParada()` → `_resolverAudioData()` (resuelve vía `cargarAudios()`) — no hay un mensaje "cargar toda la aventura" |
+| Cuándo se envía | Por cada parada activada, dentro de `_hdl_NAVEGACION_CAMBIO_PARADA` → `_solicitarAudioParaParada()` → `_resolverAudioData()` (resuelve vía `cargarAudios()`); además, al reanudar una sesión (`solicitarAudioAHijo3`), al recargarse hijo3 (el último enviado, del snapshot de recuperación) y cuando hijo3 pide un id que no tiene (`DATOS.SOLICITAR_AUDIOS`) — no hay un mensaje "cargar toda la aventura" |
 
 **RETO.MOSTRAR** (padre → hijo4) — protección pasiva por parada, ver §16
 
@@ -5123,7 +5123,7 @@ Con la aventura y el idioma elegidos, `distribuirDatosAventura()` deja la tabla 
 | Payload | `{ retoId, retosArray:[reto], contexto, idioma }` |
 | Handler en hijo4 | `registrarControladorSeguro(TIPOS_MENSAJE.RETO.MOSTRAR, ...)` |
 | Acción | Añade el reto a la caché local acotada (máx. 2 ids); renderiza el reto |
-| Cuándo se envía | Cuando hijo4 pide el reto activo (`RETO.SOLICITAR_RETO`) o al completar un reto con más en cola — siempre resuelto vía `cargarRetos()`, nunca con la aventura completa |
+| Cuándo se envía | Cuando hijo4 pide el reto activo (`RETO.SOLICITAR_RETO`), al completar un reto con más en cola, al recargarse hijo4 (el último enviado, del snapshot de recuperación) y cuando hijo4 pide un id que no tiene (`DATOS.SOLICITAR_RETOS`) — siempre resuelto vía `cargarRetos()`, nunca con la aventura completa |
 
 **Recuperación puntual (hijo → padre):**
 
@@ -5186,7 +5186,7 @@ Hijo3 e hijo4 piden un `audioId`/`retoId` concreto cuando su caché local no lo 
 
 #### FASE 7 — Pipeline CAMBIO_PARADA (núcleo de la aventura)
 
-El mensaje más importante de la app. Se emite al iniciar una aventura, al avanzar a la siguiente parada, al restaurar sesión y al entrar en modo CASA.
+El mensaje más importante de la app. Se emite al iniciar una aventura (la parada por defecto), al avanzar al siguiente elemento, al restaurar sesión, al volver de CASA a AVENTURA (la parada guardada en `estado.paradaRealCongelada`), al recargarse hijo2 (la parada del snapshot de recuperación) y cuando hijo5 pide una parada (modo DEV, ver §24).
 
 **NAVEGACION.CAMBIO_PARADA** (padre → todos)
 
@@ -5194,29 +5194,29 @@ El mensaje más importante de la app. Se emite al iniciar una aventura, al avanz
 padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
   ├── _actualizarEstadoParada → actualiza estado.paradaActual, indiceProgreso, elementoActual
   ├── _solicitarAudioParaParada → resuelve el audio de la parada vía cargarAudios() (mismo camino CASA/AVENTURA)
-  │     └── AUDIO.REPRODUCIR_REQUEST { audioId, audioData, autoplay:false } → hijo3
+  │     └── AUDIO.REPRODUCIR_REQUEST { audioId, audioData, autoplay:false, contexto } → hijo3, con acuse
   ├── _precargarVideoParada / _precargarImagenParada → vídeo del tramo siguiente e imágenes del elemento, de la tabla del padre (_entradaDeCoordenadas)
   ├── _notificarCambioParadaHijos → NAVEGACION.CAMBIO_PARADA a hijo2, hijo3, hijo4, hijo5 (hijo5 excluido si origen==='hijo5')
   ├── _sincronizarRetoBtn → CONTROL.DESHABILITAR/HABILITAR retosBtn → hijo3
-  │                     → RETO.HABILITAR → hijo4 (si sin audio)
+  ├── RETO.HABILITAR { razon:'sin_audio' } → hijo4 (solo en AVENTURA, en un elemento con reto y sin audio)
   ├── vv-parada-cambiada (CustomEvent) → funciones-mapa.js dibuja marcadores/polylines/zoom
-  └── RETO.ESTADO_CASA → hijo4 (solo modo CASA: habilita retos en paradas, deshabilita en tramos)
+  └── RETO.ESTADO_CASA → hijo4 (solo modo CASA: habilita retos en las paradas con reto, los deshabilita en tramos y en paradas sin reto)
 ```
 
 | Campo | Valor |
 |-------|-------|
-| Payload emitido | `{ paradaId, parada_id, padreId, padreid, indiceProgreso, contexto, timestamp, restaurado? }` |
+| Payload emitido | Depende de quién lo despacha: `{ paradaId, parada_id, padreId, padreid, contexto: 'progresion_aventura', timestamp }` al avanzar; `{ paradaId, parada_id, padreId, padreid, indiceProgreso, timestamp }` más `restaurado: true` al restaurar sesión o `razon: 'default_parada'` con la parada por defecto; solo `{ paradaId }` al volver de CASA y al recargarse hijo2; desde hijo5, `{ paradaId, parada_id, padreId, padreid, timestamp, origen }`. El handler resuelve el resto a partir del id |
 | Handler en hijo1 | **Ninguno** — hijo1 no tiene handler de CAMBIO_PARADA; el que se le parece es el de CAMBIO_MODO |
-| Handler en hijo2 | Recibe `{ paradaId, parada_id, padreId, padreid, tipo, timestamp, origenCambio }` —el id y el tipo de su elemento, sin su contenido—; actualiza `idParadaActual`, `tipoParadaActual`; resetea `distanciaAlDestino` y `_llegadaNotificada`; reinicia spin de botones |
-| Handler en hijo3 | actualiza UI del reproductor |
-| Handler en hijo4 | prepara estado del reto para la parada |
+| Handler en hijo2 | Recibe `{ paradaId, parada_id, padreId, padreid, tipo, timestamp, origenCambio }` —el id y el tipo de su elemento, sin su contenido—; actualiza `idParadaActual`, `tipoParadaActual`; resetea `distanciaAlDestino` y `_llegadaNotificada`; apaga «avanzar» (`avanzarHabilitadoPorPadre = false`) hasta que el padre diga cómo queda; quita el botón activo, refresca los botones y reinicia su giro |
+| Handler en hijo3 | Quita la clase `activo` a `retosBtn`, reinicia su giro y contesta con `CAMBIO_PARADA_CONFIRMADO` |
+| Handler en hijo4 | Guarda `estado.padreIdActual` (lo que compara el aviso `PENDING_INICIADO`) y contesta con `CAMBIO_PARADA_CONFIRMADO`; el reto no se da por abierto aquí |
 | Handler en hijo5 | recibe vía `_notificarCambioParadaHijos` |
 
 **NAVEGACION.CAMBIO_PARADA_CONFIRMADO** (hijo3 y hijo4 → padre; padre → hijo5)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo3 (tras actualizar reproductor), hijo4 (tras actualizar estado del reto). hijo2 **no** envía este mensaje. |
+| Emitido por | hijo3 y hijo4, al final de su handler de `CAMBIO_PARADA`, con `{ paradaId, parada_id, padreId, padreid, timestamp }`. hijo2 **no** envía este mensaje. |
 | Handler en padre | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO` |
 | Acción | Solo logging/diagnóstico — no bloquea ningún flujo |
 | Hacia hijo5 | `completarCambioParada()` (`js/funciones-mapa.js`) lo envía, al terminar un cambio de parada, al frame que lo pidió (hijo5), con `{ paradaId, parada_id, padreId, padreid, mensajeOriginalId, coordenadas, audio, reto }`; si lo despachó el propio padre no se envía |
@@ -5230,17 +5230,17 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre (al activar/desactivar GPS) vía `enviarMensaje_S1({destino:'hijo2',...})` |
-| Payload | `{ activo: bool, permisos: bool, precision: null, error: null }` |
-| Handler | Solo hijo2 — hijo1/hijo3/hijo4 no tienen handler |
+| Emitido por | Padre, al terminar de activarse el GPS (`_finalizarActivacionGPS`, dentro de `activarGPS`), vía `enviarMensaje_S1({destino:'hijo2',...})` — es su único emisor: nada desactiva el GPS (§11) |
+| Payload | `{ activo: true, permisos: true, precision: null, error: null }` |
+| Handler | Solo hijo2 — hijo1/hijo3/hijo4 no tienen handler. No lee el payload: en CASA pone `btnUbicacion` en rojo deshabilitado; en AVENTURA no hace nada, porque el color lo decide `verificarDistanciaYActualizarBotones()` |
 
 **NAVEGACION.GPS.ERROR** (padre → hijo2)
 
 | Campo | Valor |
 |-------|-------|
 | Emitido por | Padre vía `enviarMensaje_S1({destino:'hijo2',...})` |
-| Payload | `{ codigo, mensaje, contexto }` |
-| Handler | Solo hijo2 — hijo1/hijo3/hijo4 no tienen handler |
+| Payload | `{ codigo, mensaje, contexto: 'watchPosition' }` — lo manda `_watchPositionError` |
+| Handler | Solo hijo2 — hijo1/hijo3/hijo4 no tienen handler. Solo lo escribe en el log, con el nombre del código (`PERMISSION_DENIED`, `POSITION_UNAVAILABLE`, `TIMEOUT`) |
 
 **NAVEGACION.GPS.ACTIVAR** (hijo2 → padre)
 
@@ -5257,16 +5257,16 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 |------|-----------------|------|
 | `GPS.RESTRINGIDO` | `_hdl_NAVEGACION_GPS_RESTRINGIDO` | Hijo2 → padre cuando usuario está fuera de rango |
 
-Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no tiene handler, ni emisor, ni ninguna función que desactive el GPS (ver §11). Ver §10.15 para el conflicto de registro con `funciones-mapa.js`.
+Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no tiene handler, ni emisor, ni ninguna función que desactive el GPS (ver §11). Sobre `manejarGPSActivar` de `funciones-mapa.js`, que no se registra en el bus, ver §10.15.
 
 **NAVEGACION.LLEGADA_DETECTADA** (hijo2 → padre, y funciones-mapa → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo2 (`_detectarLlegadaParada`/`_detectarLlegadaTramo`) **y** `js/funciones-mapa.js` (`procesarPosicionGPSParaAventura`) — los dos con el mismo `radioLlegada` de 15 m en parada y en tramo, el segundo con dedup propio vía `estadoMapa._llegadaNotificada` para no reenviar en cada lectura GPS mientras el usuario permanece en el sitio) — dos sensores para el mismo hecho (el de hijo2 decide con la distancia y el id que le manda funciones-mapa), ninguno avanza la aventura por sí solo |
-| Payload | `{ paradaId, parada_id, distancia, ... }` (funciones-mapa añade `tipoParada`, `coordenadas`) |
+| Emitido por | hijo2 (`_detectarLlegadaParada`/`_detectarLlegadaTramo`) **y** `js/funciones-mapa.js` (`procesarPosicionGPSParaAventura`) — los dos con el mismo `radioLlegada` de 15 m en parada y en tramo; el segundo, solo en AVENTURA, con la llegada confirmada en 2 de las 4 últimas lecturas y con dedup propio vía `estadoMapa._llegadaNotificada` para no reenviar en cada lectura GPS mientras el usuario permanece en el sitio (se suelta al alejarse más de 1,5 × `toleranciaGPS`) — dos sensores para el mismo hecho (el de hijo2 decide con la distancia y el id que le manda funciones-mapa), ninguno avanza la aventura por sí solo |
+| Payload | `{ paradaId, parada_id, distancia, tipoParada, timestamp }` (funciones-mapa añade `coordenadas`) |
 | Handler en padre | `_hdl_NAVEGACION_LLEGADA_DETECTADA` |
-| Acción | Normaliza ID, llama `_marcarPendingPorLlegada` → `pending.llegada = true` → `intentarCompletarElemento` (que solo avanza si además `pending.audio` y, si hay retos, `pending.reto` ya están a `true`) |
+| Acción | Solo en AVENTURA y solo para el elemento actual (con otro id lo deja en un `warn` y no hace nada). Si llegan `coordenadas` —solo las manda funciones-mapa— centra el mapa a zoom 17. Normaliza ID, llama `_marcarPendingPorLlegada` → `pending.llegada = true` (`_anotarEnFicha`, §9.2.3) → `intentarCompletarElemento` (que solo avanza si además `pending.audio` y, si hay retos, `pending.reto` ya están a `true`) |
 | Nota | Audio NO se envía aquí — ya fue enviado en CAMBIO_PARADA |
 
 **NAVEGACION.ACTUALIZAR_ESTADO** (funciones-mapa → hijo2)
@@ -5274,7 +5274,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Emisor real | `js/funciones-mapa.js` (`procesarPosicionGPSParaAventura`) — no padre directamente |
-| Payload | `{ distanciaAlDestino, distanciaAlCamino, toleranciaGPS, idParada, tipoParada, lat, lng, accuracy, ubicacionActiva }` |
+| Payload | `{ distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, timestamp }`, más `ubicacionActiva: false` cuando el usuario queda a 50 m o menos (§7.3) |
 | Handler en hijo2 | actualiza distancia, modo, flags de proximidad |
 | Handler en funciones-mapa | ninguno — el único receptor es hijo2 directamente vía `enviarMensaje_S1` |
 
@@ -5283,7 +5283,8 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Handler en padre | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO` |
-| Acción | Marca `estado.usuarioFueraRango`, deshabilita audio del padre y `retosBtn` de hijo3 (§31.4/§25.7). No toca `pendingCompleciones` |
+| Payload | `{ distancia, franja, elementoMasCercano, timestamp }` |
+| Acción | Solo en AVENTURA. Guarda `estado.usuarioFueraRango` (`{ activo: true, distancia, franja, elementoMasCercano, timestamp }`) y vuelve a decidir los controles que dependen de ello: los de audio del padre (`actualizarEstadoControlesAudioPadre`), `retosBtn` de hijo3 (`_sincronizarRetoBtn`) y «avanzar» (`_sincronizarAvanzar`) (§31.4/§25.7). No toca `pendingCompleciones` |
 
 **NAVEGACION.MOSTRAR_UBICACION_POLYLINE** (hijo2 → padre)
 
@@ -5320,8 +5321,8 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre vía `_solicitarAudioParaParada` (CAMBIO_PARADA pipeline, mismo camino en CASA y AVENTURA); también `js/controladores-padre.js` como respuesta a un cache-miss (`DATOS.SOLICITAR_AUDIOS`) |
-| Payload | `{ audioId, audioData:{id,title,file}, autoplay: false, contexto: { parada, tipo } }` — `audioData` resuelto vía `cargarAudios()`, protección pasiva por parada (ver §16) |
+| Emitido por | Padre vía `_solicitarAudioParaParada` (CAMBIO_PARADA pipeline, mismo camino en CASA y AVENTURA), vía `solicitarAudioAHijo3` al reanudar una sesión y desde el snapshot de recuperación al recargarse hijo3 —los tres con acuse, por `_enviarAudioRequestConReintento()`—; también `js/controladores-padre.js` como respuesta a un cache-miss (`DATOS.SOLICITAR_AUDIOS`), este sin acuse |
+| Payload | `{ audioId, audioData:{id,title,file}, autoplay: false, contexto }` — `audioData` resuelto vía `cargarAudios()`, protección pasiva por parada (ver §16). `contexto` es `{ parada, tipo }` en el cambio de parada, `'progresion_aventura'` en la reanudación y `{ motivo: 'solicitud_hijo' }` en el cache-miss; hijo3 no lo lee |
 | Handler en hijo3 | sí |
 | Acción | Guarda `audioData` en su caché local acotada (máx. 2 ids); carga el audio, NO lo reproduce automáticamente. Muestra controles. |
 
@@ -5352,7 +5353,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Emitido por | hijo3 (al completar reproducción) |
 | Payload | `{ audioId, estado: 'finalizado' }` |
 | Handler en padre | `_hdl_AUDIO_FIN_REPRODUCCION` |
-| Acción | Actualiza estado, llama `_procesarFinAudioElemento` → habilita botón retos (si hay reto), o marca `pending.audio=true` y, si ya se cumplen las demás condiciones, habilita btnAvanzar vía `marcarParadaCompletada()` (parada y tramo por igual — el GPS nunca avanza por sí solo, ver §4.7d) |
+| Acción | Pone `estado.audioActual.estado = 'finalizado'` si es el audio activo y refresca los controles del padre. Si el audio es el del elemento actual, marca `pending.audio=true`, para los recordatorios de audio y de saltar, y llama a `intentarCompletarElemento`, que, si ya se cumplen las demás condiciones, habilita btnAvanzar vía `marcarParadaCompletada()` (parada y tramo por igual — el GPS nunca avanza por sí solo, ver §4.7d). Después, siempre, `_procesarFinAudioElemento`: si el elemento tiene reto, `_sincronizarRetoBtn()` y, en AVENTURA, `RETO.HABILITAR { razon: 'audio_escuchado_1vez' }` a hijo4 y el recordatorio del reto si queda alguno por hacer |
 
 **AUDIO.ERROR** (hijo3 → padre)
 
@@ -5646,7 +5647,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 #### `GPS.ACTIVAR` — handler en Script 2
 
-`NAVEGACION.GPS.ACTIVAR` está gestionado por Script 2 de `codigo-padre.html` (`_hdl_NAVEGACION_GPS_ACTIVAR`). `NAVEGACION.GPS.DESACTIVAR` no tiene handler. Ver §10.15 para el detalle completo del flujo.
+`NAVEGACION.GPS.ACTIVAR` está gestionado por Script 2 de `codigo-padre.html` (`_hdl_NAVEGACION_GPS_ACTIVAR`). `NAVEGACION.GPS.DESACTIVAR` no tiene handler. El flujo completo, en §10.15.
 
 #### `UI.CLOSE_MENUS` hijo1 → padre
 
@@ -5852,7 +5853,7 @@ El estado del latido no guarda ninguna pausa: `state.heartbeat` solo tiene `acti
 
 `NAVEGACION.GPS.ACTIVAR` lo registra Script 2 de `codigo-padre.html` mediante `registrarControladorSeguro`. El handler (`_hdl_NAVEGACION_GPS_ACTIVAR`) verifica que el modo activo sea AVENTURA, pregunta a `_decidirAvanzar()` (§29.4) si progresar al siguiente elemento —que se revela al activarse (§4.7d)— y en cualquier caso llama a `activarGPS()`. `NAVEGACION.GPS.DESACTIVAR` no tiene handler simétrico — nada en la app lo emite, y tampoco existe función que desactive el GPS (ver §2.2).
 
-`funciones-mapa.js` contiene `manejarGPSActivar` (el adaptador — ver «Fuente única de verdad del estado GPS», §11) para llamadas internas directas dentro del módulo — la usa `manejarCambioModoMapa()` al entrar en AVENTURA — pero no se registra en el bus de mensajes. `state-manager.js` garantiza exactamente un handler por tipo de mensaje; cualquier segundo intento de registro para el mismo tipo retorna `false` silenciosamente.
+`funciones-mapa.js` contiene `manejarGPSActivar` (el adaptador — ver «Fuente única de verdad del estado GPS», §11) para llamadas internas directas dentro del módulo — la usa `manejarCambioModoMapa()` al entrar en AVENTURA — pero no se registra en el bus de mensajes. Un tipo tiene un solo handler por frame: `registrarControlador` (`js/mensajeria.js`) se queda con el primero, devuelve `false` al segundo y lo dice con un `logger.error`; en el padre, `registrarControladorSeguro` lo para antes, con un `warn` («Controlador ya registrado»).
 
 | Tipo | Estado |
 |------|--------|
@@ -6805,17 +6806,16 @@ Con `durFase = 0.35 s`, el tiempo total de la animación de zoom (out + in) es ~
 > **Nota de diseño — patrón fan-out a hijos críticos.**
 > `CAMBIO_PARADA` se envía a los hijos críticos (hijo2, hijo3, hijo4, hijo5) y cada uno lo procesa de forma independiente. Que 4 ficheros tengan un listener para el mismo mensaje es correcto: es el fan-out intencional de esta arquitectura. `CAMBIO_PARADA_CONFIRMADO` existe como mecanismo opcional de diagnóstico — el padre nunca bloquea esperándolo.
 
-El controlador `CAMBIO_PARADA` solicita datos a los hijos en paralelo. El audio (hijo3) se gestiona con **fire-and-forget** para no bloquear el cambio de parada:
+El controlador `CAMBIO_PARADA` no espera a ningún hijo. El audio (hijo3) va en **fire-and-forget**: `_solicitarAudioParaParada` deja la promesa en `solicitudes.audio` y el handler sigue sin esperarla:
 
 ```javascript
-// Solo se awaita hijo2 (coordenadas/zoom) — el audio no bloquea
-const paradaData = await (solicitudes.paradaData || Promise.resolve(null));
-if (solicitudes.audio) {
-    solicitudes.audio.catch(e => logger.warn('Audio fire-and-forget error:', e));
-}
+const solicitudes = {};
+_solicitarAudioParaParada(parada, estado, solicitudes, logPrefix);
+_precargarVideoParada(_elementosIDpadre, parada, logPrefix);
+solicitudes.audio?.catch(e => logger.warn(`${logPrefix} Audio fire-and-forget error:`, e));
 ```
 
-El `.catch` es solo para logging — nunca bloquea. `audio` se excluye deliberadamente del `await` porque hijo3 puede tardar hasta 10 s en responder (especialmente en modo CASA, donde `enviarMensajeConConfirmacion` se invoca dos veces); esperarlo con `Promise.all([paradaData, audio])` haría perceptible ese retraso en cada cambio de parada.
+El `.catch` es solo para logging — nunca bloquea. Las imágenes del elemento salen de la tabla de la aventura que el padre ya tiene (`_entradaDeCoordenadas`), sin pedírselas a hijo2. La entrega del audio exige acuse y reintenta: `_enviarAudioRequestConReintento()` espera 1 200 ms por intento y hace como mucho `MAX_REINTENTOS_ENVIO_AUDIO` = 2, igual en CASA que en AVENTURA; esperarla dentro del cambio de parada sumaría hasta 2,4 s a cada uno.
 
 ---
 
@@ -11141,12 +11141,12 @@ Un envío no se guarda para más tarde: si el `destino` no es la ventana de arri
 #### Las confirmaciones (ACK / timeout)
 
 ```javascript
-enviarMensajeConConfirmacion('NAVEGACION.SOLICITAR_DATOS_PARADAS', {}, { timeout: 5000 })
+enviarMensajeConConfirmacion({ tipo: TIPOS_MENSAJE.RETO.COMPLETADO, destino: 'padre', datos: datosCompletado })
     .then(respuesta => { /* procesar */ })
     .catch(err => { /* timeout o error */ });
 ```
 
-La promesa queda en `confirmacionesPendientes`. El receptor detecta `requiereConfirmacion: true` y envía `SISTEMA.CONFIRMACION` con `idOriginal`. Si el timeout (5 s por defecto, 10 s para operaciones lentas) expira sin confirmación, la promesa rechaza.
+La promesa queda en `confirmacionesPendientes`. El receptor detecta `requiereConfirmacion: true` y envía `SISTEMA.CONFIRMACION` con `idOriginal`. Si el timeout expira sin confirmación, la promesa rechaza. El timeout es de 5 s por defecto; `AUDIO.REPRODUCIR_REQUEST` lo baja a 1 200 ms (con reintento), y hijo2 (`GPS.ACTIVAR`) e hijo6 (`CHAT.RESCATE_SOLICITADO`) escalan sus 5 s con `ajustarTimeoutPorConexion` (×4 en slow-2g, ×3 en 2g, ×2 en 3g, ×1 en 4g, ×0,8 en 5g). La función acepta dos formas: un objeto `{ tipo, destino, datos, timeout }` —la que usan todos los envíos de la app— o `(tipo, datos, opciones)`.
 
 #### Correlación del acuse por ID
 
