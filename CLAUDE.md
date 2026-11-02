@@ -34,7 +34,7 @@ PWA de audioguía con arquitectura iframe + postMessage.
 
 ## Funciones en scope separado
 
-`codigo-padre.html` tiene 5 bloques `<script type="module">` (las líneas se desplazan con cada edición del archivo, tratar como aproximadas): Script 1 (~2711–8581), Script 2 (~8613–13179, "Lógica post-carga y funciones auxiliares"), Script 3 (~13188–13222, visibilidad de hijo4), Script 4 (~13276–13371, "Migración de controladores y diagnóstico GPS"), Script 5 (~13688–fin, panel de logs en pantalla). Una función definida en un script es **invisible** en cualquier otro a menos que se exponga via `globalThis.nombreFuncion = nombreFuncion` — la misma regla aplica a los 5 entre sí, no solo a Script 1↔Script 2.
+`codigo-padre.html` tiene 5 bloques `<script type="module">` (las líneas se desplazan con cada edición del archivo, tratar como aproximadas): Script 1 (~2669–8539), Script 2 (~8571–13136, "Lógica post-carga y funciones auxiliares"), Script 3 (~13145–13179, visibilidad de hijo4), Script 4 (~13233–13328, "Migración de controladores y diagnóstico GPS"), Script 5 (~13645–fin, panel de logs en pantalla). Una función definida en un script es **invisible** en cualquier otro a menos que se exponga via `globalThis.nombreFuncion = nombreFuncion` — la misma regla aplica a los 5 entre sí, no solo a Script 1↔Script 2.
 
 Antes de añadir cualquier función nueva en código padre, comprueba que no existe ya en otro script del mismo archivo.
 
