@@ -9961,7 +9961,7 @@ Cada pulso envía `{estrellas, momento}` mediante `enviarValoracion()` de `js/fe
 
 ### 25.5c. Cartel recordatorio "pulse play"
 
-**Por qué existe:** el usuario puede caminar hacia la siguiente parada o a lo largo de un tramo sin haber pulsado nunca el botón de play, y como nada en pantalla se lo recuerda de forma insistente (más allá del cartel de llegada de §4.7g/§4.7j, que se autocierra a los 10s y no vuelve a aparecer), la parada nunca se da por completada — `pending.audio` se queda en `false` para siempre si no se pulsa play, sin relación con lo cerca que esté el usuario del punto (ver §25.5, "Por qué 15 m y no 10 m"). El usuario puede pasar minutos parado sobre las coordenadas correctas sin entender por qué la aventura no avanza.
+**Por qué existe:** el usuario puede caminar hacia la siguiente parada o a lo largo de un tramo sin haber pulsado nunca el botón de play, y como nada en pantalla se lo recuerda de forma insistente (más allá del cartel de llegada de §4.7g/§4.7j, que se autocierra a los 10s y no vuelve a aparecer), la parada nunca se da por completada — `pending.audio` se queda en `false` para siempre si no se pulsa play, sin relación con lo cerca que esté el usuario del punto (ver §25.5, "Por qué el radio de parada es 15 m"). El usuario puede pasar minutos parado sobre las coordenadas correctas sin entender por qué la aventura no avanza.
 
 **Cuándo se muestra:** se exigen TRES condiciones a la vez — así el cartel nunca aparece solo por tiempo transcurrido cuando el usuario está lejos de las coordenadas reales, ni cuando el audio ya está sonando de verdad:
 
@@ -10103,7 +10103,7 @@ La detección de **llegada** a la siguiente parada ocurre cuando el GPS indica q
 1. Se envía `NAVEGACION.LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento activo.
 2. Si audio (+ reto, en paradas) ya estaban completos, `marcarParadaCompletada()` habilita `btn-avanzar` en hijo2 y muestra el cartel que corresponda según qué acaba de completarse y qué sigue (§4.7g) — la parada queda marcada como completada en `estado.paradasCompletadas`, pero el elemento activo es el mismo.
 3. Solo cuando el usuario pulsa `btn-avanzar`, `progresarSiguienteElemento()` incrementa `indiceProgreso` y despacha `NAVEGACION.CAMBIO_PARADA` por el bus (`despacharLocal`); su handler actualiza `estado.paradaActual` y avisa a hijo2, hijo3, hijo4 y hijo5 (`_notificarCambioParadaHijos`).
-4. Cada hijo carga los datos del nuevo elemento (audio, coordenadas, retos).
+4. Cada hijo recibe lo suyo del nuevo elemento: hijo3, su audio; hijo2, el id y el tipo; hijo4, el reto cuando lo pide (§10.5).
 5. Se persiste el progreso en `localStorage` → `vv_progreso`.
 
 ---
@@ -10174,7 +10174,7 @@ Al volver dentro de rango (`NAVEGACION.GPS.DENTRO_DE_RANGO`), `_hdl_NAVEGACION_G
 
 ### 25.8. Los retos en cada parada
 
-Cuando el usuario pulsa el botón **Retos** del hijo 3 (audio), se abre el **hijo 4** (retos) como un modal a pantalla completa. Los retos pueden ser de 4 tipos:
+Cuando el usuario pulsa el botón **Retos** del hijo 3 (audio), se abre el **hijo 4** (retos) como una ventana centrada sobre el mapa (`min(90vw, 85vmin)` × `90dvh`, §7.10). Los retos pueden ser de 4 tipos:
 
 1. **Opción única** — Una pregunta con varias respuestas tipo radio button.
 2. **Opción múltiple** — Pregunta con checkboxes (varias respuestas correctas).
@@ -10241,7 +10241,7 @@ Se muestra un diálogo con fondo oscuro que dice:
 
 > *"¡Aventura en curso!"*
 >
-> Tienes una aventura activa: **València centro histórico 1**
+> Tiene una aventura activa: **València centro histórico 1**
 > Idioma: Español
 > Progreso: parada 12 de 41
 >
@@ -10260,7 +10260,7 @@ Si el usuario no toca nada, a los **30 segundos** se reanuda automáticamente (p
 3. Se muestran los iframes de juego.
 4. Se restauran las paradas completadas.
 5. Se cargan los datos de la aventura.
-6. Se activa el modo AVENTURA, el GPS y el reloj de compra de hijo1 — incluida la sincronización de `estadoMapa.modo` en `funciones-mapa.js` (ver "Sincronización de `estadoMapa.modo` al reanudar sesión", §11), necesaria porque este paso no pasa por el mismo handler que un cambio de modo en vivo (`_activarModoRest()`, no `_hdl_SISTEMA_CAMBIO_MODO`).
+6. Se activa el modo AVENTURA, el GPS y el reloj de compra de hijo1 — incluida la sincronización de `estadoMapa.modo` en `funciones-mapa.js` (ver "Sincronización de `estadoMapa.modo` al reanudar sesión", §11). `_activarModoRest()` pasa por el mismo `_hdl_SISTEMA_CAMBIO_MODO` que cualquier cambio de modo, con `restaurado: true`; una de sus tres diferencias es que el mapa se sincroniza con `sincronizarModoMapa()` en vez de `manejarCambioModoMapa()`.
 7. Se restaura el progreso: el elemento en curso, por su identificador guardado (si no está en los datos, se dice con un error y se sigue desde la parada por defecto) — dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado.
 8. El usuario continúa en el elemento en que lo deja, con lo que lleva hecho en él. `vv_progreso` guarda la ficha del elemento actual (`ficha`: `clave`, `llegada`, `audio`, `reto` y `retosCompletadosCount`) cada vez que se anota algo en ella (`_anotarEnFicha()`, §9.2.3). Al reanudar, `_restoreApplyState()` la deja en `estado._fichaGuardada` y la activación del elemento restaurado, si la `clave` es la suya y el modo es AVENTURA, la vuelca en la ficha recién creada. El audio terminado sigue terminado: el botón de retos de hijo3 se enciende sin volver a escucharlo ni a saltarlo (§7.4). El reto resuelto sigue resuelto, y la cola de retos nace con él hecho. La llegada confirmada sigue confirmada. Si con lo guardado la ficha está completa y el elemento no figura como completado, se completa en esa misma activación. El recordatorio «pulse retos» corre de nuevo si el audio está terminado y queda reto (§25.5d). El reloj de la ficha (`timestamp`, el que mide el recordatorio de rescate, §25.19) empieza de nuevo. No se guardan la distancia andada dentro de un tramo (ver §"Distancia recorrida") ni, en un elemento con varios retos, los retos sueltos de una cola a medias. Un `vv_progreso` sin `ficha`, o con la ficha de otro elemento, deja la del elemento a cero. Un rescate concedido y a falta de pulsar «avanzar» sigue registrado (`estado.rescateEnCurso`, §25.19): «avanzar» se enciende aunque el usuario siga fuera de la zona, y el rescate no se cobra otra vez. Un elemento completado y a falta de pulsar «avanzar» se activa listo para avanzar: `_elementoCompletado()` lo encuentra en `paradasCompletadas`, no se le crea ficha, `estado.paradaListaParaAvanzar` queda a `true` y `_sincronizarAvanzar()` enciende «avanzar» en hijo2 si nada más lo impide (§29.4). Cubierto por `tests/e2e/124-lo-hecho-en-la-parada-sobrevive-a-una-recarga.spec.js` (FG-1 a FG-9) y `tests/e2e/123-elemento-completado-sigue-completado.spec.js` (EC-1 a EC-3).
 
@@ -10276,10 +10276,10 @@ Si el usuario no toca nada, a los **30 segundos** se reanuda automáticamente (p
 
 > *"⚠️ Atención"*
 >
-> Perderás todo el progreso de tu aventura actual:
+> Perderá todo el progreso de su aventura actual:
 > **València centro histórico 1 (Español)**
 >
-> **Además, necesitarás adquirir una nueva aventura.**
+> **Además, necesitará adquirir una nueva aventura.**
 >
 > **[ Volver a mi aventura ]** ← botón grande verde
 >
@@ -10304,9 +10304,9 @@ Cuando el usuario completa la última parada, `progresarSiguienteElemento()` int
 ```text
 progresarSiguienteElemento()  ← no hay siguiente elemento
   → _handleFinDeAventura()
-      → postMessage AVENTURA.FINALIZADA → hijo1-opciones (extrainfo-hijo1.html)
+      → bus: AVENTURA.FINALIZADA → hijo1-opciones (extrainfo-hijo1.html)
           → detiene el temporizador
-          → postMessage AVENTURA.ESTADISTICAS_TIEMPO → padre
+          → bus: AVENTURA.ESTADISTICAS_TIEMPO → padre
               → _hdl_AVENTURA_ESTADISTICAS_TIEMPO()
                   → mostrarModalFinalizacion()   ← solo en modo AVENTURA
 ```
@@ -10356,7 +10356,7 @@ El `await` sobre `enviarValoracion()` es solo por consistencia de código async 
 | Todas las cachés del Service Worker | `caches.delete()` para cada caché |
 | El propio Service Worker | `registration.unregister()` |
 
-Antes de tocar nada, `limpiarDatosAventura()` levanta `globalThis.__VV_RECICLANDO = true` — bandera interna, sin efecto visual. Sin ella, desregistrar el Service Worker dispara `controllerchange`, que el bloque de actualización de `codigo-padre.html` leería como "hay versión nueva": banner al cliente justo al terminar su aventura y `vv_sw_update_pendiente` reescrita en el `localStorage` recién vaciado. Detalle en §19.5, "El reciclaje digital silencia el mecanismo".
+Antes de tocar nada, `limpiarDatosAventura()` levanta `globalThis.__VV_RECICLANDO = true` — bandera interna, sin efecto visual. Sin ella, desregistrar el Service Worker dispara `controllerchange`, que el bloque de actualización de `codigo-padre.html` leería como "hay versión nueva": banner al cliente justo al terminar su aventura y `vv_sw_update_pendiente` reescrita en el `localStorage` recién vaciado. Detalle en §19, "El Service Worker" → "El reciclaje digital silencia el mecanismo".
 
 **En modo CASA (desarrollo):** `_handleFinDeAventura()` y `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` comprueban el modo antes de llamar al modal. Si no es AVENTURA, solo escriben logs — sin modal, sin reciclaje, para que el desarrollador pueda recorrer el flujo completo sin destruir la sesión.
 
@@ -10368,7 +10368,7 @@ Antes de tocar nada, `limpiarDatosAventura()` levanta `globalThis.__VV_RECICLAND
 
 | # | Disparador | Dónde | Qué detecta |
 |---|---|---|---|
-| 1 | `AVENTURA.TIEMPO_AGOTADO` (postMessage) | hijo1 → padre, contador llega a 0 en sesión activa | El usuario está jugando ahora mismo y se le acaba el tiempo delante de sus ojos |
+| 1 | `AVENTURA.TIEMPO_AGOTADO` (por el bus) | hijo1 → padre, contador llega a 0 en sesión activa | El usuario está jugando ahora mismo y se le acaba el tiempo delante de sus ojos |
 | 2 | `_comprobarReanudacionAventura()` (Script 1) | Arranque en frío, antes de ofrecer el diálogo "¿continuar?" | La sesión guardada ya no está viva: superó su ventana real de compra (60 h / 150 h según aventura, vía `verificarTimeoutAventura()`) o el TTL de respaldo de 7 días — ver §9.10 |
 | 3 | `_restoreCheckTimeout()` (Script 1), vía `verificarTimeoutAventura()` | Durante la restauración, tras confirmar "Continuar mi aventura" | La duración máxima de la aventura (60h/150h) se superó mientras la app estaba cerrada |
 
