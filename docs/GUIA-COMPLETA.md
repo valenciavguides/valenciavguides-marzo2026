@@ -12594,7 +12594,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 1. El usuario pulsa 🌐🔄
 2. El botón se deshabilita inmediatamente
 3. Aparece un contador descendente de 15 segundos (cifra pura, sin texto)
-4. Durante esos 15 segundos la app reintenta la petición que había fallado
+4. No se reintenta ninguna petición: si en ese momento ya hay red (`navigator.onLine`), el overlay se cierra al pulsar; si no, lo cierra el evento `online` en cuanto vuelve
 5. Si la conexión vuelve → el overlay desaparece solo, el botón no importa
 6. Si los 15 segundos expiran sin conexión → el botón se habilita de nuevo para que el usuario pueda reintentar manualmente
 
@@ -12791,7 +12791,7 @@ Ese ciclo es el de las 4 pantallas de franja, que hijo2 realimenta en cada posic
 
 **Los tres caminos que evitan el bloqueo, de más temprano a más tardío:**
 
-1. **Entrega reforzada del mensaje** (`_enviarAudioRequestConReintento()`, `_solicitarAudioParaParada()`) — `AUDIO.REPRODUCIR_REQUEST` se envía con `enviarMensajeConConfirmacion()`, exigiendo un ACK real de la capa de mensajería de hijo3 — un `SISTEMA.CONFIRMACION` que solo se emite si el controlador de `AUDIO.REPRODUCIR_REQUEST` devuelve un valor (ver §7.4) —, con reintentos hasta `MAX_REINTENTOS_ENVIO_AUDIO` (2) antes de darse por vencido, con un timeout de 1.2s por intento (2.4s como máximo en total). Con `autoplay:false` (siempre, en este flujo) el handler de hijo3 no espera ninguna descarga de red antes de confirmar, así que el timeout no se dispara por lentitud normal, solo por una entrega realmente fallida — y se mantiene deliberadamente por debajo de los 10s del primer aviso de los recordatorios de audio (§25.5c/g): así la entrega reforzada siempre termina (con éxito o agotando reintentos) antes de que un recordatorio pudiera llegar a comprobar nada, sin ninguna carrera entre ambos mecanismos. Si los 2 intentos fallan, se llama a `_marcarAudioNoDisponible()` directamente — sin esperar a nada más.
+1. **Entrega reforzada del mensaje** (`_enviarAudioRequestConReintento()`, `_solicitarAudioParaParada()`) — `AUDIO.REPRODUCIR_REQUEST` se envía con `enviarMensajeConConfirmacion()`, exigiendo un ACK real de la capa de mensajería de hijo3 — un `SISTEMA.CONFIRMACION` que el bus emite en cuanto el controlador de `AUDIO.REPRODUCIR_REQUEST` termina, devuelva lo que devuelva (§10.6a) —, con reintentos hasta `MAX_REINTENTOS_ENVIO_AUDIO` (2) antes de darse por vencido, con un timeout de 1.2s por intento (2.4s como máximo en total). Con `autoplay:false` (siempre, en este flujo) el handler de hijo3 no espera ninguna descarga de red antes de confirmar, así que el timeout no se dispara por lentitud normal, solo por una entrega realmente fallida — y se mantiene deliberadamente por debajo de los 10s del primer aviso de los recordatorios de audio (§25.5c/g): así la entrega reforzada siempre termina (con éxito o agotando reintentos) antes de que un recordatorio pudiera llegar a comprobar nada, sin ninguna carrera entre ambos mecanismos. Si los 2 intentos fallan, se llama a `_marcarAudioNoDisponible()` directamente — sin esperar a nada más.
 2. **Reintentos dentro de hijo3** (`audio-hijo3.html`, ver §25.5f) — una vez que el mensaje SÍ llega, si el propio audio falla al cargar o se atasca a mitad de reproducción, hijo3 reintenta por su cuenta (backoff en errores de carga, recuperación silenciosa de `stalled`/`waiting`) antes de rendirse y enviar `AUDIO.ERROR` al padre.
 3. **`AUDIO.ERROR` desbloquea el pending** — el handler `_hdl_AUDIO_ERROR()` recibe ese aviso (venga de hijo3 tras agotar sus reintentos, o se dispare internamente tras agotar el paso 1) y llama a `_marcarAudioNoDisponible()`: marca `pending.audio = true`, llama a `intentarCompletarElemento()`, habilita `retosBtn` si procede, y muestra el botón de saltar (`#audio-action-skip`, §25.5f) para que quede constancia visible de que algo no funcionó, en vez de una progresión silenciosa.
 
@@ -12831,8 +12831,8 @@ En los tres casos el resultado es el mismo: la parada no queda bloqueada, y todo
 | 31.6 | El cartel del bloqueo de 5 km, sin reintento | `fotogpserror.png` | `_ensureGpsOverlay()`: la imagen y la ✗ | ✅ implementado |
 | 31.7a | AUDIO.ERROR no desbloquea pending | — | `_hdl_AUDIO_ERROR` → `_marcarAudioNoDisponible` marca `pending.audio = true`, habilita retosBtn y muestra el botón de saltar (§25.5f) | ✅ implementado |
 | 31.7b | Entrega de AUDIO.REPRODUCIR_REQUEST sin garantía / usuario bloqueado sin poder llegar | — | `_enviarAudioRequestConReintento` (confirmación + reintentos, §31.7) para el mensaje; para el bloqueo real, el rescate a petición del usuario (§25.19) — el `setInterval` de 60 s solo recuerda que existe, no completa nada | ✅ implementado |
-| 31.9 | Navegador incompatible (sin ES modules) | `#vv-compat-warning` div | `<script nomodule>` | ✅ implementado |
-| 31.9 | iOS PWA sin meta tags correctos | — | meta tags `apple-mobile-web-app-*` | ✅ implementado |
+| 31.9a | Navegador incompatible (sin ES modules) | `#vv-compat-warning` div | `<script nomodule>` | ✅ implementado |
+| 31.9b | iOS PWA sin meta tags correctos | — | meta tags `apple-mobile-web-app-*` | ✅ implementado |
 
 ---
 
@@ -12844,13 +12844,13 @@ Este subsección recoge los comportamientos diferenciados por plataforma que pue
 
 Cuando el usuario deniega el permiso de GPS en iOS, la app no puede volver a solicitar el permiso desde JavaScript. El flujo es distinto según plataforma:
 
-| Plataforma | Qué hace el botón 🛰️→⚙️ del overlay de GPS denegado |
+| Plataforma | Qué hace el botón 🛰️→🌐→⚙️ del overlay de GPS denegado |
 |---|---|
-| Android / escritorio | Llama `activarGPS()` de nuevo → el navegador muestra el diálogo de permisos |
-| iOS PWA (standalone) | Abre `app-settings:` → lleva al usuario directamente a los Ajustes del sistema |
-| iOS navegador (Safari) | Muestra el overlay pero no puede abrir Ajustes automáticamente — el usuario debe ir manualmente |
+| Android / escritorio | Llama `activarGPS()` de nuevo; además, mientras el aviso está a la vista, la app escucha el cambio de permiso (`navigator.permissions`) y reactiva el GPS sola en cuanto pasa a `granted` |
+| iOS navegador (Safari) | Registra un `visibilitychange` de una vez: al volver la página a primer plano (de Ajustes), llama `activarGPS()`; el usuario va a Ajustes a mano |
+| iOS PWA (standalone) | Lo mismo, y además navega a `app-settings:` para intentar abrir los Ajustes |
 
-Adicionalmente, en iOS standalone, al volver desde Ajustes la app detecta el retorno mediante el evento `visibilitychange` (listener `{ once: true }`) y llama `activarGPS()` automáticamente. Si el usuario concedió el permiso, el overlay desaparece; si no, reaparece.
+En iOS no se escucha el cambio de permiso: sin pulsar el botón, el GPS no se reactiva solo. Las dos ramas por `esApple` están registradas como K-152 en el estudio (unificar el comportamiento en todos los teléfonos), con lo que hay que medir en un iPhone real. Si el usuario concedió el permiso, el overlay desaparece con la primera posición; si no, reaparece.
 
 **Código relevante:** `_ensureGpsSignalOverlay()` en `codigo-padre.html`, en el handler del botón de reintento para `errCode === 1`.
 
@@ -12885,7 +12885,7 @@ En Chrome < 61, Safari < 10.1 y Firefox < 60, la app no puede ejecutarse porque 
 
 El audio **requiere interacción del usuario** antes de reproducirse. La app cumple este requisito porque el usuario debe pulsar el botón de play explícitamente. No se usa autoplay.
 
-En iOS, el contexto de AudioContext (si se usara en el futuro) requiere ser desbloqueado por un evento de toque. Actualmente la app usa `<audio>` HTML estándar en `audio-hijo3.html`, que iOS respeta sin restricciones adicionales cuando hay interacción previa del usuario.
+En iOS, el contexto de AudioContext (si se usara en el futuro) requiere ser desbloqueado por un evento de toque. La app usa `<audio>` HTML estándar en `audio-hijo3.html`, que iOS respeta sin restricciones adicionales cuando hay interacción previa del usuario.
 
 ---
 
@@ -12909,7 +12909,7 @@ propio. Si dos registros compiten por el mismo `tipo` en el mismo frame, gana el
 segundo se rechaza con `logger.error(...)` explícito (`"ya tiene un handler para X: se queda el
 primero y este se ignora"`) — nunca en silencio, nunca sobrescrito. `codigo-padre.html` añade
 una capa extra propia, `__CONTROLADOR_REGISTRADOS` (un `Set`), porque su arquitectura de 5
-`<script type="module">` con scope separado (ver §14 raíz de este documento) puede reintentar el
+`<script type="module">` con scope separado (ver §6 y la nota «Funciones en scope separado» de `CLAUDE.md`) puede reintentar el
 registro de la misma función entre scripts o tras una re-inicialización; los hijos, al ser un
 único script por fichero, no lo necesitan.
 
