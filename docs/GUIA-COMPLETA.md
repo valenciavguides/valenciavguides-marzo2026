@@ -11888,10 +11888,10 @@ Usuario pulsa parada Nº3 en hijo 5 (barra de navegación)
   │
   └─▶ HIJO 5 envía NAVEGACION.CAMBIO_PARADA → PADRE
         │
-        ├─▶ PADRE envía NAVEGACION.CAMBIO_PARADA (coords P3) → HIJO 2
-        │     └─ Hijo 2 actualiza idParadaActual, resetea estado GPS local y botones
+        ├─▶ PADRE envía NAVEGACION.CAMBIO_PARADA (solo el id y el tipo del elemento) → HIJO 2
+        │     └─ Hijo 2 guarda el id y el tipo, borra la distancia, apaga «avanzar» y refresca sus botones
         │
-        ├─▶ PADRE envía AUDIO.REPRODUCIR_REQUEST (audioId=P3, audioData resuelto en línea, autoplay=false) → HIJO 3
+        ├─▶ PADRE envía AUDIO.REPRODUCIR_REQUEST (el audio_id del elemento, audioData resuelto en línea, autoplay=false), con acuse → HIJO 3
         │     └─ Audio cargado pero NO reproducido automáticamente
         │           El usuario arranca la reproducción con el desplegable del padre
         │           Al terminar el audio:
@@ -11906,14 +11906,15 @@ Usuario pulsa parada Nº3 en hijo 5 (barra de navegación)
 
 Usuario pulsa el botón de retos (#botonRetos en hijo 4)
   └─▶ HIJO 4 envía RETO.SOLICITAR_RETO → PADRE
-        └─▶ PADRE envía RETO.MOSTRAR (objeto reto de P3) → HIJO 4
+        └─▶ PADRE envía RETO.MOSTRAR (el reto del elemento, resuelto con cargarRetos) → HIJO 4
               └─ Reto se renderiza y queda interactivo
 
 Usuario responde el reto correctamente y pulsa el botón verde (btnNext)
-  └─▶ HIJO 4 envía RETO.COMPLETADO → PADRE
-        └─ Padre avanza secuencia, habilita GPS para la siguiente parada
+  └─▶ HIJO 4 envía RETO.COMPLETADO (con acuse) y RETO.OCULTAR → PADRE
+        └─ Padre anota pending.reto en la ficha; si llegada y audio ya están, enciende «avanzar» (§29.4).
+           No avanza solo: el usuario pulsa «avanzar» y el padre activa el siguiente elemento
 
-GPS detecta que el usuario llegó a una PARADA (distancia ≤ 15 m, RADIO_PARADA hardcodeado)
+Solo en AVENTURA — GPS detecta que el usuario llegó a una PARADA (distancia ≤ 15 m, RADIO_PARADA hardcodeado)
   └─▶ HIJO 2 envía NAVEGACION.LLEGADA_DETECTADA (tipoParada:'parada') → PADRE
         └─ Padre marca pending.llegada = true
            (La parada completa cuando también pending.audio=true y retosOk=true)
@@ -11921,7 +11922,7 @@ GPS detecta que el usuario llegó a una PARADA (distancia ≤ 15 m, RADIO_PARADA
 GPS detecta que el usuario llegó al final de un TRAMO (distancia ≤ radioLlegada, 15 m
   Y recorridoSuficiente — ≥40% de la longitud real del camino recorrida)
   └─▶ HIJO 2 envía NAVEGACION.LLEGADA_DETECTADA (tipoParada:'tramo') → PADRE
-        └─ Padre solicita audio del tramo + marca pending.llegada = true
+        └─ Padre marca pending.llegada = true (el audio del tramo ya se pidió al activarse el elemento)
            (El tramo completa cuando también pending.audio=true y retosOk=true)
 ```
 
@@ -12060,14 +12061,14 @@ _hdl_SISTEMA_HIJO_LISTO(mensaje)     [codigo-padre.html Script 1]
 | `estado.tiempoRestante` | `_hdl_AVENTURA_TIEMPO_ACTUALIZADO` (cada tick de hijo1) | `hijo1`: re-envía `AVENTURA.INICIADA` con tiempo restante |
 | `_snapshotRecuperacion.audioActual` | `_solicitarAudioParaParada()` (camino principal, cada cambio de parada) y `solicitarAudioAHijo3()` (fallback de reanudación) — ambos resuelven `audioData` vía `_resolverAudioData()` antes de guardar el snapshot | `hijo3`: re-envía `AUDIO.REPRODUCIR_REQUEST` con el audio ya resuelto, sin depender de un cache-miss posterior |
 | `_snapshotRecuperacion.retoActual` | `_enviarRetoMostrar()` antes del send — único constructor de `RETO.MOSTRAR`, llamado tanto desde `_hdl_RETO_SOLICITAR` como desde `_procesarResultadoReto()` cuando queda un siguiente reto en la cola de la misma parada; `_hdl_RETO_COMPLETADO` lo limpia a `null` nada más entrar, y esa misma llamada lo repuebla si la parada aún no ha cerrado; `_hdl_RETO_OCULTAR` lo limpia cuando el reto se cierra, resuelto o no: guarda solo un reto que está a la vista | `hijo4`: re-envía `RETO.MOSTRAR` |
-| `globalThis.estadoPadre.paradaActual` | Estado global del padre (actualizado en `NAVEGACION.CAMBIO_PARADA`) | `hijo2`: re-envía `NAVEGACION.CAMBIO_PARADA` |
+| `globalThis.estadoPadre.paradaActual` | Estado global del padre (actualizado en `NAVEGACION.CAMBIO_PARADA`) | `hijo2`: el padre despacha en su propio bus `NAVEGACION.CAMBIO_PARADA` con esa parada, y su handler avisa a hijo2 como en cualquier cambio |
 
 #### Mensajes de restauración enviados tras reload
 
 | Hijo | Mensaje enviado | Condición |
 |---|---|---|
 | `hijo1` | `AVENTURA.INICIADA { tiempoEstimado: tiempoRestante, pausado: false }` | `tiempoRestante !== undefined` y modo aventura |
-| `hijo2` | `NAVEGACION.CAMBIO_PARADA { paradaActual }` | `paradaActual` definida y modo aventura |
+| `hijo2` | `despacharLocal(NAVEGACION.CAMBIO_PARADA { paradaId: snap.paradaActual })` en el padre, no un envío a hijo2: pasa por `_hdl_NAVEGACION_CAMBIO_PARADA`, que avisa a hijo2 | `paradaActual` definida y modo aventura |
 | `hijo3` | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData, contexto, autoplay }` | `audioActual !== null` y modo aventura |
 | `hijo4` | `RETO.MOSTRAR { retoId, contexto, retosArray, idioma }` | `retoActual !== null` y modo aventura |
 
@@ -12077,7 +12078,7 @@ Si el modo no es aventura al momento del reload, el snapshot se descarta sin env
 
 #### `NAVEGACION.CAMBIO_PARADA` de restauración es una reconfirmación, no un cambio real
 
-El reenvío a hijo2 (`paradaActual`, fila de la tabla de arriba) apunta siempre al elemento que YA estaba activo antes del reload — nunca a uno distinto. `completarCambioParada()` (`js/funciones-mapa.js`) reconoce este caso al principio de la función: si el `paradaId` recibido coincide con `estadoMapa.paradaActual` (el elemento ya activo), retorna de inmediato sin ejecutar el resto de la función — sin limpiar capas, sin volver a revelar el trazado, sin volver a dibujar marcadores. Sin este guard, la reconfirmación se procesaría como si fuera un cambio de elemento real: limpiaría la polyline manual de navegación aunque el usuario la hubiera pedido a propósito para ese mismo elemento segundos antes, y repetiría el zoom/reset visual completo por un heartbeat reload de hijo2, no por un avance real de la aventura.
+El despacho para hijo2 (`paradaActual`, fila de la tabla de arriba) apunta siempre al elemento que YA estaba activo antes del reload — nunca a uno distinto. `completarCambioParada()` (`js/funciones-mapa.js`) reconoce este caso al principio de la función: si el `paradaId` recibido coincide con `estadoMapa.paradaActual` (el elemento ya activo), retorna de inmediato sin ejecutar el resto de la función — sin limpiar capas, sin volver a revelar el trazado, sin volver a dibujar marcadores. Sin este guard, la reconfirmación se procesaría como si fuera un cambio de elemento real: limpiaría la polyline manual de navegación aunque el usuario la hubiera pedido a propósito para ese mismo elemento segundos antes, y repetiría el zoom/reset visual completo por un heartbeat reload de hijo2, no por un avance real de la aventura.
 
 #### Dónde vive cada pieza
 
