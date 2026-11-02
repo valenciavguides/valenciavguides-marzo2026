@@ -11356,19 +11356,20 @@ El módulo `js/api-client.js` implementa `TokenManager`: guarda el JWT en memori
 
 #### Pantalla de selección — En-busca-del-tesoro.html (la experiencia de selección)
 
-El iframe más complejo. Gestiona las pantallas del flujo de incorporación (selección de idioma, aventura, retos previos, pago, código de activación). Contiene internamente un iframe propio para `puzzle.html`. **No es "Hijo 1"** — el nombre estándar en toda la guía es "selección" o "pantalla de selección"; "Hijo 1" siempre refiere a `extrainfo-hijo1.html`.
+El iframe más complejo. Gestiona las pantallas del flujo de incorporación (selección de idioma, aventura, retos previos, pago, código de activación). Contiene internamente dos iframes propios: `puzzle.html` (P6) y `video-intro.html` (P4). **No es "Hijo 1"** — el nombre estándar en toda la guía es "selección" o "pantalla de selección"; "Hijo 1" siempre refiere a `extrainfo-hijo1.html`.
 
 | Dirección | Tipo de mensaje | Cuándo |
 |-----------|----------------|--------|
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al cargarse |
 | Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — `{ modo, timestamp }`; el idioma y la aventura salen de la propia pantalla (`SELECCION.IDIOMA_SELECCIONADO`, `SELECCION.AVENTURA_SELECCIONADA`) |
-| Hijo → Padre | `SELECCION.IDIOMA_SELECCIONADO` | Al confirmar idioma |
+| Hijo → Padre | `SELECCION.IDIOMA_SELECCIONADO` | P2: al tocar una bandera, con acuse (avanza a P3 cuando el padre contesta) |
 | Hijo → Padre | `SELECCION.AVENTURA_SELECCIONADA` | P7: al elegir aventura (padre solo almacena estado) |
 | Hijo → Padre | `SELECCION.PREPARAR_HIJOS` | P9: al confirmar aventura (padre almacena estado) |
 | Hijo → Padre | `SELECCION.CODIGO_VALIDADO` | P14: al introducir código+email aceptados por el backend (o dev mode) con GPS no denegado → padre registra con log; GPS, iframes y datos se activan en P15 |
-| Hijo → Padre | `RETO.COMPLETADO` | Al resolver R1 y R2 |
 | Hijo → Padre | `SELECCION.AVENTURA_ACTIVADA` | P17: al pulsar el botón de los logos, tras el R-2 afirmativo de P16 (padre usa fast-path si iframes pre-cargados) |
-| Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Para ocultar la pantalla al comenzar la aventura |
+| Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Solo contesta el protocolo (`ENTENDIDO` + `EFECTUADO`); la pantalla la oculta el padre al activar la aventura (`_mostrarUIActivada`) |
+
+Los retos R-1 y R-2 de la demo se resuelven dentro de la propia pantalla: no mandan ningún mensaje al padre.
 
 #### Hijo 1 — extrainfo-hijo1.html (panel lateral izquierdo)
 
@@ -11379,7 +11380,12 @@ Panel lateral con un botón "Más opciones" que despliega iconos flotantes de ac
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al cargarse |
 | Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — `{ modo, timestamp }`; el panel solo registra el modo en el log |
 | Padre → Hijo | `SISTEMA.CAMBIO_MODO` | No cambia el panel; en CASA pone el temporizador a cero |
-| Hijo → Padre | (toggle temporizador) | Al pulsar `#icono-temporizador` |
+| Hijo → Padre | `TEMPORIZADOR.TOGGLE` | Al pulsar `#icono-temporizador` |
+| Hijo → Padre | `PARADAS.LISTADO_TOGGLE` | Al pulsar `#icono-listado-paradas` |
+| Hijo → Padre | `UI.CLOSE_MENUS` | En cada pulsación de «más opciones» |
+| Hijo → Padre | `UI.NAVEGACION_EXTERNA` y `UI.ACCION_USUARIO { accion: 'audio_control', comando: 'pause' }` | Al pulsar un icono con enlace externo, antes de abrirlo |
+| Padre → Hijo | `AVENTURA.INICIADA` / `FINALIZADA` / `DETENER` | El temporizador de la aventura (§10.5, FASE 12) |
+| Hijo → Padre | `AVENTURA.TIEMPO_ACTUALIZADO` (cada segundo), `TIEMPO_AGOTADO` y `ESTADISTICAS_TIEMPO` | Desde el temporizador |
 
 #### Hijo 2 — coordenadas-hijo2.html (controles GPS y botones)
 
@@ -11397,7 +11403,7 @@ Controla la detección de proximidad GPS y los 6 botones de acción (avanzar, im
 
 #### Hijo 3 — audio-hijo3.html (el reproductor)
 
-Reproductor HTML5 con barra de progreso personalizada. No sabe en qué parada está: solo recibe una URL y la reproduce. El control de play/pausa está centralizado en el padre (desplegable de audio); hijo3 no expone controles propios de reproducción.
+Reproductor HTML5 con barra de progreso personalizada. No decide nada de la parada: recibe el audio de cada elemento ya resuelto por el padre (`audioData`) y lo carga. El control de play/pausa está centralizado en el padre (desplegable de audio); hijo3 no expone controles propios de reproducción.
 
 | Dirección | Tipo de mensaje | Cuándo |
 |-----------|----------------|--------|
@@ -11406,7 +11412,7 @@ Reproductor HTML5 con barra de progreso personalizada. No sabe en qué parada es
 | Padre → Hijo | `AUDIO.REPRODUCIR_REQUEST` | Con el audio resuelto (`audioData`) de la parada actual, en línea |
 | Padre → Hijo | `UI.ACCION_USUARIO` | Comandos `audio_control` para `play`, `pause`, `stop` y `replay` |
 | Hijo → Padre | `AUDIO.FIN_REPRODUCCION` | Cuando el audio termina |
-| Hijo → Padre | `AUDIO.ESTADO_ACTUALIZADO` | Periódicamente con el tiempo de reproducción |
+| Hijo → Padre | `AUDIO.ESTADO_ACTUALIZADO` | En los eventos `play` y `pause` de su `<audio>` (§10.5, FASE 9) |
 | Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Pausa y resetea el audio en curso en cualquier cambio de modo (no solo al entrar en CASA) y recalcula si la barra de progreso es arrastrable |
 
 #### Hijo 4 — retos-hijo4.html (los retos)
@@ -11433,9 +11439,9 @@ Iframe transparente anclado a la franja superior (`top:3px; height:22vh; width:9
 | Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — `{ modo, timestamp }`; el hijo pide la lista de paradas después (`NAVEGACION.SOLICITAR_DATOS_PARADAS`) y llega en `NAVEGACION.RESPUESTA_DATOS_PARADAS` |
 | Padre → Hijo | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Datos detallados de todas las paradas |
 | Hijo → Padre | `NAVEGACION.CAMBIO_PARADA` | Al pulsar una parada en la lista |
-| Hijo → Padre | `SISTEMA.CAMBIO_MODO` | Al pulsar el botón 🏠 OFF (volver a CASA) |
-| Hijo → Padre | `VV:PARADAS:READY` | Cuando el contenedor de paradas está en el DOM |
-| Padre → Hijo | (inyección CSS/JS) | El padre inyecta estilos directamente tras `PARADAS:READY` para mantener la transparencia del iframe |
+| Hijo → Padre | `SISTEMA.CAMBIO_MODO` | Al pulsar el botón 🛰️ (`#gps-casa-btn`): pide el modo contrario al que tiene, CASA ↔ AVENTURA |
+| Hijo → Padre | `VV:PARADAS:READY` | Al terminar de pintar los botones de las paradas, con `{ count }` |
+| Padre → Hijo | (inyección CSS/JS) | El padre escribe en el documento de hijo5 al cargarlo y otra vez tras `PARADAS:READY`, para mantener la transparencia del iframe (§10.23) |
 
 ---
 
