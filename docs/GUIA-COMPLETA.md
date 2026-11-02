@@ -7281,7 +7281,7 @@ En el mapa de Aventura34km, las 41 fotos del núcleo más denso van ordenadas po
 - **`AventuraFallas`** no tiene ningún dígito, así que caería en el `'1'` de reserva y enseñaría **el mapa de la Aventura 1 como si fuera el suyo**. Un mapa válido, que carga bien, sin error ni hueco: imposible de notar.
 - **`Aventura34km`** sacaría `34` y pediría un `Av34_Mapa.jpg` inexistente.
 
-Tampoco hay un `onerror` que reintente con la otra mayúscula (`_mapa` / `_Mapa`): sería un segundo camino silencioso de los que §36.27.1 prohibe, taparía justo el fallo que hay que ver, y **en GitHub Pages —que SÍ distingue mayúsculas, a diferencia de Windows— es donde ese fallo aparece**.
+Tampoco hay un `onerror` que reintente con la otra mayúscula (`_mapa` / `_Mapa`): sería un segundo camino silencioso de los que §36.27.1 prohíbe, taparía justo el fallo que hay que ver, y **en GitHub Pages —que SÍ distingue mayúsculas, a diferencia de Windows— es donde ese fallo aparece**.
 
 Una aventura sin entrada en la tabla **no enseña el mapa de otra**: se registra el aviso y se continúa a P8, igual que al cerrar el overlay. Añadir la octava aventura es escribir una línea; no hay ningún patrón de nombres que respetar.
 
@@ -7359,7 +7359,7 @@ ffmpeg -i entrada.mp4 -c copy -movflags +faststart salida.mp4
 
 Es una operación de copia de streams (`-c copy`): reordena el índice del contenedor, no toca ni un fotograma del vídeo ni del audio — mismo tamaño (± unos cientos de bytes), misma duración, mismos fotogramas, sin recodificación.
 
-**Estado actual:** `publico/videos/video_intro_ejemplo.mp4` (usado en la escena `sceneVid` de `video-intro.html`, §35.6) tiene el `moov` al principio — confirmado por inspección directa de la estructura de átomos del archivo. Cuando se incorporen los primeros vídeos reales de dron para las paradas (campo `video` en `coordenadas-aventuras.js`, hoy vacío), deben exportarse ya con `faststart` antes de commitearse — o pasarse por el comando de arriba antes de subirlos.
+**Estado actual:** `publico/videos/video_intro_ejemplo.mp4` (usado en la escena `sceneVid` de `video-intro.html`, §35.6) tiene el `moov` al principio — confirmado por inspección directa de la estructura de átomos del archivo. Cuando se incorporen los primeros vídeos reales de dron de los tramos (campo `video` en `coordenadas-aventuras.js`, hoy vacío en los 239), deben exportarse ya con `faststart` antes de commitearse — o pasarse por el comando de arriba antes de subirlos.
 
 ### `faststart` es necesario pero NO suficiente — el bitrate importa igual o más
 
