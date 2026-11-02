@@ -6289,7 +6289,7 @@ No hay ninguna pausa fija (`sleep`) en este punto de la cadena: la única espera
 
 #### Patrón `retryUntilAvailable()` — polling acotado, no `setTimeout` recursivo a mano
 
-`js/utils.js` (`retryUntilAvailable(checkFn, {maxIntentos, intervalo, mensaje})`) es el helper único para "reintentar hasta que una condición sea verdadera": resuelve `true` en cuanto `checkFn()` devuelve verdadero, o `false` tras agotar `maxIntentos` (con un `logger.warn` automático usando `mensaje`). Los cuatro sitios de `codigo-padre.html`, el de `js/app.js` y el de `js/utils.js` que necesitan este patrón lo usan en vez de un `check()`/`setTimeout(check, ms)` autoreprogramado a mano: sin el límite acotado que da este helper, si la condición esperada nunca se cumple (módulo que falla al cargar, hijo que nunca confirma `HIJO_LISTO`), el bucle quedaría corriendo para siempre, sin log de error ni feedback al usuario.
+`js/utils.js` (`retryUntilAvailable(checkFn, {maxIntentos, intervalo, mensaje})`) es el helper compartido para "reintentar hasta que una condición sea verdadera" —no el único: el padre tiene además nueve bucles `while (…) await sleep(…)` que hacen lo mismo a mano (las esperas de `distribuirDatosAventura` de 40 y 120 vueltas, las de `globalThis.mensajeria` y `registrarControladorSeguro` en Script 1, 2 y 4, la de `sistemaInicializado` en la reanudación y la del logger en Script 5)—: resuelve `true` en cuanto `checkFn()` devuelve verdadero, o `false` tras agotar `maxIntentos` (con un `logger.warn` automático usando `mensaje`). Los cuatro sitios de `codigo-padre.html`, el de `js/app.js` y el de `js/utils.js` que necesitan este patrón lo usan en vez de un `check()`/`setTimeout(check, ms)` autoreprogramado a mano: sin el límite acotado que da este helper, si la condición esperada nunca se cumple (módulo que falla al cargar, hijo que nunca confirma `HIJO_LISTO`), el bucle quedaría corriendo para siempre, sin log de error ni feedback al usuario.
 
 | Función | Condición esperada | Límite | Efecto si se agota |
 |---|---|---|---|
@@ -12353,7 +12353,7 @@ Solo dos hijos registran `pagehide`, y ninguno limpia un listener registry:
 - **`coordenadas-hijo2.html`**: pone `estadoComponente.inicializado = false` — un flag diagnóstico: su único lector es el payload de su `HEARTBEAT_RESPONSE` (`estado: 'activo'` o `'inicializando'`), que nadie usa para decidir nada.
 - **`audio-hijo3.html`**: solo deja constancia en el log (`logger.info(...)`), sin tocar ningún estado.
 
-El resto de hijos (`extrainfo-hijo1.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`) no registran `pagehide` en absoluto — no tienen nada que limpiar: el único listener del bus se destruye con el propio documento cuando el iframe se descarga, y no hay temporizadores ni estado propio que sobreviva a eso.
+El resto de frames (`extrainfo-hijo1.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html` y `video-intro.html`) no registran `pagehide` en absoluto — no tienen nada que limpiar: el único listener del bus se destruye con el propio documento cuando el iframe se descarga, y no hay temporizadores ni estado propio que sobreviva a eso.
 
 ### 28.3 El cleanup real vive en el padre y en dos módulos que comparten su ventana
 
@@ -12385,7 +12385,8 @@ El padre no tiene un barrido periódico de controladores. No hace falta: cada do
 | `js/funciones-mapa.js` | ✓ | `globalThis.funcionesMapa` — con guarda `persisted` |
 | `coordenadas-hijo2.html` | ✓ | Un flag diagnóstico (solo lo lee su `HEARTBEAT_RESPONSE`) — sin guarda `persisted`, pero sin efecto funcional |
 | `audio-hijo3.html` | ✓ | Nada (solo log) |
-| `extrainfo-hijo1.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html` | — | Nada que limpiar: sin `pagehide` propio |
+| `js/reciclaje-digital.js` | ✓, solo mientras la red de abandono está armada (§25.13) | No limpia: es uno de los tres disparadores de esa red, que ejecuta la limpieza total y se desarma |
+| `extrainfo-hijo1.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `video-intro.html` | — | Nada que limpiar: sin `pagehide` propio |
 
 ---
 
@@ -12396,7 +12397,7 @@ Esta sección describe las restricciones GPS y el comportamiento visual de polyl
 ### 29.1 Parámetros GPS (valores actuales)
 
 | Parámetro | Valor | Archivo |
-|-----------|-------|---------|-------|
+|-----------|-------|---------|
 | `PRECISION_MINIMA` | 50 m — **leída por el runtime** (§31.4/§25.7); no confundir con el mecanismo de §25.5, que no descarta posiciones por precisión | `js/config.js` |
 | `watchPosition timeout` | 35.000 ms | `codigo-padre.html` |
 
@@ -12476,7 +12477,7 @@ Cubierto por `tests/e2e/157-avanzar-lo-decide-un-solo-sitio.spec.js` (AV-1 a AV-
 **Archivo: `retos-hijo4.html`**
 
 - Handler `RETO.HABILITAR`:
-  - Habilita `#botonRetos` cuando el audio se ha escuchado al menos 1 vez y la parada tiene reto
+  - Habilita `#botonRetos` con `RETO.HABILITAR`: cuando el audio se ha escuchado una vez (`razon: 'audio_escuchado_1vez'`) o, en un elemento sin audio, al activarse (`'sin_audio'`), y siempre que la parada tenga reto
 
 ### 29.8 Lógica de retos en modo CASA
 
@@ -12498,10 +12499,10 @@ Cubierto por `tests/e2e/157-avanzar-lo-decide-un-solo-sitio.spec.js` (AV-1 a AV-
 Estado de botones por hijo en modo CASA:
 
 - **Hijo 2 (coordenadas-hijo2.html):**
-  - Botones habilitados: imagen, mapa completo, mapa jpg
+  - Botones habilitados: imagen, mapa completo, mapa jpg, y vídeo en los tramos (sin reto activo)
   - Botones deshabilitados: `btnAvanzar`, ubicación
 - **Hijo 3 (audio-hijo3.html):**
-  - Botón audio: habilitado (sin restricción en modo CASA)
+  - `retosBtn`: lo decide `_sincronizarRetoBtn()` como en AVENTURA; los controles del audio no son de hijo3, sino del desplegable del padre
 - **Hijo 4 (retos-hijo4.html):**
   - Botón retos: controlado por `RETO.ESTADO_CASA` (habilitado solo en paradas **con reto**, oculto en tramos y en paradas sin reto)
 
@@ -12519,21 +12520,21 @@ Estado de botones por hijo en modo CASA:
 
 ### 30.1 Patrón de logger con fallback
 
-**Archivo:** `codigo-padre.html` (~100+ puntos de uso)
+**Archivo:** `codigo-padre.html` (más de 700 usos)
 
 Todo acceso al logger usa el patrón `(globalThis.logger || console).método()` en lugar de `logger.método()` directo. Esto garantiza que si el módulo logger no ha terminado de cargarse cuando un bloque de código se ejecuta, `console` actúa como fallback sin generar ReferenceError.
 
 Puntos de uso representativos:
 
-- Líneas 83, 86: `handleIframeError` — fallback para `logger.error`
-- Líneas 201, 203: `handleIframeLoad` — fallback para `logger.debug`
+- `handleIframeError` — fallback para `logger.error`
+- `handleIframeLoad` — fallback para `logger.debug`
 - Todos los demás usos de logger en el archivo siguen el mismo patrón
 
 ### 30.2 `sleep`, una sola definición
 
 **Archivo:** `js/utils.js` (`export function sleep(ms)`)
 
-`sleep(ms)` vive en `js/utils.js`, y cada script del padre que la usa la importa de ahí: Script 1 y Script 4 con un `import` estático, y Script 2 en la importación dinámica de `js/utils.js` de su cabecera. Ningún script del padre la define ni la publica en `globalThis`.
+`sleep(ms)` vive en `js/utils.js`, y cada script del padre que la usa la importa de ahí: Script 1, Script 4 y Script 5 con un `import` estático, y Script 2 en la importación dinámica de `js/utils.js` de su cabecera. Ningún script del padre la define ni la publica en `globalThis`.
 
 ### 30.3 Espera de HIJO_LISTO sin plazo
 
