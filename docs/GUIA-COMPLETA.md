@@ -146,7 +146,7 @@ modo: { actual: 'casa' | 'aventura' }
 
 - **GPS**: `watchPosition` puede estar activo pero las validaciones de distancia están desactivadas. Las pantallas de distancia (§31.4) no salen: `_puedeSalirPantallaDistanciaGPS()` solo las deja en AVENTURA.
 - **Heartbeat**: encendido, igual que en AVENTURA. El supervisor de hijos (§2.7) vigila a cada iframe en cualquier modo y el cambio de modo no lo toca: los hijos que ya completaron su apretón de manos reciben `SISTEMA.HEARTBEAT` cada intervalo (~5 s, ajustado por la conexión).
-- **Retos**: habilitados o deshabilitados por posición. Padre envía `RETO.ESTADO_CASA` a hijo4 con `{ tipo: 'parada', habilitado: true }` (parada → habilitado) o `{ tipo: 'tramo', habilitado: false }` (tramo → deshabilitado).
+- **Retos**: habilitados o deshabilitados por elemento. Padre envía `RETO.ESTADO_CASA` a hijo4 con `{ tipo: 'parada' | 'tramo', habilitado }`, donde `habilitado` es `true` solo en una parada que tiene reto (`!esTramo && retosDeParada.length > 0`).
 - **Navegación**: manual. El usuario selecciona paradas desde hijo5.
 - **Audio**: reproducción bajo demanda, no automática.
 
@@ -2014,7 +2014,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 | **`retosBtn` (hijo3)** | Encendido (`CONTROL.HABILITAR { control: 'retosBtn', razon: 'parada_con_reto_casa', retoId }`) en cuanto el elemento tiene `reto_id`, sin condición de audio | Apagado al activarse el elemento (`CONTROL.DESHABILITAR`, `razon: 'esperar_fin_audio_aventura'`); encendido (`razon: 'audio_finalizado'`) cuando el audio del elemento consta como terminado —escuchado entero, saltado o dado por no disponible— y mientras no haya un reto abierto ni el usuario esté fuera de rango (§7.4) |
 | **`btnAvanzar` (hijo2)** | Apagado: `_decidirAvanzar()` contesta `no_aventura` (§29.4) — en CASA el usuario elige libremente cada parada o tramo con hijo5 | Lo decide `_decidirAvanzar()` (§29.4): encendido (`CONTROL.HABILITAR { control: 'btnAvanzar', razon: 'elemento_completado' }`) con el elemento completado —parada: llegada GPS + audio + reto; tramo: llegada GPS + audio— y nada que lo impida (un reto abierto, el bloqueo de 5 km o el fuera de rango con la gracia agotada); si no, apagado (`CONTROL.DESHABILITAR` con la `razon` que lo impide). Un elemento que se activa ya completado (`_elementoCompletado()`: pasa al reanudar tras una recarga y al recuperarse hijo2) queda con `estado.paradaListaParaAvanzar` a `true` en la propia activación |
 | **Audio al cambiar de parada** | `_solicitarAudioParaParada()` — mismo camino unificado que en AVENTURA; resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` (el usuario arranca el audio manualmente en ambos modos) | `_solicitarAudioParaParada()` — resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` |
-| **`RETO.ESTADO_CASA` (hijo4)** | Enviado en cada `CAMBIO_PARADA`: `{ habilitado: !esTramo }` — habilita el panel de retos en paradas, lo deshabilita en tramos | No se envía |
+| **`RETO.ESTADO_CASA` (hijo4)** | Enviado en cada `CAMBIO_PARADA`: `{ tipo, habilitado }`, con `habilitado` en `true` solo en una parada con reto — lo deshabilita en tramos y en paradas sin reto | No se envía |
 | **Origen típico de `CAMBIO_PARADA`** | hijo5 (clic en lista de paradas) | El padre mismo, tras `progresarSiguienteElemento()` (usuario pulsa `btn-avanzar` en hijo2 una vez llegada+audio+reto están completos) — nunca hijo2 directamente; la llegada GPS solo marca `pending.llegada`, ver §2.2 |
 | **Persistencia de progreso** | Borra la aventura guardada (`_borrarAventuraGuardada({ conIdioma: false })`, §10.19), salvo en modo desarrollo (ver §24) o al reanudar | Reescribe `modo` y `dev` de `vv_aventura_iniciada` (`almacen.local.escribirJSON`), en cada cambio real de modo |
 | **Carteles de distancia GPS** (`gps-out-of-range-overlay`, `foto-fuera-rango-overlay`, `foto-lejos-overlay`) | Al entrar en CASA, la rama CASA de `_hdl_SISTEMA_CAMBIO_MODO` cierra todo lo del GPS en un solo sitio y al empezar: los seis carteles de distancia y precisión (`_ocultarTodasPantallasDistanciaGPS()`: estos tres más `foto-perdido-overlay`, `foto-desviado-overlay` y `gps-precision-overlay`); y resetea `estado.usuarioFueraRango` — nada de eso puede quedar abierto desde una AVENTURA anterior (spec 30, CM-6) | Los enseña `_hdl_NAVEGACION_GPS_RESTRINGIDO` según la franja (§31.4); cada `show…Overlay()` pregunta antes a `_puedeSalirPantallaDistanciaGPS()`, que mira el modo, el bloqueo de 5 km y el descanso de su ✗ |
@@ -2039,7 +2039,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
   9. Recordatorio «pulse retos»: arranca si el elemento tiene reto, su audio está terminado y queda reto por hacer; si no, se detiene (§25.5d)
 
 [Solo CASA]
-  7. RETO.ESTADO_CASA { habilitado: !esTramo } a hijo4
+  7. RETO.ESTADO_CASA { tipo, habilitado: !esTramo && la parada tiene reto } a hijo4
 ```
 
 **Nota de implementación**: `_sincronizarRetoBtn` no envía nada si `estado.hijosInicializados` no tiene a `hijo3` (lo anota con `logger.warn`). No se pierde nada: cuando `hijo3` envía `HIJO_LISTO`, el padre vuelve a llamarla y hijo3 recibe el estado que le toca a su botón en ese momento.
@@ -4213,7 +4213,7 @@ Los mensajes que se comportan distinto según el modo activo:
 | `AUDIO.REPRODUCIR_REQUEST` | Disparado por acción manual del usuario; `autoplay:false` | Enviado automáticamente al entrar en cada parada; `autoplay:false` (el usuario reproduce desde los controles del padre) |
 | `CONTROL.HABILITAR { control:'retosBtn', razon, retoId }` | Enviado si el elemento tiene `reto_id` y no hay un reto abierto | Enviado cuando el audio del elemento ha terminado, sin reto abierto y dentro de rango (§7.4) |
 | `CONTROL.DESHABILITAR { control:'retosBtn', razon, retoId }` | Enviado si tramo o parada sin `reto_id`, o con un reto abierto | Enviado al activarse el elemento (a la espera de su audio), con un reto abierto y fuera de rango |
-| `RETO.ESTADO_CASA` → hijo4 | Enviado en cada `CAMBIO_PARADA`: `{ habilitado: !esTramo }` | **No se envía** |
+| `RETO.ESTADO_CASA` → hijo4 | Enviado en cada `CAMBIO_PARADA`: `{ tipo, habilitado }` (`true` solo en una parada con reto) | **No se envía** |
 | `RETO.HABILITAR` → hijo4 | **No se envía** | Enviado tras audio (`razon:'audio_escuchado_1vez'`) o sin audio (`razon:'sin_audio'`) |
 | `CONTROL.HABILITAR { control:'btnAvanzar' }` | **No se envía**: `_decidirAvanzar()` lo deja apagado fuera de AVENTURA | Enviado por `_sincronizarAvanzar()` cuando el elemento está completado y nada lo impide (§29.4) |
 | `CONTROL.DESHABILITAR { control:'btnAvanzar' }` | Enviado al activar cada elemento (`razon: 'no_aventura'`) | Enviado por `_sincronizarAvanzar()` al activar cada elemento sin completar y cuando algo lo impide: un reto abierto, el bloqueo de 5 km o el fuera de rango con la gracia agotada (§29.4) |
@@ -4249,7 +4249,7 @@ flowchart LR
 |------|-----|-----------|-----------------------|----------|
 | SELECCIÓN (`modo.actual === null`) | ✗ hasta P15, ✅ **desde P15** | ✅ cada 5 s | ✗ | iframe seleccion |
 | CASA | ✅ activo | ✅ cada 5 s | ✗ (emoji 🛸) | todos cerrados al entrar, en la rama CASA de `_hdl_SISTEMA_CAMBIO_MODO` |
-| AVENTURA | ✅ activo | ✅ cada 5 s | ✅ llegada y franjas de lejanía | nextEntity + outOfRange visibles |
+| AVENTURA | ✅ activo | ✅ cada 5 s | ✅ llegada y franjas de lejanía | las pantallas de distancia salen según la franja (§31.4) |
 
 **El GPS se enciende antes de que exista un modo.** `_hdl_SELECCION_P15_MOSTRADA` llama a `activarGPS()` mientras `estado.modo.actual` sigue valiendo `null` (§2, modo tri-estado): el modo no se fija hasta `AVENTURA_ACTIVADA`, en P16/P17. Así que durante el tramo final de la selección — normativa y reto R-2 — el sensor ya está corriendo aunque la app no esté todavía ni en CASA ni en AVENTURA.
 
@@ -4466,13 +4466,12 @@ sequenceDiagram
 
 **Guard `_aventuraEnProceso`**: variable de módulo booleana que `_hdl_SELECCION_AVENTURA_ACTIVADA` pone mientras activa y quita en su `finally`. Un segundo `AVENTURA_ACTIVADA` en ese rato se ignora; un `AVENTURA_SELECCIONADA` en ese rato hace lanzar a su handler, y el bus se lo contesta a la selección: la aventura elegida no cambia a mitad de una activación.
 
-**Helpers** (complejidad cognitiva): `_hdl_SELECCION_AVENTURA_ACTIVADA` delega dos bloques internos en funciones específicas, con lo que su complejidad cognitiva es de ~10 (umbral SonarQube: 15). Ambos helpers están definidos inmediatamente antes del handler, sin registro en el bus — son llamadas directas internas, no controladores de mensajes:
+**Helpers** (complejidad cognitiva): `_hdl_SELECCION_AVENTURA_ACTIVADA` delega dos bloques internos en funciones específicas, con lo que su complejidad cognitiva es de ~10 (umbral SonarQube: 15). Las dos están definidas inmediatamente antes del handler, sin registro en el bus — son llamadas directas internas, no controladores de mensajes:
 
 | Helper | Responsabilidad |
 |--------|-----------------|
+| `_mostrarUIActivada(logPrefix)` | Oculta la selección y enseña la interfaz de la aventura: hijo2, hijo3, hijo1, el botón del asistente (e hijo5 solo con el modo DEV, ver §24), el selector de mapa, `#brujula-modo`, el logo y los fondos |
 | `_distribuirDatosActivacion(aventura, idioma, logPrefix)` | Llama `distribuirDatosAventura` y gestiona su resultado (`pospuesto` vs completado) con try/catch propio |
-
-El comportamiento externo es idéntico al anterior — la extracción es puramente estructural.
 
 ---
 
@@ -9119,7 +9118,7 @@ Cada fichero de datos de `PROTECTED_FILES` se carga por su función de `js/data-
 
 **Lo decidido:**
 
-1. **`aventuras-ID-padre.js`: decidido, no se protege** (§2.2). Su `import` estático puede quedarse. Lo único que sigue abierto es si merece la pena cargarlo bajo demanda por sus 1,7 MB en el arranque — decisión de rendimiento, no de seguridad, y sin urgencia.
+1. **`aventuras-ID-padre.js`: decidido, no se protege** (§2.3). Su `import` estático puede quedarse. Lo único que sigue abierto es si merece la pena cargarlo bajo demanda por sus 1,7 MB en el arranque — decisión de rendimiento, no de seguridad, y sin urgencia.
 2. **`puzzles-aventuras.js`, protegido; `mapa-vintage-aventuras.js`, público** (§22.0, n.º 13). Los puzzles se piden de uno en uno, por el id que lleva el reto de puzzle, con `cargarPuzzle()` (en modo `'api'`, `/puzzles/:id/:puzzleId`, §16). La tabla de los mapas antiguos es pública, como el índice, porque la demo gratis la lee para saber el nombre de cada mapa; los mapas son de la aventura y están protegidos en `imagenes/mapas-vintage/`, y la demo enseña su copia de `publico/imagenes/mapas-vintage/`.
 3. **La fase 2** (`__cargarDatosAventuraDiferidos`) carga la aventura y el idioma elegidos con `cargarCoordenadas()` y `cargarAudios()`, que en modo `'api'` los piden a la API; su único `import()` directo es el de `mapa-vintage-aventuras.js`, que es público (§7.1; §22.0, n.º 27; spec 153).
 4. **La demo gratis** (la selección hasta el código, el vídeo de introducción y el puzzle de P6) lee todo lo que enseña de las aventuras de las copias de `publico/` que hace `tools/build-demo.js`: nada protegido (§7.1; §22.0, n.º 26 y 29).
