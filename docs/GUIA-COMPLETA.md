@@ -1953,7 +1953,7 @@ Todos los handlers del padre se registran mediante `globalThis.registrarControla
 
 La aplicación tiene dos modos, cuyos valores corresponden a las constantes `MODOS.CASA = 'casa'` y `MODOS.AVENTURA = 'aventura'` de `js/constants.js`:
 
-- **`'casa'`**: menú principal — selección de aventura, vídeos, consejos. localStorage de progreso limpiado (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`) — **excepto en modo dev** (`globalThis._devModeActivo === true`, ver §24), donde no se borra nada, porque la propia activación entra en CASA como paso de bootstrap, no como abandono real. Ver §9.9.
+- **`'casa'`**: exploración sin validar distancias, con hijo5 para ir a cualquier punto; solo con el modo DEV (ver §24). localStorage de progreso limpiado (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`) — **excepto en modo dev** (`globalThis._devModeActivo === true`, ver §24), donde no se borra nada, porque la propia activación entra en CASA como paso de bootstrap, no como abandono real. Ver §9.9.
 - **`'aventura'`**: recorrido activo — mapa, GPS, retos. El latido no depende del modo (§2.7).
 
 **Quién inicia un cambio de modo:**
@@ -2017,7 +2017,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 | **`RETO.ESTADO_CASA` (hijo4)** | Enviado en cada `CAMBIO_PARADA`: `{ habilitado: !esTramo }` — habilita el panel de retos en paradas, lo deshabilita en tramos | No se envía |
 | **Origen típico de `CAMBIO_PARADA`** | hijo5 (clic en lista de paradas) | El padre mismo, tras `progresarSiguienteElemento()` (usuario pulsa `btn-avanzar` en hijo2 una vez llegada+audio+reto están completos) — nunca hijo2 directamente; la llegada GPS solo marca `pending.llegada`, ver §2.2 |
 | **Persistencia de progreso** | Borra la aventura guardada (`_borrarAventuraGuardada({ conIdioma: false })`, §10.19), salvo en modo desarrollo (ver §24) o al reanudar | Reescribe `modo` y `dev` de `vv_aventura_iniciada` (`almacen.local.escribirJSON`), en cada cambio real de modo |
-| **Carteles de distancia GPS** (`gps-out-of-range-overlay`, `foto-fuera-rango-overlay`, `foto-lejos-overlay`) | Al entrar en CASA, la rama CASA de `_hdl_SISTEMA_CAMBIO_MODO` cierra todo lo del GPS en un solo sitio y al empezar: los seis carteles de distancia y precisión (`_ocultarTodasPantallasDistanciaGPS()`: estos tres más `foto-perdido-overlay`, `foto-desviado-overlay` y `gps-precision-overlay`); y resetea `estado.usuarioFueraRango` — nada de eso puede quedar abierto desde una AVENTURA anterior (spec 30, CM-6) | Gestionados por `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`/`_hdl_NAVEGACION_LLEGADA_DETECTADA`, cada uno con su propio guard de modo (defensa en profundidad, redundante con el guard de hijo2 que ya evita que se envíen desde CASA) |
+| **Carteles de distancia GPS** (`gps-out-of-range-overlay`, `foto-fuera-rango-overlay`, `foto-lejos-overlay`) | Al entrar en CASA, la rama CASA de `_hdl_SISTEMA_CAMBIO_MODO` cierra todo lo del GPS en un solo sitio y al empezar: los seis carteles de distancia y precisión (`_ocultarTodasPantallasDistanciaGPS()`: estos tres más `foto-perdido-overlay`, `foto-desviado-overlay` y `gps-precision-overlay`); y resetea `estado.usuarioFueraRango` — nada de eso puede quedar abierto desde una AVENTURA anterior (spec 30, CM-6) | Los enseña `_hdl_NAVEGACION_GPS_RESTRINGIDO` según la franja (§31.4); cada `show…Overlay()` pregunta antes a `_puedeSalirPantallaDistanciaGPS()`, que mira el modo, el bloqueo de 5 km y el descanso de su ✗ |
 | **Recordatorio "pulse play"** (§25.5c) | `_hdl_SISTEMA_CAMBIO_MODO` llama a `globalThis._detenerRecordatorioAudio()` explícitamente — el elemento activo no cambia solo por cambiar de modo, así que sin este apagado el recordatorio seguiría corriendo fuera de AVENTURA | Arranca en `_hdl_NAVEGACION_CAMBIO_PARADA` si el elemento tiene audio; exige tiempo Y proximidad GPS a la vez (ver §25.5c) |
 
 **Flujo de `CAMBIO_PARADA` según modo** — llamadas ejecutadas en `_hdl_NAVEGACION_CAMBIO_PARADA`:
@@ -2122,7 +2122,7 @@ La estructura del estado (`state`) tiene dos niveles diferenciados:
     },
 
     // Promesas de carga de hijos (sin mutex)
-    hijosListosPromises: Map              // id → { promise, resolve, reject, timeout }
+    hijosListosPromises: Map              // id → { promise, resolve } — sin plazo: quien quiera acotar la espera lo hace por fuera (esperarHijosListos)
 }
 ```
 
@@ -2163,9 +2163,9 @@ graph TD
     H6["💬 hijo6-chat\nchat-hijo6.html\nFAQ soporte (lo enseña su botón)"]
     PZ["🧩 puzzle.html\n(sub-iframe de H4 y seleccion)"]
 
-    P <-->|"handshake · CAMBIO_MODO\nDATOS.CARGAR_*"| SEL
+    P <-->|"handshake · CAMBIO_MODO\nSELECCION.*"| SEL
     P <-->|"UI.NAVEGACION_EXTERNA\nTEMPORIZADOR.TOGGLE · PARADAS.LISTADO_TOGGLE\nAVENTURA.INICIADA/FINALIZADA"| H1
-    P <-->|"CAMBIO_PARADA · GPS.ACTUALIZAR\nCONTROL btnAvanzar\nLLEGADA_DETECTADA"| H2
+    P <-->|"CAMBIO_PARADA · ACTUALIZAR_ESTADO\nCONTROL btnAvanzar\nLLEGADA_DETECTADA"| H2
     P <-->|"CAMBIO_PARADA\nAUDIO.REPRODUCIR_REQUEST\nFIN_REPRODUCCION\nCONTROL retosBtn"| H3
     P <-->|"CAMBIO_PARADA\nRETO.MOSTRAR (con retosArray de 1 ítem) · RETO.COMPLETADO\nRETO.ESTADO_CASA"| H4
     P <-->|"CAMBIO_MODO · CAMBIO_PARADA\nRESPUESTA_DATOS_PARADAS"| H5
@@ -2195,11 +2195,11 @@ graph TD
 
 ### 7.1 En-busca-del-tesoro.html — pantalla de selección (iframe `id="seleccion"`)
 
-**Propósito**: primera pantalla que ve el usuario. Gestiona el flujo completo de incorporación: selección de idioma, aventura, términos, retos previos y código de activación. Cuando el código es válido, avisa al padre para que active el GPS y cargue los iframes. Cuando el Reto R-2 se supera, confirma el inicio de la aventura.
+**Propósito**: primera pantalla que ve el usuario. Gestiona el flujo completo de incorporación: selección de idioma, aventura, términos, retos previos y código de activación. Cuando el código es válido, se lo dice al padre (`SELECCION.CODIGO_VALIDADO`, que solo lo anota) y pasa a la normativa: al mostrarse P15, el padre carga los iframes y activa el GPS. Cuando el Reto R-2 se supera, confirma el inicio de la aventura.
 
 **Rol en el sistema**: es el **punto de entrada único**. Ningún hijo de juego (hijo2, hijo3, hijo4) es visible hasta que `seleccion` completa su flujo y el padre recibe `SELECCION.AVENTURA_ACTIVADA`.
 
-**Inicialización**: es el **único** iframe que se carga al arrancar la app (FASE 3.1). Existe en el DOM desde el inicio con `display:none; visibility:hidden`, y el padre lo hace visible en cuanto confirma su handshake. **hijo1-hijo6 no se cargan aquí**: sus HTML contienen la lógica de pago, así que el modelo de seguridad de P15 (§5) los deja sin `src` hasta que llega `SELECCION.P15_MOSTRADA` — ni en el arranque ni en P14 (`SELECCION.CODIGO_VALIDADO`, que solo valida el código). En P15 se cargan hijo1-hijo4 con `cargarRestoDeiframes()` y hijo5 con `cargarHijoCasa()`, en paralelo con los datos de la aventura, mientras el usuario lee la normativa.
+**Inicialización**: es el **único** iframe que se carga al arrancar la app (FASE 3.1). Existe en el DOM desde el inicio con `display:none; visibility:hidden`, y el padre lo hace visible en cuanto confirma su handshake. **hijo1-hijo6 no se cargan aquí**: sus HTML contienen la lógica de pago, así que el modelo de seguridad de P15 (§5) los deja sin `src` hasta que llega `SELECCION.P15_MOSTRADA` — ni en el arranque ni en P14 (`SELECCION.CODIGO_VALIDADO`, que solo valida el código). En P15 se cargan hijo1-hijo4 y hijo6 con `cargarRestoDeiframes()` y hijo5 con `cargarHijoCasa()`, en paralelo con los datos de la aventura, mientras el usuario lee la normativa.
 
 **Después de la aventura**: el padre lo oculta de nuevo (`display:none; visibility:hidden`) cuando procesa `SELECCION.AVENTURA_ACTIVADA`. No se destruye — permanece en el DOM oculto.
 
@@ -2321,7 +2321,7 @@ Marcado HTML reutilizable (las clases `.spinner-inline-circular-bg` / `.spinner-
 
 El spinner es el contenido inicial del elemento; cuando la función de carga asigna `.innerHTML` o `.textContent`, lo sustituye por completo — no requiere lógica de ocultar/mostrar ni limpieza manual. Los mensajes de error de fallback de cada función (p. ej. "Error cargando reto", "Error cargando términos. Por favor, continúa.") son texto plano — no llevan spinner porque no hay nada cargando.
 
-**`#gps-denegado-p14` (icono, sin texto)**: oculto por defecto (`display:none`). `_irANormativa()` consulta `navigator.permissions.query({name:'geolocation'})`; si `state === 'denied'`, muestra este bloque y no avanza. Contenido: imagen `imagenes/imagenes-aplicación/imagen-no-gps.png` + emoji `🛰️→🌐→⚙️` (satélite → navegador → ajustes, mismo lenguaje visual que `#gps-signal-overlay` del padre — ver tabla de overlays GPS en §[overlay del padre, sistema GPS]). Sin texto traducible: el significado se entiende por la secuencia de iconos: el usuario corrige el permiso en los ajustes del navegador y vuelve a pulsar la flecha de `#btn-iniciar-aventura`.
+**`#gps-denegado-p14` (icono, sin texto)**: oculto por defecto (`display:none`). `_irANormativa()` consulta `navigator.permissions.query({name:'geolocation'})`; si `state === 'denied'`, muestra este bloque y no avanza. Contenido: imagen `imagenes/imagenes-aplicación/imagen-no-gps.png` + emoji `🛰️→🌐→⚙️` (satélite → navegador → ajustes, mismo lenguaje visual que `#gps-signal-overlay` del padre — ver §31.2 y §31.3). Sin texto traducible: el significado se entiende por la secuencia de iconos: el usuario corrige el permiso en los ajustes del navegador y vuelve a pulsar la flecha de `#btn-iniciar-aventura`.
 
 #### 3 overlays adicionales
 
@@ -3766,7 +3766,7 @@ sequenceDiagram
 **Detalles del handshake**:
 
 - `HIJO_PREPARADO` — el hijo lo envía nada más terminar su inicialización JS, antes de recibir datos.
-- `PADRE_DATOS` — contiene `{ modo, timestamp }` para todos los hijos. Salvo `hijo6-chat`, los hijos solo leen `modo`; los datos de la aventura llegan por mensajes posteriores (`DATOS.CARGAR_*`, `CHAT.ESTADO_PADRE`). **Excepción: `hijo6-chat`** recibe además `idioma`/`aventura`/`paradaActualNombre`/`rescate` en este mismo mensaje — ver la nota de `hijo6-chat` en §6 y el detalle completo en §7.7.
+- `PADRE_DATOS` — contiene `{ modo, timestamp }` para todos los hijos. Salvo `hijo6-chat`, los hijos solo leen `modo`; los datos de la aventura llegan después, elemento a elemento, al activarse cada uno (`NAVEGACION.CAMBIO_PARADA`, `AUDIO.REPRODUCIR_REQUEST`, `RETO.MOSTRAR`), y a hijo6 con `CHAT.ESTADO_PADRE`. **Excepción: `hijo6-chat`** recibe además `idioma`/`aventura`/`paradaActualNombre`/`rescate` en este mismo mensaje — ver la nota de `hijo6-chat` en §6 y el detalle completo en §7.7.
 - `HIJO_LISTO` — el hijo confirma que ha procesado los datos. En el padre desencadena `marcarHijoListo(hijoId)`, que resuelve la Promise de `crearPromiseHijoListo(hijoId)`.
 - `PADRE_CONFIRMA_HIJO_LISTO` — señal para que el hijo muestre su UI. Hasta recibirlo la interfaz permanece oculta.
 - **Fallback de 30 s**: si `PADRE_CONFIRMA_HIJO_LISTO` no llega, los hijos críticos muestran su UI igualmente (ver §5, «Espera de HIJO_LISTO»).
@@ -4157,7 +4157,7 @@ Panel FAQ de solo lectura. Lo carga `cargarRestoDeiframes` con los demás hijos 
 | **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo }` | Contesta el protocolo (`CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO`) y nada más: no cambia nada visible |
 | **padre →** | `CHAT.ESTADO_PADRE` | `{ idioma, ...estadoPadre }` | Reconstruye el acordeón con el idioma y el estado del rescate recibidos; el resto de campos (parada, aventura) solo queda disponible como contexto del buzón de sugerencias |
 
-> hijo6 hace el handshake como cualquier hijo al cargarse (recibe `PADRE_DATOS` con el estado de entonces) y se refresca con `CHAT.ESTADO_PADRE` cada vez que se abre. No recibe `DATOS.CARGAR_*` ni participa en el flujo de paradas.
+> hijo6 hace el handshake como cualquier hijo al cargarse (recibe `PADRE_DATOS` con el estado de entonces) y se refresca con `CHAT.ESTADO_PADRE` cada vez que se abre. No recibe los mensajes de cada elemento ni participa en el flujo de paradas.
 
 ---
 
@@ -9788,7 +9788,7 @@ Actualmente todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponible
 
 **Pantalla 13 — Confirmación de aventura tras el pago.** La misma pantalla que la 9: la card de la aventura elegida, con sus estadísticas y su foto, y los botones → (confirmar) y ✗ (cambiar). Con → pasa al código (P14). Con ✗ vuelve a la lista de aventuras (P7), donde las aventuras de la otra categoría de precio salen deshabilitadas; al elegir una de la misma categoría el usuario llega directamente a esta pantalla, sin repetir el mapa, el reto, los términos, el audio ni el pago (§7.1).
 
-**Pantalla 14 — Código de activación.** El usuario introduce su email y el **código de activación** recibido tras la compra. Mientras escribe, `validarCodigo()` solo mira la forma —email con formato de correo y código de al menos 4 caracteres— para habilitar el botón →. Al pulsar → se ejecuta `_irANormativa()`: con backend, pide la activación con el código y el email (`ApiClient.activar()`, §16.2) y, si no se concede, muestra el aviso de acceso erróneo; sin backend la rechaza siempre. Con la activación concedida, comprueba si el GPS ya está denegado en el navegador (`navigator.permissions.query`); si lo está, muestra un aviso en la propia pantalla P14 con instrucciones para ir a ajustes, y el usuario no avanza. Si el permiso es `prompt` o `granted`, la selección envía `SELECCION.CODIGO_VALIDADO` al padre (que solo lo anota: el GPS, los iframes y los datos se cargan al mostrarse P15) y avanza a P15.
+**Pantalla 14 — Código de activación.** El usuario introduce su email y el **código de activación** recibido tras la compra. Mientras escribe, `validarCodigo()` solo mira la forma —email con formato de correo y código de al menos 4 caracteres— para habilitar el botón →. Al pulsar → se ejecuta `_irANormativa()`: con backend, comprueba el código y el email (`ApiClient.comprobarCodigo()`, que no lo gasta: el código empieza a contar al arrancar la aventura con `ApiClient.activar()`, §16.2) y, si no es válido, muestra el aviso de acceso erróneo; sin backend lo rechaza siempre. Con el código válido, comprueba si el GPS ya está denegado en el navegador (`navigator.permissions.query`); si lo está, muestra un aviso en la propia pantalla P14 con instrucciones para ir a ajustes, y el usuario no avanza. Si el permiso es `prompt` o `granted`, la selección envía `SELECCION.CODIGO_VALIDADO` al padre (que solo lo anota: el GPS, los iframes y los datos se cargan al mostrarse P15) y avanza a P15.
 
 **Pantalla 15 — Normativa y Cumplimiento.** Pantalla con fondo naranja más **imagen de fondo sutil** (`imagen-normativa.png` con capa naranja al 82% de opacidad). Mientras `cargarNormativaOverlay()` lee el aviso legal de su copia pública (`publico/textos/<idioma>/normativa.json`), la caja muestra brevemente un spinner inline. El aviso legal de seguridad vial (en el idioma seleccionado) aparece en una caja `.texto-box.borde-azul` con scroll. El botón `→` está **deshabilitado** hasta llegar al final. Al aceptar → avanza a P16.
 
