@@ -5379,8 +5379,8 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre en `_hdl_RETO_SOLICITAR`, al avanzar al siguiente reto de una cola, y en `js/controladores-padre.js` como respuesta a un cache-miss (`DATOS.SOLICITAR_RETOS`) |
-| Payload | `{ retoId, retosArray:[retoData], idioma }` — `retoData` resuelto vía `cargarRetos()`, protección pasiva por parada (ver §16) |
+| Emitido por | Padre en `_hdl_RETO_SOLICITAR` (`contexto: 'manual'`), al avanzar al siguiente reto de una cola (`'secuencial'`), al recargarse hijo4 (el último enviado, del snapshot de recuperación) y en `js/controladores-padre.js` como respuesta a un cache-miss (`DATOS.SOLICITAR_RETOS`, `'solicitud_hijo'`) |
+| Payload | `{ retoId, contexto, retosArray:[retoData], idioma }` — `retoData` resuelto vía `cargarRetos()`, protección pasiva por parada (ver §16); en `_hdl_RETO_SOLICITAR`, un puzzle lleva además `imagenPuzzle` (`cargarPuzzle()`) |
 | Handler en hijo4 | sí |
 | Acción | Guarda el reto en su caché local acotada (máx. 2 ids); muestra el panel de reto al usuario |
 
@@ -5406,7 +5406,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo4 (usuario pulsa #btnNextAfterReto para cerrar el reto) |
+| Emitido por | hijo4, al pulsar `#btnNextAfterReto` o, en un puzzle, `#btn-puzzle-continuar` (después de mandar `RETO.COMPLETADO` si hay un acierto pendiente) |
 | Payload | `{ retoId }` |
 | Handler en padre | `_hdl_RETO_OCULTAR` |
 | Acción | Oculta iframe hijo4 + backdrop; envía `CONTROL.HABILITAR` a hijo2 (`motivo:'reto_cerrado'`); llama a `_sincronizarRetoBtn()`, que manda a hijo3 el estado que le toca a `retosBtn` con el reto cerrado (§7.4), y a `_sincronizarAvanzar()` («avanzar» de hijo2, §29.4); calcula `retoSigueActivo` (`!retoId \|\| retoId === estado.retoActual?.id \|\| estado.retoActual?.cola?.includes(retoId)`) y envía `RETO.LIMPIAR_ESTADO` a hijo4 con `{ retoId, retoSigueActivo }` — siempre, independientemente del valor de `retoSigueActivo` |
@@ -5426,16 +5426,16 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Payload | `{ tipo:'parada'\|'tramo', habilitado: bool }` |
 | Handler en hijo4 | sí |
-| Acción | En CASA: habilita retos en paradas, deshabilita en tramos |
+| Acción | En CASA: habilita retos en las paradas con reto; los deshabilita en tramos y en paradas sin reto |
 
 **RETO.COMPLETADO** (hijo4 → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo4 (usuario responde correctamente) |
+| Emitido por | hijo4, con acuse, al pulsar el botón verde (`#btnNextAfterReto`, o `#btn-puzzle-continuar` en un puzzle) tras acertar — no en el momento de responder |
 | Payload | `{ retoId, correcto: true }` |
 | Handler en padre | `_hdl_RETO_COMPLETADO` |
-| Acción | Marca `pending.reto = true`, incrementa `retosCompletadosCount`, llama `intentarCompletarElemento` |
+| Acción | Vacía el reto del snapshot de recuperación y avisa a hijo2 (`NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: false, retoCompletado, retoId }`). Con `correcto`, lo apunta en la cola: si queda otro, lo muestra (`RETO.MOSTRAR`, `'secuencial'`); si no, anota en la ficha `pending.reto = true` y `retosCompletadosCount` (`_anotarEnFicha`), llama `intentarCompletarElemento` y para el recordatorio del reto |
 
 **RETO.SOLICITAR_RETO** (hijo3/hijo4 → padre)
 
@@ -5443,9 +5443,9 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido por | hijo3 (botón de reto del reproductor), hijo4 (botón de reto) |
 | Destino | `padre` |
-| Payload | `{ contexto }` |
+| Payload | `{ contexto: 'manual', audioId }` desde hijo3, `{ contexto: 'hijo4-botonRetos' }` desde hijo4; el padre no lee el payload |
 | Handler en padre | `_hdl_RETO_SOLICITAR` — registrado vía `registrarControladorSeguro` en `_regCtrl_Reto` |
-| Acción | Elige el reto: el siguiente sin hacer de la cola de `estado.retoActual` o, si no queda ninguno, el primero del elemento actual; sin elemento actual o sin reto responde `SISTEMA.NACK` al emisor. Con reto: espera a que hijo4 esté listo, lo muestra (`mostrarHijo4()`), resuelve los datos de ese reto con `cargarRetos()` y envía `RETO.MOSTRAR` a hijo4 (`_enviarRetoMostrar()`), llama a `_sincronizarRetoBtn()` y a `_sincronizarAvanzar()`, y avisa a hijo2 con `NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: true, retoId }` |
+| Acción | Elige el reto: el siguiente sin hacer de la cola de `estado.retoActual` o, si no queda ninguno, el primero del elemento actual; sin elemento actual o sin reto responde `SISTEMA.NACK` al emisor (hijo4 la deja en el log; hijo3 no tiene handler y el bus la anota como «Sin handler»). Con reto: espera a que hijo4 esté listo, lo muestra (`mostrarHijo4()`), resuelve los datos de ese reto con `cargarRetos()` y envía `RETO.MOSTRAR` a hijo4 (`_enviarRetoMostrar()`), llama a `_sincronizarRetoBtn()` y a `_sincronizarAvanzar()`, y avisa a hijo2 con `NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: true, retoId }` |
 
 ---
 
@@ -5455,11 +5455,11 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre (para habilitar/deshabilitar retosBtn, btnAvanzar, progressBar, etc.) |
-| Payload | `{ control: 'retosBtn'\|'btnAvanzar'\|'progressBar', razon }`; con `retosBtn` lleva además `retoId` |
-| Handler en hijo2 | — gestiona btnAvanzar |
-| Handler en hijo3 | — gestiona retosBtn y progressBar (thumb de la barra de progreso, §7.4) |
-| Handler en hijo4 | |
+| Emitido por | Padre: `_sincronizarRetoBtn()` (`retosBtn`, a hijo3), `_sincronizarAvanzar()` (`btnAvanzar`, a hijo2), la barra de progreso de hijo3 (`progressBar`, según haya audio utilizable) y, sin `control`, `CONTROL.HABILITAR { motivo }` a hijo2 al cerrarse un reto (`'reto_cerrado'`) o el overlay de imagen o de vídeo (`'vista_cerrada'`) |
+| Payload | `{ control: 'retosBtn'\|'btnAvanzar'\|'progressBar', razon }`; con `retosBtn` lleva además `retoId`; los avisos de cierre llevan solo `{ motivo }` |
+| Handler en hijo2 | `btnAvanzar`: enciende o apaga `avanzarHabilitadoPorPadre` y refresca los botones. Sin `control` (`HABILITAR`): con `motivo: 'reto_cerrado'` pone `retoActivo = false`; quita el botón activo y refresca los botones |
+| Handler en hijo3 | `retosBtn` (`disabled`, opacidad y `pointer-events`) y `progressBar` (`_seekHabilitadoPorPadre`, el thumb de la barra de progreso, §7.4); cualquier otro `control` va al log |
+| Handler en hijo4 | Ninguno — el padre no le manda `CONTROL.*` |
 
 **UI.ACCION_USUARIO** (hijo1 y hijo2 → padre; padre → hijo3)
 
@@ -5507,7 +5507,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Payload | `{ tiempoEstimado, timestamp }` |
+| Payload | `{ tiempoEstimado, timestamp }`; al recargarse hijo1, el snapshot de recuperación lo reenvía con el tiempo que le queda y `pausado: false` |
 | Handler en hijo1 | sí |
 | Acción | hijo1 inicia temporizador con `tiempoEstimado`, el único campo que lee |
 
@@ -5517,27 +5517,30 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido por | `_handleFinDeAventura` (por el bus, `destino: 'hijo1-opciones'`) — se activa cuando `progresarSiguienteElemento` no encuentra siguiente elemento |
 | Handler en hijo1 | el controlador de `AVENTURA.FINALIZADA` (prefijo de log `[TEMPORIZADOR][AVENTURA.FINALIZADA]`) — detiene temporizador, responde con `AVENTURA.ESTADISTICAS_TIEMPO` |
-| Acción completa | Padre para timer → hijo1 detiene temporizador y envía `AVENTURA.ESTADISTICAS_TIEMPO` → padre lo recibe en `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` → llama `mostrarModalFinalizacion()` (solo en modo AVENTURA) → modal `#modal-finalizacion-aventura` con 2 botones: "Hacer otra aventura" (`_finalizarYLimpiar('otra_aventura')` → reload a P1) / "Terminar esta experiencia" (→ `En-busca-del-tesoro.html?despedida=1` → P18 → cleanup → P1) |
+| Payload | `{ aventuraId, idioma, motivo: 'completada', timestamp }` — hijo1 no lo lee |
+| Acción completa | hijo1 detiene su temporizador (`detenerTemporizador()`) y envía `AVENTURA.ESTADISTICAS_TIEMPO` → padre lo recibe en `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` → llama `mostrarModalFinalizacion()` (solo en modo AVENTURA) → modal `#modal-finalizacion-aventura` con 2 botones: "Hacer otra aventura" (`_finalizarYLimpiar('otra_aventura')` → reload a P1) / "Terminar esta experiencia" (→ `En-busca-del-tesoro.html?despedida=1` → P18 → cleanup → P1) |
 
 **AVENTURA.DETENER** (padre → hijo1)
 
 | Campo | Valor |
 |-------|-------|
-| Handler en hijo1 | sí |
+| Emitido por | `_cancelarTimerAnteriorSiCambia` (padre), cuando la aventura que se activa no es la guardada en `almacen.CLAVES.AVENTURA_INICIADA` |
+| Payload | `{ motivo: 'nueva_aventura_adquirida', aventuraAnterior, aventuraNueva, timestamp }` |
+| Handler en hijo1 | Detiene el temporizador (`detenerTemporizador()`) y escribe en el log el tiempo que le queda; no contesta con ningún mensaje |
 
 **AVENTURA.TIEMPO_ACTUALIZADO** (hijo1 → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido en hijo1 | `enviarMensaje`, tipo — dentro del `setInterval` de 1s que abre `iniciarTemporizador()` |
+| Emitido en hijo1 | Cada segundo, desde el `setInterval` que abre `iniciarTemporizador()`, con `{ tiempoRestante, tiempoTotal, porcentajeRestante, estado, tiempoFormateado, timestamp }` (§7.2) |
 | Handler en padre | `_hdl_AVENTURA_TIEMPO_ACTUALIZADO` |
-| Acción | Actualiza display de tiempo en la UI del padre |
+| Acción | Guarda `estado.tiempoRestante` (lo que reenvía el snapshot si hijo1 se recarga) y, si `#ventana-temporizador-padre` está visible, pinta en `#tiempo-display-padre` el `tiempoRestante` en `HHH:MM:SS` (lo formatea el propio handler; `tiempoFormateado` no se usa aquí) con la clase `tiempo-<estado>`; fuera de AVENTURA pinta `000:00:00` en verde. Al abrirse la ventana, la pinta `_actualizarDisplayTemporizador` con el `tiempoFormateado` de `TEMPORIZADOR.TOGGLE` |
 
 **AVENTURA.TIEMPO_AGOTADO** (hijo1 → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido en hijo1 | `tiempoAgotado()` → `enviarMensaje`, tipo — cuando `tiempoRestante <= 0` |
+| Emitido en hijo1 | `tiempoAgotado()`, cuando `tiempoRestante <= 0`, tras detener el temporizador, con `{ mensaje, redirigir: 'En-busca-del-tesoro.html', timestamp }` |
 | Handler en padre | `_hdl_AVENTURA_TIEMPO_AGOTADO` — también expuesta como `globalThis.mostrarModalTiempoAgotado` para dos disparadores más que no pasan por este mensaje (ver §25.12) |
 | Acción | Termina la aventura por tiempo. Muestra `#modal-tiempo-agotado` — modal adaptado del de fin de aventura (imagen `caballero_llorando.png` + título/cuerpo de `TRADUCCIONES_TIEMPO_AGOTADO` + botones `btn_otra`/`btn_terminar` de `TRADUCCIONES_FINALIZACION`, ambos en `js/traducciones-ui.js`, 12 idiomas). Reproduce el efecto `TIEMPO_ACABADO` (§12). Arma además la red de seguridad por abandono (ver §25.12 y §25.13). Ver detalle en §25.12 |
 
@@ -5576,10 +5579,10 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Handler en hijo6 | sí |
-| Acción | Hijo6 actualiza `estadoPadre` (usado solo como contexto del buzón de sugerencias — idioma, aventura, parada actual) y, si cambió el idioma, reconstruye el acordeón completo en el nuevo idioma. Las respuestas del FAQ no contienen marcadores dinámicos: es un acordeón de preguntas y respuestas estático, sin IA/LLM implicado (ver §7.7 y §27) |
+| Acción | Llega en cada apertura del asistente (`construirEstadoChat`), siempre con el idioma y con el estado del rescate. Hijo6 lo mezcla en `estadoPadre` —de donde salen el botón de rescate (`rescate`) y el contexto del buzón de sugerencias (`aventura`, `paradaActualNombre`)— y reconstruye el acordeón y los textos del buzón con `actualizarIdioma()`, el mismo camino que `SISTEMA.PADRE_DATOS`. Las respuestas del FAQ no contienen marcadores dinámicos: es un acordeón de preguntas y respuestas estático, sin IA/LLM implicado (ver §7.7 y §27) |
 | Nota | hijo6 no tiene handlers de CAMBIO_PARADA — recibe contexto solo vía ESTADO_PADRE |
 
-hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_PREPARADO`, y `CHAT.CERRAR` (al padre, por el bus, cuando el usuario cierra el panel desde dentro de hijo6). No inicia flujos de aventura.
+hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_PREPARADO`, `SISTEMA.CAMBIO_MODO_ENTENDIDO` y `SISTEMA.CAMBIO_MODO_EFECTUADO` (los dos seguidos, en cuanto le llega un `CAMBIO_MODO`), `UI.CAPA_ABIERTA` (desde `js/capa-con-atras.js`, por su modal interno), `CHAT.RESCATE_SOLICITADO` (con acuse, §25.19) y `CHAT.CERRAR` (al padre, por el bus, cuando el usuario cierra el panel desde dentro de hijo6). No inicia flujos de aventura.
 
 ---
 
@@ -5617,7 +5620,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 - **Dónde**: `js/funciones-mapa.js`, función `manejarCambiarParada` — guard de `estadoMapa.consultaParadaPendiente`, y `_procesarSiguienteEnCola()`.
 - Mientras la animación de zoom de `completarCambioParada()` está en curso (puede tardar 1-2,5 s reales: zoom-out + espera `moveend` + zoom-in), `estadoMapa.consultaParadaPendiente` permanece ocupado. Si llega otro `CAMBIO_PARADA` en esa ventana, se guarda en el slot único `estadoMapa._cambioParadaEncolado` (solo importa el más reciente) en vez de descartarse — así el marcador/polyline del mapa siempre terminan reflejando la última llegada real, aunque coincida con la animación de la anterior.
-- Se drena desde los tres sitios donde `consultaParadaPendiente` se libera: el timeout de seguridad de 8 s, el `catch` de error, y el `finally` de `completarCambioParada()`.
+- Se drena desde los dos sitios donde `consultaParadaPendiente` se libera: el `catch` de error de `manejarCambiarParada` y el `finally` de `completarCambioParada()`.
 
 #### `manejarCambiarParada` busca en AVENTURA_PARADAS por `paradaId`, nunca por `padreId`
 
@@ -5638,12 +5641,16 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 #### Patrón: `enviarMensaje({destino: padreId})` no funciona
 
-`enviarMensaje(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está en ese mapa — el mensaje se descarta sin error. Las funciones afectadas usan en cambio `despacharLocal` o `funcionesMapa.setMapView`:
+`enviarMensaje(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está en ese mapa — y el mensaje no sale: el bus lo anota con un `logger.warn` («Destino desconocido…», §26.5). Lo que el padre se manda a sí mismo va por `despacharLocal`, que entra en la misma fila que un mensaje que llegue de fuera:
 
-| Función | Ubicación | Implementación actual |
-| ------- | --------- | --------------------- |
+| Función | Ubicación | Despacho |
+| ------- | --------- | -------- |
 | `ensureDefaultParada` | `codigo-padre.html` | `despacharLocal({ tipo: CAMBIO_PARADA, datos: datosDefault })` |
 | `progresarSiguienteElemento` | `codigo-padre.html` | `despacharLocal({ tipo: CAMBIO_PARADA, datos: datosCambio })` |
+| `_restoreBroadcast` | `codigo-padre.html` | `despacharLocal({ tipo: CAMBIO_PARADA, datos })`, con `restaurado: true` |
+| `_hdl_SISTEMA_CAMBIO_MODO` (vuelta de CASA a AVENTURA) | `codigo-padre.html` | `despacharLocal({ tipo: CAMBIO_PARADA, datos: { paradaId: estado.paradaRealCongelada } })` |
+| snapshot de recuperación de hijo2 | `codigo-padre.html` | `despacharLocal({ tipo: CAMBIO_PARADA, datos: { paradaId: snap.paradaActual } })` |
+| `procesarPosicionGPSParaAventura` | `js/funciones-mapa.js` | `despacharLocal({ tipo: LLEGADA_DETECTADA, datos: _datosLlegada })` |
 
 #### `GPS.ACTIVAR` — handler en Script 2
 
@@ -5657,27 +5664,33 @@ hijo1 envía `UI.CLOSE_MENUS` en cada pulsación de «más opciones», al abrir 
 
 ### 10.7 Tabla resumen de cobertura por hijo
 
-| Mensaje | hijo1 | hijo2 | hijo3 | hijo4 | hijo5 | hijo6 |
-|---------|-------|-------|-------|-------|-------|-------|
-| PADRE_DATOS | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PADRE_CONFIRMA_HIJO_LISTO | ✅ | ✅ | ✅ | ✅ | ✅ (+ sync GPS btn) | ✅ |
-| CAMBIO_MODO | ✅ | ✅ | ✅ | ✅ | ✅ (muestra/oculta #paradas-window) | ✅ |
-| CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| CAMBIO_PARADA | ❌ | ✅ | ✅ | ✅ | ✅ (clase `actual`) | ❌ |
-| HEARTBEAT | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| GPS.ESTADO_ACTUALIZADO | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| GPS.ERROR | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| AUDIO.REPRODUCIR_REQUEST | — | — | ✅ | — | — | — |
-| RETO.MOSTRAR | — | — | — | ✅ | — | — |
-| RETO.HABILITAR | — | — | — | ✅ | — | — |
-| RETO.ESTADO_CASA | — | — | — | ✅ | — | — |
-| CONTROL.HABILITAR/DESHABILITAR | — | ✅ | ✅ | — | — | — |
-| AVENTURA.INICIADA/FINALIZADA | ✅ | — | — | — | — | — |
-| RESPUESTA_DATOS_PARADAS | — | — | — | — | ✅ (genera botones) | — |
-| CHAT.ESTADO_PADRE | — | — | — | — | — | ✅ |
-| UI.CERRAR_CAPA | ✅ (su menú) | — | — | — | — | ✅ (su modal interno) |
+| Mensaje | selección | hijo1 | hijo2 | hijo3 | hijo4 | hijo5 | hijo6 |
+|---------|-----------|-------|-------|-------|-------|-------|-------|
+| PADRE_DATOS | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PADRE_CONFIRMA_HIJO_LISTO | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ (+ pone `gps-casa-btn` según el modo) | ✅ |
+| CAMBIO_MODO | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ (muestra/oculta #paradas-window) | ✅ |
+| CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| HEARTBEAT | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| SISTEMA.ERROR | — | — | ✅ | — | ✅ | ✅ | — |
+| SISTEMA.NACK | — | — | — | — | ✅ | — | — |
+| SISTEMA.NOTIFICACION | — | — | ✅ | — | ✅ | — | — |
+| CAMBIO_PARADA | — | — | ✅ | ✅ | ✅ | ✅ (clase `actual`) | — |
+| CAMBIO_PARADA_CONFIRMADO | — | — | — | — | — | ✅ | — |
+| ACTUALIZAR_ESTADO | — | — | ✅ | — | — | — | — |
+| GPS.ESTADO_ACTUALIZADO | — | — | ✅ | — | — | — | — |
+| GPS.ERROR | — | — | ✅ | — | — | — | — |
+| RESPUESTA_DATOS_PARADAS | — | — | — | — | — | ✅ (guarda las paradas) | — |
+| AUDIO.REPRODUCIR_REQUEST | — | — | — | ✅ | — | — | — |
+| UI.ACCION_USUARIO | — | — | — | ✅ | — | — | — |
+| CONTROL.HABILITAR/DESHABILITAR | — | — | ✅ | ✅ | — | — | — |
+| RETO.MOSTRAR, HABILITAR, ESTADO_CASA, CONFIRMADO, LIMPIAR_ESTADO | — | — | — | — | ✅ | — | — |
+| PUZZLE.COMPLETADO/TIMEOUT | ✅ | — | — | — | ✅ | — | — |
+| AVENTURA.INICIADA/FINALIZADA/DETENER | — | ✅ | — | — | — | — | — |
+| CHAT.ESTADO_PADRE | — | — | — | — | — | — | ✅ |
+| SELECCION.VIDEO_INTRO_TERMINADO | ✅ | — | — | — | — | — | ✅ (cierra su modal) |
+| UI.CERRAR_CAPA | — | ✅ (su menú) | — | — | — | — | ✅ (su modal interno) |
 
-**Leyenda**: ✅ handler presente · ❌ ausente (potencial gap) · — no aplica al rol de ese hijo
+**Leyenda**: ✅ tiene handler · — no lo tiene: un mensaje de ese tipo que le llegue lo deja el bus en un `debug` («Sin handler para…») y, si pide acuse, en un `warn` sin contestar (§10.6a). Fuera de estos siete frames, `mapa-completo.html` registra `MAPA_COMPLETO.DATOS`, `MAPA_COMPLETO.VISIBLE` y `UI.CERRAR_CAPA`; `puzzle.html` y `video-intro.html` no registran ninguno.
 
 > ℹ️ **UI.CERRAR_CAPA**: lo atiende también `mapa-completo.html` (la ficha de un monumento), que no es uno de los seis hijos. Los registra `js/capa-con-atras.js` (§34.3).
 
