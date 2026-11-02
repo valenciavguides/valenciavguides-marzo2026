@@ -34,7 +34,8 @@
  * ROJO ANTES QUE VERDE: con la ✗ común sin recibir el puntero (`pointer-events: none` añadido a `css/boton-cerrar.css`)
  * caen EQ-1, EQ-2, los cuatro EQ-3, EQ-4 y EQ-6, y pasa EQ-5 (saltar la intro no es la ✗ común). Con la ventana del vídeo
  * que se reutilizaba sin reproductor, EQ-1 cae con un TypeError (estudio, K-150); con el zoom que capturaba el puntero,
- * EQ-4 cae con ratón (spec 163).
+ * EQ-4 cae con ratón (spec 163). Con la ✗ de la cabecera del asistente con el z-index de la esquina (sin el `z-index:
+ * auto` de `.btn-cerrar-en-linea`), EQ-6 cae: se pinta encima del modal, y en iphone12 se lleva el toque de la ✗ del modal.
  */
 'use strict';
 
@@ -306,6 +307,15 @@ for (const gesto of ['ratón', 'dedo']) {
       await page.route('**/cdnjs.cloudflare.com/ajax/libs/leaflet/**', (route) => route.continue());
       await arrancarPadre(page);
       await arrancarAventura(page);
+      // Los recordatorios salen solos por tiempo real (§4.7: diez segundos en la parada y cada veinte después) y se pintan
+      // encima de lo que haya; en un navegador lento, el de «pulse play» tapaba el marcador del mapa completo y se llevaba
+      // su clic. Se apagan con lo que llama la propia aplicación al terminar el audio o el reto (specs 29 y 34); sus ✗ las
+      // mide EQ-3.
+      await page.evaluate(() => {
+        globalThis._detenerRecordatorioAudio();
+        globalThis._detenerRecordatorioSaltarAudio();
+        globalThis._detenerRecordatorioReto();
+      });
 
       // El listado de paradas.
       await page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: globalThis.TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE, datos: {} }));
@@ -322,6 +332,12 @@ for (const gesto of ['ratón', 'dedo']) {
       await chat.evaluate(() => document.querySelector('.respuesta-enlace-flecha').click());
       const modalAbierto = () => chat.evaluate(() => document.getElementById('chat-modal-overlay').classList.contains('visible'));
       await expect.poll(modalAbierto, { timeout: 10_000 }).toBe(true);
+      // Con el modal abierto, la ✗ de la cabecera queda debajo de su fondo: ni se ve encima ni se lleva el toque.
+      expect(await chat.evaluate(() => {
+        const x = document.getElementById('btn-cerrar');
+        const r = x.getBoundingClientRect();
+        return !x.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
+      }), 'la ✗ de la cabecera del asistente se pinta encima del modal').toBe(true);
       await pulsar(chatLoc.locator('#chat-modal-cerrar'));
       await expect.poll(modalAbierto, { timeout: 5_000, message: 'la ✗ del modal del asistente no lo cierra' }).toBe(false);
       expect(await seVe(page.mainFrame(), '#hijo6-chat'), 'el asistente sigue abierto').toBe(true);
@@ -358,11 +374,26 @@ for (const gesto of ['ratón', 'dedo']) {
         await expect.poll(() => seVe(page.mainFrame(), `#${id}`), { timeout: 5_000, message: `${id}: la ✗ no la cierra` }).toBe(false);
         expect(await descansoDe(id), `${id}: la ✗ deja su descanso`).toBe(true);
       }
-      // La pantalla de señal GPS: solo sale en AVENTURA (o con el código validado en P14).
-      await page.evaluate(() => globalThis.showGpsSignalOverlay(1));
+      // La pantalla de señal GPS: solo sale en AVENTURA (o con el código validado en P14). Una lectura buena del GPS la
+      // quita sola (§30.2). Con la posición emulada, que no cambia, el vigilante no da ninguna lectura hasta que vence su
+      // plazo, a los ~34 s de empezar la aventura: ese «tiempo agotado» la enseña y la lectura de su reintento la quita
+      // medio segundo después (medido en chromium y en iphone12; después, nada en 56 s). Se abre cuando el vigilante ya ha
+      // dado su primera lectura, con la ventana del gesto ya pasada, se pulsa enseguida y se comprueba que la pulsación
+      // llega a la ✗: el cierre es suyo, no de una lectura.
+      await page.waitForFunction(
+        () => (globalThis._gpsHistorial?.length || 0) > 0
+          && (!globalThis.__vvUltimoClic || performance.now() - globalThis.__vvUltimoClic > 3100),
+        null, { timeout: 60_000 },
+      );
+      await page.evaluate((x) => {
+        globalThis.showGpsSignalOverlay(1);
+        globalThis.__vvXSenalPulsada = false;
+        document.querySelector(`#gps-signal-overlay ${x}`).addEventListener('click', () => { globalThis.__vvXSenalPulsada = true; }, { once: true });
+      }, X);
       await expect.poll(() => seVe(page.mainFrame(), '#gps-signal-overlay'), { timeout: 5_000, message: 'la pantalla de señal GPS no sale' }).toBe(true);
       await pulsar(page.locator(`#gps-signal-overlay ${X}`));
       await expect.poll(() => seVe(page.mainFrame(), '#gps-signal-overlay'), { timeout: 5_000, message: 'la ✗ de la señal GPS no la cierra' }).toBe(false);
+      expect(await page.evaluate(() => globalThis.__vvXSenalPulsada), 'la pulsación llega a la ✗ de la señal GPS').toBe(true);
       // El cartel del bloqueo de 5 km: tres lecturas seguidas en Madrid (bloquea a la tercera), sin la espera de 3 minutos
       // entre comprobaciones (spec 56).
       await page.evaluate((q) => {

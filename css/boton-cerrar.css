@@ -70,7 +70,11 @@
     right: 0.75rem;
 }
 
+/* Sin el z-index de la esquina: en una fila es un elemento flex, y a un elemento flex el z-index le cuenta aunque sea
+   `static`. Con el 1000020 de arriba, la ✗ de la cabecera del asistente se pintaba encima del modal de hijo6 —sobre su
+   fondo oscuro y sobre su propia ✗, que en un móvil bajo cae debajo y perdía el toque—. */
 .btn-cerrar-en-linea {
     position: static;
     flex-shrink: 0;
+    z-index: auto !important;
 }

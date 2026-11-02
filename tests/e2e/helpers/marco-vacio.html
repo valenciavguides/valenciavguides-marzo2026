@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <!-- El mismo que el padre: sin él, un navegador móvil maqueta la página a 980 px y la reduce a la pantalla, y el
+       hijo del marco no mide lo que mide dentro del padre (en webkit, además, el toque cae fuera del botón). -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Marco vacío para tests</title>
 </head>
 <body>
