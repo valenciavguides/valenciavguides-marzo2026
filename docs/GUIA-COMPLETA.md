@@ -2512,7 +2512,7 @@ Mensajes del temporizador:
 | Tipo | Dirección | Payload |
 |------|-----------|---------|
 | `AVENTURA.INICIADA` | padre → hijo1 | `{ tiempoEstimado, timestamp }` |
-| `AVENTURA.TIEMPO_ACTUALIZADO` | hijo1 → padre | `{ tiempoRestante, tiempoTotal, porcentajeRestante, tiempoFormateado, timestamp }` |
+| `AVENTURA.TIEMPO_ACTUALIZADO` | hijo1 → padre | `{ tiempoRestante, tiempoTotal, porcentajeRestante, estado, tiempoFormateado, timestamp }` (`estado`: el color, `'verde'`, `'amarillo'` o `'rojo'`) |
 | `AVENTURA.TIEMPO_AGOTADO` | hijo1 → padre | `{ mensaje: '¡Se acabó el tiempo!', redirigir: 'En-busca-del-tesoro.html' }` |
 | `AVENTURA.FINALIZADA` | padre → hijo1 | — (detiene el temporizador) |
 
@@ -2541,7 +2541,7 @@ Mensajes del temporizador:
 | `TEMPORIZADOR.TOGGLE` | Click en `#icono-temporizador` (sin gesto multi-tap) | `{ tiempoRestante, tiempoTotal, estado, modoAventura, tiempoFormateado, timestamp }` |
 | `PARADAS.LISTADO_TOGGLE` | Click en `#icono-listado-paradas` | `{ timestamp }` |
 | `CONTROL.DEV_CINCO_TOQUES` | Gesto oculto de activación del modo DEV (Factor 2 — detalle en §24) | `{ timestamp }` — el padre abre modal de código DEV |
-| `AVENTURA.TIEMPO_ACTUALIZADO` | Cada 1 s mientras corre el temporizador | `{ tiempoRestante, porcentajeRestante, tiempoFormateado }` |
+| `AVENTURA.TIEMPO_ACTUALIZADO` | Cada 1 s mientras corre el temporizador | `{ tiempoRestante, tiempoTotal, porcentajeRestante, estado, tiempoFormateado, timestamp }` |
 | `AVENTURA.TIEMPO_AGOTADO` | Cuando el contador llega a 0 | `{ mensaje, redirigir }` |
 | `SISTEMA.HEARTBEAT_RESPONSE` / `CAMBIO_MODO_ENTENDIDO` / `CAMBIO_MODO_EFECTUADO` | Estándar | — |
 
@@ -2552,7 +2552,7 @@ sequenceDiagram
 
     P->>H1: AVENTURA.INICIADA { tiempoEstimado: 90, timestamp }
     loop cada 1 segundo
-        H1-->>P: AVENTURA.TIEMPO_ACTUALIZADO { tiempoRestante, porcentaje }
+        H1-->>P: AVENTURA.TIEMPO_ACTUALIZADO { tiempoRestante, porcentajeRestante, estado, … }
     end
     Note over H1: Usuario abre menú → click gastronomía
     H1->>H1: globalThis.open(url, '_blank') — pestaña nueva
@@ -2569,7 +2569,7 @@ Ventana flotante gestionada íntegramente por el padre (mismo patrón que la ven
 
 **Disparo**: click en `#icono-listado-paradas` → hijo1 envía `PARADAS.LISTADO_TOGGLE { timestamp }` al padre → `_hdl_PARADAS_LISTADO_TOGGLE` (`codigo-padre.html`, mismo bloque que `_hdl_TEMPORIZADOR_TOGGLE`) crea (la primera vez) o alterna la visibilidad de `#ventana-listado-paradas-padre`.
 
-**Ventana** (`.ventana-listado-paradas-padre`): `position:fixed`, centrada (`top:50%;left:50%;transform:translate(-50%,-50%)`), `width:85vw;height:85vh`, fondo `#fff8e7` (el mismo crema que usa `.texto-parada-overlay` — overlay de imagen de hijo2, ver §31), borde `0.3rem solid #F28500` (el mismo naranja de `.btn-cerrar-overlay`), botón de cierre reutilizando literalmente la clase `.btn-cerrar-overlay` ya existente en el padre. Contenido, de arriba a abajo, dentro de un único contenedor con scroll vertical (`overflow-y:auto; overflow-x:hidden` — nunca scroll horizontal): `logo-alargado.png` centrado, la imagen `en-busca-<idioma>.png` correspondiente al idioma activo (misma tabla de 12 archivos que P5 de `En-busca-del-tesoro.html`, mismo fallback a español), y la lista de filas.
+**Ventana** (`.ventana-listado-paradas-padre`): `position:fixed`, centrada (`top:50%;left:50%;transform:translate(-50%,-50%)`), `width:85vw;height:85vh`, fondo `#fff8e7` (el mismo crema que usa `.texto-parada-overlay` — el texto de la ventana de la imagen de hijo2, ver §14, «Estilo visual del cuadro de texto»), borde `0.3rem solid #F28500` (el mismo naranja de `.btn-cerrar-overlay`), botón de cierre reutilizando literalmente la clase `.btn-cerrar-overlay` ya existente en el padre. Contenido, de arriba a abajo, dentro de un único contenedor con scroll vertical (`overflow-y:auto; overflow-x:hidden` — nunca scroll horizontal): `logo-alargado.png` centrado, la imagen `en-busca-<idioma>.png` correspondiente al idioma activo (misma tabla de 12 archivos que P5 de `En-busca-del-tesoro.html`, mismo fallback a español), y la lista de filas.
 
 **Cada fila** (`.listado-parada-fila`): un círculo (`clamp(20px,4.5vmin,26px)` — deliberadamente más grande que el texto de la fila, `clamp(14px,3.2vmin,18px)`) que se rellena de verde (`#1e7e34`) cuando la parada está completada y queda hueco en caso contrario; el número de orden + nombre de la parada (una sola línea, `white-space:nowrap` + `text-overflow:ellipsis` — nunca fuerza scroll horizontal); y, a la derecha, `📍` + el/los número(s) de mapa asociados.
 
@@ -2671,7 +2671,7 @@ Solo hay un modo claro ("Callejero"): un segundo estilo claro resultaría visual
 
 #### Lógica de proximidad y LLEGADA_DETECTADA
 
-El Haversine **no lo calcula hijo2** — lo calcula `funciones-mapa.js` en el padre. Cada posición GPS válida en modo AVENTURA, sea cual sea su precisión, hace que `procesarPosicionGPSParaAventura()` envíe a hijo2 `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, radioLlegada }` con la distancia ya calculada — la precisión no filtra esta llamada (ver «Precisión GPS: se procesa siempre, la llegada se confirma por repetición» más abajo). Hijo2 solo compara contra el umbral:
+El Haversine **no lo calcula hijo2** — lo calcula `funciones-mapa.js` en el padre. Cada posición GPS válida en modo AVENTURA, sea cual sea su precisión, hace que `procesarPosicionGPSParaAventura()` envíe a hijo2 `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, timestamp }` (más `ubicacionActiva: false` a 50 m o menos del destino) con la distancia ya calculada — la precisión no filtra esta llamada (ver «Precisión GPS: se procesa siempre, la llegada se confirma por ventana deslizante» más abajo). Hijo2 solo compara contra el umbral:
 
 **Cómo decide "cuál es el elemento a buscar" antes de calcular la distancia:** dos preguntas distintas, dos fuentes distintas — nunca la misma. "¿Cuál es el elemento GPS actual?" lo responde `_siguienteIdElementoNavegable(aventura, idioma, paradaActualId)`, caminando `DATOS_PADRE[aventura][idioma].elementosIDpadre` (`js/aventuras-ID-padre.js`) **desde la posición de `estadoMapa.paradaActual` incluyéndola** hasta el primer elemento con `tipo` en `['inicio','parada','tramo']` — esta lista está ya en secuencia real y nunca mezcla las entradas `tipo:"referencia"`. El nombre de la función sugiere "el siguiente", pero busca desde `paradaActual` mismo: ese valor representa el elemento ACTIVO ahora (su audio ya se solicitó a hijo3 en el mismo `CAMBIO_PARADA` que lo fijó, antes de que el usuario llegue físicamente), así que es ese elemento — no el que viene después — el destino GPS correcto mientras esté activo. Buscar desde el índice siguiente saltaría el elemento activo entero y apuntaría siempre uno por delante — nunca se detectaría la llegada real, incluida la parada 0 al empezar la aventura. Con el id resuelto, "¿dónde está en el mapa?" se responde buscando ese mismo id en `AVENTURA_PARADAS` (el array `coordenadas` de `js/coordenadas-aventuras.js`, cacheado en `globalThis.AVENTURA_PARADAS`) por `.id`, que sí tiene `lat`/`lng` reales. Buscar la coordenada directamente en `AVENTURA_PARADAS` por posición de array, en vez de por `.id`, apuntaría a la entrada equivocada del array — una referencia visual (`REF-1`), no la parada o tramo real — por eso la secuencia se resuelve primero en `elementosIDpadre` y las coordenadas se buscan después, por id, en dos pasos separados.
 
@@ -2684,13 +2684,13 @@ Ese umbral es el del aviso de fuera de rango (`rangoMaximo`). La llegada se mide
 
 Si el usuario supera el umbral (`rangoMaximo`: 15m parada / `toleranciaGPS` tramo, que en un tramo se mide contra `distanciaAlCamino`) respecto a la **parada que toca**, `verificarDistanciaYActualizarBotones()` registra `timestampSalioDeRango` y envía `NAVEGACION.GPS.RESTRINGIDO { idParada, distancia, rangoMaximo, timestampSalioDeRango }` al padre en cada posición — el padre decide con esa distancia qué pantalla de aviso mostrar, en cuatro franjas (§31.4). El botón `#btn-ubicacion` se habilita al instante en las 4 franjas. Cuando el usuario vuelve a estar dentro del umbral real, hijo2 envía `NAVEGACION.GPS.DENTRO_DE_RANGO`, que oculta cualquier pantalla de aviso en el padre.
 
-Las pantallas de aviso (imágenes, cuenta atrás, botón de reintento) viven en el padre — ver §31.4 para su detalle completo.
+Las pantallas de aviso (su imagen, su ✗ y, salvo el cartel de los 5 km, un botón de reintento) viven en el padre — ver §31.4 para su detalle completo.
 
 #### Controladores que registra
 
 | Controlador | Qué hace |
 |---|---|
-| `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe `distanciaAlDestino` (ya calculada por `funciones-mapa.js`), `idParada`, `toleranciaGPS` (fuera de rango), `radioLlegada` (15 m, solo para declarar la llegada), `lat`, `lng`; actualiza `estadoComponente.posicionActualUsuario`; **solo si `estadoComponente.modo === 'aventura'`**, envía `LLEGADA_DETECTADA` si está en el radio de llegada, y llama `verificarDistanciaYActualizarBotones()` para decidir el botón ubicación y notificar al padre la distancia real respecto a la parada que toca (§31.4) — en CASA, `idParada` puede ser un elemento que el usuario solo está "viendo" con hijo5, no uno visitado de verdad, así que ninguna de estas dos acciones se ejecuta |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe `distanciaAlDestino` (ya calculada por `funciones-mapa.js`), `distanciaAlCamino`, `recorridoSuficiente`, `idParada`, `tipoParada`, `toleranciaGPS` (fuera de rango), `radioLlegada` (15 m, solo para declarar la llegada), `lat`, `lng` y `accuracy`; actualiza `estadoComponente.posicionActualUsuario`; **solo si `estadoComponente.modo === 'aventura'`**, envía `LLEGADA_DETECTADA` si está en el radio de llegada, y llama `verificarDistanciaYActualizarBotones()` para decidir el botón ubicación y notificar al padre la distancia real respecto a la parada que toca (§31.4) — en CASA, `idParada` puede ser un elemento que el usuario solo está "viendo" con hijo5, no uno visitado de verdad, así que ninguna de estas dos acciones se ejecuta |
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); lo guarda en `estadoComponente.modo` y refresca los botones; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `SISTEMA.CAMBIO_MODO` | Reinicia su estado (`_resetarEstadoParaModo`: parada actual, distancia, posición, reto activo, «avanzar», franjas de fuera de rango) y recalcula los botones; la detección de proximidad solo corre en AVENTURA (guarda de modo en `NAVEGACION.ACTUALIZAR_ESTADO`) |
@@ -2705,7 +2705,7 @@ Las pantallas de aviso (imágenes, cuenta atrás, botón de reintento) viven en 
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
 | `NAVEGACION.LLEGADA_DETECTADA` | Distancia ≤ umbral | `{ paradaId, parada_id, distancia, tipoParada: 'parada'\|'tramo', timestamp }` |
-| `NAVEGACION.GPS.ACTIVAR` | Click en `#btn-avanzar` (toggle GPS on/off) | `{ activar: bool, idParada, distancia }` |
+| `NAVEGACION.GPS.ACTIVAR` | Click en `#btn-avanzar` («avanzar»: el padre progresa si `_decidirAvanzar()` lo permite, §29.4) | `{ activar: bool, idParada, distancia }` (el padre no lee ninguna de las tres) |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | Tras la gracia de la franja (0-15 min según franja, ver §31.4/§25.7) en cualquiera de las 4 franjas (>15m parada / `toleranciaGPS` tramo — mismo umbral que `GPS.RESTRINGIDO`) | `{ distancia, franja, elementoMasCercano, timestamp }` |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Click en `#btn-ubicacion`; pide al padre la línea desde la posición actual hasta el elemento actual (o el punto de inicio): el destino lo decide el padre | `{ ubicacionUsuario, centrar:true, zoom:16 }` |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Click en `#btn-mapa-completo` | `{}` — la aventura la decide el padre |
@@ -2720,7 +2720,7 @@ sequenceDiagram
     participant H2 as hijo2
 
     FM->>P: posicion GPS { lat, lng, precision }
-    P->>H2: NAVEGACION.ACTUALIZAR_ESTADO { lat, lng, toleranciaGPS }
+    P->>H2: NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, … }
     H2->>H2: compara distanciaAlDestino contra umbral (Haversine la calcula funciones-mapa)
     alt distanciaAlDestino ≤ 15 m (radio de llegada)
         H2-->>P: NAVEGACION.LLEGADA_DETECTADA { paradaId, distancia }
@@ -2731,7 +2731,7 @@ sequenceDiagram
     end
 ```
 
-**Modo AVENTURA**: GPS activo (toggle via `#btn-avanzar`), detección de proximidad en marcha, `#btn-avanzar` resaltado cuando GPS está activado.  
+**Modo AVENTURA**: GPS activo (no se apaga nunca, §2.6), detección de proximidad en marcha; `#btn-avanzar` encendido solo cuando el padre lo decide (§29.4).  
 **Modo CASA**: detección de proximidad desactivada (guarda de modo en el controlador de `NAVEGACION.ACTUALIZAR_ESTADO`); botones siguen visibles y `#btn-avanzar` queda desactivado (el padre no lo enciende fuera de AVENTURA, §29.4).
 
 ---
@@ -2875,7 +2875,7 @@ sequenceDiagram
     P->>H3: AUDIO.REPRODUCIR_REQUEST { audioId, audioData, autoplay:false }
     H3->>H3: audio.src = audioData.file (no auto-play — padre envía autoplay:false)
     Note over H3: usuario pulsa play en overlay del padre para reproducir...
-    H3-->>P: AUDIO.FIN_REPRODUCCION { parada_id, completado: true }
+    H3-->>P: AUDIO.FIN_REPRODUCCION { audioId, estado: 'finalizado' }
     P->>H3: CONTROL.HABILITAR { control: 'retosBtn' }
     Note over H3: retosBtn.disabled = false
     Note over H3: Usuario pulsa retosBtn
@@ -3001,16 +3001,20 @@ btnPuzzleContinuar.addEventListener('click', async () => {
 {
   tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
   datos: {
-    reto_id: 'R3-Av1-es',
-    titulo: 'Las Torres de Serranos',
-    pregunta: '¿En qué siglo se construyeron las Torres de Serranos?',
-    tipo: 'opcion',   // 'opcion' | 'opcion-multiple' | 'texto' | 'puzzle'
-    opciones: ['Siglo XII', 'Siglo XIV', 'Siglo XVI', 'Siglo XVIII'],
-    respuesta_correcta: ['Siglo XIV'],
-    pistas: ['Fueron construidas entre 1392 y 1398'],
-    // Si tipo='puzzle':
-    puzzle_id: 'PZ-reto-3',
-    puzzle_imagen: 'imagenes/puzzle-reto-3.jpg'
+    retoId: 'R1-Av1-es',
+    contexto: 'manual',          // 'manual' (lo pide el usuario), 'secuencial' (el siguiente de la cola) o 'solicitud_hijo' (hijo4 lo pide por DATOS.SOLICITAR_RETOS)
+    idioma: 'es',                // para los dos textos propios de hijo4
+    retosArray: [{               // el reto tal cual está en js/retos-aventuras.js, solo ese
+      reto: 1,
+      id: 'R1-Av1-es',
+      tipo: 'opcion',            // 'opcion' | 'opcion-multiple' | 'texto' | 'puzzle'
+      pregunta: '¿Cuántas aventuras pueden hacerse con Valencia be Guides?',
+      opciones: ['4', '5', '6', '7'],
+      correctas: ['7'],
+      multiple: false
+      // Un reto de tipo 'puzzle' lleva en su lugar `src: 'puzzle.html?id=…'`, y el padre le añade
+      // `imagenPuzzle`, resuelta con cargarPuzzle(): puzzle.html no importa puzzles-aventuras.js.
+    }]
   }
 }
 ```
@@ -3956,7 +3960,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 | **→ padre** | `UI.NAVEGACION_EXTERNA` | `{ url, icono }` | Usuario pulsa enlace externo |
 | **→ padre** | `TEMPORIZADOR.TOGGLE` | `{ tiempoRestante, tiempoTotal, estado, modoAventura, tiempoFormateado }` | Usuario activa/pausa el temporizador |
 | **→ padre** | `PARADAS.LISTADO_TOGGLE` | `{ timestamp }` | Usuario abre/cierra la ventana de listado de paradas (ver §7.2) |
-| **→ padre** | `AVENTURA.TIEMPO_ACTUALIZADO` | `{ tiempoRestante, tiempoTotal, porcentajeRestante, estado, tiempoFormateado }` | Cada segundo mientras el temporizador corre |
+| **→ padre** | `AVENTURA.TIEMPO_ACTUALIZADO` | `{ tiempoRestante, tiempoTotal, porcentajeRestante, estado, tiempoFormateado, timestamp }` | Cada segundo mientras el temporizador corre |
 | **→ padre** | `AVENTURA.TIEMPO_AGOTADO` | `{ mensaje, redirigir:'En-busca-del-tesoro.html' }` | Cuando el contador llega a 0 |
 | **→ padre** | `AVENTURA.ESTADISTICAS_TIEMPO` | `{ tiempoTotal, tiempoRestante, tiempoUsado, completado }` | Cuando padre envía `AVENTURA.FINALIZADA` — detiene el temporizador y reporta; `completado:true` si quedaba tiempo |
 | **padre →** | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Handshake init |
@@ -4567,7 +4571,7 @@ sequenceDiagram
     P-->>P: ensurePending(padreId, tipo) — la entrada existe desde la activación del elemento\n(si faltara, la crea y envía PENDING_INICIADO a hijo2/hijo4)
     P-->>P: pending.llegada = true → intentarCompletarElemento()
 
-    H3->>P: AUDIO.FIN_REPRODUCCION { padreId }
+    H3->>P: AUDIO.FIN_REPRODUCCION { audioId, estado: 'finalizado' }
     P-->>P: ensurePending — actualiza entrada existente (no reenvía PENDING_INICIADO)
     P-->>P: pending.audio = true → intentarCompletarElemento()
     P->>H3: CONTROL.HABILITAR { control: 'retosBtn', razon: 'audio_finalizado', retoId }
@@ -6783,7 +6787,7 @@ Se crean con `L.divIcon` usando `iconSize: null` para que Leaflet no restrinja e
 
 | Parámetro | Valor | Descripción |
 | --- | --- | --- |
-| `PRECISION_MINIMA` | 50 m | **Leída por el runtime.** `coordenadas-hijo2.html` la compara contra `accuracy` de cada lectura, ANTES de calcular franja o confirmar llegada (§31.4/§25.7) — no descarta la posición, pero sí evita sacar ninguna conclusión de distancia mientras la precisión sea peor que este valor. Ninguna posición se descarta por su precisión al procesar distancia/llegada — ver §25.5, «Precisión GPS: se procesa siempre, la llegada se confirma por repetición» (eso sigue igual, es un mecanismo aparte). |
+| `PRECISION_MINIMA` | 50 m | **Leída por el runtime.** `coordenadas-hijo2.html` la compara contra `accuracy` de cada lectura, ANTES de calcular franja o confirmar llegada (§31.4/§25.7) — no descarta la posición, pero sí evita sacar ninguna conclusión de distancia mientras la precisión sea peor que este valor. Ninguna posición se descarta por su precisión al procesar distancia/llegada — ver §25.5, «Precisión GPS: se procesa siempre, la llegada se confirma por ventana deslizante» (eso sigue igual, es un mecanismo aparte). |
 
 ### Rendimiento del zoom (`js/funciones-mapa.js`)
 
