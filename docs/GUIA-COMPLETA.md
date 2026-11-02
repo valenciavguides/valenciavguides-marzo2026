@@ -5772,7 +5772,7 @@ Los puzzles son un subtipo de reto con mecánica especial. Usan `puzzle.html` em
 hijo4 crea #puzzleIframe y lo registra en su bus como 'puzzle' ANTES de darle src
 
 puzzle.html termina (resuelto, o saltado con ⏩)
-  → bus: { tipo:'PUZZLE.COMPLETADO', destino:'padre', datos:{ puzzleId, exito:true } }
+  → bus: { tipo:'PUZZLE.COMPLETADO', destino:'padre', datos:{ puzzleId, exito:true, timestamp } }
     ('padre' es su contenedor, hijo4)
 hijo4, handler PUZZLE.COMPLETADO → _cerrarPuzzleConResultado(true)
   → clase 'correct', fuegosArtificiales()
@@ -5786,7 +5786,7 @@ hijo4, handler PUZZLE.TIMEOUT → _cerrarPuzzleConResultado(false)
 el usuario pulsa #btn-puzzle-continuar
   → RETO.COMPLETADO { retoId, correcto: true } al padre, y después RETO.OCULTAR
 padre _hdl_RETO_COMPLETADO (lee `correcto`)
-  → pending.reto = true → intentarCompletarElemento → progresa aventura
+  → pending.reto = true → intentarCompletarElemento → si se cumplen las demás condiciones, enciende «avanzar»
 ```
 
 En modo puzzle los controles normales del reto, incluido "saltar reto", están ocultos: `#btn-puzzle-continuar` es la única salida del usuario, y por eso resuelto y tiempo agotado completan la parada igual.
@@ -5797,7 +5797,7 @@ En modo puzzle los controles normales del reto, incluido "saltar reto", están o
 
 ### 10.11 SISTEMA.NACK — hoy no dispara ningún reintento
 
-`SISTEMA.NACK` es la respuesta con la que un hijo rechaza un `CAMBIO_MODO` que no puede aplicar: solo cuando el `modo` recibido no es `'casa'` ni `'aventura'`. El padre solo envía esos dos valores (`MODOS.CASA`/`MODOS.AVENTURA`), así que la rama es defensiva y hoy nadie la dispara.
+`SISTEMA.NACK` es la respuesta con la que un hijo rechaza un `CAMBIO_MODO` que no puede aplicar: la mandan la selección e hijo1 a hijo5 cuando el `modo` recibido no es `'casa'` ni `'aventura'`, e hijo4 además cuando su handler de `CAMBIO_MODO` se rompe (junto a un `SISTEMA.ERROR` con `tipo: 'CAMBIO_MODO_FALLIDO'`). El padre solo envía esos dos valores (`MODOS.CASA`/`MODOS.AVENTURA`), así que la primera rama es defensiva y hoy nadie la dispara. En el otro sentido, el padre manda `SISTEMA.NACK` al rechazar un `RETO.SOLICITAR_RETO` (§10.5).
 
 **El padre no escucha `SISTEMA.NACK`.** No hace falta ningún reenvío: cuando el padre recibe el `HIJO_LISTO` de un frame, ese frame ya tiene registrado su handler de `CAMBIO_MODO`. El modo llega por un solo camino: `modoInicial` en `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` al conectarse, y el envío normal de `SISTEMA.CAMBIO_MODO` después.
 
@@ -5807,7 +5807,7 @@ Lo cubre `tests/e2e/84-el-modo-llega-por-un-camino.spec.js`, un caso por frame.
 
 ### 10.12 Flujo de solicitud de paradas — NAVEGACION.SOLICITAR_DATOS_PARADAS
 
-Solicita la lista de paradas transformada a partir de `coordenadas-aventuras.js`. Usada para dibujar el mapa y generar botones de navegación.
+Hijo5 pide la lista de paradas de la aventura para pintar sus botones (modo DEV, ver §24). La lista sale de `DATOS_PADRE` (`js/aventuras-ID-padre.js`), normalizada con `normalizarParadas` (`js/utils.js`); el mapa no la usa: lo pinta el padre con `AVENTURA_PARADAS` (§10.9).
 
 ```text
 hijo5 → padre   NAVEGACION.SOLICITAR_DATOS_PARADAS
@@ -5819,24 +5819,24 @@ codigo-padre.html Script 1 (handler SOLICITAR_DATOS_PARADAS)
     vacía con un aviso, ruidoso en vez de disimulado
   → Destino dinámico: mensaje.origen (no hardcodeado a 'hijo5')
   → Siempre responde (array vacío si sin aventura, no silencio)
-padre → mensaje.origen   NAVEGACION.RESPUESTA_DATOS_PARADAS
+padre → mensaje.origen   NAVEGACION.RESPUESTA_DATOS_PARADAS { paradas, aventura, timestamp }
   ↓
-hijo5 genera botones de parada en panel CASA
-hijo5 → padre   PARADAS.READY
-
-Solo lo envía hijo5. hijo2 **no** lo envía, pero también recibe `NAVEGACION.RESPUESTA_DATOS_PARADAS`: se la manda el padre sin que la pida.
-
-> El handler activo para `SOLICITAR_DATOS_PARADAS` es el de Script 1 de `codigo-padre.html`; `controladores-padre.js` no tiene handler competidor para este tipo — `registrarControladorSeguro` garantiza exactamente un handler por tipo.
+hijo5 guarda las paradas (estado.aventuraParadas); en CASA pinta sus botones (generarBotonesParadas)
+hijo5 → padre   PARADAS.READY { count }   (al terminar de pintarlos)
 ```
+
+Solo lo envía hijo5, y solo hijo5 recibe `NAVEGACION.RESPUESTA_DATOS_PARADAS`. Además de contestar a su petición, el padre se la manda sin que la pida al distribuir los datos de la aventura (`distribuirDatosAventura`, si hijo5 ya está inicializado) y al reanudar una sesión (`_enviarRespuestaParadasHijosRest`), las tres veces con la misma fuente y la misma normalización. hijo2 no recibe ninguna lista: solo su elemento, por `CAMBIO_PARADA`.
+
+El handler de `SOLICITAR_DATOS_PARADAS` es el de Script 1 de `codigo-padre.html`, el único: `controladores-padre.js` no registra ese tipo, y el bus no admite un segundo handler para el mismo tipo (§10.15).
 
 | Campo | Flujo activo |
 |-------|-------------|
 | Tipo solicitud | `NAVEGACION.SOLICITAR_DATOS_PARADAS` |
 | Tipo respuesta | `NAVEGACION.RESPUESTA_DATOS_PARADAS` |
 | Handler padre | Script 1 de `codigo-padre.html` |
-| Fuente datos | `DATOS_PADRE[av][idioma].elementosIDpadre` (primaria) + `__vv_DATOS_AVENTURAS` (fallback) |
+| Fuente datos | `DATOS_PADRE[av][idioma].elementosIDpadre`, la única |
 | Incluye reto | ❌ |
-| Emisor conocido | hijo5, funciones-mapa (hijo2 **no** lo emite) |
+| Emisor | hijo5 (ni hijo2 ni `js/funciones-mapa.js` lo emiten) |
 
 ---
 
@@ -5848,7 +5848,7 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 
 #### DATOS.SOLICITAR_RETOS
 
-`DATOS.SOLICITAR_RETOS { retoId }` — hijo4 pide un reto concreto que no encontró en su caché local acotada. El padre resuelve solo ese id vía `cargarRetos()` y responde `RETO.MOSTRAR { retoId, retosArray:[reto] }` — nunca reenvía la aventura completa (protección pasiva por parada, ver §16). **Flujo activo.**
+`DATOS.SOLICITAR_RETOS { retoId, motivo: 'cache_miss', timestamp }` — hijo4 pide un reto concreto que no encontró en su caché local acotada. El padre resuelve solo ese id vía `cargarRetos()` y responde, sin acuse, `RETO.MOSTRAR { retoId, retosArray:[reto], contexto: 'solicitud_hijo', idioma }` — nunca reenvía la aventura completa (protección pasiva por parada, ver §16). **Flujo activo.**
 
 #### Diagnóstico del heartbeat: consultarHeartbeat
 
@@ -5860,11 +5860,11 @@ El estado del latido no guarda ninguna pausa: `state.heartbeat` solo tiene `acti
 
 ---
 
-### 10.15 Tipos y comportamientos pendientes
+### 10.15 Notas sobre tipos concretos
 
 #### `GPS.ACTIVAR` — registro exclusivo en Script 2
 
-`NAVEGACION.GPS.ACTIVAR` lo registra Script 2 de `codigo-padre.html` mediante `registrarControladorSeguro`. El handler (`_hdl_NAVEGACION_GPS_ACTIVAR`) verifica que el modo activo sea AVENTURA, pregunta a `_decidirAvanzar()` (§29.4) si progresar al siguiente elemento —que se revela al activarse (§4.7d)— y en cualquier caso llama a `activarGPS()`. `NAVEGACION.GPS.DESACTIVAR` no tiene handler simétrico — nada en la app lo emite, y tampoco existe función que desactive el GPS (ver §2.2).
+`NAVEGACION.GPS.ACTIVAR` lo registra Script 2 de `codigo-padre.html` mediante `registrarControladorSeguro`. El handler (`_hdl_NAVEGACION_GPS_ACTIVAR`) verifica que el modo activo sea AVENTURA, pregunta a `_decidirAvanzar()` (§29.4) si progresar al siguiente elemento —que se revela al activarse (§4.7d)— y en cualquier caso llama a `activarGPS()`. `NAVEGACION.GPS.DESACTIVAR` no tiene handler simétrico — nada en la app lo emite, y tampoco existe función que desactive el GPS (ver §11, «Fuente única de verdad del estado GPS»).
 
 `funciones-mapa.js` contiene `manejarGPSActivar` (el adaptador — ver «Fuente única de verdad del estado GPS», §11) para llamadas internas directas dentro del módulo — la usa `manejarCambioModoMapa()` al entrar en AVENTURA — pero no se registra en el bus de mensajes. Un tipo tiene un solo handler por frame: `registrarControlador` (`js/mensajeria.js`) se queda con el primero, devuelve `false` al segundo y lo dice con un `logger.error`; en el padre, `registrarControladorSeguro` lo para antes, con un `warn` («Controlador ya registrado»).
 
@@ -5899,7 +5899,7 @@ padre → hijo2/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, t
 
 | Hijo | Acción |
 |---|---|
-| **hijo2** | `_manejarPendingIniciado()`: lo anota en el log. Su rama que deshabilita `#btn-ubicacion` exige que el `padreId` del aviso (el `padreid` del elemento: `padre-TR2`) coincida con `idParadaActual` (su id de coordenadas: `Av1-TR-2`), y con los ids de `js/aventuras-ID-padre.js` no coinciden |
+| **hijo2** | `_manejarPendingIniciado()`: lo anota en el log. Su rama que deshabilita `#btn-ubicacion` exige que el `padreId` del aviso (el `padreid` del elemento: `padre-TR2`) sea `idParadaActual` (su id de coordenadas: `Av1-TR-2`) o `padre-<idParadaActual>`. En `js/aventuras-ID-padre.js` eso solo pasa con el elemento `intro` (`padre-intro` / `intro`: 84 de las 7 344 entradas, una por aventura e idioma), que el recorrido de AVENTURA no visita: empieza en el elemento `inicio` (`ensureDefaultParada`) |
 | **hijo4** | **Solo registra el evento en el log. No toca la UI del reto** |
 
 > **El aviso significa "el padre ha empezado a seguir la compleción de esta parada", no "el usuario ha salido del reto".** Si hijo4 respondiera haciendo `estado.retoActualId = null` + `ocultarControles()`, rompería tres botones de golpe con el reto ya abierto: `btnEnviar` pasaría a `display:none` (desaparece), `btnMostrarRespuesta` quedaría `disabled` (visible pero inerte) y `btnSaltarReto`, aunque intacto, dejaría de funcionar porque su listener abre con `if (!estado.retoActualId) return`. Por eso solo acusa recibo.
@@ -5938,18 +5938,22 @@ no hay acuse.
 
 | Emisor | Contexto | Receptor |
 |--------|----------|----------|
+| selección | Fallo de un controlador (`_notificarErrorPadre`) o de su `CAMBIO_MODO` (`tipo: 'CAMBIO_MODO_FALLIDO'`) | padre |
+| hijo1 | Fallo al confirmar su arranque, de su `CAMBIO_MODO` (`CAMBIO_MODO_FALLIDO`), del botón «más opciones» (`contexto: 'click-mas-opciones'`) y al abrir un enlace externo (`url`) | padre |
+| hijo2 | Fallo de su `CAMBIO_MODO` (`CAMBIO_MODO_FALLIDO`) | padre |
+| hijo3 | Fallo de su `CAMBIO_MODO` (`CAMBIO_MODO_FALLIDO`) o de un control de audio (`codigo: 'AUDIO_CONTROL_FALLIDO'`) | padre |
+| hijo4 | Fallo de su `CAMBIO_MODO` (`CAMBIO_MODO_FALLIDO`, seguido de un `SISTEMA.NACK`) | padre |
 | hijo5 | Error GPS, cambio modo, datos | padre |
-| hijo2 | Error en operaciones de navegación/datos | padre |
-| hijo3 | Error en playback/operaciones audio | padre |
-| hijo1 | Error en temporizador/opciones/init | padre |
 | padre | Error interno (datos, GPS, selección) | destino específico |
-| `js/utils.js` (los seis hijos) | Error no capturado o promesa rechazada sin capturar — captura automática, ver abajo | padre |
+| `js/utils.js`, en los diez frames que van dentro de un iframe (los carga todos `js/mensajeria.js`, que lo importa) | Error no capturado o promesa rechazada sin capturar — captura automática, ver abajo | padre |
+
+hijo6 no envía ningún `SISTEMA.ERROR` propio; sus errores no capturados los lleva la captura automática, como los de cualquier frame dentro de un iframe.
 
 #### Errores no controlados de un hijo: captura automática
 
 Un error no capturado o una promesa rechazada sin capturar dentro de un hijo viajan al padre por `SISTEMA.ERROR` con el código `ERROR_NO_CONTROLADO`. No hay tipo de mensaje propio ni handler propio: `_hdl_SISTEMA_ERROR` despacha por `codigo` y este es uno de ellos.
 
-`instalarReporteErroresAlPadre()` (`js/utils.js`) engancha las escuchas globales `error` y `unhandledrejection`. Se instala sola al cargarse el módulo, y `utils.js` es el único que cargan los seis hijos.
+`instalarReporteErroresAlPadre()` (`js/utils.js`) engancha las escuchas globales `error` y `unhandledrejection`. Se instala sola al cargarse el módulo, y `utils.js` lo carga todo frame que tenga el bus, porque `js/mensajeria.js` lo importa: la selección, hijo1 a hijo6, mapa-completo, puzzle y video-intro.
 
 **Payload:**
 
@@ -5964,7 +5968,7 @@ La clase va dentro del texto — `Error no capturado:` o `Promesa rechazada sin 
 
 **Reglas:**
 
-1. **Solo dentro de un iframe.** Con `globalThis.parent === globalThis.window` no se instala y la función devuelve `false`. Un `enviarMensaje` del padre a sí mismo no encuentra su id en `iframesRegistrados` y se descarta; para eso está `despacharLocal()`.
+1. **Solo dentro de un iframe.** Con `globalThis.parent === globalThis.window` no se instala y la función devuelve `false`. Un `enviarMensaje` del padre a sí mismo no encuentra su id en `iframesRegistrados` y no sale (el bus lo anota con un `warn`); para eso está `despacharLocal()`.
 2. **Una vez por firma.** La firma es `clase|texto|fichero|línea`; cada firma se envía una sola vez por sesión.
 3. **Tope de 20 firmas distintas.** Superado el tope, los errores solo se registran en la consola del hijo, y un último `SISTEMA.ERROR` lo anuncia con el texto `Tope de 20 errores distintos alcanzado; los siguientes solo se registran en la consola del hijo`.
 4. **Cola de arranque.** Sin `globalThis.mensajeria`, el mensaje entra en una cola de 10 como máximo que `retryUntilAvailable()` vacía en cuanto el bus existe — 40 intentos cada 250 ms. Agotados, la cola sale por `console.error` indicando cuántos errores no llegaron.
@@ -5977,7 +5981,7 @@ Cubierto por `tests/e2e/58-reporte-errores-no-controlados.spec.js` (RE-1: no se 
 
 | Tipo | Uso | Campo clave | Handler activo |
 |------|-----|-------------|----------------|
-| `SISTEMA.NACK` | Rechazo de una petición puntual (padre → hijo4, ver §10.15) | `error`, `mensaje` | Logging en hijo4 |
+| `SISTEMA.NACK` | Rechazo de una petición puntual: padre → emisor de `RETO.SOLICITAR_RETO` (§10.5); hijo → padre al rechazar un `CAMBIO_MODO` (§10.11) | `error`, `mensaje` | Logging en hijo4; el padre no lo escucha |
 | `SISTEMA.ERROR` | Error definitivo en operación | `error.message`, `codigo` | Logging + registro en estado |
 | `SISTEMA.CONFIRMACION` negativa | No existe — se usa NACK o ERROR | — | — |
 
