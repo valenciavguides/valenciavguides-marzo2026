@@ -96,9 +96,11 @@ de proponer tocar nada (regla 9):**
   proyecto — ni en HTML, ni en `js/`, ni en ningún spec. Las coincidencias de "validarRespuesta"
   en `tests/dataService.test.js` son `dataService.validarRespuestaReto()`, una función distinta
   de otro módulo — no confundir las dos.
-- De los ~17 métodos de `ApiClient`, **solo `activar()` tiene un llamador real**
-  (`En-busca-del-tesoro.html:1763`). El resto, incluido `validarReto()`, no los llama nadie
-  todavía.
+- De los 18 métodos de `ApiClient`, **solo dos tienen llamador real**: `comprobarCodigo()`
+  (`En-busca-del-tesoro.html:1850`, en P14) y `activar()` (`codigo-padre.html:11781`, al
+  arrancar la aventura). El resto, incluido `validarReto()`, no los llama nadie todavía
+  (recontado el 2026-11-02, búsqueda desnuda de cada método fuera de `js/api-client.js` y de
+  `tests/`).
 - **Consecuencia:** hoy este hallazgo es 100% andamiaje para un backend que no existe —
   arreglarlo es limpieza de diseño, no corrección de un bug que se esté ejecutando en ningún
   camino real. Riesgo de la fusión: cero, en cualquier dirección que se elija.
@@ -4011,6 +4013,14 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 - **Aplicado (2026-11-02), sin cambio visible.** `_ventanaVideoConReproductor()` es el único sitio que coge la ventana del vídeo: si la que hay no lleva `<video>`, la quita y crea la buena. La usan la reproducción y la precarga. Spec 164 (EQ-1: «sin vídeo», su ✗ y el vídeo enseguida).
 - **Relacionado.** K-147 (el inventario de las ✗).
 
+##### K-151 — El padre tiene una rama para el reto fallido que nunca corre, y le manda a hijo2 un `retoCompletado` que hijo2 no lee — ✅ (leído en los dos frames)
+
+- **Cómo salió.** En la auditoría del 2026-11-02, a la pregunta del usuario de cómo se entera el padre de que un reto está resuelto.
+- **Dónde.** `_procesarResultadoReto` (`codigo-padre.html:9816-9819`) empieza con `if (!correcto)`, escribe «Reto fallido, esperando nuevo intento» y vuelve. `_hdl_RETO_COMPLETADO` le manda a hijo2 `NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: false, retoCompletado: correcto, retoId }` (`:9873-9881`).
+- **Lo que no cuadra.** hijo4 solo manda `RETO.COMPLETADO` con `correcto: true`: los dos únicos sitios que construyen el aviso (`retos-hijo4.html:931-934`, al acertar, y `:1175`, al cerrar un puzzle) lo fijan a `true`, y un fallo no se envía, se reintenta en el propio hijo4. La rama `!correcto` del padre no se alcanza nunca. Y hijo2 no lee `retoCompletado` (búsqueda desnuda en `coordenadas-hijo2.html`: 0); solo usa `retoActivo`.
+- **Pendiente: decisión, sin cambio visible.** *A)* quitar la rama `!correcto` y el campo `retoCompletado` (el padre da por hecho, como ya hace, que un `RETO.COMPLETADO` es un reto cumplido); *B)* dejarlos.
+- **Relacionado.** M1 (`validarReto()`, la validación en el servidor que todavía no existe) y el hook `ejecutarValidacion`, ya registrado más arriba.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -4722,6 +4732,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 142 | 2 | K-148 | fuera los `stopPropagation` de cuatro ✗ del padre que no protegen de nada (medido: arriba solo está el registro de actividad del mapa, que recibe igual el `click`), o dejarlos | SPEC | blanda: K-147 | decisión |
 | 143 | 2 | K-149 | que el gesto de siete toques del panel de registros no cuente las pulsaciones sobre un control, o dejarlo | DEV (§24) | — | decisión |
 | 144 | 2 | K-150 | una sola función coge la ventana del vídeo, y descarta la de «sin vídeo» — **hecha (2026-11-02), sin cambio visible** | SPEC | — | sí |
+| 145 | 1 | K-151 | fuera la rama de reto fallido del padre y el `retoCompletado` que hijo2 no lee, o dejarlos | — | — | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
