@@ -4882,8 +4882,8 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 | Nodo | Archivo | Tipo | Rol |
 |------|---------|------|-----|
 | `padre` | `codigo-padre.html` | Orquestador | Coordina todo el ciclo de aventura |
-| `hijo1` | `extrainfo-hijo1.html` | Iframe | Temporizador, créditos, textos extra |
-| `hijo2` | `coordenadas-hijo2.html` | Iframe | Recibe `distanciaAlDestino` del padre (Haversine en `funciones-mapa.js`), 6 botones navegación, overlay fuera de rango. Sin mapa propio — mapa en padre |
+| `hijo1` | `extrainfo-hijo1.html` | Iframe | Menú «Más opciones» (listado de paradas, gastronomía, información, historia, páginas oficiales) y el temporizador |
+| `hijo2` | `coordenadas-hijo2.html` | Iframe | Recibe `distanciaAlDestino` del padre (Haversine en `funciones-mapa.js`), 6 botones navegación, avisa al padre de fuera de rango (las pantallas son del padre). Sin mapa propio — mapa en padre |
 | `hijo3` | `audio-hijo3.html` | Iframe | Reproductor de audio y botón de retos |
 | `hijo4` | `retos-hijo4.html` | Iframe | Retos interactivos |
 | `hijo5` | `boton-casa-hijo5.html` | Iframe | Botón GPS (CASA/AVENTURA) + lista de paradas (scroll horizontal) |
@@ -4936,7 +4936,7 @@ Al cargar el padre, por orden de ejecución:
 1. Módulos `<script type="module">` se evalúan asíncronamente
 2. `js/mensajeria.js` se inicializa → expone `globalThis.mensajeria` → dispara CustomEvent **`mensajeriaReady`**
 3. `js/app.js` escucha `mensajeriaReady` → llama `_registrarHandlersModo()` (registra CAMBIO_MODO_ENTENDIDO/EFECTUADO)
-4. Script block 2419 llama `globalThis.mensajeria.inicializarMensajeria({ tipo:'padre', id:'padre', stateManager })` → dispara CustomEvent **`mensajeriaReady`** (ya emitido por mensajeria.js)
+4. Script 1 llama `globalThis.mensajeria.inicializarMensajeria({ tipo:'padre', id:'padre', stateManager })` → dispara CustomEvent **`mensajeriaReady`** (ya emitido por mensajeria.js)
 5. Scripts llaman `registrarControladoresDatos()` desde `controladores-padre.js`
 6. Los iframes hijo se cargan (vía `ejecutarInicializacionAutomatica` o restauración)
 
@@ -4995,7 +4995,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 | Destino | `padre` |
 | Payload | `{ componenteId, iframeId, timestamp }` |
 | Handler en padre | `_hdl_SISTEMA_HIJO_LISTO` (codigo-padre.html) |
-| Acción | Añade al hijo a `estado.hijosInicializados` y lo marca listo; le envía `PADRE_CONFIRMA_HIJO_LISTO` (con `modoInicial`); tras una recarga del supervisor del latido, le devuelve su estado (`_vv_afterHijoListo`, solo en modo AVENTURA); a hijo2 le manda `NAVEGACION.RESPUESTA_DATOS_PARADAS` y a hijo3 le manda el estado de `retosBtn` (`_sincronizarRetoBtn`) y el de `progressBar` (`_reenviarProgressBarAHijo3`); con hijo2, hijo3 e hijo4 listos, marca `estado.todosHijosListos` (§26.12.1) |
+| Acción | Añade al hijo a `estado.hijosInicializados` y lo marca listo; le envía `PADRE_CONFIRMA_HIJO_LISTO` (con `modoInicial`); tras una recarga del supervisor del latido, le devuelve su estado (`_vv_afterHijoListo`, solo en modo AVENTURA); a hijo3 le manda el estado de `retosBtn` (`_sincronizarRetoBtn`) y el de `progressBar` (`_reenviarProgressBarAHijo3`); con hijo2, hijo3 e hijo4 listos, marca `estado.todosHijosListos` (§26.12.1) |
 
 ##### SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 
