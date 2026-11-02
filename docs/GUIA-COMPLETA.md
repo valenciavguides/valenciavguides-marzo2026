@@ -6592,7 +6592,7 @@ Cubierto por `tests/e2e/13-gps-tramo-fix.spec.js` (TR-1: sin recorrido no confir
 
 El sistema de capas y el selector de mapa están implementados **directamente en el HTML**, no en módulos JS externos:
 
-- **Mapa de aventura**: bloque `<script>` inline de `codigo-padre.html`, dentro de la función `initializeMap()` (buscar el comentario `// ── Capas de mapa + selector desplegable ──`). Las variables llevan prefijo `_` para evitar colisiones con el resto del código del padre (`_ESTILO_MAPA`, `_MODOS_MAPA`, `_CAPAS_TEXTO_CALLES`, `_CAPAS_LINEA_CALLES`, etc.).
+- **Mapa de aventura**: Script 1 de `codigo-padre.html` (`<script type="module">`), dentro de la función `initializeMap()` (buscar el comentario `// ── Capas de mapa + selector desplegable ──`). Las variables llevan prefijo `_` para evitar colisiones con el resto del código del padre (`_ESTILO_MAPA`, `_MODOS_MAPA`, `_CAPAS_TEXTO_CALLES`, `_CAPAS_LINEA_CALLES`, etc.).
 - **Mapa completo**: bloque `<script type="module">` de `mapa-completo.html`, justo después de crear la instancia `L.map('map', ...)`. Usa directamente el tile OSM estándar, sin selector de modos.
 
 `funciones-mapa.js` **no gestiona las capas de tiles**. Recibe la instancia MapLibre ya configurada y se limita a registrarla. Tampoco `mapa-vintage-aventuras.js` tiene relación con estas capas (ese fichero configura los mapas artísticos JPG que se muestran en overlays).
@@ -6639,7 +6639,7 @@ El **borde amarillo apagado de los edificios** (`fill-outline-color`) es lo que 
 
 > Los datos son de OpenStreetMap y su etiquetado no siempre es correcto: algún local comercial aparece marcado como `museum` y por tanto pasa el filtro. No es un fallo de la lista blanca — corregirlo caso por caso exigiría una excepción por nombre.
 
-El tamaño del texto de monumento lo calcula `_calcularTextSizeMonumentos()`, con el mismo patrón responsivo que `_calcularTextSizeCalles()` pero más pequeño (10→13 px × escala, frente a 11→18): el nombre de un monumento compite con el de la calle que lo rodea y no debe ganarle. Se recalcula en `resize` junto con el de las calles.
+El tamaño del texto de monumento lo calcula `_calcularTextSizeMonumentos()`, con el mismo patrón responsivo que `_calcularTextSizeCalles()` pero más pequeño (10 px en el zoom 15 y 13 px en el 19, × escala, frente a los 11→18 px de las calles): el nombre de un monumento compite con el de la calle que lo rodea y no debe ganarle. Se recalcula en `resize` junto con el de las calles.
 
 ##### Nombres de calle — solo Satélite y Nocturno
 
@@ -6654,7 +6654,7 @@ Tres capas `symbol` sobre `source-layer: 'transportation_name'` (`calles-texto-m
 
 **Idioma de los nombres (`_TEXT_FIELD_CALLE`):** se usa el nombre **local** (`name`, con `name:latin` de reserva para los POI que no traen `name`), no la traducción inglesa. Es lo que el usuario va a leer en la placa de la esquina del edificio, que en Valencia está en valenciano: si el mapa dijera "Valencia Cathedral" y la placa "Carrer del Micalet", el mapa dejaría de servir para orientarse. Aplica igual a los tres modos — el Callejero ya lo cumple de serie porque sus nombres vienen en el propio tile de OSM.
 
-El tamaño del texto se calcula en JavaScript (`_calcularTextSizeCalles()`) con el mismo espíritu que el resto de la app (`clamp()` + vmin de pantalla), como una expresión `interpolate` por zoom que va de 13→16→19 (el tope de zoom del propio mapa, que actúa como techo de crecimiento del texto — más allá de 18px el texto con `symbol-placement:'line'` deja de encajar bien siguiendo la curva de la calle). Se recalcula en cada evento `resize` de la ventana.
+El tamaño del texto se calcula en JavaScript (`_calcularTextSizeCalles()`) con el mismo espíritu que el resto de la app (`clamp()` + vmin de pantalla), como una expresión `interpolate` por zoom: 11 px en el zoom 13, 14 px en el 16 y 18 px en el 19 —el tope de zoom del propio mapa, que actúa como techo de crecimiento del texto: más allá de 18 px el texto con `symbol-placement:'line'` deja de encajar bien siguiendo la curva de la calle—, todo multiplicado por una escala de 0,8 a 1,6 según el lado corto de la pantalla (`vmin / 400`). Se recalcula en cada evento `resize` de la ventana.
 
 ##### Líneas de calle — solo Nocturno
 
