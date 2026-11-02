@@ -5,6 +5,7 @@
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
   <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload" />
   <title>Mapa completo de aventura</title>
+  <link rel="stylesheet" href="css/boton-cerrar.css">
 
   <style>
     :root {
@@ -92,37 +93,6 @@
       font-weight: bold;
       color: #222;
     }
-    #monumento-cerrar {
-      position: absolute;
-      top: 0;
-      right: 0;
-      background: #F28500;
-      color: #0F0616;
-      border: 0.3125rem solid #50C878;
-      border-radius: 50%;
-      width: 3.25rem;
-      height: 3.25rem;
-      font-size: 1.5rem;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      touch-action: manipulation;
-      z-index: 10000;
-    }
-    .icono-x-cerrar {
-      display: inline-block;
-      transform: scaleY(1.4);
-      text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-      -webkit-text-stroke: 1px #0F0616;
-    }
-    #monumento-cerrar:hover {
-      background: #ff6600;
-      border-color: #cc0000;
-      transform: scale(1.1);
-    }
   </style>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha512-Zcn6bjR/8RZbLEpLIeOwNtzREBAJnUKESxces60Mpoj+2okopSAcSUIUOseddDm0cxnGQzxIR7vJgsLZbdLE3w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -134,7 +104,7 @@
   <!-- Overlay popup monumento -->
   <div id="monumento-overlay">
     <div id="monumento-card">
-      <button id="monumento-cerrar" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
+      <button type="button" id="monumento-cerrar" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
       <div id="monumento-imagen-wrap"></div>
       <div class="info">
         <div class="numero" id="monumento-numero"></div>

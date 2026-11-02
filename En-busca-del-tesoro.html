@@ -24,6 +24,7 @@
   <script src="js/proteccion.js"></script>
   <script src="js/suppress-warnings.js"></script>
   <link rel="stylesheet" href="css/mapa-vintage-zoom.css">
+  <link rel="stylesheet" href="css/boton-cerrar.css">
   <script src="js/mapa-vintage-zoom.js"></script>
   <script>
   /* Escalado proporcional PURO: sincronizar con viewport del iframe SIN LÍMITES */
@@ -463,12 +464,7 @@
       overflow: hidden;
     }
     #pantalla9 .btn-mundo-verde, #pantalla9 .btn-mundo-rojo, #pantalla13 .btn-mundo-verde, #pantalla13 .btn-mundo-rojo { margin-top: 0; }
-    .icono-x-cerrar {
-      display: inline-block;
-      transform: scaleY(1.4);
-      text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-      -webkit-text-stroke: 1px #0F0616;
-    }
+
     /* ===== BOTÓN GLOBO VERDE ===== */
     .btn-mundo-verde {
       position: relative;
@@ -1034,7 +1030,7 @@
          Va al 100% del overlay y no a 100dvh a propósito: el overlay ya reserva la muesca y
          la barra inferior con su propio padding, y saltarselo metería el mapa debajo. -->
     <div id="mapa-vintage-wrapper" style="position:relative; width:100%; height:100%; background:#fff8e7; overflow:hidden;">
-      <button onclick="cerrarMapaVintage()" title="Cerrar mapa" style="position:absolute; top:0; right:0; width:3.25rem; height:3.25rem; background:#F28500; border:0.3125rem solid #50C878; border-radius:50%; font-size:1.5rem; font-weight:bold; color:#0F0616; cursor:pointer; z-index:10000; display:flex; align-items:center; justify-content:center;"><span class="icono-x-cerrar">✗</span></button>
+      <button type="button" class="btn-cerrar-overlay" onclick="cerrarMapaVintage()" title="Cerrar mapa"><span class="icono-x-cerrar">✗</span></button>
       <img id="mapa-vintage-img" src="" alt="Mapa vintage" style="width:100%; height:100%; object-fit:fill;">
     </div>
   </div>

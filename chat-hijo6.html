@@ -16,6 +16,7 @@
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
   <title>Asistente de soporte</title>
+  <link rel="stylesheet" href="css/boton-cerrar.css">
   <style>
     :root {
       --gap-inferior:    env(safe-area-inset-bottom, 0px);
@@ -59,30 +60,6 @@
       font-weight: bold;
       letter-spacing: 0.02em;
     }
-    #btn-cerrar {
-      background: #F28500;
-      border: 0.3125rem solid #50C878;
-      border-radius: 50%;
-      width: 3.25rem;
-      height: 3.25rem;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #0F0616;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      touch-action: manipulation;
-      flex-shrink: 0;
-    }
-    .icono-x-cerrar {
-      display: inline-block;
-      transform: scaleY(1.4);
-      text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-      -webkit-text-stroke: 1px #0F0616;
-    }
-    #btn-cerrar:hover { background: #ff6600; }
-
     /* ── Área FAQ ── */
     #faq {
       flex: 1;
@@ -231,26 +208,6 @@
       display: flex;
       flex-direction: column;
     }
-    .chat-modal-cerrar {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 3.25rem;
-      height: 3.25rem;
-      background: #F28500;
-      border: 0.3125rem solid #50C878;
-      border-radius: 50%;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #0F0616;
-      cursor: pointer;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      touch-action: manipulation;
-    }
-    .chat-modal-cerrar:hover { background: #d97400; border-color: #3ea862; }
     .chat-modal-contenido {
       flex: 1;
       overflow-y: auto;
@@ -348,7 +305,7 @@
     <!-- Sin `onclick` aquí: este mismo botón ya lleva un `addEventListener('click')` más
          abajo, así que cada pulsación disparaba el cierre DOS veces y mandaba dos avisos
          al padre. Un botón, un manejador. -->
-    <button id="btn-cerrar" aria-label="Cerrar chat"><span class="icono-x-cerrar">✗</span></button>
+    <button type="button" id="btn-cerrar" class="btn-cerrar-overlay btn-cerrar-en-linea" aria-label="Cerrar chat"><span class="icono-x-cerrar">✗</span></button>
   </div>
   <div id="faq" aria-label="Preguntas frecuentes"></div>
   <div id="buzon-sugerencias">
@@ -361,7 +318,7 @@
 
 <div id="chat-modal-overlay">
   <div class="chat-modal-contenedor">
-    <button type="button" class="chat-modal-cerrar" id="chat-modal-cerrar" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
+    <button type="button" class="btn-cerrar-overlay" id="chat-modal-cerrar" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
     <div id="chat-modal-contenido" class="chat-modal-contenido"></div>
   </div>
 </div>
