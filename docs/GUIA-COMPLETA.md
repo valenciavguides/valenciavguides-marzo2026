@@ -6315,7 +6315,7 @@ Los dos son fallos genuinamente raros (requieren un fallo real de carga de módu
 
 `activarGPS()` se llama por primera vez desde **`_hdl_SELECCION_P15_MOSTRADA`** — cuando el usuario acepta la normativa en **P15**, tanto en producción como en modo DEV (ver §24). `_hdl_SELECCION_CODIGO_VALIDADO` (P14) no llama a `activarGPS()`; su cuerpo completo es un log con el comentario literal `// GPS, iframes y datos se activan en P15_MOSTRADA`. El orden dentro de P15_MOSTRADA es: primero `Promise.all([iframes + datos])` (espera hasta `HIJO_LISTO` de todos los hijos) y solo después `await activarGPS()`. Esto garantiza que cuando llegan las primeras posiciones GPS todos los hijos ya tienen sus handlers registrados.
 
-Antes de mostrar P15, `En-busca-del-tesoro.html` comprueba el permiso GPS con `navigator.permissions.query` en P14 — si ya está `'denied'`, muestra un aviso local y el usuario no avanza. Si el permiso es `'prompt'` o `'granted'`, el padre recibe `CODIGO_VALIDADO`, avanza a P15 y activa GPS ahí. Durante la aventura, el botón `#btn-avanzar` en hijo2 puede volver a llamar a `activarGPS()` si el usuario lo desactivó (`NAVEGACION.GPS.ACTIVAR`).
+Antes de mostrar P15, `En-busca-del-tesoro.html` comprueba el permiso GPS con `navigator.permissions.query` en P14 — si ya está `'denied'`, muestra un aviso local y el usuario no avanza. Si el permiso es `'prompt'` o `'granted'`, el padre recibe `CODIGO_VALIDADO`, avanza a P15 y activa GPS ahí. Durante la aventura, cada pulsación del botón `#btn-avanzar` de hijo2 (`NAVEGACION.GPS.ACTIVAR`) termina llamando otra vez a `activarGPS()`, que con el GPS ya activo no hace nada nuevo: el usuario no puede desactivar el GPS, y nada en la app lo apaga.
 
 #### Si la posición inicial no llega a tiempo: fallback al punto de inicio
 
@@ -6338,11 +6338,11 @@ Los pasos 1-2 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 3-5 solo o
 
 1. El padre activa el GPS del dispositivo usando `navigator.geolocation.watchPosition()` en `activarGPS()` de `codigo-padre.html`. `watchPosition` solo se detiene al destruirse el documento (navegación de fin o abandono de aventura); ninguna función de la app lo cancela en vida de la página.
 2. Toda posición válida, sea cual sea su precisión, pasa de `_watchPositionSuccess()` a `_gpsProcesarPosicion(position, logPrefix)` — un puente delgado que llama a `funcionesMapa.procesarPosicionGPSParaAventura` dentro de un try/catch propio. `_watchPositionSuccess()` llama primero a `hideGpsSignalOverlay()` —una posición desmiente el «sin señal»— y a `_check5kmFromRoute()`, que enseña y quita el cartel del bloqueo de 5 km (§31.5). El handler real, `procesarPosicionGPSParaAventura()`, vive en `funciones-mapa.js` (cargado en padre). El mapa (`<div id="mapa">`, instancia MapLibre GL) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage — con el icono que corresponde al modo real (`estadoMapa.modo`): ▲ triángulo en AVENTURA, 🛸 en CASA (ver tabla de marcadores, §4.5).
-3. *(solo AVENTURA)* `funciones-mapa.js` calcula la **distancia** al siguiente elemento y envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 con `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada }`. En CASA, `siguienteParada` puede ser cualquier elemento que el usuario esté simplemente mirando con hijo5 (reutiliza el mismo `CAMBIO_PARADA`), no uno que esté visitando de verdad — enviar este mensaje igualmente en CASA no aporta nada (hijo2 lo ignora, ver paso 4) y solo añadiría tráfico de mensajería sin propósito.
+3. *(solo AVENTURA)* `funciones-mapa.js` calcula la **distancia** al siguiente elemento y envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 (payload completo en §7.3: distancias al destino y al camino, `recorridoSuficiente`, `toleranciaGPS`, `radioLlegada`, la posición y su precisión). En CASA, `siguienteParada` puede ser cualquier elemento que el usuario esté simplemente mirando con hijo5 (reutiliza el mismo `CAMBIO_PARADA`), no uno que esté visitando de verdad — enviar este mensaje igualmente en CASA no aporta nada (hijo2 lo ignora, ver paso 4) y solo añadiría tráfico de mensajería sin propósito.
 4. *(solo AVENTURA)* hijo2 actualiza sus **controles de navegación** (botones GPS, vídeo, reto) según la distancia recibida y ejecuta `_detectarLlegadaParada()` o `_detectarLlegadaTramo()`. El propio handler de `NAVEGACION.ACTUALIZAR_ESTADO` en hijo2 exige `estadoComponente.modo === 'aventura'` antes de llamar a cualquiera de las dos — sin este guard, una posición GPS real que cayera dentro del radio de una parada que el usuario solo está "viendo" en CASA dispararía una llegada real para un elemento nunca visitado.
-5. *(solo AVENTURA)* Cuando el usuario entra en el radio del elemento, hijo2 envía `NAVEGACION.LLEGADA_DETECTADA` al padre — tanto para tramos (radio dinámico) como para paradas (radio fijo de 15 m hardcodeado en hijo2, `RADIO_PARADA`). El padre, en `_hdl_NAVEGACION_LLEGADA_DETECTADA` y `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`, vuelve a comprobar `estado.modo?.actual === MODOS.AVENTURA` antes de actuar — defensa en profundidad: el emisor (hijo2) ya filtra por modo, pero el padre conoce su propio modo con certeza absoluta y no depende de que ningún remitente se porte bien siempre.
+5. *(solo AVENTURA)* Cuando el usuario entra en el radio del elemento, hijo2 envía `NAVEGACION.LLEGADA_DETECTADA` al padre — con el mismo radio de 15 m en los dos: en tramos, el `radioLlegada` que manda funciones-mapa, y además `recorridoSuficiente`; en paradas, la constante propia de hijo2 `RADIO_PARADA`. El padre, en `_hdl_NAVEGACION_LLEGADA_DETECTADA` y `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`, vuelve a comprobar `estado.modo?.actual === MODOS.AVENTURA` antes de actuar — defensa en profundidad: el emisor (hijo2) ya filtra por modo, pero el padre conoce su propio modo con certeza absoluta y no depende de que ningún remitente se porte bien siempre.
 
-> **CASA — sin avance automático por GPS:** el modo lo decide hijo5 con el botón 🛰️. En modo CASA las pestañas de tramos y paradas están desplegadas y el usuario elige libremente. `procesarPosicionGPSParaAventura` sigue ejecutándose (actualiza el marcador y calcula distancias), pero el guard `estadoMapa.modo !== MODOS.AVENTURA` impide que se envíe tanto el `CAMBIO_PARADA` automático como el propio `ACTUALIZAR_ESTADO` a hijo2 (paso 3). Al volver a CASA desde una AVENTURA en curso, `_hdl_SISTEMA_CAMBIO_MODO` también cierra explícitamente cualquier cartel de distancia que hubiera quedado en pantalla (los seis: `gps-out-of-range-overlay`, `foto-perdido-overlay`, `foto-lejos-overlay`, `foto-desviado-overlay`, `foto-fuera-rango-overlay` y `gps-precision-overlay`, vía `_ocultarTodasPantallasDistanciaGPS()`, que además borra el snooze) y resetea `estado.usuarioFueraRango` — nada los cierra solos al cambiar de modo, así que sin esto podrían quedarse pegados en pantalla en CASA indefinidamente.
+> **CASA — sin avance automático por GPS:** el modo lo decide hijo5 con el botón 🛰️. En modo CASA las pestañas de tramos y paradas están desplegadas y el usuario elige libremente. `procesarPosicionGPSParaAventura` sigue ejecutándose (actualiza el marcador y calcula distancias), pero el guard `estadoMapa.modo !== MODOS.AVENTURA` impide que se envíen tanto la `LLEGADA_DETECTADA` de su sensor de llegada como el `ACTUALIZAR_ESTADO` a hijo2 (paso 3); `funciones-mapa.js` no despacha ningún `CAMBIO_PARADA`. Al volver a CASA desde una AVENTURA en curso, `_hdl_SISTEMA_CAMBIO_MODO` también cierra explícitamente cualquier cartel de distancia que hubiera quedado en pantalla (los seis: `gps-out-of-range-overlay`, `foto-perdido-overlay`, `foto-lejos-overlay`, `foto-desviado-overlay`, `foto-fuera-rango-overlay` y `gps-precision-overlay`, vía `_ocultarTodasPantallasDistanciaGPS()`, que además borra el snooze) y resetea `estado.usuarioFueraRango` — nada los cierra solos al cambiar de modo, así que sin esto podrían quedarse pegados en pantalla en CASA indefinidamente.
 
 ### Fuente única de verdad del estado GPS
 
@@ -6350,7 +6350,7 @@ El estado GPS está repartido entre dos propietarios con responsabilidades disti
 
 **`estadoPadre.gps` (`codigo-padre.html`)** — el estado del sensor: `activo`, `watchId`, `permisos` y `error`. Los escriben `activarGPS()` y sus callbacks (`_watchPositionSuccess`, `_watchPositionError` y el procesado de cada posición). El diagnóstico de consola (`diagnosticarGPS()`) lee de aquí si el GPS está activo (`activo` y un `watchId`, como el guard de `activarGPS()`), los permisos y el error.
 
-**`estadoMapa` (`js/funciones-mapa.js`, que solo carga el padre)** — lo que escribe el mapa al procesar las posiciones: `posicionUsuario`, `gpsPrecision`, `ultimaUbicacion`, `gpsVisualActivo` y `proximidadReal`. `sincronizarEstadoGPSConPadre()` los copia a `globalThis.estadoPadre.gps` (`posicionUsuario`, `precision`, `ultimaUbicacion`, `visualActivo` y `proximidadReal`), para que el resto del padre los lea sin acceder a las variables internas de `funciones-mapa.js`. La llaman el procesado de cada posición GPS, `limpiarRecursos()`, `revelarNavegacion()` y `_ocultarNavegacion()` (que cambian `gpsVisualActivo`) y `manejarGPSActivar()`. El estado del sensor no se copia: `estadoMapa` no lo tiene.
+**`estadoMapa` (`js/funciones-mapa.js`, que solo carga el padre)** — lo que escribe el mapa al procesar las posiciones: `posicionUsuario`, `gpsPrecision`, `ultimaUbicacion`, `gpsVisualActivo` y `proximidadReal`. `sincronizarEstadoGPSConPadre()` los copia a `globalThis.estadoPadre.gps` (`posicionUsuario`, `precision`, `ultimaUbicacion`, `visualActivo` y `proximidadReal`), para que el resto del padre los lea sin acceder a las variables internas de `funciones-mapa.js`. La llaman el procesado de cada posición GPS, `limpiarRecursos()`, `manejarGPSActivar()`, `revelarNavegacion()` y `_ocultarNavegacion()` (que cambian `gpsVisualActivo`) y `manejarGPSActivar()`. El estado del sensor no se copia: `estadoMapa` no lo tiene.
 
 **`estadoPadre.gps.watchId` (`codigo-padre.html`)** — propiedad exclusiva del padre.
 Solo `activarGPS()` lo asigna, al llamar a `navigator.geolocation.watchPosition`. **Nada lo limpia en vida de la página**: no existe ninguna función que apague el GPS — al terminar o abandonar la aventura la app navega a `En-busca-del-tesoro.html`, y el navegador cancela el watch al destruir el documento. Los `clearWatch()` que quedan en `activarGPS()`/`_watchPositionError` son internos del reintento, para no dejar un watch huérfano al crear el siguiente. `funciones-mapa.js` no tiene campo `watchId` en `estadoMapa` ni escribe en `estadoPadre.gps.watchId`. `sincronizarEstadoGPSConPadre()` deliberadamente no sincroniza este campo. **`limpiarRecursosPorModo()` (`js/app.js`), que corre en cada `SISTEMA.CAMBIO_MODO`, NO toca `watchId` ni `activo`** — ponerlos a `null`/`false` en cada cambio de modo mentiría sobre el estado real: el watch nativo sigue vivo (nunca se apaga al cambiar de modo, ver más arriba), y `activarGPS()` usa exactamente `activo && watchId !== null` para reconocer un watch ya en marcha — con `watchId` a `null`, la siguiente activación no lo reconocería y arrancaría un segundo `watchPosition` en paralelo, sin poder cancelar nunca el primero (su id estaría perdido). Cada vuelta CASA↔AVENTURA sumaría un watch huérfano más.
@@ -6437,8 +6437,8 @@ watchPosition (padre)
       actualizarEstadoBotones()
       verificarDistanciaYActualizarBotones()  ← solo en modo AVENTURA
           distanciaParaRango = distanciaAlCamino si es tramo, distanciaAlDestino si es parada
-          si distanciaParaRango ≤ rangoMaximo → _procesarDentroDeRango() → envía GPS.DENTRO_DE_RANGO
-          si distanciaParaRango > rangoMaximo → envía GPS.RESTRINGIDO { distancia: distanciaParaRango, rangoMaximo, timestampSalioDeRango } al padre
+          si distanciaParaRango ≤ rangoMaximo → _procesarDentroDeRango() → apaga btn-ubicacion y, si venía de fuera, envía GPS.DENTRO_DE_RANGO
+          si distanciaParaRango > rangoMaximo → envía GPS.RESTRINGIDO { idParada, distancia: distanciaParaRango, rangoMaximo, timestampSalioDeRango } al padre
               con la gracia de su franja agotada (7 min «fuera», 15 min «desviado», 0 en «lejos» y «perdido») → _procesarFueraDeRangoConfirmado()
 ```
 
@@ -6448,8 +6448,8 @@ watchPosition (padre)
 |-------|-----------------|-------------|
 | `#btn-avanzar` | lo que decida el padre (§29.4): verde con el elemento completado, rojo si no | ❌ rojo (lo apaga el padre al recibir `USUARIO_FUERA_RANGO`) |
 | `#btn-imagen` | verde (rojo si reto activo) | sin cambio |
-| `#btn-video` | verde | ❌ rojo |
-| `#btn-ubicacion` | ❌ rojo (no necesario) | ✅ **verde** |
+| `#btn-video` | verde en un tramo sin reto activo; rojo en una parada o con un reto activo | ❌ rojo |
+| `#btn-ubicacion` | ❌ rojo (no necesario; `_procesarDentroDeRango` lo apaga en cada lectura) | ✅ **verde** |
 | `#btn-mapa-completo` | verde | ✅ **verde** |
 | `#btn-mapa-jpg` | verde | ✅ **verde** |
 
@@ -6472,7 +6472,7 @@ watchPosition (padre)
 | Ir a CASA (Factor 2) | → `null` (reset) | no cambia | no cambia | Map en memoria intacto |
 | Volver a AVENTURA (🛰️) | `null` (ya reseteado) | no cambia | valor del último ACTUALIZAR_ESTADO | Map en memoria intacto |
 | Primer GPS en AVENTURA | según distancia real | según distancia real | fresco | Map en memoria intacto |
-| Recarga de página en CASA | — | — | — | perdido (localStorage borrado al ir a CASA) |
+| Recarga de página en CASA | — | — | — | se conserva en `vv_paradas_completadas`: con el modo DEV, ir a CASA no borra nada (`_transicionarAModoCasa` solo borra la aventura guardada fuera del modo DEV) |
 
 `timestampSalioDeRango` **siempre arranca desde cero** al volver a AVENTURA — el tiempo pasado en CASA no cuenta para el dato informativo de cuándo empezó la salida de rango actual.
 
@@ -6490,7 +6490,7 @@ Verificado end-to-end: AVENTURA en `Av1-P-2` (índice 7) → CASA → ver `Av1-T
 
 **Comportamiento esperado sin progreso real previo: se cae al inicio de la aventura, no a lo último explorado.** El paso 1 congela `estado.paradaActual || null` — si el desarrollador entra en CASA por primera vez en la sesión (bootstrap de Factor 1, antes de haber pisado nunca AVENTURA), `paradaActual` todavía es `null`, así que se congela `null`. El paso 3 solo resincroniza si `estado.paradaRealCongelada` es verdadero — con `null` no hace nada, así que lo que decide dónde aterriza la sesión al entrar en AVENTURA es `ensureDefaultParada()` (`codigo-padre.html`): si `paradaActual` sigue vacío en ese punto, fija siempre el elemento `tipo:'inicio'` de la aventura — nunca la última parada explorada en CASA. Verificado en vivo: CASA fresca → tocar `padre-P1` → tocar `padre-P5` → pasar a AVENTURA → `estado.paradaActual` termina en `Av1-P-0` (el inicio), no en `padre-P5`. Es la dinámica esperada, no un bug: sin progreso real que proteger, la aventura simplemente arranca desde el principio.
 
-**`persistProgressState()` no escribe nada en localStorage mientras se está en CASA**, precisamente para que una recarga de página en mitad de una exploración libre no pueda confundir lo explorado con el progreso real. Sin esta guarda, cada clic en hijo5 sobrescribiría `vv_progreso` con la parada tocada, vía `_actualizarEstadoParada`, igual que en AVENTURA. Ver el detalle completo en §7.6 (botón GPS de hijo5) más abajo.
+**`persistProgressState()` no escribe nada en localStorage mientras se está en CASA**, precisamente para que una recarga de página en mitad de una exploración libre no pueda confundir lo explorado con el progreso real. Sin esta guarda, cada clic en hijo5 sobrescribiría `vv_progreso` con la parada tocada, vía `_actualizarEstadoParada`, igual que en AVENTURA. Ver el detalle completo en §7.6 (botón GPS de hijo5).
 
 ### Las coordenadas
 
@@ -6498,13 +6498,13 @@ Cada parada tiene esta estructura:
 
 ```javascript
 {
-    id: "P-5",                              // Identificador único (0-indexado dentro del array de este archivo)
-    tipo: "parada",                         // "inicio", "parada", o "tramo"
+    id: "Av1-P-5",                          // Identificador único: prefijo de la aventura + número 0-indexado dentro de su serie
+    tipo: "parada",                         // "inicio", "parada", "tramo" o "referencia"
     parada: 8,                              // Posición global en la aventura completa (= número del id + 3)
+    mapa_numero: 3,                         // Número del punto en el mapa (§4.7f, §7.2)
     nombre: "Plaza de la Virgen",           // Nombre del lugar
-    coordenadas: { lat: 39.47546, lng: -0.37524 },
-    imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",   // el original; la demo enseña su copia de publico/imagenes/ (§7.1)
-    video: "videos-aventuras/av1/parada_5.mp4"
+    coordenadas: { lat: 39.47657, lng: -0.37524 },
+    imagen: "imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg"   // el original; la demo enseña su copia de publico/imagenes/ (§7.1)
 }
 ```
 
@@ -6512,16 +6512,20 @@ Los tramos (caminos entre paradas) tienen **waypoints** (puntos intermedios) par
 
 ```javascript
 {
-    id: "TR-5",
+    id: "Av1-TR-5",
     tipo: "tramo",
-    nombre: "Plaza de la Virgen → Catedral",
-    inicio: { lat: 39.47546, lng: -0.37524 },
+    tramo: 5,
+    mapa_numero: "3→4",
+    nombre: "Plaza de la Virgen → Plaza Décimo Junio Bruto (Almoína)",
+    inicio: { lat: 39.47656, lng: -0.37516 },
     waypoints: [
-        { lat: 39.47540, lng: -0.37510 },
-        { lat: 39.47535, lng: -0.37498 },
-        // ... más puntos intermedios
+        { lat: 39.47658, lng: -0.37496 },
+        { lat: 39.4766, lng: -0.37473 },
+        { lat: 39.47656, lng: -0.37453 }
     ],
-    fin: { lat: 39.47530, lng: -0.37480 }
+    fin: { lat: 39.47629, lng: -0.3746 },
+    imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",   // y, si las tiene, imagen2, imagen3…
+    video: ""                                                        // vacío mientras el tramo no tiene vídeo
 }
 ```
 
@@ -6548,11 +6552,11 @@ La función `calcularToleranciaGPS()` en `js/funciones-mapa.js` determina cuánt
 
 Para los tramos, la tolerancia dinámica se calcula a partir de la distancia entre waypoints: si el tramo tiene waypoints muy separados (calles largas), la tolerancia es mayor; si están muy juntos (callejones), más ajustada — pero nunca por debajo de **35 m** (comprobado contra los 239 tramos reales de las 7 aventuras: ninguno cae en la franja de 25-30 m, que es insuficiente frente al ruido normal de GPS en calles estrechas, y la confirmación por ventana deslizante de 2-de-4 lecturas absorbe ese mismo ruido por otra vía, así que un suelo de 50 m sería una sobrecorrección). El destino de un tramo es siempre su **punto `.fin`** — no el último waypoint del array, que puede quedar corto o largo del punto de llegada real definido en los datos.
 
-**Los waypoints intermedios no son checkpoints obligatorios — pero desde la distancia recorrida (más abajo) sí importa haber cubierto terreno real, no solo estar cerca de `.fin`.** La app no comprueba si el usuario pasó por cada punto intermedio en concreto, ni exige seguir el trazado exacto de la polyline. Los waypoints sirven para dibujar la polyline en el mapa, calcular la tolerancia dinámica, y — desde la introducción del requisito de distancia recorrida — para calcular la longitud real del camino contra la que se mide ese requisito.
+**Los waypoints intermedios no son checkpoints obligatorios — pero sí importa haber cubierto terreno real (la distancia recorrida, más abajo), no solo estar cerca de `.fin`.** La app no comprueba si el usuario pasó por cada punto intermedio en concreto, ni exige seguir el trazado exacto de la polyline. Los waypoints sirven para dibujar la polyline en el mapa, calcular la tolerancia dinámica y calcular la longitud real del camino contra la que se mide ese requisito.
 
-**La llegada a un tramo exige dos condiciones a la vez, no solo la proximidad al destino.** `distanciaAlDestino ≤ tolerancia` es necesaria pero no suficiente por sí sola — hace falta además `recorridoSuficiente` (distancia real recorrida ≥ 40% de la longitud real del camino, `inicio→waypoints→fin`, no la línea recta). Motivo: un tramo puede rodear un obstáculo (un edificio, por ejemplo) cuyas dos caras queden dentro de la tolerancia GPS en línea recta la una de la otra sin que el usuario haya caminado el tramo en absoluto — solo cortando a través del obstáculo. `distanciaAlCamino` (la métrica de "fuera de rango" de arriba) no sirve para detectar esto: matemáticamente nunca puede ser mayor que `distanciaAlDestino`, porque el propio `.fin` es uno de los puntos que se comprueban dentro del camino — estar cerca del destino implica automáticamente estar "cerca del camino" según esa métrica, así que no distingue un atajo real de un rodeo genuino. Ver "Distancia recorrida — segundo requisito para la llegada a un tramo" más abajo para el mecanismo completo, incluido por qué un rodeo real (obras, calle cortada) que no sigue los waypoints oficiales también satisface el requisito.
+**La llegada a un tramo exige dos condiciones a la vez, no solo la proximidad al destino.** `distanciaAlDestino ≤ radioLlegada` (15 m) es necesaria pero no suficiente por sí sola — hace falta además `recorridoSuficiente` (distancia real recorrida ≥ 40% de la longitud real del camino, `inicio→waypoints→fin`, no la línea recta). Motivo: un tramo puede rodear un obstáculo (un edificio, por ejemplo) cuyas dos caras queden dentro de la tolerancia GPS en línea recta la una de la otra sin que el usuario haya caminado el tramo en absoluto — solo cortando a través del obstáculo. `distanciaAlCamino` (la métrica de "fuera de rango" de arriba) no sirve para detectar esto: matemáticamente nunca puede ser mayor que `distanciaAlDestino`, porque el propio `.fin` es uno de los puntos que se comprueban dentro del camino — estar cerca del destino implica automáticamente estar "cerca del camino" según esa métrica, así que no distingue un atajo real de un rodeo genuino. Ver "Distancia recorrida — segundo requisito para la llegada a un tramo" más abajo para el mecanismo completo, incluido por qué un rodeo real (obras, calle cortada) que no sigue los waypoints oficiales también satisface el requisito.
 
-El aviso de **fuera de rango** (usuario desviado del camino, no simplemente lejos del final) sigue usando su propia métrica de distancia, `distanciaAlCamino`, sin cambios; ver "Dos métricas de distancia" en la sección anterior.
+El aviso de **fuera de rango** (usuario desviado del camino, no simplemente lejos del final) usa su propia métrica de distancia, `distanciaAlCamino`; ver "Dos métricas de distancia" en la sección anterior.
 
 ### Distancia recorrida — segundo requisito para la llegada a un tramo
 
