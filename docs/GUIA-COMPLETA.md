@@ -6023,8 +6023,8 @@ El padre usa `localStorage` para restaurar el estado de la aventura entre recarg
 | `vv_progreso` | padre (`persistProgressState()`, solo en AVENTURA: en cada `CAMBIO_PARADA`, al fijar la parada por defecto, al completarse un elemento, al cobrarse un rescate y en cada anotación de la ficha del elemento, `_anotarEnFicha()`) | padre al restaurar (el elemento sale de `elementoActualId`, §9.10) y el diálogo de reanudación (enseña «parada N de M» con `indiceProgreso` y `totalParadas`) | `{ indiceProgreso, elementoActualId, totalParadas, tiempoRestante, tramoSkipsUsados, rescateEnCurso, ficha, aventura, idioma, timestamp }`; `ficha` es `{ clave, llegada, audio, reto, retosCompletadosCount }` del elemento actual, o `null` si todavía no tiene ficha; `rescateEnCurso` es `{ elementoId }` del elemento rescatado hasta que se avanza, o `null` (§25.19) | `limpiarDatosAventura()`, `_borrarAventuraGuardada()`, y el progreso caducado, de otra aventura o de otro idioma (`_restoreCheckStale`, `_restoreCheckMismatch`) o roto (`leerJSON`) |
 | `vv_idioma` | padre (`_hdl_SELECCION_IDIOMA_SELECCIONADO`, su único escritor) | `En-busca-del-tesoro.html` `_checkUrlParams()` (el idioma de la despedida, tras la recarga) y `globalThis.idiomaDeLaInterfaz()` del padre (el idioma de la interfaz antes de elegir) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()`, «elegir otra» (`_elegirOtraAventura()` → `_borrarAventuraGuardada({ conIdioma: true })`, en sus dos diálogos) y `_hdl_SELECCION_REINICIAR` (la vuelta a la elección de idioma sin recargar: el «no» del reto R-2, el ✗ de P3 y el «No» del aviso sin audio) |
 | `vv_paradas_completadas` | padre | padre al restaurar | Array de pares `[[id, registro], ...]` — formato nativo de `Map.entries()`. Se restaura con `new Map(paradasObj)`, **no** con `Object.entries()` (este último produce claves numéricas y rompe el dedup). | `limpiarDatosAventura()` y `_borrarAventuraGuardada()` |
-| `vv_debug` | Manual (DevTools) | `js/proteccion.js` | `'1'` = modo debug activo (desactiva algunas protecciones) | Manual, **y también `limpiarDatosAventura()`**, que vacía el almacenamiento entero |
-| `vv_hard_protect` | Manual (DevTools) | `js/proteccion.js` | `'1'` = protección fuerte de contenido activa | Manual, **y también `limpiarDatosAventura()`** |
+| `vv_debug` | Manual (DevTools) | `js/proteccion.js` | `'1'` = modo debug activo: `proteccion.js` no instala ninguna capa (§26.8) | Manual, **y también `limpiarDatosAventura()`**, que vacía el almacenamiento entero |
+| `vv_hard_protect` | Manual (DevTools) | `js/proteccion.js` | `'1'` = protección fuerte activa (teclas, detectores y borrado, §26.8); en los entornos de pruebas, `localhost` incluido, no tiene efecto | Manual, **y también `limpiarDatosAventura()`** |
 | `vv_debug_verbose` | `js/suppress-warnings.js` | `js/suppress-warnings.js` | `'1'` o `'true'` = conservar trazas completas de `console.debug` | `limpiarDatosAventura()` |
 | `vv_sw_update_pendiente` | el bloque del service worker del padre (`_mostrarBannerSW`), al saber que hay una versión nueva sin aplicar | el mismo bloque, al arrancar y al volver la página a primer plano (`visibilitychange`) | la versión nueva, o `'desconocida'` | cuando la página ya es la versión desplegada (`_limpiarActualizacionPendiente`) y `limpiarDatosAventura()` |
 
@@ -6118,8 +6118,8 @@ Los parámetros URL son un canal de comunicación de un solo sentido: el compone
 | `?id=` | `puzzle.html` | 172 | Obligatorio — sin él no hay puzzle |
 | `?imagen=` | `puzzle.html` | 188 | La imagen ya resuelta por quien lo invoca — `puzzle.html` no la busca (§16). |
 | `?despedida=1` | `En-busca-del-tesoro.html` | — | Activa `modoDespedida`, salta a P18 (agradecimientos), ejecuta `limpiarDatosAventura` + pausa 2 s + `location.replace('codigo-padre.html')` (P1) al pulsar botón verde. No recarga: la misma dirección con `?despedida=1` volvería a mostrar P18 |
-| `?vv_debug=1` | `js/proteccion.js` | 25 | Flag booleano — desactiva bloqueos de seguridad |
-| `?vv_hard_protect=1` | `js/proteccion.js` | 27 | Flag booleano — fuerza protección estricta en local |
+| `?vv_debug=1` | `js/proteccion.js` | 25 | Flag booleano — `proteccion.js` no instala ninguna capa (§26.8) |
+| `?vv_hard_protect=1` | `js/proteccion.js` | 27 | Flag booleano — protección fuerte (teclas, detectores y borrado); fuera de los entornos de pruebas: en `localhost` no tiene efecto |
 | `?debug=1` | `js/suppress-warnings.js` | 82 | Flag booleano — activa logging verboso en consola; lo mismo que `vv_debug_verbose` a `'1'` (§10.19), que escribe `globalThis.__vv_debugVerbose(true)` desde la consola |
 | `?lang=` | `video-intro.html` | 534 | Obligatorio: el idioma lo dice siempre quien abre el vídeo (la selección y el asistente); sin él, un `error` en consola y el vídeo sin bocadillos |
 | `?replay=1` | `video-intro.html` | 574 | Lo pone el asistente al volver a ver el vídeo: el botón de saltar está activo desde el arranque, en vez de esperar al final de la escena 4 |
@@ -11297,18 +11297,18 @@ La sección 17 cubre la seguridad del backend. Esta sección cubre las capas en 
 
 #### Primera capa: proteccion.js
 
-IIFE que se ejecuta antes que cualquier módulo.
+IIFE que se ejecuta antes que cualquier módulo. **En los entornos de pruebas no hace nada:** si el host es `localhost`, `127.0.0.1`, `*.github.io`, `*.vercel.app` o `*.netlify.app`, o lleva `?vv_debug=1` o `vv_debug` a `'1'` (§10.19), vuelve sin instalar ninguna capa. En el resto (el dominio propio, `valenciavguides.es`), unas capas actúan siempre y otras solo con la protección fuerte (`?vv_hard_protect=1` o `vv_hard_protect` a `'1'`):
 
-| Protección | Mecanismo | Efecto |
-|-----------|-----------|--------|
-| Teclas DevTools | `keydown` con `preventDefault()` | F12, Ctrl+Shift+I/J/C, Ctrl+U no abren nada |
-| Clic derecho | `contextmenu` con `preventDefault()` | Menú contextual deshabilitado |
-| Arrastre de media | `dragstart` en img, audio, video, a | Contenido no arrastrable |
-| Detector por timing | `setInterval` + `debugger` + `performance.now()` | Si hay debugger adjunto, el tiempo entre instrucciones se dispara; se detecta y cuenta |
-| Detector por resize | Compara `outerWidth/Height` vs `innerWidth/Height` | Las DevTools acopladas reducen la ventana interior |
-| Borrado de datos | Tras ≥2 detecciones de debugger o ≥3 de resize | `delete globalThis.RETOS_AVENTURAS`, borra coordenadas |
-| Sin selección de texto | CSS `user-select: none` en `.protegido` y `.reto-contenido` | El usuario no puede copiar el texto de los retos |
-
+| Protección | Cuándo | Mecanismo | Efecto |
+|-----------|--------|-----------|--------|
+| Clic derecho | siempre | `contextmenu` con `preventDefault()` en todo el documento | Menú contextual deshabilitado |
+| Arrastre de media | siempre | `dragstart` en img, audio, video, source, a | Contenido no arrastrable |
+| Filtro de consola | siempre | `console.table` y `console.dir` no pintan `RETOS_AVENTURAS`, `TEXTOS_AVENTURAS` ni `DATOS_AVENTURAS` | Solo cubre `RETOS_AVENTURAS`: los otros dos no los publica nadie |
+| Sin selección de texto | siempre | CSS `user-select: none` en `.protegido`, `.reto-contenido`, `.audio-container` y `.texto-aventura` | Ninguna página usa esas clases, así que no protege nada |
+| Teclas DevTools | protección fuerte | `keydown` con `preventDefault()` | F12, Ctrl+Shift+I/J/C, Ctrl+U no abren nada |
+| Detector por timing | protección fuerte | trampa `debugger` periódica + `performance.now()` | Con un depurador adjunto, el tiempo se dispara y se cuenta |
+| Detector por resize | protección fuerte, no en móvil | Compara `outerWidth/Height` con `innerWidth/Height` | Las DevTools acopladas reducen la ventana interior |
+| Borrado de datos | protección fuerte | Tras más de 2 detecciones seguidas por tiempo o más de 3 por redimensionado | Vacía `RETOS_AVENTURAS`, `TEXTOS_AVENTURAS` (que no existe) y `AVENTURA_PARADAS` |
 #### Segunda capa: validación de origen en mensajería
 
 ```javascript
