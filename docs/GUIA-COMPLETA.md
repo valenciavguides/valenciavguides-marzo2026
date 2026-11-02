@@ -10914,7 +10914,7 @@ En los doce idiomas, voz impersonal, sin marcas de género y siempre de usted. L
 |---|---|---|
 | El reto está roto, o no quiere hacerlo | El botón ⏩ (§13) | Nada |
 | El audio no está disponible | El botón de saltar audio (§25.5f) | Nada |
-| **No puede llegar al sitio** | **El rescate** | **Uno de sus 12** |
+| **No puede llegar al sitio** | **El rescate** | **Uno de sus 12 (35 en Aventura 34 km)** |
 
 Cubierto por `tests/e2e/70-rescate-peticion-ida-y-vuelta.spec.js`, `71-rescate-boton-y-pantallas.spec.js`, `72-rescate-concesion.spec.js` y `73-rescate-reloj-recordatorio.spec.js`.
 
@@ -10957,7 +10957,9 @@ Nota de arquitectura: el audio está centralizado en el padre; `audio-hijo3.html
            └─ mensajeria.js
                 └─ constants.js       (TIPOS_MENSAJE, TTL_LIMPIEZA, MODOS)
                 └─ logger.js          (buffer de 500 entradas; DEBUG/INFO/WARN/ERROR)
-                └─ utils.js           (generarIdUnico, canonicalizarModo)
+                └─ utils.js           (generarIdUnico)
+              (al cargarse, mensajeria.js ya expone globalThis.mensajeria y dispara
+               un primer 'mensajeriaReady', antes de inicializarse — estudio K-13)
                 └─ device-detection.js
 
 > **`getEstadoSafe()` — red de seguridad para acceso a `estadoPadre`**
@@ -10970,10 +10972,10 @@ Nota de arquitectura: el audio está centralizado en el padre; `audio-hijo3.html
              stateManager: globalThis.__vv_stateManager
          })
          → Registra globalThis.addEventListener('message', manejarMensajeEntrante)
-         → Expone globalThis.mensajeria
-         → dispatchEvent('mensajeriaReady')   ← desbloquea app.js
+         → dispatchEvent('mensajeriaReady') otra vez (el segundo emisor de K-13);
+           app.js no lo espera: arranca en cuanto existe globalThis.mensajeria
 
-~420 ms  app.js recibe el evento 'mensajeriaReady':
+~420 ms  app.js, en cuanto ve globalThis.mensajeria (o, si aún no existe, al llegar 'mensajeriaReady'):
          → _registrarHandlersModo()
            Registra handlers CAMBIO_MODO_ENTENDIDO / CAMBIO_MODO_EFECTUADO
            (una sola vez, en Maps de módulo compartidos)
