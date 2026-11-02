@@ -13386,11 +13386,11 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 
 ## 36. Metodología de auditoría completa
 
-Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 28 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno. Los ejes 1-27 se aplican leyendo y midiendo el código y sus instrumentos; el EJE 28 es el recorrido real de la aplicación, de principio a fin, con un espía de mensajes (§36.28).
+Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 29 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno. Los ejes 1-27 se aplican leyendo y midiendo el código y sus instrumentos; el EJE 28 es el recorrido real de la aplicación, de principio a fin, con un espía de mensajes (§36.28), y el EJE 29 mide en ejecución lo que el usuario ve y puede tocar (§36.29). La auditoría inversa recorre el camino contrario, del código a la guía (§36.32).
 
 ### 36.0 Antes de afirmar cualquier hallazgo: la comprobación por clase
 
-Esto no es un paso más del protocolo — es lo que se recorre en la cabeza, en segundos, antes de escribir CUALQUIER frase de hallazgo dentro de cualquiera de los 28 ejes o de la pasada inversa. Un `grep`, una regex o un extractor devuelven **lo que casa**; que algo no aparezca en su salida no distingue entre "no está" y "el patrón no lo vio" — y esa distinción es exactamente lo que separa un hallazgo real de uno inventado por la propia herramienta de medir.
+Esto no es un paso más del protocolo — es lo que se recorre en la cabeza, en segundos, antes de escribir CUALQUIER frase de hallazgo dentro de cualquiera de los 29 ejes o de la pasada inversa. Un `grep`, una regex o un extractor devuelven **lo que casa**; que algo no aparezca en su salida no distingue entre "no está" y "el patrón no lo vio" — y esa distinción es exactamente lo que separa un hallazgo real de uno inventado por la propia herramienta de medir.
 
 | Si la frase que voy a escribir es del tipo… | La comprobación obligatoria | Cómo falla sin la comprobación |
 |---|---|---|
@@ -13411,7 +13411,7 @@ Esto no es un paso más del protocolo — es lo que se recorre en la cabeza, en 
 
 **Dos disparadores, no uno:**
 
-- **(a) Cuando se pide** una auditoría completa: se recorren los 28 ejes en orden y se reporta en el formato de §36.30.
+- **(a) Cuando se pide** una auditoría completa: se recorren los 29 ejes en orden, después la auditoría inversa (§36.32), y se reporta en el formato de §36.31.
 - **(b) Siempre que se termina de construir o arreglar algo, antes de darlo por hecho:** una pasada inversa corta sobre el propio cambio. No hace falta que nadie la pida.
 
 > **Pasada inversa (obligatoria antes de dar por terminado un cambio propio)**
@@ -13426,7 +13426,7 @@ Esto no es un paso más del protocolo — es lo que se recorre en la cabeza, en 
 > 8. **Uso por uso de todo lo que el cambio introduce o deja atrás:** por cada import, desestructuración, asignación a `globalThis` y variable intermedia, se cuentan los usos reales. Un cambio que retira algo casi siempre deja restos: el import que servía a lo retirado, la variable que ya vale una constante, el guard que protegía de un caso que ya no existe.
 > 9. **Orden de arranque** (EJE 5). Si el cambio mueve algo al bus o al arranque —un dato que el bus pone por su cuenta, un registro, un handler nuevo—, se comprueba en los once frames que existe antes de su primer uso, leyendo y midiendo.
 
-**Modalidad ligera (no es auditoría formal):** cuando la petición es una opinión o un vistazo general ("qué opinas", "échale un buen vistazo", "si ves algo que no cuadra apúntalo") sin invocar explícitamente "auditoría completa", no aplica el recorrido obligatorio de los 28 ejes de abajo. Es válido partir del contexto ya acumulado en la sesión (código y documentación ya leídos) en vez de releer todo desde cero — pero cada afirmación concreta que se vaya a reportar como hallazgo, y en particular cualquier cosa citada desde memoria como "pendiente"/"sin arreglar", se verifica puntualmente contra el archivo real antes de darla por cierta (la memoria puede estar desactualizada). Se reporta la opinión más los hallazgos ya verificados, sin implementar nada hasta que el usuario confirme qué quiere tocar. Esta modalidad NO sustituye el protocolo completo de abajo: si el usuario pide auditoría completa o "revisa todo en cada sección", aplica cobertura total de los 28 ejes, nunca una muestra priorizada por riesgo.
+**Modalidad ligera (no es auditoría formal):** cuando la petición es una opinión o un vistazo general ("qué opinas", "échale un buen vistazo", "si ves algo que no cuadra apúntalo") sin invocar explícitamente "auditoría completa", no aplica el recorrido obligatorio de los 29 ejes de abajo. Es válido partir del contexto ya acumulado en la sesión (código y documentación ya leídos) en vez de releer todo desde cero — pero cada afirmación concreta que se vaya a reportar como hallazgo, y en particular cualquier cosa citada desde memoria como "pendiente"/"sin arreglar", se verifica puntualmente contra el archivo real antes de darla por cierta (la memoria puede estar desactualizada). Se reporta la opinión más los hallazgos ya verificados, sin implementar nada hasta que el usuario confirme qué quiere tocar. Esta modalidad NO sustituye el protocolo completo de abajo: si el usuario pide auditoría completa o "revisa todo en cada sección", aplica cobertura total de los 29 ejes y la auditoría inversa, nunca una muestra priorizada por riesgo.
 
 **Preparación antes de empezar (solo para la auditoría completa):**
 
@@ -13453,7 +13453,7 @@ Esto no es un paso más del protocolo — es lo que se recorre en la cabeza, en 
 
 ### 36.2 EJE 2 — Scope de funciones entre scripts (codigo-padre.html)
 
-`codigo-padre.html` tiene **5** `<script type="module">` con scope completamente separado (las líneas se desplazan con cada edición del archivo, tratar como aproximadas): Script 1 (2822–9206), Script 2 (9238–14091, etiquetado "Lógica post-carga y funciones auxiliares"), Script 3 (14100–14147, gestión de visibilidad de iframes, sin comentario de cabecera propio), Script 4 (14201–14296, etiquetado explícitamente "SCRIPT 4: Migración de controladores y diagnóstico GPS" — **no llega hasta el final del archivo**), y un quinto módulo sin numerar (14586–fin) que implementa el panel de logs en pantalla (gesto de 7 toques). Entre Script 4 y este quinto módulo hay además dos `<script>` clásicos (no-módulo, 14305–14549 y 14552–14574) con su propio scope no-modular. Una función definida en Script 2 es **invisible** en Script 1 a menos que esté expuesta via `globalThis.fn = fn` — la misma regla aplica a los 5 módulos entre sí.
+`codigo-padre.html` tiene **5** `<script type="module">` con scope completamente separado (las líneas se desplazan con cada edición del archivo, tratar como aproximadas): Script 1 (2711–8581), Script 2 (8613–13179, etiquetado "Lógica post-carga y funciones auxiliares"), Script 3 (13188–13222, la visibilidad de hijo4, sin comentario de cabecera propio), Script 4 (13276–13371, etiquetado explícitamente "SCRIPT 4: Migración de controladores y diagnóstico GPS" — **no llega hasta el final del archivo**), y un quinto módulo sin numerar (13688–fin) que implementa el panel de logs en pantalla (gesto de 7 toques). Entre los módulos hay además `<script>` clásicos (no-módulo) con su propio scope no-modular: uno entre Script 1 y Script 2 (8583–8606, el respaldo de las imágenes que no cargan), dos entre Script 3 y Script 4 (13225–13238, al volver a la pestaña; 13241–13274, `pagehide`) y dos entre Script 4 y el quinto módulo (13380–13651, el service worker; 13654–13676, el bloqueo de pantalla apagada). Una función definida en Script 2 es **invisible** en Script 1 a menos que esté expuesta via `globalThis.fn = fn` — la misma regla aplica a los 5 módulos entre sí.
 
 1. Para cada función llamada en Script 1 que no está definida en Script 1: verifica que el acceso usa `globalThis.fn(...)`. Una bare call sin `globalThis.` lanza `ReferenceError` en runtime (aunque puede quedar silenciada en un `catch`).
 2. Para cada `globalThis.fn = fn` al final de un script: verifica que `fn` está efectivamente definida en ese mismo script y no viene de otro módulo sin re-exposición explícita.
@@ -13556,6 +13556,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 4. Detecta IDs presentes en idiomas no-ES que **no están** en ES → posible error de clave o entrada extra sin correspondencia.
 5. Verifica que cada entrada JSON tiene HTML bien formado (etiquetas abiertas y cerradas, sin caracteres corruptos por doble codificación UTF-8).
 6. Cuenta entradas por idioma: todos los idiomas deben tener el mismo número de entradas para las aventuras activas.
+7. **Los textos que no se ven pero existen**: `alt`, `aria-label`, `title`, `placeholder` y los de `alert()` y `confirm()`. Cada uno, en los doce idiomas y con la misma voz que el resto de la aplicación —impersonal, sin marcas de género y de usted—. Se enumeran por atributo en los once frames y en `js/traducciones-ui.js`; un texto escrito a mano en el HTML en un solo idioma es un hallazgo.
 
 ---
 
@@ -13580,6 +13581,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 4. Detecta paradas en audios/textos **sin coordenadas** → la parada nunca se activaría al aproximarse el usuario.
 5. Verifica que el campo `aventura` dentro de cada objeto de parada coincide exactamente con la clave del objeto padre (sin typos ni variantes de capitalización).
 6. Verifica que el estado de la aventura (activa/bloqueada) y el código de acceso en `js/proteccion.js` son consistentes con `js/indice-aventuras.js`.
+7. **La misma cosa, descrita en dos sitios.** Un elemento con un nombre en `js/coordenadas-aventuras.js` y otro en `js/aventuras-ID-padre.js`, o las fotos de un elemento repartidas en listas que no leen los mismos lectores. Por cada dato que el usuario ve, se traza desde el código que lo pinta hasta su fuente, y se comparan elemento a elemento todas las tablas que lo contienen: cuando dos fuentes difieren, el usuario lee un nombre en un cartel y otro en la ventana de al lado.
 
 ---
 
@@ -13633,6 +13635,8 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 
 **Blast-radius de campos/temporizadores compartidos al cambiar lógica:** antes de eliminar o cambiar el comportamiento de un campo/temporizador compartido entre mensajes, haz un grep exhaustivo de TODOS sus usos reales en el proyecto — no solo donde se calcula/escribe, también donde se LEE, incluida UI en ficheros sin relación de nombre obvio con la lógica que se está tocando. Ejemplo de este blast-radius: un campo compartido como `timestampSalioDeRango` puede tener lectores en ficheros sin relación de nombre obvio con la lógica que se está tocando — p.ej., una cuenta atrás visual en un fichero distinto de donde se calcula/escribe el campo, sin pasar por ningún mensaje explícito entre ambos.
 
+**Una elección del usuario deshecha por otro camino:** por cada cosa que el usuario decide y la aplicación recuerda (cerrar una pantalla de aviso, que le da su descanso; el modo de la cámara del mapa; el idioma elegido), se enumeran con búsqueda desnuda todos los caminos que pueden borrarla o pisarla, y se comprueba que ninguno la deshace sin que el usuario lo pida. La firma: un botón que hace otra cosa y, de paso, vacía el estado que guarda la elección — la pantalla que el usuario acaba de cerrar vuelve encima justo de lo que ha pedido ver.
+
 **Flujo A — Inicio de aventura:**
 La pantalla de selección recorre el idioma (P2, `SELECCION.IDIOMA_SELECCIONADO`), la aventura (P7, `SELECCION.AVENTURA_SELECCIONADA`) y su confirmación (P9, `SELECCION.PREPARAR_HIJOS`): el padre solo guarda la elección → al mostrarse P15, `SELECCION.P15_MOSTRADA` → el padre carga en paralelo los datos (`_fase2CargarDatos()`) y los iframes hijo (`cargarRestoDeiframes()` + `cargarHijoCasa()`), cada hijo completa su handshake (`HIJO_PREPARADO` → `PADRE_DATOS` → `HIJO_LISTO` → `PADRE_CONFIRMA_HIJO_LISTO`) y después se activa el GPS → en P16, `SELECCION.AVENTURA_ACTIVADA` → `_hdl_SELECCION_AVENTURA_ACTIVADA` (si los iframes no estuvieran cargados, los carga aquí) guarda `vv_aventura_iniciada`, distribuye los datos (`_distribuirDatosActivacion()`: la tabla de coordenadas en `AVENTURA_PARADAS` y `NAVEGACION.RESPUESTA_DATOS_PARADAS` a hijo5; ningún hijo recibe la aventura entera, ver §9.6 y §16 "protección pasiva por parada"), muestra la interfaz y se despacha `SISTEMA.CAMBIO_MODO` con `despacharLocal` — AVENTURA en producción, CASA en modo DEV (ver §24) → al entrar en AVENTURA, `ensureDefaultParada()` despacha `NAVEGACION.CAMBIO_PARADA` con `despacharLocal` para la primera parada, que resuelve y envía su `audio_id`/`reto_id` individualmente (mismo mecanismo que el Flujo B).
 
@@ -13674,6 +13678,7 @@ Para cada llamada:
 1. ¿Se guarda el ID de retorno en una variable accesible para cancelarla? Si no, es imposible limpiarla.
 2. ¿Existe la llamada `clearTimeout` / `clearInterval` / `clearWatch` correspondiente? ¿En qué función y bajo qué condición se llama (cambio de modo, `limpiarDatosAventura`, fin de aventura, destrucción de iframe)?
 3. ¿Puede el callback dispararse **después** de que el contexto que lo creó ya no es válido? Por ejemplo: timer de overlay GPS que se dispara después de un CAMBIO\_MODO, o heartbeat que sigue enviando pings a un iframe que ya fue recargado.
+4. **Lo que pasa entre dos comprobaciones.** Los limitadores (una comprobación que solo se repite cada cierto tiempo), los descansos (una pantalla cerrada que no vuelve durante un plazo) y las gracias (un plazo antes de dar algo por perdido) deciden lo que el usuario ve en el tiempo que hay entre dos lecturas, no en una sola. Se recorre ese tiempo: qué ve el usuario justo después, a mitad del plazo y al vencer, y qué lo reinicia o lo vacía antes de tiempo.
 
 Reportar como ❌ CRÍTICO timers sin clear en recursos que cambian de estado (GPS, audio, heartbeat). Reportar como ⚠️ MEDIO timers con clear pero cuya condición de limpieza puede no ejecutarse en todos los flujos de salida (error, timeout, recarga de iframe).
 
@@ -13794,6 +13799,7 @@ Para cada spec que cubra un comportamiento de usuario:
 2. **¿El montaje del test provee lo que el fallo hace faltar?** Un test que inyecta a mano el objeto, el flag o el iframe que en producción no llega, comprueba el código *después* del punto donde falla. El verde es real y la funcionalidad está rota a la vez, sin contradicción.
 3. **¿Has visto este test en rojo?** Un test escrito junto a su arreglo hay que validarlo desactivando el arreglo y comprobando que efectivamente falla. Si sigue verde con el código roto, no está midiendo lo que dice medir. Este paso es barato y es el único que distingue un test de una decoración.
 4. **Cuando código, documentación y test en verde coinciden en afirmar que algo funciona, trátalo como la señal MÁS sospechosa, no como confirmación.** Tres fuentes alineadas dan una sensación de certeza que ninguna revisión superficial va a cuestionar; si las tres derivan de la misma suposición no verificada, las tres mienten a la vez. Traza hasta la definición real y hasta el disparador real.
+5. **Un `element.click()` desde el código también es «por dentro».** Dispara el `click` directamente sobre el elemento: se salta lo que haya pintado encima, la captura del puntero de un contenedor (`setPointerCapture`) y los `pointer-events`, que es justo donde se esconde un botón que no se puede pulsar. Lo que vale como gesto es lo que manda el motor: `locator.click()`, `locator.tap()` o `page.mouse`. Se clasifica cada spec por cómo pulsa —gesto real, `click()` desde el código o la función llamada a mano— y cada control del usuario tiene al menos un spec con gesto real (EJE 29).
 
 **Por qué hace falta este eje:** EJE 22 cubre la higiene de los ficheros de test (huérfanos, referencias rotas, suites que no corren). Este cubre lo contrario: suites que corren perfectamente y pasan, sobre un camino que el usuario no recorre nunca.
 
@@ -13841,6 +13847,7 @@ Tampoco se solapa con EJE 19, y la diferencia importa: **EJE 19 pregunta *¿se l
 | **Conectado a medias** | Dos módulos que deberían fusionarse comparten una pieza (un token, una constante) y cada uno mantiene el resto por su cuenta |
 | **El comentario justifica lo que no ocurre** | Un docblock explica con detalle una condición que, medida, no se da. La prosa convence; el código no la ejerce |
 | **La espera protege de una carrera inexistente** | Un buffer fijo "por si acaso" delante de algo que ya está garantizado por otra vía |
+| **La guarda contra un evento que nadie escucha** | Un `stopPropagation` (o un `preventDefault`) en un botón sin ninguna escucha de ese evento en sus antepasados, en todo lo que carga el documento: no protege de nada y hace creer que algo más arriba se comería el toque. Se buscan las escuchas por búsqueda desnuda del nombre del evento y se comprueba que alguna cuelga de un antepasado |
 
 **Cómo auditarlo — la sonda:**
 
@@ -13860,7 +13867,7 @@ Tampoco se solapa con EJE 19, y la diferencia importa: **EJE 19 pregunta *¿se l
 
 La regla "espera a una condición, no a un tiempo" se aplica **al auditar** y se olvida **al escribir**. El resultado: esperas ciegas nuevas que solo se detectan *después*, al ver el rojo en una tanda completa.
 
-`tools/verificar-esperas.js` las detecta al escribirlas. No prohíbe —hay 160 heredadas y 160 avisos taparían la señal—: fija una **línea base que solo puede bajar**. Añadir una espera ciega nueva falla con código 1; arreglar una vieja permite bajar la base con `--actualizar`, y la base no puede volver a subir.
+`tools/verificar-esperas.js` las detecta al escribirlas. No prohíbe —hay 159 heredadas, y 159 avisos taparían la señal—: fija una **línea base que solo puede bajar**. Añadir una espera ciega nueva falla con código 1; arreglar una vieja permite bajar la base con `--actualizar`, y la base no puede volver a subir.
 
 | Comando | Qué hace |
 |---|---|
@@ -13923,6 +13930,7 @@ Dónde aparecen dos caminos para una misma decisión:
 | **Servir configuración distinta a los tests que a producción** | El arnés retira o sustituye algo que en producción sí está. Lo que el test valida deja de ser lo que el usuario ejecuta |
 | **Pedir datos por red** | Dos módulos con su propio `fetch` contra los mismos endpoints, con garantías distintas (uno reintenta, el otro no; uno tiene timeout, el otro no) |
 | **Apagar o encender un recurso compartido** | Un guard que decide, y además una función explícita que hace lo mismo. Mientras el guard funcione, nadie nota si la función está muerta o rota |
+| **Una función que solo se alcanza a través de un fallo** | Una rama de emergencia que, de paso, hace lo que el camino normal no hace (registrar un frame, rellenar un dato). Mientras el camino normal falla, la función existe; al arreglarlo, desaparece y aflora el fallo que esa rama tapa. Por cada rama de emergencia se listan los efectos que tiene y que el camino normal no tiene |
 
 **Cómo auditarlo:** por cada decisión que el sistema toma, contar cuántos mecanismos pueden resolverla. Si hay dos, preguntar cuál está roto sin que nadie se entere — y comprobarlo desactivando el otro.
 
@@ -14017,7 +14025,7 @@ Los ejes 1-27 se pueden aplicar leyendo el código y midiendo trozos de él. Est
 **El instrumento:**
 
 1. Un **espía** que se instala en todos los frames antes que su código (`addInitScript`) y anota, por cada mensaje recibido: el frame que lo recibe, la **ventana real** de la que viene (no el campo `origen`), `origen`, `destino`, si ese frame tenía handler para el tipo y un extracto de `datos`. Anota también cada descarte del bus ("Destino desconocido", "descarta", "sin padre") con la pila de quien lo envió, y cada cartel `#cartel-*` que aparece, con su texto.
-2. Un **conductor** que arranca el servidor, abre el padre con el GPS concedido y avanza **solo con controles de usuario**: botones, gestos y lecturas GPS. Nunca invocando handlers directamente ni con mensajes fabricados a mano, porque son parte de lo auditado. Simulaciones admitidas, y declaradas en el informe: el acierto del código dev (solo existe su hash) y, con permiso expreso, el audio acelerado.
+2. Un **conductor** que arranca el servidor, abre el padre con el GPS concedido y avanza **solo con controles de usuario**: botones pulsados con gestos reales del motor —ratón y dedo, nunca `element.click()` (EJE 24, punto 5)—, gestos y lecturas GPS. Nunca invocando handlers directamente ni con mensajes fabricados a mano, porque son parte de lo auditado. Simulaciones admitidas, y declaradas en el informe: el acierto del código dev (solo existe su hash) y, con permiso expreso, el audio acelerado.
 
 **Variantes obligatorias:**
 
@@ -14029,6 +14037,8 @@ Los ejes 1-27 se pueden aplicar leyendo el código y midiendo trozos de él. Est
 - Chat, mapa completo, recarga a media aventura con reanudación, e hijo caído y recuperado.
 - Fin de aventura con sus dos salidas ("otra aventura" y "terminar").
 - Un idioma sin audio, para recorrer el camino de "saltar audio".
+- Red mala —latencia alta, poco ancho de banda y cortes, impuestos con el protocolo del navegador— y una sesión larga: el reloj de la aventura, los temporizadores y la memoria al cabo de horas.
+- En dispositivos reales, lo que el arnés no reproduce (los sensores, Safari de iPhone, la PWA instalada): se lista y se prueba a mano antes de publicar.
 
 **El instrumento también se audita (EJE 27):**
 
@@ -14041,13 +14051,27 @@ Los ejes 1-27 se pueden aplicar leyendo el código y midiendo trozos de él. Est
 
 ---
 
-### 36.29 Checklist de cierre pre-producción
+### 36.29 EJE 29 — Lo que el usuario ve y puede tocar
 
-El proyecto se desarrolla actualmente en local, sin el flujo de pago implementado, con la producción como objetivo cercano pero no inmediato. Antes de considerar el proyecto listo para ese lanzamiento, los 28 ejes deben cerrarse con este criterio de aceptación — no basta con "auditoría hecha", hace falta "auditoría en verde":
+Los ejes 1-28 comprueban que el código hace lo que dice. Este comprueba que lo que el código pinta **se ve y se puede pulsar**: un botón con su handler, su spec en verde y su mensaje bien enviado no sirve si algo se pinta encima, si su clic se va a otro elemento o si solo existe en un estado que el usuario no ve. Se mide en ejecución, en el motor, a varios tamaños de pantalla.
 
-1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 28 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
+1. **Visibilidad real.** Un elemento se ve si su caja tiene tamaño (`getBoundingClientRect()`), si ni él ni ningún antepasado tiene `display: none`, `visibility: hidden` u `opacity: 0`, y si lo que hay en el centro de su caja es él (`document.elementFromPoint`). Un elemento con `pointer-events: none` es invisible para `elementFromPoint`: para saber quién se **pinta** encima, se le da `pointer-events: auto` un instante y se pregunta otra vez.
+2. **Apilamiento: qué tapa a qué.** Inventario de `z-index` por documento —un iframe se apila entero, como un solo elemento, en el documento que lo contiene— y de los contextos de apilamiento: un elemento posicionado con `z-index` encierra a sus hijos, y un botón con un `z-index` altísimo no sale de la capa que lo contiene. Se cruzan las cajas de las insignias, los carteles y las capas fijas con las de los botones, a varios tamaños (de 2560×1440 a 390×844) y con y sin muesca: `env(safe-area-inset-top)` vale 0 en escritorio, así que el margen que en un iPhone separa un botón de una insignia no lo separa en una pantalla grande.
+3. **Pulsar de verdad, con ratón y con dedo.** Cada control del usuario se pulsa con los dos gestos del motor (`locator.click()` y `locator.tap()` con `hasTouch`, o `page.mouse`), porque no se portan igual: un botón dentro de un contenedor que captura el puntero para arrastrar (`setPointerCapture`) no recibe su `click` con ratón —el clic se lo lleva el contenedor— y con el dedo puede recibirlo. Un `element.click()` desde el código no vale (EJE 24, punto 5).
+4. **El momento del toque.** Las capas que se van con una transición siguen encima mientras se desvanecen: la pantalla de carga del padre tarda 0,5 s en ocultarse después de quitar `body.loading`, y un toque en ese medio segundo es suyo. Se mide cuando el usuario ya puede tocar; un instrumento que pulsa en esa ventana da un fallo que no existe.
+5. **Homogeneidad visual.** Cada familia de control tiene un solo glifo y una sola fuente de estilo: la ✗ de cerrar, el ✓, los botones redondos rojo y verde. Se buscan los glifos por búsqueda desnuda (`✗`, `✕`, `✖`, `×`, `X`, `✓`, `✔`, `✅`) en lo que se pinta —no en los logs ni en los comentarios— y todas las definiciones de estilo de cada familia, y se comparan aspecto, tamaño, sombra y lo que hacen al pasar el ratón.
+
+**Cómo se reporta:** por cada cruce, el control, lo que lo tapa, el tamaño del cruce en píxeles y el tamaño de pantalla; por cada control sin gesto real en ningún spec, el control y cómo lo pulsan los specs que lo tocan.
+
+---
+
+### 36.30 Checklist de cierre pre-producción
+
+El proyecto se desarrolla actualmente en local, sin el flujo de pago implementado, con la producción como objetivo cercano pero no inmediato. Antes de considerar el proyecto listo para ese lanzamiento, los 29 ejes y la auditoría inversa deben cerrarse con este criterio de aceptación — no basta con "auditoría hecha", hace falta "auditoría en verde":
+
+1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 29 ejes y en la auditoría inversa. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
 2. **`npm run lint` sin errores** sobre `js/**/*.js` y `*.html` — incluye la regla `no-console` (todo log pasa por el logger centralizado o tiene su excepción documentada en `eslint.config.js`).
-3. **`npm run test:e2e` en verde en los 4 proyectos de Playwright** (chromium, firefox, pixel5, iphone12), no solo chromium. **Ejecutarlos de uno en uno** (`--project=<nombre>`), no los cuatro en la misma invocación: los tests de los cuatro proyectos seguidos agotan los recursos de proceso de Windows y los workers empiezan a morir con `worker process exited unexpectedly (code=3221225794)` — `0xC0000142`, el proceso no llega a arrancar. Se manifiesta como el primer test de **cada** fichero fallando a partir de cierto punto, con el resto marcado "did not run": patrón de arnés agotado, no de regresión. `workers: 1` ya está fijado en `playwright.config.js` y no lo evita, porque el agotamiento es acumulativo.
+3. **La tanda de los cuatro navegadores en verde** (chromium, firefox, pixel5 e iphone12), no solo chromium, con `npm run test:e2e:vigilada` (§38.1): los cuatro proyectos corren uno detrás de otro, con el vigía térmico. Una pasada cortada por el vigía, por una hibernación o por una suspensión no cuenta (§38.2): se dice hasta dónde llega cada navegador y se repite lo que falta.
 4. **`npm run verificar-mensajeria` sin huérfanos sin revisar** — todo tipo de `TIPOS_MENSAJE` marcado por la herramienta como sin emisor o sin receptor, todo envío al vacío y todo handler inalcanzable se verifican a mano y se clasifican (huérfano real → se elimina; falso positivo del instrumento → se descarta con motivo).
 5. **`npm run inventory:dupes` sin duplicados sin resolver** — cada nombre duplicado tiene una decisión explícita (una versión es la única real y la otra se eliminó, o ambas coexisten por una razón documentada).
 6. Contraste guía vs. código (EJE 20) ejecutado sobre la totalidad de `docs/GUIA-COMPLETA.md`, no solo sobre las secciones tocadas en la última ronda de cambios.
@@ -14056,12 +14080,14 @@ El proyecto se desarrolla actualmente en local, sin el flujo de pago implementad
 9. **Ninguna decisión resuelta por dos caminos** (EJE 27.1) — por cada mecanismo duplicado, o se elimina uno, o el fallback es **ruidoso**: si el camino principal cae, alguien se entera.
 10. **`npm run verificar-esperas` sin esperas nuevas** (EJE 23) — la línea base solo baja. Las marcadas como `VENTANA-OBSERVACION` llevan escrito por qué esperar un tiempo fijo es ahí lo correcto.
 11. **Recorrido real completo** (EJE 28) — todas sus variantes llegan a su final, sin elementos atascados y sin descartes del bus sin explicar.
+12. **Lo que se ve y se toca** (EJE 29) — ningún control que el usuario tenga que pulsar queda tapado a ningún tamaño de pantalla, cada control tiene al menos un spec que lo pulsa con un gesto real de ratón y de dedo, y cada familia de control tiene un solo glifo y una sola fuente de estilo.
+13. **Auditoría inversa hecha** (§36.32) — cada pieza del código con uso real está descrita en la guía, y lo que no tiene uso real se ha quitado del código.
 
-**Por qué hace falta esta lista:** los ejes 1-28 dicen cómo auditar cada aspecto, pero ninguno define cuándo el conjunto completo está "suficientemente limpio" para lanzar. Sin un criterio de cierre explícito, es posible declarar "auditoría completa" con hallazgos ⚠️ o 🕳️ todavía abiertos y perder de vista cuáles quedaron pendientes de una ronda a la siguiente.
+**Por qué hace falta esta lista:** los ejes 1-29 y la auditoría inversa dicen cómo auditar cada aspecto, pero ninguno define cuándo el conjunto completo está "suficientemente limpio" para lanzar. Sin un criterio de cierre explícito, es posible declarar "auditoría completa" con hallazgos ⚠️ o 🕳️ todavía abiertos y perder de vista cuáles quedaron pendientes de una ronda a la siguiente.
 
 ---
 
-### 36.30 Formato del reporte de auditoría
+### 36.31 Formato del reporte de auditoría
 
 Para cada hallazgo, usar exactamente este formato:
 
@@ -14084,6 +14110,19 @@ Fix exacto: el cambio mínimo necesario (código o descripción precisa)
 **Orden de entrega:** primero todos los ❌ CRÍTICO ordenados por impacto, luego ⚠️ MEDIO, luego 🕳️ HUÉRFANO y 💀 MUERTO. Agrupar por eje cuando hay múltiples hallazgos en el mismo eje.
 
 **Antes de reportar un hallazgo:** verificar que es real leyendo el código exacto — no reportar por inferencia. Si el bug ya está corregido en el código actual, marcarlo como ✅ OK con nota "corregido en [commit/fecha]".
+
+**Dónde va el informe:** el repositorio es público. Un informe que nombre algo sensible —cómo se protegen los datos de pago o lo que permite el modo de desarrollo (§24)— no va a `docs/`: se guarda fuera del repositorio, y en `docs/` solo entra lo que se puede publicar.
+
+---
+
+### 36.32 Auditoría inversa: del código a la guía
+
+La auditoría recorre la guía y comprueba cada afirmación contra el código (EJE 20). La inversa recorre el código y comprueba que la guía lo cuenta. El objetivo de la guía es que se pueda reproducir la aplicación entera leyéndola: lo que existe en el código con uso real tiene que estar descrito, y lo que no tiene uso real se quita del código, no se documenta.
+
+1. **Se enumera el código, no la guía**, con extractores: las funciones (`npm run inventory`), lo que cruza scripts y frames por `globalThis` (`npm run inventory:conexiones`), los tipos de `TIPOS_MENSAJE` con sus emisores y receptores (`node tools/verificar-mensajeria.js --todos`), los ficheros que se cargan (`npm run inventory:assets`), los ids del DOM de los once frames, las claves de almacenamiento (`almacen.CLAVES`) y las constantes de `js/config.js` y `js/constants.js`.
+2. **Cada extractor imprime lo que deja sin casar** dentro de su propia entrada (§36.0, fila «Recuento»): sin ese residuo, la lista no se da por completa.
+3. **Por cada pieza, una de tres:** está descrita y lo que dice la guía es cierto; está y la guía no la cuenta, y se escribe; o no tiene uso real (búsqueda desnuda en todo el repositorio, EJE 13) y se quita del código. Un ayudante sencillo también entra: la pregunta no es si es importante, sino si alguien que reproduce la aplicación con la guía lo necesita.
+4. **El sentido contrario lo cubre otra herramienta:** `node tools/estudio-caminos/guia-nombres-citados.cjs` lista los nombres que la guía cita y el código no tiene.
 
 ---
 
