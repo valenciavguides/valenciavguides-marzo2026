@@ -8164,13 +8164,13 @@ Define cómo se ve la app cuando se instala en el móvil (`manifest.json` en la 
 ```
 
 - Se abre en **modo standalone** (sin barra de direcciones del navegador).
-- Solo en **vertical** (portrait).
+- No fija la orientación (no hay `orientation`): la app se usa en vertical gracias a su aviso de girar el dispositivo (§19.7).
 - Colores: fondo naranja (`#ff8c00`, el mismo tono naranja usado en toda la aplicación — `#loading-overlay`, el body de `En-busca-del-tesoro.html`, etc.), tema naranja (`#ff8c00`).
 - **Un único par de iconos, con doble propósito (`purpose: "any maskable"`)** (`logo-splash-192.png`/`logo-splash-512.png` — círculo blanco con el logo VG, sobre un cuadrado ya pintado del mismo naranja que `background_color`, completamente opaco de borde a borde, sin ningún píxel transparente):
   - **`any`** — Android los usa para la **pantalla de splash nativa** que se ve al abrir la PWA instalada, antes de que `codigo-padre.html` termine de cargar. Al coincidir el naranja del icono exactamente con `background_color`, no se ve ninguna costura entre el icono y el fondo de pantalla completa — el efecto visual es un círculo blanco flotando directamente sobre una pantalla naranja lisa.
   - **`maskable`** — gobierna el **icono del launcher/pantalla de inicio** del móvil, donde Android recorta el icono con la forma que use ese dispositivo (círculo, squircle...). Un icono maskable **tiene que** rellenar el cuadrado entero sin transparencia — si no, Android no tiene ningún color de fondo que mostrar tras el recorte y usa negro por defecto.
-- **Por qué `maskable` no usa `logo-redondo.png`:** esa imagen tiene fondo **transparente de verdad** (alpha=0 en las 4 esquinas y el centro) — necesario porque se reutiliza tal cual en 7 sitios más de la app (`codigo-padre.html`, `En-busca-del-tesoro.html`, `video-intro.html`...) como logo suelto sobre fondos de color. Un icono `maskable` con transparencia hace que Android rellene de negro las zonas transparentes al no tener otro color que mostrar tras el recorte — un círculo negro en vez del blanco pretendido, tanto en el icono del launcher como en la pantalla de splash nativa. `logo-redondo.png` no se toca (sigue transparente para sus otros usos); `maskable` reutiliza los propios `logo-splash-192/512.png` — ya completamente opacos, ya con el círculo blanco, dentro de la "safe zone" (el blanco arranca al 7% del borde, dentro del margen que tolera el recorte de cualquier forma) — el mismo par de ficheros sirve para los dos propósitos, sin necesitar 4 entradas de icono distintas.
-- `shortcuts` añade un acceso directo al menú largo-press del icono en Android — usa `logo-redondo.png` (sin `purpose`, no sujeto a la regla de opacidad de maskable); no se ha comprobado si ese acceso directo concreto tiene el mismo problema.
+- **Por qué `maskable` no usa `logo-redondo.png`:** esa imagen tiene fondo **transparente de verdad** (alpha=0 en las 4 esquinas y el centro) — necesario porque se reutiliza tal cual como logo suelto sobre fondos de color en `codigo-padre.html`, `En-busca-del-tesoro.html`, `index.html` y `video-intro.html`. Un icono `maskable` con transparencia hace que Android rellene de negro las zonas transparentes al no tener otro color que mostrar tras el recorte — un círculo negro en vez del blanco pretendido, tanto en el icono del launcher como en la pantalla de splash nativa. `logo-redondo.png` no se toca (sigue transparente para sus otros usos); `maskable` reutiliza los propios `logo-splash-192/512.png` — ya completamente opacos, ya con el círculo blanco, dentro de la "safe zone" (el blanco arranca al 7% del borde, dentro del margen que tolera el recorte de cualquier forma) — el mismo par de ficheros sirve para los dos propósitos, sin necesitar 4 entradas de icono distintas.
+- `shortcuts` añade un acceso directo al menú largo-press del icono en Android — usa `logo-redondo.png` sin `purpose`, así que no le aplica la regla de opacidad de maskable.
 
 ### El Service Worker (sw.js)
 
@@ -8247,7 +8247,7 @@ Los dos listeners se limitan a marcar `_paginaObsoleta` y delegar: la decisión 
 1. **Al arrancar** (justo después de registrar los listeners, antes de `register()`): si `vv_sw_update_pendiente` existe, se llama a `_mostrarBannerSW()` de inmediato — cubre el caso de una recarga/navegación real tras cerrar la PWA.
 2. **Al recuperar el foco** (`visibilitychange` → `visible`, en el `.then(registration => ...)` de `register()`, junto al `registration.update()` que ya corría en `hidden`): cubre el caso en el que el proceso de la PWA sobrevive cerrado o en segundo plano sin una recarga real de por medio — ahí no se ejecuta ningún arranque nuevo, así que el punto 1 nunca llegaría a correr. Este mismo punto vuelve a preguntar las dos versiones (`_pedirVersionAlSW()` y `_comprobarVersionRemota()`), porque la PWA puede llevar horas dormida.
 
-Recargar sobre una versión que ya era la última es inofensivo (una recarga de más, sin efecto visible); perder el aviso para siempre no lo es — ante la duda, el banner se vuelve a mostrar. **Nada de esto tiene cobertura automática.** Ningún spec de `tests/e2e/` toca el service worker: la creación y deduplicación del banner, los guards `previousController`/`_swBannerMostrado`, la persistencia de `vv_sw_update_pendiente` entre sesiones y los dos puntos que la releen se comprueban solo a mano, sobre un despliegue real.
+Recargar sobre una versión que ya era la última es inofensivo (una recarga de más, sin efecto visible); perder el aviso para siempre no lo es — ante la duda, el banner se vuelve a mostrar. **La cobertura automática es parcial.** El spec 138 arranca con el aviso pendiente guardado (`vv_sw_update_pendiente`) y comprueba que el banner sale, en el idioma de la interfaz, y una sola vez; el 151 comprueba las rutas y la precarga de `sw.js` leyendo el fichero. Lo que necesita un service worker real que se actualice —el `controllerchange`, el `SW_ACTIVADO` y el guard `previousController`— se comprueba solo a mano, sobre un despliegue real.
 
 `registration.update()` se llama dos veces: inmediatamente al resolver `register()` (así cada carga de la página fuerza una comprobación explícita, en vez de depender solo del throttle interno del navegador — variable según versión, sin este disparo explícito una sucesión rápida de recargas de prueba podría seguir sirviendo la versión vieja durante horas aunque el servidor ya tuviera una nueva) y en `visibilitychange → hidden` (cada vez que el usuario cambia de app).
 
@@ -8271,7 +8271,7 @@ Con eso medido, la pieza que resuelve el problema no es pelear con las cachés s
 > | Cabeceras `Cache-Control: no-cache`, `no-store` y `Pragma: no-cache` | las tres `X-Cache: HIT` — el borde no revalida |
 > | `version.json` | `Cache-Control: max-age=600`, **el mismo cacheo que el resto** |
 >
-> Ese último resultado corrige lo que este documento daba a entender: `version.json` **no** llega fresco por ningún mecanismo especial — cuando lo hace es porque nadie lo había pedido en esa región hacía rato (`X-Cache: MISS`). Consecuencia real, que conviene tener presente: **el banner puede tardar hasta 10 minutos en aparecer siquiera**, porque el propio `version.json` puede venir de caché.
+> Por ese último resultado, `version.json` **no** llega fresco por ningún mecanismo especial — cuando lo hace es porque nadie lo había pedido en esa región hacía rato (`X-Cache: MISS`). Consecuencia real, que conviene tener presente: **el banner puede tardar hasta 10 minutos en aparecer siquiera**, porque el propio `version.json` puede venir de caché.
 >
 > `Cache-Control: max-age=600` lo fija GitHub Pages y no es configurable desde el proyecto. La única solución de raíz sería un hosting con cabeceras configurables (Cloudflare Pages, Netlify), y eso es infraestructura, no código. **Decisión tomada: se asume el retraso de hasta 10 minutos.**
 
@@ -8319,7 +8319,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-5553d83171aa'`, en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (en `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podrían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8329,7 +8329,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 `codigo-padre.html` adquiere un **Screen Wake Lock** al cargarse para evitar que el sistema operativo apague la pantalla del dispositivo mientras el usuario está en la app.
 
-**Implementación** (bloque `<script>` al final de `codigo-padre.html`, antes de `</body>`):
+**Implementación** (un `<script>` clásico cerca del final de `codigo-padre.html`, entre Script 4 y Script 5):
 
 ```javascript
 (function() {
@@ -8339,7 +8339,9 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
         try {
             _wakeLock = await navigator.wakeLock.request('screen');
             _wakeLock.addEventListener('release', () => { _wakeLock = null; });
-        } catch (e) { /* silencioso en dispositivos sin soporte */ }
+        } catch (e) {
+            (globalThis.logger || console).warn('[PADRE] Wake lock no disponible:', e.message);
+        }
     }
     _requestWakeLock();
     document.addEventListener('visibilitychange', () => {
@@ -8355,7 +8357,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 - El navegador libera el wake lock automáticamente cuando la pestaña queda oculta (usuario cambia de app).
 - Al volver a la pestaña (`visibilitychange → visible`), se re-adquiere.
-- En dispositivos o navegadores sin soporte (iOS < 16.4, Firefox sin flag), el bloque `try/catch` lo ignora sin errores.
+- En dispositivos o navegadores sin soporte (iOS < 16.4, Firefox sin flag), la función vuelve sin hacer nada (`'wakeLock' in navigator` es falso); si el navegador rechaza la petición, el `catch` lo deja en un `warn`.
 - El wake lock se libera solo al cerrar/navegar fuera de `codigo-padre.html` (ej. flujo "Terminar" → `?despedida=1`), que es exactamente cuando ya no hace falta.
 
 ---
@@ -8443,8 +8445,8 @@ proyecto/
 ├── audio-hijo3.html                  ← Hijo 3: reproductor de audio
 ├── retos-hijo4.html                  ← Hijo 4: retos y preguntas por parada
 ├── boton-casa-hijo5.html             ← Hijo 5: herramienta de desarrollo local (no en PWA final)
-├── chat-hijo6.html                   ← Hijo 6: asistente de chat con intenciones predefinidas
-├── puzzle.html                       ← Puzzle interactivo (iframe interno del Selector)
+├── chat-hijo6.html                   ← Hijo 6: asistente de soporte — preguntas frecuentes estáticas, buzón de sugerencias y rescate
+├── puzzle.html                       ← Puzzle interactivo (iframe de la selección en P6 y de hijo4 en los retos de puzzle)
 ├── mapa-completo.html                ← Mapa moderno a pantalla completa con todas las paradas
 ├── videos-valencia-historica.html
 ├── consejos-valencia.html
@@ -8457,7 +8459,7 @@ proyecto/
 ├── sw.js                             ← Service Worker: caché shell (Network First) + media (Cache First LRU-100, sin vídeos ni audios — los de `videos-aventuras/`, `audios-aventuras/`, `publico/audios/` y `publico/videos/` van siempre directos a red; los efectos de `audios-efectos/` viajan en el shell)
 ├── version.json                      ← `{ "version": "v-..." }` — la única fuente consultable de qué CACHE_VERSION hay desplegada (§19)
 ├── CNAME                             ← Dominio para GitHub Pages (valenciavguides.es)
-├── video-intro.html                  ← Pantalla de entrada de la PWA: cómic animado de Jaime I y María (§35)
+├── video-intro.html                  ← Cómic animado de Jaime I y María (§35): P4 de la selección, y otra vez desde el asistente
 ├── debug-brujula.html                ← Diagnóstico del sensor de brújula en móvil real — no se referencia desde la app ni entra en el SW (§4.5)
 ├── package.json                      ← Dependencias y scripts (lint, test, dev)
 ├── eslint.config.js                  ← Configuración ESLint
@@ -8483,7 +8485,7 @@ proyecto/
 │   ├── almacenamiento.js             ← Único acceso a localStorage y sessionStorage (globalThis.almacen, claves registradas)
 │   ├── device-detection.js           ← Detección móvil/desktop
 │   ├── suppress-warnings.js          ← Filtrado de avisos de consola irrelevantes
-│   ├── validacion.js                 ← Validación de datos de entrada
+│   ├── validacion.js                 ← validarCoordenadas(), la usa funciones-mapa.js
 │   ├── proteccion.js                 ← Protección de datos sensibles
 │   ├── traducciones-ui.js            ← Textos de interfaz en 12 idiomas (JAIME_SCENES, modales, FAQ del chat, etc.)
 │   ├── reciclaje-digital.js          ← Limpieza total al finalizar aventura (localStorage, caché, SW)
@@ -8563,7 +8565,7 @@ proyecto/
 │   ├── lib/analisis-js.js            ← Piezas comunes de las herramientas que leen el código con acorn: bloques de `<script>`, comentarios, identificadores, exports y cierre de imports de cada página
 │   ├── estudio-caminos/              ← Los extractores con los que se mide la aplicación para `docs/estudio-caminos.md`, con su README (§18.2)
 │   ├── inventario-timers.js         ← Los setTimeout/setInterval/watchPosition de producción (`npm run inventory:timers`)
-│   └── ...                           (verificar-frames, verificar-media, verificar-docs, verificar-esperas, verificar-totales-indice, generar-guiones-aventuras, generar-tramos-para-videos, watch-sw)
+│   └── ...                           (verificar-frames, verificar-media, verificar-docs, verificar-esperas y su base esperas-base.json, verificar-citas-guia, verificar-datos-aventuras, verificar-totales-indice, sync-master-test, tanda-vigilada y vigia-termico.ps1, imagenes-referencias, generar-guiones-aventuras, generar-tramos-para-videos, watch-sw)
 │
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
