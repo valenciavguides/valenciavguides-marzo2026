@@ -140,12 +140,11 @@ modo: { actual: 'casa' | 'aventura' }
 **Cuándo está activo**:
 
 - Tras la activación de una aventura con el modo DEV activo (ver §24). **No al arrancar**: el arranque deja el modo sin decidir (`null`), no en CASA — ver "Fuente de verdad del modo" al principio de §2.
-- Inmediatamente tras completar las pantallas de demo y recibir `SELECCION.AVENTURA_ACTIVADA`.
-- Cuando el usuario desactiva el GPS desde hijo5 estando en AVENTURA.
+- Con el modo DEV, cuando el usuario pulsa el botón de hijo5 estando en AVENTURA (ver §2.5 y §24). El GPS no se detiene: lo que cambia es el modo.
 
 **Condiciones de estado en MODO CASA**:
 
-- **GPS**: `watchPosition` puede estar activo pero las validaciones de distancia están desactivadas. Los overlays de "fuera de rango" y "siguiente parada" están ocultos.
+- **GPS**: `watchPosition` puede estar activo pero las validaciones de distancia están desactivadas. Las pantallas de distancia (§31.4) no salen: `_puedeSalirPantallaDistanciaGPS()` solo las deja en AVENTURA.
 - **Heartbeat**: encendido, igual que en AVENTURA. El supervisor de hijos (§2.7) vigila a cada iframe en cualquier modo y el cambio de modo no lo toca: los hijos que ya completaron su apretón de manos reciben `SISTEMA.HEARTBEAT` cada intervalo (~5 s, ajustado por la conexión).
 - **Retos**: habilitados o deshabilitados por posición. Padre envía `RETO.ESTADO_CASA` a hijo4 con `{ tipo: 'parada', habilitado: true }` (parada → habilitado) o `{ tipo: 'tramo', habilitado: false }` (tramo → deshabilitado).
 - **Navegación**: manual. El usuario selecciona paradas desde hijo5.
@@ -175,7 +174,9 @@ flowchart TD
 
 **Cuándo está activo**:
 
-- Cuando el usuario pulsa el botón GPS en hijo5 estando en MODO CASA.
+- En producción, en cuanto llega `SELECCION.AVENTURA_ACTIVADA` (P17): el padre despacha `SISTEMA.CAMBIO_MODO` con AVENTURA (§9.5).
+- Al reanudar una sesión guardada en AVENTURA (§9.10).
+- Con el modo DEV, cuando el usuario pulsa el botón de hijo5 estando en CASA (ver §24).
 
 **Condiciones de estado en MODO AVENTURA**:
 
@@ -221,8 +222,8 @@ Al arrancar `codigo-padre.html`:
 1. El modo arranca **sin decidir** (`estado.modo.actual === null`) — ver "Fuente de verdad del modo" en §2. La primera transición real lo fija: `AVENTURA_ACTIVADA` (§9.5) o la reanudación de una sesión guardada (§9.10).
 2. Se comprueba si existe `vv_aventura_iniciada` en `localStorage`.
    - Si existe → `ejecutarRestauracionAventura()` restaura el estado anterior.
-   - Si no existe → la app queda en MODO CASA esperando que el usuario complete el flujo de incorporación.
-3. En el flujo de incorporación, el padre no carga iframes ni activa GPS hasta P15 (`SELECCION.P15_MOSTRADA`). Los HTML de los iframes hijo contienen lógica de pago y no se sirven antes de que el usuario valide su código en P14. Antes de P15, el padre solo anota idioma y aventura en el estado interno. **Excepción modo DEV (Factor 1, ver §24):** si `_devModeActivo` es `true`, `mostrar()` intercepta P12 y P14 y redirige directamente a P15 sin validar código. El GPS **sí** se activa en P15 en modo DEV, igual que en producción — `_hdl_SELECCION_P15_MOSTRADA` llama a `activarGPS()` incondicionalmente. Encenderlo ya en P15 evita el coste de reingresar GPS más tarde (`watchPosition` nunca se detiene al cambiar de modo — ver §2.6); el filtro CASA/AVENTURA no está en si el GPS está encendido, sino en si sus posiciones fuerzan avance automático (`estadoMapa.modo !== MODOS.AVENTURA` en `funciones-mapa.js:procesarPosicionGPSParaAventura`).
+   - Si no existe → la app queda sin modo decidido (`null`), en P1, hasta que el usuario complete el flujo de incorporación.
+3. En el flujo de incorporación, el padre no carga iframes ni activa GPS hasta P15 (`SELECCION.P15_MOSTRADA`). Los HTML de los iframes hijo contienen lógica de pago y no se sirven antes de que el usuario valide su código en P14. Antes de P15, el padre solo anota idioma y aventura en el estado interno. **Excepción modo DEV (Factor 1, ver §24):** con el modo DEV activo, `mostrar()` de la selección intercepta P12, P13 y P14 y redirige directamente a P15 sin validar código. El GPS **sí** se activa en P15 en modo DEV, igual que en producción — `_hdl_SELECCION_P15_MOSTRADA` llama a `activarGPS()` incondicionalmente. Encenderlo ya en P15 evita el coste de reingresar GPS más tarde (`watchPosition` nunca se detiene al cambiar de modo — ver §2.6); el filtro CASA/AVENTURA no está en si el GPS está encendido, sino en si sus posiciones fuerzan avance automático (`estadoMapa.modo !== MODOS.AVENTURA` en `funciones-mapa.js:procesarPosicionGPSParaAventura`).
 4. Cuando `SELECCION.CODIGO_VALIDADO` llega (P14, solo prod): el handler está vacío — solo registra que el código fue validado con un log. GPS, iframes y datos de aventura se activan en P15.
 5. Cuando `SELECCION.P15_MOSTRADA` llega: carga hijo1-6 (`cargarRestoDeiframes` + `cargarHijoCasa`) y datos (`_fase2CargarDatos`) en paralelo, marca `_iframesPreCargadosP15 = true` en cuanto eso termina, y **después** activa GPS, en prod y en dev por igual. En prod, el orden garantiza que hijo2 ya está en modo CASA cuando llegan las primeras posiciones GPS — la proximidad no avanza la aventura hasta que el modo cambia a AVENTURA. Cuando `SELECCION.AVENTURA_ACTIVADA` llega (P17): fast-path si `_iframesPreCargadosP15 === true` (salta recarga); si no, carga iframes como fallback.
 
@@ -243,7 +244,7 @@ flowchart TD
     P14 --> P15[P15: normativa mostrada\n_accionNormativa() → P15_MOSTRADA\ncarga hijo1-6 + datos en paralelo → activa GPS siempre]
     BYPASS --> P15
     P15 --> P16[P16: Reto R-2 SÍ\nP17: logos ➣ → AVENTURA_ACTIVADA]
-    P16 --> J([Sistema en MODO CASA\nhijo5 visible si modo DEV · heartbeat activo\nUsuario ve mapa y controles])
+    P16 --> J([Sistema en MODO AVENTURA\nen CASA con el modo DEV, ver §24 · heartbeat activo\nUsuario ve mapa y controles])
     D --> J
 ```
 
@@ -307,7 +308,7 @@ sequenceDiagram
     H5--)P: SOLICITAR_DATOS_PARADAS (fire-and-forget tras recibir CAMBIO_MODO aventura)
     Note over P: manejarCambioModo completa → sesión + GPS
     P->>P: _activarAventura → ensureDefaultParada + temporizador de hijo1
-    P->>P: _gestionarGpsSegunModo → ocultar overlays + activarGPS() si !estado.gps.activo
+    P->>P: _gestionarGpsSegunModo → activarGPS() si !estado.gps.activo
 ```
 
 ---
@@ -418,7 +419,7 @@ navigator.geolocation.watchPosition(onGpsSuccess, onGpsError, {
 | `watchPosition` activo | Sí (no se detiene al salir de AVENTURA) | Sí |
 | Validación de distancia a paradas | No | Sí (radio ~15m) |
 | `CAMBIO_PARADA` automático | No | No — GPS solo marca `pending.llegada`; `CAMBIO_PARADA` del siguiente elemento requiere pulsar `btn-avanzar` (§2.2) |
-| Overlay "fuera de rango" | Oculto | Visible si >50m de la ruta |
+| Pantallas de distancia (§31.4) | No salen | Salen según la franja de distancia al elemento activo (15 m en una parada, `toleranciaGPS` en un tramo) |
 | Marcador del usuario en mapa | 🛸 | ▲ triángulo azul `#4285F4`, rota con brújula |
 | Cámara sigue al usuario | Sí | **No en CASA** — solo en AVENTURA, y ahí pausable arrastrando el mapa a mano (§4.6b) |
 
@@ -431,28 +432,26 @@ Si el permiso ya está denegado en **prod**, `_irANormativa()` muestra un aviso 
 ```mermaid
 flowchart TD
     A([Arranque]) --> B[GPS inactivo]
-    B --> C{CODIGO_VALIDADO\nrecibido en P14}
-    C --> C2[_hdl_SELECCION_CODIGO_VALIDADO\nno-op — delega a P15_MOSTRADA]
-    C2 --> P15{P15 — Normativa\nusuario acepta}
-    P15 --> IFRAMES[Promise.all iframes + datos\nespera HIJO_LISTO de todos]
-    IFRAMES --> D{¿Permiso GPS\nen navigator.permissions?}
-    D -- denied --> E[Aviso en P14\nUsuario va a ajustes del navegador]
-    E --> C
-    D -- prompt o granted --> F[activarGPS\nwatchPosition iniciado\nenabledHighAccuracy · timeout 35s · maximumAge 0]
+    B --> D{"P14: _irANormativa()\n¿permiso GPS denegado?"}
+    D -- denied, producción --> E[Aviso en P14\nel usuario no avanza]
+    E --> D
+    D -->|"prompt o granted\n(en modo DEV no se mira, ver §24)"| C2[CODIGO_VALIDADO: el padre solo lo anota\nlo demás, en P15_MOSTRADA]
+    C2 --> IFRAMES[P15 — normativa a la vista\nPromise.all de hijos + datos\nespera HIJO_LISTO de todos]
+    IFRAMES --> F[activarGPS\nwatchPosition iniciado\nenableHighAccuracy · timeout 35s · maximumAge 0]
     F --> G{¿Callback?}
-    G -- onGpsSuccess --> H[MODO CASA\nwatchPosition activo\nsin overlay "fuera de rango" ni bloqueo de trazado\nver nota bajo el diagrama sobre ACTUALIZAR_ESTADO/LLEGADA_DETECTADA]
+    G -- onGpsSuccess --> H["modo sin decidir (null) hasta P17\nwatchPosition activo\nsin pantallas de distancia ni trazado"]
     G -- PERMISSION_DENIED --> I[clearWatch · watchId null\nimagen-no-gps.png fullscreen\nbotón 🛰️→🌐→⚙️]
     I --> J{Usuario ajusta permisos\ny pulsa botón overlay}
     J --> F
-    H --> K{Usuario inicia AVENTURA\nvía botón 🛰️ hijo5 o Factor 2}
+    H --> K{"P17: SELECCION.AVENTURA_ACTIVADA\nen CASA con el modo DEV, ver §24"}
     K --> L[MODO AVENTURA\nwatchPosition activo + validaciones distancia]
     L --> M1[funciones-mapa envía ACTUALIZAR_ESTADO a hijo2\ndistancia + toleranciaGPS, cada lectura]
     L --> M2[funciones-mapa detecta llegada por sí mismo\n2 de las últimas 4 lecturas dentro de radio\n→ LLEGADA_DETECTADA directo al padre]
     M1 --> M3[hijo2 hace su propia detección con esos datos\n→ LLEGADA_DETECTADA directo al padre]
     M2 --> L
     M3 --> L
-    L --> N{Usuario vuelve a CASA\nvía hijo5 button o Factor 2}
-    N --> H
+    L --> N{"Con el modo DEV, vuelta a CASA\ncon el botón de hijo5 (ver §24)"}
+    N --> CASA[MODO CASA\nwatchPosition activo, sin validaciones]
 ```
 
 Los dos caminos de `LLEGADA_DETECTADA` (funciones-mapa y hijo2) avisan del mismo hecho — ninguno de los dos envía `CAMBIO_PARADA`; el padre atiende los dos con `_marcarPendingPorLlegada()`, que marca `pending.llegada` (§2.2). El de funciones-mapa se despacha primero, dentro del propio padre; el de hijo2 decide con la distancia y el id que funciones-mapa le manda en `ACTUALIZAR_ESTADO` y llega unos milisegundos después. No existe ninguna función que desactive el GPS, y nada en la app lo dispararía vía postMessage — `NAVEGACION.GPS.DESACTIVAR` no tiene handler (la constante existe, sin uso, por si algún día un hijo necesita pedirlo de verdad). En la práctica, el GPS no se detiene nunca tras arrancar en P15.
@@ -557,7 +556,7 @@ El bus supervisa y recarga a **todos los hijos por igual**: ninguno está exento
 |-------------|-------|-----------------|----------|
 | `_hdl_SISTEMA_CAMBIO_MODO` | Script 1 | `SISTEMA.CAMBIO_MODO` | Congela/restaura `paradaRealCongelada`, actualiza el mapa directamente y delega en `manejarCambioModo()` — detalle completo en §2.4/§2.5, no es un simple delegador |
 | `HEARTBEAT_RESPONSE` handler | Script 1 | `SISTEMA.HEARTBEAT_RESPONSE` | Pasa la respuesta al bus (`procesarHeartbeatResponse()`): pone a 0 los latidos sin respuesta del hijo y, si ya completó el apretón de manos, sus recargas seguidas |
-| `_hdl_NAVEGACION_GPS_ACTIVAR` | Script 2 | `NAVEGACION.GPS.ACTIVAR` | Activa watchPosition en modo AVENTURA |
+| `_hdl_NAVEGACION_GPS_ACTIVAR` | Script 2 | `NAVEGACION.GPS.ACTIVAR` | El botón «avanzar» de hijo2: en AVENTURA, si `_decidirAvanzar()` lo permite, progresa al siguiente elemento; después llama a `activarGPS()`, que no abre otro vigilante si ya hay uno activo |
 
 **Funciones internas clave**:
 
@@ -567,7 +566,7 @@ El bus supervisa y recarga a **todos los hijos por igual**: ninguno está exento
 | `_gestionarSesionSegunModo()` | Script 1 | Según el modo: `_activarAventura()` (AVENTURA) o `_transicionarAModoCasa()` (CASA) |
 | `_activarAventura()` | Script 1 | Fija la parada por defecto con `ensureDefaultParada()` (salvo en una reanudación) y (re)inicia el temporizador de hijo1 |
 | `_transicionarAModoCasa()` | Script 1 | Limpia localStorage de progreso (salvo en modo dev —ver §24— o al reanudar una sesión guardada) |
-| `_gestionarGpsSegunModo()` | Script 1 | Gestiona overlays GPS según modo; si modo=AVENTURA y `!estado.gps.activo` llama `activarGPS()` |
+| `_gestionarGpsSegunModo()` | Script 1 | Escribe el modo en el log (`_gestionarGpsOverlays`); si modo=AVENTURA y `!estado.gps.activo` llama `activarGPS()` |
 | `activarGPS()` | Script 1 | Inicia `watchPosition` (con mutex anti-duplicado) |
 | `ejecutarRestauracionAventura()` | Script 1 | Restaura sesión desde `localStorage` |
 | `manejarCambioModoMapa(mensaje)` | `js/funciones-mapa.js` | Controlador de `SISTEMA.CAMBIO_MODO` en el módulo de mapa. Captura `modoAnterior`, actualiza `estadoMapa.modo` y llama `limpiarPorEstado`. El orden de operaciones es crítico: `modoAnterior` debe capturarse **antes** de mutar `estadoMapa.modo`. |
@@ -669,13 +668,11 @@ flowchart TD
     B -- Sí vv_aventura_iniciada --> C[ejecutarRestauracionAventura\nRestaurar progreso · idioma · parada actual]
     B -- No --> D[Demo P1→P18 · selección idioma · aventura · puzzle · pago · activación]
     D --> P14V[P14: usuario introduce código\nPadre recibe CODIGO_VALIDADO]
-    P14V --> E[P15_MOSTRADA -> padre carga iframes + datos en paralelo\nluego activa GPS (solo prod) mientras usuario lee normativa]
+    P14V --> E[P15_MOSTRADA -> padre carga iframes + datos en paralelo\nluego activa GPS, en producción y en modo DEV, mientras usuario lee normativa]
     E --> F[Handshake HIJO_LISTO\nde cada hijo]
-    F --> G[Padre distribuye coordenadas y textos\naudios/retos se resuelven por parada, no en bloque]
-    G --> H([MODO CASA\nUsuario ve mapa · GPS activo sin validaciones · heartbeat activo])
-    C --> H
-
-    H --> I[Usuario inicia aventura\n→ SISTEMA.CAMBIO_MODO aventura]
+    F --> G[P17: AVENTURA_ACTIVADA\npadre guarda la tabla de coordenadas y la lista de hijo5\ncada elemento se resuelve al activarse, no en bloque]
+    G --> I[SISTEMA.CAMBIO_MODO aventura\nCASA con el modo DEV, ver §24]
+    C --> I
     I --> J([MODO AVENTURA\nwatchPosition activo · heartbeat 5s · validaciones distancia])
 
     J --> ACT[Elemento activo: padre ya envió CAMBIO_PARADA a hijo2/3/4/5\nP0 al entrar en AVENTURA, o el siguiente tras btn-avanzar del anterior\nAudio se resuelve y envía automáticamente — autoplay:false, usuario pulsa play]
@@ -752,7 +749,7 @@ flowchart LR
 ```text
 hijo5  →  CAMBIO_PARADA { paradaId: "padre-P0" }  →  padre
 padre  →  busca parada en DATOS_PADRE
-padre  →  CAMBIO_PARADA { parada, coordenadas, audio_id, reto_id }  →  hijo2, hijo3, hijo4, hijo5
+padre  →  CAMBIO_PARADA { paradaId, parada_id, padreId, padreid, … }  →  hijo2 (+ tipo), hijo3, hijo4 (+ tipo, retoId, retoIds; si ya está iniciado), hijo5 (si el cambio no viene de él)
 padre  →  CONTROL.HABILITAR { control: 'retosBtn' }  →  hijo3   ← inmediato si tiene reto_id
 padre  →  RETO.ESTADO_CASA { habilitado: true }  →  hijo4         ← si es parada (no tramo)
 ```
@@ -762,7 +759,7 @@ padre  →  RETO.ESTADO_CASA { habilitado: true }  →  hijo4         ← si es 
 elemento anterior — nunca por el GPS directamente, ver §2.2):
 
 ```text
-padre  →  CAMBIO_PARADA { parada, coordenadas, audio_id, reto_id }  →  hijo2, hijo3, hijo4, hijo5
+padre  →  CAMBIO_PARADA { paradaId, parada_id, padreId, padreid, … }  →  hijo2 (+ tipo), hijo3, hijo4 (+ tipo, retoId, retoIds; si ya está iniciado), hijo5 (si el cambio no viene de él)
 padre  →  CONTROL.DESHABILITAR { control: 'retosBtn' }  →  hijo3  ← bloqueado hasta audio
 padre  →  CONTROL.DESHABILITAR { control: 'btnAvanzar' }  →  hijo2
 padre  →  AUDIO.REPRODUCIR_REQUEST { audioId, audioData, autoplay:false }  →  hijo3   ← audioData resuelto vía cargarAudios()
@@ -13756,7 +13753,7 @@ Para cada sección de `docs/GUIA-COMPLETA.md` que haga afirmaciones concretas so
 Los ejes 1-20 cubren exclusivamente el cliente (padre, hijos, postMessage, GPS). El único servidor real del proyecto es `js/server.js` — un `http.createServer` plano de Node, sin Express, sin carpeta `backend/`.
 
 1. Lee `js/server.js` completo: mapeo MIME, `PROTECT_DATA`/`isProtectedFile`, cabeceras CORS, `Permissions-Policy`.
-2. Para `isProtectedFile`: comprueba bypasses de path traversal (`../`), encoding URL (`%2e%2e`), variantes de mayúsculas/unicode, barra final, trucos de query string. Verifica si `normalized = urlPath.split('?')[0].toLowerCase()` cubre todos los casos o si hay una forma de acceder a `/audios-aventuras/` o `/js/textos-aventuras.js` sin pasar el filtro.
+2. Para `isProtectedFile`: comprueba bypasses de path traversal (`../`), encoding URL (`%2e%2e`), variantes de mayúsculas/unicode, barra final, trucos de query string. Verifica si `normalized = path.posix.normalize(urlPath.split('?')[0]).toLowerCase()` —sobre una ruta ya pasada por `decodeURIComponent` al entrar la petición— cubre todos los casos o si hay una forma de acceder a `/audios-aventuras/` o `/js/textos-aventuras.js` sin pasar el filtro.
 3. Verifica si `PROTECT_DATA` está realmente activo en el entorno donde se está probando (variable de entorno) — documenta el estado real, no asumas.
 4. CORS: `Access-Control-Allow-Origin: '*'` — verifica que ningún endpoint sensible depende de cookies/credenciales junto con ese wildcard (serían incompatibles y inseguros combinados).
 5. Manejo de errores del servidor: ¿un 404/500 filtra rutas absolutas del sistema de archivos en el cuerpo de la respuesta?
