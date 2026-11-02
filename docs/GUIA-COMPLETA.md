@@ -9420,7 +9420,7 @@ flowchart TD
     HDL --> CODE2{¿código DEV correcto?}
     CODE2 -- No --> HDL
     CODE2 -- Sí --> SET2["globalThis._devModeActivo = true\nhijo5: display:block · visibility:visible\ndespacharLocal(CAMBIO_MODO, MODOS.CASA)"]
-    SET2 --> CAMBIO["_hdl_SISTEMA_CAMBIO_MODO(CASA)\nlocalStorage progreso limpiado\nhijos notificados CAMBIO_MODO"]
+    SET2 --> CAMBIO["_hdl_SISTEMA_CAMBIO_MODO(CASA)\nla aventura guardada se conserva (_devModeActivo ya es true)\nhijos notificados CAMBIO_MODO"]
     CAMBIO --> CASA2([MODO CASA\nhijo5 visible · GPS sin validaciones])
 ```
 
@@ -9583,10 +9583,10 @@ El desarrollador ve la pantalla de normativa. Es obligatoria incluso en modo DEV
 El padre ejecuta `_hdl_SELECCION_P15_MOSTRADA` en este orden:
 
 1. En paralelo: carga iframes hijo1–4 y hijo6 (`cargarRestoDeiframes()`), hijo5 (`cargarHijoCasa()`), y datos de aventura (`_fase2CargarDatos()`)
-2. Setea `globalThis._iframesPreCargadosP15 = true` — en cuanto el paso 1 termina, porque es justo lo que el flag afirma. No espera al GPS (ver §9.11)
+2. Setea `globalThis._iframesPreCargadosP15 = true` — en cuanto el paso 1 termina, porque es justo lo que el flag afirma. No espera al GPS (ver §10.5, `SELECCION.P15_MOSTRADA`)
 3. Setea `globalThis._codigoValidadoP14 = true`
-3. Llama a `activarGPS()` — igual que en producción, `_devModeActivo` no cambia este paso. Encenderlo ya aquí evita el coste de reingresar GPS más tarde: una vez arrancado, `watchPosition` no se detiene al cambiar de modo (ver §2.6). Si GPS deniega, el overlay de señal perdida aparece igual que en producción — el desarrollador puede seguir en modo CASA (que no requiere GPS para nada) hasta resolverlo.
-4. (el flag ya quedó puesto en el paso 2; si el GPS falla, el `return` no lo deshace)
+4. Llama a `activarGPS()` — igual que en producción, `_devModeActivo` no cambia este paso. Encenderlo ya aquí evita el coste de reingresar GPS más tarde: una vez arrancado, `watchPosition` no se detiene al cambiar de modo (ver §2.6). Si GPS deniega, el overlay de señal perdida aparece igual que en producción — el desarrollador puede seguir en modo CASA (que no requiere GPS para nada) hasta resolverlo.
+5. (el flag ya quedó puesto en el paso 2; si el GPS falla, el `return` no lo deshace)
 
 El desarrollador sigue viendo la normativa mientras todo esto ocurre en segundo plano. No hay ningún spinner ni indicador de carga — la pantalla permanece estática.
 
@@ -9624,7 +9624,7 @@ El mapa aparece. hijo5 está visible en la parte superior derecha. El GPS **est�
 | `watchPosition` | ✅ activo — se inició en P15, igual que en producción |
 | Procesamiento de proximidad (marcador, distancia) | ✅ ocurre con normalidad — `procesarPosicionGPSParaAventura()` no distingue modo para esto |
 | Avance automático de parada al detectar llegada | ❌ bloqueado por `estadoMapa.modo !== MODOS.AVENTURA` — la única diferencia real entre modos |
-| Overlay de error GPS | ✅ puede aparecer si el permiso se deniega o se pierde señal, igual que en AVENTURA |
+| Overlay de error GPS | ❌ callado: en CASA el GPS sigue en marcha pero no decide nada —las paradas y los tramos los elige hijo5—, así que un aviso de señal no tendría sentido. `showGpsSignalOverlay()` solo sale en AVENTURA o con `_codigoValidadoP14`, que se apaga al confirmar CASA (paso 6.5); en P15, antes de decidir el modo, sí sale |
 | Avance de paradas | ❌ imposible en modo CASA — el usuario elige libremente desde hijo5 |
 
 ---
@@ -9639,7 +9639,7 @@ Cuando el desarrollador está listo para probar la navegación real, pulsa el bo
    - `manejarCambioModo(AVENTURA)` → `actualizarInterfazModo` envía `SISTEMA.CAMBIO_MODO` a todos los hijos, espera `ENTENDIDO` + `EFECTUADO`, envía `APLICADO`
    - `_gestionarGpsSegunModo(AVENTURA)` → guard `!estado.gps?.activo` — normalmente ya es `false` (GPS activo desde P15), así que este paso no hace nada; es una red de seguridad por si el GPS se hubiera desactivado por algún motivo
 3. Qué hace cada hijo al recibir `CAMBIO_MODO('aventura')`:
-   - **hijo2**: `_resetarEstadoParaModo('aventura')` → `estadoComponente.modo = 'aventura'`, y `posicionActualUsuario`/`distanciaAlDestino`/`idParadaActual` quedan a `null` (ver Paso 8 arriba y §29 más abajo) — la rama `if (estadoComponente.posicionActualUsuario) verificarDistanciaYActualizarBotones()` de la propia función nunca llega a ejecutarse aquí, porque `posicionActualUsuario` acaba de resetearse a `null` en la misma llamada; la distancia real se recalcula desde cero en cuanto llega el siguiente `ACTUALIZAR_ESTADO` fresco del padre (paso 3 de más abajo), nunca a partir de un valor que pudiera estar desactualizado tras el tiempo pasado en CASA.
+   - **hijo2**: `_resetarEstadoParaModo('aventura')` → `estadoComponente.modo = 'aventura'`, y `posicionActualUsuario`/`distanciaAlDestino`/`idParadaActual` quedan a `null` (ver §29) — la rama `if (estadoComponente.posicionActualUsuario) verificarDistanciaYActualizarBotones()` de la propia función nunca llega a ejecutarse aquí, porque `posicionActualUsuario` acaba de resetearse a `null` en la misma llamada; la distancia real se recalcula desde cero en cuanto llega el siguiente `ACTUALIZAR_ESTADO` fresco del padre (paso 3 de más abajo), nunca a partir de un valor que pudiera estar desactualizado tras el tiempo pasado en CASA.
      `verificarDistanciaYActualizarBotones()` usa `estadoComponente.distanciaAlDestino` — la distancia a **la parada que toca** según el índice de progreso actual, calculada por `funciones-mapa.js` y recibida en el último `ACTUALIZAR_ESTADO`. No hace Haversine propio ni comprueba todas las paradas.
    - **funciones-mapa.js** (vía `manejarCambioModoMapa`): `estadoMapa.modo = MODOS.AVENTURA` — el guard `estadoMapa.modo !== MODOS.AVENTURA` de `procesarPosicionGPSParaAventura` deja de bloquear; las posiciones GPS entrantes vuelven a calcular la distancia a la siguiente parada (`_siguienteIdElementoNavegable()` resuelve el id en `elementosIDpadre`, luego se busca ese id en `AVENTURA_PARADAS` para sus coordenadas — ver más abajo) y enviarla a hijo2 vía `ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, toleranciaGPS, lat, lng }`
 4. A partir de este momento:
