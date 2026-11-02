@@ -6059,7 +6059,7 @@ codigo-padre.html arranca
 
 ### 10.21 HTTP / fetch — capa de datos
 
-Dos módulos gestionan la comunicación con servidores externos. **Actualmente el modo de datos es `'local'` siempre**, porque `BACKEND_READY = false` en `js/data-loader.js` — todas las peticiones al backend están desactivadas hasta que ese interruptor pase a `true`. Para los detalles de seguridad de `PROTECT_DATA`, protección de rutas y el modelo de origen verificado en `postMessage`, ver **§17 (Seguridad y protección)**.
+Dos módulos gestionan la comunicación con servidores externos. **El modo de datos es `'local'` siempre**, porque `BACKEND_READY = false` en `js/data-loader.js` — todas las peticiones al backend están desactivadas hasta que ese interruptor pase a `true`. Para los detalles de seguridad de `PROTECT_DATA`, protección de rutas y el modelo de origen verificado en `postMessage`, ver **§17 (Seguridad y protección)**.
 
 #### js/data-loader.js — cargador de datos (activo)
 
@@ -6074,7 +6074,7 @@ Los archivos JSON de párrafos **no están en el APP_SHELL del SW** — se sirve
 
 > **Invariante crítico del logger en `data-loader.js`:** El logger público solo expone `.info()`, `.warn()`, `.error()`, `.debug()` — **no expone `.log()`**. El try-catch de `cargarMapaParrafos` engloba también la línea de confirmación de éxito; si esa línea lanza (p.ej. llamando a un método inexistente del logger), el catch convierte el fetch exitoso en `{}` silenciosamente y `parrafosCache` nunca se popula. Cualquier log de confirmación en el success-path debe usar exclusivamente métodos del API pública del logger.
 
-En modo `'api'` (pendiente de activar), usaría `fetchFromAPI()` hacia el backend Express.
+En modo `'api'` (pendiente de activar), usaría `fetchFromAPI()` hacia el backend previsto (Express + JWT, §16.2), que no existe todavía.
 
 #### js/api-client.js — cliente REST (preparado, no activo)
 
@@ -6207,6 +6207,7 @@ volver a leer este apartado.
 |---|---|
 | BC-1 | Un envío "arriba" llega al padre, "abajo" a un hijo, y `'broadcast'` a todos los hijos — nunca sube a un contenedor ni baja a los nietos de otro hijo |
 | BC-2 | Un iframe sin `registrarIframe()` no llega a ningún handler; el propio frame emisor sí recibe lo que se envía a sí mismo |
+| BC-7 | Un frame sin padre ni iframes no envía nada: `enviarMensaje` devuelve `false` y un envío con acuse rechaza al momento con `motivo: 'no-enviado'`, sin esperar su plazo; lo avisa una sola vez, no una por envío |
 | BC-8 | Tras `desregistrarIframe`: ni el padre le envía nada, ni se aceptan mensajes que digan venir de él |
 | BC-18 | Enviarse algo a uno mismo por `enviarMensaje` no sale y avisa — para eso está `despacharLocal` |
 
@@ -6274,7 +6275,7 @@ El proyecto tiene dos motores de mapa independientes, cada uno resuelto con la h
 
 > **MapLibre, servido en local (sin CDN):** `codigo-padre.html` carga MapLibre desde `js/vendor/` (`maplibre-gl-csp.js` — build sin `blob:` workers, compatible con la CSP estricta del proyecto — + `maplibre-gl-csp-worker.js` + `maplibre-gl.css`). No hay dependencia de red en tiempo de carga para el mapa de aventura — funciona sin conexión desde el primer render.
 >
-> **Leaflet, servido por CDN:** `mapa-completo.html` y `video-intro.html` cargan Leaflet desde CDNs externos — `cdnjs.cloudflare.com` (con `integrity`/`crossorigin`) el primero, `unpkg.com` el segundo — no desde `js/vendor/`. Ambos ficheros carecen de cabecera CSP propia (a diferencia de `codigo-padre.html`), así que no hay restricción que lo impida. `js/vendor/` solo contiene los ficheros que sí se usan: MapLibre (mapa de aventura) y StPageFlip (`video-intro.html`, ver §35.6b).
+> **Leaflet, servido por CDN:** `mapa-completo.html` y `video-intro.html` cargan Leaflet desde CDNs externos — `cdnjs.cloudflare.com` (con `integrity`/`crossorigin`) el primero, `unpkg.com` el segundo — no desde `js/vendor/`. Ninguno de los dos restringe orígenes (a diferencia de `codigo-padre.html`): `mapa-completo.html` lleva una CSP con solo `upgrade-insecure-requests` y `video-intro.html` ninguna, así que no hay restricción que lo impida. `js/vendor/` solo contiene los ficheros que sí se usan: MapLibre (mapa de aventura) y StPageFlip (`video-intro.html`, ver §35.6b).
 
 `js/utils.js` incluye `puntoMasCercanoEnLinea()`, una función propia sin dependencias que proyecta un punto sobre una polilínea (proyección plana local) — usada para `distanciaAlCamino` en la detección de fuera-de-rango (§4.7 tabla de botones, `verificarDistanciaYActualizarBotones()` en hijo2). El mapa de aventura no necesita ningún plugin de rotación de terceros: al usar MapLibre, la rotación es una capacidad nativa del motor.
 
