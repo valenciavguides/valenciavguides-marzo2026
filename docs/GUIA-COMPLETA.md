@@ -6819,9 +6819,9 @@ La animación de zoom al cambiar de parada usa `flyTo` de MapLibre con la consta
 |---|---|---|
 | Zoom out (alejar) | `durFase` = **0.35 s** | Solo si hay parada anterior — aleja para mostrar contexto |
 | Zoom in (acercar) | `durFase × 1.5` = **0.525 s** | Acerca al destino al máximo de zoom |
-| Timeout fallback | `durFase × 1000 + 600 ms` = **950 ms** | Si `moveend` no dispara, continúa tras este tiempo |
+| Timeout fallback | `durFase × 1000 + 600 ms` = **950 ms** tras el alejamiento, y 200 ms más (**1150 ms**) tras el acercamiento | Si `moveend` no dispara, continúa tras este tiempo |
 
-Con `durFase = 0.35 s`, el tiempo total de la animación de zoom (out + in) es ~1.45 s. MapLibre expresa `duration` en milisegundos — `durFase` sigue escrita en segundos en el código y se multiplica por 1000 en cada llamada a `flyTo`. La curva de aceleración usa el easing por defecto de MapLibre, sin parámetro propio para afinarla — solo la duración es configurable.
+Con `durFase = 0.35 s`, la animación de zoom (out + in) dura 0,875 s cuando cada fase termina con su `moveend`; si ninguno llega, los dos respaldos la alargan a 2,1 s. MapLibre expresa `duration` en milisegundos — `durFase` está escrita en segundos en el código y se multiplica por 1000 en cada llamada a `flyTo`. La curva de aceleración usa el easing por defecto de MapLibre, sin parámetro propio para afinarla — solo la duración es configurable.
 
 ### Optimización CAMBIO_PARADA (`codigo-padre.html`)
 
@@ -6989,7 +6989,7 @@ El modal se muestra en el idioma que el usuario ha seleccionado.
     reto: 3,                                    // Número de reto
     id: "R3-Av1-es",                           // ID único
     tipo: "opcion",                            // Tipo de reto
-    pregunta: "¿Cómo se llaman estas Torres?", // La pregunta
+    pregunta: "Aquí va el primero de sus retos, este es facilito. ¿Sabría decirme cómo se llaman estas torres?", // La pregunta
     opciones: [                                 // Las opciones (solo para tipo opcion)
         "Torres de Quart",
         "Torres de Serranos",
@@ -7003,8 +7003,8 @@ El modal se muestra en el idioma que el usuario ha seleccionado.
 
 ### Seguridad de las respuestas
 
-- **En desarrollo**: las respuestas correctas (`correctas`) están en el fichero JS del frontend. El usuario técnicamente podría verlas inspeccionando el código.
-- **En producción**: el backend sirve los retos **sin incluir las respuestas correctas**. La validación se hace en el servidor: el frontend envía la respuesta al endpoint `POST /api/retos/:aventura/:idioma/:retoId/validar` y el servidor responde si es correcta o no.
+- **Sin backend (como funciona la app)**: las respuestas correctas (`correctas`) están en el fichero JS del frontend, y hijo4 comprueba la respuesta en el propio dispositivo. El usuario técnicamente podría verlas inspeccionando el código.
+- **Con el backend previsto (§16, sin construir)**: los retos se sirven **sin las respuestas correctas** y la validación la hace el servidor, en `POST /api/retos/:aventura/:idioma/:retoId/validar`. `ApiClient.validarReto()` (`js/api-client.js`) ya construye esa petición, y hoy no la llama nadie.
 
 ### Idiomas
 
@@ -7016,7 +7016,7 @@ RETOS_AVENTURAS.Aventura1.en[...]   // Retos de Aventura1 en inglés
 // … 12 idiomas × aventuras activas
 ```
 
-Un reto es el mismo en los doce idiomas: el mismo número (`reto`), el mismo `id` —el padre lo busca por él—, el mismo `tipo` y el mismo número de opciones y de respuestas. Un reto que se repite en varias aventuras (en español, misma pregunta, tipo, opciones y respuestas) tiene una sola redacción en cada idioma. La voz es la de usted y sin marcas de género en todos: *Lei* en italiano, *vous*, *Sie*, *u*, «Pan/Pani» en polaco con «Proszę» + infinitivo en los imperativos, *вы*/*ви*, 您 y las formas en です/ます. Los nombres de las torres y de las fiestas («Torres de Serranos», «Las Fallas»…) van en español en todos los idiomas. Los textos son texto plano, sin marcas HTML: hijo4 pinta la pregunta con `textContent`. Lo comprueba el spec 132 (RH-1 a RH-10).
+Un reto es el mismo en los doce idiomas: el mismo número (`reto`), el mismo `id` salvo el sufijo del idioma (`R3-Av1-es`, `R3-Av1-en`…; el padre lo busca por el `reto_id` del elemento en ese idioma), el mismo `tipo` y el mismo número de opciones y de respuestas. Un reto que se repite en varias aventuras (en español, misma pregunta, tipo, opciones y respuestas) tiene una sola redacción en cada idioma. La voz es la de usted y sin marcas de género en todos: *Lei* en italiano, *vous*, *Sie*, *u*, «Pan/Pani» en polaco con «Proszę» + infinitivo en los imperativos, *вы*/*ви*, 您 y las formas en です/ます. Los nombres de las torres y de las fiestas («Torres de Serranos», «Las Fallas»…) van en español en todos los idiomas. Los textos son texto plano, sin marcas HTML: hijo4 pinta la pregunta con `textContent`. Lo comprueba el spec 132 (RH-1 a RH-10).
 
 ### Flujo de comunicación de retos
 
@@ -7035,8 +7035,8 @@ El audio es el requisito de entrada, cuando existe audio en esa parada:
 5. Usuario pulsa `retosBtn` (hijo3) o `#botonRetos` (hijo4) → se envía `RETO.SOLICITAR_RETO` a padre.
 6. Padre localiza el `retoId` para esa parada, espera a que hijo4 esté listo (`crearPromiseHijoListo`, sin plazo), llama `mostrarHijo4()`, envía `RETO.MOSTRAR` con `{ retoId, retosArray, idioma }`.
 7. hijo4 renderiza el reto, oculta `#botonRetos`.
-8. Usuario responde → si correcto: `RETO.COMPLETADO` a padre → si hay cola, padre envía el siguiente `RETO.MOSTRAR`; si la cola se agota, padre avanza el flujo.
-9. Usuario pulsa `#btnNextAfterReto` → hijo4 envía `RETO.OCULTAR` a padre → padre oculta hijo4.
+8. Usuario responde bien → `#btnNextAfterReto` se pone verde; hijo4 guarda el acierto, pero todavía no lo manda.
+9. Usuario pulsa `#btnNextAfterReto` → hijo4 envía `RETO.COMPLETADO` (con acuse) y después `RETO.OCULTAR` → el padre apunta el reto: si hay cola, envía el siguiente `RETO.MOSTRAR`; si se agota, lo anota en la ficha (`pending.reto`) e intenta completar el elemento; y con `RETO.OCULTAR` oculta hijo4.
 
 **Si la parada no tiene audio**: padre habilita directamente `retosBtn` en hijo3 y envía `RETO.HABILITAR` a hijo4 con `{ razon: 'sin_audio' }`. El flujo continúa desde el paso 5.
 
@@ -7046,11 +7046,11 @@ No hay requisito de audio. El reto se habilita por posición en la ruta (parada 
 
 1. El usuario selecciona una parada desde hijo5 → padre actualiza la parada actual.
 2. Padre envía `RETO.ESTADO_CASA` a hijo4 con `{ tipo: 'parada', habilitado: true }` → hijo4 muestra `#botonRetos` habilitado.
-3. Si el usuario está en un tramo (entre paradas): padre envía `{ tipo: 'tramo', habilitado: false }` → `#botonRetos` visible pero deshabilitado.
+3. Si el usuario está en un tramo (entre paradas) o en una parada sin reto: padre envía `{ tipo, habilitado: false }` → `#botonRetos-wrapper` oculto y `#botonRetos` deshabilitado.
 4. Usuario pulsa `#botonRetos` → hijo4 envía `RETO.SOLICITAR_RETO` a padre.
 5. Padre responde con `RETO.MOSTRAR` → hijo4 renderiza el reto, oculta `#botonRetos`.
-6. Usuario responde → `RETO.COMPLETADO` → mismo comportamiento de cola que en AVENTURA.
-7. Usuario pulsa `#btnNextAfterReto` → `RETO.OCULTAR` a padre. hijo4 vuelve a mostrar `#botonRetos`.
+6. Usuario responde bien y pulsa `#btnNextAfterReto` → `RETO.COMPLETADO` y `RETO.OCULTAR`, como en AVENTURA.
+7. El padre contesta a `RETO.OCULTAR` con `RETO.LIMPIAR_ESTADO`, y hijo4 vuelve a mostrar `#botonRetos-wrapper` (en CASA, salvo `retoSigueActivo: false`).
 
 **Diferencia clave**: en AVENTURA el gatillo es el fin del audio (hijo3 →
 `retosBtn`); en CASA el gatillo es la posición en ruta (padre →
@@ -7109,7 +7109,7 @@ Todos los botones de avance en `retos-hijo4.html` usan la clase `.btn-mundo-verd
 
 | ID | Cuándo es visible | Estado inicial |
 | -- | ----------------- | -------------- |
-| `#botonRetos` | Antes de mostrar el reto — MODO AVENTURA: tras `RETO.HABILITAR`; MODO CASA: siempre visible en paradas/tramos | Deshabilitado — oculto hasta recibir el mensaje correspondiente |
+| `#botonRetos` | Antes de mostrar el reto — MODO AVENTURA: tras `RETO.HABILITAR`; MODO CASA: tras `RETO.ESTADO_CASA`, visible solo en las paradas con reto (oculto en tramos y en paradas sin reto) | Deshabilitado — oculto hasta recibir el mensaje correspondiente |
 | `#btnSaltarReto` | En `#button-container`, entre `#btnMostrarRespuesta` y `#btnNextAfterReto` (orden visual: 🫵, 🆘, ⏩, mundo verde) | Habilitado mientras hay un `estado.retoActualId` activo — ver "Saltar un reto o puzzle roto" más abajo |
 | `#btnNextAfterReto` | Mientras hay reto activo (deshabilitado hasta responder correctamente) | Deshabilitado |
 | `#btn-puzzle-continuar` | Solo cuando `PUZZLE.COMPLETADO` o `PUZZLE.TIMEOUT` llega de `puzzle.html` | Oculto |
@@ -7123,7 +7123,7 @@ Junto a los controles normales de cada reto hay un botón ⏩: da el reto/puzzle
 **Robustez de fondo — ambos archivos siguen funcionando aunque el reto/puzzle no cargue:**
 
 - `puzzle.html`: si el puzzle no se encuentra (`puzzleConfigValido = false`), se muestra `#errorMsg` con el error dentro del recuadro, y el resto del script — incluidos los listeners de `#restartBtn`/`#pauseBtn`/`#skipBtn` — se registra con normalidad. La lógica específica del puzzle (imagen, canvas, piezas, temporizador) queda encapsulada en `if (puzzleConfigValido) {...}`, así que nunca se ejecuta con datos indefinidos.
-- `retos-hijo4.html`: si `mostrarReto()` no encuentra el reto, limpia `#reto`, resetea `#btnNextAfterReto`/`_pendienteCompletado`, y muestra el aviso `MSG_RETO_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas, en el idioma que lleva `RETO.MOSTRAR`) mientras reintenta en segundo plano vía `DATOS.SOLICITAR_RETOS`. Si ese reintento del padre (`js/controladores-padre.js`) tampoco encuentra el dato, no responde nada — hueco pendiente, no bloquea el rescate visible del botón ⏩, que sigue disponible en ese estado.
+- `retos-hijo4.html`: si `mostrarReto()` no encuentra el reto, limpia `#reto`, resetea `#btnNextAfterReto`/`_pendienteCompletado`, y muestra el aviso `MSG_RETO_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas, en el idioma que lleva `RETO.MOSTRAR`) mientras reintenta en segundo plano vía `DATOS.SOLICITAR_RETOS`. Si ese reintento del padre (`js/controladores-padre.js`) tampoco encuentra el dato, no responde nada (lo deja en un `warn` del log); el botón ⏩ sigue disponible en ese estado, así que el usuario no se queda sin salida.
 - `estado.retoActualId` se fija antes de llamar a `mostrarReto()`, no después: `mostrarReto()` puede tardar esperando la respuesta del padre a `DATOS.SOLICITAR_RETOS` antes de devolver el control, así que fijarlo antes es lo que garantiza que el botón de saltar siempre sepa qué reto saltar, incluso mientras esa espera está en curso.
 
 **Los botones:**
@@ -7165,7 +7165,7 @@ El contenido HTML real vive por separado, en `js/parrafos-textos/parrafos-texto-
 }
 ```
 
-`cargarTextos(aventura, idioma)` (`js/data-loader.js`) ensambla ambos en tiempo de ejecución: por cada entrada de `TEXTOS_AVENTURAS[aventura]`, concatena el HTML de los párrafos listados y añade el `title` desde `AUDIOS_AVENTURAS[aventura][idioma]` (mismo `id`), produciendo el array final `[{id, title, content}]` que se distribuye a hijo2 (ver §9.6 y §10.5).
+`cargarTextos(aventura, idioma)` (`js/data-loader.js`) ensambla ambos en tiempo de ejecución: por cada entrada de `TEXTOS_AVENTURAS[aventura]`, concatena el HTML de los párrafos listados y añade el `title` desde `AUDIOS_AVENTURAS[aventura][idioma]` (mismo `id`), produciendo el array final `[{id, title, content}]`. Ningún hijo lo recibe entero: el padre lo consulta cuando lo necesita —`_buscarTextoDelElemento`, al abrir el overlay de imagen, por el `texto_id` del elemento, y `_construirFilasListadoParadas`, para el listado de paradas— (protección por parada, §16).
 
 ### Contenido rico
 
@@ -7192,9 +7192,9 @@ Esto garantiza que el logo escala con el tamaño del texto y se ve correctamente
 Todas las ventanas flotantes con texto (`.reto-box`, cuadro P6, P12, P14, mapa vintage, aviso audio, modal de `coordenadas-hijo2.html`, cuadro de retos de `retos-hijo4.html`) usan:
 
 - **Fondo:** `#fff8e7` (crema cálido, contraste legible sin el blanco puro).
-- **Texto general (`html`, `body`):** `font-size: clamp(16px, 5vmin, 18px)` — escala entre 16 px (móvil pequeño) y 18 px (PC). El tope se redujo de 24 px a 18 px para evitar texto desproporcionado en pantallas grandes. **Excepción en `retos-hijo4.html`:** los títulos (`h3`) usan `clamp(20px, 6vmin, 26px)` y las opciones de respuesta (`.respuesta`) usan `clamp(18px, 5.5vmin, 22px)`, ya que necesitan ser algo más grandes para que los controles táctiles (radio/checkbox) sean cómodamente pulsables.
+- **Texto general (`html`, `body`):** `font-size: clamp(16px, 5vmin, 18px)` — escala entre 16 px (móvil pequeño) y 18 px (PC). El tope de 18 px evita texto desproporcionado en pantallas grandes. **Excepción en `retos-hijo4.html`:** los títulos (`h3`) usan `clamp(20px, 6vmin, 26px)` y las opciones de respuesta (`.respuesta`) usan `clamp(18px, 5.5vmin, 22px)`, ya que necesitan ser algo más grandes para que los controles táctiles (radio/checkbox) sean cómodamente pulsables.
 - **Texto del reto (`.reto-box`):** el cuadro de reto ocupa `flex: 1; min-height: 0; overflow-y: auto` para llenar toda la pantalla disponible (excepto el logo y el safe-area inferior). Al tener más espacio, el texto usa tamaños más legibles: título `clamp(16px, 4.5vmin, 20px)` y cuerpo `clamp(14px, 4vmin, 17px)`. La pantalla P7 usa `justify-content: flex-start` explícitamente (`#pantalla7 { justify-content: flex-start }`). P8 y P16 (las pantallas de reto R-1 y R-2) logran el mismo efecto visual mediante `.reto-box { flex: 1 }`, que hace que el cuadro de reto crezca para llenar todo el espacio disponible bajo el logo — sin necesitar `flex-start` en el padre.
-- **Safe area inferior — cobertura completa:** la variable `--gap-inferior` (definida como `calc(1.5rem + env(safe-area-inset-bottom, 0px))` en `En-busca-del-tesoro.html` y en `codigo-padre.html`) está aplicada en **todos** los elementos que llegan al borde inferior: `.pantalla` base (cubre las 18 pantallas de una vez), `#pantalla11 .audio-overlay`, `#mapa-vintage-overlay`, `#audio-warning-overlay`, `.gps-overlay-distancia` (`codigo-padre.html` — clase compartida por `#gps-out-of-range-overlay`, `#foto-lejos-overlay` y `#foto-fuera-rango-overlay`, §31.4), `#monumento-overlay` (`mapa-completo.html`) y el botón de continuar del puzzle P6.
+- **Safe area inferior — cobertura completa:** la variable `--gap-inferior` (definida como `calc(1.5rem + env(safe-area-inset-bottom, 0px))` en `En-busca-del-tesoro.html` y en `codigo-padre.html`) está aplicada en **todos** los elementos que llegan al borde inferior: `.pantalla` base (cubre las 18 pantallas de una vez), `#pantalla11 .audio-overlay`, `#mapa-vintage-overlay`, `#audio-warning-overlay`, `.gps-overlay-distancia` (`codigo-padre.html` — clase compartida por los seis carteles de distancia y precisión: `#gps-out-of-range-overlay`, `#foto-fuera-rango-overlay`, `#foto-desviado-overlay`, `#foto-lejos-overlay`, `#foto-perdido-overlay` y `#gps-precision-overlay`, §31.4), `#monumento-overlay` (`mapa-completo.html`) y el botón de continuar del puzzle P6.
 - **Ancho de botones/pestañas de selección de aventura:** `width: 95vw; max-width: 95vw` para aprovechar toda la pantalla del móvil.
 
 #### Viewport dinámico — `100dvh`/`100dvw` en pantallas de entrada, puzzle y overlays de pantalla completa
@@ -7207,7 +7207,7 @@ Este patrón (`100vh`+`100dvh`, y donde aplica también `100vw`+`100dvw`) está 
 
 - **`En-busca-del-tesoro.html`**: `.pantalla` (cubre las 18 pantallas de entrada), `#pantalla11 .audio-overlay`, `#mapa-vintage-overlay` y `#audio-warning-overlay`.
 - **`puzzle.html`** (`body`): además de la doble declaración de altura, añade `padding-bottom: env(safe-area-inset-bottom, 0px)` y `box-sizing: border-box` para que el puzzle no quede bajo el indicador de inicio de iOS cuando se carga como iframe a pantalla completa desde `retos-hijo4.html`.
-- **`codigo-padre.html`** (ambos ejes, `100dvw` y `100dvh`): `#mapa`, `.gps-overlay-distancia` (`#gps-out-of-range-overlay`, `#foto-lejos-overlay`, `#foto-fuera-rango-overlay`), `#gps-signal-overlay`, `#internet-overlay`, `.backdrop`, `.media-overlay`, `#modal-tiempo-agotado`.
+- **`codigo-padre.html`** (ambos ejes, `100dvw` y `100dvh`): `#mapa`, `.gps-overlay-distancia` (los seis carteles de distancia y precisión, §31.4), `#gps-signal-overlay`, `#internet-overlay`, `.backdrop`, `.media-overlay`, `#modal-tiempo-agotado`.
 
 ```css
 /* Patrón correcto — no simplificar a solo uno de los dos valores por eje */
