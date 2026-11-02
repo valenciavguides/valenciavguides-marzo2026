@@ -11458,15 +11458,16 @@ Una referencia visual es el marcador numerado que se dibuja para **cada punto nu
 > **Regla crítica**: las referencias **nunca entran en `aventuras-ID-padre.js`**. Incluirla en `elementosIDpadre` rompe la secuencia del recorrido.
 
 ```javascript
-// Ejemplo en coordenadas-aventuras.js:
-{ tipo: "parada",     id: "P-6", coordenadas: { lat: 39.4785, lng: -0.3762 }, ... },
-{ tipo: "referencia", id: "REF-7", mapa_numero: 7,
-  coordenadas: { lat: 39.4790, lng: -0.3758 },
-  nombre: "Iglesia de los Menas" },
-{ tipo: "tramo",      id: "TR-6", ... }
+// En coordenadas-aventuras.js, las referencias de cada aventura van todas al principio, antes que paradas y tramos:
+{ tipo: "referencia", id: "REF-1", mapa_numero: 1,
+  coordenadas: { lat: 39.47921, lng: -0.37604 },
+  nombre: "Torres de Serranos",
+  imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg" },
+{ tipo: "referencia", id: "REF-2", mapa_numero: 2, ... },
+// ... y después la entrada `inicio`, las paradas y los tramos
 ```
 
-El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-completo.html`) con borde de 2px `#8B6914` (dorado oscuro/marrón; el naranja `#ff8c00` de §4.5 es del círculo de activación del mapa de aventura y no aparece en `mapa-completo.html`), texto del mismo color `#8B6914`, emoji 🏛️ y número de `mapa_numero` en la misma línea. Apilado visual `zIndexOffset: 400` (opción de Leaflet), por debajo de paradas visitadas (600).
+El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-completo.html`) con borde de 2px `#8B6914` (dorado oscuro/marrón; el naranja `#ff8c00` de §4.5 es del círculo de activación del mapa de aventura y no aparece en `mapa-completo.html`), texto del mismo color `#8B6914`, emoji 🏛️ y número de `mapa_numero` en la misma línea. Lleva `zIndexOffset: 400` (opción de Leaflet, que ordena marcadores entre sí); como son los únicos marcadores del mapa completo, no ordena nada: Leaflet ya pinta los marcadores por encima de las líneas de la ruta.
 
 ---
 
@@ -11478,7 +11479,7 @@ El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-compl
 - **IDs únicos por mensaje**: `generarIdUnico('msg')` → timestamp + random. Las confirmaciones usan `idOriginal` para correlacionar. El bus resuelve solo la promesa guardada bajo ese id en `confirmacionesPendientes`, evitando resoluciones cruzadas.
 - **Protocolo bidireccional de modo**: 4 fases (CAMBIO_MODO → ENTENDIDO → EFECTUADO → APLICADO) con timeouts independientes y Maps de módulo compartidos. Evita duplicación de handlers.
 - **State-manager con mutex**: serializa escrituras concurrentes en estado compartido.
-- **Cola de mensajes**: mensajes que llegan antes de que el destino esté registrado esperan y se procesan en orden.
+- **Fila por tipo**: los mensajes del mismo tipo se procesan en el orden en que llegan, uno detrás de otro (§10.6). Un envío a un destino sin registrar no se guarda para luego: no sale, y el bus lo dice (§26.5).
 - **Heartbeat**: el padre detecta hijos sin respuesta y recarga su iframe.
 - **Registro de handlers, un camino por frame**: en el padre, `registrarControladorSeguro` registra por `registrarControlador_S1` (el `registrarControlador` del bus), que guarda el handler en el state-manager (`sm.registrarManejador`); si el state-manager falla, el bus escribe un `error` y lo guarda directamente en el mapa de manejadores. Los hijos no tienen state-manager: el bus guarda sus handlers en `__vv_manejadoresLocales`. El `Set` `__CONTROLADOR_REGISTRADOS` evita que el padre registre dos veces un tipo (§33.1).
 - **`NAVEGACION.SOLICITAR_DATOS_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia.
