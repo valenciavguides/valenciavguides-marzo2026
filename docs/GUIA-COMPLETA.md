@@ -3773,7 +3773,7 @@ sequenceDiagram
 - `PADRE_DATOS` — contiene `{ modo, timestamp }` para todos los hijos. Salvo `hijo6-chat`, los hijos solo leen `modo`; los datos de la aventura llegan después, elemento a elemento, al activarse cada uno (`NAVEGACION.CAMBIO_PARADA`, `AUDIO.REPRODUCIR_REQUEST`, `RETO.MOSTRAR`), y a hijo6 con `CHAT.ESTADO_PADRE`. **Excepción: `hijo6-chat`** recibe además `idioma`/`aventura`/`paradaActualNombre`/`rescate` en este mismo mensaje — ver la nota de `hijo6-chat` en §6 y el detalle completo en §7.7.
 - `HIJO_LISTO` — el hijo confirma que ha procesado los datos. En el padre desencadena `marcarHijoListo(hijoId)`, que resuelve la Promise de `crearPromiseHijoListo(hijoId)`.
 - `PADRE_CONFIRMA_HIJO_LISTO` — señal para que el hijo muestre su UI. Hasta recibirlo la interfaz permanece oculta.
-- **Fallback de 30 s**: si `PADRE_CONFIRMA_HIJO_LISTO` no llega, los hijos críticos muestran su UI igualmente (ver §5, «Espera de HIJO_LISTO»).
+- **Fallback de 30 s**: si `PADRE_CONFIRMA_HIJO_LISTO` no llega tras sus 30 reenvíos de `HIJO_LISTO`, hijo1 a hijo5 muestran su UI igualmente, con un aviso en el log; hijo6 solo deja de reenviar (ver §5, «Espera de HIJO_LISTO»).
 
 **Campos declarados por cada hijo en `HIJO_PREPARADO`** (`datos.tipo` + `datos.capacidades[]`):
 
@@ -3823,7 +3823,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SELECCION.DEV_MODE_TOGGLE` | Tesoro → Padre | Modo desarrollador (ver §24) |
 | | `SELECCION.REINICIAR` | Tesoro → Padre | La selección vuelve a empezar: el usuario responde NO en el Reto R-2 (P16) o vuelve a las banderas (✗ de P3, «No» del aviso sin audio); `_hdl_SELECCION_REINICIAR` resetea `_codigoValidadoP14`/`_iframesPreCargadosP15` y borra `vv_idioma` — ver §24.1 caso adicional A |
 | **NAVEGACION** | `NAVEGACION.CAMBIO_PARADA` | Padre → Hijos / Hijo5 → Padre | Parada activa cambia |
-| | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Bidireccional | Hijo3/Hijo4 → Padre: confirmación de haber procesado el cambio · Padre → Hijo5: confirmación con metadatos enriquecidos (audio, reto) |
+| | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Bidireccional | Hijo3/Hijo4 → Padre: confirmación de haber procesado el cambio · Padre → Hijo5 (desde `js/funciones-mapa.js`): confirmación con las coordenadas del elemento y dos marcas, `audio` y `reto` (`true` si el elemento tiene audio o reto) |
 | | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo5 → Padre | Solicita lista completa de paradas |
 | | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre → Hijo5 | Lista de paradas con metadatos |
 | | `NAVEGACION.GPS.ACTIVAR` | Hijo2 → Padre | `#btnAvanzar` en hijo2 — solicita progresión al siguiente elemento + asegura GPS activo. hijo5 **no** envía este mensaje |
@@ -3863,7 +3863,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `UI.CLOSE_MENUS` | Hijo1 → Padre | hijo1 abre su panel de opciones: el padre cierra sus desplegables (control de audio, tipo de mapa y modo de brújula) |
 | | `UI.NAVEGACION_EXTERNA` | Hijo1 → Padre | Apertura de enlace externo |
 | **AVENTURA** | `AVENTURA.INICIADA` | Padre → Hijo1 | Iniciar temporizador con `tiempoEstimado` |
-| | `AVENTURA.FINALIZADA` | Padre → Hijo1 | Detener temporizador, mostrar estadísticas |
+| | `AVENTURA.FINALIZADA` | Padre → Hijo1 | Detener el temporizador y contestar con `AVENTURA.ESTADISTICAS_TIEMPO`, cuya llegada abre el modal de fin (§25.11) |
 | | `AVENTURA.DETENER` | Padre → Hijo1 | Cancelar temporizador antes de cambiar aventura |
 | | `AVENTURA.TIEMPO_ACTUALIZADO` | Hijo1 → Padre | Tick del temporizador (cada segundo) |
 | | `AVENTURA.TIEMPO_AGOTADO` | Hijo1 → Padre | Tiempo agotado |
@@ -3915,7 +3915,7 @@ sequenceDiagram
 
     Note over T,P: P16/P17 — usuario confirma inicio (tras reto R-2)
     T->>P: SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados, timestamp }
-    Note over P: _hdl_SELECCION_AVENTURA_ACTIVADA — fast-path si _iframesPreCargadosP15;<br/>si no: carga hijo1/2/3/4/5, espera HIJO_LISTO; distribuye datos y muestra UI
+    Note over P: _hdl_SELECCION_AVENTURA_ACTIVADA — fast-path si _iframesPreCargadosP15;<br/>si no: carga hijo1 a hijo6, espera HIJO_LISTO; distribuye datos y muestra UI
 ```
 
 **Mensajes enviados por En-busca-del-tesoro.html**:
@@ -3939,7 +3939,7 @@ sequenceDiagram
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Completa el handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Responde con `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO` |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Solo escribe en el log que el modo se aplicó |
-| `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html (sub-iframe activo de P4, ver §35) | Recibido por un listener genérico de `message` en `En-busca-del-tesoro.html`, que llama `mostrar(5)` directamente. No reenvía al padre. |
+| `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html (sub-iframe activo de P4, ver §35) | Lo atiende el handler que `En-busca-del-tesoro.html` registra en el bus para ese tipo (`registrarControladorSeguro`), que llama a `mostrar(5)`. No reenvía al padre. |
 
 > La pantalla de selección no recibe `CAMBIO_PARADA`. Sí recibe `SISTEMA.HEARTBEAT` desde que su cargador la registra y completa su apretón de manos — el handler de heartbeat de la pantalla responde correctamente. Está supervisada como cualquier hijo: si deja de contestar tres latidos, o no completa su apretón dentro de su gracia de arranque, el bus la recarga y vuelve a su primera pantalla (§2.7); el padre no le devuelve nada tras recargar (§2.7a).
 
@@ -4113,7 +4113,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 
 ### 8.9 hijo5 — boton-casa-hijo5.html (navegador CASA + toggle GPS)
 
-**Nota**: hijo5 es una herramienta de **solo desarrollo** — no aparece en la PWA final (ver §5 Los hijos principales). En desarrollo permite navegar manualmente por las paradas y activar/desactivar el GPS.
+**Nota**: hijo5 es una herramienta de **solo desarrollo** — no aparece en la PWA final (ver §5 Los hijos principales). En desarrollo permite navegar manualmente por las paradas y cambiar entre CASA y AVENTURA (el GPS no se detiene: §2.6).
 
 #### Mensajes que hijo5 envía al padre
 
@@ -4385,7 +4385,7 @@ sequenceDiagram
     Note over S,VI: P4 — cargarVideoIntroIframe() crea el iframe
     VI->>VI: run() — 20 escenas automáticas (usuario puede saltar con #btn-skip)
     VI->>S: SELECCION.VIDEO_INTRO_TERMINADO (postMessage directo)
-    Note over S: listener genérico de 'message' → mostrar(5)
+    Note over S: su handler del bus → mostrar(5)
 
     U->>S: Elige aventura (P7)
     S->>P: SELECCION.AVENTURA_SELECCIONADA { aventura }
@@ -4404,7 +4404,7 @@ sequenceDiagram
 
     U->>S: Reto R-2 afirmativo (P16) y botón de los logos (P17)
     S->>P: SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }
-    P-->>P: _hdl_SELECCION_AVENTURA_ACTIVADA() — carga hijo1/2/3/4/5; distribuye datos; muestra UI
+    P-->>P: _hdl_SELECCION_AVENTURA_ACTIVADA() — carga hijo1 a hijo6 si no se cargaron en P15; distribuye datos; muestra UI
     Note over P: Modo AVENTURA en producción (GPS con validaciones) · Modo CASA solo en dev — ver §9.5
 
 ```
