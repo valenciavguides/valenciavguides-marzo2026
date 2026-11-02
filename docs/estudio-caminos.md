@@ -2108,6 +2108,7 @@ fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las c
   `funciones-mapa.js`, `codigo-padre.html:3789, 9869, 15036`, y el único llamador interno es
   `:2640`). Que un mismo tipo tenga dos garantías de entrega según quién lo manda no es un fallo
   por sí mismo; se anota para decidir si cada caso es deliberado.
+- **Recuento (2026-11-02, auditoría).** Búsqueda desnuda de `enviarMensajeConConfirmacion(` fuera de `js/mensajeria.js`: siete llamadas, seis tipos —`AUDIO.REPRODUCIR_REQUEST` (`codigo-padre.html:10342`), `CHAT.RESCATE_SOLICITADO` (`chat-hijo6.html:403`), `NAVEGACION.GPS.ACTIVAR` (`coordenadas-hijo2.html:761`), `RETO.COMPLETADO` (`retos-hijo4.html:1085`, `:1128`), `SELECCION.IDIOMA_SELECCIONADO` y `SELECCION.AVENTURA_SELECCIONADA` (`En-busca-del-tesoro.html:2932`, `:3006`)—. `DATOS.COORDENADAS_PARADAS_REQUEST` no existe en el código (solo en este documento y en `tests/e2e/152`). De los tres con emisores sin acuse queda uno, `AUDIO.REPRODUCIR_REQUEST`: la rama de respaldo de `_solicitarAudioRest` (`codigo-padre.html:4838`) y `js/controladores-padre.js:76`. `NAVEGACION.GPS.ACTIVAR` solo lo manda hijo2, con acuse (búsqueda desnuda del tipo: `coordenadas-hijo2.html:762` y el registro del padre, `:10101`).
 - **`SISTEMA.PADRE_DATOS`: `paradas` y `paradaActual` se leen y nadie las manda.** El padre manda
   `{ modo, timestamp }` (`codigo-padre.html:7350-7364`), más el estado del chat solo a hijo6, y
   `{}` en el único uso de `cargarIframeConDatos` (`:14856`). Cinco receptores desestructuran
@@ -4032,6 +4033,161 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 - **Pendiente: decisión** (cambio visible en iPhone). *A)* un solo camino para todos: la escucha del cambio de permiso también en iPhone, y el botón llamando a `activarGPS()` en todos; fuera `esApple` y `app-settings:`. *B)* lo de *A* más un reintento al volver la página a primer plano para todos, por si un navegador no avisa del cambio (pero son dos disparadores para lo mismo: el segundo tendría que ser ruidoso). *C)* dejarlo. Con *A* o *B*, un spec nuevo en los cuatro proyectos, rojo antes que verde, y la comprobación en un iPhone antes del push.
 - **Relacionado.** La regla «el GPS nunca se detiene» (memoria): aquí el watch se cancela porque, sin permiso, no puede dar ninguna posición.
 
+#### Familia AF — Lo que salió en la auditoría del 2026-11-02 (EJE 20 a 29 y la inversa)
+
+Hallazgos de la auditoría completa de la guía contra el código que no tenían entrada. Cada uno con su método; los que ya estaban (las esperas a mano, K-62; el `SISTEMA.NACK` que hijo3 no escucha, K-35; las claves leídas sin emisor, K-36; la tarjeta de valoración encima de la P13, decidida «se deja» en la revisión con el usuario) no se repiten.
+
+##### K-153 — Los botones redondos verde (➣) y rojo (✗) están escritos en tres hojas, con tamaños y nombres distintos — ✅ (leído regla a regla; el tamaño, calculado desde el CSS)
+
+- **Cómo salió.** EJE 29.5, al comparar la familia de K-147 (la ✗ naranja, ya en `css/boton-cerrar.css`) con la de los botones de «mundo».
+- **Dónde.** `En-busca-del-tesoro.html:469-532` y su `@media (max-width:900px) and (pointer:coarse)`; `retos-hijo4.html:350` y `.btn-mundo-verde`; `video-intro.html:389` y `.btn-mundo-*`. Verde: selección e intro `clamp(44px, 11vmin, 56px)`, hijo4 `clamp(60px, 15vmin, 80px)`; la selección sube verde y rojo a `clamp(56px, 14vmin, 72px)` en táctil de hasta 900 px y la intro no. Flecha `.flecha-v`: 18-26 px (selección e intro), 22-34 px (selección táctil), 24-34 px (hijo4). La ✗ del rojo es `.contenedor-x`/`.icono-x` en la selección y `.contenedor-replay`/`.icono-replay` en la intro (que comparte esas clases con el ↺); la órbita, `.contenedor-flecha` en dos y `.elemento-orbita` en hijo4; hijo4 escribe el degradado con `background:` y las otras dos con `background-color` + `background-image`.
+- **Lo que no cuadra.** Un mismo botón con tres copias: en un móvil de 390 px de ancho el verde mide 56 px en la selección, 44 en la intro y 60 en hijo4 (calculado desde el CSS; sin medir en ejecución). La petición del usuario de que todos los «v» fueran iguales quedó fuera de K-147, que solo trató la ✗ naranja.
+- **Pendiente: decisión** (cambio visible). *A)* una hoja común, como la de K-147, con un tamaño (`--vv-boton-redondo`) y una sola pareja de nombres de clase; qué tamaño (el de hijo4 es el mayor) se decide; *B)* dejarlo.
+- **Relacionado.** K-147, K-92 (el color del ✓ de las opciones de la selección).
+
+##### K-154 — Los textos que no se ven (title, aria-label, alt, alert) son unos 170 literales en español, y cinco tutean; los tooltips del mapa enseñan datos internos — ✅ (barrido con residuo; los citados, leídos)
+
+- **Cómo salió.** EJE 9.7. Amplía K-25, cuyo instrumento solo veía asignaciones desde JS (daba 0 en hijo1, hijo3 e hijo6).
+- **Dónde.** Literales por fichero: padre 134, selección 52, hijo1 21, hijo2 17, hijo3 3, hijo4 3, hijo6 6, mapa completo 1, puzzle 3, intro 2, `js/mapa-vintage-zoom.js` 7, `js/normativa-cumplimiento.js` 12, las cuatro páginas de hijo1 1 cada una, `index.html` 3 (algunos contados dos veces por casar con dos reglas; instrumento `textos-ocultos.cjs` del scratchpad, que imprime lo que no supo clasificar). De tú: los `alt` «Estás lejos de tu objetivo» (`codigo-padre.html:5830`), «Te has desviado de la ruta» (`:5972`) y «Estás muy lejos de tu objetivo» (`:6049`), y los tooltips «Tu destino» (`js/funciones-mapa.js:3235`) y «Tu ubicación ±Xm (N°)» (`:3423-3425`). Datos internos: el id de la parada (`title: paradaId`, `:2175`) y el ángulo de la flecha en grados (`:3425`), que `_crearMarcadorHTML` pone en `el.title` (`:528`). Grafía mezclada «Video»/«vídeo» y jerga en un `title` («Mostrar Mapa JPG», `coordenadas-hijo2.html:240`).
+- **Lo que no cuadra.** Lector de pantalla y tooltips en español en los 12 idiomas; la voz de la aplicación es de usted.
+- **Pendiente: decisión.** La de K-25 (A/B/C) con esta cuenta; con la B, a `js/traducciones-ui.js` en los 12 idiomas y de usted, y los tooltips del mapa sin id ni grados.
+- **Relacionado.** K-25.
+
+##### K-155 — El service worker precarga `js/normativa-cumplimiento.js`, que la aplicación no pide nunca — ✅ (búsqueda desnuda y lectura)
+
+- **Dónde.** `sw.js:66` (APP_SHELL). La selección lee la normativa de `publico/textos/<idioma>/normativa.json` (`En-busca-del-tesoro.html:1195`); el `.js` es la fuente de la que `tools/build-demo.js` genera esos JSON. Búsqueda desnuda de `normativa-cumplimiento` y `NORMATIVA_CUMPLIMIENTO` en todo el repositorio: solo `sw.js`, `tools/build-demo.js` y specs. Términos y agradecimientos sí se cargan en ejecución (`chat-hijo6.html:612`, `:614`).
+- **Lo que no cuadra.** Unos 20 KB que cada instalación descarga y guarda sin usarlos; `tools/codigo-muerto.js` ya señalaba `NORMATIVA_CUMPLIMIENTO`.
+- **Pendiente: decisión, sin cambio visible.** *A)* quitar `'/js/normativa-cumplimiento.js'` de APP_SHELL; *B)* dejarlo.
+
+##### K-156 — Al volver a menos de 5 km, el bloqueo dura hasta 3 minutos más, con su cartel en cada lectura — ✅ (leído; sin medir en el recorrido)
+
+- **Dónde.** `codigo-padre.html`, `_check5kmFromRoute`: vuelve a enseñar el cartel en cada lectura mientras `__VV_5KM_BLOCKED` (`:5361`), antes del limitador de 3 minutos (`:5364-5366`), y el desbloqueo solo se decide en una lectura que pasa el limitador (`:5421-5424`).
+- **Lo que no cuadra.** Quien vuelve a la zona justo después de una comprobación sigue bloqueado hasta 3 minutos: «avanzar» apagado (`fuera_de_zona_5km`, `:10659`) y el cartel «fuera de la zona» a cada lectura, salvo durante el descanso de su ✗. El limitador sirve para no bloquear de más; para desbloquear no hace falta. Dos ritmos para una misma decisión (bloquear y desbloquear) en una sola función.
+- **Pendiente: decisión** (cambio visible). *A)* que una lectura dentro de los 5 km con el bloqueo puesto se compruebe sin esperar al limitador; *B)* dejarlo. Con *A*, spec nuevo rojo antes que verde.
+- **Relacionado.** K-84 (el cartel durante el bloqueo, no la salida).
+
+##### K-157 — La tarjeta de valoración está escrita dos veces, una en la selección y otra en el padre — ✅ (leído en los dos frames)
+
+- **Dónde.** `En-busca-del-tesoro.html:245-260`, `:1399-1441` (`.pulso-valoracion`, `mostrarPulsoValoracion`, en P12); `codigo-padre.html:2499-2514`, `:7638-7676` (`.pulso-valoracion-padre`, `mostrarPulsoValoracionPadre`, al 33 % y al 66 %). Iguales salvo el z-index (2147483000 y 1900000) y los nombres; el comentario de la selección (`:1393-1396`) ya dice que el padre tiene la suya «implementada aparte».
+- **Lo que no cuadra.** Dos copias del mismo diseño y del mismo envío: un cambio en una no llega a la otra.
+- **Medido en la sonda del EJE 29 (chromium):** la tarjeta de la selección sigue 7 s encima de las pantallas siguientes (`setTimeout(cerrar, 7000)`; `mostrar()` no la quita) y, a 2560×1440, el centro del botón verde de P18 (`#btn-siguiente-agradecimientos`) lo recibe una estrella; a 1920×1080, el botón de la aventura de 34 km de P7. Un toque ahí envía una valoración que el usuario no ha dado y no avanza. En pixel5 e iphone12 no tapa ningún botón. La decisión de dejarla sobre la P13 se tomó «leído en el CSS, sin medir en pantalla»; esto es lo que cambia, y solo en escritorio.
+- **Pendiente: decisión.** *A)* una hoja y un módulo comunes, como la ✗ (K-147); *B)* dejar las dos copias (K-28: «dejarlas salvo que se toque el algoritmo»). Aparte, si se reabre lo del escritorio: quitarla al cambiar de pantalla, o no dejarla encima de botones.
+- **Relacionado.** K-28, K-147.
+
+##### K-158 — Controles principales que ningún spec pulsa con un gesto real — ✅ (clasificado por id y leída cada búsqueda desnuda)
+
+- **Dónde.** `tests/e2e/` (158 specs), con `gestos-por-control.cjs` del scratchpad (su primera versión daba por «solo nombrados» los que pulsa el spec 164 con `pulsar(frameLocator(…).locator('#…'))`; corregida). Ningún spec pulsa: `#audio-action-play`, `-pause`, `-stop`, `-replay`, `#btn-aceptar-terminos`, `#btn-siguiente-normativa`, `#icono-listado-paradas`, `#botonRetos` (hijo4), `#gps-casa-btn` (hijo5), `#buzon-boton`. Solo por dentro (`element.click()` desde `evaluate`): `#audio-main-toggle-btn` (spec 144), `#audio-action-skip` (122-124, 157, 159, 160), `#retosBtn` de hijo3 (122, 125), `#mas-opciones` (118). Con gesto real de ratón y dedo, 8; solo ratón, 10; los controles creados por JS los cubren el 163 y el 164.
+- **Lo que no cuadra.** Un control tapado o cuyo contenedor se queda el puntero (K-146) sigue en verde: el `click()` desde dentro no pasa por quién recibe el toque.
+- **Pendiente: decisión, sin cambio en la app.** *A)* un spec como el 164 que pulse cada control de la lista con ratón y con dedo y mire su efecto (checklist §36.30, punto 12); *B)* dejarlo.
+- **Relacionado.** K-146 y el spec 164 (EJE 29).
+
+##### K-159 — 48 claves de carga se mandan y el receptor no las lee, entre ellas el email del código validado — ✅ (extract-payload, ejecutado; el email, leído)
+
+- **Cómo salió.** EJE 17. Es la mitad contraria de K-36 (claves leídas que nadie manda, decididas): esta no tiene decisión.
+- **Dónde.** 48 claves (sin contar `timestamp`) en 23 tipos; listado en `estudio/payload.txt` del scratchpad. Por ejemplo `AVENTURA.FINALIZADA` (`aventuraId`, `idioma`, `motivo`), `NAVEGACION.GPS.ACTIVAR` (`activar`, `idParada`, `distancia`), `AVENTURA.TIEMPO_AGOTADO` (`mensaje`, `redirigir`), `PUZZLE.COMPLETADO`/`TIMEOUT` (`puzzleId`, `exito`), `SISTEMA.ERROR` (11 claves; su handler puede escribir el objeto entero en el log: leerlo antes de tocar). `SELECCION.CODIGO_VALIDADO` manda `email` además de aventura e idioma, y el handler del padre solo escribe en el log sin leer el mensaje (`codigo-padre.html:11579-11583`); el bus solo escribe tipo y origen (`js/mensajeria.js:755`, `:758`).
+- **Lo que no cuadra.** Datos que viajan sin uso; uno de ellos personal.
+- **Pendiente: decisión, sin cambio visible.** *A)* quitar las claves sin lector, en una tanda, con búsqueda desnuda de cada una en su receptor, y el email el primero; *B)* dejarlas.
+- **Relacionado.** K-36, K-46.
+
+##### K-160 — 100 `test.skip(!precondición, …)` convierten una precondición rota en un salto, no en un fallo — ✅ (búsqueda desnuda; la tanda, ejecutada)
+
+- **Dónde.** `tests/e2e/`, 28 ficheros (12, 13, 15, 17, 20, 21, 22, 29, 30, 32-34, 36-39, 47, 48, 68, 70-74, 80, 123…): el test mira si existe lo que va a usar (`distribuirDatosAventura`, un handler, un tramo de los datos) y, si no, se salta. R2.10 los cuenta como forma («Tests. Omitir», 104 en 28 ficheros), no como riesgo.
+- **Lo que no cuadra.** En la última tanda de los cuatro navegadores no saltó ninguno, así que hoy no tapan nada; el día que una precondición se rompa, el test sale como omitido y la tanda sigue en verde. Es el segundo camino de «la prueba no puede correr»: uno falla y otro calla.
+- **Pendiente: decisión, sin cambio en la app.** *A)* cambiar cada `test.skip(!x, …)` por `expect(x, …).toBe(true)`; *B)* dejarlos.
+
+##### K-161 — Al denegarse el GPS en P15, dos sitios deciden enseñar el mismo aviso — ✅ (leído en las dos funciones)
+
+- **Dónde.** `codigo-padre.html`: el `catch` de `activarGPS` («Si los permisos fueron denegados antes de iniciar watchPosition…») llama a `showGpsSignalOverlay(1, …)`, y el `catch` de `_hdl_SELECCION_P15_MOSTRADA` (`:11624-11628`) lo vuelve a llamar.
+- **Lo que no cuadra.** El aviso es el mismo; la decisión de enseñarlo vive en dos sitios. Sin medir qué se ve con la segunda llamada.
+- **Pendiente: decisión, sin cambio visible.** *A)* que solo lo decida `activarGPS`; *B)* dejarlo.
+- **Relacionado.** K-152 (lo que hace ese aviso según el teléfono).
+
+##### K-162 — Tres sitios resuelven los datos de un reto para `RETO.MOSTRAR` y solo uno añade `imagenPuzzle` — ✅ (leído en los tres; sin medir si es alcanzable)
+
+- **Dónde.** `_hdl_RETO_SOLICITAR` llama a `cargarPuzzle()` en su bloque `_retoData.tipo === 'puzzle'`; el camino secuencial de la cola (`_procesarResultadoReto`) y el de reto no encontrado en hijo4 (`js/controladores-padre.js:90-118`) mandan el reto sin ella.
+- **Lo que no cuadra.** Tres caminos para la misma carga, y dos sin la imagen del puzzle. Con un reto por parada la cola no pasa de uno, y el segundo solo salta si hijo4 no tiene el reto: sin medir si alguno llega a mandar un puzzle.
+- **Pendiente: decisión.** *A)* una sola función que arme la carga de `RETO.MOSTRAR`, para los tres; *B)* dejarlo. Enlaza con la pregunta ya abierta de simplificar la cola (UN reto por parada).
+
+##### K-163 — Dos funciones del padre pintan el reloj `#tiempo-display-padre`, con el formato en dos frames — ✅ (leído)
+
+- **Dónde.** `_hdl_AVENTURA_TIEMPO_ACTUALIZADO` formatea él mismo `HHH:MM:SS` desde `tiempoRestante`, y `_actualizarDisplayTemporizador` (la llama `_hdl_TEMPORIZADOR_TOGGLE`) pinta el `tiempoFormateado` que formatea hijo1 (`formatearReloj`, `extrainfo-hijo1.html`); la rama «fuera de AVENTURA → 000:00:00 verde» está copiada en las dos (`codigo-padre.html` ~12120-12180).
+- **Lo que no cuadra.** Hoy los dos formatos coinciden, así que no se ve; un cambio en uno deja el reloj con dos aspectos según quién lo pinte.
+- **Pendiente: decisión, sin cambio visible.** *A)* un solo pintor del reloj en el padre, con un solo formato; *B)* dejarlo.
+
+##### K-164 — La rama de hijo2 que apaga la ubicación al empezar un elemento solo casa con el elemento `intro`, que AVENTURA no visita — ✅ (medido sobre los datos)
+
+- **Dónde.** `_manejarPendingIniciado` (`coordenadas-hijo2.html` ~1527-1535) apaga `#btn-ubicacion` solo si `padreId` es `idParadaActual` o `padre-<idParadaActual>`. Medido sobre DATOS_PADRE (`sonda-padreid.mjs`, scratchpad): 84 de 7 344 entradas casan, todas del elemento `intro`, y el recorrido de AVENTURA empieza en `inicio` (`ensureDefaultParada`).
+- **Lo que no cuadra.** En la práctica la rama no hace nada: o sobra, o compara con el id equivocado.
+- **Pendiente: decisión.** *A)* quitarla (sin cambio visible); *B)* corregir la comparación, si el botón debía apagarse (cambio visible: decidir antes qué tiene que pasar); *C)* dejarla.
+
+##### K-165 — hijo2 tiene un permiso de geolocalización que no usa, y el padre lo comprueba solo para escribir en el log — ✅ (búsqueda desnuda y lectura)
+
+- **Dónde.** El iframe de hijo2 lleva `allow="geolocation"` (`codigo-padre.html:2628`) y hijo2 no llama nunca a `navigator.geolocation` (búsqueda desnuda en `coordenadas-hijo2.html`: 0); recibe la posición del padre. `_gpsCheckIframePermission` (`:5078-5090`, llamada en `:5103`) mira el atributo y escribe un `debug` o un `warn`.
+- **Lo que no cuadra.** Un permiso que nadie usa (el GPS es solo del padre) y una comprobación de algo que no hace falta.
+- **Pendiente: decisión, sin cambio visible.** *A)* quitar el atributo y la función; *B)* dejarlos.
+
+##### K-166 — El modal de tiempo agotado se construye con el HTML y el CSS copiados del de fin de aventura — ✅ (leído)
+
+- **Dónde.** `_hdl_AVENTURA_TIEMPO_AGOTADO()` (Script 2) arma su modal en línea con el diseño de `mostrarModalFinalizacion()` (Script 1); la guía lo justifica por el scope (§25.12).
+- **Lo que no cuadra.** Dos constructores casi iguales del mismo diseño: un cambio en uno no llega al otro. El estudio solo cita los dos modales en K-106, por otra cosa.
+- **Pendiente: decisión.** *A)* un solo constructor, expuesto en `globalThis` para el otro script; *B)* dejarlo.
+- **Relacionado.** K-106, K-28.
+
+##### K-167 — `js/proteccion.js` protege menos de lo que parece: globals que no existen, CSS para clases que nadie usa y una protección fuerte imposible de probar en local — ✅ (leído entero; búsquedas desnudas)
+
+- **Dónde.** `js/proteccion.js`: vuelve sin instalar nada en localhost, `*.github.io`, `*.vercel.app`, `*.netlify.app` y con `vv_debug` (`:19-33`); con el dominio propio actúan siempre el clic derecho, el arrastre, el filtro de consola y el CSS, y solo con `vv_hard_protect` las teclas, la trampa del depurador, el detector por resize y el borrado. Vacía y filtra `globalThis.TEXTOS_AVENTURAS` y `globalThis.DATOS_AVENTURAS` (`:154`, `:166-167`, `:175-176`), que ningún fichero del navegador publica; los datos viven en `__vv_*`, que la lista no nombra. `user-select: none` va sobre `.protegido`, `.reto-contenido`, `.audio-container` y `.texto-aventura`, que ninguna página usa (búsqueda desnuda: solo `proteccion.js`).
+- **Lo que no cuadra.** Código que apunta a nombres que no están, y `?vv_hard_protect=1` no tiene efecto en localhost (sale antes), así que la protección fuerte no se puede probar en local. La guía lo describe así (§26.8, §10.19, §10.22).
+- **Pendiente: decisión del usuario:** qué protección se quiere en producción, y con eso, *A)* apuntar el vaciado a los `__vv_*` y quitar el CSS muerto; *B)* quitar lo que no protege; *C)* dejarlo.
+- **Relacionado.** La protección de datos por parada (memoria): padre, hijo2 y el SW tienen los datos enteros.
+
+##### K-168 — Las franjas de distancia (50/150/2000 m) se deciden en dos sitios, cada uno con sus literales — ✅ (leído)
+
+- **Dónde.** hijo2 (`coordenadas-hijo2.html:661-664`, para la gracia) y el padre (`_hdl_NAVEGACION_GPS_RESTRINGIDO`, `codigo-padre.html` ~10036-10044, para la pantalla). La guía (§31.4) lo da por duplicado a propósito y pide cambiar los dos a la vez.
+- **Lo que no cuadra.** Un cambio en uno solo deja la gracia de una franja y la pantalla de otra.
+- **Pendiente: decisión, sin cambio visible.** *A)* que las franjas vivan en una constante compartida (`js/constants.js`), leída por los dos; *B)* que solo hijo2 decida la franja y la mande en el aviso; *C)* dejarlo.
+- **Relacionado.** La entrada de las cuatro franjas con gracia (`_GRACIA_FUERA_DE_RANGO_MS`).
+
+##### K-169 — Los extractores que comparan la guía con el código no atribuyen a un frame los handlers que registra un módulo que importa — ✅ (ejecutado)
+
+- **Dónde.** `tools/estudio-caminos/guia-handlers-por-frame.cjs`, `guia-fichas-mensaje.cjs` y `guia-payloads.cjs`. `UI.CERRAR_CAPA` lo registra y `UI.CAPA_ABIERTA` lo emite `js/capa-con-atras.js` (`:33`, `:35`), que importan hijo1 (`:42`), hijo6 (`:371`) y el mapa completo (`:138`): las tres herramientas dan 4 + 2 + 2 discrepancias que no lo son, y `guia-fichas-mensaje` sale con código 1 por ellas.
+- **Lo que no cuadra.** Falsos positivos en cada pasada; un día taparían uno real (el instrumento miente, EJE 27).
+- **Pendiente: decisión, sin cambio en la app.** *A)* que los extractores sigan los imports del frame, como ya hace `extract-globals` con sus «módulos alcanzables»; *B)* dejarlo.
+
+##### K-170 — Comentarios y logs que dicen otra cosa que el código — ✅ (leídos uno a uno)
+
+- **Dónde.**
+  - Un plan B que no existe: el bloque «BACKUP … Descomentar solo si falla el flujo centralizado y necesitamos fallback» de `audio-hijo3.html:371-384`, con `const audioFiles_BACKUP = [` sin array.
+  - Lápidas (solo cuentan lo que se quitó): `coordenadas-hijo2.html:1197`, `:1419` («BUG CORREGIDO: localStorage…»), `codigo-padre.html:6527`, `js/funciones-mapa.js:2609`, `audio-hijo3.html:1335`.
+  - Citas de la guía con el número de otra sección: `codigo-padre.html:400`, `:452`, `:5286`, `:5470`, `:6201`, `:6380` (§30.x por §31.x), `audio-hijo3.html:922` y `tests/e2e/44:273` (§30.7a por §31.7a), `js/app.js:521` (§2.15, que no existe). `tools/verificar-citas-guia.js` mira las citas de la guía al código, no las del código a la guía.
+  - Comentarios que no cuadran: `gpsVisualActivo`/`visualActivo` «controla si polyline y emojis se muestran» (`js/funciones-mapa.js:396`, `codigo-padre.html:3970`) y solo lo lee el spec 20; `js/funciones-mapa.js:1779` cuenta un plazo de 8 s que no hay; `js/server.js:40` (vídeos «por parada», son de tramos) y `:62` («cuatro extensiones», la tabla tiene tres); `codigo-padre.html:3554` (`mensajeriaReady` «más adelante»: el primero sale al cargarse `js/mensajeria.js`, K-13); `mapa-completo.html:192` («su ✕», es ✗ desde K-147); el spec 61 llama P10 al puzzle de introducción, que es P6 (nombre del fichero, líneas 2, 11, 15, 37 y `enP10`); el spec 63 (`:10`) da cifras de ids que ya no son las de los datos (el spec cuenta en ejecución).
+  - Logs que mienten: `_hdl_SELECCION_AVENTURA_ACTIVADA` escribe «modo CASA mantenido» (`codigo-padre.html:11684`) y en producción pasa a AVENTURA (`:11709`); `_hijoListo_onTodosListos` (~`:6570-6582`) escribe «Iniciando GPS…» o «no se dibujan coordenadas iniciales», y su `catch` «Error solicitando coordenadas iniciales», y no hace ninguna de las dos cosas.
+- **Lo que no cuadra.** Quien lee el comentario o el log se lleva una idea falsa del código; el BACKUP, además, anuncia un segundo camino.
+- **Pendiente: decisión, sin cambio visible.** *A)* una tanda de solo comentarios y logs (el spec 61, si se renombra, con `npm run sync:master-test`), y una pasada nueva que compruebe las citas «§N» del código contra los encabezados de la guía; *B)* dejarlo.
+
+##### K-171 — Datos que se leen sin existir, o que existen sin que nadie los lea — ✅ (medido sobre los datos)
+
+- **Dónde.** `puzzle.html:233-238` lee `filas || 3`, `columnas || 3`, `tiempo || 180` y `nombre || …` de un `puzzleConfig` que solo tiene `{id, imagen}` (los 21 puzzles de PUZZLES_AVENTURAS; su comentario de `:186` ya lo dice): siempre 3×3 y 180 s. Dos paradas de `coordenadas-aventuras.js` llevan `video: ""`, y el botón de vídeo de hijo2 solo se enciende en tramos (`_actualizarBotonVideo`), así que en una parada el campo no se lee nunca (`sonda-video.mjs`).
+- **Lo que no cuadra.** Un respaldo que es siempre el valor real, y un campo vacío sin lector.
+- **Pendiente: decisión, sin cambio visible.** *A)* constantes con nombre en `puzzle.html` en vez de campos que no existen, y fuera los dos `video: ""`; *B)* dejarlo, si se piensa dar a algún puzzle otro tamaño.
+
+##### K-172 — hijo5 enciende y apaga su botón con el mismo bloque en dos funciones — ✅ (leído)
+
+- **Dónde.** `boton-casa-hijo5.html`: `_sincronizarBotonConModo` y `_actualizarUIParaModo` ponen `gps-casa-btn` en on/off con el mismo código.
+- **Lo que no cuadra.** Dos sitios para el aspecto del mismo botón. hijo5 es herramienta de escritorio, solo DEV.
+- **Pendiente: decisión, sin cambio visible.** *A)* que una llame a la otra; *B)* dejarlo.
+
+##### K-173 — Los 10 ficheros Jest de `tests/*.test.js`, los `test_*.js` y los `.ps1` de corchetes siguen sin nada que los ejecute — ✅ (leído; la guía lo describe)
+
+- **Dónde.** `tests/`: ningún script de `package.json` los lanza y apuntan a un servidor Express que no existe. La guía los describe (§18.1, §36.22); R2.10 los cuenta como forma («describe/it sin Playwright», 10).
+- **Lo que no cuadra.** Código de prueba muerto junto a la suite viva, con el objetivo «sin código muerto».
+- **Pendiente: decisión.** *A)* borrarlos; *B)* dejarlos.
+
+##### K-174 — `sw.js` escribe en la consola también en producción — ✅ (búsqueda desnuda de `console.` en el código servido)
+
+- **Dónde.** `sw.js:152`, `:157`, `:175`, `:180`, `:186` (precarga fallida, nombres de caché, activación, avisos a los clientes). El punto 3 de la lista de producción (§22.0, «ningún `console.*` suelto se ve en producción») contaba solo los de las páginas; la guía (§22.3) lo describe.
+- **Lo que no cuadra.** Las páginas pasan por el logger y su nivel; el SW escribe por su cuenta.
+- **Pendiente: decisión, sin cambio visible.** *A)* condicionarlos a `IS_DEV`, que `sw.js` ya calcula (`:119`); *B)* dejar los de error y quitar el resto; *C)* dejarlo.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -4745,6 +4901,28 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 144 | 2 | K-150 | una sola función coge la ventana del vídeo, y descarta la de «sin vídeo» — **hecha (2026-11-02), sin cambio visible** | SPEC | — | sí |
 | 145 | 1 | K-151 | fuera la rama de reto fallido del padre y el `retoCompletado` que hijo2 no lee, o dejarlos | — | — | decisión |
 | 146 | 2 | K-152 | el GPS se recupera igual en iPhone que en el resto al volver el permiso (una sola escucha y el mismo botón), o dejarlo | VISIBLE, SPEC, iPhone real | — | decisión |
+| 147 | 3 | K-153 | una hoja común para los botones redondos verde y rojo, con un tamaño y una pareja de clases, o dejarlo | VISIBLE | K-147 (blanda) | decisión |
+| 148 | 5 | K-154 | los ~170 textos que no se ven, a `traducciones-ui.js` en 12 idiomas y de usted, y los tooltips del mapa sin id ni grados | VISIBLE, GUÍA | K-25 (dura) | decisión |
+| 149 | 1 | K-155 | fuera `js/normativa-cumplimiento.js` de APP_SHELL, o dejarlo | — | — | decisión |
+| 150 | 3 | K-156 | desbloquear el bloqueo de 5 km en la primera lectura dentro de la zona, sin esperar al limitador, o dejarlo | VISIBLE, SPEC | K-84 (blanda) | decisión |
+| 151 | 2 | K-157 | una hoja y un módulo comunes para la tarjeta de valoración, o dejar las dos copias; aparte, lo que tapa en escritorio | — | K-28 (blanda) | decisión |
+| 152 | 3 | K-158 | un spec que pulse con ratón y con dedo los controles sin gesto real, o dejarlo | SPEC | — | decisión |
+| 153 | 3 | K-159 | quitar las 48 claves que nadie lee, el email el primero, o dejarlas | BUS, GUÍA | — | decisión |
+| 154 | 2 | K-160 | cambiar los 100 `test.skip(!x)` por `expect(x).toBe(true)`, o dejarlos | — | — | decisión |
+| 155 | 1 | K-161 | que solo `activarGPS` decida el aviso del GPS denegado en P15, o dejarlo | — | K-152 (blanda) | decisión |
+| 156 | 3 | K-162 | una sola función que arme la carga de `RETO.MOSTRAR` para los tres caminos, o dejarlo | — | la cola de retos (blanda) | decisión |
+| 157 | 2 | K-163 | un solo pintor del reloj en el padre, con un solo formato, o dejarlo | — | — | decisión |
+| 158 | 1 | K-164 | quitar, corregir o dejar la rama de hijo2 que solo casa con `intro` | — | — | decisión |
+| 159 | 1 | K-165 | fuera `allow="geolocation"` de hijo2 y `_gpsCheckIframePermission`, o dejarlos | GUÍA | — | decisión |
+| 160 | 2 | K-166 | un solo constructor para los modales de fin y de tiempo agotado, o dejarlo | — | K-106 (blanda) | decisión |
+| 161 | 5 | K-167 | qué protección se quiere en producción; con eso, apuntar o quitar lo que no protege | GUÍA | — | decisión |
+| 162 | 2 | K-168 | las franjas de distancia en un solo sitio, o dejarlo | GUÍA | — | decisión |
+| 163 | 2 | K-169 | que los extractores de la guía sigan los imports del frame, o dejarlo | — | — | decisión |
+| 164 | 1 | K-170 | una tanda de comentarios y logs, y una pasada de las citas «§N» del código, o dejarlo | — | — | decisión |
+| 165 | 1 | K-171 | constantes en `puzzle.html` y fuera los dos `video: ""`, o dejarlo | — | — | decisión |
+| 166 | 1 | K-172 | un solo bloque para el botón de hijo5, o dejarlo | — | — | decisión |
+| 167 | 1 | K-173 | borrar los ficheros Jest y sus restos de `tests/`, o dejarlos | GUÍA | — | decisión |
+| 168 | 1 | K-174 | los `console.*` de `sw.js` condicionados a `IS_DEV`, solo los de error, o dejarlos | GUÍA | — | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
