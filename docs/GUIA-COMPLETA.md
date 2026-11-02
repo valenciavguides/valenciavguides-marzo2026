@@ -12960,7 +12960,7 @@ Cuando se pide un reto mientras hijo4 se está recuperando (lo recarga el superv
 5. Si en ese momento cambia el modo, `actualizarInterfazModo` envía `CAMBIO_MODO` a todos los hijos inicializados, en paralelo, hijo4 incluido
 6. `CAMBIO_MODO` llega a hijo4 después de que el iframe del puzzle ya existe
 
-Si `_onCambioModo` limpia `retoDiv.innerHTML` en el paso 6, el iframe del puzzle se destruye antes de que el usuario lo haya visto. Los retos de tipo opción múltiple o reflexión no se ven afectados porque son HTML inline; los retos tipo puzzle (`PZ-xx`) sí, porque el iframe tarda en cargar su módulo JS.
+Si el handler de `CAMBIO_MODO` de hijo4 (un callback anónimo; `_onCambioModo` es el de la selección) limpiara `retoDiv.innerHTML` en el paso 6, el iframe del puzzle se destruye antes de que el usuario lo haya visto. Los retos de tipo opción múltiple o reflexión no se ven afectados porque son HTML inline; los retos tipo puzzle (`PZ-xx`) sí, porque el iframe tarda en cargar su módulo JS.
 
 El modo llega por un solo camino (ver §10.11): no hay ningún
 reintento en segundo plano que pueda repetir un `CAMBIO_MODO` durante una sesión de retos.
@@ -13036,7 +13036,7 @@ No hace falta un wrapper dedicado ni sintetizar el mensaje con `origen`/`destino
 El módulo ejecuta en secuencia durante el init:
 
 1. Polyline de la ruta (`rutaPuntos` de paradas/tramos) → `_bounds = polyline.getBounds()`
-2. Marcadores de referencia (`tipo === 'referencia'` en `DATOS_AVENTURAS`)
+2. Marcadores de referencia (`tipo === 'referencia'` en las `coordenadas` que le manda el padre con `MAPA_COMPLETO.DATOS`; la página no importa `coordenadas-aventuras.js`)
 3. `_reajustarVista()` — `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` — **antes** de añadir tiles
 4. `L.tileLayer('https://{s}.tile.openstreetmap.org/...').addTo(map)` — tiles con la vista ya correcta
 
@@ -13120,7 +13120,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS, async (mensaje)
 
 `opciones.permanente` no lo lee ningún código de la app — no hay ningún barrido de controladores en tiempo de ejecución que lo consulte (§28.4). El campo queda como una etiqueta declarativa en el propio registro ("este handler es del núcleo, no es un registro puntual") sin efecto funcional.
 
-**Alcance total:** **58 handlers** con `permanente: true` en total — 53 en `codigo-padre.html` (7 en Script 1 y 46 en Script 2, ninguno en los Scripts 3 a 5; incluye `_hdl_PARADAS_LISTADO_TOGGLE`, ver §7.2), 2 en `app.js`, 3 en `controladores-padre.js` (recuento verificado por `grep -c "permanente: *true"` sobre los 3 archivos).
+**Alcance total:** **54 handlers** con `permanente: true` en total — 50 en `codigo-padre.html` (7 en Script 1 y 43 en Script 2, ninguno en los Scripts 3 a 5; incluye `_hdl_PARADAS_LISTADO_TOGGLE`, ver §7.2), 2 en `app.js` y 2 en `controladores-padre.js` (recuento con `grep -E "permanente: *true"` sobre los 3 archivos, sin comentarios; `js/funciones-mapa.js` solo lo nombra en un comentario).
 
 ---
 
@@ -13294,7 +13294,7 @@ pantalla4 — cargarVideoIntroIframe() crea <iframe src="video-intro.html?lang=X
   ▼
 Pantalla final de video-intro.html (#end-btns: ↺ repetir / › continuar)
   │
-  │  usuario pulsa el globo verde → _continuarVideo() → postMessage SELECCION.VIDEO_INTRO_TERMINADO
+  │  usuario pulsa el globo verde → _continuarVideo() → bus: SELECCION.VIDEO_INTRO_TERMINADO a su contenedor
   │
   ▼
 En-busca-del-Tesoro.html recibe el mensaje → mostrar(5)
@@ -13306,9 +13306,8 @@ pantalla5 — imagen localizada según idioma → mostrar(6)
 **Entradas directas** (gestionadas en `_checkUrlParams`):
 
 - `?despedida=1` → mostrar(18) — flujo fin de aventura (P18 agradecimientos)
-- `?desde=aventura` → mostrar(2) — usuario vuelve a elegir aventura
 
-Ninguna de las dos pasa por P4/video-intro.html — son entradas directas a otra pantalla.
+No pasa por P4/video-intro.html: es una entrada directa a otra pantalla. No hay más: `_checkUrlParams` solo mira `despedida`.
 
 ### 35.4 Comunicación
 
@@ -13330,7 +13329,7 @@ sequenceDiagram
 
 **Payload**: ninguno (`datos` va vacío); el `id`, el `timestamp` y el `origen` los pone el bus.
 
-**Origen del postMessage**: `location.origin`, siempre
+**Destino**: `'padre'`, que para video-intro es su contenedor (la selección o el modal de hijo6); el bus lo manda con `location.origin` como `targetOrigin`, siempre
 
 **Handler en En-busca-del-Tesoro.html**: un controlador del bus, registrado con `registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.VIDEO_INTRO_TERMINADO, …)`. Al recibirlo, llama `mostrar(5)` y devuelve `true`; no manipula ningún botón propio de `En-busca-del-tesoro.html` (los botones de fin de intro viven dentro de `video-intro.html` — ver §35.5b). El bus solo le entrega el aviso si viene del iframe que la propia pantalla registra al crearlo.
 
@@ -13416,7 +13415,7 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 
 - `video-intro.html` NUNCA muestra `boton-casa-hijo5.html` — es una herramienta de desarrollo, no aparece en la PWA real.
 - El aviso de fin sale con `globalThis.mensajeria?.enviarMensaje?.(...)`: abierto el archivo suelto, sin frame contenedor, `enviarMensaje` devuelve `false` y lo dice en el log, sin lanzar.
-- El canvas de fuegos artificiales (P19) se apendiza a `#stage`, nunca a `#overlay-layer`, para sobrevivir a `setOv()`.
+- El canvas de fuegos artificiales (`scene19`) se apendiza a `#stage`, nunca a `#overlay-layer`, para sobrevivir a `setOv()`.
 - Las escenas `sceneImg` y `sceneVid` (posiciones 9-10) aparecen DESPUÉS de `scene10` (avanzar) en el array `scenes[]` de `run()`.
 - `JAIME_SCENES[15]` es `null` — ninguna escena del array `run()` llama a `showBubble(15)`; documenta un beat visual sin texto dentro de `scene16` (el caballero regresa caminando), no una escena propia.
 - `JAIME_SCENES` tiene 21 entradas (0-20) para 20 escenas, y su índice no es el número de escena: `sceneListadoParadas` pide la `[20]` pero es la decimoséptima en reproducirse. El índice 15 vale `null` y ninguna escena lo pide.
