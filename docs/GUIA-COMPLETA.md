@@ -4839,7 +4839,7 @@ Estos ficheros se cargan directamente en el navegador:
 | `mapa-vintage-aventuras.js` | Imágenes JPG de mapas artísticos por aventura | `MAPAS_VINTAGE.Aventura1` (string con la ruta de imagen) |
 | `terminos-aventuras.js` | Texto legal de términos y condiciones en 12 idiomas | `TERMINOS_AVENTURAS.terminos_idiomas.es`, `.en`, … |
 | `agradecimientos-aventuras.js` | Texto de créditos/agradecimientos en 12 idiomas | `AGRADECIMIENTOS_AVENTURAS.agradecimientos_idiomas.es`, … |
-| `normativa-cumplimiento.js` | Aviso legal de seguridad vial (requerido antes de iniciar aventura) en 12 idiomas | `NORMATIVA_CUMPLIMIENTO.normativa_idiomas.es`, … |
+| `normativa-cumplimiento.js` | Aviso legal de seguridad vial (requerido antes de iniciar aventura) en 12 idiomas. No lo carga la aplicación: es la fuente de `publico/textos/<idioma>/normativa.json`, que genera `tools/build-demo.js` y es lo que lee la selección (§21.1) | `NORMATIVA_CUMPLIMIENTO.normativa_idiomas.es`, … |
 | `traducciones-ui.js` | Textos cortos de interfaz en 12 idiomas, que importan cuatro páginas (`codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` y `chat-hijo6.html`): modal de reanudación, fin de aventura, tiempo agotado, despedida, retos, chat, banner SW de actualización. Guarda también los textos de Jaime (`JAIME_SCENES`), de los que `video-intro.html` lee la copia pública que hace `tools/build-demo.js` (§35) | `TRADUCCIONES_REANUDACION`, `TRADUCCIONES_FINALIZACION`, `TRADUCCIONES_TIEMPO_AGOTADO`, `TRADUCCIONES_DESPEDIDA`, `PLACEHOLDER_RESPUESTA_TEXTO`, `TITULOS_CHAT`, `JAIME_SCENES` (array 21 entradas × 12 idiomas, índice 15 = `null`), `TRADUCCIONES_SW_UPDATE` (label + boton del banner de actualización) |
 
 ### 10.2 Datos en el backend (`backend/data/`) — pendiente de crear
@@ -6097,12 +6097,14 @@ Los parámetros URL son un canal de comunicación de un solo sentido: el compone
 
 | Parámetro | Archivo que lo lee | Línea | Cadena de prioridad / default |
 |-----------|-------------------|-------|-------------------------------|
-| `?id=` | `puzzle.html` | 156 | Obligatorio — sin él no hay puzzle |
-| `?imagen=` | `puzzle.html` | 172 | La imagen ya resuelta por quien lo invoca — `puzzle.html` no la busca (§16). |
+| `?id=` | `puzzle.html` | 172 | Obligatorio — sin él no hay puzzle |
+| `?imagen=` | `puzzle.html` | 188 | La imagen ya resuelta por quien lo invoca — `puzzle.html` no la busca (§16). |
 | `?despedida=1` | `En-busca-del-tesoro.html` | — | Activa `modoDespedida`, salta a P18 (agradecimientos), ejecuta `limpiarDatosAventura` + pausa 2 s + `location.replace('codigo-padre.html')` (P1) al pulsar botón verde. No recarga: la misma dirección con `?despedida=1` volvería a mostrar P18 |
 | `?vv_debug=1` | `js/proteccion.js` | 25 | Flag booleano — desactiva bloqueos de seguridad |
-| `?vv_hard_protect=1` | `js/proteccion.js` | 29 | Flag booleano — fuerza protección estricta en local |
-| `?debug=1` | `js/suppress-warnings.js` | 88 | Flag booleano — activa logging verboso en consola |
+| `?vv_hard_protect=1` | `js/proteccion.js` | 27 | Flag booleano — fuerza protección estricta en local |
+| `?debug=1` | `js/suppress-warnings.js` | 82 | Flag booleano — activa logging verboso en consola; lo mismo que `vv_debug_verbose` a `'1'` (§10.19), que escribe `globalThis.__vv_debugVerbose(true)` desde la consola |
+| `?lang=` | `video-intro.html` | 534 | Obligatorio: el idioma lo dice siempre quien abre el vídeo (la selección y el asistente); sin él, un `error` en consola y el vídeo sin bocadillos |
+| `?replay=1` | `video-intro.html` | 574 | Lo pone el asistente al volver a ver el vídeo: el botón de saltar está activo desde el arranque, en vez de esperar al final de la escena 4 |
 
 **Emisores internos** (quién construye estas URLs):
 
