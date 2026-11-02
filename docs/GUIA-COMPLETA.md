@@ -12145,7 +12145,7 @@ CONFIG_DATOS_TERCEROS: _rChat({
 }, 'terminos'),
 ```
 
-### Comunicación con el padre (postMessage)
+### Comunicación con el padre (por el bus)
 
 El hijo 6 sigue el mismo protocolo de arranque que los demás hijos:
 
@@ -12154,14 +12154,16 @@ El hijo 6 sigue el mismo protocolo de arranque que los demás hijos:
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al terminar de cargar, con `origen: 'hijo6-chat'` |
 | Padre → Hijo | `CHAT.ESTADO_PADRE` o `SISTEMA.PADRE_DATOS` | El padre envía el estado actual (idioma, parada, aventura...) |
 | Hijo → Padre | `CHAT.CERRAR` | Cuando el usuario pulsa el botón ✕ del header |
+| Hijo → Padre | `CHAT.RESCATE_SOLICITADO` | Al pulsar el botón de rescate de la pregunta del atasco, con acuse (§25.19) |
+| Hijo → Padre | `UI.CAPA_ABIERTA` | Al abrir y cerrar su modal interno (`js/capa-con-atras.js`, §34.3) |
+| Padre → Hijo | `UI.CERRAR_CAPA` | El botón atrás del dispositivo cierra el modal interno |
+| Padre ↔ Hijo | `SISTEMA.CAMBIO_MODO` → `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO`, `SISTEMA.HEARTBEAT` → `HEARTBEAT_RESPONSE` | Protocolo, como los demás hijos |
 
 Al recibir `CHAT.ESTADO_PADRE` o `SISTEMA.PADRE_DATOS`, el hijo actualiza `estadoPadre` y reconstruye el acordeón completo, con el idioma y el estado del rescate recibidos. Los otros dos campos de `estadoPadre`, `aventura` y `paradaActualNombre`, no afectan al contenido del FAQ: son el contexto que se adjunta al enviar el buzón de sugerencias (ver §7.7).
 
 ### Soporte de idiomas
 
-Al construir el acordeón, se filtra cada pregunta: si el texto está vacío en el idioma actual **y** en el español de fallback, la pregunta no aparece. En la práctica esto no ocurre hoy — las 47 preguntas están completas en los 12 idiomas — pero el filtro se mantiene como red de seguridad ante contenido futuro parcial.
-
-La lógica de fallback sigue el mismo patrón que en toda la app: si no hay texto para el idioma activo, se usa el español.
+Al construir el acordeón, se filtra cada pregunta: si su texto está vacío en el idioma actual, la pregunta no aparece. No hay respaldo en otro idioma: el asistente no tiene idioma por defecto, y si el padre le manda uno que no tiene, lo dice con un `error` (`actualizarIdioma`). En la práctica no se filtra nada: las 47 preguntas están completas en los 12 idiomas (medido sobre `PREGUNTAS_CHAT` y `RESPUESTAS_CHAT`).
 
 ---
 
@@ -12320,7 +12322,7 @@ El asistente es 100% offline:
 
 - `js/traducciones-ui.js`, `js/terminos-aventuras.js` y `js/agradecimientos-aventuras.js` están en el precache del Service Worker, así que los modales de términos y agradecimientos funcionan sin red; el del vídeo de introducción necesita red: `video-intro.html` está en el precache, pero sus imágenes, su clip y la copia pública de los textos de Jaime no
 - No hace ninguna petición de red durante el uso (el buzón de sugerencias es la única excepción — ver §7.7)
-- `estadoPadre` es estado en memoria del cliente, usado solo para el idioma del acordeón y el contexto del buzón
+- `estadoPadre` es estado en memoria del cliente: el idioma del acordeón, el botón de rescate (`rescate`) y el contexto del buzón
 
 ---
 
