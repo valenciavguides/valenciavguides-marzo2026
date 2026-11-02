@@ -3089,7 +3089,7 @@ camino con acuse de uno sin él.
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
 | `RETO.MOSTRADO` | Tras renderizar correctamente el reto | `{ retoId }` |
-| `RETO.OCULTAR` | Click en `#btnNext`/`#btnNextAfterReto` o en `#btn-puzzle-continuar` — usuario cierra la ventana del reto | `{ retoId }` |
+| `RETO.OCULTAR` | Click en `#btnNextAfterReto` (la variable `btnNext` de hijo4) o en `#btn-puzzle-continuar` — usuario cierra la ventana del reto | `{ retoId }` |
 | `RETO.COMPLETADO` | Usuario pulsa el botón verde tras acertar, saltar o terminar el puzzle | `{ retoId, correcto: true }` — igual para el puzzle — ver payload completo arriba |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Tras procesar `CAMBIO_PARADA` (no precarga el reto, ver fila `NAVEGACION.CAMBIO_PARADA` arriba) | `{ paradaId }` |
 | `DATOS.SOLICITAR_RETOS { retoId }` | Cache-miss: `mostrarReto()` no encuentra ese `retoId` en la caché local acotada (máx. 2 entradas) | `{ retoId, motivo:'cache_miss', timestamp }` |
@@ -3139,7 +3139,7 @@ sequenceDiagram
 
 > ⚠️ **Solo para desarrollo. No aparece en la PWA final.** Permite al desarrollador simular el modo CASA desde escritorio y navegar entre paradas sin GPS real.
 
-**Propósito**: interruptor de modo (CASA ↔ AVENTURA) y navegador de paradas en modo CASA. Es el **único componente** que puede disparar el cambio de modo desde la interfaz. En modo CASA muestra la lista completa de paradas/tramos con scroll horizontal para que el desarrollador navegue libremente.
+**Propósito**: interruptor de modo (CASA ↔ AVENTURA) y navegador de paradas en modo CASA. Es el interruptor de modo del modo DEV (ver §24); en producción el modo lo ponen la activación (P17) y la reanudación. En modo CASA muestra la lista completa de paradas/tramos con scroll horizontal para que el desarrollador navegue libremente.
 
 **Inicialización**: pre-cargado por `cargarRestoDeiframes()`, oculto. Solicita la lista de paradas al padre via `NAVEGACION.SOLICITAR_DATOS_PARADAS`; genera los botones al recibir `NAVEGACION.RESPUESTA_DATOS_PARADAS`. Envía `PARADAS.READY { count }` (el tipo en el cable es `VV:PARADAS:READY`) al terminar.
 
@@ -3251,7 +3251,7 @@ wrap.classList.add('marquee');
 
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
-| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Al conectarse y al volver a la pestaña sin paradas (solo en CASA), y tras cada `CAMBIO_MODO` | `{}` |
+| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Al conectarse y al volver a la pestaña sin paradas (solo en CASA), y tras un `CAMBIO_MODO` a AVENTURA | `{}` |
 | `SISTEMA.CAMBIO_MODO` | Click en `#gps-casa-btn` | `{ modo: 'casa'/'aventura', origen: 'boton-gps' }` |
 | `NAVEGACION.CAMBIO_PARADA` | Click en botón de parada/tramo | `{ paradaId, parada_id, padreId, padreid, origen: 'hijo5' }` |
 | `PARADAS.READY` | Tras generar todos los botones | `{ count: N }` |
@@ -3481,11 +3481,11 @@ Los tres botones de la barra superior (`#leftControls`) son **solo icono, sin te
 | Reiniciar (🔄) | `#restartBtn` | Llama `init()` → resetea piezas, timer, redibuja | Siempre habilitado | Solo si `puzzleConfigValido` |
 | Pausa/Continuar (⏸️/▶️) | `#pauseBtn` | Toggle `paused` flag — para/reanuda el timer y el refresco visual | Habilitado | Solo si `puzzleConfigValido` |
 | Saltar (⏩) | `#skipBtn` | Da el puzzle por resuelto sin jugarlo — ver sección de saltar más abajo | Siempre habilitado | Siempre, cargue o no el puzzle |
-| Timer | `#timer` (display) | Muestra tiempo restante en `MM:SS` | Valor inicial = `puzzleConfig.tiempo` | Solo visual |
+| Timer | `#timer` (display) | Muestra tiempo restante en `MM:SS` | Valor inicial: 180 s (`puzzleConfig.tiempo \|\| 180`; ningún puzzle define `tiempo`) | Solo visual |
 
 #### Mecánica del puzzle
 
-- **Grid**: filas × columnas configurables por el `puzzleConfig`
+- **Grid**: 3 × 3 (`puzzleConfig.filas || 3` y `puzzleConfig.columnas || 3`; ningún puzzle define `filas` ni `columnas`)
 - **Drag & drop**: eventos `pointerdown`, `pointermove`, `pointerup`, `pointercancel`
 - **Tolerancia de colocación**: pieza se "encaja" si su centro está a ≤ 25% del tamaño de celda de la posición correcta
 - **Timer**: `setInterval` cada 1 s decrementa `timeLeft`. Al llegar a 0 → `endPuzzle(false)`
@@ -3517,9 +3517,9 @@ pauseBtn.addEventListener('click', () => {
 
 | Resultado | Borde | Efecto | Sonido |
 |-----------|-------|--------|--------|
-| ✅ Completado | Verde | `runFireworks()` — 15 explosiones × 30 chispas de colores | `RETO_COMPLETADO` |
+| ✅ Completado | Verde | `runFireworks()` — 5 s de chispas de colores: cada fotograma suma 5 en un punto al azar de la mitad de arriba mientras haya menos de 100 vivas (cada una vive 100 fotogramas) | `RETO_COMPLETADO` |
 | ❌ Timeout | Rojo | `runConfetti()` — confeti cayendo | `TIEMPO_ACABADO` |
-| Pieza colocada (durante juego) | — | Scale 1.0 → 1.1 → 1.0 (20 frames @ 60fps) | `PIEZA_COLOCADA` |
+| Pieza colocada (durante juego) | — | Escala 1.0 → 1.5 → 1.0 en 20 fotogramas (±0,05 por fotograma) | `PIEZA_COLOCADA` |
 
 Los sonidos son los efectos de `js/efectos-sonido.js` (§12, «Efectos de sonido»), nombrados aquí por su constante de `EFECTOS`. Los reproduce `puzzle.html` en sus dos contextos (el reto de hijo4 y P6 de la selección), así que suenan igual en los dos; ningún contenedor los repite. `precargarEfectos` los crea al arrancar la página, fuera del `if (puzzleConfigValido)`: el ⏩ de un puzzle roto también suena. El primer gesto en la página desbloquea los tres reproductores para iOS (§12, punto 6).
 
@@ -3531,7 +3531,7 @@ Los sonidos son los efectos de `js/efectos-sonido.js` (§12, «Efectos de sonido
 
 ```mermaid
 sequenceDiagram
-    participant PADRE as seleccion.html (P6) o hijo4.html
+    participant PADRE as En-busca-del-tesoro.html (P6) o retos-hijo4.html
     participant PZ as puzzle.html (sub-iframe)
 
     PADRE->>PZ: asigna src = puzzle.html?id=PZ-intro&imagen=...
@@ -3590,7 +3590,7 @@ Las cuatro llevan la ✗ común de la PWA (§4.3), fija en la esquina superior d
 | **hijo4** | modal centrado `position:fixed; top:50%; left:50%; transform:translate(-50%,-50%)` | `min(90vw, 85vmin)` | `90dvh` | blanco, borde azul |
 | **hijo5** | `top: 3px; left: 50%; transform: translateX(-50%)` | `99vw` | `22vh` | `transparent` |
 
-> **F** = valor de `--franja-lateral` en ese dispositivo (entre 59 y 75 px).
+> **F** = valor de `--franja-lateral` en ese dispositivo: `clamp(44px, 7.2vh, 80px)`, entre 44 y 80 px.
 
 La fórmula `N×F + 26 px` garantiza que quepan exactamente `N` botones de diámetro `F - 2 px` con `gap: 6 px` y `padding-bottom: 3 px` — `N=7` en hijo1 (botón principal + 6 iconos desplegables) y `N=6` en hijo2 (6 botones de navegación).
 
@@ -3621,7 +3621,7 @@ El botón principal de hijo1 (`#mas-opciones`) usa CSS `bottom: 3px` directament
 #### Layout interno de hijo3 (dos filas)
 
 ```text
-iframeHeight = 2×I  (I = --franja-inferior; ≈ 124–150 px según pantalla)
+iframeHeight = 2×I  (I = --franja-inferior = clamp(62px, 7.2vh, 80px); entre 124 y 160 px según pantalla)
 
 ┌─ fila superior: .progress-top-row ──────────────────────────────────────┐
 │  height: calc(50vh - 7px)  =  I - 7px  [barra de progreso]              │
@@ -4125,7 +4125,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componenteId, estado:{ inicializado, modo, paradasCargadas } }` | Al recibir HEARTBEAT |
 | `SISTEMA.CAMBIO_MODO` | `{ modo, timestamp, origen:'boton-gps' }` | Usuario pulsa botón GPS 🛰️ |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, origen:'hijo5' }` | Usuario pulsa un botón de parada |
-| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `{}` | Al conectarse y al volver a la pestaña sin paradas (solo en CASA), y tras cada `CAMBIO_MODO` |
+| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `{}` | Al conectarse y al volver a la pestaña sin paradas (solo en CASA), y tras un `CAMBIO_MODO` a AVENTURA |
 | `SISTEMA.ERROR` | `{ error, contexto, timestamp }` | Notificación de error interno |
 | `PARADAS.READY` | `{ count:botonesGenerados }` | UI de paradas lista |
 
