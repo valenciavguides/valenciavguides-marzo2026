@@ -9776,7 +9776,7 @@ Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia 
 
   **El índice no es el número de escena.** `JAIME_SCENES` tiene **21** entradas (0–20) para 20 escenas, y el orden del array no es el orden de reproducción: `scene2` pide el índice 1 pero se reproduce la segunda, `scene8` pide el 5 y se reproduce la sexta, `sceneListadoParadas` pide el 20 y se reproduce la decimoséptima. Los índices que sí se usan son 0–14 y 16–20; **el 15 vale `null` y ninguna escena lo pide** — es un hueco del array, no una escena muda.
 - **20 escenas animadas** que muestran el mapa, los botones de hijo2, el audio, los retos, los overlays de error GPS/internet, y el modal de fin de aventura. El guantelete (`guantelete_*.png`) actúa de cursor animado.
-- **Botones al final:** globo rojo ↺ (izquierda, replay) y globo verde ➤ (derecha, continuar). Al pulsar ➤ se envía `postMessage({ tipo: 'SELECCION.VIDEO_INTRO_TERMINADO' })` al padre (`En-busca-del-tesoro.html`), que ejecuta `mostrar(5)`.
+- **Botones al final:** globo rojo ↺ (izquierda, replay) y globo verde ➤ (derecha, continuar). Al pulsar ➤, `_continuarVideo()` avisa por el bus a su contenedor (`enviarMensaje({ tipo: SELECCION.VIDEO_INTRO_TERMINADO, destino: 'padre' })`; ese «padre» es `En-busca-del-tesoro.html`), que ejecuta `mostrar(5)`.
 - **Localización:** el idioma lo pasa siempre quien abre el vídeo (la selección y el asistente), como `?lang=es` (o el código elegido); sin él, `video-intro.html` lo dice con un `error` en consola. Las imágenes del caballero y el guantelete están en `imagenes/imagenes video intro/`.
 
 **Pantalla 5 — Imagen "En Busca del Tesoro".** Se muestra la imagen del título en el idioma seleccionado. Al pulsar `→` avanza a P6.
@@ -9786,7 +9786,7 @@ Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia 
 **Pantalla 7 — Selección de aventura.** Se listan las aventuras disponibles. Cada botón tiene `width: 95vw` para aprovechar toda la pantalla del móvil, y muestra una línea con estadísticas visuales universales (no necesitan traducción):
 
 ```text
-València centro histórico 1    👣±4km 🏛️19 📍41 🧩30 ⏳max60h
+València centro histórico 1    👣±4km 🏛️23 📍41 🧩36 ⏳max60h
 ```
 
 Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTURAS` en `En-busca-del-tesoro.html`), aplicada como `backgroundImage` con una capa blanca semi-transparente (`rgba(255,255,255,0.75)`) para mantener la legibilidad del texto. La selección pide la copia de cada una de la carpeta pública, `publico/imagenes/`, porque las enseña la demo gratis; los originales están en `imagenes/imagenes-aventuras/` (§22.0, n.º 29):
@@ -9801,7 +9801,7 @@ Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTU
 | `AventuraFallas` | `fallas-castillo.png` |
 | `Aventura34km` | `aventura-34km.png` |
 
-Actualmente todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponibles. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. Al cerrar el mapa vintage → `cerrarMapaVintage()` → avanza a P8. Envía `SELECCION.AVENTURA_SELECCIONADA { aventura, timestamp }` al padre; el idioma viaja solo en `SELECCION.IDIOMA_SELECCIONADO` (P2).
+Todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponibles. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. Al cerrar el mapa vintage → `cerrarMapaVintage()` → avanza a P8. Envía `SELECCION.AVENTURA_SELECCIONADA { aventura, timestamp }` al padre; el idioma viaja solo en `SELECCION.IDIOMA_SELECCIONADO` (P2).
 
 **Pantalla 8 — Reto R-1 (prueba de conocimiento previa).** Mientras `cargarRetoR1()` lee la pregunta de su copia pública (`publico/retos/<idioma>/retos.json`), se muestra brevemente un spinner inline (logo giratorio pequeño) en el lugar de la pregunta. Una pregunta con opciones tipo test que el usuario debe superar antes de confirmar la aventura. Si acierta, el borde se pone verde, aparece un ✓ y avanza automáticamente a P9 a los 1,5 segundos. Si falla, puede reintentar.
 
@@ -9809,7 +9809,7 @@ Actualmente todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponible
 
 **Pantalla 10 — Términos y condiciones.** Mientras `cargarTerminos()` lee el texto de su copia pública (`publico/textos/<idioma>/terminos.json`), el cuadro muestra brevemente un spinner inline en vez de texto. El cuadro de texto con scroll ocupa toda la pantalla disponible (`flex: 1`, `width: min(95vw, 92vmin)`) sin altura máxima fija. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final del texto. Usa `padding-bottom: var(--gap-inferior)` para respetar la safe area. Al aceptar, envía `SELECCION.TERMINOS_ACEPTADOS` y avanza a P11.
 
-**Pantalla 11 — Audio y texto de introducción.** El usuario escucha un audio narrativo de bienvenida mientras lee un texto descriptivo con fondo naranja. Ambos se cargan desde `js/audios-aventuras.js` y `js/textos-aventuras.js` respectivamente, en el idioma seleccionado. Un botón `→` avanza a P12.
+**Pantalla 11 — Audio y texto de introducción.** El usuario escucha un audio narrativo de bienvenida mientras lee un texto descriptivo con fondo naranja. Los dos salen de la carpeta pública de la demo, en el idioma seleccionado: el audio de `publico/audios/<idioma>/audios.json` y el texto, montado con `ensamblarTexto()` a partir de `publico/textos/intro.json` y `publico/textos/<idioma>/parrafos.json` (`_piezasDemo`); los ficheros de pago no se tocan (spec 149). Un botón `→` avanza a P12.
 
 **Pantalla 12 — Pantalla de pago.** Es un stub con texto "Próximamente", pendiente de integrar una pasarela de pago real (§16.2). Su botón da la pantalla de pago por hecha (`continuarTrasPago()`) y avanza a P13.
 
@@ -9835,8 +9835,7 @@ Cuando el padre recibe `SELECCION.AVENTURA_ACTIVADA`:
 3. Guarda en `localStorage` la clave `vv_aventura_iniciada`.
 4. Distribuye los datos de la aventura a todos los hijos (`distribuirDatosAventura()`).
 5. Muestra la UI de aventura (`_mostrarUIActivada()`).
-6. Envía `SISTEMA.NOTIFICACION { evento:'AVENTURA_ACTIVADA' }` a broadcast.
-7. **El modo final depende de `_devModeActivo` (ver §9.5/§24): en producción, el caso real de cualquier turista, el sistema pasa directo a modo AVENTURA, sin ningún botón que pulsar.** Solo en modo DEV el sistema queda en CASA a la espera de que el desarrollador pulse el botón GPS de hijo5.
+6. **El modo final depende de `_devModeActivo` (ver §9.5/§24): en producción, el caso real de cualquier turista, el sistema pasa directo a modo AVENTURA, sin ningún botón que pulsar.** Solo en modo DEV el sistema queda en CASA a la espera de que el desarrollador pulse el botón GPS de hijo5.
 
 ---
 
