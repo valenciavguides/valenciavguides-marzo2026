@@ -4520,7 +4520,7 @@ sequenceDiagram
     P-->>P: _gestionarSesionSegunModo('aventura') → _activarAventura
     P-->>P: ensureDefaultParada() → activa primera parada
 
-    P-->>P: _gestionarGpsSegunModo() — gestiona overlays GPS según modo
+    P-->>P: _gestionarGpsSegunModo() — escribe el modo en el log y activa el GPS si hiciera falta
 ```
 
 #### Protocolo bidireccional de cambio de modo (actualizarInterfazModo)
@@ -4566,7 +4566,7 @@ sequenceDiagram
     P->>H4: NAVEGACION.CAMBIO_PARADA { paradaId, parada_id, padreId, tipo,\nretoId, retoIds, timestamp, origenCambio }
     Note over H4: Solo si hijo4 está en hijosInicializados
 
-    H2->>P: NAVEGACION.LLEGADA_DETECTADA { padreId, distancia }
+    H2->>P: NAVEGACION.LLEGADA_DETECTADA { paradaId, parada_id, distancia, tipoParada, timestamp }
     P-->>P: ensurePending(padreId, tipo) — la entrada existe desde la activación del elemento\n(si faltara, la crea y envía PENDING_INICIADO a hijo2/hijo4)
     P-->>P: pending.llegada = true → intentarCompletarElemento()
 
@@ -4585,7 +4585,7 @@ sequenceDiagram
     H4->>P: RETO.COMPLETADO { retoId, correcto: true } — con acuse
     P-->>P: pending.reto = true / retosCompletadosCount++
     P->>H2: NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: false, retoCompletado, retoId }
-    Note over P: En modo AVENTURA: habilita GPS para avanzar
+    Note over P: En modo AVENTURA: _sincronizarAvanzar enciende «avanzar» si _decidirAvanzar() lo permite
 
     P-->>P: intentarCompletarElemento(padreId)
     P-->>P: marcarParadaCompletada()
@@ -4609,7 +4609,7 @@ Donde `retosOk = retosIds.length === 0 OR pending.reto === true OR retosCompleta
 
 **Por qué no se deja solo la cuenta**, que sería lo limpio: si algún día se quedara corta, la parada no se cerraría **nunca** y el usuario quedaría bloqueado en mitad de la calle sin poder avanzar. Ese fallo es peor que el que se evitaría.
 
-**Y por qué avisa:** con las dos vías en un `OR`, la señal contesta siempre primero, así que la cuenta no decide nada y **no puede fallar de forma visible** — si se rompiera, la parada se cerraría igual y no lo sabría nadie. Es alcanzable: `reto_id` ya admite lista, y basta con un reto opcional o uno que se pueda saltar para que la cuenta quede corta legítimamente mientras la señal sigue diciendo «hechos». Por eso `_paradaConditionsMet()` compara las dos y, cuando no coinciden, emite **un** `logger.warn` por parada (`pending._avisadoRetosDiscrepan` evita repetirlo en cada uno de los nueve puntos que llaman a `intentarCompletarElemento()`) nombrando el elemento, la cuenta y el total. La parada se cierra igual — nadie se atasca—, pero deja de ser silencioso. Es el principio de §32: un camino alternativo puede existir, pero tiene que ser **ruidoso**.
+**Y por qué avisa:** con las dos vías en un `OR`, la señal contesta siempre primero, así que la cuenta no decide nada y **no puede fallar de forma visible** — si se rompiera, la parada se cerraría igual y no lo sabría nadie. Es alcanzable: `reto_id` ya admite lista, y basta con un reto opcional o uno que se pueda saltar para que la cuenta quede corta legítimamente mientras la señal sigue diciendo «hechos». Por eso `_paradaConditionsMet()` compara las dos y, cuando no coinciden, emite **un** `logger.warn` por parada (`pending._avisadoRetosDiscrepan` evita repetirlo en cada uno de los siete puntos que llaman a `intentarCompletarElemento()`) nombrando el elemento, la cuenta y el total. La parada se cierra igual — nadie se atasca—, pero deja de ser silencioso. Es el principio de §32: un camino alternativo puede existir, pero tiene que ser **ruidoso**.
 
 **No se cubre con un test, y es deliberado.** Las dos vías se escriben en dos líneas consecutivas del mismo bloque, así que un test que comprobara que coinciden pasaría hoy y pasaría igual con el fallo dentro: verde siempre, sin decir nada. Un test que pasa con y sin el bug no vale (§18).
 
@@ -4665,8 +4665,8 @@ flowchart TD
 
 | Destinatario | Campos enviados |
 |-------------|-----------------|
-| hijo5 | `{ paradaId, parada_id, padreId, padreid }` |
-| hijo2 | `{ paradaId, parada_id, padreId, padreid, parada, nombre, tipo, imagen, video, coordenadas, timestamp, origenCambio }` |
+| hijo5 | `{ paradaId, parada_id, padreId, padreid, paradaActual, parada, tipo, audioId, retoId, retoIds, exito, timestamp, origenCambio }` (solo si el cambio no lo pidió él) |
+| hijo2 | `{ paradaId, parada_id, padreId, padreid, tipo, timestamp, origenCambio }` — solo el id y el tipo: lo que enseñan sus botones lo resuelve el padre cuando lo piden |
 | hijo3 | `{ paradaId, parada_id, padreId, padreid, timestamp, origenCambio }` |
 | hijo4 | `{ paradaId, parada_id, padreId, padreid, tipo, retoId, retoIds, timestamp, origenCambio }` (solo si en hijosInicializados) |
 
@@ -4681,7 +4681,7 @@ El latido no depende del modo: el padre lo enciende una vez al cargar y está si
 | Evento | Acción |
 |--------|--------|
 | Modo → AVENTURA | `_activarAventura`: llama `ensureDefaultParada()` (salvo en una reanudación, §9.10); y llama `globalThis._iniciarTemporizadorAventura()` (expuesta por Script 2) para (re)iniciar el temporizador de hijo1 — ver §7.2 |
-| Modo → CASA | `_transicionarAModoCasa`: si `globalThis._devModeActivo` es `false` (modo DEV, ver §24) y el cambio no es una reanudación, limpia `localStorage` de progreso (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`) |
+| Modo → CASA | `_transicionarAModoCasa`: si `globalThis._devModeActivo` es `false` —fuera del modo DEV, ver §24— y el cambio no es una reanudación, limpia `localStorage` de progreso (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`) |
 
 El intervalo del latido se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s, ajustado por calidad de conexión — y se fija al encenderlo, una sola vez. El pulso `SISTEMA.HEARTBEAT` se envía a los iframes supervisados de `iframesRegistrados` que ya completaron su apretón de manos (Map dinámico de `mensajeria.js`, poblado por los cargadores antes de asignar el `src`); encenderlo es una llamada directa, sin ningún mensaje de por medio, ni al propio padre ni a los hijos.
 
@@ -11533,7 +11533,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.CAMBIO_MODO` | Todos los hijos | Cuando el usuario cambia de modo (CASA/AVENTURA — los únicos dos que existen, `MODOS.CASA`/`MODOS.AVENTURA` en `js/constants.js`) | Iniciar el protocolo de cambio de modo; los hijos deben adaptar su interfaz |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | **Todos los hijos inicializados** (en paralelo) | Cuando `actualizarInterfazModo` termina de esperar `CAMBIO_MODO_EFECTUADO` de todos los hijos (hasta 10 s; si alguno falta, lo avisa en el log y sigue) | Cerrar la 4.ª fase del protocolo de modo; los frames que lo atienden (la selección y hijo1 a hijo5) solo lo escriben en el log |
 | `SISTEMA.HEARTBEAT` | Cada iframe supervisado que ya completó su apretón de manos | Cada 5 s (valor por defecto de `iniciarHeartbeat()`, ajustado por la conexión), en cualquier modo — el ciclo lo enciende el padre una vez con una llamada directa a `iniciarHeartbeat()`, sin mensaje, y no se pausa | Verificar que todos los hijos siguen vivos y respondiendo |
-| `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (si el cambio no lo originó él), Hijo 2, Hijo 3 y Hijo 4 (si ya está inicializado) | Cada vez que cambia la parada o el tramo activo (por una orden de hijo5 o por un despacho dentro del padre: progresión, restauración de sesión, vuelta a AVENTURA) | Informar a cada hijo del elemento activo: a hijo2 con sus coordenadas, imagen y vídeo; a hijo4 con sus retos; a hijo3 y hijo5 con los identificadores |
+| `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (si el cambio no lo originó él), Hijo 2, Hijo 3 y Hijo 4 (si ya está inicializado) | Cada vez que cambia la parada o el tramo activo (por una orden de hijo5 o por un despacho dentro del padre: progresión, restauración de sesión, vuelta a AVENTURA) | Informar a cada hijo del elemento activo: a hijo2 con el id y el tipo; a hijo4 con sus retos; a hijo3 con los identificadores; a hijo5 con los identificadores, el tipo y los ids de audio y reto |
 | `AUDIO.REPRODUCIR_REQUEST` | Hijo 3 | Al cambiar de parada | Ordenar a hijo 3 que cargue y reproduzca el audio de la nueva parada |
 | `RETO.MOSTRAR` | Hijo 4 | Cuando el usuario pulsa el botón de retos (`RETO.SOLICITAR_RETO`), o al avanzar al siguiente reto de una cola | Renderizar el reto en hijo 4 para que el usuario lo resuelva |
 | `RETO.HABILITAR` | Hijo 4 | Cuando hijo 3 notifica `FIN_REPRODUCCION` y la parada tiene retos (vía `_procesarFinAudioElemento`) | Desbloquear el botón del reto para que el usuario pueda intentarlo; no se envía si la parada no tiene reto |
