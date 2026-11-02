@@ -2,7 +2,7 @@
 /**
  * build-sw.js — Calcula CACHE_VERSION a partir de un SHA-256 real del App
  * Shell, en vez de depender de que alguien recuerde actualizar el string a
- * mano en sw.js y en sus 4 referencias de docs/GUIA-COMPLETA.md.
+ * mano en sw.js y en cada una de sus referencias de docs/GUIA-COMPLETA.md.
  *
  * Uso:
  *   node tools/build-sw.js              → lee del working tree, aplica si cambió

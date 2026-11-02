@@ -8650,7 +8650,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 
 ### 21.1 Lo que el hook de pre-commit mantiene al día: `CACHE_VERSION` y la demo gratis
 
-`CACHE_VERSION` se actualiza sola cada vez que cambia algún fichero del shell — nunca a mano. Actualizarla manualmente (editar el string en `sw.js` y sus 4 apariciones en este documento) sería un proceso fácil de dejar a medias, con el riesgo real de olvidar una de las referencias. El sistema, construido en `tools/build-sw.js`, `tools/install-hooks.js` y `tools/watch-sw.js`, lo hace automático:
+`CACHE_VERSION` se actualiza sola cada vez que cambia algún fichero del shell — nunca a mano. Actualizarla manualmente (editar el string en `sw.js` y cada una de sus apariciones en este documento) sería un proceso fácil de dejar a medias, con el riesgo real de olvidar una de las referencias. El sistema, construido en `tools/build-sw.js`, `tools/install-hooks.js` y `tools/watch-sw.js`, lo hace automático:
 
 **`tools/build-sw.js`** es el núcleo — expone `computeCacheVersion({staged})` y `aplicarCacheVersion(valor)`, reusadas por los otros dos scripts (ninguna lógica de hash duplicada), y sus lectores `leerStaged()`, `leerWorkingTree()` y `normalizarFinalesLinea()`, que reusa `tools/build-demo.js`:
 
@@ -8662,7 +8662,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 4. Si difiere del valor actual, sustituye el string exacto (no una regex por contexto) en `sw.js` y en todas sus apariciones dentro de este documento.
 5. Escribe `version.json` en la raíz del repositorio con `{ "version": "<CACHE_VERSION>" }` — siempre, no solo cuando `CACHE_VERSION` cambia de verdad, así se autocorrige si el fichero no existe todavía o si alguien lo edita a mano por error. `codigo-padre.html` lo consulta con su propio cache-busting para saber qué versión hay desplegada sin depender de que `registration.update()` haya detectado ya el `sw.js` nuevo — ver "Los dos datos que deciden si hay que avisar" en §19. `version.json` no está en `PROTECTED_FILES` (`js/server.js`) ni pensado para estarlo: tiene que ser consultable siempre, sin autenticación, desde cualquier estado de la app.
 
-**Por qué el modo `--staged` lee con `git show :ruta` y no con `fs.readFileSync`:** este proyecto no tiene `.gitattributes` y tiene `core.autocrlf=true` — el working tree en Windows normaliza a CRLF, pero el blob que git realmente guarda (y el working tree en Linux/Mac) tiene LF. Confirmado con una prueba directa: el mismo `video-intro.html` mide 93.086 caracteres leído del disco en Windows y 91.155 vía `git show :video-intro.html` — una diferencia real, no cosmética. `git show :ruta` lee el contenido indexado, estable entre plataformas — el modo correcto para el hook de pre-commit, que debe reflejar exactamente lo que se va a commitear.
+**Por qué el modo `--staged` lee con `git show :ruta` y no con `fs.readFileSync`:** este proyecto no tiene `.gitattributes` y tiene `core.autocrlf=true` — el working tree en Windows normaliza a CRLF, pero el blob que git realmente guarda (y el working tree en Linux/Mac) tiene LF. Confirmado con una prueba directa: el mismo `video-intro.html` leído del disco en Windows lleva un `\r` en cada línea que no lleva vía `git show :video-intro.html` —casi dos mil caracteres más—: una diferencia real, no cosmética. `git show :ruta` lee el contenido indexado, estable entre plataformas — el modo correcto para el hook de pre-commit, que debe reflejar exactamente lo que se va a commitear.
 
 **Por qué `computeCacheVersion` normaliza CRLF→LF explícitamente en los DOS modos (no solo al leer vía `git show`):** al menos un fichero del shell tiene el propio blob de git con CRLF embebido (no todo el historial del repositorio se commiteó con `core.autocrlf` ya activo), así que "`git show` ya da LF" no es cierto al 100% — sin normalizar explícitamente, el modo `--staged` y el modo working-tree podrían calcular hashes distintos para el mismo contenido lógico, de forma consistente y no solo en una condición de carrera puntual: `npm run dev:watch` reescribiría `CACHE_VERSION` nada más arrancar tras cualquier commit (sin ningún cambio real de por medio), y el siguiente commit lo revertiría vía el hook — un vaivén perpetuo entre dos valores igual de "correctos" para el mismo contenido. La función `normalizarFinalesLinea()` (`contenido.replace(/\r\n/g, '\n')`) se aplica a `sw.js` y a cada fichero del shell justo antes de alimentar el hash, en ambos modos — así los dos convergen siempre al mismo valor mientras el contenido lógico no cambie, sin importar qué modo se ejecute último ni qué SO haya escrito el blob originalmente.
 
@@ -8797,7 +8797,7 @@ pm2 restart vv-static
 
 **Qué es:** el patrón del proyecto es `(globalThis.logger || console).nivel(...)`, que respeta `CONFIG.DEBUG.NIVEL_LOG`. Un `console.*` suelto no lo respeta: en producción, cualquier usuario con DevTools ve estados internos, rutas de datos e IDs de mensajes por mucho que se baje el nivel. Los `console.*` de `js/server.js` son otra cosa: salida de un proceso Node en el servidor, que ningún usuario ve.
 
-**Lo que queda, medido:** tres llamadas directas en el código del navegador, todas en scripts clásicos que corren antes de que exista el logger: una en `En-busca-del-tesoro.html` (el aviso de página abierta suelta) y dos en `retos-hijo4.html` (el validador por defecto).
+**Lo que queda, medido:** en las páginas, tres llamadas directas, todas en scripts clásicos que corren antes de que exista el logger: una en `En-busca-del-tesoro.html` (el aviso de página abierta suelta) y dos en `retos-hijo4.html` (el validador por defecto). En `sw.js`, cinco: el service worker no tiene logger, y escribe al instalarse (la precarga que falla y el nombre de la caché), al borrar cachés antiguas, al activarse y al avisar a las pestañas, también fuera de `localhost`. Y `__vv_restaurarConsola()` (`js/suppress-warnings.js`) escribe una línea, pero solo si alguien la llama a mano desde la consola.
 
 **El nivel:** `CONFIG.DEBUG.NIVEL_LOG` vale `LOG_LEVELS.DEBUG` en `js/config.js`. En producción tiene que valer `LOG_LEVELS.ERROR` (o `NONE`, para silencio total) sin editar ningún fichero al desplegar: el valor sale del entorno, como el service worker distingue `localhost` (`IS_DEV`, `sw.js`). El logger lee el nivel en cada llamada; `logger.setNivel(LOG_LEVELS.ERROR)` lo fuerza en caliente desde la consola, y toma el valor numérico de `LOG_LEVELS`, no la cadena.
 
@@ -8819,7 +8819,7 @@ node js/server.js
 # PROTECT_DATA=false por defecto (todos los ficheros accesibles)
 ```
 
-**Retira `upgrade-insecure-requests` del CSP de cada HTML que sirve.** 15 de los 17 HTML del proyecto llevan esa directiva en su `<meta>` CSP —las excepciones son `debug-brujula.html` y `video-intro.html`—, y este servidor habla HTTP plano. WebKit aplica la directiva **también a `localhost`**, así que eleva cada recurso a `https://localhost:8080/…` y falla con *SSL connect error*: 22 peticiones muertas y la app congelada en la pantalla de carga, porque los módulos de FASE 1 nunca llegan a importarse. Chromium no lo hace — considera `localhost` un origen confiable y exime la directiva. Junto a ella se retira la `<meta http-equiv="Strict-Transport-Security">`, que provoca el mismo salto en WebKit (según la especificación HSTS solo es válida como cabecera HTTP y un `<meta>` debería ignorarse; WebKit no lo ignora).
+**Retira `upgrade-insecure-requests` del CSP de cada HTML que sirve.** 15 de los 17 HTML del proyecto llevan esa directiva en su `<meta>` CSP —las excepciones son `debug-brujula.html` y `video-intro.html`—, y este servidor habla HTTP plano. WebKit aplica la directiva **también a `localhost`**, así que eleva cada recurso a `https://localhost:8080/…` y falla con *SSL connect error*: las peticiones mueren y la app se queda congelada en la pantalla de carga, porque los módulos de FASE 1 nunca llegan a importarse. Chromium no lo hace — considera `localhost` un origen confiable y exime la directiva. Junto a ella se retira la `<meta http-equiv="Strict-Transport-Security">`, que provoca el mismo salto en WebKit (según la especificación HSTS solo es válida como cabecera HTTP y un `<meta>` debería ignorarse; WebKit no lo ignora).
 
 La sustitución opera sobre la etiqueta `<meta>` entera, no sobre la cadena suelta, porque la directiva aparece de **dos formas**: como última de un CSP largo (`codigo-padre.html`) y como contenido **único** de la meta (los otros 14 HTML). Un reemplazo que exija el `;` previo se deja fuera la segunda forma, que es la mayoritaria. El resto del CSP —`default-src`, `script-src`, `connect-src`…— se sirve intacto.
 
@@ -8829,7 +8829,7 @@ La sustitución opera sobre la etiqueta `<meta>` entera, no sobre la cadena suel
 >
 > **Cuánto importa, medido:** poco hoy, y conviene saber por qué antes de darle prioridad. La meta HSTS no se pierde: por especificación solo es válida como cabecera HTTP y un `<meta>` debería ignorarse, así que quien aplica HSTS de verdad es el proxy (§22.6). Y `upgrade-insecure-requests` no tiene **nada** que elevar: no existe ni un subrecurso `http://` en el proyecto. Lo que desaparecería es la red de seguridad contra un `http://` que se cuele en el futuro, no una protección en uso. Si se despliega por esa vía, la salida limpia es condicionar la retirada al protocolo; emitir la CSP como cabecera desde el proxy (§22.2) resuelve esto y el `unsafe-inline` de paso.
 
-**Por qué importa más de lo que parece:** sin este ajuste, el proyecto `iphone12` de Playwright corre todos sus tests contra una app que ni siquiera arranca. Pasarían sin ejercitar nada —verde vacuo del tipo que describe el EJE 26 (§36.26)— y cualquier fallo real de Safari quedaría invisible. Con él, WebKit arranca la app completa en ~2 s y 0 peticiones fallidas.
+**Por qué importa más de lo que parece:** sin este ajuste, el proyecto `iphone12` de Playwright corre todos sus tests contra una app que ni siquiera arranca. Pasarían sin ejercitar nada —verde vacuo del tipo que describe el EJE 26 (§36.26)— y cualquier fallo real de Safari quedaría invisible. Con él, WebKit arranca la app completa, sin peticiones fallidas.
 
 **Es el único mecanismo: los tests corren con el CSP de producción.** `js/server.js` retira solo la directiva `upgrade-insecure-requests` al servir por HTTP; el resto del CSP llega intacto al navegador, así que una violación real la detectan los tests.
 
@@ -8853,7 +8853,7 @@ Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier 
 /audios-aventuras/              ← MP3 del contenido de pago (directorio completo)
 /imagenes/imagenes-aventuras/   ← fotos del contenido de pago (directorio completo)
 /imagenes/mapas-vintage/        ← mapas antiguos de la aventura (directorio completo); la demo enseña su copia de publico/
-/videos-aventuras/               ← vídeos del contenido de pago — dron por parada (directorio completo)
+/videos-aventuras/               ← vídeos del contenido de pago — el dron de cada tramo (directorio completo)
 /backend/                       ← directorio completo (reservado)
 ```
 
@@ -8908,7 +8908,7 @@ Esto solo tiene efecto cuando `PROTECT_DATA=true` (fase de despliegue con backen
 #### Otras características del servidor
 
 - **Path traversal (fuera del directorio raíz):** Cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) recibe `403 Forbidden`. Esta protección es distinta de la de `isProtectedFile()` de arriba: cubre salir de la raíz del proyecto, no evadir la lista de ficheros protegidos dentro de la raíz.
-- **MIME types:** Soporta `.html`, `.js`, `.css`, `.json`, `.png`, `.jpg`, `.gif`, `.svg`, `.mp3`, `.wav`, `.mp4`, `.woff`, `.ttf`, `.eot`, `.otf`, `.wasm`.
+- **MIME types:** Soporta `.html`, `.js`, `.css`, `.json`, `.png`, `.jpg`, `.jpeg`, `.jfif`, `.webp`, `.gif`, `.svg`, `.mp3`, `.wav`, `.mp4`, `.woff`, `.ttf`, `.eot`, `.otf`, `.wasm`; cualquier otra extensión sale como `application/octet-stream`.
 - **Página por defecto:** `GET /` sirve `index.html`.
 - **Sirve el directorio raíz entero:** todo fichero del proyecto que no esté en `PROTECTED_FILES` se sirve tal cual, también `docs/`, `tests/`, `tools/` y `debug-brujula.html`. En producción tiene que servir solo lo que usa la app (§22.0, n.º 28).
 - **Proxy del backend:** todo lo que empieza por `/api/` se reenvía a `localhost:3001`
@@ -9170,7 +9170,7 @@ iOS Safari ignora el Web App Manifest para la instalación como PWA. Los meta ta
 
 #### Permissions-Policy y GPS en iOS
 
-La cabecera `Permissions-Policy: geolocation=(self)` permite el GPS al documento principal y a iframes con atributo `allow="geolocation"` explícito (que ya tiene `coordenadas-hijo2.html`). La sintaxis anterior `geolocation=*` corresponde a Feature-Policy (deprecada).
+La cabecera `Permissions-Policy: geolocation=(self)` permite el GPS al documento principal y a iframes con atributo `allow="geolocation"` explícito. Lo lleva el iframe de `coordenadas-hijo2.html`, aunque hijo2 no pide nunca la posición: la recibe del padre en `NAVEGACION.ACTUALIZAR_ESTADO`. La sintaxis anterior `geolocation=*` corresponde a Feature-Policy (deprecada).
 
 **Limitación iOS:** iOS Safari ignora `Permissions-Policy` cuando se envía como meta tag `<http-equiv>`. Solo funciona como cabecera HTTP. Para `valenciavguides.es`, añadir en la configuración del servidor:
 
@@ -9216,7 +9216,7 @@ La única solución es un **paso de compilación con Babel** que transpile la si
 #### manifest.json — configuración de instalación
 
 - `"prefer_related_applications": false` — indica a Chrome/Android que no sugiera una app nativa alternativa en lugar de la PWA.
-- Icono con `purpose:"any maskable"` en dos tamaños (`192x192` y `512x512`) con `logo-splash-192.png`/`logo-splash-512.png` — requerido por Lighthouse y Chrome para instalar la PWA sin advertencias. **`maskable` es el que gobierna la pantalla de splash nativa de Android, no `any`** (ver §7 "El manifest.json" para el detalle completo). Tiene que rellenar el cuadrado entero sin transparencia — si no, el sistema operativo no tiene color de fondo que mostrar tras recortarlo y usa negro por defecto.
+- Icono con `purpose:"any maskable"` en dos tamaños (`192x192` y `512x512`) con `logo-splash-192.png`/`logo-splash-512.png` — requerido por Lighthouse y Chrome para instalar la PWA sin advertencias. Qué gobierna cada propósito está en §19, «El manifest.json». El icono tiene que rellenar el cuadrado entero sin transparencia — si no, el sistema operativo no tiene color de fondo que mostrar tras recortarlo y usa negro por defecto.
 
 ---
 
@@ -9267,7 +9267,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | **Padre** | `codigo-padre.html` — orquestador central. Gestiona el estado global, el GPS, el heartbeat, la mensajería entre iframes, la carga de datos y las transiciones entre paradas y modos |
 | **Hijo** | Página cargada dentro de un iframe del padre. Cada hijo tiene una responsabilidad única y se comunica con el padre exclusivamente vía `postMessage` |
 | **Hijo 1** | `extrainfo-hijo1.html` — columna lateral izquierda. Muestra información contextual sobre Valencia, un temporizador de cuenta atrás de la aventura y el listado de progreso de paradas |
-| **Hijo 2** | `coordenadas-hijo2.html` — barra de controles inferior con 6 botones (`btn-avanzar`, imagen, vídeo, ubicación, mapa completo, mapa vintage). Detecta la posición GPS del usuario y notifica al padre cuando llega a una parada |
+| **Hijo 2** | `coordenadas-hijo2.html` — columna de controles de la derecha con 6 botones (`btn-avanzar`, imagen, vídeo, ubicación, mapa completo, mapa vintage). No lee el GPS: recibe del padre la distancia al elemento y la posición, decide el fuera de rango y avisa al padre cuando el usuario llega |
 | **Hijo 3** | `audio-hijo3.html` — reproductor de audio. Muestra barra de progreso, título de pista y botón de retos. El padre controla play/pause/stop enviando comandos a este iframe |
 | **Hijo 4** | `retos-hijo4.html` — pantalla de retos. Muestra la pregunta de cada parada, valida la respuesta y notifica al padre cuando el reto se completa |
 | **Hijo 5** | `boton-casa-hijo5.html` — herramienta de desarrollo local únicamente. Botón de cambio de modo y selector de paradas. **No aparece en la PWA final** |
@@ -9295,11 +9295,11 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | **PostMessage** | API del navegador para enviar mensajes entre ventanas (padre ↔ hijo) |
 | **Handshake** | Protocolo de saludo al arrancar, en cuatro pasos: el hijo envía `HIJO_PREPARADO`, el padre responde `PADRE_DATOS` con el modo, el hijo confirma con `HIJO_LISTO` y el padre cierra con `PADRE_CONFIRMA_HIJO_LISTO` — solo entonces el hijo hace visible su UI (§5). Los datos de aventura e idioma llegan después, en mensajes aparte |
 | **HIJO_LISTO** | Tercer paso del handshake: el hijo lo envía cuando ya ha procesado el `PADRE_DATOS` que recibió. No es el primer mensaje que manda — ese es `HIJO_PREPARADO` |
-| **CAMBIO_PARADA** | El mensaje más central de la app. Lo envía el padre a todos los hijos cada vez que el usuario avanza a un nuevo elemento (parada o tramo), con los datos del nuevo elemento |
+| **CAMBIO_PARADA** | El mensaje más central de la app. El padre lo procesa cada vez que se activa un elemento (parada o tramo) y avisa a hijo2, hijo3, hijo4 y hijo5, a cada uno con lo que necesita: a hijo2, solo el id y el tipo (§10.5) |
 | **CAMBIO_MODO** | Mensaje que notifica a todos los hijos el cambio entre modo CASA y modo AVENTURA. Cada hijo adapta su interfaz y responde `ENTENDIDO` y `EFECTUADO` (§9.7). **Lo que no hace ninguno es quitar sus handlers**: el bus pone un solo listener por frame para toda su vida y los handlers se registran una vez (§28.1, §32.1); quitarlos en un cambio de modo dejaría al iframe sordo |
 | **Heartbeat** | Ping periódico del padre a los hijos (`SISTEMA.HEARTBEAT`), siempre encendido, para verificar que siguen activos y recargar al que no lo está; los hijos responden con `SISTEMA.HEARTBEAT_RESPONSE` |
 | **ACK** | Confirmación de que un mensaje fue recibido correctamente |
-| **registrarControladorSeguro** | Función que registra un handler de `postMessage` con gestión de errores y soporte de cleanup. Punto de entrada estándar para todos los iframes |
+| **registrarControladorSeguro** | El nombre con que cada frame registra un handler del bus (`registrarControlador`, `js/mensajeria.js`): un handler por tipo y frame. En el padre es un envoltorio que además para un segundo registro del mismo tipo (§10.15) |
 
 ### Mapa y GPS
 
@@ -9307,7 +9307,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 |---------|-------------|
 | **MapLibre GL JS** | Motor de mapas vectoriales por WebGL. Renderiza el mapa de aventura (`codigo-padre.html` + `js/funciones-mapa.js`) — rota nativamente y dibuja texto/líneas de calle como geometría vectorial real |
 | **Leaflet** | Biblioteca JavaScript de mapas basada en tiles raster. Renderiza `mapa-completo.html` y el mapa decorativo de `video-intro.html` — ninguno de los dos rota ni tiene snap-to-route |
-| **Polyline** | Línea que conecta los waypoints de un tramo. En el mapa de aventura es una capa `line` de MapLibre sobre una fuente GeoJSON; en `mapa-completo.html` es un objeto `L.polyline` de Leaflet. En modo AVENTURA permanece oculta (opacity 0) hasta que el usuario activa la navegación |
+| **Polyline** | Línea que conecta los waypoints de un tramo. En el mapa de aventura es una capa `line` de MapLibre sobre una fuente GeoJSON; en `mapa-completo.html` es un objeto `L.polyline` de Leaflet. En modo AVENTURA se revela al activarse su elemento (§4.7d); el botón de ubicación la oculta mientras dibuja el camino hasta el usuario (§4.5) |
 | **Waypoints** | Puntos intermedios de un tramo almacenados en `js/coordenadas-aventuras.js`. Definen la ruta a pie entre paradas |
 | **Marcador** | Elemento que representa una parada o los extremos de un tramo. En el mapa de aventura es un `maplibregl.Marker` (elemento DOM real); en `mapa-completo.html` es un icono de Leaflet (`L.marker`). Se gestiona internamente mediante `marcadoresParadas` en `js/funciones-mapa.js` |
 
@@ -9319,7 +9319,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | **Modo de datos** | De dónde salen los datos de aventura: `'local'` (ficheros JS) o `'api'` (backend con token). Lo resuelve `asegurarModo()` (`js/data-loader.js`) preguntando a `/api/health`, una vez por sesión. Siempre `'local'` mientras `BACKEND_READY = false` |
 | **BACKEND_READY** | Interruptor manual (`js/data-loader.js`) que autoriza a comprobar si hay backend. `false` por defecto — salvaguarda para no sondear a un backend que aún no existe/no está probado al desplegar a un dominio real. Ponerlo en `true` no fuerza el modo `'api'`: lo decide la respuesta de `/api/health` |
 | **Pass-through** | Comportamiento de `js/server.js` cuando `PROTECT_DATA=false`: todos los archivos son accesibles directamente. Modo de desarrollo local |
-| **localStorage** | Almacenamiento del navegador donde se persisten las preferencias del usuario: `vv_idioma` (el idioma elegido), `vv_aventura_iniciada` (la aventura en curso, con su idioma y su modo) |
+| **localStorage** | Almacenamiento del navegador; lo que la app guarda en él (el idioma, la aventura en curso, su progreso y sus paradas completadas, y el aviso de versión nueva) pasa por `globalThis.almacen` y está en la tabla de §10.19 |
 
 ### Tecnología web y herramientas
 
@@ -9345,7 +9345,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 
 El modo DEV permite al desarrollador:
 
-1. **Arrancar la aventura en modo CASA directamente desde P1**, saltando GPS, pago y código de compra — útil para probar el flujo completo desde escritorio.
+1. **Arrancar la aventura en modo CASA directamente desde P1**, saltando el pago y el código de compra (el GPS se activa igual en P15) — útil para probar el flujo completo desde escritorio.
 2. **Reactivar el modo CASA en mitad de una aventura activa**, sin reiniciar la sesión — útil para inspeccionar el estado de las paradas con hijo5 visible.
 3. **Desactivar el modo DEV** pulsando el botón 🛰️ de hijo5 para volver a modo AVENTURA con GPS y proximidad reales.
 
