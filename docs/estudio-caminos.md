@@ -4021,6 +4021,17 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 - **Pendiente: decisión, sin cambio visible.** *A)* quitar la rama `!correcto` y el campo `retoCompletado` (el padre da por hecho, como ya hace, que un `RETO.COMPLETADO` es un reto cumplido); *B)* dejarlos.
 - **Relacionado.** M1 (`validarReto()`, la validación en el servidor que todavía no existe) y el hook `ejecutarValidacion`, ya registrado más arriba.
 
+##### K-152 — Con el permiso del GPS denegado, el iPhone se recupera por un camino distinto del resto — ✅ (leído; sin spec)
+
+- **Cómo salió.** En la auditoría del 2026-11-02, al corregir en la guía que `_watchPositionError` cancela el watch con `PERMISSION_DENIED`. Decisión del usuario: «debería ser igual que el resto, por homogeneidad».
+- **Dónde.** Dos ramas por `esApple` (`/iPad|iPhone|iPod/` sobre `navigator.userAgent`), las dos en `codigo-padre.html`:
+  - `showGpsSignalOverlay(1)` (`:6331-6345`): fuera de iPhone escucha el cambio de permiso (`navigator.permissions.query` + `change`, con el guard `__vv_gps_perm_watcher`) y, al pasar a `granted`, llama a `activarGPS()` sin que el usuario toque nada. En iPhone no escucha nada.
+  - El botón del aviso (`:6244-6270`): fuera de iPhone llama a `activarGPS()` al momento; en iPhone registra un `visibilitychange` de una vez que reintenta al volver a primer plano y, con la app instalada (`navigator.standalone`), navega a `app-settings:` (`window.location.href`, con un `catch` vacío).
+- **Lo que no cuadra.** Un mismo hecho —el permiso vuelve— se detecta de dos formas según el teléfono, y en iPhone no hay recuperación sin pulsar el botón. La selección, en P14, sí consulta `navigator.permissions.query` en todos los teléfonos, iPhone incluido (`En-busca-del-tesoro.html:1868-1871`). Ningún spec cubre ninguna de las dos ramas (búsqueda desnuda en `tests/e2e/`: 0). La guía lo describe en §24, «Caso adicional B».
+- **Sin comprobar, y hace falta un iPhone real:** si Safari dispara el evento `change` del permiso de geolocalización, y si `app-settings:` abre Ajustes desde una web instalada o no hace nada.
+- **Pendiente: decisión** (cambio visible en iPhone). *A)* un solo camino para todos: la escucha del cambio de permiso también en iPhone, y el botón llamando a `activarGPS()` en todos; fuera `esApple` y `app-settings:`. *B)* lo de *A* más un reintento al volver la página a primer plano para todos, por si un navegador no avisa del cambio (pero son dos disparadores para lo mismo: el segundo tendría que ser ruidoso). *C)* dejarlo. Con *A* o *B*, un spec nuevo en los cuatro proyectos, rojo antes que verde, y la comprobación en un iPhone antes del push.
+- **Relacionado.** La regla «el GPS nunca se detiene» (memoria): aquí el watch se cancela porque, sin permiso, no puede dar ninguna posición.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -4733,6 +4744,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 143 | 2 | K-149 | que el gesto de siete toques del panel de registros no cuente las pulsaciones sobre un control, o dejarlo | DEV (§24) | — | decisión |
 | 144 | 2 | K-150 | una sola función coge la ventana del vídeo, y descarta la de «sin vídeo» — **hecha (2026-11-02), sin cambio visible** | SPEC | — | sí |
 | 145 | 1 | K-151 | fuera la rama de reto fallido del padre y el `retoCompletado` que hijo2 no lee, o dejarlos | — | — | decisión |
+| 146 | 2 | K-152 | el GPS se recupera igual en iPhone que en el resto al volver el permiso (una sola escucha y el mismo botón), o dejarlo | VISIBLE, SPEC, iPhone real | — | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
