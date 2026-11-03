@@ -5,7 +5,7 @@
  * con manejo de errores consistente y mensajes claros en español.
  */
 
-import { sleep } from './utils.js';
+import { pedirConReintentos, msDeRetryAfter } from './utils.js';
 
 // Configuración del cliente (dinámica según entorno)
 (function() {
@@ -20,9 +20,8 @@ import { sleep } from './utils.js';
         // del CSP la cubre y no hace falta CORS en ninguno. Una URL absoluta con puerto
         // fijo aquí volvería a separar los dos entornos (ver js/server.js, bloque PROXY).
         baseUrl: '/api',
-        timeout: 15000, // 15 segundos
-        retries: 4, // Aumentado de 2 a 4 para conexiones pobres
-        retryDelay: 1000, // Base: 1s (backoff exponencial: 1s → 2s → 4s → 8s)
+        // El plazo y los reintentos no van aquí: son los de pedirConReintentos (js/utils.js), los mismos para todo lo que
+        // la app descarga.
         isDevelopment: isDevelopment,
         environment: isDevelopment ? 'development' : 'production'
     };
@@ -133,109 +132,76 @@ class ApiClientError extends Error {
     }
 }
 
-/**
- * Realiza una petición HTTP con reintentos y manejo de errores
- */
-async function fetchWithRetry(url, options = {}, retriesLeft = API_CONFIG.retries) {
-    const parseResponseJson = async (response) => {
-        try {
-            return await response.json();
-        } catch (error) {
-            if (API_CONFIG.isDevelopment) {
-                (globalThis.logger || console).warn('[API] Respuesta no parseable como JSON:', error.message);
-            }
-            throw new ApiClientError(
-                'PARSE_ERROR',
-                'Error al procesar la respuesta del servidor',
-                response.status
-            );
-        }
-    };
-
-    const assertApiSuccess = (response, data) => {
-        if (response.ok && !data.error) return;
-
-        if (response.status === 401) {
-            TokenManager.clearToken();
-        }
-
-        throw new ApiClientError(
-            data.codigo || 'ERROR_SERVIDOR',
-            data.mensaje || `Error HTTP ${response.status}`,
-            response.status,
-            data.datos || data.detalles
-        );
-    };
-
-    const maybeRetryOrThrowNetworkError = async (error) => {
-        if (error.name !== 'TypeError' || !error.message.includes('fetch')) {
-            return false;
-        }
-
-        if (retriesLeft > 0) {
-            // Backoff exponencial: 1s → 2s → 4s → 8s
-            const attemptNumber = API_CONFIG.retries - retriesLeft + 1;
-            const delay = API_CONFIG.retryDelay * Math.pow(2, attemptNumber - 1);
-            (globalThis.logger || console).info(`[API] Reintentando en ${delay}ms... (${retriesLeft} intentos restantes)`);
-            await sleep(delay);
-            return fetchWithRetry(url, options, retriesLeft - 1);
-        }
-
-        if (globalThis.navigator && !globalThis.navigator.onLine) {
-            throw new ApiClientError('OFFLINE', 'No hay conexión a internet');
-        }
-
-        throw new ApiClientError('NETWORK_ERROR', 'Error de conexión con el servidor');
-    };
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-
+/** El cuerpo de una respuesta de la API. Solo un JSON mal formado es PARSE_ERROR; un corte a mitad del cuerpo o el plazo
+ * vencido se dejan pasar tal cual, para que pedirConReintentos los reintente. */
+async function parseResponseJson(response) {
     try {
-        // Construir headers con token de autenticación si existe
-        const headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            ...options.headers
-        };
-        const token = TokenManager.getToken();
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const response = await fetch(url, {
-            ...options,
-            signal: controller.signal,
-            headers
-        });
-
-        clearTimeout(timeoutId);
-
-        const data = await parseResponseJson(response);
-        assertApiSuccess(response, data);
-
-        return data;
-
+        return await response.json();
     } catch (error) {
-        clearTimeout(timeoutId);
-
-        // Si es un ApiClientError, propagarlo
-        if (error instanceof ApiClientError) {
-            throw error;
+        if (error?.name !== 'SyntaxError') throw error;
+        if (API_CONFIG.isDevelopment) {
+            (globalThis.logger || console).warn('[API] Respuesta no parseable como JSON:', error.message);
         }
+        throw new ApiClientError(
+            'PARSE_ERROR',
+            'Error al procesar la respuesta del servidor',
+            response.status
+        );
+    }
+}
 
-        // Error de abort (timeout)
-        if (error.name === 'AbortError') {
-            throw new ApiClientError('TIMEOUT', 'La solicitud tardó demasiado tiempo');
+/** Una respuesta buena es `ok` y sin `error`. Si no, un ApiClientError con su estado; un 401 borra el token, y un 429
+ * lleva lo que diga su `Retry-After` para que el reintento lo espere. */
+function assertApiSuccess(response, data) {
+    if (response.ok && !data.error) return;
+
+    if (response.status === 401) {
+        TokenManager.clearToken();
+    }
+
+    const error = new ApiClientError(
+        data.codigo || 'ERROR_SERVIDOR',
+        data.mensaje || `Error HTTP ${response.status}`,
+        response.status,
+        data.datos || data.detalles
+    );
+    if (response.status === 429) error.reintentarTrasMs = msDeRetryAfter(response.headers.get('Retry-After'));
+    throw error;
+}
+
+/**
+ * Una petición a la API, por la forma única de pedir un dato (pedirConReintentos, js/utils.js): plazo de 15 s por intento,
+ * hasta la respuesta entera, y 4 reintentos a 1, 2, 4 y 8 s. Se reintentan el corte de red (en los tres motores), el plazo
+ * vencido, un 5xx y un 429 (este, después de su `Retry-After`); un 4xx es la respuesta del servidor y no se reintenta. Al
+ * rendirse lanza un ApiClientError: el del servidor o, si no contestó, TIMEOUT, OFFLINE o NETWORK_ERROR.
+ */
+async function fetchWithRetry(url, options = {}) {
+    try {
+        return await pedirConReintentos(async (_intento, senal) => {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                ...options.headers
+            };
+            const token = TokenManager.getToken();
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            const response = await fetch(url, { ...options, signal: senal, headers });
+            const data = await parseResponseJson(response);
+            assertApiSuccess(response, data);
+            return data;
+        }, { descripcion: `[API] ${options.method || 'GET'} ${url}` });
+    } catch (error) {
+        if (error instanceof ApiClientError) throw error;
+        if (error?.plazoVencido) throw new ApiClientError('TIMEOUT', 'La solicitud tardó demasiado tiempo');
+        if (error?.name === 'TypeError') {
+            if (globalThis.navigator && !globalThis.navigator.onLine) {
+                throw new ApiClientError('OFFLINE', 'No hay conexión a internet');
+            }
+            throw new ApiClientError('NETWORK_ERROR', 'Error de conexión con el servidor');
         }
-
-        const retryResult = await maybeRetryOrThrowNetworkError(error);
-        if (retryResult !== false) {
-            return retryResult;
-        }
-
-        // Error genérico
-        throw new ApiClientError('ERROR_INTERNO', error.message || 'Error desconocido');
+        throw new ApiClientError('ERROR_INTERNO', error?.message || 'Error desconocido');
     }
 }
 
@@ -431,6 +397,19 @@ const ApiClient = {
      */
     async getAudioParada(aventuraId, idioma, paradaId) {
         const url = `${API_CONFIG.baseUrl}/audios/${encodeURIComponent(aventuraId)}/${idioma}/parada/${encodeURIComponent(paradaId)}`;
+        return fetchWithRetry(url);
+    },
+
+    // ========================================
+    // TEXTOS
+    // ========================================
+
+    /**
+     * Obtiene los textos de una aventura en un idioma, ya ensamblados por el servidor: `{ exito, textos }`, con
+     * `textos` de la misma forma que monta cargarTextos() en modo 'local' (js/data-loader.js): `[{ id, title, content }]`.
+     */
+    async getTextos(aventuraId, idioma) {
+        const url = `${API_CONFIG.baseUrl}/textos/${encodeURIComponent(aventuraId)}/${idioma}`;
         return fetchWithRetry(url);
     },
 

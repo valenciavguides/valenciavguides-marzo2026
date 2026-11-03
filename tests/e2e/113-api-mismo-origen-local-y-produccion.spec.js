@@ -13,20 +13,21 @@
  * — y para entonces parece un fallo del frontend.
  *
  * Se cierra por el lado del entorno, no del CSP: `js/server.js` hace de proxy inverso para
- * `/api/*` hacia el backend, igual que Caddy en producción, y los dos clientes de red
- * (`api-client.js`, `data-loader.js`) usan una ruta RELATIVA. Un solo origen en los dos
- * entornos, sin CORS en ninguno y sin excepciones en el CSP.
+ * `/api/*` hacia el backend, igual que Caddy en producción, y el cliente de red
+ * (`api-client.js`, por el que pide también `data-loader.js`) usa una ruta RELATIVA. Un solo
+ * origen en los dos entornos, sin CORS en ninguno y sin excepciones en el CSP.
  *
  * AO-1  La página llama a `/api/...` y la respuesta llega: el proxy entrega y el CSP no
  *       bloquea. Se mide desde dentro de la página (fetch real), no con curl: un curl no
  *       pasa por el CSP, que es justo lo que hay que comprobar.
  * AO-2  Sin backend detrás, el proxy contesta 502 con un código legible en vez de colgarse
  *       o de dar un error mudo que se confundiría con un bug del frontend.
- * AO-3  Los dos clientes de red apuntan a ruta relativa — si alguien vuelve a poner una URL
- *       absoluta con puerto, local y producción se separan otra vez.
+ * AO-3  El cliente de red apunta a ruta relativa, y `data-loader.js` no tiene cliente propio:
+ *       pide por `ApiClient`, y su pregunta de si hay servidor va a `/api/health`. Si alguien
+ *       vuelve a poner una URL absoluta con puerto, local y producción se separan otra vez.
  *
- * ROJO ANTES QUE VERDE: con `baseUrl`/`API_BASE` apuntando a `http://localhost:3001/api`
- * (como estaban), AO-1 cae por violación de CSP y AO-3 cae por la URL absoluta.
+ * ROJO ANTES QUE VERDE: con `baseUrl` apuntando a `http://localhost:3001/api`, AO-1 cae por
+ * violación de CSP y AO-3 cae por la URL absoluta.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -103,7 +104,7 @@ test.describe('AO — la API comparte origen con la página', () => {
     expect(r.cuerpo?.codigo, 'y con un código que se pueda diagnosticar de un vistazo').toBe('BACKEND_NO_DISPONIBLE');
   });
 
-  test('AO-3. Los dos clientes de red apuntan a ruta relativa, no a un puerto fijo', async ({ page }) => {
+  test('AO-3. El cliente de red apunta a ruta relativa, no a un puerto fijo', async ({ page }) => {
     await abrirApp(page);
     // api-client.js no se carga en el arranque: la app lo importa bajo demanda en P14
     // (`En-busca-del-tesoro.html`, al activar el código). Se importa aquí igual que allí —
@@ -114,10 +115,12 @@ test.describe('AO — la API comparte origen con la página', () => {
     });
     expect(base, 'api-client.js debe usar ruta relativa').toBe('/api');
 
-    // data-loader.js no expone su API_BASE, así que se mira la fuente: es el único modo de
-    // fijar el contrato sin inventarle un export que nadie más necesita.
+    // data-loader.js no tiene cliente propio: pide a la API por ApiClient (spec 166), y su única petición propia es la
+    // pregunta de si hay servidor, a /api/health. Se mira la fuente: es el único modo de fijar el contrato sin inventarle
+    // un export que nadie más necesita.
     const fuente = await page.evaluate(async () => (await fetch('/js/data-loader.js')).text());
     expect(fuente, 'data-loader.js no puede volver a una URL absoluta con puerto').not.toContain('localhost:3001');
-    expect(fuente).toContain("const API_BASE = '/api'");
+    expect(fuente, 'data-loader.js pide a la API por ApiClient').toContain("import('./api-client.js')");
+    expect(fuente, 'la pregunta de si hay servidor, con ruta relativa').toContain("fetch('/api/health'");
   });
 });

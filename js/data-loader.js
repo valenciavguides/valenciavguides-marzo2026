@@ -1,12 +1,17 @@
 /**
  * Data Loader - Cargador de datos con protección
  *
- * MODO 'local': importa los datos directamente desde los ficheros JS locales. Funciona sin
+ * MODO 'local': importa los datos de los ficheros JS locales, con importarConReintentos() (js/utils.js). Funciona sin
  *   backend ni autenticación.
  *
- * MODO 'api': obtiene los datos desde la API del backend, que requiere token. Los ficheros
- *   JS locales están bloqueados por el servidor estático. Sin token válido no hay acceso a
- *   coordenadas, textos ni respuestas.
+ * MODO 'api': obtiene los datos de la API del backend, que requiere token, por ApiClient (js/api-client.js). Los ficheros
+ *   JS locales están bloqueados por el servidor estático. Sin token válido no hay acceso a coordenadas, textos ni
+ *   respuestas.
+ *
+ * Los dos modos piden por la forma única de pedir un dato (pedirConReintentos, js/utils.js): el mismo plazo y los mismos
+ * reintentos. Este módulo no lleva ningún `import` estático: tools/build-demo.js lo lee como módulo `data:`, que no
+ * resuelve rutas relativas (guía §21.1), y tools/verificar-datos-aventuras.js lo carga en Node. Lo que necesita lo carga
+ * con `import()` dentro de cada función, que esas herramientas no llaman nunca.
  *
  * El modo NO se escribe a mano: lo resuelve asegurarModo() preguntando si hay backend detrás
  * de /api/health. Así el mismo código vale en los tres sitios donde corre el proyecto —local,
@@ -84,11 +89,6 @@ export async function asegurarModo() {
     return _deteccionEnCurso;
 }
 
-// Ruta RELATIVA, igual en local (proxy /api/* de js/server.js) que en el VPS (Caddy):
-// un solo origen, cubierto por el `connect-src 'self'` del CSP y sin CORS. Ver el bloque
-// PROXY de js/server.js.
-const API_BASE = '/api';
-
 // ═══════════════════════════════════════════════════
 // CACHE EN MEMORIA
 // ═══════════════════════════════════════════════════
@@ -99,34 +99,19 @@ function getCacheKey(...parts) {
 }
 
 // ═══════════════════════════════════════════════════
-// HELPERS PARA MODO API
+// CÓMO SE PIDE (los dos modos)
 // ═══════════════════════════════════════════════════
 
-async function fetchFromAPI(endpoint) {
-    // Obtener token del TokenManager (definido en js/api-client.js — pendiente de conectar cuando el backend esté desplegado)
-    // En modo 'local' esta función nunca se llama; solo activa en modo 'api'
-    const token = globalThis.TokenManager ? globalThis.TokenManager.getToken() : null;
+/** Un módulo de datos de js/, en modo 'local', con plazo y reintentos (importarConReintentos, js/utils.js). */
+async function importarDatos(fichero) {
+    const { importarConReintentos } = await import('./utils.js');
+    return importarConReintentos(new URL(`./${fichero}`, import.meta.url));
+}
 
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_BASE}${endpoint}`, { headers });
-
-    if (!response.ok) {
-        if (response.status === 401) {
-            (globalThis.logger || console).warn('[DataLoader] Token inválido o expirado. Se requiere re-activación.');
-            if (globalThis.TokenManager) globalThis.TokenManager.clearToken();
-        }
-        throw new Error(`API error ${response.status}: ${endpoint}`);
-    }
-
-    const data = await response.json();
-    if (!data.exito) {
-        throw new Error(`API response not successful: ${endpoint}`);
-    }
-    return data;
+/** El cliente de la API, en modo 'api': cada método pide por fetchWithRetry, con el token de la sesión. */
+async function apiClient() {
+    const { ApiClient } = await import('./api-client.js');
+    return ApiClient;
 }
 
 // ═══════════════════════════════════════════════════
@@ -144,10 +129,10 @@ export async function cargarCoordenadas(aventuraId) {
 
     let result;
     if (await asegurarModo() === 'local') {
-        const { DATOS_AVENTURAS } = await import('./coordenadas-aventuras.js');
+        const { DATOS_AVENTURAS } = await importarDatos('coordenadas-aventuras.js');
         result = DATOS_AVENTURAS[aventuraId];
     } else {
-        const data = await fetchFromAPI(`/coordenadas/${aventuraId}`);
+        const data = await (await apiClient()).getCoordenadas(aventuraId);
         result = data.coordenadas;
     }
 
@@ -173,14 +158,8 @@ async function cargarMapaParrafos(idioma) {
     if (!archivo) return {};
     try {
         const url = new URL(`./parrafos-textos/parrafos-texto-${archivo}.json`, import.meta.url);
-        const resp = await fetch(url);
-        if (!resp.ok) {
-            const logger = globalThis.logger || console;
-            logger.error(`[DataLoader] No se pudo cargar párrafos: ${url} (HTTP ${resp.status})`);
-            // No cacheamos el fallo para que el siguiente intento reintente la red
-            return {};
-        }
-        const mapa = await resp.json();
+        const { pedirJson } = await import('./utils.js');
+        const mapa = await pedirJson(url);
         (globalThis.logger || console).info(`[DataLoader] Párrafos "${idioma}": ${Object.keys(mapa).length} entradas`);
         parrafosCache.set(idioma, mapa);
         return mapa;
@@ -226,8 +205,8 @@ export async function cargarTextos(aventuraId, idioma) {
     let result;
     let _mapaParrafosCargado = true; // false → fetch falló → no cachear
     if (await asegurarModo() === 'local') {
-        const { TEXTOS_AVENTURAS } = await import('./textos-aventuras.js');
-        const { AUDIOS_AVENTURAS } = await import('./audios-aventuras.js');
+        const { TEXTOS_AVENTURAS } = await importarDatos('textos-aventuras.js');
+        const { AUDIOS_AVENTURAS } = await importarDatos('audios-aventuras.js');
         const entradas = TEXTOS_AVENTURAS[aventuraId] ?? [];
         const audios = AUDIOS_AVENTURAS[aventuraId]?.[idioma] ?? [];
         const audioMap = new Map(audios.map(a => [a.id, a]));
@@ -250,7 +229,7 @@ export async function cargarTextos(aventuraId, idioma) {
         // el mapa de párrafos para ensamblarlos, no el cliente (evita reexponer
         // el contenido de pago sin ensamblar). Endpoint aún no implementado
         // (no hay backend real todavía, ver GUIA-COMPLETA.md §16).
-        const data = await fetchFromAPI(`/textos/${aventuraId}/${idioma}`);
+        const data = await (await apiClient()).getTextos(aventuraId, idioma);
         result = data.textos;
     }
 
@@ -269,10 +248,10 @@ export async function cargarRetos(aventuraId, idioma) {
 
     let result;
     if (await asegurarModo() === 'local') {
-        const { RETOS_AVENTURAS } = await import('./retos-aventuras.js');
+        const { RETOS_AVENTURAS } = await importarDatos('retos-aventuras.js');
         result = RETOS_AVENTURAS[aventuraId]?.[idioma];
     } else {
-        const data = await fetchFromAPI(`/retos/${aventuraId}/${idioma}`);
+        const data = await (await apiClient()).getRetos(aventuraId, idioma);
         result = data.retos; // ya vienen sin respuestas correctas
     }
 
@@ -291,10 +270,10 @@ export async function cargarAudios(aventuraId, idioma) {
 
     let result;
     if (await asegurarModo() === 'local') {
-        const { AUDIOS_AVENTURAS } = await import('./audios-aventuras.js');
+        const { AUDIOS_AVENTURAS } = await importarDatos('audios-aventuras.js');
         result = AUDIOS_AVENTURAS[aventuraId]?.[idioma];
     } else {
-        const data = await fetchFromAPI(`/audios/${aventuraId}/${idioma}`);
+        const data = await (await apiClient()).getAudios(aventuraId, idioma);
         result = data.audios;
     }
 
@@ -314,13 +293,13 @@ export async function cargarPuzzle(aventuraId, puzzleId) {
 
     let result = null;
     if (await asegurarModo() === 'local') {
-        const { PUZZLES_AVENTURAS } = await import('./puzzles-aventuras.js');
+        const { PUZZLES_AVENTURAS } = await importarDatos('puzzles-aventuras.js');
         for (const grupo of Object.values(PUZZLES_AVENTURAS)) {
             const hallado = (grupo?.['puzzle.html']?.puzzle_id || []).find((p) => p.id === puzzleId);
             if (hallado) { result = hallado; break; }
         }
     } else {
-        const data = await fetchFromAPI(`/puzzles/${aventuraId}/${puzzleId}`);
+        const data = await (await apiClient()).getPuzzle(aventuraId, puzzleId);
         result = data.puzzle ?? null;
     }
 
@@ -337,40 +316,15 @@ export async function cargarIndice() {
 
     let result;
     if (await asegurarModo() === 'local') {
-        const { INDICE_AVENTURAS } = await import('./indice-aventuras.js');
+        const { INDICE_AVENTURAS } = await importarDatos('indice-aventuras.js');
         result = INDICE_AVENTURAS;
     } else {
-        const data = await fetchFromAPI('/aventuras');
+        const data = await (await apiClient()).getAventuras();
         result = data.aventuras;
     }
 
     dataCache.set(key, result);
     return result;
-}
-
-/**
- * Valida una respuesta de reto contra el backend
- * (Solo disponible en modo API — en local, la validación es en el frontend)
- */
-export async function validarRespuesta(aventuraId, idioma, retoId, respuesta) {
-    if (await asegurarModo() === 'local') {
-        (globalThis.logger || console).warn('[DataLoader] validarRespuesta() no disponible en modo local');
-        return null;
-    }
-
-    const response = await fetch(`${API_BASE}/retos/${aventuraId}/${idioma}/${retoId}/validar`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(globalThis.TokenManager?.getToken() && {
-                'Authorization': `Bearer ${globalThis.TokenManager.getToken()}`
-            })
-        },
-        body: JSON.stringify({ respuesta })
-    });
-
-    if (!response.ok) throw new Error(`Validación falló: ${response.status}`);
-    return response.json();
 }
 
 /**

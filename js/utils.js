@@ -279,6 +279,147 @@ export function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// ── Pedir un dato: una sola forma, con plazo y reintentos (estudio K-175, guía §25.18) ─────────────────────────────
+//
+// Todo lo que la app descarga a demanda pasa por pedirConReintentos(): la API (fetchWithRetry, js/api-client.js), los
+// JSON que se piden sin token (pedirJson: los párrafos, la demo de la selección, los textos de Jaime) y los módulos de
+// datos (importarConReintentos). Antes cada pieza pedía a su manera y solo la API tenía plazo y reintentos, con dos
+// huecos medidos: el plazo agotado no se reintentaba, y en WebKit tampoco el corte de red, porque el filtro buscaba la
+// palabra «fetch» en un mensaje que allí es «Load failed». Y el plazo solo llegaba hasta las cabeceras: un cuerpo que se
+// atascaba no tenía límite.
+
+/** Plazo de cada intento: hasta la respuesta ENTERA (cabeceras y cuerpo). */
+const PLAZO_PETICION_MS = 15000;
+/** Reintentos después del primer intento. */
+const REINTENTOS_PETICION = 4;
+/** Espera antes del primer reintento; se dobla en cada uno: 1 s, 2 s, 4 s y 8 s. */
+const ESPERA_BASE_REINTENTO_MS = 1000;
+
+/**
+ * Lo que dice una cabecera `Retry-After` (segundos o una fecha), en milisegundos desde ahora; undefined si no dice nada.
+ * @param {string|null} valor
+ * @returns {number|undefined}
+ */
+export function msDeRetryAfter(valor) {
+    if (!valor) return undefined;
+    const segundos = Number(valor);
+    if (Number.isFinite(segundos)) return Math.max(0, segundos * 1000);
+    const fecha = Date.parse(valor);
+    return Number.isFinite(fecha) ? Math.max(0, fecha - Date.now()) : undefined;
+}
+
+/**
+ * Si un fallo merece otro intento: el plazo vencido, un 5xx, un 429 y el corte de red. El corte de red es un `TypeError`
+ * en los tres motores (su mensaje cambia: «Failed to fetch», «NetworkError…», «Load failed»), y también lo es el de un
+ * `import()` que no llega, que además no dice su estado HTTP. Un 4xx es la respuesta del servidor y no se reintenta; un
+ * error de formato (`SyntaxError`) tampoco.
+ */
+function _esReintentable(error) {
+    if (error?.plazoVencido) return true;
+    const estado = error?.status ?? error?.statusCode;
+    if (Number.isInteger(estado) && estado > 0) return estado >= 500 || estado === 429;
+    return error?.name === 'TypeError';
+}
+
+function _motivoDelFallo(error) {
+    if (error?.plazoVencido) return 'sin respuesta en el plazo';
+    const estado = error?.status ?? error?.statusCode;
+    if (Number.isInteger(estado) && estado > 0) return `HTTP ${estado}`;
+    return error?.message || String(error);
+}
+
+/**
+ * Pide algo a la red con plazo y reintentos. `pedir(intento, señal)` hace UN intento (el primero es el 0) y recibe una
+ * señal que se aborta al vencer su plazo: quien hace un `fetch` se la pasa, y así el plazo corta también el cuerpo. Un
+ * intento que no termina en el plazo se da por perdido aunque no se pueda abortar (un `import()`). Entre intentos espera
+ * la base doblada en cada uno, o lo que diga un 429 (`error.reintentarTrasMs`) si es más. Al rendirse lanza el error del
+ * último intento, y cada llamador lo trata como siempre; el plazo vencido llega con `name === 'TimeoutError'` y
+ * `plazoVencido: true`. Cada reintento y cada rendición se dicen en la consola.
+ * @template T
+ * @param {(intento: number, señal: AbortSignal) => Promise<T>} pedir
+ * @param {{plazoMs?: number, reintentos?: number, esperaBaseMs?: number, descripcion?: string}} [opciones]
+ * @returns {Promise<T>}
+ */
+export async function pedirConReintentos(pedir, opciones = {}) {
+    const {
+        plazoMs = PLAZO_PETICION_MS,
+        reintentos = REINTENTOS_PETICION,
+        esperaBaseMs = ESPERA_BASE_REINTENTO_MS,
+        descripcion = 'petición',
+    } = opciones;
+    const logger = globalThis.logger || console;
+    for (let intento = 0; ; intento++) {
+        const control = new AbortController();
+        let temporizador;
+        const plazo = new Promise((_resuelve, rechaza) => {
+            temporizador = setTimeout(() => {
+                const vencido = new Error(`${descripcion}: sin respuesta en ${plazoMs} ms`);
+                vencido.name = 'TimeoutError';
+                vencido.plazoVencido = true;
+                rechaza(vencido);
+                control.abort(vencido);
+            }, plazoMs);
+        });
+        try {
+            return await Promise.race([pedir(intento, control.signal), plazo]);
+        } catch (error) {
+            const reintentable = _esReintentable(error);
+            if (intento >= reintentos || !reintentable) {
+                if (reintentable) logger.warn(`[pedir] ${descripcion}: se rinde tras ${intento + 1} intentos (${_motivoDelFallo(error)})`);
+                throw error;
+            }
+            const espera = Math.max(error?.reintentarTrasMs ?? 0, esperaBaseMs * 2 ** intento);
+            logger.info(`[pedir] ${descripcion}: intento ${intento + 1} fallido (${_motivoDelFallo(error)}); otro en ${espera} ms`);
+            await sleep(espera);
+        } finally {
+            clearTimeout(temporizador);
+        }
+    }
+}
+
+/**
+ * Un JSON que se pide sin token: los párrafos (js/data-loader.js), la demo de la selección y los textos de Jaime. Por
+ * pedirConReintentos; una respuesta que no es 2xx falla con su `status`.
+ * @param {string|URL} url - Relativa a la página que llama, como cualquier fetch
+ * @param {object} [opciones] - Las de pedirConReintentos
+ * @returns {Promise<any>}
+ */
+export function pedirJson(url, opciones = {}) {
+    return pedirConReintentos(async (_intento, senal) => {
+        const respuesta = await fetch(url, { signal: senal });
+        if (!respuesta.ok) {
+            const error = new Error(`${url}: HTTP ${respuesta.status}`);
+            error.status = respuesta.status;
+            error.reintentarTrasMs = msDeRetryAfter(respuesta.headers.get('Retry-After'));
+            throw error;
+        }
+        return respuesta.json();
+    }, { descripcion: String(url), ...opciones });
+}
+
+let _reimportaciones = 0;
+
+/**
+ * Un módulo de datos con `import()`, por pedirConReintentos. El navegador recuerda un `import()` que falla: la misma
+ * dirección no se vuelve a pedir en ese documento (medido en los tres motores). Por eso cada reintento cambia la dirección
+ * con un `_v` que no se repite nunca, el mismo parámetro que el service worker quita de la clave de su caché (sw.js), así
+ * que no deja copias de más.
+ * @param {string|URL} url - Una dirección relativa se resuelve contra la PÁGINA, no contra el módulo que llama: un módulo
+ *   de js/ pasa `new URL('./x.js', import.meta.url)`
+ * @param {object} [opciones] - Las de pedirConReintentos
+ * @returns {Promise<object>} El espacio de nombres del módulo
+ */
+export function importarConReintentos(url, opciones = {}) {
+    const direccion = new URL(url, globalThis.location?.href);
+    return pedirConReintentos((intento) => {
+        if (intento === 0) return import(direccion.href);
+        const otra = new URL(direccion.href);
+        _reimportaciones += 1;
+        otra.searchParams.set('_v', `${Date.now().toString(36)}${_reimportaciones}`);
+        return import(otra.href);
+    }, { descripcion: `import ${direccion.pathname}`, ...opciones });
+}
+
 /**
  * Escapa un valor para pintarlo en HTML, como texto o como valor de un atributo entre comillas
  * @param {*} valor - Lo que se va a pintar (se convierte a cadena)

@@ -2792,7 +2792,7 @@
             (globalThis.logger || console).debug(`[LOADING] ${message}${details ? ' - ' + details : ''}`);
         };
 
-        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep, escaparHTML } from './js/utils.js';
+        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep, escaparHTML, importarConReintentos } from './js/utils.js';
         globalThis.resolverIdsParada = resolverIdsParada;
         globalThis.retryUntilAvailable = retryUntilAvailable;
         // La galería de imágenes vive en un script clásico, que no puede importar: la toma de aquí.
@@ -3594,7 +3594,8 @@
 
           import('./js/app.js'),
 
-          import('./js/indice-aventuras.js'),
+          // Los datos, con plazo y reintentos (importarConReintentos, js/utils.js); los demás son código de la app.
+          importarConReintentos('./js/indice-aventuras.js'),
 
         ]);
 
@@ -3657,8 +3658,9 @@
                 const [coordenadas, audios, mapasVintageModule] = await Promise.all([
                     cargarCoordenadas(aventura),
                     cargarAudios(aventura, idioma),
-                    // La tabla de los mapas antiguos es pública (la lee también la demo gratis): import directo (§22.12).
-                    import('./js/mapa-vintage-aventuras.js')
+                    // La tabla de los mapas antiguos es pública (la lee también la demo gratis): se importa sin data-loader
+                    // (§22.12), con el plazo y los reintentos de todo lo que la app descarga.
+                    importarConReintentos('./js/mapa-vintage-aventuras.js')
                 ]);
                 const entradas = coordenadas?.['coordenadas-hijo2.html']?.coordenadas;
                 if (!Array.isArray(entradas) || !entradas.length) throw new Error(`${aventura} no tiene coordenadas`);
@@ -8585,8 +8587,8 @@ await _comprobarReanudacionAventura(logPrefix);
         // ============================================================
         // Importación de módulos
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_S2, MODOS: MODOS_S2 } = await import('./js/constants.js');
-        const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2, normalizarParadas: normalizarParadas_S2, sleep, escaparHTML } = await import('./js/utils.js');
-        const { DATOS_PADRE } = await import('./js/aventuras-ID-padre.js');
+        const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2, normalizarParadas: normalizarParadas_S2, sleep, escaparHTML, importarConReintentos } = await import('./js/utils.js');
+        const { DATOS_PADRE } = await importarConReintentos('./js/aventuras-ID-padre.js');
 
         const loggerScript2 = (await import('./js/logger.js')).default;
         await import('./js/config.js');

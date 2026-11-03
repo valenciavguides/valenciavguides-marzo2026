@@ -524,20 +524,20 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   import * as bus from './js/mensajeria.js';
   import { TIPOS_MENSAJE } from './js/constants.js';
   import { LANG_ARCHIVO_PARRAFOS } from './js/data-loader.js';
+  import { pedirJson } from './js/utils.js';
   import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
   import logger from './js/logger.js';
-  // Los textos de Jaime: la copia pública del idioma (publico/textos/<idioma>/jaime.json, la hace tools/build-demo.js).
-  // El <script> clásico de abajo corre antes que este módulo y los espera (_textosJaimeListos); si no llegan, se dice
-  // como error y el vídeo sigue sin bocadillos.
+  // Los textos de Jaime: la copia pública del idioma (publico/textos/<idioma>/jaime.json, la hace tools/build-demo.js), por
+  // pedirJson (js/utils.js): el plazo y los reintentos de todo lo que la app descarga. El <script> clásico de abajo corre
+  // antes que este módulo y los espera (_textosJaimeListos) 8 s como mucho; las escenas que pasan antes de que lleguen van
+  // sin bocadillo, y si no llegan nunca, se dice como error.
   const _pedidoTextosJaime = (async () => {
     // El idioma lo dice quien abre el vídeo, siempre: la selección (después de elegirlo en P2) y el asistente.
     const idioma = new URLSearchParams(globalThis.location.search).get('lang');
     if (!idioma) throw new Error('Sin ?lang=: quien abre el vídeo tiene que decir el idioma');
     const carpeta = LANG_ARCHIVO_PARRAFOS[idioma];
     if (!carpeta) throw new Error(`sin carpeta pública para el idioma ${idioma}`);
-    const respuesta = await fetch(`publico/textos/${carpeta}/jaime.json`);
-    if (!respuesta.ok) throw new Error(`publico/textos/${carpeta}/jaime.json: ${respuesta.status}`);
-    return (await respuesta.json()).escenas;
+    return (await pedirJson(`publico/textos/${carpeta}/jaime.json`)).escenas;
   })().catch((error) => { logger.error('[video-intro] Sin los textos de Jaime:', error?.message); return null; });
   void _pedidoTextosJaime.then((escenas) => globalThis.__entregarTextosJaime(escenas));
   globalThis.reproducirVideoConBuffer = reproducirVideoConBuffer;

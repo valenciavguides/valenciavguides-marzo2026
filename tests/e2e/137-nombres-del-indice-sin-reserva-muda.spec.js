@@ -11,7 +11,8 @@
  *         aventura guardada, el diálogo de reanudación, los carteles, el modal de fin, el reloj): recién arrancado, sin elegir
  *         nada, ya lo tiene publicado, y es el mismo módulo que importa cualquiera.
  *   NI-4  La selección importa el índice sin parámetros en la URL: el service worker ya lo pide a la red sin caché HTTP, y un
- *         parámetro distinto en cada visita dejaba una copia más del índice en su caché, que no tiene límite.
+ *         parámetro distinto en cada visita dejaba una copia más del índice en su caché, que no tiene límite. Lo importa por
+ *         importarConReintentos (spec 166), cuyos reintentos añaden un `_v` que el service worker quita de su clave.
  *
  * ROJO ANTES QUE VERDE: con el padre anterior, NI-2 cae (enseñaba el id sin decir nada). NI-1 pasa antes y después. Con el padre
  * y la selección anteriores, NI-3 cae (el índice llegaba en la P15 o al comprobar la aventura guardada) y NI-4 también (`?v=`).
@@ -80,7 +81,9 @@ test.describe('NI — Los nombres del índice, sin reserva muda', () => {
 
   test('NI-4. La selección importa el índice sin parámetros en la URL', () => {
     const html = fs.readFileSync(path.resolve(__dirname, '../../En-busca-del-tesoro.html'), 'utf8');
-    const imports = html.match(/import\(\s*[`'"][^`'"]*indice-aventuras\.js[^`'"]*[`'"]\s*\)/g) || [];
+    // Por importarConReintentos (js/utils.js, spec 166): sus reintentos cambian la dirección con `_v`, que el service
+    // worker quita de la clave de su caché; lo que se vigila aquí es la dirección que se le pasa.
+    const imports = html.match(/importarConReintentos\(\s*[`'"][^`'"]*indice-aventuras\.js[^`'"]*[`'"]\s*\)/g) || [];
     expect(imports.length, 'la selección importa el índice').toBeGreaterThan(0);
     expect(imports.filter((i) => i.includes('?')), `imports con parámetros: ${imports.join(' | ')}`).toEqual([]);
   });

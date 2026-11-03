@@ -347,7 +347,7 @@
   // Importado por su efecto: al cargarse instala la captura de `error` y `unhandledrejection`
   // de este frame. El bus ya lo arrastra, pero de ahí no se deduce leyendo este fichero.
   import './js/utils.js';
-  import { ajustarTimeoutPorConexion } from './js/utils.js';
+  import { ajustarTimeoutPorConexion, importarConReintentos } from './js/utils.js';
   import { TIPOS_MENSAJE } from './js/constants.js';
   import logger from './js/logger.js';
   // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
@@ -609,9 +609,9 @@
 
   function abrirModalEnlace(enlace) {
     if (enlace === 'terminos') {
-      void abrirModalTexto('terminos', () => import('./js/terminos-aventuras.js'), 'TERMINOS_AVENTURAS', 'terminos_idiomas');
+      void abrirModalTexto('terminos', () => importarConReintentos('./js/terminos-aventuras.js'), 'TERMINOS_AVENTURAS', 'terminos_idiomas');
     } else if (enlace === 'agradecimientos') {
-      void abrirModalTexto('agradecimientos', () => import('./js/agradecimientos-aventuras.js'), 'AGRADECIMIENTOS_AVENTURAS', 'agradecimientos_idiomas');
+      void abrirModalTexto('agradecimientos', () => importarConReintentos('./js/agradecimientos-aventuras.js'), 'AGRADECIMIENTOS_AVENTURAS', 'agradecimientos_idiomas');
     } else if (enlace === 'video-intro') {
       abrirModalVideoIntro();
     }

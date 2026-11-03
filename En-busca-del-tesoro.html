@@ -1174,11 +1174,14 @@
       });
     }
 
-    /** Un JSON de la carpeta pública, por su ruta entera (publico/…), una vez por ruta (un fallo no se guarda: se puede volver a pedir). */
+    /**
+     * Un JSON de la carpeta pública, por su ruta entera (publico/…), una vez por ruta (un fallo no se guarda: se puede volver
+     * a pedir). Por pedirJson (js/utils.js): el plazo y los reintentos de todo lo que la app descarga.
+     */
     function _leerPublico(ruta) {
       if (!_publicoLeido.has(ruta)) {
-        _publicoLeido.set(ruta, fetch(ruta)
-          .then((r) => { if (!r.ok) throw new Error(`${ruta}: ${r.status}`); return r.json(); })
+        _publicoLeido.set(ruta, import('./js/utils.js')
+          .then(({ pedirJson }) => pedirJson(ruta))
           .catch((error) => { _publicoLeido.delete(ruta); throw error; }));
       }
       return _publicoLeido.get(ruta);
@@ -2285,9 +2288,11 @@
       // vuelve con el pago hecho tendría unos instantes encendidas las aventuras de la otra categoría.
       if (INDICE_AVENTURAS_DATOS) _pintarBotonesDeAventura(contenedor);
       try {
-        // 1. Cargar el índice. Sin parámetros en la URL: el service worker ya lo pide a la red sin caché HTTP, y un
-        //    parámetro distinto en cada visita dejaba en su caché (sin límite) una copia más del índice.
-        const modulo = await import('./js/indice-aventuras.js');
+        // 1. Cargar el índice, con plazo y reintentos (importarConReintentos, js/utils.js). La primera vez, sin parámetros
+        //    en la URL: el service worker ya lo pide a la red sin caché HTTP. Un reintento cambia la dirección con `_v`,
+        //    que el service worker quita de la clave de su caché, así que no deja una copia más del índice.
+        const { importarConReintentos } = await import('./js/utils.js');
+        const modulo = await importarConReintentos('./js/indice-aventuras.js');
         INDICE_AVENTURAS_DATOS = modulo.INDICE_AVENTURAS;
 
         // 2. Los totales vienen YA en el índice, precalculados.
@@ -2341,7 +2346,8 @@
       // plantilla dé el nombre exacto del fichero. La tabla no exige ninguna de las dos.
       let rutaMapa = null;
       try {
-        const { MAPAS_VINTAGE } = await import('./js/mapa-vintage-aventuras.js');
+        const { importarConReintentos } = await import('./js/utils.js');
+        const { MAPAS_VINTAGE } = await importarConReintentos('./js/mapa-vintage-aventuras.js');
         // La tabla nombra el original (del backend); la demo enseña su copia pública, con el mismo nombre en
         // publico/imagenes/mapas-vintage/ (la hace tools/build-demo.js).
         const original = MAPAS_VINTAGE[aventura] || null;

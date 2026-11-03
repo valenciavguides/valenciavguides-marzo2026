@@ -24,14 +24,18 @@
  *   test.afterAll(() => red.cerrar());
  *
  *   const regla = red.regla(/^\/codigo-padre\.html$/, { modo: 'colgada' });
- *   //   modo 'colgada'  la petición no recibe respuesta nunca (hasta `limpiar()` o `regla.quitar()`, que la sueltan)
- *   //   modo 'cortada'  se corta la conexión sin responder: el `fetch` del navegador rechaza, como sin red
- *   //   modo 'error'    responde `estado` (503 si no se dice) con un cuerpo de texto
- *   //   modo 'retraso'  reenvía al servidor a los `ms` milisegundos, con `cabeceras` añadidas a la respuesta (solo GET)
+ *   //   modo 'colgada'         la petición no recibe respuesta nunca (hasta `limpiar()` o `regla.quitar()`, que la sueltan)
+ *   //   modo 'cortada'         se corta la conexión sin responder: el `fetch` del navegador rechaza, como sin red
+ *   //   modo 'error'           responde `estado` (503 si no se dice) con un cuerpo de texto
+ *   //   modo 'responde'        responde él mismo `estado` (200 si no se dice) con `cuerpo` y `cabeceras`
+ *   //   modo 'cuerpo-colgado'  manda las cabeceras (`estado`, `cabeceras`) y el principio del cuerpo (`cuerpo`), y no
+ *   //                          termina nunca: la respuesta llega y su cuerpo se queda a medias
+ *   //   modo 'retraso'         reenvía al servidor a los `ms` milisegundos, con `cabeceras` añadidas a la respuesta (solo GET)
+ *   //   { veces: n }           la regla vale para las n primeras peticiones que casan; después ya no casa
  *   expect(regla.peticiones, 'la regla se ha usado').toBeGreaterThan(0);
  *
  * La ruta que se compara es el `pathname` decodificado, sin la consulta. La última regla añadida manda sobre las
- * anteriores.
+ * anteriores; una regla con sus `veces` agotadas deja pasar a la siguiente.
  */
 'use strict';
 
@@ -76,7 +80,7 @@ function abrirRedControlada() {
 
   const servidor = http.createServer((req, res) => {
     const ruta = rutaDe(req);
-    const regla = reglas.find((r) => r.patron.test(ruta));
+    const regla = reglas.find((r) => r.patron.test(ruta) && (r.veces === undefined || r.peticiones < r.veces));
     if (!regla) {
       reenviar(req, res);
       return;
@@ -96,6 +100,17 @@ function abrirRedControlada() {
       res.end(regla.cuerpo);
       return;
     }
+    if (regla.modo === 'responde' || regla.modo === 'cuerpo-colgado') {
+      res.writeHead(regla.estado, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...regla.cabeceras });
+      if (regla.modo === 'responde') {
+        res.end(regla.cuerpo);
+        return;
+      }
+      res.write(regla.cuerpo);
+      pendientes.set(res, regla);
+      res.on('close', () => pendientes.delete(res));
+      return;
+    }
     if (regla.modo === 'retraso') {
       pendientes.set(res, regla);
       const t = setTimeout(() => {
@@ -113,9 +128,12 @@ function abrirRedControlada() {
      * Añade una regla para las rutas que casen con `patron`. Devuelve la regla, con su cuenta de `peticiones` y su
      * `quitar()`, que también suelta lo que tenga colgado.
      */
-    regla(patron, { modo, estado = 503, cuerpo = 'Service Unavailable', ms = 0, cabeceras = {} }) {
+    regla(patron, { modo, estado, cuerpo, ms = 0, cabeceras = {}, veces }) {
+      const directa = modo === 'responde' || modo === 'cuerpo-colgado';
       const regla = {
-        patron, modo, estado, cuerpo, ms, cabeceras, peticiones: 0,
+        patron, modo, ms, cabeceras, veces, peticiones: 0,
+        estado: estado ?? (directa ? 200 : 503),
+        cuerpo: cuerpo ?? (directa ? '' : 'Service Unavailable'),
         quitar() {
           const i = reglas.indexOf(regla);
           if (i >= 0) reglas.splice(i, 1);
