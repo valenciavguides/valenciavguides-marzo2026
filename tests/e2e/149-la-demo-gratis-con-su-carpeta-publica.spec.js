@@ -42,7 +42,8 @@ const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 // Las rutas protegidas de js/server.js (DM-0 lo comprueba): todas contestan 403 en los recorridos de este spec.
 const PROTEGIDOS = ['/js/coordenadas-aventuras.js', '/js/textos-aventuras.js', '/js/retos-aventuras.js', '/js/puzzles-aventuras.js',
-  '/js/audios-aventuras.js', '/js/parrafos-textos/', '/audios-aventuras/', '/imagenes/imagenes-aventuras/', '/imagenes/mapas-vintage/',
+  '/js/audios-aventuras.js', '/js/parrafos-textos/', '/audios-aventuras/', '/imagenes/imagenes-aventuras/', '/imagenes/imagenes-idiomas/',
+  '/imagenes/mapas-vintage/',
   '/videos-aventuras/', '/backend/'];
 
 const seleccion = (page) => page.frames().find((f) => f.name() === 'seleccion');

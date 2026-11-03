@@ -723,7 +723,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.478239, -0.367925
 **Waypoints intermedios:** 1
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg
 
 ---
 
@@ -747,7 +747,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.479455, -0.368610
 **Waypoints intermedios:** 2
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_circuito_vial.jpg, imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg, imagenes/imagenes-aventuras/viveros_pajarera.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg, imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_circuito_vial.jpg, imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg, imagenes/imagenes-aventuras/viveros_pajarera.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg, imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg
 
 ---
 
@@ -759,7 +759,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.480912, -0.368572
 **Waypoints intermedios:** 3
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_jardines_versalles.jpg, imagenes/imagenes-aventuras/mapa_rosaleda_viveros.png, imagenes/imagenes-aventuras/viveros_rosaleda.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_jardines_versalles.jpg, imagenes/imagenes-aventuras/mapa_rosaleda_viveros.jpg, imagenes/imagenes-aventuras/viveros_rosaleda.jpg
 
 ---
 
@@ -771,7 +771,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.478899, -0.369452
 **Waypoints intermedios:** 3
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_patos.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_patos.jpg
 
 ---
 
@@ -783,7 +783,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.478579, -0.369801
 **Waypoints intermedios:** 3
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_patos.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_san_julian.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_patos.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_san_julian.jpg
 
 ---
 
@@ -795,7 +795,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 **Fin:** 39.476941, -0.367427
 **Waypoints intermedios:** 5
 
-**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/puente_real_up.jpg
+**Imágenes de referencia:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/puente_real_up.jpg
 
 ---
 

@@ -141,8 +141,8 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
 
   test('MV-5. El mapa vintage suprime el aviso de girar, y al cerrarlo lo devuelve', async ({ page }) => {
     // La app se usa en vertical y un overlay lo recuerda si giras el movil. Pero los mapas
-    // vintage de Aventura3, Aventura4 y Aventura34km son HORIZONTALES: ahi girar el movil es
-    // justo lo que hay que hacer. La pantalla de seleccion ya lo tenia; el boton de dentro
+    // vintage de Aventura3, Aventura4 y Aventura34km son dibujos horizontales girados en el
+    // fichero, con los textos de lado: ahi girar el movil es justo lo que hay que hacer. La pantalla de seleccion ya lo tenia; el boton de dentro
     // de la aventura no, y esta es esa excepcion.
     //
     // Lo que se comprueba no es el aviso en si, sino que la marca se pone Y SE QUITA. Una

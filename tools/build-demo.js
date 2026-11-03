@@ -63,8 +63,8 @@ const MEDIA_DEMO = [
     'imagenes/imagenes-aventuras/pano_CAC.jpg',
     'imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg',
     'imagenes/imagenes-aventuras/antiguo_orfanato.jpg',
-    'imagenes/imagenes-aventuras/fallas-castillo.png',
-    'imagenes/imagenes-aventuras/aventura-34km.png',
+    'imagenes/imagenes-aventuras/fallas-castillo.jpg',
+    'imagenes/imagenes-aventuras/aventura-34km.jpg',
     'imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg',
     'videos-aventuras/video_intro_ejemplo.mp4',
 ];

@@ -1111,7 +1111,7 @@ flowchart LR
 
 ### 4.7b. Imagen de error GPS — overlay del padre
 
-El archivo `imagenes/imagenes-aplicación/fotogpserror.png` lo usa `codigo-padre.html` como imagen del overlay `#gps-out-of-range-overlay` (`#gps-error-img`) — exclusivo del bloqueo anti-piratería (§31.5, usuario a más de 5km de toda la ruta). No es un botón de hijo2 — es un overlay gestionado directamente por el padre. La franja "perdido" (>2000m del elemento actual, §31.4) y el aviso de precisión insuficiente tienen sus propias imágenes/overlays por separado (`foto-rango-perdido.png`, `imagen-no-gps.png`).
+El archivo `imagenes/imagenes-aplicación/fotogpserror.jpg` lo usa `codigo-padre.html` como imagen del overlay `#gps-out-of-range-overlay` (`#gps-error-img`) — exclusivo del bloqueo anti-piratería (§31.5, usuario a más de 5km de toda la ruta). No es un botón de hijo2 — es un overlay gestionado directamente por el padre. La franja "perdido" (>2000m del elemento actual, §31.4) y el aviso de precisión insuficiente tienen sus propias imágenes/overlays por separado (`foto-rango-perdido.jpg`, `imagen-no-gps.png`).
 
 ### 4.7c. Control de audio — overlay del padre (`#audio-control-overlay`)
 
@@ -1267,6 +1267,7 @@ Vive en un `<script>` clásico propio de `codigo-padre.html` (no un `type="modul
 - **Badges de posición** (`_galeriaRenderizarBadges`) — su lógica depende de `tipo`: para una **parada** (o una galería de una sola imagen) solo muestra el número de mapa (`mapa_numero`) si existe, sin emoji. Para un **tramo** con varias imágenes, la primera lleva 📌 (inicio) y la última 🎯 (fin), cada una con su propio número de mapa — `mapa_numero` de un tramo viene como cadena `"1→2"`, y el badge parte esa cadena por `→` para mostrar solo el número que corresponde a esa imagen concreta (inicio: `partes[0]`; fin: `partes[1]`).
 - **Texto de parada** (`textoParada = {title, content}`, opcional) — se muestra en un panel bajo la imagen. El título pasa por `escaparHTML()` (`js/utils.js`, la misma con que escapa todo el padre): sale como texto, sin HTML. La galería vive en un script clásico, que no puede importar, y la toma de `globalThis.escaparHTML`, que publica Script 1. El contenido pasa por `_galeriaSanitizarHTML()` — permite un conjunto reducido de etiquetas (`p, br, strong, b, em, i, u, h1-h4, span, ul, ol, li, img, mark`) y solo el atributo `style` en general más `src`/`alt` en `img`; cualquier otra etiqueta se desenvuelve conservando su contenido (no se borra el texto de dentro). Las imágenes inline solo se permiten si `src` empieza por `imagenes/` — cualquier otra ruta se elimina y se sustituye por `alt="[imagen no permitida]"`.
 - **Si el elemento no tiene texto con contenido** (`_handleMostrarImagen()` lo busca por el `texto_id` de su fila con `cargarTextos()`, §10.20, "HTTP / fetch — capa de datos"): en vez de dejar el panel vacío y sin explicación, `_handleMostrarImagen()` construye un `textoParada` sintético — `{title:'', content:'<p style="...">📖 [mensaje traducido]</p>'}` — con `MSG_TEXTO_PARADA_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas, `globalThis.idiomaSeleccionado`). Sobrevive `_galeriaSanitizarHTML()` sin problema (`p`/`style` están permitidos) y se renderiza exactamente igual que un texto real, solo que con el aviso en vez del contenido de la parada — mismo patrón visual (icono + texto atenuado) que `_mostrarOverlaySinImagenes()`/`_mostrarVideoSinUrl()` para imagen/vídeo.
+- **Imágenes que dependen del idioma** — detrás de las fotos de la entrada (`imagen` a `imagen4`), `_handleMostrarImagen()` añade las que nombra su campo `imagenes_idioma` (`js/coordenadas-aventuras.js`, nombres sin carpeta ni extensión), desde `imagenes/imagenes-idiomas/<carpeta>/<nombre>.jpg`; la carpeta es la que `LANG_ARCHIVO_PARRAFOS` (`js/data-loader.js`) da al idioma elegido (`espanol`, `ingles`…), la misma de sus párrafos. Las llevan 38 paradas: las de las imágenes con texto (arcos, arquitectura gótica e iglesias, puentes, fallas) y las 19 de Torres de Serranos, con sus cuatro de la muralla. Sin carpeta para el idioma elegido, no se añaden y queda un `logger.error`.
 - **`objectFit`/`fullHeight`** (`opciones`, ambos opcionales) — los pasa **solo el mapa vintage** —el completo se abre en un iframe, no en este overlay— (§14, "Mapa vintage (botón H2 y En-busca-del-tesoro)"): `objectFit:'fill'` estira la imagen hasta llenar el hueco sin recortar, y `fullHeight:true` marca el contenedor como mapa para que ocupe la pantalla entera. Las fotos de parada no pasan ninguno de los dos y se quedan en su ventana con marco.
 
 **Botón de cierre protegido contra doble disparo táctil:** `_galeriaProtegerBoton(overlay)` añade `stopPropagation()` en `touchstart`/`pointerdown` del botón `×` — sin esto, en pantallas táctiles el mismo toque puede disparar tanto el evento táctil como el de puntero synthetic y ejecutar el cierre dos veces.
@@ -4914,7 +4915,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f87d72ac3bd6'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7632521aa28a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7253,15 +7254,15 @@ La galería que muestra imágenes de cada parada en el overlay de `codigo-padre.
 
 | Archivo | Dimensiones reales | Orientación | Peso |
 |---|---|---|---|
-| `Av1_mapa.jpg` | 1755×2481 | Vertical | 1,6 MB |
-| `Av2_Mapa.jpg` | 1755×2481 | Vertical | 3,6 MB |
-| `Av3_Mapa.jpg` | 1755×1241 | **Horizontal** | 1,0 MB |
-| `Av4_Mapa.jpg` | 2481×1755 | **Horizontal** | 1,8 MB |
-| `Av5_Mapa.jpg` | 1755×2481 | Vertical | 1,8 MB |
-| `AvFallas_Mapa.jpg` | 1755×2481 | Vertical | 3,7 MB |
-| `Av34km_Mapa.jpg` | 1755×1241 | **Horizontal** | 2,6 MB |
+| `Av1_mapa.jpg` | 1755×2481 | Vertical | 1,3 MB |
+| `Av2_Mapa.jpg` | 1755×2481 | Vertical | 1,1 MB |
+| `Av3_Mapa.jpg` | 1241×1755 | Vertical, **dibujo horizontal girado** | 0,6 MB |
+| `Av4_Mapa.jpg` | 1755×2481 | Vertical, **dibujo horizontal girado** | 1,2 MB |
+| `Av5_Mapa.jpg` | 1755×2481 | Vertical | 1,2 MB |
+| `AvFallas_Mapa.jpg` | 1755×2481 | Vertical | 1,2 MB |
+| `Av34km_Mapa.jpg` | 1241×1755 | Vertical, **dibujo horizontal girado** | 0,9 MB |
 
-Son los originales, los que enseña la aventura (protegidos: `PROTECTED_FILES`, §22.4); la demo gratis enseña la copia de cada uno, con el mismo nombre, en `publico/imagenes/mapas-vintage/` (§7.1). Dimensiones medidas del fichero, no supuestas. **`Av3`, `Av4` y `Av34km` son horizontales**. El overlay llena la ventana y permite acercar y desplazar el mapa con pellizco/arrastre, rueda/doble clic o controles en pantalla.
+Son los originales, los que enseña la aventura (protegidos: `PROTECTED_FILES`, §22.4); la demo gratis enseña la copia de cada uno, con el mismo nombre, en `publico/imagenes/mapas-vintage/` (§7.1). Dimensiones medidas del fichero, no supuestas, y sin etiqueta de orientación EXIF: el giro está en los propios píxeles. **Los siete son verticales**, para llenar la pantalla del móvil en vertical sin bandas: `Av1`, `Av2`, `Av5` y `Fallas` están dibujados así, y `Av3`, `Av4` y `Av34km` son dibujos horizontales girados 90° a la izquierda, con los textos de lado; el usuario gira el teléfono para leerlos (§19.7). El overlay llena la ventana y permite acercar y desplazar el mapa con pellizco/arrastre, rueda/doble clic o controles en pantalla.
 
 **El zoom (`configurarZoomMapaVintage(contenedor, imagen)`, `js/mapa-vintage-zoom.js`)** lo usan los dos sitios que enseñan un mapa vintage: la galería del padre (`#galeria-wrapper`, cuando el mapa llega con `zoomable: true`) y la capa de la selección (`#mapa-vintage-wrapper`). Escucha en el contenedor: al pulsar, el contenedor se queda el puntero (`setPointerCapture`) para arrastrar la imagen —solo la mueve si está ampliada— o, con dos dedos, para el pellizco; la rueda acerca o aleja hacia el puntero, y el doble clic alterna entre 1× y 2×. La escala va de 1× a 6×. **Lo que se pulsa sobre un botón de dentro del contenedor es del botón, no del zoom** (`esDeUnBoton`, el único sitio que lo decide: `button`, `a` o el panel `.mapa-zoom-controles` entero): el contenedor no captura ese puntero ni el doble clic, y el `click` le llega al botón. La ✗ de la selección vive dentro del contenedor y depende de esto; la del padre va fuera, en `.media-contenedor`. Cubierto por `tests/e2e/163-la-x-del-mapa-antiguo-se-pulsa.spec.js`.
 
@@ -7884,7 +7885,7 @@ test de navegador: es más rápido, no depende del reloj y se puede meter en cua
 | Comando | Qué vigila |
 |---------|-----------|
 | `npm run lint` | ESLint sobre `js/**/*.js` y los `*.html` de la raíz: logger centralizado, sin variables muertas, sin espacios al final de línea |
-| `npm run verificar-datos` | Integridad de los datos de las 7 aventuras: exportaciones, extensiones de imagen y vídeo, ids repetidos, coordenadas en rango, campos de cada tipo de reto, que lo que el índice marca disponible exista, que el índice traiga el nombre y el plazo (`tiempoEstimado`) de cada aventura y el nombre de cada idioma, y que la carpeta pública de la demo gratis (`publico/`) esté al día con los originales —los textos y las copias de medios, idénticas byte a byte—, sin ficheros de más y sin piezas que falten |
+| `npm run verificar-datos` | Integridad de los datos de las 7 aventuras: exportaciones, extensiones de imagen y vídeo, ids repetidos, coordenadas en rango, campos de cada tipo de reto, que lo que el índice marca disponible exista, que el índice traiga el nombre y el plazo (`tiempoEstimado`) de cada aventura y el nombre de cada idioma, que la carpeta pública de la demo gratis (`publico/`) esté al día con los originales —los textos y las copias de medios, idénticas byte a byte—, sin ficheros de más y sin piezas que falten, y que cada imagen que depende del idioma (`imagenes_idioma`) esté en las doce carpetas de idioma, en `.jpg` |
 | `npm run verificar-totales` | Que los totales precalculados del índice cuadren con los datos |
 | `npm run verificar-mensajeria` | Cruza cada tipo de `TIPOS_MENSAJE` con quién lo emite y quién lo escucha, y comprueba que lo emitido llega a un frame que lo atiende |
 | `npm run verificar-citas` | Que las citas por número de línea de esta guía apunten a donde dicen |
@@ -8076,6 +8077,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `155-una-sola-copia-de-cada-ayudante.spec.js` | 4 | Cada ayudante de uso común tiene una sola definición, en `js/` (estudio, K-28): `sleep` solo en `js/utils.js` y sin publicar en `globalThis` (UC-1); el mapa de escape de HTML, una vez, en `escaparHTML` de `js/utils.js` (UC-2); la galería escapa como el resto, y un nombre con comillas dobles llega entero al `alt` de la imagen (UC-3); el título del texto de la galería con etiquetas sale como texto (UC-4, control) |
 | `156-la-reanudacion-avisa-si-script-2-no-llega.spec.js` | 2 | La reanudación espera a que Script 2 publique `distribuirDatosAventura` con plazo y, si no llega, avisa (§11, el aviso de último recurso de `_avisarFalloCargaAppUnaVez()`; estudio, K-72): con Script 2 cortado en su primera instrucción (la respuesta de `codigo-padre.html` se reescribe, con el service worker bloqueado), tras pulsar «Continuar» sale el aviso de fallo de carga, y ninguno antes de pulsarlo (RE-1; más de un minuto: el arranque espera hasta 30 s a Script 2 y la reanudación otros 30 s); sin corte, la reanudación termina sin ningún aviso (RE-2, control) |
 | `157-avanzar-lo-decide-un-solo-sitio.spec.js` | 4 | «Avanzar» de hijo2 lo decide un solo sitio del padre (§29.4), medido con el padre, los hijos y el botón reales: un tramo sin completar no lo enciende al acercarse a su final, y completado sí (AV-1); una parada a medias no lo enciende al volver de los 5 km, y completada sí (AV-2); con la parada completada, salir de rango sin gracia lo apaga y volver lo enciende (AV-3, control); una pulsación con el botón apagado, fuera de rango, no avanza, y con el botón encendido sí (AV-4) |
+| `158-imagenes-por-idioma.spec.js` | 3 | Las imágenes que dependen del idioma salen en la ventana de la imagen detrás de las fotos de la parada, de la carpeta de su idioma (§4.7f), medido con el padre, los hijos y el botón de hijo2 reales: en español (IM-1) y en inglés (IM-2), Av1-P-5 lleva sus cinco imágenes de `imagenes/imagenes-idiomas/<carpeta>/`; Av1-P-1, sin `imagenes_idioma`, solo sus fotos (IM-3, control) |
 | `159-el-rescate-deja-seguir.spec.js` | 6 | El rescate deja seguir (§25.19, §29.4), medido con el padre, los hijos, el botón del rescate del asistente y el botón «avanzar» reales: rescatado fuera de rango con la gracia agotada, «avanzar» se enciende (RZ-1); completado sin rescate y fuera de rango, sigue apagado (RZ-2, control); se cobra al concederlo, y el cobro y el registro quedan en `vv_progreso` (RZ-3); tras el rescate no sale el cartel de transición (RZ-4); al avanzar se gasta el registro sin cobrar otra vez (RZ-5); y tras recargar y reanudar, el punto rescatado sigue dejando seguir, cobrado una vez (RZ-6) |
 | `160-sin-reservas-ni-avances-solos.spec.js` | 3 | Un elemento solo queda listo para avanzar si se completa, y la aventura solo avanza con la pulsación (§29.4), medido con el padre, los hijos y el botón «avanzar» reales: un reto que no es de ningún elemento, sin elemento actual, no deja nada listo para avanzar (KR-1); si algo falla al completar el elemento por la cola de retos, la aventura no avanza sola (KR-2); y, de control, el reto de la parada la completa y enciende «avanzar» sin cambiar de elemento (KR-3) |
 | `161-el-cartel-de-los-5-km-manda-mientras-dura.spec.js` | 7 | El cartel del bloqueo de 5 km manda sobre las otras pantallas de distancia mientras dura el bloqueo (§31.4, §31.5), medido con el padre, los hijos y el bus reales, con lecturas que entran por la comprobación de los 5 km y por hijo2: bloqueado, la franja «muy lejos» que pide la lectura siguiente no lo tapa (CK-1); cerrado con su ✗, durante su tiempo de espera no sale ninguna pantalla de distancia (CK-2); pasado ese tiempo, la lectura siguiente lo vuelve a enseñar (CK-3); su imagen y su texto accesible hablan de la zona de la aventura, también cuando vuelve a salir (CK-4); el aviso de precisión no lo tapa, y sale al levantarse el bloqueo si la precisión sigue mala (CK-5); de control, sin bloqueo sale «muy lejos» (CK-6); y el único botón del cartel es su ✗ (CK-7) |
@@ -8179,7 +8181,7 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 | Caché | Nombre | Estrategia | Contenido |
 |-------|--------|-----------|-----------|
 | Shell | `vvguides-shell-{CACHE_VERSION}` | **Network First** | HTML, JS, manifest, iconos — contenido versionado |
-| Media | `vvguides-media-v1` | **Cache First + LRU (100 entradas)** | Imágenes de las aventuras y mapas antiguos: los originales (`imagenes/imagenes-aventuras/` e `imagenes/mapas-vintage/`) y sus copias de la demo (`publico/imagenes/`) — **NI vídeos ni audios** |
+| Media | `vvguides-media-v1` | **Cache First + LRU (100 entradas)** | Imágenes de las aventuras y mapas antiguos: los originales (`imagenes/imagenes-aventuras/`, `imagenes/imagenes-idiomas/` e `imagenes/mapas-vintage/`) y sus copias de la demo (`publico/imagenes/`) — **NI vídeos ni audios** |
 | Vídeos y audios (`/videos-aventuras/`, `/audios-aventuras/`, `/publico/audios/`, `/publico/videos/`) | — | **Network Only (sin interceptar)** | El `fetch` handler devuelve sin gestionar la petición (`return` en el listener, antes de llegar a `esMedia()`) para que las peticiones `Range` del `<video>` y del `<audio>` vayan directas a red — cachear respuestas `206 Partial Content` es una fuente conocida de bugs |
 | API | — | **Network Only** | Peticiones a `/api/*` — sin caché, 503 si sin conexión |
 
@@ -8372,9 +8374,11 @@ El manifest **no** fija `"orientation"` y el código **no** llama a `screen.orie
 
 #### Las dos excepciones: los mapas vintage
 
-Tres de los mapas vintage son **horizontales** — `Av3_Mapa.jpg`, `Av4_Mapa.jpg` y
-`Av34km_Mapa.jpg` — y en vertical se ven peor. En los dos sitios donde se abren, el aviso se
-suprime mientras el mapa está en pantalla:
+Tres de los mapas vintage — `Av3_Mapa.jpg`, `Av4_Mapa.jpg` y `Av34km_Mapa.jpg` — son dibujos
+horizontales girados 90° dentro del fichero para que llenen la pantalla en vertical (§14,
+«Imágenes de mapas vintage»): sus textos quedan de lado, y el usuario gira el teléfono para
+leerlos. Para que el aviso de girar no tape el mapa en ese momento, en los dos sitios donde se
+abre cualquier mapa vintage el aviso se suprime mientras el mapa está en pantalla:
 
 | Dónde | Cómo lo pide |
 |---|---|
@@ -8428,7 +8432,7 @@ El overlay muestra la imagen `movil-vertical.png` (un móvil en vertical con fle
 
 `.rotation-message` tiene `z-index:1000043` — misma franja que `#modal-finalizacion-aventura` (1000044) y `#modal-tiempo-agotado` (1000045), por encima de `#brujula-modo`/`#selector-tipo-mapa`/`#btn-chat-soporte` (1000005-1000030). El giro del dispositivo puede ocurrir en cualquier momento, incluida una aventura activa con esos tres botones visibles, así que el aviso necesita estar por encima de ellos, no solo del mapa.
 
-**Excepción — mapa vintage:** cuando el usuario abre el mapa vintage en fullscreen, `En-busca-del-tesoro.html` envía `NAVEGACION.SUPRIMIR_ROTACION` con `value: true` al padre, que activa `globalThis.rotationSuppressed = true` y oculta el overlay. Al cerrar el mapa, `value: false` restaura el comportamiento normal. Esto permite al usuario girar el móvil horizontalmente para ver el mapa completo sin que el aviso lo bloquee.
+**Excepción — mapa vintage:** cuando el usuario abre el mapa vintage en fullscreen, `En-busca-del-tesoro.html` envía `NAVEGACION.SUPRIMIR_ROTACION` con `value: true` al padre, que activa `globalThis.rotationSuppressed = true` y oculta el overlay. Al cerrar el mapa, `value: false` restaura el comportamiento normal. Esto permite al usuario girar el móvil para leer los textos de lado de los mapas girados sin que el aviso los tape. La app no puede impedir que la pantalla gire con el teléfono (ver arriba): eso lo hace el bloqueo de giro del propio dispositivo.
 
 ---
 
@@ -8551,8 +8555,9 @@ proyecto/
 │   ├── imagenes-aplicación/          ← Iconos de botones, logos, UI, banderas, avisos: las imágenes de la propia app, públicas, no van al backend (§22.4)
 │   ├── imagenes-aventuras/           ← Fotos de monumentos por aventura, contenido de pago (protegidas por PROTECT_DATA); la demo enseña su copia de `publico/imagenes/`
 │   ├── mapas-vintage/                ← Los mapas antiguos, un JPG completo por aventura (no son tiles), los siete de `js/mapa-vintage-aventuras.js`; contenido de pago (protegidos); la demo enseña su copia de `publico/imagenes/mapas-vintage/`
+│   ├── imagenes-idiomas/             ← Las imágenes con texto de las paradas, una carpeta por idioma con el nombre de su fichero de párrafos (`espanol/`, `ingles/`… `chino-simplificado/`, la de `LANG_ARCHIVO_PARRAFOS`) y en las doce los mismos 25 nombres, todos `.jpg`; las pide el campo `imagenes_idioma` de cada punto (§4.7f); contenido de pago (protegidas)
 │   ├── imagenes video intro/         ← Caballeros, guantelete y decorados de `video-intro.html` (§35)
-│   └── ...                           (material de trabajo, sin referencias en el código. `01-imagenes-español/` a `04-imagenes-italiano/` están **en `.gitignore` por decisión explícita** — no se versionan mientras no se usen, porque el repositorio es público y lo que entra en el historial se queda. `Banderas aplicacion/` y `Botones fondo transparente/` sí están versionadas)
+│   └── ...                           (material de trabajo, sin referencias en el código: `Banderas aplicacion/` y `Botones fondo transparente/`, versionadas)
 │
 ├── tools/                            ← Scripts de mantenimiento, no forman parte de la PWA (ver §21, "Scripts npm disponibles")
 │   ├── build-demo.js                 ← Hace la carpeta pública, publico/: copias de lo que enseña la demo gratis (§21.1)
@@ -8570,14 +8575,13 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 158 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 159 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
     ├── README.md                     ← Índice de la documentación
     ├── estudio-caminos.md            ← Catálogo de los mecanismos que tienen más de un camino para la misma decisión, con su estado y las decisiones abiertas (regla 1b de `CLAUDE.md`)
     ├── contraste-textos-mapa.md      ← Contraste entre el número de mapa que dice el texto y el del recorrido
-    ├── imagenes-referencias-pendientes.md ← Seguimiento de las fotos de las referencias que faltan por emparejar
     ├── fonetica.md
     ├── plan-produccion-infraestructura.md
     └── aventuras_ordenado/           ← Guiones legibles por aventura + parrafos_ordenados.md y tramos-para-videos.md — generados, no se editan a mano (ver §21)
@@ -8841,7 +8845,7 @@ Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier 
 
 > ⚠️ **Dependencia cruzada con `BACKEND_READY`**: `PROTECT_DATA=true` solo tiene sentido junto con `BACKEND_READY=true` en `js/data-loader.js` (§22.11) — si `BACKEND_READY` sigue en `false`, el modo es `'local'` y las funciones de `js/data-loader.js` (la fase 2 del padre entre ellas) importan directamente los ficheros que `PROTECT_DATA` bloquea, y la carga de aventuras se rompe con 403. `js/server.js` emite un `console.warn` al arrancar con `PROTECT_DATA=true` recordando esta dependencia. Cómo se carga cada fichero de datos, en §22.12.
 
-**Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 30–42):
+**Ficheros actualmente protegidos** (definidos en `PROTECTED_FILES`, `js/server.js`):
 
 ```text
 /js/coordenadas-aventuras.js    ← coordenadas GPS de paradas y tramos
@@ -8852,6 +8856,7 @@ Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier 
 /js/parrafos-textos/            ← directorio completo (JSON por idioma)
 /audios-aventuras/              ← MP3 del contenido de pago (directorio completo)
 /imagenes/imagenes-aventuras/   ← fotos del contenido de pago (directorio completo)
+/imagenes/imagenes-idiomas/     ← imágenes con texto de las paradas, una por idioma (directorio completo)
 /imagenes/mapas-vintage/        ← mapas antiguos de la aventura (directorio completo); la demo enseña su copia de publico/
 /videos-aventuras/               ← vídeos del contenido de pago — el dron de cada tramo (directorio completo)
 /backend/                       ← directorio completo (reservado)
@@ -9083,7 +9088,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-f87d72ac3bd6';
+const CACHE_VERSION = 'v-7632521aa28a';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9798,8 +9803,8 @@ Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTU
 | `Aventura3` | `pano_CAC.jpg` |
 | `Aventura4` | `parque_de_ cabecera_lake_side.jpg` |
 | `Aventura5` | `antiguo_orfanato.jpg` |
-| `AventuraFallas` | `fallas-castillo.png` |
-| `Aventura34km` | `aventura-34km.png` |
+| `AventuraFallas` | `fallas-castillo.jpg` |
+| `Aventura34km` | `aventura-34km.jpg` |
 
 Todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponibles. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. Al cerrar el mapa vintage → `cerrarMapaVintage()` → avanza a P8. Envía `SELECCION.AVENTURA_SELECCIONADA { aventura, timestamp }` al padre; el idioma viaja solo en `SELECCION.IDIOMA_SELECCIONADO` (P2).
 
@@ -10119,7 +10124,7 @@ A partir de ahí, la distancia se reparte en **4 franjas**, dos de ellas con mar
 | Fuera | rango real (15m/toleranciaGPS) – 50m | `foto-rango-fuera.png` | 7 min |
 | Desviado | 50m – 150m | `foto-rango-desviado.png` | 15 min |
 | Lejos | 150m – 2.000m | `foto-rango-lejos.png` | Sin gracia (instantáneo) |
-| Perdido | Más de 2.000m del elemento actual | `foto-rango-perdido.png` | Sin gracia (instantáneo) |
+| Perdido | Más de 2.000m del elemento actual | `foto-rango-perdido.jpg` | Sin gracia (instantáneo) |
 
 **Por qué dos franjas tienen gracia y las otras dos no:** un desvío real y corto (recado rápido, rodeo de una calle en obras) puede alejar al usuario 50-150m de su parada/tramo sin que eso signifique que ha abandonado la aventura — penalizar al instante desincentivaría exactamente el tipo de exploración libre que la app quiere permitir. Más allá de 150m no es un desvío del recorrido: es mucho más probable que sea un abandono real o un error, así que ahí no tiene sentido dar margen. La gracia es más larga en "desviado" (15 min) que en "fuera" (7 min) porque un rodeo real (ir y volver por una calle paralela) tarda más en completarse que un recado junto a la parada.
 
@@ -10511,13 +10516,13 @@ Hay tres avisos distintos relacionados con el GPS que no deben confundirse:
 
 **Overlay A — Fuera del rango del elemento actual** (4 pantallas en el padre, una por franja de distancia — §25.7/§31.4): se activa cuando el usuario está a más del rango real de la parada o tramo actual (15m parada / `toleranciaGPS` tramo). Es una advertencia de posición, no de señal.
 
-**Overlay B — Fuera de la zona de la aventura** (`#gps-out-of-range-overlay` en el padre, `fotogpserror.png`): exclusivo de la comprobación de más de 5km de la ruta completa de la aventura (§25.17/§31.5, chequeo anti-uso-fraudulento). No lo dispara la distancia al objetivo actual —más de 2.000m es la franja «perdido» del Overlay A, con pantalla e imagen propias (`#foto-perdido-overlay`, `foto-rango-perdido.png`)— ni la precisión GPS: una lectura imprecisa tiene su propio aviso (`#gps-precision-overlay`, §31.4), y la comprobación de los 5 km ignora las lecturas con más de 100 m de margen de error (§31.5).
+**Overlay B — Fuera de la zona de la aventura** (`#gps-out-of-range-overlay` en el padre, `fotogpserror.jpg`): exclusivo de la comprobación de más de 5km de la ruta completa de la aventura (§25.17/§31.5, chequeo anti-uso-fraudulento). No lo dispara la distancia al objetivo actual —más de 2.000m es la franja «perdido» del Overlay A, con pantalla e imagen propias (`#foto-perdido-overlay`, `foto-rango-perdido.jpg`)— ni la precisión GPS: una lectura imprecisa tiene su propio aviso (`#gps-precision-overlay`, §31.4), y la comprobación de los 5 km ignora las lecturas con más de 100 m de margen de error (§31.5).
 
 **Overlay C — Sin señal o sin permiso** (`#gps-signal-overlay` en el padre, `imagen-no-gps.png` — §31.2/§31.3): el navegador no entrega ninguna posición (permiso denegado, señal no disponible o tiempo agotado). Lo muestra `showGpsSignalOverlay()`; es el que recoge la tabla de errores de más abajo.
 
 **¿Qué ve el usuario en el Overlay B?**
 
-Una imagen a pantalla completa (`imagenes/imagenes-aplicación/fotogpserror.png`) con un solo botón, el de cierre **✗**: descarta el overlay (el `watchPosition` sigue activo en segundo plano). No tiene botón de reintento (§31.6).
+Una imagen a pantalla completa (`imagenes/imagenes-aplicación/fotogpserror.jpg`) con un solo botón, el de cierre **✗**: descarta el overlay (el `watchPosition` sigue activo en segundo plano). No tiene botón de reintento (§31.6).
 
 El overlay solo aparece en **modo AVENTURA**. En modo CASA se suprime aunque la distancia sea grande.
 
@@ -10677,7 +10682,7 @@ Alejarse de la parada activa (más allá de 15 m, o de la tolerancia del tramo) 
 - **Hasta 50 metros** (desde el límite del rango real): aparece la imagen de «fuera de rango» (`foto-rango-fuera.png`).
 - **Entre 50 y 150 metros**: aparece la imagen de «te has desviado de la ruta» (`foto-rango-desviado.png`).
 - **Entre 150 metros y 2 kilómetros**: aparece la imagen de «lejos de tu objetivo» (`foto-rango-lejos.png`).
-- **Más de 2 kilómetros**: aparece la imagen de «muy lejos de tu objetivo» (`foto-rango-perdido.png`), una pantalla propia, distinta de la del bloqueo de más de 5 km de la ruta (siguiente apartado).
+- **Más de 2 kilómetros**: aparece la imagen de «muy lejos de tu objetivo» (`foto-rango-perdido.jpg`), una pantalla propia, distinta de la del bloqueo de más de 5 km de la ruta (siguiente apartado).
 
 En todos los casos, el botón de ubicación se habilita para que el usuario pueda pedir una línea en el mapa hacia su destino — pero esa línea nunca aparece sola: solo se dibuja si el usuario pulsa el botón explícitamente. Los botones de vídeo y avanzar se deshabilitan cuando se agota la gracia de la franja (7 minutos en la primera, 15 en la segunda) y al instante en las otras dos; los de mapa completo y mapa vintage se habilitan junto con el de ubicación (los tres ayudan a un usuario perdido a orientarse); el botón de imagen sigue disponible.
 
@@ -10689,7 +10694,7 @@ Detalle técnico completo en §31.4.
 
 Esto no es un error técnico sino una comprobación de integridad: si el GPS sitúa al usuario a más de 5 kilómetros de cualquier punto de la aventura, la aplicación entiende que algo no encaja —puede que el teléfono esté dando coordenadas erróneas, o que alguien intente completar la aventura desde casa.
 
-A la tercera comprobación seguida fuera de esos 5 km aparece un cartel propio (`fotogpserror.png`) y el **botón de avanzar se bloquea** hasta que una comprobación vuelva a situar al usuario dentro del área de la ruta. Mientras dura el bloqueo, el cartel vuelve a salir con cada lectura del GPS y ninguna otra pantalla de distancia lo tapa; cerrado con su ✗, descansa 150 segundos. No tiene botón de reintento: una lectura nueva no levanta el bloqueo. La comprobación se hace como mucho una vez cada 3 minutos y no cuenta las lecturas con más de 100 m de margen de error (§31.5).
+A la tercera comprobación seguida fuera de esos 5 km aparece un cartel propio (`fotogpserror.jpg`) y el **botón de avanzar se bloquea** hasta que una comprobación vuelva a situar al usuario dentro del área de la ruta. Mientras dura el bloqueo, el cartel vuelve a salir con cada lectura del GPS y ninguna otra pantalla de distancia lo tapa; cerrado con su ✗, descansa 150 segundos. No tiene botón de reintento: una lectura nueva no levanta el bloqueo. La comprobación se hace como mucho una vez cada 3 minutos y no cuenta las lecturas con más de 100 m de margen de error (§31.5).
 
 ---
 
@@ -12547,7 +12552,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-f87d72ac3bd6';
+const CACHE_VERSION = 'v-7632521aa28a';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12700,9 +12705,9 @@ No hay countdown ni reintento automático por tiempo — es una decisión del us
 | Fuera | rango real + 1m hasta 50m | `foto-rango-fuera.png` + distancia | 7 min | Se habilitan al instante | Esperan la gracia |
 | Desviado | 50m – 150m | `foto-rango-desviado.png` + distancia | 15 min | Se habilitan al instante | Esperan la gracia |
 | Lejos | 150m – 2.000m | `foto-rango-lejos.png` + distancia | Sin gracia | Se habilitan al instante | Se deshabilitan al instante |
-| Perdido | > 2.000m del elemento actual | `foto-rango-perdido.png` + distancia | Sin gracia | Se habilitan al instante | Se deshabilitan al instante |
+| Perdido | > 2.000m del elemento actual | `foto-rango-perdido.jpg` + distancia | Sin gracia | Se habilitan al instante | Se deshabilitan al instante |
 
-`foto-rango-perdido.png` **no** es la misma imagen que `fotogpserror.png`: un solo icono no puede llevar impresa una cifra fija (2KM o 5KM) que sea correcta para dos umbrales reales distintos a la vez. "Perdido" (>2.000m del elemento actual) tiene su propio overlay (`#foto-perdido-overlay`) e imagen; `fotogpserror.png`/`#gps-out-of-range-overlay` quedan exclusivos del bloqueo anti-piratería de §31.5 (>5km de TODA la ruta, no del elemento actual).
+`foto-rango-perdido.jpg` **no** es la misma imagen que `fotogpserror.jpg`: un solo icono no puede llevar impresa una cifra fija (2KM o 5KM) que sea correcta para dos umbrales reales distintos a la vez. "Perdido" (>2.000m del elemento actual) tiene su propio overlay (`#foto-perdido-overlay`) e imagen; `fotogpserror.jpg`/`#gps-out-of-range-overlay` quedan exclusivos del bloqueo anti-piratería de §31.5 (>5km de TODA la ruta, no del elemento actual).
 
 Ubicación, mapa completo y mapa vintage se agrupan juntos — los tres ayudan a un usuario perdido a orientarse, así que se habilitan a la vez y **al instante en las 4 franjas, sin esperar ninguna gracia** (ver la tabla de botones de hijo2 en §25.7, y `_habilitarAyudaFueraDeRango()`/`_desactivarBotonesRangoExcedido()`).
 
@@ -12727,9 +12732,9 @@ Ubicación, mapa completo y mapa vintage se agrupan juntos — los tres ayudan a
 | `foto-rango-fuera.png` (rango real-50m) | 60s |
 | `foto-rango-desviado.png` (50-150m) | 90s |
 | `foto-rango-lejos.png` (150-2.000m) | 120s |
-| `foto-rango-perdido.png` (>2.000m) | 150s |
+| `foto-rango-perdido.jpg` (>2.000m) | 150s |
 | `imagen-no-gps.png` (precisión insuficiente) | 90s |
-| `fotogpserror.png` (anti-piratería, >5km de toda la ruta) | 150s |
+| `fotogpserror.jpg` (anti-piratería, >5km de toda la ruta) | 150s |
 
 Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de que la app sigue activa) y, en las que lo tienen, nueva ocasión de pulsar reintentar — el ciclo se repite mientras el usuario siga fuera de rango. Volver dentro de rango (`GPS.DENTRO_DE_RANGO`) limpia todos los tiempos de espera pendientes (`_limpiarSnoozeOverlaysDistancia()`), para que la próxima salida de rango empiece de cero; entrar en CASA también. El botón de ubicación oculta las pantallas sin limpiarlos (ver más abajo).
 
@@ -12761,11 +12766,11 @@ Ese ciclo es el de las 4 pantallas de franja, que hijo2 realimenta en cada posic
 
 **Cómo mide la distancia:** recorre las coordenadas de la aventura activa (`__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas`) y calcula, con `calcularDistancia()` (`js/utils.js`, fórmula Haversine), la distancia a cada punto candidato de cada elemento (`coordenadas`, `inicio`, `fin`, `waypoints`), quedándose con la mínima encontrada y cortando el recorrido en cuanto encuentra un punto a menos de 5.000m (`LIMIT_M`) — no necesita comprobar el resto de la ruta si ya hay un punto cercano.
 
-**Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true` a la tercera comprobación seguida fuera de los 5 km, `LECTURAS_PARA_BLOQUEAR`; una comprobación dentro pone la cuenta a cero):** overlay `#gps-out-of-range-overlay` (`fotogpserror.png`, con el `alt` «Fuera de la zona de la aventura, a más de 5 km») con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de N km", con la distancia medida al declararse el bloqueo), para que un lector de pantalla diga la causa real. El cartel sale al declarar el bloqueo y vuelve a salir en cada lectura mientras dura —`_check5kmFromRoute()` lo pide al principio de cada llamada, antes de la espera de 3 minutos entre comprobaciones—, y manda sobre las otras cinco pantallas de distancia: mientras dura el bloqueo no sale ninguna otra (`_puedeSalirPantallaDistanciaGPS()`, §31.4). El botón de cierre ✗ solo descarta el aviso en pantalla, sin desbloquear nada: durante su tiempo de espera (150 s) no sale ninguna pantalla de distancia, y pasado ese tiempo la lectura siguiente vuelve a enseñar el cartel. El cartel no tiene botón de reintento (§31.6). Al declarar el bloqueo, `_check5kmFromRoute()` llama a `globalThis._sincronizarAvanzar()` (Script 2) y «avanzar» se apaga (`razon: 'fuera_de_zona_5km'`): `_decidirAvanzar()` mira `__VV_5KM_BLOCKED` cada vez que decide (§29.4), así que nada lo vuelve a encender mientras dure el bloqueo.
+**Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true` a la tercera comprobación seguida fuera de los 5 km, `LECTURAS_PARA_BLOQUEAR`; una comprobación dentro pone la cuenta a cero):** overlay `#gps-out-of-range-overlay` (`fotogpserror.jpg`, con el `alt` «Fuera de la zona de la aventura, a más de 5 km») con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de N km", con la distancia medida al declararse el bloqueo), para que un lector de pantalla diga la causa real. El cartel sale al declarar el bloqueo y vuelve a salir en cada lectura mientras dura —`_check5kmFromRoute()` lo pide al principio de cada llamada, antes de la espera de 3 minutos entre comprobaciones—, y manda sobre las otras cinco pantallas de distancia: mientras dura el bloqueo no sale ninguna otra (`_puedeSalirPantallaDistanciaGPS()`, §31.4). El botón de cierre ✗ solo descarta el aviso en pantalla, sin desbloquear nada: durante su tiempo de espera (150 s) no sale ninguna pantalla de distancia, y pasado ese tiempo la lectura siguiente vuelve a enseñar el cartel. El cartel no tiene botón de reintento (§31.6). Al declarar el bloqueo, `_check5kmFromRoute()` llama a `globalThis._sincronizarAvanzar()` (Script 2) y «avanzar» se apaga (`razon: 'fuera_de_zona_5km'`): `_decidirAvanzar()` mira `__VV_5KM_BLOCKED` cada vez que decide (§29.4), así que nada lo vuelve a encender mientras dure el bloqueo.
 
 **Recuperación:** en la siguiente comprobación que caiga dentro de los 5 km, `__VV_5KM_BLOCKED` vuelve a `false`, se llama `hideGpsOutOfRangeOverlay()`, sale el aviso de precisión si hijo2 lo ha pedido y la precisión no ha vuelto (§31.4), y se llama otra vez a `_sincronizarAvanzar()`: «avanzar» vuelve a encenderse solo si el elemento está completado y nada más lo impide. Las pantallas de franja vuelven con la lectura siguiente.
 
-**`#gps-out-of-range-overlay` (`fotogpserror.png`) es exclusivo de este bloqueo** — un único icono con una cifra impresa fija (2KM o 5KM) no podría ser correcto para dos umbrales reales distintos a la vez, así que "perdido" tiene su propio overlay e imagen por separado (`#foto-perdido-overlay`/`foto-rango-perdido.png`, §31.4); este overlay solo se muestra desde `_check5kmFromRoute()`. Una lectura con más de 100 m de margen de error no cuenta para este bloqueo; la mala precisión tiene su propio aviso (`gps-precision-overlay`, §31.4), que no sale mientras dura el bloqueo.
+**`#gps-out-of-range-overlay` (`fotogpserror.jpg`) es exclusivo de este bloqueo** — un único icono con una cifra impresa fija (2KM o 5KM) no podría ser correcto para dos umbrales reales distintos a la vez, así que "perdido" tiene su propio overlay e imagen por separado (`#foto-perdido-overlay`/`foto-rango-perdido.jpg`, §31.4); este overlay solo se muestra desde `_check5kmFromRoute()`. Una lectura con más de 100 m de margen de error no cuenta para este bloqueo; la mala precisión tiene su propio aviso (`gps-precision-overlay`, §31.4), que no sale mientras dura el bloqueo.
 
 **Estado de implementación:** ✅ implementado.
 
@@ -12825,10 +12830,10 @@ En los tres casos el resultado es el mismo: la parada no queda bloqueada, y todo
 | 31.4a | Fuera de rango: rango real-50m (gracia 7 min) | `foto-rango-fuera.png` | `verificarDistanciaYActualizarBotones` en hijo2 → `GPS.RESTRINGIDO` → padre | ✅ implementado |
 | 31.4b | Desviado: 50-150m (gracia 15 min) | `foto-rango-desviado.png` | ídem | ✅ implementado |
 | 31.4c | Lejos: 150-2000m (sin gracia) | `foto-rango-lejos.png` | ídem | ✅ implementado |
-| 31.4d | Perdido: >2000m del elemento actual (sin gracia) | `foto-rango-perdido.png` | ídem | ✅ implementado |
+| 31.4d | Perdido: >2000m del elemento actual (sin gracia) | `foto-rango-perdido.jpg` | ídem | ✅ implementado |
 | 31.4e | Precisión GPS insuficiente (accuracy > `CONFIG.GPS.PRECISION_MINIMA`) | `imagen-no-gps.png` | hijo2 → `GPS.PRECISION_INSUFICIENTE`/`PRECISION_RECUPERADA` → padre | ✅ implementado |
-| 31.5 | >5km de toda la ruta (anti-piratería) | `fotogpserror.png` | `_watchPositionSuccess` → `_check5kmFromRoute()` (la comprobación, cada 3 min; el cartel, en cada lectura mientras dura) → `_puedeSalirPantallaDistanciaGPS()` | ✅ implementado |
-| 31.6 | El cartel del bloqueo de 5 km, sin reintento | `fotogpserror.png` | `_ensureGpsOverlay()`: la imagen y la ✗ | ✅ implementado |
+| 31.5 | >5km de toda la ruta (anti-piratería) | `fotogpserror.jpg` | `_watchPositionSuccess` → `_check5kmFromRoute()` (la comprobación, cada 3 min; el cartel, en cada lectura mientras dura) → `_puedeSalirPantallaDistanciaGPS()` | ✅ implementado |
+| 31.6 | El cartel del bloqueo de 5 km, sin reintento | `fotogpserror.jpg` | `_ensureGpsOverlay()`: la imagen y la ✗ | ✅ implementado |
 | 31.7a | AUDIO.ERROR no desbloquea pending | — | `_hdl_AUDIO_ERROR` → `_marcarAudioNoDisponible` marca `pending.audio = true`, habilita retosBtn y muestra el botón de saltar (§25.5f) | ✅ implementado |
 | 31.7b | Entrega de AUDIO.REPRODUCIR_REQUEST sin garantía / usuario bloqueado sin poder llegar | — | `_enviarAudioRequestConReintento` (confirmación + reintentos, §31.7) para el mensaje; para el bloqueo real, el rescate a petición del usuario (§25.19) — el `setInterval` de 60 s solo recuerda que existe, no completa nada | ✅ implementado |
 | 31.9a | Navegador incompatible (sin ES modules) | `#vv-compat-warning` div | `<script nomodule>` | ✅ implementado |
@@ -14496,7 +14501,7 @@ Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tool
 | `fotoruta-A-B.png` | `codigo-padre.html`, `coordenadas-hijo2.html`, `video-intro.html` |
 | `pano_CAC.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
 | `cabecera_lake_side.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
-| `fallas-castillo.png` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
+| `fallas-castillo.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
 | `fotochat-boton.png` | `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-central.png` | `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-stop.png` | `codigo-padre.html`, `video-intro.html` |
@@ -14533,7 +14538,7 @@ Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tool
 | `bandera_rusia.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
 | `bandera_ucrania.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
 | `antiguo_orfanato.jpg` | `En-busca-del-tesoro.html`, `tools/build-demo.js` |
-| `aventura-34km.png` | `En-busca-del-tesoro.html`, `tools/build-demo.js` |
+| `aventura-34km.jpg` | `En-busca-del-tesoro.html`, `tools/build-demo.js` |
 | `logo-luna.png` | `En-busca-del-tesoro.html`, `js/puzzles-aventuras.js` |
 | `foto-opciones.png` | `extrainfo-hijo1.html`, `video-intro.html` |
 | `boton_listado_paradas.png` | `extrainfo-hijo1.html`, `video-intro.html` |

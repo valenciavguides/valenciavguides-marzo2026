@@ -267,6 +267,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
         imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
     // Tramo 1: Torres de Serranos → Plaza de la crida (Puente de Serranos)(Párrafos: 229, 2)
@@ -396,6 +397,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza de la Virgen",
         coordenadas: { lat: Number('39.476570'), lng: Number('-0.375240') },
         imagen: "imagenes/imagenes-aventuras/puerta_gotica_catedral.jpg",
+        imagenes_idioma: ["arquitectura-gotica", "arquitectura-detalles", "arquitectura-detalles-2", "arquitectura-iglesia", "arquitectura-iglesias"],
     },
 
     // Parada 6: Plaza de la Virgen (Reto9Puzzle PZ-01)
@@ -474,6 +476,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/capilla_pared_catedral.jpg",
         imagen2: "imagenes/imagenes-aventuras/arco_novo_catedral.jpg",
         imagen3: "imagenes/imagenes-aventuras/puerta_negra_relieve_basilica.jpg",
+        imagenes_idioma: ["arcos"],
     },
 
     // Parada 11: Casa del Punt de Gantxo (Reto 13) (Párrafos: 51-C, 454, 455, 455-B, 148, 456)
@@ -920,6 +923,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)",
         coordenadas: { lat: Number('39.474250'), lng: Number('-0.378950') },
         imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_mercado.jpg",
+        imagenes_idioma: ["arcos", "arcos-evolucion"],
     },
 
     // Parada 29: Iglesia de los Santos Juanes 2 (San Juan del Mercado) (Reto 27) (Párrafos: 368, 367)
@@ -1187,7 +1191,8 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos Final",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
+        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
       ]
@@ -1347,6 +1352,7 @@ export const DATOS_AVENTURAS = {
                     nombre: "Torres de Serranos (start)",
                     coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
                     imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
                 },
 
                 // Parada 1 - Torres de Serranos (Reto 4) (Reto de la Bandera) (Párrafos: 229, 233)
@@ -1358,6 +1364,7 @@ export const DATOS_AVENTURAS = {
                     nombre: "Torres de Serranos (Historia de la bandera)",
                     coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
                     imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
                 },
 
                 // Parada 2 - Torres de Serranos (Historia de la bandera) (Párrafos: 641, 642, 643)
@@ -1369,6 +1376,7 @@ export const DATOS_AVENTURAS = {
                     nombre: "Torres de Serranos (Historia de la bandera)",
                     coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
                     imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
                 },
 
                 // Tramo 1 - Torres de Serranos → Refugio Guerra Civil (Párrafos: 103)
@@ -1480,6 +1488,7 @@ export const DATOS_AVENTURAS = {
                     nombre: "Iglesia de San Nicolás FRONT",
                     coordenadas: { lat: Number('39.476570'), lng: Number('-0.378830') },
                     imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
+                    imagenes_idioma: ["arcos", "arcos-evolucion", "arquitectura-gotica", "arquitectura-detalles", "arquitectura-detalles-2"],
                 },
 
                 // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10)
@@ -1510,6 +1519,7 @@ export const DATOS_AVENTURAS = {
                     nombre: "Iglesia de San Nicolás BACK",
                     coordenadas: { lat: Number('39.476100'), lng: Number('-0.379180') },
                     imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
+                    imagenes_idioma: ["arquitectura-iglesia", "arquitectura-iglesias"],
                 },
 
                 // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498)
@@ -1797,6 +1807,7 @@ export const DATOS_AVENTURAS = {
                     nombre: "Plaza de la Virgen - Historia de la Catedral de Valencia",
                     coordenadas: { lat: Number('39.476600'), lng: Number('-0.375240') },
                     imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
+                    imagenes_idioma: ["arquitectura-gotica", "arquitectura-detalles", "arquitectura-detalles-2", "arquitectura-iglesia", "arquitectura-iglesias"],
                 },
 
                 // Tramo 11 - Plaza de la Virgen → Puerta Gótica de la Catedral de Valencia (Párrafos: 477, 478, 479)
@@ -2120,7 +2131,8 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos Final",
                     coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
+                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
                 },
             ]
     }
@@ -2424,6 +2436,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
         imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
     // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 5)
@@ -2454,6 +2467,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza de la Crída",
         coordenadas: { lat: Number('39.480620'), lng: Number('-0.375350') },
         imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     // Tramo 2: Plaza de la Crída (Torres de Serranos Front) → Centro Puente de Serranos 1 (Párrafos: 230, 231)
     {
@@ -3358,6 +3372,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
         coordenadas:  { lat: Number('39.473836'), lng: Number('-0.372444') },
         imagen: "imagenes/imagenes-aventuras/iglesia_san_felipe_neri.jpg",
+        imagenes_idioma: ["arcos", "arcos-evolucion"],
     },
     // Parada 26: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669)
     {
@@ -3453,6 +3468,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Catedral de Valencia (Puerta Románica)",
         coordenadas:  { lat: Number('39.475552'), lng: Number('-0.374557') },
         imagen: "imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg",
+        imagenes_idioma: ["arquitectura-gotica", "arquitectura-detalles", "arquitectura-detalles-2", "arquitectura-iglesia", "arquitectura-iglesias"],
     },
     // Tramo 26: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 45-B)
     {
@@ -3639,7 +3655,8 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos Final",
                     coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
+                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
                 }
       ]
     }
@@ -4014,6 +4031,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
         imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     // Tramo 1: Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 229, 525-B, 527, 528, 529)
     {
@@ -4073,6 +4091,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)",
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.378590') },
         imagen: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg",
+        imagenes_idioma: ["arquitectura-iglesia", "arquitectura-iglesias"],
     },
     // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540)
     {
@@ -4715,6 +4734,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Puente de San José",
         coordenadas: { lat: Number('39.481833'), lng: Number('-0.380310') },
         imagen: "imagenes/imagenes-aventuras/puente_san_jose_close.jpg",
+        imagenes_idioma: ["arcos", "arcos-evolucion", "puentes"],
     },
     // Tramo 17: Puente de San José → Torres de Serranos (Párrafos: 639)
     {
@@ -4756,6 +4776,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos",
         coordenadas: { lat: Number('39.479635'), lng: Number('-0.375845') },
         imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     // Tramo 18: Torres de Serranos Front → Centro Puente de Serranos 1 (Párrafos: 688)
     {
@@ -4898,8 +4919,8 @@ export const DATOS_AVENTURAS = {
         nombre: "Jardines del Real (Viveros)",
         coordenadas: { lat: Number('39.477480'), lng: Number('-0.368360') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
-        imagen2: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.png",
-        imagen3: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.jpg",
+        imagen3: "imagenes/imagenes-aventuras/viveros_plano.jpg",
     },
     // Tramo 21: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos:649 )
     {
@@ -4914,7 +4935,7 @@ export const DATOS_AVENTURAS = {
          ],
         fin: {lat: Number('39.478239'), lng: Number('-0.367925') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg",
         video: "",
     },
@@ -4929,7 +4950,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/viveros_maqueta_palacio.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_restos_palacio.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_monte_elio.jpg",
-        imagen4: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen4: "imagenes/imagenes-aventuras/viveros_plano.jpg",
     },
     // Tramo 22: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3)
     {
@@ -4968,7 +4989,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/viveros_circuito_vial.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_pajarera.jpg",
-        imagen4: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen4: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen5: "imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg",
         imagen6: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
         video: "",
@@ -4998,9 +5019,9 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.480912'), lng: Number('-0.368572') },
         imagen: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_jardines_versalles.jpg",
-        imagen4: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.png",
+        imagen4: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.jpg",
         imagen5: "imagenes/imagenes-aventuras/viveros_rosaleda.jpg",
         video: "",
     },
@@ -5013,7 +5034,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Jardín de la Rosaleda",
         coordenadas: { lat: Number('39.480912'), lng: Number('-0.368572') },
         imagen: "imagenes/imagenes-aventuras/viveros_rosaleda.jpg",
-        imagen2: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.png",
+        imagen2: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_libre_6.jpg",
         imagen4: "imagenes/imagenes-aventuras/viveros_libre_7.jpg",
         imagen5: "imagenes/imagenes-aventuras/viveros_libre_8.jpg",
@@ -5027,7 +5048,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Jardines del Real (Viveros) 2",
         coordenadas: { lat: Number('39.479455'), lng: Number('-0.368610') },
         imagen: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
     },
     // Tramo 25:Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B)
     {
@@ -5044,7 +5065,7 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.478899'), lng: Number('-0.369452') },
         imagen: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_patos.jpg",
         video: "",
     },
@@ -5057,7 +5078,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Estanque de los Patos",
         coordenadas: { lat: Number('39.478899'), lng: Number('-0.369452') },
         imagen: "imagenes/imagenes-aventuras/viveros_patos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
     },
     // Tramo 26: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13)
     {
@@ -5074,7 +5095,7 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.478579'), lng: Number('-0.369801') },
         imagen: "imagenes/imagenes-aventuras/viveros_patos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_san_julian.jpg",
         video: "",
     },
@@ -5087,7 +5108,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Portón del Convento de San Julián",
         coordenadas: { lat: Number('39.478579'), lng: Number('-0.369801') },
         imagen: "imagenes/imagenes-aventuras/viveros_san_julian.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_libre_10.jpg",
         imagen4: "imagenes/imagenes-aventuras/viveros_paseo_poetas.jpg",
     },
@@ -5108,7 +5129,7 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.476941'), lng: Number('-0.367427') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_real_up.jpg",
         video: "",
     },
@@ -5169,7 +5190,8 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos Final",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     ]
     }
@@ -5359,6 +5381,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
         imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
     // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 5)
@@ -5704,6 +5727,7 @@ export const DATOS_AVENTURAS = {
         coordenadas: { lat: Number('39.470192'), lng: Number('-0.369919') },
         imagen: "imagenes/imagenes-aventuras/casa_dragones.jpg",
         imagen2: "imagenes/imagenes-aventuras/casa_dragones_dragon.jpg",
+        imagenes_idioma: ["arcos", "arcos-evolucion", "puentes"],
     },
     // Tramo 9: Casa de los Dragones → Mercado de Colón (Front) (Párrafos: 306, 13, 307)
     {
@@ -6327,6 +6351,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Iglesia de la Milagrosa",
         coordenadas: { lat: Number('39.478176'), lng: Number('-0.382630') },
         imagen: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
+        imagenes_idioma: ["arquitectura-gotica", "arquitectura-detalles", "arquitectura-detalles-2", "arquitectura-iglesia", "arquitectura-iglesias"],
     },
     // Tramo 23: Iglesia de la Milagrosa → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 564, 563-B)
     {
@@ -6419,7 +6444,8 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/ivam.jpg",
-        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
+        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     ]
     }
@@ -6607,6 +6633,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
         imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
     // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135)
@@ -6665,6 +6692,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Puente Serranos",
         coordenadas: { lat: Number('39.480620'), lng: Number('-0.375350') },
         imagen: "imagenes/imagenes-aventuras/puente_serranos.jpg",
+        imagenes_idioma: ["soldado-cristiano", "castillofuegos-partes"],
     },
     // Tramo 3: Plaza de la Crída → Calle Muro de Santa Ana (Párrafos: 81, 6-B)
     {
@@ -6748,6 +6776,7 @@ export const DATOS_AVENTURAS = {
         coordenadas: { lat: Number('39.476620'), lng: Number('-0.375240') },
         imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         imagen2:"",
+        imagenes_idioma: ["arquitectura-gotica", "arquitectura-detalles", "arquitectura-detalles-2", "arquitectura-iglesia", "arquitectura-iglesias"],
     },
     // Parada 6: Plaza de la Virgen 2 (Ofrenda) (Párrafos: 469, 473, 474, 62, 146, 10-B)
     {
@@ -6759,6 +6788,7 @@ export const DATOS_AVENTURAS = {
         coordenadas: { lat: Number('39.476570'), lng: Number('-0.375240') },
         imagen: "imagenes/imagenes-aventuras/ofrenda_virgen_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/ofrenda_virgen_front.jpg",
+        imagenes_idioma: ["fallero", "fallera"],
     },
     // Parada 7: Plaza de la Virgen 3 (Basílica) (Reto8Puzzle PZ-01) (Párrafos: 451, 452, 160)
     {
@@ -6836,6 +6866,7 @@ export const DATOS_AVENTURAS = {
                     nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia",
                     coordenadas: { lat: Number('39.475180'), lng: Number('-0.375505') },
                     imagen: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg",
+                    imagenes_idioma: ["fallero", "fallera"],
                 },
                 // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699)
                 {
@@ -6915,7 +6946,8 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza del Ayuntamiento",
         coordenadas: { lat: Number('39.470567'), lng: Number('-0.376732') },
         imagen: "imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg",
-        imagen2: "imagenes/imagenes-aventuras/fallas-castillo.png",
+        imagen2: "imagenes/imagenes-aventuras/fallas-castillo.jpg",
+        imagenes_idioma: ["mascletafuegos-partes"],
     },
     // Tramo 9: Plaza del Ayuntamiento → Edificio del Ayuntamiento de València (Párrafos: 187, 332, 334, 340, 19)
     {
@@ -6952,6 +6984,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Edificio del Ayuntamiento",
         coordenadas: { lat: Number('39.469610'), lng: Number('-0.376870') },
         imagen: "imagenes/imagenes-aventuras/ayuntamiento.jpg",
+        imagenes_idioma: ["falla-partes"],
     },
     // Tramo 10: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 188)
     {
@@ -7246,7 +7279,8 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
+        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
        ]
     }
@@ -7996,6 +8030,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
         imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
     // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front) (Párrafos: 229, 5)
@@ -9546,6 +9581,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia",
         coordenadas: { lat: Number('39.475210'), lng: Number('-0.375610') },
         imagen: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg",
+        imagenes_idioma: ["arquitectura-gotica", "arquitectura-detalles", "arquitectura-detalles-2", "arquitectura-iglesia", "arquitectura-iglesias"],
     },
     // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49)
     {
@@ -11179,6 +11215,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos",
         coordenadas: { lat: Number('39.479635'), lng: Number('-0.375845') },
         imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     // Tramo 78: Torres de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92)
     {
@@ -11290,8 +11327,8 @@ export const DATOS_AVENTURAS = {
         nombre: "Jardines del Real (Viveros)",
         coordenadas: { lat: Number('39.477480'), lng: Number('-0.368360') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
-        imagen2: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.png",
-        imagen3: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.jpg",
+        imagen3: "imagenes/imagenes-aventuras/viveros_plano.jpg",
     },
     // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos:649)
     {
@@ -11306,7 +11343,7 @@ export const DATOS_AVENTURAS = {
          ],
         fin: {lat: Number('39.478239'), lng: Number('-0.367925') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg",
         video: "",
     },
@@ -11321,7 +11358,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/viveros_maqueta_palacio.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_restos_palacio.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_monte_elio.jpg",
-        imagen4: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen4: "imagenes/imagenes-aventuras/viveros_plano.jpg",
     },
     // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3)
     {
@@ -11360,7 +11397,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/viveros_circuito_vial.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_pajarera.jpg",
-        imagen4: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen4: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen5: "imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg",
         imagen6: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
         video: "",
@@ -11390,9 +11427,9 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.480912'), lng: Number('-0.368572') },
         imagen: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_jardines_versalles.jpg",
-        imagen4: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.png",
+        imagen4: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.jpg",
         imagen5: "imagenes/imagenes-aventuras/viveros_rosaleda.jpg",
         video: "",
     },
@@ -11405,7 +11442,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Jardín de la Rosaleda",
         coordenadas: { lat: Number('39.480912'), lng: Number('-0.368572') },
         imagen: "imagenes/imagenes-aventuras/viveros_rosaleda.jpg",
-        imagen2: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.png",
+        imagen2: "imagenes/imagenes-aventuras/mapa_rosaleda_viveros.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_libre_6.jpg",
         imagen4: "imagenes/imagenes-aventuras/viveros_libre_7.jpg",
         imagen5: "imagenes/imagenes-aventuras/viveros_libre_8.jpg",
@@ -11419,7 +11456,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Jardines del Real (Viveros) 2",
         coordenadas: { lat: Number('39.479455'), lng: Number('-0.368610') },
         imagen: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
     },
     // Tramo 84:Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B)
     {
@@ -11436,7 +11473,7 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.478899'), lng: Number('-0.369452') },
         imagen: "imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_patos.jpg",
         video: "",
     },
@@ -11449,7 +11486,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Estanque de los Patos",
         coordenadas: { lat: Number('39.478899'), lng: Number('-0.369452') },
         imagen: "imagenes/imagenes-aventuras/viveros_patos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
     },
     // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13)
     {
@@ -11466,7 +11503,7 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.478579'), lng: Number('-0.369801') },
         imagen: "imagenes/imagenes-aventuras/viveros_patos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_san_julian.jpg",
         video: "",
     },
@@ -11479,7 +11516,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Portón del Convento de San Julián",
         coordenadas: { lat: Number('39.478579'), lng: Number('-0.369801') },
         imagen: "imagenes/imagenes-aventuras/viveros_san_julian.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_libre_10.jpg",
         imagen4: "imagenes/imagenes-aventuras/viveros_paseo_poetas.jpg",
     },
@@ -11500,7 +11537,7 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.476941'), lng: Number('-0.367427') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
-        imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
+        imagen2: "imagenes/imagenes-aventuras/viveros_plano.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_real_up.jpg",
         video: "",
     },
@@ -11889,7 +11926,8 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos Final",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg"
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     ]
     }

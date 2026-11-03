@@ -16,8 +16,8 @@
  *   node tools/imagenes-referencias.js                 -> todas las aventuras
  *   node tools/imagenes-referencias.js Aventura34km    -> solo una
  *
- * Volver a lanzarlo despues de tocar los datos: el informe de
- * `docs/imagenes-referencias-pendientes.md` sale de aqui y envejece solo.
+ * Volver a lanzarlo despues de tocar los datos: el informe sale por la consola, al momento,
+ * y no se guarda en ningun documento.
  */
 'use strict';
 

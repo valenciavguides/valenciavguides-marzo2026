@@ -49,7 +49,6 @@ docs/
 ├── plan-produccion-infraestructura.md             ← gitignored, no en el repo público
 ├── contraste-textos-mapa.md                       ← auditoría: número de mapa vs texto
 ├── estudio-caminos.md                             ← estudio «un solo camino»: mecanismos con más de un camino, estado y decisiones abiertas
-├── imagenes-referencias-pendientes.md             ← seguimiento de imágenes de aventuras
 └── aventuras_ordenado/                            ← guiones generados (tools/generar-guiones-aventuras.mjs)
 ```
 
@@ -125,8 +124,8 @@ Para cualquier duda sobre la documentación o el proyecto:
 
 **Última revisión:** 2026-10-02  
 **Documentos activos:** `GUIA-COMPLETA.md`, este índice, 2 guías específicas (`fonetica.md`,
-`plan-produccion-infraestructura.md`), 3 documentos de seguimiento (`contraste-textos-mapa.md`,
-`estudio-caminos.md`, `imagenes-referencias-pendientes.md`) y los guiones generados en `aventuras_ordenado/`. Los
+`plan-produccion-infraestructura.md`), 2 documentos de seguimiento (`contraste-textos-mapa.md` y
+`estudio-caminos.md`) y los guiones generados en `aventuras_ordenado/`. Los
 documentos de trabajo de una migración cerrada (mensajería, rescate a petición) se retiran una
 vez su contenido queda incorporado a `GUIA-COMPLETA.md` — el historial de commits conserva el
 registro completo de cada migración.

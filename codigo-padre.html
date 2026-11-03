@@ -5643,7 +5643,7 @@
             const img = document.createElement('img');
             img.id = 'gps-error-img';
             img.className = 'gps-overlay-img';
-            img.src = 'imagenes/imagenes-aplicación/fotogpserror.png';
+            img.src = 'imagenes/imagenes-aplicación/fotogpserror.jpg';
             img.alt = 'Fuera de la zona de la aventura, a más de 5 km';
 
             // Close (X) button for overlay principal (use shared media style)
@@ -6026,11 +6026,11 @@
         }
 
         // Franja "perdido" (>2000m del elemento actual) — nueva, añadida en la ronda
-        // 2026-08-16. Antes reutilizaba gps-out-of-range-overlay/fotogpserror.png junto con
+        // 2026-08-16. Antes reutilizaba gps-out-of-range-overlay/fotogpserror.jpg junto con
         // el bloqueo anti-piratería de >5km de toda la ruta (§31.5) — dos umbrales reales
         // distintos (2000m vs 5000m) no pueden compartir una imagen con una cifra impresa
         // fija sin que una de las dos quede mal etiquetada. Ahora tiene overlay/imagen
-        // propios; gps-out-of-range-overlay/fotogpserror.png quedan exclusivos del
+        // propios; gps-out-of-range-overlay/fotogpserror.jpg quedan exclusivos del
         // anti-piratería (ver _check5kmFromRoute).
         function _ensureFotoPerdidoOverlay() {
             if (document.getElementById('foto-perdido-overlay')) return;
@@ -6045,7 +6045,7 @@
 
             const img = document.createElement('img');
             img.className = 'gps-overlay-img';
-            img.src = 'imagenes/imagenes-aplicación/foto-rango-perdido.png';
+            img.src = 'imagenes/imagenes-aplicación/foto-rango-perdido.jpg';
             img.alt = 'Estás muy lejos de tu objetivo';
 
             const distanciaRow = document.createElement('div');
@@ -7001,6 +7001,15 @@
             const imagenes = entrada
                 ? [entrada.imagen, entrada.imagen2, entrada.imagen3, entrada.imagen4].filter((url) => typeof url === 'string' && url.trim() !== '')
                 : [];
+            // Detrás de las fotos, las imágenes que dependen del idioma (arcos, arquitectura, fallas…: llevan texto), de la
+            // carpeta del idioma elegido, que se llama como sus párrafos (LANG_ARCHIVO_PARRAFOS). La entrada nombra cada una
+            // sin carpeta ni extensión.
+            if (Array.isArray(entrada?.imagenes_idioma) && entrada.imagenes_idioma.length) {
+                const { LANG_ARCHIVO_PARRAFOS } = await import('./js/data-loader.js');
+                const carpeta = LANG_ARCHIVO_PARRAFOS[globalThis.idiomaSeleccionado];
+                if (carpeta) imagenes.push(...entrada.imagenes_idioma.map((nombre) => `imagenes/imagenes-idiomas/${carpeta}/${nombre}.jpg`));
+                else (globalThis.logger || console).error(`${logPrefix} Sin carpeta de imágenes para el idioma ${globalThis.idiomaSeleccionado}: las de ${id} no se enseñan`);
+            }
             let mensajeError = null;
             if (!id) mensajeError = 'No hay parada seleccionada';
             else if (!entrada) mensajeError = 'No hay imagen disponible para esta parada';
@@ -10022,7 +10031,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // cambio de umbral hay que aplicarlo en los dos sitios a la vez. hijo2 solo envía este
         // mensaje cuando ya sabe que está por encima de su propio rango real (15m parada /
         // toleranciaGPS tramo), así que aquí no hace falta volver a comprobarlo.
-        // fotogpserror.png / gps-out-of-range-overlay quedan exclusivos del bloqueo
+        // fotogpserror.jpg / gps-out-of-range-overlay quedan exclusivos del bloqueo
         // anti-piratería de >5km de TODA la ruta (§31.5, _check5kmFromRoute) — no se
         // muestran nunca desde aquí; y mientras dura ese bloqueo, la pantalla que se pide
         // aquí no sale (_puedeSalirPantallaDistanciaGPS, Script 1).
@@ -10268,8 +10277,9 @@ await _comprobarReanudacionAventura(logPrefix);
                     return { exito: false, error: `Sin mapa vintage para ${aventura}` };
                 }
                 // Excepcion al "esta app se usa en vertical": los mapas vintage de
-                // Aventura3, Aventura4 y Aventura34km son HORIZONTALES, y en vertical se ven
-                // peor. Mientras el mapa esta abierto se suprime el aviso de girar, igual que
+                // Aventura3, Aventura4 y Aventura34km son dibujos horizontales girados 90° en el
+                // fichero para llenar la pantalla en vertical, con los textos de lado, y el usuario
+                // gira el movil para leerlos. Mientras el mapa esta abierto se suprime el aviso de girar, igual que
                 // ya hace la pantalla de seleccion (ver 19.7). Lo restaura cerrarImagenOverlay(),
                 // que es el unico camino de cierre del overlay.
                 globalThis.rotationSuppressed = true;

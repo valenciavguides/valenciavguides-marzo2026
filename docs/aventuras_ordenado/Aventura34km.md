@@ -2276,7 +2276,7 @@
 
 ## Parada 117 — Jardines del Real (Viveros)
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/mapa_rosaleda_viveros.png, imagenes/imagenes-aventuras/viveros_plano.png
+**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/mapa_rosaleda_viveros.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg
 
 **Párrafos:** 648
 
@@ -2286,7 +2286,7 @@
 
 ## Tramo 80 — Jardines del Real (Viveros) → Paseo de las Palmeras
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_paseo_palmeras.jpg
 
 **Párrafos:** 649
 
@@ -2296,7 +2296,7 @@
 
 ## Parada 118 — Ruinas del Palacio Real de Valencia y Montículo del General Javier Elio
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_maqueta_palacio.jpg, imagenes/imagenes-aventuras/viveros_restos_palacio.jpg, imagenes/imagenes-aventuras/viveros_monte_elio.jpg, imagenes/imagenes-aventuras/viveros_plano.png
+**Imágenes:** imagenes/imagenes-aventuras/viveros_maqueta_palacio.jpg, imagenes/imagenes-aventuras/viveros_restos_palacio.jpg, imagenes/imagenes-aventuras/viveros_monte_elio.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg
 
 **Párrafos:** viv1, viv2
 
@@ -2317,7 +2317,7 @@
 
 ## Tramo 82 — Circuito urbano de educación vial → Museo de Ciencias Naturales
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_circuito_vial.jpg, imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg, imagenes/imagenes-aventuras/viveros_pajarera.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg, imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_circuito_vial.jpg, imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg, imagenes/imagenes-aventuras/viveros_pajarera.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg, imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg
 
 **Párrafos:** viv4
 
@@ -2338,7 +2338,7 @@
 
 ## Tramo 83 — Museo de Ciencias Naturales → Jardín de la Rosaleda
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_jardines_versalles.jpg, imagenes/imagenes-aventuras/mapa_rosaleda_viveros.png, imagenes/imagenes-aventuras/viveros_rosaleda.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_jardines_versalles.jpg, imagenes/imagenes-aventuras/mapa_rosaleda_viveros.jpg, imagenes/imagenes-aventuras/viveros_rosaleda.jpg
 
 **Párrafos:** viv7, viv8
 
@@ -2349,7 +2349,7 @@
 
 ## Parada 120 — Jardín de la Rosaleda
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_rosaleda.jpg, imagenes/imagenes-aventuras/mapa_rosaleda_viveros.png, imagenes/imagenes-aventuras/viveros_libre_6.jpg, imagenes/imagenes-aventuras/viveros_libre_7.jpg, imagenes/imagenes-aventuras/viveros_libre_8.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_rosaleda.jpg, imagenes/imagenes-aventuras/mapa_rosaleda_viveros.jpg, imagenes/imagenes-aventuras/viveros_libre_6.jpg, imagenes/imagenes-aventuras/viveros_libre_7.jpg, imagenes/imagenes-aventuras/viveros_libre_8.jpg
 
 **Párrafos:** viv9, viv10
 
@@ -2360,7 +2360,7 @@
 
 ## Parada 121 — Jardines del Real (Viveros) 2
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.png
+**Imágenes:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg
 
 **Párrafos:** viv11
 
@@ -2370,7 +2370,7 @@
 
 ## Tramo 84 — Alquería de Canet y Museo de Ciencias Naturales → Estanque de los Patos
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_patos.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_museo_ciencias_naturales.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_patos.jpg
 
 **Párrafos:** viv11-B
 
@@ -2380,7 +2380,7 @@
 
 ## Parada 122 — Estanque de los Patos
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_patos.jpg, imagenes/imagenes-aventuras/viveros_plano.png
+**Imágenes:** imagenes/imagenes-aventuras/viveros_patos.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg
 
 **Párrafos:** viv11-C, viv12
 
@@ -2391,7 +2391,7 @@
 
 ## Tramo 85 — Estanque de los Patos → Portón del Convento de San Julián
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_patos.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_san_julian.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_patos.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_san_julian.jpg
 
 **Párrafos:** viv13
 
@@ -2401,7 +2401,7 @@
 
 ## Parada 123 — Portón del Convento de San Julián
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_san_julian.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/viveros_libre_10.jpg, imagenes/imagenes-aventuras/viveros_paseo_poetas.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_san_julian.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/viveros_libre_10.jpg, imagenes/imagenes-aventuras/viveros_paseo_poetas.jpg
 
 **Párrafos:** viv14, viv15
 
@@ -2412,7 +2412,7 @@
 
 ## Tramo 86 — Entrada Jardines del Real (Viveros) → Puente del Real
 
-**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.png, imagenes/imagenes-aventuras/puente_real_up.jpg
+**Imágenes:** imagenes/imagenes-aventuras/viveros_entrada.jpg, imagenes/imagenes-aventuras/viveros_plano.jpg, imagenes/imagenes-aventuras/puente_real_up.jpg
 
 **Párrafos:** 650, 94
 

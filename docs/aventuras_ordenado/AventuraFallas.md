@@ -303,7 +303,7 @@
 
 ## Parada 14 — Plaza del Ayuntamiento
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg, imagenes/imagenes-aventuras/fallas-castillo.png
+**Imágenes:** imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg, imagenes/imagenes-aventuras/fallas-castillo.jpg
 
 **Párrafos:** 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181
 

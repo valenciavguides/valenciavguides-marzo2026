@@ -31,10 +31,12 @@
  *  10. Cada aventura del índice dice si es corta o larga (su categoría de precio)
  *  11. El índice trae el nombre y el tiempo de cada aventura, y el nombre de cada idioma
  *  12. La carpeta pública de la demo gratis (publico/) está al día con los originales y no le falta ninguna pieza
+ *  13. Cada imagen que depende del idioma (`imagenes_idioma`) está en las doce carpetas de idioma, en .jpg
  *
  * Lo que NO comprueba: que los ficheros de audio/vídeo/imagen existan en disco. Eso es
- * `npm run verificar-media`, y el usuario los está preparando. La excepción son los que enseña la demo (12): su
- * copia de publico/ tiene que ser idéntica a su original.
+ * `npm run verificar-media`, y el usuario los está preparando. Las excepciones son los que enseña la demo (12), cuya
+ * copia de publico/ tiene que ser idéntica a su original, y las imágenes por idioma (13): una que falte en una carpeta
+ * es una imagen rota en la galería de ese idioma.
  *
  * Uso:
  *   npm run verificar-datos            informe completo
@@ -266,6 +268,27 @@ async function main() {
     ];
     check('La carpeta pública de la demo gratis está al día con los originales y no le falta ninguna pieza', problemasDemo,
         `${publico.textos.size} textos y ${publico.copias.size} copias`);
+
+    // ── 13. Las imágenes que dependen del idioma están en las doce carpetas
+    // La ventana de la imagen pide imagenes/imagenes-idiomas/<carpeta del idioma>/<nombre>.jpg, con la carpeta que
+    // LANG_ARCHIVO_PARRAFOS da a cada idioma. Un nombre que falte en una carpeta es una imagen rota en ese idioma.
+    const { LANG_ARCHIVO_PARRAFOS } = await imp('js/data-loader.js');
+    const fs = require('node:fs');
+    const imgIdioma = []; let nombresIdioma = 0;
+    for (const { aventuraId, punto } of puntos(DATOS_AVENTURAS)) {
+        if (punto.imagenes_idioma === undefined) continue;
+        if (!Array.isArray(punto.imagenes_idioma) || !punto.imagenes_idioma.length) { imgIdioma.push(`${aventuraId}/${punto.id}: \`imagenes_idioma\` tiene que ser una lista con algún nombre`); continue; }
+        for (const nombre of punto.imagenes_idioma) {
+            if (typeof nombre !== 'string' || !/^[a-z0-9-]+$/.test(nombre)) { imgIdioma.push(`${aventuraId}/${punto.id}: «${nombre}» no es un nombre sin carpeta ni extensión`); continue; }
+            nombresIdioma++;
+            for (const carpeta of Object.values(LANG_ARCHIVO_PARRAFOS)) {
+                const rel = `imagenes/imagenes-idiomas/${carpeta}/${nombre}.jpg`;
+                if (!fs.existsSync(path.join(RAIZ, rel))) imgIdioma.push(`${aventuraId}/${punto.id}: falta ${rel}`);
+            }
+        }
+    }
+    check('Cada imagen que depende del idioma está en las doce carpetas de idioma', imgIdioma,
+        `${nombresIdioma} nombres en ${Object.keys(LANG_ARCHIVO_PARRAFOS).length} idiomas`);
 
     informe();
 }
