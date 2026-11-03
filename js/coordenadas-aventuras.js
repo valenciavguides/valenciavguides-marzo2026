@@ -6946,7 +6946,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Plaza del Ayuntamiento",
         coordenadas: { lat: Number('39.470567'), lng: Number('-0.376732') },
         imagen: "imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg",
-        imagen2: "imagenes/imagenes-aventuras/fallas-castillo.jpg",
+        imagen2: "imagenes/imagenes-aventuras/fallas_castillo.jpg",
         imagenes_idioma: ["mascletafuegos-partes"],
     },
     // Tramo 9: Plaza del Ayuntamiento → Edificio del Ayuntamiento de València (Párrafos: 187, 332, 334, 340, 19)

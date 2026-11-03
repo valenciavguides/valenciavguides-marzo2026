@@ -4915,7 +4915,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-832a7b7af0fd'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0b5a7dd752c3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -9089,7 +9089,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-832a7b7af0fd';
+const CACHE_VERSION = 'v-0b5a7dd752c3';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9804,8 +9804,8 @@ Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTU
 | `Aventura3` | `pano_cac.jpg` |
 | `Aventura4` | `parque_de_cabecera_lake_side.jpg` |
 | `Aventura5` | `antiguo_orfanato.jpg` |
-| `AventuraFallas` | `fallas-castillo.jpg` |
-| `Aventura34km` | `aventura-34km.jpg` |
+| `AventuraFallas` | `fallas_castillo.jpg` |
+| `Aventura34km` | `aventura_34km.jpg` |
 
 Todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponibles. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. Al cerrar el mapa vintage → `cerrarMapaVintage()` → avanza a P8. Envía `SELECCION.AVENTURA_SELECCIONADA { aventura, timestamp }` al padre; el idioma viaja solo en `SELECCION.IDIOMA_SELECCIONADO` (P2).
 
@@ -12553,7 +12553,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-832a7b7af0fd';
+const CACHE_VERSION = 'v-0b5a7dd752c3';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14502,7 +14502,7 @@ Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tool
 | `fotoruta-A-B.png` | `codigo-padre.html`, `coordenadas-hijo2.html`, `video-intro.html` |
 | `pano_cac.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
 | `cabecera_lake_side.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
-| `fallas-castillo.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
+| `fallas_castillo.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
 | `fotochat-boton.png` | `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-central.png` | `codigo-padre.html`, `video-intro.html` |
 | `boton-audio-stop.png` | `codigo-padre.html`, `video-intro.html` |
@@ -14539,7 +14539,7 @@ Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tool
 | `bandera_rusia.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
 | `bandera_ucrania.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
 | `antiguo_orfanato.jpg` | `En-busca-del-tesoro.html`, `tools/build-demo.js` |
-| `aventura-34km.jpg` | `En-busca-del-tesoro.html`, `tools/build-demo.js` |
+| `aventura_34km.jpg` | `En-busca-del-tesoro.html`, `tools/build-demo.js` |
 | `logo-luna.png` | `En-busca-del-tesoro.html`, `js/puzzles-aventuras.js` |
 | `foto-opciones.png` | `extrainfo-hijo1.html`, `video-intro.html` |
 | `boton_listado_paradas.png` | `extrainfo-hijo1.html`, `video-intro.html` |
