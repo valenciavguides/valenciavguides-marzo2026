@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/casa_rocas.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg, imagenes/imagenes-aventuras/casa_rocas.jpg
 
 **Párrafos:** 229, 525-B, 527, 528, 529
 
@@ -402,7 +402,7 @@
 
 ## Tramo 14 — Molino de Sol → Museo de Historia
 
-**Imágenes:** imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg, imagenes/imagenes-aventuras/cabecera_izquierda.jpg, imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg, imagenes/imagenes-aventuras/museo_de_historia.jpg
+**Imágenes:** imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg, imagenes/imagenes-aventuras/cabecera_izquierda.jpg, imagenes/imagenes-aventuras/parque_de_cabecera_lake_side.jpg, imagenes/imagenes-aventuras/museo_de_historia.jpg
 
 **Párrafos:** 710, 24-D
 
@@ -712,7 +712,7 @@
 
 ## Tramo 28 — Puente del Real → Torres de Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/puente_real_up.jpg, imagenes/imagenes-aventuras/pont_real_serranos.jpg, imagenes/imagenes-aventuras/iglesia_del_temple.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/puente_real_up.jpg, imagenes/imagenes-aventuras/pont_real_serranos.jpg, imagenes/imagenes-aventuras/iglesia_del_temple.jpg, imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 2-E
 
@@ -722,7 +722,7 @@
 
 ## Parada 35 — Torres de Serranos Final
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

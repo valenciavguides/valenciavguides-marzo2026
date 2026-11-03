@@ -32,11 +32,11 @@
  *  11. El índice trae el nombre y el tiempo de cada aventura, y el nombre de cada idioma
  *  12. La carpeta pública de la demo gratis (publico/) está al día con los originales y no le falta ninguna pieza
  *  13. Cada imagen que depende del idioma (`imagenes_idioma`) está en las doce carpetas de idioma, en .jpg
+ *  14. Cada foto que piden los datos (`imagen`, `imagen2`… de cada punto y de cada puzzle) existe con su grafía exacta
  *
- * Lo que NO comprueba: que los ficheros de audio/vídeo/imagen existan en disco. Eso es
- * `npm run verificar-media`, y el usuario los está preparando. Las excepciones son los que enseña la demo (12), cuya
- * copia de publico/ tiene que ser idéntica a su original, y las imágenes por idioma (13): una que falte en una carpeta
- * es una imagen rota en la galería de ese idioma.
+ * Lo que NO comprueba: que los ficheros de audio y vídeo existan en disco; su tamaño y su codificación son
+ * `npm run verificar-media`. Las imágenes sí: las fotos de los datos (14), las que enseña la demo (12), cuya copia de
+ * publico/ tiene que ser idéntica a su original, y las imágenes por idioma (13). Una que falte es una imagen rota.
  *
  * Uso:
  *   npm run verificar-datos            informe completo
@@ -289,6 +289,36 @@ async function main() {
     }
     check('Cada imagen que depende del idioma está en las doce carpetas de idioma', imgIdioma,
         `${nombresIdioma} nombres en ${Object.keys(LANG_ARCHIVO_PARRAFOS).length} idiomas`);
+
+    // ── 14. Cada foto que piden los datos existe, con su grafía exacta
+    // Las fotos de cada punto (`imagen`, `imagen2`… en cualquier nivel del punto) y las de los puzzles. Se compara con el
+    // listado de la carpeta, no con fs.existsSync: Windows no distingue mayúsculas y el servidor de producción sí, así que
+    // `Plaza_redonda.jpg` frente a `plaza_redonda.jpg` se ve en local y sale rota publicada.
+    const { PUZZLES_AVENTURAS } = await imp('js/puzzles-aventuras.js');
+    const listados = new Map();
+    const existeExacto = (rel) => {
+        const dir = path.posix.dirname(rel);
+        if (!listados.has(dir)) {
+            const abs = path.join(RAIZ, dir);
+            listados.set(dir, new Set(fs.existsSync(abs) ? fs.readdirSync(abs) : []));
+        }
+        return listados.get(dir).has(path.posix.basename(rel));
+    };
+    const fotoFalta = []; let fotosOk = 0;
+    const revisarFotos = (donde, obj) => {
+        if (!obj || typeof obj !== 'object') return;
+        for (const [k, v] of Object.entries(obj)) {
+            if (/^imagen\d*$/.test(k) && typeof v === 'string' && v.trim()) {
+                if (existeExacto(v.trim())) fotosOk++;
+                else fotoFalta.push(`${donde}: ${k}="${v}" no existe con esa grafía`);
+            } else if (v && typeof v === 'object') revisarFotos(donde, v);
+        }
+    };
+    for (const { aventuraId, punto } of puntos(DATOS_AVENTURAS)) revisarFotos(`${aventuraId}/${punto.id}`, punto);
+    for (const [aventuraId, lista] of Object.entries(PUZZLES_AVENTURAS || {})) {
+        for (const pz of Object.values(lista || {})) revisarFotos(`${aventuraId}/puzzle ${pz?.id ?? '?'}`, pz);
+    }
+    check('Cada foto que piden los datos existe, con su grafía exacta', fotoFalta, `${fotosOk} fotos`);
 
     informe();
 }

@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Parada 1 — Torres de Serranos (Historia de la bandera)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 229, 233
 
@@ -31,7 +31,7 @@
 
 ## Parada 2 — Torres de Serranos (Historia de la bandera)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 641, 642, 643
 
@@ -43,7 +43,7 @@
 
 ## Tramo 1 — Torres de Serranos → Refugio Guerra Civil
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/refugio_guerra_civil.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg, imagenes/imagenes-aventuras/refugio_guerra_civil.jpg
 
 **Párrafos:** 103
 
@@ -570,7 +570,7 @@
 
 ## Tramo 19 — Palau de la Generalitat → Torres de Serranos - Final
 
-**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 2-B
 
@@ -580,7 +580,7 @@
 
 ## Parada 30 — Torres de Serranos Final
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

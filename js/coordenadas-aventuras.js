@@ -75,7 +75,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -266,7 +266,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
@@ -285,7 +285,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479430'), lng: Number('-0.375970') }
         ],
         fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
@@ -1178,7 +1178,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen:"imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
         imagen2: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen3: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen3: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         video: ""
     },
 
@@ -1191,7 +1191,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos Final",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen2: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
@@ -1209,7 +1209,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -1351,7 +1351,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos (start)",
                     coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
                     imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
                 },
 
@@ -1363,7 +1363,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos (Historia de la bandera)",
                     coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
                     imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
                 },
 
@@ -1375,7 +1375,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos (Historia de la bandera)",
                     coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
                     imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
                 },
 
@@ -1392,7 +1392,7 @@ export const DATOS_AVENTURAS = {
                         { lat: Number('39.478550'), lng: Number('-0.376350') },
                     ],
                     fin: { lat: Number('39.478310'), lng: Number('-0.376540') },
-                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
                     imagen2: "imagenes/imagenes-aventuras/refugio_guerra_civil.jpg",
                     video: ""
                 },
@@ -2119,7 +2119,7 @@ export const DATOS_AVENTURAS = {
                     fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
                     imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
                     imagen2: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-                    imagen3: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagen3: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
                     video: ""
                 },
 
@@ -2131,7 +2131,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos Final",
                     coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
                     imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
                 },
             ]
@@ -2149,7 +2149,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -2435,7 +2435,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
@@ -2454,7 +2454,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479430'), lng: Number('-0.375970') }
         ],
         fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
@@ -2987,7 +2987,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.456730'), lng: Number('-0.349399') },
         imagen: "imagenes/imagenes-aventuras/cac_patinaje.jpg",
         imagen2: "imagenes/imagenes-aventuras/cac_mapa.jpg",
-        imagen3:"imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen3:"imagenes/imagenes-aventuras/pano_cac.jpg",
         video: "",
     },
     // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 27-B, 271)
@@ -2998,7 +2998,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 18,
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
         coordenadas:  { lat: Number('39.456730'), lng: Number('-0.349399') },
-        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_cac.jpg",
         imagen2: "imagenes/imagenes-aventuras/reina_sofia_side.jpg"
     },
     // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 31, 273, 275)
@@ -3009,7 +3009,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 20,
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
         coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
-        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_cac.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_principe_felipe.jpg",
         imagen3: "imagenes/imagenes-aventuras/cac_6.jpg",
     },
@@ -3038,7 +3038,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.455986'), lng: Number('-0.348276') },
         ],
         fin: { lat: Number('39.455825'), lng: Number('-0.348149') },
-        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_cac.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_assut_2.jpg",
         video: "",
     },
@@ -3186,7 +3186,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.470406'), lng: Number('-0.364173') },
         ],
         fin: { lat: Number('39.470617'), lng: Number('-0.363887') },
-        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_cac.jpg",
         imagen2: "imagenes/imagenes-aventuras/hemisferic.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_reino_gargola.jpg",
         imagen4: "imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg",
@@ -3644,7 +3644,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         imagen2:"imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
         imagen3: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen4: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen4: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         video: "",
     },
         // Parada 39 - FINAL: Torres de Serranos Final (Reto28Puzzle PZ-05) (Párrafos: 475, 503, 507, 526)
@@ -3655,7 +3655,7 @@ export const DATOS_AVENTURAS = {
                     mapa_numero: 1,
                     nombre: "Torres de Serranos Final",
                     coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-                    imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
                     imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
                 }
       ]
@@ -3671,7 +3671,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -4030,7 +4030,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     // Tramo 1: Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 229, 525-B, 527, 528, 529)
@@ -4048,7 +4048,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.478920'), lng: Number('-0.376770') },
          ],
         fin: { lat: Number('39.478960'), lng: Number('-0.376920') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/casa_rocas.jpg",
         video: "",
     },
@@ -4618,7 +4618,7 @@ export const DATOS_AVENTURAS = {
         fin: {lat: Number('39.472788'), lng: Number('-0.408349') },
         imagen: "imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg",
         imagen2: "imagenes/imagenes-aventuras/cabecera_izquierda.jpg",
-        imagen3: "imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg",
+        imagen3: "imagenes/imagenes-aventuras/parque_de_cabecera_lake_side.jpg",
         imagen4: "imagenes/imagenes-aventuras/museo_de_historia.jpg",
         video: "",
     },
@@ -5179,7 +5179,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/puente_real_up.jpg",
         imagen2: "imagenes/imagenes-aventuras/pont_real_serranos.jpg",
         imagen3: "imagenes/imagenes-aventuras/iglesia_del_temple.jpg",
-        imagen4: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen4: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         video: "",
     },
     // Parada 35 - FINAL: Torres de Serranos Final (Reto21Puzzle PZ-05) (Párrafos: 475, 503, 507, 526,)
@@ -5190,7 +5190,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos Final",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     ]
@@ -5206,7 +5206,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -5380,7 +5380,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
@@ -5399,7 +5399,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479430'), lng: Number('-0.375970') }
         ],
         fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
@@ -6444,7 +6444,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/ivam.jpg",
-        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen2: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     ]
@@ -6460,7 +6460,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.376040') },
         nombre: "Torres de Serranos",
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -6632,7 +6632,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
@@ -6651,7 +6651,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479430'), lng: Number('-0.375970') }
         ],
         fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
@@ -7266,7 +7266,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen:"imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
         imagen2: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen3: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen3: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         video: ""
     },
 
@@ -7279,7 +7279,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Serranos",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/calle_serranos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen2: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
        ]
@@ -7295,7 +7295,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         coordenadas: { lat: Number('39.47921'), lng: Number('-0.37604') },
         nombre: "Torres de Serranos",
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
     },
     {
         tipo: "referencia",
@@ -8029,7 +8029,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
 
@@ -8048,7 +8048,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.479430'), lng: Number('-0.375970') }
         ],
         fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
@@ -8466,7 +8466,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.456730'), lng: Number('-0.349399') },
         imagen: "imagenes/imagenes-aventuras/cac_patinaje.jpg",
         imagen2: "imagenes/imagenes-aventuras/cac_mapa.jpg",
-        imagen3:"imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen3:"imagenes/imagenes-aventuras/pano_cac.jpg",
         video: "",
     },
     // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271)
@@ -8477,7 +8477,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 12,
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
         coordenadas:  { lat: Number('39.456730'), lng: Number('-0.349399') },
-        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_cac.jpg",
         imagen2: "imagenes/imagenes-aventuras/reina_sofia_side.jpg"
     },
     // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275)
@@ -8488,7 +8488,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 14,
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
         coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
-        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_cac.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_principe_felipe.jpg",
         imagen3: "imagenes/imagenes-aventuras/cac_6.jpg",
     },
@@ -8517,7 +8517,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.455986'), lng: Number('-0.348276') },
         ],
         fin: { lat: Number('39.455825'), lng: Number('-0.348149') },
-        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_cac.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_assut_2.jpg",
         video: "",
     },
@@ -8665,7 +8665,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.470406'), lng: Number('-0.364173') },
         ],
         fin: { lat: Number('39.470617'), lng: Number('-0.363887') },
-        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen: "imagenes/imagenes-aventuras/pano_cac.jpg",
         imagen2: "imagenes/imagenes-aventuras/hemisferic.jpg",
         imagen3: "imagenes/imagenes-aventuras/puente_reino_gargola.jpg",
         imagen4: "imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg",
@@ -9421,7 +9421,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.473690'), lng: Number('-0.376680') },
         imagen: "imagenes/imagenes-aventuras/plaza_collado.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Plaza_redonda.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_redonda.jpg",
         video: "",
     },
     // Parada 45 - Plaza Redonda (Reto36Puzzle PZ-07) (Párrafos: 406)
@@ -11058,7 +11058,7 @@ export const DATOS_AVENTURAS = {
         fin: {lat: Number('39.472788'), lng: Number('-0.408349') },
         imagen: "imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg",
         imagen2: "imagenes/imagenes-aventuras/cabecera_izquierda.jpg",
-        imagen3: "imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg",
+        imagen3: "imagenes/imagenes-aventuras/parque_de_cabecera_lake_side.jpg",
         imagen4: "imagenes/imagenes-aventuras/museo_de_historia.jpg",
         video: "",
     },
@@ -11915,7 +11915,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/cortes_valencianas.jpg",
-        imagen2: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen2: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         video: "",
     },
     // Parada 138 - FINAL: Torres de Serranos Final (Reto90Puzzle PZ-05) (Párrafos: 475, 503, 507, 526)
@@ -11926,7 +11926,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 1,
         nombre: "Torres de Serranos Final",
         coordenadas: { lat: Number('39.478590'), lng: Number('-0.376330') },
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
         imagenes_idioma: ["murallas-valencia", "arquitectura-defensiva", "arquitectura-civil", "muralla-construccion-partes"],
     },
     ]

@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Plaza de la Crída
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
 **Párrafos:** 229, 5
 
@@ -307,7 +307,7 @@
 
 ## Tramo 12 — Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
 
-**Imágenes:** imagenes/imagenes-aventuras/cac_patinaje.jpg, imagenes/imagenes-aventuras/cac_mapa.jpg, imagenes/imagenes-aventuras/pano_CAC.jpg
+**Imágenes:** imagenes/imagenes-aventuras/cac_patinaje.jpg, imagenes/imagenes-aventuras/cac_mapa.jpg, imagenes/imagenes-aventuras/pano_cac.jpg
 
 **Párrafos:** 268, 269
 
@@ -318,7 +318,7 @@
 
 ## Parada 14 — Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/reina_sofia_side.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_cac.jpg, imagenes/imagenes-aventuras/reina_sofia_side.jpg
 
 **Párrafos:** 270, 27-B, 271
 
@@ -330,7 +330,7 @@
 
 ## Parada 15 — Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/museo_principe_felipe.jpg, imagenes/imagenes-aventuras/cac_6.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_cac.jpg, imagenes/imagenes-aventuras/museo_principe_felipe.jpg, imagenes/imagenes-aventuras/cac_6.jpg
 
 **Párrafos:** 272, 31, 273, 275
 
@@ -343,7 +343,7 @@
 
 ## Tramo 13 — Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l'Assut de l'Or
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/puente_assut_2.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_cac.jpg, imagenes/imagenes-aventuras/puente_assut_2.jpg
 
 **Párrafos:** 276, 32-B
 
@@ -434,7 +434,7 @@
 
 ## Tramo 17 — Ciudad de las Artes y las Ciencias → Puente de la Mar
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/hemisferic.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/puente_angel_custodio.jpg, imagenes/imagenes-aventuras/palau_de_la_musica.jpg, imagenes/imagenes-aventuras/puente_aragon_down.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_cac.jpg, imagenes/imagenes-aventuras/hemisferic.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/puente_angel_custodio.jpg, imagenes/imagenes-aventuras/palau_de_la_musica.jpg, imagenes/imagenes-aventuras/puente_aragon_down.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg
 
 **Párrafos:** 293, 30-B
 
@@ -787,7 +787,7 @@
 
 ## Tramo 29 — Plaza de la Virgen → Torres de Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg, imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg, imagenes/imagenes-aventuras/calle_serranos.jpg, imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 433, 2-F
 
@@ -798,7 +798,7 @@
 
 ## Parada 39 — Torres de Serranos Final
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

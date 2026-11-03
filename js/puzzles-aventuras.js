@@ -24,7 +24,7 @@ export const PUZZLES_AVENTURAS = {
     },
     {
         id: "PZ-05",
-        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg",
     },
     {
         id: "PZ-06",

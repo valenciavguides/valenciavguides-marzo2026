@@ -8,7 +8,7 @@
 
 ## Parada 0 — Torres de Serranos (start)
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 223, 226, 228
 
@@ -20,7 +20,7 @@
 
 ## Tramo 1 — Torres de Serranos → Plaza de la Crída
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg, imagenes/imagenes-aventuras/torres_de_serranos_front.jpg
 
 **Párrafos:** 229, 5
 
@@ -239,7 +239,7 @@
 
 ## Tramo 10 — Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
 
-**Imágenes:** imagenes/imagenes-aventuras/cac_patinaje.jpg, imagenes/imagenes-aventuras/cac_mapa.jpg, imagenes/imagenes-aventuras/pano_CAC.jpg
+**Imágenes:** imagenes/imagenes-aventuras/cac_patinaje.jpg, imagenes/imagenes-aventuras/cac_mapa.jpg, imagenes/imagenes-aventuras/pano_cac.jpg
 
 **Párrafos:** 268, 269
 
@@ -250,7 +250,7 @@
 
 ## Parada 10 — Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/reina_sofia_side.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_cac.jpg, imagenes/imagenes-aventuras/reina_sofia_side.jpg
 
 **Párrafos:** 270, 19, 271
 
@@ -262,7 +262,7 @@
 
 ## Parada 11 — Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/museo_principe_felipe.jpg, imagenes/imagenes-aventuras/cac_6.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_cac.jpg, imagenes/imagenes-aventuras/museo_principe_felipe.jpg, imagenes/imagenes-aventuras/cac_6.jpg
 
 **Párrafos:** 272, 21, 273, 275
 
@@ -275,7 +275,7 @@
 
 ## Tramo 11 — Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/puente_assut_2.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_cac.jpg, imagenes/imagenes-aventuras/puente_assut_2.jpg
 
 **Párrafos:** 276, 22
 
@@ -366,7 +366,7 @@
 
 ## Tramo 15 — Ciudad de las Artes y las Ciencias → Puente de la Mar
 
-**Imágenes:** imagenes/imagenes-aventuras/pano_CAC.jpg, imagenes/imagenes-aventuras/hemisferic.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/puente_angel_custodio.jpg, imagenes/imagenes-aventuras/palau_de_la_musica.jpg, imagenes/imagenes-aventuras/puente_aragon_down.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg
+**Imágenes:** imagenes/imagenes-aventuras/pano_cac.jpg, imagenes/imagenes-aventuras/hemisferic.jpg, imagenes/imagenes-aventuras/puente_reino_gargola.jpg, imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg, imagenes/imagenes-aventuras/puente_angel_custodio.jpg, imagenes/imagenes-aventuras/palau_de_la_musica.jpg, imagenes/imagenes-aventuras/puente_aragon_down.jpg, imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg
 
 **Párrafos:** 293, 30
 
@@ -937,7 +937,7 @@
 
 ## Tramo 35 — Plaza Doctor López Collado → Plaza Redonda
 
-**Imágenes:** imagenes/imagenes-aventuras/plaza_collado.jpg, imagenes/imagenes-aventuras/Plaza_redonda.jpg
+**Imágenes:** imagenes/imagenes-aventuras/plaza_collado.jpg, imagenes/imagenes-aventuras/plaza_redonda.jpg
 
 **Párrafos:** 403, 405
 
@@ -2147,7 +2147,7 @@
 
 ## Tramo 74 — Molino de Sol → Museo de Historia
 
-**Imágenes:** imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg, imagenes/imagenes-aventuras/cabecera_izquierda.jpg, imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg, imagenes/imagenes-aventuras/museo_de_historia.jpg
+**Imágenes:** imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg, imagenes/imagenes-aventuras/cabecera_izquierda.jpg, imagenes/imagenes-aventuras/parque_de_cabecera_lake_side.jpg, imagenes/imagenes-aventuras/museo_de_historia.jpg
 
 **Párrafos:** 710, 90
 
@@ -2680,7 +2680,7 @@
 
 ## Tramo 97 — Palacio de los Borgia → Torres de Serranos
 
-**Imágenes:** imagenes/imagenes-aventuras/cortes_valencianas.jpg, imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/cortes_valencianas.jpg, imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 680
 
@@ -2690,7 +2690,7 @@
 
 ## Parada 138 — Torres de Serranos Final
 
-**Imágenes:** imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg
+**Imágenes:** imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg
 
 **Párrafos:** 475, 503, 507, 526
 

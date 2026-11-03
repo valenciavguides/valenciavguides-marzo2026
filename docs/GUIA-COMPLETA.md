@@ -4915,7 +4915,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7632521aa28a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-832a7b7af0fd'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6802,7 +6802,7 @@ Página independiente que muestra todas las paradas y la polyline de la aventura
 Se crean con `L.divIcon` usando `iconSize: null` para que Leaflet no restrinja el tamaño a los 12×12 px por defecto (sin ese ajuste el número queda recortado). El marcador muestra `🏛️ N` donde N es `mapa_numero` del objeto.
 
 **Ficha al pulsar un marcador:**  
-`mostrarMonumento(ref)` abre `#monumento-overlay` con la imagen del monumento si `ref.imagen` está definida (si no, un emoji 🏛️ de relleno) y compone el número y el nombre en `#monumento-numero` (`Nº {mapa_numero} · {nombre}`; `#monumento-nombre` se queda oculto con `display:none`). La cierra `cerrarOverlay()`, que llaman su ✕ (`#monumento-cerrar`), un toque fuera de la ficha y el botón atrás del dispositivo: la ficha es la capa del mapa completo que «atrás» cierra antes que el propio mapa (`js/capa-con-atras.js`, §34.3; solo con padre, porque sin él no hay marcadores). `mostrarMonumento` y `cerrarOverlay` avisan al padre con `UI.CAPA_ABIERTA { abierta }`.
+`mostrarMonumento(ref)` abre `#monumento-overlay` con la imagen del monumento si `ref.imagen` está definida (si no, un emoji 🏛️ de relleno; si apunta a un fichero que no existe, el `<img>` sale roto, sin respaldo: que todas existan con su grafía exacta lo vigila `npm run verificar-datos`, §18.2) y compone el número y el nombre en `#monumento-numero` (`Nº {mapa_numero} · {nombre}`; `#monumento-nombre` se queda oculto con `display:none`). La cierra `cerrarOverlay()`, que llaman su ✕ (`#monumento-cerrar`), un toque fuera de la ficha y el botón atrás del dispositivo: la ficha es la capa del mapa completo que «atrás» cierra antes que el propio mapa (`js/capa-con-atras.js`, §34.3; solo con padre, porque sin él no hay marcadores). `mostrarMonumento` y `cerrarOverlay` avisan al padre con `UI.CAPA_ABIERTA { abierta }`.
 
 ### Configuración del GPS (`js/config.js` → `CONFIG.GPS`)
 
@@ -7885,7 +7885,8 @@ test de navegador: es más rápido, no depende del reloj y se puede meter en cua
 | Comando | Qué vigila |
 |---------|-----------|
 | `npm run lint` | ESLint sobre `js/**/*.js` y los `*.html` de la raíz: logger centralizado, sin variables muertas, sin espacios al final de línea |
-| `npm run verificar-datos` | Integridad de los datos de las 7 aventuras: exportaciones, extensiones de imagen y vídeo, ids repetidos, coordenadas en rango, campos de cada tipo de reto, que lo que el índice marca disponible exista, que el índice traiga el nombre y el plazo (`tiempoEstimado`) de cada aventura y el nombre de cada idioma, que la carpeta pública de la demo gratis (`publico/`) esté al día con los originales —los textos y las copias de medios, idénticas byte a byte—, sin ficheros de más y sin piezas que falten, y que cada imagen que depende del idioma (`imagenes_idioma`) esté en las doce carpetas de idioma, en `.jpg` |
+| `npm run verificar-datos` | Integridad de los datos de las 7 aventuras: exportaciones, extensiones de imagen y vídeo, ids repetidos, coordenadas en rango, campos de cada tipo de reto, que lo que el índice marca disponible exista, que el índice traiga el nombre y el plazo (`tiempoEstimado`) de cada aventura y el nombre de cada idioma, que la carpeta pública de la demo gratis (`publico/`) esté al día con los originales —los textos y las copias de medios, idénticas byte a byte—, sin ficheros de más y sin piezas que falten, que cada imagen que depende del idioma (`imagenes_idioma`) esté en las doce carpetas de idioma, en `.jpg`, y que cada foto que piden los datos (`imagen`, `imagen2`… de cada punto, en cualquier nivel, y la de cada puzzle) exista con su grafía exacta: lo compara con el listado de la carpeta, porque Windows no distingue mayúsculas y el servidor de producción sí, y una foto que en local se ve sale rota publicada |
+| `node tools/imagenes-referencias.js [aventura]` | Qué referencias de `js/coordenadas-aventuras.js` se han quedado sin foto y qué ficheros de `imagenes/imagenes-aventuras/` podrían ser la suya: compara nombres por palabras, sin las que no distinguen (`de`, `la`, `plaza`, `calle`…), marca `PROBABLE` cuando una candidata gana claramente y `dudosa` cuando empata o no hay nada parecido, y avisa de los ficheros con mayúsculas. Propone, no decide; el informe sale por la consola y no se guarda |
 | `npm run verificar-totales` | Que los totales precalculados del índice cuadren con los datos |
 | `npm run verificar-mensajeria` | Cruza cada tipo de `TIPOS_MENSAJE` con quién lo emite y quién lo escucha, y comprueba que lo emitido llega a un frame que lo atiende |
 | `npm run verificar-citas` | Que las citas por número de línea de esta guía apunten a donde dicen |
@@ -8553,7 +8554,7 @@ proyecto/
 │
 ├── imagenes/                         ← Imágenes estáticas
 │   ├── imagenes-aplicación/          ← Iconos de botones, logos, UI, banderas, avisos: las imágenes de la propia app, públicas, no van al backend (§22.4)
-│   ├── imagenes-aventuras/           ← Fotos de monumentos por aventura, contenido de pago (protegidas por PROTECT_DATA); la demo enseña su copia de `publico/imagenes/`
+│   ├── imagenes-aventuras/           ← Fotos de monumentos por aventura, contenido de pago (protegidas por PROTECT_DATA); la demo enseña su copia de `publico/imagenes/`. Nombres en minúsculas, con guiones bajos, sin tildes ni espacios y una sola extensión, la real de cada fichero (`.jpg` o `.jpeg`); los datos los citan con esa misma grafía (lo vigila `verificar-datos`, §18.2)
 │   ├── mapas-vintage/                ← Los mapas antiguos, un JPG completo por aventura (no son tiles), los siete de `js/mapa-vintage-aventuras.js`; contenido de pago (protegidos); la demo enseña su copia de `publico/imagenes/mapas-vintage/`
 │   ├── imagenes-idiomas/             ← Las imágenes con texto de las paradas, una carpeta por idioma con el nombre de su fichero de párrafos (`espanol/`, `ingles/`… `chino-simplificado/`, la de `LANG_ARCHIVO_PARRAFOS`) y en las doce los mismos 25 nombres, todos `.jpg`; las pide el campo `imagenes_idioma` de cada punto (§4.7f); contenido de pago (protegidas)
 │   ├── imagenes video intro/         ← Caballeros, guantelete y decorados de `video-intro.html` (§35)
@@ -9088,7 +9089,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-7632521aa28a';
+const CACHE_VERSION = 'v-832a7b7af0fd';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9800,8 +9801,8 @@ Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTU
 |----|--------|
 | `Aventura1` | `plaza_de_la_almoina.jpg` |
 | `Aventura2` | `plaza_de_la_virgen.jpg` |
-| `Aventura3` | `pano_CAC.jpg` |
-| `Aventura4` | `parque_de_ cabecera_lake_side.jpg` |
+| `Aventura3` | `pano_cac.jpg` |
+| `Aventura4` | `parque_de_cabecera_lake_side.jpg` |
 | `Aventura5` | `antiguo_orfanato.jpg` |
 | `AventuraFallas` | `fallas-castillo.jpg` |
 | `Aventura34km` | `aventura-34km.jpg` |
@@ -11467,7 +11468,7 @@ Una referencia visual es el marcador numerado que se dibuja para **cada punto nu
 { tipo: "referencia", id: "REF-1", mapa_numero: 1,
   coordenadas: { lat: 39.47921, lng: -0.37604 },
   nombre: "Torres de Serranos",
-  imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg" },
+  imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg" },
 { tipo: "referencia", id: "REF-2", mapa_numero: 2, ... },
 // ... y después la entrada `inicio`, las paradas y los tramos
 ```
@@ -12552,7 +12553,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-7632521aa28a';
+const CACHE_VERSION = 'v-832a7b7af0fd';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14499,7 +14500,7 @@ Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tool
 | `imagen-no-gps.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `video-intro.html` |
 | `imagen-no-internet.png` | `codigo-padre.html`, `sw.js`, `video-intro.html` |
 | `fotoruta-A-B.png` | `codigo-padre.html`, `coordenadas-hijo2.html`, `video-intro.html` |
-| `pano_CAC.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
+| `pano_cac.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
 | `cabecera_lake_side.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
 | `fallas-castillo.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `tools/build-demo.js` |
 | `fotochat-boton.png` | `codigo-padre.html`, `video-intro.html` |

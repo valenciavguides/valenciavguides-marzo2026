@@ -60,12 +60,12 @@ const FUENTES = {
 const MEDIA_DEMO = [
     'imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg',
     'imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg',
-    'imagenes/imagenes-aventuras/pano_CAC.jpg',
-    'imagenes/imagenes-aventuras/parque_de_ cabecera_lake_side.jpg',
+    'imagenes/imagenes-aventuras/pano_cac.jpg',
+    'imagenes/imagenes-aventuras/parque_de_cabecera_lake_side.jpg',
     'imagenes/imagenes-aventuras/antiguo_orfanato.jpg',
     'imagenes/imagenes-aventuras/fallas-castillo.jpg',
     'imagenes/imagenes-aventuras/aventura-34km.jpg',
-    'imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg',
+    'imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg',
     'videos-aventuras/video_intro_ejemplo.mp4',
 ];
 const copiaDeMedia = (original) => `${CARPETA}/${/\.(mp4|webm|mov)$/i.test(original) ? 'videos' : 'imagenes'}/${path.posix.basename(original)}`;
