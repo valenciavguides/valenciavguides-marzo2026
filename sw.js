@@ -1,8 +1,8 @@
 ﻿/**
  * sw.js — Valencia VGuides Service Worker
  *
- * Estrategia: Network First para el shell de la app, Cache First para las imágenes, y directos a red los audios, los
- * vídeos y la API.
+ * Estrategia: Network First con plazo para el shell de la app, Cache First para las imágenes, y directos a red los
+ * audios, los vídeos y la API.
  *
  * ╔══════════════════════════════════════════════════════════════════╗
  * ║  CACHE_VERSION: SHA-256 auto-generada vía tools/build-sw.js,     ║
@@ -10,7 +10,8 @@
  * ║  y por `npm run dev:watch` (tools/watch-sw.js) — ver §21.        ║
  * ║                                                                  ║
  * ║  ESTRATEGIAS DE CACHÉ:                                           ║
- * ║  · Shell (HTML/JS/manifest): Network First → caché SW            ║
+ * ║  · Shell (HTML/JS/manifest): Network First con plazo (5 s) →     ║
+ * ║    copia guardada, o la página «sin internet» (redPrimero)       ║
  * ║  · Imágenes (/imagenes/imagenes-aventuras/, /imagenes/mapas-     ║
  * ║    vintage/ y /publico/imagenes/): Cache First + LRU (máx. 100   ║
  * ║    entradas)                                                     ║
@@ -96,6 +97,9 @@ const APP_SHELL = [
   // La imagen del aviso de sin conexión (_ensureInternetOverlay de codigo-padre.html): el aviso sale justo cuando no hay
   // red, y entonces ya no se puede descargar (spec 151, SW-2).
   '/imagenes/imagenes-aplicación/imagen-no-internet.png',
+  // La página «sin internet» (redPrimero, más abajo): el worker la sirve en lugar de una página de la app que no llega y
+  // de la que no tiene copia, así que tiene que estar guardada antes (spec 165, SWR-10). Enseña la imagen de arriba.
+  '/sin-conexion.html',
   // Efectos de sonido (js/efectos-sonido.js). No son /audios-aventuras/: esa ruta no la intercepta
   // el SW y el servidor la protege como contenido de pago, y estos suenan antes de pagar.
   '/audios-efectos/sonido_eleccion_respuesta_reto.mp3',
@@ -115,11 +119,19 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell actualiza la versión de caché
 // automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-0b5a7dd752c3';
+const CACHE_VERSION = 'v-62ee795b4b99';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
 const MEDIA_CACHE_MAX_ENTRIES = 100; // Máximo 100 archivos media en caché
+
+// ─── Plazo de la red en el Network First (shell, módulos y datos de js/) ─────
+// La red tiene este tiempo para empezar a contestar (las cabeceras: el cuerpo puede seguir llegando después). Pasado el
+// plazo se sirve la copia guardada, si la hay: una cobertura mala que deja la petición colgada no deja la app —ni la
+// recarga de un hijo que hace el supervisor— sin su página (K-60, K-176; spec 165).
+const PLAZO_RED_MS = 5000;
+const PLAZO_VENCIDO = Symbol('plazo vencido');
+const SIN_RED = Symbol('sin red');
 
 // ─── Imágenes de las aventuras y mapas antiguos, cacheables con límite ───────
 // Estrategia: Cache First con límite para permitir uso offline
@@ -137,6 +149,87 @@ function esMedia(url) {
 
 function esApi(url) {
   return url.pathname.startsWith('/api/');
+}
+
+function sinConexion() {
+  return new Response('Sin conexión', {
+    status: 503,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+  });
+}
+
+/**
+ * La página «sin internet» (sin-conexion.html, de la precarga): la imagen del aviso y el botón 🌐🔄, sin texto. Se sirve
+ * en lugar de una página de la app que no ha llegado y no tiene copia; su botón vuelve a pedir esa misma dirección. Si
+ * tampoco ella está guardada, queda el 503 de texto.
+ */
+async function paginaSinConexion(pathname) {
+  const pagina = await caches.match('/sin-conexion.html');
+  console.warn(`[SW] ${pathname}: sin copia guardada; se sirve ${pagina ? 'la página «sin internet»' : 'un 503 (la página «sin internet» tampoco está guardada)'}`);
+  return pagina || sinConexion();
+}
+
+/** Por qué la red no ha dado algo bueno, para el aviso de la consola. */
+function motivoDeLaRed(resultado) {
+  if (resultado === PLAZO_VENCIDO) return `la red no contestó en ${PLAZO_RED_MS / 1000} s`;
+  if (resultado === SIN_RED) return 'sin conexión';
+  return `la red contestó ${resultado.status}`;
+}
+
+/**
+ * Network First con plazo, para el shell, los módulos y los datos de js/. Cada respuesta buena de la red se guarda bajo
+ * `clave`, también la que llega cuando ya se ha servido la copia por el plazo: la próxima vez sale la nueva. Una
+ * respuesta por debajo de 400 (incluida la redirección opaca de una navegación) se devuelve tal cual. Si no:
+ *
+ *   | La red…                      | Con copia | Sin copia, una página       | Sin copia, un dato           |
+ *   |------------------------------|-----------|-----------------------------|------------------------------|
+ *   | rechaza (sin conexión)       | la copia  | la página «sin internet»    | 503 «Sin conexión»           |
+ *   | contesta 5xx                 | la copia  | la página «sin internet»    | el 5xx tal cual              |
+ *   | contesta 4xx                 | la copia  | el 4xx tal cual             | el 4xx tal cual              |
+ *   | no contesta en PLAZO_RED_MS  | la copia  | la página «sin internet»    | se sigue esperando a la red  |
+ *
+ * La copia gana ante cualquier error porque lo que se pide es que la app cargue. Sin copia, un 4xx es la respuesta del
+ * servidor (una página que no existe no es «sin internet»). Un dato sin copia espera a la red porque no hay nada que
+ * servir en su lugar: el plazo y los reintentos son de quien lo pide. Una página sin copia no espera: sale la página
+ * «sin internet», con su botón para volver a pedirla. Cada vez que se usa la copia o esa página, lo dice la consola.
+ */
+async function redPrimero(event, clave) {
+  const { request } = event;
+  const { pathname } = new URL(request.url);
+  let guardar = null;
+  const red = fetch(new Request(request, { cache: 'no-store' })).then(response => {
+    if (response.ok && response.status !== 206) {
+      const clon = response.clone();
+      guardar = caches.open(CACHE_NAME).then(cache => cache.put(clave, clon));
+    }
+    return response;
+  });
+  // El worker sigue vivo hasta que la red termine y lo bueno quede guardado, aunque ya se haya servido la copia.
+  event.waitUntil(red.then(() => guardar).catch(() => {}));
+
+  let temporizador;
+  const plazo = new Promise(resolve => { temporizador = setTimeout(resolve, PLAZO_RED_MS, PLAZO_VENCIDO); });
+  let resultado;
+  try {
+    resultado = await Promise.race([red, plazo]);
+  } catch {
+    resultado = SIN_RED;
+  } finally {
+    clearTimeout(temporizador);
+  }
+  if (resultado !== PLAZO_VENCIDO && resultado !== SIN_RED && resultado.status < 400) return resultado;
+
+  // ignoreSearch:true: el botón «Actualizar» añade su `_v` a la navegación, y la precarga solo tiene la ruta limpia.
+  const copia = await caches.match(request, { ignoreSearch: true });
+  if (copia) {
+    console.warn(`[SW] ${pathname}: ${motivoDeLaRed(resultado)}; se sirve la copia guardada`);
+    return copia;
+  }
+  const esPagina = request.mode === 'navigate';
+  if (resultado === PLAZO_VENCIDO) return esPagina ? paginaSinConexion(pathname) : red.catch(sinConexion);
+  if (resultado === SIN_RED) return esPagina ? paginaSinConexion(pathname) : sinConexion();
+  if (esPagina && resultado.status >= 500) return paginaSinConexion(pathname);
+  return resultado;
 }
 
 // ─── INSTALL: precargar el app shell ─────────────────────────────────────────
@@ -291,7 +384,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Shell y módulos JS: Network First
+  // Shell, módulos y datos de js/: Network First con plazo (redPrimero, arriba).
   // → Intenta red primero (contenido fresco), bypasseando el caché HTTP
   //   del navegador (cache:'no-store') para que el SW siempre vea la versión
   //   real del servidor y no una copia vieja del caché HTTP. Se construye
@@ -302,27 +395,8 @@ self.addEventListener('fetch', event => {
   //   un `_v=<timestamp>` distinto cada vez, así que sin normalizar cada intento
   //   dejaría otra copia entera de la misma página en una caché que no tiene
   //   límite LRU. Todas las variantes de una misma ruta comparten entrada.
-  // → Si falla del todo (sin conexión), sirve desde caché SW —
-  //   ignoreSearch:true porque esa misma recarga añade su parámetro a la
-  //   navegación y el precache de `install` solo tiene la ruta limpia.
   const _claveCache = new URL(event.request.url);
   _claveCache.searchParams.delete('_v');
-  event.respondWith(
-    fetch(new Request(event.request, { cache: 'no-store' }))
-      .then(response => {
-        // Solo cachear respuestas válidas (200 OK)
-        if (response.ok && response.status !== 206) {
-          const clon = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(_claveCache.toString(), clon));
-        }
-        return response;
-      })
-      .catch(() => caches.match(event.request, { ignoreSearch: true })
-        .then(cached => cached || new Response('Sin conexión', {
-          status: 503,
-          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-        }))
-      )
-  );
+  event.respondWith(redPrimero(event, _claveCache.toString()));
 });
 

@@ -4218,6 +4218,13 @@ Salió al tratar K-53 + K-60 con el usuario («que cargue sí o sí»). Su objec
 - **Pendiente: decisión, después de medir** (cambio visible). Medir en los cuatro navegadores, con el service worker real en modo producción: cada rendición con la red cortada, con error y colgada, y qué ve el usuario (también hijo4 sin reto). Con eso, el diseño: *a)* que cada rendición pase por un solo sitio que lo apunte y enseñe el aviso, diga lo que diga `navigator.onLine`; *b)* que el botón vuelva a pedir lo que se rindió; *c)* que el service worker, que corre fuera de la app, sirva la copia guardada con un plazo, o una página propia de «sin internet» cuando no la haya.
 - **Relacionado.** K-40, K-60, K-53, K-72, K-175.
 
+##### K-177 — Pedir otra vez a la red tiene dos parámetros, y el service worker solo quita uno de su clave — ✅ (leído en cada uno)
+
+- **Dónde.** El botón «Actualizar» del aviso de versión nueva navega con `?_v=<Date.now()>` (`codigo-padre.html:13464`), y el Network First de `sw.js` quita `_v` de la clave con la que guarda la copia (`sw.js:399`), para que cada pulsación no deje otra copia entera de la misma página. La escalera de las fotos de la galería reintenta con `?_vvr=<n>` (`codigo-padre.html:1815`); esas fotos van por el Cache First de `esMedia()`, que busca y guarda con la dirección exacta (`cache.match(event.request)`, `sw.js:351`; `cache.put(event.request, …)`, `sw.js:361`).
+- **Lo que no cuadra** (leído en esas líneas, sin medir). Dos nombres para la misma decisión, «pide esto otra vez a la red», y solo uno sale de la clave de la caché. Un reintento de la escalera que llega bien se guarda bajo la dirección con `_vvr`, así que la próxima vez que se pide la foto sin el parámetro no se encuentra esa copia: se vuelve a descargar, y la caché de media (LRU de 100) gasta dos entradas en la misma foto. K-175 necesita un tercer uso, el reintento de un módulo de datos: el navegador no vuelve a pedir un `import()` que falló si la dirección es la misma (medido en los tres motores, sonda de K-176).
+- **Pendiente: decisión.** *A)* un solo parámetro, `_v`, para todo lo que se pide otra vez a la red, fuera de la clave en las dos ramas del service worker (la del shell y la de media); *B)* dejarlo.
+- **Relacionado.** K-175, K-176, K-60.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -4955,6 +4962,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 168 | 1 | K-174 | los `console.*` de `sw.js` condicionados a `IS_DEV`, solo los de error, o dejarlos | GUÍA | — | decisión |
 | 169 | 3 | K-175 | un solo camino para pedir un dato (el de `fetchWithRetry`, con el plazo agotado reintentado), o dejarlo | GUÍA | K-60, K-176 (blanda) | decisión |
 | 170 | 4 | K-176 | cada rendición avisa por un solo sitio, el botón vuelve a pedir lo que se rindió, y el SW sirve la copia o una página «sin internet» | VISIBLE, SPEC, MEDIR, GUÍA | K-60, K-175 (dura) | decisión |
+| 171 | 2 | K-177 | un solo parámetro, `_v`, para pedir otra vez a la red, fuera de la clave de las dos ramas del SW, o dejarlo | GUÍA | K-176 (blanda: `sw.js`) | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |

@@ -491,6 +491,8 @@ No hay tope de recargas: un hijo que no llega a arrancar se reintenta indefinida
 
 **Sin conexión:** si `navigator.onLine` es `false` cuando se recarga un hijo, `_vv_beforeHijoReload` enseña el overlay de «sin conexión» con `showInternetOverlay({ forzar: true })` (§31.1), aunque aún no haya modo. El overlay se oculta solo con el evento `online`.
 
+**La página del hijo, con la red mal:** la recarga pide el HTML del hijo y sus módulos al service worker, que con la red cortada o con un error sirve la copia guardada al momento, y con la red colgada a los 5 s (§19, «El plazo de la red, la copia guardada y la página «sin internet»»). Si no tiene copia, el iframe enseña la página «sin internet», que no completa el apretón de manos: el supervisor lo sigue recargando con su gracia hasta que el hijo vuelve.
+
 El estado del reloj (`activo`, `intervalo`) vive en el state-manager (`getHeartbeat()`); los contadores de cada iframe (`latidosSinRespuesta`, `recargas`, `cargaDesde`) viven en su registro dentro de `js/mensajeria.js` (`getIframesRegistrados()` devuelve los registros vivos).
 
 **Mensajes del heartbeat** (`js/constants.js`):
@@ -4915,7 +4917,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0b5a7dd752c3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-62ee795b4b99'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8085,6 +8087,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `162-ubicacion-respeta-el-descanso-de-las-pantallas.spec.js` | 3 | El botón de ubicación oculta las pantallas de distancia sin tocar sus tiempos de espera (§31.4), medido con el padre, los hijos, el bus y el botón de ubicación de hijo2 reales: «muy lejos», cerrada con su ✗, conserva su espera tras pulsar ubicación y la lectura siguiente no la trae (UD-1); lo mismo el cartel del bloqueo de 5 km (UD-2); y, de control, volver dentro del rango vacía las esperas y, al salir otra vez, «muy lejos» sale enseguida (UD-3) |
 | `163-la-x-del-mapa-antiguo-se-pulsa.spec.js` | 5 | La ✗ del mapa antiguo de la selección (§7.1, «3 overlays adicionales») se pulsa con pulsaciones de verdad, sin llamar a `cerrarMapaVintage()`: un clic de ratón a 1920×1080 cierra el mapa y lleva a P8 (MX-1), y un toque con el dedo a 390×844 también (MX-2); con FREE DEMO y MODO DEV/CASA a la vista, donde un cartel se cruza con la ✗ o con un botón del zoom, lo que se pinta arriba es el botón, y los dos cruces existen (MX-3; el cartel MODO DEV/CASA, §24, se enseña con `display: block`); de control, al cerrar los dos carteles se siguen viendo en P8 (MX-4), y «+» acerca el mapa y arrastrar la imagen ampliada la mueve (MX-5) |
 | `164-cada-x-cierra-lo-suyo.spec.js` | 18 | Cada ✗ que el usuario puede pulsar, pulsada de verdad con ratón y con dedo (§36.29), cierra lo que le toca: las capas del padre (galería, sin imágenes, vídeo sin dirección, vídeo abierto justo después de cerrar la de «sin vídeo», error, mapa completo, que se da de baja en el bus, y sin internet; EQ-1), los seis carteles con abridor (EQ-2), los recordatorios de audio, de saltar el audio y del reto y el aviso de progreso, con el reloj simulado (EQ-3a-d), la selección —el mapa antiguo y los «no» de P9, P13 y P3— (EQ-4), saltar la intro (EQ-5) y, con la aventura en marcha, el listado, el asistente y su modal —con el modal abierto, la ✗ de la cabecera queda debajo de su fondo—, la ficha de un monumento y el mapa completo, las seis pantallas de distancia, cada una con su descanso apuntado, y la de señal GPS, abierta cuando el vigilante del GPS ya ha dado su primera lectura, porque una lectura buena la quita sola (EQ-6). Antes de cada pulsación en el padre deja pasar 3 s, por el gesto de siete toques (§24), y en EQ-6 apaga los recordatorios, que salen por tiempo real y se pintan encima. El modal de tiempo agotado y las cuatro páginas de hijo1 los pulsan el 130 y el 134 |
+| `165-el-service-worker-no-deja-la-app-colgada.spec.js` | 14 | El Network First con plazo de `sw.js` (§19, «El plazo de la red, la copia guardada y la página «sin internet»»), con el worker en modo producción y la red controlada por `helpers/red-controlada.js`, en los cuatro navegadores: con la red cortada, con un 503 o un 404, o colgada, la recarga del padre sale de la copia guardada, la colgada al vencer el plazo de 5 s y no antes (SWR-1 a SWR-3); un hijo que se recarga con la red colgada sale de su copia (SWR-4); sin copia, una navegación con la red cortada, con un 503 o colgada recibe la página «sin internet» —su imagen y el botón 🌐🔄, sin texto— y el botón trae la página con la red de vuelta, también dentro del iframe de un hijo (SWR-5, SWR-6); sin copia, un 404 llega tal cual (SWR-7); la respuesta que llega después del plazo sustituye a la copia (SWR-8); un dato sin copia espera a la red pasado el plazo (SWR-9); y la página «sin internet» y su imagen están en `APP_SHELL` (SWR-10). SWR-0 comprueba el instrumento: el worker controla la página, corre en modo producción y sus peticiones pasan por el proxy. |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8107,6 +8110,15 @@ Todos los specs comparten la misma infraestructura (`tests/e2e/helpers/`):
   Lleva el mismo `<meta name="viewport">` que el padre: sin él, un navegador móvil maqueta
   la página a 980 px y la reduce a la pantalla, el hijo no mide lo que mide dentro del padre
   y, en webkit, el toque de Playwright cae fuera del botón.
+- **`red-controlada.js`** — una red que el spec decide cómo se porta, delante del servidor real. `abrirRedControlada()`
+  arranca un proxy en `127.0.0.2:8092` (`BASE_URL_RED_CONTROLADA`, el `baseURL` del spec) que reenvía cada petición a
+  `127.0.0.1:8080`. `red.regla(patron, { modo })` hace que las rutas que casan (el `pathname` decodificado) se queden
+  colgadas (`'colgada'`), corten la conexión (`'cortada'`: el `fetch` rechaza, como sin red), contesten un error
+  (`'error'`, con `estado`, 503 si no se dice) o lleguen tarde (`'retraso'`, con `ms` y `cabeceras` añadidas), y cuenta
+  sus `peticiones`; `limpiar()` y `regla.quitar()` sueltan lo que quede colgado. Existe porque lo que hace el service
+  worker con la red fallando solo se mide con el worker en modo producción (`IS_DEV` es `localhost` y `127.0.0.1`) y con
+  el fallo fuera del navegador: `context.setOffline` corta también la caché del worker en Firefox y WebKit, y
+  `context.route` solo ve sus peticiones en Chromium. Lo usa el spec 165.
 
 #### ¿Qué detectan los E2E que Jest no puede?
 
@@ -8181,18 +8193,41 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 
 | Caché | Nombre | Estrategia | Contenido |
 |-------|--------|-----------|-----------|
-| Shell | `vvguides-shell-{CACHE_VERSION}` | **Network First** | HTML, JS, manifest, iconos — contenido versionado |
+| Shell | `vvguides-shell-{CACHE_VERSION}` | **Network First con plazo (5 s)** | HTML, JS, manifest, iconos y la página «sin internet» (`sin-conexion.html`) — contenido versionado |
 | Media | `vvguides-media-v1` | **Cache First + LRU (100 entradas)** | Imágenes de las aventuras y mapas antiguos: los originales (`imagenes/imagenes-aventuras/`, `imagenes/imagenes-idiomas/` e `imagenes/mapas-vintage/`) y sus copias de la demo (`publico/imagenes/`) — **NI vídeos ni audios** |
 | Vídeos y audios (`/videos-aventuras/`, `/audios-aventuras/`, `/publico/audios/`, `/publico/videos/`) | — | **Network Only (sin interceptar)** | El `fetch` handler devuelve sin gestionar la petición (`return` en el listener, antes de llegar a `esMedia()`) para que las peticiones `Range` del `<video>` y del `<audio>` vayan directas a red — cachear respuestas `206 Partial Content` es una fuente conocida de bugs |
 | API | — | **Network Only** | Peticiones a `/api/*` — sin caché, 503 si sin conexión |
 
 #### Estrategia detallada
 
-**Network First (shell):** intenta la red; si falla, sirve desde caché. El shell (HTML/JS) siempre recibe la versión más reciente cuando hay conexión. `APP_SHELL` lleva todo lo que cargan sus propias páginas —sus `<script src>`, sus hojas de estilo y los imports estáticos de sus páginas y módulos—, para que la app arranque sin red (spec 151, SW-4). `APP_SHELL` incluye los cuatro MP3 de `audios-efectos/` (§12, «Efectos de sonido»), que se sirven con esta estrategia y no con la de media, y la imagen del aviso de sin conexión (`imagen-no-internet.png`, §30.1): ese aviso sale justo cuando no hay red, y sin red la imagen no se puede descargar (spec 151, SW-2). Los `.json` de `publico/` van también por esta estrategia: se guardan la primera vez que se usan, no al instalar. Los ficheros de datos de pago —los de `PROTECTED_FILES` de `js/server.js`— no están en `APP_SHELL`: el service worker no los descarga al instalarse, y llegan cuando la app los importa, tras el pago (§22.9; spec 151, SW-3).
+**Network First con plazo (shell):** el shell (HTML/JS) recibe la versión más reciente cuando hay conexión, y la copia guardada cuando la red no la da a tiempo o da un error (detalle en «El plazo de la red, la copia guardada y la página «sin internet»», abajo). `APP_SHELL` lleva todo lo que cargan sus propias páginas —sus `<script src>`, sus hojas de estilo y los imports estáticos de sus páginas y módulos—, para que la app arranque sin red (spec 151, SW-4). `APP_SHELL` incluye los cuatro MP3 de `audios-efectos/` (§12, «Efectos de sonido»), que se sirven con esta estrategia y no con la de media, y la imagen del aviso de sin conexión (`imagen-no-internet.png`, §31.1): ese aviso sale justo cuando no hay red, y sin red la imagen no se puede descargar (spec 151, SW-2). También lleva la página «sin internet» (`sin-conexion.html`), que se sirve justo cuando la red no da una página (spec 165, SWR-10). Los `.json` de `publico/` van también por esta estrategia: se guardan la primera vez que se usan, no al instalar. Los ficheros de datos de pago —los de `PROTECTED_FILES` de `js/server.js`— no están en `APP_SHELL`: el service worker no los descarga al instalarse, y llegan cuando la app los importa, tras el pago (§22.9; spec 151, SW-3).
 
 **Cache First con LRU (media, sin vídeos ni audios):** busca primero en caché local (rápido, sin consumir datos). Si no está, lo descarga y lo guarda. Si hay más de 100 entradas, elimina las más antiguas. Esto permite uso offline de las imágenes ya vistas. **Vídeos y audios quedan fuera de esta estrategia a propósito**: `esMedia()` (`sw.js`) solo nombra carpetas de imágenes, y el `fetch` handler devuelve sin interceptar las de audio y vídeo —`/videos-aventuras/`, `/audios-aventuras/`, y `/publico/audios/` y `/publico/videos/` (el audio de introducción y el clip de la demo gratis)— *antes* de consultar `esMedia()`. Vídeos y audios siempre van directos a red, sin caché SW en absoluto — para vídeo, ver §15 (`reproducirVideoConBuffer`, que gestiona el buffering en el propio `<video>`); para audio, la razón es la misma que para vídeo (evitar bugs de caché con peticiones Range/206 parciales), y además ya está aceptado que el audio requiere conexión en el momento de reproducirse (§25.17) — esta exclusión lo hace cierto siempre, sin la excepción oculta de una parada que ya se hubiera cacheado antes por casualidad.
 
 **Network Only (API):** las llamadas a la API nunca se cachean; si no hay red, devuelve 503 con mensaje legible.
+
+#### El plazo de la red, la copia guardada y la página «sin internet»
+
+`redPrimero(event, clave)` (`sw.js`) es el Network First del shell, los módulos y los datos de `js/`. Pide a la red con `cache:'no-store'` y le da `PLAZO_RED_MS` (5000 ms) para empezar a contestar: cuenta la llegada de las cabeceras, y el cuerpo puede seguir llegando después. Una respuesta por debajo de 400 se devuelve tal cual —también la redirección opaca de una navegación, que va con `redirect:'manual'`—, y si es buena (`ok` y distinta de `206`) se guarda en la caché del shell bajo `clave`, la dirección sin `_v`. Si la red no da eso, decide esta tabla:
+
+| La red… | Con copia guardada | Sin copia, una página (`request.mode === 'navigate'`: el padre o un hijo) | Sin copia, un dato o un módulo |
+|---|---|---|---|
+| rechaza (sin conexión) | la copia | la página «sin internet» | `503` «Sin conexión» |
+| contesta 5xx | la copia | la página «sin internet» | el 5xx tal cual |
+| contesta 4xx | la copia | el 4xx tal cual | el 4xx tal cual |
+| no contesta en 5 s | la copia | la página «sin internet» | se sigue esperando a la red |
+
+- **La copia gana ante cualquier error**, porque lo que se busca es que la app cargue. Una cobertura mala que deja la petición colgada, un servidor que falla o un corte de red no dejan sin su página al padre ni a un hijo que recarga el supervisor (§2.7). La copia se busca con `ignoreSearch: true` (ver «Por qué la recarga necesita cache-busting propio», abajo).
+- **La respuesta que llega tarde se guarda.** Servida la copia por el plazo, la petición a la red sigue —`event.waitUntil` mantiene vivo el worker hasta que termina— y, si llega buena, sustituye a la copia: la próxima vez sale la nueva.
+- **Sin copia, un 4xx es la respuesta del servidor:** una página que no existe no es «sin internet».
+- **Un dato sin copia espera a la red**, como un módulo de datos de pago la primera vez que se importa (los de `PROTECTED_FILES` no están en la precarga, §22.9): no hay nada que servir en su lugar, y el plazo y los reintentos son de quien lo pide.
+- **La consola del worker dice cada vez que se usa la copia o la página «sin internet»**, con un `console.warn` que nombra la ruta y el motivo: `[SW] /codigo-padre.html: la red no contestó en 5 s; se sirve la copia guardada` (los otros motivos son `sin conexión` y `la red contestó <estado>`), o `[SW] <ruta>: sin copia guardada; se sirve la página «sin internet»`.
+
+**La página «sin internet» (`sin-conexion.html`).** `paginaSinConexion()` la saca de la caché y la sirve en lugar de la página que no ha llegado; el documento conserva la dirección pedida. Enseña la imagen del aviso de sin conexión del padre (`imagenes/imagenes-aplicación/imagen-no-internet.png`, a pantalla completa, `object-fit: contain` sobre `#222`) y el botón 🌐🔄 con el aspecto de `#internet-action` (§31.1), sobre el hueco inferior (`--gap-inferior`). No lleva texto visible, así que vale para los 12 idiomas, ni ✗, porque detrás no hay nada que enseñar. El botón llama a `location.reload()`: vuelve a pedir al worker esa misma dirección. El evento `online` hace lo mismo sin pulsar. La página no usa el bus ni ningún módulo: le basta la caché. Está en `APP_SHELL` con su imagen (spec 165, SWR-10); si no estuviera guardada, `paginaSinConexion()` sirve el `503` de texto. Dentro de un hijo ocupa su iframe; como no completa el apretón de manos, el supervisor sigue recargándolo con su gracia (§2.7) hasta que el hijo vuelve.
+
+**Con backend.** La API va en Network Only y sin copia (la fila «API» de la tabla de las cachés): en modo `'api'` los datos de la aventura no pasan por `redPrimero()`, y su plazo y sus reintentos son los de quien los pide (§16.1b).
+
+**Cómo se comprueba.** El spec 165 lo mide con el worker en modo producción: `helpers/red-controlada.js` pone un proxy en `127.0.0.2` —un origen que `IS_DEV` no trata como desarrollo— delante del servidor de los specs, y deja colgada, corta, retrasa o contesta con error la ruta que elige cada test, igual en los cuatro navegadores («Patrones de los tests E2E», §18.3).
 
 #### Ciclo de vida del SW en producción
 
@@ -8260,7 +8295,7 @@ GitHub Pages responde con `Cache-Control: max-age=600` fijo en todas las respues
 
 **Lo que la caché de borde del CDN NO hace, medido:** GitHub Pages sirve tras Fastly, y ese borde **descarta la query string de su clave de caché**. Comprobado contra el dominio real pidiendo el mismo fichero con tres parámetros distintos (`?x=aaa111`, `?x=bbb222`, `?x=ccc333`): las tres respuestas devuelven `X-Cache: HIT` con el mismo `Age`, y una query nueva acierta en la copia que dejó otra query distinta. Por tanto **el cache-busting por query string no sirve para saltarse ese CDN** — solo sirve contra la caché HTTP del navegador, que sí indexa por URL completa. El borde además se refresca en cada despliegue (`Age: 0` inmediatamente después de un push), así que no es el origen de las actualizaciones que no llegan.
 
-Con eso medido, la pieza que resuelve el problema no es pelear con las cachés sino **preguntar por separado qué hay desplegado**, y el `?_v=Date.now()` del botón "Actualizar" cubre exactamente un hueco concreto: que la navegación de recarga la resuelva la caché HTTP del navegador. El fallback offline del Network First usa `caches.match(event.request, { ignoreSearch: true })` para que ese parámetro no impida encontrar la entrada precacheada bajo la ruta limpia, y `cache.put()` guarda siempre bajo la URL sin `_v`, para que cada clic no deje otra copia entera de la misma página en una caché que no tiene límite LRU.
+Con eso medido, la pieza que resuelve el problema no es pelear con las cachés sino **preguntar por separado qué hay desplegado**, y el `?_v=Date.now()` del botón "Actualizar" cubre exactamente un hueco concreto: que la navegación de recarga la resuelva la caché HTTP del navegador. La copia guardada del Network First se busca con `caches.match(event.request, { ignoreSearch: true })` para que ese parámetro no impida encontrar la entrada precacheada bajo la ruta limpia, y `cache.put()` guarda siempre bajo la URL sin `_v`, para que cada clic no deje otra copia entera de la misma página en una caché que no tiene límite LRU.
 
 > **Detectar la versión nueva está resuelto; traerla, no.** El botón "Actualizar" hace `location.href` con un `?_v=` nuevo, pero el borde descarta la query string: si la copia de 10 minutos sigue viva, la recarga devuelve **la misma página vieja**, la app vuelve a detectar que está desfasada y el banner reaparece. Desde fuera parece que el botón no hace nada, y el usuario vuelve a pulsar — cada pulsación es una recarga completa, con su pantalla de carga y su barra de progreso empezando de cero. Comportamiento reportado en uso real.
 >
@@ -8457,11 +8492,12 @@ proyecto/
 ├── consejos-valencia.html
 ├── gastronomia.html
 ├── paginas-oficiales-valencia.html
+├── sin-conexion.html                 ← Página «sin internet» del service worker (§19): la imagen del aviso y 🌐🔄, sin texto
 ├── css/
 │   └── boton-cerrar.css              ← La ✗ común de toda la PWA: la única definición de su aspecto (§4.3)
 │
 ├── manifest.json                     ← Configuración PWA (iconos, shortcuts, categorías)
-├── sw.js                             ← Service Worker: caché shell (Network First) + media (Cache First LRU-100, sin vídeos ni audios — los de `videos-aventuras/`, `audios-aventuras/`, `publico/audios/` y `publico/videos/` van siempre directos a red; los efectos de `audios-efectos/` viajan en el shell)
+├── sw.js                             ← Service Worker: caché shell (Network First con plazo de 5 s: copia guardada o página «sin internet») + media (Cache First LRU-100, sin vídeos ni audios — los de `videos-aventuras/`, `audios-aventuras/`, `publico/audios/` y `publico/videos/` van siempre directos a red; los efectos de `audios-efectos/` viajan en el shell)
 ├── version.json                      ← `{ "version": "v-..." }` — la única fuente consultable de qué CACHE_VERSION hay desplegada (§19)
 ├── CNAME                             ← Dominio para GitHub Pages (valenciavguides.es)
 ├── video-intro.html                  ← Cómic animado de Jaime I y María (§35): P4 de la selección, y otra vez desde el asistente
@@ -8576,7 +8612,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 159 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 160 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9089,7 +9125,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-0b5a7dd752c3';
+const CACHE_VERSION = 'v-62ee795b4b99';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9332,7 +9368,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | Término | Significado |
 |---------|-------------|
 | **PWA** | Progressive Web App — aplicación web instalable como app nativa en el dispositivo |
-| **Service Worker** | Script registrado en el navegador (`sw.js`) que gestiona dos niveles de caché: shell (Network First) y media/imágenes (Cache First + LRU‑100 entradas, no incluye vídeos ni audios — siempre directos a red) |
+| **Service Worker** | Script registrado en el navegador (`sw.js`) que gestiona dos niveles de caché: shell (Network First con plazo) y media/imágenes (Cache First + LRU‑100 entradas, no incluye vídeos ni audios — siempre directos a red) |
 | **Sanitización** | Limpieza de datos de entrada para evitar ataques (XSS, inyección) |
 | **Mutex** | Patrón de promesa compartida usado en `codigo-padre.html` para evitar que operaciones críticas (como `activarGPS()`) se ejecuten en paralelo |
 | **ESLint** | Herramienta de análisis estático de código configurada en `eslint.config.js`. Se ejecuta con `npm run lint` |
@@ -10655,7 +10691,7 @@ Durante la aventura, el padre le da a hijo3 el audio de cada elemento al activar
 
 La aplicación detecta el fallo y muestra un overlay con la imagen de "sin internet" (`imagen-no-internet.png`, guardada desde la instalación para que salga sin red, §19) y un botón 🌐🔄 con una cuenta atrás de 15 segundos. Cuando el tiempo llega a cero, el botón se reactiva y el usuario puede volver a intentarlo. Si el teléfono recupera la conexión por sí solo, el overlay desaparece automáticamente sin que el usuario tenga que hacer nada.
 
-> El texto de las paradas y los retos siguen funcionando sin red una vez cargados: el Service Worker guarda cada fichero del propio origen al pedirlo (Network First, §19). Las teselas del mapa no: vienen de otros orígenes (ESRI, OpenStreetMap, OpenFreeMap), que el Service Worker no intercepta (`sw.js`, `url.origin !== self.location.origin`), así que sin red solo se ven las que el navegador tenga en su propia caché. Los audios requieren conexión en el momento de reproducirse.
+> El texto de las paradas y los retos siguen funcionando sin red una vez cargados: el Service Worker guarda la copia de cada módulo y de cada imagen del propio origen al pedirlos (§19). Las teselas del mapa no: vienen de otros orígenes (ESRI, OpenStreetMap, OpenFreeMap), que el Service Worker no intercepta (`sw.js`, `url.origin !== self.location.origin`), así que sin red solo se ven las que el navegador tenga en su propia caché. Los audios requieren conexión en el momento de reproducirse.
 
 ---
 
@@ -12553,7 +12589,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-0b5a7dd752c3';
+const CACHE_VERSION = 'v-62ee795b4b99';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12608,12 +12644,13 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 
 - `postMessage` entre iframes (es local al browser, no necesita internet)
 - Audio ya en reproducción (si el MP3 estaba buffereado)
-- Retos ya cargados en memoria (los datos vienen de `retos-aventuras.js`, cacheado por SW)
+- Los retos de la aventura en su idioma, desde que se pide el primero: `cargarRetos()` los guarda en `dataCache` (`js/data-loader.js`), y el service worker guarda la copia del módulo de retos (§19)
 - GPS y cálculo de posición (independiente de internet)
+- La recarga de la app o de un hijo: el service worker sirve su copia guardada, y si no la tiene, la página «sin internet» (§19)
 
 **Qué queda bloqueado:**
 
-- Carga de nuevos MP3 si no están en caché del SW → `FIN_REPRODUCCION` nunca llega — no deja la parada bloqueada indefinidamente: hijo3 reintenta el audio y, si sigue sin poder, el padre ofrece saltarlo (ver §31.7, §25.5f)
+- La carga de un audio que aún no se ha descargado: los audios no pasan por la caché del service worker (§19) → `FIN_REPRODUCCION` nunca llega — no deja la parada bloqueada indefinidamente: hijo3 reintenta el audio y, si sigue sin poder, el padre ofrece saltarlo (ver §31.7, §25.5f)
 - Cualquier llamada a la API del backend
 
 **Estado de implementación:** ✅ implementado. El overlay se muestra vía `showInternetOverlay({ forzar = false })` / se oculta vía `hideInternetOverlay()` en `codigo-padre.html` (sin `forzar` solo actúa en modo AVENTURA); se autooculta además con el evento `online` del navegador sin necesidad de que el usuario pulse nada.

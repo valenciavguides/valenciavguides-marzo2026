@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
+  <title>València be Guides</title>
+  <!--
+    La página «sin internet» del service worker (sw.js, `paginaSinConexion`). Nadie la carga por su nombre: el worker la
+    sirve en lugar de una página de la app —el padre o cualquiera de sus hijos— que no ha llegado y de la que no tiene
+    copia guardada (la red cortada, un error del servidor o el plazo vencido). Está en la precarga (`APP_SHELL`) con su
+    imagen, porque se enseña justo cuando la red no da nada.
+
+    Sin texto, igual que el aviso del padre (#internet-overlay): vale para los 12 idiomas. La imagen y el botón son los
+    del aviso; el botón vuelve a pedir la página, y vuelve a pedirla sola si el teléfono recupera la red. No tiene ✗:
+    detrás no hay nada que enseñar. No usa el bus ni ningún módulo: tiene que funcionar sin nada más que la caché.
+  -->
+  <style>
+    :root { --gap-inferior: calc(1.5rem + env(safe-area-inset-bottom, 0px)); }
+    html, body { margin: 0; width: 100%; height: 100%; background: #222; overflow: hidden; }
+    img {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: contain; background-color: #222;
+    }
+    button {
+      position: absolute;
+      left: 50%; transform: translateX(-50%);
+      bottom: var(--gap-inferior);
+      background: rgba(0,0,0,0.95); color: #fff;
+      border: none;
+      padding: 1.625rem 1.875rem;
+      border-radius: 0.875rem;
+      cursor: pointer;
+      box-shadow: 0 0.75rem 2.25rem rgba(0,0,0,0.5);
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 20px; line-height: 1;
+    }
+    button:active { transform: translateX(-50%) scale(0.98); }
+  </style>
+</head>
+<body>
+  <img src="imagenes/imagenes-aplicación/imagen-no-internet.png" alt="Sin conexión a internet">
+  <button type="button" aria-label="Reintentar conexión" title="Reintentar conexión">🌐🔄</button>
+  <script>
+    (function () {
+      // Recargar es volver a pedir al service worker la página que no llegó: la dirección es la de esa página.
+      const reintentar = () => globalThis.location.reload();
+      document.querySelector('button').addEventListener('click', reintentar);
+      globalThis.addEventListener('online', reintentar);
+    })();
+  </script>
+</body>
+</html>
