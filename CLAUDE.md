@@ -45,7 +45,7 @@ La memoria solo se lee si alguien decide ir a leerla; este fichero está delante
 viven aquí.
 
 1. **La migración de mensajería (opción A, bus único) quedó cerrada** — los 12 pasos de la
-   lavadora, verificados en `docs/GUIA-COMPLETA.md` §10, §10.25 (contrato del bus) y §28
+   lavadora, verificados en `docs/GUIA-COMPLETA.md` §10, §10.24 (contrato del bus) y §28
    (cleanup). Antes de proponer o tocar algo de la mensajería, releer esas secciones contra el
    código real (regla 8) — no reabrir una decisión ya tomada sin decir antes qué cambió desde
    entonces.

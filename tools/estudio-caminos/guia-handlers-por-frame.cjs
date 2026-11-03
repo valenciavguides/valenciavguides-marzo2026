@@ -13,7 +13,7 @@
  *       «recibe», o las que llevan una columna «Dirección»: `→ padre` = lo manda el frame, `padre →` = lo atiende);
  *   (2) tipos que el código registra o emite en el frame y que NINGUNA de las tres secciones menciona (entre backticks) — lo que la guía
  *       no cuenta. Los tipos transversales (error, NACK, latido, protocolo de modo, notificación) se separan: la guía los documenta
- *       aparte (§10.5, §10.11, §10.16, §10.17, §26.6).
+ *       aparte (§10.5, §10.11, §10.15, §10.16, §26.6).
  *
  * Requiere haber ejecutado antes `extract-mensajes.cjs` (deja mensajes.json en la carpeta de salida). Lo que lista es un candidato: se
  * confirma leyendo la fila y el sitio del código. Imprime su residuo (secciones que no se localizan).

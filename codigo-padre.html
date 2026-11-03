@@ -3759,7 +3759,7 @@
         // pueden dejar la app rota sin ninguna explicación (distribuirDatosAventura no
         // disponible ×2 más abajo, MapLibre
         // no carga) — alert() nativo, para no depender de la misma maquinaria que puede
-        // haber fallado (ver §4.7f/§10.19/§10.21).
+        // haber fallado (ver §4.7f/§10.18/§10.20).
         // Una sola vez por sesión: si el origen es compartido (p. ej. un despliegue roto),
         // varios de estos podrían dispararse a la vez, y no tiene sentido apilar varios
         // alert() seguidos por el mismo motivo de fondo (auditoría 2026-08-19).
@@ -10136,7 +10136,7 @@ await _comprobarReanudacionAventura(logPrefix);
                         // rechazándola en silencio (capturada por el catch de abajo) — el
                         // intento de GPS fresco por getCurrentPosition() nunca llegaba siquiera
                         // a ejecutarse. globalThis.__vv_config lo expone js/config.js para
-                        // cualquier script (ver §10.21); ajustarTimeoutPorConexion_S2 es el
+                        // cualquier script (ver §10.20); ajustarTimeoutPorConexion_S2 es el
                         // alias propio de Script 2 (su importación de js/utils.js), no el de Script 1.
                         { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S2(globalThis.__vv_config?.MENSAJERIA?.TIMEOUTS?.CONFIRMACION ?? 5000), maximumAge: 30000 }
                     );
