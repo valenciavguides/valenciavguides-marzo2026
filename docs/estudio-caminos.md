@@ -4188,6 +4188,36 @@ Hallazgos de la auditoría completa de la guía contra el código que no tenían
 - **Lo que no cuadra.** Las páginas pasan por el logger y su nivel; el SW escribe por su cuenta.
 - **Pendiente: decisión, sin cambio visible.** *A)* condicionarlos a `IS_DEV`, que `sw.js` ya calcula (`:119`); *B)* dejar los de error y quitar el resto; *C)* dejarlo.
 
+#### Familia AG — Las descargas que se rinden, y el aviso de «sin internet» (2026-11-03)
+
+Salió al tratar K-53 + K-60 con el usuario («que cargue sí o sí»). Su objeción a la primera propuesta (un aviso de arranque con «reintentar»): si pasa a media aventura, recargar no arregla nada; lo que hay que evitar es que la descarga de la información se quede congelada, apoyándose en lo que ya existe. Lectura completa de cada punto donde una descarga se rinde y de lo que engrana con él, con sus líneas, en las notas de la sesión (`scratchpad/auditoria/notas-descargas-que-se-rinden.md`, sesión a656a0e0).
+
+##### K-175 — Pedir un dato tiene cinco caminos, y el que usan los datos de la aventura no tiene plazo ni reintentos — ✅ (leído en cada uno)
+
+- **Dónde.**
+  - `js/data-loader.js`: en modo 'local', `import()` del módulo de datos (pasa por el Network First del service worker, sin plazo) y `fetch` de los párrafos (`cargarMapaParrafos`, `:170`, sin plazo; devuelve `{}` y no guarda el fallo); en modo 'api', `fetchFromAPI` (`:105`), un `fetch` sin plazo ni reintentos.
+  - `js/api-client.js`, `fetchWithRetry` (`:137`): plazo de 15 s y 4 reintentos con espera 1/2/4/8 s; un plazo agotado (`TIMEOUT`, `:227-229`) no se reintenta, solo el corte de red. Lo usan `comprobarCodigo` (P14) y `activar` (al arrancar la aventura).
+  - La selección, `_leerPublico` (`En-busca-del-tesoro.html:1178`): `fetch` sin plazo de los textos públicos de la demo; borra el fallo para que el siguiente intento vuelva a la red.
+  - `video-intro.html:538`: `fetch` sin plazo de `jaime.json`.
+  - `js/feedback-forms.js:40`: envío a Google Forms (otro origen; lo trata `project_google_en_la_pwa` en la memoria, se queda hasta que haya backend).
+- **Dónde se usan a media aventura.** Retos (`_hdl_RETO_SOLICITAR`, `codigo-padre.html:9656`; la cola, `:9843`; el hueco de caché de hijo4, `js/controladores-padre.js:104`), textos (ventana de la imagen, `:6985`; listado, `:12271`) y cada puzzle (`:9670`): todos por `data-loader`. En local, la primera vez que se piden; después, de `dataCache`.
+- **Lo que no cuadra.** Cinco formas de pedir un dato al servidor, y la que tiene plazo y reintentos no es la que usan los datos de la aventura. Con el servidor real (la guía, §22.4, describe el paso a la API), una petición de retos o de textos colgada deja colgado lo que espera por ella, sin plazo.
+- **Pendiente: decisión (objetivo del usuario: un solo camino).** *A)* un único «pedir un dato» —el de `fetchWithRetry`, con el plazo agotado también reintentado— que usen `data-loader` (modo 'api'), la selección y video-intro, y que al rendirse lo diga (K-176); el modo 'local' sigue con `import()`, que depende del service worker (K-60); *B)* dejarlo.
+- **Relacionado.** K-60 (el Network First sin plazo), K-53 (los `import` en posición fatal), K-176, M1 (los métodos de `ApiClient` sin llamador).
+
+##### K-176 — Una descarga que se rinde no se lo dice al usuario de forma que pueda actuar, y el aviso de «sin internet» solo sale si el teléfono declara no tener red — ✅ (leído; lo que ve el usuario con hijo4 sin reto, sin medir)
+
+- **Al rendirse, cada descarga** (detalle y líneas en las notas):
+  - **Fotos:** la escalera (`_escaleraCargaImagen`, `codigo-padre.html:1781`; 4 s, 3 reintentos) pone un hueco transparente y escribe un `warn`. Su comentario (`:1766-1768`) da por hecho que «sin internet de verdad» lo cubre el aviso con el evento `offline`. La precarga (`_precargarImagenParada`, `:10481`) falla en silencio.
+  - **Audio:** hijo3 reintenta 2 veces la descarga (`audio-hijo3.html:999-1035`) o 6 un atasco sonando (`:964-997`) y manda `AUDIO.ERROR`. El padre (`_marcarAudioNoDisponible`, `:11414`) **lo da por escuchado** y ofrece saltarlo: no se vuelve a intentar.
+  - **Vídeo:** `reproducirVideoConBuffer` (`js/video-playback-utils.js:59`; 15 s, 2 reintentos) arranca con lo que haya (vídeo vacío); `_videoLoadError` (`:1933`) solo escribe un `error`.
+  - **Datos a demanda:** solo log. El reto enseña antes hijo4 (`mostrarHijo4`, `:9650`) y espera **sin plazo** a su `HIJO_LISTO` (`:9648`).
+  - **Recarga de un hijo** (supervisor, `js/mensajeria.js:1043-1120`): sin tope, gracia creciente, al momento con `online`; el usuario no ve nada.
+- **El aviso** (`codigo-padre.html:6378-6488`; guía §31.1; disparadores, K-40): `offline` (solo en AVENTURA), `AUDIO.ERROR` con `navigator.onLine` en falso y la recarga de un hijo con `navigator.onLine` en falso. Con cobertura mala `navigator.onLine` sigue en verdadero: no sale. **Su botón 🌐🔄 no vuelve a pedir nada** (`:6403-6417`): cuenta atrás de 15 s y, si el teléfono dice que hay red, se cierra. **Vive en el padre:** si lo que se cuelga es la carga del padre (Network First sin plazo, K-60), no puede salir.
+- **Lo que no cuadra.** Varias herramientas buenas (escalera, reintentos de audio y vídeo, supervisor, reanudación) que al final se rinden en silencio, y un aviso que no se entera de esas rendiciones y cuyo botón no hace lo que dice. Decisión del usuario (2026-11-03): «hay que arreglarlos y bien» —el botón que no reintenta y el aviso que no puede salir si se cuelga la recarga de la app—, pensando en el front y el backend de mañana.
+- **Pendiente: decisión, después de medir** (cambio visible). Medir en los cuatro navegadores, con el service worker real en modo producción: cada rendición con la red cortada, con error y colgada, y qué ve el usuario (también hijo4 sin reto). Con eso, el diseño: *a)* que cada rendición pase por un solo sitio que lo apunte y enseñe el aviso, diga lo que diga `navigator.onLine`; *b)* que el botón vuelva a pedir lo que se rindió; *c)* que el service worker, que corre fuera de la app, sirva la copia guardada con un plazo, o una página propia de «sin internet» cuando no la haya.
+- **Relacionado.** K-40, K-60, K-53, K-72, K-175.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -4923,6 +4953,8 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 166 | 1 | K-172 | un solo bloque para el botón de hijo5, o dejarlo | — | — | decisión |
 | 167 | 1 | K-173 | borrar los ficheros Jest y sus restos de `tests/`, o dejarlos | GUÍA | — | decisión |
 | 168 | 1 | K-174 | los `console.*` de `sw.js` condicionados a `IS_DEV`, solo los de error, o dejarlos | GUÍA | — | decisión |
+| 169 | 3 | K-175 | un solo camino para pedir un dato (el de `fetchWithRetry`, con el plazo agotado reintentado), o dejarlo | GUÍA | K-60, K-176 (blanda) | decisión |
+| 170 | 4 | K-176 | cada rendición avisa por un solo sitio, el botón vuelve a pedir lo que se rindió, y el SW sirve la copia o una página «sin internet» | VISIBLE, SPEC, MEDIR, GUÍA | K-60, K-175 (dura) | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
