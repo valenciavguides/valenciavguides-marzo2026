@@ -1,4 +1,5 @@
-// Zoom y desplazamiento de los mapas vintage: funciona con pellizco, rueda y controles.
+// Zoom y desplazamiento de los mapas vintage: con pellizco, rueda y doble clic. Sin botones de zoom (decisión del usuario,
+// probado en su Android: el mapa se acerca con los dedos) y sin giro: la transformación solo desplaza y escala (spec 167).
 (function () {
   const estados = new WeakMap();
   const ESCALA_MINIMA = 1;
@@ -25,16 +26,6 @@
       contenedor.classList.add('mapa-vintage-zoomable');
       imagen.draggable = false;
 
-      const controles = document.createElement('div');
-      controles.className = 'mapa-zoom-controles';
-      controles.setAttribute('aria-label', 'Controles de zoom del mapa');
-      controles.innerHTML = `
-        <button type="button" data-zoom="menos" aria-label="Alejar el mapa" title="Alejar">−</button>
-        <button type="button" data-zoom="mas" aria-label="Acercar el mapa" title="Acercar">+</button>
-        <button type="button" data-zoom="restablecer" aria-label="Restablecer el zoom" title="Restablecer">↺</button>
-      `;
-      contenedor.appendChild(controles);
-
       const pintar = () => {
         const rect = contenedor.getBoundingClientRect();
         const limiteX = rect.width * (estado.escala - 1) / 2;
@@ -57,21 +48,13 @@
         pintar();
       };
 
-      const restablecer = () => {
-        estado.escala = 1;
-        estado.x = 0;
-        estado.y = 0;
-        pintar();
-      };
-
       const puntoMedio = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
       const distancia = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-      // Lo que se pulsa sobre un botón de dentro del mapa (los del zoom, o la ✗ que la selección pone en la esquina) es
-      // del botón, no del arrastre. Si el contenedor capturase ese puntero, el `click` le llegaría a él y no al botón:
-      // con ratón, la ✗ del mapa antiguo de la selección no cerraba nada (spec 163). Es el único sitio que decide qué
-      // pulsaciones son del zoom; el panel de los controles cuenta entero, también el hueco entre sus botones.
-      const esDeUnBoton = (evento) => !!evento.target.closest('button, a, .mapa-zoom-controles');
+      // Lo que se pulsa sobre un botón de dentro del mapa (la ✗ de su esquina) es del botón, no del arrastre. Si el
+      // contenedor capturase ese puntero, el `click` le llegaría a él y no al botón: con ratón, la ✗ del mapa antiguo de
+      // la selección no cerraba nada (spec 163). Es el único sitio que decide qué pulsaciones son del zoom.
+      const esDeUnBoton = (evento) => !!evento.target.closest('button, a');
 
       contenedor.addEventListener('pointerdown', (evento) => {
         if (esDeUnBoton(evento)) return;
@@ -142,18 +125,6 @@
         if (esDeUnBoton(evento)) return;
         evento.preventDefault();
         acercarEn(estado.escala === 1 ? 2 : 1, evento.clientX, evento.clientY);
-      });
-
-      controles.addEventListener('click', (evento) => {
-        const accion = evento.target.closest('button')?.dataset.zoom;
-        if (!accion) return;
-        evento.stopPropagation();
-        const rect = contenedor.getBoundingClientRect();
-        const centroX = rect.left + rect.width / 2;
-        const centroY = rect.top + rect.height / 2;
-        if (accion === 'mas') acercarEn(estado.escala * 1.5, centroX, centroY);
-        else if (accion === 'menos') acercarEn(estado.escala / 1.5, centroX, centroY);
-        else restablecer();
       });
     }
 

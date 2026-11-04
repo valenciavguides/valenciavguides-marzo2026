@@ -2330,7 +2330,7 @@ El spinner es el contenido inicial del elemento; cuando la función de carga asi
 
 | ID | Cuándo aparece | Elementos clave | Cómo se cierra |
 |----|----------------|-----------------|----------------|
-| `#mapa-vintage-overlay` | Al seleccionar aventura en P7 | `#mapa-vintage-img` (imagen del recorrido, con el zoom de `js/mapa-vintage-zoom.js`: botones − + ↺ arriba a la izquierda) + la ✗ en la esquina superior derecha (naranja con borde verde, como la ✗ común), las dos dentro de `#mapa-vintage-wrapper`. La capa lleva `z-index: 2147483647`, el mismo que FREE DEMO, y va después de todas las pantallas en el documento: a igual z-index se pinta encima lo que va después, así que la capa tapa FREE DEMO y MODO DEV/CASA (99999, ver §24) mientras está abierta, y la ✗ y los botones del zoom quedan libres | Clic o toque en la ✗ → `cerrarMapaVintage()` (definida en `En-busca-del-tesoro.html`, que es donde vive este overlay) → P8; los dos carteles se vuelven a ver |
+| `#mapa-vintage-overlay` | Al seleccionar aventura en P7 | `#mapa-vintage-img` (imagen del recorrido, con el zoom de `js/mapa-vintage-zoom.js`: pellizco, rueda y doble clic, sin botones) + la ✗ arriba a la derecha, a 12 px de las esquinas del marco (naranja con borde verde, como la ✗ común), las dos dentro de `#mapa-vintage-wrapper`. La capa lleva `z-index: 2147483647`, el mismo que FREE DEMO, y va después de todas las pantallas en el documento: a igual z-index se pinta encima lo que va después, así que la capa tapa FREE DEMO y MODO DEV/CASA (99999, ver §24) mientras está abierta, y la ✗ queda libre | Clic o toque en la ✗ → `cerrarMapaVintage()` (definida en `En-busca-del-tesoro.html`, que es donde vive este overlay) → P8; los dos carteles se vuelven a ver |
 | `#audio-warning-overlay` | Al confirmar en P9 una aventura que no tiene ningún audio en el idioma elegido (`tieneAudio` de `publico/audios/<idioma>/audios.json`) | `#audio-warning-text` + `#audio-warning-yes` (verde) / `#audio-warning-no` (rojo) | Click yes (continúa sin audio) / no (`rechazarSinAudio()` → `volverAElegirIdioma()`: `SELECCION.REINICIAR` al padre y P2) |
 | `#overlay-carga-aventura` | Al pulsar el botón de P17 (`iniciarAventura()`, arranque de aventura) | Logo giratorio (`animation: spin 7s linear infinite`) + `#carga-progreso-barra` + `#carga-progreso-porcentaje` + `#carga-progreso-frase` (frase rotativa, mismo banco que `#loading-overlay` del padre, ver "Frases aleatorias durante la espera") | Se oculta automáticamente cuando el padre confirma carga completa |
 
@@ -4917,7 +4917,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-ffe04e2d60fe'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c60a3cf8535a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7242,7 +7242,7 @@ La galería que muestra imágenes de cada parada en el overlay de `codigo-padre.
 
   La regla gana a las seis variantes de `@media` **por especificidad** (un id y dos clases), no por ir después: las media queries no suman especificidad. Sin `!important`.
 
-  Sin marco, el aspa quedaría pegada al borde — donde viven la muesca y la barra de estado —, así que se aparta con `var(--gap-superior)`.
+  **El aspa va contra la pantalla, no contra el contenedor** (`position: fixed`, a `calc(var(--gap-superior) + 12px)` de arriba y a 12 px de la derecha). El contenedor mide `100dvh` dentro de `.media-overlay`, que tiene relleno arriba (`--gap-superior`) y abajo (`--gap-inferior`): no cabe, se centra y empieza unos 13 px por encima de la pantalla (medido, spec 167, MA-2), así que un aspa colocada contra él saldría cortada por arriba. La capa ocupa la pantalla entera y su `transform` la hace bloque contenedor de lo fijo, así que el aspa queda por debajo de la muesca y de la barra de estado. El encaje del propio mapa en esa capa es distinto del de la selección, que lo encaja dentro del relleno (estudio, K-180).
 
 - **El recuadro interior del overlay de `En-busca-del-tesoro.html` mide `width:100%; height:100%` del overlay**, no `min(95vw, 92vmin)` (que sufriría el mismo problema de `vmin` al girar el móvil). **Al 100 % del overlay y no a `100dvh`** a propósito: ese overlay ya reserva la muesca y la barra inferior con su propio `padding`, y saltárselo metería el mapa debajo de ellas.
 - **Área de imagen:** `flex: 0 0 65%; height: 65%` — ocupa exactamente el 65 % de la ventana flotante.
@@ -7264,9 +7264,9 @@ La galería que muestra imágenes de cada parada en el overlay de `codigo-padre.
 | `AvFallas_Mapa.jpg` | 1755×2481 | Vertical | 1,2 MB |
 | `Av34km_Mapa.jpg` | 1241×1755 | Vertical, **dibujo horizontal girado** | 0,9 MB |
 
-Son los originales, los que enseña la aventura (protegidos: `PROTECTED_FILES`, §22.4); la demo gratis enseña la copia de cada uno, con el mismo nombre, en `publico/imagenes/mapas-vintage/` (§7.1). Dimensiones medidas del fichero, no supuestas, y sin etiqueta de orientación EXIF: el giro está en los propios píxeles. **Los siete son verticales**, para llenar la pantalla del móvil en vertical sin bandas: `Av1`, `Av2`, `Av5` y `Fallas` están dibujados así, y `Av3`, `Av4` y `Av34km` son dibujos horizontales girados 90° a la izquierda, con los textos de lado; el usuario gira el teléfono para leerlos (§19.7). El overlay llena la ventana y permite acercar y desplazar el mapa con pellizco/arrastre, rueda/doble clic o controles en pantalla.
+Son los originales, los que enseña la aventura (protegidos: `PROTECTED_FILES`, §22.4); la demo gratis enseña la copia de cada uno, con el mismo nombre, en `publico/imagenes/mapas-vintage/` (§7.1). Dimensiones medidas del fichero, no supuestas, y sin etiqueta de orientación EXIF: el giro está en los propios píxeles. **Los siete son verticales**, para llenar la pantalla del móvil en vertical sin bandas: `Av1`, `Av2`, `Av5` y `Fallas` están dibujados así, y `Av3`, `Av4` y `Av34km` son dibujos horizontales girados 90° a la izquierda, con los textos de lado; el usuario gira el teléfono para leerlos (§19.7). El overlay llena la ventana y permite acercar y desplazar el mapa con pellizco/arrastre y rueda/doble clic; no hay botones de zoom en pantalla, y el mapa no gira.
 
-**El zoom (`configurarZoomMapaVintage(contenedor, imagen)`, `js/mapa-vintage-zoom.js`)** lo usan los dos sitios que enseñan un mapa vintage: la galería del padre (`#galeria-wrapper`, cuando el mapa llega con `zoomable: true`) y la capa de la selección (`#mapa-vintage-wrapper`). Escucha en el contenedor: al pulsar, el contenedor se queda el puntero (`setPointerCapture`) para arrastrar la imagen —solo la mueve si está ampliada— o, con dos dedos, para el pellizco; la rueda acerca o aleja hacia el puntero, y el doble clic alterna entre 1× y 2×. La escala va de 1× a 6×. **Lo que se pulsa sobre un botón de dentro del contenedor es del botón, no del zoom** (`esDeUnBoton`, el único sitio que lo decide: `button`, `a` o el panel `.mapa-zoom-controles` entero): el contenedor no captura ese puntero ni el doble clic, y el `click` le llega al botón. La ✗ de la selección vive dentro del contenedor y depende de esto; la del padre va fuera, en `.media-contenedor`. Cubierto por `tests/e2e/163-la-x-del-mapa-antiguo-se-pulsa.spec.js`.
+**El zoom (`configurarZoomMapaVintage(contenedor, imagen)`, `js/mapa-vintage-zoom.js`)** lo usan los dos sitios que enseñan un mapa vintage: la galería del padre (`#galeria-wrapper`, cuando el mapa llega con `zoomable: true`) y la capa de la selección (`#mapa-vintage-wrapper`). Escucha en el contenedor: al pulsar, el contenedor se queda el puntero (`setPointerCapture`) para arrastrar la imagen —solo la mueve si está ampliada— o, con dos dedos, para el pellizco; la rueda acerca o aleja hacia el puntero, y el doble clic alterna entre 1× y 2×. La escala va de 1× a 6×. **Lo que se pulsa sobre un botón de dentro del contenedor es del botón, no del zoom** (`esDeUnBoton`, el único sitio que lo decide: `button` o `a`): el contenedor no captura ese puntero ni el doble clic, y el `click` le llega al botón. La ✗ de la selección vive dentro del contenedor y depende de esto; la del padre va fuera, en `.media-contenedor`. La transformación solo desplaza y escala (`translate3d` y `scale`): el mapa no gira. Cubierto por `tests/e2e/163-la-x-del-mapa-antiguo-se-pulsa.spec.js` y `tests/e2e/167-el-mapa-antiguo-sin-botones-y-con-su-x-entera.spec.js`.
 
 En el mapa de Aventura34km, las 41 fotos del núcleo más denso van ordenadas por referencia en una cuadrícula abajo a la izquierda: cinco filas de siete y una última de seis tarjetas más anchas. Las imágenes se tocan, sin huecos, y la cuadrícula lleva un marco naranja. Las fotos 25 y 26 quedan completas y visibles, fuera de la cuadrícula, sin que las cubran las imágenes 33 y 34. Un círculo naranja señala el centro urbano y queda por debajo de las tarjetas, los marcadores y la polilínea azul. Las demás fotos quedan junto a su marcador, en el hueco despejado más cercano. Las referencias 27/28 y 58/59 comparten imagen en `coordenadas-aventuras.js` y aparecen una sola vez con los números unidos; así se muestran 87 tarjetas para las 89 referencias. La tabla enlaza `Av34km_Mapa.jpg`.
 
@@ -8059,10 +8059,11 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `160-sin-reservas-ni-avances-solos.spec.js` | 3 | Un elemento solo queda listo para avanzar si se completa, y la aventura solo avanza con la pulsación (§29.4), medido con el padre, los hijos y el botón «avanzar» reales: un reto que no es de ningún elemento, sin elemento actual, no deja nada listo para avanzar (KR-1); si algo falla al completar el elemento por la cola de retos, la aventura no avanza sola (KR-2); y, de control, el reto de la parada la completa y enciende «avanzar» sin cambiar de elemento (KR-3) |
 | `161-el-cartel-de-los-5-km-manda-mientras-dura.spec.js` | 7 | El cartel del bloqueo de 5 km manda sobre las otras pantallas de distancia mientras dura el bloqueo (§31.4, §31.5), medido con el padre, los hijos y el bus reales, con lecturas que entran por la comprobación de los 5 km y por hijo2: bloqueado, la franja «muy lejos» que pide la lectura siguiente no lo tapa (CK-1); cerrado con su ✗, durante su tiempo de espera no sale ninguna pantalla de distancia (CK-2); pasado ese tiempo, la lectura siguiente lo vuelve a enseñar (CK-3); su imagen y su texto accesible hablan de la zona de la aventura, también cuando vuelve a salir (CK-4); el aviso de precisión no lo tapa, y sale al levantarse el bloqueo si la precisión sigue mala (CK-5); de control, sin bloqueo sale «muy lejos» (CK-6); y el único botón del cartel es su ✗ (CK-7) |
 | `162-ubicacion-respeta-el-descanso-de-las-pantallas.spec.js` | 3 | El botón de ubicación oculta las pantallas de distancia sin tocar sus tiempos de espera (§31.4), medido con el padre, los hijos, el bus y el botón de ubicación de hijo2 reales: «muy lejos», cerrada con su ✗, conserva su espera tras pulsar ubicación y la lectura siguiente no la trae (UD-1); lo mismo el cartel del bloqueo de 5 km (UD-2); y, de control, volver dentro del rango vacía las esperas y, al salir otra vez, «muy lejos» sale enseguida (UD-3) |
-| `163-la-x-del-mapa-antiguo-se-pulsa.spec.js` | 5 | La ✗ del mapa antiguo de la selección (§7.1, «3 overlays adicionales») se pulsa con pulsaciones de verdad, sin llamar a `cerrarMapaVintage()`: un clic de ratón a 1920×1080 cierra el mapa y lleva a P8 (MX-1), y un toque con el dedo a 390×844 también (MX-2); con FREE DEMO y MODO DEV/CASA a la vista, donde un cartel se cruza con la ✗ o con un botón del zoom, lo que se pinta arriba es el botón, y los dos cruces existen (MX-3; el cartel MODO DEV/CASA, §24, se enseña con `display: block`); de control, al cerrar los dos carteles se siguen viendo en P8 (MX-4), y «+» acerca el mapa y arrastrar la imagen ampliada la mueve (MX-5) |
+| `163-la-x-del-mapa-antiguo-se-pulsa.spec.js` | 5 | La ✗ del mapa antiguo de la selección (§7.1, «3 overlays adicionales») se pulsa con pulsaciones de verdad, sin llamar a `cerrarMapaVintage()`: un clic de ratón a 1920×1080 cierra el mapa y lleva a P8 (MX-1), y un toque con el dedo a 390×844 también (MX-2); con FREE DEMO y MODO DEV/CASA a la vista, nada tapa la ✗: en su centro y junto a sus cuatro bordes, lo que se pinta arriba es la ✗ (MX-3; el cartel MODO DEV/CASA, §24, se enseña con `display: block`); de control, al cerrar los dos carteles se siguen viendo en P8 (MX-4), y la rueda acerca el mapa y arrastrar la imagen ampliada la mueve (MX-5) |
 | `164-cada-x-cierra-lo-suyo.spec.js` | 18 | Cada ✗ que el usuario puede pulsar, pulsada de verdad con ratón y con dedo (§36.29), cierra lo que le toca: las capas del padre (galería, sin imágenes, vídeo sin dirección, vídeo abierto justo después de cerrar la de «sin vídeo», error, mapa completo, que se da de baja en el bus, y sin internet; EQ-1), los seis carteles con abridor (EQ-2), los recordatorios de audio, de saltar el audio y del reto y el aviso de progreso, con el reloj simulado (EQ-3a-d), la selección —el mapa antiguo y los «no» de P9, P13 y P3— (EQ-4), saltar la intro (EQ-5) y, con la aventura en marcha, el listado, el asistente y su modal —con el modal abierto, la ✗ de la cabecera queda debajo de su fondo—, la ficha de un monumento y el mapa completo, las seis pantallas de distancia, cada una con su descanso apuntado, y la de señal GPS, abierta cuando el vigilante del GPS ya ha dado su primera lectura, porque una lectura buena la quita sola (EQ-6). Antes de cada pulsación en el padre deja pasar 3 s, por el gesto de siete toques (§24), y en EQ-6 apaga los recordatorios, que salen por tiempo real y se pintan encima. El modal de tiempo agotado y las cuatro páginas de hijo1 los pulsan el 130 y el 134 |
 | `165-el-service-worker-no-deja-la-app-colgada.spec.js` | 14 | El Network First con plazo de `sw.js` (§19, «El plazo de la red, la copia guardada y la página «sin internet»»), con el worker en modo producción y la red controlada por `helpers/red-controlada.js`, en los cuatro navegadores: con la red cortada, con un 503 o un 404, o colgada, la recarga del padre sale de la copia guardada, la colgada al vencer el plazo de 5 s y no antes (SWR-1 a SWR-3); un hijo que se recarga con la red colgada sale de su copia (SWR-4); sin copia, una navegación con la red cortada, con un 503 o colgada recibe la página «sin internet» —su imagen y el botón 🌐🔄, sin texto— y el botón trae la página con la red de vuelta, también dentro del iframe de un hijo (SWR-5, SWR-6); sin copia, un 404 llega tal cual (SWR-7); la respuesta que llega después del plazo sustituye a la copia (SWR-8); un dato sin copia espera a la red pasado el plazo (SWR-9); y la página «sin internet» y su imagen están en `APP_SHELL` (SWR-10). SWR-0 comprueba el instrumento: el worker controla la página, corre en modo producción y sus peticiones pasan por el proxy. |
 | `166-una-sola-forma-de-pedir-un-dato.spec.js` | 10 | La forma única de pedir un dato (§16.1b, «Una sola forma de pedir un dato»), en los cuatro navegadores. Lo dice el código: los `fetch(` que quedan en la app, cada uno con su motivo; ningún `import()` de un módulo de datos fuera de `importarConReintentos()`, salvo el estático de Script 1; `data-loader.js` sin `import` estático y sin cliente propio; la validación en el servidor, solo en `ApiClient.validarReto()`; `ApiClient.getTextos`; el plazo y los reintentos solo en `js/utils.js` (PD-0). El núcleo reintenta el corte de red, el plazo vencido y un 5xx, no un 4xx ni un error de formato, dobla la espera, espera el `Retry-After` de un 429 y aborta la señal de cada intento vencido (PD-1). `fetchWithRetry()` reintenta el corte de red también en WebKit (PD-2), la petición que no contesta (PD-3), la respuesta cuyo cuerpo se queda a medias (PD-4, con `helpers/red-controlada.js`) y un 503, no un 404, y espera el `Retry-After` de un 429 (PD-5). `data-loader.js` reintenta el `import()` de un módulo con otra dirección (`_v`), y un fallo no queda recordado (PD-6, PD-6b); la selección recibe un reto de la demo al tercer intento (PD-7); y con servidor, `data-loader.js` pide por `ApiClient`, acepta la respuesta sin `exito` y trae los textos por `getTextos` (PD-8). |
+| `167-el-mapa-antiguo-sin-botones-y-con-su-x-entera.spec.js` | 6 | El mapa antiguo en sus dos sitios —el del padre a pantalla completa, que pide hijo2 (`NAVEGACION.MOSTRAR_MAPA_VINTAGE`), y el de la selección (`#mapa-vintage-overlay`)—, en vertical de móvil (390×844) y en 1920×1080: sin controles de zoom (MA-1), y la ✗ entera y a 8 px o más del borde de arriba de su capa —en el padre, por debajo de la muesca— y del de la derecha (MA-2); de control, la rueda acerca el mapa (MA-3), y la transformación solo desplaza y escala: el mapa no gira (MA-4). La rueda se da con un `WheelEvent` en la página, porque Playwright no la mueve en WebKit móvil. |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8587,7 +8588,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 161 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 162 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9102,7 +9103,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ffe04e2d60fe';
+const CACHE_VERSION = 'v-c60a3cf8535a';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12566,7 +12567,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-ffe04e2d60fe';
+const CACHE_VERSION = 'v-c60a3cf8535a';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14292,12 +14293,12 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_detenerRecordatorioSaltarAudio` | módulo 1 (L8278) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L3929) | módulo 2 | estado |
 | `_entradaDeCoordenadas` | módulo 1 (L3695) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8247) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8263) | módulo 2 | función/objeto |
 | `_iniciarRecordatorioReto` | módulo 1 (L8457) | módulo 2 | función/objeto |
 | `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8349) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8253) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8465) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8127) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8269) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8481) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8143) | módulo 2 | función/objeto |
 | `_ocultarCualquierCartel` | módulo 1 (L7707) | módulo 2 | función/objeto |
 | `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5765) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3754) | módulo 2 | función/objeto |
@@ -14316,10 +14317,10 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `idiomaSeleccionado` | módulo 1 (L4862) | clásico 5, clásico 7, módulo 2 | estado |
 | `limpiarDatosAventura` | módulo 1 (L2803) | módulo 2 | función/objeto |
 | `MODOS` | módulo 1 (L3747) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L7858) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L7874) | módulo 2 | función/objeto |
 | `mostrarCartelTransicion` | módulo 1 (L7782) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L7633) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L7676) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L7649) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L7692) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4139) | módulo 2 | función/objeto |
 | `registrarControladorSeguro` | módulo 1 (L4950) | módulo 2, módulo 4 | función/objeto |
 | `registrarEvento` | módulo 1 (L4977) | módulo 2 | función/objeto |
@@ -14337,26 +14338,26 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TIPOS_MENSAJE` | módulo 1 (L3746) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3907) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2782) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13134) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9450) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12190) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13116) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11213) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L11854) | módulo 1 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13151) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9466) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12207) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13133) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11230) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L11871) | módulo 1 | función/objeto |
 | `_reenviarProgressBarAHijo3` | módulo 2 (L9389) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L10560) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10577) | módulo 1 | función/objeto |
 | `_sincronizarAvanzar` | módulo 2 (L10683) | módulo 1 | función/objeto |
 | `_sincronizarRetoBtn` | módulo 2 (L10622) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L10584) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L10601) | módulo 1 | función/objeto |
 | `_verificarCodigoDevPWA` | módulo 2 (L11884) | módulo 5 | función/objeto |
 | `_vv_afterHijoListo` | módulo 2 (L8634) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9384) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9400) | módulo 1 | función/objeto |
 | `AVENTURA_PARADAS` | módulo 2 (L8766) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L8807) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12115) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L8823) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12132) | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 (L9262) | módulo 1 | función/objeto |
 | `solicitarAudioAHijo3` | módulo 2 (L9254) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13150) | módulo 2 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13167) | módulo 2 | función/objeto |
 
 </details>
 
@@ -14366,11 +14367,11 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
 | `_devCasaMode` | clásico 3 (L1126) | módulo 1 | estado |
-| `_resetearFlagsContenido` | clásico 3 (L2584) | módulo 1 | función/objeto |
-| `continuarTrasElegirAventura` | clásico 3 (L2605) | módulo 1 | función/objeto |
-| `_pintarTarjetasDeAventura` | módulo 1 (L2973) | clásico 3 | función/objeto |
+| `_resetearFlagsContenido` | clásico 3 (L2597) | módulo 1 | función/objeto |
+| `continuarTrasElegirAventura` | clásico 3 (L2618) | módulo 1 | función/objeto |
+| `_pintarTarjetasDeAventura` | módulo 1 (L2986) | clásico 3 | función/objeto |
 | `enviarValoracion` | módulo 1 (L2632) | clásico 3 | función/objeto |
-| `seleccionarAventura` | módulo 1 (L2999) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 1 (L3012) | clásico 3 | función/objeto |
 | `TEXTOS_VALORACION` | módulo 1 (L2630) | clásico 3 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L2671) | clásico 3 | función/objeto |
 | `TRADUCCIONES_ACCESO_ERRONEO` | módulo 1 (L2629) | clásico 3 | función/objeto |

@@ -7,8 +7,8 @@
  * (`js/mapa-vintage-zoom.js`): al pulsar dentro, el contenedor se queda el puntero para arrastrar la imagen. La ✗ está
  * dentro de ese contenedor, y un botón de dentro tiene que llevarse su clic: si el zoom le captura el puntero, el clic
  * llega al contenedor y la ✗ no cierra nada. Y la capa del mapa va por encima de los dos carteles de la selección (decisión
- * del usuario): con ellos encima, el de MODO DEV/CASA tapaba la esquina de la ✗ en las pantallas sin muesca, y FREE DEMO
- * la mitad de arriba de los botones del zoom.
+ * del usuario): con ellos encima, el de MODO DEV/CASA tapaba la esquina de la ✗ en las pantallas sin muesca. El mapa no
+ * tiene botones de zoom: se acerca con los dedos, la rueda o el doble clic (spec 167).
  *
  * Todo con pulsaciones de verdad (ratón y dedo), nunca llamando a `cerrarMapaVintage()`: los specs que llaman a la
  * función no ven lo que se come el clic. El cartel MODO DEV/CASA es del modo de desarrollo (guía §24): aquí se enseña
@@ -16,11 +16,10 @@
  *
  *   MX-1  Ratón, 1920×1080: un clic en la ✗ cierra el mapa y la selección pasa a P8.
  *   MX-2  Dedo, 390×844: un toque en la ✗ hace lo mismo.
- *   MX-3  Con FREE DEMO y MODO DEV/CASA a la vista, la ✗ y los botones del zoom se pintan encima de ellos: donde un cartel
- *         se cruza con uno de esos botones, lo que hay arriba es el botón. Los dos casos existen: MODO DEV/CASA se cruza con
- *         la ✗, y FREE DEMO con los botones del zoom.
+ *   MX-3  Con FREE DEMO y MODO DEV/CASA a la vista, nada tapa la ✗: en su centro y junto a sus cuatro bordes, lo que se
+ *         pinta arriba es la ✗.
  *   MX-4  Control: al cerrar el mapa, los dos carteles se siguen viendo en P8.
- *   MX-5  Control: el zoom sigue: «+» acerca el mapa y arrastrar la imagen ampliada la mueve.
+ *   MX-5  Control: el zoom sigue: la rueda acerca el mapa y arrastrar la imagen ampliada la mueve.
  *
  * ROJO ANTES QUE VERDE: con el zoom que capturaba el puntero en cualquier punto del mapa cae MX-1 (el clic llega al
  * contenedor y la ✗ no cierra); con la capa por debajo de los carteles cae MX-3. MX-2 pasa también con el zoom que
@@ -90,37 +89,29 @@ test.describe('MX — la ✗ del mapa antiguo de la selección', () => {
     });
   });
 
-  test('MX-3. Con los dos carteles a la vista, la ✗ y los botones del zoom se pintan encima de ellos', async ({ page }) => {
+  test('MX-3. Con los dos carteles a la vista, nada tapa la ✗', async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 1920, height: 1080 });
     const f = await abrirMapaAntiguo(page, { dev: true });
-    const cruces = await f.evaluate((equis) => {
+    const vista = await f.evaluate((equis) => {
       const visible = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).display !== 'none'; };
       const carteles = [...document.querySelectorAll('.free-demo, #_dev-badge')].filter(visible);
-      const botones = [document.querySelector(equis), ...document.querySelectorAll('.mapa-zoom-controles button')];
-      const res = [];
-      for (const b of botones) {
-        const rb = b.getBoundingClientRect();
-        for (const c of carteles) {
-          const rc = c.getBoundingClientRect();
-          const x1 = Math.max(rb.left, rc.left), y1 = Math.max(rb.top, rc.top);
-          const x2 = Math.min(rb.right, rc.right), y2 = Math.min(rb.bottom, rc.bottom);
-          if (x2 <= x1 || y2 <= y1) continue;
-          // Con `pointer-events: none` (el de los carteles) `elementFromPoint` no los ve: se les quita un instante para
-          // preguntar quién se pinta arriba.
-          const antes = c.style.pointerEvents;
-          c.style.setProperty('pointer-events', 'auto', 'important');
-          const arriba = document.elementFromPoint((x1 + x2) / 2, (y1 + y2) / 2);
-          c.style.pointerEvents = antes;
-          res.push({ boton: b.getAttribute('title') || b.textContent.trim(), cartel: c.id || c.className, botonArriba: !!arriba && b.contains(arriba) });
-        }
-      }
-      return { carteles: carteles.map((c) => c.id || c.className), res };
+      // Con `pointer-events: none` (el de los carteles) `elementFromPoint` no los ve: se les quita un instante para
+      // preguntar quién se pinta arriba.
+      const antes = carteles.map((c) => c.style.pointerEvents);
+      for (const c of carteles) c.style.setProperty('pointer-events', 'auto', 'important');
+      const b = document.querySelector(equis);
+      const r = b.getBoundingClientRect();
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      // El centro y cuatro puntos junto al borde, dentro del círculo.
+      const puntos = [[cx, cy], [r.left + 6, cy], [r.right - 6, cy], [cx, r.top + 6], [cx, r.bottom - 6]];
+      const encima = puntos.map(([x, y]) => document.elementFromPoint(x, y))
+        .filter((e) => !e || !b.contains(e)).map((e) => (e ? e.id || e.className || e.tagName : 'nada'));
+      carteles.forEach((c, i) => { c.style.pointerEvents = antes[i]; });
+      return { carteles: carteles.map((c) => c.id || c.className), encima };
     }, EQUIS);
-    expect(cruces.carteles, 'los dos carteles a la vista').toEqual(expect.arrayContaining(['free-demo', '_dev-badge']));
-    expect(cruces.res.some((r) => r.boton === 'Cerrar mapa' && r.cartel === '_dev-badge'), 'el cartel MODO DEV/CASA se cruza con la ✗').toBe(true);
-    expect(cruces.res.some((r) => r.cartel === 'free-demo'), 'FREE DEMO se cruza con los botones del zoom').toBe(true);
-    for (const r of cruces.res) expect(r.botonArriba, `«${r.boton}» bajo «${r.cartel}»`).toBe(true);
+    expect(vista.carteles, 'los dos carteles a la vista').toEqual(expect.arrayContaining(['free-demo', '_dev-badge']));
+    expect(vista.encima, 'lo que se pinta encima de la ✗').toEqual([]);
   });
 
   test('MX-4. Control: al cerrar el mapa, los dos carteles se siguen viendo en P8', async ({ page }) => {
@@ -136,17 +127,23 @@ test.describe('MX — la ✗ del mapa antiguo de la selección', () => {
     expect(vistos).toEqual({ freeDemo: true, dev: true });
   });
 
-  test('MX-5. Control: «+» acerca el mapa y arrastrar la imagen ampliada la mueve', async ({ page }) => {
+  test('MX-5. Control: la rueda acerca el mapa y arrastrar la imagen ampliada la mueve', async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 1920, height: 1080 });
     const f = await abrirMapaAntiguo(page);
     const marco = page.frameLocator('#seleccion');
-    await marco.locator('.mapa-zoom-controles button[data-zoom="mas"]').click();
-    await expect.poll(() => f.evaluate(() => document.getElementById('mapa-vintage-wrapper').dataset.zoom), { timeout: 5_000 }).toBe('150%');
-    const transformada = () => f.evaluate(() => document.getElementById('mapa-vintage-img').style.transform);
-    const antes = await transformada();
     const caja = await marco.locator('#mapa-vintage-img').boundingBox();
     const cx = caja.x + caja.width / 2, cy = caja.y + caja.height / 2;
+    // La rueda, con un WheelEvent en la propia página: Playwright no mueve la rueda en WebKit móvil (iphone12), y el zoom
+    // solo lee del evento `deltaY` y el punto.
+    await f.evaluate(() => {
+      const img = document.getElementById('mapa-vintage-img');
+      const r = img.getBoundingClientRect();
+      img.dispatchEvent(new WheelEvent('wheel', { deltaY: -100, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, bubbles: true, cancelable: true }));
+    });
+    await expect.poll(() => f.evaluate(() => document.getElementById('mapa-vintage-wrapper').dataset.zoom), { timeout: 5_000 }).toBe('120%');
+    const transformada = () => f.evaluate(() => document.getElementById('mapa-vintage-img').style.transform);
+    const antes = await transformada();
     await page.mouse.move(cx, cy);
     await page.mouse.down();
     await page.mouse.move(cx + 120, cy + 60, { steps: 6 });

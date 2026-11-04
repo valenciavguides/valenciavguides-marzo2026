@@ -719,6 +719,13 @@
       margin-bottom: var(--gap-inferior);
       padding-bottom: var(--gap-inferior);
     }
+
+    /* La ✗ del mapa antiguo, a 12 px de las esquinas de su marco, igual que la del mapa antiguo del padre: en la esquina
+       justa queda pegada al borde, y el marco (`overflow: hidden`) la recorta en cuanto crece al tocarla (spec 167). */
+    #mapa-vintage-wrapper > .btn-cerrar-overlay {
+      top: 12px;
+      right: 12px;
+    }
   </style>
 </head>
 <body>

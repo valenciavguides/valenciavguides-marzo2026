@@ -4253,6 +4253,15 @@ Salió al tratar K-53 + K-60 con el usuario («que cargue sí o sí»). Su objec
 - **Pendiente: decisión** (antes del backend). Una sola respuesta para toda la app, y qué hacer cuando la pregunta falla: reintentarla, no fijar el modo con un fallo, o preguntárselo al padre.
 - **Relacionado.** K-175, K-178, M1.
 
+##### K-180 — El mapa antiguo a pantalla completa tiene dos encajes: el padre lo hace de `100dvh` dentro de una capa con relleno, la selección lo encaja dentro del relleno — ✅ (leído; el desfase del padre, medido)
+
+- **Cómo salió.** El usuario, probando en su Android (2026-11-03): la ✗ del mapa antiguo, «muy arriba y parcialmente fuera de la pantalla». El spec 167 lo midió: en el padre, la ✗ estaba 13 px por encima del borde (en 390×844 y en 1920×1080).
+- **Dónde.** Padre: `.media-overlay` (`codigo-padre.html`) lleva `padding: var(--gap-superior) 0 var(--gap-inferior) 0` y centra lo que tiene dentro, y `#imagen-overlay .media-contenedor.mapa-a-pantalla-completa` mide `100dvh`: no cabe, se centra y empieza unos 13 px por encima de la pantalla (la ✗, a `top: var(--gap-superior)` del contenedor con el hueco de arriba a 0, salía a −13 px). Por lo leído, deja abajo una franja de la capa del mismo tamaño. Selección: `#mapa-vintage-overlay` lleva el mismo relleno y `#mapa-vintage-wrapper` va al 100 % de él, a propósito (su comentario: «el overlay ya reserva la muesca y la barra inferior con su propio padding, y saltarselo metería el mapa debajo»): el mapa queda entre las dos zonas del sistema, con una franja abajo del tamaño de `--gap-inferior`.
+- **Lo que no cuadra.** La misma pregunta —¿el mapa a pantalla completa ocupa también la zona de la muesca y la de la barra de abajo?— con dos respuestas, y la del padre a medias: ni ocupa la pantalla entera ni respeta las zonas.
+- **Hecho ya, en el mismo commit que esta entrada (no depende de esta decisión):** la ✗ del padre va contra la pantalla (`position: fixed`, a `calc(var(--gap-superior) + 12px)` y 12 px), y la de la selección a 12 px de las esquinas de su marco; los botones de zoom −, + y ↺ fuera, en los dos sitios (decisión del usuario). Spec 167.
+- **Pendiente: decisión.** *A)* los dos como la selección: el mapa dentro del relleno, con una franja abajo del tamaño de la barra del sistema; *B)* los dos a pantalla entera de verdad (`inset: 0`): el mapa también bajo la muesca y la barra de abajo, que es lo que buscaba el usuario al pedir los mapas en vertical, «para que la imagen ocupe toda la pantalla sin las bandas negras»; *C)* dejarlo.
+- **Relacionado.** §7.1 y §14 de la guía (el mapa antiguo); K-178 no.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -4993,6 +5002,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 171 | 2 | K-177 | un solo parámetro, `_v`, para pedir otra vez a la red, fuera de la clave de las dos ramas del SW, o dejarlo | GUÍA | K-176 (blanda: `sw.js`) | decisión |
 | 172 | 3 | K-178 | las rendiciones de la selección y de video-intro, por el sitio único de K-176 (sin mensajes que no son, sin textos sin traducir, sin saltarse pantallas y sin pantallas sin salida: P6, P8, P10, P11 y P16 no la tienen, medido en chromium) | VISIBLE, SPEC, GUÍA | K-176 (dura), K-175 (blanda) | decisión |
 | 173 | 3 | K-179 | una sola decisión del modo de datos para toda la app, que no se quede en `'local'` por un fallo de la pregunta | GUÍA | M1, K-175 (blandas) | decisión |
+| 174 | 2 | K-180 | un solo encaje del mapa antiguo a pantalla completa (dentro del relleno, o la pantalla entera) | VISIBLE, GUÍA | — | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |

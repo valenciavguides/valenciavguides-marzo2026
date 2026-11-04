@@ -1147,10 +1147,15 @@
             box-shadow: none;
         }
 
-        /* Sin marco, el aspa se pega al borde — y ahí viven la muesca y la barra de estado. */
+        /* Sin marco, el aspa va contra la PANTALLA, no contra el contenedor: el contenedor mide 100dvh dentro de una capa que
+           tiene relleno arriba y abajo (`padding` de `.media-overlay`), así que no cabe, se centra y empieza unos 13 px por
+           encima de la pantalla (medido, spec 167). Con `top` contra él, el aspa salía cortada por arriba, como se vio en un
+           Android. `position: fixed` la coloca contra la capa, que ocupa la pantalla entera (su `transform` la hace bloque
+           contenedor), a 12 px de las esquinas y por debajo de la muesca y la barra de estado. */
         #imagen-overlay .media-contenedor.mapa-a-pantalla-completa .btn-cerrar-overlay {
-            top: var(--gap-superior);
-            right: 0.5rem;
+            position: fixed;
+            top: calc(var(--gap-superior) + 12px);
+            right: 12px;
         }
 
         /* ── Botón chat soporte (hijo6) ── */
