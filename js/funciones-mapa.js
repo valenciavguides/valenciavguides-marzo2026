@@ -227,9 +227,8 @@ function _calcularLongitudRealTramo(elemento) {
 /**
  * Reinicia el acumulador de distancia recorrida cuando el tramo activo cambia de verdad.
  * Compara contra estadoMapa._tramoDeRecorrido (propio), nunca contra estadoMapa.tramoActual
- * — ese último lo pone a null limpiarRecursosInactivos() tras un rato de inactividad
- * (pantalla apagada, app en segundo plano), y reiniciar ahí borraría progreso de caminata
- * real de un usuario que sigue genuinamente en el mismo tramo.
+ * — ese último lo pone a null limpiarPorEstado() en cada cambio de modo, y reiniciar ahí
+ * borraría progreso de caminata real de un usuario que sigue en el mismo tramo.
  * @param {string|null} tramoId - id del tramo activo, o null si no hay tramo activo
  */
 function _resetDistanciaRecorridaSiNuevoTramo(tramoId) {
@@ -366,7 +365,6 @@ function _acumularDistanciaRecorrida(lat, lng, accuracy, distanciaExigida) {
     estadoMapa._saltoPendienteRecorrido = null;
 }
 
-import { esMovil } from './device-detection.js';
 
 // Estado del módulo
 let marcadoresParadas = new Map();
@@ -401,8 +399,8 @@ const estadoMapa = {
     // Distancia real recorrida durante el tramo activo — segundo requisito para confirmar
     // llegada, además de la proximidad al destino (ver _acumularDistanciaRecorrida). Se
     // compara contra el id propio (_tramoDeRecorrido), no contra tramoActual — este último
-    // lo pone a null limpiarRecursosInactivos() sin que eso deba borrar progreso real de
-    // caminata ya acumulado.
+    // lo pone a null limpiarPorEstado() en cada cambio de modo, sin que eso deba borrar
+    // progreso real de caminata ya acumulado.
     _distanciaRecorridaTramo: 0,
     _ultimaPosParaRecorrido: null, // {lat,lng} de la última lectura contabilizada
     _tramoDeRecorrido: null,       // id del tramo al que pertenece _distanciaRecorridaTramo
@@ -1106,65 +1104,6 @@ function sincronizarEstadoGPSConPadre() {
     }
 }
 
-// Implementar limpieza automática cuando la página está oculta
-let ultimaActividad = Date.now();
-let intervaloLimpiezaAutomatica;
-
-function actualizarUltimaActividad() {
-    ultimaActividad = Date.now();
-}
-
-function limpiarRecursosInactivos() {
-    const tiempoInactivo = Date.now() - ultimaActividad;
-
-    // More aggressive timeout for mobile
-    const tiempoLimite = esMovil() ? 120000 : 300000; // 2 min móvil, 5 min desktop
-
-    if (tiempoInactivo > tiempoLimite) {
-        if (esMovil()) {
-            logger.debug('Aplicación móvil inactiva detectada, limpiando recursos agresivamente');
-        } else {
-            logger.info('Aplicación inactiva detectada, limpiando recursos del mapa');
-        }
-
-        limpiarRecursos();
-
-        // Limpiar estado del mapa para ahorrar memoria
-        estadoMapa.posicionUsuario = null;
-        estadoMapa.paradaActual = null;
-        estadoMapa.tramoActual = null;
-
-        // Additional cleanup for mobile
-        if (esMovil() && _mapaInstance) {
-            // Clear any cached markers or routes
-            marcadoresParadas.clear();
-            marcadorDestino = null;
-            rutasTramos = [];
-            rutasActivas = [];
-            marcadorUsuario = null;
-        }
-    }
-}
-
-// Configurar listeners de actividad (guardamos referencias para poder limpiarlos)
-let _eventosActividadRegistrados = [];
-
-if (typeof document !== 'undefined') {
-    // Reduce event listeners for mobile (only essential ones)
-    const eventosActividad = esMovil()
-        ? ['touchstart', 'click'] // Only touch and click for mobile
-        : ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-
-    eventosActividad.forEach(evento => {
-        document.addEventListener(evento, actualizarUltimaActividad, { passive: true });
-        _eventosActividadRegistrados.push(evento);
-    });
-
-    // Configurar limpieza automática: intervalo siempre menor que el umbral de inactividad
-    const intervaloLimpiezaMs = esMovil() ? 60000 : 120000; // 1 min móvil, 2 min desktop
-    intervaloLimpiezaAutomatica = setInterval(limpiarRecursosInactivos, intervaloLimpiezaMs);
-}
-
 /**
  * Inicializa el servicio del mapa.
  * @param {Object} mapaInstance - Instancia del mapa de MapLibre GL.
@@ -1392,18 +1331,6 @@ export function limpiarRecursos() {
         // que barrerla si hiciera falta.
 
         logger.debug('Recursos del mapa limpiados completamente');
-
-        // Limpiar listeners globales de actividad para evitar memory leak
-        _eventosActividadRegistrados.forEach(evento => {
-            document.removeEventListener(evento, actualizarUltimaActividad);
-        });
-        _eventosActividadRegistrados = [];
-
-        // Limpiar intervalo de limpieza automática
-        if (intervaloLimpiezaAutomatica) {
-            clearInterval(intervaloLimpiezaAutomatica);
-            intervaloLimpiezaAutomatica = null;
-        }
 
         // Resetear el estado del mapa. El del sensor no entra aqui, a proposito, ni vive en
         // estadoMapa (es del padre, K-122): esta funcion no apaga el sensor —no puede, `watchId`
@@ -2845,8 +2772,8 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // llegada (además de distancia al destino, ver más abajo). Se calcula en cada
         // lectura GPS, sea cual sea el modo (igual que el resto de esta función) — se
         // reinicia solo cuando el tramo activo cambia de verdad, nunca por
-        // limpiarRecursosInactivos(), que pone tramoActual a null sin que eso signifique
-        // abandono real del tramo.
+        // limpiarPorEstado(), que pone tramoActual a null en cada cambio de modo sin que eso
+        // signifique abandono real del tramo.
         const esTramoActivo = siguienteParada.tipo === 'tramo';
         _resetDistanciaRecorridaSiNuevoTramo(esTramoActivo ? derivedParadaId : null);
         // La longitud se calcula ANTES de acumular: el acumulador necesita saber cuánta
@@ -3143,12 +3070,6 @@ if (globalThis.window !== undefined) {
             Object.keys(estadoMapa).forEach(key => {
                 estadoMapa[key] = null;
             });
-
-            // Limpiar listeners de actividad
-            if (intervaloLimpiezaAutomatica) {
-                clearInterval(intervaloLimpiezaAutomatica);
-                intervaloLimpiezaAutomatica = null;
-            }
 
             logger.info('Limpieza agresiva de globales del mapa completada');
         } catch (error) {

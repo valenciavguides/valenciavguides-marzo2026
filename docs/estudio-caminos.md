@@ -5073,7 +5073,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 177 | 3 | K-183 | el cartel «Ha llegado» una vez por elemento, aunque se vaya a CASA y se vuelva, o dejarlo | VISIBLE, SPEC | K-182 (blanda) | decisión |
 | 178 | 3 | K-184 | «Ha vuelto a su aventura» solo si ya estuvo en rango de ese elemento, o dejarlo | VISIBLE, SPEC, GUÍA | — | decisión |
 | 179 | 4 | K-185 | el audio apagado hasta la llegada (la gracia, solo después) o «dentro de rango» con la ventana de la llegada, o las dos; y la ayuda de hijo6 en 12 idiomas | VISIBLE, SPEC, GUÍA | K-168, K-182 (blandas) | decisión |
-| 180 | 2 | K-186 | fuera la limpieza de recursos inactivos del mapa, con sus escuchas y su intervalo, o dejarla | GUÍA | — | decisión |
+| 180 | 2 | K-186 | fuera la limpieza de recursos inactivos del mapa, con sus escuchas y su intervalo, o dejarla — **hecha (2026-11-04, decisión del usuario): fuera, con sus escuchas, su intervalo, el import de `esMovil` y los comentarios y la frase de la guía (§11) que la citaban** | GUÍA | — | sí |
 | 181 | 2 | K-187 | una comprobación de las rutas de imagen contra los nombres de git, o dejarlo | — | — | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |

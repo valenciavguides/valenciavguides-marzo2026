@@ -4917,7 +4917,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c60a3cf8535a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-899dbe3e1de3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6577,7 +6577,7 @@ Solo puede afectar a tramos cortos, y es demostrable: lo exigido es el 40 % de l
 
 **Un salto imposible re-ancla la referencia, sin contar.** Si el desplazamiento supera los 150 m de `SALTO_MAXIMO_PLAUSIBLE`, no se suma nada pero la referencia **sí** se mueve hasta la lectura nueva. Es imprescindible: sin ese re-anclaje, un hueco de señal más largo que ese techo —el móvil en el bolsillo, un callejón sin cobertura— dejaría la referencia atrás para siempre, porque toda lectura posterior estaría también a más de 150 m de ella y ninguna volvería a contar nunca. Medido sobre Av4-TR-15, el tramo más largo del proyecto (1917 m, exige 767 m), andado entero a paso humano: sin re-anclar, un corte de 200 m o de 400 m da **0 llegadas**; con re-anclaje, los dos completan. Afecta a los **70 tramos de más de 375 m**, los únicos donde un corte así cabe dentro del 40 % exigido. Re-anclar no puede regalar distancia, porque nunca suma: un glitch que salta lejos y vuelve re-ancla dos veces y no acumula nada.
 
-**Reinicio del contador.** Reinicia las tres variables a la vez (`_distanciaRecorridaTramo` a 0, `_ultimaPosParaRecorrido` y `_saltoPendienteRecorrido` a `null`) y solo cuando el tramo activo cambia de verdad — comparando contra `estadoMapa._tramoDeRecorrido` (id propio del contador), nunca contra `estadoMapa.tramoActual`. Esa distinción importa: `limpiarRecursosInactivos()` pone `tramoActual` a `null` tras un rato de inactividad (pantalla apagada, app en segundo plano) sin que eso signifique que el usuario abandonó el tramo — resetear ahí borraría progreso de caminata real. Como `procesarPosicionGPSParaAventura()` resuelve el elemento activo fresco en cada lectura GPS (vía `_siguienteIdElementoNavegable()`, basado en `estadoMapa.paradaActual`), el reinicio ocurre solo, sin necesitar enganches explícitos en `completarCambioParada()` ni en `limpiarPorEstado()` — la siguiente lectura GPS tras cualquier cambio real de elemento ya lo detecta.
+**Reinicio del contador.** Reinicia las tres variables a la vez (`_distanciaRecorridaTramo` a 0, `_ultimaPosParaRecorrido` y `_saltoPendienteRecorrido` a `null`) y solo cuando el tramo activo cambia de verdad — comparando contra `estadoMapa._tramoDeRecorrido` (id propio del contador), nunca contra `estadoMapa.tramoActual`. Esa distinción importa: `limpiarPorEstado()` pone `tramoActual` a `null` en cada cambio de modo sin que eso signifique que el usuario abandona el tramo — resetear ahí borraría progreso de caminata real. Como `procesarPosicionGPSParaAventura()` resuelve el elemento activo fresco en cada lectura GPS (vía `_siguienteIdElementoNavegable()`, basado en `estadoMapa.paradaActual`), el reinicio ocurre solo, sin necesitar enganches explícitos en `completarCambioParada()` ni en `limpiarPorEstado()` — la siguiente lectura GPS tras cualquier cambio real de elemento ya lo detecta.
 
 **La distancia recorrida no persiste al cerrar y reabrir la PWA, y es deliberado.** El payload de `vv_progreso` (`persistProgressState()`) guarda `indiceProgreso`, `elementoActualId`, `totalParadas`, `tiempoRestante`, `tramoSkipsUsados`, la ficha del elemento actual (`ficha`: llegada, audio y reto, §25.10), aventura e idioma — **y no la distancia recorrida**. `estadoMapa` es estado de módulo, así que muere con la página. Al reabrir en mitad de un tramo se restauran el elemento activo, los saltos de seguridad ya gastados y lo hecho en el tramo (su audio terminado sigue terminado), pero los metros andados vuelven a 0: hay que volver a cubrir el 40 %.
 
@@ -9103,7 +9103,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c60a3cf8535a';
+const CACHE_VERSION = 'v-899dbe3e1de3';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12567,7 +12567,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-c60a3cf8535a';
+const CACHE_VERSION = 'v-899dbe3e1de3';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
