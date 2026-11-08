@@ -4917,7 +4917,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-9d59ab182757'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-b471663ebb26'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -9106,7 +9106,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-9d59ab182757';
+const CACHE_VERSION = 'v-b471663ebb26';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12573,7 +12573,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-9d59ab182757';
+const CACHE_VERSION = 'v-b471663ebb26';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
