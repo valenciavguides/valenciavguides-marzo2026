@@ -94,7 +94,10 @@ async function enviarLectura(page, coords) {
   }, coords);
 }
 
+// Antes de mirar se espera lo que puede esperar el cartel a que el audio se pueda pulsar (hasta 2 s, K-188): sin eso, un
+// «no ha salido» pasaría también con un cartel que sale un momento después.
 async function estadoCarteles(page) {
+  await page.waitForTimeout(2_500); // VENTANA-OBSERVACION: la espera máxima del cartel al audio, y margen
   return page.evaluate(() => ({
     tramo: !!document.getElementById('cartel-bienvenida-tramo'),
     parada: !!document.getElementById('cartel-bienvenida-parada'),

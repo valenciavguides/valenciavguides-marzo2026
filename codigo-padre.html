@@ -7721,6 +7721,55 @@ await _comprobarReanudacionAventura(logPrefix);
         // ha llegado, y el cartel que haya a la vista se cierra (docs/estudio-caminos.md, K-118).
         globalThis._ocultarCualquierCartel = _ocultarCualquierCartel;
 
+        // Lo que pide hacer un cartel: solo lo que el usuario puede pulsar en ese momento, la misma regla que siguen los
+        // recordatorios (docs/estudio-caminos.md, K-188). Una sola función para los cinco carteles de «algo acaba de pasar»:
+        //   · «avanzar», si lo enciende el sitio único que lo decide (_decidirAvanzar, Script 2);
+        //   · el audio: play si su botón está encendido, ⏩ si lo que hay a la vista es saltar (el fichero no está grabado),
+        //     nada si no se puede pulsar ninguno (los decide actualizarEstadoControlesAudioPadre, Script 2). Al llegar, el
+        //     audio se enciende un momento después que el cartel (hijo2 confirma la llegada por su cuenta): si todavía no se
+        //     puede pulsar, se espera hasta _ESPERA_MAX_AUDIO_CARTEL_MS a que se pueda;
+        //   · seguir la línea azul, en los carteles de un tramo.
+        // Devuelve los iconos y la frase, que es una frase completa por combinación (TRADUCCIONES_QUE_HACER_AHORA). Sin nada
+        // que pulsar, ni iconos ni frase: el cartel dice solo lo que ha pasado.
+        const _ESPERA_MAX_AUDIO_CARTEL_MS = 2000;
+        const _ICONOS_DE_ACCION = { avanzar: 'fotoruta-A-B.png', play: 'boton-audio-central.png', saltar: 'boton-audio-avanzar.png' };
+        let _avisadoSinDecidirAvanzar = false;
+        function _controlDeAudioQueSePuedePulsar() {
+            if (document.getElementById('audio-main-toggle-btn')?.disabled === false) return 'play';
+            if (document.getElementById('audio-control-overlay')?.classList.contains('mostrar-saltar-audio')) return 'saltar';
+            return null;
+        }
+        async function _accionesDelCartel({ conAudio = true, lineaAzul = false } = {}) {
+            let audio = null;
+            if (conAudio) {
+                const limite = Date.now() + _ESPERA_MAX_AUDIO_CARTEL_MS;
+                audio = _controlDeAudioQueSePuedePulsar();
+                while (!audio && Date.now() < limite) {
+                    await sleep(100);
+                    audio = _controlDeAudioQueSePuedePulsar();
+                }
+            }
+            let avanzar = false;
+            if (typeof globalThis._decidirAvanzar === 'function') {
+                avanzar = globalThis._decidirAvanzar().habilitar === true;
+            } else if (!_avisadoSinDecidirAvanzar) {
+                _avisadoSinDecidirAvanzar = true;
+                (globalThis.logger || console).error('[PADRE][CARTEL] _decidirAvanzar (Script 2) no disponible: los carteles no piden pulsar avanzar');
+            }
+            const clave = `${avanzar ? 'A' : ''}${audio === 'play' ? 'P' : ''}${audio === 'saltar' ? 'S' : ''}${lineaAzul ? 'L' : ''}`;
+            if (!clave) return { iconos: '', frase: '' };
+            const { TRADUCCIONES_QUE_HACER_AHORA } = await import('./js/traducciones-ui.js');
+            const frase = TRADUCCIONES_QUE_HACER_AHORA?.[globalThis.idiomaSeleccionado]?.[clave];
+            if (!frase) {
+                (globalThis.logger || console).warn(`[PADRE][CARTEL] Sin la frase «${clave}» en ${globalThis.idiomaSeleccionado}: el cartel no pide nada`);
+                return { iconos: '', frase: '' };
+            }
+            const iconos = [avanzar ? 'avanzar' : null, audio].filter(Boolean)
+                .map((accion) => `<img src="imagenes/imagenes-aplicación/${_ICONOS_DE_ACCION[accion]}" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">`)
+                .join('');
+            return { iconos, frase };
+        }
+
         // Cartel breve y no bloqueante al completar una parada/tramo, combinando lo que se
         // acaba de terminar con lo que viene a continuación (o solo lo terminado si es el
         // último elemento — ver la llamada en marcarParadaCompletada). Import dinámico de las
@@ -7747,6 +7796,8 @@ await _comprobarReanudacionAventura(logPrefix);
                     const plantillaEmpieza = tipo2 === 'tramo' ? t.empiezaTramo : t.empiezaParada;
                     cuerpo += ` — ${plantillaEmpieza.replace('{nombre}', escaparHTML(nombre2))}`;
                 }
+                // Sin elemento siguiente no viene ningún audio más: el cartel no pide play ni ⏩.
+                const acciones = await _accionesDelCartel({ conAudio: !!(tipo2 && nombre2) });
 
                 _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
@@ -7775,11 +7826,10 @@ await _comprobarReanudacionAventura(logPrefix);
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
                     <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${escaparHTML(nombreAventura)}</p>
                     <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${cuerpo}</p>
-                    <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;">
-                        <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <p style="margin:0;font-size:clamp(0.8rem,3.2vmin,0.95rem);color:#333;line-height:1.4;">${escaparHTML(t.instrucciones || '')}</p>
-                    </div>
+                    ${acciones.frase ? `<div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;">
+                        ${acciones.iconos}
+                        <p style="margin:0;font-size:clamp(0.8rem,3.2vmin,0.95rem);color:#333;line-height:1.4;">${escaparHTML(acciones.frase)}</p>
+                    </div>` : ''}
                 `;
                 document.body.appendChild(cartel);
                 _vibrarCartel();
@@ -7799,34 +7849,32 @@ await _comprobarReanudacionAventura(logPrefix);
         // Cartel breve y no bloqueante al completar el elemento actual cuando lo que sigue
         // es un TRAMO (parada→tramo o tramo→tramo) — dispara desde marcarParadaCompletada(),
         // mismo instante que mostrarCartelTransicion. Siempre nombra los dos elementos,
-        // igual que mostrarCartelTransicion — antepone "Ha terminado [la parada/el tramo]
-        // X — va a empezar el tramo Y." reutilizando las mismas plantillas
-        // terminaParada/terminaTramo/empiezaTramo de TRADUCCIONES_CARTEL_TRANSICION (evita
-        // duplicar esas cadenas en 12 idiomas), seguido del aviso fijo de avanzar/play/línea
-        // azul (TRADUCCIONES_INICIO_TRAMO) — la única diferencia real con
-        // mostrarCartelTransicion es ese aviso de la línea azul, no si se nombra o no.
+        // igual que mostrarCartelTransicion — "Ha terminado [la parada/el tramo] X — va a
+        // empezar el tramo Y." con las mismas plantillas terminaParada/terminaTramo/empiezaTramo
+        // de TRADUCCIONES_CARTEL_TRANSICION (evita duplicar esas cadenas en 12 idiomas), seguido
+        // de lo que se puede pulsar con la línea azul (_accionesDelCartel) — la única diferencia
+        // real con mostrarCartelTransicion es esa línea azul, no si se nombra o no.
         async function mostrarCartelInicioTramo(tipoAnterior, nombreAnterior, nombreTramoNuevo) {
             try {
-                const { TRADUCCIONES_INICIO_TRAMO, TRADUCCIONES_CARTEL_TRANSICION } = await import('./js/traducciones-ui.js');
+                const { TRADUCCIONES_CARTEL_TRANSICION } = await import('./js/traducciones-ui.js');
                 const idioma = globalThis.idiomaSeleccionado;
-                const t = TRADUCCIONES_INICIO_TRAMO?.[idioma];
-                if (!t) {
+                const tt = TRADUCCIONES_CARTEL_TRANSICION?.[idioma];
+                if (!tt) {
                     (globalThis.logger || console).warn('[PADRE][CARTEL_INICIO_TRAMO] Traducciones no disponibles');
                     return;
                 }
 
                 const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
 
-                let cuerpo = t.mensaje || '';
+                let titular = '';
                 if (nombreAnterior && nombreTramoNuevo) {
-                    const tt = TRADUCCIONES_CARTEL_TRANSICION?.[idioma];
-                    if (tt) {
-                        const plantillaTermina = tipoAnterior === 'tramo' ? tt.terminaTramo : tt.terminaParada;
-                        const terminaTxt = plantillaTermina.replace('{nombre}', nombreAnterior);
-                        const empiezaTxt = tt.empiezaTramo.replace('{nombre}', nombreTramoNuevo);
-                        cuerpo = `${terminaTxt} — ${empiezaTxt}. ${cuerpo}`;
-                    }
+                    const plantillaTermina = tipoAnterior === 'tramo' ? tt.terminaTramo : tt.terminaParada;
+                    const terminaTxt = plantillaTermina.replace('{nombre}', nombreAnterior);
+                    const empiezaTxt = tt.empiezaTramo.replace('{nombre}', nombreTramoNuevo);
+                    titular = `${terminaTxt} — ${empiezaTxt}.`;
                 }
+                const acciones = await _accionesDelCartel({ lineaAzul: true });
+                const cuerpo = [titular, acciones.frase].filter(Boolean).join(' ');
 
                 _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
@@ -7852,8 +7900,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
                     <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${escaparHTML(nombreAventura)}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        ${acciones.iconos}
                         <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${escaparHTML(cuerpo)}</p>
                     </div>
                 `;
@@ -7894,7 +7941,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
-                const cuerpo = (t.mensaje || '').replace('{nombre}', escaparHTML(nombreParada));
+                const titular = escaparHTML(t.mensaje || '').replace('{nombre}', escaparHTML(nombreParada));
+                const acciones = await _accionesDelCartel();
+                const cuerpo = [titular, escaparHTML(acciones.frase)].filter(Boolean).join(' ');
 
                 _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
@@ -7920,8 +7969,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
                     <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${escaparHTML(nombreAventura)}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        ${acciones.iconos}
                         <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${cuerpo}</p>
                     </div>
                 `;
@@ -7957,7 +8005,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
-                const cuerpo = t.mensaje || '';
+                const acciones = await _accionesDelCartel({ lineaAzul: true });
+                const cuerpo = [t.mensaje, acciones.frase].filter(Boolean).join(' ');
 
                 _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
@@ -7983,8 +8032,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
                     <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${escaparHTML(nombreAventura)}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        ${acciones.iconos}
                         <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${escaparHTML(cuerpo)}</p>
                     </div>
                 `;
@@ -8018,7 +8066,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 const nombreAventura = _nombreDeAventura(globalThis.aventuraSeleccionada);
-                const cuerpo = t.mensaje || '';
+                const acciones = await _accionesDelCartel();
+                const cuerpo = [t.mensaje, acciones.frase].filter(Boolean).join(' ');
 
                 _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
@@ -8044,8 +8093,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
                     <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${escaparHTML(nombreAventura)}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        ${acciones.iconos}
                         <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${escaparHTML(cuerpo)}</p>
                     </div>
                 `;
@@ -10687,6 +10735,9 @@ await _comprobarReanudacionAventura(logPrefix);
             if (estado.paradaListaParaAvanzar === true) return { habilitar: true, razon: fueraDeRango ? 'elemento_rescatado' : 'elemento_completado' };
             return { habilitar: false, razon: 'elemento_sin_completar' };
         }
+        // Publicada porque los carteles (_accionesDelCartel, Script 1) solo piden pulsar «avanzar» si este sitio lo
+        // enciende (docs/estudio-caminos.md, K-188).
+        globalThis._decidirAvanzar = _decidirAvanzar;
 
         // Manda a hijo2 el estado que le toca a «avanzar» AHORA. Es el único sitio desde el que se
         // le enciende o se le apaga, y el mensaje lleva siempre la misma forma.

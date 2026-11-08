@@ -84,17 +84,20 @@ test.describe('CT — Cartel al completar un tramo seguido de parada', () => {
 
   test('CT-3. mostrarCartelLlegadaParada sigue viva para la llegada al inicio', async ({ page }) => {
     // Su unico llamador legitimo esta en funciones-mapa.js, para el punto de inicio de la
-    // aventura: ahi "ha llegado" SI es literal. Borrarla habria dejado ese aviso mudo.
+    // aventura: ahi "ha llegado" SI es literal. Borrarla habria dejado ese aviso mudo. La llama
+    // _mostrarCartelLlegadaInicioUnaVez(), solo para el inicio, y a esta la llegada confirmada.
     const r = await page.evaluate(async () => {
       const txt = await (await fetch('./js/funciones-mapa.js')).text();
       return {
-        tieneLlamador: /mostrarCartelLlegadaParada\(siguienteParada\.nombre\)/.test(txt),
-        soloParaInicio: /tipo === 'inicio'[\s\S]{0,400}mostrarCartelLlegadaParada/.test(txt),
+        tieneLlamador: /function _mostrarCartelLlegadaInicioUnaVez\([\s\S]{0,600}globalThis\.mostrarCartelLlegadaParada\(punto\.nombre\)/.test(txt),
+        soloParaInicio: /function _mostrarCartelLlegadaInicioUnaVez\([^)]*\) \{\s*if \(punto\.tipo !== 'inicio'/.test(txt),
+        conLaLlegadaConfirmada: /if \(llegadaDetectada && _confirmadaPorVentana\) \{\s*if \(estadoMapa\.modo === MODOS\.AVENTURA\) _mostrarCartelLlegadaInicioUnaVez\(/.test(txt),
         expuesta: typeof globalThis.mostrarCartelLlegadaParada === 'function',
       };
     });
     expect(r.tieneLlamador, 'sigue teniendo su llamador real').toBe(true);
     expect(r.soloParaInicio, 'y ese llamador es el del punto de inicio').toBe(true);
+    expect(r.conLaLlegadaConfirmada, 'y lo llama la llegada confirmada').toBe(true);
     expect(r.expuesta, 'la funcion sigue publicada en globalThis').toBe(true);
   });
 });

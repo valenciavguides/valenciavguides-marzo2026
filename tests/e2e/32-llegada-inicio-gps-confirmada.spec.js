@@ -89,7 +89,10 @@ async function enviarLectura(page, coords, accuracy = 8) {
   }, { c: coords, accuracy });
 }
 
+// Antes de mirar se espera lo que puede esperar el cartel a que el audio se pueda pulsar (hasta 2 s, K-188): sin eso, un
+// «no ha salido» pasaría también con un cartel que sale un momento después.
 async function existeCartelLlegada(page) {
+  await page.waitForTimeout(2_500); // VENTANA-OBSERVACION: la espera máxima del cartel al audio, y margen
   return page.evaluate(() => {
     const el = document.getElementById('cartel-llegada-parada');
     return { existe: !!el, texto: el?.textContent || '' };
@@ -139,7 +142,8 @@ test.describe('LI — Cartel de llegada al inicio (confirmado por GPS)', () => {
     await enviarLectura(page, INICIO);
     await page.waitForTimeout(200);
     await enviarLectura(page, INICIO);
-    await page.waitForTimeout(300);
+    // El primero sale cuando decide qué pedir (puede esperar hasta 2 s al audio, K-188).
+    await expect(page.locator('#cartel-llegada-parada'), 'el primer cartel').toHaveCount(1, { timeout: 5_000 });
 
     // Cerrar el cartel a mano para poder distinguir si se vuelve a crear uno nuevo
     await page.evaluate(() => document.getElementById('cartel-llegada-parada')?.remove());
