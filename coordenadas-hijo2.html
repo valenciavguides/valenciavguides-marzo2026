@@ -347,6 +347,9 @@ const estadoComponente = {
     fueraDeRangoActivo: false, // Flag: true cuando la GRACIA de la franja ya expiró — vídeo deshabilitado y padre notificado, que apaga «avanzar» (ver _procesarFueraDeRangoConfirmado)
     _notificacionFueraRangoEnviada: false, // Evita reenviar NAVEGACION.USUARIO_FUERA_RANGO en cada tick mientras la restricción sigue activa
     _notificacionSenalNoFiableEnviada: false, // Evita reenviar NAVEGACION.GPS.PRECISION_INSUFICIENTE en cada tick de mala precisión
+    _ventanaLlegada: { id: null, lecturas: [] }, // Las últimas lecturas dentro o fuera del radio de llegada, del elemento `id` (ver _confirmarPorVentana)
+    _ventanaRango: { id: null, lecturas: [] }, // Lo mismo para volver dentro de rango: pide la misma confirmación que la llegada (K-185)
+    _llegadaConfirmadaEn: null, // id de la parada cuya llegada ya se confirmó: solo desde ahí alejarse tiene la gracia de su franja (K-185)
     hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
 };
 
@@ -637,8 +640,12 @@ function verificarDistanciaYActualizarBotones() {
         return;
     }
 
+    // Volver dentro de rango pide la misma confirmación que la llegada: dos de las cuatro
+    // últimas lecturas. Con una sola, una lectura ruidosa estando a 30 m encendía el audio
+    // (docs/estudio-caminos.md, K-185). Quien no ha salido no necesita confirmar nada.
+    const confirmaDentro = _confirmarPorVentana(estadoComponente._ventanaRango, dentroDeRango, idParadaActual);
     if (dentroDeRango) {
-        _procesarDentroDeRango(btn, logPrefix);
+        if (estadoComponente.timestampSalioDeRango === null || confirmaDentro) _procesarDentroDeRango(btn, logPrefix);
         return;
     }
 
@@ -667,8 +674,13 @@ function verificarDistanciaYActualizarBotones() {
     _habilitarAyudaFueraDeRango(logPrefix);
 
     // La restricción (vídeo/avanzar/audio/reto) espera la gracia de la franja —
-    // 0 en lejos/perdido, así que ahí sigue siendo instantánea como antes.
-    const gracia = _GRACIA_FUERA_DE_RANGO_MS[franja] ?? 0;
+    // 0 en lejos/perdido, así que ahí sigue siendo instantánea como antes. En una parada
+    // (y en el inicio), la gracia es para quien ya llegó y se aleja un rato, p. ej. a una
+    // tienda a 20 m: antes de la llegada confirmada no hay gracia, y el audio no se
+    // enciende hasta llegar (K-185). En un tramo se va andando hacia la llegada, y la
+    // gracia, que es para desvíos como unas obras, corre durante el camino.
+    const esperaLaLlegada = !esTramo && estadoComponente._llegadaConfirmadaEn !== idParadaActual;
+    const gracia = esperaLaLlegada ? 0 : (_GRACIA_FUERA_DE_RANGO_MS[franja] ?? 0);
     const tiempoFuera = ahora - estadoComponente.timestampSalioDeRango;
     if (tiempoFuera >= gracia) {
         _procesarFueraDeRangoConfirmado(logPrefix, franja, distanciaParaRango);
@@ -899,7 +911,8 @@ function _aplicarDatosEstado(datos, logPrefix) {
 }
 
 // Exige 2 de las últimas 4 lecturas GPS dentro de radio para el mismo elemento antes de
-// dar la llegada por confirmada — sin filtro de precisión aguas arriba (funciones-mapa.js
+// dar por confirmada la llegada, y lo mismo para volver dentro de rango (K-185: con una
+// sola lectura, el ruido encendía el audio a 30 m) — sin filtro de precisión aguas arriba (funciones-mapa.js
 // ya no descarta lecturas por baja precisión), una única lectura ruidosa podría caer
 // dentro del radio por casualidad aunque el usuario siga lejos de verdad, de ahí que una
 // sola lectura nunca baste. Ventana deslizante (no "2 SEGUIDAS" a secas): con GPS real en
@@ -911,15 +924,14 @@ function _aplicarDatosEstado(datos, logPrefix) {
 // contra una lectura suelta sin depender de que el azar alinee dos lecturas consecutivas.
 const _VENTANA_LLEGADA = 4;
 const _CONFIRMACION_LLEGADA = 2;
-function _registrarCandidataLlegada(dentroDeRadio, idParada) {
-    if (estadoComponente._llegadaCandidataId !== idParada) {
-        estadoComponente._llegadaCandidataId = idParada;
-        estadoComponente._llegadaVentana = [];
+function _confirmarPorVentana(ventana, dentro, idParada) {
+    if (ventana.id !== idParada) {
+        ventana.id = idParada;
+        ventana.lecturas = [];
     }
-    if (!Array.isArray(estadoComponente._llegadaVentana)) estadoComponente._llegadaVentana = [];
-    estadoComponente._llegadaVentana.push(dentroDeRadio);
-    if (estadoComponente._llegadaVentana.length > _VENTANA_LLEGADA) estadoComponente._llegadaVentana.shift();
-    return estadoComponente._llegadaVentana.filter(Boolean).length >= _CONFIRMACION_LLEGADA;
+    ventana.lecturas.push(dentro);
+    if (ventana.lecturas.length > _VENTANA_LLEGADA) ventana.lecturas.shift();
+    return ventana.lecturas.filter(Boolean).length >= _CONFIRMACION_LLEGADA;
 }
 
 async function _detectarLlegadaTramo(distanciaAlDestino, radioLlegada, recorridoSuficiente, idParada, logPrefix) {
@@ -935,7 +947,7 @@ async function _detectarLlegadaTramo(distanciaAlDestino, radioLlegada, recorrido
     // sin haber caminado la ruta ni un rodeo equivalente. Si el dato no llega (undefined,
     // versión antigua del mensaje), no bloquea — solo distanciaAlDestino decide.
     const dentroDeRadio = distanciaAlDestino <= radioLlegada && recorridoSuficiente !== false;
-    const confirmada = _registrarCandidataLlegada(dentroDeRadio, idParada);
+    const confirmada = _confirmarPorVentana(estadoComponente._ventanaLlegada, dentroDeRadio, idParada);
     if (dentroDeRadio && confirmada) {
         if (!estadoComponente._llegadaNotificada || estadoComponente._llegadaNotificada !== idParada) {
             estadoComponente._llegadaNotificada = idParada;
@@ -955,8 +967,9 @@ async function _detectarLlegadaTramo(distanciaAlDestino, radioLlegada, recorrido
 async function _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix) {
     const RADIO_PARADA = 15;
     const dentroDeRadio = distanciaAlDestino <= RADIO_PARADA;
-    const confirmada = _registrarCandidataLlegada(dentroDeRadio, idParada);
+    const confirmada = _confirmarPorVentana(estadoComponente._ventanaLlegada, dentroDeRadio, idParada);
     if (dentroDeRadio && confirmada) {
+        estadoComponente._llegadaConfirmadaEn = idParada;
         if (!estadoComponente._llegadaNotificada || estadoComponente._llegadaNotificada !== idParada) {
             estadoComponente._llegadaNotificada = idParada;
             logger.info(`${logPrefix} 🎯 Llegada detectada a parada ${idParada} (${distanciaAlDestino.toFixed(1)}m ≤ ${RADIO_PARADA}m)`);
@@ -1254,6 +1267,8 @@ try {
         // reaplicarse indebidamente al volver a AVENTURA, ya sin ninguna franja real detrás.
         estadoComponente.ayudaFueraDeRangoActiva = false;
         estadoComponente.fueraDeRangoActivo = false;
+        // Sin salida de rango pendiente, tampoco hay lecturas que confirmar para volver a él.
+        estadoComponente._ventanaRango = { id: null, lecturas: [] };
         estadoComponente._notificacionFueraRangoEnviada = false;
         estadoComponente._notificacionSenalNoFiableEnviada = false;
         const btn = elementosDOM.btnUbicacion;

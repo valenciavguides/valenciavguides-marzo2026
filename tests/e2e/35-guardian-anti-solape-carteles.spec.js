@@ -30,6 +30,9 @@ test.describe('GS — Guardián anti-solape entre carteles', () => {
     await page.clock.install();
     await gotoAndWaitForFase1(page);
     await page.evaluate(() => { globalThis.idiomaSeleccionado = 'es'; });
+    // El recordatorio de audio no sale con su botón apagado (K-185), y aquí no hay un elemento con audio que lo encienda:
+    // se enciende a mano, igual que cada caso pone a mano la proximidad.
+    await page.evaluate(() => { document.getElementById('audio-main-toggle-btn').disabled = false; });
     // WebKit puede tardar más que gotoAndWaitForFase1 en exponer las funciones de
     // Script 2 en globalThis — esperar explícitamente evita un TypeError de carrera
     // ("... is not a function") en vez de asumir que ya están listas.
@@ -124,6 +127,9 @@ test.describe('AP — Aviso de progreso no guardado (persistProgressState → ca
     await page.clock.install();
     await gotoAndWaitForFase1(page);
     await page.evaluate(() => { globalThis.idiomaSeleccionado = 'es'; });
+    // El recordatorio de audio no sale con su botón apagado (K-185), y aquí no hay un elemento con audio que lo encienda:
+    // se enciende a mano, igual que cada caso pone a mano la proximidad.
+    await page.evaluate(() => { document.getElementById('audio-main-toggle-btn').disabled = false; });
     await page.waitForFunction(
       () => typeof globalThis.persistProgressState === 'function'
         && typeof globalThis.mostrarCartelTransicion === 'function',

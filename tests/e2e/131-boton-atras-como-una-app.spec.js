@@ -90,12 +90,12 @@ async function arrancarAventura(page, aventura) {
     aventura, { timeout: 60_000 },
   );
   // En el punto de inicio sale el cartel de llegada, con la ✕ común: una capa más, y «atrás» la cierra antes que nada.
-  // Sale cuando una lectura del GPS se procesa ya en AVENTURA. El GPS real da una cada poco; el emulado da una sola, al
-  // encenderse en P15, y llegar antes o después del paso a AVENTURA es una carrera de milisegundos: con el cartel a la
-  // vista, el «atrás» del caso lo cerraba a él, y el caso fallaba unas veces sí y otras no. Aquí se da la lectura
-  // siguiente, la que daría el GPS real (como el spec 32), y el cartel se cierra con su ✕, como lo cerraría el usuario:
-  // cada caso empieza sin nada delante.
-  await page.evaluate((c) => globalThis.funcionesMapa.procesarPosicionGPSParaAventura({ coords: { ...c, accuracy: 8 } }), INICIO);
+  // Sale con la llegada confirmada (dos de las cuatro últimas lecturas dentro del radio) ya en AVENTURA. El GPS real da
+  // lecturas cada poco; el emulado da una sola, al encenderse en P15. Aquí se dan las dos que daría el GPS real (como el
+  // spec 32), y el cartel se cierra con su ✕, como lo cerraría el usuario: cada caso empieza sin nada delante.
+  for (let i = 0; i < 2; i++) {
+    await page.evaluate((c) => globalThis.funcionesMapa.procesarPosicionGPSParaAventura({ coords: { ...c, accuracy: 8 } }), INICIO);
+  }
   const cartel = page.locator('#cartel-llegada-parada');
   await expect(cartel, 'el cartel de llegada al inicio').toHaveCount(1);
   await cartel.locator('.btn-cerrar-overlay').click();

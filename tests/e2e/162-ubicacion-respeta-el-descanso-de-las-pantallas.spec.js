@@ -151,8 +151,10 @@ test.describe('UD — El botón de ubicación respeta el descanso de las pantall
     await cerrarConSuAspa(page, MUY_LEJOS);
     expect(await descansos(page), 'su ✗ le da su descanso').toEqual([MUY_LEJOS]);
 
-    // En la parada: hijo2 avisa de que el usuario ha vuelto dentro del rango, y el padre oculta y empieza de cero.
+    // En la parada: hijo2 avisa de que el usuario ha vuelto dentro del rango, y el padre oculta y empieza de cero. Volver
+    // dentro de rango pide lo mismo que la llegada, dos de las cuatro últimas lecturas (K-185): dos lecturas en la parada.
     const antes = await vistas(page, 'ocultarTodas');
+    await llevarAHijo2(page, PARADA);
     await llevarAHijo2(page, PARADA);
     await esperarVista(page, 'ocultarTodas', antes, 'de vuelta en la parada, el padre recibe GPS.DENTRO_DE_RANGO');
     expect(await descansos(page), 'volver dentro del rango vacía los descansos').toEqual([]);

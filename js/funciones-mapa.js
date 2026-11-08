@@ -393,7 +393,8 @@ const estadoMapa = {
     ultimaUbicacion: null, // { lat, lng } - última ubicación GPS recibida
     gpsVisualActivo: false, // Controla si polyline y emojis se muestran en modo AVENTURA
     proximidadReal: false, // Distancia real ≤50m al destino activo, independiente de gpsVisualActivo (ver sincronizarEstadoGPSConPadre)
-    _cartelLlegadaInicioMostrado: false, // Evita repetir el cartel de llegada al inicio en cada lectura GPS mientras sigue dentro de rango
+    _cartelLlegadaInicioMostradoEn: null, // id del punto de inicio cuyo «Ha llegado» ya salió: una vez por parada, y un cambio de modo no lo borra (K-183)
+    _elementoVisitadoDeCerca: null, // id del elemento en el que el usuario ya estuvo a 50 m o menos en AVENTURA: sin eso, «Ha vuelto» no tiene a qué volver (K-184)
     paradaActual: null,
     tramoActual: null,
     // Distancia real recorrida durante el tramo activo — segundo requisito para confirmar
@@ -445,28 +446,28 @@ function aLngLat(coord) {
 }
 
 /**
- * True si el estilo del mapa ya terminó de cargar y admite addSource/addLayer.
- * MapLibre lanza "Style is not done loading" si se llama antes de tiempo.
- * En la práctica esto solo podría ocurrir en los primeros instantes tras crear
- * el mapa; el primer dibujo real (tras seleccionar aventura) ocurre segundos
- * después, así que es una comprobación defensiva, no una espera activa.
+ * True si el error es el que da MapLibre al pedirle una fuente o una capa antes de que su
+ * estilo esté cargado («Style is not done loading.»). Es lo único que impide crearlas: las
+ * teselas que falten por llegar no lo impiden (medido, docs/estudio-caminos.md, K-181). Por
+ * eso las capas se crean en el acto y solo esta respuesta las aplaza. Preguntar antes con
+ * isStyleLoaded() no sirve: dice que no mientras a cualquier fuente le queda una tesela por
+ * llegar, y en AVENTURA el mapa casi siempre se está moviendo (el vuelo a cada parada, la
+ * cámara que sigue al usuario) — así el círculo naranja no llegaba a dibujarse nunca.
  */
-function _estiloListo() {
-    try { return !!_mapaInstance && _mapaInstance.isStyleLoaded(); } catch (_e) { return false; } // NOSONAR
+function _esEstiloSinCargar(error) {
+    return /Style is not done loading/.test(String(error?.message || ''));
 }
 
 /**
- * Envoltorio auto-reparable para cuando el estilo del mapa aún no está listo en el
- * instante de creación — sustituye al antiguo _capaVacia(), que devolvía un stub
- * inerte para siempre (la polyline o el círculo nunca llegaban a existir, sin
- * ningún aviso). Este proxy se engancha al evento nativo 'load' del mapa (el mismo
- * que usa initializeMap() para saber que el estilo terminó de cargar) y ejecuta
- * `factory()` — la creación real de la capa — en cuanto dispara. Cualquier
- * setLatLngs/setLatLng/setStyle llamado mientras tanto se recuerda y se aplica
- * sobre la capa real en cuanto exista, para no perder una actualización que llegó
- * durante la espera. Si remove() se llama antes de que el estilo cargue, se marca
- * como retirada y `factory()` nunca se ejecuta — no tiene sentido crear una capa
- * que ya se pidió eliminar.
+ * Envoltorio para la capa que MapLibre no deja crear todavía porque su estilo no está
+ * cargado (_esEstiloSinCargar). Se engancha al evento 'idle' del mapa —el que sale cada vez
+ * que el mapa queda quieto y con todo cargado—, no a 'load': 'load' sale una sola vez en la
+ * vida del mapa, y una espera enganchada después no llegaba nunca. En cuanto llega, ejecuta
+ * `factory()`, la creación real de la capa. Cualquier setLatLngs/setLatLng/setStyle llamado
+ * mientras tanto se recuerda y se aplica sobre la capa real en cuanto exista, para no perder
+ * una actualización que llegó durante la espera. Si remove() se llama antes, se marca como
+ * retirada y `factory()` nunca se ejecuta: no tiene sentido crear una capa que ya se pidió
+ * eliminar.
  */
 function _crearCapaDiferida(tipo, factory) {
     let real = null;
@@ -476,10 +477,6 @@ function _crearCapaDiferida(tipo, factory) {
 
     const intentar = () => {
         if (removida || real) return;
-        if (!_estiloListo()) {
-            if (_mapaInstance) _mapaInstance.once('load', intentar);
-            return;
-        }
         real = factory();
         if (puntosPendientes !== null) {
             if (typeof real.setLatLngs === 'function') real.setLatLngs(puntosPendientes);
@@ -487,7 +484,7 @@ function _crearCapaDiferida(tipo, factory) {
         }
         if (estiloPendiente !== null && typeof real.setStyle === 'function') real.setStyle(estiloPendiente);
     };
-    if (_mapaInstance) _mapaInstance.once('load', intentar);
+    if (_mapaInstance) _mapaInstance.once('idle', intentar);
 
     return {
         _tipo: tipo,
@@ -510,7 +507,7 @@ function _normalizarDashArray(d) {
  * Todo icono divIcon de este proyecto usa anchor centrado (iconAnchor = mitad de
  * iconSize) — por eso el helper fija anchor:'center' siempre, sin parámetro.
  * Los Marker de MapLibre son overlays DOM puros (no dependen del estilo del
- * mapa), por lo que no necesitan la comprobación de _estiloListo().
+ * mapa), así que se crean siempre en el acto.
  * @param {{lat:number,lng:number}} coords
  * @param {string} html - Contenido HTML del icono
  * @param {Object} [opciones]
@@ -544,20 +541,22 @@ let _capaSeq = 0;
  * @param {string|Array<number>|null} [estilo.dashArray]
  */
 function _crearPolyline(puntos, estilo = {}) {
-    if (!_estiloListo()) {
-        logger.warn('[MAPA] _crearPolyline: estilo aún no cargado, reintentando en cuanto cargue');
-        return _crearCapaDiferida('polyline', () => _crearPolyline(puntos, estilo));
-    }
     const id = `vv-polyline-${_capaSeq++}`;
     const sourceId = `${id}-src`;
     const layerId = `${id}-layer`;
     const aCoords = pts => pts.map(aLngLat);
     const dash = _normalizarDashArray(estilo.dashArray);
 
-    _mapaInstance.addSource(sourceId, {
-        type: 'geojson',
-        data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: aCoords(puntos) } }
-    });
+    try {
+        _mapaInstance.addSource(sourceId, {
+            type: 'geojson',
+            data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: aCoords(puntos) } }
+        });
+    } catch (error) {
+        if (!_esEstiloSinCargar(error)) throw error;
+        logger.warn('[MAPA] _crearPolyline: el estilo del mapa aún no está cargado; la línea se crea cuando el mapa quede quieto');
+        return _crearCapaDiferida('polyline', () => _crearPolyline(puntos, estilo));
+    }
     _mapaInstance.addLayer({
         id: layerId,
         type: 'line',
@@ -623,10 +622,6 @@ function _poligonoCirculo(lat, lng, radioM, lados = 32) {
  * @param {Object} [estilo]
  */
 function _crearCirculoGeografico(coords, radioM, estilo = {}) {
-    if (!_estiloListo()) {
-        logger.warn('[MAPA] _crearCirculoGeografico: estilo aún no cargado, reintentando en cuanto cargue');
-        return _crearCapaDiferida('circulo', () => _crearCirculoGeografico(coords, radioM, estilo));
-    }
     const id = `vv-circulo-${_capaSeq++}`;
     const sourceId = `${id}-src`;
     const fillId = `${id}-fill`;
@@ -637,7 +632,13 @@ function _crearCirculoGeografico(coords, radioM, estilo = {}) {
         geometry: { type: 'Polygon', coordinates: [_poligonoCirculo(c.lat, c.lng, radioM)] }
     });
 
-    _mapaInstance.addSource(sourceId, { type: 'geojson', data: build(coords) });
+    try {
+        _mapaInstance.addSource(sourceId, { type: 'geojson', data: build(coords) });
+    } catch (error) {
+        if (!_esEstiloSinCargar(error)) throw error;
+        logger.warn('[MAPA] _crearCirculoGeografico: el estilo del mapa aún no está cargado; el círculo se crea cuando el mapa quede quieto');
+        return _crearCapaDiferida('circulo', () => _crearCirculoGeografico(coords, radioM, estilo));
+    }
     _mapaInstance.addLayer({
         id: fillId, type: 'fill', source: sourceId,
         paint: { 'fill-color': estilo.fillColor || estilo.color || '#000', 'fill-opacity': estilo.fillOpacity ?? 0.2 }
@@ -1952,10 +1953,6 @@ async function completarCambioParada() {
         logger.info(`${logPrefix} ⚡ Completando cambio de parada ${paradaId}`);
         logger.debug(`${logPrefix} DEBUG coordenadas:`, coordenadas);
 
-        // Permite que el cartel de llegada al inicio (si el nuevo elemento es 'inicio') vuelva
-        // a poder dispararse — solo importa para ese caso, pero resetear siempre es inofensivo.
-        estadoMapa._cartelLlegadaInicioMostrado = false;
-
         // Actualizar marcador si hay coordenadas
         if (coordenadas?.lat && coordenadas?.lng) {
             logger.info(`${logPrefix} ✅ Coordenadas válidas (${coordenadas.lat}, ${coordenadas.lng}) - iniciando zoom`);
@@ -2635,6 +2632,30 @@ function _siguienteIdElementoNavegable(aventura, idioma, paradaActualId) {
 }
 
 /**
+ * El cartel «Ha llegado» del punto de inicio de la aventura, una sola vez por parada.
+ *
+ * El inicio es el único punto sin un elemento anterior cuya compleción dispare un cartel
+ * (marcarParadaCompletada() lo hace para todos los demás). Lo llama
+ * procesarPosicionGPSParaAventura() en AVENTURA y solo con la llegada confirmada (dos de las
+ * cuatro últimas lecturas dentro del radio), el mismo criterio que el aviso de llegada: con una
+ * sola lectura, el ruido del GPS lo sacaba a 30 m (docs/estudio-caminos.md, K-182). Se apunta
+ * el id del punto, no un sí o un no: ni otra lectura dentro del radio ni un ir a CASA y volver
+ * lo vuelven a sacar (K-183). En CASA no se llama: ahí el usuario puede estar "viendo"
+ * cualquier parada con hijo5 sin haber llegado a ella.
+ * @param {Object} punto - El elemento activo (siguienteParada)
+ * @param {string} logPrefix
+ */
+function _mostrarCartelLlegadaInicioUnaVez(punto, logPrefix) {
+    if (punto.tipo !== 'inicio' || !punto.nombre || estadoMapa._cartelLlegadaInicioMostradoEn === punto.id) return;
+    estadoMapa._cartelLlegadaInicioMostradoEn = punto.id;
+    if (typeof globalThis.mostrarCartelLlegadaParada === 'function') {
+        globalThis.mostrarCartelLlegadaParada(punto.nombre);
+    } else {
+        logger.warn(`${logPrefix} mostrarCartelLlegadaParada no disponible — aviso de llegada al inicio perdido`);
+    }
+}
+
+/**
  * Procesa posición GPS para detección secuencial en modo aventura
  */
 async function procesarPosicionGPSParaAventura(posicion) {
@@ -2855,26 +2876,6 @@ async function procesarPosicionGPSParaAventura(posicion) {
             siguienteParada
         ) && recorridoSuficiente;
 
-        // El punto de inicio de la aventura es la única excepción sin un elemento anterior
-        // cuya compleción dispare el cartel de llegada (marcarParadaCompletada() lo hace para
-        // todos los demás) — se dispara aquí, en cuanto el GPS confirma la llegada real, igual
-        // que hijo2 detecta la suya de forma independiente (_detectarLlegadaParada trata
-        // 'inicio' igual que cualquier parada, mismo radio de 15m) — dos sensores del mismo
-        // hecho, ninguno sustituye al otro. El guard evita repetir el cartel en cada lectura
-        // GPS mientras el usuario sigue dentro de rango sin haber avanzado todavía. Exclusivo
-        // de AVENTURA: esta función corre en cada lectura GPS real en los dos modos (el GPS
-        // nunca se detiene, ver _gpsProcesarPosicion), y en CASA el usuario puede estar
-        // "viendo" cualquier parada con hijo5 sin haber llegado a ella de verdad — el cartel
-        // de "ha llegado" no tiene sentido ahí.
-        if (estadoMapa.modo === MODOS.AVENTURA && siguienteParada.tipo === 'inicio' && llegadaDetectada && siguienteParada.nombre && !estadoMapa._cartelLlegadaInicioMostrado) {
-            estadoMapa._cartelLlegadaInicioMostrado = true;
-            if (typeof globalThis.mostrarCartelLlegadaParada === 'function') {
-                globalThis.mostrarCartelLlegadaParada(siguienteParada.nombre);
-            } else {
-                logger.warn(`${logPrefix} mostrarCartelLlegadaParada no disponible — aviso de llegada al inicio perdido`);
-            }
-        }
-
         // 🗺️ Limpieza de la polyline manual de navegación (verde, botón de ubicación) al
         // llegar de verdad o al volver al camino — NO se dibuja nunca sola aquí: la única
         // forma de que aparezca es que el usuario pulse el botón de ubicación
@@ -2901,6 +2902,12 @@ async function procesarPosicionGPSParaAventura(posicion) {
             _distanciaParaLimpiarManual = calcularDistancia(latitude, longitude, siguienteParada.inicio.lat, siguienteParada.inicio.lng);
         }
         const _polylineManualCerca = _distanciaParaLimpiarManual <= 50;
+        // «Ha vuelto» solo tiene sentido si el usuario ya estuvo en este elemento: a 50 m o
+        // menos, la misma distancia que quita la línea verde, y en AVENTURA. La primera vez que
+        // llega con la línea puesta no hay a qué volver, y no sale nada (docs/estudio-caminos.md,
+        // K-184). Se mira antes de apuntar esta lectura.
+        const _yaEstuvoCerca = estadoMapa._elementoVisitadoDeCerca === derivedParadaId;
+        if (_polylineManualCerca && estadoMapa.modo === MODOS.AVENTURA) estadoMapa._elementoVisitadoDeCerca = derivedParadaId;
         if (_polylineManualCerca && polylineNavegacion) {
             logger.info(`${logPrefix} 🗺️ A ≤50m de .inicio, removiendo polyline manual de navegación`);
             try {
@@ -2911,9 +2918,10 @@ async function procesarPosicionGPSParaAventura(posicion) {
                 // El trazado persistente vuelve a mostrarse de inmediato — es la única razón por
                 // la que estaba oculto (§4.5), y el usuario acaba de volver a la zona real.
                 revelarNavegacion();
-                // Exclusivo de AVENTURA — mismo motivo que el cartel de llegada al inicio (ver
-                // más arriba): esta función corre en los dos modos en cada lectura GPS real.
-                if (estadoMapa.modo === MODOS.AVENTURA) {
+                // Exclusivo de AVENTURA: esta función corre en los dos modos en cada lectura GPS
+                // real (el GPS nunca se detiene, ver _gpsProcesarPosicion), y en CASA el usuario
+                // puede estar "viendo" cualquier parada con hijo5 sin haber estado en ella.
+                if (estadoMapa.modo === MODOS.AVENTURA && _yaEstuvoCerca) {
                     if (siguienteParada.tipo === 'tramo') {
                         if (typeof globalThis.mostrarCartelBienvenidaTramo === 'function') {
                             globalThis.mostrarCartelBienvenidaTramo();
@@ -2974,6 +2982,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         const _confirmadaPorVentana = estadoMapa._llegadaVentana.filter(Boolean).length >= _CONFIRMACION_LLEGADA;
 
         if (llegadaDetectada && _confirmadaPorVentana) {
+            if (estadoMapa.modo === MODOS.AVENTURA) _mostrarCartelLlegadaInicioUnaVez(siguienteParada, logPrefix);
             if (estadoMapa.modo !== MODOS.AVENTURA) {
                 logger.debug(`${logPrefix} Llegada detectada en modo ${estadoMapa.modo} — sin notificación automática por GPS`);
             } else if (estadoMapa._llegadaNotificada === derivedParadaId) {

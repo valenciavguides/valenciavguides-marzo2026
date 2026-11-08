@@ -3452,14 +3452,13 @@
                             // NOTA: GPS se activa centralizadamente vía activarGPS() después de cargar iframes
                             // No inicializar GPS aquí (watchPosition duplicado eliminado)
 
-                            // No resolver todavía si el ESTILO del mapa (tiles/sprite/glyphs, todo
-                            // vía red) no ha terminado de cargar — inicializarServicioMapa() solo
-                            // confirma que el módulo JS ya tiene la referencia al mapa, nada dice
-                            // sobre si addSource/addLayer son seguros de llamar todavía.
-                            // _crearPolyline()/_crearCirculoGeografico() (funciones-mapa.js) exigen
-                            // isStyleLoaded()===true o devuelven un stub inerte sin reintento — de
-                            // ahí que resolver aquí antes de tiempo pudiera dejar el círculo naranja
-                            // de 20m o una polyline sin dibujar de forma permanente y silenciosa.
+                            // No resolver todavía si el mapa no ha terminado de cargar: el arranque
+                            // espera aquí al mapa entero, y inicializarServicioMapa() solo confirma
+                            // que el módulo JS ya tiene la referencia. Se espera a 'idle' (sale cada
+                            // vez que el mapa queda quieto y con todo cargado), no a 'load': 'load'
+                            // sale una sola vez en la vida del mapa, y si ya había salido con teselas
+                            // todavía en camino, isStyleLoaded() decía que no y la espera no
+                            // terminaba nunca (docs/estudio-caminos.md, K-181).
                             const _resolverConMapaListo = () => {
                                 (globalThis.logger || console).info('Estilo del mapa cargado, mapa listo para addSource/addLayer');
                                 resolve(map);
@@ -3467,7 +3466,7 @@
                             if (map.isStyleLoaded()) {
                                 _resolverConMapaListo();
                             } else {
-                                map.once('load', _resolverConMapaListo);
+                                map.once('idle', _resolverConMapaListo);
                             }
                         });
                     };
@@ -7941,12 +7940,12 @@ await _comprobarReanudacionAventura(logPrefix);
         }
         globalThis.mostrarCartelLlegadaParada = mostrarCartelLlegadaParada;
 
-        // Cartel breve y no bloqueante al confirmarse por GPS que el usuario volvió al
-        // camino de un TRAMO ya iniciado, tras haberse alejado lo suficiente para que
-        // procesarPosicionGPSParaAventura() ocultara el trazado (funciones-mapa.js).
-        // Nunca dispara en la primera revelación de un tramo (esa ya la cubre
-        // mostrarCartelInicioTramo, disparada desde marcarParadaCompletada) — solo en
-        // revelaciones posteriores, cuando estadoMapa._elementoYaRevelado ya era true.
+        // Cartel breve y no bloqueante al confirmarse por GPS que el usuario vuelve al
+        // camino de un TRAMO en el que ya estuvo: procesarPosicionGPSParaAventura()
+        // (funciones-mapa.js) lo saca al quitar la línea verde de ubicación a 50 m o menos,
+        // solo si antes ya estuvo a esa distancia de ese mismo elemento
+        // (estadoMapa._elementoVisitadoDeCerca). La primera vez que llega no sale nada: no hay
+        // a qué volver (docs/estudio-caminos.md, K-184).
         async function mostrarCartelBienvenidaTramo() {
             try {
                 const { TRADUCCIONES_BIENVENIDA_TRAMO } = await import('./js/traducciones-ui.js');
@@ -8004,11 +8003,10 @@ await _comprobarReanudacionAventura(logPrefix);
         }
         globalThis.mostrarCartelBienvenidaTramo = mostrarCartelBienvenidaTramo;
 
-        // Cartel breve y no bloqueante al confirmarse por GPS que el usuario volvió a una
-        // PARADA (no tramo) de la que se había alejado antes de completarla — mismo
-        // disparador que mostrarCartelBienvenidaTramo (estadoMapa._elementoYaRevelado ya
-        // era true), pero sin mención a la línea azul, porque una parada no tiene polyline
-        // propia que seguir.
+        // Cartel breve y no bloqueante al confirmarse por GPS que el usuario vuelve a una
+        // PARADA (no tramo) en la que ya estuvo y de la que se alejó antes de completarla —
+        // mismo disparador que mostrarCartelBienvenidaTramo (estadoMapa._elementoVisitadoDeCerca),
+        // pero sin mención a la línea azul, porque una parada no tiene polyline propia que seguir.
         async function mostrarCartelBienvenidaParada(nombreParada) {
             try {
                 const { TRADUCCIONES_BIENVENIDA_PARADA } = await import('./js/traducciones-ui.js');
@@ -8252,9 +8250,14 @@ await _comprobarReanudacionAventura(logPrefix);
                 // el recordatorio del elemento realmente activo.
                 const _audioIdActivo = typeof obtenerAudioIdActivoPadre === 'function' ? obtenerAudioIdActivoPadre() : null;
                 const noEstaSonandoAhora = !(estado?.audioActual?.estado === 'reproduciendo' && estado?.audioActual?.id === _audioIdActivo);
+                // No se recuerda pulsar un botón apagado: con el audio apagado (fuera de rango,
+                // o antes de llegar a una parada, K-185) el aviso no sale. Se lee el propio botón,
+                // que lo decide un solo sitio (actualizarEstadoControlesAudioPadre, Script 2),
+                // igual que el recordatorio de retos pregunta por el suyo.
+                const botonAudioEncendido = document.getElementById('audio-main-toggle-btn')?.disabled === false;
                 // No fuerza nada: si hay cualquier otro cartel visible, espera — el propio
                 // intervalo (cada 2s) vuelve a comprobar sin perder el aviso (§4.7, "no antes").
-                if (tiempoListo && proximidadLista && intervaloListo && noEstaSonandoAhora && !_hayCartelEnPantalla()) {
+                if (tiempoListo && proximidadLista && intervaloListo && noEstaSonandoAhora && botonAudioEncendido && !_hayCartelEnPantalla()) {
                     _recordatorioAudioUltimoMostradoEn = ahora;
                     _mostrarCartelRecordatorioAudio();
                 }

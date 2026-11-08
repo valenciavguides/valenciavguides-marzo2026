@@ -7,7 +7,7 @@
  * correcta (polyline verde incluida), pero al llegar a la diana física la llegada nunca
  * se detectaba, ni esperando un buen rato parado en el sitio.
  *
- * Causa raíz confirmada: _registrarCandidataLlegada() exigía 2 lecturas GPS SEGUIDAS
+ * Causa raíz confirmada: la confirmación de llegada de hijo2 (hoy _confirmarPorVentana()) exigía 2 lecturas GPS SEGUIDAS
  * dentro de radio. El ruido real de GPS urbano (calles estrechas, edificios altos) hace
  * que la distancia oscile alrededor de un umbral fijo — basta con que una lectura de cada
  * dos caiga fuera del radio para que el contador de "seguidas" nunca llegue a 2, sin

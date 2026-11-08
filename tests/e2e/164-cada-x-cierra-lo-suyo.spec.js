@@ -110,8 +110,11 @@ async function arrancarAventura(page) {
       && getComputedStyle(document.getElementById('loading-overlay')).display === 'none',
     null, { timeout: 60_000 },
   );
-  // La lectura siguiente del GPS saca el cartel de llegada al inicio (spec 131): se cierra antes de empezar.
-  await page.evaluate((c) => globalThis.funcionesMapa.procesarPosicionGPSParaAventura({ coords: { ...c, accuracy: 8 } }), INICIO);
+  // Las dos lecturas siguientes del GPS confirman la llegada y sacan el cartel de llegada al inicio (spec 131): se cierra
+  // antes de empezar.
+  for (let i = 0; i < 2; i++) {
+    await page.evaluate((c) => globalThis.funcionesMapa.procesarPosicionGPSParaAventura({ coords: { ...c, accuracy: 8 } }), INICIO);
+  }
   const cartel = page.locator('#cartel-llegada-parada');
   await expect(cartel).toHaveCount(1);
   await cartel.locator(X).click();
@@ -227,6 +230,8 @@ for (const gesto of ['ratón', 'dedo']) {
       const proximidad = (page) => page.evaluate(() => {
         globalThis.estadoPadre.gps = globalThis.estadoPadre.gps || {};
         globalThis.estadoPadre.gps.proximidadReal = true;
+        // El recordatorio de audio tampoco sale con su botón apagado (K-185): sin un elemento con audio, a mano.
+        document.getElementById('audio-main-toggle-btn').disabled = false;
       });
 
       test(`EQ-3a (${gesto}). Recordatorio de pulsar el audio`, async ({ page }) => {

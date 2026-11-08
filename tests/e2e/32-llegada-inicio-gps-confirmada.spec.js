@@ -1,15 +1,12 @@
 /**
  * 32-llegada-inicio-gps-confirmada.spec.js
  *
- * Cartel de llegada al inicio de la aventura (tipo 'inicio', p.ej. Av1-P-0),
- * confirmado por GPS real — antes (hasta 2026-08-16) se disparaba de forma
- * instantánea al activar la parada (completarCambioParada()), sin esperar a que el
- * usuario llegara de verdad; corregido el mismo día que se eliminó el mecanismo
- * paralelo dormido outOfRangeGrace/pendingCompleciones (ver GUIA-COMPLETA y memoria
- * project_gps_franjas_gracia). Ahora usa el mismo sensor de llegada por ventana
- * deslizante que el resto de paradas (js/funciones-mapa.js,
- * procesarPosicionGPSParaAventura), con guard de una sola vez
- * (estadoMapa._cartelLlegadaInicioMostrado) y gate estricto de modo AVENTURA.
+ * Cartel de llegada al inicio de la aventura (tipo 'inicio', p.ej. Av1-P-0), confirmado
+ * por GPS real: sale con la llegada confirmada por la misma ventana deslizante que el
+ * resto de paradas (dos de las cuatro últimas lecturas dentro del radio, js/funciones-mapa.js,
+ * procesarPosicionGPSParaAventura → _mostrarCartelLlegadaInicioUnaVez), una sola vez por
+ * parada (estadoMapa._cartelLlegadaInicioMostradoEn) y solo en modo AVENTURA. Que una
+ * lectura suelta no basta y que ir a CASA y volver no lo repite, por el camino real: spec 169.
  */
 'use strict';
 

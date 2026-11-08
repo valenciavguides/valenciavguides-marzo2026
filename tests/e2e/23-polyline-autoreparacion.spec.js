@@ -1,25 +1,21 @@
 /**
  * 23-polyline-autoreparacion.spec.js
  *
- * Prueba de la corrección del fallo silencioso descubierto por reporte de campo real:
- * si _crearPolyline()/_crearCirculoGeografico() (js/funciones-mapa.js) se llaman antes
- * de que el estilo de MapLibre termine de cargar (map.isStyleLoaded() === false), antes
- * devolvían un stub inerte para siempre (_capaVacia()) — la polyline de un tramo o el
- * círculo de activación quedaban invisibles el resto de la sesión, sin ningún aviso,
- * mientras que los marcadores 📌/🎯 (overlays DOM, no dependen del estilo) sí aparecían
- * — la asimetría exacta que el usuario reportó en capturas de pantalla reales.
- *
- * La corrección (_crearCapaDiferida()) sustituye el stub inerte por un proxy que se
- * engancha al evento 'load' del mapa y crea la capa real en cuanto el estilo está listo,
- * aplicando cualquier setLatLngs/setLatLng/setStyle que se hubiera llamado mientras tanto.
+ * _crearPolyline()/_crearCirculoGeografico() (js/funciones-mapa.js) crean la capa en el acto, y
+ * solo la aplazan si MapLibre contesta «Style is not done loading.» (el estilo del mapa sin
+ * cargar todavía). Entonces devuelven el envoltorio de _crearCapaDiferida(), que se engancha a
+ * 'idle' (sale cada vez que el mapa queda quieto y con todo cargado) y crea la capa real en cuanto
+ * llega, aplicando cualquier setLatLngs/setLatLng/setStyle que se hubiera llamado mientras tanto.
+ * El mapa falso de estos tests se porta como el de verdad: rechaza addSource con ese error hasta
+ * que su estilo carga, y avisa con 'idle'. Con el MapLibre de verdad lo mide el spec 168 (K-181).
  *
  * Los 3 tests llaman a dibujarPolylineNavegacion() (js/funciones-mapa.js) — la función
  * real que usa el botón de ubicación en producción (codigo-padre.html, `await import(...)`,
  * mismo patrón que aquí) — para ejercitar _crearPolyline()/_crearCapaDiferida() con un
  * caller real de la app en vez de invocar esas funciones internas directamente.
  *
- *   PR-1  Con el estilo aún no cargado, dibujarPolylineNavegacion({origen,destino}) NO
- *         llama a addLayer/addSource todavía — pero en cuanto el mapa dispara 'load',
+ *   PR-1  Con el estilo aún no cargado, dibujarPolylineNavegacion({origen,destino}) no
+ *         deja ninguna capa todavía — pero en cuanto el mapa dispara 'idle',
  *         la capa real se crea sola, sin ninguna acción adicional del código que llama.
  *   PR-2  Una llamada a .setStyle() hecha SOBRE el objeto devuelto (el proxy, mientras la
  *         capa real no existe) no se pierde — se aplica en cuanto la capa real se crea.
@@ -45,7 +41,7 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
     await page.waitForFunction(() => typeof globalThis.funcionesMapa?.inicializarServicioMapa === 'function', null, { timeout: 15000 });
   });
 
-  test('PR-1. Estilo no listo: la capa real se crea sola en cuanto el mapa dispara \'load\'', async ({ page }) => {
+  test('PR-1. Estilo no listo: la capa real se crea sola en cuanto el mapa dispara \'idle\'', async ({ page }) => {
     const resultado = await page.evaluate(async () => {
       const mod = await import('/js/funciones-mapa.js');
       const listeners = {};
@@ -53,12 +49,11 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
         _styleLoaded: false,
         _addLayerCalls: [],
         _addSourceCalls: [],
-        isStyleLoaded() { return fakeMap._styleLoaded; },
         once(evt, fn) { (listeners[evt] = listeners[evt] || []).push(fn); },
         on(evt, fn) { (listeners[evt] = listeners[evt] || []).push(fn); },
         off(evt, fn) { if (listeners[evt]) listeners[evt] = listeners[evt].filter(f => f !== fn); },
         fire(evt) { (listeners[evt] || []).slice().forEach(fn => fn()); },
-        addSource(id, src) { fakeMap._addSourceCalls.push(id); return fakeMap; },
+        addSource(id, src) { if (!fakeMap._styleLoaded) throw new Error('Style is not done loading.'); fakeMap._addSourceCalls.push(id); return fakeMap; },
         addLayer(layer) { fakeMap._addLayerCalls.push(layer.id); return fakeMap; },
         getSource() { return { setData() {} }; },
         getLayer(id) { return fakeMap._addLayerCalls.includes(id) ? {} : undefined; },
@@ -78,17 +73,17 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
       const antesDeLoad = { addLayer: fakeMap._addLayerCalls.length, addSource: fakeMap._addSourceCalls.length };
 
       fakeMap._styleLoaded = true;
-      fakeMap.fire('load');
+      fakeMap.fire('idle');
 
       const despuesDeLoad = { addLayer: fakeMap._addLayerCalls.length, addSource: fakeMap._addSourceCalls.length };
 
       return { antesDeLoad, despuesDeLoad };
     });
 
-    expect(resultado.antesDeLoad.addLayer, 'Antes de \'load\' no debe existir ninguna capa real todavía').toBe(0);
-    expect(resultado.antesDeLoad.addSource, 'Antes de \'load\' no debe existir ninguna fuente real todavía').toBe(0);
-    expect(resultado.despuesDeLoad.addLayer, 'Al disparar \'load\', la capa real debe crearse sola').toBeGreaterThan(0);
-    expect(resultado.despuesDeLoad.addSource, 'Al disparar \'load\', la fuente real debe crearse sola').toBeGreaterThan(0);
+    expect(resultado.antesDeLoad.addLayer, 'Antes de \'idle\' no debe existir ninguna capa real todavía').toBe(0);
+    expect(resultado.antesDeLoad.addSource, 'Antes de \'idle\' no debe existir ninguna fuente real todavía').toBe(0);
+    expect(resultado.despuesDeLoad.addLayer, 'Al disparar \'idle\', la capa real debe crearse sola').toBeGreaterThan(0);
+    expect(resultado.despuesDeLoad.addSource, 'Al disparar \'idle\', la fuente real debe crearse sola').toBeGreaterThan(0);
   });
 
   test('PR-2. dibujarPolylineNavegacion() llamado antes de \'load\' (setStyle sobre el proxy) no se pierde — se aplica sobre la capa real', async ({ page }) => {
@@ -99,12 +94,11 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
       const fakeMap = {
         _styleLoaded: false,
         _addLayerCalls: [],
-        isStyleLoaded() { return fakeMap._styleLoaded; },
         once(evt, fn) { (listeners[evt] = listeners[evt] || []).push(fn); },
         on(evt, fn) { (listeners[evt] = listeners[evt] || []).push(fn); },
         off(evt, fn) { if (listeners[evt]) listeners[evt] = listeners[evt].filter(f => f !== fn); },
         fire(evt) { (listeners[evt] || []).slice().forEach(fn => fn()); },
-        addSource() { return fakeMap; },
+        addSource() { if (!fakeMap._styleLoaded) throw new Error('Style is not done loading.'); return fakeMap; },
         addLayer(layer) { fakeMap._addLayerCalls.push(layer.id); return fakeMap; },
         getSource() { return { setData() {} }; },
         getLayer(id) { return fakeMap._addLayerCalls.includes(id) ? {} : undefined; },
@@ -132,7 +126,7 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
       const paintAntesDeLoad = paintCalls.length;
 
       fakeMap._styleLoaded = true;
-      fakeMap.fire('load');
+      fakeMap.fire('idle');
 
       const ultimaOpacidadAplicada = paintCalls.filter(c => c.prop === 'line-opacity').pop()?.val;
 
@@ -149,7 +143,6 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
       const mod = await import('/js/funciones-mapa.js');
       const fakeMap = {
         _addLayerCalls: [],
-        isStyleLoaded() { return true; },
         once() {}, on() {}, off() {}, fire() {},
         addSource() { return fakeMap; },
         addLayer(layer) { fakeMap._addLayerCalls.push(layer.id); return fakeMap; },

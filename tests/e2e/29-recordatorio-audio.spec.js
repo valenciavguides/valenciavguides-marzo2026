@@ -64,6 +64,9 @@ test.describe('RA — Recordatorio periódico de pulsar play', () => {
     await page.clock.install();
     await gotoAndWaitForFase1(page);
     await page.evaluate(() => { globalThis.idiomaSeleccionado = 'es'; });
+    // El recordatorio pide pulsar el botón de audio, y con él apagado no sale (K-185). Aquí no hay un elemento con audio
+    // que lo encienda: se enciende a mano, igual que cada caso pone a mano la proximidad.
+    await page.evaluate(() => { document.getElementById('audio-main-toggle-btn').disabled = false; });
     // WebKit puede tardar más que gotoAndWaitForFase1 en exponer las funciones de
     // Script 2 en globalThis — esperar explícitamente evita un TypeError de carrera
     // ("... is not a function") en vez de asumir que ya están listas.

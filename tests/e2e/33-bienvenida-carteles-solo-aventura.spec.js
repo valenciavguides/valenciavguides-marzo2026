@@ -5,7 +5,8 @@
  * pidió ayuda (polyline manual del botón ubicación) y vuelve a acercarse al destino.
  * Antes (hasta 2026-08-16) estas dos llamadas en js/funciones-mapa.js no estaban
  * protegidas por el modo actual — podían dispararse también en CASA. Ahora ambas
- * viven dentro de `if (estadoMapa.modo === MODOS.AVENTURA) { ... }`.
+ * viven dentro de `if (estadoMapa.modo === MODOS.AVENTURA && _yaEstuvoCerca)`: además,
+ * solo salen si el usuario ya estuvo a 50 m o menos de ese elemento (K-184).
  */
 'use strict';
 
@@ -63,6 +64,12 @@ async function prepararConPolylineManual(page, modo, id) {
       globalThis.estado.modo.actual = modo;
       globalThis.estado.elementoActual = el || null;
     }
+    // El usuario ya estuvo en este punto (a 50 m o menos) antes de alejarse: sin eso, «Ha vuelto»
+    // no tiene a qué volver y no sale (K-184; la primera llegada sin haber estado la mide el spec
+    // 169, BV-1). En CASA esta lectura no cuenta como visita.
+    const visitado = globalThis.AVENTURA_PARADAS.find(p => p.id === id);
+    const puntoVisitado = visitado?.inicio || visitado?.coordenadas;
+    await fm.procesarPosicionGPSParaAventura({ coords: { latitude: puntoVisitado.lat, longitude: puntoVisitado.lng, accuracy: 8 } });
     // Dibujar la polyline manual real (misma función que usa el botón ubicación) para
     // simular "el usuario se alejó y pidió ayuda" — precondición real del cartel de
     // bienvenida (solo dispara si polylineNavegacion existe).
