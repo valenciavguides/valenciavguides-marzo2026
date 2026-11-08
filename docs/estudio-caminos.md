@@ -1398,6 +1398,7 @@ falsos positivos del verificador** (K-34), comprobados con búsqueda desnuda de 
   plazo (5000 ajustado por conexión, 15000 literal) no cambia nada observable, y las tres políticas de
   posproceso se eligen con un argumento. *B) dejarlo*, que es lo que la lectura estática permite sostener
   hoy.
+- **Re-medido (2026-11-09; búsqueda desnuda de `getCurrentPosition` en todo el repositorio salvo `tests/` y `docs/`).** Cinco sitios en el padre, no seis: `_gpsIntentarPosicion` (los intentos de la activación, `maximumAge: 0`; escribe `est.gps` a mano), `_finalizarActivacionGPS` (5 s ajustados a la conexión; escribe `est.gps` a mano), `_gpsReintentarDesdeOverlayDistancia` (el botón de reintento de las cuatro pantallas de franja y de la de precisión: 5 s ajustados, sin cuenta atrás y sin apagar el botón; pasa la lectura a `procesarPosicionGPSParaAventura`), el botón de reintento de la pantalla de sin señal en `_ensureGpsSignalOverlay` (15 s fijos, con cuenta atrás de 15 s y el botón apagado; la misma política) y `_obtenerUbicacionUsuario` (5 s ajustados, `maximumAge: 30000`; devuelve la lectura). Más `diagnosticarGPS` en `js/funciones-mapa.js` (15 s ajustados). La pantalla de baja precisión no tiene copia propia: usa `_gpsReintentarDesdeOverlayDistancia` (`codigo-padre.html:6144`). Quedan dos implementaciones de «reintentar ubicación» y las tres políticas de posproceso. **«Dejar» choca con la regla del usuario (2026-11-09: «si se puede unificar unificaremos eliminando código muerto que pueda quedarse por el camino»):** la A no cambia nada observable si conserva cada plazo como parámetro, y M-8 decide después si los dos reintentos deben tener el mismo plazo. Se le pregunta si pasa a A.
 
 ##### K-18 — Permisos de geolocalización consultados desde tres ficheros y dos frames — 🧩
 
@@ -2212,6 +2213,7 @@ fuera el frame al que se manda, y lo mismo pasaba con la carga útil y con las c
   **recomendada**: son los mismos dos valores y el mismo destino del contrato del bus, sin ningún fallo
   demostrado, y *B) importar `MODOS` en los siete hijos y la selección* toca once ficheros por una ganancia
   solo de legibilidad. (Errata E9: los sitios que escriben un tipo como literal son 8, no dos; la decisión no cambia.)
+- **Re-medido (2026-11-09; `grep -o` por fichero, sin separar comentarios).** `DESTINOS` no existe (búsqueda desnuda en el código: 0), así que el destino tiene una sola forma, el literal `destino: 'padre'` (118, en trece ficheros). El modo tiene dos: `MODOS.CASA`/`MODOS.AVENTURA` en el padre (54), `js/funciones-mapa.js` (15) y `js/app.js` (1), y el literal en esos mismos ficheros —en código, en el padre (`:6730-6743`, `:8710`, `:12209-12246`) y en `js/funciones-mapa.js` (`:2777` mezcla las dos formas en una línea)— y en la selección y en hijo1 a hijo5, que no importan `MODOS` aunque importan `TIPOS_MENSAJE` del mismo `js/constants.js`. La mitad del destino se puede cerrar; la del modo choca con «una sola forma por decisión» (CLAUDE.md) y con la regla del usuario de unificar: se le pregunta.
 
 #### Familia K — Nombres de `globalThis` que nadie define, y un frame que no publica lo que los demás
 
@@ -2721,6 +2723,7 @@ estrictas y su nombre no tiene más lectores en el fichero; no se han leído una
   receptores y los specs del cambio de parada (`51` y siguientes): trabajo de una tanda propia. *B)
   dejarlo*, con el coste de que cada emisor nuevo tiene que recordar los cuatro nombres. **Recomendada: B
   ahora y A al tocar el contrato de `CAMBIO_PARADA`.**
+- **Re-medido (2026-11-09).** Sigue igual: el reparto del padre a los hijos (`_notificarCambioParadaHijos`, `codigo-padre.html:10771`) y hijo5 (`boton-casa-hijo5.html:406`) mandan los cuatro nombres; hijo2 lee `datos.parada_id || datos.paradaId` (`coordenadas-hijo2.html:1486`) e hijo4 `datos.padreId || datos.padreid` y `datos.paradaId || datos.parada_id` (`retos-hijo4.html:1596-1597`), a mano y sin `resolverIdsParada`; el handler del padre combina las dos maneras (`codigo-padre.html:10858`). «Dejar» choca con la regla del usuario de unificar: se le pregunta si pasa a A.
 
 #### Familia O — Recursos locales
 
@@ -3240,7 +3243,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 
 - **Medido** (las tres pasadas). Al llegar al punto de inicio sale «Ha llegado a la parada Torres de Serranos (start). Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura.», con los iconos de avanzar y de audio; `btn-avanzar` está apagado desde la activación del elemento (`CONTROL.DESHABILITAR`, `razon: 'parada_pendiente_completar'`) y se enciende al completarlo. Y sale otra vez después de pulsarlo (K-74).
 - **Leído.** El único llamador de `mostrarCartelLlegadaParada` es la llegada al elemento de tipo `inicio` (`js/funciones-mapa.js:3100-3103`). El comentario del padre (`codigo-padre.html:9957-9960`) y la guía (L1374) dicen que es «el único sitio donde "ha llegado" es literal, porque no hay ningún elemento anterior que cerrar ni botón que pulsar»; el texto (`TRADUCCIONES_LLEGADA_PARADA`, `js/traducciones-ui.js:448`, doce idiomas) y los iconos (`codigo-padre.html:8586-8587`) son los del cartel que se usaba antes al terminar un tramo. La guía (L1376) cita el texto con el nombre de una parada que no es un punto de inicio (Plaza de la Crida).
-- **Pendiente: decisión de texto** (doce idiomas): qué debe pedir el cartel del punto de inicio.
+- **Hecha con K-188 (2026-11-08; decisión del usuario: «si funciona para un cartel, debe funcionar para el resto»).** El cartel del punto de inicio pide solo lo que se puede pulsar en ese momento: play, o ⏩ si el audio no está grabado, y nunca «avanzar» mientras está apagado (`_accionesDelCartel`, `TRADUCCIONES_QUE_HACER_AHORA`); sale una sola vez por parada y con la llegada confirmada (K-182, K-183). Specs 169 (AC-1, AC-2) y 22 (CI-3, CI-3b), en verde en chromium.
 
 ##### K-78 — Tras un rescate pedido sale también el cartel de transición: la marca que lo evita no casa nunca — ✅ (medido; leído; comprobado en los datos)
 
@@ -3257,7 +3260,7 @@ Un barrido más (R2.9, 2026-10-03), hecho con ángulos que los 28 ejes y las fam
 
 - **Medido** (pasada `aventura-terminar`). Al completar P-40, el último elemento de la Aventura1, sale `cartel-transicion` con «Ha terminado la parada Torres de Serranos Final» y, debajo, «Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura.», con los iconos de avanzar y de audio. Al pulsar avanzar sale el modal de fin de aventura; no hay más audio.
 - **Leído.** Cuando no hay elemento siguiente, `marcarParadaCompletada` llama a `mostrarCartelTransicion` sin segundo elemento (`codigo-padre.html:9985-9990`), y la función quita la mitad «va a empezar…» pero añade siempre la misma instrucción y los dos iconos (`:8405-8442`; `TRADUCCIONES_CARTEL_TRANSICION.instrucciones`, `js/traducciones-ui.js:419`, doce idiomas). Su comentario (`:8384-8386`) contempla el caso del último elemento solo para el nombre.
-- **Pendiente: decisión de texto** (doce idiomas): qué dice el cartel del último elemento, o si sale.
+- **Hecha con K-188 (2026-11-08).** El cartel sale y dice que ha terminado el elemento; sin elemento siguiente no pide audio (`conAudio` en falso), y pide «avanzar» solo si se puede pulsar, que al final de la aventura abre el modal de fin. Spec 22 (CI-1b), en verde en chromium.
 
 ##### K-80 — hijo2 no reconoce nunca el `PENDING_INICIADO` de su elemento: compara la clave de la ficha con su id de coordenadas — ✅ (medido; leído; comprobado en los datos)
 
@@ -3935,7 +3938,7 @@ Tres cosas que el usuario reconoció al repasar con él la protección por parad
 - **Cómo salió.** Al buscar en el código lo que describía la regla vieja de «avanzar» (K-86).
 - **Dónde.** La respuesta `UBIC_FUERA_RANGO` del asistente (`js/traducciones-ui.js`), en los doce idiomas: «Si permanece así más de cinco minutos, se habilitará el botón de ubicación […] y algunos controles (como el vídeo, el audio, los retos o el botón Avanzar) se desactivarán temporalmente».
 - **Lo que no cuadra.** El código (`_GRACIA_FUERA_DE_RANGO_MS`, `coordenadas-hijo2.html`) habilita la ubicación y los mapas al instante, en cualquier franja, y apaga el vídeo, el audio, los retos y «avanzar» a los 7 minutos a menos de 50 m, a los 15 entre 50 y 150 m, y al instante más lejos. Visto de paso en la misma respuesta: el polaco tutea y marca el género («dotarłeś», «zboczyłeś») y el italiano marca el género («arrivati»), contra la voz de todos los textos del usuario (impersonal, sin género, de usted).
-- **Pendiente: decisión** (texto en doce idiomas). Qué dice la respuesta: los plazos reales por distancia, o una frase sin cifras; y la voz del polaco y del italiano, en esta respuesta y en las demás del asistente (no revisadas).
+- **La respuesta, hecha el 2026-11-08 (`c45a24c` y `48041d1`).** `UBIC_FUERA_RANGO` dice, en los doce idiomas, que el botón de ubicación se enciende al momento; que hasta llegar a la parada el vídeo, el audio, los retos y «avanzar» siguen apagados; y que, al alejarse de una parada ya alcanzada o salir del camino en un tramo, siguen 7 minutos hasta 50 m y 15 hasta 150 m, y más lejos se apagan al instante. En francés, italiano y polaco es impersonal y sin género. **Queda, por decidir:** la voz del polaco y del italiano en las demás respuestas del asistente (no revisadas).
 
 ##### K-142 — Las fotos de un elemento salen de tres listas distintas, y 83 no se enseñan nunca — ✅ (medido: recuento sobre los datos; búsqueda desnuda de lectores)
 
@@ -4906,10 +4909,10 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 
 | # | Nivel | Entrada | Qué es | Marcas | Depende de | ¿Se puede sola? |
 |---|---|---|---|---|---|---|
-| 1 | 0 | K-17 B | dejar los seis `getCurrentPosition` hasta la prueba de campo M-8 | — | — | sí |
+| 1 | 0 | K-17 B | dejar los seis `getCurrentPosition` hasta la prueba de campo M-8 — **re-medido (2026-11-09): cinco sitios y dos reintentos; «dejar» choca con unificar: pregunta al usuario** | — | — | sí |
 | 2 | 0 | K-28 | las familias de copias, una a una (la B, dejarlas, choca con «sin duplicados») — **en curso (2026-10-26): hechas `sleep` y escapar HTML; spec 155** | — | — | sí |
-| 3 | 0 | K-37 A | dejar `'casa'`, `'aventura'` y `destino: 'padre'` | — | — | sí |
-| 4 | 0 | K-43 B | dejar los cuatro nombres del id de parada (A al tocar el contrato de `CAMBIO_PARADA`) | — | — | sí |
+| 3 | 0 | K-37 A | dejar `'casa'`, `'aventura'` y `destino: 'padre'` — **re-medido (2026-11-09): el destino tiene una sola forma; el modo, dos (`MODOS` y el literal): pregunta al usuario** | — | — | sí |
+| 4 | 0 | K-43 B | dejar los cuatro nombres del id de parada (A al tocar el contrato de `CAMBIO_PARADA`) — **re-medido (2026-11-09): siguen los cuatro nombres y las dos maneras de leerlos: pregunta al usuario** | — | — | sí |
 | 5 | 1 | K-45 B | hijo6: bandera «estado recibido» y `debug` hasta el primero — **hecha (2026-10-04)** | — | — | sí |
 | 6 | 1 | K-12 A | `mensajeria.js`: el `warn` del almacén local solo en el padre, comprobando «¿soy el padre?» en línea — **hecha (2026-10-04)** | BUS (solo un nivel de log) | — | sí |
 | 7 | 1 | K-47 B | hijo2: retirar la regla CSS y la clase `modo-*` del `body` — **hecha (2026-10-04)** | — | — | sí |
@@ -4957,9 +4960,9 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 49 | 4 | K-74 | un solo dueño del elemento actual para el mapa y para hijo2 | SPEC, VISIBLE (el cartel de inicio y el botón de vídeo), MEDIR | blanda: K-14 (el orden de `vv-parada-cambiada`), K-73 | sí |
 | 50 | 2 | K-75 | el reloj de la ficha empieza al activarse en AVENTURA (solo desarrollo), y cuatro comentarios que no se sostienen — **los comentarios, corregidos (2026-10-13, `583b3aa`); el reloj, por decidir** | — | — | sí |
 | 51 | 2 | K-76 | hijo4: un campo para el reto de la parada y otro para el reto abierto — **hecha (2026-10-14, `6f1eaf5`): el reto de la parada no lo leía nadie, así que no hace falta un segundo campo; fuera la escritura** | SPEC (133) | — | sí |
-| 52 | 5 | K-77 | el texto del cartel de llegada al punto de inicio, en doce idiomas | VISIBLE, traducciones de usted | blanda: K-74 (que no salga dos veces) | sí |
+| 52 | 5 | K-77 | el texto del cartel de llegada al punto de inicio, en doce idiomas — **hecha (2026-11-08) con K-188: pide solo lo que se puede pulsar; specs 169 (AC-1, AC-2) y 22 (CI-3, CI-3b)** | VISIBLE, traducciones de usted | blanda: K-74 (que no salga dos veces) | sí |
 | 53 | 2 | K-78 | la marca del rescate pedido y la compleción con la misma clave — **hecha (2026-10-27, `517dd02`), con K-91 y la pregunta del rescate de K-86: un solo registro del rescate** | SPEC, VISIBLE (un cartel menos tras el rescate), GUÍA si B | — | sí |
-| 54 | 5 | K-79 | qué dice (o si sale) el cartel al cerrar el último elemento, en doce idiomas | VISIBLE, traducciones de usted | blanda: K-77 (la misma familia de carteles) | sí |
+| 54 | 5 | K-79 | qué dice (o si sale) el cartel al cerrar el último elemento, en doce idiomas — **hecha (2026-11-08) con K-188: sale, sin pedir audio, y pide «avanzar» solo si se puede pulsar; spec 22 (CI-1b)** | VISIBLE, traducciones de usted | blanda: K-77 (la misma familia de carteles) | sí |
 | 55 | 3 | K-80 | hijo2 y el `PENDING_INICIADO`: retirar la rama que no corre, o que el aviso lleve el id que hijo2 conoce | BUS si se retira el envío, SPEC, GUÍA; VISIBLE y MEDIR si B | blanda: K-73 (el mismo aviso), K-78 y K-81 (la misma forma) | sí |
 | 56 | 1 | K-81 | retirar `_notificarParadaCompletada`, que no borra nada — **hecha (2026-10-13, `53bcac4`)** | — | blanda: K-78 (la misma función) | sí |
 | 57 | 4 | K-82 | que volver dentro de rango, o la recarga de hijo3, no apague el botón de retos con el audio ya resuelto — **hecha (2026-10-13, `5318ef7`): un solo sitio decide el botón** | SPEC, VISIBLE (hoy bloquea la parada en los idiomas sin audio) | blanda: K-07 (la recarga de hijo3 llega a lo mismo) | sí |
@@ -5037,7 +5040,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 132 | 2 | K-138 | el audio de la reanudación por un solo camino: fuera el respaldo que lo pide por su cuenta cuando falta el handler de `CAMBIO_PARADA` (solo corre con Script 2 roto), o que sea ruidoso | GUÍA | blanda: K-72 | decisión |
 | 133 | 3 | K-139 | el estado del padre con un solo nombre (`estadoPadre`), o el alias `globalThis.estado` sin el objeto vacío de respaldo | SPEC (41 ficheros lo usan) | blanda: K-62, R2.10 | decisión |
 | 134 | 2 | K-140 | fuera las reservas «sin clave» de la compleción y las ramas de error que avanzan sin pulsar, o que completen por `marcarParadaCompletada` — **hecha (2026-10-28, `f8cb22c`): A; y fuera `_audioFinalizadoSinReto`, que no podía llegar a sus reservas** | SPEC | blanda: K-86, K-85 | sí |
-| 135 | 3 | K-141 | la respuesta `UBIC_FUERA_RANGO` del asistente con los plazos reales (o sin cifras), y la voz del polaco y del italiano en las respuestas del asistente | VISIBLE, traducciones de usted | — | decisión |
+| 135 | 3 | K-141 | la respuesta `UBIC_FUERA_RANGO` del asistente con los plazos reales (o sin cifras), y la voz del polaco y del italiano en las respuestas del asistente — **en curso: la respuesta, hecha el 2026-11-08 (`c45a24c`, `48041d1`), con los plazos reales, impersonal y sin género en los doce idiomas; queda la voz de pl/it en las demás respuestas** | VISIBLE, traducciones de usted | — | decisión |
 | 136 | 2 | K-142 | una sola lista de fotos por elemento para la ventana, la precarga y `verificar-datos`, con las 83 de `imagen5` a `imagen9` o sin ellas | VISIBLE, SPEC | blanda: la tanda de imágenes por idioma | decisión |
 | 137 | 2 | K-143 | un solo nombre por elemento (el de `aventuras-ID-padre.js`) para todo lo que enseña uno (las ventanas, los carteles, el rescate y el asistente), o igualar los textos de las dos tablas | VISIBLE, datos | blanda: K-119 | decisión |
 | 138 | 4 | K-144 | la espera a los hijos al entrar en AVENTURA con un solo plazo, una respuesta que diga si venció y solo los marcos supervisados, o dejarla | BUS, MEDIR | dura: K-07 (revisión) | decisión |

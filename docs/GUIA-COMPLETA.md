@@ -12676,7 +12676,7 @@ Además, botón de cierre ✗ (`.btn-cerrar-overlay`, mismo patrón visual que e
 
 1. Pulsar → botón se deshabilita
 2. Contador descendente de 15 segundos
-3. La app llama a `getCurrentPosition` una vez (reintento manual)
+3. La app llama a `getCurrentPosition` una vez (reintento manual), con `enableHighAccuracy: true`, `maximumAge: 0` y un plazo fijo de 15 s, el mismo de la cuenta atrás, sin ajustar a la conexión
 4. Recibir cualquier posición basta para dar el reintento por bueno: el problema de este overlay es la ausencia total de datos de posición (código 2/3), no su precisión — `procesarPosicionGPSParaAventura()` procesa la lectura sea cual sea su margen de error (§25.5), así que llegar aquí ya resuelve lo que este overlay avisa
 5. El overlay desaparece y la posición ya se procesó normalmente
 6. Si `getCurrentPosition` falla directamente (sin posición en absoluto) → se vuelve a mostrar este mismo overlay con el código de error real, en vez de quedarse congelado sin explicar qué pasó
@@ -12749,7 +12749,7 @@ Ubicación, mapa completo y mapa vintage se agrupan juntos — los tres ayudan a
 
 **Reintento (🛰️🔄, presente en las 4 pantallas):** pide una posición nueva y la introduce en el pipeline normal (`procesarPosicionGPSParaAventura`) — no decide él mismo a qué pantalla saltar: hijo2 recalcula la distancia con la posición fresca (sea cual sea su precisión, salvo que supere `CONFIG.GPS.PRECISION_MINIMA`, ver más abajo) y reenvía `GPS.RESTRINGIDO`/`GPS.DENTRO_DE_RANGO`, lo que hace que la pantalla correcta aparezca sola. Si el intento de geolocalización falla del todo (código 1 permiso, 2 sin señal, 3 timeout), cede el turno a `showGpsSignalOverlay()` — la misma pantalla y lógica que ya cubre esos tres códigos (§31.2/§31.3), sin duplicarla.
 
-**Las 4 pantallas de franja y la de precisión tienen botón de reintento; el cartel del bloqueo de 5 km, no (§31.6).** El reintento (`_gpsReintentarDesdeOverlayDistancia()`) pide la posición nueva y la introduce en el pipeline normal.
+**Las 4 pantallas de franja y la de precisión tienen botón de reintento; el cartel del bloqueo de 5 km, no (§31.6).** El reintento (`_gpsReintentarDesdeOverlayDistancia()`) pide la posición nueva y la introduce en el pipeline normal. Pide una sola posición (`getCurrentPosition`, `enableHighAccuracy: true`, `maximumAge: 0`) con un plazo de 5 s ajustado a la conexión (`ajustarTimeoutPorConexion(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION)`; los factores, en §26.5), sin cuenta atrás y sin apagar el botón; si el intento falla, muestra la pantalla de sin señal con el error del navegador (`showGpsSignalOverlay`, §31.2).
 
 **Botón de cierre ✗ y reaparición periódica ("snooze"):** las seis pantallas de esta familia (las 4 de franja, la de precisión y el cartel del bloqueo de 5 km, §31.5) usan el mismo botón naranja/verde arriba a la derecha que el resto de overlays del padre — cerrarlo solo descarta el aviso en pantalla, no cambia ningún estado ni desbloquea nada. Como hijo2 reenvía `GPS.RESTRINGIDO` en cada posición fuera de rango (continuo mientras dure el GPS activo), cerrar la pantalla no la silencia para siempre: cada una tiene su propio tiempo de espera antes de poder reaparecer (`globalThis.__VV_GPS_OVERLAY_SNOOZE`, que `_puedeSalirPantallaDistanciaGPS()` mira cada vez que se pide una), más largo cuanta menos urgencia hay:
 
