@@ -912,8 +912,8 @@ function _aplicarDatosEstado(datos, logPrefix) {
 
 // Exige 2 de las últimas 4 lecturas GPS dentro de radio para el mismo elemento antes de
 // dar por confirmada la llegada, y lo mismo para volver dentro de rango (K-185: con una
-// sola lectura, el ruido encendía el audio a 30 m) — sin filtro de precisión aguas arriba (funciones-mapa.js
-// ya no descarta lecturas por baja precisión), una única lectura ruidosa podría caer
+// sola lectura, el ruido encendía el audio a 30 m) — aun con la precisión declarada dentro de
+// CONFIG.GPS.PRECISION_MINIMA (las peores ni llegan aquí: ver el handler de ACTUALIZAR_ESTADO), una única lectura ruidosa podría caer
 // dentro del radio por casualidad aunque el usuario siga lejos de verdad, de ahí que una
 // sola lectura nunca baste. Ventana deslizante (no "2 SEGUIDAS" a secas): con GPS real en
 // calles estrechas del centro histórico, la distancia puede oscilar alrededor del radio

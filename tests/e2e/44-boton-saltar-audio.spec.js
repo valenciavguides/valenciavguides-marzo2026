@@ -445,6 +445,25 @@ test.describe('BSA-G — Cartel recordatorio "pulse saltar" (audio no disponible
       () => typeof globalThis._iniciarRecordatorioSaltarAudio === 'function' && typeof globalThis._detenerRecordatorioSaltarAudio === 'function',
       null, { timeout: 15000 }
     ).catch(() => {});
+    // El recordatorio pide pulsar ⏩, y con el botón de saltar oculto no sale. Aquí no hay un elemento sin fichero que lo
+    // enseñe (salvo en G-2 y G-4, que activan uno de verdad): se enseña a mano, igual que cada caso pone a mano la proximidad.
+    await page.evaluate(() => document.getElementById('audio-control-overlay').classList.add('mostrar-saltar-audio'));
+  });
+
+  test('G-4. Con el botón de saltar oculto (fuera de rango) no aparece, aunque pase el tiempo y esté cerca', async ({ page }) => {
+    await activarAv1P1(page, 'en'); // fichero no disponible -> botón de saltar real visible
+    await page.evaluate(() => {
+      // Fuera de rango, el padre apaga el audio y deja sin «saltar»: lo decide actualizarEstadoControlesAudioPadre().
+      globalThis.estadoPadre.usuarioFueraRango = { activo: true };
+      globalThis.actualizarEstadoControlesAudioPadre();
+      globalThis.estadoPadre.gps = globalThis.estadoPadre.gps || {};
+      globalThis.estadoPadre.gps.proximidadReal = true;
+    });
+    expect(await page.evaluate(() => document.getElementById('audio-control-overlay').classList.contains('mostrar-saltar-audio')), 'el botón de saltar, oculto').toBe(false);
+    await page.evaluate(() => globalThis._iniciarRecordatorioSaltarAudio());
+    await page.clock.runFor(12000);
+    await page.waitForTimeout(50);
+    expect(await page.evaluate(() => !!document.getElementById('cartel-recordatorio-saltar-audio')), 'no se pide pulsar un botón que no está').toBe(false);
   });
 
   test('G-1. Aparece a los 10s con proximidad real, se autocierra a los 7s, reaparece a los 20s', async ({ page }) => {

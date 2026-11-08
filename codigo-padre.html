@@ -5292,11 +5292,11 @@
             // GPS ha vuelto: ocultar overlay de señal perdida (§30.2/§30.3)
             try { hideGpsSignalOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
-            // La precisión ya no descarta la lectura: en calles estrechas del centro
-            // histórico se degrada constantemente, y descartar aquí congelaba a la vez
-            // la detección de llegada, el aviso a hijo2 y el redibujado de la polyline.
-            // El resguardo contra una lectura ruidosa vive en la detección de llegada
-            // (dos lecturas seguidas dentro de radio, ver funciones-mapa.js).
+            // La precisión no descarta la lectura aquí: en calles estrechas del centro
+            // histórico se degrada constantemente, y descartarla congelaría a la vez el
+            // aviso a hijo2 y la flecha. Con precisión peor que 50 m, funciones-mapa.js no
+            // saca conclusiones de distancia (`lecturaFiable`), y la llegada pide dos de las
+            // cuatro últimas lecturas dentro del radio.
             if (accuracy > 50) {
                 (globalThis.logger || console).debug(`${logPrefix} Precisión GPS baja (${Math.round(accuracy)}m > 50m), se procesa igualmente`);
             }
@@ -8359,7 +8359,12 @@ await _comprobarReanudacionAventura(logPrefix);
                 const tiempoListo = (ahora - _recordatorioSaltarAudioActivadoEn) >= RECORDATORIO_SALTAR_AUDIO_PRIMER_AVISO_MS;
                 const proximidadLista = estado?.gps?.proximidadReal === true;
                 const intervaloListo = _recordatorioSaltarAudioUltimoMostradoEn === null || (ahora - _recordatorioSaltarAudioUltimoMostradoEn) >= RECORDATORIO_SALTAR_AUDIO_INTERVALO_MS;
-                if (tiempoListo && proximidadLista && intervaloListo && !_hayCartelEnPantalla()) {
+                // No se pide pulsar ⏩ con el botón de saltar oculto (fuera de rango, o antes de llegar
+                // a una parada, K-185): se lee si está a la vista, que lo decide un solo sitio
+                // (_actualizarBotonSaltarAudio, desde actualizarEstadoControlesAudioPadre, Script 2),
+                // igual que el recordatorio de play mira su botón.
+                const botonSaltarALaVista = document.getElementById('audio-control-overlay')?.classList.contains('mostrar-saltar-audio') === true;
+                if (tiempoListo && proximidadLista && intervaloListo && botonSaltarALaVista && !_hayCartelEnPantalla()) {
                     _recordatorioSaltarAudioUltimoMostradoEn = ahora;
                     _mostrarCartelRecordatorioSaltarAudio();
                 }

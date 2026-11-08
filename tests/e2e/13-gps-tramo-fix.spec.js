@@ -326,7 +326,7 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     expect(logDistancia, `Con accuracy=120m la distancia debe seguir calculándose. Logs: ${JSON.stringify(logs.filter(l => /GPS|Distancia|precisión|Precisión/i.test(l)))}`).toBeTruthy();
   });
 
-  test('PD-2/PD-3. Confirmación por 2 lecturas seguidas dentro de radio (con precisión mala incluida)', async ({ page }) => {
+  test('PD-2/PD-3. Dos lecturas dentro de radio con precisión peor que 50 m no confirman la llegada; dos buenas, sí', async ({ page }) => {
     const logs = [];
     page.on('console', msg => logs.push(msg.text()));
 
@@ -334,24 +334,28 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
     await simularRodeoPorObras(page, TRAMO);
 
-    // Lectura 1: dentro de radio pero con precisión de 90m — antes se habría descartado
-    // por completo; ahora se procesa y arma la candidata (sin notificar todavía).
-    await page.evaluate(async (tramo) => {
-      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 90 },
-      });
-    }, TRAMO);
-    await page.waitForTimeout(150);
-    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'PD-2: 1 lectura no debe bastar para confirmar').toBe(false);
+    // Dos lecturas en el fin del tramo con un círculo de error de ±90 m: la posición real puede estar en cualquier punto
+    // de él, y como en hijo2 no cuentan para la llegada (CONFIG.GPS.PRECISION_MINIMA).
+    for (let i = 0; i < 2; i++) {
+      await page.evaluate(async (tramo) => {
+        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+          coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 90 },
+        });
+      }, TRAMO);
+    }
+    await page.waitForTimeout(300); // VENTANA-OBSERVACION
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'PD-2: dos lecturas de ±90 m no confirman la llegada').toBe(false);
 
-    // Lectura 2 seguida, también dentro de radio: confirma.
-    await page.evaluate(async (tramo) => {
-      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 90 },
-      });
-    }, TRAMO);
-    await page.waitForTimeout(300);
-    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'PD-3: 2 lecturas seguidas deben confirmar la llegada, aunque la precisión sea mala').toBe(true);
+    // Las dos siguientes, con buena precisión: confirman.
+    for (let i = 0; i < 2; i++) {
+      await page.evaluate(async (tramo) => {
+        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+          coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 },
+        });
+      }, TRAMO);
+    }
+    await page.waitForTimeout(300); // VENTANA-OBSERVACION
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'PD-3: dos lecturas de ±5 m sí la confirman').toBe(true);
   });
 
   test('PD-4. Ventana deslizante: 2 lecturas dentro de radio NO seguidas (con una fuera entre medias) sí confirman', async ({ page }) => {

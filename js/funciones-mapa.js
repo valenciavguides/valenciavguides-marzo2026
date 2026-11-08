@@ -2686,12 +2686,12 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // Sincronizar con el estado global del padre
         sincronizarEstadoGPSConPadre();
 
-        // La distancia y la llegada se calculan siempre, sea cual sea la precisión —
-        // descartar la lectura entera por precisión (calles estrechas del centro
-        // histórico la degradan constantemente) congelaba a la vez la detección de
-        // llegada, el aviso a hijo2 y el redibujado de la polyline. El resguardo
-        // contra una lectura ruidosa puntual vive en la propia detección de llegada,
-        // más abajo (dos lecturas seguidas dentro de radio, no una sola).
+        // La distancia se calcula siempre, sea cual sea la precisión: la lectura entera no se
+        // descarta (en calles estrechas del centro histórico la precisión se degrada
+        // constantemente, y descartarla congelaría el aviso a hijo2 y la flecha). Lo que no
+        // hace una lectura de precisión peor que CONFIG.GPS.PRECISION_MINIMA es sacar
+        // conclusiones de distancia (`lecturaFiable`, más abajo), y la llegada pide además dos
+        // de las cuatro últimas lecturas dentro del radio, no una sola.
 
         // Obtener paradas del array global (asumiendo que está disponible)
         if (globalThis.AVENTURA_PARADAS === undefined) {
@@ -2815,13 +2815,21 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // estar cerca o lejos, es selección libre. Antes se enviaba igual en los dos modos;
         // hijo2 lo ignoraba en la práctica (su propio guard de modo en
         // verificarDistanciaYActualizarBotones), pero viajaba de todos modos sin motivo.
+        //
+        // Una lectura con el círculo de error mayor que CONFIG.GPS.PRECISION_MINIMA (50 m) no
+        // sirve para ninguna conclusión de distancia: la posición real puede estar en cualquier
+        // punto de ese círculo. Como hijo2 (_notificarSenalNoFiable), con ella no se confirma una
+        // llegada, no se apunta una visita ni se quita la línea verde, y no cambia la proximidad.
+        // Sí mueve la flecha (arriba) y sí viaja a hijo2, que con ella enseña el aviso de señal no
+        // fiable (docs/estudio-caminos.md, K-182).
+        const lecturaFiable = !(typeof accuracy === 'number' && accuracy > CONFIG.GPS.PRECISION_MINIMA);
         if (estadoMapa.modo === MODOS.AVENTURA) {
             // Proximidad real al elemento activo — a diferencia de gpsVisualActivo (que se
             // activa al instante al revelarse el trazado, sin relación con la distancia real
             // desde 7dda4d6), esto SÍ mide la distancia de esta misma lectura GPS. Único consumo
             // hoy: el gate de proximidad del recordatorio "pulse play" en codigo-padre.html — no
             // reutilizar gpsVisualActivo para eso otra vez (ver GUIA-COMPLETA §25.5c).
-            estadoMapa.proximidadReal = distancia <= 50;
+            if (lecturaFiable) estadoMapa.proximidadReal = distancia <= 50;
             sincronizarEstadoGPSConPadre();
 
             // 📤 Enviar actualización de distancia a hijo2 (botones) periódicamente
@@ -2901,7 +2909,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         if (siguienteParada.tipo === 'tramo' && siguienteParada.inicio?.lat && siguienteParada.inicio?.lng) {
             _distanciaParaLimpiarManual = calcularDistancia(latitude, longitude, siguienteParada.inicio.lat, siguienteParada.inicio.lng);
         }
-        const _polylineManualCerca = _distanciaParaLimpiarManual <= 50;
+        const _polylineManualCerca = lecturaFiable && _distanciaParaLimpiarManual <= 50;
         // «Ha vuelto» solo tiene sentido si el usuario ya estuvo en este elemento: a 50 m o
         // menos, la misma distancia que quita la línea verde, y en AVENTURA. La primera vez que
         // llega con la línea puesta no hay a qué volver, y no sale nada (docs/estudio-caminos.md,
@@ -2958,7 +2966,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // (derivedParadaId ya se calculó más arriba, antes del bloque de visibilidad del trazado)
 
         // Confirmación por ventana deslizante (2 de las últimas 4 lecturas dentro de
-        // radio, no necesariamente seguidas): sin filtro de precisión aguas arriba, una
+        // radio, no necesariamente seguidas): aun con buena precisión declarada, una
         // única lectura ruidosa podría caer dentro del radio por casualidad aunque el
         // usuario siga lejos de verdad — de ahí que una sola lectura nunca baste. Pero
         // exigir estrictamente 2 SEGUIDAS (el diseño anterior) fallaba en la calle real:
@@ -2970,6 +2978,14 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // confirmaban la llegada). La ventana de 4 conserva la misma protección contra
         // una lectura suelta (1 de 4 no es 2 de 4) sin depender de que el azar alinee dos
         // lecturas buenas consecutivas.
+        //
+        // La lectura de precisión peor que 50 m no entra en la ventana (como en hijo2, que la
+        // descarta antes de su _confirmarPorVentana): ni confirma una llegada ni desplaza a una
+        // lectura buena de las cuatro.
+        if (!lecturaFiable) {
+            logger.debug(`${logPrefix} Precisión ±${Math.round(accuracy)} m peor que ${CONFIG.GPS.PRECISION_MINIMA} m: la lectura no cuenta para la llegada`);
+            return;
+        }
         const _VENTANA_LLEGADA = 4;
         const _CONFIRMACION_LLEGADA = 2;
         if (estadoMapa._llegadaCandidataId !== derivedParadaId) {

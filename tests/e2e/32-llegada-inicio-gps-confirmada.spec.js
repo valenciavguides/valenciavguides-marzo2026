@@ -81,12 +81,12 @@ async function prepararEscenario(page, modo, id = INICIO.id) {
   }, { id, modo });
 }
 
-async function enviarLectura(page, coords) {
-  await page.evaluate(async (c) => {
+async function enviarLectura(page, coords, accuracy = 8) {
+  await page.evaluate(async ({ c, accuracy }) => {
     await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-      coords: { latitude: c.lat, longitude: c.lng, accuracy: 8 },
+      coords: { latitude: c.lat, longitude: c.lng, accuracy },
     });
-  }, coords);
+  }, { c: coords, accuracy });
 }
 
 async function existeCartelLlegada(page) {
@@ -164,5 +164,23 @@ test.describe('LI — Cartel de llegada al inicio (confirmado por GPS)', () => {
 
     const info = await existeCartelLlegada(page);
     expect(info.existe, 'En CASA el cartel de llegada nunca debe dispararse').toBe(false);
+  });
+
+  test('LI-5. Lecturas con precisión peor que 50 m no cuentan para la llegada; con buena precisión, sí', async ({ page }) => {
+    const prep = await prepararEscenario(page, 'aventura');
+    test.skip(!prep.tieneFunciones || !prep.paradaEncontrada, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    // En el punto exacto, pero con un círculo de error de ±80 m: la posición real puede estar en cualquier punto de él.
+    await enviarLectura(page, INICIO, 80);
+    await page.waitForTimeout(200); // VENTANA-OBSERVACION
+    await enviarLectura(page, INICIO, 80);
+    await page.waitForTimeout(300); // VENTANA-OBSERVACION
+    expect((await existeCartelLlegada(page)).existe, 'dos lecturas de ±80 m no confirman la llegada').toBe(false);
+
+    await enviarLectura(page, INICIO, 8);
+    await page.waitForTimeout(200); // VENTANA-OBSERVACION
+    await enviarLectura(page, INICIO, 8);
+    await page.waitForTimeout(300); // VENTANA-OBSERVACION
+    expect((await existeCartelLlegada(page)).existe, 'dos lecturas de ±8 m sí').toBe(true);
   });
 });

@@ -230,8 +230,10 @@ for (const gesto of ['ratón', 'dedo']) {
       const proximidad = (page) => page.evaluate(() => {
         globalThis.estadoPadre.gps = globalThis.estadoPadre.gps || {};
         globalThis.estadoPadre.gps.proximidadReal = true;
-        // El recordatorio de audio tampoco sale con su botón apagado (K-185): sin un elemento con audio, a mano.
+        // Los recordatorios de audio y de saltar no salen con su botón apagado u oculto (K-185): sin un elemento con audio,
+        // a mano.
         document.getElementById('audio-main-toggle-btn').disabled = false;
+        document.getElementById('audio-control-overlay').classList.add('mostrar-saltar-audio');
       });
 
       test(`EQ-3a (${gesto}). Recordatorio de pulsar el audio`, async ({ page }) => {
