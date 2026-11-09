@@ -524,7 +524,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   import * as bus from './js/mensajeria.js';
   import { TIPOS_MENSAJE } from './js/constants.js';
   import { LANG_ARCHIVO_PARRAFOS } from './js/data-loader.js';
-  import { pedirJson } from './js/utils.js';
+  import { pedirJson, lanzarFuegosArtificiales } from './js/utils.js';
   import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
   import logger from './js/logger.js';
   // Los textos de Jaime: la copia pública del idioma (publico/textos/<idioma>/jaime.json, la hace tools/build-demo.js), por
@@ -541,6 +541,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   })().catch((error) => { logger.error('[video-intro] Sin los textos de Jaime:', error?.message); return null; });
   void _pedidoTextosJaime.then((escenas) => globalThis.__entregarTextosJaime(escenas));
   globalThis.reproducirVideoConBuffer = reproducirVideoConBuffer;
+  globalThis.lanzarFuegosArtificiales = lanzarFuegosArtificiales;
   // El `<script>` clasico de abajo no puede leer los
   // bindings de este modulo, asi que lo que necesita viaja por globalThis. Sus dos
   // `(globalThis.logger || console).warn` estan dentro de catch, en funciones que corren
@@ -1851,42 +1852,16 @@ async function scene19(){
     cv.width=sr.width; cv.height=sr.height;
     cv.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:9999';
     $('stage').appendChild(cv);
-    const ctx=cv.getContext('2d');
-    const colors=['#ff2e2e','#ff7f50','#ffcc00','#3cff5f','#1e90ff','#9b30ff','#ff69b4','#00ffff'];
-    const particles=[];
-    const duration=7000;
-    let startTime=null;
-    function createParticle(x,y){
-      return{x,y,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,life:120,
-        color:colors[Math.floor(Math.random()*colors.length)],size:Math.random()*4+2};
-    }
-    function loop(ts){
-      if(!startTime) startTime=ts;
-      const elapsed=ts-startTime;
-      ctx.clearRect(0,0,cv.width,cv.height);
-      if(elapsed<duration){
-        if(particles.length<200){
-          const x=Math.random()*cv.width;
-          const y=Math.random()*cv.height*.6;
-          for(let i=0;i<10;i++) particles.push(createParticle(x,y));
-        }
-        for(let i=particles.length-1;i>=0;i--){
-          const p=particles[i];
-          p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life--;
-          if(p.life<=0){ particles.splice(i,1); continue; }
-          ctx.beginPath();
-          ctx.fillStyle=p.color;
-          ctx.shadowColor=p.color; ctx.shadowBlur=12;
-          ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-          ctx.fill(); ctx.closePath();
-        }
-        requestAnimationFrame(loop);
-      } else {
-        ctx.clearRect(0,0,cv.width,cv.height);
-        cv.remove();
-      }
-    }
-    requestAnimationFrame(loop);
+    // El motor de fuegos artificiales de la app (js/utils.js; lo publica el módulo de arriba), con los números de esta
+    // escena; al acabar, el canvas se quita. Sin el motor, se dice como error y la escena sigue.
+    try {
+      globalThis.lanzarFuegosArtificiales(cv, {
+        duracionMs: 7000, colores: ['#ff2e2e','#ff7f50','#ffcc00','#3cff5f','#1e90ff','#9b30ff','#ff69b4','#00ffff'],
+        velocidad: 8, vida: 120, tamanoMinimo: 2, tamanoRango: 4,
+        maxParticulas: 200, porRafaga: 10, alturaRafaga: 0.6, gravedad: 0.12, brillo: 12,
+        alTerminar: () => cv.remove(),
+      });
+    } catch (e) { cv.remove(); (globalThis.logger || console).error('[video-intro] Sin fuegos artificiales:', e?.message || e); }
   })();
   setOv(`<div class="modal-bg" style="align-items:flex-start;padding-top:15vh">
     <div class="modal">

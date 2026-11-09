@@ -140,6 +140,7 @@
 import * as bus from './js/mensajeria.js';
 import { TIPOS_MENSAJE } from './js/constants.js';
 import logger from './js/logger.js';
+import { lanzarFuegosArtificiales } from './js/utils.js';
 // Los efectos de sonido no son esenciales: si el módulo no carga, el puzzle sigue sin ellos y lo dice en el log.
 // Un `import` estático impediría ejecutar el módulo entero (sin bus ni botones).
 let EFECTOS = {};
@@ -536,60 +537,12 @@ function endPuzzle(success) {
 }
 
 function runFireworks() {
-    let duration = 5000;
-    let startTime = null;
-    const particles = [];
-    const colors = ["#ff2e2e","#ff7f50","#ffcc00","#3cff5f","#1e90ff","#9b30ff"];
-
-    effectCtx.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
-
-    function createParticle(x, y) {
-        return {
-            x, y,
-            vx: (Math.random() - 0.5) * 6,
-            vy: (Math.random() - 0.5) * 6,
-            life: 100,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            size: Math.random() * 3 + 2
-        };
-    }
-
-    function loop(timestamp) {
-        if (!startTime) startTime = timestamp;
-        let elapsed = timestamp - startTime;
-        effectCtx.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
-
-        if (elapsed < duration) {
-            if (particles.length < 100) { // Limitar el número de partículas para evitar sobrecarga
-                let x = Math.random() * effectCanvas.width;
-                let y = Math.random() * effectCanvas.height / 2; // Arriba de la pantalla
-                for(let i=0; i<5; i++) {
-                    particles.push(createParticle(x, y));
-                }
-            }
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.1;
-                p.life--;
-                if (p.life <= 0) particles.splice(i, 1);
-                else {
-                    effectCtx.beginPath();
-                    effectCtx.fillStyle = p.color;
-                    effectCtx.shadowColor = p.color;
-                    effectCtx.shadowBlur = 10;
-                    effectCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    effectCtx.fill();
-                    effectCtx.closePath();
-                }
-            }
-            requestAnimationFrame(loop);
-        } else {
-            effectCtx.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
-        }
-    }
-    requestAnimationFrame(loop);
+    // El motor de fuegos artificiales de la app (js/utils.js), con los números del puzzle.
+    lanzarFuegosArtificiales(effectCanvas, {
+        duracionMs: 5000, colores: ['#ff2e2e', '#ff7f50', '#ffcc00', '#3cff5f', '#1e90ff', '#9b30ff'],
+        velocidad: 6, vida: 100, tamanoMinimo: 2, tamanoRango: 3,
+        maxParticulas: 100, porRafaga: 5, alturaRafaga: 0.5, gravedad: 0.1, brillo: 10,
+    });
 }
 
 function runConfetti() {

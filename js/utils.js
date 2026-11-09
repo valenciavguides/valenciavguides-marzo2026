@@ -294,6 +294,65 @@ export function rotarFrasesDeCarga(elemento, frases) {
 }
 
 /**
+ * Fuegos artificiales en un canvas: ráfagas de partículas que salen de un punto al azar, caen con la gravedad y brillan,
+ * hasta que se acaba el plazo; entonces borra el canvas y llama a `alTerminar` (docs/estudio-caminos.md, K-28). Lo usan
+ * el puzzle al resolverse y la escena final del vídeo de introducción, cada uno con sus números.
+ * @param {HTMLCanvasElement} canvas - donde se dibujan (se borra al empezar y al acabar)
+ * @param {Object} o - los números: `duracionMs`; `colores`; `velocidad` (cada componente sale entre -velocidad/2 y
+ *   +velocidad/2); `vida` (fotogramas); `tamanoMinimo` y `tamanoRango` (el radio sale entre el mínimo y el mínimo más
+ *   el rango); `maxParticulas` (no lanza otra ráfaga mientras haya tantas); `porRafaga`; `alturaRafaga` (fracción de
+ *   la altura del canvas, desde arriba, en la que salen las ráfagas); `gravedad` (lo que gana la velocidad vertical en
+ *   cada fotograma); `brillo` (el `shadowBlur`); y `alTerminar`, opcional
+ */
+export function lanzarFuegosArtificiales(canvas, {
+    duracionMs, colores, velocidad, vida, tamanoMinimo, tamanoRango, maxParticulas, porRafaga, alturaRafaga, gravedad, brillo,
+    alTerminar = null,
+}) {
+    const ctx = canvas.getContext('2d');
+    const particulas = [];
+    let inicio = null;
+    const crear = (x, y) => ({
+        x, y,
+        vx: (Math.random() - 0.5) * velocidad,
+        vy: (Math.random() - 0.5) * velocidad,
+        vida,
+        color: colores[Math.floor(Math.random() * colores.length)],
+        tamano: Math.random() * tamanoRango + tamanoMinimo,
+    });
+    const fotograma = (ts) => {
+        if (!inicio) inicio = ts;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (ts - inicio >= duracionMs) {
+            if (alTerminar) alTerminar();
+            return;
+        }
+        if (particulas.length < maxParticulas) {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height * alturaRafaga;
+            for (let i = 0; i < porRafaga; i++) particulas.push(crear(x, y));
+        }
+        for (let i = particulas.length - 1; i >= 0; i--) {
+            const p = particulas[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += gravedad;
+            p.vida--;
+            if (p.vida <= 0) { particulas.splice(i, 1); continue; }
+            ctx.beginPath();
+            ctx.fillStyle = p.color;
+            ctx.shadowColor = p.color;
+            ctx.shadowBlur = brillo;
+            ctx.arc(p.x, p.y, p.tamano, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+        }
+        requestAnimationFrame(fotograma);
+    };
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    requestAnimationFrame(fotograma);
+}
+
+/**
  * Reintenta una operación hasta que esté disponible
  * @param {Function} checkFn - Función que retorna true cuando está listo
  * @param {Object} [options] - Opciones

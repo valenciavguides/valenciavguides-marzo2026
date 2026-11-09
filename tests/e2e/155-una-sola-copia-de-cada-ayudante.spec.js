@@ -19,12 +19,15 @@
  *   UC-7  Las frases que rotan en las pantallas de carga: un solo algoritmo, `rotarFrasesDeCarga` de `js/utils.js`.
  *   UC-8  La del padre (`#loading-frase-carga`): rota con las frases del idioma y, al parar, no vuelve ninguna.
  *   UC-9  La de arrancar una aventura en la selección (`#carga-progreso-frase`): lo mismo.
+ *   UC-10 Los fuegos artificiales en canvas (el puzzle al resolverse, la escena final del vídeo de introducción): un solo
+ *         motor, `lanzarFuegosArtificiales` de `js/utils.js`, cada uno con sus números.
  *
  * ROJO ANTES QUE VERDE: con las copias del padre, UC-2 cae; con la galería escapando por `textContent`/`innerHTML`, que no
  * escapa las comillas, UC-3 cae (el `alt` se corta en la primera comilla). UC-4 pasa con las dos. Con el apilado del
  * «atrás» escrito en sus tres sitios (la activación, la reanudación y el propio escucha de `popstate`), UC-5 cae; con las
  * tres vibraciones (el padre a 200 ms, hijo4 y la selección a 300), UC-6; con las dos copias de las frases de carga, UC-7, y
- * UC-8 y UC-9: las dos dejaban pendiente el fundido al parar, y la frase volvía a pintarse.
+ * UC-8 y UC-9: las dos dejaban pendiente el fundido al parar, y la frase volvía a pintarse. Con los dos motores de fuegos
+ * artificiales (el puzzle y video-intro), UC-10.
  */
 'use strict';
 
@@ -67,6 +70,10 @@ test.describe('UC — una sola copia de cada ayudante (estático)', () => {
 
   test('UC-7. Las frases que rotan en las pantallas de carga: un solo algoritmo, rotarFrasesDeCarga de js/utils.js', () => {
     expect(dondeCasa(/\(idx \+ 1\) % \w+\.length/g)).toEqual([['js/utils.js', 1]]);
+  });
+
+  test('UC-10. Los fuegos artificiales en canvas: un solo motor, lanzarFuegosArtificiales de js/utils.js', () => {
+    expect(dondeCasa(/\.shadowBlur\s*=/g)).toEqual([['js/utils.js', 1]]);
   });
 });
 
