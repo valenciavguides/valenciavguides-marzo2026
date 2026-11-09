@@ -2625,10 +2625,10 @@
     // declararlos, marca no-unused-vars por no leerlos. Ninguna de las dos cosas es un
     // problema: es el patron de globalThis compartido entre bloques (ver 37.2 de la guia).
     /* global modoDespedida, _desarmarAbandonoP18 */ // eslint-disable-line no-unused-vars
-    // Importado por su efecto: al cargarse instala la captura de `error` y `unhandledrejection`
-    // de este frame, que es la que avisa al padre. El bus ya lo arrastra, pero de ahí no se
-    // deduce leyendo este fichero.
-    import './js/utils.js';
+    // Importado por su efecto —al cargarse instala la captura de `error` y `unhandledrejection`
+    // de este frame, que es la que avisa al padre; el bus ya lo arrastra, pero de ahí no se
+    // deduce leyendo este fichero— y por pedirCodigoDev, la ventana del código de desarrollador.
+    import { pedirCodigoDev } from './js/utils.js';
     import { TRADUCCIONES_DESPEDIDA, TRADUCCIONES_ACCESO_ERRONEO, TEXTOS_VALORACION, TRADUCCIONES_REANUDACION } from './js/traducciones-ui.js';
     import { enviarValoracion } from './js/feedback-forms.js';
     globalThis.TRADUCCIONES_DESPEDIDA = TRADUCCIONES_DESPEDIDA;
@@ -3152,61 +3152,20 @@
         _setupLogoDevGesture();
     }
 
+    // La ventana del código es la común (pedirCodigoDev, js/utils.js; §24), la misma del padre.
     function _mostrarModalDevP1() {
-        if (document.getElementById('_devp1-code')) return;
-        const CODIGO_DEV_HASH = 'b88919efac1f1343b21bbaa3cbc788362ee3e525d74f72c176616f71ddad0df8';
-        const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999999;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;';
-        overlay.innerHTML = `<div style="background:#1a1a2e;border-radius:1rem;padding:2rem 1.5rem;width:min(90vw,22rem);text-align:center;border:2px solid #f5a623;">
-            <p style="color:#f5a623;font-size:1.1rem;font-weight:bold;margin:0 0 1rem 0;">🔧 Modo desarrollador</p>
-            <form autocomplete="off" onsubmit="return false" style="margin:0;">
-            <input id="_devp1-code" type="password" maxlength="20" autocomplete="off"
-                style="width:100%;padding:0.9rem;border:2px solid #555;border-radius:0.6rem;font-size:1.6rem;text-align:center;letter-spacing:0.5rem;background:#0d0d1a;color:#fff;box-sizing:border-box;">
-            <p id="_devp1-error" style="color:#ff4444;font-size:0.85rem;margin:0.5rem 0 0 0;min-height:1.2em;"></p>
-            <div style="display:flex;gap:0.8rem;margin-top:0.8rem;">
-                <button type="button" id="_devp1-cancel" style="flex:1;padding:0.7rem;background:transparent;color:#aaa;border:1px solid #555;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;">Cancelar</button>
-                <button type="button" id="_devp1-ok" style="flex:1;padding:0.7rem;background:#f5a623;color:#000;border:none;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;font-weight:bold;">OK</button>
-            </div>
-            </form>
-        </div>`;
-        document.body.appendChild(overlay);
-        const input = overlay.querySelector('#_devp1-code');
-        const errorEl = overlay.querySelector('#_devp1-error');
-        input.focus();
-        const cerrar = () => { try { document.body.removeChild(overlay); } catch (_) {} };
-        let _confirming = false;
-        const confirmar = async () => {
-            if (_confirming) return;
-            _confirming = true;
-            try {
-                const codigo = input.value.trim();
-                if (!codigo) { errorEl.textContent = 'Introduce el código'; _confirming = false; return; }
-                const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codigo));
-                const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-                if (hashHex !== CODIGO_DEV_HASH) {
-                    errorEl.textContent = 'Código incorrecto';
-                    input.value = '';
-                    input.focus();
-                    _confirming = false;
-                    return;
-                }
-                cerrar();
+        pedirCodigoDev({
+            titulo: '🔧 Modo desarrollador', prefijoId: '_devp1', zIndex: 9999999, fondo: 0.85, registro: '[DEV]',
+            alAcertar: () => {
                 globalThis._devCasaMode = true;
                 const badge = document.getElementById('_dev-badge');
                 if (badge) badge.style.display = 'block';
-                // Por el bus, como todo. Iba a pelo y sin `origen` —el bus lo habria tirado—
-                // porque el padre lo escuchaba con una escucha suelta que aceptaba el aviso de
-                // CUALQUIER frame del dominio: bastaba con mandarlo para activar el modo dev.
+                // Por el bus, como todo: el padre lo atiende con su handler registrado, que solo acepta lo que llega de
+                // un frame registrado (con una escucha suelta bastaría mandarlo desde cualquier frame del dominio).
                 void enviarMensaje({ tipo: TIPOS_MENSAJE.SELECCION.DEV_MODE_TOGGLE, destino: 'padre' });
                 (globalThis.logger || console).warn('[DEV] Modo dev activado en P1 — se saltarán P12, P13 y P14');
-            } catch (err) {
-                (globalThis.logger || console).error('[DEV] Error activando modo dev:', err?.message || err);
-                _confirming = false;
-            }
-        };
-        overlay.querySelector('#_devp1-cancel').addEventListener('click', cerrar);
-        overlay.querySelector('#_devp1-ok').addEventListener('click', confirmar);
-        input.addEventListener('keydown', e => { if (e.key === 'Enter') confirmar(); if (e.key === 'Escape') cerrar(); });
+            },
+        });
     }
 
     // Función para inicializar la lógica de selección (llamada después de PADRE_CONFIRMA_HIJO_LISTO)

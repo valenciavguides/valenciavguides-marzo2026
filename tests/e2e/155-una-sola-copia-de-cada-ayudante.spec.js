@@ -21,13 +21,18 @@
  *   UC-9  La de arrancar una aventura en la selección (`#carga-progreso-frase`): lo mismo.
  *   UC-10 Los fuegos artificiales en canvas (el puzzle al resolverse, la escena final del vídeo de introducción): un solo
  *         motor, `lanzarFuegosArtificiales` de `js/utils.js`, cada uno con sus números.
+ *   UC-11 El código de desarrollador: una sola ventana y un solo hash, `pedirCodigoDev` y `esCodigoDev` de `js/utils.js`.
+ *   UC-12 a UC-14 Las tres ventanas (el modo desarrollador del padre, el panel de registros y el modo desarrollador de la
+ *         selección), abiertas por su camino real: su título, su capa y su fondo; un código malo dice «Código
+ *         incorrecto» y vacía el campo; Escape la cierra.
  *
  * ROJO ANTES QUE VERDE: con las copias del padre, UC-2 cae; con la galería escapando por `textContent`/`innerHTML`, que no
  * escapa las comillas, UC-3 cae (el `alt` se corta en la primera comilla). UC-4 pasa con las dos. Con el apilado del
  * «atrás» escrito en sus tres sitios (la activación, la reanudación y el propio escucha de `popstate`), UC-5 cae; con las
  * tres vibraciones (el padre a 200 ms, hijo4 y la selección a 300), UC-6; con las dos copias de las frases de carga, UC-7, y
  * UC-8 y UC-9: las dos dejaban pendiente el fundido al parar, y la frase volvía a pintarse. Con los dos motores de fuegos
- * artificiales (el puzzle y video-intro), UC-10.
+ * artificiales (el puzzle y video-intro), UC-10; con las tres ventanas del código y las dos copias del hash, UC-11.
+ * UC-12 a UC-14 pasan con las dos: vigilan que juntarlas no cambia nada.
  */
 'use strict';
 
@@ -74,6 +79,11 @@ test.describe('UC — una sola copia de cada ayudante (estático)', () => {
 
   test('UC-10. Los fuegos artificiales en canvas: un solo motor, lanzarFuegosArtificiales de js/utils.js', () => {
     expect(dondeCasa(/\.shadowBlur\s*=/g)).toEqual([['js/utils.js', 1]]);
+  });
+
+  test('UC-11. El código de desarrollador: una sola ventana y un solo hash, en js/utils.js', () => {
+    expect(dondeCasa(/type="password"/g)).toEqual([['js/utils.js', 1]]);
+    expect(dondeCasa(/CODIGO_DEV_HASH\s*=/g)).toEqual([['js/utils.js', 1]]);
   });
 });
 
@@ -142,5 +152,57 @@ test.describe('UC — las frases de carga, en las dos pantallas', () => {
     // VENTANA-OBSERVACION: comprobar que ninguna frase vuelve a pintarse después de parar no admite poll.
     await page.waitForTimeout(700);
     expect(await frase.textContent()).toBe('');
+  });
+});
+
+test.describe('UC — las tres ventanas del código de desarrollador', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+  });
+
+  /**
+   * Abre una ventana por su camino real y la prueba sin mirar sus ids: el título, la capa y el fondo; un código malo
+   * dice «Código incorrecto» y vacía el campo; Escape la cierra.
+   */
+  const probarVentana = async (frame, abrir, esperado) => {
+    await abrir();
+    const campo = frame.locator('input[type="password"]');
+    await expect(campo).toHaveCount(1);
+    const datos = await campo.evaluate((el) => {
+      let o = el; while (o && getComputedStyle(o).position !== 'fixed') o = o.parentElement;
+      const cs = getComputedStyle(o);
+      return { titulo: o.querySelector('p')?.textContent, capa: cs.zIndex, fondo: cs.backgroundColor };
+    });
+    expect(datos).toEqual(esperado);
+    await campo.fill('no-es-el-codigo');
+    await campo.evaluate((el) => {
+      let o = el; while (o && getComputedStyle(o).position !== 'fixed') o = o.parentElement;
+      [...o.querySelectorAll('button')].find((b) => b.textContent.trim() === 'OK').click();
+    });
+    await expect(frame.getByText('Código incorrecto')).toBeVisible();
+    expect(await campo.inputValue()).toBe('');
+    await campo.press('Escape');
+    await expect(campo).toHaveCount(0);
+  };
+
+  test('UC-12. La del modo desarrollador del padre', async ({ page }) => {
+    await probarVentana(page, () => page.evaluate(() => globalThis.mensajeria.despacharLocal({ tipo: 'CONTROL.DEV_CINCO_TOQUES', datos: {} })),
+      { titulo: '🔧 Modo desarrollador', capa: '9999999', fondo: 'rgba(0, 0, 0, 0.8)' });
+  });
+
+  test('UC-13. La del panel de registros del padre (siete toques)', async ({ page }) => {
+    await probarVentana(page, () => page.evaluate(() => { for (let i = 0; i < 7; i++) document.dispatchEvent(new MouseEvent('click', { bubbles: true })); }),
+      { titulo: '🔧 Panel de logs (código dev)', capa: '2000010', fondo: 'rgba(0, 0, 0, 0.8)' });
+  });
+
+  test('UC-14. La del modo desarrollador de la selección (Ctrl+Alt+clic en el logo de P1)', async ({ page }) => {
+    const sel = page.frame({ name: 'seleccion' });
+    expect(sel, 'el iframe de la selección').toBeTruthy();
+    await probarVentana(sel, () => sel.evaluate(() => document.querySelector('#pantalla1 .logo-circular-bg')
+      .dispatchEvent(new MouseEvent('mousedown', { bubbles: true, ctrlKey: true, altKey: true, button: 0 }))),
+      { titulo: '🔧 Modo desarrollador', capa: '9999999', fondo: 'rgba(0, 0, 0, 0.85)' });
   });
 });

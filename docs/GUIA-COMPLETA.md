@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-6df2e8401631'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7a0a75fba03a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8054,7 +8054,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `152-hijo2-pide-y-el-padre-resuelve.spec.js` | 4 | hijo2 no guarda listas: pide, y el padre resuelve con sus datos (§9.6, §10.5): al repartir los datos y activar una parada, hijo2 no recibe ninguna lista ni petición de coordenadas, y no pide ni confirma nada de eso (H2-1); el botón de imagen solo manda la acción y el padre abre su ventana con la imagen, las imágenes y el texto del elemento actual —el texto, por su `texto_id`— (H2-2); el de vídeo, en un tramo, igual con el vídeo y el nombre del tramo (H2-3); y «volver a la ruta» solo manda la posición, sin el elemento ni su id (H2-4) |
 | `153-la-fase-2-carga-solo-la-aventura-elegida.spec.js` | 4 | La fase 2 carga solo la aventura y el idioma elegidos, por `js/data-loader.js` (§7.1, §22.12): sus globales llevan esa aventura y ese idioma y no hay global de puzzles (F2-1); si cambian, vuelve a cargar (F2-2); con la API simulada y los ficheros protegidos en 403, la fase 2 y `cargarPuzzle()` leen de la API y no piden ningún fichero protegido (F2-3); y el reto de puzzle llega a hijo4 con la imagen de su puzzle (F2-4) |
 | `154-el-listado-titula-por-texto-id.spec.js` | 2 | El listado de paradas titula cada parada con el texto del `texto_id` de su fila de `DATOS_PADRE`, la regla de la ventana de la imagen (§7.2, «Listado de paradas»): en el listado de Aventura1 en español, el título de Av1-P-1 y el de Av1-P-2 salen una vez cada uno (LT-1, control); y con el `texto_id` de Av1-P-1 apuntando al texto de Av1-P-2, el de Av1-P-2 sale dos veces y el de Av1-P-1 ninguna (LT-2) |
-| `155-una-sola-copia-de-cada-ayudante.spec.js` | 10 | Cada ayudante de uso común tiene una sola definición, en `js/` (estudio, K-28): `sleep` solo en `js/utils.js` y sin publicar en `globalThis` (UC-1); el mapa de escape de HTML, una vez, en `escaparHTML` de `js/utils.js` (UC-2); la galería escapa como el resto, y un nombre con comillas dobles llega entero al `alt` de la imagen (UC-3); el título del texto de la galería con etiquetas sale como texto (UC-4, control); la entrada del historial que intercepta «atrás» la apila una sola función del padre, `_apilarEntradaDeAventura()`: `history.pushState` en un solo sitio (UC-5, §34.3); la vibración, una sola llamada a `navigator.vibrate`, la de `vibrar()` de `js/utils.js` (UC-6, §4.7m); las frases de las pantallas de carga, un solo algoritmo, `rotarFrasesDeCarga()` de `js/utils.js` (UC-7), y en las dos pantallas, la del padre (UC-8) y la de arrancar una aventura en la selección (UC-9), rotan con las frases del idioma y, al parar, no vuelve ninguna; los fuegos artificiales en canvas, un solo motor, `lanzarFuegosArtificiales()` de `js/utils.js` (UC-10) |
+| `155-una-sola-copia-de-cada-ayudante.spec.js` | 14 | Cada ayudante de uso común tiene una sola definición, en `js/` (estudio, K-28): `sleep` solo en `js/utils.js` y sin publicar en `globalThis` (UC-1); el mapa de escape de HTML, una vez, en `escaparHTML` de `js/utils.js` (UC-2); la galería escapa como el resto, y un nombre con comillas dobles llega entero al `alt` de la imagen (UC-3); el título del texto de la galería con etiquetas sale como texto (UC-4, control); la entrada del historial que intercepta «atrás» la apila una sola función del padre, `_apilarEntradaDeAventura()`: `history.pushState` en un solo sitio (UC-5, §34.3); la vibración, una sola llamada a `navigator.vibrate`, la de `vibrar()` de `js/utils.js` (UC-6, §4.7m); las frases de las pantallas de carga, un solo algoritmo, `rotarFrasesDeCarga()` de `js/utils.js` (UC-7), y en las dos pantallas, la del padre (UC-8) y la de arrancar una aventura en la selección (UC-9), rotan con las frases del idioma y, al parar, no vuelve ninguna; los fuegos artificiales en canvas, un solo motor, `lanzarFuegosArtificiales()` de `js/utils.js` (UC-10); la ventana del código de desarrollador y su hash, una sola vez, en `js/utils.js` (UC-11, leído en el fuente), y las tres ventanas, abiertas por su camino real, con su título, su capa y su fondo, que con un código malo dicen «Código incorrecto» y vacían el campo y con Escape se cierran (UC-12 a UC-14; §24) |
 | `156-la-reanudacion-avisa-si-script-2-no-llega.spec.js` | 2 | La reanudación espera a que Script 2 publique `distribuirDatosAventura` con plazo y, si no llega, avisa (§11, el aviso de último recurso de `_avisarFalloCargaAppUnaVez()`; estudio, K-72): con Script 2 cortado en su primera instrucción (la respuesta de `codigo-padre.html` se reescribe, con el service worker bloqueado), tras pulsar «Continuar» sale el aviso de fallo de carga, y ninguno antes de pulsarlo (RE-1; más de un minuto: el arranque espera hasta 30 s a Script 2 y la reanudación otros 30 s); sin corte, la reanudación termina sin ningún aviso (RE-2, control) |
 | `157-avanzar-lo-decide-un-solo-sitio.spec.js` | 4 | «Avanzar» de hijo2 lo decide un solo sitio del padre (§29.4), medido con el padre, los hijos y el botón reales: un tramo sin completar no lo enciende al acercarse a su final, y completado sí (AV-1); una parada a medias no lo enciende al volver de los 5 km, y completada sí (AV-2); con la parada completada, salir de rango sin gracia lo apaga y volver lo enciende (AV-3, control); una pulsación con el botón apagado, fuera de rango, no avanza, y con el botón encendido sí (AV-4) |
 | `158-imagenes-por-idioma.spec.js` | 3 | Las imágenes que dependen del idioma salen en la ventana de la imagen detrás de las fotos de la parada, de la carpeta de su idioma (§4.7f), medido con el padre, los hijos y el botón de hijo2 reales: en español (IM-1) y en inglés (IM-2), Av1-P-5 lleva sus cinco imágenes de `imagenes/imagenes-idiomas/<carpeta>/`; Av1-P-1, sin `imagenes_idioma`, solo sus fotos (IM-3, control) |
@@ -9110,7 +9110,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-6df2e8401631';
+const CACHE_VERSION = 'v-7a0a75fba03a';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9409,7 +9409,7 @@ Fuera de ese caso, el estado es limpio: si no hay aventura activada, una recarga
 ```mermaid
 flowchart TD
     P1([P1 — Bienvenida\n.logo-circular-bg visible]) --> GESTO{Gesto DEV\n5 taps · Ctrl+Alt+clic}
-    GESTO --> MODAL["_mostrarModalDevP1()\noverlay con input #_devp1-code en <form autocomplete=off>\nguard: si ya existe input, no abre"]
+    GESTO --> MODAL["_mostrarModalDevP1() → pedirCodigoDev()\nla ventana común, campo #_devp1-input\nguard: si ya existe su campo, no abre"]
     MODAL --> CODE{¿código DEV correcto?}
     CODE -- No --> MODAL
     CODE -- Sí --> SET1["globalThis._devCasaMode = true\nSELECCION.DEV_MODE_TOGGLE → padre"]
@@ -9443,7 +9443,7 @@ En dev mode, `mostrar(12)`, `mostrar(13)` y `mostrar(14)` redirigen directamente
 flowchart TD
     AV([Aventura activa — cualquier modo]) --> GESTO2{Gesto DEV en hijo1\n5 taps · Ctrl+Alt+clic\nen #icono-temporizador}
     GESTO2 --> MSG2["hijo1 envía\nCONTROL.DEV_CINCO_TOQUES → padre"]
-    MSG2 --> HDL["padre Script 2:\n_hdl_CONTROL_DEV_CINCO_TOQUES\noverlay con input #_dev-code-input\nguard: si ya existe input, no abre"]
+    MSG2 --> HDL["padre Script 2:\n_hdl_CONTROL_DEV_CINCO_TOQUES → pedirCodigoDev()\nla ventana común, campo #_dev-code-input\nguard: si ya existe su campo, no abre"]
     HDL --> CODE2{¿código DEV correcto?}
     CODE2 -- No --> HDL
     CODE2 -- Sí --> SET2["globalThis._devModeActivo = true\nhijo5: display:block · visibility:visible\ndespacharLocal(CAMBIO_MODO, MODOS.CASA)"]
@@ -9464,23 +9464,22 @@ flowchart TD
 ```mermaid
 flowchart TD
     ANY([Cualquier pantalla, CASA o AVENTURA]) --> GESTO3{7 toques en <3s\nen cualquier parte de la pantalla}
-    GESTO3 --> HDL3["_solicitarCodigoParaPanelLogs()\noverlay con input #_vvlog-code-input\nguard: si ya existe input, no abre"]
-    HDL3 --> CODE3{"¿código DEV correcto?\n(_verificarCodigoDevPWA — mismo hash que Factor 1/2)"}
+    GESTO3 --> HDL3["_solicitarCodigoParaPanelLogs() → pedirCodigoDev()\nla ventana común, campo #_vvlog-code-input\nguard: si ya existe su campo, no abre"]
+    HDL3 --> CODE3{"¿código DEV correcto?\n(esCodigoDev — el único hash, el de Factor 1/2)"}
     CODE3 -- No --> HDL3
     CODE3 -- Sí --> PANEL["mostrarPanelLogs()\ntextarea con buffer del logger, se refresca cada 1s\nbotones Copiar todo / Limpiar / Cerrar"]
 ```
 
-**Verificador de código compartido, no duplicado:** `_verificarCodigoDevPWA(codigo)` (Script 2 del padre) es la única función que compara el hash SHA-256 contra `CODIGO_DEV_HASH` — tanto Factor 2 (`_hdl_CONTROL_DEV_CINCO_TOQUES`) como este panel la llaman vía `globalThis._verificarCodigoDevPWA`, en vez de que cada uno tenga su propia copia del hash. Evita el riesgo real de que el código se actualice en un sitio y se olvide en el otro, dejando una puerta con una contraseña vieja.
+**Una sola ventana y un solo verificador:** las tres ventanas —Factor 1 (`_mostrarModalDevP1`, módulo de la selección), Factor 2 (`_hdl_CONTROL_DEV_CINCO_TOQUES`, Script 2 del padre) y el panel de logs (`_solicitarCodigoParaPanelLogs`, el último bloque del padre)— son `pedirCodigoDev({ titulo, prefijoId, zIndex, fondo, registro, alAcertar })` de `js/utils.js`, que cada una importa y llama con su título, su prefijo de ids (`_devp1`, `_dev-code`, `_vvlog-code`), su capa (`9999999`; la del panel, `2000010`), la opacidad de su fondo (`0.8`; la de la selección, `0.85`) y lo que hace al acertar. La ventana mete el campo de contraseña en un `<form autocomplete="off">`; con el campo vacío dice «Introduce el código»; con un código malo dice «Código incorrecto» y vacía el campo; Enter confirma, y Escape o «Cancelar» la cierran. Las tres comprueban el código con `esCodigoDev(codigo)` del mismo fichero, el único sitio que guarda el hash SHA-256 (`CODIGO_DEV_HASH`):
 
 ```javascript
-async function _verificarCodigoDevPWA(codigo) {
-    const CODIGO_DEV_HASH = '...'; // mismo hash que Factor 1/2
+const CODIGO_DEV_HASH = '...';
+export async function esCodigoDev(codigo) {
     if (!codigo) return false;
-    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codigo));
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex === CODIGO_DEV_HASH;
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codigo));
+    const hex = Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    return hex === CODIGO_DEV_HASH;
 }
-globalThis._verificarCodigoDevPWA = _verificarCodigoDevPWA;
 ```
 
 **La comprobación de producción, pendiente (§22.0, n.º 12), va en el backend:** el cliente envía el código por POST (HTTPS), el servidor lo compara con una variable de entorno (`DEV_CODE`) y devuelve un token de sesión de corta duración. El cliente solo pone `_devModeActivo = true` si recibe ese token, y ni el código ni su hash están en ningún fichero del proyecto.
@@ -9510,21 +9509,13 @@ El modo DEV cruza tres scopes distintos que no comparten variables léxicas:
 | `En-busca-del-tesoro.html` módulo | `globalThis._devCasaMode` | Accede y escribe via `globalThis` |
 | `codigo-padre.html` Script 1 | `globalThis._devModeActivo` | Script 1 la inicializa a `false`; todos los scripts leen vía `globalThis` |
 | `codigo-padre.html` Script 2 | `globalThis._devModeActivo` | Lee y escribe via `globalThis` (no puede ver `let`/`const` de Script 1) |
-| `codigo-padre.html` Script 2 | `globalThis._verificarCodigoDevPWA` | Definida en Script 2 (junto a Factor 2); el bloque del panel de logs, un `<script type="module">` totalmente aparte al final del documento, la llama vía `globalThis` — mismo patrón que el resto de la fila |
 
 #### Protección anti-doble-modal
 
-Los tres modales comprueban si ya existe su input antes de crear el overlay:
+La ventana común comprueba si ya existe su campo antes de crear el overlay; cada llamada tiene su prefijo (`_devp1`, `_dev-code`, `_vvlog-code`), así que ninguna de las tres se abre dos veces:
 
 ```javascript
-// Factor 1 (módulo de selección)
-if (document.getElementById('_devp1-code')) return;
-
-// Factor 2 (Script 2 del padre)
-if (document.getElementById('_dev-code-input')) return;
-
-// Panel de logs (bloque final del padre)
-if (document.getElementById('_vvlog-code-input')) return;
+if (document.getElementById(`${prefijoId}-input`)) return;
 ```
 
 Sin este guard, un doble-tap o clic muy rápido abriría dos overlays solapados.
@@ -9566,7 +9557,7 @@ A partir del segundo tap, `_gestureInProgress = true` hace que el listener captu
 | Código de acceso | [solo conocido por el desarrollador — verificado por hash SHA-256 en `codigo-padre.html` y `En-busca-del-tesoro.html`; no documentado en materiales de usuario, soporte ni chat] |
 | Visibilidad al usuario final | Badge naranja `MODO DEV/CASA` en la esquina superior derecha de todas las pantallas de la selección desde que se activa en P1 (nada lo vuelve a ocultar); hijo5 visible durante la aventura |
 | Logs en consola del navegador | `[DEV_MODE] 🟢 ACTIVADO` · `[DEV] Modo dev activado en P1 — se saltarán P12, P13 y P14` |
-| Panel de logs (7 toques) | Mismo código de acceso que Factor 1/2, verificado por la misma función (`_verificarCodigoDevPWA`) — no tiene su propio código ni un nivel de seguridad más débil. No activa `_devModeActivo` ni deja ningún flag persistente propio; cada apertura vuelve a pedir el código |
+| Panel de logs (7 toques) | Mismo código de acceso que Factor 1/2, verificado por la misma función (`esCodigoDev`, `js/utils.js`) — no tiene su propio código ni un nivel de seguridad más débil. No activa `_devModeActivo` ni deja ningún flag persistente propio; cada apertura vuelve a pedir el código |
 
 El chat de soporte (hijo6) no menciona en ningún caso la existencia de hijo5, el código DEV, los gestos de activación, ni el panel de logs.
 
@@ -11073,7 +11064,7 @@ Después  Padre recibe HIJO_PREPARADO de cada hijo (independiente, por hijo):
 | `constants.js` | Los tipos de mensaje y las constantes compartidas. Define `TIPOS_MENSAJE` (árbol jerárquico de 84 tipos), `MODOS`, `LOG_LEVELS` y `TTL_LIMPIEZA` (solo la parte de mensajería: el TTL de limpieza en móvil y en desktop). | Solo exports. La copia `globalThis.TIPOS_MENSAJE` para los `<script>` clásicos no la publica este módulo: la publica cada frame que la usa (el padre, la selección y `video-intro.html`); los seis hijos no la tienen |
 | `state-manager.js` | Estado compartido del padre, con acceso serializado: un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por cada uno de los cuatro campos que se leen o escriben desde fuera —`script2Listo`, `estadoPadre`, `controladores` (el Map de handlers) y `heartbeat`—, más `hijosListosPromises`, sin mutex. Solo lo carga el padre. Detalle en «El state-manager (gestor de estado)». | `globalThis.__vv_stateManager` (y `globalThis.__stateManager`) |
 | `logger.js` | Logging centralizado con los cinco niveles de `LOG_LEVELS` (`constants.js`): DEBUG, INFO, WARN, ERROR y NONE. El nivel efectivo sale de `CONFIG.DEBUG.NIVEL_LOG`, que `logger.js` lee **en cada llamada**: primero de `globalThis.__vv_config` y, si su ventana no lo tiene, del `__vv_config` de la ventana padre. No lo importa, porque `logger.js` y `config.js` van en el mismo `Promise.all` de la FASE 1 sin orden garantizado entre ellos, y resolverlo una sola vez dejaría el nivel clavado si el primer log ocurriera antes que `config.js`. **El salto a la ventana padre es lo que hace que el nivel alcance a los hijos**: cada iframe tiene su propio `globalThis` y `config.js` solo publica `__vv_config` en la ventana de arriba, así que sin él ningún hijo recibiría el nivel y todos seguirían logueándolo todo. Mirar hacia arriba en vez de importar `config.js` en cada hijo deja además **una sola fuente del nivel para toda la app**. `setNivel()` permite forzarlo en runtime y, desde esa llamada, gana sobre `CONFIG`. Con `NONE` no sale nada, ni los errores. Cada página que loguea publica su logger en su propio `globalThis` justo tras importarlo — los siete hijos más `puzzle.html`, `video-intro.html` y `mapa-completo.html`. Sin esa línea, sus `(globalThis.logger \|\| console).x` caen al `console` crudo y se saltan el nivel, y **eslint no lo detecta**: su regla `no-console` no marca ese patrón porque el objeto va envuelto en el `\|\|`. Las únicas llamadas a `console` que quedan son tres en scripts clásicos pre-módulo, donde `logger.js` aún no se ha importado; llevan su `// eslint-disable-line no-console` con el motivo, según la convención de `eslint.config.js`. Cubierto por `tests/e2e/59-nivel-de-log.spec.js` y `60-nivel-de-log-alcanza-hijos.spec.js`. Buffer en memoria de 500 entradas (FIFO — elimina la entrada más antigua cuando se llena). **Sin limpieza periódica por TTL** — `TTL_LIMPIEZA.LOGGER` está definido en `constants.js` pero `logger.js` no lo importa ni lo usa. Colorea la consola por nivel. | `default export logger` |
-| `utils.js` | Funciones compartidas: `generarIdUnico(prefijo)` → `prefijo_timestamp_aleatorio`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `normalizarParadas()`, `esIdDeTramo()`, `resolverIdsParada()`, `ajustarTimeoutPorConexion()`, `lanzarFuegosArtificiales()` (el motor de fuegos artificiales en canvas, con los números de quien lo llama: el puzzle al resolverse y la escena final de `video-intro.html`, cuyo script clásico lo recibe del módulo por `globalThis`), `consultarPermisoGeolocalizacion()` (la única consulta del permiso de geolocalización: devuelve el estado del permiso, `null` si el navegador no tiene la API de permisos, y rechaza con el error del navegador si la consulta falla; cada sitio decide con la respuesta lo suyo), `pedirPosicionPuntual()` (la única forma de pedir una posición suelta al GPS: `getCurrentPosition` con alta precisión, el plazo de quien la llama y `maximumAge` 0 salvo que pida otro; rechaza con el error del navegador, o con un `Error` si el dispositivo no tiene geolocalización), `retryUntilAvailable()`, `debounce()`, `sleep()`, `escaparHTML()` (la única forma de escapar texto para pintarlo en HTML), `calcularDistancia()`, `puntoMasCercanoEnLinea()` y la forma única de pedir un dato: `pedirConReintentos()`, `pedirJson()`, `importarConReintentos()` y `msDeRetryAfter()` (§16.1b). Al cargarse instala, solo en los frames que tienen padre, el reporte de errores no controlados hacia el padre (`instalarReporteErroresAlPadre()`, §10.16). | Named exports |
+| `utils.js` | Funciones compartidas: `generarIdUnico(prefijo)` → `prefijo_timestamp_aleatorio`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `normalizarParadas()`, `esIdDeTramo()`, `resolverIdsParada()`, `ajustarTimeoutPorConexion()`, `esCodigoDev()` y `pedirCodigoDev()` (ver §24), `lanzarFuegosArtificiales()` (el motor de fuegos artificiales en canvas, con los números de quien lo llama: el puzzle al resolverse y la escena final de `video-intro.html`, cuyo script clásico lo recibe del módulo por `globalThis`), `consultarPermisoGeolocalizacion()` (la única consulta del permiso de geolocalización: devuelve el estado del permiso, `null` si el navegador no tiene la API de permisos, y rechaza con el error del navegador si la consulta falla; cada sitio decide con la respuesta lo suyo), `pedirPosicionPuntual()` (la única forma de pedir una posición suelta al GPS: `getCurrentPosition` con alta precisión, el plazo de quien la llama y `maximumAge` 0 salvo que pida otro; rechaza con el error del navegador, o con un `Error` si el dispositivo no tiene geolocalización), `retryUntilAvailable()`, `debounce()`, `sleep()`, `escaparHTML()` (la única forma de escapar texto para pintarlo en HTML), `calcularDistancia()`, `puntoMasCercanoEnLinea()` y la forma única de pedir un dato: `pedirConReintentos()`, `pedirJson()`, `importarConReintentos()` y `msDeRetryAfter()` (§16.1b). Al cargarse instala, solo en los frames que tienen padre, el reporte de errores no controlados hacia el padre (`instalarReporteErroresAlPadre()`, §10.16). | Named exports |
 | `device-detection.js` | La lista única de tipos de dispositivo: `tipoDeDispositivo()` devuelve `'movil'`, `'tablet'` o `'pc'`, con el `userAgent` y, para el iPad de iPadOS 13 o posterior (que se presenta como un Mac), la pantalla táctil de varios puntos (`maxTouchPoints > 1`); el resultado se guarda la primera vez. Móvil: iPhone, iPod, Android con «Mobile», Windows Phone, BlackBerry, Opera Mini, webOS o cualquier navegador que se declare «Mobile» (en Chromium, también `navigator.userAgentData.mobile`), salvo las tabletas. Tableta: iPad, Android sin «Mobile», Kindle, Silk, PlayBook o «Tablet». PC: lo demás. `esMovil()` (móvil o tableta) la usan `mensajeria.js`, para elegir el TTL de limpieza de mensajes (`TTL_LIMPIEZA.MENSAJERIA.MOVIL`/`.DESKTOP`, definido en `constants.js`), y `js/proteccion.js`, que en móvil y tableta no compara el tamaño de la ventana (la toma con `import()` dinámico, porque es un script clásico); `esTelefonoMovil()` (solo el teléfono), `codigo-padre.html`, para el aviso de "gira el móvil" en horizontal. | `tipoDeDispositivo()`, `esMovil()`, `esTelefonoMovil()` |
 | `validacion.js` | Solo exporta `validarCoordenadas()` (usada en `funciones-mapa.js`) — sin validación por tipo con soporte de opciones, validación de mensajes, validación de paradas, validación por schema, sanitización XSS de strings/objetos, ni registro de validadores personalizados; el módulo no tiene nada de eso. | `validarCoordenadas()` |
 | `suppress-warnings.js` | Silencia advertencias de consola de librerías de terceros (patrón `mapbox-gl` — MapLibre GL hereda mensajes internos de su origen como fork de Mapbox GL —, fuentes, cookies de terceros, DevTools/source maps, extensiones del navegador). Se carga con `defer` justo tras `proteccion.js`. | — |
@@ -12579,7 +12570,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-6df2e8401631';
+const CACHE_VERSION = 'v-7a0a75fba03a';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14271,7 +14262,7 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **113 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 97 identificadores cruzados, de 139 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 96 identificadores cruzados, de 138 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14351,11 +14342,11 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TIPOS_MENSAJE` | módulo 1 (L3737) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3898) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2772) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13172) | clásico 12 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13124) | clásico 12 | estado |
 | `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9495) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12228) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12180) | módulo 1 | función/objeto |
 | `_decidirAvanzar` | módulo 2 (L10702) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13154) | clásico 7 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13106) | clásico 7 | función/objeto |
 | `_hijosConCapaAbierta` | módulo 2 (L11251) | módulo 1 | función/objeto |
 | `_iniciarTemporizadorAventura` | módulo 2 (L11892) | módulo 1 | función/objeto |
 | `_reenviarProgressBarAHijo3` | módulo 2 (L9434) | módulo 1 | función/objeto |
@@ -14363,15 +14354,14 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_sincronizarAvanzar` | módulo 2 (L10721) | módulo 1 | función/objeto |
 | `_sincronizarRetoBtn` | módulo 2 (L10657) | módulo 1 | función/objeto |
 | `_vaciarRetoActual` | módulo 2 (L10619) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L11922) | módulo 5 | función/objeto |
 | `_vv_afterHijoListo` | módulo 2 (L8679) | módulo 1 | función/objeto |
 | `actualizarEstadoControlesAudioPadre` | módulo 2 (L9429) | módulo 1 | función/objeto |
 | `AVENTURA_PARADAS` | módulo 2 (L8811) | módulo 1 | función/objeto |
 | `distribuirDatosAventura` | módulo 2 (L8852) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12153) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12105) | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 (L9307) | módulo 1 | función/objeto |
 | `solicitarAudioAHijo3` | módulo 2 (L9299) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13188) | módulo 2 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13140) | módulo 2 | función/objeto |
 
 </details>
 

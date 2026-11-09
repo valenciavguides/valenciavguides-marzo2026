@@ -352,6 +352,77 @@ export function lanzarFuegosArtificiales(canvas, {
     requestAnimationFrame(fotograma);
 }
 
+/** El SHA-256 del código de desarrollador: el único sitio que lo guarda (docs/GUIA-COMPLETA.md §24). */
+const CODIGO_DEV_HASH = 'b88919efac1f1343b21bbaa3cbc788362ee3e525d74f72c176616f71ddad0df8';
+
+/** @returns {Promise<boolean>} si `codigo` es el de desarrollador (compara su SHA-256 con el guardado) */
+export async function esCodigoDev(codigo) {
+    if (!codigo) return false;
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codigo));
+    const hex = Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    return hex === CODIGO_DEV_HASH;
+}
+
+/**
+ * La ventana que pide el código de desarrollador: la única de la aplicación, para el modo desarrollador del padre y de la
+ * selección y para el panel de registros (docs/estudio-caminos.md, K-28; docs/GUIA-COMPLETA.md §24). Con el código
+ * bueno se cierra y corre `alAcertar`; con uno malo, lo dice y vacía el campo. Enter confirma y Escape la cierra. Si ya
+ * está abierta, no abre otra.
+ * @param {Object} o
+ * @param {string} o.titulo - lo que dice arriba
+ * @param {string} o.prefijoId - el de los ids de su campo, su error y sus botones (`-input`, `-error`, `-cancel`, `-ok`)
+ * @param {number} o.zIndex - su capa
+ * @param {number} [o.fondo=0.8] - la opacidad del fondo oscuro
+ * @param {string} [o.registro='[DEV]'] - el prefijo de su error en el registro
+ * @param {() => (void|Promise<void>)} o.alAcertar
+ */
+export function pedirCodigoDev({ titulo, prefijoId, zIndex, fondo = 0.8, registro = '[DEV]', alAcertar }) {
+    if (document.getElementById(`${prefijoId}-input`)) return;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,${fondo});z-index:${zIndex};display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;`;
+    overlay.innerHTML = `<div style="background:#1a1a2e;border-radius:1rem;padding:2rem 1.5rem;width:min(90vw,22rem);text-align:center;border:2px solid #f5a623;">
+        <p style="color:#f5a623;font-size:1.1rem;font-weight:bold;margin:0 0 1rem 0;">${titulo}</p>
+        <form autocomplete="off" onsubmit="return false" style="margin:0;">
+        <input id="${prefijoId}-input" type="password" maxlength="20" autocomplete="off"
+            style="width:100%;padding:0.9rem;border:2px solid #555;border-radius:0.6rem;font-size:1.6rem;text-align:center;letter-spacing:0.5rem;background:#0d0d1a;color:#fff;box-sizing:border-box;" />
+        <p id="${prefijoId}-error" style="color:#ff4444;font-size:0.85rem;margin:0.5rem 0 0 0;min-height:1.2em;"></p>
+        <div style="display:flex;gap:0.8rem;margin-top:0.8rem;">
+            <button type="button" id="${prefijoId}-cancel" style="flex:1;padding:0.7rem;background:transparent;color:#aaa;border:1px solid #555;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;">Cancelar</button>
+            <button type="button" id="${prefijoId}-ok" style="flex:1;padding:0.7rem;background:#f5a623;color:#000;border:none;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;font-weight:bold;">OK</button>
+        </div>
+        </form>
+    </div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector(`#${prefijoId}-input`);
+    const errorEl = overlay.querySelector(`#${prefijoId}-error`);
+    input.focus();
+    const cerrar = () => { try { document.body.removeChild(overlay); } catch (_e) { /* ya cerrada */ } };
+    let confirmando = false;
+    const confirmar = async () => {
+        if (confirmando) return;
+        confirmando = true;
+        try {
+            const codigo = input.value.trim();
+            if (!codigo) { errorEl.textContent = 'Introduce el código'; confirmando = false; return; }
+            if (!(await esCodigoDev(codigo))) {
+                errorEl.textContent = 'Código incorrecto';
+                input.value = '';
+                input.focus();
+                confirmando = false;
+                return;
+            }
+            cerrar();
+            await alAcertar();
+        } catch (err) {
+            (globalThis.logger || console).error(`${registro} Error con el código de desarrollador:`, err?.message || err);
+            confirmando = false;
+        }
+    };
+    overlay.querySelector(`#${prefijoId}-cancel`).addEventListener('click', cerrar);
+    overlay.querySelector(`#${prefijoId}-ok`).addEventListener('click', confirmar);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmar(); if (e.key === 'Escape') cerrar(); });
+}
+
 /**
  * Reintenta una operación hasta que esté disponible
  * @param {Function} checkFn - Función que retorna true cuando está listo
