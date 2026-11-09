@@ -2782,7 +2782,7 @@
             (globalThis.logger || console).debug(`[LOADING] ${message}${details ? ' - ' + details : ''}`);
         };
 
-        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep, escaparHTML, importarConReintentos, pedirPosicionPuntual, vibrar, rotarFrasesDeCarga } from './js/utils.js';
+        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep, escaparHTML, importarConReintentos, pedirPosicionPuntual, consultarPermisoGeolocalizacion, vibrar, rotarFrasesDeCarga } from './js/utils.js';
         globalThis.resolverIdsParada = resolverIdsParada;
         globalThis.retryUntilAvailable = retryUntilAvailable;
         // La galería de imágenes vive en un script clásico, que no puede importar: la toma de aquí.
@@ -5012,12 +5012,11 @@
                     return true; // Permitir continuar pero con warning
                 }
 
-                if (!navigator.permissions) {
+                const permiso = await consultarPermisoGeolocalizacion();
+                if (!permiso) {
                     (globalThis.logger || console).warn(`${logPrefix} API de permisos no soportada, asumiendo permisos concedidos`);
                     return true;
                 }
-
-                const permiso = await navigator.permissions.query({ name: 'geolocation' });
                 (globalThis.logger || console).info(`${logPrefix} Estado de permisos: ${permiso.state}`);
 
                 switch (permiso.state) {
@@ -5091,9 +5090,9 @@
 
         function _gpsDiagnosticsInit(logPrefix) {
             try {
-                if (navigator.permissions && typeof navigator.permissions.query === 'function') {
-                    navigator.permissions.query({ name: 'geolocation' }).then(r => (globalThis.logger || console).debug(`${logPrefix} permisos.geolocation state: ${r.state}`)).catch(() => {}); // NOSONAR
-                }
+                consultarPermisoGeolocalizacion().then((r) => {
+                    if (r) (globalThis.logger || console).debug(`${logPrefix} permisos.geolocation state: ${r.state}`);
+                }).catch(() => {}); // NOSONAR
                 (globalThis.logger || console).debug(`${logPrefix} userAgent: ${navigator.userAgent}`);
             } catch (diagErr) { (globalThis.logger || console).debug('[VV]:', diagErr?.message); } // NOSONAR
         }
@@ -6316,9 +6315,11 @@
                         btn.title = 'Activar permisos GPS';
                         // Auto-detectar permiso concedido en SO sin necesidad de pulsar el botón (no-iOS)
                         const esApple = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                        if (!esApple && !globalThis.__vv_gps_perm_watcher && navigator.permissions?.query) {
+                        if (!esApple && !globalThis.__vv_gps_perm_watcher) {
                             globalThis.__vv_gps_perm_watcher = true;
-                            navigator.permissions.query({ name: 'geolocation' }).then(status => {
+                            consultarPermisoGeolocalizacion().then(status => {
+                                // Sin la API de permisos no hay nada que vigilar: el vigilante queda libre.
+                                if (!status) { globalThis.__vv_gps_perm_watcher = false; return; }
                                 const onChange = () => {
                                     if (status.state === 'granted') {
                                         status.removeEventListener('change', onChange);

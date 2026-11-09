@@ -1876,9 +1876,11 @@
 
       let permState = 'prompt';
       try {
-        const perm = await navigator.permissions.query({ name: 'geolocation' });
-        permState = perm.state;
-      } catch (_) { /* API no disponible — watchPosition manejará el prompt */ }
+        // La consulta del permiso es la de js/utils.js (K-18); este es un script clásico, así que la toma con import().
+        const { consultarPermisoGeolocalizacion } = await import('./js/utils.js');
+        const perm = await consultarPermisoGeolocalizacion();
+        if (perm) permState = perm.state;
+      } catch (_) { /* la consulta no contestó — watchPosition manejará el prompt */ }
 
       if (permState === 'denied' && !globalThis._devCasaMode) {
         if (errorDiv) errorDiv.style.display = 'block';

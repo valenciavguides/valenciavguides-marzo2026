@@ -16,7 +16,7 @@ import {
 import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import { validarCoordenadas } from './validacion.js';
-import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, resolverIdsParada, puntoMasCercanoEnLinea, sleep, pedirPosicionPuntual } from './utils.js';
+import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, resolverIdsParada, puntoMasCercanoEnLinea, sleep, pedirPosicionPuntual, consultarPermisoGeolocalizacion } from './utils.js';
 import logger from './logger.js';
 
 /**
@@ -2281,19 +2281,19 @@ export async function diagnosticarGPS() {
         }
     };
 
-    // Verificar permisos actuales
-    if (navigator.permissions) {
-        try {
-            const permiso = await navigator.permissions.query({ name: 'geolocation' });
+    // Verificar permisos actuales (sin la API de permisos, no hay nada que contar)
+    try {
+        const permiso = await consultarPermisoGeolocalizacion();
+        if (permiso) {
             diagnostico.permisosActuales = {
                 estado: permiso.state,
                 concedido: permiso.state === 'granted',
                 denegado: permiso.state === 'denied',
                 prompt: permiso.state === 'prompt'
             };
-        } catch (error) {
-            diagnostico.permisosActuales = { error: error.message };
         }
+    } catch (error) {
+        diagnostico.permisosActuales = { error: error.message };
     }
 
     // Intentar obtener ubicación actual para test

@@ -1413,6 +1413,8 @@ del proyecto ya dice que el esfuerzo va al camino con permisos concedidos: se an
 
 #### Familia E — Sesión, abandono y caducidad
 
+- **Hecha (2026-11-09; el usuario: «correcto, 1 sola función»).** `consultarPermisoGeolocalizacion()` de `js/utils.js`, la única consulta: devuelve el estado del permiso, `null` sin la API de permisos, y rechaza con el error del navegador si la consulta falla, así que cada sitio conserva su decisión y su manejo de errores: `verificarPermisosGPS` (sin API, o si falla, deja pasar), el registro de diagnóstico al activar, el vigilante que reactiva el GPS cuando el permiso vuelve (fuera de Apple; sin API queda libre), `diagnosticarGPS` y la validación de P14 en la selección (la toma con `import()` dinámico). Spec 170: PP-11 en rojo con las cinco consultas, en verde después; PP-12 a PP-14 en verde antes y después. 170, 141, 30, 52, 127 y 129 (41) en verde en chromium.
+
 ##### K-19 — Dos implementaciones de "abandonar la aventura y volver a selección"; el reinicio de la brújula solo está en una — ✅ (efecto medido y corregido: M-5)
 
 - **Dónde.** `ejecutarElegirOtra()` (`codigo-padre.html:4758-4820`, dentro de
@@ -5109,6 +5111,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 181 | 2 | K-187 | una comprobación de las rutas de imagen contra los nombres de git, o dejarlo | — | — | decisión |
 | 182 | 3 | K-188 | ningún cartel pide pulsar un botón que no se pueda pulsar: una sola función elige lo que pide cada uno — **hecha (2026-11-08): `_accionesDelCartel`, `TRADUCCIONES_QUE_HACER_AHORA`; specs 169 (AC) y 22** | VISIBLE, SPEC, GUÍA | K-184 (blanda) | sí |
 | 183 | 1 | K-189 | fuera el factor de «5g» de `ajustarTimeoutPorConexion`, que el navegador no da nunca (el 5G se informa como «4g») — **hecha (2026-11-09)** | GUÍA | — | sí |
+| 184 | 2 | K-18 | una sola consulta del permiso de geolocalización, con la decisión de cada sitio — **hecha (2026-11-09): `consultarPermisoGeolocalizacion`; spec 170 (PP-11 a PP-14)** | SPEC, GUÍA | — | sí |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |

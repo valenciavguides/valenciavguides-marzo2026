@@ -237,6 +237,19 @@ export function pedirPosicionPuntual({ plazoMs, maximumAge = 0 } = {}) {
 }
 
 /**
+ * Consulta el permiso de geolocalización: la única consulta de la aplicación (docs/estudio-caminos.md, K-18). Cada sitio
+ * decide con la respuesta lo suyo: activar el GPS, dejar pasar la validación de P14, vigilar que el permiso vuelva, el
+ * diagnóstico.
+ * @returns {Promise<PermissionStatus|null>} el estado del permiso (su `state` y su evento `change`), o `null` si el
+ *   navegador no tiene la API de permisos; rechaza con el error del navegador si la consulta falla
+ */
+export function consultarPermisoGeolocalizacion() {
+    const permisos = globalThis.navigator?.permissions;
+    if (typeof permisos?.query !== 'function') return Promise.resolve(null);
+    return permisos.query({ name: 'geolocation' });
+}
+
+/**
  * Una vibración corta: la única forma de vibrar de la aplicación (docs/estudio-caminos.md, K-28). Un solo pulso de
  * 300 ms, perceptible sin ser una vibración larga de llamada, y nunca en bucle. La usan los carteles y recordatorios del
  * padre (la única de sus señales que llega sin mirar la pantalla), hijo4 y la selección al fallar una respuesta.

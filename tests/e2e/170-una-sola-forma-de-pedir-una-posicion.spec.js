@@ -44,6 +44,60 @@ test.describe('PP — una sola forma de pedir una posición (estático)', () => 
     expect(dondeCasa(/\.watchPosition\(/g)).toEqual([['codigo-padre.html', 1]]);
     expect(dondeCasa(/\.clearWatch\(/g)).toEqual([['codigo-padre.html', 1]]);
   });
+
+  test('PP-11. El permiso de geolocalización se consulta en un solo sitio: js/utils.js (K-18)', () => {
+    expect(dondeCasa(/\.query\(\s*\{\s*name:\s*['"]geolocation['"]/g)).toEqual([['js/utils.js', 1]]);
+  });
+});
+
+test.describe('PP — lo que decide cada sitio con el permiso (K-18)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+  });
+
+  /** Hace que la consulta del permiso conteste un estado falso, con su evento `change` apuntado para poder dispararlo. */
+  const permisoFalso = (page, estado) => page.evaluate((e) => {
+    globalThis.__permiso = { state: e, oyentes: [], addEventListener(_t, f) { this.oyentes.push(f); }, removeEventListener(_t, f) { this.oyentes = this.oyentes.filter((x) => x !== f); } };
+    navigator.permissions.query = async () => globalThis.__permiso;
+    globalThis.__vigilancias = [];
+    navigator.geolocation.watchPosition = (ok, error, opciones) => { globalThis.__vigilancias.push(opciones); return 80 + globalThis.__vigilancias.length; };
+    navigator.geolocation.getCurrentPosition = (ok) => {
+      setTimeout(() => ok({ coords: { latitude: 39.47876, longitude: -0.37626, accuracy: 5 }, timestamp: Date.now() }), 0);
+    };
+  }, estado);
+
+  test('PP-12. Con el permiso denegado, el GPS no se activa: ninguna vigilancia, y el estado lo dice', async ({ page }) => {
+    await permisoFalso(page, 'denied');
+    const r = await page.evaluate(async () => {
+      let error = null;
+      try { await globalThis.activarGPS(); } catch (e) { error = e.message; }
+      return { error, vigilancias: globalThis.__vigilancias.length, permisos: (globalThis.estadoPadre || globalThis.estado).gps.permisos };
+    });
+    expect(r).toEqual({ error: 'Permisos de geolocalización denegados', vigilancias: 0, permisos: false });
+  });
+
+  test('PP-13. Tras un «denegado», cuando el permiso vuelve, el GPS se activa solo (fuera de Apple)', async ({ page }) => {
+    await permisoFalso(page, 'denied');
+    await page.evaluate(() => {
+      globalThis.estado.modo = globalThis.estado.modo || {};
+      globalThis.estado.modo.actual = 'aventura';
+      if (globalThis.estadoPadre?.modo) globalThis.estadoPadre.modo.actual = 'aventura';
+      globalThis.showGpsSignalOverlay(1, 'User denied Geolocation');
+    });
+    await expect.poll(() => page.evaluate(() => globalThis.__permiso.oyentes.length)).toBe(1);
+    await page.evaluate(() => { globalThis.__permiso.state = 'granted'; globalThis.__permiso.oyentes.forEach((f) => f()); });
+    await expect.poll(() => page.evaluate(() => globalThis.__vigilancias.length)).toBe(1);
+    expect(await page.evaluate(() => ({ oyentes: globalThis.__permiso.oyentes.length, vigilante: globalThis.__vv_gps_perm_watcher }))).toEqual({ oyentes: 0, vigilante: false });
+  });
+
+  test('PP-14. El diagnóstico del GPS cuenta el estado del permiso', async ({ page }) => {
+    await permisoFalso(page, 'granted');
+    const permisos = await page.evaluate(async () => (await globalThis.diagnosticarGPS()).permisosActuales);
+    expect(permisos).toEqual({ estado: 'granted', concedido: true, denegado: false, prompt: false });
+  });
 });
 
 test.describe('PP — los plazos de los reintentos', () => {
