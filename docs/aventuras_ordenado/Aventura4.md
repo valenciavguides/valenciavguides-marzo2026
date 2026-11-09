@@ -257,10 +257,10 @@
 
 **Imágenes:** imagenes/imagenes-aventuras/naturia_plataforma.jpg, imagenes/imagenes-aventuras/naturia_front.jpg
 
-**Párrafos:** 711, 21
+**Párrafos:** 711, 15-D
 
 - **711:** El siguiente punto de interés en su aventura es un lugar muy especial en el cual el agua tiene gran importancia. El centro de exposiciones y museo Na Turia actúa como un punto de encuentro ciudadano para promover la sostenibilidad urbana, servir de centro formativo y ofrecer recursos educativos sobre ecología y medio ambiente.
-- **21:** Corresponde al número 14 en su mapa.
+- **15-D:** En su mapa corresponde al número 11.
 
 ---
 
@@ -338,8 +338,9 @@
 
 **Imágenes:** imagenes/imagenes-aventuras/parque_de_cabecera_el_morro_down.jpg, imagenes/imagenes-aventuras/parque_de_cabecera_el_morro_middle.jpg, imagenes/imagenes-aventuras/parque_de_cabecera_el_morro_top.jpg
 
-**Párrafos:** 621, 622
+**Párrafos:** 620-B, 621, 622
 
+- **620-B:** El Morro, número 14 en su mapa, es un punto magnífico en el que se ve el Parque de cabecera completo, y el famoso Bioparc, que corresponde al número 15 en su mapa.
 - **621:** Este último se divide en zonas bien diferenciadas: a la derecha se encuentra el acceso al parque zoológico. En ese punto se ubican las taquillas para adquirir las entradas.
 - **622:** ¿Puede ver el puente que cruza encima del lago? Ese es el acceso al recinto de las exhibiciones, que queda a su izquierda. Tome asiento y prepárese para disfrutar, porque desde este punto elevado en el que se encuentra en este momento comentaremos varios puntos de su Aventura.
 

@@ -45,7 +45,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-es", audio_id: "audio-Av1-P-9-es", reto_id: "R12-Av1-es" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-es", audio_id: "audio-Av1-P-10-es" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-es", audio_id: "audio-Av1-P-10-es" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-es", audio_id: "audio-Av1-P-11-es", reto_id: "R13-Av1-es" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -185,7 +185,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-en", audio_id: "audio-Av1-P-9-en", reto_id: "R12-Av1-en" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-en", audio_id: "audio-Av1-P-10-en" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-en", audio_id: "audio-Av1-P-10-en" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-en", audio_id: "audio-Av1-P-11-en", reto_id: "R13-Av1-en" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -325,7 +325,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-fr", audio_id: "audio-Av1-P-9-fr", reto_id: "R12-Av1-fr" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-fr", audio_id: "audio-Av1-P-10-fr" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-fr", audio_id: "audio-Av1-P-10-fr" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-fr", audio_id: "audio-Av1-P-11-fr", reto_id: "R13-Av1-fr" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -465,7 +465,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-it", audio_id: "audio-Av1-P-9-it", reto_id: "R12-Av1-it" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-it", audio_id: "audio-Av1-P-10-it" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-it", audio_id: "audio-Av1-P-10-it" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-it", audio_id: "audio-Av1-P-11-it", reto_id: "R13-Av1-it" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -605,7 +605,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-nl", audio_id: "audio-Av1-P-9-nl", reto_id: "R12-Av1-nl" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-nl", audio_id: "audio-Av1-P-10-nl" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-nl", audio_id: "audio-Av1-P-10-nl" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-nl", audio_id: "audio-Av1-P-11-nl", reto_id: "R13-Av1-nl" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -745,7 +745,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-ja", audio_id: "audio-Av1-P-9-ja", reto_id: "R12-Av1-ja" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-ja", audio_id: "audio-Av1-P-10-ja" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-ja", audio_id: "audio-Av1-P-10-ja" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-ja", audio_id: "audio-Av1-P-11-ja", reto_id: "R13-Av1-ja" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -885,7 +885,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-de", audio_id: "audio-Av1-P-9-de", reto_id: "R12-Av1-de" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-de", audio_id: "audio-Av1-P-10-de" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-de", audio_id: "audio-Av1-P-10-de" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-de", audio_id: "audio-Av1-P-11-de", reto_id: "R13-Av1-de" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -1025,7 +1025,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-zh", audio_id: "audio-Av1-P-9-zh", reto_id: "R12-Av1-zh" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-zh", audio_id: "audio-Av1-P-10-zh" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-zh", audio_id: "audio-Av1-P-10-zh" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-zh", audio_id: "audio-Av1-P-11-zh", reto_id: "R13-Av1-zh" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -1165,7 +1165,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-pl", audio_id: "audio-Av1-P-9-pl", reto_id: "R12-Av1-pl" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-pl", audio_id: "audio-Av1-P-10-pl" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-pl", audio_id: "audio-Av1-P-10-pl" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-pl", audio_id: "audio-Av1-P-11-pl", reto_id: "R13-Av1-pl" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -1305,7 +1305,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-pt", audio_id: "audio-Av1-P-9-pt", reto_id: "R12-Av1-pt" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-pt", audio_id: "audio-Av1-P-10-pt" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-pt", audio_id: "audio-Av1-P-10-pt" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-pt", audio_id: "audio-Av1-P-11-pt", reto_id: "R13-Av1-pt" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -1445,7 +1445,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-ru", audio_id: "audio-Av1-P-9-ru", reto_id: "R12-Av1-ru" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-ru", audio_id: "audio-Av1-P-10-ru" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-ru", audio_id: "audio-Av1-P-10-ru" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-ru", audio_id: "audio-Av1-P-11-ru", reto_id: "R13-Av1-ru" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -1585,7 +1585,7 @@ export const DATOS_PADRE = {
         // Parada 9: Capilla exterior catedral (Reto 12)
         { padreid: "padre-P9", tipo: "parada", nombre: "Capilla exterior Catedral", parada_id: "Av1-P-9", numero_mapa: 5, texto_id: "txt-Av1-P9-uk", audio_id: "audio-Av1-P-9-uk", reto_id: "R12-Av1-uk" },
         // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (sin reto)
-        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,9", texto_id: "txt-Av1-P10-uk", audio_id: "audio-Av1-P-10-uk" },
+        { padreid: "padre-P10", tipo: "parada", nombre: "Arco Novo Catedral y Puerta Negra Basílica", parada_id: "Av1-P-10", numero_mapa: "5,7", texto_id: "txt-Av1-P10-uk", audio_id: "audio-Av1-P-10-uk" },
         // Parada 11: Casa del Punt de Gantxo (Reto 13)
         { padreid: "padre-P11", tipo: "parada", nombre: "Casa del Punt de Gantxo", parada_id: "Av1-P-11", numero_mapa: null, texto_id: "txt-Av1-P11-uk", audio_id: "audio-Av1-P-11-uk", reto_id: "R13-Av1-uk" },
         // Tramo 6: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Museo Arqueológico
@@ -7776,7 +7776,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-es", audio_id: "audio-Av34km-P-62-es", reto_id: "R49-Av34km-es" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-es", audio_id: "audio-Av34km-TR-41-es" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-es", audio_id: "audio-Av34km-P-63-es", reto_id: "R50-Av34km-es" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-es", audio_id: "audio-Av34km-P-64-es", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-es", audio_id: "audio-Av34km-P-64-es", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-es", audio_id: "audio-Av34km-P-65-es", reto_id: "R52-Av34km-es" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-es", audio_id: "audio-Av34km-TR-42-es" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-es", audio_id: "audio-Av34km-P-66-es" },
@@ -8022,7 +8022,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-en", audio_id: "audio-Av34km-P-62-en", reto_id: "R49-Av34km-en" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-en", audio_id: "audio-Av34km-TR-41-en" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-en", audio_id: "audio-Av34km-P-63-en", reto_id: "R50-Av34km-en" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-en", audio_id: "audio-Av34km-P-64-en", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-en", audio_id: "audio-Av34km-P-64-en", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-en", audio_id: "audio-Av34km-P-65-en", reto_id: "R52-Av34km-en" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-en", audio_id: "audio-Av34km-TR-42-en" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-en", audio_id: "audio-Av34km-P-66-en" },
@@ -8268,7 +8268,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-fr", audio_id: "audio-Av34km-P-62-fr", reto_id: "R49-Av34km-fr" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-fr", audio_id: "audio-Av34km-TR-41-fr" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-fr", audio_id: "audio-Av34km-P-63-fr", reto_id: "R50-Av34km-fr" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-fr", audio_id: "audio-Av34km-P-64-fr", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-fr", audio_id: "audio-Av34km-P-64-fr", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-fr", audio_id: "audio-Av34km-P-65-fr", reto_id: "R52-Av34km-fr" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-fr", audio_id: "audio-Av34km-TR-42-fr" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-fr", audio_id: "audio-Av34km-P-66-fr" },
@@ -8514,7 +8514,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-it", audio_id: "audio-Av34km-P-62-it", reto_id: "R49-Av34km-it" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-it", audio_id: "audio-Av34km-TR-41-it" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-it", audio_id: "audio-Av34km-P-63-it", reto_id: "R50-Av34km-it" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-it", audio_id: "audio-Av34km-P-64-it", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-it", audio_id: "audio-Av34km-P-64-it", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-it", audio_id: "audio-Av34km-P-65-it", reto_id: "R52-Av34km-it" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-it", audio_id: "audio-Av34km-TR-42-it" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-it", audio_id: "audio-Av34km-P-66-it" },
@@ -8760,7 +8760,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-nl", audio_id: "audio-Av34km-P-62-nl", reto_id: "R49-Av34km-nl" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-nl", audio_id: "audio-Av34km-TR-41-nl" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-nl", audio_id: "audio-Av34km-P-63-nl", reto_id: "R50-Av34km-nl" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-nl", audio_id: "audio-Av34km-P-64-nl", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-nl", audio_id: "audio-Av34km-P-64-nl", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-nl", audio_id: "audio-Av34km-P-65-nl", reto_id: "R52-Av34km-nl" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-nl", audio_id: "audio-Av34km-TR-42-nl" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-nl", audio_id: "audio-Av34km-P-66-nl" },
@@ -9006,7 +9006,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-ja", audio_id: "audio-Av34km-P-62-ja", reto_id: "R49-Av34km-ja" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-ja", audio_id: "audio-Av34km-TR-41-ja" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-ja", audio_id: "audio-Av34km-P-63-ja", reto_id: "R50-Av34km-ja" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-ja", audio_id: "audio-Av34km-P-64-ja", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-ja", audio_id: "audio-Av34km-P-64-ja", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-ja", audio_id: "audio-Av34km-P-65-ja", reto_id: "R52-Av34km-ja" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-ja", audio_id: "audio-Av34km-TR-42-ja" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-ja", audio_id: "audio-Av34km-P-66-ja" },
@@ -9252,7 +9252,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-de", audio_id: "audio-Av34km-P-62-de", reto_id: "R49-Av34km-de" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-de", audio_id: "audio-Av34km-TR-41-de" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-de", audio_id: "audio-Av34km-P-63-de", reto_id: "R50-Av34km-de" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-de", audio_id: "audio-Av34km-P-64-de", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-de", audio_id: "audio-Av34km-P-64-de", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-de", audio_id: "audio-Av34km-P-65-de", reto_id: "R52-Av34km-de" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-de", audio_id: "audio-Av34km-TR-42-de" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-de", audio_id: "audio-Av34km-P-66-de" },
@@ -9498,7 +9498,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-zh", audio_id: "audio-Av34km-P-62-zh", reto_id: "R49-Av34km-zh" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-zh", audio_id: "audio-Av34km-TR-41-zh" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-zh", audio_id: "audio-Av34km-P-63-zh", reto_id: "R50-Av34km-zh" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-zh", audio_id: "audio-Av34km-P-64-zh", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-zh", audio_id: "audio-Av34km-P-64-zh", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-zh", audio_id: "audio-Av34km-P-65-zh", reto_id: "R52-Av34km-zh" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-zh", audio_id: "audio-Av34km-TR-42-zh" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-zh", audio_id: "audio-Av34km-P-66-zh" },
@@ -9744,7 +9744,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-pl", audio_id: "audio-Av34km-P-62-pl", reto_id: "R49-Av34km-pl" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-pl", audio_id: "audio-Av34km-TR-41-pl" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-pl", audio_id: "audio-Av34km-P-63-pl", reto_id: "R50-Av34km-pl" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-pl", audio_id: "audio-Av34km-P-64-pl", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-pl", audio_id: "audio-Av34km-P-64-pl", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-pl", audio_id: "audio-Av34km-P-65-pl", reto_id: "R52-Av34km-pl" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-pl", audio_id: "audio-Av34km-TR-42-pl" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-pl", audio_id: "audio-Av34km-P-66-pl" },
@@ -9990,7 +9990,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-pt", audio_id: "audio-Av34km-P-62-pt", reto_id: "R49-Av34km-pt" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-pt", audio_id: "audio-Av34km-TR-41-pt" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-pt", audio_id: "audio-Av34km-P-63-pt", reto_id: "R50-Av34km-pt" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-pt", audio_id: "audio-Av34km-P-64-pt", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-pt", audio_id: "audio-Av34km-P-64-pt", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-pt", audio_id: "audio-Av34km-P-65-pt", reto_id: "R52-Av34km-pt" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-pt", audio_id: "audio-Av34km-TR-42-pt" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-pt", audio_id: "audio-Av34km-P-66-pt" },
@@ -10236,7 +10236,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-ru", audio_id: "audio-Av34km-P-62-ru", reto_id: "R49-Av34km-ru" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-ru", audio_id: "audio-Av34km-TR-41-ru" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-ru", audio_id: "audio-Av34km-P-63-ru", reto_id: "R50-Av34km-ru" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-ru", audio_id: "audio-Av34km-P-64-ru", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-ru", audio_id: "audio-Av34km-P-64-ru", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-ru", audio_id: "audio-Av34km-P-65-ru", reto_id: "R52-Av34km-ru" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-ru", audio_id: "audio-Av34km-TR-42-ru" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-ru", audio_id: "audio-Av34km-P-66-ru" },
@@ -10482,7 +10482,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P62", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)", parada_id: "Av34km-P-62", numero_mapa: 42, texto_id: "txt-Av34km-P62-uk", audio_id: "audio-Av34km-P-62-uk", reto_id: "R49-Av34km-uk" },
         { padreid: "padre-TR41", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)", tramo_id: "Av34km-TR-41", numero_mapa: "42→42", texto_id: "txt-Av34km-TR41-uk", audio_id: "audio-Av34km-TR-41-uk" },
         { padreid: "padre-P63", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico)", parada_id: "Av34km-P-63", numero_mapa: 42, texto_id: "txt-Av34km-P63-uk", audio_id: "audio-Av34km-P-63-uk", reto_id: "R50-Av34km-uk" },
-        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 33, texto_id: "txt-Av34km-P64-uk", audio_id: "audio-Av34km-P-64-uk", reto_id: "PZ-02" },
+        { padreid: "padre-P64", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico", parada_id: "Av34km-P-64", numero_mapa: 42, texto_id: "txt-Av34km-P64-uk", audio_id: "audio-Av34km-P-64-uk", reto_id: "PZ-02" },
         { padreid: "padre-P65", tipo: "parada", nombre: "Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)", parada_id: "Av34km-P-65", numero_mapa: 42, texto_id: "txt-Av34km-P65-uk", audio_id: "audio-Av34km-P-65-uk", reto_id: "R52-Av34km-uk" },
         { padreid: "padre-TR42", tipo: "tramo", nombre: "Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen", tramo_id: "Av34km-TR-42", numero_mapa: "42→43", texto_id: "txt-Av34km-TR42-uk", audio_id: "audio-Av34km-TR-42-uk" },
         { padreid: "padre-P66", tipo: "parada", nombre: "Plaza de la Virgen", parada_id: "Av34km-P-66", numero_mapa: 43, texto_id: "txt-Av34km-P66-uk", audio_id: "audio-Av34km-P-66-uk" },

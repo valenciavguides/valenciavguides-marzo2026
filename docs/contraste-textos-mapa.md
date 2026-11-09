@@ -67,7 +67,7 @@ Párrafo `viv7`:
 
 > El mapa de estos jardines le lleva a alejarse de este punto para volver más tarde. Por ahora, diríjase a la derecha donde le aguarda una zona que recuerda a los jardines de Versalles. En su mapa corresponde al número 9 .
 
-- [ ] Revisado — decisión:
+- [x] Revisado — decisión: **correcto.** El 9 es el sitio por el que se pasa, los Pequeños Jardines de Versalles (`v9` de la numeración interior de los Jardines del Real, a 71 m del destino); el destino, la Rosaleda, es el `v10`, y su texto lo dice. La numeración interior no está dibujada en el mapa de la Av4 (puntos rojos sin número); el mapa moderno la enseña como «v9». El usuario: la numeración interior no se pinta en verde («el único número importante es el 25»).
 
 ### 2. `Av34km-P-109` — Aventura34km
 
@@ -80,7 +80,7 @@ Párrafo `715`:
 
 > En su mapa corresponde al número 72 .
 
-- [ ] Revisado — decisión:
+- [x] Revisado — decisión: **corregido el texto:** 81-B («número 71», el Parque de Cabecera) en lugar de 715 («número 72», el Azud del Molí del Sol, a 720 m). El 715 sigue en el tramo TR-73, que pasa por el Molí del Sol, donde es correcto. Confirmado con el mapa dibujado: el 71 sobre el lago, el 72 en el extremo oeste y el 73 junto al Bioparc; y con P-108: «El Morro, número 71».
 
 ### 3. `Av34km-TR-83` — Aventura34km
 
@@ -93,7 +93,7 @@ Párrafo `viv7`:
 
 > El mapa de estos jardines le lleva a alejarse de este punto para volver más tarde. Por ahora, diríjase a la derecha donde le aguarda una zona que recuerda a los jardines de Versalles. En su mapa corresponde al número 9 .
 
-- [ ] Revisado — decisión:
+- [ ] Revisado — decisión: **pendiente del usuario.** El mismo párrafo que el caso 1, pero en la Av34km la numeración interior de los Jardines del Real no está ni en su mapa dibujado (los jardines son un solo punto) ni en su mapa moderno (solo `v1` y `v5`): «número 9» señala otro sitio de su mapa. Lo mismo vale para los demás párrafos `viv…` con número que usa la Av34km.
 
 ### 4. `Av1-P-10` — Aventura1
 
@@ -106,7 +106,7 @@ Párrafo `11-B`:
 
 > En su mapa corresponde al número 7 .
 
-- [ ] Revisado — decisión:
+- [x] Revisado — decisión: **corregido el dato:** «5,9» → «5,7» (`coordenadas-aventuras.js` y los 12 idiomas de `aventuras-ID-padre.js`). La Puerta Negra es de la Basílica, el 7: lo dicen el texto, el nombre de la parada, la geografía (la Basílica a 22 m; el 9, la Plaza del Ayuntamiento, a 628 m, con su propia parada P-17) y el mapa dibujado (el 07 es la Basílica en el panel de la Almoina). Antes ningún elemento de la Av1 llevaba el 7.
 
 ### 5. `Av34km-P-65` — Aventura34km
 
@@ -119,7 +119,7 @@ Párrafo `49-B`:
 
 > Centre su atención de nuevo en la Catedral de Valencia , número 40 en su mapa.
 
-- [ ] Revisado — decisión:
+- [ ] Revisado — decisión: **pendiente del usuario.** El texto nombra bien la Catedral (40); la parada está en la Almoína (42) mirando el Cimborrio. ¿Se queda «42», o pasa a «42/40» como P-59 («42/41», la Basílica vista desde la misma plaza)? Con «42» la foto del Cimborrio sale en la galería con el número 42.
 
 ### 6. `Av4-TR-8` — Aventura4
 
@@ -132,7 +132,7 @@ Párrafo `21`:
 
 > Corresponde al número 14 en su mapa.
 
-- [ ] Revisado — decisión:
+- [x] Revisado — decisión: **corregido el texto:** 15-D («número 11», Na Turia, a 46 m) en lugar de 21 («número 14», el Parque de Cabecera, a 884 m). El 21 sigue en los otros cuatro textos que lo usan. El 15-D ya existía en los 12 idiomas y no lo usaba nadie.
 
 ### 7. `Av5-P-4` — Aventura5
 
@@ -145,7 +145,7 @@ Párrafo `704`:
 
 > ¿Ya se encuentra en el punto indicado con el número 6 en su mapa?
 
-- [ ] Revisado — decisión:
+- [x] Revisado — decisión: **corregido el texto:** 704-B («número 3», las Ruinas, a 16 m) en lugar de 704 («número 6», el Puente de las Flores, a 959 m). El 704 sigue en la Av3, donde las Ruinas son el 6. El 704-B ya existía en los 12 idiomas y no lo usaba nadie. Confirmado con el mapa dibujado de la Av5 (el 03, en el jardín junto al Puente de Serranos; el 06, el Puente de las Flores).
 
 ### 8. `Av3-P-13` — Aventura3
 
@@ -162,7 +162,7 @@ Párrafo `27-B`:
 
 > En su mapa corresponde al número 18 .
 
-- [ ] Revisado — decisión:
+- [x] Revisado — decisión: **correcto.** Los números son el plan de la visita: 21 (Puente de l'Assut de l'Or) y 24 (l'Umbracle), y 18 (la Ópera, la parada siguiente). El contraste lo comparaba con el elemento siguiente, un tramo sin número.
 
 ### 9. `Av34km-P-9` — Aventura34km
 
@@ -179,7 +179,7 @@ Párrafo `19`:
 
 > En su mapa corresponde al número 12 .
 
-- [ ] Revisado — decisión:
+- [x] Revisado — decisión: **correcto.** El mismo caso que el 8 con la numeración de la Av34km: 15 (Assut de l'Or), 18 (l'Umbracle) y 12 (la Ópera, la parada siguiente).
 
 ### 10. `Av34km-P-28` — Aventura34km
 
@@ -192,7 +192,19 @@ Párrafo `113`:
 
 > Desde el punto 17, en su mapa se puede entrever uno de los puntos más icónicos de Valencia.
 
-- [ ] Revisado — decisión:
+- [ ] Revisado — decisión: **pendiente del usuario.** El párrafo 113 («Desde el punto 17… uno de los puntos más icónicos de Valencia») es de la Av3 (las Pistas de Patinaje, camino de la Ciudad de las Artes) y en el Ayuntamiento no tiene sentido. Los otros tres párrafos son los de la Av1 en el mismo sitio (P-19: 339, 340, 341), que termina con el 54 («Si se encuentra en horas de visita…»). ¿El 54, o nada?
+
+---
+
+## Fuera de los 10
+
+Salieron al revisar los diez, cruzando las mismas fuentes:
+
+- **`Av34km-P-64` — corregido el dato:** «33» → «42». La parada está en la Almoína («…Museo Arqueológico», el 42, a 11 m); el 33 es la iglesia de los Santos Juanes, a 470 m. Todas sus vecinas llevan el 42.
+- **`Av4-P-17` (el Morro) — corregido el texto:** le faltaba delante el 620-B («El Morro, número 14 en su mapa… y el famoso Bioparc, que corresponde al número 15»), sin el cual su primer párrafo, «Este último se divide en zonas…», no se refiere a nada (en los 12 idiomas). En la Av34km el mismo texto lleva delante el 620, su versión con el 71 y el 73. El 620-B ya existía en los 12 idiomas y no lo usaba nadie.
+- **Monumentos sin ninguna fila — pendiente del usuario:** un número de mapa con monumento que no lleva ninguna parada ni nombra ningún tramo no sale en el listado de paradas ni se pone en verde en el mapa moderno. Son el 3, 4, 5, 8, 14, 16 y 19 de la Aventura3; el 7, 8, 10, 20, 21, 22 y 23 de la Aventura4; el 9 y el 20 de la de Fallas; y el 3, 9, 13, 20 y 67 de la de 34 km. En la Av4 son sobre todo puentes del río por los que pasa la ruta (07 Puente de las Artes, 08, 10 Campanar, 20 Serranos, 21 Madera, 22 Trinidad): les falta su paso en el número de mapa del tramo («6→7→9»).
+
+**Cómo se arregla un número equivocado en un texto.** Las frases con número son párrafos compartidos (el 21, «Corresponde al número 14», lo usan cinco textos de cinco aventuras): no se cambia el párrafo, sino qué párrafo usa el texto equivocado, en `js/textos-aventuras.js`, y así quedan bien los 12 idiomas a la vez. `docs/aventuras_ordenado/parrafos_ordenados.md` (`npm run generar-guiones`) dice qué aventuras usan cada párrafo: uno «sin usar» con el número correcto suele ser el que el texto debería usar.
 
 ---
 

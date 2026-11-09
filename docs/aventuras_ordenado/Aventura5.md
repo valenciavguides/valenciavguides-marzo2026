@@ -98,9 +98,9 @@
 
 **Imágenes:** imagenes/imagenes-aventuras/ruinas_turia.jpg
 
-**Párrafos:** 704, 703, 645, 646-A
+**Párrafos:** 704-B, 703, 645, 646-A
 
-- **704:** ¿Ya se encuentra en el punto indicado con el número 6 en su mapa?
+- **704-B:** ¿Ya se encuentra en el punto indicado con el número 3 en su mapa?
 - **703:** ¡Genial! ¡Continuemos con la búsqueda del tesoro! Observe a su alrededor y podrá ver unas ruinas que destacan entre la ornamentación botánica del jardín del Turia ¿Puede verlas? ¿Sí? Perfecto, porque la siguiente historia esperamos que le sorprenda.
 - **645:** El antiguo Palacio del Real fue construido inicialmente en el s. IX como Almunia, una finca de recreo musulmana en el que los Sultanes de la Taifa de Balansiya se retiraban para descansar. Así continuó durante la época de conquista cristiana y fue en el s. XIV cuando se comenzó a reedificar para convertirse en el palacio de los Reyes de la Corona de Aragón durante su estancia en el Reino de Valencia. El palacio era conocido por "el Palacio de las 300 llaves" en referencia al número de habitaciones que llegó a tener.
 - **646-A:** Cabe destacar que este palacio ya no existe. De recuerdo, nos quedan los grabados que lo representa. En 1810, el antiguo palacio fue desmantelado por los valencianos por razones estratégicas de defensa, ante la posibilidad que pudiera convertirse en una plaza fuerte de las tropas invasoras de Napoleón. Hoy en día, nos quedan vestigios expuestos que delimitan los carriles centrales de ciertos tramos del Jardín del Turia y los famosos jardines de viveros, que en su momento ocupaban una pequeña parte de lo que fueron los jardines del palacio.

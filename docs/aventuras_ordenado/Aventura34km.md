@@ -2093,10 +2093,10 @@
 
 **Imágenes:** imagenes/imagenes-aventuras/parque_de_cabecera_el_morro_middle.jpg
 
-**Párrafos:** 623, 715, 624, 625
+**Párrafos:** 623, 81-B, 624, 625
 
 - **623:** El Parque de Cabecera se extiende a 15 metros bajo sus pies y recibe este nombre por encontrarse en la cabecera del antiguo cauce del Río Turia en su entrada a Valencia. Realizado entre 2002 y 2014, el parque gira alrededor de un lago artificial en el cual se pueden realizar paseos en barca. En las aguas de este lago viven carpas, tortugas y ranas, así como patos y cisnes que ya se han acostumbrado a la presencia pacífica de los seres humanos.
-- **715:** En su mapa corresponde al número 72.
+- **81-B:** En su mapa corresponde al número 71.
 - **624:** En el Parque de Cabecera denotan árboles y arbustos acordes a la climatología mediterránea; en particular especies asociadas a las riberas y al cauce del Río Turia: se aprecian olmos, chopos, álamos y pinos formando pequeños bosquetes. En contacto con el agua habitan especies de plantas anfibias, eneas y juncos que estructuran el lago y cobijan a las especies animales que lo habitan. En el parque también crecen grupos bien estructurados de arbustos y hierbas leñosas como el romero, el tomillo y el esparto, típicos del clima semiárido mediterráneo.
 - **625:** Este parque metropolitano de casi 168.000 metros cuadrados está enfocado en recuperar el paisaje original del Río Turia. El agua mana desde el Molí del Sol y sigue el antiguo curso natural del río hasta desembocar en el lago, dejando a su paso islotes de sedimentación típicos de la geografía mediterránea. Los muros de piedra y los diferentes niveles de terreno brindan un entorno íntimo con amplias vistas. Por Un claro ejemplo: es el lugar en el que se encuentra usted ahora mismo en el que puede ver, a lo lejos, el Parque Natural de la Sierra de Calderona.
 

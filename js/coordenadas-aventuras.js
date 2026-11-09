@@ -469,8 +469,8 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av1-P-10",
         tipo: "parada",
-        parada: 13, // mapa número 5 y mapa número 9
-        mapa_numero: "5,9",
+        parada: 13, // mapa número 5 y mapa número 7
+        mapa_numero: "5,7",
         nombre: "Arco Novo Catedral y Puerta Negra Basílica",
         coordenadas: { lat: Number('39.476070'), lng: Number('-0.374900') },
         imagen: "imagenes/imagenes-aventuras/capilla_pared_catedral.jpg",
@@ -4327,7 +4327,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/naturia_plataforma.jpg",
         imagen2: "",
     },
-    // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21)
+    // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D)
     {
         id: "Av4-TR-8",
         tipo: "tramo",
@@ -4464,7 +4464,7 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/parque_de_cabecera_el_morro_middle.jpg",
         video: "",
     },
-    // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622)
+    // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622)
     {
         id: "Av4-P-17",
         tipo: "parada",
@@ -5500,7 +5500,7 @@ export const DATOS_AVENTURAS = {
         imagen8: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
         video: "",
     },
-    // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A)
+    // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A)
     {
         id: "Av5-P-4",
         tipo: "parada",
@@ -9738,8 +9738,8 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av34km-P-64",
         tipo: "parada",
-        parada: 67, // mapa número 33
-        mapa_numero: "33",
+        parada: 67, // mapa número 42
+        mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
         coordenadas:  { lat: Number('39.476240'), lng: Number('-0.374290') },
         imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
@@ -10916,7 +10916,7 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/parque_de_cabecera_el_morro_middle.jpg",
         imagen3: "imagenes/imagenes-aventuras/parque_de_cabecera_el_morro_top.jpg",
     },
-    // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625)
+    // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625)
     {
         id: "Av34km-P-109",
         tipo: "parada",

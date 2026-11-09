@@ -144,7 +144,7 @@ Al salir de este tramado, irregular, centre su atención a su mano derecha. Su p
 **15-C** (Av1)
 Con el ayuntamiento de frente, tome la senda que queda a su izquierda y siga el mapa que le lleva hasta el final de la avenida, para luego incorporarse a izquierda. Del otro lado de la avenida emerge la Estación del Norte, un edificio monumental de estilo modernista inaugurado en 1917 que en su mapa corresponde al número 11. Pulse pausa, después vaya al punto indicado y pulse de nuevo el botón continuar una vez en el lugar sugerido.
 
-**15-D** (sin usar)
+**15-D** (Av4)
 En su mapa corresponde al número 11.
 
 **16** (Av34km)
@@ -174,7 +174,7 @@ Diríjase hasta el punto 12. Suba hasta el centro del puente siguiendo el carril
 **20-C** (Av1)
 Inmediatamente después de la Estación de Ferrocarril, emerge la Plaza de Toros, en su mapa corresponde al número 12.
 
-**21** (Av3, Av4 x2, Av5, Av34km)
+**21** (Av3, Av4, Av5, Av34km)
 Corresponde al número 14 en su mapa.
 
 **21-B** (Av1)
@@ -492,7 +492,7 @@ Diríjase a su siguiente punto de interés, en su mapa corresponde al número 70
 **81** (Av1, AvFallas)
 Con la entrada de Valencia enfrente suya, diríjase a su mano izquierda hasta el siguiente puente; el Puente de Madera. Mire en su mapa para más información. Cuando lo permitan las indicaciones viales, cruce de nuevo la carretera. Esta aventura le conducirá por una calle encantadora llena de vida: en la cual, helados, dulces, horchatas, agua de Valencia y una amplia oferta gastronómica le tentarán en su recorrido.
 
-**81-B** (Av34km)
+**81-B** (Av34km x2)
 En su mapa corresponde al número 71.
 
 **82** (Av34km)
@@ -873,73 +873,73 @@ Dejando esta plaza a su derecha, el mapa de Tesoro le indica continuar por la ca
 **199** (AvFallas)
 Siga su mapa del tesoro, durante el trayecto, a mano derecha, emerge la primera fuente pública de agua potable que hubo en la ciudad. Pulse pausa, después vaya al punto indicado y pulse de nuevo el botón continuar una vez en el lugar sugerido.
 
-**200** (sin usar)
+**200** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 ¡Hola! ¡Muy buenas! Desde [img], les damos la bienvenida. En primer lugar, queremos agradecerles por elegir esta aventura, en la que se embarcará a través del tiempo, desde la época romana hasta la Valencia del siglo XXI, una ciudad moderna, llena de luz y color. en busca del tesoro es una actividad al aire libre, auto-guiada, interactiva y didáctica, ideal para disfrutar de forma individual o en equipo. También les animamos a descubrir la cultura y gastronomía valenciana a su propio ritmo, simplemente pulsando el botón de pausa.
 
-**201** (sin usar)
+**201** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 En busca del tesoro, gracias a sus contenidos accesible en múltiples lenguas, es, además, una excelente herramienta para practicar un idioma que esté aprendiendo, o incluso para sumergirse en uno nuevo.
 
-**202** (sin usar)
+**202** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 Bajo nuestro lema "La elección es y será siempre suya", ofrecemos la posibilidad de avanzar al ritmo que prefieran, hacer pausas cuando lo necesiten o incluso convertir la experiencia en una competición amistosa para ver quién completa la aventura primero. Una vez decida que es el momento apropiado, pulsen el botón de Inicio y continúe completando nuestros retos mientras sigue descubriendo la ciudad. Cada pista los llevará a un nuevo destino con nuevas incógnitas que revelarán magníficos tesoros históricos y arquitectónicos de Valencia.
 
-**203** (sin usar)
+**203** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 Para enriquecer su experiencia incluso más, [img] le incita a entrar en los monumentos visitables como parte de la experiencia de esta Aventura tales como museos, mercados y muchos otros sitios interesantes, algunos gratuitos y otras con un precio simbólico, aunque las entradas a estos últimos no están incluidas con la adquisición de esta aventura.
 
-**204** (sin usar)
+**204** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 Si le parece indicado, nos complacería comenzar esta aventura con una breve introducción a la historia, ubicación y gastronomía valenciana. Esto nos permitirá obtener una visión general del recorrido que nos espera.
 
-**205** (sin usar)
+**205** (Av1, Av2, Av3, Av4, Av5, AvFallas)
 Recuerde, que el límite de esta aventura son 60 horas desde su comienzo.
 
-**206** (sin usar)
+**206** (Av34km)
 Recuerde, que el límite de esta aventura son 150 horas desde su comienzo.
 
-**207** (sin usar)
+**207** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 Esta Aventura que va a experimentar empezó hace mucho, mucho tiempo. Siglos antes de la llegada de los romanos, el lugar en el que ahora se encuentra Valencia fue ocupado por los íberos. Hablamos del siglo sexto antes de cristo.
 
-**208** (sin usar)
+**208** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 ¡Eso es hace mucho tiempo si piensa en ello!
 
-**209** (sin usar)
+**209** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 Varios siglos después, desde el año 138 antes de cristo, y a lo largo de su historia fue intensamente romanizada, recibiendo el nombre de "Valentia". Sin embargo, la posterior influencia musulmana fue incluso mayor, concretamente, desde el año 711 al 1238 después de nuestra era. Lo que hace un total de unos 500 años.
 
-**210** (sin usar)
+**210** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 Tal fue la influencia que la población era fundamentalmente musulmana. Recibiendo Valencia, durante este tiempo el nombre de "Balansiya".
 
-**211** (sin usar)
+**211** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 No fue hasta 1238 cuando el Rey Jaime primero de Aragón reconquistó Valencia, cristianizando la ciudad y convirtiéndola en un reino independiente del reino de Aragón. Al Reino de Valencia le fueron entregados "Los Fueros" dotando al reino de una identidad política y jurídica propia.
 
-**212** (sin usar)
+**212** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 El fin de la autonomía de la región llegó con Felipe quinto en el s. XVIII. En la Guerra de Sucesión el pueblo valenciano apoyó a su enemigo el archiduque Carlos. Felipe quinto tras ganar la guerra, abolió los Fueros y unió Valencia al gobierno nacional. En 1982, Valencia fue nombrada Capital de la Comunidad Valenciana.
 
-**213** (sin usar)
+**213** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 Valencia, la capital del Turia, es actualmente la tercera ciudad más poblada de España. Está situada al este de la Península Ibérica, a orillas del Rio Turia y bañada por el Mar Mediterráneo, el cual, dota a la región de un clima templado con inviernos suaves y unos 340 días de sol al año.
 
-**214** (sin usar)
+**214** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 ¿Qué hay en los alrededores de la ciudad?
 
-**215** (sin usar)
+**215** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 Desde Valencia parten una gran variedad de sendas acondicionadas para los amantes del ciclismo y la naturaleza. A unos diez kilómetros al sur de la ciudad se encuentra el parque natural de la Albufera de Valencia. La Albufera es uno de los humedales más grandes de España con una superficie de 2100 hectáreas, a las que hay que añadirle 14.000 hectáreas de marjal dedicadas al cultivo de arroz, que es el principal cultivo de la ciudad, junto con la chufa, la naranja, el níspero y el kaki.
 
 **216** (AvFallas)
 El siguiente punto de interés es la Puerta Barroca de la Catedral, también llamada Puerta de los hierros, es la puerta que puede ver a mano derecha de la Torre del Miguelete. Hoy en día la puerta principal de la Catedral de Valencia.
 
 **217** (Av34km)
-Los edificios que conforman el entorno junto con la actual Plaza del Ayuntamiento están declarados Conjunto Histórico Artístico.A su mano izquierda, en la propia plaza, destaca un edificio de estilo Neoclásico¿Puede verlo?
+Los edificios que conforman el entorno junto con la actual Plaza del Ayuntamiento están declarados Conjunto Histórico Artístico. A su mano izquierda, en la propia plaza, destaca un edificio de estilo Neoclásico ¿Puede verlo?
 
 **218** (Av34km)
 En su mapa corresponde al número 60.
 
-**219** (sin usar)
+**219** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 Como puede suponer, la gastronomía valenciana se enmarca dentro de la dieta mediterránea. Sin embargo, lo que caracteriza la cocina valenciana es el uso del arroz y su plato estrella mundialmente conocido, la Paella.
 
-**220** (sin usar)
+**220** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 También son excepcionales su guiso de anguila, el all-i-pebre y el riquísimo ajoaceite pronunciado all-i-oli.
 
-**221** (sin usar)
-Entre la repostería local destaca el turrón, dulce navideño por excelencia, el arnadí de calabaza y la famosa Orxata de Chufa que granizada o líquida y acompañada de sus inseparables "Fartons", harán las delicias de las tardes de verano.
+**221** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
+Entre la repostería local destaca el turrón, dulce navideño por excelencia, el arnadí de calabaza y la famosa Horchata de Chufa que granizada o líquida y acompañada de sus inseparables "Fartons", harán las delicias de las tardes de verano.
 
-**222** (sin usar)
+**222** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
 Ahora que ya conoce un poco sobre la historia y la gastronomía de nuestra tierra, es momento de comenzar su aventura. ¡Disfrútela! Su aventura comienza en la Calle de los Serranos. Recuerde que, para avanzar en el recorrido, deberá pausar en cada punto de interés, observar el lugar indicado o completar su reto, y luego continuar hacia el próximo destino sugerido y así consecutivamente. ¿Todo listo para comenzar? ¡Allá vamos, buena suerte! Desde la Calle de los Serranos, dirija su atención al final de la vía y visualice las torres que en su mapa queda indicado con el número 1.
 
 **223** (Av1, Av2, Av3, Av4, Av5, AvFallas, Av34km)
@@ -1174,7 +1174,7 @@ Nos despedimos, no sin antes desearles una buenas Fallas y aconsejarles que no s
 Este es un punto perfecto para tomar unas fotos magníficas de la Ciudad de las Artes y de las Ciencias. ¡Nos vemos abajo!
 
 **291** (Av3, Av34km)
-l’Hemisfèric fue el primer edificio que abrió sus puertas al público en la Ciudad de las Artes y de las Ciencias. Inaugurado en 1998 y con capacidad para 300 personas, este espacio se dedica al cine IMAX en 3 Dimensiones Arquitectónicamente hablando, el monumento destaca por la originalidad de sus compuertas que, gracias a un mecanismo especial, se abren y se cierran como si de un ojo real se tratase. [img] le incita a presionar pausa y a disfrutar a su gusto por este complejo futurístico con líneas innovadoras en un entorno de inspiración milenaria. Queda de nuestra mano aportar ciertos detalles que enriquecen nuestra visión de la Ciudad de las Artes y de las Ciencias. Note que la decoración del complejo es un mosaico de cerámica valenciana, legado árabe durante su periodo de colonización; de nuevo volvemos a la cultura árabe cuando admiramos los enormes espacios repletos de agua que magnifican y engrandecen los monumentos que rodea. Una vez decida continuar simplemente pulse el botón correspondiente y continúe en busca del tesoro. El entorno de la Ciudad de las Artes y de las Ciencias es perfecto para gozar del sol de Valencia y disfrutar de una Orxata tradicional valenciana.
+l’Hemisfèric fue el primer edificio que abrió sus puertas al público en la Ciudad de las Artes y de las Ciencias. Inaugurado en 1998 y con capacidad para 300 personas, este espacio se dedica al cine IMAX en 3 Dimensiones Arquitectónicamente hablando, el monumento destaca por la originalidad de sus compuertas que, gracias a un mecanismo especial, se abren y se cierran como si de un ojo real se tratase. [img] le incita a presionar pausa y a disfrutar a su gusto por este complejo futurístico con líneas innovadoras en un entorno de inspiración milenaria. Queda de nuestra mano aportar ciertos detalles que enriquecen nuestra visión de la Ciudad de las Artes y de las Ciencias. Note que la decoración del complejo es un mosaico de cerámica valenciana, legado árabe durante su periodo de colonización; de nuevo volvemos a la cultura árabe cuando admiramos los enormes espacios repletos de agua que magnifican y engrandecen los monumentos que rodea. Una vez decida continuar simplemente pulse el botón correspondiente y continúe en busca del tesoro. El entorno de la Ciudad de las Artes y de las Ciencias es perfecto para gozar del sol de Valencia y disfrutar de una Horchata tradicional valenciana.
 
 **292** (Av3, Av34km)
 ¿De cuántos monumentos se compone la Ciudad de las Artes y las Ciencias?
@@ -1228,7 +1228,7 @@ Diseñada en 1901, la Casa de los Dragones, está situada en una de las calles d
 Dejando este edificio a su izquierda, centre su atención en la plaza siguiente. Su aventura le lleva a uno de los puntos modernos más icónicos de Valencia.
 
 **307** (Av5 x2, AvFallas, Av34km)
-Este es un punto perfecto para parar a tomar unas fotos magníficas de los tesoros arquitectónicos que ofrece la ciudad y disfrutar de un cóctel peculiar como es el Agua de Valencia, o la tradicional Orxata; una refrescante bebida natural que calma la sed, acompañada de sus inseparables bollos esponjosos llamados Fartons.
+Este es un punto perfecto para parar a tomar unas fotos magníficas de los tesoros arquitectónicos que ofrece la ciudad y disfrutar de un cóctel peculiar como es el Agua de Valencia, o la tradicional Horchata; una refrescante bebida natural que calma la sed, acompañada de sus inseparables bollos esponjosos llamados Fartons.
 
 **308** (Av5, Av34km)
 El Mercado de Colón, también, fue construido en una de las manzanas del primer Ensanche. Estaba destinado a dar servicio a esta parte de la ciudad, ya que el gran Mercado central, que visitará más adelante en esta Aventura, quedaba bastante alejado. El Mercado de Colón fue construido entre 1914 y 1917. Aunque su inauguración oficial tuvo lugar en la nochebuena de 1916.
@@ -1348,7 +1348,7 @@ Sobre la entrada principal, en un arco de medio punto, figuras alegóricas repre
 Mirando la fachada de correos diríjase a su mano izquierda, como indica su mapa, hasta la Calle de las Barcas, que es la segunda calle a su mano derecha. [img] le recomienda llegar al siguiente punto de interés a pie, recuerde que debe respetar la normativa vial que, en este caso, el peatón tiene preferencia. No pause esta audio guía y diríjase al punto indicado, gracias. ¡Ánimo son sólo unos cuantos metros! Recuerde, mire el edificio, gire a su izquierda y tome la segunda calle a su derecha.
 
 **346** (Av2, AvFallas, Av34km)
-Si viene en horario de visita, [img], be le anima a hacer una pausa y elegir un buen sitio. Es el lugar perfecto para hacer una parada y tomar unas magníficas fotos de los tesoros arquitectónicos que ofrece la ciudad, y disfrutar de una bebida típica: Agua de Valencia, un cóctel alcohólico a base de Vodka, cava y zumo fresco de naranja. O mejor aún... también puede degustar una Orxata nuestro zumo de chufa vegano, siempre acompañada de sus queridos Fartons, un bizcocho en forma de barra que hay que mojar, para que empape, y luego comer. Así disfrutan los valencianos de esta refrescante bebida cultural. Recuerde que no hay prisa, haga lo que le apetezca y no se presione; ¡se supone que es una excursión divertida! Puede volver a su Aventura cuando sienta que el es momento, simplemente pulsando play.
+Si viene en horario de visita, [img], be le anima a hacer una pausa y elegir un buen sitio. Es el lugar perfecto para hacer una parada y tomar unas magníficas fotos de los tesoros arquitectónicos que ofrece la ciudad, y disfrutar de una bebida típica: Agua de Valencia, un cóctel alcohólico a base de Vodka, cava y zumo fresco de naranja. O mejor aún... también puede degustar una Horchata nuestro zumo de chufa vegano, siempre acompañada de sus queridos Fartons, un bizcocho en forma de barra que hay que mojar, para que empape, y luego comer. Así disfrutan los valencianos de esta refrescante bebida cultural. Recuerde que no hay prisa, haga lo que le apetezca y no se presione; ¡se supone que es una excursión divertida! Puede volver a su Aventura cuando sienta que el es momento, simplemente pulsando play.
 
 **347** (Av1, Av34km)
 La Calle de las Barcas, recibe éste nombre porque en esta calle había una sucesión de talleres donde se fabricaban estos pequeños navíos que posteriormente eran trasladados al barrio de pescadores. En su día se llenó de cafetines y tabernas, donde la prostitución y el juego alarmaba a la población. Con el ensanche de la Plaza del Ayuntamiento en 1891, se instalaron en la zona edificios emblemáticos como los que verá a continuación.
@@ -2253,7 +2253,7 @@ Busque el acceso que permite subir a la cumbre y tómese un poco de tiempo para 
 **620** (Av34km)
 El Morro, número 71 en su mapa, es un punto magnífico en el que se ve el Parque de cabecera completo, y el famoso Bioparc, que corresponde al número 73 en su mapa.
 
-**620-B** (sin usar)
+**620-B** (Av4)
 El Morro, número 14 en su mapa, es un punto magnífico en el que se ve el Parque de cabecera completo, y el famoso Bioparc, que corresponde al número 15 en su mapa.
 
 **621** (Av4, Av34km)
@@ -2440,7 +2440,7 @@ El origen del Palacio se remonta al s. XIII. Este edificio sufrió continuas ref
 Al lado opuesto de la plaza, se halla el Palacio del Marqués de Campo ¿Puede verlo? En su mapa corresponde al número 85. El edificio se remonta al s. XVIII, pero en el s. XIX; el Marqués de Campo procedió a una completa remodelación. Años después y tras pasar por varias manos, el Ayuntamiento declaró el Palacio Monumento Histórico Artístico de carácter local. El hecho ocurrido en 1973, aumentó su estatus en 1982 cuando obtuvo la categoría de Monumento Histórico Artístico de carácter provincial. En 1989, tras una costosa y dedicada rehabilitación, el Palacio fue puesto en uso como Sede del Museo de la Ciudad. Actualmente el museo alberga importantes colecciones que hasta entonces se hallaban dispersas por distintos edificios. Estas nos ayudan a entender más sobre la historia Valenciana desde la fundación romana hasta mediados del s. XIV. Asimismo, el museo también es usado como sala de exposiciones temporales, repartidos por el museo se puede contemplar una importante colección de arte valenciano de s. XX. En la planta superior se exponen una colección de pesas y medidas.
 
 **674-B** (Av34km)
-El edificio se remonta al s. XVIII, pero en el s. XIX; el Marqués de Campo procedió a una completa remodelación.Años después y tras pasar por varias manos, el Ayuntamiento declaró el Palacio Monumento Histórico Artístico de carácter local.El hecho ocurrido en 1973, aumentó su estatus en 1982 cuando obtuvo la categoría de Monumento Histórico Artístico de carácter provincial.En 1989, tras una costosa y dedicada rehabilitación, el Palacio fue puesto en uso como Sede del Museo de la Ciudad.Actualmente el museo alberga importantes colecciones que hasta entonces se hallaban dispersas por distintos edificios.Estas nos ayudan a entender más sobre la historia Valenciana desde la fundación romana hasta mediados del s.XIV.Asimismo, el museo también es usado como sala de exposiciones temporales, repartidos por el museo se puede contemplar una importante colección de arte valenciano de siglo XX.En la planta superior se exponen una colección de pesas y medidas.
+El edificio se remonta al s. XVIII, pero en el s. XIX; el Marqués de Campo procedió a una completa remodelación. Años después y tras pasar por varias manos, el Ayuntamiento declaró el Palacio Monumento Histórico Artístico de carácter local. El hecho ocurrido en 1973, aumentó su estatus en 1982 cuando obtuvo la categoría de Monumento Histórico Artístico de carácter provincial. En 1989, tras una costosa y dedicada rehabilitación, el Palacio fue puesto en uso como Sede del Museo de la Ciudad. Actualmente el museo alberga importantes colecciones que hasta entonces se hallaban dispersas por distintos edificios. Estas nos ayudan a entender más sobre la historia Valenciana desde la fundación romana hasta mediados del s.XIV. Asimismo, el museo también es usado como sala de exposiciones temporales, repartidos por el museo se puede contemplar una importante colección de arte valenciano de siglo XX. En la planta superior se exponen una colección de pesas y medidas.
 
 **675** (Av34km)
 A la izquierda del Museo, una entrada discreta da paso a un punto de interés en esta Aventura. En su mapa corresponde al número 86. en este lugar se encontraba una de las cárceles donde fue encerrado San Vicente Mártir en el s. IV D.C. que murió sin renunciar a su fe tras ser torturado en el año 304 por los romanos. El interior alberga una capilla funeraria en excepcional estado de conservación de época Visigoda, hablamos de los s. VI y VII D.C.. Si se encuentra en horas de visita, [img] le recomienda pulsar pausa y entrar a estos tesoros históricos para conocer mejor la historia de la ciudad. Puede retomar su aventura una vez lo crea conveniente, simplemente pulse el botón correspondiente y continúe en busca del tesoro. Su aventura continúa en este mismo punto.
@@ -2538,10 +2538,10 @@ Utilice el botón de pausa a su propio antojo. Cuando usted lo decida, simplemen
 **703** (Av3, Av4, Av5, Av34km)
 ¡Genial! ¡Continuemos con la búsqueda del tesoro! Observe a su alrededor y podrá ver unas ruinas que destacan entre la ornamentación botánica del jardín del Turia ¿Puede verlas? ¿Sí? Perfecto, porque la siguiente historia esperamos que le sorprenda.
 
-**704** (Av3, Av5)
+**704** (Av3)
 ¿Ya se encuentra en el punto indicado con el número 6 en su mapa?
 
-**704-B** (sin usar)
+**704-B** (Av5)
 ¿Ya se encuentra en el punto indicado con el número 3 en su mapa?
 
 **705** (Av4)
@@ -2551,7 +2551,7 @@ Utilice el botón de pausa a su propio antojo. Cuando usted lo decida, simplemen
 ¿Ya se encuentra en el punto indicado con el número 76 en su mapa?
 
 **707** (Av3, Av34km)
-¿De qué está hecha la Orxata? ¿De chufa, de arroz o de cebada?
+¿De qué está hecha la Horchata? ¿De chufa, de arroz o de cebada?
 
 **708** (Av4, Av34km)
 En el transcurso de su Aventura podrá terminar de descubrir el majestuoso Parque de Cabecera, pasando por el antiguo molino del sol, recuerde que antiguamente los molinos eran edificios indispensables para moler el grano y con ello producir la harina necesaria para poder elaborar, entre otros, repostería y panadería.
@@ -2572,37 +2572,13 @@ En su mapa corresponde al número 68.
 NaTuria es un espacio educativo y ambiental cuyo objetivo es acercar la naturaleza a la ciudadanía y fomentar hábitos sostenibles en la vida cotidiana mediante exposiciones, cursos, talleres y visitas guiadas centradas en sostenibilidad, reciclaje, biodiversidad y calidad de vida urbana; en su entorno cercano se encuentra una pequeña presa o azud que retiene agua del antiguo cauce del río y forma parte del proyecto paisajístico del parque, recreando un entorno acuático que evoca el antiguo Turia con vegetación de ribera, fauna asociada como aves y anfibios, y zonas de paseo y observación, donde además se sitúa el Molino del Tell, un antiguo molino harinero restaurado integrado en las actividades del propio NaTuria, en el que se explica su historia, la vida sostenible tradicional y la relación histórica de Valencia con el agua, de modo que este conjunto -la presa y el entorno acuático- funciona principalmente como un elemento educativo y simbólico que recuerda el vínculo de la ciudad con su río y promueve el aprendizaje sobre la gestión sostenible del agua.
 
 **714** (Av34km)
-Admirando la puerta más antigua de la catedral de Valencia, dirija su atención hacia su cara norte.Podrá contemplarla en todo su esplendor desde la Plaza de Décimo Junio Bruto que queda a mano derecha.Diríjase al centro de la plaza. En su mapa corresponde al número 42.
+Admirando la puerta más antigua de la catedral de Valencia, dirija su atención hacia su cara norte. Podrá contemplarla en todo su esplendor desde la Plaza de Décimo Junio Bruto que queda a mano derecha. Diríjase al centro de la plaza. En su mapa corresponde al número 42.
 
-**715** (Av34km x2)
+**715** (Av34km)
 En su mapa corresponde al número 72.
 
 **viv1** (Av4, Av34km)
 [img] le recomienda seguir el curso de su mapa y recorrer el paseo. A mitad del paseo, a mano derecha se ubican las ruinas de lo que sería en su día la Torre de la Reina del ya extinto palacio.
-
-**viv10** (Av4, Av34km)
-Saliendo por la parte opuesta de la rosaleda quedan los viveros que se encargarían de suministrar las especies botánicas y flora a la ciudad. [img] le anima a pulsar pausa y explorar esta área botánica a su propio ritmo, pudiendo continuar su búsqueda desde el museo que corresponde al número 8 en su mapa. Recuerde que el botón de pausa puede usarlo a su propio antojo y pulsarlo cuando lo crea conveniente. Después simplemente pulse inicio y continúe resolviendo nuestros retos mientras descubre la ciudad. Los Jardines del Real ofrece una amplia gama de esculturas: El Reposo, La Dama de Elche, Las Cuatro Falsas Estaciones, Despertar y La Fuente de Neptuno, son algunos ejemplares que podrá encontrar en su recorrido.
-
-**viv11** (Av4, Av34km)
-Sitúese, si es tan amable, entre la alquería y el museo; números 7 y 8 respectivamente. Con la Alquería a su mano izquierda y el Museo a su derecha, observe que delante, se abre una plaza destinada a eventos musicales; tales como conciertos y bailes típicos. Al final de este espacio, un tímido lago se presenta a su derecha. Este es el conocido lago de los cisnes, donde aves migratorias, tales como cigüeñas y patos, descansan en éste hábitat protegido para reponer fuerzas antes de emprender su vuelo. En su mapa corresponde al número 11.
-
-**viv11-B** (Av4, Av34km)
-Al final de este espacio, un tímido lago se presenta a su derecha. Diríjase al lago de los cisnes. En su mapa corresponde al número 11.
-
-**viv11-C** (Av4, Av34km)
-Este es el conocido lago de los cisnes, donde aves migratorias, tales como cigüeñas y patos, descansan en éste hábitat protegido para reponer fuerzas antes de emprender su vuelo.
-
-**viv12** (Av4, Av34km)
-¿Qué figura decora la fuente? ¿Es un pato? ¿Una cigüeña? ¿O tal vez un Pez? Pulse pausa y vaya al lugar indicado para completar su reto.
-
-**viv13** (Av4, Av34km)
-Siguiendo la forma del jardín, una escultura dedicada al agua da la bienvenida a uno de los rincones más discretos del parque. En su mapa corresponde al número 12.
-
-**viv14** (Av4, Av34km)
-La fuente "Al agua", una pieza circular de mármol blanco con un busto en bronce de una mujer y un niño, es mucho más que un elemento decorativo: es una obra simbólica que representa la relación humana con el agua. Situada en un entorno históricamente ligado al riego y la huerta, recuerda la importancia esencial del agua como base de la vida, sin la cual no existirían ni la agricultura ni las ciudades. La composición refuerza este mensaje: el agua simboliza el origen de la vida, la madre el cuidado y la protección, y el niño la continuidad y el futuro.
-
-**viv15** (Av4, Av34km)
-Detrás de la fuente se abre una portada de estilo barroco dedicada a San Julián. Este espacio íntimo esconde dos portadas a los antiguos jardines de palacio que Condes y Duques tenían desde su morada. Hoy en día es un rincón romántico y tranquilo en el que poder relajarse y disfrutar de paz y sosiego en una ciudad en constante movimiento. En su mapa corresponde al número 12. Con la portada y la fuente a su espalda, aventúrese en la zona de los Ficus, árboles de gran envergadura naturales de Australia. [img] le anima a explorar esta área tranquilamente. Retome esta aventura desde la salida de los Jardines del Real, utilizando la misma puerta por la que entró. En su mapa corresponde al número 1.
 
 **viv2** (Av4, Av34km)
 A continuación, verá un gran montículo de tierra. Este es un punto perfecto para tomar unas magníficas fotografías de las vistas que ofrece el jardín. El montículo recibe el nombre de Elio, Capitán General de los Reinos de Valencia y Murcia en el s. XIX. Curiosamente, Elio, fue decapitado años más tarde en este mismo lugar. Este montículo fue creado con las ruinas del palacio, en el cual se plantaron árboles y flores. Fue en el monte Elio donde se iniciaron los jardines de viveros de la ciudad. Estos puntos corresponden a los números 2 y 3 respectivamente.
@@ -2627,3 +2603,27 @@ Una gran farola, de las únicas que existen en la ciudad, nos permite entrever n
 
 **viv9** (Av4, Av34km)
 Unos metros más adelante, en la Rosaleda, emerge una gran fuente circular procedente de la Plaza de la Reina circundada por cerca de seis mil rosas de distintas especies, además, de otras especies ornamentales. La rosaleda, que fue plantada en 1974 y reformada en 2010, corresponde en su mapa al número 10.
+
+**viv10** (Av4, Av34km)
+Saliendo por la parte opuesta de la rosaleda quedan los viveros que se encargarían de suministrar las especies botánicas y flora a la ciudad. [img] le anima a pulsar pausa y explorar esta área botánica a su propio ritmo, pudiendo continuar su búsqueda desde el museo que corresponde al número 8 en su mapa. Recuerde que el botón de pausa puede usarlo a su propio antojo y pulsarlo cuando lo crea conveniente. Después simplemente pulse inicio y continúe resolviendo nuestros retos mientras descubre la ciudad. Los Jardines del Real ofrece una amplia gama de esculturas: El Reposo, La Dama de Elche, Las Cuatro Falsas Estaciones, Despertar y La Fuente de Neptuno, son algunos ejemplares que podrá encontrar en su recorrido.
+
+**viv11** (Av4, Av34km)
+Sitúese, si es tan amable, entre la alquería y el museo; números 7 y 8 respectivamente. Con la Alquería a su mano izquierda y el Museo a su derecha, observe que delante, se abre una plaza destinada a eventos musicales; tales como conciertos y bailes típicos. Al final de este espacio, un tímido lago se presenta a su derecha. Este es el conocido lago de los cisnes, donde aves migratorias, tales como cigüeñas y patos, descansan en éste hábitat protegido para reponer fuerzas antes de emprender su vuelo. En su mapa corresponde al número 11.
+
+**viv11-B** (Av4, Av34km)
+Al final de este espacio, un tímido lago se presenta a su derecha. Diríjase al lago de los cisnes. En su mapa corresponde al número 11.
+
+**viv11-C** (Av4, Av34km)
+Este es el conocido lago de los cisnes, donde aves migratorias, tales como cigüeñas y patos, descansan en éste hábitat protegido para reponer fuerzas antes de emprender su vuelo.
+
+**viv12** (Av4, Av34km)
+¿Qué figura decora la fuente? ¿Es un pato? ¿Una cigüeña? ¿O tal vez un Pez? Pulse pausa y vaya al lugar indicado para completar su reto.
+
+**viv13** (Av4, Av34km)
+Siguiendo la forma del jardín, una escultura dedicada al agua da la bienvenida a uno de los rincones más discretos del parque. En su mapa corresponde al número 12.
+
+**viv14** (Av4, Av34km)
+La fuente "Al agua", una pieza circular de mármol blanco con un busto en bronce de una mujer y un niño, es mucho más que un elemento decorativo: es una obra simbólica que representa la relación humana con el agua. Situada en un entorno históricamente ligado al riego y la huerta, recuerda la importancia esencial del agua como base de la vida, sin la cual no existirían ni la agricultura ni las ciudades. La composición refuerza este mensaje: el agua simboliza el origen de la vida, la madre el cuidado y la protección, y el niño la continuidad y el futuro.
+
+**viv15** (Av4, Av34km)
+Detrás de la fuente se abre una portada de estilo barroco dedicada a San Julián. Este espacio íntimo esconde dos portadas a los antiguos jardines de palacio que Condes y Duques tenían desde su morada. Hoy en día es un rincón romántico y tranquilo en el que poder relajarse y disfrutar de paz y sosiego en una ciudad en constante movimiento. En su mapa corresponde al número 12. Con la portada y la fuente a su espalda, aventúrese en la zona de los Ficus, árboles de gran envergadura naturales de Australia. [img] le anima a explorar esta área tranquilamente. Retome esta aventura desde la salida de los Jardines del Real, utilizando la misma puerta por la que entró. En su mapa corresponde al número 1.

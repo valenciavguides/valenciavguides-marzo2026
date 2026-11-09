@@ -48,7 +48,7 @@
     // Parada 9: Capilla exterior catedral (Reto 12) (Párrafos: 445) (mapa 5)
     { id: "txt-Av1-P9", parrafos: [445] },
 
-    // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+    // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
     { id: "txt-Av1-P10", parrafos: [446, 355, 447, "11-B", 451, 452] },
 
     // Parada 11: Casa del Punt de Gantxo (Reto 13) (Párrafos: 51-C, 454, 455, 455-B, 148, 456)
@@ -636,8 +636,8 @@
     // Parada 13: Na Turia (Plataforma elevada) (Reto 13) (Párrafos: 606, 231, 608, 609, 602, 610) (mapa 11)
     { id: "txt-Av4-P13", parrafos: [606, 231, 608, 609, 602, 610] },
 
-    // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
-    { id: "txt-Av4-TR8", parrafos: [711, 21] },
+    // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
+    { id: "txt-Av4-TR8", parrafos: [711, "15-D"] },
 
     // Parada 14: Na Turia (Museo) (Párrafos: 713, 54) (mapa 11)
     { id: "txt-Av4-P14", parrafos: [713, 54] },
@@ -657,8 +657,8 @@
     // Tramo 11: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 21, 619) (mapa 13→14)
     { id: "txt-Av4-TR11", parrafos: [618, 21, 619] },
 
-    // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
-    { id: "txt-Av4-P17", parrafos: [621, 622] },
+    // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
+    { id: "txt-Av4-P17", parrafos: ["620-B", 621, 622] },
 
     // Parada 18: Parque de Cabecera (El Morro) (Párrafos: 623, 624, 625) (mapa 14)
     { id: "txt-Av4-P18", parrafos: [623, 624, 625] },
@@ -792,8 +792,8 @@
     // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia (Párrafos: 236, 644, 6) (mapa -→3)
     { id: "txt-Av5-TR3", parrafos: [236, 644, 6] },
 
-    // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
-    { id: "txt-Av5-P4", parrafos: [704, 703, 645, "646-A"] },
+    // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
+    { id: "txt-Av5-P4", parrafos: ["704-B", 703, 645, "646-A"] },
 
     // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 7) (mapa 3→4)
     { id: "txt-Av5-TR4", parrafos: [647, 7] },
@@ -1419,7 +1419,7 @@
     // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
     { id: "txt-Av34km-P63", parrafos: [458] },
 
-    // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+    // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
     { id: "txt-Av34km-P64", parrafos: [459, 460, 461] },
 
     // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
@@ -1644,8 +1644,8 @@
     // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
     { id: "txt-Av34km-P108", parrafos: [620, 621, 622] },
 
-    // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
-    { id: "txt-Av34km-P109", parrafos: [623, 715, 624, 625] },
+    // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
+    { id: "txt-Av34km-P109", parrafos: [623, "81-B", 624, 625] },
 
     // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
     { id: "txt-Av34km-TR72", parrafos: [82, "628-B"] },

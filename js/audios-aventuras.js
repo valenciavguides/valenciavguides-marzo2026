@@ -113,7 +113,7 @@ export const AUDIOS_AVENTURAS = {
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-es",
         title: "Parada 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -576,7 +576,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-en",
         title: "Stop 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -1039,7 +1039,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-fr",
         title: "Étape 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -1502,7 +1502,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-it",
         title: "Tappa 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -1965,7 +1965,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-nl",
         title: "Stop 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -2428,7 +2428,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-ja",
         title: "停留所 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -2891,7 +2891,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-de",
         title: "Halt 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -3354,7 +3354,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-zh",
         title: "站 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -3817,7 +3817,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-pl",
         title: "Przystanek 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -4280,7 +4280,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-pt",
         title: "Parada 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -4743,7 +4743,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-ru",
         title: "Остановка 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -5206,7 +5206,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
+      // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,7)
       {
         id: "audio-Av1-P-10-uk",
         title: "Зупинка 10: Arco Novo Catedral y Puerta Negra Basílica",
@@ -15908,7 +15908,7 @@ export const AUDIOS_AVENTURAS = {
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-es",
         title: "Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -15957,7 +15957,7 @@ export const AUDIOS_AVENTURAS = {
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-es",
         title: "Parada 17: Parque de Cabecera (El Morro)",
@@ -16364,7 +16364,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-en",
         title: "Section 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -16413,7 +16413,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-en",
         title: "Stop 17: Parque de Cabecera (El Morro)",
@@ -16820,7 +16820,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-fr",
         title: "Section 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -16869,7 +16869,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-fr",
         title: "Étape 17: Parque de Cabecera (El Morro)",
@@ -17276,7 +17276,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-it",
         title: "Tratto 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -17325,7 +17325,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-it",
         title: "Tappa 17: Parque de Cabecera (El Morro)",
@@ -17732,7 +17732,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-nl",
         title: "Traject 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -17781,7 +17781,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-nl",
         title: "Stop 17: Parque de Cabecera (El Morro)",
@@ -18188,7 +18188,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-ja",
         title: "区間 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -18237,7 +18237,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-ja",
         title: "停留所 17: Parque de Cabecera (El Morro)",
@@ -18644,7 +18644,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-de",
         title: "Abschnitt 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -18693,7 +18693,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-de",
         title: "Halt 17: Parque de Cabecera (El Morro)",
@@ -19100,7 +19100,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-zh",
         title: "段 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -19149,7 +19149,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-zh",
         title: "站 17: Parque de Cabecera (El Morro)",
@@ -19556,7 +19556,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-pl",
         title: "Odcinek 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -19605,7 +19605,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-pl",
         title: "Przystanek 17: Parque de Cabecera (El Morro)",
@@ -20012,7 +20012,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-pt",
         title: "Percurso 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -20061,7 +20061,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-pt",
         title: "Parada 17: Parque de Cabecera (El Morro)",
@@ -20468,7 +20468,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-ru",
         title: "Участок 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -20517,7 +20517,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-ru",
         title: "Остановка 17: Parque de Cabecera (El Morro)",
@@ -20924,7 +20924,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
+      // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 15-D) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-uk",
         title: "Ділянка 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
@@ -20973,7 +20973,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
+      // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 620-B, 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-uk",
         title: "Зупинка 17: Parque de Cabecera (El Morro)",
@@ -21285,7 +21285,7 @@ export const AUDIOS_AVENTURAS = {
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-es",
         title: "Parada 4: Ruinas del Jardín del Turia",
@@ -21720,7 +21720,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-en",
         title: "Stop 4: Ruinas del Jardín del Turia",
@@ -22155,7 +22155,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-fr",
         title: "Étape 4: Ruinas del Jardín del Turia",
@@ -22590,7 +22590,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-it",
         title: "Tappa 4: Ruinas del Jardín del Turia",
@@ -23025,7 +23025,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-nl",
         title: "Stop 4: Ruinas del Jardín del Turia",
@@ -23460,7 +23460,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-ja",
         title: "停留所 4: Ruinas del Jardín del Turia",
@@ -23895,7 +23895,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-de",
         title: "Halt 4: Ruinas del Jardín del Turia",
@@ -24330,7 +24330,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-zh",
         title: "站 4: Ruinas del Jardín del Turia",
@@ -24765,7 +24765,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-pl",
         title: "Przystanek 4: Ruinas del Jardín del Turia",
@@ -25200,7 +25200,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-pt",
         title: "Parada 4: Ruinas del Jardín del Turia",
@@ -25635,7 +25635,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-ru",
         title: "Остановка 4: Ruinas del Jardín del Turia",
@@ -26070,7 +26070,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
+      // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704-B, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-uk",
         title: "Зупинка 4: Ruinas del Jardín del Turia",
@@ -31157,7 +31157,7 @@ export const AUDIOS_AVENTURAS = {
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-es",
         title: "Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -31682,7 +31682,7 @@ export const AUDIOS_AVENTURAS = {
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-es",
         title: "Parada 109: Parque de Cabecera (El Morro)",
@@ -32818,7 +32818,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-en",
         title: "Stop 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -33343,7 +33343,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-en",
         title: "Stop 109: Parque de Cabecera (El Morro)",
@@ -34479,7 +34479,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-fr",
         title: "Étape 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -35004,7 +35004,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-fr",
         title: "Étape 109: Parque de Cabecera (El Morro)",
@@ -36140,7 +36140,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-it",
         title: "Tappa 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -36665,7 +36665,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-it",
         title: "Tappa 109: Parque de Cabecera (El Morro)",
@@ -37801,7 +37801,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-nl",
         title: "Stop 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -38326,7 +38326,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-nl",
         title: "Stop 109: Parque de Cabecera (El Morro)",
@@ -39462,7 +39462,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-ja",
         title: "停留所 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -39987,7 +39987,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-ja",
         title: "停留所 109: Parque de Cabecera (El Morro)",
@@ -41123,7 +41123,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-de",
         title: "Halt 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -41648,7 +41648,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-de",
         title: "Halt 109: Parque de Cabecera (El Morro)",
@@ -42784,7 +42784,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-zh",
         title: "站 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -43309,7 +43309,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-zh",
         title: "站 109: Parque de Cabecera (El Morro)",
@@ -44445,7 +44445,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-pl",
         title: "Przystanek 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -44970,7 +44970,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-pl",
         title: "Przystanek 109: Parque de Cabecera (El Morro)",
@@ -46106,7 +46106,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-pt",
         title: "Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -46631,7 +46631,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-pt",
         title: "Parada 109: Parque de Cabecera (El Morro)",
@@ -47767,7 +47767,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-ru",
         title: "Остановка 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -48292,7 +48292,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-ru",
         title: "Остановка 109: Parque de Cabecera (El Morro)",
@@ -49428,7 +49428,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 42)
       {
         id: "audio-Av34km-P-64-uk",
         title: "Зупинка 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
@@ -49953,7 +49953,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 81-B, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-uk",
         title: "Зупинка 109: Parque de Cabecera (El Morro)",

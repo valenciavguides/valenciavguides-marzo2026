@@ -2585,7 +2585,7 @@ Ventana flotante gestionada íntegramente por el padre (mismo patrón que la ven
 
 **Regla de relleno de los puentes**: una fila puente se marca completada cuando se completa la **siguiente parada real de la secuencia** (`completaConId`, calculado recorriendo las filas de atrás hacia adelante) — si el usuario ha llegado a esa parada, necesariamente ya pasó por el punto intermedio. No tiene marcador de finalización propio.
 
-**Verificado, las 7 aventuras** (análisis exhaustivo aventura por aventura, no una muestra): ninguna referencia queda sin resolver. Puentes encontrados: Aventura1 → 2, 4, 22; Aventura2 → 4 (visitado dos veces, en dos huecos distintos de la ruta); Aventura3 → 27 (dos veces); Aventura4 → `v1`, `v5`; Aventura34km → 45 (dos veces), `v1`, `v5`. Aventura5 y AventuraFallas no tienen ningún puente. Los prefijos `v1..v13` son la numeración propia del tramo "Viveros" (compartida entre Aventura4 y Aventura34km, que reutiliza literalmente esos mismos tramos) — independiente de la numeración principal 1-N de cada aventura. Un monumento (una `referencia`) que no lleva ninguna parada ni nombra ningún tramo no tiene fila: no sale en el listado ni se pone en verde en el mapa moderno. Son el 7 de la Aventura1; el 3, 4, 5, 8, 14, 16 y 19 de la Aventura3; el 7, 8, 10, 20, 21, 22 y 23 de la Aventura4 (y `v4`, `v6`, `v9` y `v13`); el 9 y el 20 de la de Fallas; y el 3, 9, 13, 20 y 67 de la de 34 km.
+**Verificado, las 7 aventuras** (análisis exhaustivo aventura por aventura, no una muestra): ninguna referencia queda sin resolver. Puentes encontrados: Aventura1 → 2, 4, 22; Aventura2 → 4 (visitado dos veces, en dos huecos distintos de la ruta); Aventura3 → 27 (dos veces); Aventura4 → `v1`, `v5`; Aventura34km → 45 (dos veces), `v1`, `v5`. Aventura5 y AventuraFallas no tienen ningún puente. Los prefijos `v1..v13` son la numeración propia del tramo "Viveros" (compartida entre Aventura4 y Aventura34km, que reutiliza literalmente esos mismos tramos) — independiente de la numeración principal 1-N de cada aventura. Un monumento (una `referencia`) que no lleva ninguna parada ni nombra ningún tramo no tiene fila: no sale en el listado ni se pone en verde en el mapa moderno. Son el 3, 4, 5, 8, 14, 16 y 19 de la Aventura3; el 7, 8, 10, 20, 21, 22 y 23 de la Aventura4 (y `v4`, `v6`, `v9` y `v13`); el 9 y el 20 de la de Fallas; y el 3, 9, 13, 20 y 67 de la de 34 km.
 
 **Actualización en vivo**: si la ventana está abierta cuando `marcarParadaCompletada()` registra una parada nueva, se vuelve a llamar a `_renderizarListadoParadas()` para refrescar el contenido sin que el usuario tenga que cerrar y reabrir la ventana.
 
@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-6b003a1e709e'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-41f3d3304219'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8671,7 +8671,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 | `npm run build:demo` | Pone al día a mano la carpeta pública, `publico/`, desde el working tree (`tools/build-demo.js`): escribe los textos y las copias que no coinciden con sus originales; con `-- --comprobar` no escribe y sale con código 1 si algo no está al día, sobra un fichero o falta una pieza — normalmente no hace falta, el hook de pre-commit ya lo hace solo |
 | `npm run build:sw` | Recalcula `CACHE_VERSION` a mano desde el working tree (`tools/build-sw.js`) — normalmente no hace falta, el hook de pre-commit ya lo hace solo |
 | `npm run dev:watch` | Vigila `sw.js` y los ficheros del shell y recalcula `CACHE_VERSION` en vivo mientras se desarrolla (`tools/watch-sw.js`) |
-| `npm run generar-guiones` | Regenera `docs/aventuras_ordenado/AventuraN.md` (`tools/generar-guiones-aventuras.mjs`) — cruza coordenadas, textos y párrafos de las 7 aventuras en un guión legible. Ver §21.2 |
+| `npm run generar-guiones` | Regenera `docs/aventuras_ordenado/AventuraN.md` y `parrafos_ordenados.md` (`tools/generar-guiones-aventuras.mjs`) — cruza coordenadas, textos y párrafos de las 7 aventuras en un guión legible, y cataloga cada párrafo con las aventuras que lo usan. Ver §21.2 |
 | `npm run generar-tramos-video` | Regenera `docs/aventuras_ordenado/tramos-para-videos.md` (`tools/generar-tramos-para-videos.mjs`) — lista los recorridos físicos únicos de todas las aventuras, para planificar dónde grabar. Ver §21.2 |
 
 > `postinstall` (`tools/install-hooks.js`) instala el hook de pre-commit que mantiene al día automáticamente la carpeta pública `publico/` y `CACHE_VERSION` — se ejecuta solo tras `npm install`, sin acción manual. Ver §21.1 para el sistema completo.
@@ -8722,6 +8722,8 @@ Una pieza que falta en los originales no se inventa: se nombra en la lista `falt
 Los ficheros de `docs/aventuras_ordenado/` no son fuente de verdad — se generan cruzando `coordenadas-aventuras.js`, `textos-aventuras.js`, `indice-aventuras.js` y `parrafos-textos/parrafos-texto-espanol.json`, y se regeneran con `npm run generar-guiones`/`npm run generar-tramos-video` cada vez que cambia algún dato de aventuras (nueva parada, párrafo reescrito, imagen distinta). Editarlos a mano no tiene efecto la próxima vez que se regeneran.
 
 **`AventuraN.md`** (uno por aventura: `Aventura1` a `Aventura5`, `AventuraFallas`, `Aventura34km`) — el guión completo de esa aventura en orden real de recorrido: cada Parada y Tramo con su nombre, sus imágenes y el texto en español de cada párrafo que usa (buscado por número, incluidas variantes con sufijo como `682-B`). `tools/generar-guiones-aventuras.mjs` empareja los IDs de `coordenadas-aventuras.js` (`Av1-P-0`, `Av1-TR-1`) con los de `textos-aventuras.js` (`txt-Av1-P0`, `txt-Av1-TR1`) quitando el guion antes del número — el mismo patrón vale para las 7 aventuras, incluidas `AvFallas-P-0`/`Av34km-P-0`. No incluye los marcadores `referencia` del mapa completo ni los párrafos de intro (no pertenecen a ninguna parada/tramo concreto).
+
+**`parrafos_ordenados.md`** — el catálogo de los párrafos en español, los de `parrafos-texto-espanol.json`, cada uno con su texto (sin etiquetas; una imagen, `[img]`) y las aventuras que lo usan, según `textos-aventuras.js`: `(Av3, Av5)`, `(Av34km x2)` si lo usan dos textos de la misma aventura, o `(sin usar)`. Va en orden natural: primero las claves que son solo número (`2`, `2-B`, `2-C`… `10`), después las de los Jardines del Real (`viv1`, `viv2`… `viv10`, `viv11`, `viv11-B`). Lo genera la misma herramienta que los guiones, con los mismos datos. Un párrafo `(sin usar)` con un número de mapa suele ser el que un texto debería estar usando: las frases con número son párrafos compartidos entre aventuras, y un número equivocado en un texto se arregla cambiando qué párrafo usa ese texto, no el párrafo.
 
 **`tramos-para-videos.md`** — un único documento con los tramos de las 7 aventuras, deduplicados por recorrido físico real (mismo `inicio` + `waypoints` + `fin`, comparados como números — no como texto, porque el mismo punto puede estar escrito `'39.47921'` en una aventura y `'39.479210'` en otra). Si dos tramos son geométricamente idénticos, el usuario ve exactamente lo mismo yendo de A a B, así que un solo vídeo sirve para ambos — se listan una sola vez, con todas las aventuras/tramos donde aparecen. Pensado para decidir dónde grabar: de los 239 tramos de las 7 aventuras, 153 son recorridos físicos únicos (86 duplicados). Ordenado por número de reutilizaciones — los recorridos que cubren más aventuras de golpe van primero. Ningún tramo tiene aún vídeo asignado (`video: ""` en las 239 entradas de `coordenadas-aventuras.js`); este documento es el punto de partida para grabarlos.
 
@@ -9114,7 +9116,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-6b003a1e709e';
+const CACHE_VERSION = 'v-41f3d3304219';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12574,7 +12576,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-6b003a1e709e';
+const CACHE_VERSION = 'v-41f3d3304219';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
