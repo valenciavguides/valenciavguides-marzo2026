@@ -6,7 +6,7 @@
 
 ---
 
-## � Estado actual
+## 📊 Estado actual
 
 En desarrollo activo, sin bloqueos críticos conocidos en la lógica de la app. Lo que queda pendiente antes de publicar en `valenciavguides.es` es infraestructura de despliegue (HTTPS/DNS, CSP, backend autenticado, sandboxing de iframes) — ver **[docs/GUIA-COMPLETA.md](docs/GUIA-COMPLETA.md) §22**.
 
