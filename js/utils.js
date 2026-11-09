@@ -216,6 +216,27 @@ export function ajustarTimeoutPorConexion(timeoutBase, factor = 1) {
 }
 
 /**
+ * Pide una posición suelta al GPS del dispositivo. Es la única llamada a `getCurrentPosition` de la aplicación: cada
+ * sitio que necesita una lectura puntual (los intentos de la activación, los reintentos de las pantallas de señal y de
+ * distancia, la ubicación para la línea discontinua, el diagnóstico) pasa su plazo y hace con la lectura lo suyo
+ * (docs/estudio-caminos.md, K-17). Siempre con alta precisión.
+ * @param {{ plazoMs: number, maximumAge?: number }} opciones - el plazo de la petición y la antigüedad máxima que se
+ *   acepta de una lectura guardada (0 por defecto: una lectura nueva)
+ * @returns {Promise<GeolocationPosition>} la posición; rechaza con el GeolocationPositionError del navegador, o con un
+ *   Error si el dispositivo no tiene geolocalización
+ */
+export function pedirPosicionPuntual({ plazoMs, maximumAge = 0 } = {}) {
+    return new Promise((resolve, reject) => {
+        const geolocalizacion = globalThis.navigator?.geolocation;
+        if (typeof geolocalizacion?.getCurrentPosition !== 'function') {
+            reject(new Error('Geolocalización no soportada'));
+            return;
+        }
+        geolocalizacion.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: plazoMs, maximumAge });
+    });
+}
+
+/**
  * Reintenta una operación hasta que esté disponible
  * @param {Function} checkFn - Función que retorna true cuando está listo
  * @param {Object} [options] - Opciones

@@ -16,7 +16,7 @@ import {
 import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import { validarCoordenadas } from './validacion.js';
-import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, resolverIdsParada, puntoMasCercanoEnLinea, sleep } from './utils.js';
+import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, resolverIdsParada, puntoMasCercanoEnLinea, sleep, pedirPosicionPuntual } from './utils.js';
 import logger from './logger.js';
 
 /**
@@ -2299,13 +2299,7 @@ export async function diagnosticarGPS() {
     // Intentar obtener ubicación actual para test
     if (navigator.geolocation) {
         try {
-            const posicion = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: true,
-                    timeout: ajustarTimeoutPorConexion(15000), // Aumentado de 5s a 15s base para primera carga
-                    maximumAge: 0
-                });
-            });
+            const posicion = await pedirPosicionPuntual({ plazoMs: ajustarTimeoutPorConexion(15000) }); // 15 s de base, para la primera carga
             diagnostico.testUbicacion = {
                 exito: true,
                 lat: posicion.coords.latitude,

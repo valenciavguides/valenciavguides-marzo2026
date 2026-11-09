@@ -2797,7 +2797,7 @@
             (globalThis.logger || console).debug(`[LOADING] ${message}${details ? ' - ' + details : ''}`);
         };
 
-        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep, escaparHTML, importarConReintentos } from './js/utils.js';
+        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep, escaparHTML, importarConReintentos, pedirPosicionPuntual } from './js/utils.js';
         globalThis.resolverIdsParada = resolverIdsParada;
         globalThis.retryUntilAvailable = retryUntilAvailable;
         // La galería de imágenes vive en un script clásico, que no puede importar: la toma de aquí.
@@ -5127,9 +5127,7 @@
             const rawTimeout = Math.round(baseTimeout * Math.pow(1.8, i));
             const timeoutMs = ajustarTimeoutPorConexion_S1(rawTimeout);
             try {
-                const fresh = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 });
-                });
+                const fresh = await pedirPosicionPuntual({ plazoMs: timeoutMs });
                 const a2 = fresh.coords?.accuracy;
                 (globalThis.logger || console).info(`${logPrefix} getCurrentPosition inicial intento ${i + 1}/${maxAttempts}: [${fresh.coords.latitude.toFixed(6)}, ${fresh.coords.longitude.toFixed(6)}] (±${Math.round(a2)}m)`);
                 if (typeof a2 === 'number' && a2 < acceptThreshold) {
@@ -5185,9 +5183,9 @@
         }
 
         async function _finalizarActivacionGPS(est, logPrefix, resolveActivacion) {
-            // Intentar obtener ubicación inmediata
+            // Intentar obtener ubicación inmediata, sin esperarla: la activación se resuelve ya.
             try {
-                navigator.geolocation.getCurrentPosition(
+                pedirPosicionPuntual({ plazoMs: ajustarTimeoutPorConexion_S1(5000) }).then(
                     (position) => {
                         const { latitude: lat, longitude: lng, accuracy } = position.coords;
                         (globalThis.logger || console).info(`${logPrefix} Ubicación inmediata obtenida: [${lat.toFixed(6)}, ${lng.toFixed(6)}] (±${Math.round(accuracy)}m)`);
@@ -5201,8 +5199,7 @@
                     },
                     (error) => {
                         (globalThis.logger || console).debug(`${logPrefix} No se pudo obtener ubicación inmediata: ${error.message}`);
-                    },
-                    { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S1(5000), maximumAge: 0 }
+                    }
                 );
             } catch (error) {
                 (globalThis.logger || console).debug(`${logPrefix} Error en getCurrentPosition inmediata:`, error);
@@ -5792,31 +5789,30 @@
             return !_overlayDistanciaEnSnooze(id);
         }
 
-        // Reintento compartido por las pantallas de esta familia que lo tienen (todas menos el
-        // cartel del bloqueo de 5 km): recalcula posición y
-        // deja que el pipeline normal (hijo2 recibe la posición actualizada, recalcula
-        // distancia/precisión y reenvía GPS.RESTRINGIDO, GPS.DENTRO_DE_RANGO,
-        // GPS.PRECISION_INSUFICIENTE o GPS.PRECISION_RECUPERADA) decida sola qué pantalla
-        // corresponde ahora.
-        // Si el intento falla del todo (código 1 permiso / 2 sin señal / 3 timeout), cede a
-        // showGpsSignalOverlay, que ya cubre esos tres códigos, sin duplicarla.
-        function _gpsReintentarDesdeOverlayDistancia(logPrefix) {
+        // El reintento de las pantallas del GPS, uno solo: el de las pantallas de distancia que lo tienen (todas menos el
+        // cartel del bloqueo de 5 km), el de la de precisión y el de la de sin señal (docs/estudio-caminos.md, K-17). Pide
+        // una posición y la mete en el pipeline normal: hijo2 recibe la posición actualizada, recalcula distancia y
+        // precisión y reenvía GPS.RESTRINGIDO, GPS.DENTRO_DE_RANGO, GPS.PRECISION_INSUFICIENTE o
+        // GPS.PRECISION_RECUPERADA, que deciden solos qué pantalla corresponde ahora; la posición se procesa siempre, sea
+        // cual sea su precisión. Si el intento falla del todo (código 1 permiso / 2 sin señal / 3 timeout), cede a
+        // showGpsSignalOverlay, que cubre esos tres códigos, con el código real: así queda claro que sí se reintentó y
+        // cuál es el motivo. El plazo es el de las pantallas de distancia (5 s ajustados a la conexión) salvo que se
+        // pida otro; `alAcertar` corre cuando llega la posición.
+        function _reintentarPosicionGPS(logPrefix, { plazoMs = null, alAcertar = null } = {}) {
             try {
-                navigator.geolocation.getCurrentPosition((pos) => {
+                const plazo = plazoMs ?? ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION);
+                pedirPosicionPuntual({ plazoMs: plazo }).then((pos) => {
                     if (typeof globalThis.funcionesMapa?.procesarPosicionGPSParaAventura === 'function') {
                         globalThis.funcionesMapa.procesarPosicionGPSParaAventura(pos);
                     }
-                    // La posición se procesa siempre, sea cual sea su precisión — hijo2
-                    // recalculará la distancia con esta nueva posición y reenviará
-                    // GPS.RESTRINGIDO/GPS.DENTRO_DE_RANGO — no hace falta decidir aquí a qué
-                    // pantalla saltar.
+                    alAcertar?.();
                 }, (err) => {
                     (globalThis.logger || console).warn(`${logPrefix} Reintento falló:`, err && err.message);
                     try {
                         showGpsSignalOverlay(err?.code || 2, err?.message);
                     } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
-                }, { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION), maximumAge: 0 });
-            } catch (gerr) { (globalThis.logger || console).warn(`${logPrefix} Error invocando getCurrentPosition:`, gerr); }
+                });
+            } catch (gerr) { (globalThis.logger || console).warn(`${logPrefix} Error en el reintento:`, gerr); }
         }
 
         function _ensureFotoLejosOverlay() {
@@ -5847,7 +5843,7 @@
             btn.setAttribute('aria-label', 'Reintentar ubicación');
             btn.title = 'Reintentar ubicación';
             btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
-            btn.addEventListener('click', () => _gpsReintentarDesdeOverlayDistancia('[PADRE][GPS][LEJOS]'));
+            btn.addEventListener('click', () => _reintentarPosicionGPS('[PADRE][GPS][LEJOS]'));
 
             const closeBtn = document.createElement('button');
             closeBtn.className = 'btn-cerrar-overlay';
@@ -5917,7 +5913,7 @@
             btn.setAttribute('aria-label', 'Reintentar ubicación');
             btn.title = 'Reintentar ubicación';
             btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
-            btn.addEventListener('click', () => _gpsReintentarDesdeOverlayDistancia('[PADRE][GPS][FUERA_RANGO]'));
+            btn.addEventListener('click', () => _reintentarPosicionGPS('[PADRE][GPS][FUERA_RANGO]'));
 
             const closeBtn = document.createElement('button');
             closeBtn.className = 'btn-cerrar-overlay';
@@ -5989,7 +5985,7 @@
             btn.setAttribute('aria-label', 'Reintentar ubicación');
             btn.title = 'Reintentar ubicación';
             btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
-            btn.addEventListener('click', () => _gpsReintentarDesdeOverlayDistancia('[PADRE][GPS][DESVIADO]'));
+            btn.addEventListener('click', () => _reintentarPosicionGPS('[PADRE][GPS][DESVIADO]'));
 
             const closeBtn = document.createElement('button');
             closeBtn.className = 'btn-cerrar-overlay';
@@ -6066,7 +6062,7 @@
             btn.setAttribute('aria-label', 'Reintentar ubicación');
             btn.title = 'Reintentar ubicación';
             btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
-            btn.addEventListener('click', () => _gpsReintentarDesdeOverlayDistancia('[PADRE][GPS][PERDIDO]'));
+            btn.addEventListener('click', () => _reintentarPosicionGPS('[PADRE][GPS][PERDIDO]'));
 
             const closeBtn = document.createElement('button');
             closeBtn.className = 'btn-cerrar-overlay';
@@ -6141,7 +6137,7 @@
             btn.setAttribute('aria-label', 'Reintentar ubicación');
             btn.title = 'Reintentar ubicación';
             btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
-            btn.addEventListener('click', () => _gpsReintentarDesdeOverlayDistancia('[PADRE][GPS][PRECISION]'));
+            btn.addEventListener('click', () => _reintentarPosicionGPS('[PADRE][GPS][PRECISION]'));
 
             const closeBtn = document.createElement('button');
             closeBtn.className = 'btn-cerrar-overlay';
@@ -6279,21 +6275,9 @@
                     const b = document.getElementById('gps-signal-action');
                     if (globalThis.__VV_GPS_SIGNAL_TIMER) clearInterval(globalThis.__VV_GPS_SIGNAL_TIMER);
                     globalThis.__VV_GPS_SIGNAL_TIMER = _startOverlayCountdown(cd, b, 15);
-                    navigator.geolocation.getCurrentPosition((pos) => {
-                        if (typeof globalThis.funcionesMapa?.procesarPosicionGPSParaAventura === 'function') {
-                            globalThis.funcionesMapa.procesarPosicionGPSParaAventura(pos);
-                        }
-                        // Llegó una posición real (aunque sea de precisión baja) — se procesa
-                        // igualmente, así que el problema de "sin señal" ya está resuelto.
-                        hideGpsSignalOverlay();
-                    }, (err) => {
-                        (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] getCurrentPosition falló en reintento:', err && err.message);
-                        // Antes esto quedaba en silencio: el usuario pulsaba reintentar, veía la
-                        // cuenta atrás y, si volvía a fallar, la pantalla no cambiaba ni avisaba.
-                        // Volvemos a mostrar el overlay con el código real para que quede claro
-                        // que sí se reintentó y cuál es el motivo actual.
-                        try { showGpsSignalOverlay(err?.code || 2, err?.message); } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
-                    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+                    // Con 15 s, los de la cuenta atrás. Llegó una posición real (aunque sea de precisión baja): se procesa
+                    // igualmente, así que el problema de "sin señal" está resuelto y la pantalla se quita.
+                    _reintentarPosicionGPS('[PADRE][GPS][SIGNAL]', { plazoMs: 15000, alAcertar: hideGpsSignalOverlay });
                 } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] Error en reintento:', e?.message); }
             });
 
@@ -8653,7 +8637,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // ============================================================
         // Importación de módulos
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_S2, MODOS: MODOS_S2 } = await import('./js/constants.js');
-        const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2, normalizarParadas: normalizarParadas_S2, sleep, escaparHTML, importarConReintentos } = await import('./js/utils.js');
+        const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2, normalizarParadas: normalizarParadas_S2, sleep, escaparHTML, importarConReintentos, pedirPosicionPuntual } = await import('./js/utils.js');
         const { DATOS_PADRE } = await importarConReintentos('./js/aventuras-ID-padre.js');
 
         const loggerScript2 = (await import('./js/logger.js')).default;
@@ -10197,27 +10181,16 @@ await _comprobarReanudacionAventura(logPrefix);
             if (ubicacionUsuario && ubicacionUsuario.lat && ubicacionUsuario.lng) return ubicacionUsuario;
             (globalThis.logger || console).debug(`${logPrefix} Obteniendo ubicación GPS del usuario...`);
             try {
-                const coords = await new Promise((resolve, reject) => {
-                    if (!navigator.geolocation) { reject(new Error('Geolocalización no soportada')); return; }
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const { latitude: lat, longitude: lng, accuracy } = position.coords;
-                            resolve({ lat, lng, accuracy, timestamp: position.timestamp });
-                        },
-                        (error) => { reject(error); },
-                        // Bug real (auditoría 2026-08-17): esta línea usaba CONFIG y
-                        // ajustarTimeoutPorConexion_S1 — ambos son alias LOCALES de Script 1
-                        // (const CONFIG = CONFIG_S1 e import con sufijo _S1, en Script 1), pero
-                        // esta función vive en Script 2, donde ninguno de los dos existe como
-                        // identificador. Lanzaba ReferenceError en el executor de la Promise,
-                        // rechazándola en silencio (capturada por el catch de abajo) — el
-                        // intento de GPS fresco por getCurrentPosition() nunca llegaba siquiera
-                        // a ejecutarse. globalThis.__vv_config lo expone js/config.js para
-                        // cualquier script (ver §10.20); ajustarTimeoutPorConexion_S2 es el
-                        // alias propio de Script 2 (su importación de js/utils.js), no el de Script 1.
-                        { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S2(globalThis.__vv_config?.MENSAJERIA?.TIMEOUTS?.CONFIRMACION ?? 5000), maximumAge: 30000 }
-                    );
+                // El plazo sale de globalThis.__vv_config y de ajustarTimeoutPorConexion_S2, no de CONFIG ni de
+                // ajustarTimeoutPorConexion_S1: esos dos son alias LOCALES de Script 1 y en Script 2 no existen (bug real,
+                // auditoría 2026-08-17: lanzaban un ReferenceError que rechazaba la petición en silencio, antes de pedir
+                // nada). globalThis.__vv_config lo expone js/config.js para cualquier script (ver §10.20).
+                const position = await pedirPosicionPuntual({
+                    plazoMs: ajustarTimeoutPorConexion_S2(globalThis.__vv_config?.MENSAJERIA?.TIMEOUTS?.CONFIRMACION ?? 5000),
+                    maximumAge: 30000,
                 });
+                const { latitude: lat, longitude: lng, accuracy } = position.coords;
+                const coords = { lat, lng, accuracy, timestamp: position.timestamp };
                 (globalThis.logger || console).debug(`${logPrefix} Ubicación obtenida: [${coords.lat}, ${coords.lng}]`);
                 return coords;
             } catch (error) {
