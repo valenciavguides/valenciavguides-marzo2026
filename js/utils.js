@@ -249,6 +249,38 @@ export function vibrar() {
 }
 
 /**
+ * Las frases que rotan en las pantallas de carga (la del padre y la de arrancar una aventura en la selección): una al
+ * azar cada 5 s, sin repetir la anterior, con un fundido de 400 ms (docs/estudio-caminos.md, K-28).
+ * @param {HTMLElement} elemento - donde se pintan
+ * @param {string[]} frases - el banco de frases del idioma (`TRADUCCIONES_REANUDACION[idioma].frasesCarga`)
+ * @returns {() => void} la que las para: cancela también el fundido pendiente, para que ninguna frase vuelva a
+ *   pintarse después, y deja el elemento vacío
+ */
+export function rotarFrasesDeCarga(elemento, frases) {
+    let ultima = -1;
+    let fundido = null;
+    const mostrar = () => {
+        let idx = Math.floor(Math.random() * frases.length);
+        if (frases.length > 1 && idx === ultima) idx = (idx + 1) % frases.length;
+        ultima = idx;
+        elemento.style.opacity = '0';
+        clearTimeout(fundido);
+        fundido = setTimeout(() => {
+            elemento.textContent = frases[idx];
+            elemento.style.opacity = '1';
+        }, 400);
+    };
+    mostrar();
+    const rotacion = setInterval(mostrar, 5000);
+    return () => {
+        clearInterval(rotacion);
+        clearTimeout(fundido);
+        elemento.style.opacity = '0';
+        elemento.textContent = '';
+    };
+}
+
+/**
  * Reintenta una operación hasta que esté disponible
  * @param {Function} checkFn - Función que retorna true cuando está listo
  * @param {Object} [options] - Opciones

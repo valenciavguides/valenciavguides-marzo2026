@@ -2037,36 +2037,27 @@
       if (barra) barra.value = valor;
     }
 
-    // Mismas frases rotatorias que #loading-overlay (codigo-padre.html) y la
-    // pantalla de reanudación — es el mismo componente visual (logo redondo +
-    // barra fake) en distintos momentos de espera, así que comparte el mismo
-    // banco de frases en vez de tener uno propio.
-    let _cargaFraseTimer = null;
-    let _cargaUltimaFraseIdx = -1;
+    // Las frases que rotan mientras carga la aventura: las mismas de #loading-overlay (codigo-padre.html) y de la
+    // pantalla de reanudación, con rotarFrasesDeCarga de js/utils.js, la misma de las dos pantallas. Este es un script
+    // clásico: la toma con import() dinámico, como pedirJson y vibrar; `_fraseCargaPedida` evita que empiece a rotar
+    // si se para antes de que llegue el módulo.
+    let _pararFraseCarga = null;
+    let _fraseCargaPedida = 0;
     function _iniciarFraseCargaAventura() {
-      if (_cargaFraseTimer) { clearInterval(_cargaFraseTimer); _cargaFraseTimer = null; }
+      _detenerFraseCargaAventura();
       const t = globalThis.TRADUCCIONES_REANUDACION[idiomaSeleccionado];
       const frasesCarga = Array.isArray(t?.frasesCarga) ? t.frasesCarga : [];
       const fraseEl = document.getElementById('carga-progreso-frase');
       if (!fraseEl || frasesCarga.length === 0) return;
-      _cargaUltimaFraseIdx = -1;
-      const mostrarFraseAleatoria = () => {
-        let idx = Math.floor(Math.random() * frasesCarga.length);
-        if (frasesCarga.length > 1 && idx === _cargaUltimaFraseIdx) {
-          idx = (idx + 1) % frasesCarga.length;
-        }
-        _cargaUltimaFraseIdx = idx;
-        fraseEl.style.opacity = '0';
-        setTimeout(() => {
-          fraseEl.textContent = frasesCarga[idx];
-          fraseEl.style.opacity = '1';
-        }, 400);
-      };
-      mostrarFraseAleatoria();
-      _cargaFraseTimer = setInterval(mostrarFraseAleatoria, 5000);
+      const pedida = ++_fraseCargaPedida;
+      import('./js/utils.js').then(({ rotarFrasesDeCarga }) => {
+        if (pedida !== _fraseCargaPedida) return;
+        _pararFraseCarga = rotarFrasesDeCarga(fraseEl, frasesCarga);
+      }).catch((e) => (globalThis.logger || console).error('[SELECCION] Sin frases de carga:', e?.message || e));
     }
     function _detenerFraseCargaAventura() {
-      if (_cargaFraseTimer) { clearInterval(_cargaFraseTimer); _cargaFraseTimer = null; }
+      _fraseCargaPedida++;
+      if (_pararFraseCarga) { _pararFraseCarga(); _pararFraseCarga = null; }
       const fraseEl = document.getElementById('carga-progreso-frase');
       if (fraseEl) { fraseEl.style.opacity = '0'; fraseEl.textContent = ''; }
     }

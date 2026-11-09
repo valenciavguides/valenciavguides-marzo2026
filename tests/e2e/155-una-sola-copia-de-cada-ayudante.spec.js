@@ -16,11 +16,15 @@
  *         un solo sitio).
  *   UC-6  La vibración: una sola llamada a `navigator.vibrate`, la de `vibrar()` de `js/utils.js` (300 ms), para el
  *         padre, hijo4 y la selección.
+ *   UC-7  Las frases que rotan en las pantallas de carga: un solo algoritmo, `rotarFrasesDeCarga` de `js/utils.js`.
+ *   UC-8  La del padre (`#loading-frase-carga`): rota con las frases del idioma y, al parar, no vuelve ninguna.
+ *   UC-9  La de arrancar una aventura en la selección (`#carga-progreso-frase`): lo mismo.
  *
  * ROJO ANTES QUE VERDE: con las copias del padre, UC-2 cae; con la galería escapando por `textContent`/`innerHTML`, que no
  * escapa las comillas, UC-3 cae (el `alt` se corta en la primera comilla). UC-4 pasa con las dos. Con el apilado del
  * «atrás» escrito en sus tres sitios (la activación, la reanudación y el propio escucha de `popstate`), UC-5 cae; con las
- * tres vibraciones (el padre a 200 ms, hijo4 y la selección a 300), UC-6.
+ * tres vibraciones (el padre a 200 ms, hijo4 y la selección a 300), UC-6; con las dos copias de las frases de carga, UC-7, y
+ * UC-8 y UC-9: las dos dejaban pendiente el fundido al parar, y la frase volvía a pintarse.
  */
 'use strict';
 
@@ -60,6 +64,10 @@ test.describe('UC — una sola copia de cada ayudante (estático)', () => {
   test('UC-6. La vibración tiene un solo sitio: vibrar() de js/utils.js', () => {
     expect(dondeCasa(/\.vibrate\s*(?:\?\.)?\(/g)).toEqual([['js/utils.js', 1]]);
   });
+
+  test('UC-7. Las frases que rotan en las pantallas de carga: un solo algoritmo, rotarFrasesDeCarga de js/utils.js', () => {
+    expect(dondeCasa(/\(idx \+ 1\) % \w+\.length/g)).toEqual([['js/utils.js', 1]]);
+  });
 });
 
 test.describe('UC — la galería escapa como el resto', () => {
@@ -87,5 +95,45 @@ test.describe('UC — la galería escapa como el resto', () => {
   test('UC-4. Control: el título del texto con etiquetas sale como texto', async ({ page }) => {
     const r = await abrirGaleria(page, 'Plaza', '<b>Plaza</b> & Lonja');
     expect(r.titulo).toBe('<b>Plaza</b> & Lonja');
+  });
+});
+
+test.describe('UC — las frases de carga, en las dos pantallas', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+  });
+
+  /** El banco de frases de carga en español. */
+  const banco = (page) => page.evaluate(async () => (await import('/js/traducciones-ui.js')).TRADUCCIONES_REANUDACION.es.frasesCarga);
+
+  test('UC-8. La del padre: rota con las frases del idioma y, al parar, no vuelve ninguna', async ({ page }) => {
+    const frases = await banco(page);
+    const frase = page.locator('#loading-frase-carga');
+    await page.evaluate(() => globalThis.showParentLoadingOverlay('', '', 8, 'es'));
+    await expect.poll(() => frase.textContent()).not.toBe('');
+    expect(frases).toContain(await frase.textContent());
+    // Parar justo después de pedir otra: el fundido pendiente (400 ms) no puede volver a pintarla.
+    await page.evaluate(() => { globalThis.showParentLoadingOverlay('', '', 8, 'es'); globalThis.hideParentLoadingOverlay(); });
+    // VENTANA-OBSERVACION: comprobar que ninguna frase vuelve a pintarse después de parar no admite poll.
+    await page.waitForTimeout(700);
+    expect(await frase.textContent()).toBe('');
+  });
+
+  test('UC-9. La de arrancar una aventura (la selección): rota con las frases del idioma y, al parar, no vuelve ninguna', async ({ page }) => {
+    const frases = await banco(page);
+    const sel = page.frame({ name: 'seleccion' });
+    expect(sel, 'el iframe de la selección').toBeTruthy();
+    await sel.waitForFunction(() => typeof mostrarOverlayCargaAventura === 'function' && !!globalThis.TRADUCCIONES_REANUDACION);
+    const frase = sel.locator('#carga-progreso-frase');
+    await sel.evaluate(() => { idiomaSeleccionado = 'es'; mostrarOverlayCargaAventura(); });
+    await expect.poll(() => frase.textContent()).not.toBe('');
+    expect(frases).toContain(await frase.textContent());
+    await sel.evaluate(() => { mostrarOverlayCargaAventura(); ocultarOverlayCargaAventura(); });
+    // VENTANA-OBSERVACION: comprobar que ninguna frase vuelve a pintarse después de parar no admite poll.
+    await page.waitForTimeout(700);
+    expect(await frase.textContent()).toBe('');
   });
 });
