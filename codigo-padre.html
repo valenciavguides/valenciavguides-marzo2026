@@ -5734,9 +5734,21 @@
             globalThis.__VV_GPS_OVERLAY_SNOOZE = {};
         }
 
+        // Las cuatro pantallas de la distancia al elemento actual (perdido, lejos, desviado y fuera de rango, §30) son de un
+        // elemento; la del bloqueo de los 5 km y la de precisión, no. Al cambiar de elemento se quitan estas cuatro
+        // (_hdl_NAVEGACION_CAMBIO_PARADA, Script 2): eran del anterior (docs/estudio-caminos.md, K-74).
+        function _idsPantallasDistanciaDelElemento() {
+            return ['foto-perdido-overlay', 'foto-lejos-overlay', 'foto-desviado-overlay', 'foto-fuera-rango-overlay'];
+        }
+
+        function _ocultarPantallasDistanciaDelElemento() {
+            for (const id of _idsPantallasDistanciaDelElemento()) document.getElementById(id)?.classList.remove('show');
+        }
+        globalThis._ocultarPantallasDistanciaDelElemento = _ocultarPantallasDistanciaDelElemento;
+
         function _ocultarOtrasPantallasDistanciaGPS(idQueSeMuestra) {
             try {
-                ['gps-out-of-range-overlay', 'foto-perdido-overlay', 'foto-lejos-overlay', 'foto-desviado-overlay', 'foto-fuera-rango-overlay', 'gps-precision-overlay'].forEach(id => {
+                ['gps-out-of-range-overlay', ..._idsPantallasDistanciaDelElemento(), 'gps-precision-overlay'].forEach(id => {
                     if (id === idQueSeMuestra) return;
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('show');
@@ -10063,8 +10075,14 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.RESTRINGIDO][${mensaje?.origen || 'desconocido'}]`;
 
             try {
-                const { distancia, rangoMaximo } = mensaje.datos || {};
+                const { distancia, rangoMaximo, idParada } = mensaje.datos || {};
                 if (typeof distancia !== 'number') return;
+                // La distancia es a un elemento: la de uno que ya no es el actual no se enseña (hijo2 la mide justo antes
+                // de recibir el cambio de elemento y llega después; docs/estudio-caminos.md, K-74).
+                if (idParada && idParada !== _idDelElementoActual()) {
+                    (globalThis.logger || console).debug(`${logPrefix} Distancia de ${idParada}, que ya no es el elemento actual (${_idDelElementoActual() || 'ninguno'}): no se enseña`);
+                    return;
+                }
 
                 if (distancia > 2000) {
                     showFotoPerdidoOverlay(distancia);
@@ -10219,7 +10237,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // El destino lo decide el padre, que sabe en qué elemento está el usuario: el actual o, sin
                 // ninguno, el punto de inicio (más abajo). hijo2 solo manda su posición (K-130).
-                const elementoId = estado.elementoActual?.parada_id || estado.elementoActual?.tramo_id || null;
+                const elementoId = _idDelElementoActual();
                 let coordenadasDestino = _resolverCoordenadasElemento(elementoId);
 
                 if (!coordenadasDestino) {
@@ -10670,8 +10688,14 @@ await _comprobarReanudacionAventura(logPrefix);
         // ¿El elemento actual es el rescatado? Un punto rescatado no mira la zona: el rescate existe para quien
         // no puede llegar (decisión del usuario, docs/estudio-caminos.md, K-86). Los 5 km siguen mandando.
         function _elementoActualRescatado() {
-            const id = estado.elementoActual?.parada_id || estado.elementoActual?.tramo_id || null;
+            const id = _idDelElementoActual();
             return !!id && estado.rescateEnCurso?.elementoId === id;
+        }
+
+        // El id del elemento actual: el de su parada o el de su tramo. Con él se decide si un aviso de hijo2 (llegada,
+        // distancia, fuera de rango) es del elemento actual o de uno que ya se dejó.
+        function _idDelElementoActual() {
+            return estado.elementoActual?.parada_id || estado.elementoActual?.tramo_id || null;
         }
 
         // La decisión, sin efectos: qué le toca al botón AHORA y por qué. La `razon` viaja en el
@@ -10859,7 +10883,18 @@ await _comprobarReanudacionAventura(logPrefix);
                 const padreIdNorm = parada.padreid || `padre-${paradaIdBase}`;
 
                 const paradaAnterior = estado.paradaActual;
+                const idAnterior = _idDelElementoActual();
                 _actualizarEstadoParada(paradaId, parada, estado);
+
+                // El fuera de rango es del elemento que hijo2 medía: si el actual pasa a ser otro, ya no vale —quien continúa
+                // una aventura o avanza tras un rescate no lo arrastra—, y sus pantallas de distancia se van con él. La
+                // siguiente lectura decide para el elemento nuevo; _sincronizarRetoBtn, _sincronizarAvanzar y los controles
+                // del audio, más abajo, ya lo ven así. Reactivar el mismo elemento no lo toca (docs/estudio-caminos.md,
+                // K-74; spec 173).
+                if (idAnterior !== paradaIdBase) {
+                    estado.usuarioFueraRango = { activo: false };
+                    try { globalThis._ocultarPantallasDistanciaDelElemento(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                }
 
                 // Un elemento ya completado al que solo le falta la pulsación de «avanzar» sigue
                 // completado cuando se vuelve a activar. Pasa al recargar la página (la reanudación
@@ -11115,8 +11150,8 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 (globalThis.logger || console).info(`${logPrefix} Llegada detectada por ${mensaje.origen}`, { paradaId, distancia, coordenadas });
 
-                if (!estado.elementoActual || (estado.elementoActual.parada_id !== paradaId && estado.elementoActual.tramo_id !== paradaId)) {
-                    (globalThis.logger || console).warn(`${logPrefix} Llegada detectada para ${paradaId} pero elemento actual es ${estado.elementoActual?.parada_id || estado.elementoActual?.tramo_id || 'ninguno'}`);
+                if (!paradaId || _idDelElementoActual() !== paradaId) {
+                    (globalThis.logger || console).warn(`${logPrefix} Llegada detectada para ${paradaId} pero elemento actual es ${_idDelElementoActual() || 'ninguno'}`);
                     return;
                 }
 
@@ -11169,6 +11204,15 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 const { distancia, franja, elementoMasCercano, timestamp } = mensaje.datos || {};
+
+                // El fuera de rango es del elemento que hijo2 medía: el de uno que ya no es el actual no vale para el nuevo.
+                // Pasa cuando hijo2 lo manda justo antes de recibir el cambio de elemento y llega después de que el padre
+                // haya olvidado el del anterior: apuntarlo lo dejaría pegado, porque hijo2, ya en el elemento nuevo, no
+                // tiene ninguna salida de rango de la que avisar que ha vuelto (docs/estudio-caminos.md, K-74; spec 173).
+                if (elementoMasCercano && elementoMasCercano !== _idDelElementoActual()) {
+                    (globalThis.logger || console).info(`${logPrefix} Fuera de rango de ${elementoMasCercano}, que ya no es el elemento actual (${_idDelElementoActual() || 'ninguno'}): no se apunta`);
+                    return;
+                }
 
                 (globalThis.logger || console).warn(`${logPrefix} Usuario fuera de rango: ${Math.ceil(distancia)}m (franja: ${franja || 'desconocida'}, elemento más cercano: ${elementoMasCercano || 'desconocido'})`);
 

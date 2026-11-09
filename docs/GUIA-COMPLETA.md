@@ -2695,11 +2695,11 @@ Las pantallas de aviso (su imagen, su ✗ y, salvo el cartel de los 5 km, un bot
 
 | Controlador | Qué hace |
 |---|---|
-| `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe `distanciaAlDestino` (ya calculada por `funciones-mapa.js`), `distanciaAlCamino`, `recorridoSuficiente`, `idParada`, `tipoParada`, `toleranciaGPS` (fuera de rango), `radioLlegada` (15 m, solo para declarar la llegada), `lat`, `lng` y `accuracy`; actualiza `estadoComponente.posicionActualUsuario`; **solo si `estadoComponente.modo === 'aventura'`**, envía `LLEGADA_DETECTADA` si está en el radio de llegada, y llama `verificarDistanciaYActualizarBotones()` para decidir el botón ubicación y notificar al padre la distancia real respecto a la parada que toca (§31.4) — en CASA, `idParada` puede ser un elemento que el usuario solo está "viendo" con hijo5, no uno visitado de verdad, así que ninguna de estas dos acciones se ejecuta |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe `distanciaAlDestino` (ya calculada por `funciones-mapa.js`), `distanciaAlCamino`, `recorridoSuficiente`, `idParada`, `tipoParada`, `toleranciaGPS` (fuera de rango), `radioLlegada` (15 m, solo para declarar la llegada), `lat`, `lng` y `accuracy`. Una lectura con un `idParada` que no es su elemento actual (el que le da `CAMBIO_PARADA`, que es lo único que lo cambia) está medida contra otro elemento —el mapa sigue midiendo el anterior hasta un segundo después de cada cambio— y de ella solo guarda la posición. Con una de su elemento, actualiza `estadoComponente.posicionActualUsuario`; **solo si `estadoComponente.modo === 'aventura'`**, envía `LLEGADA_DETECTADA` si está en el radio de llegada, y llama `verificarDistanciaYActualizarBotones()` para decidir el botón ubicación y notificar al padre la distancia real respecto a la parada que toca (§31.4) — en CASA, `idParada` puede ser un elemento que el usuario solo está "viendo" con hijo5, no uno visitado de verdad, así que ninguna de estas dos acciones se ejecuta |
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); lo guarda en `estadoComponente.modo` y refresca los botones; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `SISTEMA.CAMBIO_MODO` | Reinicia su estado (`_resetarEstadoParaModo`: parada actual, distancia, posición, reto activo, «avanzar», franjas de fuera de rango) y recalcula los botones; la detección de proximidad solo corre en AVENTURA (guarda de modo en `NAVEGACION.ACTUALIZAR_ESTADO`) |
-| `NAVEGACION.CAMBIO_PARADA` | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea `distanciaAlDestino` y `_llegadaNotificada` y deja «avanzar» apagado hasta que el padre diga cómo queda; llama `actualizarEstadoBotones()` y `_resetSpinsAventura()` |
+| `NAVEGACION.CAMBIO_PARADA` | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual` (solo él los cambia); si el elemento es otro, olvida el fuera de rango del anterior (`_olvidarFueraDeRango`, §31.4); resetea `distanciaAlDestino` y `_llegadaNotificada` y deja «avanzar» apagado hasta que el padre diga cómo queda; llama `actualizarEstadoBotones()` y `_resetSpinsAventura()` |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Con `control: 'btnAvanzar'`: enciende o apaga el botón de avanzar, sin mirar nada más (`avanzarHabilitadoPorPadre`, §29.6). Sin `control` (p. ej. `motivo: 'reto_cerrado'` o `'vista_cerrada'`): recalcula los botones del mapa según las reglas GPS |
 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Solo escribe en el log que el modo se aplicó (4.ª fase del protocolo de modo, §26.6) |
@@ -4012,13 +4012,13 @@ Gestiona los 6 botones de navegación —solo piden: lo que enseñan lo resuelve
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Muestra UI | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Reinicia su estado (`_resetarEstadoParaModo`) y recalcula los botones; la detección de proximidad solo corre en AVENTURA | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
-| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, tipo, timestamp, origenCambio }` — el id y el tipo de su elemento, sin su contenido | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea estado GPS/llegada y deja «avanzar» apagado hasta que el padre diga cómo queda; llama `actualizarEstadoBotones()` | ✓ | ✓ |
+| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, padreid, tipo, timestamp, origenCambio }` — el id y el tipo de su elemento, sin su contenido | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual` (solo él los cambia); si el elemento es otro, olvida el fuera de rango del anterior; resetea estado GPS/llegada y deja «avanzar» apagado hasta que el padre diga cómo queda; llama `actualizarEstadoBotones()` | ✓ | ✓ |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | `{ activo, permisos, precision }` | En CASA deja el botón de ubicación rojo y deshabilitado; en AVENTURA no hace nada (el botón lo decide la distancia) | ✓ | ✓ |
 | `NAVEGACION.GPS.ERROR` | `{ codigo, mensaje, contexto }` | Deja el error en el log; no muestra nada | ✓ | ✓ |
 | `CONTROL.HABILITAR` | `{ control:'btnAvanzar', razon }` — `'elemento_completado'` o `'elemento_rescatado'` | Enciende «avanzar» (`avanzarHabilitadoPorPadre = true`, §29.6) | — | ✓ |
 | `CONTROL.DESHABILITAR` | `{ control:'btnAvanzar', razon }` — `'no_aventura'`, `'reto_abierto'`, `'fuera_de_zona_5km'`, `'fuera_de_rango'` o `'elemento_sin_completar'` | Apaga «avanzar» (`avanzarHabilitadoPorPadre = false`) | ✓ | ✓ |
 | `CONTROL.HABILITAR` | `{ motivo:'reto_cerrado'/'vista_cerrada' }` | Rehabilita todos los botones de mapa (sin `control` explícito — hijo2 decide qué re-habilitar según `motivo`) | ✓ | ✓ |
-| `NAVEGACION.ACTUALIZAR_ESTADO` | `{ distanciaAlDestino, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng }` | Almacena posición en `posicionActualUsuario`; detecta llegada; activa la lógica de fuera de rango (§31.4) | — | ✓ |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | `{ distanciaAlDestino, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng }` | Almacena posición en `posicionActualUsuario`; si la lectura es de su elemento actual, detecta llegada y activa la lógica de fuera de rango (§31.4); de una lectura de otro elemento solo guarda la posición | — | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Solo escribe en el log que el modo se aplicó | ✓ | ✓ |
 | `SISTEMA.NOTIFICACION` | `{ evento }` | Notificaciones informativas del sistema | ✓ | ✓ |
 
@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-61f5910dbc5c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-34c77010be87'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5260,7 +5260,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 
 | Tipo | Handler en padre | Nota |
 |------|-----------------|------|
-| `GPS.RESTRINGIDO` | `_hdl_NAVEGACION_GPS_RESTRINGIDO` | Hijo2 → padre cuando usuario está fuera de rango |
+| `GPS.RESTRINGIDO` | `_hdl_NAVEGACION_GPS_RESTRINGIDO` | Hijo2 → padre cuando usuario está fuera de rango del elemento actual (la distancia de otro elemento no se enseña) |
 
 Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no tiene handler, ni emisor, ni ninguna función que desactive el GPS (ver §11). Sobre `manejarGPSActivar` de `funciones-mapa.js`, que no se registra en el bus, ver §10.14.
 
@@ -5289,7 +5289,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Handler en padre | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO` |
 | Payload | `{ distancia, franja, elementoMasCercano, timestamp }` |
-| Acción | Solo en AVENTURA. Guarda `estado.usuarioFueraRango` (`{ activo: true, distancia, franja, elementoMasCercano, timestamp }`) y vuelve a decidir los controles que dependen de ello: los de audio del padre (`actualizarEstadoControlesAudioPadre`), `retosBtn` de hijo3 (`_sincronizarRetoBtn`) y «avanzar» (`_sincronizarAvanzar`) (§31.4/§25.7). No toca `pendingCompleciones` |
+| Acción | Solo en AVENTURA, y solo si `elementoMasCercano` es el elemento actual (`_idDelElementoActual()`): el de otro elemento no se apunta. Guarda `estado.usuarioFueraRango` (`{ activo: true, distancia, franja, elementoMasCercano, timestamp }`) y vuelve a decidir los controles que dependen de ello: los de audio del padre (`actualizarEstadoControlesAudioPadre`), `retosBtn` de hijo3 (`_sincronizarRetoBtn`) y «avanzar» (`_sincronizarAvanzar`) (§31.4/§25.7). No toca `pendingCompleciones` |
 
 **NAVEGACION.MOSTRAR_UBICACION_POLYLINE** (hijo2 → padre)
 
@@ -6439,7 +6439,8 @@ watchPosition (padre)
       calcula distanciaAlDestino (Haversine a siguienteParada.coordenadas/.fin)
       calcula distanciaAlCamino (proyección sobre inicio→waypoints→fin; = distanciaAlDestino si no es tramo)
   → NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, distanciaAlCamino, idParada, toleranciaGPS, lat, lng } → hijo2
-      _aplicarDatosEstado() — guarda posicionActualUsuario + ambas distancias
+      si idParada no es el elemento actual de hijo2 (el de CAMBIO_PARADA) → guarda solo posicionActualUsuario, y fin
+      _aplicarDatosEstado() — guarda posicionActualUsuario + ambas distancias (el elemento no: ese lo pone CAMBIO_PARADA)
       actualizarEstadoBotones()
       verificarDistanciaYActualizarBotones()  ← solo en modo AVENTURA
           distanciaParaRango = distanciaAlCamino si es tramo, distanciaAlDestino si es parada
@@ -6464,7 +6465,7 @@ watchPosition (padre)
 
 **Respuesta del padre a `NAVEGACION.USUARIO_FUERA_RANGO`** (se envía una sola vez, al confirmarse fuera de rango en cualquier franja):
 
-- Registra `estado.usuarioFueraRango = { activo: true, distancia, franja, elementoMasCercano }`
+- Si `elementoMasCercano` es el elemento actual, registra `estado.usuarioFueraRango = { activo: true, distancia, franja, elementoMasCercano }`; si es de otro elemento, no hace nada (§31.4)
 - Deshabilita audio (propio padre) vía `actualizarEstadoControlesAudioPadre()`, apaga `retosBtn` en hijo3 con `_sincronizarRetoBtn()` y «avanzar» en hijo2 con `_sincronizarAvanzar()` (`CONTROL.DESHABILITAR`, `razon:'fuera_de_rango'`) — detalle completo en §25.7
 - No toca la polyline manual de navegación (`polylineNavegacion`, dibujada solo si el usuario pulsó `btn-ubicacion`, ver §4.6): su limpieza corre por su propio criterio (≤50m de `.inicio` en tramos, del punto en paradas) en cada lectura GPS, independiente del ~15m/`toleranciaGPS` de este mensaje — no hay ninguna otra capa automática con la que competir
 
@@ -8076,6 +8077,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `170-una-sola-forma-de-pedir-una-posicion.spec.js` | 14 | Una sola llamada a `getCurrentPosition` en lo que ejecuta el navegador, la de `pedirPosicionPuntual()` de `js/utils.js`, leído en el fuente (PP-1); el reintento de la pantalla de sin señal pide la posición con 15 s fijos (PP-2, §31.2) y el de las pantallas de distancia con 5 s ajustados a la conexión (PP-3, §31.4); lo que hace cada reintento con la respuesta: sin señal, al acertar la posición entra en el pipeline y la pantalla se quita (PP-4), y al fallar sigue, con el mensaje real del navegador en `#gps-signal-detalle` (PP-5); en una pantalla de distancia, al acertar la posición entra en el pipeline sin pantalla de sin señal (PP-6), y al fallar sale la de sin señal con el mensaje real (PP-7); la vigilancia continua se abre en un solo sitio y se cierra en otro (PP-8, leído en el fuente); con permiso denegado se cierra y `watchId` queda en `null` (PP-9), y con el plazo vencido se cierra y se abre otra sin alta precisión y con 15 s (PP-10); el permiso de geolocalización se consulta en un solo sitio, `consultarPermisoGeolocalizacion()` de `js/utils.js` (PP-11, leído en el fuente), y con él: con el permiso denegado el GPS no se activa (PP-12), tras un «denegado», fuera de Apple el GPS se activa solo cuando el permiso vuelve y en Apple no se vigila el permiso: cada navegador comprueba su rama (PP-13, §31.3), y el diagnóstico cuenta el estado (PP-14) |
 | `171-una-sola-lista-de-dispositivos.spec.js` | 9 | Una sola lista de tipos de dispositivo (`tipoDeDispositivo()` de `js/device-detection.js`, §26): `esMovil` se define solo ahí (DL-1, leído en el fuente), y ocho dispositivos, con su agente de usuario y sus puntos táctiles, salen con su tipo —iPhone y Android con «Mobile», móvil; Android sin «Mobile», Firefox en una tableta Android, el iPad antiguo y el de iPadOS 13 o posterior (que se presenta como Mac), tableta; Mac y Windows, PC—, con `esMovil()` y `esTelefonoMovil()` de acuerdo con el tipo (DL-2) |
 | `172-hijo-listo-con-reintentos-un-solo-camino.spec.js` | 14 | El último paso del apretón de manos es uno solo para los seis hijos y la selección: `enviarHijoListoConReintento` del bus (§26.13). Con cada uno en `helpers/marco-vacio.html`, que hace de padre: sin confirmación repite `HIJO_LISTO`, y con ella para, sin ninguno después (HL-1); sin confirmación nunca, exactamente 30 intentos, el último recurso —hijo1 a hijo5 enseñan su interfaz— y ni uno más (HL-2, con el reloj de Playwright). Se valida con la función rota (sin reprogramar el siguiente intento caen los doce casos de los hijos, y sin parar, sus seis HL-1) y con la selección mandando un solo `HIJO_LISTO` (caen sus dos casos). |
+| `173-el-fuera-de-rango-es-de-un-elemento.spec.js` | 4 | El fuera de rango es de un elemento (§31.4): fuera de rango del inicio, al pasar a la parada 1 el padre lo olvida, quita la pantalla de distancia y «avanzar» espera a la parada y no al rango (FR-1); una lectura medida contra el elemento anterior, llegada después del cambio, no pone a hijo2 fuera de rango (FR-2); el padre no apunta el fuera de rango ni enseña la distancia de un elemento que no es el actual, y sí los del actual (FR-3); y, de control, reactivar el mismo elemento no olvida su fuera de rango (FR-4). Sin la regla caen FR-1, FR-2 y FR-3. |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8600,7 +8602,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 167 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 168 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9118,7 +9120,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-61f5910dbc5c';
+const CACHE_VERSION = 'v-34c77010be87';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10179,7 +10181,7 @@ A partir de ahí, la distancia se reparte en **4 franjas**, dos de ellas con mar
 
 Ubicación y los dos mapas se habilitan juntos, no solo ubicación: los tres ayudan a un usuario perdido a orientarse (ver dónde está, ver el recorrido completo), así que comparten el mismo criterio — a diferencia de vídeo/avanzar, que no tienen sentido sin haber llegado de verdad al monumento.
 
-**El padre recibe `NAVEGACION.USUARIO_FUERA_RANGO`** (`_hdl_NAVEGACION_USUARIO_FUERA_RANGO`) — solo cuando la gracia ya expiró (o al instante en "lejos"/"perdido") — y, además de actualizar `estado.usuarioFueraRango`, propaga la restricción a los tres controles que decide él (no toca la polyline guía automática de `procesarPosicionGPSParaAventura()`, con su propio umbral de 50m — ver §4.6):
+**El padre recibe `NAVEGACION.USUARIO_FUERA_RANGO`** (`_hdl_NAVEGACION_USUARIO_FUERA_RANGO`) — solo cuando la gracia ya expiró (o al instante en "lejos"/"perdido"), y lo aplica solo si es del elemento actual (§31.4) — y, además de actualizar `estado.usuarioFueraRango`, propaga la restricción a los tres controles que decide él (no toca la polyline guía automática de `procesarPosicionGPSParaAventura()`, con su propio umbral de 50m — ver §4.6):
 
 - **Audio (propio padre)**: `actualizarEstadoControlesAudioPadre()` deshabilita `#audio-main-toggle-btn` (y con él, indirectamente, cierra y bloquea el desplegable de acción) mientras `estado.usuarioFueraRango.activo` sea `true` en modo AVENTURA — no tiene sentido escuchar el audio de un monumento al que no se ha llegado (ver §4.7d/apartado de audio para el detalle de por qué solo el botón principal lleva `disabled`).
 - **Retos (hijo3)**: `_sincronizarRetoBtn()` apaga el botón (`CONTROL.DESHABILITAR { control:'retosBtn', razon:'fuera_de_rango', retoId }`).
@@ -11538,12 +11540,12 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Anota en un `Map` interno (`_respuestasEntendidoActual`, `js/app.js`) que ese hijo recibió el cambio de modo; `actualizarInterfazModo` espera hasta 5 s a los de todos los hijos y sigue aunque falte alguno (lo avisa en el log) | (ninguna) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Anota en un `Map` interno (`_respuestasEfectuadoActual`, `js/app.js`) que el hijo aplicó el modo; no envía nada: `actualizarInterfazModo` espera hasta 10 s a los de todos los hijos y, aunque falte alguno (lo avisa en el log), pasa a la fase siguiente | (ninguna; `SISTEMA.CAMBIO_MODO_APLICADO` lo manda `actualizarInterfazModo`, no este handler) | — | 3.ª fase del protocolo: confirmar que cada hijo aplicó el modo antes de cerrar la 4.ª |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat (hijo5 la manda además por su cuenta al volver la pestaña a primer plano) | Llama a `mensajeria.procesarHeartbeatResponse()`, que pone a 0 los `latidosSinRespuesta` del iframe en su registro y, si ya completó su apretón de manos, sus `recargas` seguidas | (ninguna) | — | Confirmar que el hijo está vivo; si sus latidos sin respuesta llegan a `MAX_LATIDOS_SIN_RESPUESTA=3` (`js/mensajeria.js`), el bus recarga el iframe |
-| `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (lista de paradas) — o internamente despachado con `despacharLocal` (progresión automática / restauración) | Sin aventura elegida (`globalThis.aventuraSeleccionada`) no hace nada: contesta `{ exito: false, error: 'sin_aventura_elegida' }` y lo dice con `logger.error`. Con ella, actualiza el estado del propio padre (`_actualizarEstadoParada`: `estado.paradaActual`, `indiceProgreso` y `elementoActual`); calcula el índice; resuelve el `audio_id` de la parada vía `cargarAudios()` (`_solicitarAudioParaParada` → `_resolverAudioData`, protección pasiva por parada, ver §16); precarga las imágenes del elemento y el vídeo del tramo siguiente, de la tabla de coordenadas del padre (`_entradaDeCoordenadas`); fan-out `CAMBIO_PARADA` a hijo5 (si el cambio no lo originó él), hijo2, hijo3 y hijo4 (si ya está inicializado) | `NAVEGACION.CAMBIO_PARADA` → Hijo 5 (si origen ≠ 'hijo5'), Hijo 2, Hijo 3, Hijo 4 (si ya está inicializado); `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` → Hijo 3 (mismo camino en CASA y AVENTURA); `CONTROL.HABILITAR`/`DESHABILITAR` `retosBtn` → Hijo 3 | Hijo 2, Hijo 3, Hijo 4, Hijo 5 (condicional) | Orquestar la transición completa a una nueva parada, incluida la entrega del audio de esa parada — no de la aventura completa |
+| `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (lista de paradas) — o internamente despachado con `despacharLocal` (progresión automática / restauración) | Sin aventura elegida (`globalThis.aventuraSeleccionada`) no hace nada: contesta `{ exito: false, error: 'sin_aventura_elegida' }` y lo dice con `logger.error`. Con ella, actualiza el estado del propio padre (`_actualizarEstadoParada`: `estado.paradaActual`, `indiceProgreso` y `elementoActual`); si el elemento es otro, olvida el fuera de rango del anterior (`estado.usuarioFueraRango = { activo: false }`) y quita sus cuatro pantallas de distancia (`_ocultarPantallasDistanciaDelElemento`; el cartel de los 5 km y el aviso de precisión no son de un elemento y se quedan); calcula el índice; resuelve el `audio_id` de la parada vía `cargarAudios()` (`_solicitarAudioParaParada` → `_resolverAudioData`, protección pasiva por parada, ver §16); precarga las imágenes del elemento y el vídeo del tramo siguiente, de la tabla de coordenadas del padre (`_entradaDeCoordenadas`); fan-out `CAMBIO_PARADA` a hijo5 (si el cambio no lo originó él), hijo2, hijo3 y hijo4 (si ya está inicializado) | `NAVEGACION.CAMBIO_PARADA` → Hijo 5 (si origen ≠ 'hijo5'), Hijo 2, Hijo 3, Hijo 4 (si ya está inicializado); `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` → Hijo 3 (mismo camino en CASA y AVENTURA); `CONTROL.HABILITAR`/`DESHABILITAR` `retosBtn` → Hijo 3 | Hijo 2, Hijo 3, Hijo 4, Hijo 5 (condicional) | Orquestar la transición completa a una nueva parada, incluida la entrega del audio de esa parada — no de la aventura completa |
 | `AUDIO.FIN_REPRODUCCION` | Hijo 3 al terminar el audio | Actualiza los controles de audio del padre y delega en `_procesarFinAudioElemento`, que es quien resuelve `pending.audio` del elemento y decide si habilitar el reto | `RETO.HABILITAR` → Hijo 4 (solo en AVENTURA y solo si la parada tiene retos, vía `_procesarFinAudioElemento`) | Hijo 4 (condicional) | El reto solo se puede intentar después de escuchar el audio de la parada y únicamente si esa parada tiene reto |
 | `RETO.COMPLETADO` | Hijo 4, con acuse, al pulsar el botón verde tras acertar | Avisa a hijo2 (`ACTUALIZAR_ESTADO { retoActivo: false }`); si queda otro reto en la cola, lo muestra; si no, anota `pending.reto=true` en la ficha y llama a `intentarCompletarElemento`: si llegada + audio (+ reto) ya están a `true`, `marcarParadaCompletada()` habilita `btnAvanzar` (nunca envía `CAMBIO_PARADA` directamente, ver §2.2). El fin de aventura no sale de aquí: lo dispara `progresarSiguienteElemento()` cuando no hay siguiente | (múltiples acciones internas; no hay un único mensaje de respuesta) | — | Avanzar el estado del recorrido tras superar el reto |
 | `NAVEGACION.LLEGADA_DETECTADA` | Hijo 2 y, dentro del propio padre, `js/funciones-mapa.js` (con `despacharLocal`), al entrar en radio de parada o tramo | Se dispara para **ambos tipos**: paradas (`RADIO_PARADA=15 m` hardcodeado en `_detectarLlegadaParada()`) y tramos (`radioLlegada` = 15 m, el mismo que la parada, **y** `recorridoSuficiente` — distancia real recorrida ≥40% de la longitud del camino, ver §"Distancia recorrida"). El mensaje incluye `tipoParada` ('parada'/'tramo'). El padre distingue por `estado.elementoActual.tipo`: para tramos → solicita audio (`AUDIO.REPRODUCIR_REQUEST`) + llama `_marcarPendingPorLlegada()`; para paradas → solo llama `_marcarPendingPorLlegada()` (audio ya cargado en `CAMBIO_PARADA`). Ambos caminos marcan `pending.llegada=true`, condición necesaria junto con `pending.audio` y `retosOk` para completar la parada/tramo. | — | — | Condición GPS de llegada — aplica a paradas Y tramos; sin ella la parada nunca se completa aunque el usuario escuche el audio y resuelva el reto |
 | `NAVEGACION.GPS.ACTIVAR` | Hijo 2 (al pulsar botón GPS) | `_hdl_NAVEGACION_GPS_ACTIVAR`: solo se procesa en modo AVENTURA (en otro modo contesta con un `SISTEMA.ERROR`); si `_decidirAvanzar()` enciende «avanzar» (§29.4) → pone `estado.paradaListaParaAvanzar` a `false`, se lo dice a hijo2 (`_sincronizarAvanzar()`) y llama `progresarSiguienteElemento()`, que ya revela el siguiente elemento; con «avanzar» apagado no avanza; en todos los casos llama después `activarGPS()` (inicia `watchPosition`) | `SISTEMA.ERROR` (`contexto: 'gps_activar_restringido'` si el modo no es AVENTURA, `'gps_activar'` si algo falla); si sale bien, ninguna | Quien lo pidió | El padre gestiona GPS y progresión; hijo2 envía la señal desde el botón `#btnAvanzar` |
-| `NAVEGACION.GPS.RESTRINGIDO` | Hijo 2 (en cada posición en que el usuario está fuera del rango real del elemento activo; `{ idParada, distancia, rangoMaximo, timestampSalioDeRango }`) | `_hdl_NAVEGACION_GPS_RESTRINGIDO`: con la `distancia` del mensaje elige la pantalla de aviso —más de 2000 m, «perdido»; más de 150 m, «lejos»; más de 50 m, «desviado»; el resto, «fuera de rango», con `rangoMaximo`— y la muestra; se repite en cada posición mientras el usuario sigue fuera de rango | (ninguna) | — | Que la pantalla de aviso del padre muestre la distancia real |
+| `NAVEGACION.GPS.RESTRINGIDO` | Hijo 2 (en cada posición en que el usuario está fuera del rango real del elemento activo; `{ idParada, distancia, rangoMaximo, timestampSalioDeRango }`) | `_hdl_NAVEGACION_GPS_RESTRINGIDO`: si `idParada` no es el elemento actual, no enseña nada (hijo2 la midió justo antes de recibir el cambio de elemento); si lo es, con la `distancia` del mensaje elige la pantalla de aviso —más de 2000 m, «perdido»; más de 150 m, «lejos»; más de 50 m, «desviado»; el resto, «fuera de rango», con `rangoMaximo`— y la muestra; se repite en cada posición mientras el usuario sigue fuera de rango | (ninguna) | — | Que la pantalla de aviso del padre muestre la distancia real |
 | `DATOS.SOLICITAR_AUDIOS` | Hijo 3, cuando `cargarYReproducirAudio()` no encuentra un `audioId` en su caché local acotada (miss — parada visitada hace más de 1 salto, o el `AUDIO.REPRODUCIR_REQUEST` original no incluyó `audioData`) | `js/controladores-padre.js`: resuelve ese `audioId` concreto vía `cargarAudios(aventura, idioma)` — no reenvía la aventura completa | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData: { id, title, file }, autoplay: false, contexto: { motivo: 'solicitud_hijo' } }` — el mismo mensaje que usa el flujo normal, no un tipo aparte | Hijo 3 | Recuperación puntual de un audio fuera de la caché de 2 entradas, sin reexponer el resto de la aventura |
 | `DATOS.SOLICITAR_RETOS` | Hijo 4, cuando `mostrarReto()` no encuentra un `retoId` en su caché local acotada | `js/controladores-padre.js`: resuelve ese `retoId` concreto vía `cargarRetos(aventura, idioma)` | `RETO.MOSTRAR { retoId, retosArray: [reto], idioma }` — el mismo mensaje que usa el flujo normal | Hijo 4 | Ídem para retos |
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo 5 | Lee la lista completa de paradas con sus nombres localizados | `NAVEGACION.RESPUESTA_DATOS_PARADAS { paradas, aventura, timestamp }` (los elementos de `elementosIDpadre`, normalizados con `normalizarParadas`: sus campos más `id`, `index` y `nombre`) | Hijo 5 | Hijo 5 necesita los nombres de las paradas para renderizar los botones de la barra de navegación |
@@ -11570,7 +11572,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `UI.CAPA_ABIERTA` | Hijo 1, Hijo 6 y mapa-completo (`{ abierta }`, desde `js/capa-con-atras.js`) | `_hdl_UI_CAPA_ABIERTA`: apunta (`abierta: true`) o quita el iframe registrado de quien lo manda en el `WeakSet` de iframes con capa abierta, que lee el botón atrás con `globalThis._hijosConCapaAbierta()` | (ninguna) | — | Que «atrás» cierre lo que se ha abierto dentro de un hijo antes que lo de debajo (§34.3) |
 | `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: solo registra el evento. No activa ninguna aventura (ver §10.13) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: registra la confirmación en el log. No habilita nada ni desbloquea ningún flujo (§10.5) | (ninguna) | — | Diagnóstico: deja en el log qué hijos procesaron el cambio |
-| `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2, tras la gracia de su franja (§31.4/§25.7); `{ distancia, franja, elementoMasCercano, timestamp }` | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: solo en modo AVENTURA; marca `estado.usuarioFueraRango`, refresca los controles de audio del padre (`actualizarEstadoControlesAudioPadre`) y llama a `_sincronizarRetoBtn()`, que apaga `retosBtn` en hijo3 (`CONTROL.DESHABILITAR`; con reto y sin uno abierto, `razon: 'fuera_de_rango'`), y a `_sincronizarAvanzar()`, que apaga «avanzar» en hijo2 (`razon: 'fuera_de_rango'`) | `CONTROL.DESHABILITAR` | Hijo 3 y hijo 2 | Bloquear el audio, el reto y el avance mientras el usuario está confirmado fuera de rango |
+| `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2, tras la gracia de su franja (§31.4/§25.7); `{ distancia, franja, elementoMasCercano, timestamp }` | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: solo en modo AVENTURA y si `elementoMasCercano` es el elemento actual (el de otro elemento no se apunta); marca `estado.usuarioFueraRango`, refresca los controles de audio del padre (`actualizarEstadoControlesAudioPadre`) y llama a `_sincronizarRetoBtn()`, que apaga `retosBtn` en hijo3 (`CONTROL.DESHABILITAR`; con reto y sin uno abierto, `razon: 'fuera_de_rango'`), y a `_sincronizarAvanzar()`, que apaga «avanzar» en hijo2 (`razon: 'fuera_de_rango'`) | `CONTROL.DESHABILITAR` | Hijo 3 y hijo 2 | Bloquear el audio, el reto y el avance mientras el usuario está confirmado fuera de rango |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo 2 (botón de ubicación) | `_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE`: dibuja una línea en el mapa de aventura desde la posición actual del usuario hasta el elemento actual del padre (`estado.elementoActual`: su punto en una parada, su `.inicio` en un tramo) o, sin elemento, hasta el punto de inicio (`_obtenerCoordenadasFallbackP0`) | (ninguna) | — | Feedback visual de dirección al usuario |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Hijo 2 (botón de mapa completo) | `_hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO`: abre `mapa-completo.html` en overlay de pantalla completa, con la aventura elegida (`aventuraSeleccionada`) | (ninguna) | — | Vista interactiva del mapa Leaflet con todas las paradas |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Hijo 2 (botón de mapa vintage) | `_hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE`: muestra imagen JPG del mapa vintage de la aventura elegida (`aventuraSeleccionada`) en overlay | (ninguna) | — | Vista alternativa del mapa con estética histórica |
@@ -11710,10 +11712,10 @@ Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y 
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Cancela el reintento de `HIJO_LISTO`, aplica `modoInicial` si viene (y refresca los botones) y muestra la UI | (ninguna) | — | Finalizar handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Valida el modo (si es inválido, `SISTEMA.NACK { error, modoRecibido }`); manda `ENTENDIDO`; reinicia su estado (`_resetarEstadoParaModo`: modo, parada actual, distancia, posición, bloqueos del padre, reto activo, franjas de fuera de rango y avisos de señal) y recalcula los botones (en CASA, el de ubicación queda rojo y deshabilitado); manda `EFECTUADO`. Si falla, manda `SISTEMA.ERROR { error, tipo: 'CAMBIO_MODO_FALLIDO' }` | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Ajustar comportamiento de botones según modo AVENTURA/CASA |
 | `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente con `{ timestamp, estado: 'activo' o 'inicializando', gpsActivo, paradaActual }` | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
-| `NAVEGACION.CAMBIO_PARADA` | Padre (`{ paradaId, parada_id, padreId, padreid, tipo, timestamp, origenCambio }`) | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea estado de llegada y distancia; refresca el estado de los 6 botones (`actualizarEstadoBotones`) | (ninguna directa) | — | Actualizar el elemento vigilado por los detectores de proximidad GPS |
+| `NAVEGACION.CAMBIO_PARADA` | Padre (`{ paradaId, parada_id, padreId, padreid, tipo, timestamp, origenCambio }`) | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual` (solo él los cambia); si el elemento es otro, olvida el fuera de rango del anterior (`_olvidarFueraDeRango`); resetea estado de llegada y distancia; refresca el estado de los 6 botones (`actualizarEstadoBotones`) | (ninguna directa) | — | Actualizar el elemento vigilado por los detectores de proximidad GPS |
 | `CONTROL.HABILITAR` | Padre | Con `control: 'btnAvanzar'`: enciende «avanzar» (`avanzarHabilitadoPorPadre = true`, §29.6) y recalcula los botones; la `razon` solo viaja para la traza. Sin `control`: con `motivo: 'reto_cerrado'` pone `retoActivo` a `false`; en cualquier caso quita el botón activo y recalcula todos según las reglas GPS | (ninguna) | — | El padre decide cuándo puede avanzar el usuario y cuándo recuperan los botones tras cerrarse una vista o un reto |
 | `CONTROL.DESHABILITAR` | Padre | Con `control: 'btnAvanzar'`: apaga «avanzar» (`avanzarHabilitadoPorPadre = false`) y recalcula los botones; sin `control`, recalcula los botones | (ninguna) | — | El padre bloquea el avance (lo decide `_decidirAvanzar`, §29.4) |
-| `NAVEGACION.ACTUALIZAR_ESTADO` | Padre (en cada posición GPS en AVENTURA: `{ distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, … }`; y puntualmente `{ retoActivo }` o `{ ubicacionActiva }`) | Guarda cada campo que llega (`_aplicarDatosEstado`); en AVENTURA, si la precisión de la lectura es peor que `CONFIG.GPS.PRECISION_MINIMA`, avisa de señal no fiable y no sigue; si no, detecta la llegada (`_detectarLlegadaTramo` o `_detectarLlegadaParada`), refresca los botones y comprueba la distancia al rango real (`verificarDistanciaYActualizarBotones`) | `NAVEGACION.LLEGADA_DETECTADA`, `NAVEGACION.GPS.RESTRINGIDO`, `NAVEGACION.USUARIO_FUERA_RANGO`, `NAVEGACION.GPS.DENTRO_DE_RANGO`, `NAVEGACION.GPS.PRECISION_INSUFICIENTE` o `PRECISION_RECUPERADA`, según el caso | Padre | La distancia real manda sobre los botones y las pantallas de aviso |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | Padre (en cada posición GPS en AVENTURA: `{ distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, … }`; y puntualmente `{ retoActivo }` o `{ ubicacionActiva }`) | Si trae un `idParada` que no es su elemento actual, la lectura está medida contra otro elemento: solo guarda la posición y no sigue. Si no, guarda cada campo que llega (`_aplicarDatosEstado`, que no toca el elemento); en AVENTURA, si la precisión de la lectura es peor que `CONFIG.GPS.PRECISION_MINIMA`, avisa de señal no fiable y no sigue; si no, detecta la llegada (`_detectarLlegadaTramo` o `_detectarLlegadaParada`), refresca los botones y comprueba la distancia al rango real (`verificarDistanciaYActualizarBotones`) | `NAVEGACION.LLEGADA_DETECTADA`, `NAVEGACION.GPS.RESTRINGIDO`, `NAVEGACION.USUARIO_FUERA_RANGO`, `NAVEGACION.GPS.DENTRO_DE_RANGO`, `NAVEGACION.GPS.PRECISION_INSUFICIENTE` o `PRECISION_RECUPERADA`, según el caso | Padre | La distancia real manda sobre los botones y las pantallas de aviso |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Padre (`{ activo, permisos, precision, error }`) | En CASA deja el botón de ubicación rojo y deshabilitado («Ubicación no disponible en modo casa»); en AVENTURA no hace nada: el botón lo decide la distancia | (ninguna) | — | Mantener el botón de ubicación coherente con el modo |
 | `NAVEGACION.GPS.ERROR` | Padre (`{ codigo, mensaje, contexto }`) | Deja el error en el log con el código descrito (`PERMISSION_DENIED`, `POSITION_UNAVAILABLE` o `TIMEOUT`) | (ninguna) | — | Dejar constancia del error de GPS en el log |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Solo escribe en el log que el modo se aplicó | (ninguna) | — | 4.ª fase del protocolo de modo (§26.6) |
@@ -12543,7 +12545,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-61f5910dbc5c';
+const CACHE_VERSION = 'v-34c77010be87';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12705,9 +12707,11 @@ No hay countdown ni reintento automático por tiempo — es una decisión del us
 
 Ubicación, mapa completo y mapa vintage se agrupan juntos — los tres ayudan a un usuario perdido a orientarse, así que se habilitan a la vez y **al instante en las 4 franjas, sin esperar ninguna gracia** (ver la tabla de botones de hijo2 en §25.7, y `_habilitarAyudaFueraDeRango()`/`_desactivarBotonesRangoExcedido()`).
 
-**La gracia (7 min "fuera", 15 min "desviado"):** un desvío real y corto — recado rápido junto a la parada, rodeo de una calle en obras — no debería sentirse penalizado al instante. Mientras la gracia de la franja no haya expirado, vídeo/avanzar/audio/reto siguen con su comportamiento normal, como si el usuario no estuviera fuera de rango — solo el botón de ubicación se adelanta y se habilita ya. "Lejos"/"perdido" no tienen gracia: a esa distancia no es un desvío del recorrido, es mucho más probable un abandono real o un error, y ahí conviene que la app reaccione al instante. El timer de gracia (`estadoComponente.timestampSalioDeRango`, hijo2) se comparte entre las dos franjas con gracia — si el usuario pasa de "fuera" a "desviado" sin volver dentro de rango entre medias, el tiempo ya transcurrido cuenta para la gracia de "desviado", no se reinicia.
+**La gracia (7 min "fuera", 15 min "desviado"):** un desvío real y corto — recado rápido junto a la parada, rodeo de una calle en obras — no debería sentirse penalizado al instante. Mientras la gracia de la franja no haya expirado, vídeo/avanzar/audio/reto siguen con su comportamiento normal, como si el usuario no estuviera fuera de rango — solo el botón de ubicación se adelanta y se habilita ya. En una parada (y en el inicio), la gracia empieza con la llegada confirmada, y hasta entonces no hay ninguna (§25.7). "Lejos"/"perdido" no tienen gracia: a esa distancia no es un desvío del recorrido, es mucho más probable un abandono real o un error, y ahí conviene que la app reaccione al instante. El timer de gracia (`estadoComponente.timestampSalioDeRango`, hijo2) se comparte entre las dos franjas con gracia — si el usuario pasa de "fuera" a "desviado" sin volver dentro de rango entre medias, el tiempo ya transcurrido cuenta para la gracia de "desviado", no se reinicia.
 
 **Quién decide qué:** hijo2 calcula la distancia real en cada posición (`verificarDistanciaYActualizarBotones()`) y decide, de forma local, la ayuda (ubicación y mapas) y el vídeo — no espera respuesta del padre para eso. «Avanzar», el audio y el botón de retos los decide el padre, con el `USUARIO_FUERA_RANGO` que hijo2 le manda al agotarse la gracia (§29.4, §25.7). En tramos, la distancia usada aquí es `distanciaAlCamino` (proyección sobre la ruta real), no la línea recta al punto de llegada — ver "Dos métricas de distancia" en la sección anterior; en paradas ambas coinciden siempre. Por separado, envía esa distancia al padre vía `NAVEGACION.GPS.RESTRINGIDO { idParada, distancia, rangoMaximo, timestampSalioDeRango }`; el padre (`_hdl_NAVEGACION_GPS_RESTRINGIDO`) reparte esa distancia entre las 4 pantallas según los umbrales fijos de 50, 150 y 2.000 metros — **estos cortes están duplicados a propósito** en hijo2 y en el padre (el padre no confía ciegamente en la franja que le manda hijo2, recalcula la suya propia a partir de la distancia cruda), así que cualquier cambio de umbral debe aplicarse en los dos sitios a la vez. Cuando el usuario vuelve dentro del rango real, hijo2 envía `NAVEGACION.GPS.DENTRO_DE_RANGO`, que oculta las 4 pantallas (y el aviso de precisión, ver más abajo) a la vez (`_ocultarTodasPantallasDistanciaGPS()`).
+
+**El fuera de rango es de un elemento.** hijo2 mide contra su elemento actual, que solo le cambia `CAMBIO_PARADA`; una lectura medida contra otro —el mapa sigue midiendo el anterior hasta un segundo después de cada cambio— solo le deja la posición. Cuando el elemento actual pasa a ser otro, hijo2 olvida la salida de rango del anterior, la gracia que corría, la ayuda y la restricción (`_olvidarFueraDeRango`, lo mismo que al cambiar de modo), y el padre olvida `estado.usuarioFueraRango` y quita las cuatro pantallas de franja (`_ocultarPantallasDistanciaDelElemento`; el cartel de los 5 km y el aviso de precisión no son de un elemento y siguen, y los tiempos de espera de las ✗ se conservan): la siguiente lectura decide para el elemento nuevo. Así, quien continúa una aventura o avanza tras un rescate no arrastra al elemento nuevo el fuera de rango del anterior. Reactivar el mismo elemento no olvida nada. Y el padre no aplica un `GPS.RESTRINGIDO` ni un `USUARIO_FUERA_RANGO` de un elemento que no es el actual (`_idDelElementoActual()`), igual que una `LLEGADA_DETECTADA`: hijo2 pudo medirlo justo antes de recibir el cambio. Lo vigila el spec 173.
 
 **El botón de ubicación siempre cambia de estado a través de `desactivarBoton()`/`activarBoton()`** (helpers compartidos de hijo2, no solo para este botón): además de `disabled`/`aria-disabled`/`title`, alternan la clase CSS `.disabled`, que es la única que controla el color visual (`background` en degradado, ver §4.8). Ningún punto del código toca `style.backgroundColor`/`style.opacity` a mano en este botón — un estilo inline puesto por otra vía no le ganaría necesariamente a la clase (`background-color` inline vs. el `background-image` del degradado de la clase son sub-propiedades distintas que se pintan en capas separadas, la imagen encima del color) y dejaría el botón visualmente verde y activo aunque `disabled` ya fuera `true`.
 
@@ -14246,7 +14250,7 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **113 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 97 identificadores cruzados, de 139 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 98 identificadores cruzados, de 140 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14267,32 +14271,33 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `__VV_5KM_BLOCKED` | módulo 1 (L5415) | módulo 2 | función/objeto |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3618) | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3617) | módulo 2 | función/objeto |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6264) | clásico 12 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6276) | clásico 12 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3601) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6394) | clásico 12 | estado |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6406) | clásico 12 | estado |
 | `__vv_MAPAS_VINTAGE` | módulo 1 (L3619) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3499) | módulo 2 | estado |
 | `__vv_salidaEnlaceExterno` | módulo 1 (L4664) | módulo 2 | función/objeto |
 | `_apilarEntradaDeAventura` | módulo 1 (L4650) | módulo 2 | función/objeto |
 | `_cerrarDesplegablesDelPadre` | módulo 1 (L4621) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L6804) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8183) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8409) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8309) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L6816) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8195) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8421) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8321) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L3926) | módulo 2 | estado |
 | `_entradaDeCoordenadas` | módulo 1 (L3692) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8278) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L8493) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8385) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8284) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8501) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8153) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L7681) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5755) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8290) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8505) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8397) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8296) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8513) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8165) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L7693) | módulo 2 | función/objeto |
+| `_ocultarPantallasDistanciaDelElemento` | módulo 1 (L5747) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5767) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3751) | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4867) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L7467) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L7466) | módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L7479) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L7478) | módulo 2 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L3843) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3745) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3746) | módulo 2 | función/objeto |
@@ -14300,53 +14305,53 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `estadoPadre` | módulo 1 (L3931) | clásico 7, módulo 2 | función/objeto |
 | `findIndexByPadreIdOrId` | módulo 1 (L4289) | módulo 2 | función/objeto |
 | `getEstadoSafe` | módulo 1 (L4040) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6168) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6180) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2762) | módulo 2 | función/objeto |
 | `idiomaSeleccionado` | módulo 1 (L4868) | clásico 5, clásico 7, módulo 2 | estado |
 | `limpiarDatosAventura` | módulo 1 (L2799) | módulo 2 | función/objeto |
 | `MODOS` | módulo 1 (L3744) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L7884) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L7811) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L7621) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L7664) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L7896) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L7823) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L7633) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L7676) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4136) | módulo 2 | función/objeto |
 | `registrarControladorSeguro` | módulo 1 (L4956) | módulo 2, módulo 4 | función/objeto |
 | `registrarEvento` | módulo 1 (L4983) | módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2804) | clásico 8 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2792) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2793) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6008) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L5936) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L5866) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6085) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6159) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6454) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6453) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6020) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L5948) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L5878) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6097) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6171) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6466) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6465) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2750) | módulo 2 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L3743) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3904) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2778) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13136) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9486) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12168) | módulo 1 | función/objeto |
-| `_decidirAvanzar` | módulo 2 (L10690) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13118) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11239) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L11880) | módulo 1 | función/objeto |
-| `_numerosDeMapaCompletados` | módulo 2 (L12336) | clásico 8 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9425) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L10583) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L10709) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L10645) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L10607) | módulo 1 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L8670) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9420) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L8802) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L8843) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12093) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9298) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9290) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13152) | módulo 2 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13180) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9498) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12212) | módulo 1 | función/objeto |
+| `_decidirAvanzar` | módulo 2 (L10714) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13162) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11283) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L11924) | módulo 1 | función/objeto |
+| `_numerosDeMapaCompletados` | módulo 2 (L12380) | clásico 8 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9437) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10601) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L10733) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L10663) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L10625) | módulo 1 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L8682) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9432) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L8814) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L8855) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12137) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9310) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9302) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13196) | módulo 2 | función/objeto |
 
 </details>
 

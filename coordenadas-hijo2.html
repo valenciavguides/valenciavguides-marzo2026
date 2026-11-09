@@ -575,6 +575,23 @@ function _procesarDentroDeRango(btn, logPrefix) {
     if (cambioBotones) actualizarEstadoBotones();
 }
 
+// El fuera de rango es de un elemento: el que se estaba midiendo. Cuando ese elemento deja de ser el actual —otro modo u
+// otro elemento—, lo que valía para él ya no vale: se olvidan la salida de rango, la gracia que corría, la ayuda y la
+// restricción, y la siguiente lectura decide para el elemento nuevo. Sin esto, quien continúa una aventura o avanza tras un
+// rescate arrastraba al elemento nuevo el fuera de rango del anterior, con su audio, sus retos y «avanzar» apagados
+// (docs/estudio-caminos.md, K-74; spec 173). La precisión de la señal no es de un elemento: no se toca aquí.
+function _olvidarFueraDeRango(motivo, logPrefix) {
+    if (estadoComponente.timestampSalioDeRango !== null || estadoComponente.fueraDeRangoActivo || estadoComponente.ayudaFueraDeRangoActiva) {
+        logger.info(`${logPrefix} Fuera de rango olvidado: ${motivo}`);
+    }
+    estadoComponente.timestampSalioDeRango = null;
+    estadoComponente.ayudaFueraDeRangoActiva = false;
+    estadoComponente.fueraDeRangoActivo = false;
+    // Sin salida de rango pendiente, tampoco hay lecturas que confirmar para volver a él.
+    estadoComponente._ventanaRango = { id: null, lecturas: [] };
+    estadoComponente._notificacionFueraRangoEnviada = false;
+}
+
 // Aplica la RESTRICCIÓN (aquí, el vídeo deshabilitado; el padre, al recibir
 // USUARIO_FUERA_RANGO, apaga su audio, el retosBtn de hijo3 y «avanzar») una vez agotada la
 // gracia de la franja — la ayuda (ubicación/mapas) ya se habilitó al instante en
@@ -881,7 +898,8 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
 // Ahora se usa ACTUALIZAR_ESTADO que incluye distancia y otros datos
 
 function _aplicarDatosEstado(datos, logPrefix) {
-    const { distanciaAlDestino, distanciaAlCamino, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva, lat, lng } = datos;
+    // El elemento (idParada, tipoParada) no se toma de aquí: lo pone CAMBIO_PARADA, y una lectura de otro elemento ni llega.
+    const { distanciaAlDestino, distanciaAlCamino, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva, lat, lng } = datos;
     if (distanciaAlDestino !== undefined) estadoComponente.distanciaAlDestino = distanciaAlDestino;
     // distanciaAlCamino: distancia al punto más cercano del camino (inicio->waypoints->fin
     // en tramos), no al destino final — solo la usa verificarDistanciaYActualizarBotones()
@@ -890,8 +908,6 @@ function _aplicarDatosEstado(datos, logPrefix) {
     // funciones-mapa.js) — distanciaAlCamino no sirve para esto: nunca puede ser mayor que
     // distanciaAlDestino, porque el propio destino es parte del camino que mide.
     if (distanciaAlCamino !== undefined) estadoComponente.distanciaAlCamino = distanciaAlCamino;
-    if (idParada !== undefined) estadoComponente.idParadaActual = idParada;
-    if (tipoParada !== undefined) estadoComponente.tipoParadaActual = tipoParada;
     if (toleranciaGPS !== undefined) {
         estadoComponente.toleranciaGPS = toleranciaGPS;
         logger.debug(`${logPrefix} 📏 Tolerancia GPS actualizada: ${toleranciaGPS}m (${tipoParada})`);
@@ -1014,6 +1030,14 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
     try {
         const datos = mensaje.datos;
         const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, radioLlegada, accuracy, recorridoSuficiente } = datos;
+        // Una lectura medida contra otro elemento no habla del actual: el mapa sigue midiendo el anterior hasta un segundo
+        // después de cada cambio (docs/estudio-caminos.md, K-74). De ella solo vale la posición. El elemento actual de este
+        // frame lo pone CAMBIO_PARADA, y solo él (spec 173).
+        if (idParada !== undefined && idParada !== estadoComponente.idParadaActual) {
+            if (datos.lat !== undefined && datos.lng !== undefined) estadoComponente.posicionActualUsuario = { lat: datos.lat, lng: datos.lng };
+            logger.debug(`${logPrefix} Lectura de ${idParada} descartada: el elemento actual es ${estadoComponente.idParadaActual || 'ninguno'}`);
+            return;
+        }
         _aplicarDatosEstado(datos, logPrefix);
 
         // Se comprueba ANTES de la detección de llegada y de
@@ -1230,18 +1254,9 @@ try {
         estadoComponente.retoActivo = false;
         estadoComponente.ubicacionActiva = false;
         estadoComponente.gpsActivo = false;
-        if (estadoComponente.timestampSalioDeRango !== null) {
-            logger.info(`${logPrefix} Reseteando timer GPS por cambio de modo`);
-            estadoComponente.timestampSalioDeRango = null;
-        }
-        // Sin esto, un fuera-de-rango (ayuda o restricción) activo antes del cambio de
-        // modo se quedaba "pegado" en el estado — la restricción de vídeo/avanzar podía
-        // reaplicarse indebidamente al volver a AVENTURA, ya sin ninguna franja real detrás.
-        estadoComponente.ayudaFueraDeRangoActiva = false;
-        estadoComponente.fueraDeRangoActivo = false;
-        // Sin salida de rango pendiente, tampoco hay lecturas que confirmar para volver a él.
-        estadoComponente._ventanaRango = { id: null, lecturas: [] };
-        estadoComponente._notificacionFueraRangoEnviada = false;
+        // Un fuera de rango (ayuda o restricción) de antes del cambio de modo no vale en el modo nuevo: sin esto, la
+        // restricción de vídeo y avanzar podía reaplicarse al volver a AVENTURA, sin ninguna franja real detrás.
+        _olvidarFueraDeRango('cambio de modo', logPrefix);
         estadoComponente._notificacionSenalNoFiableEnviada = false;
         const btn = elementosDOM.btnUbicacion;
         if (btn) {
@@ -1459,6 +1474,8 @@ try {
             const tipoRecibido = datos.tipo ||
                 (esIdDeTramo(parada_id) ? 'tramo' : 'parada');
 
+            // Otro elemento: el fuera de rango del anterior no es suyo. Reactivar el mismo elemento no lo toca.
+            if (parada_id && parada_id !== estadoComponente.idParadaActual) _olvidarFueraDeRango(`elemento nuevo, ${parada_id}`, '[hijo2][CAMBIO_PARADA]');
             if (parada_id) estadoComponente.idParadaActual = parada_id;
             estadoComponente.tipoParadaActual = tipoRecibido;
             estadoComponente.distanciaAlDestino = null;
