@@ -49,6 +49,7 @@ docs/
 ├── plan-produccion-infraestructura.md             ← gitignored, no en el repo público
 ├── contraste-textos-mapa.md                       ← auditoría: número de mapa vs texto
 ├── estudio-caminos.md                             ← estudio «un solo camino»: mecanismos con más de un camino, estado y decisiones abiertas
+├── personas-dificultades.md                       ← accesibilidad pendiente: personas ciegas o con poca visión, con movilidad reducida o con dificultades cognitivas
 └── aventuras_ordenado/                            ← guiones generados (tools/generar-guiones-aventuras.mjs)
 ```
 

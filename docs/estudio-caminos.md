@@ -4072,15 +4072,16 @@ Hallazgos de la auditoría completa de la guía contra el código que no tenían
 - **Pendiente: decisión** (cambio visible). *A)* una hoja común, como la de K-147, con un tamaño (`--vv-boton-redondo`) y una sola pareja de nombres de clase; qué tamaño (el de hijo4 es el mayor) se decide; *B)* dejarlo.
 - **Relacionado.** K-147, K-92 (el color del ✓ de las opciones de la selección).
 
-##### K-154 — Los textos que no se ven (title, aria-label, alt, alert) son unos 170 literales en español, y cinco tutean; los tooltips del mapa enseñan datos internos — ✅ (barrido con residuo; los citados, leídos)
+##### K-154 — Los textos que no se ven (title, aria-label, alt, alert) son unos 170 literales en español, y seis tutean; los tooltips del mapa enseñan datos internos — ✅ (barrido con residuo; los citados, leídos)
 
 - **Cómo salió.** EJE 9.7. Amplía K-25, cuyo instrumento solo veía asignaciones desde JS (daba 0 en hijo1, hijo3 e hijo6).
-- **Dónde.** Literales por fichero: padre 134, selección 52, hijo1 21, hijo2 17, hijo3 3, hijo4 3, hijo6 6, mapa completo 1, puzzle 3, intro 2, `js/mapa-vintage-zoom.js` 7, `js/normativa-cumplimiento.js` 12, las cuatro páginas de hijo1 1 cada una, `index.html` 3 (algunos contados dos veces por casar con dos reglas; instrumento `textos-ocultos.cjs` del scratchpad, que imprime lo que no supo clasificar). De tú: los `alt` «Estás lejos de tu objetivo» (`codigo-padre.html:5830`), «Te has desviado de la ruta» (`:5972`) y «Estás muy lejos de tu objetivo» (`:6049`), y los tooltips «Tu destino» (`js/funciones-mapa.js:3235`) y «Tu ubicación ±Xm (N°)» (`:3423-3425`). Datos internos: el id de la parada (`title: paradaId`, `:2175`) y el ángulo de la flecha en grados (`:3425`), que `_crearMarcadorHTML` pone en `el.title` (`:528`). Grafía mezclada «Video»/«vídeo» y jerga en un `title` («Mostrar Mapa JPG», `coordenadas-hijo2.html:240`).
+- **Dónde.** Literales por fichero: padre 134, selección 52, hijo1 21, hijo2 17, hijo3 3, hijo4 3, hijo6 6, mapa completo 1, puzzle 3, intro 2, `js/mapa-vintage-zoom.js` 7, `js/normativa-cumplimiento.js` 12, las cuatro páginas de hijo1 1 cada una, `index.html` 3 (algunos contados dos veces por casar con dos reglas; instrumento `textos-ocultos.cjs` del scratchpad, que imprime lo que no supo clasificar). De tú: los `alt` «Estás lejos de tu objetivo» (`codigo-padre.html:5819`), «Estás fuera de rango» (`:5889`), «Te has desviado de la ruta» (`:5961`) y «Estás muy lejos de tu objetivo» (`:6038`), y los tooltips «Tu destino» (`js/funciones-mapa.js:3175`) y «Tu ubicación ±Xm (N°)» (`:3364-3365`). Datos internos: el id de la parada (`title: paradaId`, `:2099`) y el ángulo de la flecha en grados (`:3365`), que `_crearMarcadorHTML` pone en `el.title` (`:523`). Grafía mezclada «Video»/«vídeo» y jerga en un `title` («Mostrar Mapa JPG», `coordenadas-hijo2.html:240`).
 - **Lo que no cuadra.** Lector de pantalla y tooltips en español en los 12 idiomas; la voz de la aplicación es de usted.
 - **Pendiente: decisión.** La de K-25 (A/B/C) con esta cuenta; con la B, a `js/traducciones-ui.js` en los 12 idiomas y de usted, y los tooltips del mapa sin id ni grados.
 - **Relacionado.** K-25.
 - **Anotado desde K-141 (2026-11-09).** El campo de texto de los retos en polaco, `PLACEHOLDER_RESPUESTA_TEXTO.pl` («Wpisz tutaj swoją odpowiedź...», de tú; lo pinta hijo4).
 - **Hecho, el polaco (2026-11-09).** `PLACEHOLDER_RESPUESTA_TEXTO.pl`, impersonal como el resto del polaco: «Tutaj należy wpisać odpowiedź...». El resto de K-154 espera al mecanismo único para traducir atributos (no hay ninguno: búsqueda de `data-i18n`, `aplicarTraducciones` y similares en el código, 0).
+- **Pasa a `docs/personas-dificultades.md` (2026-11-09, decisión del usuario).** La accesibilidad —personas ciegas o con poca visión, con movilidad reducida, lectura fácil— se resuelve más adelante y toda junta; de momento no se toca. Allí está el recuento rehecho hoy (al menos 133 textos distintos, contando una vez los que casan con dos reglas y sin el `alt` del logo «València be Guides» de términos y agradecimientos, que es un nombre propio; los «unos 170» de arriba los incluían), los seis que tutean (aquí decía cinco: faltaba «Estás fuera de rango») y las grafías («video» en los textos ocultos, «vídeo» en los visibles). La A y la C de K-25 (los `alert` visibles y las cuatro páginas estáticas) no son de accesibilidad y siguen en K-25.
 
 ##### K-155 — El service worker precarga `js/normativa-cumplimiento.js`, que la aplicación no pide nunca — ✅ (búsqueda desnuda y lectura)
 
@@ -4214,6 +4215,7 @@ Hallazgos de la auditoría completa de la guía contra el código que no tenían
 - **Dónde.** `tests/`: ningún script de `package.json` los lanza y apuntan a un servidor Express que no existe. La guía los describe (§18.1, §36.22); R2.10 los cuenta como forma («describe/it sin Playwright», 10).
 - **Lo que no cuadra.** Código de prueba muerto junto a la suite viva, con el objetivo «sin código muerto».
 - **Pendiente: decisión.** *A)* borrarlos; *B)* dejarlos.
+- **Decidida, la B (2026-11-09, el usuario).** Se quedan: son las pruebas de la API para cuando haya frontend y backend reales, y la guía las guarda para ese momento (§18.1, «pendientes de backend»). No es código muerto: es la parte del plan que espera al backend.
 
 ##### K-174 — `sw.js` escribe en la consola también en producción — ✅ (búsqueda desnuda de `console.` en el código servido)
 
@@ -5102,7 +5104,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 145 | 1 | K-151 | fuera la rama de reto fallido del padre y el `retoCompletado` que hijo2 no lee, o dejarlos — **hecha (2026-11-09)** | — | — | sí |
 | 146 | 2 | K-152 | el GPS se recupera igual en iPhone que en el resto al volver el permiso (una sola escucha y el mismo botón), o dejarlo | VISIBLE, SPEC, iPhone real | — | decisión |
 | 147 | 3 | K-153 | una hoja común para los botones redondos verde y rojo, con un tamaño y una pareja de clases, o dejarlo | VISIBLE | K-147 (blanda) | decisión |
-| 148 | 5 | K-154 | los ~170 textos que no se ven, a `traducciones-ui.js` en 12 idiomas y de usted, y los tooltips del mapa sin id ni grados | VISIBLE, GUÍA | K-25 (dura) | decisión |
+| 148 | 5 | K-154 | los ~170 textos que no se ven, a `traducciones-ui.js` en 12 idiomas y de usted, y los tooltips del mapa sin id ni grados — **aparcada en `personas-dificultades.md` (decisión del usuario, 2026-11-09)** | VISIBLE, GUÍA | K-25 (dura) | — |
 | 149 | 1 | K-155 | fuera `js/normativa-cumplimiento.js` de APP_SHELL, o dejarlo | — | — | decisión |
 | 150 | 3 | K-156 | desbloquear el bloqueo de 5 km en la primera lectura dentro de la zona, sin esperar al limitador, o dejarlo | VISIBLE, SPEC | K-84 (blanda) | decisión |
 | 151 | 2 | K-157 | una hoja y un módulo comunes para la tarjeta de valoración, o dejar las dos copias; aparte, lo que tapa en escritorio | — | K-28 (blanda) | decisión |
@@ -5121,7 +5123,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 164 | 1 | K-170 | una tanda de comentarios y logs, y una pasada de las citas «§N» del código, o dejarlo | — | — | decisión |
 | 165 | 1 | K-171 | constantes en `puzzle.html` y fuera los dos `video: ""`, o dejarlo — **hecha (2026-11-09)** | — | — | sí |
 | 166 | 1 | K-172 | un solo bloque para el botón de hijo5, o dejarlo | — | — | decisión |
-| 167 | 1 | K-173 | borrar los ficheros Jest y sus restos de `tests/`, o dejarlos | GUÍA | — | decisión |
+| 167 | 1 | K-173 | borrar los ficheros Jest y sus restos de `tests/`, o dejarlos — **se quedan (decisión del usuario, 2026-11-09)** | GUÍA | — | sí |
 | 168 | 1 | K-174 | los `console.*` de `sw.js` condicionados a `IS_DEV`, solo los de error, o dejarlos | GUÍA | — | decisión |
 | 169 | 3 | K-175 | un solo camino para pedir un dato (el de `fetchWithRetry`, con el plazo agotado reintentado), o dejarlo — **hecha (2026-11-04, `fd9b95d`): `pedirConReintentos`, spec 166; con M1** | GUÍA | K-60, K-176 (blanda) | sí |
 | 170 | 4 | K-176 | cada rendición avisa por un solo sitio, el botón vuelve a pedir lo que se rindió, y el SW sirve la copia o una página «sin internet» — **en curso: hecha la pieza del service worker (2026-11-03, `e0dd2f9`, spec 165)** | VISIBLE, SPEC, MEDIR, GUÍA | K-60, K-175 (dura) | decisión |

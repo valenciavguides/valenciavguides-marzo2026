@@ -93,7 +93,7 @@ Párrafo `viv7`:
 
 > El mapa de estos jardines le lleva a alejarse de este punto para volver más tarde. Por ahora, diríjase a la derecha donde le aguarda una zona que recuerda a los jardines de Versalles. En su mapa corresponde al número 9 .
 
-- [ ] Revisado — decisión: **pendiente del usuario.** El mismo párrafo que el caso 1, pero en la Av34km la numeración interior de los Jardines del Real no está ni en su mapa dibujado (los jardines son un solo punto) ni en su mapa moderno (solo `v1` y `v5`): «número 9» señala otro sitio de su mapa. Lo mismo vale para los demás párrafos `viv…` con número que usa la Av34km.
+- [x] Revisado — decisión: **el texto se queda** (el usuario): en ese momento el usuario ya está dentro de los Jardines del Real y no busca el 9 en el mapa general. En la Av34km la numeración interior no está ni en su mapa dibujado (los jardines son un solo punto) ni en su mapa moderno (solo `v1` y `v5`), y lo mismo vale para los demás párrafos `viv…` con número que usa. **Pedido por el usuario, por construir:** en la Av4 y en la Av34km, al detectar la llegada a la parada de los Jardines del Real, el mapa completo y el antiguo pasan a enseñar el plano de los jardines (`viveros_plano`, al que el usuario pondrá los números y la línea), con los números de la numeración interior sin la «v».
 
 ### 4. `Av1-P-10` — Aventura1
 
@@ -119,7 +119,7 @@ Párrafo `49-B`:
 
 > Centre su atención de nuevo en la Catedral de Valencia , número 40 en su mapa.
 
-- [ ] Revisado — decisión: **pendiente del usuario.** El texto nombra bien la Catedral (40); la parada está en la Almoína (42) mirando el Cimborrio. ¿Se queda «42», o pasa a «42/40» como P-59 («42/41», la Basílica vista desde la misma plaza)? Con «42» la foto del Cimborrio sale en la galería con el número 42.
+- [x] Revisado — decisión: **se queda «42»** (el usuario): el Cimborrio es de la Catedral (40), pero se ve desde la plaza de la Almoína (42), que es donde está el usuario en ese momento. El texto nombra bien la Catedral (40).
 
 ### 6. `Av4-TR-8` — Aventura4
 

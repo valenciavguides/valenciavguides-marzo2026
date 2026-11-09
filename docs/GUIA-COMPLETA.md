@@ -8607,6 +8607,7 @@ proyecto/
     ├── README.md                     ← Índice de la documentación
     ├── estudio-caminos.md            ← Catálogo de los mecanismos que tienen más de un camino para la misma decisión, con su estado y las decisiones abiertas (regla 1b de `CLAUDE.md`)
     ├── contraste-textos-mapa.md      ← Contraste entre el número de mapa que dice el texto y el del recorrido
+    ├── personas-dificultades.md      ← Lo pendiente para que la aplicación la puedan usar personas ciegas o con poca visión, con movilidad reducida o con dificultades cognitivas
     ├── fonetica.md
     ├── plan-produccion-infraestructura.md
     └── aventuras_ordenado/           ← Guiones legibles por aventura + parrafos_ordenados.md y tramos-para-videos.md — generados, no se editan a mano (ver §21)
