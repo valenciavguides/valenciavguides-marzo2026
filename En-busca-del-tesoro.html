@@ -2661,7 +2661,7 @@
     // El bus rechaza por sí mismo, y en voz alta, un segundo handler para el mismo tipo, así que
     // sobra la capa de deduplicación que había aquí.
     const registrarControladorSeguro = bus.registrarControlador;
-    import { TIPOS_MENSAJE } from './js/constants.js';
+    import { TIPOS_MENSAJE, MODOS } from './js/constants.js';
     import logger from './js/logger.js';
     // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
     // `globalThis.logger = ...` de codigo-padre.html solo alcanza al del padre: sin esta
@@ -2864,7 +2864,7 @@
         const logPrefix = `${CONFIG_HIJO.LOG_PREFIX}[CAMBIO_MODO]`;
         try {
             const { modo } = mensaje.datos || {};
-            if (!modo || !['casa', 'aventura'].includes(modo)) {
+            if (!modo || ![MODOS.CASA, MODOS.AVENTURA].includes(modo)) {
                 logger.error(`${logPrefix} Modo inválido: ${modo}`);
                 await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.NACK, destino: 'padre', datos: { error: 'Modo inválido', modoRecibido: modo } });
                 return { exito: false, error: 'Modo inválido' };

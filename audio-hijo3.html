@@ -421,7 +421,7 @@
     // de este frame. El bus ya lo arrastra, pero de ahí no se deduce leyendo este fichero.
     import './js/utils.js';
     import { resolverIdsParada, ocultarInterfazHastaConfirmar } from './js/utils.js';
-    import { TIPOS_MENSAJE } from './js/constants.js';
+    import { TIPOS_MENSAJE, MODOS } from './js/constants.js';
     import logger from './js/logger.js';
     // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
     // `globalThis.logger = ...` de codigo-padre.html solo alcanza al del padre: sin esta
@@ -490,7 +490,7 @@
 
     // Estado del componente (homologado con otros hijos)
     const estado = {
-        modo: { actual: 'aventura' },
+        modo: { actual: MODOS.AVENTURA },
         hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
     };
 
@@ -1241,7 +1241,7 @@
             try {
                 // Extraer y validar datos
                 const { modo } = mensaje.datos || {};
-                if (!modo || !['casa', 'aventura'].includes(modo)) {
+                if (!modo || ![MODOS.CASA, MODOS.AVENTURA].includes(modo)) {
                     logger.error(`${logPrefix} Modo inválido: ${modo}`);
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.SISTEMA.NACK,

@@ -8,7 +8,7 @@
 // El tipo del informe de errores (ver _mandarErrorAlPadre) sale de constants.js, igual en todos los
 // frames. La copia `globalThis.TIPOS_MENSAJE` no sirve aquí: solo la publican el padre, la selección
 // y video-intro, y en los seis hijos no existe.
-import { TIPOS_MENSAJE } from './constants.js';
+import { TIPOS_MENSAJE, MODOS } from './constants.js';
 
 /**
  * Canonicaliza un modo a su forma estándar
@@ -18,7 +18,7 @@ import { TIPOS_MENSAJE } from './constants.js';
 export function canonicalizarModo(modo) {
     if (!modo) return null;
     const modoStr = String(modo).toLowerCase().trim();
-    return modoStr === 'casa' || modoStr === 'aventura' ? modoStr : null;
+    return modoStr === MODOS.CASA || modoStr === MODOS.AVENTURA ? modoStr : null;
 }
 
 /**

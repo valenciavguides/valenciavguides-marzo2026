@@ -2768,7 +2768,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
             //
             // La rotacion tiene ahora una sola fuente, la brujula, y la resuelve
             // _htmlMarcadorUsuario() leyendo `_flechaGpsAnguloAcumulado`.
-            const modoMarcador = estadoMapa.modo === MODOS.CASA ? 'casa' : 'aventura';
+            const modoMarcador = estadoMapa.modo === MODOS.CASA ? MODOS.CASA : MODOS.AVENTURA;
             await actualizarMarcadorUsuario(latitude, longitude, accuracy, modoMarcador);
             logger.debug(`${logPrefix} 🗺️ Marcador de usuario actualizado en mapa (${modoMarcador}): [${latitude.toFixed(6)}, ${longitude.toFixed(6)}]`);
         } catch (error_) {
@@ -3197,7 +3197,7 @@ let circuloActivacion = null;  // Círculo naranja 15m — zona de activación d
  * elemento ya dibujado sin inspeccionar su HTML.
  * @private
  */
-let _modoMarcadorUsuario = 'aventura';
+let _modoMarcadorUsuario = MODOS.AVENTURA;
 
 /**
  * HTML del marcador de posición propia (🛸 en CASA, flecha azul en AVENTURA) para el
@@ -3217,7 +3217,7 @@ function _htmlMarcadorUsuario(modo) {
 
     // Crear icono según el modo
     let iconHtml;
-    if (modo === 'casa') {
+    if (modo === MODOS.CASA) {
         // Modo CASA: Emoji 🛸 escalado
         const emojiSize = Math.round(tamCasa * 0.9);
         iconHtml = `<div style="width:${tamCasa}px;height:${tamCasa}px;position:relative;display:flex;align-items:center;justify-content:center;">
@@ -3328,7 +3328,7 @@ function reescalarMarcadorUsuario() {
  * @param {number} accuracy - Precisión del GPS en metros
  * @param {string} modo - 'aventura' (flecha azul) o 'casa' (emoji 🛸)
  */
-export function actualizarMarcadorUsuario(lat, lng, accuracy = 0, modo = 'aventura') {
+export function actualizarMarcadorUsuario(lat, lng, accuracy = 0, modo = MODOS.AVENTURA) {
     if (!_mapaInstance) {
         logger.warn('actualizarMarcadorUsuario: Mapa no inicializado');
         return null;
@@ -3359,20 +3359,20 @@ export function actualizarMarcadorUsuario(lat, lng, accuracy = 0, modo = 'aventu
         _modoMarcadorUsuario = modo;
         const htmlCompleto = _htmlMarcadorUsuario(modo);
         marcadorUsuarioGPS = _crearMarcadorHTML({ lat, lng }, htmlCompleto, {
-            className: modo === 'casa' ? 'marcador-usuario-gps-ovni' : 'marcador-usuario-gps-flecha',
-            title: modo === 'casa'
+            className: modo === MODOS.CASA ? 'marcador-usuario-gps-ovni' : 'marcador-usuario-gps-flecha',
+            title: modo === MODOS.CASA
                 ? `🛸 Tu ubicación ±${Math.round(accuracy)}m`
                 : `Tu ubicación ±${Math.round(accuracy)}m (${Math.round(_flechaGpsAnguloAcumulado ?? 0)}°)`,
             zIndex: 400  // ✅ CORREGIDO: 400 en lugar de 1000 para NO tapar iframes (z-index final: 900 < 1500)
         });
 
-        const iconoLog = modo === 'casa' ? '🛸' : '➤';
+        const iconoLog = modo === MODOS.CASA ? '🛸' : '➤';
         logger.debug(`Marcador ${iconoLog} actualizado en [${lat}, ${lng}] (modo: ${modo}, rumbo: ${_flechaGpsAnguloAcumulado === null ? 'sin brujula' : Math.round(_flechaGpsAnguloAcumulado) + '°'})`);
 
         // Círculo naranja: la zona de llegada, con el radio de radioLlegada() (un solo valor
         // para lo que se dibuja y para lo que se mide).
         // Brújula activada en el mismo branch para evitar condición duplicada.
-        if (modo !== 'casa') {
+        if (modo !== MODOS.CASA) {
             if (circuloActivacion) {
                 circuloActivacion.setLatLng({ lat, lng });
             } else {
@@ -3411,7 +3411,7 @@ export function actualizarMarcadorUsuario(lat, lng, accuracy = 0, modo = 'aventu
         // vistazo que el sensor sigue vivo. Y "Centrar en mi ubicación" del menú de cámara
         // sigue funcionando, porque reactivarSeguimientoCamara() hace su propio easeTo
         // directo — centra una vez, a petición, sin quedarse pegado después.
-        if (modo !== 'casa' && _camaraSiguiendoUsuario && !estadoMapa.zoomEnCurso && _mapaInstance) {
+        if (modo !== MODOS.CASA && _camaraSiguiendoUsuario && !estadoMapa.zoomEnCurso && _mapaInstance) {
             _mapaInstance.easeTo({ center: aLngLat({ lat, lng }), duration: 800 });
         }
 

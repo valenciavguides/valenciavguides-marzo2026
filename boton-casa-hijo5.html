@@ -305,7 +305,7 @@
     </style>
     <script type="module">
     import { resolverIdsParada, escaparHTML, ocultarInterfazHastaConfirmar } from './js/utils.js';
-    import { TIPOS_MENSAJE } from './js/constants.js';
+    import { TIPOS_MENSAJE, MODOS } from './js/constants.js';
     import logger from './js/logger.js';
     // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
     // `globalThis.logger = ...` de codigo-padre.html solo alcanza al del padre: sin esta
@@ -470,7 +470,7 @@
         estado.modo = modoInicial;
         const btn = document.getElementById('gps-casa-btn');
         if (!btn) return;
-        const isOn = modoInicial === 'aventura';
+        const isOn = modoInicial === MODOS.AVENTURA;
         btn.classList.toggle('on', isOn);
         btn.classList.toggle('off', !isOn);
         const label = btn.querySelector('.gps-label');
@@ -481,13 +481,13 @@
     function _actualizarUIParaModo(modo, logPrefix) {
         const ventanaEl = document.getElementById('paradas-window');
         if (ventanaEl) {
-            ventanaEl.style.display = modo === 'casa' ? 'block' : 'none';
-            logger.debug(`${logPrefix} Ventana de paradas ${modo === 'casa' ? 'mostrada' : 'ocultada'}`);
-            if (modo === 'casa') generarBotonesParadas();
+            ventanaEl.style.display = modo === MODOS.CASA ? 'block' : 'none';
+            logger.debug(`${logPrefix} Ventana de paradas ${modo === MODOS.CASA ? 'mostrada' : 'ocultada'}`);
+            if (modo === MODOS.CASA) generarBotonesParadas();
         }
         const btn = document.getElementById('gps-casa-btn');
         if (btn) {
-            const isOn = modo === 'aventura';
+            const isOn = modo === MODOS.AVENTURA;
             btn.classList.toggle('on', isOn);
             btn.classList.toggle('off', !isOn);
             const label = btn.querySelector('.gps-label');
@@ -546,9 +546,9 @@
             return 'error';
         }
         const { modo } = mensaje.datos;
-        if (!modo || (modo !== 'casa' && modo !== 'aventura')) {
+        if (!modo || (modo !== MODOS.CASA && modo !== MODOS.AVENTURA)) {
             logger.error(`${logPrefix} Modo inválido: ${modo}`);
-            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.NACK, datos: { error: `Modo inválido: ${modo}`, valoresValidos: ['casa', 'aventura'] } });
+            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.NACK, datos: { error: `Modo inválido: ${modo}`, valoresValidos: [MODOS.CASA, MODOS.AVENTURA] } });
             return 'nack';
         }
         return null;
@@ -594,7 +594,7 @@
     // Estado del componente
     const estado = {
         inicializado: false,
-        modo: 'casa',
+        modo: MODOS.CASA,
         aventuraParadas: [], // Array de paradas recibidas del padre
         paradasMapeadas: {}, // Mapeo de IDs locales a IDs del padre
         datosRecibidos: false, // Flag para evitar procesamiento duplicado
@@ -655,7 +655,7 @@
                 logger.error(`${logPrefix} Botón GPS no encontrado en el DOM`);
                 return;
             }
-            const modoNuevo = estado.modo === 'casa' ? 'aventura' : 'casa';
+            const modoNuevo = estado.modo === MODOS.CASA ? MODOS.AVENTURA : MODOS.CASA;
             // No actualizar estado.modo/UI aquí de forma optimista: el envío de abajo
             // (enviarMensaje, el del bus) no lleva confirmación
             // -- resuelve en cuanto se despacha, sin relación alguna con si el padre
@@ -694,7 +694,7 @@
 
             // En AVENTURA solo pide la solicitud forzada, la que sigue a CAMBIO_MODO; las otras dos (al confirmar el padre que
             // hijo5 está listo y al reconectarse) piden solo en CASA.
-            if (!forzar && estado.modo === 'aventura') {
+            if (!forzar && estado.modo === MODOS.AVENTURA) {
                 logger.debug(`${logPrefix} En AVENTURA las paradas se piden tras CAMBIO_MODO: esta solicitud se omite`);
                 return;
             }
@@ -874,7 +874,7 @@
                 _actualizarUIParaModo(modo, logPrefix);
                 logger.info(`${logPrefix} Modo cambiado exitosamente: ${modoAnterior} → ${modo}`);
 
-                if (modo === 'aventura') {
+                if (modo === MODOS.AVENTURA) {
                     solicitarParadasDelPadre(true).catch(e => logger.warn(`${logPrefix} Error solicitando paradas tras CAMBIO_MODO:`, e));
                 }
 
@@ -977,8 +977,8 @@
                 logger.info('[hijo5] Paradas del padre almacenadas:', validas.slice(0, 3), '...');
 
                 // Solo actualizar la UI si estamos en modo casa (en aventura hijo5 está oculto)
-                if (estado.modo !== 'aventura') {
-                    activarModoInicial('casa');
+                if (estado.modo !== MODOS.AVENTURA) {
+                    activarModoInicial(MODOS.CASA);
                 }
 
                 if (estadisticas) {

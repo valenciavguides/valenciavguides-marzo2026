@@ -1956,7 +1956,7 @@ Todos los handlers del padre se registran mediante `globalThis.registrarControla
 
 ### Modos de la aplicación
 
-La aplicación tiene dos modos, cuyos valores corresponden a las constantes `MODOS.CASA = 'casa'` y `MODOS.AVENTURA = 'aventura'` de `js/constants.js`:
+La aplicación tiene dos modos, cuyos valores corresponden a las constantes `MODOS.CASA = 'casa'` y `MODOS.AVENTURA = 'aventura'` de `js/constants.js`. Todo el código escribe el modo con esas dos constantes, nunca con el literal: la selección, hijo1 a hijo5 y `js/utils.js` importan `MODOS` de `js/constants.js` como el padre y `js/funciones-mapa.js`:
 
 - **`'casa'`**: exploración sin validar distancias, con hijo5 para ir a cualquier punto; solo con el modo DEV (ver §24). localStorage de progreso limpiado (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`) — **excepto en modo dev** (`globalThis._devModeActivo === true`, ver §24), donde no se borra nada, porque la propia activación entra en CASA como paso de bootstrap, no como abandono real. Ver §9.9.
 - **`'aventura'`**: recorrido activo — mapa, GPS, retos. El latido no depende del modo (§2.7).
@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7c52f01ca1a8'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-72212dcd36e6'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -9117,7 +9117,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-7c52f01ca1a8';
+const CACHE_VERSION = 'v-72212dcd36e6';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12542,7 +12542,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-7c52f01ca1a8';
+const CACHE_VERSION = 'v-72212dcd36e6';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

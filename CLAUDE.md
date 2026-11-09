@@ -127,6 +127,7 @@ Cada decisión de código tiene una sola forma. Esta lista recoge las ya decidid
 - **Specs, `goto`:** en `tests/`, todo `goto` recibe una ruta que empieza por `/` (se resuelve contra el `baseURL` de `playwright.config.js`): ni el origen escrito a mano ni una ruta sin barra.
 - **Specs, `src` de un iframe:** el `src` de un iframe que inyecta un spec empieza por `/` (se resuelve contra el documento anfitrión, no contra `baseURL`).
 - **Almacenamiento del dispositivo:** todo acceso a `localStorage` y `sessionStorage` pasa por `globalThis.almacen` (`js/almacenamiento.js`), y cada clave está registrada en `almacen.CLAVES`; ESLint lo exige.
+- **El modo:** siempre `MODOS.CASA` / `MODOS.AVENTURA` (`js/constants.js`), nunca el literal `'casa'` / `'aventura'`; solo `constants.js` escribe los dos valores.
 
 ## Documentación de autoridad
 

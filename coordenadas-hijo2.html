@@ -301,7 +301,7 @@ const registrarControladorSeguro = bus.registrarControlador;
 // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
 // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
 
-import { TIPOS_MENSAJE } from './js/constants.js';
+import { TIPOS_MENSAJE, MODOS } from './js/constants.js';
 import logger from './js/logger.js';
 // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
 // `globalThis.logger = ...` de codigo-padre.html solo alcanza al del padre: sin esta
@@ -323,7 +323,7 @@ const CONFIG_HIJO = {
 
 // Estado del componente
 const estadoComponente = {
-    modo: 'casa',
+    modo: MODOS.CASA,
     gpsActivo: false,
     distanciaAlDestino: null,
     tipoParadaActual: null, // 'parada' o 'tramo'
@@ -444,10 +444,10 @@ function _actualizarBotonGps(elementosDOM) {
 
 function _actualizarBotonUbicacion(elementosDOM, modo, retoActivo) {
     if (!elementosDOM.btnUbicacion) return;
-    if (modo === 'casa') {
+    if (modo === MODOS.CASA) {
         desactivarBoton(elementosDOM.btnUbicacion);
         logger.debug('🧭 Botón ubicación DESACTIVADO: modo casa (forzado)');
-    } else if (modo === 'aventura') {
+    } else if (modo === MODOS.AVENTURA) {
         if (retoActivo) {
             desactivarBoton(elementosDOM.btnUbicacion);
             logger.debug('🧭 Botón ubicación DESACTIVADO: reto activo');
@@ -532,7 +532,7 @@ function actualizarEstadoBotones() {
         // necesita que le guíen hasta donde está parado, necesita pulsar avanzar. En cuanto
         // pulsa, el elemento cambia y el botón vuelve a su vida normal.
         desactivarBoton(elementosDOM.btnUbicacion);
-    } else if (!retoActivo && modo === 'aventura' && estadoComponente.ayudaFueraDeRangoActiva) {
+    } else if (!retoActivo && modo === MODOS.AVENTURA && estadoComponente.ayudaFueraDeRangoActiva) {
         activarBoton(elementosDOM.btnUbicacion);
     } else {
         _actualizarBotonUbicacion(elementosDOM, modo, retoActivo);
@@ -1020,7 +1020,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
         // verificarDistanciaYActualizarBotones(), no solo dentro de esta última, para que
         // una lectura de mala precisión no pueda disparar una llegada falsa aunque la
         // distancia calculada parezca corta (ver JSDoc de _notificarSenalNoFiable arriba).
-        if (estadoComponente.modo === 'aventura' && typeof accuracy === 'number' && accuracy > CONFIG.GPS.PRECISION_MINIMA) {
+        if (estadoComponente.modo === MODOS.AVENTURA && typeof accuracy === 'number' && accuracy > CONFIG.GPS.PRECISION_MINIMA) {
             _notificarSenalNoFiable(accuracy, logPrefix);
             return;
         }
@@ -1036,7 +1036,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
         // elementoActual coincidía (coincide, "ver" en CASA también lo actualiza), marcaba
         // pending.llegada=true para una parada nunca visitada de verdad (reporte de uso
         // real 2026-08-10, ver docs/GUIA-COMPLETA.md §24.0/§25.5).
-        if (estadoComponente.modo === 'aventura' && typeof distanciaAlDestino === 'number' && idParada) {
+        if (estadoComponente.modo === MODOS.AVENTURA && typeof distanciaAlDestino === 'number' && idParada) {
             // Se exige radioLlegada, no toleranciaGPS: son dos numeros distintos y este
             // sensor decide LLEGADA. Sin el campo no se declara ninguna — mejor no detectarla
             // que detectarla con el radio equivocado, que es lo que pasaba antes.
@@ -1048,7 +1048,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
         }
 
         actualizarEstadoBotones();
-        if (estadoComponente.modo === 'aventura' && estadoComponente.distanciaAlDestino !== null && estadoComponente.distanciaAlDestino !== undefined) {
+        if (estadoComponente.modo === MODOS.AVENTURA && estadoComponente.distanciaAlDestino !== null && estadoComponente.distanciaAlDestino !== undefined) {
             verificarDistanciaYActualizarBotones();
         }
         logger.debug(`${logPrefix} 📍 Estado actualizado: distancia=${distanciaAlDestino}m, tolerancia=${toleranciaGPS}m, parada=${idParada}, tipo=${tipoParada}, reto=${estadoComponente.retoActivo}, ubicacion=${estadoComponente.ubicacionActiva}`);
@@ -1156,7 +1156,7 @@ try {
         // PADRE_DATOS trae como mucho { modo, timestamp }: el padre no manda más claves en este mensaje.
         const { modo } = datos;
         if (modo) {
-            const modoSeguro = (modo === 'casa' || modo === 'aventura') ? modo : '';
+            const modoSeguro = (modo === MODOS.CASA || modo === MODOS.AVENTURA) ? modo : '';
             logger.info(`${logPrefix} Procesando modo inicial del padre:`, { original: modo, normalizado: modoSeguro });
             estadoComponente.modo = modoSeguro || modo;
             actualizarEstadoBotones();
@@ -1245,7 +1245,7 @@ try {
         estadoComponente._notificacionSenalNoFiableEnviada = false;
         const btn = elementosDOM.btnUbicacion;
         if (btn) {
-            if (modo === 'casa') {
+            if (modo === MODOS.CASA) {
                 desactivarBoton(btn);
                 btn.title = 'Ubicación no disponible en modo casa';
                 logger.info(`${logPrefix} → Modo CASA: botón rojo deshabilitado`);
@@ -1273,7 +1273,7 @@ try {
         try {
             // Paso 1: Extraer y validar datos
             const { modo } = mensaje.datos || {};
-            if (!modo || !['casa', 'aventura'].includes(modo)) {
+            if (!modo || ![MODOS.CASA, MODOS.AVENTURA].includes(modo)) {
                 logger.error(`${logPrefix} Modo inválido: ${modo}`);
                 await enviarMensaje({
                     tipo: TIPOS_MENSAJE.SISTEMA.NACK,
@@ -1404,7 +1404,7 @@ try {
             logger.debug(`${logPrefix} Estado GPS recibido:`, datos);
 
             // BUG CORREGIDO: localStorage.getItem('modoActual') nunca se escribía → siempre 'casa'
-            const modoActual = (estadoComponente && estadoComponente.modo) || 'casa';
+            const modoActual = (estadoComponente && estadoComponente.modo) || MODOS.CASA;
             const btn = elementosDOM.btnUbicacion;
 
             if (!btn) {
@@ -1413,7 +1413,7 @@ try {
             }
 
             // MODO CASA: Siempre rojo deshabilitado (ignorar estado GPS)
-            if (modoActual === 'casa') {
+            if (modoActual === MODOS.CASA) {
                 desactivarBoton(btn);
                 btn.title = 'Ubicación no disponible en modo casa';
                 logger.debug(`${logPrefix} Modo casa: botón forzado a rojo deshabilitado`);

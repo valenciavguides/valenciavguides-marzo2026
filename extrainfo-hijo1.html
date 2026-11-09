@@ -38,7 +38,7 @@
     // Importado por su efecto: al cargarse instala la captura de `error` y `unhandledrejection`
     // de este frame. El bus ya lo arrastra, pero de ahí no se deduce leyendo este fichero.
     import './js/utils.js';
-    import { TIPOS_MENSAJE } from './js/constants.js';
+    import { TIPOS_MENSAJE, MODOS } from './js/constants.js';
     import logger from './js/logger.js';
     import { capaQueSeCierraConAtras } from './js/capa-con-atras.js';
 
@@ -314,7 +314,7 @@
                 const logPrefix = `${CONFIG_HIJO.LOG_PREFIX}[CAMBIO_MODO]`;
                 try {
                     const { modo } = mensaje.datos || {};
-                    if (!modo || !['casa', 'aventura'].includes(modo)) {
+                    if (!modo || ![MODOS.CASA, MODOS.AVENTURA].includes(modo)) {
                         logger.error(`${logPrefix} Modo inválido: ${modo}`);
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.SISTEMA.NACK,
@@ -328,7 +328,7 @@
                     logger.info(`${logPrefix} Cambio de modo a "${modo}" entendido (no-op)`);
 
                     // Resetear temporizador si volvemos a modo casa
-                    if (modo === 'casa') {
+                    if (modo === MODOS.CASA) {
                         resetearTemporizador();
                     }
 

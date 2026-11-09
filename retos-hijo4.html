@@ -455,7 +455,7 @@
     // sobra la capa de deduplicación que había aquí.
     const registrarControladorSeguro = bus.registrarControlador;
 
-    import { TIPOS_MENSAJE } from './js/constants.js';
+    import { TIPOS_MENSAJE, MODOS } from './js/constants.js';
     import logger from './js/logger.js';
     // Los efectos de sonido no son esenciales: si el módulo no carga, este frame sigue sin ellos y lo dice en el log.
     // Un `import` estático impediría ejecutar el módulo entero (sin handshake ni handlers). Y la carga no se espera con
@@ -500,7 +500,7 @@
 
     const estado = {
         retoActualId: null,
-        modo: { actual: 'aventura' }
+        modo: { actual: MODOS.AVENTURA }
         ,padreIdActual: null
         ,hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
     };
@@ -1344,7 +1344,7 @@
                 try {
                     // Extraer y validar datos
                     const { modo } = mensaje.datos || {};
-                    if (!modo || !['casa', 'aventura'].includes(modo)) {
+                    if (!modo || ![MODOS.CASA, MODOS.AVENTURA].includes(modo)) {
                         logger.error(`${logPrefix} Modo inválido: ${modo}`);
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.SISTEMA.NACK,
@@ -1478,7 +1478,7 @@
                 // de que este mensaje aterrizara — vuelva a mostrar botonRetos-wrapper como
                 // si la parada actual tuviera reto. Por defecto true (!== false) para no
                 // romper el caso normal si el campo faltara.
-                if (estado.modo?.actual === 'casa' && mensaje?.datos?.retoSigueActivo !== false) {
+                if (estado.modo?.actual === MODOS.CASA && mensaje?.datos?.retoSigueActivo !== false) {
                     const wrapper = document.getElementById('botonRetos-wrapper');
                     if (wrapper) wrapper.style.display = '';
                 }

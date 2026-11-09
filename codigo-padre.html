@@ -6716,9 +6716,9 @@
 
         async function _gestionarSesionSegunModo(modo, mensaje, logPrefix) {
             try {
-                if (modo === 'aventura') {
+                if (modo === MODOS.AVENTURA) {
                     await _activarAventura(mensaje, logPrefix);
-                } else if (modo === 'casa') {
+                } else if (modo === MODOS.CASA) {
                     await _transicionarAModoCasa(mensaje);
                 }
             } catch (error) {
@@ -6727,9 +6727,9 @@
         }
 
         function _gestionarGpsOverlays(modo, logPrefix) {
-            if (modo === 'aventura') {
+            if (modo === MODOS.AVENTURA) {
                 (globalThis.logger || console).info(`${logPrefix} 🗺️ Modo AVENTURA → GPS activo con validación de distancias`);
-            } else if (modo === 'casa') {
+            } else if (modo === MODOS.CASA) {
                 // Lo que quedara abierto del GPS lo cierra la rama CASA de _hdl_SISTEMA_CAMBIO_MODO, al empezar (K-49).
                 (globalThis.logger || console).info(`${logPrefix} 🏠 Modo CASA → GPS activo SIN validaciones (emoji 🛸)`);
             }
@@ -8687,7 +8687,7 @@ await _comprobarReanudacionAventura(logPrefix);
             const snap = _reloadsPendientes[hijoId];
             if (!snap) return;
             delete _reloadsPendientes[hijoId];
-            if (snap.modo !== 'aventura') return; // Solo restaurar en modo aventura
+            if (snap.modo !== MODOS.AVENTURA) return; // Solo restaurar en modo aventura
             logger.info(`[PADRE][SNAPSHOT] Restaurando estado para ${hijoId} tras reload...`);
             try {
                 // 'hijo1-opciones', no 'hijo1': es el id con el que el iframe está registrado en la
@@ -11314,7 +11314,7 @@ await _comprobarReanudacionAventura(logPrefix);
             _asegurarRetoActualDe(estado.elementoActual);
 
             const modoAventura = estado.modo.actual === MODOS.AVENTURA;
-            (globalThis.logger || console).info(`${logPrefix} Audio finalizado en modo ${modoAventura ? 'aventura' : 'casa'}: ${retosDelElemento.length} reto(s) disponible(s): ${retosDelElemento.join(', ')}`);
+            (globalThis.logger || console).info(`${logPrefix} Audio finalizado en modo ${modoAventura ? MODOS.AVENTURA : MODOS.CASA}: ${retosDelElemento.length} reto(s) disponible(s): ${retosDelElemento.join(', ')}`);
 
             // El botón de retos de hijo3 lo decide un solo sitio, que mira el audio terminado y
             // todo lo demás (reto abierto, fuera de rango, modo).
@@ -12127,8 +12127,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     const display = document.getElementById('tiempo-display-padre');
 
                     // Verificar modo actual - en modo casa siempre mostrar 000:00:00
-                    const modoActual = globalThis.estadoPadre?.modo?.actual || 'casa';
-                    const esModoAventura = modoActual === 'aventura';
+                    const modoActual = globalThis.estadoPadre?.modo?.actual || MODOS.CASA;
+                    const esModoAventura = modoActual === MODOS.AVENTURA;
 
                     if (!esModoAventura) {
                         // Modo casa: mostrar 000:00:00 en verde
@@ -12163,8 +12163,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         }
 
         function _actualizarDisplayTemporizador(ventana, mensaje) {
-            const modoActual = globalThis.estadoPadre?.modo?.actual || 'casa';
-            if (modoActual !== 'aventura') {
+            const modoActual = globalThis.estadoPadre?.modo?.actual || MODOS.CASA;
+            if (modoActual !== MODOS.AVENTURA) {
                 const display = document.getElementById('tiempo-display-padre');
                 if (display) display.textContent = '000:00:00';
                 ventana.classList.remove('tiempo-verde', 'tiempo-amarillo', 'tiempo-rojo');
