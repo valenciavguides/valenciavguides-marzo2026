@@ -3124,7 +3124,7 @@ sequenceDiagram
         Note over H4: usuario elige respuesta + click verificar
     end
 
-    H4-->>P: RETO.COMPLETADO { retoId, correcto }
+    H4-->>P: RETO.COMPLETADO { retoId, correcto: true }
     alt correcto === true
         P->>P: marca pending.reto=true; si la cola de retos está completa,\nintentarCompletarElemento() → marcarParadaCompletada()\n→ habilita btnAvanzar en hijo2 (parada y tramo por igual)
         Note over H4: botón "siguiente" se habilita — el padre NO cierra\nla ventana del reto por su cuenta, espera al usuario
@@ -3860,7 +3860,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `RETO.CONFIRMADO` | Padre → Hijo4 | Respuesta a `RETO.MOSTRADO` (`{ retoId }`); hijo4 solo la anota en el log |
 | | `RETO.OCULTAR` | Hijo4 → Padre | Usuario cierra la ventana del reto |
 | | `RETO.LIMPIAR_ESTADO` | Padre → Hijo4 | El padre lo envía justo después de recibir `RETO.OCULTAR` — señal de limpieza del estado interno tras ocultar el iframe (dirección opuesta a `RETO.OCULTAR`, tipo distinto a propósito) |
-| | `RETO.COMPLETADO` | Hijo4 → Padre | Usuario respondió (correcto/incorrecto) |
+| | `RETO.COMPLETADO` | Hijo4 → Padre | El usuario cumplió el reto: lo acertó, lo saltó o cerró el puzzle (`correcto: true`; un fallo no se avisa, se reintenta en hijo4) |
 | | `RETO.SOLICITAR_RETO` | Hijo3/Hijo4 → Padre | Usuario pulsó `#retosBtn` (hijo3) o `#botonRetos` (hijo4) — payloads distintos pero padre usa solo `mensaje.origen` y `estado.paradaActual` |
 | | `RETO.HABILITAR` | Padre → Hijo4 | Habilitar panel de retos (solo AVENTURA) |
 | | `RETO.ESTADO_CASA` | Padre → Hijo4 | Estado del panel según posición (solo CASA) |
@@ -4080,7 +4080,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO/EFECTUADO` | `{ modo, mensajeId }` | Gestión de cambio de modo |
 | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp }` | Al recibir HEARTBEAT |
 | `RETO.SOLICITAR_RETO` | `{ contexto:'hijo4-botonRetos' }` | Usuario pulsa `#botonRetos` en hijo4 (igual que `#retosBtn` en hijo3 pero sin `audioId`) |
-| `RETO.COMPLETADO` | `{ retoId, correcto:bool }` | Usuario responde el reto |
+| `RETO.COMPLETADO` | `{ retoId, correcto: true }` | El usuario cumple el reto (lo acierta, lo salta o cierra el puzzle) |
 | `RETO.OCULTAR` | `{ retoId }` | Usuario pulsa "siguiente" / cierra el reto |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | `{ paradaId, parada_id, padreId, timestamp }` | Confirmación de haber procesado el cambio de parada |
 | `DATOS.SOLICITAR_RETOS` | `{ retoId, motivo:'cache_miss', timestamp }` | Cuando `mostrarReto()` no encuentra ese `retoId` en la caché local acotada (máx. 2 entradas) |
@@ -4589,7 +4589,7 @@ sequenceDiagram
 
     H4->>P: RETO.COMPLETADO { retoId, correcto: true } — con acuse
     P-->>P: pending.reto = true / retosCompletadosCount++
-    P->>H2: NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: false, retoCompletado, retoId }
+    P->>H2: NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: false, retoId }
     Note over P: En modo AVENTURA: _sincronizarAvanzar enciende «avanzar» si _decidirAvanzar() lo permite
 
     P-->>P: intentarCompletarElemento(padreId)
@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-086fe1859230'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d57331791b38'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5440,7 +5440,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Emitido por | hijo4, con acuse, al pulsar el botón verde (`#btnNextAfterReto`, o `#btn-puzzle-continuar` en un puzzle) tras acertar — no en el momento de responder |
 | Payload | `{ retoId, correcto: true }` |
 | Handler en padre | `_hdl_RETO_COMPLETADO` |
-| Acción | Vacía el reto del snapshot de recuperación y avisa a hijo2 (`NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: false, retoCompletado, retoId }`). Con `correcto`, lo apunta en la cola: si queda otro, lo muestra (`RETO.MOSTRAR`, `'secuencial'`); si no, anota en la ficha `pending.reto = true` y `retosCompletadosCount` (`_anotarEnFicha`), llama `intentarCompletarElemento` y para el recordatorio del reto |
+| Acción | Vacía el reto del snapshot de recuperación y avisa a hijo2 (`NAVEGACION.ACTUALIZAR_ESTADO { retoActivo: false, retoId }`). Lo da por cumplido —un `RETO.COMPLETADO` lo es siempre: hijo4 solo lo manda con `correcto: true`— y lo apunta en la cola: si queda otro, lo muestra (`RETO.MOSTRAR`, `'secuencial'`); si no, anota en la ficha `pending.reto = true` y `retosCompletadosCount` (`_anotarEnFicha`), llama `intentarCompletarElemento` y para el recordatorio del reto |
 
 **RETO.SOLICITAR_RETO** (hijo3/hijo4 → padre)
 
@@ -9117,7 +9117,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-086fe1859230';
+const CACHE_VERSION = 'v-d57331791b38';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11612,7 +11612,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `AVENTURA.FINALIZADA` | Hijo 1 | Al terminar el último elemento en modo AVENTURA (`_handleFinDeAventura`: `{ aventuraId, idioma, motivo: 'completada', timestamp }`) | Que hijo1 detenga el temporizador y conteste con `AVENTURA.ESTADISTICAS_TIEMPO`, tras lo cual el padre muestra el modal de finalización |
 | `CHAT.ESTADO_PADRE` | Hijo 6 | Cada vez que el usuario abre el asistente, ya listo (al cargarse, el estado de entonces viaja dentro de `PADRE_DATOS`): `{ idioma, aventura, paradaActualNombre, rescate }` | Que hijo6 reconstruya su acordeón con el idioma recibido (en cada apertura) y conozca el contexto para el buzón de sugerencias y el botón de rescate |
 | `MAPA_COMPLETO.VISIBLE` | mapa-completo | Una vez, al hacerse visible el overlay del mapa: tras el `load` de su iframe (en el siguiente fotograma) o, si no llega, a los 1500 ms; con `{ numerosCompletados }` al día (sin el campo si no se pueden calcular, §10.8) | Que el mapa recalcule su vista cuando su contenedor ya tiene tamaño, y repinte los números completados |
-| `NAVEGACION.ACTUALIZAR_ESTADO` | Hijo 2 | En cada posición GPS en modo AVENTURA, con la distancia real (`{ distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, … }`, `js/funciones-mapa.js`); y puntualmente al abrir un reto (`{ retoActivo: true, retoId }`), al completarlo (`{ retoActivo: false, retoCompletado, retoId }`) y al dibujar la polyline de ubicación (`{ ubicacionActiva: true }`) | Que hijo2 decida el estado de sus botones y la llegada con la distancia real |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | Hijo 2 | En cada posición GPS en modo AVENTURA, con la distancia real (`{ distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, … }`, `js/funciones-mapa.js`); y puntualmente al abrir un reto (`{ retoActivo: true, retoId }`), al completarlo (`{ retoActivo: false, retoId }`) y al dibujar la polyline de ubicación (`{ ubicacionActiva: true }`) | Que hijo2 decida el estado de sus botones y la llegada con la distancia real |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Hijo 2 | Cuando el GPS queda activo (`_finalizarActivacionGPS`: `{ activo: true, permisos: true, precision: null, error: null }`) | Que hijo2 refleje el estado del GPS |
 | `NAVEGACION.GPS.ERROR` | Hijo 2 | Cuando `watchPosition` devuelve un error (`{ codigo, mensaje, contexto: 'watchPosition' }`) | Que hijo2 conozca el fallo del GPS |
 | `SISTEMA.NOTIFICACION` | Hijo 2 e Hijo 4 | Al crear la ficha pendiente de un elemento (`ensurePending`: `{ evento: 'PENDING_INICIADO', padreId, ttlMs }`) | Aviso del inicio del plazo de pendientes (§10.15) |
@@ -12542,7 +12542,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-086fe1859230';
+const CACHE_VERSION = 'v-d57331791b38';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14323,27 +14323,27 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TIPOS_MENSAJE` | módulo 1 (L3743) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3904) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2778) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13139) | clásico 12 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13136) | clásico 12 | estado |
 | `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9486) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12171) | módulo 1 | función/objeto |
-| `_decidirAvanzar` | módulo 2 (L10693) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13121) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11242) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L11883) | módulo 1 | función/objeto |
-| `_numerosDeMapaCompletados` | módulo 2 (L12339) | clásico 8 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12168) | módulo 1 | función/objeto |
+| `_decidirAvanzar` | módulo 2 (L10690) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13118) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11239) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L11880) | módulo 1 | función/objeto |
+| `_numerosDeMapaCompletados` | módulo 2 (L12336) | clásico 8 | función/objeto |
 | `_reenviarProgressBarAHijo3` | módulo 2 (L9425) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L10586) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L10712) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L10648) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L10610) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10583) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L10709) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L10645) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L10607) | módulo 1 | función/objeto |
 | `_vv_afterHijoListo` | módulo 2 (L8670) | módulo 1 | función/objeto |
 | `actualizarEstadoControlesAudioPadre` | módulo 2 (L9420) | módulo 1 | función/objeto |
 | `AVENTURA_PARADAS` | módulo 2 (L8802) | módulo 1 | función/objeto |
 | `distribuirDatosAventura` | módulo 2 (L8843) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12096) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12093) | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 (L9298) | módulo 1 | función/objeto |
 | `solicitarAudioAHijo3` | módulo 2 (L9290) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13155) | módulo 2 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13152) | módulo 2 | función/objeto |
 
 </details>
 

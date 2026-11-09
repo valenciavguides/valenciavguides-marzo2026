@@ -9849,11 +9849,9 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _procesarResultadoReto(correcto, retoId, estado, logPrefix) {
-            if (!correcto) {
-                (globalThis.logger || console).info(`${logPrefix} Reto fallido, esperando nuevo intento`);
-                return;
-            }
+        // Un RETO.COMPLETADO es siempre un reto cumplido: hijo4 solo lo manda al acertar, al saltar o al cerrar el puzzle
+        // (con `correcto: true`), y un fallo lo reintenta el propio hijo4 sin avisar al padre.
+        async function _procesarResultadoReto(retoId, estado, logPrefix) {
             if (estado.retoActual.colaCompletados) {
                 estado.retoActual.colaCompletados.add(retoId);
             }
@@ -9911,7 +9909,6 @@ await _comprobarReanudacionAventura(logPrefix);
                         destino: 'hijo2',
                         datos: {
                             retoActivo: false,
-                            retoCompletado: correcto,
                             retoId,
                             timestamp: Date.now()
                         }
@@ -9929,11 +9926,11 @@ await _comprobarReanudacionAventura(logPrefix);
                 // auditoría — se retira el envío muerto en vez de dejarlo como falsa pista.
 
                 // Lógica de progresión
-                await _procesarResultadoReto(correcto, retoId, estado, logPrefix);
+                await _procesarResultadoReto(retoId, estado, logPrefix);
 
                 // Sin ACK a hijo4: RETO.COMPLETADO ya viene con acuse del bus, y el
                 // valor que devuelve este handler es lo que le llega de vuelta.
-                (globalThis.logger || console).success(`${logPrefix} Reto ${retoId} procesado exitosamente - ${correcto ? '✅ CORRECTO' : '❌ INCORRECTO'}`);
+                (globalThis.logger || console).success(`${logPrefix} Reto ${retoId} procesado`);
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando reto completado:`, error);
