@@ -235,7 +235,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 
 ---
 
-## 20. Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
+## 20. Iglesia de San Nicolás → Iglesia de San Nicolás
 
 **Usado en 2 sitios:** València centro histórico 2 (Av2-TR-5), Aventura 34 kilómetros (Av34km-TR-46)
 
@@ -247,7 +247,7 @@ Cada bloque es un recorrido real (inicio → waypoints → fin) que el usuario r
 
 ---
 
-## 21. Iglesia de San Nicolás BACK → Plaza del Negrito
+## 21. Iglesia de San Nicolás → Plaza del Negrito
 
 **Usado en 2 sitios:** València centro histórico 2 (Av2-TR-6), Aventura 34 kilómetros (Av34km-TR-47)
 

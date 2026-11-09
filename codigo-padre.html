@@ -7793,8 +7793,13 @@ await _comprobarReanudacionAventura(logPrefix);
                 const plantillaTermina = tipo1 === 'tramo' ? t.terminaTramo : t.terminaParada;
                 let cuerpo = plantillaTermina.replace('{nombre}', escaparHTML(nombre1));
                 if (tipo2 && nombre2) {
+                    // Dos paradas seguidas en el mismo sitio llevan el mismo nombre en los datos: el cartel no lo repite y
+                    // dice que la siguiente está en el mismo lugar (docs/estudio-caminos.md, K-119).
+                    const mismoLugar = tipo1 !== 'tramo' && tipo2 !== 'tramo' && String(nombre2).trim() === String(nombre1).trim();
                     const plantillaEmpieza = tipo2 === 'tramo' ? t.empiezaTramo : t.empiezaParada;
-                    cuerpo += ` — ${plantillaEmpieza.replace('{nombre}', escaparHTML(nombre2))}`;
+                    cuerpo += mismoLugar
+                        ? ` — ${t.empiezaParadaMismoLugar}`
+                        : ` — ${plantillaEmpieza.replace('{nombre}', escaparHTML(nombre2))}`;
                 }
                 // Sin elemento siguiente no viene ningún audio más: el cartel no pide play ni ⏩.
                 const acciones = await _accionesDelCartel({ conAudio: !!(tipo2 && nombre2) });

@@ -108,7 +108,7 @@
 
 ---
 
-## Parada 5 — Iglesia de San Nicolás FRONT
+## Parada 5 — Iglesia de San Nicolás
 
 **Imágenes:** imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg
 
@@ -120,7 +120,7 @@
 
 ---
 
-## Tramo 5 — Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
+## Tramo 5 — Iglesia de San Nicolás → Iglesia de San Nicolás
 
 **Imágenes:** imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_back.jpg
 
@@ -131,7 +131,7 @@
 
 ---
 
-## Parada 6 — Iglesia de San Nicolás BACK
+## Parada 6 — Iglesia de San Nicolás
 
 **Imágenes:** imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg
 
@@ -144,7 +144,7 @@
 
 ---
 
-## Parada 7 — Iglesia de San Nicolás BACK
+## Parada 7 — Iglesia de San Nicolás
 
 **Imágenes:** imagenes/imagenes-aventuras/iglesia_san_nicolas_back.jpg
 
@@ -155,7 +155,7 @@
 
 ---
 
-## Parada 8 — Iglesia de San Nicolás BACK
+## Parada 8 — Iglesia de San Nicolás
 
 **Imágenes:** imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg
 
@@ -166,7 +166,7 @@
 
 ---
 
-## Tramo 6 — Iglesia de San Nicolás BACK → Plaza del Negrito
+## Tramo 6 — Iglesia de San Nicolás → Plaza del Negrito
 
 **Imágenes:** imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_3.jpg, imagenes/imagenes-aventuras/iglesia_san_nicolas_4.jpg, imagenes/imagenes-aventuras/plaza_negrito.jpg, imagenes/imagenes-aventuras/fuente_del_negrito.jpg
 

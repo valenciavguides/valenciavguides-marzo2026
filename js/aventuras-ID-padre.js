@@ -1715,18 +1715,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-es", audio_id: "audio-Av2-TR-3-es" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-es", audio_id: "audio-Av2-TR-4-es" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-es", audio_id: "audio-Av2-P-5-es", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-es", audio_id: "audio-Av2-TR-5-es" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-es", audio_id: "audio-Av2-P-6-es", reto_id: "R7-Av2-es" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-es", audio_id: "audio-Av2-P-7-es", reto_id: "R8-Av2-es" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-es", audio_id: "audio-Av2-P-8-es", reto_id: "R9-Av2-es" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-es", audio_id: "audio-Av2-TR-6-es" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-es", audio_id: "audio-Av2-P-5-es", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-es", audio_id: "audio-Av2-TR-5-es" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-es", audio_id: "audio-Av2-P-6-es", reto_id: "R7-Av2-es" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-es", audio_id: "audio-Av2-P-7-es", reto_id: "R8-Av2-es" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-es", audio_id: "audio-Av2-P-8-es", reto_id: "R9-Av2-es" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-es", audio_id: "audio-Av2-TR-6-es" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-es", audio_id: "audio-Av2-P-9-es", reto_id: "R10-Av2-es" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -1825,18 +1825,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-en", audio_id: "audio-Av2-TR-3-en" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-en", audio_id: "audio-Av2-TR-4-en" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-en", audio_id: "audio-Av2-P-5-en", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-en", audio_id: "audio-Av2-TR-5-en" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-en", audio_id: "audio-Av2-P-6-en", reto_id: "R7-Av2-en" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-en", audio_id: "audio-Av2-P-7-en", reto_id: "R8-Av2-en" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-en", audio_id: "audio-Av2-P-8-en", reto_id: "R9-Av2-en" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-en", audio_id: "audio-Av2-TR-6-en" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-en", audio_id: "audio-Av2-P-5-en", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-en", audio_id: "audio-Av2-TR-5-en" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-en", audio_id: "audio-Av2-P-6-en", reto_id: "R7-Av2-en" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-en", audio_id: "audio-Av2-P-7-en", reto_id: "R8-Av2-en" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-en", audio_id: "audio-Av2-P-8-en", reto_id: "R9-Av2-en" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-en", audio_id: "audio-Av2-TR-6-en" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-en", audio_id: "audio-Av2-P-9-en", reto_id: "R10-Av2-en" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -1935,18 +1935,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-fr", audio_id: "audio-Av2-TR-3-fr" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-fr", audio_id: "audio-Av2-TR-4-fr" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-fr", audio_id: "audio-Av2-P-5-fr", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-fr", audio_id: "audio-Av2-TR-5-fr" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-fr", audio_id: "audio-Av2-P-6-fr", reto_id: "R7-Av2-fr" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-fr", audio_id: "audio-Av2-P-7-fr", reto_id: "R8-Av2-fr" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-fr", audio_id: "audio-Av2-P-8-fr", reto_id: "R9-Av2-fr" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-fr", audio_id: "audio-Av2-TR-6-fr" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-fr", audio_id: "audio-Av2-P-5-fr", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-fr", audio_id: "audio-Av2-TR-5-fr" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-fr", audio_id: "audio-Av2-P-6-fr", reto_id: "R7-Av2-fr" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-fr", audio_id: "audio-Av2-P-7-fr", reto_id: "R8-Av2-fr" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-fr", audio_id: "audio-Av2-P-8-fr", reto_id: "R9-Av2-fr" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-fr", audio_id: "audio-Av2-TR-6-fr" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-fr", audio_id: "audio-Av2-P-9-fr", reto_id: "R10-Av2-fr" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -2045,18 +2045,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-it", audio_id: "audio-Av2-TR-3-it" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-it", audio_id: "audio-Av2-TR-4-it" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-it", audio_id: "audio-Av2-P-5-it", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-it", audio_id: "audio-Av2-TR-5-it" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-it", audio_id: "audio-Av2-P-6-it", reto_id: "R7-Av2-it" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-it", audio_id: "audio-Av2-P-7-it", reto_id: "R8-Av2-it" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-it", audio_id: "audio-Av2-P-8-it", reto_id: "R9-Av2-it" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-it", audio_id: "audio-Av2-TR-6-it" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-it", audio_id: "audio-Av2-P-5-it", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-it", audio_id: "audio-Av2-TR-5-it" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-it", audio_id: "audio-Av2-P-6-it", reto_id: "R7-Av2-it" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-it", audio_id: "audio-Av2-P-7-it", reto_id: "R8-Av2-it" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-it", audio_id: "audio-Av2-P-8-it", reto_id: "R9-Av2-it" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-it", audio_id: "audio-Av2-TR-6-it" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-it", audio_id: "audio-Av2-P-9-it", reto_id: "R10-Av2-it" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -2155,18 +2155,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-nl", audio_id: "audio-Av2-TR-3-nl" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-nl", audio_id: "audio-Av2-TR-4-nl" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-nl", audio_id: "audio-Av2-P-5-nl", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-nl", audio_id: "audio-Av2-TR-5-nl" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-nl", audio_id: "audio-Av2-P-6-nl", reto_id: "R7-Av2-nl" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-nl", audio_id: "audio-Av2-P-7-nl", reto_id: "R8-Av2-nl" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-nl", audio_id: "audio-Av2-P-8-nl", reto_id: "R9-Av2-nl" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-nl", audio_id: "audio-Av2-TR-6-nl" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-nl", audio_id: "audio-Av2-P-5-nl", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-nl", audio_id: "audio-Av2-TR-5-nl" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-nl", audio_id: "audio-Av2-P-6-nl", reto_id: "R7-Av2-nl" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-nl", audio_id: "audio-Av2-P-7-nl", reto_id: "R8-Av2-nl" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-nl", audio_id: "audio-Av2-P-8-nl", reto_id: "R9-Av2-nl" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-nl", audio_id: "audio-Av2-TR-6-nl" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-nl", audio_id: "audio-Av2-P-9-nl", reto_id: "R10-Av2-nl" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -2265,18 +2265,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-ja", audio_id: "audio-Av2-TR-3-ja" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-ja", audio_id: "audio-Av2-TR-4-ja" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-ja", audio_id: "audio-Av2-P-5-ja", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-ja", audio_id: "audio-Av2-TR-5-ja" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-ja", audio_id: "audio-Av2-P-6-ja", reto_id: "R7-Av2-ja" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-ja", audio_id: "audio-Av2-P-7-ja", reto_id: "R8-Av2-ja" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-ja", audio_id: "audio-Av2-P-8-ja", reto_id: "R9-Av2-ja" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-ja", audio_id: "audio-Av2-TR-6-ja" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-ja", audio_id: "audio-Av2-P-5-ja", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-ja", audio_id: "audio-Av2-TR-5-ja" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-ja", audio_id: "audio-Av2-P-6-ja", reto_id: "R7-Av2-ja" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-ja", audio_id: "audio-Av2-P-7-ja", reto_id: "R8-Av2-ja" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-ja", audio_id: "audio-Av2-P-8-ja", reto_id: "R9-Av2-ja" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-ja", audio_id: "audio-Av2-TR-6-ja" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-ja", audio_id: "audio-Av2-P-9-ja", reto_id: "R10-Av2-ja" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -2375,18 +2375,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-de", audio_id: "audio-Av2-TR-3-de" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-de", audio_id: "audio-Av2-TR-4-de" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-de", audio_id: "audio-Av2-P-5-de", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-de", audio_id: "audio-Av2-TR-5-de" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-de", audio_id: "audio-Av2-P-6-de", reto_id: "R7-Av2-de" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-de", audio_id: "audio-Av2-P-7-de", reto_id: "R8-Av2-de" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-de", audio_id: "audio-Av2-P-8-de", reto_id: "R9-Av2-de" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-de", audio_id: "audio-Av2-TR-6-de" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-de", audio_id: "audio-Av2-P-5-de", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-de", audio_id: "audio-Av2-TR-5-de" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-de", audio_id: "audio-Av2-P-6-de", reto_id: "R7-Av2-de" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-de", audio_id: "audio-Av2-P-7-de", reto_id: "R8-Av2-de" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-de", audio_id: "audio-Av2-P-8-de", reto_id: "R9-Av2-de" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-de", audio_id: "audio-Av2-TR-6-de" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-de", audio_id: "audio-Av2-P-9-de", reto_id: "R10-Av2-de" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -2485,18 +2485,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-zh", audio_id: "audio-Av2-TR-3-zh" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-zh", audio_id: "audio-Av2-TR-4-zh" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-zh", audio_id: "audio-Av2-P-5-zh", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-zh", audio_id: "audio-Av2-TR-5-zh" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-zh", audio_id: "audio-Av2-P-6-zh", reto_id: "R7-Av2-zh" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-zh", audio_id: "audio-Av2-P-7-zh", reto_id: "R8-Av2-zh" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-zh", audio_id: "audio-Av2-P-8-zh", reto_id: "R9-Av2-zh" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-zh", audio_id: "audio-Av2-TR-6-zh" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-zh", audio_id: "audio-Av2-P-5-zh", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-zh", audio_id: "audio-Av2-TR-5-zh" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-zh", audio_id: "audio-Av2-P-6-zh", reto_id: "R7-Av2-zh" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-zh", audio_id: "audio-Av2-P-7-zh", reto_id: "R8-Av2-zh" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-zh", audio_id: "audio-Av2-P-8-zh", reto_id: "R9-Av2-zh" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-zh", audio_id: "audio-Av2-TR-6-zh" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-zh", audio_id: "audio-Av2-P-9-zh", reto_id: "R10-Av2-zh" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -2595,18 +2595,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-pl", audio_id: "audio-Av2-TR-3-pl" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-pl", audio_id: "audio-Av2-TR-4-pl" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-pl", audio_id: "audio-Av2-P-5-pl", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-pl", audio_id: "audio-Av2-TR-5-pl" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-pl", audio_id: "audio-Av2-P-6-pl", reto_id: "R7-Av2-pl" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-pl", audio_id: "audio-Av2-P-7-pl", reto_id: "R8-Av2-pl" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-pl", audio_id: "audio-Av2-P-8-pl", reto_id: "R9-Av2-pl" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-pl", audio_id: "audio-Av2-TR-6-pl" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-pl", audio_id: "audio-Av2-P-5-pl", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-pl", audio_id: "audio-Av2-TR-5-pl" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-pl", audio_id: "audio-Av2-P-6-pl", reto_id: "R7-Av2-pl" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-pl", audio_id: "audio-Av2-P-7-pl", reto_id: "R8-Av2-pl" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-pl", audio_id: "audio-Av2-P-8-pl", reto_id: "R9-Av2-pl" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-pl", audio_id: "audio-Av2-TR-6-pl" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-pl", audio_id: "audio-Av2-P-9-pl", reto_id: "R10-Av2-pl" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -2705,18 +2705,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-pt", audio_id: "audio-Av2-TR-3-pt" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-pt", audio_id: "audio-Av2-TR-4-pt" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-pt", audio_id: "audio-Av2-P-5-pt", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-pt", audio_id: "audio-Av2-TR-5-pt" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-pt", audio_id: "audio-Av2-P-6-pt", reto_id: "R7-Av2-pt" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-pt", audio_id: "audio-Av2-P-7-pt", reto_id: "R8-Av2-pt" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-pt", audio_id: "audio-Av2-P-8-pt", reto_id: "R9-Av2-pt" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-pt", audio_id: "audio-Av2-TR-6-pt" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-pt", audio_id: "audio-Av2-P-5-pt", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-pt", audio_id: "audio-Av2-TR-5-pt" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-pt", audio_id: "audio-Av2-P-6-pt", reto_id: "R7-Av2-pt" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-pt", audio_id: "audio-Av2-P-7-pt", reto_id: "R8-Av2-pt" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-pt", audio_id: "audio-Av2-P-8-pt", reto_id: "R9-Av2-pt" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-pt", audio_id: "audio-Av2-TR-6-pt" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-pt", audio_id: "audio-Av2-P-9-pt", reto_id: "R10-Av2-pt" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -2815,18 +2815,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-ru", audio_id: "audio-Av2-TR-3-ru" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-ru", audio_id: "audio-Av2-TR-4-ru" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-ru", audio_id: "audio-Av2-P-5-ru", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-ru", audio_id: "audio-Av2-TR-5-ru" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-ru", audio_id: "audio-Av2-P-6-ru", reto_id: "R7-Av2-ru" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-ru", audio_id: "audio-Av2-P-7-ru", reto_id: "R8-Av2-ru" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-ru", audio_id: "audio-Av2-P-8-ru", reto_id: "R9-Av2-ru" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-ru", audio_id: "audio-Av2-TR-6-ru" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-ru", audio_id: "audio-Av2-P-5-ru", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-ru", audio_id: "audio-Av2-TR-5-ru" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-ru", audio_id: "audio-Av2-P-6-ru", reto_id: "R7-Av2-ru" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-ru", audio_id: "audio-Av2-P-7-ru", reto_id: "R8-Av2-ru" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-ru", audio_id: "audio-Av2-P-8-ru", reto_id: "R9-Av2-ru" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-ru", audio_id: "audio-Av2-TR-6-ru" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-ru", audio_id: "audio-Av2-P-9-ru", reto_id: "R10-Av2-ru" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal
@@ -2925,18 +2925,18 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR3", tipo: "tramo", nombre: "Palau de la Generalitat → Calle Caballeros", tramo_id: "Av2-TR-3", numero_mapa: "3→4", texto_id: "txt-Av2-TR3-uk", audio_id: "audio-Av2-TR-3-uk" },
         // Tramo 4: Calle Caballeros → Iglesia de San Nicolás
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Calle Caballeros → Iglesia de San Nicolás", tramo_id: "Av2-TR-4", numero_mapa: "4→5", texto_id: "txt-Av2-TR4-uk", audio_id: "audio-Av2-TR-4-uk" },
-        // Parada 5 - Iglesia de San Nicolás FRONT (Reto 5 Puzzle PZ-06)
-        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás FRONT", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-uk", audio_id: "audio-Av2-P-5-uk", reto_id: "PZ-06" },
-        // Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-uk", audio_id: "audio-Av2-TR-5-uk" },
-        // Parada 6 - Iglesia de San Nicolás BACK (Reto 6)
-        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-uk", audio_id: "audio-Av2-P-6-uk", reto_id: "R7-Av2-uk" },
-        // Parada 7 - Iglesia de San Nicolás BACK (Reto 7)
-        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-uk", audio_id: "audio-Av2-P-7-uk", reto_id: "R8-Av2-uk" },
-        // Parada 8 - Iglesia de San Nicolás BACK (Reto 8)
-        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás BACK", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-uk", audio_id: "audio-Av2-P-8-uk", reto_id: "R9-Av2-uk" },
-        // Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-uk", audio_id: "audio-Av2-TR-6-uk" },
+        // Parada 5 - Iglesia de San Nicolás (Reto 5 Puzzle PZ-06)
+        { padreid: "padre-P5", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-5", numero_mapa: 5, texto_id: "txt-Av2-P5-uk", audio_id: "audio-Av2-P-5-uk", reto_id: "PZ-06" },
+        // Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás", tramo_id: "Av2-TR-5", numero_mapa: "5→6", texto_id: "txt-Av2-TR5-uk", audio_id: "audio-Av2-TR-5-uk" },
+        // Parada 6 - Iglesia de San Nicolás (Reto 6)
+        { padreid: "padre-P6", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-6", numero_mapa: 6, texto_id: "txt-Av2-P6-uk", audio_id: "audio-Av2-P-6-uk", reto_id: "R7-Av2-uk" },
+        // Parada 7 - Iglesia de San Nicolás (Reto 7)
+        { padreid: "padre-P7", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-7", numero_mapa: 6, texto_id: "txt-Av2-P7-uk", audio_id: "audio-Av2-P-7-uk", reto_id: "R8-Av2-uk" },
+        // Parada 8 - Iglesia de San Nicolás (Reto 8)
+        { padreid: "padre-P8", tipo: "parada", nombre: "Iglesia de San Nicolás", parada_id: "Av2-P-8", numero_mapa: 6, texto_id: "txt-Av2-P8-uk", audio_id: "audio-Av2-P-8-uk", reto_id: "R9-Av2-uk" },
+        // Tramo 6: Iglesia de San Nicolás → Plaza del Negrito
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Iglesia de San Nicolás → Plaza del Negrito", tramo_id: "Av2-TR-6", numero_mapa: "6→7", texto_id: "txt-Av2-TR6-uk", audio_id: "audio-Av2-TR-6-uk" },
         // Parada 9 - Plaza del Negrito (Reto 9)
         { padreid: "padre-P9", tipo: "parada", nombre: "Plaza del Negrito", parada_id: "Av2-P-9", numero_mapa: 7, texto_id: "txt-Av2-P9-uk", audio_id: "audio-Av2-P-9-uk", reto_id: "R10-Av2-uk" },
         // Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal

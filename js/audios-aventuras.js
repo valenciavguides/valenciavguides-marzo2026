@@ -5630,45 +5630,45 @@ export const AUDIOS_AVENTURAS = {
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-es",
-        title: "Parada 5: Iglesia de San Nicolás FRONT",
+        title: "Parada 5: Iglesia de San Nicolás",
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-es",
-        title: "Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "Tramo 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-es",
-        title: "Parada 6: Iglesia de San Nicolás BACK",
+        title: "Parada 6: Iglesia de San Nicolás",
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-es",
-        title: "Parada 7: Iglesia de San Nicolás BACK",
+        title: "Parada 7: Iglesia de San Nicolás",
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-es",
-        title: "Parada 8: Iglesia de San Nicolás BACK",
+        title: "Parada 8: Iglesia de San Nicolás",
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-es",
-        title: "Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "Tramo 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
@@ -5988,45 +5988,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-en",
-        title: "Stop 5: Iglesia de San Nicolás FRONT",
+        title: "Stop 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-en",
-        title: "Section 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "Section 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-en",
-        title: "Stop 6: Iglesia de San Nicolás BACK",
+        title: "Stop 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-en",
-        title: "Stop 7: Iglesia de San Nicolás BACK",
+        title: "Stop 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-en",
-        title: "Stop 8: Iglesia de San Nicolás BACK",
+        title: "Stop 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-en",
-        title: "Section 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "Section 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 
@@ -6346,45 +6346,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-fr",
-        title: "Étape 5: Iglesia de San Nicolás FRONT",
+        title: "Étape 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-fr",
-        title: "Section 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "Section 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-fr",
-        title: "Étape 6: Iglesia de San Nicolás BACK",
+        title: "Étape 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-fr",
-        title: "Étape 7: Iglesia de San Nicolás BACK",
+        title: "Étape 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-fr",
-        title: "Étape 8: Iglesia de San Nicolás BACK",
+        title: "Étape 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-fr",
-        title: "Section 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "Section 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 
@@ -6704,45 +6704,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-it",
-        title: "Tappa 5: Iglesia de San Nicolás FRONT",
+        title: "Tappa 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-it",
-        title: "Tratto 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "Tratto 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-it",
-        title: "Tappa 6: Iglesia de San Nicolás BACK",
+        title: "Tappa 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-it",
-        title: "Tappa 7: Iglesia de San Nicolás BACK",
+        title: "Tappa 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-it",
-        title: "Tappa 8: Iglesia de San Nicolás BACK",
+        title: "Tappa 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-it",
-        title: "Tratto 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "Tratto 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 
@@ -7062,45 +7062,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-nl",
-        title: "Stop 5: Iglesia de San Nicolás FRONT",
+        title: "Stop 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-nl",
-        title: "Traject 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "Traject 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-nl",
-        title: "Stop 6: Iglesia de San Nicolás BACK",
+        title: "Stop 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-nl",
-        title: "Stop 7: Iglesia de San Nicolás BACK",
+        title: "Stop 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-nl",
-        title: "Stop 8: Iglesia de San Nicolás BACK",
+        title: "Stop 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-nl",
-        title: "Traject 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "Traject 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 
@@ -7420,45 +7420,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-ja",
-        title: "停留所 5: Iglesia de San Nicolás FRONT",
+        title: "停留所 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-ja",
-        title: "区間 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "区間 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-ja",
-        title: "停留所 6: Iglesia de San Nicolás BACK",
+        title: "停留所 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-ja",
-        title: "停留所 7: Iglesia de San Nicolás BACK",
+        title: "停留所 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-ja",
-        title: "停留所 8: Iglesia de San Nicolás BACK",
+        title: "停留所 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-ja",
-        title: "区間 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "区間 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 
@@ -7778,45 +7778,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-de",
-        title: "Halt 5: Iglesia de San Nicolás FRONT",
+        title: "Halt 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-de",
-        title: "Abschnitt 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "Abschnitt 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-de",
-        title: "Halt 6: Iglesia de San Nicolás BACK",
+        title: "Halt 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-de",
-        title: "Halt 7: Iglesia de San Nicolás BACK",
+        title: "Halt 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-de",
-        title: "Halt 8: Iglesia de San Nicolás BACK",
+        title: "Halt 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-de",
-        title: "Abschnitt 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "Abschnitt 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 
@@ -8136,45 +8136,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-zh",
-        title: "站 5: Iglesia de San Nicolás FRONT",
+        title: "站 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-zh",
-        title: "段 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "段 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-zh",
-        title: "站 6: Iglesia de San Nicolás BACK",
+        title: "站 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-zh",
-        title: "站 7: Iglesia de San Nicolás BACK",
+        title: "站 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-zh",
-        title: "站 8: Iglesia de San Nicolás BACK",
+        title: "站 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-zh",
-        title: "段 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "段 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 
@@ -8494,45 +8494,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-pl",
-        title: "Przystanek 5: Iglesia de San Nicolás FRONT",
+        title: "Przystanek 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-pl",
-        title: "Odcinek 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "Odcinek 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-pl",
-        title: "Przystanek 6: Iglesia de San Nicolás BACK",
+        title: "Przystanek 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-pl",
-        title: "Przystanek 7: Iglesia de San Nicolás BACK",
+        title: "Przystanek 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-pl",
-        title: "Przystanek 8: Iglesia de San Nicolás BACK",
+        title: "Przystanek 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-pl",
-        title: "Odcinek 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "Odcinek 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 
@@ -8852,45 +8852,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-pt",
-        title: "Parada 5: Iglesia de San Nicolás FRONT",
+        title: "Parada 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-pt",
-        title: "Percurso 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "Percurso 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-pt",
-        title: "Parada 6: Iglesia de San Nicolás BACK",
+        title: "Parada 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-pt",
-        title: "Parada 7: Iglesia de San Nicolás BACK",
+        title: "Parada 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-pt",
-        title: "Parada 8: Iglesia de San Nicolás BACK",
+        title: "Parada 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-pt",
-        title: "Percurso 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "Percurso 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 
@@ -9210,45 +9210,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-ru",
-        title: "Остановка 5: Iglesia de San Nicolás FRONT",
+        title: "Остановка 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-ru",
-        title: "Участок 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "Участок 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-ru",
-        title: "Остановка 6: Iglesia de San Nicolás BACK",
+        title: "Остановка 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-ru",
-        title: "Остановка 7: Iglesia de San Nicolás BACK",
+        title: "Остановка 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-ru",
-        title: "Остановка 8: Iglesia de San Nicolás BACK",
+        title: "Остановка 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-ru",
-        title: "Участок 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "Участок 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 
@@ -9568,45 +9568,45 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+      // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-uk",
-        title: "Зупинка 5: Iglesia de San Nicolás FRONT",
+        title: "Зупинка 5: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+      // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-uk",
-        title: "Ділянка 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        title: "Ділянка 5: Iglesia de San Nicolás → Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-uk",
-        title: "Зупинка 6: Iglesia de San Nicolás BACK",
+        title: "Зупинка 6: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+      // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-uk",
-        title: "Зупинка 7: Iglesia de San Nicolás BACK",
+        title: "Зупинка 7: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+      // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-uk",
-        title: "Зупинка 8: Iglesia de San Nicolás BACK",
+        title: "Зупинка 8: Iglesia de San Nicolás",
         file: ""
       },
 
-      // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+      // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-uk",
-        title: "Ділянка 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
+        title: "Ділянка 6: Iglesia de San Nicolás → Plaza del Negrito",
         file: ""
       },
 

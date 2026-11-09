@@ -1479,25 +1479,25 @@ export const DATOS_AVENTURAS = {
                     video: ""
                 },
 
-                // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490)
+                // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490)
                 {
                     id: "Av2-P-5",
                     tipo: "parada",
                     parada: 8, // mapa número 5
                     mapa_numero: 5,
-                    nombre: "Iglesia de San Nicolás FRONT",
+                    nombre: "Iglesia de San Nicolás",
                     coordenadas: { lat: Number('39.476570'), lng: Number('-0.378830') },
                     imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
                     imagenes_idioma: ["arcos", "arcos-evolucion", "arquitectura-gotica", "arquitectura-detalles", "arquitectura-detalles-2"],
                 },
 
-                // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10)
+                // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10)
                 {
                     id: "Av2-TR-5",
                     tipo: "tramo",
                     tramo: 5, // De mapa número 5 a mapa número 6
                     mapa_numero: "5→6",
-                    nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+                    nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás",
                     inicio: { lat: Number('39.476570'), lng: Number('-0.378830') },
                     waypoints:
                     [
@@ -1510,47 +1510,47 @@ export const DATOS_AVENTURAS = {
                     video: ""
                 },
 
-                // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496)
+                // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496)
                 {
                     id: "Av2-P-6",
                     tipo: "parada",
                     parada: 9, // mapa número 6
                     mapa_numero: 6,
-                    nombre: "Iglesia de San Nicolás BACK",
+                    nombre: "Iglesia de San Nicolás",
                     coordenadas: { lat: Number('39.476100'), lng: Number('-0.379180') },
                     imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
                     imagenes_idioma: ["arquitectura-iglesia", "arquitectura-iglesias"],
                 },
 
-                // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498)
+                // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498)
                 {
                     id: "Av2-P-7",
                     tipo: "parada",
                     parada: 10, // mapa número 6
                     mapa_numero: 6,
-                    nombre: "Iglesia de San Nicolás BACK",
+                    nombre: "Iglesia de San Nicolás",
                     coordenadas: { lat: Number('39.476070'), lng: Number('-0.379180') },
                     imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_back.jpg",
                 },
 
-                // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505)
+                // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505)
                 {
                     id: "Av2-P-8",
                     tipo: "parada",
                     parada: 11, // mapa número 6
                     mapa_numero: 6,
-                    nombre: "Iglesia de San Nicolás BACK",
+                    nombre: "Iglesia de San Nicolás",
                     coordenadas: { lat: Number('39.476050'), lng: Number('-0.379150') },
                     imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
                 },
 
-                // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B)
+                // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B)
                 {
                     id: "Av2-TR-6",
                     tipo: "tramo",
                     tramo: 6, // De mapa número 6 a mapa número 7
                     mapa_numero: "6→7",
-                    nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito",
+                    nombre: "Iglesia de San Nicolás → Plaza del Negrito",
                     inicio: { lat: Number('39.476050'), lng: Number('-0.379150') },
                     waypoints:
                     [
@@ -9873,7 +9873,7 @@ export const DATOS_AVENTURAS = {
         video: ""
     },
 
-    // Parada 70 - Iglesia de San Nicolás FRONT (Reto56puzzle PZ-06) (Párrafos: 488, 489, 490)
+    // Parada 70 - Iglesia de San Nicolás (Reto56puzzle PZ-06) (Párrafos: 488, 489, 490)
     {
         id: "Av34km-P-70",
         tipo: "parada",
@@ -9884,7 +9884,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
     },
 
-    // Tramo 46 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 63)
+    // Tramo 46 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63)
     {
         id: "Av34km-TR-46",
         tipo: "tramo",
@@ -9903,7 +9903,7 @@ export const DATOS_AVENTURAS = {
         video: ""
     },
 
-    // Parada 71 - Iglesia de San Nicolás BACK (Reto 57) (Párrafos: 493, 494, 495, 496)
+    // Parada 71 - Iglesia de San Nicolás (Reto 57) (Párrafos: 493, 494, 495, 496)
     {
         id: "Av34km-P-71",
         tipo: "parada",
@@ -9914,7 +9914,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_esquina_back.jpg",
     },
 
-    // Parada 72 - Iglesia de San Nicolás BACK (Reto 58) (Párrafos: 497, 498)
+    // Parada 72 - Iglesia de San Nicolás (Reto 58) (Párrafos: 497, 498)
     {
         id: "Av34km-P-72",
         tipo: "parada",
@@ -9924,7 +9924,7 @@ export const DATOS_AVENTURAS = {
         coordenadas: { lat: Number('39.476070'), lng: Number('-0.379180') },
         imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_back.jpg",
     },
-    // Tramo 47 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500)
+    // Tramo 47 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500)
     {
         id: "Av34km-TR-47",
         tipo: "tramo",

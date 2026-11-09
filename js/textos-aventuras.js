@@ -231,22 +231,22 @@
     // Tramo 4 - Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487-B) (mapa 4→5)
     { id: "txt-Av2-TR4", parrafos: ["487-B"] },
 
-    // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
+    // Parada 5 - Iglesia de San Nicolás (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
     { id: "txt-Av2-P5", parrafos: [488, 489, 490] },
 
-    // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
+    // Tramo 5 - Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 10) (mapa 5→6)
     { id: "txt-Av2-TR5", parrafos: [491, 10] },
 
-    // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+    // Parada 6 - Iglesia de San Nicolás (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
     { id: "txt-Av2-P6", parrafos: [493, "494-B", 495, 496] },
 
-    // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
+    // Parada 7 - Iglesia de San Nicolás (Reto 8) (Párrafos: 497, 498) (mapa 6)
     { id: "txt-Av2-P7", parrafos: [497, 498] },
 
-    // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
+    // Parada 8 - Iglesia de San Nicolás (Reto 9) (Párrafos: 504, 505) (mapa 6)
     { id: "txt-Av2-P8", parrafos: [504, 505] },
 
-    // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
+    // Tramo 6 - Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
     { id: "txt-Av2-TR6", parrafos: [499, "500-B"] },
 
     // Parada 9 - Plaza del Negrito (Reto 10) (Párrafos: 382, 501) (mapa 7)

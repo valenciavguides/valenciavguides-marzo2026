@@ -416,18 +416,18 @@ export const TRADUCCIONES_FINALIZACION = {
 // cual viene en elementosIDpadre — los tramos ya incluyen su propia flecha ("A → B"), por eso
 // las frases de tramo no añaden "hacia" ni ninguna preposición de dirección redundante.
 export const TRADUCCIONES_CARTEL_TRANSICION = {
-    es: { terminaParada: 'Ha terminado la parada {nombre}', terminaTramo: 'Ha terminado el tramo {nombre}', empiezaParada: 'va a empezar la parada {nombre}', empiezaTramo: 'va a empezar el tramo {nombre}' },
-    en: { terminaParada: 'You have finished the stop {nombre}', terminaTramo: 'You have finished the segment {nombre}', empiezaParada: 'you are about to start the stop {nombre}', empiezaTramo: 'you are about to start the segment {nombre}' },
-    fr: { terminaParada: "Vous avez terminé l'arrêt {nombre}", terminaTramo: 'Vous avez terminé le tronçon {nombre}', empiezaParada: "vous allez commencer l'arrêt {nombre}", empiezaTramo: 'vous allez commencer le tronçon {nombre}' },
-    it: { terminaParada: 'Ha terminato la tappa {nombre}', terminaTramo: 'Ha terminato il tratto {nombre}', empiezaParada: 'sta per iniziare la tappa {nombre}', empiezaTramo: 'sta per iniziare il tratto {nombre}' },
-    nl: { terminaParada: 'U heeft de stop {nombre} voltooid', terminaTramo: 'U heeft het traject {nombre} voltooid', empiezaParada: 'u gaat beginnen aan de stop {nombre}', empiezaTramo: 'u gaat beginnen aan het traject {nombre}' },
-    de: { terminaParada: 'Sie haben die Station {nombre} abgeschlossen', terminaTramo: 'Sie haben den Abschnitt {nombre} abgeschlossen', empiezaParada: 'Sie beginnen gleich mit der Station {nombre}', empiezaTramo: 'Sie beginnen gleich mit dem Abschnitt {nombre}' },
-    ja: { terminaParada: '{nombre}の見学を終えました', terminaTramo: '{nombre}を歩き終えました', empiezaParada: '次は{nombre}です', empiezaTramo: '次は{nombre}を歩きます' },
-    zh: { terminaParada: '您已完成站点 {nombre}', terminaTramo: '您已完成路段 {nombre}', empiezaParada: '接下来将前往站点 {nombre}', empiezaTramo: '接下来将开始路段 {nombre}' },
-    pl: { terminaParada: 'Ukończono przystanek {nombre}', terminaTramo: 'Ukończono odcinek {nombre}', empiezaParada: 'następny przystanek: {nombre}', empiezaTramo: 'następny odcinek: {nombre}' },
-    pt: { terminaParada: 'Você concluiu a parada {nombre}', terminaTramo: 'Você concluiu o trecho {nombre}', empiezaParada: 'você vai começar a parada {nombre}', empiezaTramo: 'você vai começar o trecho {nombre}' },
-    ru: { terminaParada: 'Вы завершили остановку {nombre}', terminaTramo: 'Вы завершили участок {nombre}', empiezaParada: 'далее — остановка {nombre}', empiezaTramo: 'далее — участок {nombre}' },
-    uk: { terminaParada: 'Ви завершили зупинку {nombre}', terminaTramo: 'Ви завершили ділянку {nombre}', empiezaParada: 'далі — зупинка {nombre}', empiezaTramo: 'далі — ділянка {nombre}' }
+    es: { terminaParada: 'Ha terminado la parada {nombre}', terminaTramo: 'Ha terminado el tramo {nombre}', empiezaParada: 'va a empezar la parada {nombre}', empiezaTramo: 'va a empezar el tramo {nombre}', empiezaParadaMismoLugar: 'va a empezar la siguiente, en el mismo lugar' },
+    en: { terminaParada: 'You have finished the stop {nombre}', terminaTramo: 'You have finished the segment {nombre}', empiezaParada: 'you are about to start the stop {nombre}', empiezaTramo: 'you are about to start the segment {nombre}', empiezaParadaMismoLugar: 'the next one is in the same place' },
+    fr: { terminaParada: "Vous avez terminé l'arrêt {nombre}", terminaTramo: 'Vous avez terminé le tronçon {nombre}', empiezaParada: "vous allez commencer l'arrêt {nombre}", empiezaTramo: 'vous allez commencer le tronçon {nombre}', empiezaParadaMismoLugar: 'le suivant se trouve au même endroit' },
+    it: { terminaParada: 'Ha terminato la tappa {nombre}', terminaTramo: 'Ha terminato il tratto {nombre}', empiezaParada: 'sta per iniziare la tappa {nombre}', empiezaTramo: 'sta per iniziare il tratto {nombre}', empiezaParadaMismoLugar: 'la prossima si trova nello stesso luogo' },
+    nl: { terminaParada: 'U heeft de stop {nombre} voltooid', terminaTramo: 'U heeft het traject {nombre} voltooid', empiezaParada: 'u gaat beginnen aan de stop {nombre}', empiezaTramo: 'u gaat beginnen aan het traject {nombre}', empiezaParadaMismoLugar: 'de volgende is op dezelfde plek' },
+    de: { terminaParada: 'Sie haben die Station {nombre} abgeschlossen', terminaTramo: 'Sie haben den Abschnitt {nombre} abgeschlossen', empiezaParada: 'Sie beginnen gleich mit der Station {nombre}', empiezaTramo: 'Sie beginnen gleich mit dem Abschnitt {nombre}', empiezaParadaMismoLugar: 'die nächste ist am selben Ort' },
+    ja: { terminaParada: '{nombre}の見学を終えました', terminaTramo: '{nombre}を歩き終えました', empiezaParada: '次は{nombre}です', empiezaTramo: '次は{nombre}を歩きます', empiezaParadaMismoLugar: '次も同じ場所です' },
+    zh: { terminaParada: '您已完成站点 {nombre}', terminaTramo: '您已完成路段 {nombre}', empiezaParada: '接下来将前往站点 {nombre}', empiezaTramo: '接下来将开始路段 {nombre}', empiezaParadaMismoLugar: '下一站也在同一地点' },
+    pl: { terminaParada: 'Ukończono przystanek {nombre}', terminaTramo: 'Ukończono odcinek {nombre}', empiezaParada: 'następny przystanek: {nombre}', empiezaTramo: 'następny odcinek: {nombre}', empiezaParadaMismoLugar: 'następny przystanek jest w tym samym miejscu' },
+    pt: { terminaParada: 'Você concluiu a parada {nombre}', terminaTramo: 'Você concluiu o trecho {nombre}', empiezaParada: 'você vai começar a parada {nombre}', empiezaTramo: 'você vai começar o trecho {nombre}', empiezaParadaMismoLugar: 'a próxima fica no mesmo lugar' },
+    ru: { terminaParada: 'Вы завершили остановку {nombre}', terminaTramo: 'Вы завершили участок {nombre}', empiezaParada: 'далее — остановка {nombre}', empiezaTramo: 'далее — участок {nombre}', empiezaParadaMismoLugar: 'следующая находится там же' },
+    uk: { terminaParada: 'Ви завершили зупинку {nombre}', terminaTramo: 'Ви завершили ділянку {nombre}', empiezaParada: 'далі — зупинка {nombre}', empiezaTramo: 'далі — ділянка {nombre}', empiezaParadaMismoLugar: 'наступна розташована там само' }
 };
 
 // Lo que piden hacer los cinco carteles de «algo acaba de pasar» (transición, inicio de tramo, llegada y las dos

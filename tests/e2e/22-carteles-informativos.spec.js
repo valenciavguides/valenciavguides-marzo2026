@@ -12,6 +12,9 @@
  *         empezar Y" y pide los dos, con sus dos iconos.
  *   CI-1b Cartel de transición sin elemento siguiente: no viene ningún audio más, así que
  *         pide solo «avanzar».
+ *   CI-1c Cartel de transición entre dos paradas con el mismo nombre (dos paradas
+ *         seguidas en el mismo sitio): no repite el nombre, dice que la siguiente está
+ *         en el mismo lugar.
  *   CI-2  Cartel de inicio de tramo, variante parada→tramo: "Ha terminado la parada X —
  *         va a empezar el tramo Y." con terminaParada/empiezaTramo de
  *         TRADUCCIONES_CARTEL_TRANSICION, y pide «avanzar», play y la línea azul.
@@ -123,6 +126,15 @@ test.describe('CI — Carteles informativos no bloqueantes', () => {
     expect(info.texto).toContain('pulse el botón avanzar');
     expect(info.texto).not.toContain('play');
     expect(info.imgs).toEqual(['fotoruta-A-B.png']);
+  });
+
+  test('CI-1c. Cartel de transición entre dos paradas con el mismo nombre: no lo repite, dice que la siguiente está en el mismo lugar', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.mostrarCartelTransicion === 'function', null, { timeout: 15000 });
+    await ponerBotones(page, { avanzar: true, audio: 'play' });
+    await page.evaluate(() => { globalThis.mostrarCartelTransicion('parada', 'Plaza de la Virgen', 'parada', 'Plaza de la Virgen'); });
+    const info = await leerCartel(page, 'cartel-transicion');
+    expect(info.texto).toContain('Ha terminado la parada Plaza de la Virgen — va a empezar la siguiente, en el mismo lugar');
+    expect(info.texto.split('Plaza de la Virgen').length - 1, 'el nombre, una sola vez').toBe(1);
   });
 
   test('CI-2. Cartel de inicio de tramo (parada→tramo): nombra la parada y el tramo, y pide «avanzar», play y la línea azul', async ({ page }) => {
