@@ -2636,8 +2636,7 @@
     <iframe id="hijo2" name="hijo2"
         title="Botones de coordenadas"
         aria-label="Botones de navegación y coordenadas"
-        class="iframe-rounded-right"
-        allow="geolocation"></iframe>
+        class="iframe-rounded-right"></iframe>
 
     <!-- Retos iframe -->
     <iframe id="hijo4" name="hijo4"
@@ -5081,20 +5080,6 @@
             } catch (e) { (globalThis.logger || console).debug(`${logPrefix} Error esperando hijo2 listo:`, e); }
         }
 
-        function _gpsCheckIframePermission(logPrefix) {
-            try {
-                const iframeHijo2 = document.getElementById('hijo2');
-                if (iframeHijo2) {
-                    const allowAttr = iframeHijo2.getAttribute('allow') || '';
-                    if (allowAttr.includes('geolocation')) {
-                        (globalThis.logger || console).debug(`${logPrefix} Iframe 'hijo2' tiene allow="geolocation"`);
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} Iframe 'hijo2' no expone 'geolocation' en allow attribute; fallback de inicio puede fallar`);
-                    }
-                }
-            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-        }
-
         function _gpsDiagnosticsInit(logPrefix) {
             try {
                 consultarPermisoGeolocalizacion().then((r) => {
@@ -5106,7 +5091,6 @@
 
         async function _gpsInicializarPreActivacion(est, logPrefix) {
             await _gpsEsperarHijosListos(logPrefix);
-            _gpsCheckIframePermission(logPrefix);
             _gpsDiagnosticsInit(logPrefix);
             est.gps = est.gps || {};
         }

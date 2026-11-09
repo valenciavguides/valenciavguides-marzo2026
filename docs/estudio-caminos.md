@@ -4153,6 +4153,7 @@ Hallazgos de la auditoría completa de la guía contra el código que no tenían
 - **Dónde.** El iframe de hijo2 lleva `allow="geolocation"` (`codigo-padre.html:2628`) y hijo2 no llama nunca a `navigator.geolocation` (búsqueda desnuda en `coordenadas-hijo2.html`: 0); recibe la posición del padre. `_gpsCheckIframePermission` (`:5078-5090`, llamada en `:5103`) mira el atributo y escribe un `debug` o un `warn`.
 - **Lo que no cuadra.** Un permiso que nadie usa (el GPS es solo del padre) y una comprobación de algo que no hace falta.
 - **Pendiente: decisión, sin cambio visible.** *A)* quitar el atributo y la función; *B)* dejarlos.
+- **Hecha, la A (2026-11-09; la regla del usuario para esta familia: «si se puede unificar, unificaremos, eliminando código muerto»).** Fuera el `allow="geolocation"` del iframe de hijo2 y `_gpsCheckIframePermission` con su llamada. Comprobado antes, además de hijo2: los cinco módulos que carga (`mensajeria`, `utils`, `constants`, `logger`, `config`) tampoco piden la posición en hijo2 (`utils.js` la pide solo dentro de `pedirPosicionPuntual` y `consultarPermisoGeolocalizacion`, que hijo2 no llama). Guía §20 y la descripción de hijo2. Chromium: specs 04, 08, 155 y 170, 56 de 56.
 
 ##### K-166 — El modal de tiempo agotado se construye con el HTML y el CSS copiados del de fin de aventura — ✅ (leído)
 
@@ -5109,7 +5110,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 156 | 3 | K-162 | una sola función que arme la carga de `RETO.MOSTRAR` para los tres caminos, o dejarlo | — | la cola de retos (blanda) | decisión |
 | 157 | 2 | K-163 | un solo pintor del reloj en el padre, con un solo formato, o dejarlo | — | — | decisión |
 | 158 | 1 | K-164 | quitar, corregir o dejar la rama de hijo2 que solo casa con `intro` | — | — | decisión |
-| 159 | 1 | K-165 | fuera `allow="geolocation"` de hijo2 y `_gpsCheckIframePermission`, o dejarlos | GUÍA | — | decisión |
+| 159 | 1 | K-165 | fuera `allow="geolocation"` de hijo2 y `_gpsCheckIframePermission`, o dejarlos — **hecha (2026-11-09)** | GUÍA | — | sí |
 | 160 | 2 | K-166 | un solo constructor para los modales de fin y de tiempo agotado, o dejarlo | — | K-106 (blanda) | decisión |
 | 161 | 5 | K-167 | qué protección se quiere en producción; con eso, apuntar o quitar lo que no protege (y, desde K-114, la etiqueta HSTS en `<meta>` de 16 páginas); el usuario la deja para el final, justo antes de borrar este documento | GUÍA | — | decisión |
 | 162 | 2 | K-168 | las franjas de distancia en un solo sitio, o dejarlo | GUÍA | — | decisión |
