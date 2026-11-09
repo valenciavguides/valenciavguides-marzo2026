@@ -237,6 +237,18 @@ export function pedirPosicionPuntual({ plazoMs, maximumAge = 0 } = {}) {
 }
 
 /**
+ * Una vibración corta: la única forma de vibrar de la aplicación (docs/estudio-caminos.md, K-28). Un solo pulso de
+ * 300 ms, perceptible sin ser una vibración larga de llamada, y nunca en bucle. La usan los carteles y recordatorios del
+ * padre (la única de sus señales que llega sin mirar la pantalla), hijo4 y la selección al fallar una respuesta.
+ * `navigator.vibrate` no existe en escritorio ni en Safari/iOS: sin él no hace nada y nunca lanza.
+ */
+export function vibrar() {
+    try {
+        if (typeof globalThis.navigator?.vibrate === 'function') globalThis.navigator.vibrate(300);
+    } catch (_e) { /* no crítico: sin vibración, el aviso sigue a la vista */ }
+}
+
+/**
  * Reintenta una operación hasta que esté disponible
  * @param {Function} checkFn - Función que retorna true cuando está listo
  * @param {Object} [options] - Opciones

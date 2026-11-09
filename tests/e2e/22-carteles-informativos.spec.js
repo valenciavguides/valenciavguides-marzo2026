@@ -31,7 +31,7 @@
  *         transición genérico (CI-1) — la comprobación de que la bifurcación de 4
  *         vías no confunde "sigue un tramo" con "sigue una parada".
  *   CI-7  Vibración: al mostrarse cualquiera de los 5 carteles, navigator.vibrate()
- *         se llama exactamente una vez con 200ms.
+ *         se llama exactamente una vez con 300 ms (vibrar() de js/utils.js, la de toda la app).
  *   CI-8  Sin navigator.vibrate (Safari/escritorio), el cartel se muestra igual sin
  *         lanzar error.
  */
@@ -239,7 +239,7 @@ test.describe('CI — Carteles informativos no bloqueantes', () => {
 // Describe aparte: el mock de navigator.vibrate debe inyectarse ANTES de que cargue
 // cualquier script del padre, así que no reutiliza el beforeEach general de arriba.
 test.describe('CI — Vibración al mostrar un cartel', () => {
-  test('CI-7. navigator.vibrate se llama exactamente una vez con 200ms', async ({ page }) => {
+  test('CI-7. navigator.vibrate se llama exactamente una vez con 300 ms', async ({ page }) => {
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await page.addInitScript(() => {
       window.__vibrateCalls = [];
@@ -263,7 +263,7 @@ test.describe('CI — Vibración al mostrar un cartel', () => {
 
     const calls = await page.evaluate(() => window.__vibrateCalls);
     expect(calls.length, 'navigator.vibrate debe llamarse exactamente una vez por cartel').toBe(1);
-    expect(calls[0]).toBe(200);
+    expect(calls[0]).toBe(300);
   });
 
   test('CI-8. Sin navigator.vibrate (escritorio/Safari), el cartel se muestra igual sin lanzar error', async ({ page }) => {

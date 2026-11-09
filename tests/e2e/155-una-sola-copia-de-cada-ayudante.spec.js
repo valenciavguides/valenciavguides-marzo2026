@@ -14,10 +14,13 @@
  *   UC-4  Control: el título del texto de la galería con etiquetas sale como texto (lo escapaban ya las dos maneras).
  *   UC-5  El historial: la entrada que intercepta «atrás» la apila una sola función del padre (`history.pushState` en
  *         un solo sitio).
+ *   UC-6  La vibración: una sola llamada a `navigator.vibrate`, la de `vibrar()` de `js/utils.js` (300 ms), para el
+ *         padre, hijo4 y la selección.
  *
  * ROJO ANTES QUE VERDE: con las copias del padre, UC-2 cae; con la galería escapando por `textContent`/`innerHTML`, que no
  * escapa las comillas, UC-3 cae (el `alt` se corta en la primera comilla). UC-4 pasa con las dos. Con el apilado del
- * «atrás» escrito en sus tres sitios (la activación, la reanudación y el propio escucha de `popstate`), UC-5 cae.
+ * «atrás» escrito en sus tres sitios (la activación, la reanudación y el propio escucha de `popstate`), UC-5 cae; con las
+ * tres vibraciones (el padre a 200 ms, hijo4 y la selección a 300), UC-6.
  */
 'use strict';
 
@@ -52,6 +55,10 @@ test.describe('UC — una sola copia de cada ayudante (estático)', () => {
 
   test('UC-5. La entrada del historial que intercepta «atrás» la apila una sola función del padre', () => {
     expect(dondeCasa(/history\.pushState\(/g)).toEqual([['codigo-padre.html', 1]]);
+  });
+
+  test('UC-6. La vibración tiene un solo sitio: vibrar() de js/utils.js', () => {
+    expect(dondeCasa(/\.vibrate\s*(?:\?\.)?\(/g)).toEqual([['js/utils.js', 1]]);
   });
 });
 

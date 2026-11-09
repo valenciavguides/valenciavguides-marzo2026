@@ -429,9 +429,9 @@
     // `globalThis.mensajeria`. Sin bus, esos avisos se encolan, se reintentan 10 s y se tiran,
     // y un fallo aquí dentro no se entera nadie (spec 81).
     import * as bus from './js/mensajeria.js';
-    // Importado por su efecto: al cargarse instala la captura de `error` y `unhandledrejection`
-    // de este frame. El bus ya lo arrastra, pero de ahí no se deduce leyendo este fichero.
-    import './js/utils.js';
+    // Importado por su efecto —al cargarse instala la captura de `error` y `unhandledrejection`
+    // de este frame; el bus ya lo arrastra, pero de ahí no se deduce leyendo este fichero— y por vibrar, la de toda la app.
+    import { vibrar } from './js/utils.js';
     import { PLACEHOLDER_RESPUESTA_TEXTO, MSG_RETO_NO_DISPONIBLE } from './js/traducciones-ui.js';
 
     // Ocultar la interfaz AQUI, antes del primer `await` de este modulo, y no mas abajo.
@@ -676,13 +676,6 @@
         setTimeout(() => {
             fuegosDiv.style.display = "none";
         }, DURACION_TOTAL_MS + 100);
-    }
-
-    /* Función: vibrar()
-       Activa una vibración corta en dispositivos compatibles.
-    */
-    function vibrar() {
-        if (navigator.vibrate) navigator.vibrate(300);
     }
 
     // Asegura que el script se ejecute una vez que el DOM esté completamente cargado.

@@ -1669,7 +1669,7 @@
         caja.style.borderColor = '#dc3545';
         tick.style.display = 'none';
         x.style.display = 'inline';
-        navigator.vibrate?.(300);
+        import('./js/utils.js').then(({ vibrar }) => vibrar()).catch((e) => (globalThis.logger || console).error('[SELECCION] No se pudo vibrar:', e?.message || e));
         setTimeout(() => {
           tick.style.display = 'none';
           x.style.display = 'none';

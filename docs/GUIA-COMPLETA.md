@@ -1384,11 +1384,11 @@ Con «avanzar» y play pulsables, dos iconos: avanzar (`fotoruta-A-B.png`) y aud
 
 **Por qué existe:** glow, spin y los propios carteles (§4.7h-l, §25.5c-d) son señales visuales — todas exigen que el usuario esté mirando la pantalla en el instante exacto en que aparecen. Un usuario mirando el monumento, no el móvil, puede no darse cuenta de ninguna de ellas. La vibración es la única señal de las cuatro que llega igual sin mirar.
 
-**Implementación:** `_vibrarCartel()` (`codigo-padre.html`, función de módulo justo antes de `mostrarCartelTransicion`) — `if (typeof navigator.vibrate === 'function') navigator.vibrate(200);` envuelto en `try/catch`. Se llama una vez, al final de cada una de las 10 funciones de cartel (los 5 de uso único — `mostrarCartelTransicion`, `mostrarCartelInicioTramo`, `mostrarCartelLlegadaParada`, `mostrarCartelBienvenidaTramo`, `mostrarCartelBienvenidaParada` —, los 3 recordatorios periódicos — `_mostrarCartelRecordatorioAudio`, `_mostrarCartelRecordatorioReto`, `_mostrarCartelRecordatorioSaltarAudio`, §25.5c/d/g —, el aviso acotado de progreso no guardado — `_mostrarCartelAvisoProgreso`, §25.5h — y el recordatorio de rescate — `_mostrarCartelRecordatorioRescate`, §25.19), justo después de `document.body.appendChild(cartel)`.
+**Implementación:** `vibrar()` (`js/utils.js`, que Script 1 importa) — `if (typeof globalThis.navigator?.vibrate === 'function') globalThis.navigator.vibrate(300);` envuelto en `try/catch`; es la única forma de vibrar de la app: la usan también hijo4 y la selección al fallar una respuesta. Se llama una vez, al final de cada una de las 10 funciones de cartel (los 5 de uso único — `mostrarCartelTransicion`, `mostrarCartelInicioTramo`, `mostrarCartelLlegadaParada`, `mostrarCartelBienvenidaTramo`, `mostrarCartelBienvenidaParada` —, los 3 recordatorios periódicos — `_mostrarCartelRecordatorioAudio`, `_mostrarCartelRecordatorioReto`, `_mostrarCartelRecordatorioSaltarAudio`, §25.5c/d/g —, el aviso acotado de progreso no guardado — `_mostrarCartelAvisoProgreso`, §25.5h — y el recordatorio de rescate — `_mostrarCartelRecordatorioRescate`, §25.19), justo después de `document.body.appendChild(cartel)`.
 
 **Por qué comprueba soporte antes de llamar:** `navigator.vibrate` no existe en navegadores de escritorio ni en Safari/iOS (nunca lo ha implementado) — llamarlo sin comprobar lanzaría `TypeError: navigator.vibrate is not a function` en esos casos. La comprobación hace que el cartel se muestre exactamente igual, solo sin el vibrado, en cualquier entorno sin soporte — nunca bloquea ni degrada el resto de la función.
 
-**Por qué un único pulso de 200ms, no repetido:** a diferencia del spin (§4.7 más abajo, reintentado cada 3s hasta que el usuario pulsa), la vibración solo tiene sentido como aviso puntual de "algo nuevo acaba de pasar" — vibrar en bucle cada pocos segundos mientras el cartel sigue en pantalla (hasta 10s, su autocierre) sería molesto, no útil. 200ms es perceptible sin ser una vibración larga tipo notificación de llamada.
+**Por qué un único pulso de 300 ms, no repetido:** a diferencia del spin (§4.7 más abajo, reintentado cada 3s hasta que el usuario pulsa), la vibración solo tiene sentido como aviso puntual de "algo nuevo acaba de pasar" — vibrar en bucle cada pocos segundos mientras el cartel sigue en pantalla (hasta 10s, su autocierre) sería molesto, no útil. 300 ms es perceptible sin ser una vibración larga tipo notificación de llamada, y es la misma vibración en toda la app.
 
 ### 4.8. Código de colores de estado en botones
 
@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-857c13ddadf1'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-c641b33bbdff'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7925,7 +7925,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` recarga la página y `estado.tiempoRestante` no conserva ningún número — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
 | `20-tramo-inicio-y-revelado.spec.js` | 7 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); `revelarNavegacion()` deja el trazado visible sin depender de ninguna lectura GPS (RV-1) y, una vez revelado, permanece visible aunque el usuario esté lejos de `.inicio` y de todo el camino — no hay ningún ocultado automático por distancia (RV-2); pulsar el botón de ubicación oculta el trazado persistente de inmediato (PL-1); con la línea manual activa, estar cerca de un punto del camino que no es `.inicio` (un waypoint, o el propio `.fin`) no la limpia ni revela el trazado (PL-2); volver al radio de `.inicio` sí la limpia y revela el trazado de nuevo, en el mismo tick (PL-3) |
 | `21-llegada-ruido-gps.spec.js` | 5 | Con datos reales de Av1-P-1 y un hijo2 real cargado como iframe (registrado en `iframesRegistrados`, solo para que RG-4 pueda comprobar el enrutamiento — `enviarLectura()` llama siempre a `funcionesMapa.procesarPosicionGPSParaAventura()` directamente, nunca a un mensaje sintético ni al detector propio de hijo2): 2 lecturas exactas en la diana confirman llegada (RG-1); una única lectura dentro de radio rodeada de lecturas lejanas (1 de 4) NO confirma (RG-2); 12 lecturas alternando 12 m/18 m alrededor del radio de llegada de 15 m —nunca 2 seguidas dentro— sí confirman llegada con la ventana deslizante de 2-de-4 (RG-3); el sensor de `funciones-mapa.js` no genera el warning "Iframe no encontrado" al notificar su propia llegada al padre (RG-4) |
-| `22-carteles-informativos.spec.js` | 12 | Los cinco carteles (§4.7g-l), cada uno invocado directamente con los botones puestos a mano (`_decidirAvanzar` y el control de audio), y lo que piden según lo que se puede pulsar (§4.7h, «Lo que pide un cartel»): Transición con «avanzar» y play, sus dos iconos (CI-1), y sin elemento siguiente solo «avanzar» (CI-1b); entre dos paradas con el mismo nombre, sin repetirlo (CI-1c); Inicio de tramo, parada→tramo y tramo→tramo, con los dos nombres, «avanzar», play y la línea azul (CI-2, CI-2b, §4.7i); Llegada con solo el audio pulsable: el nombre y play, sin «avanzar» ni su icono (CI-3), y sin nada pulsable, solo lo que ha pasado (CI-3b); Bienvenida de vuelta tramo, con la línea azul (CI-4); Bienvenida de vuelta parada, sin ella (CI-5); la bifurcación real de `marcarParadaCompletada()` (§4.7g) para una pareja parada→tramo dispara el cartel de Inicio de tramo, nunca el de Transición genérico — con datos reales de Aventura1 (CI-6); `navigator.vibrate(200)` se llama exactamente una vez al mostrar un cartel (CI-7, §4.7m); sin soporte de `navigator.vibrate` (escritorio/Safari) el cartel se muestra igual sin lanzar error (CI-8) |
+| `22-carteles-informativos.spec.js` | 12 | Los cinco carteles (§4.7g-l), cada uno invocado directamente con los botones puestos a mano (`_decidirAvanzar` y el control de audio), y lo que piden según lo que se puede pulsar (§4.7h, «Lo que pide un cartel»): Transición con «avanzar» y play, sus dos iconos (CI-1), y sin elemento siguiente solo «avanzar» (CI-1b); entre dos paradas con el mismo nombre, sin repetirlo (CI-1c); Inicio de tramo, parada→tramo y tramo→tramo, con los dos nombres, «avanzar», play y la línea azul (CI-2, CI-2b, §4.7i); Llegada con solo el audio pulsable: el nombre y play, sin «avanzar» ni su icono (CI-3), y sin nada pulsable, solo lo que ha pasado (CI-3b); Bienvenida de vuelta tramo, con la línea azul (CI-4); Bienvenida de vuelta parada, sin ella (CI-5); la bifurcación real de `marcarParadaCompletada()` (§4.7g) para una pareja parada→tramo dispara el cartel de Inicio de tramo, nunca el de Transición genérico — con datos reales de Aventura1 (CI-6); `navigator.vibrate(300)` se llama exactamente una vez al mostrar un cartel (CI-7, §4.7m); sin soporte de `navigator.vibrate` (escritorio/Safari) el cartel se muestra igual sin lanzar error (CI-8) |
 | `23-polyline-autoreparacion.spec.js` | 3 | Con un mapa simulado que rechaza `addSource` con «Style is not done loading.» hasta que su estilo carga (§4.6a): `dibujarPolylineNavegacion({origen,destino})` (la función real del botón de ubicación) no deja ninguna capa hasta que el mapa dispara `'idle'`, momento en el que la capa real se crea sola (PR-1); un `.setStyle()` pedido sobre el objeto que devuelve, antes de que exista la capa real, se aplica sobre ella en cuanto se crea, no se pierde (PR-2); con el estilo ya cargado, la capa se crea al instante (PR-3) |
 | `24-camara-sigue-usuario.spec.js` | 1 | Ciclo completo del seguimiento de cámara (§4.6b): la primera posición GPS centra la cámara (`easeTo`); un `dragstart` sin `originalEvent` (programático) no pausa el seguimiento; uno con `originalEvent` (gesto real del usuario) sí lo pausa; `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato |
 | `25-brujula-modo.spec.js` | 8 | Menú de modo de cámara `#brujula-modo` (§4.6b): existe y empieza oculto sin estilo inline forzándolo a visible (BR-1); mismo `bottom` que `#selector-tipo-mapa` y mismo margen izquierdo que el selector tiene a la derecha (espejado), ancho del botón principal en rango (BR-2); pulsar el botón principal despliega/pliega las 3 opciones (BR-3); elegir "Norte fijo" llama a `desactivarSeguimientoRumbo()` y cierra el desplegable (BR-4); elegir "Seguir mi rumbo" llama a `activarSeguimientoRumbo()` (BR-5); elegir "Centrar mapa en mi ubicación" llama a `reactivarSeguimientoCamara()` — acción puntual, no modo persistente (BR-6); con `brujulaEstaActiva()` simulada en `false`, "Seguir mi rumbo" revierte sola a "Norte fijo" ~1.5s después, invocando `desactivarSeguimientoRumbo()` (BR-7); alternar rumbo→norte→rumbo dos veces en menos de 1.5s no deja que el timeout de la primera elección revierta la segunda antes de su propio plazo (BR-9) |
@@ -8054,7 +8054,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `152-hijo2-pide-y-el-padre-resuelve.spec.js` | 4 | hijo2 no guarda listas: pide, y el padre resuelve con sus datos (§9.6, §10.5): al repartir los datos y activar una parada, hijo2 no recibe ninguna lista ni petición de coordenadas, y no pide ni confirma nada de eso (H2-1); el botón de imagen solo manda la acción y el padre abre su ventana con la imagen, las imágenes y el texto del elemento actual —el texto, por su `texto_id`— (H2-2); el de vídeo, en un tramo, igual con el vídeo y el nombre del tramo (H2-3); y «volver a la ruta» solo manda la posición, sin el elemento ni su id (H2-4) |
 | `153-la-fase-2-carga-solo-la-aventura-elegida.spec.js` | 4 | La fase 2 carga solo la aventura y el idioma elegidos, por `js/data-loader.js` (§7.1, §22.12): sus globales llevan esa aventura y ese idioma y no hay global de puzzles (F2-1); si cambian, vuelve a cargar (F2-2); con la API simulada y los ficheros protegidos en 403, la fase 2 y `cargarPuzzle()` leen de la API y no piden ningún fichero protegido (F2-3); y el reto de puzzle llega a hijo4 con la imagen de su puzzle (F2-4) |
 | `154-el-listado-titula-por-texto-id.spec.js` | 2 | El listado de paradas titula cada parada con el texto del `texto_id` de su fila de `DATOS_PADRE`, la regla de la ventana de la imagen (§7.2, «Listado de paradas»): en el listado de Aventura1 en español, el título de Av1-P-1 y el de Av1-P-2 salen una vez cada uno (LT-1, control); y con el `texto_id` de Av1-P-1 apuntando al texto de Av1-P-2, el de Av1-P-2 sale dos veces y el de Av1-P-1 ninguna (LT-2) |
-| `155-una-sola-copia-de-cada-ayudante.spec.js` | 5 | Cada ayudante de uso común tiene una sola definición, en `js/` (estudio, K-28): `sleep` solo en `js/utils.js` y sin publicar en `globalThis` (UC-1); el mapa de escape de HTML, una vez, en `escaparHTML` de `js/utils.js` (UC-2); la galería escapa como el resto, y un nombre con comillas dobles llega entero al `alt` de la imagen (UC-3); el título del texto de la galería con etiquetas sale como texto (UC-4, control); la entrada del historial que intercepta «atrás» la apila una sola función del padre, `_apilarEntradaDeAventura()`: `history.pushState` en un solo sitio (UC-5, §34.3) |
+| `155-una-sola-copia-de-cada-ayudante.spec.js` | 6 | Cada ayudante de uso común tiene una sola definición, en `js/` (estudio, K-28): `sleep` solo en `js/utils.js` y sin publicar en `globalThis` (UC-1); el mapa de escape de HTML, una vez, en `escaparHTML` de `js/utils.js` (UC-2); la galería escapa como el resto, y un nombre con comillas dobles llega entero al `alt` de la imagen (UC-3); el título del texto de la galería con etiquetas sale como texto (UC-4, control); la entrada del historial que intercepta «atrás» la apila una sola función del padre, `_apilarEntradaDeAventura()`: `history.pushState` en un solo sitio (UC-5, §34.3); la vibración, una sola llamada a `navigator.vibrate`, la de `vibrar()` de `js/utils.js` (UC-6, §4.7m) |
 | `156-la-reanudacion-avisa-si-script-2-no-llega.spec.js` | 2 | La reanudación espera a que Script 2 publique `distribuirDatosAventura` con plazo y, si no llega, avisa (§11, el aviso de último recurso de `_avisarFalloCargaAppUnaVez()`; estudio, K-72): con Script 2 cortado en su primera instrucción (la respuesta de `codigo-padre.html` se reescribe, con el service worker bloqueado), tras pulsar «Continuar» sale el aviso de fallo de carga, y ninguno antes de pulsarlo (RE-1; más de un minuto: el arranque espera hasta 30 s a Script 2 y la reanudación otros 30 s); sin corte, la reanudación termina sin ningún aviso (RE-2, control) |
 | `157-avanzar-lo-decide-un-solo-sitio.spec.js` | 4 | «Avanzar» de hijo2 lo decide un solo sitio del padre (§29.4), medido con el padre, los hijos y el botón reales: un tramo sin completar no lo enciende al acercarse a su final, y completado sí (AV-1); una parada a medias no lo enciende al volver de los 5 km, y completada sí (AV-2); con la parada completada, salir de rango sin gracia lo apaga y volver lo enciende (AV-3, control); una pulsación con el botón apagado, fuera de rango, no avanza, y con el botón encendido sí (AV-4) |
 | `158-imagenes-por-idioma.spec.js` | 3 | Las imágenes que dependen del idioma salen en la ventana de la imagen detrás de las fotos de la parada, de la carpeta de su idioma (§4.7f), medido con el padre, los hijos y el botón de hijo2 reales: en español (IM-1) y en inglés (IM-2), Av1-P-5 lleva sus cinco imágenes de `imagenes/imagenes-idiomas/<carpeta>/`; Av1-P-1, sin `imagenes_idioma`, solo sus fotos (IM-3, control) |
@@ -9109,7 +9109,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-857c13ddadf1';
+const CACHE_VERSION = 'v-c641b33bbdff';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12578,7 +12578,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-857c13ddadf1';
+const CACHE_VERSION = 'v-c641b33bbdff';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14300,18 +14300,18 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `_apilarEntradaDeAventura` | módulo 1 (L4659) | módulo 2 | función/objeto |
 | `_cerrarDesplegablesDelPadre` | módulo 1 (L4630) | módulo 2 | función/objeto |
 | `_codigoValidadoP14` | módulo 1 (L6824) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8217) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8443) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8343) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8203) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8429) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8329) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L3935) | módulo 2 | estado |
 | `_entradaDeCoordenadas` | módulo 1 (L3701) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8312) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L8527) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8419) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8318) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8535) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8187) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L7715) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8298) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8513) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8405) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8304) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8521) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8173) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L7701) | módulo 2 | función/objeto |
 | `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5777) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3760) | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4876) | clásico 7, módulo 2 | estado |
@@ -14329,8 +14329,8 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `idiomaSeleccionado` | módulo 1 (L4877) | clásico 5, clásico 7, módulo 2 | estado |
 | `limpiarDatosAventura` | módulo 1 (L2808) | módulo 2 | función/objeto |
 | `MODOS` | módulo 1 (L3753) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L7918) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L7845) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L7904) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L7831) | módulo 2 | función/objeto |
 | `mostrarModalFinalizacion` | módulo 1 (L7641) | módulo 2 | función/objeto |
 | `mostrarPulsoValoracionPadre` | módulo 1 (L7684) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4145) | módulo 2 | función/objeto |
@@ -14350,27 +14350,27 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TIPOS_MENSAJE` | módulo 1 (L3752) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3913) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2787) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13197) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9520) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12253) | módulo 1 | función/objeto |
-| `_decidirAvanzar` | módulo 2 (L10727) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13179) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11276) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L11917) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9459) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L10620) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L10746) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L10682) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L10644) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L11947) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L8704) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9454) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L8836) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L8877) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12178) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9332) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9324) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13213) | módulo 2 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13183) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9506) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12239) | módulo 1 | función/objeto |
+| `_decidirAvanzar` | módulo 2 (L10713) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13165) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11262) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L11903) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9445) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10606) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L10732) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L10668) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L10630) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L11933) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L8690) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9440) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L8822) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L8863) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12164) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9318) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9310) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13199) | módulo 2 | función/objeto |
 
 </details>
 
