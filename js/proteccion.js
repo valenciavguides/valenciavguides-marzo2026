@@ -21,7 +21,6 @@
     const esGitHubPages = host.endsWith('.github.io');
     const esVercelPreview = host.endsWith('.vercel.app');
     const esNetlifyPreview = host.endsWith('.netlify.app');
-    const esMovil = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent || '');
     const debugPorQuery = /(?:^|[?&])vv_debug=1(?:&|$)/.test(location.search || '');
     const debugPorStorage = globalThis.almacen.local.leer(globalThis.almacen.CLAVES.DEBUG) === '1';
     const proteccionDuraPorQuery = /(?:^|[?&])vv_hard_protect=1(?:&|$)/.test(location.search || '');
@@ -122,24 +121,27 @@
     globalThis.addEventListener('resize', function() {
         if (!PROTECCION_DEVTOOLS_ACTIVA) return;
 
-        // En móvil el resize ocurre constantemente (barra URL, teclado, rotación).
-        // Evitar falsos positivos que terminan rompiendo la app.
-        if (esMovil) return;
+        // En móvil y en tableta el resize ocurre constantemente (barra URL, teclado, rotación): ahí no se comprueba,
+        // para evitar falsos positivos que terminan rompiendo la app. Qué es móvil o tableta lo decide
+        // js/device-detection.js, la lista única de la app; este es un script clásico, así que la toma con import(), que
+        // aquí resuelve contra la URL de este fichero (js/), no contra la de la página.
+        import('./device-detection.js').then(function(dispositivo) {
+            if (dispositivo.esMovil()) return;
+            if (document.hidden || !document.hasFocus()) return;
 
-        if (document.hidden || !document.hasFocus()) return;
-
-        var ahora = Date.now();
-        if (ahora - _ultimoChequeo < 1000) return;
-        _ultimoChequeo = ahora;
-        var umbral = 160;
-        var anchoDevtools = globalThis.outerWidth - globalThis.innerWidth > umbral;
-        var altoDevtools = globalThis.outerHeight - globalThis.innerHeight > umbral;
-        if (anchoDevtools || altoDevtools) {
-            _deteccionesDevtools++;
-            if (_deteccionesDevtools > 3) {
-                _limpiarDatosSensibles();
+            var ahora = Date.now();
+            if (ahora - _ultimoChequeo < 1000) return;
+            _ultimoChequeo = ahora;
+            var umbral = 160;
+            var anchoDevtools = globalThis.outerWidth - globalThis.innerWidth > umbral;
+            var altoDevtools = globalThis.outerHeight - globalThis.innerHeight > umbral;
+            if (anchoDevtools || altoDevtools) {
+                _deteccionesDevtools++;
+                if (_deteccionesDevtools > 3) {
+                    _limpiarDatosSensibles();
+                }
             }
-        }
+        }).catch(function(e) { console.warn('[PROTECCION] No se pudo saber el tipo de dispositivo:', e && e.message); });
     });
 
     // === 5. LIMPIEZA DE DATOS SENSIBLES ANTE INSPECCIÓN ===
