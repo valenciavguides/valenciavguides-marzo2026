@@ -39,6 +39,11 @@ test.describe('PP — una sola forma de pedir una posición (estático)', () => 
   test('PP-1. getCurrentPosition se llama en un solo sitio: js/utils.js', () => {
     expect(dondeCasa(/\.getCurrentPosition\(/g)).toEqual([['js/utils.js', 1]]);
   });
+
+  test('PP-8. La vigilancia continua se abre en un solo sitio y se cierra en otro: watchPosition y clearWatch, una vez', () => {
+    expect(dondeCasa(/\.watchPosition\(/g)).toEqual([['codigo-padre.html', 1]]);
+    expect(dondeCasa(/\.clearWatch\(/g)).toEqual([['codigo-padre.html', 1]]);
+  });
 });
 
 test.describe('PP — los plazos de los reintentos', () => {
@@ -73,5 +78,112 @@ test.describe('PP — los plazos de los reintentos', () => {
     await page.evaluate(() => document.getElementById('foto-lejos-action').click());
     const pedidas = await page.evaluate(() => globalThis.__opcionesPedidas);
     expect(pedidas).toEqual([{ enableHighAccuracy: true, timeout: esperado, maximumAge: 0 }]);
+  });
+});
+
+test.describe('PP — lo que hace cada reintento con la respuesta', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+  });
+
+  /**
+   * Pone la aventura en marcha, apunta las posiciones que entran en el pipeline (un objeto con el espía en lugar de
+   * `globalThis.funcionesMapa`, que es lo que lee el reintento) y deja que el GPS conteste `respuesta`: una posición o un
+   * error del navegador.
+   */
+  const prepararRespuesta = (page, respuesta) => page.evaluate((r) => {
+    globalThis.estado.modo = globalThis.estado.modo || {};
+    globalThis.estado.modo.actual = 'aventura';
+    if (globalThis.estadoPadre?.modo) globalThis.estadoPadre.modo.actual = 'aventura';
+    globalThis.__procesadas = [];
+    globalThis.funcionesMapa = Object.assign({}, globalThis.funcionesMapa, {
+      procesarPosicionGPSParaAventura: (pos) => { globalThis.__procesadas.push(pos.coords.latitude); },
+    });
+    navigator.geolocation.getCurrentPosition = (ok, error) => {
+      setTimeout(() => (r.error ? error(r.error) : ok({ coords: r.coords, timestamp: Date.now() })), 0);
+    };
+  }, respuesta);
+  /**
+   * Activa el GPS de verdad (activarGPS) con la vigilancia observada: cada watchPosition apunta sus funciones y opciones
+   * y devuelve un id (71, 72…); clearWatch apunta el id que cierra; la posición puntual contesta en el acto.
+   */
+  const vigilarActivacion = async (page) => {
+    await page.evaluate(async () => {
+      globalThis.__vigilancias = [];
+      globalThis.__cerradas = [];
+      navigator.geolocation.watchPosition = (ok, error, opciones) => {
+        globalThis.__vigilancias.push({ ok, error, opciones });
+        return 70 + globalThis.__vigilancias.length;
+      };
+      navigator.geolocation.clearWatch = (id) => { globalThis.__cerradas.push(id); };
+      navigator.geolocation.getCurrentPosition = (ok) => {
+        setTimeout(() => ok({ coords: { latitude: 39.47876, longitude: -0.37626, accuracy: 5 }, timestamp: Date.now() }), 0);
+      };
+      await globalThis.activarGPS();
+    });
+    expect(await page.evaluate(() => globalThis.__vigilancias.length)).toBe(1);
+  };
+  const POSICION = { coords: { latitude: 39.47, longitude: -0.37, accuracy: 8 } };
+  const FALLO = { error: { code: 2, message: 'Position unavailable (sonda)' } };
+  const senal = (page) => page.locator('#gps-signal-overlay');
+
+  test('PP-4. Sin señal, al acertar: la posición entra en el pipeline y la pantalla se quita', async ({ page }) => {
+    await prepararRespuesta(page, POSICION);
+    await page.evaluate(() => globalThis.showGpsSignalOverlay(3, 'Timeout expired'));
+    await expect(senal(page)).toHaveClass(/\bshow\b/);
+    await page.evaluate(() => document.getElementById('gps-signal-action').click());
+    await expect.poll(() => page.evaluate(() => globalThis.__procesadas)).toEqual([39.47]);
+    await expect(senal(page)).not.toHaveClass(/\bshow\b/);
+  });
+
+  test('PP-5. Sin señal, al fallar: la pantalla sigue, con el mensaje real del navegador', async ({ page }) => {
+    await prepararRespuesta(page, FALLO);
+    await page.evaluate(() => globalThis.showGpsSignalOverlay(3, 'Timeout expired'));
+    await page.evaluate(() => document.getElementById('gps-signal-action').click());
+    await expect(page.locator('#gps-signal-detalle')).toHaveText('Position unavailable (sonda)');
+    await expect(senal(page)).toHaveClass(/\bshow\b/);
+    expect(await page.evaluate(() => globalThis.__procesadas)).toEqual([]);
+  });
+
+  test('PP-6. Pantalla de distancia, al acertar: la posición entra en el pipeline y no sale la de sin señal', async ({ page }) => {
+    await prepararRespuesta(page, POSICION);
+    await page.evaluate(() => globalThis.showFotoLejosOverlay(500));
+    await page.evaluate(() => document.getElementById('foto-lejos-action').click());
+    await expect.poll(() => page.evaluate(() => globalThis.__procesadas)).toEqual([39.47]);
+    // La pantalla de sin señal se crea la primera vez que se enseña: aquí no tiene que haber ninguna enseñándose.
+    await expect(page.locator('#gps-signal-overlay.show')).toHaveCount(0);
+  });
+
+  test('PP-9. La vigilancia continua, con permiso denegado: se cierra y queda sin referencia', async ({ page }) => {
+    await vigilarActivacion(page);
+    await page.evaluate(() => globalThis.__vigilancias[0].error({ code: 1, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3, message: 'denegado (sonda)' }));
+    const r = await page.evaluate(() => ({ cerradas: globalThis.__cerradas, gps: (globalThis.estadoPadre || globalThis.estado).gps }));
+    expect(r.cerradas).toEqual([71]);
+    expect(r.gps.watchId).toBeNull();
+    expect(r.gps.activo).toBe(false);
+  });
+
+  test('PP-10. La vigilancia continua, con el plazo vencido: se cierra y se abre otra sin alta precisión y con 15 s', async ({ page }) => {
+    await vigilarActivacion(page);
+    await page.evaluate(() => globalThis.__vigilancias[0].error({ code: 3, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3, message: 'Timeout (sonda)' }));
+    await expect.poll(() => page.evaluate(() => globalThis.__vigilancias.length), { timeout: 5_000 }).toBe(2);
+    const r = await page.evaluate(() => ({ cerradas: globalThis.__cerradas, opciones: globalThis.__vigilancias.map((v) => v.opciones) }));
+    expect(r.cerradas).toEqual([71]);
+    expect(r.opciones).toEqual([
+      { enableHighAccuracy: true, timeout: 35000, maximumAge: 0 },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 },
+    ]);
+  });
+
+  test('PP-7. Pantalla de distancia, al fallar: sale la de sin señal con el mensaje real del navegador', async ({ page }) => {
+    await prepararRespuesta(page, FALLO);
+    await page.evaluate(() => globalThis.showFotoLejosOverlay(500));
+    await page.evaluate(() => document.getElementById('foto-lejos-action').click());
+    await expect(senal(page)).toHaveClass(/\bshow\b/);
+    await expect(page.locator('#gps-signal-detalle')).toHaveText('Position unavailable (sonda)');
+    expect(await page.evaluate(() => globalThis.__procesadas)).toEqual([]);
   });
 });

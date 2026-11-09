@@ -5234,6 +5234,26 @@
             Object.assign(globalThis.estadoPadre.gps, est.gps);
         }
 
+        // La vigilancia continua del GPS se abre solo aquí y se cierra solo en _cerrarVigilanciaGPS (docs/estudio-caminos.md,
+        // K-17): el watch de activarGPS() y el de los reintentos usan las mismas funciones de acierto y de error, y solo
+        // cambian sus opciones (el de los reintentos, sin alta precisión y con un plazo que crece).
+        function _abrirVigilanciaGPS(est, logPrefix, opciones) {
+            est.gps.watchId = navigator.geolocation.watchPosition(
+                (position) => _watchPositionSuccess(position, est, logPrefix),
+                (error) => _watchPositionError(error, est, logPrefix),
+                opciones
+            );
+        }
+
+        // Cierra la vigilancia continua si la hay y deja watchId sin referencia: el permiso denegado, el reintento que va a
+        // abrir otra y activarGPS() antes de abrir la suya.
+        function _cerrarVigilanciaGPS(est) {
+            if (est.gps.watchId !== null && est.gps.watchId !== undefined) {
+                try { navigator.geolocation.clearWatch(est.gps.watchId); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            }
+            est.gps.watchId = null;
+        }
+
         function _gpsDoRetryWatch(est, newOptions, logPrefix) {
             try {
                 // Reutiliza los mismos handlers que activarGPS() usa para el watch original
@@ -5242,11 +5262,7 @@
                 // de est.gps.retries en éxito, y — vía _watchPositionError — el encadenado
                 // correcto del siguiente reintento si este también falla (antes se cortaba
                 // aquí y nunca se volvía a intentar aunque quedaran reintentos disponibles).
-                est.gps.watchId = navigator.geolocation.watchPosition(
-                    (position) => _watchPositionSuccess(position, est, logPrefix),
-                    (e2) => _watchPositionError(e2, est, logPrefix),
-                    newOptions
-                );
+                _abrirVigilanciaGPS(est, logPrefix, newOptions);
             } catch (retryErr) {
                 (globalThis.logger || console).warn(`${logPrefix} Error al reintentar watchPosition:`, retryErr);
             }
@@ -5260,8 +5276,7 @@
                 maximumAge: 0
             };
             (globalThis.logger || console).info(`${logPrefix} Reintentando watchPosition (intento ${est.gps.retries}/${maxReintentos}) con opciones:`, newOptions);
-            try { if (est.gps.watchId !== null) navigator.geolocation.clearWatch(est.gps.watchId); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            est.gps.watchId = null; // evitar que quede una referencia obsoleta mientras el reintento está pendiente
+            _cerrarVigilanciaGPS(est); // sin referencia obsoleta mientras el reintento está pendiente
             est.gps.retryTimeoutId = setTimeout(() => {
                 est.gps.retryTimeoutId = null;
                 _gpsDoRetryWatch(est, newOptions, logPrefix);
@@ -5458,10 +5473,7 @@
                     errorMsg = 'Permisos GPS denegados';
                     est.gps.permisos = false;
                     est.gps.activo = false;
-                    if (est.gps.watchId !== null && est.gps.watchId !== undefined) {
-                        try { navigator.geolocation.clearWatch(est.gps.watchId); } catch (_) {}
-                        est.gps.watchId = null;
-                    }
+                    _cerrarVigilanciaGPS(est);
                     break;
                 case error.POSITION_UNAVAILABLE:
                     errorMsg = 'GPS no disponible';
@@ -5534,9 +5546,6 @@
             est.gps.activando = true;
             est.gps.activandoPromise = activacionPromise;
 
-            const onGpsSuccess = (pos) => _watchPositionSuccess(pos, est, logPrefix);
-            const onGpsError   = (err) => _watchPositionError(err, est, logPrefix);
-
             try {
                 (globalThis.logger || console).info(`${logPrefix} Iniciando activación GPS...`);
 
@@ -5583,16 +5592,10 @@
                 // (activo sigue false mientras el reintento no ha tenido éxito) — sin este
                 // clearWatch, quedaría un watch huérfano corriendo en paralelo, imposible
                 // de limpiar después porque su id ya se habría sobrescrito.
-                if (est.gps.watchId !== null && est.gps.watchId !== undefined) {
-                    try { navigator.geolocation.clearWatch(est.gps.watchId); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                }
+                _cerrarVigilanciaGPS(est);
 
                 // Iniciar watchPosition
-                est.gps.watchId = navigator.geolocation.watchPosition(
-                    onGpsSuccess,
-                    onGpsError,
-                    { enableHighAccuracy: true, timeout: 35000, maximumAge: 0 }
-                );
+                _abrirVigilanciaGPS(est, logPrefix, { enableHighAccuracy: true, timeout: 35000, maximumAge: 0 });
 
                 // El watch ya está registrado de verdad en este punto — marcarlo activo
                 // aquí, síncrono, en vez de esperar a que llegue la primera posición
