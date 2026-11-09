@@ -3,11 +3,12 @@
 const { test, expect } = require('@playwright/test');
 
 /**
- * HL — el último paso del apretón de manos, HIJO_LISTO con reintentos, es uno solo para los seis hijos.
+ * HL — el último paso del apretón de manos, HIJO_LISTO con reintentos, es uno solo para los seis hijos y la selección.
  *
- * Cada hijo, al recibir PADRE_DATOS, llama a `enviarHijoListoConReintento` del bus (js/mensajeria.js): HIJO_LISTO al
+ * Cada uno, al recibir PADRE_DATOS, llama a `enviarHijoListoConReintento` del bus (js/mensajeria.js): HIJO_LISTO al
  * padre cada segundo hasta que llega PADRE_CONFIRMA_HIJO_LISTO, 30 veces como mucho, y al agotarse su último recurso
- * (hijo1 a hijo5 enseñan su interfaz; hijo6 no tiene nada que enseñar: su iframe lo enseña el padre). Por cada hijo:
+ * (hijo1 a hijo5 enseñan su interfaz; hijo6 no tiene nada que enseñar, su iframe lo enseña el padre; la selección
+ * tampoco, se ve desde el principio). Por cada uno:
  *
  *   HL-1  sin confirmación repite HIJO_LISTO; con ella, para: ningún HIJO_LISTO sale después de confirmar
  *   HL-2  sin confirmación nunca: exactamente 30 intentos, el último recurso, y ni uno más
@@ -32,6 +33,7 @@ const HIJOS = [
   { id: 'hijo4', fichero: 'retos-hijo4.html', ocultaSuInterfaz: true, padreDatos: { modo: 'casa' } },
   { id: 'hijo5', fichero: 'boton-casa-hijo5.html', ocultaSuInterfaz: true, padreDatos: { modo: 'casa' } },
   { id: 'hijo6-chat', fichero: 'chat-hijo6.html', ocultaSuInterfaz: false, padreDatos: { modo: 'casa', idioma: 'es' } },
+  { id: 'seleccion', fichero: 'En-busca-del-tesoro.html', ocultaSuInterfaz: false, padreDatos: { modo: 'casa' } },
 ];
 
 /** Mete el hijo en el marco; el marco apunta HIJO_PREPARADO desde antes de crear el iframe. */

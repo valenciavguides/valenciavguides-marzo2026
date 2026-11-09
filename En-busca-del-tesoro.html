@@ -2697,6 +2697,9 @@
         hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
     };
 
+    // La serie de HIJO_LISTO en marcha (bus.enviarHijoListoConReintento): PADRE_CONFIRMA_HIJO_LISTO la para.
+    let _hijoListo = null;
+
     // Los hijos se ocultan al arrancar y no se muestran hasta que el padre confirma. Esta
     // pantalla NO: es la primera que ve el usuario y tiene que estar visible desde el primer
     // instante. Por eso aqui no hay ni ocultado ni `mostrarUI()`: sin ocultado previo, mostrar
@@ -2774,20 +2777,6 @@
     // HANDLERS DE CONTROLADORES (funciones nombradas para reducir CC)
     // ============================================================
 
-    async function _enviarHijoListo(logPrefix) {
-        try {
-            await enviarMensaje({
-                destino: 'padre',
-                tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-                datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, capacidades: ['seleccion', 'idioma', 'aventura'], timestamp: Date.now() }
-            });
-            estadoComponente.hijoListoEnviado = true;
-            logger.info(`${logPrefix} HIJO_LISTO enviado al padre`);
-        } catch (error) {
-            logger.error(`${logPrefix} Error enviando HIJO_LISTO:`, error);
-        }
-    }
-
     async function _onPadreDatos(mensaje) {
         const controladorPrefix = `${CONFIG_HIJO.LOG_PREFIX}[PADRE_DATOS]`;
         try {
@@ -2798,7 +2787,13 @@
                 logger.debug(`${controladorPrefix} HIJO_LISTO ya enviado previamente, omitiendo duplicado`);
                 return;
             }
-            await _enviarHijoListo(controladorPrefix);
+            estadoComponente.hijoListoEnviado = true;
+            // El mismo saludo que los seis hijos: HIJO_LISTO cada segundo hasta PADRE_CONFIRMA_HIJO_LISTO, 30 como mucho. Sin
+            // último recurso: esta pantalla se ve desde el principio y no espera a la confirmación para nada.
+            _hijoListo = bus.enviarHijoListoConReintento({
+                datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, capacidades: ['seleccion', 'idioma', 'aventura'] },
+                prefijoLog: CONFIG_HIJO.LOG_PREFIX
+            });
         } catch (error) {
             logger.error(`${controladorPrefix} Error procesando PADRE_DATOS:`, error);
         }
@@ -2829,6 +2824,7 @@
         try {
             logger.debug(`${CONFIG_HIJO.IFRAME_ID} PADRE_CONFIRMA_HIJO_LISTO recibido:`, mensaje);
             logger.info(`${controladorPrefix} Confirmación recibida del padre - controladores listos`);
+            _hijoListo?.parar();
             const modoInicial = mensaje.datos?.modoInicial;
             if (modoInicial) {
                 logger.debug(`${controladorPrefix} Modo inicial recibido: ${modoInicial} (registrado para consistencia)`);

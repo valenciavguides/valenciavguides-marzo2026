@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d57331791b38'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-61f5910dbc5c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8075,7 +8075,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `169-llegada-al-inicio-carteles-y-audio.spec.js` | 12 | Lo que decide la posición al llegar al punto de inicio, por el camino real (la selección hasta P17, como el spec 131, y lecturas por `watchPosition`): «Ha llegado» sale con la llegada confirmada y no con una lectura suelta (LL-1) y una sola vez aunque se vaya a CASA y se vuelva (LL-2) (§4.7j); «Ha vuelto a su aventura» no sale la primera vez que se llega con la línea verde puesta (BV-1), y sí a quien ya estuvo y vuelve (BV-2) (§4.7k-l); con la primera lectura a 40 m el audio queda apagado (AU-1), una lectura suelta dentro no lo enciende y la llegada confirmada sí (AU-2) (§25.7), y con el audio apagado no sale «Recuerde pulsar play» (AU-3) (§25.5c); y cada cartel pide solo lo que se puede pulsar, con sus iconos (§4.7h): «Ha llegado» pide play y no «avanzar» (AC-1), en un idioma sin audio grabado pide ⏩ (AC-2), «Ha vuelto a su aventura» con todo apagado no pide nada (AC-3), el de inicio de tramo pide «avanzar», play y la línea azul (AC-4), y «Ha vuelto al camino», play y la línea azul (AC-5) |
 | `170-una-sola-forma-de-pedir-una-posicion.spec.js` | 14 | Una sola llamada a `getCurrentPosition` en lo que ejecuta el navegador, la de `pedirPosicionPuntual()` de `js/utils.js`, leído en el fuente (PP-1); el reintento de la pantalla de sin señal pide la posición con 15 s fijos (PP-2, §31.2) y el de las pantallas de distancia con 5 s ajustados a la conexión (PP-3, §31.4); lo que hace cada reintento con la respuesta: sin señal, al acertar la posición entra en el pipeline y la pantalla se quita (PP-4), y al fallar sigue, con el mensaje real del navegador en `#gps-signal-detalle` (PP-5); en una pantalla de distancia, al acertar la posición entra en el pipeline sin pantalla de sin señal (PP-6), y al fallar sale la de sin señal con el mensaje real (PP-7); la vigilancia continua se abre en un solo sitio y se cierra en otro (PP-8, leído en el fuente); con permiso denegado se cierra y `watchId` queda en `null` (PP-9), y con el plazo vencido se cierra y se abre otra sin alta precisión y con 15 s (PP-10); el permiso de geolocalización se consulta en un solo sitio, `consultarPermisoGeolocalizacion()` de `js/utils.js` (PP-11, leído en el fuente), y con él: con el permiso denegado el GPS no se activa (PP-12), tras un «denegado», fuera de Apple el GPS se activa solo cuando el permiso vuelve y en Apple no se vigila el permiso: cada navegador comprueba su rama (PP-13, §31.3), y el diagnóstico cuenta el estado (PP-14) |
 | `171-una-sola-lista-de-dispositivos.spec.js` | 9 | Una sola lista de tipos de dispositivo (`tipoDeDispositivo()` de `js/device-detection.js`, §26): `esMovil` se define solo ahí (DL-1, leído en el fuente), y ocho dispositivos, con su agente de usuario y sus puntos táctiles, salen con su tipo —iPhone y Android con «Mobile», móvil; Android sin «Mobile», Firefox en una tableta Android, el iPad antiguo y el de iPadOS 13 o posterior (que se presenta como Mac), tableta; Mac y Windows, PC—, con `esMovil()` y `esTelefonoMovil()` de acuerdo con el tipo (DL-2) |
-| `172-hijo-listo-con-reintentos-un-solo-camino.spec.js` | 12 | El último paso del apretón de manos es uno solo para los seis hijos: `enviarHijoListoConReintento` del bus (§26.13). Con cada hijo en `helpers/marco-vacio.html`, que hace de padre: sin confirmación repite `HIJO_LISTO`, y con ella para, sin ninguno después (HL-1); sin confirmación nunca, exactamente 30 intentos, el último recurso —hijo1 a hijo5 enseñan su interfaz— y ni uno más (HL-2, con el reloj de Playwright). Se valida con la función rota: sin reprogramar el siguiente intento caen los doce casos, y sin parar, los seis HL-1. |
+| `172-hijo-listo-con-reintentos-un-solo-camino.spec.js` | 14 | El último paso del apretón de manos es uno solo para los seis hijos y la selección: `enviarHijoListoConReintento` del bus (§26.13). Con cada uno en `helpers/marco-vacio.html`, que hace de padre: sin confirmación repite `HIJO_LISTO`, y con ella para, sin ninguno después (HL-1); sin confirmación nunca, exactamente 30 intentos, el último recurso —hijo1 a hijo5 enseñan su interfaz— y ni uno más (HL-2, con el reloj de Playwright). Se valida con la función rota (sin reprogramar el siguiente intento caen los doce casos de los hijos, y sin parar, sus seis HL-1) y con la selección mandando un solo `HIJO_LISTO` (caen sus dos casos). |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -9118,7 +9118,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-d57331791b38';
+const CACHE_VERSION = 'v-61f5910dbc5c';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11628,8 +11628,8 @@ Primera pantalla visible para el usuario. Cubre toda la ventana (`z-index:2000`)
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre (handshake) | Recibe `{ modo, timestamp }`; escribe el modo en el log y envía `HIJO_LISTO` una sola vez (un `PADRE_DATOS` repetido se omite) | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el idioma y la aventura los elige la propia pantalla |
-| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | `_onPadreConfirmaHijoListo`: anota `modoInicial` en el log y llama a `_activarUI`, que ejecuta `inicializarLogicaSeleccion()` (solo escribe una línea de depuración); devuelve `{ exito: true, estado: 'confirmado', timestamp }`; si falla, manda `SISTEMA.ERROR { error, controlador, timestamp }` al padre y devuelve `{ exito: false, error }` | (ninguna; `SISTEMA.ERROR` si falla) | — | Handshake |
+| `SISTEMA.PADRE_DATOS` | Padre (handshake) | Recibe `{ modo, timestamp }`; escribe el modo en el log y arranca el saludo del bus, `enviarHijoListoConReintento` (§26.13): `HIJO_LISTO` cada segundo hasta la confirmación, 30 como mucho, sin último recurso (un `PADRE_DATOS` repetido se omite) | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el idioma y la aventura los elige la propia pantalla |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | `_onPadreConfirmaHijoListo`: para la serie de `HIJO_LISTO` (`parar()`), anota `modoInicial` en el log y llama a `_activarUI`, que ejecuta `inicializarLogicaSeleccion()` (solo escribe una línea de depuración); devuelve `{ exito: true, estado: 'confirmado', timestamp }`; si falla, manda `SISTEMA.ERROR { error, controlador, timestamp }` al padre y devuelve `{ exito: false, error }` | (ninguna; `SISTEMA.ERROR` si falla) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | `_onCambioModo`: si `modo` no es `casa` ni `aventura`, manda `SISTEMA.NACK { error: 'Modo inválido', modoRecibido }` y devuelve `{ exito: false }`; si lo es, manda `CAMBIO_MODO_ENTENDIDO` y enseguida `CAMBIO_MODO_EFECTUADO` y devuelve `{ exito: true }`. Sin efecto visual: esta pantalla gestiona su propia visibilidad. Si algo falla, manda `SISTEMA.ERROR { error, tipo: 'CAMBIO_MODO_FALLIDO' }` | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` (`SISTEMA.NACK` si el modo es inválido) | Padre | Participar en el ciclo de vida del modo aunque no cambie de pantalla internamente |
 | `SISTEMA.HEARTBEAT` | Padre | `_onHeartbeat`: responde inmediatamente con `{ timestamp, componente, estado: 'activo', inicializado, idiomaSeleccionado, aventuraSeleccionada, terminosAceptados, ultimaInteraccion }` | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | `_onCambioModoAplicado`: solo escribe en el log que el modo se aplicó | (ninguna) | — | 4.ª fase del protocolo de modo (§26.6) |
@@ -12002,7 +12002,7 @@ _hijoListo?.parar();
 
 #### Quién la llama
 
-Los seis hijos: la arrancan en su controlador de `SISTEMA.PADRE_DATOS` y la paran en el de `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO`. hijo1 a hijo5 le pasan como `alAgotarse` enseñar su interfaz (`_uiConfirmado = true` —en hijo1, `globalThis._uiConfirmado`— y `mostrarUI()`). hijo6 no le pasa nada: no tiene `mostrarUI()`, y su visibilidad la decide el padre (el iframe sigue oculto hasta que el usuario pulsa `#btn-chat-soporte`, §27). La selección no la usa: manda `HIJO_LISTO` una sola vez, sin reintentos (`_enviarHijoListo`, `En-busca-del-tesoro.html`). Lo comprueba el spec 172, con cada hijo en un marco que hace de padre.
+Los seis hijos y la selección: la arrancan en su controlador de `SISTEMA.PADRE_DATOS` y la paran en el de `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO`. hijo1 a hijo5 le pasan como `alAgotarse` enseñar su interfaz (`_uiConfirmado = true` —en hijo1, `globalThis._uiConfirmado`— y `mostrarUI()`). hijo6 no le pasa nada: no tiene `mostrarUI()`, y su visibilidad la decide el padre (el iframe sigue oculto hasta que el usuario pulsa `#btn-chat-soporte`, §27). La selección tampoco le pasa nada: se ve desde el principio y no espera a la confirmación para nada. Lo comprueba el spec 172, con cada uno en un marco que hace de padre.
 
 #### Flujo del handshake con reintentos
 
@@ -12543,7 +12543,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-d57331791b38';
+const CACHE_VERSION = 'v-61f5910dbc5c';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
