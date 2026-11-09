@@ -248,6 +248,10 @@ test.describe('AC — Cada cartel pide solo lo que se puede pulsar en ese moment
     await lectura(page, context, 8);
     await completarElInicio(page);
     await expect(page.locator('#cartel-inicio-tramo')).toHaveCount(1, { timeout: 5_000 });
+    // «Avanzar» se enciende con su propio mensaje a hijo2, que puede llegar después del cartel (la vuelta a rango de la
+    // última lectura también va y viene entre el padre y hijo2). Se pulsa encendido, como haría el usuario: un clic sobre
+    // un botón apagado no hace nada.
+    await expect.poll(() => hijo2(page).evaluate(() => document.getElementById('btn-avanzar').disabled), { timeout: 10_000, message: 'con el inicio completado, «avanzar» se enciende' }).toBe(false);
     await hijo2(page).evaluate(() => document.getElementById('btn-avanzar').click());
     await page.waitForFunction(() => globalThis.estadoPadre?.paradaActual === 'Av1-TR-1', null, { timeout: 15_000 });
     await lectura(page, context, 5);
