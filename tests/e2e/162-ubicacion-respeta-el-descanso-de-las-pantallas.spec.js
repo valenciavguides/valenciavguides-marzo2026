@@ -68,12 +68,18 @@ const vistas = (page, clave) => page.evaluate((c) => globalThis.__vistas[c], cla
 const esperarVista = (page, clave, antes, mensaje) =>
   expect.poll(() => vistas(page, clave), { timeout: 15_000, message: mensaje }).toBeGreaterThan(antes);
 
-/** Una lectura en Madrid, en el orden de `_watchPositionSuccess`, hasta que el padre atiende la franja que pide hijo2. */
+/**
+ * Lecturas en Madrid, en el orden de `_watchPositionSuccess`, hasta que el padre atiende la franja que pide hijo2: una por
+ * vuelta, como las da el GPS. Justo después de activar la parada, el mapa todavía mide contra el elemento anterior hasta un
+ * segundo (K-74), y hijo2 descarta esa lectura, que no es de su elemento (spec 173): la siguiente ya cuenta.
+ */
 async function lecturaEnMadrid(page) {
   const antes = await vistas(page, 'muyLejos');
   await comprobar5km(page, MADRID);
-  await llevarAHijo2(page, MADRID);
-  await esperarVista(page, 'muyLejos', antes, 'con la lectura, hijo2 pide la franja «muy lejos»');
+  await expect.poll(async () => {
+    await llevarAHijo2(page, MADRID);
+    return vistas(page, 'muyLejos');
+  }, { timeout: 15_000, intervals: [300], message: 'con las lecturas, hijo2 pide la franja «muy lejos»' }).toBeGreaterThan(antes);
 }
 
 /** El padre real con sus hijos reales, en AVENTURA, la parada activa y la geolocalización emulada en Madrid (antes del goto: Firefox). */

@@ -75,6 +75,8 @@ const APP_SHELL = [
   // El zoom de los mapas antiguos (lo cargan el padre y la selección):
   '/js/mapa-vintage-zoom.js',
   '/css/mapa-vintage-zoom.css',
+  // El botón del mundo verde de las pantallas del dispositivo (lo carga el padre):
+  '/css/boton-mundo-verde.css',
   // Librerías de terceros que el shell carga como código (<script>/<link>):
   // MapLibre desde codigo-padre.html, page-flip desde video-intro.html.
   '/js/vendor/maplibre-gl-csp.js',
@@ -119,7 +121,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell actualiza la versión de caché
 // automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-33cd00f99e45';
+const CACHE_VERSION = 'v-156c23e88bd0';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';

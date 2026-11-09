@@ -1395,7 +1395,7 @@ Con «avanzar» y play pulsables, dos iconos: avanzar (`fotoruta-A-B.png`) y aud
 
 Al empezar una aventura y al continuarla, el padre enseña dos pantallas seguidas con `mostrarAvisosDelDispositivo()` (Script 1, publicada en `globalThis`): «Calibración de la brújula» (mover el dispositivo en el aire dibujando un ocho) y «Ajustes de su dispositivo» (quitar el giro automático de la pantalla y el ahorro de batería). La llaman dos sitios: el final de `_hdl_SELECCION_AVENTURA_ACTIVADA` (Script 2), con la aventura ya registrada, tanto en AVENTURA como en el CASA del modo dev; y `ejecutarReanudacion()` (§25.10), con la aventura ya restaurada y la pantalla de espera quitada.
 
-- **Aspecto:** una ventana flotante con el de los carteles (§4.7h): fondo `#fff8e7`, borde `clamp(2.5px,0.6vmin,4px) solid #FF8C00`, esquinas de `0.75rem`, sombra y Verdana. Centrada (`top:50%; left:50%; transform:translate(-50%,-50%)`), de `min(92vw, 30rem)` de ancho y como mucho `80vh` de alto, con desplazamiento si el texto no cabe. Arriba el título (`<h2>`, `#8b5e1a`), debajo el texto y abajo el botón del mundo verde con la flecha (`.btn-mundo-verde`, de `css/boton-mundo-verde.css`). No lleva ✗: se sale con ese botón.
+- **Aspecto:** una ventana flotante con el de los carteles (§4.7h): fondo `#fff8e7`, borde `clamp(2.5px,0.6vmin,4px) solid #FF8C00`, esquinas de `0.75rem`, sombra y Verdana. Centrada (`top:50%; left:50%; transform:translate(-50%,-50%)`), de `min(calc(100vw - 2 * (var(--franja-lateral) + 12px)), 30rem)` de ancho —cabe entre las dos franjas laterales, así que en un móvil no tapa el botón del chat, el selector de mapa ni la brújula— y como mucho `80vh` de alto, con desplazamiento si el texto no cabe. Arriba el título (`<h2>`, `#8b5e1a`), debajo el texto y abajo el botón del mundo verde con la flecha (`.btn-mundo-verde`, de `css/boton-mundo-verde.css`). No lleva ✗: se sale con ese botón.
 - **El botón:** en la primera pantalla pasa a la segunda; en la segunda cierra la ventana. Su `title` y su `aria-label` son el `siguiente` del idioma. La pantalla que se ve va en `data-pantalla` (`brujula` o `ajustes`). La promesa que devuelve `mostrarAvisosDelDispositivo()` se cumple con `true` al cerrarse la ventana, o en seguida con `false` si no hay textos para el idioma, y entonces lo dice con `logger.error`.
 - **Textos:** `TRADUCCIONES_AVISOS_DISPOSITIVO` (`js/traducciones-ui.js`), en los 12 idiomas y de usted, en el de la aventura (`globalThis.idiomaSeleccionado`): `brujulaTitulo`, `brujulaTexto`, `ajustesTitulo`, `ajustesTexto` y `siguiente`. Los dos textos llevan el logo de València be Guides en línea, con la marca `{{IMG:logo_alargado_3}}` en el sitio que le toca en cada idioma; lo pinta `renderTextoConImagenes()` (§7.7) con la clase `texto-imagen-inline` (a la altura del texto, `1.4em`) y el texto alternativo «València be Guides».
 - **Capas:** `z-index:1000008`, por encima del mapa, de los hijos 1, 2, 3 y 5 y del botón del chat, y por debajo de todo lo que el usuario abre después: los retos, la imagen, el vídeo y el mapa completo (1000010), el chat (1000020), las pantallas del GPS (1000035 a 1000042) y los carteles (1000060). No tapa nada que haya que pulsar. Está en la regla de `body.loading` (§9.10): no se ve durante una pantalla de carga ni con los diálogos de reanudación y de «atrás», que ponen esa clase.
@@ -4931,7 +4931,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-33cd00f99e45'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-156c23e88bd0'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -9135,7 +9135,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-33cd00f99e45';
+const CACHE_VERSION = 'v-156c23e88bd0';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12560,7 +12560,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-33cd00f99e45';
+const CACHE_VERSION = 'v-156c23e88bd0';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

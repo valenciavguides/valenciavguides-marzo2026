@@ -4527,8 +4527,9 @@
                     'top:50%',
                     'left:50%',
                     'transform:translate(-50%,-50%)',
-                    'width:min(92vw, 30rem)',
-                    'max-width:92vw',
+                    // Entre las dos franjas laterales: no tapa el botón del chat, el selector de mapa ni la brújula,
+                    // que en un móvil quedarían debajo de una ventana más ancha (spec 164, EQ-6).
+                    'width:min(calc(100vw - 2 * (var(--franja-lateral) + 12px)), 30rem)',
                     'max-height:80vh',
                     'overflow-y:auto',
                     'z-index:1000008',
