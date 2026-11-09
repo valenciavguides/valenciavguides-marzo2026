@@ -3465,7 +3465,7 @@ const puzzleConfig = imagenParam ? { id: puzzleId, imagen: imagenParam } : null;
 const puzzleConfigValido = Boolean(puzzleId && puzzleConfig);
 ```
 
-Esos son los dos únicos campos que la página necesita, y coinciden con lo único que definen los 21 puzzles de `PUZZLES_AVENTURAS` (`{id, imagen}`): filas, columnas, tiempo y nombre no existen en ninguno de los 21 y siempre caen a sus valores por defecto.
+Esos son los dos únicos campos que la página necesita, y coinciden con lo único que definen los 21 puzzles de `PUZZLES_AVENTURAS` (`{id, imagen}`). El tamaño y el tiempo son los mismos para todos: 3 × 3 piezas y 180 s, constantes de la página (`rows`, `cols` e `initialTime`).
 
 **La configuración llega por URL; `puzzle.html` no la busca.** Quien invoca el puzzle ya la tiene resuelta y la pasa:
 
@@ -3486,11 +3486,11 @@ Los tres botones de la barra superior (`#leftControls`) son **solo icono, sin te
 | Reiniciar (🔄) | `#restartBtn` | Llama `init()` → resetea piezas, timer, redibuja | Siempre habilitado | Solo si `puzzleConfigValido` |
 | Pausa/Continuar (⏸️/▶️) | `#pauseBtn` | Toggle `paused` flag — para/reanuda el timer y el refresco visual | Habilitado | Solo si `puzzleConfigValido` |
 | Saltar (⏩) | `#skipBtn` | Da el puzzle por resuelto sin jugarlo — ver sección de saltar más abajo | Siempre habilitado | Siempre, cargue o no el puzzle |
-| Timer | `#timer` (display) | Muestra tiempo restante en `MM:SS` | Valor inicial: 180 s (`puzzleConfig.tiempo \|\| 180`; ningún puzzle define `tiempo`) | Solo visual |
+| Timer | `#timer` (display) | Muestra tiempo restante en `MM:SS` | Valor inicial: 180 s (`initialTime`, el mismo para todos los puzzles) | Solo visual |
 
 #### Mecánica del puzzle
 
-- **Grid**: 3 × 3 (`puzzleConfig.filas || 3` y `puzzleConfig.columnas || 3`; ningún puzzle define `filas` ni `columnas`)
+- **Grid**: 3 × 3 (`rows` y `cols`, los mismos para todos los puzzles)
 - **Drag & drop**: eventos `pointerdown`, `pointermove`, `pointerup`, `pointercancel`
 - **Tolerancia de colocación**: pieza se "encaja" si su centro está a ≤ 25% del tamaño de celda de la posición correcta
 - **Timer**: `setInterval` cada 1 s decrementa `timeLeft`. Al llegar a 0 → `endPuzzle(false)`
@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-ff7f5c857dc7'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-086fe1859230'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7340,7 +7340,7 @@ publico/videos/
 └── video_intro_ejemplo.mp4    ← su copia, la que pide video-intro.html
 ```
 
-**Todavía no hay vídeos de parada:** van en `videos-aventuras/`, con una carpeta por aventura (`av1/`, `av2/`…) y un fichero por parada. El código no depende de que existan: los **241** campos `video:` de `js/coordenadas-aventuras.js` valen `""` sin excepción, y con el campo vacío `#btn-video` muestra su mensaje de "sin vídeo" en vez de intentar cargar nada.
+**Todavía no hay vídeos de tramo:** van en `videos-aventuras/`, con una carpeta por aventura (`av1/`, `av2/`…) y un fichero por tramo: el botón de vídeo de hijo2 solo se enciende en un tramo (`_actualizarBotonVideo`), y el padre solo precarga el vídeo del elemento siguiente si es un tramo. El código no depende de que existan: los **239** campos `video:` de `js/coordenadas-aventuras.js`, uno por tramo, valen `""` sin excepción, y con el campo vacío `#btn-video` muestra su mensaje de "sin vídeo" en vez de intentar cargar nada.
 
 ### Cómo se usan
 
@@ -9117,7 +9117,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ff7f5c857dc7';
+const CACHE_VERSION = 'v-086fe1859230';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12542,7 +12542,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-ff7f5c857dc7';
+const CACHE_VERSION = 'v-086fe1859230';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

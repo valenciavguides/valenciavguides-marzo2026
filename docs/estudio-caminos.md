@@ -4147,6 +4147,7 @@ Hallazgos de la auditoría completa de la guía contra el código que no tenían
 - **Dónde.** `_manejarPendingIniciado` (`coordenadas-hijo2.html` ~1527-1535) apaga `#btn-ubicacion` solo si `padreId` es `idParadaActual` o `padre-<idParadaActual>`. Medido sobre DATOS_PADRE (`sonda-padreid.mjs`, scratchpad): 84 de 7 344 entradas casan, todas del elemento `intro`, y el recorrido de AVENTURA empieza en `inicio` (`ensureDefaultParada`).
 - **Lo que no cuadra.** En la práctica la rama no hace nada: o sobra, o compara con el id equivocado.
 - **Pendiente: decisión.** *A)* quitarla (sin cambio visible); *B)* corregir la comparación, si el botón debía apagarse (cambio visible: decidir antes qué tiene que pasar); *C)* dejarla.
+- **Va con K-43 (2026-11-09).** Es la misma raíz: compara un `padreId` con `'padre-' + idParadaActual`, la conversión por prefijo entre las dos numeraciones que no se convierten (K-43, «Al empezarla»). Con los dos ids reales en el mensaje (`idPunto` y `claveFicha`, propuestos) la comparación se hace con la clave de la ficha, y se ve entonces si la rama hace algo o sobra.
 
 ##### K-165 — hijo2 tiene un permiso de geolocalización que no usa, y el padre lo comprueba solo para escribir en el log — ✅ (búsqueda desnuda y lectura)
 
@@ -4199,6 +4200,7 @@ Hallazgos de la auditoría completa de la guía contra el código que no tenían
 - **Dónde.** `puzzle.html:233-238` lee `filas || 3`, `columnas || 3`, `tiempo || 180` y `nombre || …` de un `puzzleConfig` que solo tiene `{id, imagen}` (los 21 puzzles de PUZZLES_AVENTURAS; su comentario de `:186` ya lo dice): siempre 3×3 y 180 s. Dos paradas de `coordenadas-aventuras.js` llevan `video: ""`, y el botón de vídeo de hijo2 solo se enciende en tramos (`_actualizarBotonVideo`), así que en una parada el campo no se lee nunca (`sonda-video.mjs`).
 - **Lo que no cuadra.** Un respaldo que es siempre el valor real, y un campo vacío sin lector.
 - **Pendiente: decisión, sin cambio visible.** *A)* constantes con nombre en `puzzle.html` en vez de campos que no existen, y fuera los dos `video: ""`; *B)* dejarlo, si se piensa dar a algún puzzle otro tamaño.
+- **Hecha, la A (2026-11-09; la regla del usuario para esta familia: unificar, sin código muerto).** `puzzle.html`: 3 × 3 y 180 s como constantes, y el título sin `puzzleConfig.nombre` (el `puzzleConfig` se arma en la propia página con `{ id, imagen }`). Fuera los dos `video: ""` de parada (Av2-P-13 y Av34km-P-77): leídos sus tres lectores (el botón de vídeo, solo en tramos; la precarga del padre, solo si el siguiente es un tramo; `funciones-mapa.js:1859`, `video || null`), ninguno distingue un `""` de un campo ausente. Quedan 239 campos `video`, uno por tramo. Guía: el puzzle y los vídeos (de tramo: la guía decía «de parada» y «241 campos»). Chromium: specs 43, 61, 91, 115, 140 y 149, 53 de 53.
 
 ##### K-172 — hijo5 enciende y apaga su botón con el mismo bloque en dos funciones — ✅ (leído)
 
@@ -5116,7 +5118,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 162 | 2 | K-168 | las franjas de distancia en un solo sitio, o dejarlo | GUÍA | — | decisión |
 | 163 | 2 | K-169 | que los extractores de la guía sigan los imports del frame, o dejarlo | — | — | decisión |
 | 164 | 1 | K-170 | una tanda de comentarios y logs, y una pasada de las citas «§N» del código, o dejarlo | — | — | decisión |
-| 165 | 1 | K-171 | constantes en `puzzle.html` y fuera los dos `video: ""`, o dejarlo | — | — | decisión |
+| 165 | 1 | K-171 | constantes en `puzzle.html` y fuera los dos `video: ""`, o dejarlo — **hecha (2026-11-09)** | — | — | sí |
 | 166 | 1 | K-172 | un solo bloque para el botón de hijo5, o dejarlo | — | — | decisión |
 | 167 | 1 | K-173 | borrar los ficheros Jest y sus restos de `tests/`, o dejarlos | GUÍA | — | decisión |
 | 168 | 1 | K-174 | los `console.*` de `sw.js` condicionados a `IS_DEV`, solo los de error, o dejarlos | GUÍA | — | decisión |

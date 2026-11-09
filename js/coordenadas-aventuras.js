@@ -1699,7 +1699,6 @@ export const DATOS_AVENTURAS = {
                     nombre: "Torre del Ángel (Torre árabe)",
                     coordenadas: { lat: Number('39.478030'), lng: Number('-0.377910') },
                     imagen: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
-                    video: ""
                 },
 
                 // Tramo 10 - Torre del Ángel (Torre árabe) → Plaza de la Virgen (Párrafos: 521, 522, 671, 520, 105, 15-B)
@@ -10078,7 +10077,6 @@ export const DATOS_AVENTURAS = {
         nombre: "Torre del Ángel (Torre árabe)",
         coordenadas: { lat: Number('39.478030'), lng: Number('-0.377910') },
         imagen: "imagenes/imagenes-aventuras/torre_del_angel_arabe.jpg",
-        video: ""
     },
     // Tramo 51 - Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523)
     {

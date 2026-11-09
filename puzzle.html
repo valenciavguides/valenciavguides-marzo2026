@@ -183,9 +183,8 @@ const puzzleId = urlParams.get('id');
 //   · desde hijo4  → el padre la anade al reto (reto.imagenPuzzle) al resolverlo
 //   · desde P9     → En-busca-del-tesoro.html ya la tenia, la pasa en la URL
 //
-// Es lo unico que hace falta: los 21 puzzles solo definen {id, imagen}. Los otros campos
-// que se leen mas abajo (filas/columnas/tiempo/nombre) no existen en ninguno y siempre
-// caen a sus valores por defecto — verificado sobre los 21.
+// Es lo unico que hace falta: los 21 puzzles solo definen {id, imagen}. El tamaño (3 × 3) y el
+// tiempo (180 s) son los mismos para todos: constantes, más abajo.
 const imagenParam = urlParams.get('imagen');
 const puzzleConfig = imagenParam ? { id: puzzleId, imagen: imagenParam } : null;
 
@@ -229,14 +228,14 @@ if (skipBtn) {
 }
 
 if (puzzleConfigValido) {
-// Obtener la configuración del puzzle (con valores por defecto para propiedades opcionales)
+// El puzzle: su imagen, y el mismo tamaño y el mismo tiempo para todos.
 const imageSrc = puzzleConfig.imagen;
-const rows = puzzleConfig.filas || 3;
-const cols = puzzleConfig.columnas || 3;
-const initialTime = puzzleConfig.tiempo || 180;
+const rows = 3;
+const cols = 3;
+const initialTime = 180;
 
-// Actualizar el título de la página
-document.title = puzzleConfig.nombre || `Puzzle ${puzzleId}`;
+// El título de la página
+document.title = `Puzzle ${puzzleId}`;
 
 const canvas = document.getElementById("puzzleCanvas");
 const ctx = canvas.getContext("2d");
