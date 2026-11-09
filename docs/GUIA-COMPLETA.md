@@ -1267,7 +1267,7 @@ Vive en un `<script>` clásico propio de `codigo-padre.html` (no un `type="modul
 **Con imágenes — `_mostrarOverlayGaleria()` + `_galeriaEstado`** (`{ imagenes, indice, tipo, mapa_numero, objectFit, fullHeight }`, módulo-scoped, se resetea en cada apertura y al cerrar):
 
 - **Flechas** (`_galeriaRenderizarFlechas`) — solo aparecen si `imagenes.length > 1`. `◀`/`▶` con opacidad reducida (`.inactiva`) y sin listener en el extremo correspondiente cuando `indice` ya está en el primer/último elemento — no hacen wrap-around.
-- **Badges de posición** (`_galeriaRenderizarBadges`) — su lógica depende de `tipo`: para una **parada** (o una galería de una sola imagen) solo muestra el número de mapa (`mapa_numero`) si existe, sin emoji. Para un **tramo** con varias imágenes, la primera lleva 📌 (inicio) y la última 🎯 (fin), cada una con su propio número de mapa — `mapa_numero` de un tramo viene como cadena `"1→2"`, y el badge parte esa cadena por `→` para mostrar solo el número que corresponde a esa imagen concreta (inicio: `partes[0]`; fin: `partes[1]`).
+- **Badges de posición** (`_galeriaRenderizarBadges`) — su lógica depende de `tipo`: para una **parada** (o una galería de una sola imagen) solo muestra el número de mapa (`mapa_numero`) si existe, sin emoji. Para un **tramo** con varias imágenes, la primera lleva 📌 (inicio) y la última 🎯 (fin), cada una con su propio número de mapa — `mapa_numero` de un tramo viene como cadena `"1→2"`, y el badge parte esa cadena por `→` para mostrar solo el número que corresponde a esa imagen concreta: en la de inicio, el primero (`partes[0]`); en la de fin, el último, que es la llegada (en `"7→4→8"`, el 8; los de en medio son los puntos por los que pasa).
 - **Texto de parada** (`textoParada = {title, content}`, opcional) — se muestra en un panel bajo la imagen. El título pasa por `escaparHTML()` (`js/utils.js`, la misma con que escapa todo el padre): sale como texto, sin HTML. La galería vive en un script clásico, que no puede importar, y la toma de `globalThis.escaparHTML`, que publica Script 1. El contenido pasa por `_galeriaSanitizarHTML()` — permite un conjunto reducido de etiquetas (`p, br, strong, b, em, i, u, h1-h4, span, ul, ol, li, img, mark`) y solo el atributo `style` en general más `src`/`alt` en `img`; cualquier otra etiqueta se desenvuelve conservando su contenido (no se borra el texto de dentro). Las imágenes inline solo se permiten si `src` empieza por `imagenes/` — cualquier otra ruta se elimina y se sustituye por `alt="[imagen no permitida]"`.
 - **Si el elemento no tiene texto con contenido** (`_handleMostrarImagen()` lo busca por el `texto_id` de su fila con `cargarTextos()`, §10.20, "HTTP / fetch — capa de datos"): en vez de dejar el panel vacío y sin explicación, `_handleMostrarImagen()` construye un `textoParada` sintético — `{title:'', content:'<p style="...">📖 [mensaje traducido]</p>'}` — con `MSG_TEXTO_PARADA_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas, `globalThis.idiomaSeleccionado`). Sobrevive `_galeriaSanitizarHTML()` sin problema (`p`/`style` están permitidos) y se renderiza exactamente igual que un texto real, solo que con el aviso en vez del contenido de la parada — mismo patrón visual (icono + texto atenuado) que `_mostrarOverlaySinImagenes()`/`_mostrarVideoSinUrl()` para imagen/vídeo.
 - **Imágenes que dependen del idioma** — detrás de las fotos de la entrada (`imagen` a `imagen4`), `_handleMostrarImagen()` añade las que nombra su campo `imagenes_idioma` (`js/coordenadas-aventuras.js`, nombres sin carpeta ni extensión), desde `imagenes/imagenes-idiomas/<carpeta>/<nombre>.jpg`; la carpeta es la que `LANG_ARCHIVO_PARRAFOS` (`js/data-loader.js`) da al idioma elegido (`espanol`, `ingles`…), la misma de sus párrafos. Las llevan 38 paradas: las de las imágenes con texto (arcos, arquitectura gótica e iglesias, puentes, fallas) y las 19 de Torres de Serranos, con sus cuatro de la muralla. Sin carpeta para el idioma elegido, no se añaden y queda un `logger.error`.
@@ -2597,7 +2597,7 @@ Ventana flotante gestionada íntegramente por el padre (mismo patrón que la ven
 
 **Regla de relleno de los puentes**: una fila puente se marca completada cuando se completa la **siguiente parada real de la secuencia** (`completaConId`, calculado recorriendo las filas de atrás hacia adelante) — si el usuario ha llegado a esa parada, necesariamente ya pasó por el punto intermedio. No tiene marcador de finalización propio.
 
-**Verificado, las 7 aventuras** (análisis exhaustivo aventura por aventura, no una muestra): ninguna referencia queda sin resolver. Puentes encontrados: Aventura1 → 2, 4, 22; Aventura2 → 4 (visitado dos veces, en dos huecos distintos de la ruta); Aventura3 → 27 (dos veces); Aventura4 → `v1`, `v5`; Aventura34km → 45 (dos veces), `v1`, `v5`. Aventura5 y AventuraFallas no tienen ningún puente. Los prefijos `v1..v13` son la numeración propia del tramo "Viveros" (compartida entre Aventura4 y Aventura34km, que reutiliza literalmente esos mismos tramos) — independiente de la numeración principal 1-N de cada aventura. Un monumento (una `referencia`) que no lleva ninguna parada ni nombra ningún tramo no tiene fila: no sale en el listado ni se pone en verde en el mapa moderno. Son el 3, 4, 5, 8, 14, 16 y 19 de la Aventura3; el 7, 8, 10, 20, 21, 22 y 23 de la Aventura4 (y `v4`, `v6`, `v9` y `v13`); el 9 y el 20 de la de Fallas; y el 3, 9, 13, 20 y 67 de la de 34 km.
+**Verificado, las 7 aventuras** (análisis exhaustivo aventura por aventura, no una muestra): ninguna referencia queda sin resolver. Puentes encontrados: Aventura1 → 2, 4, 22; Aventura2 → 4 (visitado dos veces, en dos huecos distintos de la ruta); Aventura3 → 3, 4, 5, 8, 14, 16 y 27 (este, dos veces); Aventura4 → 7, 8, 10, 20, 21, 22, 23, `v1`, `v5`; AventuraFallas → 9, 20; Aventura34km → 3, 9, 20, 45 (dos veces), 67, `v1`, `v5`. Aventura5 no tiene ningún puente. Los prefijos `v1..v13` son la numeración propia del tramo "Viveros" (compartida entre Aventura4 y Aventura34km, que reutiliza literalmente esos mismos tramos) — independiente de la numeración principal 1-N de cada aventura. Un monumento (una `referencia`) por el que la ruta pasa sin nombrarlo va en la cadena del tramo que llega al siguiente número que la ruta nombra (en la Aventura4, `"6→7→8→9"`): así sale en el listado como puente y se pone en verde al llegar al punto siguiente. Uno que no lleva ninguna parada ni nombra ningún tramo no tiene fila: no sale en el listado ni se pone en verde en el mapa moderno. Son el 19 de la Aventura3 y el 13 de la de 34 km, el Puente de Monteolivete: la ruta llega a su número siguiente (el 20 y el 14) desde una parada del mismo mirador, sin ningún tramo de por medio. Y la numeración interior de los Jardines del Real de la Aventura4 que no nombra ningún tramo (`v4`, `v6`, `v9` y `v13`), que no se pinta en verde.
 
 **Actualización en vivo**: si la ventana está abierta cuando `marcarParadaCompletada()` registra una parada nueva, se vuelve a llamar a `_renderizarListadoParadas()` para refrescar el contenido sin que el usuario tenga que cerrar y reabrir la ventana.
 
@@ -4931,7 +4931,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-156c23e88bd0'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-186a8de151b4'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8091,6 +8091,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `172-hijo-listo-con-reintentos-un-solo-camino.spec.js` | 14 | El último paso del apretón de manos es uno solo para los seis hijos y la selección: `enviarHijoListoConReintento` del bus (§26.13). Con cada uno en `helpers/marco-vacio.html`, que hace de padre: sin confirmación repite `HIJO_LISTO`, y con ella para, sin ninguno después (HL-1); sin confirmación nunca, exactamente 30 intentos, el último recurso —hijo1 a hijo5 enseñan su interfaz— y ni uno más (HL-2, con el reloj de Playwright). Se valida con la función rota (sin reprogramar el siguiente intento caen los doce casos de los hijos, y sin parar, sus seis HL-1) y con la selección mandando un solo `HIJO_LISTO` (caen sus dos casos). |
 | `173-el-fuera-de-rango-es-de-un-elemento.spec.js` | 4 | El fuera de rango es de un elemento (§31.4): fuera de rango del inicio, al pasar a la parada 1 el padre lo olvida, quita la pantalla de distancia y «avanzar» espera a la parada y no al rango (FR-1); una lectura medida contra el elemento anterior, llegada después del cambio, no pone a hijo2 fuera de rango (FR-2); el padre no apunta el fuera de rango ni enseña la distancia de un elemento que no es el actual, y sí los del actual (FR-3); y, de control, reactivar el mismo elemento no olvida su fuera de rango (FR-4). Sin la regla caen FR-1, FR-2 y FR-3. |
 | `174-las-pantallas-del-dispositivo.spec.js` | 5 | Las pantallas del dispositivo (§4.7n): la de la brújula con su título, su texto y el logo en línea, y el botón, pulsado de verdad, pasa a la de los ajustes y luego cierra la ventana (AD-1); los 12 idiomas con sus cinco textos y el logo una vez en cada texto, y los del español, los del usuario (AD-2); salen al empezar la aventura por el recorrido real y otra vez al continuarla tras recargar (AD-3); por debajo de lo que se abre después y ocultas con `body.loading` (AD-4); y la ayuda de hijo6 pinta sus imágenes en línea con la misma `renderTextoConImagenes()`, sin marcas a la vista (AD-5). Con la función rota (el texto tal cual, sin imágenes) caen AD-1 y AD-5. |
+| `175-la-galeria-de-un-tramo-marca-su-llegada.spec.js` | 2 | En la galería de un tramo, la etiqueta de la primera imagen es el primer número de su cadena y la de la última, el último, que es la llegada: en `"7→4→8"`, el 7 y el 8 (GL-1); de control, `"6→9"`, el 6 y el 9 (GL-2) (§4.7f). Con la llegada en el segundo número cae GL-1 (dice 4). |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8617,7 +8618,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 169 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 170 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9135,7 +9136,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-156c23e88bd0';
+const CACHE_VERSION = 'v-186a8de151b4';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12560,7 +12561,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-156c23e88bd0';
+const CACHE_VERSION = 'v-186a8de151b4';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

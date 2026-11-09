@@ -1754,7 +1754,9 @@
                     const partes = String(mapa_numero).split('→');
                     const badge = document.createElement('div');
                     badge.className = 'galeria-badge-mapa tramo-fin-pos debajo-emoji';
-                    badge.textContent = partes.length > 1 ? partes[1] : mapa_numero;
+                    // La llegada es el último número de la cadena: los de en medio son los puntos por los que se pasa
+                    // (en «7→4→8», el 4; la llegada, el 8).
+                    badge.textContent = partes.length > 1 ? partes[partes.length - 1] : mapa_numero;
                     wrapper.appendChild(badge);
                 }
             }

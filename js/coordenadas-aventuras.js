@@ -2512,7 +2512,7 @@ export const DATOS_AVENTURAS = {
         id: "Av3-TR-3",
         tipo: "tramo",
         tramo: 3, // De sin número de mapa (Centro Puente de Serranos 2) a mapa número 6
-        mapa_numero: "-→6",
+        mapa_numero: "-→3→4→5→6",
         nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia",
         inicio: { lat: Number('39.480640'), lng: Number('-0.375340') },
         waypoints:
@@ -2627,7 +2627,7 @@ export const DATOS_AVENTURAS = {
         id: "Av3-TR-5",
         tipo: "tramo",
         tramo: 5, // De mapa número 7 a mapa número 9
-        mapa_numero: "7→9",
+        mapa_numero: "7→8→9",
         nombre: "Jardines del Real (Viveros) → Puente de la Exposición",
         inicio: { lat: Number('39.477480'), lng: Number('-0.368360') },
         waypoints:
@@ -2816,7 +2816,7 @@ export const DATOS_AVENTURAS = {
         id: "Av3-TR-10",
         tipo: "tramo",
         tramo: 10, // De mapa número 13 a mapa número 15
-        mapa_numero: "13→15",
+        mapa_numero: "13→14→15",
         nombre: "Palacio de la Música → Gulliver",
         inicio: { lat: Number('39.465800'), lng: Number('-0.361490') },
         waypoints:
@@ -2852,7 +2852,7 @@ export const DATOS_AVENTURAS = {
         id: "Av3-TR-11",
         tipo: "tramo",
         tramo: 11, // De mapa número 15 a mapa número 17
-        mapa_numero: "15→17",
+        mapa_numero: "15→16→17",
         nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias",
         inicio: { lat: Number('39.462980'), lng: Number('-0.359720') },
         waypoints:
@@ -4244,7 +4244,7 @@ export const DATOS_AVENTURAS = {
         id: "Av4-TR-6",
         tipo: "tramo",
         tramo: 6, // De mapa número 6 a mapa número 9
-        mapa_numero: "6→9",
+        mapa_numero: "6→7→8→9",
         nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo",
         inicio: { lat: Number('39.479600'), lng: Number('-0.383180') },
          waypoints: [
@@ -4297,7 +4297,7 @@ export const DATOS_AVENTURAS = {
         id: "Av4-TR-7",
         tipo: "tramo",
         tramo: 7, // De mapa número 9 a mapa número 11
-        mapa_numero: "9→11",
+        mapa_numero: "9→10→11",
         nombre: "Estadio de Atletismo → Na Turia",
         inicio: { lat: Number('39.476680'), lng: Number('-0.394290') },
          waypoints: [
@@ -4811,7 +4811,7 @@ export const DATOS_AVENTURAS = {
         id: "Av4-TR-19",
         tipo: "tramo",
         tramo: 19, // De sin número de mapa (Centro Puente de Serranos) a mapa número 24
-        mapa_numero: "-→24",
+        mapa_numero: "-→20→21→22→23→24",
         nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia",
         inicio: { lat: Number('39.480640'), lng: Number('-0.375340') },
         waypoints:
@@ -6872,7 +6872,7 @@ export const DATOS_AVENTURAS = {
                     id: "AvFallas-TR-7",
                     tipo: "tramo",
                     tramo: 7, // De mapa número 8 a mapa número 10
-                    mapa_numero: "8→10",
+                    mapa_numero: "8→9→10",
                     nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina",
                     inicio: { lat: Number('39.475180'), lng: Number('-0.375505') },
                     waypoints:
@@ -7223,7 +7223,7 @@ export const DATOS_AVENTURAS = {
         id: "AvFallas-TR-17",
         tipo: "tramo",
         tramo: 17, // De mapa número 19 a mapa número 21
-        mapa_numero: "19→21",
+        mapa_numero: "19→20→21",
         nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat",
         inicio: { lat: Number('39.476110'), lng: Number('-0.377410') },
         waypoints: [
@@ -8095,7 +8095,7 @@ export const DATOS_AVENTURAS = {
         id: "Av34km-TR-3",
         tipo: "tramo",
         tramo: 3, // De sin número de mapa (Centro Puente de Serranos) a mapa número 4
-        mapa_numero: "-→4",
+        mapa_numero: "-→3→4",
         nombre: "Centro Puente de Serranos → Puente de la Exposición",
         inicio: { lat: Number('39.480640'), lng: Number('-0.375340') },
         waypoints:
@@ -8295,7 +8295,7 @@ export const DATOS_AVENTURAS = {
         id: "Av34km-TR-8",
         tipo: "tramo",
         tramo: 8, // De mapa número 8 a mapa número 10
-        mapa_numero: "8→10",
+        mapa_numero: "8→9→10",
         nombre: "Palacio de la Música → Gulliver",
         inicio: { lat: Number('39.465800'), lng: Number('-0.361490') },
         waypoints:
@@ -8689,7 +8689,7 @@ export const DATOS_AVENTURAS = {
         id: "Av34km-TR-16",
         tipo: "tramo",
         tramo: 16, // De mapa número 6 a mapa número 21
-        mapa_numero: "6→21",
+        mapa_numero: "6→20→21",
         nombre: "Puente de la Mar → Puerta de la Mar",
         inicio: { lat: Number('39.470617'), lng: Number('-0.363887') },
         waypoints:
@@ -10736,7 +10736,7 @@ export const DATOS_AVENTURAS = {
         id: "Av34km-TR-67",
         tipo: "tramo",
         tramo: 67, // De mapa número 66 a mapa número 68
-        mapa_numero: "66→68",
+        mapa_numero: "66→67→68",
         nombre: "Estadio de Atletismo → Na Turia",
         inicio: { lat: Number('39.476680'), lng: Number('-0.394290') },
          waypoints: [

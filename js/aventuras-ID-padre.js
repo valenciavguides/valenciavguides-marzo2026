@@ -3032,7 +3032,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-es", audio_id: "audio-Av3-P-3-es" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-es", audio_id: "audio-Av3-TR-3-es" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-es", audio_id: "audio-Av3-TR-3-es" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-es", audio_id: "audio-Av3-P-4-es" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -3040,7 +3040,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-es", audio_id: "audio-Av3-P-5-es", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-es", audio_id: "audio-Av3-TR-5-es" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-es", audio_id: "audio-Av3-TR-5-es" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-es", audio_id: "audio-Av3-P-6-es", reto_id: "R7-Av3-es" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -3062,11 +3062,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-es", audio_id: "audio-Av3-P-11-es", reto_id: "R10-Av3-es" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-es", audio_id: "audio-Av3-TR-10-es" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-es", audio_id: "audio-Av3-TR-10-es" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-es", audio_id: "audio-Av3-P-12-es", reto_id: "R11-Av3-es" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-es", audio_id: "audio-Av3-TR-11-es" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-es", audio_id: "audio-Av3-TR-11-es" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-es", audio_id: "audio-Av3-P-13-es" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -3180,7 +3180,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-en", audio_id: "audio-Av3-P-3-en" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-en", audio_id: "audio-Av3-TR-3-en" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-en", audio_id: "audio-Av3-TR-3-en" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-en", audio_id: "audio-Av3-P-4-en" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -3188,7 +3188,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-en", audio_id: "audio-Av3-P-5-en", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-en", audio_id: "audio-Av3-TR-5-en" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-en", audio_id: "audio-Av3-TR-5-en" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-en", audio_id: "audio-Av3-P-6-en", reto_id: "R7-Av3-en" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -3210,11 +3210,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-en", audio_id: "audio-Av3-P-11-en", reto_id: "R10-Av3-en" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-en", audio_id: "audio-Av3-TR-10-en" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-en", audio_id: "audio-Av3-TR-10-en" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-en", audio_id: "audio-Av3-P-12-en", reto_id: "R11-Av3-en" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-en", audio_id: "audio-Av3-TR-11-en" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-en", audio_id: "audio-Av3-TR-11-en" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-en", audio_id: "audio-Av3-P-13-en" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -3328,7 +3328,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-fr", audio_id: "audio-Av3-P-3-fr" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-fr", audio_id: "audio-Av3-TR-3-fr" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-fr", audio_id: "audio-Av3-TR-3-fr" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-fr", audio_id: "audio-Av3-P-4-fr" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -3336,7 +3336,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-fr", audio_id: "audio-Av3-P-5-fr", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-fr", audio_id: "audio-Av3-TR-5-fr" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-fr", audio_id: "audio-Av3-TR-5-fr" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-fr", audio_id: "audio-Av3-P-6-fr", reto_id: "R7-Av3-fr" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -3358,11 +3358,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-fr", audio_id: "audio-Av3-P-11-fr", reto_id: "R10-Av3-fr" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-fr", audio_id: "audio-Av3-TR-10-fr" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-fr", audio_id: "audio-Av3-TR-10-fr" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-fr", audio_id: "audio-Av3-P-12-fr", reto_id: "R11-Av3-fr" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-fr", audio_id: "audio-Av3-TR-11-fr" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-fr", audio_id: "audio-Av3-TR-11-fr" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-fr", audio_id: "audio-Av3-P-13-fr" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -3476,7 +3476,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-it", audio_id: "audio-Av3-P-3-it" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-it", audio_id: "audio-Av3-TR-3-it" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-it", audio_id: "audio-Av3-TR-3-it" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-it", audio_id: "audio-Av3-P-4-it" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -3484,7 +3484,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-it", audio_id: "audio-Av3-P-5-it", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-it", audio_id: "audio-Av3-TR-5-it" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-it", audio_id: "audio-Av3-TR-5-it" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-it", audio_id: "audio-Av3-P-6-it", reto_id: "R7-Av3-it" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -3506,11 +3506,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-it", audio_id: "audio-Av3-P-11-it", reto_id: "R10-Av3-it" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-it", audio_id: "audio-Av3-TR-10-it" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-it", audio_id: "audio-Av3-TR-10-it" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-it", audio_id: "audio-Av3-P-12-it", reto_id: "R11-Av3-it" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-it", audio_id: "audio-Av3-TR-11-it" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-it", audio_id: "audio-Av3-TR-11-it" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-it", audio_id: "audio-Av3-P-13-it" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -3624,7 +3624,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-nl", audio_id: "audio-Av3-P-3-nl" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-nl", audio_id: "audio-Av3-TR-3-nl" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-nl", audio_id: "audio-Av3-TR-3-nl" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-nl", audio_id: "audio-Av3-P-4-nl" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -3632,7 +3632,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-nl", audio_id: "audio-Av3-P-5-nl", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-nl", audio_id: "audio-Av3-TR-5-nl" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-nl", audio_id: "audio-Av3-TR-5-nl" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-nl", audio_id: "audio-Av3-P-6-nl", reto_id: "R7-Av3-nl" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -3654,11 +3654,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-nl", audio_id: "audio-Av3-P-11-nl", reto_id: "R10-Av3-nl" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-nl", audio_id: "audio-Av3-TR-10-nl" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-nl", audio_id: "audio-Av3-TR-10-nl" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-nl", audio_id: "audio-Av3-P-12-nl", reto_id: "R11-Av3-nl" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-nl", audio_id: "audio-Av3-TR-11-nl" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-nl", audio_id: "audio-Av3-TR-11-nl" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-nl", audio_id: "audio-Av3-P-13-nl" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -3772,7 +3772,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-ja", audio_id: "audio-Av3-P-3-ja" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-ja", audio_id: "audio-Av3-TR-3-ja" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-ja", audio_id: "audio-Av3-TR-3-ja" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-ja", audio_id: "audio-Av3-P-4-ja" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -3780,7 +3780,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-ja", audio_id: "audio-Av3-P-5-ja", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-ja", audio_id: "audio-Av3-TR-5-ja" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-ja", audio_id: "audio-Av3-TR-5-ja" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-ja", audio_id: "audio-Av3-P-6-ja", reto_id: "R7-Av3-ja" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -3802,11 +3802,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-ja", audio_id: "audio-Av3-P-11-ja", reto_id: "R10-Av3-ja" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-ja", audio_id: "audio-Av3-TR-10-ja" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-ja", audio_id: "audio-Av3-TR-10-ja" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-ja", audio_id: "audio-Av3-P-12-ja", reto_id: "R11-Av3-ja" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-ja", audio_id: "audio-Av3-TR-11-ja" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-ja", audio_id: "audio-Av3-TR-11-ja" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-ja", audio_id: "audio-Av3-P-13-ja" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -3920,7 +3920,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-de", audio_id: "audio-Av3-P-3-de" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-de", audio_id: "audio-Av3-TR-3-de" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-de", audio_id: "audio-Av3-TR-3-de" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-de", audio_id: "audio-Av3-P-4-de" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -3928,7 +3928,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-de", audio_id: "audio-Av3-P-5-de", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-de", audio_id: "audio-Av3-TR-5-de" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-de", audio_id: "audio-Av3-TR-5-de" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-de", audio_id: "audio-Av3-P-6-de", reto_id: "R7-Av3-de" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -3950,11 +3950,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-de", audio_id: "audio-Av3-P-11-de", reto_id: "R10-Av3-de" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-de", audio_id: "audio-Av3-TR-10-de" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-de", audio_id: "audio-Av3-TR-10-de" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-de", audio_id: "audio-Av3-P-12-de", reto_id: "R11-Av3-de" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-de", audio_id: "audio-Av3-TR-11-de" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-de", audio_id: "audio-Av3-TR-11-de" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-de", audio_id: "audio-Av3-P-13-de" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -4068,7 +4068,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-zh", audio_id: "audio-Av3-P-3-zh" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-zh", audio_id: "audio-Av3-TR-3-zh" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-zh", audio_id: "audio-Av3-TR-3-zh" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-zh", audio_id: "audio-Av3-P-4-zh" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -4076,7 +4076,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-zh", audio_id: "audio-Av3-P-5-zh", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-zh", audio_id: "audio-Av3-TR-5-zh" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-zh", audio_id: "audio-Av3-TR-5-zh" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-zh", audio_id: "audio-Av3-P-6-zh", reto_id: "R7-Av3-zh" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -4098,11 +4098,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-zh", audio_id: "audio-Av3-P-11-zh", reto_id: "R10-Av3-zh" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-zh", audio_id: "audio-Av3-TR-10-zh" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-zh", audio_id: "audio-Av3-TR-10-zh" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-zh", audio_id: "audio-Av3-P-12-zh", reto_id: "R11-Av3-zh" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-zh", audio_id: "audio-Av3-TR-11-zh" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-zh", audio_id: "audio-Av3-TR-11-zh" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-zh", audio_id: "audio-Av3-P-13-zh" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -4216,7 +4216,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-pl", audio_id: "audio-Av3-P-3-pl" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-pl", audio_id: "audio-Av3-TR-3-pl" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-pl", audio_id: "audio-Av3-TR-3-pl" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-pl", audio_id: "audio-Av3-P-4-pl" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -4224,7 +4224,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-pl", audio_id: "audio-Av3-P-5-pl", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-pl", audio_id: "audio-Av3-TR-5-pl" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-pl", audio_id: "audio-Av3-TR-5-pl" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-pl", audio_id: "audio-Av3-P-6-pl", reto_id: "R7-Av3-pl" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -4246,11 +4246,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-pl", audio_id: "audio-Av3-P-11-pl", reto_id: "R10-Av3-pl" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-pl", audio_id: "audio-Av3-TR-10-pl" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-pl", audio_id: "audio-Av3-TR-10-pl" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-pl", audio_id: "audio-Av3-P-12-pl", reto_id: "R11-Av3-pl" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-pl", audio_id: "audio-Av3-TR-11-pl" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-pl", audio_id: "audio-Av3-TR-11-pl" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-pl", audio_id: "audio-Av3-P-13-pl" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -4364,7 +4364,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-pt", audio_id: "audio-Av3-P-3-pt" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-pt", audio_id: "audio-Av3-TR-3-pt" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-pt", audio_id: "audio-Av3-TR-3-pt" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-pt", audio_id: "audio-Av3-P-4-pt" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -4372,7 +4372,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-pt", audio_id: "audio-Av3-P-5-pt", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-pt", audio_id: "audio-Av3-TR-5-pt" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-pt", audio_id: "audio-Av3-TR-5-pt" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-pt", audio_id: "audio-Av3-P-6-pt", reto_id: "R7-Av3-pt" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -4394,11 +4394,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-pt", audio_id: "audio-Av3-P-11-pt", reto_id: "R10-Av3-pt" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-pt", audio_id: "audio-Av3-TR-10-pt" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-pt", audio_id: "audio-Av3-TR-10-pt" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-pt", audio_id: "audio-Av3-P-12-pt", reto_id: "R11-Av3-pt" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-pt", audio_id: "audio-Av3-TR-11-pt" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-pt", audio_id: "audio-Av3-TR-11-pt" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-pt", audio_id: "audio-Av3-P-13-pt" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -4512,7 +4512,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-ru", audio_id: "audio-Av3-P-3-ru" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-ru", audio_id: "audio-Av3-TR-3-ru" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-ru", audio_id: "audio-Av3-TR-3-ru" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-ru", audio_id: "audio-Av3-P-4-ru" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -4520,7 +4520,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-ru", audio_id: "audio-Av3-P-5-ru", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-ru", audio_id: "audio-Av3-TR-5-ru" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-ru", audio_id: "audio-Av3-TR-5-ru" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-ru", audio_id: "audio-Av3-P-6-ru", reto_id: "R7-Av3-ru" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -4542,11 +4542,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-ru", audio_id: "audio-Av3-P-11-ru", reto_id: "R10-Av3-ru" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-ru", audio_id: "audio-Av3-TR-10-ru" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-ru", audio_id: "audio-Av3-TR-10-ru" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-ru", audio_id: "audio-Av3-P-12-ru", reto_id: "R11-Av3-ru" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-ru", audio_id: "audio-Av3-TR-11-ru" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-ru", audio_id: "audio-Av3-TR-11-ru" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-ru", audio_id: "audio-Av3-P-13-ru" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -4660,7 +4660,7 @@ export const DATOS_PADRE = {
         // Parada 3: Centro Puente Serranos 2
         { padreid: "padre-P3", tipo: "parada", nombre: "Centro Puente Serranos 2", parada_id: "Av3-P-3", numero_mapa: null, texto_id: "txt-Av3-P3-uk", audio_id: "audio-Av3-P-3-uk" },
         // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→6", texto_id: "txt-Av3-TR3-uk", audio_id: "audio-Av3-TR-3-uk" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia", tramo_id: "Av3-TR-3", numero_mapa: "-→3→4→5→6", texto_id: "txt-Av3-TR3-uk", audio_id: "audio-Av3-TR-3-uk" },
         // Parada 4: Ruinas del Jardín del Turia
         { padreid: "padre-P4", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av3-P-4", numero_mapa: 6, texto_id: "txt-Av3-P4-uk", audio_id: "audio-Av3-P-4-uk" },
         // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)
@@ -4668,7 +4668,7 @@ export const DATOS_PADRE = {
         // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08)
         { padreid: "padre-P5", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av3-P-5", numero_mapa: 7, texto_id: "txt-Av3-P5-uk", audio_id: "audio-Av3-P-5-uk", reto_id: "PZ-08" },
         // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición
-        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→9", texto_id: "txt-Av3-TR5-uk", audio_id: "audio-Av3-TR-5-uk" },
+        { padreid: "padre-TR5", tipo: "tramo", nombre: "Jardines del Real (Viveros) → Puente de la Exposición", tramo_id: "Av3-TR-5", numero_mapa: "7→8→9", texto_id: "txt-Av3-TR5-uk", audio_id: "audio-Av3-TR-5-uk" },
         // Parada 6: Puente de la Exposición (Reto 7)
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av3-P-6", numero_mapa: 9, texto_id: "txt-Av3-P6-uk", audio_id: "audio-Av3-P-6-uk", reto_id: "R7-Av3-uk" },
         // Tramo 6: Puente de la Exposición → Puente de las Flores
@@ -4690,11 +4690,11 @@ export const DATOS_PADRE = {
         // Parada 11: Palau de la Música (Reto 10)
         { padreid: "padre-P11", tipo: "parada", nombre: "Palau de la Música", parada_id: "Av3-P-11", numero_mapa: 13, texto_id: "txt-Av3-P11-uk", audio_id: "audio-Av3-P-11-uk", reto_id: "R10-Av3-uk" },
         // Tramo 10: Palau de la música → Gulliver
-        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→15", texto_id: "txt-Av3-TR10-uk", audio_id: "audio-Av3-TR-10-uk" },
+        { padreid: "padre-TR10", tipo: "tramo", nombre: "Palau de la música → Gulliver", tramo_id: "Av3-TR-10", numero_mapa: "13→14→15", texto_id: "txt-Av3-TR10-uk", audio_id: "audio-Av3-TR-10-uk" },
         // Parada 12: Gulliver (Reto 11)
         { padreid: "padre-P12", tipo: "parada", nombre: "Gulliver", parada_id: "Av3-P-12", numero_mapa: 15, texto_id: "txt-Av3-P12-uk", audio_id: "audio-Av3-P-12-uk", reto_id: "R11-Av3-uk" },
         // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
-        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→17", texto_id: "txt-Av3-TR11-uk", audio_id: "audio-Av3-TR-11-uk" },
+        { padreid: "padre-TR11", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", tramo_id: "Av3-TR-11", numero_mapa: "15→16→17", texto_id: "txt-Av3-TR11-uk", audio_id: "audio-Av3-TR-11-uk" },
         // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias
         { padreid: "padre-P13", tipo: "parada", nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias", parada_id: "Av3-P-13", numero_mapa: 17, texto_id: "txt-Av3-P13-uk", audio_id: "audio-Av3-P-13-uk" },
         // Tramo 12: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe
@@ -4811,9 +4811,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-es", audio_id: "audio-Av4-TR-5-es" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-es", audio_id: "audio-Av4-P-10-es" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-es", audio_id: "audio-Av4-P-11-es" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-es", audio_id: "audio-Av4-TR-6-es" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-es", audio_id: "audio-Av4-TR-6-es" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-es", audio_id: "audio-Av4-P-12-es", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-es", audio_id: "audio-Av4-TR-7-es" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-es", audio_id: "audio-Av4-TR-7-es" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-es", audio_id: "audio-Av4-P-13-es", reto_id: "R13-Av4-es" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-es", audio_id: "audio-Av4-TR-8-es" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-es", audio_id: "audio-Av4-P-14-es" },
@@ -4838,7 +4838,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-es", audio_id: "audio-Av4-P-24-es", reto_id: "R17-Av4-es" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-es", audio_id: "audio-Av4-TR-18-es" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-es", audio_id: "audio-Av4-P-25-es" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-es", audio_id: "audio-Av4-TR-19-es" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-es", audio_id: "audio-Av4-TR-19-es" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-es", audio_id: "audio-Av4-P-26-es", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-es", audio_id: "audio-Av4-TR-20-es" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-es", audio_id: "audio-Av4-P-27-es" },
@@ -4882,9 +4882,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-en", audio_id: "audio-Av4-TR-5-en" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-en", audio_id: "audio-Av4-P-10-en" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-en", audio_id: "audio-Av4-P-11-en" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-en", audio_id: "audio-Av4-TR-6-en" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-en", audio_id: "audio-Av4-TR-6-en" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-en", audio_id: "audio-Av4-P-12-en", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-en", audio_id: "audio-Av4-TR-7-en" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-en", audio_id: "audio-Av4-TR-7-en" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-en", audio_id: "audio-Av4-P-13-en", reto_id: "R13-Av4-en" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-en", audio_id: "audio-Av4-TR-8-en" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-en", audio_id: "audio-Av4-P-14-en" },
@@ -4909,7 +4909,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-en", audio_id: "audio-Av4-P-24-en", reto_id: "R17-Av4-en" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-en", audio_id: "audio-Av4-TR-18-en" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-en", audio_id: "audio-Av4-P-25-en" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-en", audio_id: "audio-Av4-TR-19-en" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-en", audio_id: "audio-Av4-TR-19-en" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-en", audio_id: "audio-Av4-P-26-en", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-en", audio_id: "audio-Av4-TR-20-en" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-en", audio_id: "audio-Av4-P-27-en" },
@@ -4953,9 +4953,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-fr", audio_id: "audio-Av4-TR-5-fr" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-fr", audio_id: "audio-Av4-P-10-fr" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-fr", audio_id: "audio-Av4-P-11-fr" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-fr", audio_id: "audio-Av4-TR-6-fr" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-fr", audio_id: "audio-Av4-TR-6-fr" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-fr", audio_id: "audio-Av4-P-12-fr", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-fr", audio_id: "audio-Av4-TR-7-fr" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-fr", audio_id: "audio-Av4-TR-7-fr" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-fr", audio_id: "audio-Av4-P-13-fr", reto_id: "R13-Av4-fr" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-fr", audio_id: "audio-Av4-TR-8-fr" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-fr", audio_id: "audio-Av4-P-14-fr" },
@@ -4980,7 +4980,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-fr", audio_id: "audio-Av4-P-24-fr", reto_id: "R17-Av4-fr" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-fr", audio_id: "audio-Av4-TR-18-fr" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-fr", audio_id: "audio-Av4-P-25-fr" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-fr", audio_id: "audio-Av4-TR-19-fr" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-fr", audio_id: "audio-Av4-TR-19-fr" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-fr", audio_id: "audio-Av4-P-26-fr", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-fr", audio_id: "audio-Av4-TR-20-fr" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-fr", audio_id: "audio-Av4-P-27-fr" },
@@ -5024,9 +5024,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-it", audio_id: "audio-Av4-TR-5-it" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-it", audio_id: "audio-Av4-P-10-it" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-it", audio_id: "audio-Av4-P-11-it" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-it", audio_id: "audio-Av4-TR-6-it" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-it", audio_id: "audio-Av4-TR-6-it" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-it", audio_id: "audio-Av4-P-12-it", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-it", audio_id: "audio-Av4-TR-7-it" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-it", audio_id: "audio-Av4-TR-7-it" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-it", audio_id: "audio-Av4-P-13-it", reto_id: "R13-Av4-it" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-it", audio_id: "audio-Av4-TR-8-it" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-it", audio_id: "audio-Av4-P-14-it" },
@@ -5051,7 +5051,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-it", audio_id: "audio-Av4-P-24-it", reto_id: "R17-Av4-it" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-it", audio_id: "audio-Av4-TR-18-it" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-it", audio_id: "audio-Av4-P-25-it" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-it", audio_id: "audio-Av4-TR-19-it" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-it", audio_id: "audio-Av4-TR-19-it" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-it", audio_id: "audio-Av4-P-26-it", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-it", audio_id: "audio-Av4-TR-20-it" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-it", audio_id: "audio-Av4-P-27-it" },
@@ -5095,9 +5095,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-nl", audio_id: "audio-Av4-TR-5-nl" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-nl", audio_id: "audio-Av4-P-10-nl" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-nl", audio_id: "audio-Av4-P-11-nl" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-nl", audio_id: "audio-Av4-TR-6-nl" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-nl", audio_id: "audio-Av4-TR-6-nl" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-nl", audio_id: "audio-Av4-P-12-nl", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-nl", audio_id: "audio-Av4-TR-7-nl" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-nl", audio_id: "audio-Av4-TR-7-nl" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-nl", audio_id: "audio-Av4-P-13-nl", reto_id: "R13-Av4-nl" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-nl", audio_id: "audio-Av4-TR-8-nl" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-nl", audio_id: "audio-Av4-P-14-nl" },
@@ -5122,7 +5122,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-nl", audio_id: "audio-Av4-P-24-nl", reto_id: "R17-Av4-nl" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-nl", audio_id: "audio-Av4-TR-18-nl" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-nl", audio_id: "audio-Av4-P-25-nl" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-nl", audio_id: "audio-Av4-TR-19-nl" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-nl", audio_id: "audio-Av4-TR-19-nl" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-nl", audio_id: "audio-Av4-P-26-nl", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-nl", audio_id: "audio-Av4-TR-20-nl" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-nl", audio_id: "audio-Av4-P-27-nl" },
@@ -5166,9 +5166,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-ja", audio_id: "audio-Av4-TR-5-ja" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-ja", audio_id: "audio-Av4-P-10-ja" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-ja", audio_id: "audio-Av4-P-11-ja" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-ja", audio_id: "audio-Av4-TR-6-ja" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-ja", audio_id: "audio-Av4-TR-6-ja" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-ja", audio_id: "audio-Av4-P-12-ja", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-ja", audio_id: "audio-Av4-TR-7-ja" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-ja", audio_id: "audio-Av4-TR-7-ja" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-ja", audio_id: "audio-Av4-P-13-ja", reto_id: "R13-Av4-ja" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-ja", audio_id: "audio-Av4-TR-8-ja" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-ja", audio_id: "audio-Av4-P-14-ja" },
@@ -5193,7 +5193,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-ja", audio_id: "audio-Av4-P-24-ja", reto_id: "R17-Av4-ja" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-ja", audio_id: "audio-Av4-TR-18-ja" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-ja", audio_id: "audio-Av4-P-25-ja" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-ja", audio_id: "audio-Av4-TR-19-ja" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-ja", audio_id: "audio-Av4-TR-19-ja" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-ja", audio_id: "audio-Av4-P-26-ja", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-ja", audio_id: "audio-Av4-TR-20-ja" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-ja", audio_id: "audio-Av4-P-27-ja" },
@@ -5237,9 +5237,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-de", audio_id: "audio-Av4-TR-5-de" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-de", audio_id: "audio-Av4-P-10-de" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-de", audio_id: "audio-Av4-P-11-de" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-de", audio_id: "audio-Av4-TR-6-de" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-de", audio_id: "audio-Av4-TR-6-de" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-de", audio_id: "audio-Av4-P-12-de", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-de", audio_id: "audio-Av4-TR-7-de" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-de", audio_id: "audio-Av4-TR-7-de" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-de", audio_id: "audio-Av4-P-13-de", reto_id: "R13-Av4-de" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-de", audio_id: "audio-Av4-TR-8-de" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-de", audio_id: "audio-Av4-P-14-de" },
@@ -5264,7 +5264,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-de", audio_id: "audio-Av4-P-24-de", reto_id: "R17-Av4-de" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-de", audio_id: "audio-Av4-TR-18-de" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-de", audio_id: "audio-Av4-P-25-de" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-de", audio_id: "audio-Av4-TR-19-de" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-de", audio_id: "audio-Av4-TR-19-de" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-de", audio_id: "audio-Av4-P-26-de", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-de", audio_id: "audio-Av4-TR-20-de" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-de", audio_id: "audio-Av4-P-27-de" },
@@ -5308,9 +5308,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-zh", audio_id: "audio-Av4-TR-5-zh" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-zh", audio_id: "audio-Av4-P-10-zh" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-zh", audio_id: "audio-Av4-P-11-zh" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-zh", audio_id: "audio-Av4-TR-6-zh" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-zh", audio_id: "audio-Av4-TR-6-zh" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-zh", audio_id: "audio-Av4-P-12-zh", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-zh", audio_id: "audio-Av4-TR-7-zh" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-zh", audio_id: "audio-Av4-TR-7-zh" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-zh", audio_id: "audio-Av4-P-13-zh", reto_id: "R13-Av4-zh" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-zh", audio_id: "audio-Av4-TR-8-zh" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-zh", audio_id: "audio-Av4-P-14-zh" },
@@ -5335,7 +5335,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-zh", audio_id: "audio-Av4-P-24-zh", reto_id: "R17-Av4-zh" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-zh", audio_id: "audio-Av4-TR-18-zh" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-zh", audio_id: "audio-Av4-P-25-zh" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-zh", audio_id: "audio-Av4-TR-19-zh" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-zh", audio_id: "audio-Av4-TR-19-zh" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-zh", audio_id: "audio-Av4-P-26-zh", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-zh", audio_id: "audio-Av4-TR-20-zh" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-zh", audio_id: "audio-Av4-P-27-zh" },
@@ -5379,9 +5379,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-pl", audio_id: "audio-Av4-TR-5-pl" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-pl", audio_id: "audio-Av4-P-10-pl" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-pl", audio_id: "audio-Av4-P-11-pl" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-pl", audio_id: "audio-Av4-TR-6-pl" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-pl", audio_id: "audio-Av4-TR-6-pl" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-pl", audio_id: "audio-Av4-P-12-pl", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-pl", audio_id: "audio-Av4-TR-7-pl" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-pl", audio_id: "audio-Av4-TR-7-pl" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-pl", audio_id: "audio-Av4-P-13-pl", reto_id: "R13-Av4-pl" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-pl", audio_id: "audio-Av4-TR-8-pl" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-pl", audio_id: "audio-Av4-P-14-pl" },
@@ -5406,7 +5406,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-pl", audio_id: "audio-Av4-P-24-pl", reto_id: "R17-Av4-pl" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-pl", audio_id: "audio-Av4-TR-18-pl" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-pl", audio_id: "audio-Av4-P-25-pl" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-pl", audio_id: "audio-Av4-TR-19-pl" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-pl", audio_id: "audio-Av4-TR-19-pl" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-pl", audio_id: "audio-Av4-P-26-pl", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-pl", audio_id: "audio-Av4-TR-20-pl" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-pl", audio_id: "audio-Av4-P-27-pl" },
@@ -5450,9 +5450,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-pt", audio_id: "audio-Av4-TR-5-pt" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-pt", audio_id: "audio-Av4-P-10-pt" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-pt", audio_id: "audio-Av4-P-11-pt" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-pt", audio_id: "audio-Av4-TR-6-pt" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-pt", audio_id: "audio-Av4-TR-6-pt" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-pt", audio_id: "audio-Av4-P-12-pt", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-pt", audio_id: "audio-Av4-TR-7-pt" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-pt", audio_id: "audio-Av4-TR-7-pt" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-pt", audio_id: "audio-Av4-P-13-pt", reto_id: "R13-Av4-pt" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-pt", audio_id: "audio-Av4-TR-8-pt" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-pt", audio_id: "audio-Av4-P-14-pt" },
@@ -5477,7 +5477,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-pt", audio_id: "audio-Av4-P-24-pt", reto_id: "R17-Av4-pt" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-pt", audio_id: "audio-Av4-TR-18-pt" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-pt", audio_id: "audio-Av4-P-25-pt" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-pt", audio_id: "audio-Av4-TR-19-pt" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-pt", audio_id: "audio-Av4-TR-19-pt" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-pt", audio_id: "audio-Av4-P-26-pt", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-pt", audio_id: "audio-Av4-TR-20-pt" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-pt", audio_id: "audio-Av4-P-27-pt" },
@@ -5521,9 +5521,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-ru", audio_id: "audio-Av4-TR-5-ru" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-ru", audio_id: "audio-Av4-P-10-ru" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-ru", audio_id: "audio-Av4-P-11-ru" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-ru", audio_id: "audio-Av4-TR-6-ru" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-ru", audio_id: "audio-Av4-TR-6-ru" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-ru", audio_id: "audio-Av4-P-12-ru", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-ru", audio_id: "audio-Av4-TR-7-ru" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-ru", audio_id: "audio-Av4-TR-7-ru" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-ru", audio_id: "audio-Av4-P-13-ru", reto_id: "R13-Av4-ru" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-ru", audio_id: "audio-Av4-TR-8-ru" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-ru", audio_id: "audio-Av4-P-14-ru" },
@@ -5548,7 +5548,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-ru", audio_id: "audio-Av4-P-24-ru", reto_id: "R17-Av4-ru" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-ru", audio_id: "audio-Av4-TR-18-ru" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-ru", audio_id: "audio-Av4-P-25-ru" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-ru", audio_id: "audio-Av4-TR-19-ru" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-ru", audio_id: "audio-Av4-TR-19-ru" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-ru", audio_id: "audio-Av4-P-26-ru", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-ru", audio_id: "audio-Av4-TR-20-ru" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-ru", audio_id: "audio-Av4-P-27-ru" },
@@ -5592,9 +5592,9 @@ export const DATOS_PADRE = {
         { padreid: "padre-TR5", tipo: "tramo", nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)", tramo_id: "Av4-TR-5", numero_mapa: "5→6", texto_id: "txt-Av4-TR5-uk", audio_id: "audio-Av4-TR-5-uk" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas", parada_id: "Av4-P-10", numero_mapa: 6, texto_id: "txt-Av4-P10-uk", audio_id: "audio-Av4-P-10-uk" },
         { padreid: "padre-P11", tipo: "parada", nombre: "Instituto Valenciano de Arte Moderno (IVAM): Museo", parada_id: "Av4-P-11", numero_mapa: 6, texto_id: "txt-Av4-P11-uk", audio_id: "audio-Av4-P-11-uk" },
-        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→9", texto_id: "txt-Av4-TR6-uk", audio_id: "audio-Av4-TR-6-uk" },
+        { padreid: "padre-TR6", tipo: "tramo", nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo", tramo_id: "Av4-TR-6", numero_mapa: "6→7→8→9", texto_id: "txt-Av4-TR6-uk", audio_id: "audio-Av4-TR-6-uk" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av4-P-12", numero_mapa: 9, texto_id: "txt-Av4-P12-uk", audio_id: "audio-Av4-P-12-uk", reto_id: "PZ-10" },
-        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→11", texto_id: "txt-Av4-TR7-uk", audio_id: "audio-Av4-TR-7-uk" },
+        { padreid: "padre-TR7", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av4-TR-7", numero_mapa: "9→10→11", texto_id: "txt-Av4-TR7-uk", audio_id: "audio-Av4-TR-7-uk" },
         { padreid: "padre-P13", tipo: "parada", nombre: "Na Turia (Plataforma elevada)", parada_id: "Av4-P-13", numero_mapa: 11, texto_id: "txt-Av4-P13-uk", audio_id: "audio-Av4-P-13-uk", reto_id: "R13-Av4-uk" },
         { padreid: "padre-TR8", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av4-TR-8", numero_mapa: "11→11", texto_id: "txt-Av4-TR8-uk", audio_id: "audio-Av4-TR-8-uk" },
         { padreid: "padre-P14", tipo: "parada", nombre: "Na Turia (Museo)", parada_id: "Av4-P-14", numero_mapa: 11, texto_id: "txt-Av4-P14-uk", audio_id: "audio-Av4-P-14-uk" },
@@ -5619,7 +5619,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P24", tipo: "parada", nombre: "Torres de Serranos Front", parada_id: "Av4-P-24", numero_mapa: 1, texto_id: "txt-Av4-P24-uk", audio_id: "audio-Av4-P-24-uk", reto_id: "R17-Av4-uk" },
         { padreid: "padre-TR18", tipo: "tramo", nombre: "Torres de Serranos → Centro Puente de Serranos", tramo_id: "Av4-TR-18", numero_mapa: "1→-", texto_id: "txt-Av4-TR18-uk", audio_id: "audio-Av4-TR-18-uk" },
         { padreid: "padre-P25", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av4-P-25", numero_mapa: null, texto_id: "txt-Av4-P25-uk", audio_id: "audio-Av4-P-25-uk" },
-        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→24", texto_id: "txt-Av4-TR19-uk", audio_id: "audio-Av4-TR-19-uk" },
+        { padreid: "padre-TR19", tipo: "tramo", nombre: "Centro Puente de Serranos → Ruinas del Jardín del Turia", tramo_id: "Av4-TR-19", numero_mapa: "-→20→21→22→23→24", texto_id: "txt-Av4-TR19-uk", audio_id: "audio-Av4-TR-19-uk" },
         { padreid: "padre-P26", tipo: "parada", nombre: "Ruinas del Jardín del Turia", parada_id: "Av4-P-26", numero_mapa: 24, texto_id: "txt-Av4-P26-uk", audio_id: "audio-Av4-P-26-uk", reto_id: "PZ-13" },
         { padreid: "padre-TR20", tipo: "tramo", nombre: "Ruinas del Jardín del Turia → Jardines del Real (Viveros)", tramo_id: "Av4-TR-20", numero_mapa: "24→25", texto_id: "txt-Av4-TR20-uk", audio_id: "audio-Av4-TR-20-uk" },
         { padreid: "padre-P27", tipo: "parada", nombre: "Jardines del Real (Viveros)", parada_id: "Av4-P-27", numero_mapa: 25, texto_id: "txt-Av4-P27-uk", audio_id: "audio-Av4-P-27-uk" },
@@ -6504,7 +6504,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-es", audio_id: "audio-AvFallas-P-11-es" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-es", audio_id: "audio-AvFallas-TR-7-es" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-es", audio_id: "audio-AvFallas-TR-7-es" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-es", audio_id: "audio-AvFallas-P-12-es", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -6552,7 +6552,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-es", audio_id: "audio-AvFallas-P-25-es", reto_id: "R19-AvFallas-es" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-es", audio_id: "audio-AvFallas-TR-17-es" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-es", audio_id: "audio-AvFallas-TR-17-es" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-es", audio_id: "audio-AvFallas-P-26-es" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -6604,7 +6604,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-en", audio_id: "audio-AvFallas-P-11-en" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-en", audio_id: "audio-AvFallas-TR-7-en" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-en", audio_id: "audio-AvFallas-TR-7-en" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-en", audio_id: "audio-AvFallas-P-12-en", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -6652,7 +6652,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-en", audio_id: "audio-AvFallas-P-25-en", reto_id: "R19-AvFallas-en" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-en", audio_id: "audio-AvFallas-TR-17-en" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-en", audio_id: "audio-AvFallas-TR-17-en" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-en", audio_id: "audio-AvFallas-P-26-en" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -6704,7 +6704,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-fr", audio_id: "audio-AvFallas-P-11-fr" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-fr", audio_id: "audio-AvFallas-TR-7-fr" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-fr", audio_id: "audio-AvFallas-TR-7-fr" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-fr", audio_id: "audio-AvFallas-P-12-fr", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -6752,7 +6752,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-fr", audio_id: "audio-AvFallas-P-25-fr", reto_id: "R19-AvFallas-fr" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-fr", audio_id: "audio-AvFallas-TR-17-fr" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-fr", audio_id: "audio-AvFallas-TR-17-fr" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-fr", audio_id: "audio-AvFallas-P-26-fr" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -6804,7 +6804,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-it", audio_id: "audio-AvFallas-P-11-it" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-it", audio_id: "audio-AvFallas-TR-7-it" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-it", audio_id: "audio-AvFallas-TR-7-it" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-it", audio_id: "audio-AvFallas-P-12-it", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -6852,7 +6852,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-it", audio_id: "audio-AvFallas-P-25-it", reto_id: "R19-AvFallas-it" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-it", audio_id: "audio-AvFallas-TR-17-it" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-it", audio_id: "audio-AvFallas-TR-17-it" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-it", audio_id: "audio-AvFallas-P-26-it" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -6904,7 +6904,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-nl", audio_id: "audio-AvFallas-P-11-nl" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-nl", audio_id: "audio-AvFallas-TR-7-nl" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-nl", audio_id: "audio-AvFallas-TR-7-nl" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-nl", audio_id: "audio-AvFallas-P-12-nl", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -6952,7 +6952,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-nl", audio_id: "audio-AvFallas-P-25-nl", reto_id: "R19-AvFallas-nl" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-nl", audio_id: "audio-AvFallas-TR-17-nl" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-nl", audio_id: "audio-AvFallas-TR-17-nl" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-nl", audio_id: "audio-AvFallas-P-26-nl" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -7004,7 +7004,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-ja", audio_id: "audio-AvFallas-P-11-ja" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-ja", audio_id: "audio-AvFallas-TR-7-ja" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-ja", audio_id: "audio-AvFallas-TR-7-ja" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-ja", audio_id: "audio-AvFallas-P-12-ja", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -7052,7 +7052,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-ja", audio_id: "audio-AvFallas-P-25-ja", reto_id: "R19-AvFallas-ja" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-ja", audio_id: "audio-AvFallas-TR-17-ja" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-ja", audio_id: "audio-AvFallas-TR-17-ja" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-ja", audio_id: "audio-AvFallas-P-26-ja" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -7104,7 +7104,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-de", audio_id: "audio-AvFallas-P-11-de" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-de", audio_id: "audio-AvFallas-TR-7-de" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-de", audio_id: "audio-AvFallas-TR-7-de" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-de", audio_id: "audio-AvFallas-P-12-de", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -7152,7 +7152,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-de", audio_id: "audio-AvFallas-P-25-de", reto_id: "R19-AvFallas-de" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-de", audio_id: "audio-AvFallas-TR-17-de" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-de", audio_id: "audio-AvFallas-TR-17-de" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-de", audio_id: "audio-AvFallas-P-26-de" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -7204,7 +7204,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-zh", audio_id: "audio-AvFallas-P-11-zh" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-zh", audio_id: "audio-AvFallas-TR-7-zh" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-zh", audio_id: "audio-AvFallas-TR-7-zh" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-zh", audio_id: "audio-AvFallas-P-12-zh", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -7252,7 +7252,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-zh", audio_id: "audio-AvFallas-P-25-zh", reto_id: "R19-AvFallas-zh" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-zh", audio_id: "audio-AvFallas-TR-17-zh" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-zh", audio_id: "audio-AvFallas-TR-17-zh" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-zh", audio_id: "audio-AvFallas-P-26-zh" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -7304,7 +7304,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-pl", audio_id: "audio-AvFallas-P-11-pl" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-pl", audio_id: "audio-AvFallas-TR-7-pl" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-pl", audio_id: "audio-AvFallas-TR-7-pl" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-pl", audio_id: "audio-AvFallas-P-12-pl", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -7352,7 +7352,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-pl", audio_id: "audio-AvFallas-P-25-pl", reto_id: "R19-AvFallas-pl" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-pl", audio_id: "audio-AvFallas-TR-17-pl" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-pl", audio_id: "audio-AvFallas-TR-17-pl" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-pl", audio_id: "audio-AvFallas-P-26-pl" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -7404,7 +7404,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-pt", audio_id: "audio-AvFallas-P-11-pt" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-pt", audio_id: "audio-AvFallas-TR-7-pt" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-pt", audio_id: "audio-AvFallas-TR-7-pt" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-pt", audio_id: "audio-AvFallas-P-12-pt", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -7452,7 +7452,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-pt", audio_id: "audio-AvFallas-P-25-pt", reto_id: "R19-AvFallas-pt" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-pt", audio_id: "audio-AvFallas-TR-17-pt" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-pt", audio_id: "audio-AvFallas-TR-17-pt" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-pt", audio_id: "audio-AvFallas-P-26-pt" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -7504,7 +7504,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-ru", audio_id: "audio-AvFallas-P-11-ru" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-ru", audio_id: "audio-AvFallas-TR-7-ru" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-ru", audio_id: "audio-AvFallas-TR-7-ru" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-ru", audio_id: "audio-AvFallas-P-12-ru", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -7552,7 +7552,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-ru", audio_id: "audio-AvFallas-P-25-ru", reto_id: "R19-AvFallas-ru" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-ru", audio_id: "audio-AvFallas-TR-17-ru" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-ru", audio_id: "audio-AvFallas-TR-17-ru" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-ru", audio_id: "audio-AvFallas-P-26-ru" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -7604,7 +7604,7 @@ export const DATOS_PADRE = {
         // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
         {padreid: "padre-P11", tipo: "parada", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia", parada_id: "AvFallas-P-11", numero_mapa: 8, texto_id: "txt-AvFallas-P11-uk", audio_id: "audio-AvFallas-P-11-uk" },
         // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
-        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→10", texto_id: "txt-AvFallas-TR7-uk", audio_id: "audio-AvFallas-TR-7-uk" },
+        {padreid: "padre-TR7", tipo: "tramo", nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina", tramo_id: "AvFallas-TR-7", numero_mapa: "8→9→10", texto_id: "txt-AvFallas-TR7-uk", audio_id: "audio-AvFallas-TR-7-uk" },
         // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
         {padreid: "padre-P12", tipo: "parada", nombre: "Torre Barroca de Santa Catalina", parada_id: "AvFallas-P-12", numero_mapa: 10, texto_id: "txt-AvFallas-P12-uk", audio_id: "audio-AvFallas-P-12-uk", reto_id: "PZ-17" },
         // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
@@ -7652,7 +7652,7 @@ export const DATOS_PADRE = {
         // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
         {padreid: "padre-P25", tipo: "parada", nombre: "Fuente del Negrito", parada_id: "AvFallas-P-25", numero_mapa: 19, texto_id: "txt-AvFallas-P25-uk", audio_id: "audio-AvFallas-P-25-uk", reto_id: "R19-AvFallas-uk" },
         // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
-        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→21", texto_id: "txt-AvFallas-TR17-uk", audio_id: "audio-AvFallas-TR-17-uk" },
+        {padreid: "padre-TR17", tipo: "tramo", nombre: "Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat", tramo_id: "AvFallas-TR-17", numero_mapa: "19→20→21", texto_id: "txt-AvFallas-TR17-uk", audio_id: "audio-AvFallas-TR-17-uk" },
         // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
         {padreid: "padre-P26", tipo: "parada", nombre: "Palau de la Generalitat", parada_id: "AvFallas-P-26", numero_mapa: 21, texto_id: "txt-AvFallas-P26-uk", audio_id: "audio-AvFallas-P-26-uk" },
         // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
@@ -7676,7 +7676,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-es", audio_id: "audio-Av34km-P-1-es", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-es", audio_id: "audio-Av34km-TR-2-es" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-es", audio_id: "audio-Av34km-P-2-es" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-es", audio_id: "audio-Av34km-TR-3-es" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-es", audio_id: "audio-Av34km-TR-3-es" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-es", audio_id: "audio-Av34km-P-3-es", reto_id: "R5-Av34km-es" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-es", audio_id: "audio-Av34km-TR-4-es" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-es", audio_id: "audio-Av34km-P-4-es" },
@@ -7686,7 +7686,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-es", audio_id: "audio-Av34km-P-6-es", reto_id: "R7-Av34km-es" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-es", audio_id: "audio-Av34km-TR-7-es" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-es", audio_id: "audio-Av34km-P-7-es", reto_id: "R8-Av34km-es" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-es", audio_id: "audio-Av34km-TR-8-es" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-es", audio_id: "audio-Av34km-TR-8-es" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-es", audio_id: "audio-Av34km-P-8-es", reto_id: "R9-Av34km-es" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-es", audio_id: "audio-Av34km-TR-9-es" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-es", audio_id: "audio-Av34km-P-9-es" },
@@ -7703,7 +7703,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-es", audio_id: "audio-Av34km-P-15-es", reto_id: "R12-Av34km-es" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-es", audio_id: "audio-Av34km-TR-15-es" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-es", audio_id: "audio-Av34km-P-16-es", reto_id: "R13-Av34km-es" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-es", audio_id: "audio-Av34km-TR-16-es" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-es", audio_id: "audio-Av34km-TR-16-es" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-es", audio_id: "audio-Av34km-P-17-es", reto_id: "R14-Av34km-es" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-es", audio_id: "audio-Av34km-TR-17-es" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-es", audio_id: "audio-Av34km-P-18-es", reto_id: "R15-Av34km-es" },
@@ -7841,7 +7841,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-es", audio_id: "audio-Av34km-P-102-es" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-es", audio_id: "audio-Av34km-TR-66-es" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-es", audio_id: "audio-Av34km-P-103-es", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-es", audio_id: "audio-Av34km-TR-67-es" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-es", audio_id: "audio-Av34km-TR-67-es" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-es", audio_id: "audio-Av34km-P-104-es", reto_id: "R79-Av34km-es" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-es", audio_id: "audio-Av34km-TR-68-es" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-es", audio_id: "audio-Av34km-P-105-es" },
@@ -7922,7 +7922,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-en", audio_id: "audio-Av34km-P-1-en", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-en", audio_id: "audio-Av34km-TR-2-en" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-en", audio_id: "audio-Av34km-P-2-en" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-en", audio_id: "audio-Av34km-TR-3-en" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-en", audio_id: "audio-Av34km-TR-3-en" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-en", audio_id: "audio-Av34km-P-3-en", reto_id: "R5-Av34km-en" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-en", audio_id: "audio-Av34km-TR-4-en" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-en", audio_id: "audio-Av34km-P-4-en" },
@@ -7932,7 +7932,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-en", audio_id: "audio-Av34km-P-6-en", reto_id: "R7-Av34km-en" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-en", audio_id: "audio-Av34km-TR-7-en" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-en", audio_id: "audio-Av34km-P-7-en", reto_id: "R8-Av34km-en" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-en", audio_id: "audio-Av34km-TR-8-en" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-en", audio_id: "audio-Av34km-TR-8-en" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-en", audio_id: "audio-Av34km-P-8-en", reto_id: "R9-Av34km-en" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-en", audio_id: "audio-Av34km-TR-9-en" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-en", audio_id: "audio-Av34km-P-9-en" },
@@ -7949,7 +7949,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-en", audio_id: "audio-Av34km-P-15-en", reto_id: "R12-Av34km-en" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-en", audio_id: "audio-Av34km-TR-15-en" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-en", audio_id: "audio-Av34km-P-16-en", reto_id: "R13-Av34km-en" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-en", audio_id: "audio-Av34km-TR-16-en" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-en", audio_id: "audio-Av34km-TR-16-en" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-en", audio_id: "audio-Av34km-P-17-en", reto_id: "R14-Av34km-en" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-en", audio_id: "audio-Av34km-TR-17-en" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-en", audio_id: "audio-Av34km-P-18-en", reto_id: "R15-Av34km-en" },
@@ -8087,7 +8087,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-en", audio_id: "audio-Av34km-P-102-en" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-en", audio_id: "audio-Av34km-TR-66-en" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-en", audio_id: "audio-Av34km-P-103-en", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-en", audio_id: "audio-Av34km-TR-67-en" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-en", audio_id: "audio-Av34km-TR-67-en" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-en", audio_id: "audio-Av34km-P-104-en", reto_id: "R79-Av34km-en" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-en", audio_id: "audio-Av34km-TR-68-en" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-en", audio_id: "audio-Av34km-P-105-en" },
@@ -8168,7 +8168,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-fr", audio_id: "audio-Av34km-P-1-fr", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-fr", audio_id: "audio-Av34km-TR-2-fr" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-fr", audio_id: "audio-Av34km-P-2-fr" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-fr", audio_id: "audio-Av34km-TR-3-fr" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-fr", audio_id: "audio-Av34km-TR-3-fr" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-fr", audio_id: "audio-Av34km-P-3-fr", reto_id: "R5-Av34km-fr" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-fr", audio_id: "audio-Av34km-TR-4-fr" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-fr", audio_id: "audio-Av34km-P-4-fr" },
@@ -8178,7 +8178,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-fr", audio_id: "audio-Av34km-P-6-fr", reto_id: "R7-Av34km-fr" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-fr", audio_id: "audio-Av34km-TR-7-fr" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-fr", audio_id: "audio-Av34km-P-7-fr", reto_id: "R8-Av34km-fr" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-fr", audio_id: "audio-Av34km-TR-8-fr" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-fr", audio_id: "audio-Av34km-TR-8-fr" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-fr", audio_id: "audio-Av34km-P-8-fr", reto_id: "R9-Av34km-fr" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-fr", audio_id: "audio-Av34km-TR-9-fr" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-fr", audio_id: "audio-Av34km-P-9-fr" },
@@ -8195,7 +8195,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-fr", audio_id: "audio-Av34km-P-15-fr", reto_id: "R12-Av34km-fr" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-fr", audio_id: "audio-Av34km-TR-15-fr" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-fr", audio_id: "audio-Av34km-P-16-fr", reto_id: "R13-Av34km-fr" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-fr", audio_id: "audio-Av34km-TR-16-fr" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-fr", audio_id: "audio-Av34km-TR-16-fr" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-fr", audio_id: "audio-Av34km-P-17-fr", reto_id: "R14-Av34km-fr" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-fr", audio_id: "audio-Av34km-TR-17-fr" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-fr", audio_id: "audio-Av34km-P-18-fr", reto_id: "R15-Av34km-fr" },
@@ -8333,7 +8333,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-fr", audio_id: "audio-Av34km-P-102-fr" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-fr", audio_id: "audio-Av34km-TR-66-fr" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-fr", audio_id: "audio-Av34km-P-103-fr", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-fr", audio_id: "audio-Av34km-TR-67-fr" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-fr", audio_id: "audio-Av34km-TR-67-fr" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-fr", audio_id: "audio-Av34km-P-104-fr", reto_id: "R79-Av34km-fr" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-fr", audio_id: "audio-Av34km-TR-68-fr" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-fr", audio_id: "audio-Av34km-P-105-fr" },
@@ -8414,7 +8414,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-it", audio_id: "audio-Av34km-P-1-it", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-it", audio_id: "audio-Av34km-TR-2-it" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-it", audio_id: "audio-Av34km-P-2-it" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-it", audio_id: "audio-Av34km-TR-3-it" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-it", audio_id: "audio-Av34km-TR-3-it" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-it", audio_id: "audio-Av34km-P-3-it", reto_id: "R5-Av34km-it" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-it", audio_id: "audio-Av34km-TR-4-it" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-it", audio_id: "audio-Av34km-P-4-it" },
@@ -8424,7 +8424,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-it", audio_id: "audio-Av34km-P-6-it", reto_id: "R7-Av34km-it" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-it", audio_id: "audio-Av34km-TR-7-it" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-it", audio_id: "audio-Av34km-P-7-it", reto_id: "R8-Av34km-it" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-it", audio_id: "audio-Av34km-TR-8-it" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-it", audio_id: "audio-Av34km-TR-8-it" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-it", audio_id: "audio-Av34km-P-8-it", reto_id: "R9-Av34km-it" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-it", audio_id: "audio-Av34km-TR-9-it" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-it", audio_id: "audio-Av34km-P-9-it" },
@@ -8441,7 +8441,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-it", audio_id: "audio-Av34km-P-15-it", reto_id: "R12-Av34km-it" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-it", audio_id: "audio-Av34km-TR-15-it" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-it", audio_id: "audio-Av34km-P-16-it", reto_id: "R13-Av34km-it" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-it", audio_id: "audio-Av34km-TR-16-it" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-it", audio_id: "audio-Av34km-TR-16-it" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-it", audio_id: "audio-Av34km-P-17-it", reto_id: "R14-Av34km-it" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-it", audio_id: "audio-Av34km-TR-17-it" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-it", audio_id: "audio-Av34km-P-18-it", reto_id: "R15-Av34km-it" },
@@ -8579,7 +8579,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-it", audio_id: "audio-Av34km-P-102-it" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-it", audio_id: "audio-Av34km-TR-66-it" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-it", audio_id: "audio-Av34km-P-103-it", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-it", audio_id: "audio-Av34km-TR-67-it" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-it", audio_id: "audio-Av34km-TR-67-it" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-it", audio_id: "audio-Av34km-P-104-it", reto_id: "R79-Av34km-it" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-it", audio_id: "audio-Av34km-TR-68-it" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-it", audio_id: "audio-Av34km-P-105-it" },
@@ -8660,7 +8660,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-nl", audio_id: "audio-Av34km-P-1-nl", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-nl", audio_id: "audio-Av34km-TR-2-nl" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-nl", audio_id: "audio-Av34km-P-2-nl" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-nl", audio_id: "audio-Av34km-TR-3-nl" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-nl", audio_id: "audio-Av34km-TR-3-nl" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-nl", audio_id: "audio-Av34km-P-3-nl", reto_id: "R5-Av34km-nl" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-nl", audio_id: "audio-Av34km-TR-4-nl" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-nl", audio_id: "audio-Av34km-P-4-nl" },
@@ -8670,7 +8670,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-nl", audio_id: "audio-Av34km-P-6-nl", reto_id: "R7-Av34km-nl" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-nl", audio_id: "audio-Av34km-TR-7-nl" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-nl", audio_id: "audio-Av34km-P-7-nl", reto_id: "R8-Av34km-nl" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-nl", audio_id: "audio-Av34km-TR-8-nl" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-nl", audio_id: "audio-Av34km-TR-8-nl" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-nl", audio_id: "audio-Av34km-P-8-nl", reto_id: "R9-Av34km-nl" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-nl", audio_id: "audio-Av34km-TR-9-nl" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-nl", audio_id: "audio-Av34km-P-9-nl" },
@@ -8687,7 +8687,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-nl", audio_id: "audio-Av34km-P-15-nl", reto_id: "R12-Av34km-nl" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-nl", audio_id: "audio-Av34km-TR-15-nl" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-nl", audio_id: "audio-Av34km-P-16-nl", reto_id: "R13-Av34km-nl" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-nl", audio_id: "audio-Av34km-TR-16-nl" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-nl", audio_id: "audio-Av34km-TR-16-nl" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-nl", audio_id: "audio-Av34km-P-17-nl", reto_id: "R14-Av34km-nl" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-nl", audio_id: "audio-Av34km-TR-17-nl" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-nl", audio_id: "audio-Av34km-P-18-nl", reto_id: "R15-Av34km-nl" },
@@ -8825,7 +8825,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-nl", audio_id: "audio-Av34km-P-102-nl" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-nl", audio_id: "audio-Av34km-TR-66-nl" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-nl", audio_id: "audio-Av34km-P-103-nl", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-nl", audio_id: "audio-Av34km-TR-67-nl" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-nl", audio_id: "audio-Av34km-TR-67-nl" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-nl", audio_id: "audio-Av34km-P-104-nl", reto_id: "R79-Av34km-nl" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-nl", audio_id: "audio-Av34km-TR-68-nl" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-nl", audio_id: "audio-Av34km-P-105-nl" },
@@ -8906,7 +8906,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-ja", audio_id: "audio-Av34km-P-1-ja", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-ja", audio_id: "audio-Av34km-TR-2-ja" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-ja", audio_id: "audio-Av34km-P-2-ja" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-ja", audio_id: "audio-Av34km-TR-3-ja" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-ja", audio_id: "audio-Av34km-TR-3-ja" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-ja", audio_id: "audio-Av34km-P-3-ja", reto_id: "R5-Av34km-ja" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-ja", audio_id: "audio-Av34km-TR-4-ja" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-ja", audio_id: "audio-Av34km-P-4-ja" },
@@ -8916,7 +8916,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-ja", audio_id: "audio-Av34km-P-6-ja", reto_id: "R7-Av34km-ja" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-ja", audio_id: "audio-Av34km-TR-7-ja" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-ja", audio_id: "audio-Av34km-P-7-ja", reto_id: "R8-Av34km-ja" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-ja", audio_id: "audio-Av34km-TR-8-ja" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-ja", audio_id: "audio-Av34km-TR-8-ja" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-ja", audio_id: "audio-Av34km-P-8-ja", reto_id: "R9-Av34km-ja" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-ja", audio_id: "audio-Av34km-TR-9-ja" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-ja", audio_id: "audio-Av34km-P-9-ja" },
@@ -8933,7 +8933,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-ja", audio_id: "audio-Av34km-P-15-ja", reto_id: "R12-Av34km-ja" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-ja", audio_id: "audio-Av34km-TR-15-ja" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-ja", audio_id: "audio-Av34km-P-16-ja", reto_id: "R13-Av34km-ja" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-ja", audio_id: "audio-Av34km-TR-16-ja" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-ja", audio_id: "audio-Av34km-TR-16-ja" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-ja", audio_id: "audio-Av34km-P-17-ja", reto_id: "R14-Av34km-ja" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-ja", audio_id: "audio-Av34km-TR-17-ja" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-ja", audio_id: "audio-Av34km-P-18-ja", reto_id: "R15-Av34km-ja" },
@@ -9071,7 +9071,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-ja", audio_id: "audio-Av34km-P-102-ja" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-ja", audio_id: "audio-Av34km-TR-66-ja" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-ja", audio_id: "audio-Av34km-P-103-ja", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-ja", audio_id: "audio-Av34km-TR-67-ja" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-ja", audio_id: "audio-Av34km-TR-67-ja" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-ja", audio_id: "audio-Av34km-P-104-ja", reto_id: "R79-Av34km-ja" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-ja", audio_id: "audio-Av34km-TR-68-ja" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-ja", audio_id: "audio-Av34km-P-105-ja" },
@@ -9152,7 +9152,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-de", audio_id: "audio-Av34km-P-1-de", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-de", audio_id: "audio-Av34km-TR-2-de" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-de", audio_id: "audio-Av34km-P-2-de" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-de", audio_id: "audio-Av34km-TR-3-de" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-de", audio_id: "audio-Av34km-TR-3-de" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-de", audio_id: "audio-Av34km-P-3-de", reto_id: "R5-Av34km-de" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-de", audio_id: "audio-Av34km-TR-4-de" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-de", audio_id: "audio-Av34km-P-4-de" },
@@ -9162,7 +9162,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-de", audio_id: "audio-Av34km-P-6-de", reto_id: "R7-Av34km-de" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-de", audio_id: "audio-Av34km-TR-7-de" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-de", audio_id: "audio-Av34km-P-7-de", reto_id: "R8-Av34km-de" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-de", audio_id: "audio-Av34km-TR-8-de" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-de", audio_id: "audio-Av34km-TR-8-de" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-de", audio_id: "audio-Av34km-P-8-de", reto_id: "R9-Av34km-de" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-de", audio_id: "audio-Av34km-TR-9-de" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-de", audio_id: "audio-Av34km-P-9-de" },
@@ -9179,7 +9179,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-de", audio_id: "audio-Av34km-P-15-de", reto_id: "R12-Av34km-de" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-de", audio_id: "audio-Av34km-TR-15-de" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-de", audio_id: "audio-Av34km-P-16-de", reto_id: "R13-Av34km-de" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-de", audio_id: "audio-Av34km-TR-16-de" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-de", audio_id: "audio-Av34km-TR-16-de" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-de", audio_id: "audio-Av34km-P-17-de", reto_id: "R14-Av34km-de" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-de", audio_id: "audio-Av34km-TR-17-de" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-de", audio_id: "audio-Av34km-P-18-de", reto_id: "R15-Av34km-de" },
@@ -9317,7 +9317,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-de", audio_id: "audio-Av34km-P-102-de" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-de", audio_id: "audio-Av34km-TR-66-de" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-de", audio_id: "audio-Av34km-P-103-de", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-de", audio_id: "audio-Av34km-TR-67-de" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-de", audio_id: "audio-Av34km-TR-67-de" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-de", audio_id: "audio-Av34km-P-104-de", reto_id: "R79-Av34km-de" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-de", audio_id: "audio-Av34km-TR-68-de" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-de", audio_id: "audio-Av34km-P-105-de" },
@@ -9398,7 +9398,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-zh", audio_id: "audio-Av34km-P-1-zh", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-zh", audio_id: "audio-Av34km-TR-2-zh" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-zh", audio_id: "audio-Av34km-P-2-zh" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-zh", audio_id: "audio-Av34km-TR-3-zh" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-zh", audio_id: "audio-Av34km-TR-3-zh" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-zh", audio_id: "audio-Av34km-P-3-zh", reto_id: "R5-Av34km-zh" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-zh", audio_id: "audio-Av34km-TR-4-zh" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-zh", audio_id: "audio-Av34km-P-4-zh" },
@@ -9408,7 +9408,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-zh", audio_id: "audio-Av34km-P-6-zh", reto_id: "R7-Av34km-zh" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-zh", audio_id: "audio-Av34km-TR-7-zh" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-zh", audio_id: "audio-Av34km-P-7-zh", reto_id: "R8-Av34km-zh" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-zh", audio_id: "audio-Av34km-TR-8-zh" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-zh", audio_id: "audio-Av34km-TR-8-zh" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-zh", audio_id: "audio-Av34km-P-8-zh", reto_id: "R9-Av34km-zh" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-zh", audio_id: "audio-Av34km-TR-9-zh" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-zh", audio_id: "audio-Av34km-P-9-zh" },
@@ -9425,7 +9425,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-zh", audio_id: "audio-Av34km-P-15-zh", reto_id: "R12-Av34km-zh" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-zh", audio_id: "audio-Av34km-TR-15-zh" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-zh", audio_id: "audio-Av34km-P-16-zh", reto_id: "R13-Av34km-zh" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-zh", audio_id: "audio-Av34km-TR-16-zh" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-zh", audio_id: "audio-Av34km-TR-16-zh" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-zh", audio_id: "audio-Av34km-P-17-zh", reto_id: "R14-Av34km-zh" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-zh", audio_id: "audio-Av34km-TR-17-zh" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-zh", audio_id: "audio-Av34km-P-18-zh", reto_id: "R15-Av34km-zh" },
@@ -9563,7 +9563,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-zh", audio_id: "audio-Av34km-P-102-zh" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-zh", audio_id: "audio-Av34km-TR-66-zh" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-zh", audio_id: "audio-Av34km-P-103-zh", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-zh", audio_id: "audio-Av34km-TR-67-zh" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-zh", audio_id: "audio-Av34km-TR-67-zh" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-zh", audio_id: "audio-Av34km-P-104-zh", reto_id: "R79-Av34km-zh" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-zh", audio_id: "audio-Av34km-TR-68-zh" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-zh", audio_id: "audio-Av34km-P-105-zh" },
@@ -9644,7 +9644,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-pl", audio_id: "audio-Av34km-P-1-pl", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-pl", audio_id: "audio-Av34km-TR-2-pl" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-pl", audio_id: "audio-Av34km-P-2-pl" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-pl", audio_id: "audio-Av34km-TR-3-pl" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-pl", audio_id: "audio-Av34km-TR-3-pl" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-pl", audio_id: "audio-Av34km-P-3-pl", reto_id: "R5-Av34km-pl" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-pl", audio_id: "audio-Av34km-TR-4-pl" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-pl", audio_id: "audio-Av34km-P-4-pl" },
@@ -9654,7 +9654,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-pl", audio_id: "audio-Av34km-P-6-pl", reto_id: "R7-Av34km-pl" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-pl", audio_id: "audio-Av34km-TR-7-pl" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-pl", audio_id: "audio-Av34km-P-7-pl", reto_id: "R8-Av34km-pl" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-pl", audio_id: "audio-Av34km-TR-8-pl" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-pl", audio_id: "audio-Av34km-TR-8-pl" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-pl", audio_id: "audio-Av34km-P-8-pl", reto_id: "R9-Av34km-pl" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-pl", audio_id: "audio-Av34km-TR-9-pl" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-pl", audio_id: "audio-Av34km-P-9-pl" },
@@ -9671,7 +9671,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-pl", audio_id: "audio-Av34km-P-15-pl", reto_id: "R12-Av34km-pl" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-pl", audio_id: "audio-Av34km-TR-15-pl" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-pl", audio_id: "audio-Av34km-P-16-pl", reto_id: "R13-Av34km-pl" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-pl", audio_id: "audio-Av34km-TR-16-pl" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-pl", audio_id: "audio-Av34km-TR-16-pl" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-pl", audio_id: "audio-Av34km-P-17-pl", reto_id: "R14-Av34km-pl" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-pl", audio_id: "audio-Av34km-TR-17-pl" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-pl", audio_id: "audio-Av34km-P-18-pl", reto_id: "R15-Av34km-pl" },
@@ -9809,7 +9809,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-pl", audio_id: "audio-Av34km-P-102-pl" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-pl", audio_id: "audio-Av34km-TR-66-pl" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-pl", audio_id: "audio-Av34km-P-103-pl", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-pl", audio_id: "audio-Av34km-TR-67-pl" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-pl", audio_id: "audio-Av34km-TR-67-pl" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-pl", audio_id: "audio-Av34km-P-104-pl", reto_id: "R79-Av34km-pl" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-pl", audio_id: "audio-Av34km-TR-68-pl" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-pl", audio_id: "audio-Av34km-P-105-pl" },
@@ -9890,7 +9890,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-pt", audio_id: "audio-Av34km-P-1-pt", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-pt", audio_id: "audio-Av34km-TR-2-pt" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-pt", audio_id: "audio-Av34km-P-2-pt" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-pt", audio_id: "audio-Av34km-TR-3-pt" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-pt", audio_id: "audio-Av34km-TR-3-pt" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-pt", audio_id: "audio-Av34km-P-3-pt", reto_id: "R5-Av34km-pt" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-pt", audio_id: "audio-Av34km-TR-4-pt" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-pt", audio_id: "audio-Av34km-P-4-pt" },
@@ -9900,7 +9900,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-pt", audio_id: "audio-Av34km-P-6-pt", reto_id: "R7-Av34km-pt" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-pt", audio_id: "audio-Av34km-TR-7-pt" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-pt", audio_id: "audio-Av34km-P-7-pt", reto_id: "R8-Av34km-pt" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-pt", audio_id: "audio-Av34km-TR-8-pt" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-pt", audio_id: "audio-Av34km-TR-8-pt" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-pt", audio_id: "audio-Av34km-P-8-pt", reto_id: "R9-Av34km-pt" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-pt", audio_id: "audio-Av34km-TR-9-pt" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-pt", audio_id: "audio-Av34km-P-9-pt" },
@@ -9917,7 +9917,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-pt", audio_id: "audio-Av34km-P-15-pt", reto_id: "R12-Av34km-pt" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-pt", audio_id: "audio-Av34km-TR-15-pt" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-pt", audio_id: "audio-Av34km-P-16-pt", reto_id: "R13-Av34km-pt" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-pt", audio_id: "audio-Av34km-TR-16-pt" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-pt", audio_id: "audio-Av34km-TR-16-pt" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-pt", audio_id: "audio-Av34km-P-17-pt", reto_id: "R14-Av34km-pt" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-pt", audio_id: "audio-Av34km-TR-17-pt" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-pt", audio_id: "audio-Av34km-P-18-pt", reto_id: "R15-Av34km-pt" },
@@ -10055,7 +10055,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-pt", audio_id: "audio-Av34km-P-102-pt" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-pt", audio_id: "audio-Av34km-TR-66-pt" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-pt", audio_id: "audio-Av34km-P-103-pt", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-pt", audio_id: "audio-Av34km-TR-67-pt" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-pt", audio_id: "audio-Av34km-TR-67-pt" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-pt", audio_id: "audio-Av34km-P-104-pt", reto_id: "R79-Av34km-pt" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-pt", audio_id: "audio-Av34km-TR-68-pt" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-pt", audio_id: "audio-Av34km-P-105-pt" },
@@ -10136,7 +10136,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-ru", audio_id: "audio-Av34km-P-1-ru", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-ru", audio_id: "audio-Av34km-TR-2-ru" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-ru", audio_id: "audio-Av34km-P-2-ru" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-ru", audio_id: "audio-Av34km-TR-3-ru" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-ru", audio_id: "audio-Av34km-TR-3-ru" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-ru", audio_id: "audio-Av34km-P-3-ru", reto_id: "R5-Av34km-ru" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-ru", audio_id: "audio-Av34km-TR-4-ru" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-ru", audio_id: "audio-Av34km-P-4-ru" },
@@ -10146,7 +10146,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-ru", audio_id: "audio-Av34km-P-6-ru", reto_id: "R7-Av34km-ru" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-ru", audio_id: "audio-Av34km-TR-7-ru" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-ru", audio_id: "audio-Av34km-P-7-ru", reto_id: "R8-Av34km-ru" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-ru", audio_id: "audio-Av34km-TR-8-ru" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-ru", audio_id: "audio-Av34km-TR-8-ru" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-ru", audio_id: "audio-Av34km-P-8-ru", reto_id: "R9-Av34km-ru" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-ru", audio_id: "audio-Av34km-TR-9-ru" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-ru", audio_id: "audio-Av34km-P-9-ru" },
@@ -10163,7 +10163,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-ru", audio_id: "audio-Av34km-P-15-ru", reto_id: "R12-Av34km-ru" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-ru", audio_id: "audio-Av34km-TR-15-ru" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-ru", audio_id: "audio-Av34km-P-16-ru", reto_id: "R13-Av34km-ru" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-ru", audio_id: "audio-Av34km-TR-16-ru" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-ru", audio_id: "audio-Av34km-TR-16-ru" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-ru", audio_id: "audio-Av34km-P-17-ru", reto_id: "R14-Av34km-ru" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-ru", audio_id: "audio-Av34km-TR-17-ru" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-ru", audio_id: "audio-Av34km-P-18-ru", reto_id: "R15-Av34km-ru" },
@@ -10301,7 +10301,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-ru", audio_id: "audio-Av34km-P-102-ru" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-ru", audio_id: "audio-Av34km-TR-66-ru" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-ru", audio_id: "audio-Av34km-P-103-ru", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-ru", audio_id: "audio-Av34km-TR-67-ru" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-ru", audio_id: "audio-Av34km-TR-67-ru" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-ru", audio_id: "audio-Av34km-P-104-ru", reto_id: "R79-Av34km-ru" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-ru", audio_id: "audio-Av34km-TR-68-ru" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-ru", audio_id: "audio-Av34km-P-105-ru" },
@@ -10382,7 +10382,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P1", tipo: "parada", nombre: "Plaza de la Crída", parada_id: "Av34km-P-1", numero_mapa: 2, texto_id: "txt-Av34km-P1-uk", audio_id: "audio-Av34km-P-1-uk", reto_id: "PZ-19" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Plaza de la Crída → Centro Puente de Serranos", tramo_id: "Av34km-TR-2", numero_mapa: "2→-", texto_id: "txt-Av34km-TR2-uk", audio_id: "audio-Av34km-TR-2-uk" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Centro Puente Serranos", parada_id: "Av34km-P-2", numero_mapa: "-", texto_id: "txt-Av34km-P2-uk", audio_id: "audio-Av34km-P-2-uk" },
-        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→4", texto_id: "txt-Av34km-TR3-uk", audio_id: "audio-Av34km-TR-3-uk" },
+        { padreid: "padre-TR3", tipo: "tramo", nombre: "Centro Puente de Serranos → Puente de la Exposición", tramo_id: "Av34km-TR-3", numero_mapa: "-→3→4", texto_id: "txt-Av34km-TR3-uk", audio_id: "audio-Av34km-TR-3-uk" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Puente de la Exposición", parada_id: "Av34km-P-3", numero_mapa: 4, texto_id: "txt-Av34km-P3-uk", audio_id: "audio-Av34km-P-3-uk", reto_id: "R5-Av34km-uk" },
         { padreid: "padre-TR4", tipo: "tramo", nombre: "Puente de la Exposición → Puente de las Flores", tramo_id: "Av34km-TR-4", numero_mapa: "4→5", texto_id: "txt-Av34km-TR4-uk", audio_id: "audio-Av34km-TR-4-uk" },
         { padreid: "padre-P4", tipo: "parada", nombre: "Puente de las Flores", parada_id: "Av34km-P-4", numero_mapa: 5, texto_id: "txt-Av34km-P4-uk", audio_id: "audio-Av34km-P-4-uk" },
@@ -10392,7 +10392,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P6", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-6", numero_mapa: 6, texto_id: "txt-Av34km-P6-uk", audio_id: "audio-Av34km-P-6-uk", reto_id: "R7-Av34km-uk" },
         { padreid: "padre-TR7", tipo: "tramo", nombre: "Puente de la Mar → Palacio de la Música", tramo_id: "Av34km-TR-7", numero_mapa: "6→8", texto_id: "txt-Av34km-TR7-uk", audio_id: "audio-Av34km-TR-7-uk" },
         { padreid: "padre-P7", tipo: "parada", nombre: "Palacio de la Música", parada_id: "Av34km-P-7", numero_mapa: 8, texto_id: "txt-Av34km-P7-uk", audio_id: "audio-Av34km-P-7-uk", reto_id: "R8-Av34km-uk" },
-        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→10", texto_id: "txt-Av34km-TR8-uk", audio_id: "audio-Av34km-TR-8-uk" },
+        { padreid: "padre-TR8", tipo: "tramo", nombre: "Palacio de la Música → Gulliver", tramo_id: "Av34km-TR-8", numero_mapa: "8→9→10", texto_id: "txt-Av34km-TR8-uk", audio_id: "audio-Av34km-TR-8-uk" },
         { padreid: "padre-P8", tipo: "parada", nombre: "Gulliver", parada_id: "Av34km-P-8", numero_mapa: 10, texto_id: "txt-Av34km-P8-uk", audio_id: "audio-Av34km-P-8-uk", reto_id: "R9-Av34km-uk" },
         { padreid: "padre-TR9", tipo: "tramo", nombre: "Gulliver → Pistas de Patinaje", tramo_id: "Av34km-TR-9", numero_mapa: "10→11", texto_id: "txt-Av34km-TR9-uk", audio_id: "audio-Av34km-TR-9-uk" },
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-uk", audio_id: "audio-Av34km-P-9-uk" },
@@ -10409,7 +10409,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P15", tipo: "parada", nombre: "Hemisféric", parada_id: "Av34km-P-15", numero_mapa: 19, texto_id: "txt-Av34km-P15-uk", audio_id: "audio-Av34km-P-15-uk", reto_id: "R12-Av34km-uk" },
         { padreid: "padre-TR15", tipo: "tramo", nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar", tramo_id: "Av34km-TR-15", numero_mapa: "19→6", texto_id: "txt-Av34km-TR15-uk", audio_id: "audio-Av34km-TR-15-uk" },
         { padreid: "padre-P16", tipo: "parada", nombre: "Puente de la Mar", parada_id: "Av34km-P-16", numero_mapa: 6, texto_id: "txt-Av34km-P16-uk", audio_id: "audio-Av34km-P-16-uk", reto_id: "R13-Av34km-uk" },
-        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→21", texto_id: "txt-Av34km-TR16-uk", audio_id: "audio-Av34km-TR-16-uk" },
+        { padreid: "padre-TR16", tipo: "tramo", nombre: "Puente de la Mar → Puerta de la Mar", tramo_id: "Av34km-TR-16", numero_mapa: "6→20→21", texto_id: "txt-Av34km-TR16-uk", audio_id: "audio-Av34km-TR-16-uk" },
         { padreid: "padre-P17", tipo: "parada", nombre: "Puerta de la Mar", parada_id: "Av34km-P-17", numero_mapa: 21, texto_id: "txt-Av34km-P17-uk", audio_id: "audio-Av34km-P-17-uk", reto_id: "R14-Av34km-uk" },
         { padreid: "padre-TR17", tipo: "tramo", nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones", tramo_id: "Av34km-TR-17", numero_mapa: "21→22", texto_id: "txt-Av34km-TR17-uk", audio_id: "audio-Av34km-TR-17-uk" },
         { padreid: "padre-P18", tipo: "parada", nombre: "Casa de los Dragones", parada_id: "Av34km-P-18", numero_mapa: 22, texto_id: "txt-Av34km-P18-uk", audio_id: "audio-Av34km-P-18-uk", reto_id: "R15-Av34km-uk" },
@@ -10547,7 +10547,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P102", tipo: "parada", nombre: "Jardín de las Hespérides", parada_id: "Av34km-P-102", numero_mapa: 65, texto_id: "txt-Av34km-P102-uk", audio_id: "audio-Av34km-P-102-uk" },
         { padreid: "padre-TR66", tipo: "tramo", nombre: "Jardín de las Hespérides → Estadio de Atletismo", tramo_id: "Av34km-TR-66", numero_mapa: "65→66", texto_id: "txt-Av34km-TR66-uk", audio_id: "audio-Av34km-TR-66-uk" },
         { padreid: "padre-P103", tipo: "parada", nombre: "Estadio de Atletismo", parada_id: "Av34km-P-103", numero_mapa: 66, texto_id: "txt-Av34km-P103-uk", audio_id: "audio-Av34km-P-103-uk", reto_id: "PZ-10" },
-        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→68", texto_id: "txt-Av34km-TR67-uk", audio_id: "audio-Av34km-TR-67-uk" },
+        { padreid: "padre-TR67", tipo: "tramo", nombre: "Estadio de Atletismo → Na Turia", tramo_id: "Av34km-TR-67", numero_mapa: "66→67→68", texto_id: "txt-Av34km-TR67-uk", audio_id: "audio-Av34km-TR-67-uk" },
         { padreid: "padre-P104", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-104", numero_mapa: 68, texto_id: "txt-Av34km-P104-uk", audio_id: "audio-Av34km-P-104-uk", reto_id: "R79-Av34km-uk" },
         { padreid: "padre-TR68", tipo: "tramo", nombre: "Na Turia (Plataforma elevada) → Na Turia (Museo)", tramo_id: "Av34km-TR-68", numero_mapa: "68→68", texto_id: "txt-Av34km-TR68-uk", audio_id: "audio-Av34km-TR-68-uk" },
         { padreid: "padre-P105", tipo: "parada", nombre: "Na Turia", parada_id: "Av34km-P-105", numero_mapa: 68, texto_id: "txt-Av34km-P105-uk", audio_id: "audio-Av34km-P-105-uk" },
