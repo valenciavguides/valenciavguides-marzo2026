@@ -2139,16 +2139,16 @@
                 let _mapaVisibleFallback;
                 const _sendMapaVisible = () => {
                     clearTimeout(_mapaVisibleFallback);
-                    // Con las paradas completadas al día, para que el mapa pinte en verde los números ya hechos (la
-                    // función la publica Script 2; el mapa solo se abre con la aventura en marcha). Si no se pueden
-                    // saber, no va lista: el mapa deja los números como estén. Una vacía diría «ninguna completada».
-                    let completadas;
-                    try { completadas = globalThis._paradasCompletadasDelMapa(); }
-                    catch (e) { (globalThis.logger || console).error('[PADRE][MAPA_COMPLETO] Sin las paradas completadas:', e?.message || e); }
+                    // Con los números de mapa completados al día, para que el mapa los pinte en verde (la función la
+                    // publica Script 2; el mapa solo se abre con la aventura en marcha). Si no se pueden saber, no va
+                    // lista: el mapa deja los números como estén. Una vacía diría «ninguno completado».
+                    let numerosCompletados;
+                    try { numerosCompletados = globalThis._numerosDeMapaCompletados(); }
+                    catch (e) { (globalThis.logger || console).error('[PADRE][MAPA_COMPLETO] Sin los números completados:', e?.message || e); }
                     void globalThis.mensajeria?.enviarMensaje?.({
                         tipo: globalThis.TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE,
                         destino: 'mapa-completo',
-                        datos: { completadas },
+                        datos: { numerosCompletados },
                     });
                 };
                 _iframeEl.addEventListener('load', () => requestAnimationFrame(_sendMapaVisible), { once: true });
@@ -12249,35 +12249,17 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             return String(valor).split('→').map(h => _expandeHopMapaNumero(h));
         }
 
-        // Construye, en orden de recorrido, la secuencia de filas del listado de paradas:
-        // una fila por cada parada/inicio real (con su título localizado y estado de
-        // completado), más una fila "puente" por cada número de mapa que la ruta pasa
-        // pero donde nunca hay parada propia — ver GUIA-COMPLETA para el razonamiento
-        // completo (números de mapa muchos-a-muchos con paradas, revisitas no consecutivas,
-        // cadenas de tramo tipo "7→4→8").
-        async function _construirFilasListadoParadas(aventura, idioma) {
+        // Las filas del recorrido, en su orden: una por cada parada/inicio real (con su estado de completado), más una
+        // fila "puente" por cada número de mapa que la ruta pasa pero donde nunca hay parada propia — ver GUIA-COMPLETA
+        // §7.2 para el razonamiento completo (números de mapa muchos-a-muchos con paradas, revisitas no consecutivas,
+        // cadenas de tramo tipo "7→4→8"). Es la única regla de «completado» de los números de mapa: la usan el listado de
+        // paradas, que les pone los títulos (_construirFilasListadoParadas), y los números en verde del mapa moderno
+        // (_numerosDeMapaCompletados; docs/estudio-caminos.md, K-190).
+        function _filasDelRecorrido(aventura) {
             const coords = globalThis.__vv_DATOS_AVENTURAS?.[aventura]?.['coordenadas-hijo2.html']?.coordenadas || [];
             const referencias = new Map();
             for (const c of coords) {
                 if (c.tipo === 'referencia') referencias.set(String(c.mapa_numero), c.nombre);
-            }
-
-            let textos = [];
-            try {
-                const { cargarTextos: _cargarTx } = await import('./js/data-loader.js');
-                textos = await _cargarTx(aventura, idioma) || [];
-            } catch (e) { (globalThis.logger || console).warn('[PARADAS.LISTADO] cargarTextos falló:', e?.message); } // NOSONAR
-
-            // El título localizado de una parada: el del texto de su fila de DATOS_PADRE, por su
-            // `texto_id`, la misma regla que la ventana de la imagen (_buscarTextoDelElemento,
-            // Script 1). Qué texto es el de un elemento lo dicen los datos, no el formato de los ids
-            // (docs/estudio-caminos.md, K-133; spec 154).
-            const filaPorId = new Map((DATOS_PADRE[aventura]?.[idioma]?.elementosIDpadre || [])
-                .map((f) => [f.parada_id || f.tramo_id, f]));
-            const textoPorId = new Map(textos.map((t) => [t?.id, t]));
-            function tituloLocalizado(paradaId) {
-                const textoId = filaPorId.get(paradaId)?.texto_id;
-                return (textoId && textoPorId.get(textoId)?.title) || null;
             }
 
             const secuencia = coords.filter(c => c.tipo === 'inicio' || c.tipo === 'parada' || c.tipo === 'tramo');
@@ -12310,7 +12292,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 filas.push({
                     tipo: 'parada',
                     id: el.id,
-                    nombre: tituloLocalizado(el.id) || el.nombre,
+                    nombre: el.nombre,
                     numeros: _expandeHopMapaNumero(el.mapa_numero),
                     completada: estado.paradasCompletadas?.has(el.id) || false
                 });
@@ -12329,6 +12311,48 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             filas.forEach((f, i) => { f.fila = i + 1; });
             return filas;
         }
+
+        // Las filas del recorrido con el título localizado de cada parada: lo que enseña el listado de paradas.
+        async function _construirFilasListadoParadas(aventura, idioma) {
+            let textos = [];
+            try {
+                const { cargarTextos: _cargarTx } = await import('./js/data-loader.js');
+                textos = await _cargarTx(aventura, idioma) || [];
+            } catch (e) { (globalThis.logger || console).warn('[PARADAS.LISTADO] cargarTextos falló:', e?.message); } // NOSONAR
+
+            // El título localizado de una parada: el del texto de su fila de DATOS_PADRE, por su
+            // `texto_id`, la misma regla que la ventana de la imagen (_buscarTextoDelElemento,
+            // Script 1). Qué texto es el de un elemento lo dicen los datos, no el formato de los ids
+            // (docs/estudio-caminos.md, K-133; spec 154).
+            const filaPorId = new Map((DATOS_PADRE[aventura]?.[idioma]?.elementosIDpadre || [])
+                .map((f) => [f.parada_id || f.tramo_id, f]));
+            const textoPorId = new Map(textos.map((t) => [t?.id, t]));
+            function tituloLocalizado(paradaId) {
+                const textoId = filaPorId.get(paradaId)?.texto_id;
+                return (textoId && textoPorId.get(textoId)?.title) || null;
+            }
+
+            const filas = _filasDelRecorrido(aventura);
+            for (const f of filas) if (f.tipo === 'parada') f.nombre = tituloLocalizado(f.id) || f.nombre;
+            return filas;
+        }
+
+        // Los números de mapa completados de la aventura elegida, para pintarlos en verde en el mapa moderno: un número
+        // está completado cuando lo están todas sus filas del recorrido (_filasDelRecorrido, la regla del listado de
+        // paradas). Solo los de la ruta principal: la numeración interior de los Jardines del Real (v1…v13) no se pinta
+        // (decisión del usuario: «el único número importante es el 25»). La mandan MAPA_COMPLETO.DATOS y
+        // MAPA_COMPLETO.VISIBLE (al abrirse el mapa, en mostrarIframeOverlay, un script clásico: por eso se publica).
+        function _numerosDeMapaCompletados() {
+            const completado = new Map();
+            for (const f of _filasDelRecorrido(globalThis.aventuraSeleccionada)) {
+                for (const n of (f.tipo === 'parada' ? f.numeros : [f.numero])) {
+                    if (n.startsWith('v')) continue;
+                    completado.set(n, (completado.get(n) ?? true) && f.completada === true);
+                }
+            }
+            return [...completado].filter(([, hecho]) => hecho).map(([n]) => n);
+        }
+        globalThis._numerosDeMapaCompletados = _numerosDeMapaCompletados;
 
         function _renderizarFilaListadoParadas(f) {
             const numeros = f.tipo === 'parada' ? (f.numeros || []) : [f.numero];
@@ -12437,19 +12461,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE, _hdl_PARADAS_LISTADO_TOGGLE, { permanente: true });
         }
 
-        // Las paradas completadas de la aventura elegida, para que el mapa moderno pinte en verde los números de mapa con
-        // todas sus paradas hechas: el padre da los hechos (qué está completado, con _elementoCompletado, la única fuente) y
-        // el mapa decide qué número lo está. Se recorren los elementos del padre, que son lo que _elementoCompletado lee;
-        // el parada_id de cada parada del padre es el id de esa parada en las coordenadas del mapa (lo comprueba
-        // `npm run verificar-datos`). La mandan MAPA_COMPLETO.DATOS (aquí abajo) y MAPA_COMPLETO.VISIBLE (al abrirse el
-        // mapa, en mostrarIframeOverlay, un script clásico: por eso se publica).
-        function _paradasCompletadasDelMapa() {
-            const elementos = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre;
-            if (!Array.isArray(elementos)) return [];
-            return elementos.filter((e) => e.tipo === 'parada' && _elementoCompletado(e)).map((e) => e.parada_id);
-        }
-        globalThis._paradasCompletadasDelMapa = _paradasCompletadasDelMapa;
-
         /**
          * Sirve las coordenadas al mapa completo cuando las pide.
          *
@@ -12480,7 +12491,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             const salio = await globalThis.mensajeria.enviarMensaje({
                 tipo: TIPOS_MENSAJE_S2.MAPA_COMPLETO.DATOS,
                 destino: 'mapa-completo',
-                datos: { coordenadas, completadas: _paradasCompletadasDelMapa() },
+                datos: { coordenadas, numerosCompletados: _numerosDeMapaCompletados() },
             });
             const prefijo = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MAPA_COMPLETO]`;
             if (!salio) {

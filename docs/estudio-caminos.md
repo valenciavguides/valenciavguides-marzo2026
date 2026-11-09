@@ -4363,6 +4363,13 @@ Origen: la prueba en vivo del usuario en su Android, con `a4cf5a5` publicada (`j
 - **Pregunta del usuario (2026-11-09):** «el 5G está de camino, a ver si se puede hacer también en 5G». Con 5G el plazo ya es el de «4g» (×1), el correcto: el plazo es lo máximo que se espera, con una red rápida la respuesta llega antes igualmente, y acortarlo solo haría fallar antes cuando algo va lento.
 - **Hecha (2026-11-09).** Fuera `'5g': 0.8`, con un comentario que dice por qué no hay factor de 5G; la guía (§26.5) dice que con 5G el navegador informa «4g». Sin cambio observable.
 
+##### K-190 — ¿Qué número de mapa está completado? El listado de paradas y el mapa moderno, con dos reglas — ✅ (leído; medido)
+
+- **Dónde.** El listado de paradas (`_construirFilasListadoParadas`, Script 2 del padre; guía §7.2) decide «completado» por filas: una por el punto de salida y por cada parada (completada si está en `estado.paradasCompletadas`), y una «puente» por cada número de mapa que la ruta pasa sin parada propia, completada al completarse la siguiente parada real. Los números en verde del mapa moderno (`eaa5d7d`, sin push) los decidía `mapa-completo.html` con otra regla: un número, completado si lo están todas sus **paradas**; uno sin parada propia —un puente—, nunca; y el punto de salida no contaba.
+- **Lo que no cuadra.** Dos respuestas a la misma pregunta, que el usuario ve en dos sitios: un puente sale verde en el listado al llegar a la parada siguiente y en el mapa moderno no salía nunca. Entró con `eaa5d7d`: el listado no se buscó antes de escribir la regla del mapa.
+- **Decisión del usuario (2026-11-09):** en el mapa moderno, solo los números de la ruta principal; la numeración interior de los Jardines del Real (`v1`…`v13`) no se pone en verde («el único número importante es el 25»).
+- **Hecha (2026-11-09).** Una sola regla, en el padre: `_filasDelRecorrido(aventura)` son las filas del listado sin títulos, y `_numerosDeMapaCompletados()` da por completado un número cuando lo están todas sus filas, sin los `v…`. El listado pone los títulos a esas mismas filas; el mapa recibe los números (`numerosCompletados`) y solo los pinta, con el verde del listado (`#1e7e34`). El spec 54 compara el listado abierto con el mapa abierto.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -5114,6 +5121,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 182 | 3 | K-188 | ningún cartel pide pulsar un botón que no se pueda pulsar: una sola función elige lo que pide cada uno — **hecha (2026-11-08): `_accionesDelCartel`, `TRADUCCIONES_QUE_HACER_AHORA`; specs 169 (AC) y 22** | VISIBLE, SPEC, GUÍA | K-184 (blanda) | sí |
 | 183 | 1 | K-189 | fuera el factor de «5g» de `ajustarTimeoutPorConexion`, que el navegador no da nunca (el 5G se informa como «4g») — **hecha (2026-11-09)** | GUÍA | — | sí |
 | 184 | 2 | K-18 | una sola consulta del permiso de geolocalización, con la decisión de cada sitio — **hecha (2026-11-09): `consultarPermisoGeolocalizacion`; spec 170 (PP-11 a PP-14)** | SPEC, GUÍA | — | sí |
+| 185 | 2 | K-190 | qué número de mapa está completado: una sola regla, la del listado de paradas, para el listado y para los números en verde del mapa moderno (sin la numeración interior de los Jardines del Real) — **hecha (2026-11-09)** | SPEC, GUÍA | — | sí |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |

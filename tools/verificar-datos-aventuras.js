@@ -324,8 +324,9 @@ async function main() {
     // ── 15. El punto de salida, las paradas y los tramos del padre son los puntos del mapa
     // El padre nombra cada elemento por su parada_id (el punto de salida y las paradas) o su tramo_id (aventuras-ID-padre.js)
     // y el mapa cada punto por su id (coordenadas-aventuras.js): es el mismo dato en dos ficheros, y el número de mapa también,
-    // en todos los idiomas del padre. Se cruzan: el mapa moderno pinta en verde el número cuyas paradas el padre da por
-    // completadas, con los ids del padre sobre los puntos del mapa.
+    // en todos los idiomas del padre. Se cruzan: el padre guarda lo completado con sus ids (estado.paradasCompletadas) y
+    // lo busca con los ids de los puntos del mapa al decidir qué números de mapa están completados (el listado de paradas
+    // y los números en verde del mapa moderno).
     // Y el orden: el padre avanza en el de sus elementos, y el mapa completo dibuja la ruta en el de sus puntos.
     const { DATOS_PADRE } = await imp('js/aventuras-ID-padre.js');
     const CRUZADOS = new Set(['inicio', 'parada', 'tramo']);

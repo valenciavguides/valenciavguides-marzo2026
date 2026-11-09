@@ -20,11 +20,14 @@
  *   MC-5  La aventura del mapa la decide el padre, la elegida: aunque el mensaje de hijo2 traiga otra aventura y
  *         otra URL, se abre `mapa-completo.html` con la elegida (docs/estudio-caminos.md, K-107). Rojo antes que
  *         verde: el padre anterior abría la URL del mensaje.
- *   MC-6  Un número de mapa con todas sus paradas completadas sale en verde; uno con solo parte de ellas, no.
- *   MC-7  Al volver a abrirse (MAPA_COMPLETO.VISIBLE), con la lista al día, el mapa repinta los números.
- *   MC-8  El padre de verdad manda las paradas completadas de la aventura elegida, y el número sale en verde.
- *   MC-9  Si el padre no puede saber las paradas completadas, MAPA_COMPLETO.VISIBLE sale sin lista —una vacía diría
- *         «ninguna completada» y el mapa quitaría los verdes— y el error queda en el log.
+ *   MC-6  Los números que el padre da por completados salen en verde, con el verde del listado de paradas; los demás no.
+ *   MC-7  Cada MAPA_COMPLETO.VISIBLE repinta los números con la lista al día: los que entran salen verdes, y los que
+ *         dejan de estar, no.
+ *   MC-8  Con el padre de verdad, el mapa y el listado de paradas dicen lo mismo: un número sale verde en el mapa cuando
+ *         todas sus filas del listado están completadas, también las de un puente; la numeración interior de los
+ *         Jardines del Real (v…) no se pinta (docs/estudio-caminos.md, K-190).
+ *   MC-9  Si el padre no puede calcular los números completados, MAPA_COMPLETO.VISIBLE sale sin lista —una vacía diría
+ *         «ninguno completado» y el mapa quitaría los verdes— y el error queda en el log.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -175,10 +178,10 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
   });
 
   /**
-   * Un contenedor que contesta como el padre, con las paradas completadas que diga `elegir` (sobre las coordenadas de
-   * la Aventura1), y que deja `globalThis.__visible(completadas)` para mandar MAPA_COMPLETO.VISIBLE.
+   * Un contenedor que contesta como el padre: a MAPA_COMPLETO.SOLICITAR_DATOS, las coordenadas de la Aventura1 con su
+   * primer número de monumento como completado; y deja `globalThis.__visible(numeros)` para mandar MAPA_COMPLETO.VISIBLE.
    */
-  const contenedorConCompletadas = (page) => page.route('**/__contenedor-verde.html', (route) => route.fulfill({
+  const contenedorConCompletados = (page) => page.route('**/__contenedor-verde.html', (route) => route.fulfill({
     contentType: 'text/html',
     body: `<!DOCTYPE html><html><body>
       <iframe id="f" src="/mapa-completo.html" style="width:100vw;height:100vh;border:0"></iframe>
@@ -186,23 +189,13 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
         const m = await import('/js/coordenadas-aventuras.js');
         const { TIPOS_MENSAJE } = await import('/js/constants.js');
         const c = m.DATOS_AVENTURAS.Aventura1['coordenadas-hijo2.html'].coordenadas;
-        // Un número con una sola parada y otro con varias, los dos con su monumento: las dos clases de caso. Los números
-        // de una parada, separados como en el mapa («5,9», «22/23», «v7-v8»).
-        const numerosDe = (v) => (v == null || v === '-') ? [] : String(v).split(/\\s*(?:,|\\/|-(?=v))\\s*/).filter(Boolean);
-        const monumentos = new Set(c.filter((e) => e.tipo === 'referencia').map((e) => String(e.mapa_numero)));
-        const porNumero = new Map();
-        for (const e of c) if (e.tipo === 'parada') for (const k of numerosDe(e.mapa_numero)) porNumero.set(k, [...(porNumero.get(k) || []), e.id]);
-        const conMonumento = [...porNumero].filter(([k]) => monumentos.has(k));
-        // El de una sola parada no puede compartir parada con otro número (la «5,9» pinta dos): uno cuyas paradas no tengan otro.
-        const [unaSola] = conMonumento.find(([, ids]) => ids.length === 1 && numerosDe(c.find((e) => e.id === ids[0]).mapa_numero).length === 1);
-        const [varias, idsVarias] = conMonumento.find(([, ids]) => ids.length >= 2 && ids.every((id) => numerosDe(c.find((e) => e.id === id).mapa_numero).length === 1));
-        globalThis.__caso = { unaSola, varias, idsUnaSola: porNumero.get(unaSola), idsVarias };
+        const numeros = [...new Set(c.filter((e) => e.tipo === 'referencia').map((e) => String(e.mapa_numero)))];
+        globalThis.__caso = { a: numeros[0], b: numeros[1] };
         const mandar = (tipo, datos) => document.getElementById('f').contentWindow.postMessage({ tipo, origen: 'padre', destino: 'mapa-completo', datos }, globalThis.location.origin);
-        globalThis.__visible = (completadas) => mandar(TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE, { completadas });
+        globalThis.__visible = (numerosCompletados) => mandar(TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE, { numerosCompletados });
         globalThis.addEventListener('message', (ev) => {
           if (ev.data?.tipo !== TIPOS_MENSAJE.MAPA_COMPLETO.SOLICITAR_DATOS) return;
-          // Completadas: la del número de una sola parada y solo la primera del de varias.
-          mandar(TIPOS_MENSAJE.MAPA_COMPLETO.DATOS, { coordenadas: c, completadas: [...globalThis.__caso.idsUnaSola, idsVarias[0]] });
+          mandar(TIPOS_MENSAJE.MAPA_COMPLETO.DATOS, { coordenadas: c, numerosCompletados: [globalThis.__caso.a] });
         });
       <\/script></body></html>`,
   }));
@@ -211,30 +204,31 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
   const numerosEnVerde = (frame) => frame.evaluate(() => [...document.querySelectorAll('.monumento-marker.completado')]
     .map((el) => el.textContent.replace('🏛️', '').trim()).sort());
 
-  test('MC-6. Un número con todas sus paradas completadas sale en verde; uno con solo parte de ellas, no', async ({ page }) => {
-    await contenedorConCompletadas(page);
+  test('MC-6. Los números que el padre da por completados salen en verde; los demás no', async ({ page }) => {
+    await contenedorConCompletados(page);
     await page.goto('/__contenedor-verde.html');
-    const mapa = page.frameLocator('#f');
-    await expect.poll(() => page.evaluate(() => document.getElementById('f')?.contentDocument?.querySelectorAll('.monumento-marker').length || 0), { timeout: 15000 }).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => document.getElementById('f')?.contentDocument?.querySelectorAll('.monumento-marker').length || 0), { timeout: 15000 }).toBeGreaterThan(1);
     const caso = await page.evaluate(() => globalThis.__caso);
     const frame = page.frame({ url: /mapa-completo\.html/ });
-    await expect.poll(() => numerosEnVerde(frame)).toEqual([caso.unaSola]);
-    const verde = await frame.evaluate((n) => getComputedStyle([...document.querySelectorAll('.monumento-marker')].find((el) => el.textContent.includes(` ${n}`) && el.textContent.trim().endsWith(n))).backgroundColor, caso.unaSola);
-    expect(verde, 'el verde de completado').toBe('rgb(40, 167, 69)');
-    void mapa;
+    await expect.poll(() => numerosEnVerde(frame)).toEqual([caso.a]);
+    const fondo = await frame.evaluate(() => getComputedStyle(document.querySelector('.monumento-marker.completado')).backgroundColor);
+    expect(fondo, 'el verde de completado, el mismo del listado de paradas').toBe('rgb(30, 126, 52)');
   });
 
-  test('MC-7. Al volver a abrirse, con la lista al día, el mapa repinta los números', async ({ page }) => {
-    await contenedorConCompletadas(page);
+  test('MC-7. Cada VISIBLE repinta los números con la lista al día: los que entran, en verde; los que salen, no', async ({ page }) => {
+    await contenedorConCompletados(page);
     await page.goto('/__contenedor-verde.html');
     const frame = page.frame({ url: /mapa-completo\.html/ });
     const caso = await page.evaluate(() => globalThis.__caso);
-    await expect.poll(() => numerosEnVerde(frame), { timeout: 15000 }).toEqual([caso.unaSola]);
-    await page.evaluate(() => globalThis.__visible([...globalThis.__caso.idsUnaSola, ...globalThis.__caso.idsVarias]));
-    await expect.poll(() => numerosEnVerde(frame)).toEqual([caso.unaSola, caso.varias].sort());
+    await expect.poll(() => numerosEnVerde(frame), { timeout: 15000 }).toEqual([caso.a]);
+    await page.evaluate(() => globalThis.__visible([globalThis.__caso.a, globalThis.__caso.b]));
+    await expect.poll(() => numerosEnVerde(frame)).toEqual([caso.a, caso.b].sort());
+    await page.evaluate(() => globalThis.__visible([globalThis.__caso.b]));
+    await expect.poll(() => numerosEnVerde(frame)).toEqual([caso.b]);
   });
 
-  test('MC-8. El padre de verdad manda las paradas completadas, y el número sale en verde', async ({ page }) => {
+  test('MC-8. Con el padre de verdad, el mapa y el listado de paradas dicen lo mismo', async ({ page }) => {
+    test.setTimeout(120_000);
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);
@@ -243,28 +237,51 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
     await page.route('**/cdnjs.cloudflare.com/ajax/libs/leaflet/**', (route) => route.continue());
     await gotoAndWaitForFase1(page);
     await expect.poll(() => page.evaluate(() => globalThis.mensajeria.tieneControlador('NAVEGACION.MOSTRAR_MAPA_COMPLETO')), { timeout: 20_000 }).toBe(true);
-    const numero = await page.evaluate(async () => {
-      globalThis.aventuraSeleccionada = 'Aventura1';
+    // La Aventura34km a algo más de media ruta: hechos el punto de salida y el 60 % de las paradas, que pasan por sus
+    // puentes (números sin parada propia), y además todas las de la numeración interior de los Jardines del Real (v…),
+    // que no se pinta. Primero el listado.
+    const conParada = await page.evaluate(async () => {
+      globalThis.aventuraSeleccionada = 'Aventura34km';
       globalThis.idiomaSeleccionado = 'es';
       if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') await globalThis.__cargarDatosAventuraDiferidos();
-      const c = globalThis.__vv_DATOS_AVENTURAS.Aventura1['coordenadas-hijo2.html'].coordenadas;
-      // Los números de una parada, separados como en el mapa; uno con monumento, de una parada que solo tenga ese número, y
-      // todas sus paradas.
-      const numerosDe = (v) => (v == null || v === '-') ? [] : String(v).split(/\s*(?:,|\/|-(?=v))\s*/).filter(Boolean);
-      const monumentos = new Set(c.filter((e) => e.tipo === 'referencia').map((e) => String(e.mapa_numero)));
-      const n = c.filter((e) => e.tipo === 'parada').map((e) => numerosDe(e.mapa_numero)).find((ns) => ns.length === 1 && monumentos.has(ns[0]))[0];
-      const ids = c.filter((e) => e.tipo === 'parada' && numerosDe(e.mapa_numero).includes(n)).map((e) => e.id);
-      globalThis.estado.paradasCompletadas = new Map(ids.map((id) => [id, { completada: true }]));
-      await globalThis.mensajeria.despacharLocal({
-        tipo: globalThis.TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO,
-        datos: { aventura: 'Aventura1', url: 'mapa-completo.html' },
-      });
-      return String(n);
+      const c = globalThis.__vv_DATOS_AVENTURAS.Aventura34km['coordenadas-hijo2.html'].coordenadas;
+      const puntos = c.filter((e) => e.tipo === 'inicio' || e.tipo === 'parada');
+      const hechos = puntos.slice(0, Math.ceil(puntos.length * 0.6)).map((e) => e.id);
+      const delJardin = puntos.filter((e) => String(e.mapa_numero).startsWith('v')).map((e) => e.id);
+      globalThis.estado.paradasCompletadas = new Map([...hechos, ...delJardin].map((id) => [id, { completada: true }]));
+      await globalThis.mensajeria.despacharLocal({ tipo: globalThis.TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE, datos: { timestamp: Date.now() } });
+      // Los números que lleva alguna parada (o el punto de salida): un verde que no esté aquí es un puente.
+      return [...new Set(puntos.flatMap((e) => String(e.mapa_numero ?? '').split(/[,/]|-(?=v)/)))];
     });
-    await expect.poll(() => { const fr = page.frame({ url: /mapa-completo\.html/ }); return fr ? numerosEnVerde(fr) : []; }, { timeout: 20_000 }).toContain(numero);
+    // El listado: un número está completado si lo están todas sus filas (las de la numeración interior no cuentan).
+    await expect.poll(() => page.evaluate(() => document.querySelectorAll('#ventana-listado-paradas-padre .listado-parada-fila').length), { timeout: 20_000 }).toBeGreaterThan(100);
+    const delListado = await page.evaluate(() => {
+      const completado = new Map();
+      for (const fila of document.querySelectorAll('#ventana-listado-paradas-padre .listado-parada-fila')) {
+        const numeros = (fila.querySelector('.listado-parada-pin')?.textContent || '').replace('📍', '').split(',').filter(Boolean);
+        const hecha = fila.querySelector('.listado-parada-circulo')?.classList.contains('completada') === true;
+        for (const n of numeros) if (!n.startsWith('v')) completado.set(n, (completado.get(n) ?? true) && hecha);
+      }
+      return [...completado].filter(([, hecho]) => hecho).map(([n]) => n);
+    });
+    // Se cierra el listado y se abre el mapa: sus verdes son esos mismos números, entre los que tienen monumento.
+    await page.evaluate(async () => {
+      await globalThis.mensajeria.despacharLocal({ tipo: globalThis.TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE, datos: { timestamp: Date.now() } });
+      await globalThis.mensajeria.despacharLocal({ tipo: globalThis.TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO, datos: {} });
+    });
+    await expect.poll(() => page.frames().some((f) => f.url().includes('mapa-completo.html')), { timeout: 10_000 }).toBe(true);
+    const frame = page.frames().find((f) => f.url().includes('mapa-completo.html'));
+    await frame.waitForFunction(() => document.querySelectorAll('.monumento-marker').length > 0, null, { timeout: 30_000 });
+    const conMonumento = await frame.evaluate(() => [...document.querySelectorAll('.monumento-marker')].map((el) => el.textContent.replace('🏛️', '').trim()));
+    const esperado = delListado.filter((n) => conMonumento.includes(n)).sort();
+    expect(esperado.length, 'hay números completados que comparar').toBeGreaterThan(5);
+    await expect.poll(() => numerosEnVerde(frame), { timeout: 20_000 }).toEqual(esperado);
+    const verdes = await numerosEnVerde(frame);
+    expect(verdes.some((n) => !conParada.includes(n)), 'entre los verdes, un puente: un número sin parada propia').toBe(true);
+    expect(verdes.some((n) => n.startsWith('v')), 'la numeración interior de los Jardines del Real no se pinta').toBe(false);
   });
 
-  test('MC-9. Si el padre no puede saber las paradas completadas, VISIBLE sale sin lista y el error queda en el log', async ({ page }) => {
+  test('MC-9. Si el padre no puede calcular los números completados, VISIBLE sale sin lista y el error queda en el log', async ({ page }) => {
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);
@@ -276,7 +293,7 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
       globalThis.aventuraSeleccionada = 'Aventura1';
       globalThis.idiomaSeleccionado = 'es';
       if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') await globalThis.__cargarDatosAventuraDiferidos();
-      globalThis._paradasCompletadasDelMapa = () => { throw new Error('lista rota a propósito'); };
+      globalThis._numerosDeMapaCompletados = () => { throw new Error('lista rota a propósito'); };
       // Lo que el padre manda en cada MAPA_COMPLETO.VISIBLE, sin cambiar el envío.
       globalThis.__visibles = [];
       const enviar = globalThis.mensajeria.enviarMensaje;
@@ -287,8 +304,8 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
       await globalThis.mensajeria.despacharLocal({ tipo: globalThis.TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO, datos: {} });
     });
     await expect.poll(() => page.evaluate(() => globalThis.__visibles.length), { timeout: 10_000 }).toBe(1);
-    const sinLista = await page.evaluate(() => globalThis.__visibles[0] !== undefined && globalThis.__visibles[0].completadas === undefined);
-    expect(sinLista, 'VISIBLE sale, pero sin lista de completadas').toBe(true);
-    await expect.poll(() => errores.some((t) => t.includes('[PADRE][MAPA_COMPLETO] Sin las paradas completadas')), { timeout: 5_000 }).toBe(true);
+    const sinLista = await page.evaluate(() => globalThis.__visibles[0] !== undefined && globalThis.__visibles[0].numerosCompletados === undefined);
+    expect(sinLista, 'VISIBLE sale, pero sin lista de números completados').toBe(true);
+    await expect.poll(() => errores.some((t) => t.includes('[PADRE][MAPA_COMPLETO] Sin los números completados')), { timeout: 5_000 }).toBe(true);
   });
 });

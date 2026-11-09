@@ -38,9 +38,9 @@
       gap: 3px;
     }
 
-    /* Un número de mapa con todas sus paradas completadas, en verde: verde significa completado. */
+    /* Un número de mapa completado, en verde: verde significa completado. El mismo verde que el listado de paradas. */
     .monumento-marker.completado {
-      background: #28a745;
+      background: #1e7e34;
       border-color: #1e7e34;
       color: #fff;
     }
@@ -205,13 +205,11 @@
 
     // ── Pintado: se ejecuta cuando llegan las coordenadas del padre ───────
     let _pintado = false;
-    // Las coordenadas pintadas y los marcadores de los monumentos, para pintar en verde los números completados.
-    let _coordenadas = [];
+    // Los marcadores de los monumentos, con su número, para pintar en verde los completados.
     const _marcadores = [];
     function pintarRuta(coordenadas) {
       if (_pintado || !Array.isArray(coordenadas) || coordenadas.length === 0) return;
       _pintado = true;
-      _coordenadas = coordenadas;
 
       const rutaPuntos = [];
       coordenadas.forEach(entry => {
@@ -246,29 +244,16 @@
       _reajustarVista();
     }
 
-    // ── Paradas completadas: en verde, el número de mapa con todas sus paradas hechas ───────
+    // ── Números completados: en verde ───────────────────────────────────────
     //
-    // El padre dice qué paradas están completadas (MAPA_COMPLETO.DATOS y MAPA_COMPLETO.VISIBLE); aquí se decide qué
-    // número lo está: el que tiene todas sus paradas en esa lista, porque un monumento puede tener varias. Y una parada
-    // puede tener varios números: «5,9», «22/23», «v2/v3» o «v7-v8» (el guion delante de «v» separa dos códigos); sin
-    // número de mapa (null o '-'), no cuenta.
-    const numerosDe = (v) => (v == null || v === '-') ? [] : String(v).split(/\s*(?:,|\/|-(?=v))\s*/).filter(Boolean);
-    function marcarCompletados(completadas) {
-      if (!Array.isArray(completadas)) return;
-      const hechas = new Set(completadas);
-      const porNumero = new Map();
-      for (const c of _coordenadas) {
-        if (c.tipo !== 'parada') continue;
-        for (const n of numerosDe(c.mapa_numero)) {
-          const cuenta = porNumero.get(n) || { total: 0, hechas: 0 };
-          cuenta.total++;
-          if (hechas.has(c.id)) cuenta.hechas++;
-          porNumero.set(n, cuenta);
-        }
-      }
+    // Qué número de mapa está completado lo decide el padre, con la misma regla que su listado de paradas (guía, §7.2),
+    // y lo manda en MAPA_COMPLETO.DATOS y MAPA_COMPLETO.VISIBLE: aquí solo se pinta. Sin lista, los números se quedan
+    // como estén.
+    function marcarCompletados(numeros) {
+      if (!Array.isArray(numeros)) return;
+      const hechos = new Set(numeros.map(String));
       for (const { numero, marcador } of _marcadores) {
-        const cuenta = porNumero.get(String(numero));
-        marcador.getElement()?.querySelector('.monumento-marker')?.classList.toggle('completado', !!cuenta && cuenta.hechas === cuenta.total);
+        marcador.getElement()?.querySelector('.monumento-marker')?.classList.toggle('completado', hechos.has(String(numero)));
       }
     }
 
@@ -280,14 +265,14 @@
     if (tienePadre) {
       bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.DATOS, (mensaje) => {
         pintarRuta(mensaje.datos?.coordenadas);
-        marcarCompletados(mensaje.datos?.completadas);
+        marcarCompletados(mensaje.datos?.numerosCompletados);
         return { pintadas: mensaje.datos?.coordenadas?.length ?? 0 };
       });
 
       // El overlay acaba de hacerse visible: hasta ahora el contenedor no tenia tamaño y
       // medir era inutil. El segundo intento cubre la animacion de apertura.
       bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE, (mensaje) => {
-        marcarCompletados(mensaje?.datos?.completadas);
+        marcarCompletados(mensaje?.datos?.numerosCompletados);
         _reajustarVista();
         setTimeout(_reajustarVista, 300);
         return true;

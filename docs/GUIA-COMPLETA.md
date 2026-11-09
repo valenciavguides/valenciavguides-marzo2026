@@ -2578,14 +2578,14 @@ Ventana flotante gestionada íntegramente por el padre (mismo patrón que la ven
 
 **Cada fila** (`.listado-parada-fila`): un círculo (`clamp(20px,4.5vmin,26px)` — deliberadamente más grande que el texto de la fila, `clamp(14px,3.2vmin,18px)`) que se rellena de verde (`#1e7e34`) cuando la parada está completada y queda hueco en caso contrario; el número de orden + nombre de la parada (una sola línea, `white-space:nowrap` + `text-overflow:ellipsis` — nunca fuerza scroll horizontal); y, a la derecha, `📍` + el/los número(s) de mapa asociados.
 
-**Construcción de la lista — `_construirFilasListadoParadas(aventura, idioma)`** (`codigo-padre.html`, junto a `marcarParadaCompletada`): recorre `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas` en orden de fichero (que es orden real de recorrido) y genera dos tipos de fila:
+**Construcción de la lista — `_filasDelRecorrido(aventura)`** (`codigo-padre.html`, Script 2): recorre `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas` en orden de fichero (que es orden real de recorrido) y genera dos tipos de fila. `_construirFilasListadoParadas(aventura, idioma)` les pone a las de parada su título localizado, y lo que enseña el listado son esas filas. Las mismas filas deciden los números en verde del mapa moderno («El mapa completo», §11): es la única regla de «completado» de un número de mapa.
 
 1. **Fila `parada`** — una por cada entrada `tipo:'inicio'|'parada'`. El nombre mostrado es el título localizado: `tituloLocalizado()` busca la fila de la parada en `DATOS_PADRE` (por su `parada_id`) y toma de `cargarTextos(aventura, idioma)` el texto de su `texto_id`, la misma regla que la ventana de la imagen (§10.5, FASE 11); si no hay texto, el `nombre` interno en español. Lo comprueba el spec 154. Completada si `estado.paradasCompletadas.has(el.id)` — mismo Map, misma clave (`parada_id` sin prefijo `padre-`), que usa `marcarParadaCompletada()`.
 2. **Fila `puente`** — un número de mapa que la ruta pasa pero donde **nunca hay parada propia** (p. ej. Aventura1 pasa por el punto 4 sin detenerse — ver el resumen por aventura más abajo). Se detecta parseando el campo `mapa_numero` de cada `tipo:'tramo'`: los tramos usan notación de flechas (`"7→4→8"`, `"-→2"`, `"21→22"`) con hops que a veces son compuestos (`"5,9"` o `"22/23"` — coma o barra — y ocasionalmente guión, `"v7-v8"`, distinguible del sentinela de "sin número" `"-"` porque ese es un hop *completo* de un solo carácter, nunca parte de un token más largo). Cualquier número mencionado en un hop que **no** tenga ya una parada real en toda la aventura se acumula como candidato puente; al llegar a la siguiente parada real se vuelcan los candidatos pendientes (deduplicados **dentro del mismo hueco entre dos paradas reales** — dos tramos consecutivos que comparten límite, p. ej. `"3→4"` seguido de `"4→5"`, mencionan el mismo punto físico dos veces y cuentan como un solo paso, no como dos visitas). El nombre de una fila puente sale de la `referencia` (`tipo:'referencia'`) que comparte ese mismo `mapa_numero`.
 
 **Regla de relleno de los puentes**: una fila puente se marca completada cuando se completa la **siguiente parada real de la secuencia** (`completaConId`, calculado recorriendo las filas de atrás hacia adelante) — si el usuario ha llegado a esa parada, necesariamente ya pasó por el punto intermedio. No tiene marcador de finalización propio.
 
-**Verificado, las 7 aventuras** (análisis exhaustivo aventura por aventura, no una muestra): ninguna referencia queda sin resolver. Puentes encontrados: Aventura1 → 2, 4, 22; Aventura2 → 4 (visitado dos veces, en dos huecos distintos de la ruta); Aventura3 → 27 (dos veces); Aventura4 → 2 (dos veces), `v1`, `v5`; Aventura34km → 45 (dos veces), `v1`, `v5`. Aventura5 y AventuraFallas no tienen ningún puente. Los prefijos `v1..v13` son la numeración propia del tramo "Viveros" (compartida entre Aventura4 y Aventura34km, que reutiliza literalmente esos mismos tramos) — independiente de la numeración principal 1-N de cada aventura.
+**Verificado, las 7 aventuras** (análisis exhaustivo aventura por aventura, no una muestra): ninguna referencia queda sin resolver. Puentes encontrados: Aventura1 → 2, 4, 22; Aventura2 → 4 (visitado dos veces, en dos huecos distintos de la ruta); Aventura3 → 27 (dos veces); Aventura4 → `v1`, `v5`; Aventura34km → 45 (dos veces), `v1`, `v5`. Aventura5 y AventuraFallas no tienen ningún puente. Los prefijos `v1..v13` son la numeración propia del tramo "Viveros" (compartida entre Aventura4 y Aventura34km, que reutiliza literalmente esos mismos tramos) — independiente de la numeración principal 1-N de cada aventura. Un monumento (una `referencia`) que no lleva ninguna parada ni nombra ningún tramo no tiene fila: no sale en el listado ni se pone en verde en el mapa moderno. Son el 7 de la Aventura1; el 3, 4, 5, 8, 14, 16 y 19 de la Aventura3; el 7, 8, 10, 20, 21, 22 y 23 de la Aventura4 (y `v4`, `v6`, `v9` y `v13`); el 9 y el 20 de la de Fallas; y el 3, 9, 13, 20 y 67 de la de 34 km.
 
 **Actualización en vivo**: si la ventana está abierta cuando `marcarParadaCompletada()` registra una parada nueva, se vuelve a llamar a `_renderizarListadoParadas()` para refrescar el contenido sin que el usuario tenga que cerrar y reabrir la ventana.
 
@@ -3880,8 +3880,8 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | **PARADAS** | `VV:PARADAS:READY` | Hijo5 → Padre | UI de paradas lista — la atiende `_hdl_PARADAS_READY` (Script 2) |
 | | `PARADAS.LISTADO_TOGGLE` | Hijo1 → Padre | Usuario abre/cierra la ventana de listado de paradas |
 | **MAPA_COMPLETO** | `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo → Padre | El mapa pide las coordenadas nada más cargarse (`{}`: la aventura la decide el padre) |
-| | `MAPA_COMPLETO.DATOS` | Padre → mapa-completo | Las coordenadas de la aventura y sus paradas completadas (`{ coordenadas, completadas }`); el mapa pinta la ruta y pone en verde los números de mapa ya hechos |
-| | `MAPA_COMPLETO.VISIBLE` | Padre → mapa-completo | El overlay del mapa ya es visible, con las paradas completadas al día (`{ completadas }`): el mapa repinta los números en verde y recalcula su vista, al momento y a los 300 ms |
+| | `MAPA_COMPLETO.DATOS` | Padre → mapa-completo | Las coordenadas de la aventura y sus números de mapa completados (`{ coordenadas, numerosCompletados }`); el mapa pinta la ruta y pone en verde los números de mapa ya hechos |
+| | `MAPA_COMPLETO.VISIBLE` | Padre → mapa-completo | El overlay del mapa ya es visible, con los números de mapa completados al día (`{ numerosCompletados }`): el mapa repinta los números en verde y recalcula su vista, al momento y a los 300 ms |
 | **PUZZLE** | `PUZZLE.COMPLETADO` | Iframe puzzle → su contenedor (Hijo4 o Selección) | Puzzle resuelto o saltado con ⏩ |
 | | `PUZZLE.TIMEOUT` | Iframe puzzle → su contenedor (Hijo4 o Selección) | Puzzle sin resolver por tiempo |
 
@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0f0d484b02c9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-6b003a1e709e'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5749,8 +5749,8 @@ Todos van por `js/mensajeria.js`, como el resto (§10.4): ninguno tiene escucha 
 | Tipo | `TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE` |
 | Canal | Por el bus, con `destino: 'mapa-completo'`, una sola vez por apertura del overlay |
 | Destino | El iframe dinámico que carga `mapa-completo.html` |
-| Payload | `{ completadas }`: los `parada_id` de las paradas completadas de la aventura elegida, que da `globalThis._paradasCompletadasDelMapa()` (Script 2; «El mapa completo», §11). Si esa llamada lanza, el mensaje sale sin el campo y el log se queda con un `error` (`[PADRE][MAPA_COMPLETO] Sin las paradas completadas:`): el mapa deja los números como estén, porque una lista vacía diría «ninguna completada» |
-| Acción | Al recibirlo, `mapa-completo.html` llama `marcarCompletados(completadas)` —pone en verde los números con todas sus paradas en la lista, o no toca nada si el campo no viene— y `_reajustarVista()` —que hace `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` si `_bounds` está definido—, y `setTimeout(_reajustarVista, 300)` como reintento de seguridad. |
+| Payload | `{ numerosCompletados }`: los números de mapa completados de la aventura elegida, que da `globalThis._numerosDeMapaCompletados()` (Script 2; la regla del listado de paradas, §7.2). Si esa llamada lanza, el mensaje sale sin el campo y el log se queda con un `error` (`[PADRE][MAPA_COMPLETO] Sin los números completados:`): el mapa deja los números como estén, porque una lista vacía diría «ninguno completado» |
+| Acción | Al recibirlo, `mapa-completo.html` llama `marcarCompletados(numerosCompletados)` —pone en verde esos números y quita el verde a los demás, o no toca nada si el campo no viene— y `_reajustarVista()` —que hace `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` si `_bounds` está definido—, y `setTimeout(_reajustarVista, 300)` como reintento de seguridad. |
 | Secuencia | Al cargarse, el mapa se crea con la vista por defecto y su capa de teselas, que pide las de esa vista, y pide sus datos (`MAPA_COMPLETO.SOLICITAR_DATOS`). Al llegar `MAPA_COMPLETO.DATOS`: polyline + marcadores de referencia → `_reajustarVista()` (invalidateSize + fitBounds), y Leaflet pide las teselas que le falten para la vista de la ruta; después, los números completados (§32.4). |
 | Por qué overlay visible en init | `mostrarIframeOverlay` es síncrona: añade `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo de `mapa-completo.html` solo puede ejecutar después de que esa tarea termine — el overlay ya es visible cuando el script corre, y `L.map()` mide el contenedor con sus dimensiones reales. |
 | Timing de envío | Se envía **una sola vez** por apertura del overlay, siempre vía `load` listener + `requestAnimationFrame`. Fallback cancelable a 1500 ms por si `load` no dispara. El reintento a 300 ms es interno a `mapa-completo.html` (en su propio handler). |
@@ -6808,7 +6808,7 @@ Página independiente que muestra todas las paradas y la polyline de la aventura
 Se crean con `L.divIcon` usando `iconSize: null` para que Leaflet no restrinja el tamaño a los 12×12 px por defecto (sin ese ajuste el número queda recortado). El marcador muestra `🏛️ N` donde N es `mapa_numero` del objeto.
 
 **Números completados, en verde:**  
-El padre le dice qué paradas de la aventura elegida están completadas: `_paradasCompletadasDelMapa()` (Script 2) recorre los elementos de `DATOS_PADRE` de esa aventura y devuelve el `parada_id` de cada parada que `_elementoCompletado()` da por hecha. La lista viaja en `MAPA_COMPLETO.DATOS` (`{ coordenadas, completadas }`) y en el `MAPA_COMPLETO.VISIBLE` de cada apertura (`{ completadas }`, al día). En el mapa, `marcarCompletados(completadas)` decide qué número está completado: el que tiene en la lista **todas** sus paradas (`tipo === 'parada'`), porque un monumento puede tener varias. A ese marcador le pone la clase `completado` —la píldora en verde: fondo `#28a745`, borde `#1e7e34`, texto blanco— y a los demás se la quita. Una parada puede llevar varios números (`"5,9"`, `"22/23"`, `"v2/v3"`, `"v7-v8"`): `numerosDe()` los separa por la coma, la barra o el guion que va delante de una `v`, y la parada cuenta en cada uno; con `null` o `"-"` no cuenta en ninguno. El punto de salida y los tramos no cuentan. Un número con monumento y sin ninguna parada no se pone nunca en verde. Si el mensaje llega sin lista, los números se quedan como estén. El `parada_id` de cada parada del padre es el `id` de su punto en las coordenadas del mapa: lo vigila `npm run verificar-datos` (§18.2).
+Qué número de mapa está completado lo decide el padre, con la regla del listado de paradas (§7.2): `_numerosDeMapaCompletados()` (Script 2) recorre las filas de `_filasDelRecorrido(aventura)` —las del listado, sin títulos— y da por completado un número cuando lo están todas sus filas: las de las paradas y del punto de salida que lo llevan o, si no lo lleva ninguna, las de puente que lo nombran. Solo los números de la ruta principal: la numeración interior de los Jardines del Real (`v1`…`v13`) no se pinta. La lista viaja en `MAPA_COMPLETO.DATOS` (`{ coordenadas, numerosCompletados }`) y en el `MAPA_COMPLETO.VISIBLE` de cada apertura (`{ numerosCompletados }`, al día). El mapa solo la pinta: `marcarCompletados(numeros)` pone la clase `completado` a esos marcadores —la píldora en verde, el del listado: fondo y borde `#1e7e34`, texto blanco— y se la quita a los demás; si el mensaje llega sin lista, los números se quedan como estén. Un monumento que no lleva ninguna parada ni nombra ningún tramo no tiene filas, así que no se pone en verde (§7.2). El `parada_id` de cada parada del padre es el `id` de su punto en las coordenadas del mapa: lo vigila `npm run verificar-datos` (§18.2).
 
 **Ficha al pulsar un marcador:**  
 `mostrarMonumento(ref)` abre `#monumento-overlay` con la imagen del monumento si `ref.imagen` está definida (si no, un emoji 🏛️ de relleno; si apunta a un fichero que no existe, el `<img>` sale roto, sin respaldo: que todas existan con su grafía exacta lo vigila `npm run verificar-datos`, §18.2) y compone el número y el nombre en `#monumento-numero` (`Nº {mapa_numero} · {nombre}`; `#monumento-nombre` se queda oculto con `display:none`). La cierra `cerrarOverlay()`, que llaman su ✕ (`#monumento-cerrar`), un toque fuera de la ficha y el botón atrás del dispositivo: la ficha es la capa del mapa completo que «atrás» cierra antes que el propio mapa (`js/capa-con-atras.js`, §34.3; solo con padre, porque sin él no hay marcadores). `mostrarMonumento` y `cerrarOverlay` avisan al padre con `UI.CAPA_ABIERTA { abierta }`.
@@ -7960,7 +7960,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `51-mapa-id-parada-resuelto.spec.js` | 3 | El evento `vv-parada-cambiada` que dispara `_hdl_NAVEGACION_CAMBIO_PARADA` para `js/funciones-mapa.js` lleva el id REAL del elemento (`Av1-P-2`), no el formato propio de hijo5 (`padre-P2`) con el que puede venir el mensaje. |
 | `52-gps-no-se-apaga-al-cambiar-modo.spec.js` | 3 | `watchPosition()` se enciende una vez y **no se detiene** al cambiar de modo (§2.6). `limpiarPorEstado()` resetea parada, tramo, posición y seguimiento, pero el estado del sensor no entra ahí (es del padre): el modo decide si las posiciones fuerzan avance, no si el sensor corre. |
 | `53-camara-no-sigue-en-casa.spec.js` | 1 | En CASA el GPS no manda sobre el mapa: el marcador 🛸 se sigue dibujando y moviendo —sirve para ver que el sensor está vivo— pero la cámara no se recentra sola en cada posición. |
-| `54-mapa-completo-datos-por-mensaje.spec.js` | 9 | `mapa-completo.html` recibe las coordenadas por mensaje del padre en vez de importar `DATOS_AVENTURAS` por su cuenta, que sería uno de los caminos que se saltan `data-loader.js` (§22.12, pendiente 13). La aventura del mapa la decide el padre: un `NAVEGACION.MOSTRAR_MAPA_COMPLETO` que traiga otra aventura y otra URL abre `mapa-completo.html`, sin parámetros, con la aventura elegida (MC-5). Un número de mapa con todas sus paradas completadas sale en verde y uno con parte de ellas no (MC-6); el `MAPA_COMPLETO.VISIBLE` de cada apertura repinta los números con la lista al día (MC-7); el padre de verdad manda las completadas de la aventura elegida (MC-8), y si no puede calcularlas, `VISIBLE` sale sin lista y el error queda en el log (MC-9). |
+| `54-mapa-completo-datos-por-mensaje.spec.js` | 9 | `mapa-completo.html` recibe las coordenadas por mensaje del padre en vez de importar `DATOS_AVENTURAS` por su cuenta, que sería uno de los caminos que se saltan `data-loader.js` (§22.12, pendiente 13). La aventura del mapa la decide el padre: un `NAVEGACION.MOSTRAR_MAPA_COMPLETO` que traiga otra aventura y otra URL abre `mapa-completo.html`, sin parámetros, con la aventura elegida (MC-5). Los números que el padre da por completados salen en verde, el del listado de paradas, y los demás no (MC-6); el `MAPA_COMPLETO.VISIBLE` de cada apertura repinta los números con la lista al día, también para quitar un verde (MC-7); con el padre de verdad, el mapa y el listado de paradas dicen lo mismo —un número sale verde cuando lo están todas sus filas del listado, también las de un puente— y la numeración interior de los Jardines del Real no se pinta (MC-8); y si el padre no puede calcular los números, `VISIBLE` sale sin lista y el error queda en el log (MC-9). |
 | `55-mapa-vintage-resuelto-por-el-padre.spec.js` | 6 | El mapa vintage lo resuelve el padre, no el hijo: hijo2 suelto no descarga `mapa-vintage-aventuras.js` (MV-1); el padre resuelve la URL de una aventura con mapa (MV-2); Aventura34km obtiene su mapa (`Av34km_Mapa.jpg`) y activa zoom (MV-3); el padre ignora una URL que llegue en el mensaje y usa su propia fuente (MV-4); el mapa vintage suprime el aviso de girar el móvil y al cerrarlo lo devuelve (MV-5); y el padre ignora también la aventura que llegue en el mensaje: el mapa es el de la aventura elegida (MV-6) |
 | `56-distancia-a-la-ruta.spec.js` | 5 | `_check5kmFromRoute()` (§31.5), que corta la aventura si el GPS sitúa al usuario a más de 5 km de TODA la ruta: dentro de la ruta no bloquea ni enseña el cartel del bloqueo (DR-1); sin coordenadas no bloquea —la ausencia de dato no es veredicto—, no enseña el cartel y deja error (DR-2); lejos pero con precisión mala ignora la lectura (DR-3); lejos con buena precisión hacen falta 3 lecturas seguidas para bloquear (DR-4); volver dentro desbloquea y quita el cartel (DR-5). |
 | `57-llegada-tramo-recorrido.spec.js` | 9 | `_acumularDistanciaRecorrida()` y el 40 % de recorrido real que exige la llegada a un tramo, ejercitado **a paso humano** (1,4 m/s, lecturas a 1 Hz, ruido determinista) — un régimen que no cubre ningún otro test, ver §36.27.6 — más que estar quieto no completa y que un corte de GPS no deja el contador clavado. |
@@ -9114,7 +9114,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-0f0d484b02c9';
+const CACHE_VERSION = 'v-6b003a1e709e';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11494,7 +11494,7 @@ Una referencia visual es el marcador numerado que se dibuja para **cada punto nu
 // ... y después la entrada `inicio`, las paradas y los tramos
 ```
 
-El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-completo.html`) con borde de 2px `#8B6914` (dorado oscuro/marrón; el naranja `#ff8c00` de §4.5 es del círculo de activación del mapa de aventura y no aparece en `mapa-completo.html`), texto del mismo color `#8B6914`, emoji 🏛️ y número de `mapa_numero` en la misma línea. Lleva `zIndexOffset: 400` (opción de Leaflet, que ordena marcadores entre sí); como son los únicos marcadores del mapa completo, no ordena nada: Leaflet ya pinta los marcadores por encima de las líneas de la ruta. Con todas sus paradas completadas, la píldora es verde (clase `completado`: fondo `#28a745`, borde `#1e7e34`, texto blanco; la regla, en «El mapa completo» de §11).
+El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-completo.html`) con borde de 2px `#8B6914` (dorado oscuro/marrón; el naranja `#ff8c00` de §4.5 es del círculo de activación del mapa de aventura y no aparece en `mapa-completo.html`), texto del mismo color `#8B6914`, emoji 🏛️ y número de `mapa_numero` en la misma línea. Lleva `zIndexOffset: 400` (opción de Leaflet, que ordena marcadores entre sí); como son los únicos marcadores del mapa completo, no ordena nada: Leaflet ya pinta los marcadores por encima de las líneas de la ruta. Con su número completado, la píldora es verde (clase `completado`: fondo y borde `#1e7e34`, el verde del listado de paradas, y texto blanco; la regla, en «El mapa completo» de §11).
 
 ---
 
@@ -11582,7 +11582,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SELECCION.REINICIAR` | Pantalla de selección (`_avisarReinicioAlPadre()`: el «no» del reto R-2, P16; el ✗ de P3 y el «No» del aviso sin audio) | `_hdl_SELECCION_REINICIAR`: pone `_codigoValidadoP14` e `_iframesPreCargadosP15` a `false` y borra `vv_idioma` | (ninguna) | — | Que la siguiente activación vuelva a cargar iframes y datos (§2.3), y que el idioma guardado lo escriba la siguiente bandera |
 | `VV:PARADAS:READY` | Hijo 5 (al terminar de pintar los botones de las paradas; `{ count }`) | `_hdl_PARADAS_READY`: inyecta en el documento de hijo5 el estilo de su ventana de paradas (`_injectParadasStyle`: fondo transparente y eventos de puntero activos en `#paradas-window`, `#lista-paradas` y los botones) | (ninguna) | — | Dar a la ventana de paradas de hijo5 su aspecto cuando ya existen los botones |
 | `CHAT.RESCATE_SOLICITADO` | Hijo 6 (el usuario pulsa el botón de rescate del asistente; se envía con acuse, `datos: {}`) | `_hdl_CHAT_RESCATE_SOLICITADO`: devuelve en el acto el estado del rescate (`{ puede, motivo, usadas, total, restantes, elemento, nombre, atendida, motivoNoAtendida? }`) y lanza, sin esperarla, la pantalla que corresponde: «agotados» si `motivo` es `'agotados'`, el flujo de rescate (confirmación, concesión y pantalla de resultado) si `puede`; con una pantalla de rescate ya abierta la ignora (`atendida: false`, `motivoNoAtendida: 'ya-abierta'`) y, si no hay pantalla para el motivo, deja un `warn` (`atendida: false`, `motivoNoAtendida: 'sin-pantalla'`) | El estado, en el acuse del bus | Hijo 6 | El padre decide y enseña las pantallas porque sus carteles van por encima del iframe del asistente (§25.19) |
-| `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo (nada más cargarse; `{}`) | `_hdl_MAPA_COMPLETO_SOLICITAR_DATOS`: busca las coordenadas de la aventura elegida (`aventuraSeleccionada`) en `__vv_DATOS_AVENTURAS`, las mismas que recibe hijo2 (`['coordenadas-hijo2.html'].coordenadas`); sin ellas deja un `error` en el log y devuelve `{ enviadas: 0 }`; si el mapa no está registrado en el bus (overlay cerrado), `{ enviadas: 0 }` con un `warn`; si no, devuelve `{ enviadas: n }` | `MAPA_COMPLETO.DATOS` (`{ coordenadas, completadas }`; `completadas`, de `_paradasCompletadasDelMapa()`) | mapa-completo | El mapa pinta la ruta y los números completados con lo que reciba; mapa-completo no tiene datos propios |
+| `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo (nada más cargarse; `{}`) | `_hdl_MAPA_COMPLETO_SOLICITAR_DATOS`: busca las coordenadas de la aventura elegida (`aventuraSeleccionada`) en `__vv_DATOS_AVENTURAS`, las mismas que recibe hijo2 (`['coordenadas-hijo2.html'].coordenadas`); sin ellas deja un `error` en el log y devuelve `{ enviadas: 0 }`; si el mapa no está registrado en el bus (overlay cerrado), `{ enviadas: 0 }` con un `warn`; si no, devuelve `{ enviadas: n }` | `MAPA_COMPLETO.DATOS` (`{ coordenadas, numerosCompletados }`; los números, de `_numerosDeMapaCompletados()`) | mapa-completo | El mapa pinta la ruta y los números completados con lo que reciba; mapa-completo no tiene datos propios |
 
 ---
 
@@ -11608,7 +11608,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `AVENTURA.DETENER` | Hijo 1 | Al arrancar el temporizador, si en `vv_aventura_iniciada` hay otra aventura distinta guardada (`{ motivo: 'nueva_aventura_adquirida', aventuraAnterior, aventuraNueva, timestamp }`) | Cancelar el temporizador de la aventura anterior |
 | `AVENTURA.FINALIZADA` | Hijo 1 | Al terminar el último elemento en modo AVENTURA (`_handleFinDeAventura`: `{ aventuraId, idioma, motivo: 'completada', timestamp }`) | Que hijo1 detenga el temporizador y conteste con `AVENTURA.ESTADISTICAS_TIEMPO`, tras lo cual el padre muestra el modal de finalización |
 | `CHAT.ESTADO_PADRE` | Hijo 6 | Cada vez que el usuario abre el asistente, ya listo (al cargarse, el estado de entonces viaja dentro de `PADRE_DATOS`): `{ idioma, aventura, paradaActualNombre, rescate }` | Que hijo6 reconstruya su acordeón con el idioma recibido (en cada apertura) y conozca el contexto para el buzón de sugerencias y el botón de rescate |
-| `MAPA_COMPLETO.VISIBLE` | mapa-completo | Una vez, al hacerse visible el overlay del mapa: tras el `load` de su iframe (en el siguiente fotograma) o, si no llega, a los 1500 ms; con `{ completadas }` al día (sin el campo si no se pueden calcular, §10.8) | Que el mapa recalcule su vista cuando su contenedor ya tiene tamaño, y repinte los números completados |
+| `MAPA_COMPLETO.VISIBLE` | mapa-completo | Una vez, al hacerse visible el overlay del mapa: tras el `load` de su iframe (en el siguiente fotograma) o, si no llega, a los 1500 ms; con `{ numerosCompletados }` al día (sin el campo si no se pueden calcular, §10.8) | Que el mapa recalcule su vista cuando su contenedor ya tiene tamaño, y repinte los números completados |
 | `NAVEGACION.ACTUALIZAR_ESTADO` | Hijo 2 | En cada posición GPS en modo AVENTURA, con la distancia real (`{ distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, … }`, `js/funciones-mapa.js`); y puntualmente al abrir un reto (`{ retoActivo: true, retoId }`), al completarlo (`{ retoActivo: false, retoCompletado, retoId }`) y al dibujar la polyline de ubicación (`{ ubicacionActiva: true }`) | Que hijo2 decida el estado de sus botones y la llegada con la distancia real |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Hijo 2 | Cuando el GPS queda activo (`_finalizarActivacionGPS`: `{ activo: true, permisos: true, precision: null, error: null }`) | Que hijo2 refleje el estado del GPS |
 | `NAVEGACION.GPS.ERROR` | Hijo 2 | Cuando `watchPosition` devuelve un error (`{ codigo, mensaje, contexto: 'watchPosition' }`) | Que hijo2 conozca el fallo del GPS |
@@ -11890,8 +11890,8 @@ Las tres páginas se cargan dentro de otro frame, que las registra en el bus ant
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `MAPA_COMPLETO.DATOS` | Padre (respuesta a `MAPA_COMPLETO.SOLICITAR_DATOS`; `{ coordenadas, completadas }`) | `pintarRuta(coordenadas)`: dibuja la ruta con paradas, tramos y referencias; solo la primera vez (`_pintado`) y solo si recibe un array no vacío. Después, `marcarCompletados(completadas)` | `{ pintadas }`, en el acuse del bus | Padre | Pintar la aventura con lo que el padre entrega, con los números completados en verde |
-| `MAPA_COMPLETO.VISIBLE` | Padre (una vez, al hacerse visible el overlay; `{ completadas }`) | `marcarCompletados(completadas)`, y `_reajustarVista()` al momento y a los 300 ms | `true`, en el acuse del bus | Padre | Repintar los números completados con la lista al día y recalcular la vista cuando el contenedor ya tiene tamaño |
+| `MAPA_COMPLETO.DATOS` | Padre (respuesta a `MAPA_COMPLETO.SOLICITAR_DATOS`; `{ coordenadas, numerosCompletados }`) | `pintarRuta(coordenadas)`: dibuja la ruta con paradas, tramos y referencias; solo la primera vez (`_pintado`) y solo si recibe un array no vacío. Después, `marcarCompletados(numerosCompletados)` | `{ pintadas }`, en el acuse del bus | Padre | Pintar la aventura con lo que el padre entrega, con los números completados en verde |
+| `MAPA_COMPLETO.VISIBLE` | Padre (una vez, al hacerse visible el overlay; `{ numerosCompletados }`) | `marcarCompletados(numerosCompletados)`, y `_reajustarVista()` al momento y a los 300 ms | `true`, en el acuse del bus | Padre | Repintar los números completados con la lista al día y recalcular la vista cuando el contenedor ya tiene tamaño |
 | `UI.CERRAR_CAPA` | Padre (botón atrás, con la ficha de un monumento abierta y encima de todo) | Lo registra `js/capa-con-atras.js`, solo con frame contenedor: cierra la ficha con `cerrarOverlay()` y devuelve `true` | `UI.CAPA_ABIERTA { abierta: false }` (lo manda el propio cierre) | Padre | Que «atrás» cierre la ficha antes que el mapa (§34.3) |
 
 **Mensajes salientes de los tres nietos:**
@@ -12574,7 +12574,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-0f0d484b02c9';
+const CACHE_VERSION = 'v-6b003a1e709e';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13069,12 +13069,11 @@ El módulo, al cargarse:
 
 Al llegar `MAPA_COMPLETO.DATOS`, `pintarRuta(coordenadas)` —solo la primera vez (`_pintado`) y solo con un array no vacío—:
 
-1. Guarda las coordenadas en `_coordenadas`.
-2. Polyline de la ruta, en el orden de las coordenadas: el punto de cada parada y del punto de salida, y de cada tramo su `inicio`, sus `waypoints` y su `fin` → `_bounds = polyline.getBounds()`.
-3. Marcadores de referencia (`tipo === 'referencia'`), cada uno guardado con su número en `_marcadores`.
-4. `_reajustarVista()` — `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` —: la vista pasa a la de la ruta, y Leaflet pide las teselas que le falten para ella.
+1. Polyline de la ruta, en el orden de las coordenadas: el punto de cada parada y del punto de salida, y de cada tramo su `inicio`, sus `waypoints` y su `fin` → `_bounds = polyline.getBounds()`.
+2. Marcadores de referencia (`tipo === 'referencia'`), cada uno guardado con su número en `_marcadores`.
+3. `_reajustarVista()` — `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` —: la vista pasa a la de la ruta, y Leaflet pide las teselas que le falten para ella.
 
-Y el mismo controlador llama después a `marcarCompletados(completadas)`, que pone en verde los números completados («El mapa completo», §11).
+Y el mismo controlador llama después a `marcarCompletados(numerosCompletados)`, que pone en verde los números completados («El mapa completo», §11).
 
 La variable `_bounds` tiene scope de módulo para que el handler de `MAPA_COMPLETO.VISIBLE` pueda llamar `fitBounds` sin necesidad de parámetros.
 
@@ -13101,7 +13100,7 @@ _reajustarVista();
 
 // El handler de MAPA_COMPLETO.VISIBLE, registrado en el bus:
 bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE, (mensaje) => {
-    marcarCompletados(mensaje?.datos?.completadas);
+    marcarCompletados(mensaje?.datos?.numerosCompletados);
     _reajustarVista();
     setTimeout(_reajustarVista, 300);
     return true;
@@ -14356,14 +14355,14 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TIPOS_MENSAJE` | módulo 1 (L3744) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3905) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2779) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13144) | clásico 12 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13155) | clásico 12 | estado |
 | `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9502) | módulo 1 | función/objeto |
 | `_cerrarVentanaTemporizador` | módulo 2 (L12187) | módulo 1 | función/objeto |
 | `_decidirAvanzar` | módulo 2 (L10709) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13126) | clásico 7 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13137) | clásico 7 | función/objeto |
 | `_hijosConCapaAbierta` | módulo 2 (L11258) | módulo 1 | función/objeto |
 | `_iniciarTemporizadorAventura` | módulo 2 (L11899) | módulo 1 | función/objeto |
-| `_paradasCompletadasDelMapa` | módulo 2 (L12451) | clásico 8 | función/objeto |
+| `_numerosDeMapaCompletados` | módulo 2 (L12355) | clásico 8 | función/objeto |
 | `_reenviarProgressBarAHijo3` | módulo 2 (L9441) | módulo 1 | función/objeto |
 | `_retoBtnEncendido` | módulo 2 (L10602) | módulo 1 | función/objeto |
 | `_sincronizarAvanzar` | módulo 2 (L10728) | módulo 1 | función/objeto |
@@ -14376,7 +14375,7 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarModalTiempoAgotado` | módulo 2 (L12112) | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 (L9314) | módulo 1 | función/objeto |
 | `solicitarAudioAHijo3` | módulo 2 (L9306) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13160) | módulo 2 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13171) | módulo 2 | función/objeto |
 
 </details>
 
