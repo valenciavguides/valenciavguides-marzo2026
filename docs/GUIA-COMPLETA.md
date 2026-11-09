@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-41f3d3304219'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-8416e1c31299'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8075,6 +8075,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `169-llegada-al-inicio-carteles-y-audio.spec.js` | 12 | Lo que decide la posición al llegar al punto de inicio, por el camino real (la selección hasta P17, como el spec 131, y lecturas por `watchPosition`): «Ha llegado» sale con la llegada confirmada y no con una lectura suelta (LL-1) y una sola vez aunque se vaya a CASA y se vuelva (LL-2) (§4.7j); «Ha vuelto a su aventura» no sale la primera vez que se llega con la línea verde puesta (BV-1), y sí a quien ya estuvo y vuelve (BV-2) (§4.7k-l); con la primera lectura a 40 m el audio queda apagado (AU-1), una lectura suelta dentro no lo enciende y la llegada confirmada sí (AU-2) (§25.7), y con el audio apagado no sale «Recuerde pulsar play» (AU-3) (§25.5c); y cada cartel pide solo lo que se puede pulsar, con sus iconos (§4.7h): «Ha llegado» pide play y no «avanzar» (AC-1), en un idioma sin audio grabado pide ⏩ (AC-2), «Ha vuelto a su aventura» con todo apagado no pide nada (AC-3), el de inicio de tramo pide «avanzar», play y la línea azul (AC-4), y «Ha vuelto al camino», play y la línea azul (AC-5) |
 | `170-una-sola-forma-de-pedir-una-posicion.spec.js` | 14 | Una sola llamada a `getCurrentPosition` en lo que ejecuta el navegador, la de `pedirPosicionPuntual()` de `js/utils.js`, leído en el fuente (PP-1); el reintento de la pantalla de sin señal pide la posición con 15 s fijos (PP-2, §31.2) y el de las pantallas de distancia con 5 s ajustados a la conexión (PP-3, §31.4); lo que hace cada reintento con la respuesta: sin señal, al acertar la posición entra en el pipeline y la pantalla se quita (PP-4), y al fallar sigue, con el mensaje real del navegador en `#gps-signal-detalle` (PP-5); en una pantalla de distancia, al acertar la posición entra en el pipeline sin pantalla de sin señal (PP-6), y al fallar sale la de sin señal con el mensaje real (PP-7); la vigilancia continua se abre en un solo sitio y se cierra en otro (PP-8, leído en el fuente); con permiso denegado se cierra y `watchId` queda en `null` (PP-9), y con el plazo vencido se cierra y se abre otra sin alta precisión y con 15 s (PP-10); el permiso de geolocalización se consulta en un solo sitio, `consultarPermisoGeolocalizacion()` de `js/utils.js` (PP-11, leído en el fuente), y con él: con el permiso denegado el GPS no se activa (PP-12), tras un «denegado» el GPS se activa solo cuando el permiso vuelve (PP-13), y el diagnóstico cuenta el estado (PP-14) |
 | `171-una-sola-lista-de-dispositivos.spec.js` | 9 | Una sola lista de tipos de dispositivo (`tipoDeDispositivo()` de `js/device-detection.js`, §26): `esMovil` se define solo ahí (DL-1, leído en el fuente), y ocho dispositivos, con su agente de usuario y sus puntos táctiles, salen con su tipo —iPhone y Android con «Mobile», móvil; Android sin «Mobile», Firefox en una tableta Android, el iPad antiguo y el de iPadOS 13 o posterior (que se presenta como Mac), tableta; Mac y Windows, PC—, con `esMovil()` y `esTelefonoMovil()` de acuerdo con el tipo (DL-2) |
+| `172-hijo-listo-con-reintentos-un-solo-camino.spec.js` | 12 | El último paso del apretón de manos es uno solo para los seis hijos: `enviarHijoListoConReintento` del bus (§26.13). Con cada hijo en `helpers/marco-vacio.html`, que hace de padre: sin confirmación repite `HIJO_LISTO`, y con ella para, sin ninguno después (HL-1); sin confirmación nunca, exactamente 30 intentos, el último recurso —hijo1 a hijo5 enseñan su interfaz— y ni uno más (HL-2, con el reloj de Playwright). Se valida con la función rota: sin reprogramar el siguiente intento caen los doce casos, y sin parar, los seis HL-1. |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8599,7 +8600,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 166 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 167 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9116,7 +9117,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-41f3d3304219';
+const CACHE_VERSION = 'v-8416e1c31299';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11978,64 +11979,29 @@ Los hijos reenvían `HIJO_LISTO` periódicamente hasta recibir `PADRE_CONFIRMA_H
 - **Funciona en dispositivos lentos:** reintenta hasta recibir respuesta, sin límite de tiempo arbitrario
 - **Fallback de seguridad:** después de 30 reintentos (30 segundos) muestra la UI como último recurso
 
-> **Ese fallback NO cubre el caso de un hijo sin registrar.** Toda la maquinaria de reintentos —incluido el fallback de los 30 s que muestra la UI— vive **dentro del handler de `SISTEMA.PADRE_DATOS`** del hijo (en `boton-casa-hijo5.html` el handler de `SISTEMA.PADRE_DATOS` es el «CONTROLADOR 1» del fichero, y el bloque de reintentos vive dentro de él). Si `PADRE_DATOS` nunca llega —porque el iframe no está en `iframesRegistrados`, ver §7— ese handler no se ejecuta jamás: no hay `HIJO_LISTO`, no hay reintentos, y **el fallback tampoco dispara**. El hijo se queda con su `document.body` en `display:none` de forma permanente, no durante 30 segundos.
+> **Ese fallback NO cubre el caso de un hijo sin registrar.** La serie de reintentos —con el último recurso de los 30 s que muestra la UI— la arranca **el handler de `SISTEMA.PADRE_DATOS`** del hijo. Si `PADRE_DATOS` nunca llega —porque el iframe no está en `iframesRegistrados`, ver §7— ese handler no se ejecuta jamás: no hay `HIJO_LISTO`, no hay reintentos, y **el fallback tampoco dispara**. El hijo se queda con su `document.body` en `display:none` de forma permanente, no durante 30 segundos.
 >
 > Los 30 s cubren un escenario distinto y más benigno: `PADRE_DATOS` sí llegó, el hijo contestó, y es la confirmación del padre la que se pierde. Distinguirlos importa al diagnosticar: "la UI del hijo aparece tarde" y "la UI del hijo no aparece nunca" son dos fallos con causas opuestas.
 
 #### Implementación técnica
 
-**Variables de cada hijo (hijo1–hijo6, todos):**
+Una sola función, en el bus: `enviarHijoListoConReintento({ datos, prefijoLog, alAgotarse })` (`js/mensajeria.js`), con sus dos constantes, `MAX_INTENTOS_HIJO_LISTO = 30` e `INTERVALO_HIJO_LISTO_MS = 1000`. Cada intento manda `SISTEMA.HIJO_LISTO` al padre con `datos` y su `timestamp` del momento, y deja en el log `«prefijo» HIJO_LISTO enviado al padre (intento n/30)`. El siguiente intento se programa en el `finally`: un fallo puntual al enviar no corta la serie. Agotados los 30, avisa (`warn`) y llama a `alAgotarse`, el último recurso del hijo; si ese último recurso lanza, lo deja en el log como error. Devuelve `{ parar }`, que cancela el intento programado; una serie parada no programa ninguno más.
 
 ```javascript
-let _reintentosHijoListo = 0;
-const MAX_REINTENTOS_HIJO_LISTO = 30; // 30 segundos máximo
-const INTERVALO_REINTENTO = 1000;     // 1 segundo
-let _intervaloReintento = null;
-```
-
-**Función de reenvío:**
-
-```javascript
-async function enviarHijoListoConReintento() {
-    try {
-        await enviarMensaje({
-            destino: 'padre',
-            tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-            datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
-        });
-        _reintentosHijoListo++;
-        if (_reintentosHijoListo < MAX_REINTENTOS_HIJO_LISTO) {
-            _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
-        } else {
-            _uiConfirmado = true;
-            mostrarUI(); // fallback tras 30s sin respuesta
-        }
-    } catch (error) { /* log */ }
-}
-```
-
-**Limpieza del intervalo al recibir la confirmación:**
-
-```javascript
-registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, async (mensaje) => {
-    if (_intervaloReintento) {
-        clearTimeout(_intervaloReintento);
-        _intervaloReintento = null;
-    }
-    // ... resto del handler
+// En el controlador de SISTEMA.PADRE_DATOS de cada hijo, una sola vez:
+_hijoListo = bus.enviarHijoListoConReintento({
+    datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID },
+    prefijoLog: '[hijo3]',
+    alAgotarse: () => { _uiConfirmado = true; mostrarUI(); },   // hijo6 no lo pasa
 });
+
+// En el de SISTEMA.PADRE_CONFIRMA_HIJO_LISTO:
+_hijoListo?.parar();
 ```
 
-#### Archivos con sistema de reintentos
+#### Quién la llama
 
-Todos los hijos implementan `enviarHijoListoConReintento`. Nótese que hijo6 no tiene `mostrarUI()` — su fallback solo registra una advertencia (su visibilidad la decide el padre: el iframe sigue oculto hasta que el usuario pulsa `#btn-chat-soporte`, §27).
-
-- `extrainfo-hijo1.html` — variables en `registrarControladores()`, función dentro del handler PADRE_DATOS, limpieza en PADRE_CONFIRMA_HIJO_LISTO
-- `coordenadas-hijo2.html` — variables cerca de `_uiConfirmado`, función `enviarHijoListoConReintento()` a nivel de módulo, limpieza en PADRE_CONFIRMA_HIJO_LISTO
-- `audio-hijo3.html` — variables a nivel de módulo, función dentro del handler PADRE_DATOS, limpieza en PADRE_CONFIRMA_HIJO_LISTO
-- `retos-hijo4.html` — variables a nivel de módulo, función dentro del handler PADRE_DATOS, limpieza en PADRE_CONFIRMA_HIJO_LISTO
-- `boton-casa-hijo5.html` — variables a nivel de módulo, función dentro del handler PADRE_DATOS, limpieza en PADRE_CONFIRMA_HIJO_LISTO
-- `chat-hijo6.html` — variables a nivel de módulo (`_reintentosHijoListo`, `MAX_REINTENTOS_HIJO_LISTO`, `INTERVALO_REINTENTO`, `_intervaloReintento`), función dentro del handler PADRE_DATOS, limpieza en PADRE_CONFIRMA_HIJO_LISTO
+Los seis hijos: la arrancan en su controlador de `SISTEMA.PADRE_DATOS` y la paran en el de `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO`. hijo1 a hijo5 le pasan como `alAgotarse` enseñar su interfaz (`_uiConfirmado = true` —en hijo1, `globalThis._uiConfirmado`— y `mostrarUI()`). hijo6 no le pasa nada: no tiene `mostrarUI()`, y su visibilidad la decide el padre (el iframe sigue oculto hasta que el usuario pulsa `#btn-chat-soporte`, §27). La selección no la usa: manda `HIJO_LISTO` una sola vez, sin reintentos (`_enviarHijoListo`, `En-busca-del-tesoro.html`). Lo comprueba el spec 172, con cada hijo en un marco que hace de padre.
 
 #### Flujo del handshake con reintentos
 
@@ -12576,7 +12542,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-41f3d3304219';
+const CACHE_VERSION = 'v-8416e1c31299';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

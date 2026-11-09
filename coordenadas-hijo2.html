@@ -1124,10 +1124,8 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (mensaje) =
 try {
     // Ocultar la UI hasta que el padre confirme que los controladores están listos
     let _uiConfirmado = false;
-    let _reintentosHijoListo = 0;
-    const MAX_REINTENTOS_HIJO_LISTO = 30; // 30 intentos × 1s = 30 segundos máximo
-    const INTERVALO_REINTENTO = 1000; // 1 segundo entre reintentos
-    let _intervaloReintento = null;
+    // La serie de HIJO_LISTO en marcha (bus.enviarHijoListoConReintento): PADRE_CONFIRMA_HIJO_LISTO la para.
+    let _hijoListo = null;
     // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque.
     function mostrarUI() {
         if (!_uiConfirmado) {
@@ -1154,31 +1152,6 @@ try {
     // ============================================================
     // CONTROLADOR 1: SISTEMA.PADRE_DATOS
     // ============================================================
-    async function enviarHijoListoConReintento() {
-        try {
-            await enviarMensaje({
-                destino: 'padre',
-                tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-                datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
-            });
-            logger.info(`[hijo2] HIJO_LISTO enviado al padre (intento ${_reintentosHijoListo + 1}/${MAX_REINTENTOS_HIJO_LISTO})`);
-        } catch (error) {
-            logger.error('[hijo2] Error enviando HIJO_LISTO:', error);
-        } finally {
-            // En finally, no en el try: un fallo puntual de enviarMensaje() no debe matar
-            // el resto de la secuencia de reintentos (bug real encontrado en auditoría
-            // 2026-08-18 — antes, una excepción aquí paraba el bucle para siempre en
-            // silencio, sin programar el siguiente intento).
-            _reintentosHijoListo++;
-            if (_reintentosHijoListo < MAX_REINTENTOS_HIJO_LISTO) {
-                _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
-            } else {
-                logger.warn('[hijo2] Máximo de reintentos alcanzado, mostrando UI como fallback');
-                _uiConfirmado = true;
-                mostrarUI();
-            }
-        }
-    }
 
     function _procesarDatosPadre(datos, logPrefix) {
         // PADRE_DATOS trae como mucho { modo, timestamp }: el padre no manda más claves en este mensaje.
@@ -1203,7 +1176,7 @@ try {
         if (!estadoComponente.hijoListoEnviado) {
             estadoComponente.hijoListoEnviado = true;
             estadoComponente.inicializado = true;
-            enviarHijoListoConReintento();
+            _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo2]', alAgotarse: () => { _uiConfirmado = true; mostrarUI(); } });
         }
     });
 
@@ -1223,7 +1196,7 @@ try {
             logger.info('[hijo2] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
 
             logger.info(`${logPrefix} Confirmación recibida del padre - controladores listos`);
-            if (_intervaloReintento) { clearTimeout(_intervaloReintento); _intervaloReintento = null; logger.info('[hijo2] Reintento HIJO_LISTO cancelado tras confirmación del padre'); }
+            _hijoListo?.parar();
 
             // 🔥 NUEVO: Procesar modo inicial si viene en datos
             const { modoInicial } = mensaje.datos || {};

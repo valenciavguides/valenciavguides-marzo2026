@@ -34,6 +34,13 @@ const MULTIPLO_MAX_GRACIA = 4;
  */
 const PLAZO_MAX_HANDLER = 20_000;
 
+/**
+ * Intentos de HIJO_LISTO, uno cada `INTERVALO_HIJO_LISTO_MS`, antes de que un hijo se rinda a esperar la confirmación
+ * del padre (enviarHijoListoConReintento).
+ */
+const MAX_INTENTOS_HIJO_LISTO = 30;
+const INTERVALO_HIJO_LISTO_MS = 1000;
+
 // =====================================================
 // ESTADO LOCAL (mínimo, delegamos al state-manager)
 // =====================================================
@@ -984,6 +991,56 @@ export async function iniciarHeartbeat(intervalo = 5000) {
     } finally {
         _heartbeatIniciando = false;
     }
+}
+
+/**
+ * El último paso del apretón de manos, del lado del hijo: manda HIJO_LISTO al padre y lo repite cada segundo hasta que
+ * el padre lo confirma (PADRE_CONFIRMA_HIJO_LISTO, cuyo controlador llama a `parar()`), 30 veces como mucho. La llama
+ * el controlador de PADRE_DATOS de cada hijo, una sola vez (GUIA-COMPLETA.md §26.13).
+ *
+ * El siguiente intento se programa en `finally`: un fallo puntual al enviar no corta la serie. Agotados los intentos,
+ * avisa y llama a `alAgotarse`, el último recurso de cada hijo (el que oculta su interfaz hasta la confirmación la
+ * enseña ahí). Una serie parada no programa nada más.
+ *
+ * @param {Object} opciones
+ * @param {Object} [opciones.datos] - Lo que va en cada HIJO_LISTO, con su `timestamp` del momento.
+ * @param {string} [opciones.prefijoLog] - Cómo firma este hijo sus líneas del log.
+ * @param {Function} [opciones.alAgotarse] - El último recurso, si el padre no confirma.
+ * @returns {{ parar: Function }}
+ */
+export function enviarHijoListoConReintento({ datos = {}, prefijoLog = `[${componenteId}]`, alAgotarse = null } = {}) {
+    let intentos = 0;
+    let temporizador = null;
+    let parada = false;
+    const intentar = async () => {
+        try {
+            await enviarMensaje({ destino: 'padre', tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO, datos: { ...datos, timestamp: Date.now() } });
+            logger.info(`${prefijoLog} HIJO_LISTO enviado al padre (intento ${intentos + 1}/${MAX_INTENTOS_HIJO_LISTO})`);
+        } catch (error) {
+            logger.error(`${prefijoLog} Error enviando HIJO_LISTO:`, error);
+        } finally {
+            intentos++;
+            if (!parada) {
+                if (intentos < MAX_INTENTOS_HIJO_LISTO) {
+                    temporizador = setTimeout(intentar, INTERVALO_HIJO_LISTO_MS);
+                } else {
+                    logger.warn(`${prefijoLog} ${MAX_INTENTOS_HIJO_LISTO} intentos de HIJO_LISTO sin PADRE_CONFIRMA_HIJO_LISTO: último recurso`);
+                    try { alAgotarse?.(); } catch (error) { logger.error(`${prefijoLog} El último recurso tras HIJO_LISTO falló:`, error); }
+                }
+            }
+        }
+    };
+    void intentar();
+    return {
+        parar() {
+            parada = true;
+            if (temporizador) {
+                clearTimeout(temporizador);
+                temporizador = null;
+                logger.info(`${prefijoLog} Reintentos de HIJO_LISTO parados: el padre lo confirmó`);
+            }
+        },
+    };
 }
 
 // Espera, como mucho `timeout` ms, a que todos los iframes registrados en el bus de este frame hayan completado el
