@@ -2759,7 +2759,7 @@ export const PLACEHOLDER_RESPUESTA_TEXTO = {
     de: 'Schreiben Sie hier Ihre Antwort...',
     ja: 'ここに回答を入力してください...',
     zh: '请在此输入您的答案...',
-    pl: 'Wpisz tutaj swoją odpowiedź...',
+    pl: 'Tutaj należy wpisać odpowiedź...',
     pt: 'Escreva a sua resposta aqui...',
     ru: 'Напишите ваш ответ здесь...',
     uk: 'Напишіть свою відповідь тут...'
