@@ -304,7 +304,7 @@
     }
     </style>
     <script type="module">
-    import { resolverIdsParada, escaparHTML } from './js/utils.js';
+    import { resolverIdsParada, escaparHTML, ocultarInterfazHastaConfirmar } from './js/utils.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
     // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
@@ -327,9 +327,8 @@
     // MEDIDO al migrar hijo5 al bus: el ocultado paso de ocurrir antes de `load` a ocurrir
     // despues (iphone12). Vale para CUALQUIER hijo que se pase al bus: el ocultado va antes.
     //
-    // Se guarda aqui tambien el display original, porque mostrarUI() lo restaura.
-    const _displayOriginalBody = (document.body && document.body.style && document.body.style.display) || '';
-    if (document.body) document.body.style.display = 'none';
+    // ocultarInterfazHastaConfirmar guarda el display propio del body, y mostrarInterfaz() se lo devuelve.
+    const mostrarInterfaz = ocultarInterfazHastaConfirmar('block');
 
     // ==================== MENSAJERÍA ====================
     // Este frame habla por el mismo bus que el padre y que todos los demás: un solo camino, con
@@ -761,7 +760,7 @@
             if (!_uiConfirmado) { logger.warn('[hijo5] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
             if (_uiMostrada) return;
             _uiMostrada = true;
-            if (document.body) { document.body.style.display = _displayOriginalBody || 'block'; logger.info('[hijo5] UI visible tras PADRE_CONFIRMA_HIJO_LISTO'); }
+            mostrarInterfaz(); logger.info('[hijo5] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
         }
 
         // La serie de HIJO_LISTO en marcha (bus.enviarHijoListoConReintento): PADRE_CONFIRMA_HIJO_LISTO la para.

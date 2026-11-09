@@ -420,7 +420,7 @@
     // Importado por su efecto: al cargarse instala la captura de `error` y `unhandledrejection`
     // de este frame. El bus ya lo arrastra, pero de ahí no se deduce leyendo este fichero.
     import './js/utils.js';
-    import { resolverIdsParada } from './js/utils.js';
+    import { resolverIdsParada, ocultarInterfazHastaConfirmar } from './js/utils.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
     // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
@@ -444,9 +444,8 @@
     // MEDIDO al migrar hijo1 al bus: el ocultado paso de ocurrir antes de `load` a ocurrir
     // despues (iphone12). Vale para CUALQUIER hijo que se pase al bus: el ocultado va antes.
     //
-    // Se guarda aqui tambien el display original, porque mostrarUI() lo restaura.
-    const _displayOriginalBody = (document.body && document.body.style && document.body.style.display) || '';
-    if (document.body) document.body.style.display = 'none';
+    // ocultarInterfazHastaConfirmar guarda el display propio del body, y mostrarInterfaz() se lo devuelve.
+    const mostrarInterfaz = ocultarInterfazHastaConfirmar('block');
 
     // El MISMO id con el que el padre registra este iframe (los cargadores
     // de codigo-padre.html). Si no coinciden, el padre le escribe a un sitio y este frame se
@@ -1089,9 +1088,7 @@
         function mostrarUI() {
             if (!_uiConfirmado) { logger.warn('[hijo3] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
             try {
-                if (document.body) {
-                    document.body.style.display = _displayOriginalBody || 'block';
-                }
+                mostrarInterfaz();
                 logger.info('[hijo3] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
             } catch (e) {
                 logger.debug('[hijo3] no se pudo mostrar UI', e && e.message);

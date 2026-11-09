@@ -431,7 +431,7 @@
     import * as bus from './js/mensajeria.js';
     // Importado por su efecto —al cargarse instala la captura de `error` y `unhandledrejection`
     // de este frame; el bus ya lo arrastra, pero de ahí no se deduce leyendo este fichero— y por vibrar, la de toda la app.
-    import { vibrar } from './js/utils.js';
+    import { vibrar, ocultarInterfazHastaConfirmar } from './js/utils.js';
     import { PLACEHOLDER_RESPUESTA_TEXTO, MSG_RETO_NO_DISPONIBLE } from './js/traducciones-ui.js';
 
     // Ocultar la interfaz AQUI, antes del primer `await` de este modulo, y no mas abajo.
@@ -441,9 +441,8 @@
     // MEDIDO al migrar hijo1 al bus: el ocultado paso de ocurrir antes de `load` a ocurrir
     // despues (iphone12). Vale para CUALQUIER hijo que se pase al bus: el ocultado va antes.
     //
-    // Se guarda aqui tambien el display original, porque mostrarUI() lo restaura.
-    const _displayOriginalBody = (document.body && document.body.style && document.body.style.display) || '';
-    if (document.body) document.body.style.display = 'none';
+    // ocultarInterfazHastaConfirmar guarda el display propio del body, y mostrarInterfaz() se lo devuelve.
+    const mostrarInterfaz = ocultarInterfazHastaConfirmar('flex');
 
     // El MISMO id con el que el padre registra este iframe (los cargadores
     // de codigo-padre.html). Si no coinciden, el padre le escribe a un sitio y este frame se
@@ -1227,7 +1226,7 @@
             // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque.
             function mostrarUI() {
                 if (!_uiConfirmado) { return; }
-                try { if (document.body) { document.body.style.display = _displayOriginalBody || 'flex'; logger.info(`[hijo4] UI visible tras PADRE_CONFIRMA_HIJO_LISTO — body.display=${document.body.style.display}`); } } catch (_e) {} // NOSONAR
+                try { mostrarInterfaz(); logger.info(`[hijo4] UI visible tras PADRE_CONFIRMA_HIJO_LISTO — body.display=${document.body?.style.display}`); } catch (_e) {} // NOSONAR
             }
 
             // La serie de HIJO_LISTO en marcha (bus.enviarHijoListoConReintento): PADRE_CONFIRMA_HIJO_LISTO la para.
@@ -1303,7 +1302,7 @@
                     // FIX: Forzar body visible al recibir RETO.MOSTRAR
                     // Si PADRE_CONFIRMA_HIJO_LISTO no llego, body puede estar display:none
                     try {
-                        document.body.style.display = _displayOriginalBody || 'flex';
+                        mostrarInterfaz();
                         document.body.style.visibility = 'visible';
                         document.body.style.opacity = '1';
                     } catch(_e) { /* ignore */ } // NOSONAR

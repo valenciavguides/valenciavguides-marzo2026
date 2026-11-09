@@ -294,6 +294,24 @@ export function rotarFrasesDeCarga(elemento, frases) {
 }
 
 /**
+ * Oculta la interfaz de un hijo (su `body`) hasta que el padre confirma el apretón de manos, y devuelve con qué
+ * enseñarla: le devuelve al `body` su display propio, o `displayPorDefecto` si no tenía ninguno. La llaman hijo1 a
+ * hijo5 en la parte síncrona de su módulo, antes de cualquier `await`: con `await` de nivel superior, el `load` del
+ * iframe salta mientras el módulo espera, y un ocultado posterior dejaría la interfaz a la vista ese rato (spec 86).
+ *
+ * @param {string} [displayPorDefecto='block'] - El display del `body` al enseñarlo, si no tenía uno propio.
+ * @returns {() => void} Enseñar la interfaz.
+ */
+export function ocultarInterfazHastaConfirmar(displayPorDefecto = 'block') {
+    const displayPropio = globalThis.document?.body?.style?.display || '';
+    if (globalThis.document?.body) globalThis.document.body.style.display = 'none';
+    return () => {
+        const body = globalThis.document?.body;
+        if (body) body.style.display = displayPropio || displayPorDefecto;
+    };
+}
+
+/**
  * Fuegos artificiales en un canvas: ráfagas de partículas que salen de un punto al azar, caen con la gravedad y brillan,
  * hasta que se acaba el plazo; entonces borra el canvas y llama a `alTerminar` (docs/estudio-caminos.md, K-28). Lo usan
  * el puzzle al resolverse y la escena final del vídeo de introducción, cada uno con sus números.
