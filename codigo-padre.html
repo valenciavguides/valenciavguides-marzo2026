@@ -32,6 +32,7 @@
     <link rel="stylesheet" href="js/vendor/maplibre-gl.css" />
     <link rel="stylesheet" href="css/mapa-vintage-zoom.css" />
     <link rel="stylesheet" href="css/boton-cerrar.css" />
+    <link rel="stylesheet" href="css/boton-mundo-verde.css" />
     <script src="js/mapa-vintage-zoom.js"></script>
     <script src="js/vendor/maplibre-gl-csp.js"></script>
 
@@ -2353,9 +2354,19 @@
     body.loading #brujula-modo,
     body.loading #btn-chat-soporte,
     body.loading #audio-control-overlay,
+    body.loading #avisos-dispositivo,
     body.loading iframe:not(#hijo5) {
         visibility: hidden !important;
         opacity: 0 !important;
+    }
+
+    /* El logo de València be Guides en línea con el texto de las pantallas del dispositivo, como en los párrafos */
+    #avisos-dispositivo .texto-imagen-inline {
+        height: 1.4em;
+        width: auto;
+        vertical-align: baseline;
+        position: relative;
+        bottom: -0.2em;
     }
 
     /* ========================================== */
@@ -2788,7 +2799,7 @@
             (globalThis.logger || console).debug(`[LOADING] ${message}${details ? ' - ' + details : ''}`);
         };
 
-        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep, escaparHTML, importarConReintentos, pedirPosicionPuntual, consultarPermisoGeolocalizacion, vibrar, rotarFrasesDeCarga } from './js/utils.js';
+        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable, sleep, escaparHTML, importarConReintentos, pedirPosicionPuntual, consultarPermisoGeolocalizacion, vibrar, rotarFrasesDeCarga, renderTextoConImagenes } from './js/utils.js';
         globalThis.resolverIdsParada = resolverIdsParada;
         globalThis.retryUntilAvailable = retryUntilAvailable;
         // La galería de imágenes vive en un script clásico, que no puede importar: la toma de aquí.
@@ -4450,6 +4461,8 @@
                         clearInterval(restoreProgressTimer);
                         globalThis.hideParentLoadingOverlay?.();
                     }
+                    // La aventura continúa: las dos pantallas del dispositivo.
+                    void mostrarAvisosDelDispositivo();
                     resolve('continuar');
                 }
 
@@ -4485,6 +4498,96 @@
                 overlay.querySelector('#btn-confirmar-otra').addEventListener('click', ejecutarElegirOtra);
             });
         }
+
+        // ── Las pantallas del dispositivo ─────────────────────────────────────────────
+        // Al empezar una aventura y al continuarla (decisión del usuario), dos pantallas seguidas: la calibración de la
+        // brújula y los ajustes del dispositivo (giro automático y ahorro de batería). Una ventana flotante con el aspecto
+        // de los carteles (fondo #fff8e7 y borde naranja); el botón del mundo verde (css/boton-mundo-verde.css) pasa de la
+        // primera a la segunda, y en la segunda la cierra. No tapa nada que el usuario abra después: queda por debajo de
+        // los retos, la imagen, el vídeo, el chat, las pantallas del GPS y los carteles (z-index 1000008), y desaparece
+        // mientras hay carga o un diálogo (body.loading). Devuelve una promesa que se cumple al cerrarla (true), o en
+        // seguida si no hay textos para el idioma (false), y lo dice.
+        function mostrarAvisosDelDispositivo() {
+            const logPrefix = '[PADRE][AVISOS_DISPOSITIVO]';
+            return import('./js/traducciones-ui.js').then(({ TRADUCCIONES_AVISOS_DISPOSITIVO }) => new Promise((resolve) => {
+                const idioma = globalThis.idiomaSeleccionado;
+                const t = TRADUCCIONES_AVISOS_DISPOSITIVO?.[idioma];
+                if (!t) {
+                    (globalThis.logger || console).error(`${logPrefix} Sin textos para el idioma «${idioma}»: no se enseñan`);
+                    resolve(false);
+                    return;
+                }
+                document.getElementById('avisos-dispositivo')?.remove();
+                const panel = document.createElement('div');
+                panel.id = 'avisos-dispositivo';
+                panel.setAttribute('role', 'dialog');
+                panel.setAttribute('aria-labelledby', 'avisos-dispositivo-titulo');
+                panel.style.cssText = [
+                    'position:fixed',
+                    'top:50%',
+                    'left:50%',
+                    'transform:translate(-50%,-50%)',
+                    'width:min(92vw, 30rem)',
+                    'max-width:92vw',
+                    'max-height:80vh',
+                    'overflow-y:auto',
+                    'z-index:1000008',
+                    'background:#fff8e7',
+                    'border:clamp(2.5px,0.6vmin,4px) solid #FF8C00',
+                    'border-radius:0.75rem',
+                    'box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.35)',
+                    'padding:1rem 1.25rem',
+                    'box-sizing:border-box',
+                    'font-family:Verdana,sans-serif',
+                    'text-align:center',
+                    'display:flex',
+                    'flex-direction:column',
+                    'align-items:center',
+                    'gap:0.75rem',
+                ].join(';');
+                const titulo = document.createElement('h2');
+                titulo.id = 'avisos-dispositivo-titulo';
+                titulo.style.cssText = 'margin:0;font-size:clamp(1rem,4.2vmin,1.25rem);font-weight:bold;color:#8b5e1a;';
+                const texto = document.createElement('p');
+                texto.style.cssText = 'margin:0;font-size:clamp(0.9rem,3.6vmin,1.05rem);color:#333;line-height:1.5;';
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'btn-mundo-verde';
+                boton.title = t.siguiente;
+                boton.setAttribute('aria-label', t.siguiente);
+                boton.innerHTML = '<div class="contenedor-flecha"><span class="flecha-v">➣</span></div><div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>';
+                const pantallas = [
+                    { nombre: 'brujula', titulo: t.brujulaTitulo, texto: t.brujulaTexto },
+                    { nombre: 'ajustes', titulo: t.ajustesTitulo, texto: t.ajustesTexto },
+                ];
+                let actual = 0;
+                const pintar = () => {
+                    const p = pantallas[actual];
+                    panel.dataset.pantalla = p.nombre;
+                    titulo.textContent = p.titulo;
+                    renderTextoConImagenes(texto, p.texto, { claseImagen: 'texto-imagen-inline', altDe: (fichero) => (fichero === 'logo_alargado_3' ? 'València be Guides' : '') });
+                };
+                boton.addEventListener('click', () => {
+                    actual++;
+                    if (actual < pantallas.length) {
+                        pintar();
+                        return;
+                    }
+                    panel.remove();
+                    (globalThis.logger || console).info(`${logPrefix} Cerradas`);
+                    resolve(true);
+                });
+                panel.append(titulo, texto, boton);
+                pintar();
+                document.body.appendChild(panel);
+                (globalThis.logger || console).info(`${logPrefix} Enseñadas (${idioma})`);
+            })).catch((error) => {
+                (globalThis.logger || console).error(`${logPrefix} No se pudieron enseñar:`, error);
+                return false;
+            });
+        }
+        // Publicada porque la activación de la aventura (_hdl_SELECCION_AVENTURA_ACTIVADA) vive en Script 2.
+        globalThis.mostrarAvisosDelDispositivo = mostrarAvisosDelDispositivo;
 
         // ── Diálogo ligero: botón retroceder / vuelta de pestaña externa ─────────────
         // Mismo estilo visual y traducciones que mostrarDialogoReanudacion pero sin
@@ -11811,6 +11914,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).success(`${logPrefix} ✅ Aventura ${aventura} registrada correctamente`);
                 // La entrada del historial que intercepta «atrás»: la apila la función de Script 1.
                 try { globalThis._apilarEntradaDeAventura(); } catch (e) { (globalThis.logger || console).error(`${logPrefix} No se pudo apilar la entrada del «atrás»:`, e?.message || e); }
+                // La aventura empieza: las dos pantallas del dispositivo (las enseña Script 1).
+                void globalThis.mostrarAvisosDelDispositivo();
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error registrando aventura:`, error, error?.stack);

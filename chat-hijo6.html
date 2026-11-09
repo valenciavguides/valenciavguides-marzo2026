@@ -347,7 +347,7 @@
   // Importado por su efecto: al cargarse instala la captura de `error` y `unhandledrejection`
   // de este frame. El bus ya lo arrastra, pero de ahí no se deduce leyendo este fichero.
   import './js/utils.js';
-  import { ajustarTimeoutPorConexion, importarConReintentos } from './js/utils.js';
+  import { ajustarTimeoutPorConexion, importarConReintentos, renderTextoConImagenes } from './js/utils.js';
   import { TIPOS_MENSAJE } from './js/constants.js';
   import logger from './js/logger.js';
   // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
@@ -448,23 +448,7 @@
   const modalCerrarEl    = document.getElementById('chat-modal-cerrar');
 
   // ── Construcción del acordeón ─────────────────────────────────────────────
-  // Inserta el texto de una respuesta respetando los marcadores {{IMG:fichero}}
-  // en el punto exacto donde aparecen, sustituyéndolos por <img> en línea.
-  function renderTextoConImagenes(contenedor, texto) {
-    contenedor.innerHTML = '';
-    const partes = texto.split(/\{\{IMG:([^}]+)\}\}/g);
-    partes.forEach((parte, i) => {
-      if (i % 2 === 0) {
-        if (parte) contenedor.appendChild(document.createTextNode(parte));
-      } else {
-        const img = document.createElement('img');
-        img.src = `imagenes/imagenes-aplicación/${parte}.png`;
-        img.alt = '';
-        img.className = 'respuesta-imagen-inline';
-        contenedor.appendChild(img);
-      }
-    });
-  }
+  // El texto de cada respuesta lo pinta renderTextoConImagenes (js/utils.js), con sus marcas {{IMG:fichero}} en línea.
 
   function construirFAQ() {
     faqEl.innerHTML = '';

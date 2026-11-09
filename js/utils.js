@@ -657,6 +657,32 @@ export function escaparHTML(valor) {
 }
 
 /**
+ * Pinta un texto en un contenedor y pone en línea, en el punto exacto donde aparece, la imagen de cada marca
+ * {{IMG:fichero}} (`imagenes/imagenes-aplicación/fichero.png`). El texto entra como nodos de texto, nunca como HTML.
+ * Lo usan la ayuda de hijo6 y las pantallas del dispositivo del padre.
+ * @param {HTMLElement} contenedor - Dónde se pinta; se vacía antes
+ * @param {string} texto - El texto, con sus marcas
+ * @param {Object} [opciones]
+ * @param {string} [opciones.claseImagen='respuesta-imagen-inline'] - La clase de cada imagen: su tamaño lo pone el CSS de cada frame
+ * @param {function(string): string} [opciones.altDe] - El texto alternativo de cada imagen, por su fichero; sin él, vacío (decorativa)
+ */
+export function renderTextoConImagenes(contenedor, texto, { claseImagen = 'respuesta-imagen-inline', altDe = () => '' } = {}) {
+    contenedor.innerHTML = '';
+    const doc = contenedor.ownerDocument;
+    texto.split(/\{\{IMG:([^}]+)\}\}/g).forEach((parte, i) => {
+        if (i % 2 === 0) {
+            if (parte) contenedor.appendChild(doc.createTextNode(parte));
+            return;
+        }
+        const img = doc.createElement('img');
+        img.src = `imagenes/imagenes-aplicación/${parte}.png`;
+        img.alt = altDe(parte);
+        img.className = claseImagen;
+        contenedor.appendChild(img);
+    });
+}
+
+/**
  * Distancia entre dos coordenadas geográficas (fórmula Haversine)
  * @param {number} lat1 - Latitud del primer punto
  * @param {number} lon1 - Longitud del primer punto

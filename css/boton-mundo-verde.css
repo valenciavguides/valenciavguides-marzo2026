@@ -1,0 +1,91 @@
+/*
+ * El botón del mundo verde con la flecha (`.btn-mundo-verde`, con dos `.contenedor-flecha` dentro): el «siguiente» de la
+ * PWA. Estas son las reglas de la pantalla de selección, que la enlazan el padre (las pantallas del dispositivo, guía
+ * §4.7n) y, para ser la única definición de su aspecto como `css/boton-cerrar.css` lo es de la ✗,
+ * los demás documentos que lo usan: la selección, video-intro y hijo4 llevan todavía una copia propia en su <style>
+ * (docs/estudio-caminos.md, K-28).
+ *
+ * Marcado:
+ *   <button type="button" class="btn-mundo-verde">
+ *     <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
+ *     <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
+ *   </button>
+ */
+.btn-mundo-verde {
+    position: relative;
+    width: clamp(44px, 11vmin, 56px);
+    height: clamp(44px, 11vmin, 56px);
+    border-radius: 50%;
+    border: none;
+    overflow: hidden;
+    background: #1b4d1b;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    padding: 0;
+    min-width: 0;
+    min-height: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.btn-mundo-verde::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: #0d2b0d;
+    background-image: radial-gradient(circle at 35% 35%, #4caf50, #0d2b0d);
+    z-index: 1;
+}
+.btn-mundo-verde::after {
+    content: '';
+    position: absolute;
+    top: 5%;
+    left: 15%;
+    width: 70%;
+    height: 35%;
+    background-color: transparent;
+    background-image: linear-gradient(to bottom, rgba(255,255,255,0.35), transparent);
+    border-radius: 50% 50% 45% 45%;
+    z-index: 3;
+    pointer-events: none;
+}
+.btn-mundo-verde .contenedor-flecha {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+    animation: orbitaContinua 3s linear infinite;
+    opacity: 0;
+}
+.btn-mundo-verde .contenedor-flecha.segunda { animation-delay: 1.5s; }
+.btn-mundo-verde .flecha-v {
+    font-size: clamp(18px, 5vmin, 26px);
+    color: white;
+    transform: scaleY(1.8);
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+    display: inline-block;
+    -webkit-text-stroke: 1px white;
+}
+@keyframes orbitaContinua {
+    0%   { transform: translateX(-73%) translateY(0)   scale(0.65); opacity: 0; }
+    10%  { opacity: 1; }
+    50%  { transform: translateX(0)    translateY(-6%) scale(1.1);  opacity: 1; }
+    90%  { opacity: 1; }
+    100% { transform: translateX(73%)  translateY(0)   scale(0.65); opacity: 0; }
+}
+.btn-mundo-verde:hover .contenedor-flecha { animation-play-state: paused; }
+.btn-mundo-verde:active { transform: scale(0.93); box-shadow: none; }
+.btn-mundo-verde:disabled .contenedor-flecha { animation-play-state: paused; opacity: 0 !important; }
+.btn-mundo-verde:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Más grande en móvil; el escritorio mantiene el tamaño de arriba. */
+@media (max-width: 900px) and (pointer: coarse) {
+    .btn-mundo-verde {
+        width: clamp(56px, 14vmin, 72px);
+        height: clamp(56px, 14vmin, 72px);
+    }
+    .btn-mundo-verde .flecha-v {
+        font-size: clamp(22px, 6.5vmin, 34px);
+    }
+}

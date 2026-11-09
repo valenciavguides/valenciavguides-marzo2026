@@ -2764,3 +2764,94 @@ export const PLACEHOLDER_RESPUESTA_TEXTO = {
     ru: 'Напишите ваш ответ здесь...',
     uk: 'Напишіть свою відповідь тут...'
 };
+
+// Las dos pantallas del dispositivo que el padre enseña al empezar una aventura y al continuarla (guía, §4.7n): la
+// calibración de la brújula y los ajustes del dispositivo.
+// {{IMG:logo_alargado_3}} es el logo de València be Guides en línea, en el sitio que le toca en cada idioma
+// (renderTextoConImagenes, js/utils.js). `siguiente` es el rótulo del botón del mundo verde, que no lleva texto visible.
+export const TRADUCCIONES_AVISOS_DISPOSITIVO = {
+    es: {
+        brujulaTitulo: 'Calibración de la brújula',
+        brujulaTexto: '{{IMG:logo_alargado_3}} le recomienda mover el dispositivo varias veces en el aire, dibujando un ocho, para calibrar correctamente su brújula y mejorar la precisión de la orientación.',
+        ajustesTitulo: 'Ajustes de su dispositivo',
+        ajustesTexto: '{{IMG:logo_alargado_3}} recomienda desactivar el giro automático de pantalla y el modo de ahorro de batería para mantener la visualización en formato vertical y garantizar la máxima precisión posible de la señal GPS.',
+        siguiente: 'Siguiente'
+    },
+    en: {
+        brujulaTitulo: 'Compass calibration',
+        brujulaTexto: '{{IMG:logo_alargado_3}} recommends moving your device through the air in a figure of eight a few times, so your compass is properly calibrated and your orientation is more accurate.',
+        ajustesTitulo: 'Your device settings',
+        ajustesTexto: '{{IMG:logo_alargado_3}} recommends turning off auto-rotate and battery saver, so the screen stays in portrait and the GPS signal is as accurate as possible.',
+        siguiente: 'Next'
+    },
+    fr: {
+        brujulaTitulo: 'Calibrage de la boussole',
+        brujulaTexto: '{{IMG:logo_alargado_3}} vous recommande de déplacer votre appareil dans l’air en dessinant un huit, à plusieurs reprises, afin de bien calibrer votre boussole et d’améliorer la précision de l’orientation.',
+        ajustesTitulo: 'Réglages de votre appareil',
+        ajustesTexto: '{{IMG:logo_alargado_3}} vous recommande de désactiver la rotation automatique de l’écran et le mode économie d’énergie, pour garder l’affichage en mode portrait et obtenir un signal GPS aussi précis que possible.',
+        siguiente: 'Suivant'
+    },
+    it: {
+        brujulaTitulo: 'Calibrazione della bussola',
+        brujulaTexto: '{{IMG:logo_alargado_3}} Le consiglia di muovere il dispositivo nell’aria più volte, disegnando un otto, per calibrare correttamente la bussola e rendere l’orientamento più preciso.',
+        ajustesTitulo: 'Impostazioni del dispositivo',
+        ajustesTexto: '{{IMG:logo_alargado_3}} Le consiglia di disattivare la rotazione automatica dello schermo e il risparmio energetico, per mantenere la visualizzazione in verticale e ottenere un segnale GPS il più preciso possibile.',
+        siguiente: 'Avanti'
+    },
+    nl: {
+        brujulaTitulo: 'Kompas kalibreren',
+        brujulaTexto: '{{IMG:logo_alargado_3}} raadt u aan uw apparaat een paar keer in de vorm van een acht door de lucht te bewegen, zodat het kompas goed gekalibreerd is en de richting nauwkeuriger wordt aangegeven.',
+        ajustesTitulo: 'Instellingen van uw apparaat',
+        ajustesTexto: '{{IMG:logo_alargado_3}} raadt u aan automatisch draaien en batterijbesparing uit te schakelen, zodat het scherm rechtop blijft en het GPS-signaal zo nauwkeurig mogelijk is.',
+        siguiente: 'Volgende'
+    },
+    ja: {
+        brujulaTitulo: 'コンパスの調整',
+        brujulaTexto: '{{IMG:logo_alargado_3}}は、コンパスを正しく調整して方角をより正確に表示するため、端末を空中で8の字を描くように数回動かすことをおすすめします。',
+        ajustesTitulo: '端末の設定',
+        ajustesTexto: '{{IMG:logo_alargado_3}}は、画面を縦向きのまま表示し、GPSの精度をできるだけ高めるため、画面の自動回転と省電力モードをオフにすることをおすすめします。',
+        siguiente: '次へ'
+    },
+    de: {
+        brujulaTitulo: 'Kompass kalibrieren',
+        brujulaTexto: '{{IMG:logo_alargado_3}} empfiehlt Ihnen, Ihr Gerät mehrmals in Form einer Acht durch die Luft zu bewegen, damit der Kompass richtig kalibriert ist und die Ausrichtung genauer angezeigt wird.',
+        ajustesTitulo: 'Einstellungen Ihres Geräts',
+        ajustesTexto: '{{IMG:logo_alargado_3}} empfiehlt Ihnen, die automatische Bildschirmdrehung und den Energiesparmodus auszuschalten, damit die Anzeige im Hochformat bleibt und das GPS-Signal so genau wie möglich ist.',
+        siguiente: 'Weiter'
+    },
+    zh: {
+        brujulaTitulo: '指南针校准',
+        brujulaTexto: '{{IMG:logo_alargado_3}}建议您将设备在空中按“8”字形移动几次，以正确校准指南针，让方向显示更准确。',
+        ajustesTitulo: '您的设备设置',
+        ajustesTexto: '{{IMG:logo_alargado_3}}建议您关闭屏幕自动旋转和省电模式，以保持竖屏显示，并尽可能提高GPS信号的精度。',
+        siguiente: '下一步'
+    },
+    pl: {
+        brujulaTitulo: 'Kalibracja kompasu',
+        brujulaTexto: '{{IMG:logo_alargado_3}} zaleca kilkakrotne poruszenie urządzeniem w powietrzu ruchem ósemki, aby prawidłowo skalibrować kompas i dokładniej określać kierunek.',
+        ajustesTitulo: 'Ustawienia urządzenia',
+        ajustesTexto: '{{IMG:logo_alargado_3}} zaleca wyłączenie automatycznego obracania ekranu i trybu oszczędzania baterii, aby obraz pozostawał w pionie, a sygnał GPS był jak najdokładniejszy.',
+        siguiente: 'Dalej'
+    },
+    pt: {
+        brujulaTitulo: 'Calibração da bússola',
+        brujulaTexto: '{{IMG:logo_alargado_3}} recomenda que mova o dispositivo no ar várias vezes, desenhando um oito, para calibrar corretamente a bússola e tornar a orientação mais precisa.',
+        ajustesTitulo: 'Definições do seu dispositivo',
+        ajustesTexto: '{{IMG:logo_alargado_3}} recomenda que desative a rotação automática do ecrã e o modo de poupança de bateria, para manter a visualização na vertical e garantir a máxima precisão possível do sinal GPS.',
+        siguiente: 'Seguinte'
+    },
+    ru: {
+        brujulaTitulo: 'Калибровка компаса',
+        brujulaTexto: '{{IMG:logo_alargado_3}} рекомендует несколько раз провести устройством в воздухе, описывая восьмёрку, чтобы правильно откалибровать компас и точнее определять направление.',
+        ajustesTitulo: 'Настройки вашего устройства',
+        ajustesTexto: '{{IMG:logo_alargado_3}} рекомендует отключить автоповорот экрана и режим энергосбережения, чтобы изображение оставалось вертикальным, а сигнал GPS был максимально точным.',
+        siguiente: 'Далее'
+    },
+    uk: {
+        brujulaTitulo: 'Калібрування компаса',
+        brujulaTexto: '{{IMG:logo_alargado_3}} радить кілька разів провести пристроєм у повітрі, описуючи вісімку, щоб правильно відкалібрувати компас і точніше визначати напрямок.',
+        ajustesTitulo: 'Налаштування пристрою',
+        ajustesTexto: '{{IMG:logo_alargado_3}} радить вимкнути автоповорот екрана та режим енергозбереження, щоб зображення залишалося вертикальним, а сигнал GPS був якомога точнішим.',
+        siguiente: 'Далі'
+    }
+};
