@@ -4345,6 +4345,13 @@ Origen: la prueba en vivo del usuario en su Android, con `a4cf5a5` publicada (`j
 - **La respuesta del asistente, al día (2026-11-09).** `UBIC_AVISOS_CARTEL` («¿Qué son los avisos que aparecen…?») decía que los carteles piden siempre avanzar y el audio; dice, en los doce idiomas, cuándo salen (la llegada al punto de inicio, cada fin de elemento, la vuelta al camino o a la parada) y que piden solo lo que se puede pulsar (avanzar, play o ⏩), más la línea azul en un tramo.
 - **Relacionado.** K-182, K-184, K-185.
 
+##### K-189 — `ajustarTimeoutPorConexion` tiene un factor para «5g» que el navegador no da nunca — ✅ (leído; especificación)
+
+- **Dónde.** `js/utils.js`, la tabla de factores de `ajustarTimeoutPorConexion`: `slow-2g` ×4, `2g` ×3, `3g` ×2, `4g` ×1 y `5g` ×0,8; la guía (§26.5) los describía todos, también «×0,8 en 5g».
+- **Lo que no cuadra.** `navigator.connection.effectiveType` solo puede valer `slow-2g`, `2g`, `3g` o `4g` (MDN; el `EffectiveConnectionType` del borrador del WICG; web.dev: «4g» cubre el 4G y lo más rápido), así que una conexión 5G se informa como «4g» y la rama de «5g» no corre nunca.
+- **Pregunta del usuario (2026-11-09):** «el 5G está de camino, a ver si se puede hacer también en 5G». Con 5G el plazo ya es el de «4g» (×1), el correcto: el plazo es lo máximo que se espera, con una red rápida la respuesta llega antes igualmente, y acortarlo solo haría fallar antes cuando algo va lento.
+- **Hecha (2026-11-09).** Fuera `'5g': 0.8`, con un comentario que dice por qué no hay factor de 5G; la guía (§26.5) dice que con 5G el navegador informa «4g». Sin cambio observable.
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -5094,6 +5101,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 180 | 2 | K-186 | fuera la limpieza de recursos inactivos del mapa, con sus escuchas y su intervalo, o dejarla — **hecha (2026-11-04, decisión del usuario): fuera, con sus escuchas, su intervalo, el import de `esMovil` y los comentarios y la frase de la guía (§11) que la citaban** | GUÍA | — | sí |
 | 181 | 2 | K-187 | una comprobación de las rutas de imagen contra los nombres de git, o dejarlo | — | — | decisión |
 | 182 | 3 | K-188 | ningún cartel pide pulsar un botón que no se pueda pulsar: una sola función elige lo que pide cada uno — **hecha (2026-11-08): `_accionesDelCartel`, `TRADUCCIONES_QUE_HACER_AHORA`; specs 169 (AC) y 22** | VISIBLE, SPEC, GUÍA | K-184 (blanda) | sí |
+| 183 | 1 | K-189 | fuera el factor de «5g» de `ajustarTimeoutPorConexion`, que el navegador no da nunca (el 5G se informa como «4g») — **hecha (2026-11-09)** | GUÍA | — | sí |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |

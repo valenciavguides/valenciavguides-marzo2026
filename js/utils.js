@@ -201,13 +201,14 @@ export function ajustarTimeoutPorConexion(timeoutBase, factor = 1) {
         return timeoutBase * factor;
     }
 
-    // Ajustar según tipo de conexión
+    // Ajustar según tipo de conexión. effectiveType solo vale slow-2g, 2g, 3g o 4g: «4g» es la categoría más rápida
+    // y la que el navegador informa también con una conexión 5G, así que no hay factor propio de 5G
+    // (docs/estudio-caminos.md, K-189).
     const ajustes = {
         'slow-2g': 4,
         '2g': 3,
         '3g': 2,
-        '4g': 1,
-        '5g': 0.8
+        '4g': 1
     };
 
     const ajuste = ajustes[connection.effectiveType] || 1;

@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-b4ac9eb6bc72'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-19defaca1326'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -9108,7 +9108,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-b4ac9eb6bc72';
+const CACHE_VERSION = 'v-19defaca1326';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11201,7 +11201,7 @@ enviarMensajeConConfirmacion({ tipo: TIPOS_MENSAJE.RETO.COMPLETADO, destino: 'pa
     .catch(err => { /* timeout o error */ });
 ```
 
-La promesa queda en `confirmacionesPendientes`. El receptor detecta `requiereConfirmacion: true` y envía `SISTEMA.CONFIRMACION` con `idOriginal`. Si el timeout expira sin confirmación, la promesa rechaza. El timeout es de 5 s por defecto; `AUDIO.REPRODUCIR_REQUEST` lo baja a 1 200 ms (con reintento), y hijo2 (`GPS.ACTIVAR`) e hijo6 (`CHAT.RESCATE_SOLICITADO`) escalan sus 5 s con `ajustarTimeoutPorConexion` (×4 en slow-2g, ×3 en 2g, ×2 en 3g, ×1 en 4g, ×0,8 en 5g). La función acepta dos formas: un objeto `{ tipo, destino, datos, timeout }` —la que usan todos los envíos de la app— o `(tipo, datos, opciones)`.
+La promesa queda en `confirmacionesPendientes`. El receptor detecta `requiereConfirmacion: true` y envía `SISTEMA.CONFIRMACION` con `idOriginal`. Si el timeout expira sin confirmación, la promesa rechaza. El timeout es de 5 s por defecto; `AUDIO.REPRODUCIR_REQUEST` lo baja a 1 200 ms (con reintento), y hijo2 (`GPS.ACTIVAR`) e hijo6 (`CHAT.RESCATE_SOLICITADO`) escalan sus 5 s con `ajustarTimeoutPorConexion` (×4 en slow-2g, ×3 en 2g, ×2 en 3g y ×1 en 4g, la categoría más rápida que informa el navegador, también con una conexión 5G). La función acepta dos formas: un objeto `{ tipo, destino, datos, timeout }` —la que usan todos los envíos de la app— o `(tipo, datos, opciones)`.
 
 #### Correlación del acuse por ID
 
@@ -12577,7 +12577,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-b4ac9eb6bc72';
+const CACHE_VERSION = 'v-19defaca1326';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
