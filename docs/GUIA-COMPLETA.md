@@ -3880,8 +3880,8 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | **PARADAS** | `VV:PARADAS:READY` | Hijo5 → Padre | UI de paradas lista — la atiende `_hdl_PARADAS_READY` (Script 2) |
 | | `PARADAS.LISTADO_TOGGLE` | Hijo1 → Padre | Usuario abre/cierra la ventana de listado de paradas |
 | **MAPA_COMPLETO** | `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo → Padre | El mapa pide las coordenadas nada más cargarse (`{}`: la aventura la decide el padre) |
-| | `MAPA_COMPLETO.DATOS` | Padre → mapa-completo | Las coordenadas de la aventura (`{ coordenadas }`); el mapa pinta la ruta |
-| | `MAPA_COMPLETO.VISIBLE` | Padre → mapa-completo | El overlay del mapa ya es visible: el mapa recalcula su vista, al momento y a los 300 ms |
+| | `MAPA_COMPLETO.DATOS` | Padre → mapa-completo | Las coordenadas de la aventura y sus paradas completadas (`{ coordenadas, completadas }`); el mapa pinta la ruta y pone en verde los números de mapa ya hechos |
+| | `MAPA_COMPLETO.VISIBLE` | Padre → mapa-completo | El overlay del mapa ya es visible, con las paradas completadas al día (`{ completadas }`): el mapa repinta los números en verde y recalcula su vista, al momento y a los 300 ms |
 | **PUZZLE** | `PUZZLE.COMPLETADO` | Iframe puzzle → su contenedor (Hijo4 o Selección) | Puzzle resuelto o saltado con ⏩ |
 | | `PUZZLE.TIMEOUT` | Iframe puzzle → su contenedor (Hijo4 o Selección) | Puzzle sin resolver por tiempo |
 
@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7a0a75fba03a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-0f0d484b02c9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5749,9 +5749,10 @@ Todos van por `js/mensajeria.js`, como el resto (§10.4): ninguno tiene escucha 
 | Tipo | `TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE` |
 | Canal | Por el bus, con `destino: 'mapa-completo'`, una sola vez por apertura del overlay |
 | Destino | El iframe dinámico que carga `mapa-completo.html` |
-| Acción | Al recibirlo, `mapa-completo.html` llama `_reajustarVista()` — que hace `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` si `_bounds` está definido — y `setTimeout(_reajustarVista, 300)` como reintento de seguridad. |
-| Secuencia de init | Polyline + marcadores de referencia añadidos → `_reajustarVista()` (invalidateSize + fitBounds) → `L.tileLayer().addTo(map)`. Las tiles se piden solo para la vista correcta porque se añaden después de `fitBounds`. |
-| Por qué overlay visible en init | `mostrarIframeOverlay` es síncrona: añade `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo de `mapa-completo.html` solo puede ejecutar después de que esa tarea termine — el overlay ya es visible cuando el script corre y `_reajustarVista()` obtiene dimensiones reales. |
+| Payload | `{ completadas }`: los `parada_id` de las paradas completadas de la aventura elegida, que da `globalThis._paradasCompletadasDelMapa()` (Script 2; «El mapa completo», §11). Si esa llamada lanza, el mensaje sale sin el campo y el log se queda con un `error` (`[PADRE][MAPA_COMPLETO] Sin las paradas completadas:`): el mapa deja los números como estén, porque una lista vacía diría «ninguna completada» |
+| Acción | Al recibirlo, `mapa-completo.html` llama `marcarCompletados(completadas)` —pone en verde los números con todas sus paradas en la lista, o no toca nada si el campo no viene— y `_reajustarVista()` —que hace `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` si `_bounds` está definido—, y `setTimeout(_reajustarVista, 300)` como reintento de seguridad. |
+| Secuencia | Al cargarse, el mapa se crea con la vista por defecto y su capa de teselas, que pide las de esa vista, y pide sus datos (`MAPA_COMPLETO.SOLICITAR_DATOS`). Al llegar `MAPA_COMPLETO.DATOS`: polyline + marcadores de referencia → `_reajustarVista()` (invalidateSize + fitBounds), y Leaflet pide las teselas que le falten para la vista de la ruta; después, los números completados (§32.4). |
+| Por qué overlay visible en init | `mostrarIframeOverlay` es síncrona: añade `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo de `mapa-completo.html` solo puede ejecutar después de que esa tarea termine — el overlay ya es visible cuando el script corre, y `L.map()` mide el contenedor con sus dimensiones reales. |
 | Timing de envío | Se envía **una sola vez** por apertura del overlay, siempre vía `load` listener + `requestAnimationFrame`. Fallback cancelable a 1500 ms por si `load` no dispara. El reintento a 300 ms es interno a `mapa-completo.html` (en su propio handler). |
 | Por qué una sola vez | Cada uno dispara un `fitBounds()`. Enviarlo varias veces (un escalonado de temporizadores, o un fallback que no se cancela cuando `load` sí dispara) llama a `fitBounds()` con tiles ya en vuelo, y cada llamada abre una ronda nueva de peticiones en paralelo: el mapa se pinta a trozos de distintos niveles de zoom. Por eso el escalonado vive **dentro** de `mapa-completo.html` —un único reintento a 300 ms sobre el mapa ya construido— y no en el emisor. |
 
@@ -6805,6 +6806,9 @@ Página independiente que muestra todas las paradas y la polyline de la aventura
 
 **Marcadores de referencia:**  
 Se crean con `L.divIcon` usando `iconSize: null` para que Leaflet no restrinja el tamaño a los 12×12 px por defecto (sin ese ajuste el número queda recortado). El marcador muestra `🏛️ N` donde N es `mapa_numero` del objeto.
+
+**Números completados, en verde:**  
+El padre le dice qué paradas de la aventura elegida están completadas: `_paradasCompletadasDelMapa()` (Script 2) recorre los elementos de `DATOS_PADRE` de esa aventura y devuelve el `parada_id` de cada parada que `_elementoCompletado()` da por hecha. La lista viaja en `MAPA_COMPLETO.DATOS` (`{ coordenadas, completadas }`) y en el `MAPA_COMPLETO.VISIBLE` de cada apertura (`{ completadas }`, al día). En el mapa, `marcarCompletados(completadas)` decide qué número está completado: el que tiene en la lista **todas** sus paradas (`tipo === 'parada'`), porque un monumento puede tener varias. A ese marcador le pone la clase `completado` —la píldora en verde: fondo `#28a745`, borde `#1e7e34`, texto blanco— y a los demás se la quita. Una parada puede llevar varios números (`"5,9"`, `"22/23"`, `"v2/v3"`, `"v7-v8"`): `numerosDe()` los separa por la coma, la barra o el guion que va delante de una `v`, y la parada cuenta en cada uno; con `null` o `"-"` no cuenta en ninguno. El punto de salida y los tramos no cuentan. Un número con monumento y sin ninguna parada no se pone nunca en verde. Si el mensaje llega sin lista, los números se quedan como estén. El `parada_id` de cada parada del padre es el `id` de su punto en las coordenadas del mapa: lo vigila `npm run verificar-datos` (§18.2).
 
 **Ficha al pulsar un marcador:**  
 `mostrarMonumento(ref)` abre `#monumento-overlay` con la imagen del monumento si `ref.imagen` está definida (si no, un emoji 🏛️ de relleno; si apunta a un fichero que no existe, el `<img>` sale roto, sin respaldo: que todas existan con su grafía exacta lo vigila `npm run verificar-datos`, §18.2) y compone el número y el nombre en `#monumento-numero` (`Nº {mapa_numero} · {nombre}`; `#monumento-nombre` se queda oculto con `display:none`). La cierra `cerrarOverlay()`, que llaman su ✕ (`#monumento-cerrar`), un toque fuera de la ficha y el botón atrás del dispositivo: la ficha es la capa del mapa completo que «atrás» cierra antes que el propio mapa (`js/capa-con-atras.js`, §34.3; solo con padre, porque sin él no hay marcadores). `mostrarMonumento` y `cerrarOverlay` avisan al padre con `UI.CAPA_ABIERTA { abierta }`.
@@ -7864,7 +7868,7 @@ test de navegador: es más rápido, no depende del reloj y se puede meter en cua
 | Comando | Qué vigila |
 |---------|-----------|
 | `npm run lint` | ESLint sobre `js/**/*.js` y los `*.html` de la raíz: logger centralizado, sin variables muertas, sin espacios al final de línea |
-| `npm run verificar-datos` | Integridad de los datos de las 7 aventuras: exportaciones, extensiones de imagen y vídeo, ids repetidos, coordenadas en rango, campos de cada tipo de reto, que lo que el índice marca disponible exista, que el índice traiga el nombre y el plazo (`tiempoEstimado`) de cada aventura y el nombre de cada idioma, que la carpeta pública de la demo gratis (`publico/`) esté al día con los originales —los textos y las copias de medios, idénticas byte a byte—, sin ficheros de más y sin piezas que falten, que cada imagen que depende del idioma (`imagenes_idioma`) esté en las doce carpetas de idioma, en `.jpg`, y que cada foto que piden los datos (`imagen`, `imagen2`… de cada punto, en cualquier nivel, y la de cada puzzle) exista con su grafía exacta: lo compara con el listado de la carpeta, porque Windows no distingue mayúsculas y el servidor de producción sí, y una foto que en local se ve sale rota publicada |
+| `npm run verificar-datos` | Integridad de los datos de las 7 aventuras: exportaciones, extensiones de imagen y vídeo, ids repetidos, coordenadas en rango, campos de cada tipo de reto, que lo que el índice marca disponible exista, que el índice traiga el nombre y el plazo (`tiempoEstimado`) de cada aventura y el nombre de cada idioma, que la carpeta pública de la demo gratis (`publico/`) esté al día con los originales —los textos y las copias de medios, idénticas byte a byte—, sin ficheros de más y sin piezas que falten, que cada imagen que depende del idioma (`imagenes_idioma`) esté en las doce carpetas de idioma, en `.jpg`, y que cada foto que piden los datos (`imagen`, `imagen2`… de cada punto, en cualquier nivel, y la de cada puzzle) exista con su grafía exacta: lo compara con el listado de la carpeta, porque Windows no distingue mayúsculas y el servidor de producción sí, y una foto que en local se ve sale rota publicada; y que el punto de salida, cada parada y cada tramo del padre (`aventuras-ID-padre.js`) sean el mismo punto del mapa (`coordenadas-aventuras.js`): mismo id, tipo, número de mapa y orden, en todos los idiomas del padre |
 | `node tools/imagenes-referencias.js [aventura]` | Qué referencias de `js/coordenadas-aventuras.js` se han quedado sin foto y qué ficheros de `imagenes/imagenes-aventuras/` podrían ser la suya: compara nombres por palabras, sin las que no distinguen (`de`, `la`, `plaza`, `calle`…), marca `PROBABLE` cuando una candidata gana claramente y `dudosa` cuando empata o no hay nada parecido, y avisa de los ficheros con mayúsculas. Propone, no decide; el informe sale por la consola y no se guarda |
 | `npm run verificar-totales` | Que los totales precalculados del índice cuadren con los datos |
 | `npm run verificar-mensajeria` | Cruza cada tipo de `TIPOS_MENSAJE` con quién lo emite y quién lo escucha, y comprueba que lo emitido llega a un frame que lo atiende |
@@ -7956,7 +7960,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `51-mapa-id-parada-resuelto.spec.js` | 3 | El evento `vv-parada-cambiada` que dispara `_hdl_NAVEGACION_CAMBIO_PARADA` para `js/funciones-mapa.js` lleva el id REAL del elemento (`Av1-P-2`), no el formato propio de hijo5 (`padre-P2`) con el que puede venir el mensaje. |
 | `52-gps-no-se-apaga-al-cambiar-modo.spec.js` | 3 | `watchPosition()` se enciende una vez y **no se detiene** al cambiar de modo (§2.6). `limpiarPorEstado()` resetea parada, tramo, posición y seguimiento, pero el estado del sensor no entra ahí (es del padre): el modo decide si las posiciones fuerzan avance, no si el sensor corre. |
 | `53-camara-no-sigue-en-casa.spec.js` | 1 | En CASA el GPS no manda sobre el mapa: el marcador 🛸 se sigue dibujando y moviendo —sirve para ver que el sensor está vivo— pero la cámara no se recentra sola en cada posición. |
-| `54-mapa-completo-datos-por-mensaje.spec.js` | 5 | `mapa-completo.html` recibe las coordenadas por mensaje del padre en vez de importar `DATOS_AVENTURAS` por su cuenta, que sería uno de los caminos que se saltan `data-loader.js` (§22.12, pendiente 13). La aventura del mapa la decide el padre: un `NAVEGACION.MOSTRAR_MAPA_COMPLETO` que traiga otra aventura y otra URL abre `mapa-completo.html`, sin parámetros, con la aventura elegida (MC-5). |
+| `54-mapa-completo-datos-por-mensaje.spec.js` | 9 | `mapa-completo.html` recibe las coordenadas por mensaje del padre en vez de importar `DATOS_AVENTURAS` por su cuenta, que sería uno de los caminos que se saltan `data-loader.js` (§22.12, pendiente 13). La aventura del mapa la decide el padre: un `NAVEGACION.MOSTRAR_MAPA_COMPLETO` que traiga otra aventura y otra URL abre `mapa-completo.html`, sin parámetros, con la aventura elegida (MC-5). Un número de mapa con todas sus paradas completadas sale en verde y uno con parte de ellas no (MC-6); el `MAPA_COMPLETO.VISIBLE` de cada apertura repinta los números con la lista al día (MC-7); el padre de verdad manda las completadas de la aventura elegida (MC-8), y si no puede calcularlas, `VISIBLE` sale sin lista y el error queda en el log (MC-9). |
 | `55-mapa-vintage-resuelto-por-el-padre.spec.js` | 6 | El mapa vintage lo resuelve el padre, no el hijo: hijo2 suelto no descarga `mapa-vintage-aventuras.js` (MV-1); el padre resuelve la URL de una aventura con mapa (MV-2); Aventura34km obtiene su mapa (`Av34km_Mapa.jpg`) y activa zoom (MV-3); el padre ignora una URL que llegue en el mensaje y usa su propia fuente (MV-4); el mapa vintage suprime el aviso de girar el móvil y al cerrarlo lo devuelve (MV-5); y el padre ignora también la aventura que llegue en el mensaje: el mapa es el de la aventura elegida (MV-6) |
 | `56-distancia-a-la-ruta.spec.js` | 5 | `_check5kmFromRoute()` (§31.5), que corta la aventura si el GPS sitúa al usuario a más de 5 km de TODA la ruta: dentro de la ruta no bloquea ni enseña el cartel del bloqueo (DR-1); sin coordenadas no bloquea —la ausencia de dato no es veredicto—, no enseña el cartel y deja error (DR-2); lejos pero con precisión mala ignora la lectura (DR-3); lejos con buena precisión hacen falta 3 lecturas seguidas para bloquear (DR-4); volver dentro desbloquea y quita el cartel (DR-5). |
 | `57-llegada-tramo-recorrido.spec.js` | 9 | `_acumularDistanciaRecorrida()` y el 40 % de recorrido real que exige la llegada a un tramo, ejercitado **a paso humano** (1,4 m/s, lecturas a 1 Hz, ruido determinista) — un régimen que no cubre ningún otro test, ver §36.27.6 — más que estar quieto no completa y que un corte de GPS no deja el contador clavado. |
@@ -9110,7 +9114,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-7a0a75fba03a';
+const CACHE_VERSION = 'v-0f0d484b02c9';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11490,7 +11494,7 @@ Una referencia visual es el marcador numerado que se dibuja para **cada punto nu
 // ... y después la entrada `inicio`, las paradas y los tramos
 ```
 
-El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-completo.html`) con borde de 2px `#8B6914` (dorado oscuro/marrón; el naranja `#ff8c00` de §4.5 es del círculo de activación del mapa de aventura y no aparece en `mapa-completo.html`), texto del mismo color `#8B6914`, emoji 🏛️ y número de `mapa_numero` en la misma línea. Lleva `zIndexOffset: 400` (opción de Leaflet, que ordena marcadores entre sí); como son los únicos marcadores del mapa completo, no ordena nada: Leaflet ya pinta los marcadores por encima de las líneas de la ruta.
+El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-completo.html`) con borde de 2px `#8B6914` (dorado oscuro/marrón; el naranja `#ff8c00` de §4.5 es del círculo de activación del mapa de aventura y no aparece en `mapa-completo.html`), texto del mismo color `#8B6914`, emoji 🏛️ y número de `mapa_numero` en la misma línea. Lleva `zIndexOffset: 400` (opción de Leaflet, que ordena marcadores entre sí); como son los únicos marcadores del mapa completo, no ordena nada: Leaflet ya pinta los marcadores por encima de las líneas de la ruta. Con todas sus paradas completadas, la píldora es verde (clase `completado`: fondo `#28a745`, borde `#1e7e34`, texto blanco; la regla, en «El mapa completo» de §11).
 
 ---
 
@@ -11578,7 +11582,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SELECCION.REINICIAR` | Pantalla de selección (`_avisarReinicioAlPadre()`: el «no» del reto R-2, P16; el ✗ de P3 y el «No» del aviso sin audio) | `_hdl_SELECCION_REINICIAR`: pone `_codigoValidadoP14` e `_iframesPreCargadosP15` a `false` y borra `vv_idioma` | (ninguna) | — | Que la siguiente activación vuelva a cargar iframes y datos (§2.3), y que el idioma guardado lo escriba la siguiente bandera |
 | `VV:PARADAS:READY` | Hijo 5 (al terminar de pintar los botones de las paradas; `{ count }`) | `_hdl_PARADAS_READY`: inyecta en el documento de hijo5 el estilo de su ventana de paradas (`_injectParadasStyle`: fondo transparente y eventos de puntero activos en `#paradas-window`, `#lista-paradas` y los botones) | (ninguna) | — | Dar a la ventana de paradas de hijo5 su aspecto cuando ya existen los botones |
 | `CHAT.RESCATE_SOLICITADO` | Hijo 6 (el usuario pulsa el botón de rescate del asistente; se envía con acuse, `datos: {}`) | `_hdl_CHAT_RESCATE_SOLICITADO`: devuelve en el acto el estado del rescate (`{ puede, motivo, usadas, total, restantes, elemento, nombre, atendida, motivoNoAtendida? }`) y lanza, sin esperarla, la pantalla que corresponde: «agotados» si `motivo` es `'agotados'`, el flujo de rescate (confirmación, concesión y pantalla de resultado) si `puede`; con una pantalla de rescate ya abierta la ignora (`atendida: false`, `motivoNoAtendida: 'ya-abierta'`) y, si no hay pantalla para el motivo, deja un `warn` (`atendida: false`, `motivoNoAtendida: 'sin-pantalla'`) | El estado, en el acuse del bus | Hijo 6 | El padre decide y enseña las pantallas porque sus carteles van por encima del iframe del asistente (§25.19) |
-| `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo (nada más cargarse; `{}`) | `_hdl_MAPA_COMPLETO_SOLICITAR_DATOS`: busca las coordenadas de la aventura elegida (`aventuraSeleccionada`) en `__vv_DATOS_AVENTURAS`, las mismas que recibe hijo2 (`['coordenadas-hijo2.html'].coordenadas`); sin ellas deja un `error` en el log y devuelve `{ enviadas: 0 }`; si el mapa no está registrado en el bus (overlay cerrado), `{ enviadas: 0 }` con un `warn`; si no, devuelve `{ enviadas: n }` | `MAPA_COMPLETO.DATOS` (`{ coordenadas }`) | mapa-completo | El mapa pinta la ruta con lo que reciba; mapa-completo no tiene datos propios |
+| `MAPA_COMPLETO.SOLICITAR_DATOS` | mapa-completo (nada más cargarse; `{}`) | `_hdl_MAPA_COMPLETO_SOLICITAR_DATOS`: busca las coordenadas de la aventura elegida (`aventuraSeleccionada`) en `__vv_DATOS_AVENTURAS`, las mismas que recibe hijo2 (`['coordenadas-hijo2.html'].coordenadas`); sin ellas deja un `error` en el log y devuelve `{ enviadas: 0 }`; si el mapa no está registrado en el bus (overlay cerrado), `{ enviadas: 0 }` con un `warn`; si no, devuelve `{ enviadas: n }` | `MAPA_COMPLETO.DATOS` (`{ coordenadas, completadas }`; `completadas`, de `_paradasCompletadasDelMapa()`) | mapa-completo | El mapa pinta la ruta y los números completados con lo que reciba; mapa-completo no tiene datos propios |
 
 ---
 
@@ -11604,7 +11608,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `AVENTURA.DETENER` | Hijo 1 | Al arrancar el temporizador, si en `vv_aventura_iniciada` hay otra aventura distinta guardada (`{ motivo: 'nueva_aventura_adquirida', aventuraAnterior, aventuraNueva, timestamp }`) | Cancelar el temporizador de la aventura anterior |
 | `AVENTURA.FINALIZADA` | Hijo 1 | Al terminar el último elemento en modo AVENTURA (`_handleFinDeAventura`: `{ aventuraId, idioma, motivo: 'completada', timestamp }`) | Que hijo1 detenga el temporizador y conteste con `AVENTURA.ESTADISTICAS_TIEMPO`, tras lo cual el padre muestra el modal de finalización |
 | `CHAT.ESTADO_PADRE` | Hijo 6 | Cada vez que el usuario abre el asistente, ya listo (al cargarse, el estado de entonces viaja dentro de `PADRE_DATOS`): `{ idioma, aventura, paradaActualNombre, rescate }` | Que hijo6 reconstruya su acordeón con el idioma recibido (en cada apertura) y conozca el contexto para el buzón de sugerencias y el botón de rescate |
-| `MAPA_COMPLETO.VISIBLE` | mapa-completo | Una vez, al hacerse visible el overlay del mapa: tras el `load` de su iframe (en el siguiente fotograma) o, si no llega, a los 1500 ms | Que el mapa recalcule su vista cuando su contenedor ya tiene tamaño |
+| `MAPA_COMPLETO.VISIBLE` | mapa-completo | Una vez, al hacerse visible el overlay del mapa: tras el `load` de su iframe (en el siguiente fotograma) o, si no llega, a los 1500 ms; con `{ completadas }` al día (sin el campo si no se pueden calcular, §10.8) | Que el mapa recalcule su vista cuando su contenedor ya tiene tamaño, y repinte los números completados |
 | `NAVEGACION.ACTUALIZAR_ESTADO` | Hijo 2 | En cada posición GPS en modo AVENTURA, con la distancia real (`{ distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, … }`, `js/funciones-mapa.js`); y puntualmente al abrir un reto (`{ retoActivo: true, retoId }`), al completarlo (`{ retoActivo: false, retoCompletado, retoId }`) y al dibujar la polyline de ubicación (`{ ubicacionActiva: true }`) | Que hijo2 decida el estado de sus botones y la llegada con la distancia real |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Hijo 2 | Cuando el GPS queda activo (`_finalizarActivacionGPS`: `{ activo: true, permisos: true, precision: null, error: null }`) | Que hijo2 refleje el estado del GPS |
 | `NAVEGACION.GPS.ERROR` | Hijo 2 | Cuando `watchPosition` devuelve un error (`{ codigo, mensaje, contexto: 'watchPosition' }`) | Que hijo2 conozca el fallo del GPS |
@@ -11886,8 +11890,8 @@ Las tres páginas se cargan dentro de otro frame, que las registra en el bus ant
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `MAPA_COMPLETO.DATOS` | Padre (respuesta a `MAPA_COMPLETO.SOLICITAR_DATOS`; `{ coordenadas }`) | `pintarRuta(coordenadas)`: dibuja la ruta con paradas, tramos y referencias; solo la primera vez (`_pintado`) y solo si recibe un array no vacío | `{ pintadas }`, en el acuse del bus | Padre | Pintar la aventura con lo que el padre entrega |
-| `MAPA_COMPLETO.VISIBLE` | Padre (una vez, al hacerse visible el overlay) | `_reajustarVista()` al momento y a los 300 ms | `true`, en el acuse del bus | Padre | Recalcular la vista cuando el contenedor ya tiene tamaño |
+| `MAPA_COMPLETO.DATOS` | Padre (respuesta a `MAPA_COMPLETO.SOLICITAR_DATOS`; `{ coordenadas, completadas }`) | `pintarRuta(coordenadas)`: dibuja la ruta con paradas, tramos y referencias; solo la primera vez (`_pintado`) y solo si recibe un array no vacío. Después, `marcarCompletados(completadas)` | `{ pintadas }`, en el acuse del bus | Padre | Pintar la aventura con lo que el padre entrega, con los números completados en verde |
+| `MAPA_COMPLETO.VISIBLE` | Padre (una vez, al hacerse visible el overlay; `{ completadas }`) | `marcarCompletados(completadas)`, y `_reajustarVista()` al momento y a los 300 ms | `true`, en el acuse del bus | Padre | Repintar los números completados con la lista al día y recalcular la vista cuando el contenedor ya tiene tamaño |
 | `UI.CERRAR_CAPA` | Padre (botón atrás, con la ficha de un monumento abierta y encima de todo) | Lo registra `js/capa-con-atras.js`, solo con frame contenedor: cierra la ficha con `cerrarOverlay()` y devuelve `true` | `UI.CAPA_ABIERTA { abierta: false }` (lo manda el propio cierre) | Padre | Que «atrás» cierre la ficha antes que el mapa (§34.3) |
 
 **Mensajes salientes de los tres nietos:**
@@ -12570,7 +12574,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-7a0a75fba03a';
+const CACHE_VERSION = 'v-0f0d484b02c9';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13057,46 +13061,56 @@ No hace falta un wrapper dedicado ni sintetizar el mensaje con `origen`/`destino
 
 ### 32.4 Inicialización del mapa en `mapa-completo.html`
 
-El módulo ejecuta en secuencia durante el init:
+El módulo, al cargarse:
 
-1. Polyline de la ruta (`rutaPuntos` de paradas/tramos) → `_bounds = polyline.getBounds()`
-2. Marcadores de referencia (`tipo === 'referencia'` en las `coordenadas` que le manda el padre con `MAPA_COMPLETO.DATOS`; la página no importa `coordenadas-aventuras.js`)
-3. `_reajustarVista()` — `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` — **antes** de añadir tiles
-4. `L.tileLayer('https://{s}.tile.openstreetmap.org/...').addTo(map)` — tiles con la vista ya correcta
+1. Con frame contenedor, se une al bus como `mapa-completo` (`bus.inicializarMensajeria({ id: 'mapa-completo' })`); sin él no se une ni pide nada, y avisa en `#map` de que el mapa se abre desde la aventura.
+2. Crea el mapa, `L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 21 })`, y le añade en el acto la capa de teselas (`L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 })`): las primeras teselas que pide son las de esa vista por defecto.
+3. Registra sus controladores de `MAPA_COMPLETO.DATOS` y `MAPA_COMPLETO.VISIBLE`, y pide los datos: `MAPA_COMPLETO.SOLICITAR_DATOS` (`{}`).
+
+Al llegar `MAPA_COMPLETO.DATOS`, `pintarRuta(coordenadas)` —solo la primera vez (`_pintado`) y solo con un array no vacío—:
+
+1. Guarda las coordenadas en `_coordenadas`.
+2. Polyline de la ruta, en el orden de las coordenadas: el punto de cada parada y del punto de salida, y de cada tramo su `inicio`, sus `waypoints` y su `fin` → `_bounds = polyline.getBounds()`.
+3. Marcadores de referencia (`tipo === 'referencia'`), cada uno guardado con su número en `_marcadores`.
+4. `_reajustarVista()` — `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` —: la vista pasa a la de la ruta, y Leaflet pide las teselas que le falten para ella.
+
+Y el mismo controlador llama después a `marcarCompletados(completadas)`, que pone en verde los números completados («El mapa completo», §11).
 
 La variable `_bounds` tiene scope de módulo para que el handler de `MAPA_COMPLETO.VISIBLE` pueda llamar `fitBounds` sin necesidad de parámetros.
 
 ```javascript
+const map = L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 21 });
 let _bounds = null;
-if (rutaPuntos.length > 0) {
-    const polyline = L.polyline(rutaPuntos, { color: '#2255cc', weight: 5, opacity: 0.85 }).addTo(map);
-    _bounds = polyline.getBounds();
-}
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
 function _reajustarVista() {
     map.invalidateSize();
     if (_bounds) map.fitBounds(_bounds, { padding: [24, 24] });
 }
 
-_reajustarVista(); // fijar vista antes de pedir tiles
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+// En pintarRuta(coordenadas), al llegar MAPA_COMPLETO.DATOS:
+if (rutaPuntos.length > 0) {
+    const polyline = L.polyline(rutaPuntos, { color: '#2255cc', weight: 5, opacity: 0.85 }).addTo(map);
+    _bounds = polyline.getBounds();
+}
+// … los marcadores de referencia, en _marcadores …
+_reajustarVista();
 
 // El handler de MAPA_COMPLETO.VISIBLE, registrado en el bus:
-bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE, () => {
+bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE, (mensaje) => {
+    marcarCompletados(mensaje?.datos?.completadas);
     _reajustarVista();
     setTimeout(_reajustarVista, 300);
     return true;
 });
 ```
 
-**Por qué las tiles van después de `_reajustarVista()`:** Al añadir `L.tileLayer`, Leaflet solicita inmediatamente tiles para la vista actual. Si se añaden antes de `fitBounds`, Leaflet pide tiles para el centro por defecto (`[39.476, -0.375]` zoom 15) y después, al abrir el overlay, pide un segundo conjunto para la vista correcta — ambas peticiones en vuelo simultáneo producen el efecto de "piezas de mapa fragmentado". Llamando `_reajustarVista()` primero, las tiles se piden directamente para la vista final.
+**El handler de `MAPA_COMPLETO.VISIBLE`** sirve como garantía de refresco: si al abrir el overlay el CSS o el navegador aún no aplicó las dimensiones finales al iframe, `_reajustarVista()` las recalcula. El reintento a 300 ms absorbe las transiciones CSS del overlay. Y repinta los números completados con la lista de esa apertura. El padre lo envía **una sola vez** por apertura; múltiples envíos causarían múltiples rondas de peticiones de tiles en paralelo → "piezas".
 
-**El handler de `MAPA_COMPLETO.VISIBLE`** sirve como garantía de refresco: si al abrir el overlay el CSS o el navegador aún no aplicó las dimensiones finales al iframe, `_reajustarVista()` las recalcula. El reintento a 300 ms absorbe las transiciones CSS del overlay. El padre lo envía **una sola vez** por apertura; múltiples envíos causarían múltiples rondas de peticiones de tiles en paralelo → "piezas".
-
-**Por qué el overlay ya es visible cuando el módulo corre:** `mostrarIframeOverlay` (padre) es síncrona: añade la clase `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo ES de `mapa-completo.html` solo ejecuta una vez que el navegador ha analizado el HTML del iframe — después de que el ciclo de tarea del padre termine. El overlay es visible cuando `_reajustarVista()` corre en el init, por lo que obtiene dimensiones reales del contenedor.
+**Por qué el overlay ya es visible cuando el módulo corre:** `mostrarIframeOverlay` (padre) es síncrona: añade la clase `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo ES de `mapa-completo.html` solo ejecuta una vez que el navegador ha analizado el HTML del iframe — después de que el ciclo de tarea del padre termine. El overlay es visible cuando el módulo crea el mapa, así que `L.map()` mide el contenedor con sus dimensiones reales.
 
 ---
 
@@ -14262,7 +14276,7 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **113 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 96 identificadores cruzados, de 138 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 97 identificadores cruzados, de 139 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14278,90 +14292,91 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarImagenOverlay` | clásico 8 (L1601) | módulo 1, módulo 2 | función/objeto |
 | `mostrarVideoOverlay` | clásico 8 (L1942) | módulo 1 | función/objeto |
 | `rotationSuppressed` | clásico 8 (L1641) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3628) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4922) | clásico 12 | estado |
-| `__VV_5KM_BLOCKED` | módulo 1 (L5424) | módulo 2 | función/objeto |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3612) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3611) | módulo 2 | función/objeto |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6273) | clásico 12 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3595) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6403) | clásico 12 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3613) | módulo 2 | función/objeto |
-| `__vv_registroScript1` | módulo 1 (L3493) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4658) | módulo 2 | función/objeto |
-| `_apilarEntradaDeAventura` | módulo 1 (L4644) | módulo 2 | función/objeto |
-| `_cerrarDesplegablesDelPadre` | módulo 1 (L4615) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L6813) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8192) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8418) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8318) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L3920) | módulo 2 | estado |
-| `_entradaDeCoordenadas` | módulo 1 (L3686) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8287) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L8502) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8394) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8293) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8510) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8162) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L7690) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5764) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3745) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4861) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L7476) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L7475) | módulo 2 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L3837) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3739) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3740) | módulo 2 | función/objeto |
-| `escaparHTML` | módulo 1 (L2789) | clásico 8, módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L3925) | clásico 7, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4283) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4034) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6177) | módulo 2 | función/objeto |
-| `hideParentLoadingOverlay` | módulo 1 (L2756) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4862) | clásico 5, clásico 7, módulo 2 | estado |
-| `limpiarDatosAventura` | módulo 1 (L2793) | módulo 2 | función/objeto |
-| `MODOS` | módulo 1 (L3738) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L7893) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L7820) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L7630) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L7673) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4130) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L4950) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L4977) | módulo 2 | función/objeto |
-| `reproducirVideoConBuffer` | módulo 1 (L2798) | clásico 8 | función/objeto |
-| `resolverIdsParada` | módulo 1 (L2786) | módulo 2 | función/objeto |
-| `retryUntilAvailable` | módulo 1 (L2787) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6017) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L5945) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L5875) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6094) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6168) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6463) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6462) | módulo 2 | función/objeto |
-| `showParentLoadingOverlay` | módulo 1 (L2744) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3737) | clásico 7, clásico 8, módulo 2 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L3898) | clásico 8, módulo 2 | función/objeto |
-| `updateLoadingStatus` | módulo 1 (L2772) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13124) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9495) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12180) | módulo 1 | función/objeto |
-| `_decidirAvanzar` | módulo 2 (L10702) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13106) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11251) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L11892) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9434) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L10595) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L10721) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L10657) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L10619) | módulo 1 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L8679) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9429) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L8811) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L8852) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12105) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9307) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9299) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13140) | módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3635) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4929) | clásico 12 | estado |
+| `__VV_5KM_BLOCKED` | módulo 1 (L5431) | módulo 2 | función/objeto |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3619) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3618) | módulo 2 | función/objeto |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6280) | clásico 12 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3602) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6410) | clásico 12 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3620) | módulo 2 | función/objeto |
+| `__vv_registroScript1` | módulo 1 (L3500) | módulo 2 | estado |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4665) | módulo 2 | función/objeto |
+| `_apilarEntradaDeAventura` | módulo 1 (L4651) | módulo 2 | función/objeto |
+| `_cerrarDesplegablesDelPadre` | módulo 1 (L4622) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L6820) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8199) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8425) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8325) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L3927) | módulo 2 | estado |
+| `_entradaDeCoordenadas` | módulo 1 (L3693) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8294) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8509) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8401) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8300) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8517) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8169) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L7697) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5771) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3752) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4868) | clásico 7, módulo 2 | estado |
+| `cargarHijoCasa` | módulo 1 (L7483) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L7482) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L3844) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3746) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3747) | módulo 2 | función/objeto |
+| `escaparHTML` | módulo 1 (L2796) | clásico 8, módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L3932) | clásico 7, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4290) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4041) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6184) | módulo 2 | función/objeto |
+| `hideParentLoadingOverlay` | módulo 1 (L2763) | módulo 2 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4869) | clásico 5, clásico 7, módulo 2 | estado |
+| `limpiarDatosAventura` | módulo 1 (L2800) | módulo 2 | función/objeto |
+| `MODOS` | módulo 1 (L3745) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L7900) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L7827) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L7637) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L7680) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4137) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L4957) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L4984) | módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L2805) | clásico 8 | función/objeto |
+| `resolverIdsParada` | módulo 1 (L2793) | módulo 2 | función/objeto |
+| `retryUntilAvailable` | módulo 1 (L2794) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6024) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L5952) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L5882) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6101) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6175) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6470) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6469) | módulo 2 | función/objeto |
+| `showParentLoadingOverlay` | módulo 1 (L2751) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3744) | clásico 7, clásico 8, módulo 2 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L3905) | clásico 8, módulo 2 | función/objeto |
+| `updateLoadingStatus` | módulo 1 (L2779) | módulo 2 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13144) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9502) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12187) | módulo 1 | función/objeto |
+| `_decidirAvanzar` | módulo 2 (L10709) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13126) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11258) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L11899) | módulo 1 | función/objeto |
+| `_paradasCompletadasDelMapa` | módulo 2 (L12451) | clásico 8 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9441) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10602) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L10728) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L10664) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L10626) | módulo 1 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L8686) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9436) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L8818) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L8859) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12112) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9314) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9306) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13160) | módulo 2 | función/objeto |
 
 </details>
 

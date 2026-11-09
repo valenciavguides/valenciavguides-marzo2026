@@ -38,6 +38,13 @@
       gap: 3px;
     }
 
+    /* Un número de mapa con todas sus paradas completadas, en verde: verde significa completado. */
+    .monumento-marker.completado {
+      background: #28a745;
+      border-color: #1e7e34;
+      color: #fff;
+    }
+
     /* Overlay popup de monumento */
     #monumento-overlay {
       display: none;
@@ -198,9 +205,13 @@
 
     // ── Pintado: se ejecuta cuando llegan las coordenadas del padre ───────
     let _pintado = false;
+    // Las coordenadas pintadas y los marcadores de los monumentos, para pintar en verde los números completados.
+    let _coordenadas = [];
+    const _marcadores = [];
     function pintarRuta(coordenadas) {
       if (_pintado || !Array.isArray(coordenadas) || coordenadas.length === 0) return;
       _pintado = true;
+      _coordenadas = coordenadas;
 
       const rutaPuntos = [];
       coordenadas.forEach(entry => {
@@ -210,12 +221,6 @@
           rutaPuntos.push([entry.inicio.lat, entry.inicio.lng]);
           entry.waypoints.forEach(wp => rutaPuntos.push([wp.lat, wp.lng]));
           rutaPuntos.push([entry.fin.lat, entry.fin.lng]);
-        }
-      });
-
-      coordenadas.forEach(entry => {
-        if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
-        } else if (entry.tipo === 'tramo') {
         }
       });
 
@@ -230,14 +235,41 @@
           html: `<div class="monumento-marker">🏛️ ${ref.mapa_numero}</div>`,
           className: '', iconSize: null, iconAnchor: [0, 0]
         });
-        L.marker([ref.coordenadas.lat, ref.coordenadas.lng], {
+        const marcador = L.marker([ref.coordenadas.lat, ref.coordenadas.lng], {
           icon: icono,
           title: ref.nombre || `Monumento ${ref.mapa_numero}`,
           zIndexOffset: 400
         }).addTo(map).on('click', () => mostrarMonumento(ref));
+        _marcadores.push({ numero: ref.mapa_numero, marcador });
       });
 
       _reajustarVista();
+    }
+
+    // ── Paradas completadas: en verde, el número de mapa con todas sus paradas hechas ───────
+    //
+    // El padre dice qué paradas están completadas (MAPA_COMPLETO.DATOS y MAPA_COMPLETO.VISIBLE); aquí se decide qué
+    // número lo está: el que tiene todas sus paradas en esa lista, porque un monumento puede tener varias. Y una parada
+    // puede tener varios números: «5,9», «22/23», «v2/v3» o «v7-v8» (el guion delante de «v» separa dos códigos); sin
+    // número de mapa (null o '-'), no cuenta.
+    const numerosDe = (v) => (v == null || v === '-') ? [] : String(v).split(/\s*(?:,|\/|-(?=v))\s*/).filter(Boolean);
+    function marcarCompletados(completadas) {
+      if (!Array.isArray(completadas)) return;
+      const hechas = new Set(completadas);
+      const porNumero = new Map();
+      for (const c of _coordenadas) {
+        if (c.tipo !== 'parada') continue;
+        for (const n of numerosDe(c.mapa_numero)) {
+          const cuenta = porNumero.get(n) || { total: 0, hechas: 0 };
+          cuenta.total++;
+          if (hechas.has(c.id)) cuenta.hechas++;
+          porNumero.set(n, cuenta);
+        }
+      }
+      for (const { numero, marcador } of _marcadores) {
+        const cuenta = porNumero.get(String(numero));
+        marcador.getElement()?.querySelector('.monumento-marker')?.classList.toggle('completado', !!cuenta && cuenta.hechas === cuenta.total);
+      }
     }
 
     // ── Comunicación con el padre ─────────────────────────────────────────
@@ -248,12 +280,14 @@
     if (tienePadre) {
       bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.DATOS, (mensaje) => {
         pintarRuta(mensaje.datos?.coordenadas);
+        marcarCompletados(mensaje.datos?.completadas);
         return { pintadas: mensaje.datos?.coordenadas?.length ?? 0 };
       });
 
       // El overlay acaba de hacerse visible: hasta ahora el contenedor no tenia tamaño y
       // medir era inutil. El segundo intento cubre la animacion de apertura.
-      bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE, () => {
+      bus.registrarControlador(TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE, (mensaje) => {
+        marcarCompletados(mensaje?.datos?.completadas);
         _reajustarVista();
         setTimeout(_reajustarVista, 300);
         return true;

@@ -33,6 +33,7 @@
  *  12. La carpeta pública de la demo gratis (publico/) está al día con los originales y no le falta ninguna pieza
  *  13. Cada imagen que depende del idioma (`imagenes_idioma`) está en las doce carpetas de idioma, en .jpg
  *  14. Cada foto que piden los datos (`imagen`, `imagen2`… de cada punto y de cada puzzle) existe con su grafía exacta
+ *  15. El punto de salida, cada parada y cada tramo del padre son el mismo punto del mapa: mismo id, tipo, número de mapa y orden
  *
  * Lo que NO comprueba: que los ficheros de audio y vídeo existan en disco; su tamaño y su codificación son
  * `npm run verificar-media`. Las imágenes sí: las fotos de los datos (14), las que enseña la demo (12), cuya copia de
@@ -319,6 +320,37 @@ async function main() {
         for (const pz of Object.values(lista || {})) revisarFotos(`${aventuraId}/puzzle ${pz?.id ?? '?'}`, pz);
     }
     check('Cada foto que piden los datos existe, con su grafía exacta', fotoFalta, `${fotosOk} fotos`);
+
+    // ── 15. El punto de salida, las paradas y los tramos del padre son los puntos del mapa
+    // El padre nombra cada elemento por su parada_id (el punto de salida y las paradas) o su tramo_id (aventuras-ID-padre.js)
+    // y el mapa cada punto por su id (coordenadas-aventuras.js): es el mismo dato en dos ficheros, y el número de mapa también,
+    // en todos los idiomas del padre. Se cruzan: el mapa moderno pinta en verde el número cuyas paradas el padre da por
+    // completadas, con los ids del padre sobre los puntos del mapa.
+    // Y el orden: el padre avanza en el de sus elementos, y el mapa completo dibuja la ruta en el de sus puntos.
+    const { DATOS_PADRE } = await imp('js/aventuras-ID-padre.js');
+    const CRUZADOS = new Set(['inicio', 'parada', 'tramo']);
+    const cruceMal = []; let cruzados = 0;
+    for (const aventuraId of new Set([...Object.keys(DATOS_PADRE || {}), ...Object.keys(DATOS_AVENTURAS)])) {
+        const delMapa = (DATOS_AVENTURAS[aventuraId]?.['coordenadas-hijo2.html']?.coordenadas || []).filter((c) => CRUZADOS.has(c.tipo));
+        const porId = new Map(delMapa.map((c) => [c.id, c]));
+        const idiomas = Object.entries(DATOS_PADRE?.[aventuraId] || {});
+        if (idiomas.length === 0) cruceMal.push(`${aventuraId}: está en el mapa y no en el padre`);
+        for (const [idioma, d] of idiomas) {
+            const elementos = (d?.elementosIDpadre || []).filter((e) => CRUZADOS.has(e.tipo));
+            const ids = elementos.map((e) => (e.tipo === 'tramo' ? e.tramo_id : e.parada_id));
+            elementos.forEach((e, i) => {
+                const c = porId.get(ids[i]);
+                if (!c) { cruceMal.push(`${aventuraId}/${idioma}: ${ids[i] || e.padreid} (${e.tipo}) no está en el mapa`); return; }
+                if (c.tipo !== e.tipo) cruceMal.push(`${aventuraId}/${idioma}: ${ids[i]} es ${e.tipo} en el padre y ${c.tipo} en el mapa`);
+                if (String(c.mapa_numero) !== String(e.numero_mapa)) cruceMal.push(`${aventuraId}/${idioma}: ${ids[i]} tiene el número ${JSON.stringify(e.numero_mapa)} en el padre y ${JSON.stringify(c.mapa_numero)} en el mapa`);
+                cruzados++;
+            });
+            const faltanEnPadre = delMapa.filter((c) => !ids.includes(c.id));
+            for (const c of faltanEnPadre) cruceMal.push(`${aventuraId}/${idioma}: ${c.id} (${c.tipo}) está en el mapa y no en el padre`);
+            if (faltanEnPadre.length === 0 && ids.join('|') !== delMapa.map((c) => c.id).join('|')) cruceMal.push(`${aventuraId}/${idioma}: los puntos van en otro orden que en el mapa`);
+        }
+    }
+    check('El punto de salida, las paradas y los tramos del padre son los puntos del mapa: id, tipo, número y orden', cruceMal, `${cruzados} elementos, todos los idiomas`);
 
     informe();
 }

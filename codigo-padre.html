@@ -2139,9 +2139,16 @@
                 let _mapaVisibleFallback;
                 const _sendMapaVisible = () => {
                     clearTimeout(_mapaVisibleFallback);
+                    // Con las paradas completadas al día, para que el mapa pinte en verde los números ya hechos (la
+                    // función la publica Script 2; el mapa solo se abre con la aventura en marcha). Si no se pueden
+                    // saber, no va lista: el mapa deja los números como estén. Una vacía diría «ninguna completada».
+                    let completadas;
+                    try { completadas = globalThis._paradasCompletadasDelMapa(); }
+                    catch (e) { (globalThis.logger || console).error('[PADRE][MAPA_COMPLETO] Sin las paradas completadas:', e?.message || e); }
                     void globalThis.mensajeria?.enviarMensaje?.({
                         tipo: globalThis.TIPOS_MENSAJE.MAPA_COMPLETO.VISIBLE,
                         destino: 'mapa-completo',
+                        datos: { completadas },
                     });
                 };
                 _iframeEl.addEventListener('load', () => requestAnimationFrame(_sendMapaVisible), { once: true });
@@ -12430,6 +12437,19 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE, _hdl_PARADAS_LISTADO_TOGGLE, { permanente: true });
         }
 
+        // Las paradas completadas de la aventura elegida, para que el mapa moderno pinte en verde los números de mapa con
+        // todas sus paradas hechas: el padre da los hechos (qué está completado, con _elementoCompletado, la única fuente) y
+        // el mapa decide qué número lo está. Se recorren los elementos del padre, que son lo que _elementoCompletado lee;
+        // el parada_id de cada parada del padre es el id de esa parada en las coordenadas del mapa (lo comprueba
+        // `npm run verificar-datos`). La mandan MAPA_COMPLETO.DATOS (aquí abajo) y MAPA_COMPLETO.VISIBLE (al abrirse el
+        // mapa, en mostrarIframeOverlay, un script clásico: por eso se publica).
+        function _paradasCompletadasDelMapa() {
+            const elementos = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre;
+            if (!Array.isArray(elementos)) return [];
+            return elementos.filter((e) => e.tipo === 'parada' && _elementoCompletado(e)).map((e) => e.parada_id);
+        }
+        globalThis._paradasCompletadasDelMapa = _paradasCompletadasDelMapa;
+
         /**
          * Sirve las coordenadas al mapa completo cuando las pide.
          *
@@ -12460,7 +12480,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             const salio = await globalThis.mensajeria.enviarMensaje({
                 tipo: TIPOS_MENSAJE_S2.MAPA_COMPLETO.DATOS,
                 destino: 'mapa-completo',
-                datos: { coordenadas },
+                datos: { coordenadas, completadas: _paradasCompletadasDelMapa() },
             });
             const prefijo = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MAPA_COMPLETO]`;
             if (!salio) {
