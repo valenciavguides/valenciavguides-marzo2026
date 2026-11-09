@@ -3074,7 +3074,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-es", audio_id: "audio-Av3-P-14-es" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-es", audio_id: "audio-Av3-P-15-es" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-es", audio_id: "audio-Av3-P-15-es" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-es", audio_id: "audio-Av3-TR-13-es" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -3222,7 +3222,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-en", audio_id: "audio-Av3-P-14-en" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-en", audio_id: "audio-Av3-P-15-en" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-en", audio_id: "audio-Av3-P-15-en" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-en", audio_id: "audio-Av3-TR-13-en" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -3370,7 +3370,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-fr", audio_id: "audio-Av3-P-14-fr" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-fr", audio_id: "audio-Av3-P-15-fr" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-fr", audio_id: "audio-Av3-P-15-fr" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-fr", audio_id: "audio-Av3-TR-13-fr" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -3518,7 +3518,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-it", audio_id: "audio-Av3-P-14-it" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-it", audio_id: "audio-Av3-P-15-it" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-it", audio_id: "audio-Av3-P-15-it" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-it", audio_id: "audio-Av3-TR-13-it" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -3666,7 +3666,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-nl", audio_id: "audio-Av3-P-14-nl" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-nl", audio_id: "audio-Av3-P-15-nl" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-nl", audio_id: "audio-Av3-P-15-nl" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-nl", audio_id: "audio-Av3-TR-13-nl" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -3814,7 +3814,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-ja", audio_id: "audio-Av3-P-14-ja" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-ja", audio_id: "audio-Av3-P-15-ja" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-ja", audio_id: "audio-Av3-P-15-ja" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-ja", audio_id: "audio-Av3-TR-13-ja" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -3962,7 +3962,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-de", audio_id: "audio-Av3-P-14-de" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-de", audio_id: "audio-Av3-P-15-de" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-de", audio_id: "audio-Av3-P-15-de" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-de", audio_id: "audio-Av3-TR-13-de" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -4110,7 +4110,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-zh", audio_id: "audio-Av3-P-14-zh" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-zh", audio_id: "audio-Av3-P-15-zh" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-zh", audio_id: "audio-Av3-P-15-zh" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-zh", audio_id: "audio-Av3-TR-13-zh" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -4258,7 +4258,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-pl", audio_id: "audio-Av3-P-14-pl" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-pl", audio_id: "audio-Av3-P-15-pl" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-pl", audio_id: "audio-Av3-P-15-pl" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-pl", audio_id: "audio-Av3-TR-13-pl" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -4406,7 +4406,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-pt", audio_id: "audio-Av3-P-14-pt" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-pt", audio_id: "audio-Av3-P-15-pt" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-pt", audio_id: "audio-Av3-P-15-pt" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-pt", audio_id: "audio-Av3-TR-13-pt" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -4554,7 +4554,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-ru", audio_id: "audio-Av3-P-14-ru" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-ru", audio_id: "audio-Av3-P-15-ru" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-ru", audio_id: "audio-Av3-P-15-ru" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-ru", audio_id: "audio-Av3-TR-13-ru" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -4702,7 +4702,7 @@ export const DATOS_PADRE = {
         // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía
         { padreid: "padre-P14", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av3-P-14", numero_mapa: 18, texto_id: "txt-Av3-P14-uk", audio_id: "audio-Av3-P-14-uk" },
         // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe
-        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: 20, texto_id: "txt-Av3-P15-uk", audio_id: "audio-Av3-P-15-uk" },
+        { padreid: "padre-P15", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av3-P-15", numero_mapa: "19/20", texto_id: "txt-Av3-P15-uk", audio_id: "audio-Av3-P-15-uk" },
         // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l’Assut de l’Or
         { padreid: "padre-TR13", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l’Assut de l’Or", tramo_id: "Av3-TR-13", numero_mapa: "-→21", texto_id: "txt-Av3-TR13-uk", audio_id: "audio-Av3-TR-13-uk" },
         // Parada 16: Puente l’Assut de l’Or (Reto12puzzle PZ-09)
@@ -7692,7 +7692,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-es", audio_id: "audio-Av34km-P-9-es" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-es", audio_id: "audio-Av34km-TR-10-es" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-es", audio_id: "audio-Av34km-P-10-es" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-es", audio_id: "audio-Av34km-P-11-es" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-es", audio_id: "audio-Av34km-P-11-es" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-es", audio_id: "audio-Av34km-TR-11-es" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-es", audio_id: "audio-Av34km-P-12-es", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-es", audio_id: "audio-Av34km-TR-12-es" },
@@ -7938,7 +7938,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-en", audio_id: "audio-Av34km-P-9-en" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-en", audio_id: "audio-Av34km-TR-10-en" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-en", audio_id: "audio-Av34km-P-10-en" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-en", audio_id: "audio-Av34km-P-11-en" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-en", audio_id: "audio-Av34km-P-11-en" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-en", audio_id: "audio-Av34km-TR-11-en" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-en", audio_id: "audio-Av34km-P-12-en", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-en", audio_id: "audio-Av34km-TR-12-en" },
@@ -8184,7 +8184,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-fr", audio_id: "audio-Av34km-P-9-fr" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-fr", audio_id: "audio-Av34km-TR-10-fr" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-fr", audio_id: "audio-Av34km-P-10-fr" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-fr", audio_id: "audio-Av34km-P-11-fr" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-fr", audio_id: "audio-Av34km-P-11-fr" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-fr", audio_id: "audio-Av34km-TR-11-fr" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-fr", audio_id: "audio-Av34km-P-12-fr", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-fr", audio_id: "audio-Av34km-TR-12-fr" },
@@ -8430,7 +8430,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-it", audio_id: "audio-Av34km-P-9-it" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-it", audio_id: "audio-Av34km-TR-10-it" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-it", audio_id: "audio-Av34km-P-10-it" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-it", audio_id: "audio-Av34km-P-11-it" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-it", audio_id: "audio-Av34km-P-11-it" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-it", audio_id: "audio-Av34km-TR-11-it" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-it", audio_id: "audio-Av34km-P-12-it", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-it", audio_id: "audio-Av34km-TR-12-it" },
@@ -8676,7 +8676,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-nl", audio_id: "audio-Av34km-P-9-nl" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-nl", audio_id: "audio-Av34km-TR-10-nl" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-nl", audio_id: "audio-Av34km-P-10-nl" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-nl", audio_id: "audio-Av34km-P-11-nl" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-nl", audio_id: "audio-Av34km-P-11-nl" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-nl", audio_id: "audio-Av34km-TR-11-nl" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-nl", audio_id: "audio-Av34km-P-12-nl", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-nl", audio_id: "audio-Av34km-TR-12-nl" },
@@ -8922,7 +8922,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-ja", audio_id: "audio-Av34km-P-9-ja" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-ja", audio_id: "audio-Av34km-TR-10-ja" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-ja", audio_id: "audio-Av34km-P-10-ja" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-ja", audio_id: "audio-Av34km-P-11-ja" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-ja", audio_id: "audio-Av34km-P-11-ja" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-ja", audio_id: "audio-Av34km-TR-11-ja" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-ja", audio_id: "audio-Av34km-P-12-ja", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-ja", audio_id: "audio-Av34km-TR-12-ja" },
@@ -9168,7 +9168,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-de", audio_id: "audio-Av34km-P-9-de" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-de", audio_id: "audio-Av34km-TR-10-de" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-de", audio_id: "audio-Av34km-P-10-de" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-de", audio_id: "audio-Av34km-P-11-de" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-de", audio_id: "audio-Av34km-P-11-de" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-de", audio_id: "audio-Av34km-TR-11-de" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-de", audio_id: "audio-Av34km-P-12-de", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-de", audio_id: "audio-Av34km-TR-12-de" },
@@ -9414,7 +9414,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-zh", audio_id: "audio-Av34km-P-9-zh" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-zh", audio_id: "audio-Av34km-TR-10-zh" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-zh", audio_id: "audio-Av34km-P-10-zh" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-zh", audio_id: "audio-Av34km-P-11-zh" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-zh", audio_id: "audio-Av34km-P-11-zh" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-zh", audio_id: "audio-Av34km-TR-11-zh" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-zh", audio_id: "audio-Av34km-P-12-zh", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-zh", audio_id: "audio-Av34km-TR-12-zh" },
@@ -9660,7 +9660,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-pl", audio_id: "audio-Av34km-P-9-pl" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-pl", audio_id: "audio-Av34km-TR-10-pl" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-pl", audio_id: "audio-Av34km-P-10-pl" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-pl", audio_id: "audio-Av34km-P-11-pl" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-pl", audio_id: "audio-Av34km-P-11-pl" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-pl", audio_id: "audio-Av34km-TR-11-pl" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-pl", audio_id: "audio-Av34km-P-12-pl", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-pl", audio_id: "audio-Av34km-TR-12-pl" },
@@ -9906,7 +9906,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-pt", audio_id: "audio-Av34km-P-9-pt" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-pt", audio_id: "audio-Av34km-TR-10-pt" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-pt", audio_id: "audio-Av34km-P-10-pt" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-pt", audio_id: "audio-Av34km-P-11-pt" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-pt", audio_id: "audio-Av34km-P-11-pt" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-pt", audio_id: "audio-Av34km-TR-11-pt" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-pt", audio_id: "audio-Av34km-P-12-pt", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-pt", audio_id: "audio-Av34km-TR-12-pt" },
@@ -10152,7 +10152,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-ru", audio_id: "audio-Av34km-P-9-ru" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-ru", audio_id: "audio-Av34km-TR-10-ru" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-ru", audio_id: "audio-Av34km-P-10-ru" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-ru", audio_id: "audio-Av34km-P-11-ru" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-ru", audio_id: "audio-Av34km-P-11-ru" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-ru", audio_id: "audio-Av34km-TR-11-ru" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-ru", audio_id: "audio-Av34km-P-12-ru", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-ru", audio_id: "audio-Av34km-TR-12-ru" },
@@ -10398,7 +10398,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-P9", tipo: "parada", nombre: "Pistas de Patinaje", parada_id: "Av34km-P-9", numero_mapa: 11, texto_id: "txt-Av34km-P9-uk", audio_id: "audio-Av34km-P-9-uk" },
         { padreid: "padre-TR10", tipo: "tramo", nombre: "Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe", tramo_id: "Av34km-TR-10", numero_mapa: "11→-", texto_id: "txt-Av34km-TR10-uk", audio_id: "audio-Av34km-TR-10-uk" },
         { padreid: "padre-P10", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía", parada_id: "Av34km-P-10", numero_mapa: 12, texto_id: "txt-Av34km-P10-uk", audio_id: "audio-Av34km-P-10-uk" },
-        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: 14, texto_id: "txt-Av34km-P11-uk", audio_id: "audio-Av34km-P-11-uk" },
+        { padreid: "padre-P11", tipo: "parada", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe", parada_id: "Av34km-P-11", numero_mapa: "13/14", texto_id: "txt-Av34km-P11-uk", audio_id: "audio-Av34km-P-11-uk" },
         { padreid: "padre-TR11", tipo: "tramo", nombre: "Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or", tramo_id: "Av34km-TR-11", numero_mapa: "-→15", texto_id: "txt-Av34km-TR11-uk", audio_id: "audio-Av34km-TR-11-uk" },
         { padreid: "padre-P12", tipo: "parada", nombre: "Puente l'Assut de l'Or", parada_id: "Av34km-P-12", numero_mapa: 15, texto_id: "txt-Av34km-P12-uk", audio_id: "audio-Av34km-P-12-uk", reto_id: "PZ-09" },
         { padreid: "padre-TR12", tipo: "tramo", nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic", tramo_id: "Av34km-TR-12", numero_mapa: "15→16/17", texto_id: "txt-Av34km-TR12-uk", audio_id: "audio-Av34km-TR-12-uk" },

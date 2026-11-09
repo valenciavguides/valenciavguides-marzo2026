@@ -1,9 +1,9 @@
 /*
  * El botón del mundo verde con la flecha (`.btn-mundo-verde`, con dos `.contenedor-flecha` dentro): el «siguiente» de la
- * PWA. Estas son las reglas de la pantalla de selección, que la enlazan el padre (las pantallas del dispositivo, guía
- * §4.7n) y, para ser la única definición de su aspecto como `css/boton-cerrar.css` lo es de la ✗,
- * los demás documentos que lo usan: la selección, video-intro y hijo4 llevan todavía una copia propia en su <style>
- * (docs/estudio-caminos.md, K-28).
+ * PWA, con las medidas y el aspecto del de la pantalla de selección (sin lo que allí le añade la clase `.btn`). La enlaza
+ * el padre, para sus pantallas del dispositivo (guía §4.7n). La selección, video-intro y hijo4 llevan cada uno el suyo en
+ * su <style>, con su tamaño, y hijo4 con su interior de cuatro elementos (➣ 🎯 ➣ 🎯): se quedan así
+ * (docs/estudio-caminos.md, K-153).
  *
  * Marcado:
  *   <button type="button" class="btn-mundo-verde">

@@ -1723,14 +1723,28 @@
             wrapper.appendChild(flechaDer);
         }
 
+        // Las etiquetas de número de mapa de la galería las da la lectura del listado de paradas: _etiquetasNumeroDeMapa
+        // (Script 2, que la publica para este script clásico) devuelve los números de una parada y, de un tramo, el primer
+        // trozo de su cadena (la salida, debajo de 📌 en la primera imagen) y el último (la llegada, debajo de 🎯 en la
+        // última), escritos con «/». Un sitio sin número («-») no lleva etiqueta. Así un número se lee igual aquí y en el
+        // listado (spec 176).
         function _galeriaRenderizarBadges(wrapper, tipo, total, esPrimera, esUltima, hayMapa, mapa_numero) {
+            let etiquetas = { salida: null, llegada: null };
+            if (hayMapa) {
+                if (typeof globalThis._etiquetasNumeroDeMapa === 'function') etiquetas = globalThis._etiquetasNumeroDeMapa(tipo, mapa_numero);
+                else (globalThis.logger || console).error('[Galería] Falta _etiquetasNumeroDeMapa (Script 2): la imagen sale sin su número de mapa');
+            }
+            const ponerNumero = (clase, texto) => {
+                if (!texto) return;
+                const badge = document.createElement('div');
+                badge.className = `galeria-badge-mapa ${clase}`;
+                badge.textContent = texto;
+                wrapper.appendChild(badge);
+            };
+            // Una parada, o un tramo de una sola imagen: una etiqueta, la de la llegada (en una parada, la salida y la
+            // llegada son sus números).
             if (tipo === 'parada' || total === 1) {
-                if (hayMapa) {
-                    const badge = document.createElement('div');
-                    badge.className = 'galeria-badge-mapa parada-pos';
-                    badge.textContent = mapa_numero;
-                    wrapper.appendChild(badge);
-                }
+                ponerNumero('parada-pos', etiquetas.llegada);
                 return;
             }
             if (esPrimera) {
@@ -1738,27 +1752,13 @@
                 emojiInicio.className = 'galeria-badge-emoji inicio-pos';
                 emojiInicio.textContent = '📌';
                 wrapper.appendChild(emojiInicio);
-                if (hayMapa) {
-                    const partes = String(mapa_numero).split('→');
-                    const badge = document.createElement('div');
-                    badge.className = 'galeria-badge-mapa tramo-inicio-pos debajo-emoji';
-                    badge.textContent = partes[0] || mapa_numero;
-                    wrapper.appendChild(badge);
-                }
+                ponerNumero('tramo-inicio-pos debajo-emoji', etiquetas.salida);
             } else if (esUltima) {
                 const emojiFin = document.createElement('div');
                 emojiFin.className = 'galeria-badge-emoji fin-pos';
                 emojiFin.textContent = '🎯';
                 wrapper.appendChild(emojiFin);
-                if (hayMapa) {
-                    const partes = String(mapa_numero).split('→');
-                    const badge = document.createElement('div');
-                    badge.className = 'galeria-badge-mapa tramo-fin-pos debajo-emoji';
-                    // La llegada es el último número de la cadena: los de en medio son los puntos por los que se pasa
-                    // (en «7→4→8», el 4; la llegada, el 8).
-                    badge.textContent = partes.length > 1 ? partes[partes.length - 1] : mapa_numero;
-                    wrapper.appendChild(badge);
-                }
+                ponerNumero('tramo-fin-pos debajo-emoji', etiquetas.llegada);
             }
         }
 
@@ -12382,6 +12382,26 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             return String(valor).split('→').map(h => _expandeHopMapaNumero(h));
         }
 
+        // Cómo se escriben en pantalla los números de mapa de un sitio: con «/» entre ellos, como los escribe la mayoría de
+        // los datos («22/23»; un «5,7» o un «v7-v8» se leen «5/7» y «v7/v8»). Sin número («-», vacío o null), null: no se
+        // enseña nada. Es la única forma: la usan el pin del listado de paradas y las etiquetas de la galería.
+        function _textoNumerosDeMapa(numeros) {
+            return numeros.length ? numeros.join('/') : null;
+        }
+
+        // Las etiquetas de número de mapa de la galería, con la misma lectura que el listado: en una parada, sus números (la
+        // salida y la llegada son los mismos); en un tramo, el primer trozo de su cadena, la salida, y el último, la llegada.
+        // La galería está en un script clásico: por eso se publica.
+        function _etiquetasNumeroDeMapa(tipo, valor) {
+            if (tipo === 'tramo') {
+                const trozos = _parseCadenaMapaNumero(valor);
+                return { salida: _textoNumerosDeMapa(trozos[0] || []), llegada: _textoNumerosDeMapa(trozos[trozos.length - 1] || []) };
+            }
+            const numeros = _textoNumerosDeMapa(_expandeHopMapaNumero(valor));
+            return { salida: numeros, llegada: numeros };
+        }
+        globalThis._etiquetasNumeroDeMapa = _etiquetasNumeroDeMapa;
+
         // Las filas del recorrido, en su orden: una por cada parada/inicio real (con su estado de completado), más una
         // fila "puente" por cada número de mapa que la ruta pasa pero donde nunca hay parada propia — ver GUIA-COMPLETA
         // §7.2 para el razonamiento completo (números de mapa muchos-a-muchos con paradas, revisitas no consecutivas,
@@ -12489,7 +12509,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
         function _renderizarFilaListadoParadas(f) {
             const numeros = f.tipo === 'parada' ? (f.numeros || []) : [f.numero];
-            const pin = numeros.length ? `📍${numeros.join(',')}` : '';
+            const texto = _textoNumerosDeMapa(numeros);
+            const pin = texto ? `📍${texto}` : '';
             const nombre = f.nombre || (f.tipo === 'puente' ? `(sin nombre) ${pin}` : '');
             return `
                 <div class="listado-parada-fila">

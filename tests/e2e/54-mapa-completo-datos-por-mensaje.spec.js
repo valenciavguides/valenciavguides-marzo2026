@@ -258,7 +258,7 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
     const delListado = await page.evaluate(() => {
       const completado = new Map();
       for (const fila of document.querySelectorAll('#ventana-listado-paradas-padre .listado-parada-fila')) {
-        const numeros = (fila.querySelector('.listado-parada-pin')?.textContent || '').replace('📍', '').split(',').filter(Boolean);
+        const numeros = (fila.querySelector('.listado-parada-pin')?.textContent || '').replace('📍', '').split('/').filter(Boolean);
         const hecha = fila.querySelector('.listado-parada-circulo')?.classList.contains('completada') === true;
         for (const n of numeros) if (!n.startsWith('v')) completado.set(n, (completado.get(n) ?? true) && hecha);
       }

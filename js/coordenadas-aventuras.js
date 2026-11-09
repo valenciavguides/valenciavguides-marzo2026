@@ -3004,8 +3004,8 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av3-P-15",
         tipo: "parada",
-        parada: 18, // mapa número 20
-        mapa_numero: 20,
+        parada: 18, // mapa número 19/20
+        mapa_numero: "19/20",
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
         coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
         imagen: "imagenes/imagenes-aventuras/pano_cac.jpg",
@@ -8483,8 +8483,8 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av34km-P-11",
         tipo: "parada",
-        parada: 14, // mapa número 14
-        mapa_numero: 14,
+        parada: 14, // mapa número 13/14
+        mapa_numero: "13/14",
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
         coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
         imagen: "imagenes/imagenes-aventuras/pano_cac.jpg",

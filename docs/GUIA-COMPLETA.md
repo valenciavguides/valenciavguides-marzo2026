@@ -1267,7 +1267,7 @@ Vive en un `<script>` clásico propio de `codigo-padre.html` (no un `type="modul
 **Con imágenes — `_mostrarOverlayGaleria()` + `_galeriaEstado`** (`{ imagenes, indice, tipo, mapa_numero, objectFit, fullHeight }`, módulo-scoped, se resetea en cada apertura y al cerrar):
 
 - **Flechas** (`_galeriaRenderizarFlechas`) — solo aparecen si `imagenes.length > 1`. `◀`/`▶` con opacidad reducida (`.inactiva`) y sin listener en el extremo correspondiente cuando `indice` ya está en el primer/último elemento — no hacen wrap-around.
-- **Badges de posición** (`_galeriaRenderizarBadges`) — su lógica depende de `tipo`: para una **parada** (o una galería de una sola imagen) solo muestra el número de mapa (`mapa_numero`) si existe, sin emoji. Para un **tramo** con varias imágenes, la primera lleva 📌 (inicio) y la última 🎯 (fin), cada una con su propio número de mapa — `mapa_numero` de un tramo viene como cadena `"1→2"`, y el badge parte esa cadena por `→` para mostrar solo el número que corresponde a esa imagen concreta: en la de inicio, el primero (`partes[0]`); en la de fin, el último, que es la llegada (en `"7→4→8"`, el 8; los de en medio son los puntos por los que pasa).
+- **Badges de posición** (`_galeriaRenderizarBadges`) — su lógica depende de `tipo`: para una **parada** (o una galería de una sola imagen) muestra una etiqueta, sin emoji, con los números de mapa del sitio. Para un **tramo** con varias imágenes, la primera lleva 📌 (inicio) y la última 🎯 (fin), cada una con su propio número de mapa: debajo de 📌, el primer trozo de la cadena del tramo (la salida), y debajo de 🎯, el último (la llegada: en `"7→4→8"`, el 8; los de en medio son los puntos por los que pasa). Lo que dice cada etiqueta lo decide la misma lectura que el listado de paradas (§7.2): `_etiquetasNumeroDeMapa(tipo, mapa_numero)` (Script 2, publicada en `globalThis` porque la galería está en el script clásico) devuelve `{ salida, llegada }`, con los números de cada trozo escritos por `_textoNumerosDeMapa()` con `/` entre ellos (`"22/23"`; `"5,7"` y `"v7-v8"` salen `5/7` y `v7/v8`); un trozo sin número (`"-"`) da `null`, y esa imagen va sin etiqueta (el emoji se queda). En una galería de una sola imagen, un tramo lleva su llegada. Si la función publicada falta, la imagen sale sin número y lo dice un error en el log. Lo comprueban los specs 175 y 176.
 - **Texto de parada** (`textoParada = {title, content}`, opcional) — se muestra en un panel bajo la imagen. El título pasa por `escaparHTML()` (`js/utils.js`, la misma con que escapa todo el padre): sale como texto, sin HTML. La galería vive en un script clásico, que no puede importar, y la toma de `globalThis.escaparHTML`, que publica Script 1. El contenido pasa por `_galeriaSanitizarHTML()` — permite un conjunto reducido de etiquetas (`p, br, strong, b, em, i, u, h1-h4, span, ul, ol, li, img, mark`) y solo el atributo `style` en general más `src`/`alt` en `img`; cualquier otra etiqueta se desenvuelve conservando su contenido (no se borra el texto de dentro). Las imágenes inline solo se permiten si `src` empieza por `imagenes/` — cualquier otra ruta se elimina y se sustituye por `alt="[imagen no permitida]"`.
 - **Si el elemento no tiene texto con contenido** (`_handleMostrarImagen()` lo busca por el `texto_id` de su fila con `cargarTextos()`, §10.20, "HTTP / fetch — capa de datos"): en vez de dejar el panel vacío y sin explicación, `_handleMostrarImagen()` construye un `textoParada` sintético — `{title:'', content:'<p style="...">📖 [mensaje traducido]</p>'}` — con `MSG_TEXTO_PARADA_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas, `globalThis.idiomaSeleccionado`). Sobrevive `_galeriaSanitizarHTML()` sin problema (`p`/`style` están permitidos) y se renderiza exactamente igual que un texto real, solo que con el aviso en vez del contenido de la parada — mismo patrón visual (icono + texto atenuado) que `_mostrarOverlaySinImagenes()`/`_mostrarVideoSinUrl()` para imagen/vídeo.
 - **Imágenes que dependen del idioma** — detrás de las fotos de la entrada (`imagen` a `imagen4`), `_handleMostrarImagen()` añade las que nombra su campo `imagenes_idioma` (`js/coordenadas-aventuras.js`, nombres sin carpeta ni extensión), desde `imagenes/imagenes-idiomas/<carpeta>/<nombre>.jpg`; la carpeta es la que `LANG_ARCHIVO_PARRAFOS` (`js/data-loader.js`) da al idioma elegido (`espanol`, `ingles`…), la misma de sus párrafos. Las llevan 38 paradas: las de las imágenes con texto (arcos, arquitectura gótica e iglesias, puentes, fallas) y las 19 de Torres de Serranos, con sus cuatro de la muralla. Sin carpeta para el idioma elegido, no se añaden y queda un `logger.error`.
@@ -2588,16 +2588,16 @@ Ventana flotante gestionada íntegramente por el padre (mismo patrón que la ven
 
 **Ventana** (`.ventana-listado-paradas-padre`): `position:fixed`, centrada (`top:50%;left:50%;transform:translate(-50%,-50%)`), `width:85vw;height:85vh`, fondo `#fff8e7` (el mismo crema que usa `.texto-parada-overlay` — el texto de la ventana de la imagen de hijo2, ver §14, «Estilo visual del cuadro de texto»), borde `0.3rem solid #F28500` (el mismo naranja de `.btn-cerrar-overlay`), botón de cierre reutilizando literalmente la clase `.btn-cerrar-overlay` ya existente en el padre. Contenido, de arriba a abajo, dentro de un único contenedor con scroll vertical (`overflow-y:auto; overflow-x:hidden` — nunca scroll horizontal): `logo-alargado.png` centrado, la imagen `en-busca-<idioma>.png` correspondiente al idioma activo (misma tabla de 12 archivos que P5 de `En-busca-del-tesoro.html`, mismo fallback a español), y la lista de filas.
 
-**Cada fila** (`.listado-parada-fila`): un círculo (`clamp(20px,4.5vmin,26px)` — deliberadamente más grande que el texto de la fila, `clamp(14px,3.2vmin,18px)`) que se rellena de verde (`#1e7e34`) cuando la parada está completada y queda hueco en caso contrario; el número de orden + nombre de la parada (una sola línea, `white-space:nowrap` + `text-overflow:ellipsis` — nunca fuerza scroll horizontal); y, a la derecha, `📍` + el/los número(s) de mapa asociados.
+**Cada fila** (`.listado-parada-fila`): un círculo (`clamp(20px,4.5vmin,26px)` — deliberadamente más grande que el texto de la fila, `clamp(14px,3.2vmin,18px)`) que se rellena de verde (`#1e7e34`) cuando la parada está completada y queda hueco en caso contrario; el número de orden + nombre de la parada (una sola línea, `white-space:nowrap` + `text-overflow:ellipsis` — nunca fuerza scroll horizontal); y, a la derecha, `📍` + el/los número(s) de mapa asociados, escritos con `/` entre ellos por `_textoNumerosDeMapa()`, la misma forma que las etiquetas de la galería (§4.7f): `📍22/23`. Una fila sin número de mapa (una parada con `"-"`) no lleva pin.
 
 **Construcción de la lista — `_filasDelRecorrido(aventura)`** (`codigo-padre.html`, Script 2): recorre `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas` en orden de fichero (que es orden real de recorrido) y genera dos tipos de fila. `_construirFilasListadoParadas(aventura, idioma)` les pone a las de parada su título localizado, y lo que enseña el listado son esas filas. Las mismas filas deciden los números en verde del mapa moderno («El mapa completo», §11): es la única regla de «completado» de un número de mapa.
 
 1. **Fila `parada`** — una por cada entrada `tipo:'inicio'|'parada'`. El nombre mostrado es el título localizado: `tituloLocalizado()` busca la fila de la parada en `DATOS_PADRE` (por su `parada_id`) y toma de `cargarTextos(aventura, idioma)` el texto de su `texto_id`, la misma regla que la ventana de la imagen (§10.5, FASE 11); si no hay texto, el `nombre` interno en español. Lo comprueba el spec 154. Completada si `estado.paradasCompletadas.has(el.id)` — mismo Map, misma clave (`parada_id` sin prefijo `padre-`), que usa `marcarParadaCompletada()`.
-2. **Fila `puente`** — un número de mapa que la ruta pasa pero donde **nunca hay parada propia** (p. ej. Aventura1 pasa por el punto 4 sin detenerse — ver el resumen por aventura más abajo). Se detecta parseando el campo `mapa_numero` de cada `tipo:'tramo'`: los tramos usan notación de flechas (`"7→4→8"`, `"-→2"`, `"21→22"`) con hops que a veces son compuestos (`"5,9"` o `"22/23"` — coma o barra — y ocasionalmente guión, `"v7-v8"`, distinguible del sentinela de "sin número" `"-"` porque ese es un hop *completo* de un solo carácter, nunca parte de un token más largo). Cualquier número mencionado en un hop que **no** tenga ya una parada real en toda la aventura se acumula como candidato puente; al llegar a la siguiente parada real se vuelcan los candidatos pendientes (deduplicados **dentro del mismo hueco entre dos paradas reales** — dos tramos consecutivos que comparten límite, p. ej. `"3→4"` seguido de `"4→5"`, mencionan el mismo punto físico dos veces y cuentan como un solo paso, no como dos visitas). El nombre de una fila puente sale de la `referencia` (`tipo:'referencia'`) que comparte ese mismo `mapa_numero`.
+2. **Fila `puente`** — un número de mapa que la ruta pasa pero donde **nunca hay parada propia** (p. ej. Aventura1 pasa por el punto 4 sin detenerse — ver el resumen por aventura más abajo). Se detecta parseando el campo `mapa_numero` de cada `tipo:'tramo'`: los tramos usan notación de flechas (`"7→4→8"`, `"-→2"`, `"21→22"`) con hops que a veces llevan dos números: con barra (`"22/23"`) o, en la numeración de los Jardines del Real, con guion (`"v7-v8"`), distinguible del sentinela de "sin número" `"-"` porque ese es un hop *completo* de un solo carácter, nunca parte de un token más largo. `_expandeHopMapaNumero()` acepta además la coma, que lleva una parada (`"5,7"`, la Av1-P-10). Cualquier número mencionado en un hop que **no** tenga ya una parada real en toda la aventura se acumula como candidato puente; al llegar a la siguiente parada real se vuelcan los candidatos pendientes (deduplicados **dentro del mismo hueco entre dos paradas reales** — dos tramos consecutivos que comparten límite, p. ej. `"3→4"` seguido de `"4→5"`, mencionan el mismo punto físico dos veces y cuentan como un solo paso, no como dos visitas). El nombre de una fila puente sale de la `referencia` (`tipo:'referencia'`) que comparte ese mismo `mapa_numero`.
 
 **Regla de relleno de los puentes**: una fila puente se marca completada cuando se completa la **siguiente parada real de la secuencia** (`completaConId`, calculado recorriendo las filas de atrás hacia adelante) — si el usuario ha llegado a esa parada, necesariamente ya pasó por el punto intermedio. No tiene marcador de finalización propio.
 
-**Verificado, las 7 aventuras** (análisis exhaustivo aventura por aventura, no una muestra): ninguna referencia queda sin resolver. Puentes encontrados: Aventura1 → 2, 4, 22; Aventura2 → 4 (visitado dos veces, en dos huecos distintos de la ruta); Aventura3 → 3, 4, 5, 8, 14, 16 y 27 (este, dos veces); Aventura4 → 7, 8, 10, 20, 21, 22, 23, `v1`, `v5`; AventuraFallas → 9, 20; Aventura34km → 3, 9, 20, 45 (dos veces), 67, `v1`, `v5`. Aventura5 no tiene ningún puente. Los prefijos `v1..v13` son la numeración propia del tramo "Viveros" (compartida entre Aventura4 y Aventura34km, que reutiliza literalmente esos mismos tramos) — independiente de la numeración principal 1-N de cada aventura. Un monumento (una `referencia`) por el que la ruta pasa sin nombrarlo va en la cadena del tramo que llega al siguiente número que la ruta nombra (en la Aventura4, `"6→7→8→9"`): así sale en el listado como puente y se pone en verde al llegar al punto siguiente. Uno que no lleva ninguna parada ni nombra ningún tramo no tiene fila: no sale en el listado ni se pone en verde en el mapa moderno. Son el 19 de la Aventura3 y el 13 de la de 34 km, el Puente de Monteolivete: la ruta llega a su número siguiente (el 20 y el 14) desde una parada del mismo mirador, sin ningún tramo de por medio. Y la numeración interior de los Jardines del Real de la Aventura4 que no nombra ningún tramo (`v4`, `v6`, `v9` y `v13`), que no se pinta en verde.
+**Verificado, las 7 aventuras** (análisis exhaustivo aventura por aventura, no una muestra): ninguna referencia queda sin resolver. Puentes encontrados: Aventura1 → 2, 4, 22; Aventura2 → 4 (visitado dos veces, en dos huecos distintos de la ruta); Aventura3 → 3, 4, 5, 8, 14, 16 y 27 (este, dos veces); Aventura4 → 7, 8, 10, 20, 21, 22, 23, `v1`, `v5`; AventuraFallas → 9, 20; Aventura34km → 3, 9, 20, 45 (dos veces), 67, `v1`, `v5`. Aventura5 no tiene ningún puente. Los prefijos `v1..v13` son la numeración propia del tramo "Viveros" (compartida entre Aventura4 y Aventura34km, que reutiliza literalmente esos mismos tramos) — independiente de la numeración principal 1-N de cada aventura. Un monumento (una `referencia`) por el que la ruta pasa sin nombrarlo va en la cadena del tramo que llega al siguiente número que la ruta nombra (en la Aventura4, `"6→7→8→9"`): así sale en el listado como puente y se pone en verde al llegar al punto siguiente. Cuando el número siguiente es una parada a la que no llega ningún tramo, el monumento va con los números de esa parada: el Puente de Monteolivete (el 19 de la Aventura3 y el 13 de la de 34 km) queda entre la Ópera y el Museo Príncipe Felipe, dos paradas seguidas del mismo mirador, y el Museo lleva `"19/20"` y `"13/14"`, así que se pone en verde al completarla. Un monumento que no lleva ninguna parada ni nombra ningún tramo no tiene fila: no sale en el listado ni se pone en verde en el mapa moderno. Es la numeración interior de los Jardines del Real de la Aventura4 que no nombra ningún tramo (`v4`, `v6`, `v9` y `v13`), que no se pinta en verde.
 
 **Actualización en vivo**: si la ventana está abierta cuando `marcarParadaCompletada()` registra una parada nueva, se vuelve a llamar a `_renderizarListadoParadas()` para refrescar el contenido sin que el usuario tenga que cerrar y reabrir la ventana.
 
@@ -4296,7 +4296,7 @@ DATOS_PADRE[aventura][idioma].elementosIDpadre = [
 | `nombre` | string | Nombre descriptivo | `"Torres de Serranos (start)"` |
 | `parada_id` | string | ID de parada (null para tramos) | `"Av1-P-0"` |
 | `tramo_id` | string | ID de tramo (solo en tramos) | `"Av1-TR-1"` |
-| `numero_mapa` | number\|null\|string | Número en el mapa turístico | `1`, `"1→1"`, `null` |
+| `numero_mapa` | number\|null\|string | Número en el mapa turístico. La aplicación no lo lee: el número de mapa que enseña sale de `coordenadas-aventuras.js` (`mapa_numero`), y `npm run verificar-datos` comprueba que los dos dicen lo mismo, en los 12 idiomas | `1`, `"1→1"`, `null` |
 | `texto_id` | string | Clave de texto narrativo | `"txt-Av1-P0-es"` |
 | `audio_id` | string | Clave de audio | `"audio-Av1-P-0-es"` |
 | `reto_id` | string\|null | ID de reto (null si no hay) | `"R3-Av1-es"` |
@@ -4931,7 +4931,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-186a8de151b4'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-5bb05a7b9706'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8092,6 +8092,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `173-el-fuera-de-rango-es-de-un-elemento.spec.js` | 4 | El fuera de rango es de un elemento (§31.4): fuera de rango del inicio, al pasar a la parada 1 el padre lo olvida, quita la pantalla de distancia y «avanzar» espera a la parada y no al rango (FR-1); una lectura medida contra el elemento anterior, llegada después del cambio, no pone a hijo2 fuera de rango (FR-2); el padre no apunta el fuera de rango ni enseña la distancia de un elemento que no es el actual, y sí los del actual (FR-3); y, de control, reactivar el mismo elemento no olvida su fuera de rango (FR-4). Sin la regla caen FR-1, FR-2 y FR-3. |
 | `174-las-pantallas-del-dispositivo.spec.js` | 5 | Las pantallas del dispositivo (§4.7n): la de la brújula con su título, su texto y el logo en línea, y el botón, pulsado de verdad, pasa a la de los ajustes y luego cierra la ventana (AD-1); los 12 idiomas con sus cinco textos y el logo una vez en cada texto, y los del español, los del usuario (AD-2); salen al empezar la aventura por el recorrido real y otra vez al continuarla tras recargar (AD-3); por debajo de lo que se abre después y ocultas con `body.loading` (AD-4); y la ayuda de hijo6 pinta sus imágenes en línea con la misma `renderTextoConImagenes()`, sin marcas a la vista (AD-5). Con la función rota (el texto tal cual, sin imágenes) caen AD-1 y AD-5. |
 | `175-la-galeria-de-un-tramo-marca-su-llegada.spec.js` | 2 | En la galería de un tramo, la etiqueta de la primera imagen es el primer número de su cadena y la de la última, el último, que es la llegada: en `"7→4→8"`, el 7 y el 8 (GL-1); de control, `"6→9"`, el 6 y el 9 (GL-2) (§4.7f). Con la llegada en el segundo número cae GL-1 (dice 4). |
+| `176-un-numero-de-mapa-se-lee-igual-en-la-galeria-y-en-el-listado.spec.js` | 6 | Un número de mapa se lee igual en la galería y en el listado (§4.7f, §7.2). En la galería: un tramo `"-→21"` lleva 📌 sin número y 🎯 «21» (NM-1); `"17→-"`, 📌 «17» y 🎯 sin número (NM-2); dos números en un extremo van con `/`: `"21→22/23"` da «22/23» y `"v7-v8→v11"`, «v7/v8» (NM-3); una parada `"5,7"` dice «5/7», una `"-"` va sin etiqueta y, de control, `17` dice «17» (NM-4). En el listado de cuatro aventuras, con sus datos, cada pin escribe sus números con `/` y salen «📍5/7», «📍22/23», «📍v7/v8» y «📍16/17» (NM-5). El Puente de Monteolivete va con los números del Museo Príncipe Felipe (`"19/20"` en la Aventura3, `"13/14"` en la de 34 km): su galería y su fila del listado lo dicen, y el número está en verde con el Museo completado y no con todo hasta la Ópera (NM-6). Con la galería leyendo cada trozo tal cual caen NM-1 a NM-4 (pasa su control); con el pin unido por comas, NM-5; con el Museo en `20` y `14`, NM-6. |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8618,7 +8619,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 170 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 171 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9136,7 +9137,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-186a8de151b4';
+const CACHE_VERSION = 'v-5bb05a7b9706';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12561,7 +12562,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-186a8de151b4';
+const CACHE_VERSION = 'v-5bb05a7b9706';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -14266,7 +14267,7 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **113 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 99 identificadores cruzados, de 141 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 100 identificadores cruzados, de 142 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14278,97 +14279,98 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `actualizarVisibilidadSelectorMapa` | clásico 7 (L1391) | clásico 8, módulo 1, módulo 2, módulo 3 | función/objeto |
 | `cerrarChatSoporte` | clásico 7 (L1508) | módulo 1, módulo 2 | función/objeto |
 | `construirEstadoChat` | clásico 7 (L1511) | módulo 1 | función/objeto |
-| `mostrarIframeOverlay` | clásico 8 (L2092) | módulo 2 | función/objeto |
+| `mostrarIframeOverlay` | clásico 8 (L2094) | módulo 2 | función/objeto |
 | `mostrarImagenOverlay` | clásico 8 (L1602) | módulo 1, módulo 2 | función/objeto |
-| `mostrarVideoOverlay` | clásico 8 (L1943) | módulo 1 | función/objeto |
+| `mostrarVideoOverlay` | clásico 8 (L1945) | módulo 1 | función/objeto |
 | `rotationSuppressed` | clásico 8 (L1642) | módulo 1, módulo 2 | función/objeto |
-| `__cargarDatosAventuraDiferidos` | módulo 1 (L3645) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5031) | clásico 12 | estado |
-| `__VV_5KM_BLOCKED` | módulo 1 (L5518) | módulo 2 | función/objeto |
-| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3629) | módulo 2 | función/objeto |
-| `__vv_DATOS_AVENTURAS` | módulo 1 (L3628) | módulo 2 | función/objeto |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6379) | clásico 12 | estado |
-| `__vv_INDICE_AVENTURAS` | módulo 1 (L3612) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6509) | clásico 12 | estado |
-| `__vv_MAPAS_VINTAGE` | módulo 1 (L3630) | módulo 2 | función/objeto |
-| `__vv_registroScript1` | módulo 1 (L3510) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4767) | módulo 2 | función/objeto |
-| `_apilarEntradaDeAventura` | módulo 1 (L4753) | módulo 2 | función/objeto |
-| `_cerrarDesplegablesDelPadre` | módulo 1 (L4724) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L6919) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8298) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8524) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8424) | módulo 2 | función/objeto |
-| `_devModeActivo` | módulo 1 (L3937) | módulo 2 | estado |
-| `_entradaDeCoordenadas` | módulo 1 (L3703) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8393) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L8608) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8500) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8399) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8616) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8268) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L7796) | módulo 2 | función/objeto |
-| `_ocultarPantallasDistanciaDelElemento` | módulo 1 (L5850) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5870) | módulo 2 | función/objeto |
-| `ajustarTimeoutPorConexion` | módulo 1 (L3762) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4970) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L7582) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L7581) | módulo 2 | función/objeto |
-| `CONFIG_PADRE` | módulo 1 (L3854) | módulo 2 | función/objeto |
-| `enviarMensaje` | módulo 1 (L3756) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
-| `enviarMensajeConConfirmacion` | módulo 1 (L3757) | módulo 2 | función/objeto |
-| `escaparHTML` | módulo 1 (L2806) | clásico 8, módulo 2 | función/objeto |
-| `estadoPadre` | módulo 1 (L3942) | clásico 7, módulo 2 | función/objeto |
-| `findIndexByPadreIdOrId` | módulo 1 (L4300) | módulo 2 | función/objeto |
-| `getEstadoSafe` | módulo 1 (L4051) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6283) | módulo 2 | función/objeto |
-| `hideParentLoadingOverlay` | módulo 1 (L2773) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4971) | clásico 5, clásico 7, módulo 2 | estado |
-| `limpiarDatosAventura` | módulo 1 (L2810) | módulo 2 | función/objeto |
-| `MODOS` | módulo 1 (L3755) | módulo 2 | función/objeto |
-| `mostrarAvisosDelDispositivo` | módulo 1 (L4590) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L7999) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L7926) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L7736) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L7779) | módulo 2 | función/objeto |
-| `persistProgressState` | módulo 1 (L4147) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L5059) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L5086) | módulo 2 | función/objeto |
-| `reproducirVideoConBuffer` | módulo 1 (L2815) | clásico 8 | función/objeto |
-| `resolverIdsParada` | módulo 1 (L2803) | módulo 2 | función/objeto |
-| `retryUntilAvailable` | módulo 1 (L2804) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6123) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6051) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L5981) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6200) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6274) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6569) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6568) | módulo 2 | función/objeto |
-| `showParentLoadingOverlay` | módulo 1 (L2761) | módulo 2 | función/objeto |
-| `TIPOS_MENSAJE` | módulo 1 (L3754) | clásico 7, clásico 8, módulo 2 | función/objeto |
-| `toggleRotationMessage` | módulo 1 (L3915) | clásico 8, módulo 2 | función/objeto |
-| `updateLoadingStatus` | módulo 1 (L2789) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13285) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9601) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12317) | módulo 1 | función/objeto |
-| `_decidirAvanzar` | módulo 2 (L10817) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13267) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11386) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12029) | módulo 1 | función/objeto |
-| `_numerosDeMapaCompletados` | módulo 2 (L12485) | clásico 8 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9540) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L10704) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L10836) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L10766) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L10728) | módulo 1 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L8785) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9535) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L8917) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L8958) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12242) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9413) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9405) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13301) | módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3647) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5034) | clásico 12 | estado |
+| `__VV_5KM_BLOCKED` | módulo 1 (L5521) | módulo 2 | función/objeto |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3631) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3630) | módulo 2 | función/objeto |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6382) | clásico 12 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3614) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6512) | clásico 12 | estado |
+| `__vv_MAPAS_VINTAGE` | módulo 1 (L3632) | módulo 2 | función/objeto |
+| `__vv_registroScript1` | módulo 1 (L3512) | módulo 2 | estado |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4770) | módulo 2 | función/objeto |
+| `_apilarEntradaDeAventura` | módulo 1 (L4756) | módulo 2 | función/objeto |
+| `_cerrarDesplegablesDelPadre` | módulo 1 (L4727) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L6922) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8301) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8527) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8427) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L3939) | módulo 2 | estado |
+| `_entradaDeCoordenadas` | módulo 1 (L3705) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8396) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8611) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8503) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8402) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8619) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8271) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L7799) | módulo 2 | función/objeto |
+| `_ocultarPantallasDistanciaDelElemento` | módulo 1 (L5853) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5873) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3764) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4973) | clásico 7, módulo 2 | estado |
+| `cargarHijoCasa` | módulo 1 (L7585) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L7584) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L3856) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3758) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3759) | módulo 2 | función/objeto |
+| `escaparHTML` | módulo 1 (L2808) | clásico 8, módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L3944) | clásico 7, módulo 2 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4302) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4053) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6286) | módulo 2 | función/objeto |
+| `hideParentLoadingOverlay` | módulo 1 (L2775) | módulo 2 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4974) | clásico 5, clásico 7, módulo 2 | estado |
+| `limpiarDatosAventura` | módulo 1 (L2812) | módulo 2 | función/objeto |
+| `MODOS` | módulo 1 (L3757) | módulo 2 | función/objeto |
+| `mostrarAvisosDelDispositivo` | módulo 1 (L4593) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8002) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L7929) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L7739) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L7782) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4149) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5062) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5089) | módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L2817) | clásico 8 | función/objeto |
+| `resolverIdsParada` | módulo 1 (L2805) | módulo 2 | función/objeto |
+| `retryUntilAvailable` | módulo 1 (L2806) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6126) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6054) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L5984) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6203) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6277) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6572) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6571) | módulo 2 | función/objeto |
+| `showParentLoadingOverlay` | módulo 1 (L2763) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3756) | clásico 7, clásico 8, módulo 2 | función/objeto |
+| `toggleRotationMessage` | módulo 1 (L3917) | clásico 8, módulo 2 | función/objeto |
+| `updateLoadingStatus` | módulo 1 (L2791) | módulo 2 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13309) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9604) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12320) | módulo 1 | función/objeto |
+| `_decidirAvanzar` | módulo 2 (L10820) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13291) | clásico 7 | función/objeto |
+| `_etiquetasNumeroDeMapa` | módulo 2 (L12403) | clásico 8 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11389) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12032) | módulo 1 | función/objeto |
+| `_numerosDeMapaCompletados` | módulo 2 (L12508) | clásico 8 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9543) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10707) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L10839) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L10769) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L10731) | módulo 1 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L8788) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9538) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L8920) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L8961) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12245) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9416) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9408) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13325) | módulo 2 | función/objeto |
 
 </details>
 
