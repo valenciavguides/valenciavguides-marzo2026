@@ -31,11 +31,19 @@
  * Antes de cada pulsación en el padre se dejan pasar 3 s desde la anterior: siete pulsaciones en menos de 3 s en
  * cualquier parte del padre abren el aviso del panel de registros (§24; estudio, K-149), que taparía la ✗ siguiente.
  *
+ * En EQ-1 el cierre se mide con el reloj de la página (`apuntarCierre`): antes de pulsar se apunta en la página cuándo
+ * llega el clic a la ✗ y cuándo deja de verse la capa, y después se lee ese apunte sin prisa. Lo que se mide es lo que
+ * tarda la aplicación, no lo que tarda la página en contestar: en el iPhone simulado (el WebKit de Playwright en
+ * Windows), con un vídeo sonando, la página puede tardar más de 5 s en contestar aunque la ventana ya esté cerrada
+ * (estudio, K-194).
+ *
  * ROJO ANTES QUE VERDE: con la ✗ común sin recibir el puntero (`pointer-events: none` añadido a `css/boton-cerrar.css`)
  * caen EQ-1, EQ-2, los cuatro EQ-3, EQ-4 y EQ-6, y pasa EQ-5 (saltar la intro no es la ✗ común). Con la ventana del vídeo
  * que se reutilizaba sin reproductor, EQ-1 cae con un TypeError (estudio, K-150); con el zoom que capturaba el puntero,
  * EQ-4 cae con ratón (spec 163). Con la ✗ de la cabecera del asistente con el z-index de la esquina (sin el `z-index:
  * auto` de `.btn-cerrar-en-linea`), EQ-6 cae: se pinta encima del modal, y en iphone12 se lleva el toque de la ✗ del modal.
+ * Con `cerrarVideoOverlay` sin hacer nada en la ventana que lleva vídeo, EQ-1 cae con «vídeo: la ✗ no la cierra».
+ * Quitarle solo el `classList.remove('visible')` no la hace caer: la ventana se borra igual a los 400 ms.
  */
 'use strict';
 
@@ -63,6 +71,51 @@ const seVe = (frame, sel) => frame.evaluate((s) => {
   }
   return true;
 }, sel);
+
+/**
+ * El cierre con el reloj de la página. Antes de pulsar, apunta en la página cuándo llega el clic a la ✗ de la capa y
+ * cuándo deja de verse (con la misma regla que `seVe`): lo mira cada vez que cambia el DOM y, desde el clic, cada 50 ms,
+ * por si una transición acaba sin cambiarlo. Una ✗ que no cierra no deja apunte de cierre.
+ */
+async function apuntarCierre(page, capa) {
+  await page.evaluate((capa) => {
+    const apunte = { clic: null, cerrada: null };
+    globalThis.__vvCierre = apunte;
+    const seVeAhora = () => {
+      const el = document.querySelector(capa);
+      if (!el) return false;
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) return false;
+      for (let e = el; e; e = e.parentElement) {
+        const cs = getComputedStyle(e);
+        if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) return false;
+      }
+      return true;
+    };
+    let cadaPoco = null;
+    const observador = new MutationObserver(() => mirar());
+    function mirar() {
+      if (apunte.clic === null || apunte.cerrada !== null || seVeAhora()) return;
+      apunte.cerrada = performance.now();
+      observador.disconnect();
+      clearInterval(cadaPoco);
+    }
+    observador.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
+    document.addEventListener('click', (e) => {
+      if (apunte.clic !== null || !e.target.closest?.(`${capa} .btn-cerrar-overlay`)) return;
+      apunte.clic = performance.now();
+      cadaPoco = setInterval(mirar, 50);
+    }, true);
+  }, capa);
+}
+
+/** Lee sin prisa el apunte de `apuntarCierre`: la capa tiene que haberse cerrado, y antes de 5 s del clic. */
+async function esperarCierre(page, nombre) {
+  await expect.poll(() => page.evaluate(() => globalThis.__vvCierre?.cerrada != null), { timeout: 30_000, message: `${nombre}: la ✗ no la cierra` })
+    .toBe(true);
+  const { clic, cerrada } = await page.evaluate(() => globalThis.__vvCierre);
+  expect(cerrada - clic, `${nombre}: la ✗ tarda más de 5 s en cerrarla`).toBeLessThan(5_000);
+}
 
 const seleccion = (page) => page.frames().find((f) => f.name() === 'seleccion');
 
@@ -155,8 +208,9 @@ for (const gesto of ['ratón', 'dedo']) {
         for (const [nombre, capa, abrir] of casos) {
           await page.evaluate(abrir, { IMAGEN, VIDEO });
           await expect.poll(() => seVe(page.mainFrame(), capa), { timeout: 10_000, message: `${nombre}: la capa no se abre` }).toBe(true);
+          await apuntarCierre(page, capa);
           await pulsar(page.locator(`${capa} ${X}`).first());
-          await expect.poll(() => seVe(page.mainFrame(), capa), { timeout: 5_000, message: `${nombre}: la ✗ no la cierra` }).toBe(false);
+          await esperarCierre(page, nombre);
           if (nombre === 'mapa completo') {
             expect(await page.evaluate(() => globalThis.mensajeria.getIframesRegistrados().has('mapa-completo')), 'el mapa completo se da de baja en el bus').toBe(false);
           }

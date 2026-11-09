@@ -4404,6 +4404,7 @@ Origen: la prueba en vivo del usuario en su Android, con `a4cf5a5` publicada (`j
 - **Lo que no cuadra.** Dos respuestas para el mismo estado: deshabilitado se ve al 30 % en seis botones y al 35 % en el de la P11. El fondo de hijo4, por lo leído, no se ve (sin medir: podría asomar un filo en el borde).
 - **Pendiente: decisión.** *A)* que lo decida solo `:disabled` (el JavaScript pone y quita `disabled` y nada más; los seis pasan del 30 al 35 %), y fuera el fondo de hijo4 tras medir que no se ve; *B)* dejarlo.
 - **Relacionado.** K-153. video-intro no entra: su botón de la banda no usa `disabled`; su «todavía no» es una clase (`.next-ready`), en gris y con las flechas girando, y es el único camino de ese botón.
+- **Decidido (2026-11-10; el usuario): *B*, se deja como está.**
 
 ##### K-193 — Reabrir el vídeo menos de 400 ms después de cerrarlo lo hace desaparecer: se reutiliza la ventana que se está yendo, y el temporizador del cierre la quita igual — ✅ (leído)
 
@@ -4412,6 +4413,7 @@ Origen: la prueba en vivo del usuario en su Android, con `a4cf5a5` publicada (`j
 - **Lo que no cuadra.** Por lo leído (sin medir), quien vuelve a pulsar el vídeo justo después de cerrarlo lo ve desaparecer, y una precarga que coincida se pierde. El `video.currentTime = 0` del cierre solo sirve para esa reutilización. Hoy no lo puede ver nadie: ningún punto de los datos tiene vídeo (`npm run verificar-datos`).
 - **Pendiente: decisión.** *A)* que una ventana que se cierra no se reutilice (la quita el cierre, o el temporizador mira que siga cerrada), con un spec rojo antes que verde; *B)* dejarlo hasta que haya vídeos.
 - **Relacionado.** K-150.
+- **Decidido (2026-11-10; el usuario: «no hay velocidad humana que haga que en medio segundo se vuelva a pulsar el botón… seamos realistas»): no es un problema; se queda como está.**
 
 ##### K-194 — El fallo de iPhone del spec 164 (EQ-1, el vídeo, con ratón): la página no contesta en 5 s a la primera comprobación después del clic; la ventana ya está cerrada — ✅ (ejecutado; leído en Playwright)
 
@@ -4421,6 +4423,7 @@ Origen: la prueba en vivo del usuario en su Android, con `a4cf5a5` publicada (`j
 - **Lo que no cuadra.** La app cierra la ventana; lo que falla es que la página no contesta a la primera comprobación en 5 s (el WebKit de Playwright en Windows, con un vídeo sonando). Sin probar en un iPhone de verdad.
 - **Pendiente: decisión.** *A)* que el spec apunte en la página quién quita `visible` y cuándo, en el momento del clic, y lo lea después con un plazo largo: así una página lenta no pasa por una ✗ que no cierra, y una ✗ que no cierra sigue cayendo; *B)* dejarlo y tenerlo por conocido. En los dos casos, mirar en un iPhone de verdad que cerrar el vídeo es inmediato.
 - **Relacionado.** K-193 y K-150.
+- **Decidido y aplicado (2026-11-10; el usuario: *A*).** EQ-1 apunta en la página, antes de pulsar, cuándo llega el clic a la ✗ y cuándo deja de verse la capa (`apuntarCierre`: con un `MutationObserver` y, desde el clic, una mirada cada 50 ms, con la regla de `seVe`), y lee ese apunte sin prisa (`esperarCierre`: hasta 30 s para leerlo; la capa, cerrada antes de 5 s del clic con el reloj de la página). Control medido en chromium: con `cerrarVideoOverlay` sin hacer nada en la ventana que lleva vídeo, cae con «vídeo: la ✗ no la cierra». Un primer control, quitarle solo el `classList.remove('visible')`, pasó: la ventana se borra igual a los 400 ms, así que no valía (tampoco para la forma anterior de medir). Verde: EQ-1 con ratón y con dedo, chromium 2/2 e iphone12 6/6 (tres pasadas).
 
 ##### K-195 — El número de mapa del padre (`numero_mapa`, doce idiomas) no lo lee la aplicación; y los comentarios «// mapa número» de las coordenadas son otra copia, sin comprobar — ✅ (búsqueda desnuda; historia de git; medido sobre los datos)
 
@@ -4428,6 +4431,7 @@ Origen: la prueba en vivo del usuario en su Android, con `a4cf5a5` publicada (`j
 - **Lo que no cuadra.** Un dato en catorce sitios (el de las coordenadas, su comentario y doce copias en el padre) que la aplicación lee de uno. Las doce copias no pueden contradecirlo, porque lo comprueba el verificador; los comentarios, sí. De paso: dos de esos tres comentarios y otros dos datos apuntan a paradas con el número del monumento de al lado (`docs/contraste-textos-mapa.md`, «Fuera de los 10»).
 - **Pendiente: decisión.** *A)* quitar `numero_mapa` de los doce idiomas y su comparación del verificador; *B)* dejarlo como referencia para quien edita el fichero, con el verificador (la guía lo dice así en la tabla de `DATOS_PADRE`). Y los comentarios: corregir los que no coinciden, o quitarlos.
 - **Relacionado.** La nota de la lectura única del número de mapa (arriba, en las decisiones del 2026-11-09).
+- **Decidido (2026-11-10; el usuario: «Dejarlas como guía, con el control vigilando»): *B*.** Las doce copias se quedan como referencia, y el verificador sigue comprobando que coinciden con las coordenadas. Los números de las paradas, el usuario: «yo sé que están bien»; no se tocan, ni sus comentarios.
 
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
