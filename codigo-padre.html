@@ -4454,7 +4454,7 @@
                         await ejecutarRestauracionAventura(datosGuardados);
                         _setLoadingProgress(100);
                         // Insertar entrada en el historial para interceptar "botón atrás"
-                        try { history.pushState(null, ''); } catch (_e) { /* NOSONAR */ }
+                        _apilarEntradaDeAventura();
                     } finally {
                         clearInterval(restoreProgressTimer);
                         globalThis.hideParentLoadingOverlay?.();
@@ -4649,9 +4649,18 @@
                 .finally(() => { _popstateActivo = false; });
         }
 
+        // La entrada del historial que intercepta «atrás» con una aventura en marcha: la apila esta función, en la
+        // activación (Script 2, _hdl_SELECCION_AVENTURA_ACTIVADA, por globalThis), en la reanudación y en cada «atrás»
+        // (el escucha de popstate, que la vuelve a apilar). Sin estado: el escucha no mira la entrada a la que se llega
+        // (docs/estudio-caminos.md, K-105 y K-28).
+        function _apilarEntradaDeAventura() {
+            try { history.pushState(null, ''); } catch (_e) { /* NOSONAR */ }
+        }
+        globalThis._apilarEntradaDeAventura = _apilarEntradaDeAventura;
+
         globalThis.addEventListener('popstate', () => {
             if (!_hayAventuraEnMarcha()) return;
-            try { history.pushState(null, ''); } catch (_e) { /* NOSONAR */ }
+            _apilarEntradaDeAventura();
             _atrasConAventuraEnMarcha();
         });
 
@@ -11793,8 +11802,8 @@ await _comprobarReanudacionAventura(logPrefix);
                     });
                 }
                 (globalThis.logger || console).success(`${logPrefix} ✅ Aventura ${aventura} registrada correctamente`);
-                // Insertar entrada en el historial del navegador para interceptar "botón atrás"
-                try { history.pushState(null, ''); } catch (_e) { /* NOSONAR */ }
+                // La entrada del historial que intercepta «atrás»: la apila la función de Script 1.
+                try { globalThis._apilarEntradaDeAventura(); } catch (e) { (globalThis.logger || console).error(`${logPrefix} No se pudo apilar la entrada del «atrás»:`, e?.message || e); }
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error registrando aventura:`, error, error?.stack);

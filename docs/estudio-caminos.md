@@ -1715,6 +1715,7 @@ Otras tablas indexadas por idioma (12/12): `LANG_ARCHIVO_PARRAFOS` (`data-loader
   bus: regla 1) y las dos de scripts clásicos, que no pueden importar (`const wait` de `video-intro.html` y la pausa de la
   despedida de la selección). Spec 155, UC-1: `sleep` se define solo en `js/utils.js` y nadie la publica en `globalThis`.
 - **Escapar HTML, una sola (2026-10-26).** Eran nueve copias en el padre, de dos maneras: ocho con el mismo mapa de
+- **El apilado del «atrás», uno solo (2026-11-09; el usuario: «sigamos con esto también porque así vamos cerrando puntos»).** Eran tres `history.pushState(null, '')` en el padre: la activación (Script 2), la reanudación y el propio escucha de `popstate` (Script 1). Queda `_apilarEntradaDeAventura()` (Script 1), publicada en `globalThis` para el handler de Script 2, que la llama con un `try` que avisa a nivel `error` si faltara. Spec 155, UC-5: en rojo con los tres sitios, en verde después; el 131 (el «atrás», doce casos) en verde. Guía: §34.3, la fila del 155 y la tabla del padre de §37.2.
   escape (`_escapar` en las seis funciones de carteles de Script 1, `_esc` del listado de paradas y `_escaparTextoRescate`
   en Script 2) y `_galeriaEscaparHTML` en el script clásico de la galería, que escapaba con `textContent`/`innerHTML` y no
   escapa las comillas; y una décima en hijo5, que solo escapaba las comillas dobles del atributo `data-nombre`. Queda

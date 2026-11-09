@@ -4919,7 +4919,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-026bfb623f5e'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-857c13ddadf1'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8054,7 +8054,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `152-hijo2-pide-y-el-padre-resuelve.spec.js` | 4 | hijo2 no guarda listas: pide, y el padre resuelve con sus datos (§9.6, §10.5): al repartir los datos y activar una parada, hijo2 no recibe ninguna lista ni petición de coordenadas, y no pide ni confirma nada de eso (H2-1); el botón de imagen solo manda la acción y el padre abre su ventana con la imagen, las imágenes y el texto del elemento actual —el texto, por su `texto_id`— (H2-2); el de vídeo, en un tramo, igual con el vídeo y el nombre del tramo (H2-3); y «volver a la ruta» solo manda la posición, sin el elemento ni su id (H2-4) |
 | `153-la-fase-2-carga-solo-la-aventura-elegida.spec.js` | 4 | La fase 2 carga solo la aventura y el idioma elegidos, por `js/data-loader.js` (§7.1, §22.12): sus globales llevan esa aventura y ese idioma y no hay global de puzzles (F2-1); si cambian, vuelve a cargar (F2-2); con la API simulada y los ficheros protegidos en 403, la fase 2 y `cargarPuzzle()` leen de la API y no piden ningún fichero protegido (F2-3); y el reto de puzzle llega a hijo4 con la imagen de su puzzle (F2-4) |
 | `154-el-listado-titula-por-texto-id.spec.js` | 2 | El listado de paradas titula cada parada con el texto del `texto_id` de su fila de `DATOS_PADRE`, la regla de la ventana de la imagen (§7.2, «Listado de paradas»): en el listado de Aventura1 en español, el título de Av1-P-1 y el de Av1-P-2 salen una vez cada uno (LT-1, control); y con el `texto_id` de Av1-P-1 apuntando al texto de Av1-P-2, el de Av1-P-2 sale dos veces y el de Av1-P-1 ninguna (LT-2) |
-| `155-una-sola-copia-de-cada-ayudante.spec.js` | 4 | Cada ayudante de uso común tiene una sola definición, en `js/` (estudio, K-28): `sleep` solo en `js/utils.js` y sin publicar en `globalThis` (UC-1); el mapa de escape de HTML, una vez, en `escaparHTML` de `js/utils.js` (UC-2); la galería escapa como el resto, y un nombre con comillas dobles llega entero al `alt` de la imagen (UC-3); el título del texto de la galería con etiquetas sale como texto (UC-4, control) |
+| `155-una-sola-copia-de-cada-ayudante.spec.js` | 5 | Cada ayudante de uso común tiene una sola definición, en `js/` (estudio, K-28): `sleep` solo en `js/utils.js` y sin publicar en `globalThis` (UC-1); el mapa de escape de HTML, una vez, en `escaparHTML` de `js/utils.js` (UC-2); la galería escapa como el resto, y un nombre con comillas dobles llega entero al `alt` de la imagen (UC-3); el título del texto de la galería con etiquetas sale como texto (UC-4, control); la entrada del historial que intercepta «atrás» la apila una sola función del padre, `_apilarEntradaDeAventura()`: `history.pushState` en un solo sitio (UC-5, §34.3) |
 | `156-la-reanudacion-avisa-si-script-2-no-llega.spec.js` | 2 | La reanudación espera a que Script 2 publique `distribuirDatosAventura` con plazo y, si no llega, avisa (§11, el aviso de último recurso de `_avisarFalloCargaAppUnaVez()`; estudio, K-72): con Script 2 cortado en su primera instrucción (la respuesta de `codigo-padre.html` se reescribe, con el service worker bloqueado), tras pulsar «Continuar» sale el aviso de fallo de carga, y ninguno antes de pulsarlo (RE-1; más de un minuto: el arranque espera hasta 30 s a Script 2 y la reanudación otros 30 s); sin corte, la reanudación termina sin ningún aviso (RE-2, control) |
 | `157-avanzar-lo-decide-un-solo-sitio.spec.js` | 4 | «Avanzar» de hijo2 lo decide un solo sitio del padre (§29.4), medido con el padre, los hijos y el botón reales: un tramo sin completar no lo enciende al acercarse a su final, y completado sí (AV-1); una parada a medias no lo enciende al volver de los 5 km, y completada sí (AV-2); con la parada completada, salir de rango sin gracia lo apaga y volver lo enciende (AV-3, control); una pulsación con el botón apagado, fuera de rango, no avanza, y con el botón encendido sí (AV-4) |
 | `158-imagenes-por-idioma.spec.js` | 3 | Las imágenes que dependen del idioma salen en la ventana de la imagen detrás de las fotos de la parada, de la carpeta de su idioma (§4.7f), medido con el padre, los hijos y el botón de hijo2 reales: en español (IM-1) y en inglés (IM-2), Av1-P-5 lleva sus cinco imágenes de `imagenes/imagenes-idiomas/<carpeta>/`; Av1-P-1, sin `imagenes_idioma`, solo sus fotos (IM-3, control) |
@@ -9109,7 +9109,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-026bfb623f5e';
+const CACHE_VERSION = 'v-857c13ddadf1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12578,7 +12578,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-026bfb623f5e';
+const CACHE_VERSION = 'v-857c13ddadf1';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13243,13 +13243,13 @@ Lo cubre `tests/e2e/76-pausa-audio-enlace-externo.spec.js`: PA-1 comprueba el es
 
 **Botón retroceder:**
 
-Cuando la aventura se registra con éxito (en `_hdl_SELECCION_AVENTURA_ACTIVADA` y en `ejecutarReanudacion` del diálogo de reanudación), se apila una entrada en el historial del navegador, sin estado:
+Cuando la aventura se registra con éxito (en `_hdl_SELECCION_AVENTURA_ACTIVADA` y en `ejecutarReanudacion` del diálogo de reanudación), `_apilarEntradaDeAventura()` (Script 1, publicada en `globalThis` para el handler de Script 2) apila una entrada en el historial del navegador, sin estado:
 
 ```js
 history.pushState(null, '');
 ```
 
-Con una aventura en marcha, el escucha de `popstate` vuelve a apilarla en cada «atrás» —la aplicación no se abandona con ese botón— y llama a `_atrasConAventuraEnMarcha()`, que hace lo que una app nativa: primero cierra lo que hay delante. En este orden:
+Con una aventura en marcha, el escucha de `popstate` vuelve a apilarla en cada «atrás», con la misma función —la aplicación no se abandona con ese botón— y llama a `_atrasConAventuraEnMarcha()`, que hace lo que una app nativa: primero cierra lo que hay delante. En este orden:
 
 1. Con el diálogo de vuelta abierto, pulsa su «Continuar mi aventura».
 2. Con el modal de fin de aventura (`#modal-finalizacion-aventura`, sin ✕) no hace nada: el modal ofrece sus dos salidas.
@@ -14270,7 +14270,7 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **113 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 96 identificadores cruzados, de 138 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 97 identificadores cruzados, de 139 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14287,35 +14287,36 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `mostrarVideoOverlay` | clásico 8 (L1942) | módulo 1 | función/objeto |
 | `rotationSuppressed` | clásico 8 (L1641) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 (L3643) | módulo 2 | función/objeto |
-| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4928) | clásico 12 | estado |
-| `__VV_5KM_BLOCKED` | módulo 1 (L5416) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L4937) | clásico 12 | estado |
+| `__VV_5KM_BLOCKED` | módulo 1 (L5425) | módulo 2 | función/objeto |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3627) | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3626) | módulo 2 | función/objeto |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6277) | clásico 12 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6286) | clásico 12 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3610) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6405) | clásico 12 | estado |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6414) | clásico 12 | estado |
 | `__vv_MAPAS_VINTAGE` | módulo 1 (L3628) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3508) | módulo 2 | estado |
-| `__vv_salidaEnlaceExterno` | módulo 1 (L4664) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4673) | módulo 2 | función/objeto |
+| `_apilarEntradaDeAventura` | módulo 1 (L4659) | módulo 2 | función/objeto |
 | `_cerrarDesplegablesDelPadre` | módulo 1 (L4630) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L6815) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8208) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8434) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8334) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L6824) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8217) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8443) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8343) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L3935) | módulo 2 | estado |
 | `_entradaDeCoordenadas` | módulo 1 (L3701) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8303) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L8518) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8410) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8309) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8526) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8178) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L7706) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5768) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8312) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8527) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8419) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8318) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8535) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8187) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L7715) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5777) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3760) | módulo 2 | función/objeto |
-| `aventuraSeleccionada` | módulo 1 (L4867) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L7478) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L7477) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4876) | clásico 7, módulo 2 | estado |
+| `cargarHijoCasa` | módulo 1 (L7487) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L7486) | módulo 2 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L3852) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3754) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3755) | módulo 2 | función/objeto |
@@ -14323,53 +14324,53 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `estadoPadre` | módulo 1 (L3940) | clásico 7, módulo 2 | función/objeto |
 | `findIndexByPadreIdOrId` | módulo 1 (L4298) | módulo 2 | función/objeto |
 | `getEstadoSafe` | módulo 1 (L4049) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6181) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6190) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2771) | módulo 2 | función/objeto |
-| `idiomaSeleccionado` | módulo 1 (L4868) | clásico 5, clásico 7, módulo 2 | estado |
+| `idiomaSeleccionado` | módulo 1 (L4877) | clásico 5, clásico 7, módulo 2 | estado |
 | `limpiarDatosAventura` | módulo 1 (L2808) | módulo 2 | función/objeto |
 | `MODOS` | módulo 1 (L3753) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L7909) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L7836) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L7632) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L7675) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L7918) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L7845) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L7641) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L7684) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4145) | módulo 2 | función/objeto |
-| `registrarControladorSeguro` | módulo 1 (L4956) | módulo 2, módulo 4 | función/objeto |
-| `registrarEvento` | módulo 1 (L4983) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L4965) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L4992) | módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2813) | clásico 8 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2801) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2802) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6021) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L5949) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L5879) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6098) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6172) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6465) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6464) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6030) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L5958) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L5888) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6107) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6181) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6474) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6473) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2759) | módulo 2 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L3752) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3913) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2787) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13188) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9511) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12244) | módulo 1 | función/objeto |
-| `_decidirAvanzar` | módulo 2 (L10718) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13170) | clásico 7 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11267) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L11908) | módulo 1 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9450) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L10611) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L10737) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L10673) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L10635) | módulo 1 | función/objeto |
-| `_verificarCodigoDevPWA` | módulo 2 (L11938) | módulo 5 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L8695) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9445) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L8827) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L8868) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12169) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9323) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9315) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13204) | módulo 2 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13197) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9520) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12253) | módulo 1 | función/objeto |
+| `_decidirAvanzar` | módulo 2 (L10727) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13179) | clásico 7 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11276) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L11917) | módulo 1 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9459) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10620) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L10746) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L10682) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L10644) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L11947) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L8704) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9454) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L8836) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L8877) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12178) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9332) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9324) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13213) | módulo 2 | función/objeto |
 
 </details>
 

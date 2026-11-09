@@ -12,9 +12,12 @@
  *   UC-2  Escapar HTML: el mapa de escape está una sola vez, en `escaparHTML` de `js/utils.js`.
  *   UC-3  La galería de imágenes escapa como el resto: un nombre con comillas dobles llega entero al `alt` de la imagen.
  *   UC-4  Control: el título del texto de la galería con etiquetas sale como texto (lo escapaban ya las dos maneras).
+ *   UC-5  El historial: la entrada que intercepta «atrás» la apila una sola función del padre (`history.pushState` en
+ *         un solo sitio).
  *
  * ROJO ANTES QUE VERDE: con las copias del padre, UC-2 cae; con la galería escapando por `textContent`/`innerHTML`, que no
- * escapa las comillas, UC-3 cae (el `alt` se corta en la primera comilla). UC-4 pasa con las dos.
+ * escapa las comillas, UC-3 cae (el `alt` se corta en la primera comilla). UC-4 pasa con las dos. Con el apilado del
+ * «atrás» escrito en sus tres sitios (la activación, la reanudación y el propio escucha de `popstate`), UC-5 cae.
  */
 'use strict';
 
@@ -45,6 +48,10 @@ test.describe('UC — una sola copia de cada ayudante (estático)', () => {
 
   test('UC-2. El mapa de escape de HTML está una sola vez, en js/utils.js', () => {
     expect(dondeCasa(/'&#39;'/g)).toEqual([['js/utils.js', 1]]);
+  });
+
+  test('UC-5. La entrada del historial que intercepta «atrás» la apila una sola función del padre', () => {
+    expect(dondeCasa(/history\.pushState\(/g)).toEqual([['codigo-padre.html', 1]]);
   });
 });
 
