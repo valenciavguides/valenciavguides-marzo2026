@@ -2650,6 +2650,19 @@ function _mostrarCartelLlegadaInicioUnaVez(punto, logPrefix) {
 }
 
 /**
+ * El id del elemento actual, el del padre (`_idDelElementoActual`, Script 2), que es su único dueño. Sin él (el padre no
+ * ha publicado su Script 2), se mide contra la copia del mapa, y se dice: ese camino solo existe para no medir contra
+ * el primer elemento de la ruta.
+ * @param {string} logPrefix
+ * @returns {string|null}
+ */
+function _idDelElementoActualDelPadre(logPrefix) {
+    if (typeof globalThis._idDelElementoActual === 'function') return globalThis._idDelElementoActual();
+    logger.error(`${logPrefix} Sin _idDelElementoActual del padre: la lectura se mide contra la copia del mapa (${estadoMapa.paradaActual})`);
+    return estadoMapa.paradaActual;
+}
+
+/**
  * Procesa posición GPS para detección secuencial en modo aventura
  */
 async function procesarPosicionGPSParaAventura(posicion) {
@@ -2694,7 +2707,10 @@ async function procesarPosicionGPSParaAventura(posicion) {
         }
 
         const paradas = globalThis.AVENTURA_PARADAS;
-        const siguienteId = _siguienteIdElementoNavegable(globalThis.aventuraSeleccionada, globalThis.idiomaSeleccionado, estadoMapa.paradaActual);
+        // Se mide contra el elemento actual del padre, su único dueño: el padre lo cambia al principio de su cambio de
+        // parada, y la copia del mapa (estadoMapa.paradaActual) cambia después, cuando el mapa ha dibujado el nuevo.
+        // Medir contra la copia mandaba a hijo2, en ese hueco, lecturas del elemento que se acababa de dejar (K-74).
+        const siguienteId = _siguienteIdElementoNavegable(globalThis.aventuraSeleccionada, globalThis.idiomaSeleccionado, _idDelElementoActualDelPadre(logPrefix));
         if (!siguienteId) {
             logger.info(`${logPrefix} Ruta completada o secuencia de la aventura no disponible`);
             return;

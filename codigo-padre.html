@@ -10794,6 +10794,9 @@ await _comprobarReanudacionAventura(logPrefix);
         function _idDelElementoActual() {
             return estado.elementoActual?.parada_id || estado.elementoActual?.tramo_id || null;
         }
+        // El mapa (js/funciones-mapa.js) mide cada lectura del GPS contra este elemento, no contra su propia copia, que
+        // cambia cuando ha dibujado el nuevo: por eso se publica (K-74, spec 179).
+        globalThis._idDelElementoActual = _idDelElementoActual;
 
         // La decisión, sin efectos: qué le toca al botón AHORA y por qué. La `razon` viaja en el
         // mensaje a hijo2 y es lo que se lee en una traza.

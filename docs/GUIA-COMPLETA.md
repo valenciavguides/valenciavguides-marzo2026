@@ -2692,7 +2692,7 @@ Solo hay un modo claro ("Callejero"): un segundo estilo claro resultaría visual
 
 El Haversine **no lo calcula hijo2** — lo calcula `funciones-mapa.js` en el padre. Cada posición GPS válida en modo AVENTURA, sea cual sea su precisión, hace que `procesarPosicionGPSParaAventura()` envíe a hijo2 `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, lat, lng, accuracy, timestamp }` (más `ubicacionActiva: false` a 50 m o menos del destino) con la distancia ya calculada — la precisión no filtra esta llamada (ver «Precisión GPS: se procesa siempre, la llegada se confirma por ventana deslizante» más abajo). Hijo2 solo compara contra el umbral:
 
-**Cómo decide "cuál es el elemento a buscar" antes de calcular la distancia:** dos preguntas distintas, dos fuentes distintas — nunca la misma. "¿Cuál es el elemento GPS actual?" lo responde `_siguienteIdElementoNavegable(aventura, idioma, paradaActualId)`, caminando `DATOS_PADRE[aventura][idioma].elementosIDpadre` (`js/aventuras-ID-padre.js`) **desde la posición de `estadoMapa.paradaActual` incluyéndola** hasta el primer elemento con `tipo` en `['inicio','parada','tramo']` — esta lista está ya en secuencia real y nunca mezcla las entradas `tipo:"referencia"`. El nombre de la función sugiere "el siguiente", pero busca desde `paradaActual` mismo: ese valor representa el elemento ACTIVO ahora (su audio ya se solicitó a hijo3 en el mismo `CAMBIO_PARADA` que lo fijó, antes de que el usuario llegue físicamente), así que es ese elemento — no el que viene después — el destino GPS correcto mientras esté activo. Buscar desde el índice siguiente saltaría el elemento activo entero y apuntaría siempre uno por delante — nunca se detectaría la llegada real, incluida la parada 0 al empezar la aventura. Con el id resuelto, "¿dónde está en el mapa?" se responde buscando ese mismo id en `AVENTURA_PARADAS` (el array `coordenadas` de `js/coordenadas-aventuras.js`, cacheado en `globalThis.AVENTURA_PARADAS`) por `.id`, que sí tiene `lat`/`lng` reales. Buscar la coordenada directamente en `AVENTURA_PARADAS` por posición de array, en vez de por `.id`, apuntaría a la entrada equivocada del array — una referencia visual (`REF-1`), no la parada o tramo real — por eso la secuencia se resuelve primero en `elementosIDpadre` y las coordenadas se buscan después, por id, en dos pasos separados.
+**Cómo decide "cuál es el elemento a buscar" antes de calcular la distancia:** dos preguntas distintas, dos fuentes distintas — nunca la misma. "¿Cuál es el elemento GPS actual?" lo responde `_siguienteIdElementoNavegable(aventura, idioma, paradaActualId)`, caminando `DATOS_PADRE[aventura][idioma].elementosIDpadre` (`js/aventuras-ID-padre.js`) **desde la posición del elemento actual del padre incluyéndola** —`globalThis._idDelElementoActual()`, que el Script 2 publica para el mapa: el elemento tiene un solo dueño, el padre, que lo cambia al principio de su `CAMBIO_PARADA`; la copia del mapa (`estadoMapa.paradaActual`) cambia después, al dibujarlo, y es la de lo que el mapa tiene dibujado (si el padre no la ha publicado, se mide contra la copia del mapa y lo dice un error en el log; spec 179)— hasta el primer elemento con `tipo` en `['inicio','parada','tramo']` — esta lista está ya en secuencia real y nunca mezcla las entradas `tipo:"referencia"`. El nombre de la función sugiere "el siguiente", pero busca desde `paradaActual` mismo: ese valor es el elemento ACTIVO (su audio se pide a hijo3 en el mismo `CAMBIO_PARADA` que lo fija, antes de que el usuario llegue físicamente), así que es ese elemento — no el que viene después — el destino GPS correcto mientras esté activo. Buscar desde el índice siguiente saltaría el elemento activo entero y apuntaría siempre uno por delante — nunca se detectaría la llegada real, incluida la parada 0 al empezar la aventura. Con el id resuelto, "¿dónde está en el mapa?" se responde buscando ese mismo id en `AVENTURA_PARADAS` (el array `coordenadas` de `js/coordenadas-aventuras.js`, cacheado en `globalThis.AVENTURA_PARADAS`) por `.id`, que sí tiene `lat`/`lng` reales. Buscar la coordenada directamente en `AVENTURA_PARADAS` por posición de array, en vez de por `.id`, apuntaría a la entrada equivocada del array — una referencia visual (`REF-1`), no la parada o tramo real — por eso la secuencia se resuelve primero en `elementosIDpadre` y las coordenadas se buscan después, por id, en dos pasos separados.
 
 ```text
 Si tipoParada === 'parada':   umbral = 15 m  (fijo en hijo2)
@@ -4933,7 +4933,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-9006b880d292'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-66e304f41a73'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8097,6 +8097,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `176-un-numero-de-mapa-se-lee-igual-en-la-galeria-y-en-el-listado.spec.js` | 6 | Un número de mapa se lee igual en la galería y en el listado (§4.7f, §7.2). En la galería: un tramo `"-→21"` lleva 📌 sin número y 🎯 «21» (NM-1); `"17→-"`, 📌 «17» y 🎯 sin número (NM-2); dos números en un extremo van con `/`: `"21→22/23"` da «22/23» y `"v7-v8→v11"`, «v7/v8» (NM-3); una parada `"5,7"` dice «5/7», una `"-"` va sin etiqueta y, de control, `17` dice «17» (NM-4). En el listado de cuatro aventuras, con sus datos, cada pin escribe sus números con `/` y salen «📍5/7», «📍22/23», «📍v7/v8» y «📍16/17» (NM-5). El Puente de Monteolivete va con los números del Museo Príncipe Felipe (`"19/20"` en la Aventura3, `"13/14"` en la de 34 km): su galería y su fila del listado lo dicen, y el número está en verde con el Museo completado y no con todo hasta la Ópera (NM-6). Con la galería leyendo cada trozo tal cual caen NM-1 a NM-4 (pasa su control); con el pin unido por comas, NM-5; con el Museo en `20` y `14`, NM-6. |
 | `177-la-marca-de-los-retos-de-la-seleccion-con-el-color-de-su-caja.spec.js` | 3 | La ✓ y la ✗ de los retos de la selección llevan el color de su caja: en el R-1, una opción equivocada enseña la ✗ en el rojo de la caja, `#dc3545` (MR-1), y la correcta la ✓ en su verde, `#28a745` (MR-2); en el R-2, la opción elegida enseña la ✓ en el verde de la caja (MR-3). En los tres, de control, el borde de la caja tiene el color esperado. Con el color en las reglas de unas clases que nadie pone (`.tick.correcto`, `.x.incorrecto`), la ✓ y la ✗ salen en el negro del texto y caen los tres. |
 | `178-el-bloqueo-de-5-km-se-levanta-con-la-primera-lectura-dentro.spec.js` | 4 | El bloqueo de los 5 km se levanta con la primera lectura precisa dentro de la zona, sin esperar los 3 minutos entre comprobaciones, y en esa misma lectura sale la pantalla de la zona (§31.5). Contra el padre real con sus hijos: bloqueado, una lectura en la Ciudad de las Artes (a 2,5 km de la ruta de la Aventura1 y a 3,4 km de su parada) lo levanta y sale «muy lejos» (BK-1), también con el cartel cerrado con su ✗ (BK-2); de control, una lectura a 300 km no lo levanta (BK-3) y una dentro con ±150 m no cuenta (BK-4). Con el desbloqueo detrás de la espera de 3 minutos caen BK-1 y BK-2. |
+| `179-el-mapa-mide-contra-el-elemento-actual-del-padre.spec.js` | 2 | El mapa mide cada lectura del GPS contra el elemento actual del padre, no contra su copia (`estadoMapa.paradaActual`), que cambia después (§11, «Cómo decide cuál es el elemento a buscar»). Contra el padre real con sus hijos: con la copia del mapa dejada en el elemento anterior (`funcionesMapa.limpiarPorEstado`, con el modo actual), la lectura que llega a hijo2 en `NAVEGACION.ACTUALIZAR_ESTADO` lleva el elemento actual del padre (MA-1); de control, con la copia al día, también (MA-2). Midiendo contra la copia del mapa cae MA-1 (llega el elemento anterior). |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8623,7 +8624,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 173 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 174 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9141,7 +9142,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-9006b880d292';
+const CACHE_VERSION = 'v-66e304f41a73';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12566,7 +12567,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-9006b880d292';
+const CACHE_VERSION = 'v-66e304f41a73';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13726,7 +13727,7 @@ Hay dos rutas de activación del modo dev (ver §24 para el gesto de cada una):
 *Persistencia de `_devModeActivo`:* se resetea a `false` **solo** al recargar la página por completo. El botón GPS que pasa a AVENTURA (`_hdl_SISTEMA_CAMBIO_MODO`, en `codigo-padre.html`) no lo toca, aunque a primera vista parecería inofensivo hacerlo (solo afecta directamente la visibilidad de hijo5): `_transicionarAModoCasa()` usa ese mismo flag para decidir si una vuelta a CASA es abandono real o bootstrap de dev, así que `_devModeActivo` tiene que sobrevivir a cualquier número de vueltas CASA↔AVENTURA dentro de la misma sesión, incluida «elegir otra aventura» en un diálogo de reanudación (vuelta a P1 sin reload) — si se pusiera a `false` en ese punto, la siguiente vuelta a CASA con el mismo botón borraría la sesión guardada en localStorage como si fuera un abandono real. Solo una recarga completa de página lo reinicia.
 
 **Flujo G — GPS→botones, usuario fuera de rango:**
-GPS dispara `_watchPositionSuccess` → `procesarPosicionGPSParaAventura` (funciones-mapa.js) calcula Haversine al elemento activo (`_siguienteIdElementoNavegable`, resuelto a partir de `estadoMapa.paradaActual` — ver §"Lógica de proximidad y LLEGADA_DETECTADA") → emite `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, lat, lng, toleranciaGPS, radioLlegada }` a hijo2 → handler hijo2: llama `actualizarEstadoBotones()` y, si `modo === 'aventura'` y `distanciaAlDestino !== null`, llama `verificarDistanciaYActualizarBotones()` → si la distancia supera `rangoMaximo` (15m parada / `toleranciaGPS` tramo): fija `timestampSalioDeRango` (solo en la primera lectura fuera) y envía `GPS.RESTRINGIDO` al padre en cada posición (el padre elige la pantalla de aviso según la franja, §31.4) → al instante, en las 4 franjas por igual, `_habilitarAyudaFueraDeRango()` habilita `#btn-ubicacion`, `#btn-mapa-completo` y `#btn-mapa-jpg` (verde, los tres — un usuario perdido puede seguir consultando el mapa para orientarse); `#btn-imagen` **no se toca** → cuando el tiempo fuera alcanza la gracia de la franja (`_GRACIA_FUERA_DE_RANGO_MS`: 7 min en «fuera», 15 min en «desviado», 0 en «lejos» y «perdido»), `_procesarFueraDeRangoConfirmado()` deshabilita `#btn-video` (`_desactivarBotonesRangoExcedido()`) y hijo2 emite, una sola vez, `NAVEGACION.USUARIO_FUERA_RANGO` al padre → el padre registra `estado.usuarioFueraRango = { activo: true, ... }` (la polyline guía automática no se toca aquí — sigue su propio umbral de distancia, ver §4.6), **y además** deshabilita su propio control de audio (`actualizarEstadoControlesAudioPadre()`) y envía `CONTROL.DESHABILITAR` a hijo3 (`retosBtn`) y a hijo2 (`btnAvanzar`, §29.4) (ver tabla de botones más arriba) → al volver dentro del rango, hijo2 pone `timestampSalioDeRango` a `null` y envía `NAVEGACION.GPS.DENTRO_DE_RANGO`; `_resetarEstadoParaModo` resetea `timestampSalioDeRango = null` en la siguiente vuelta al modo aventura.
+GPS dispara `_watchPositionSuccess` → `procesarPosicionGPSParaAventura` (funciones-mapa.js) calcula Haversine al elemento activo (`_siguienteIdElementoNavegable`, resuelto a partir del elemento actual del padre, `_idDelElementoActual()` — ver §"Lógica de proximidad y LLEGADA_DETECTADA") → emite `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, lat, lng, toleranciaGPS, radioLlegada }` a hijo2 → handler hijo2: llama `actualizarEstadoBotones()` y, si `modo === 'aventura'` y `distanciaAlDestino !== null`, llama `verificarDistanciaYActualizarBotones()` → si la distancia supera `rangoMaximo` (15m parada / `toleranciaGPS` tramo): fija `timestampSalioDeRango` (solo en la primera lectura fuera) y envía `GPS.RESTRINGIDO` al padre en cada posición (el padre elige la pantalla de aviso según la franja, §31.4) → al instante, en las 4 franjas por igual, `_habilitarAyudaFueraDeRango()` habilita `#btn-ubicacion`, `#btn-mapa-completo` y `#btn-mapa-jpg` (verde, los tres — un usuario perdido puede seguir consultando el mapa para orientarse); `#btn-imagen` **no se toca** → cuando el tiempo fuera alcanza la gracia de la franja (`_GRACIA_FUERA_DE_RANGO_MS`: 7 min en «fuera», 15 min en «desviado», 0 en «lejos» y «perdido»), `_procesarFueraDeRangoConfirmado()` deshabilita `#btn-video` (`_desactivarBotonesRangoExcedido()`) y hijo2 emite, una sola vez, `NAVEGACION.USUARIO_FUERA_RANGO` al padre → el padre registra `estado.usuarioFueraRango = { activo: true, ... }` (la polyline guía automática no se toca aquí — sigue su propio umbral de distancia, ver §4.6), **y además** deshabilita su propio control de audio (`actualizarEstadoControlesAudioPadre()`) y envía `CONTROL.DESHABILITAR` a hijo3 (`retosBtn`) y a hijo2 (`btnAvanzar`, §29.4) (ver tabla de botones más arriba) → al volver dentro del rango, hijo2 pone `timestampSalioDeRango` a `null` y envía `NAVEGACION.GPS.DENTRO_DE_RANGO`; `_resetarEstadoParaModo` resetea `timestampSalioDeRango = null` en la siguiente vuelta al modo aventura.
 
 ---
 
@@ -14255,7 +14256,7 @@ Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el pad
 Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. **Once archivos** cumplen esa condición; en **6** de ellos hay identificadores que efectivamente cruzan de un bloque a otro, **113 en total**. Un nombre citado en un comentario no cuenta como uso: el generador lee cada fichero con los comentarios del HTML y del JavaScript blanqueados, y dice por la salida de errores qué bloques no pudo analizar. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
 
 <details>
-<summary><code>codigo-padre.html</code> — 100 identificadores cruzados, de 142 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
+<summary><code>codigo-padre.html</code> — 100 identificadores cruzados, de 143 expuestos (19 bloques &lt;script&gt; inline: 5 módulo + 14 clásicos) — clic para desplegar</summary>
 
 | Identificador | Definido en | Usado también en | Tipo |
 |---|---|---|---|
@@ -14337,28 +14338,28 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `TIPOS_MENSAJE` | módulo 1 (L3756) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3917) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2791) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13300) | clásico 12 | estado |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13303) | clásico 12 | estado |
 | `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9595) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12311) | módulo 1 | función/objeto |
-| `_decidirAvanzar` | módulo 2 (L10811) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13282) | clásico 7 | función/objeto |
-| `_etiquetasNumeroDeMapa` | módulo 2 (L12394) | clásico 8 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11380) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12023) | módulo 1 | función/objeto |
-| `_numerosDeMapaCompletados` | módulo 2 (L12499) | clásico 8 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12314) | módulo 1 | función/objeto |
+| `_decidirAvanzar` | módulo 2 (L10814) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13285) | clásico 7 | función/objeto |
+| `_etiquetasNumeroDeMapa` | módulo 2 (L12397) | clásico 8 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11383) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12026) | módulo 1 | función/objeto |
+| `_numerosDeMapaCompletados` | módulo 2 (L12502) | clásico 8 | función/objeto |
 | `_reenviarProgressBarAHijo3` | módulo 2 (L9534) | módulo 1 | función/objeto |
 | `_retoBtnEncendido` | módulo 2 (L10698) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L10830) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L10833) | módulo 1 | función/objeto |
 | `_sincronizarRetoBtn` | módulo 2 (L10760) | módulo 1 | función/objeto |
 | `_vaciarRetoActual` | módulo 2 (L10722) | módulo 1 | función/objeto |
 | `_vv_afterHijoListo` | módulo 2 (L8779) | módulo 1 | función/objeto |
 | `actualizarEstadoControlesAudioPadre` | módulo 2 (L9529) | módulo 1 | función/objeto |
 | `AVENTURA_PARADAS` | módulo 2 (L8911) | módulo 1 | función/objeto |
 | `distribuirDatosAventura` | módulo 2 (L8952) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12236) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12239) | módulo 1 | función/objeto |
 | `obtenerAudioIdActivoPadre` | módulo 2 (L9407) | módulo 1 | función/objeto |
 | `solicitarAudioAHijo3` | módulo 2 (L9399) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13316) | módulo 2 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13319) | módulo 2 | función/objeto |
 
 </details>
 

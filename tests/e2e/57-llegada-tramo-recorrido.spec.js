@@ -67,7 +67,7 @@ async function prepararAventura(page, elementoId, aventura = 'Aventura1') {
   await page.evaluate(async () => { await globalThis.__cargarDatosAventuraDiferidos(); });
   await page.waitForFunction(() => globalThis.__vv_DATOS_AVENTURAS != null, null, { timeout: 20000 });
 
-  await page.evaluate(({ id, av }) => {
+  await page.evaluate(async ({ id, av }) => {
     const fm = globalThis.funcionesMapa;
     globalThis.AVENTURA_PARADAS = globalThis.__vv_DATOS_AVENTURAS[av]['coordenadas-hijo2.html'].coordenadas;
     // estadoMapa.modo es una variable PROPIA del módulo del mapa, distinta de
@@ -77,6 +77,10 @@ async function prepararAventura(page, elementoId, aventura = 'Aventura1') {
     fm.sincronizarModoMapa('aventura');
     fm.limpiarPorEstado({ modo: 'aventura', resetCompleto: true });
     fm.limpiarPorEstado({ modo: 'aventura', paradaActual: id });
+    // El elemento activo es el del padre, su dueño, que el mapa usa para medir (K-74): se le pone también ahí, como tras
+    // un CAMBIO_PARADA real (el mismo atajo del arnés que los specs 13 y 20).
+    const { DATOS_PADRE } = await import('/js/aventuras-ID-padre.js');
+    globalThis.estadoPadre.elementoActual = DATOS_PADRE[av].es.elementosIDpadre.find((e) => (e.parada_id || e.tramo_id) === id) || null;
   }, { id: elementoId, av: aventura });
 
   return resueltos;

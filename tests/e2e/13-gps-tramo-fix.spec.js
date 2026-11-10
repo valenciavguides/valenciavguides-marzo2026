@@ -118,6 +118,10 @@ async function prepararEscenarioTramo(page) {
     if (typeof fm?.limpiarPorEstado === 'function') {
       fm.limpiarPorEstado({ modo: 'aventura', resetCompleto: true });
       fm.limpiarPorEstado({ modo: 'aventura', paradaActual: 'Av1-TR-1' });
+      // El elemento activo es el del padre, su dueño, que el mapa usa para medir (K-74): se le pone también ahí,
+      // como tras un CAMBIO_PARADA real (el mismo atajo del arnés que el spec 20).
+      const { DATOS_PADRE } = await import('/js/aventuras-ID-padre.js');
+      globalThis.estadoPadre.elementoActual = DATOS_PADRE.Aventura1.es.elementosIDpadre.find((e) => (e.parada_id || e.tramo_id) === 'Av1-TR-1') || null;
     }
 
     return {
@@ -481,6 +485,10 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
       if (typeof fm?.limpiarPorEstado === 'function') {
         fm.limpiarPorEstado({ modo: 'aventura', resetCompleto: true });
         fm.limpiarPorEstado({ modo: 'aventura', paradaActual: 'Av1-P-0' });
+        // El elemento activo es el del padre, su dueño, que el mapa usa para medir (K-74): se le pone también ahí,
+        // como tras un CAMBIO_PARADA real (el mismo atajo del arnés que el spec 20).
+        const { DATOS_PADRE } = await import('/js/aventuras-ID-padre.js');
+        globalThis.estadoPadre.elementoActual = DATOS_PADRE.Aventura1.es.elementosIDpadre.find((e) => (e.parada_id || e.tramo_id) === 'Av1-P-0') || null;
       }
       return { tieneFunciones: !!(fm?.procesarPosicionGPSParaAventura), totalParadas: globalThis.AVENTURA_PARADAS?.length || 0 };
     });
@@ -641,6 +649,10 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
       if (typeof fm?.limpiarPorEstado === 'function') {
         fm.limpiarPorEstado({ modo: 'aventura', resetCompleto: true });
         fm.limpiarPorEstado({ modo: 'aventura', paradaActual: 'Av1-P-1' });
+        // El elemento activo es el del padre, su dueño, que el mapa usa para medir (K-74): se le pone también ahí,
+        // como tras un CAMBIO_PARADA real (el mismo atajo del arnés que el spec 20).
+        const { DATOS_PADRE } = await import('/js/aventuras-ID-padre.js');
+        globalThis.estadoPadre.elementoActual = DATOS_PADRE.Aventura1.es.elementosIDpadre.find((e) => (e.parada_id || e.tramo_id) === 'Av1-P-1') || null;
       }
       return {
         tieneFunciones: !!fm?.procesarPosicionGPSParaAventura,
