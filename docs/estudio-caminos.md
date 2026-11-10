@@ -5146,7 +5146,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 144 | 2 | K-150 | una sola función coge la ventana del vídeo, y descarta la de «sin vídeo» — **hecha (2026-11-02), sin cambio visible** | SPEC | — | sí |
 | 145 | 1 | K-151 | fuera la rama de reto fallido del padre y el `retoCompletado` que hijo2 no lee, o dejarlos — **hecha (2026-11-09)** | — | — | sí |
 | 146 | 2 | K-152 | el GPS se recupera igual en iPhone que en el resto al volver el permiso (una sola escucha y el mismo botón), o dejarlo | VISIBLE, SPEC, iPhone real | — | decisión |
-| 147 | 3 | K-153 | una hoja común para los botones redondos verde y rojo, con un tamaño y una pareja de clases, o dejarlo | VISIBLE | K-147 (blanda) | decisión |
+| 147 | 3 | K-153 | una hoja común para los botones redondos verde y rojo, con un tamaño y una pareja de clases, o dejarlo — **el verde, decidido (2026-11-09, el usuario: «si va a crear un problema la unificación, mejor no unificar»): se quedan las copias, cada pantalla con su tamaño; el rojo, sin tratar** | VISIBLE | K-147 (blanda) | decisión |
 | 148 | 5 | K-154 | los ~170 textos que no se ven, a `traducciones-ui.js` en 12 idiomas y de usted, y los tooltips del mapa sin id ni grados — **aparcada en `personas-dificultades.md` (decisión del usuario, 2026-11-09)** | VISIBLE, GUÍA | K-25 (dura) | — |
 | 149 | 1 | K-155 | fuera `js/normativa-cumplimiento.js` de APP_SHELL, o dejarlo | — | — | decisión |
 | 150 | 3 | K-156 | desbloquear el bloqueo de 5 km en la primera lectura dentro de la zona, sin esperar al limitador, o dejarlo | VISIBLE, SPEC | K-84 (blanda) | decisión |
@@ -5186,6 +5186,10 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 184 | 2 | K-18 | una sola consulta del permiso de geolocalización, con la decisión de cada sitio — **hecha (2026-11-09): `consultarPermisoGeolocalizacion`; spec 170 (PP-11 a PP-14)** | SPEC, GUÍA | — | sí |
 | 185 | 2 | K-190 | qué número de mapa está completado: una sola regla, la del listado de paradas, para el listado y para los números en verde del mapa moderno (sin la numeración interior de los Jardines del Real) — **hecha (2026-11-09)** | SPEC, GUÍA | — | sí |
 | 186 | 2 | K-191 | enseñar la interfaz de un hijo por un solo camino: hijo4 la enseña también al recibir un reto; hijo5 llama dos veces a `mostrarUI()`; la guarda `_uiConfirmado` no frena nada | SPEC, GUÍA | — | sí |
+| 187 | 1 | K-192 | el «todavía no se puede pulsar» del botón verde de la selección por un solo sitio (`:disabled`), y fuera el fondo de hijo4 que no se ve, o dejarlo — **se deja (decisión del usuario, 2026-11-10)** | VISIBLE | — | sí |
+| 188 | 2 | K-193 | reabrir el vídeo menos de 400 ms después de cerrarlo — **no es un problema (decisión del usuario, 2026-11-10: «no hay velocidad humana…»); se queda** | — | — | sí |
+| 189 | 2 | K-194 | el spec 164 (EQ-1) mide el cierre con el reloj de la página, o se deja — **hecha (2026-11-10, `98d3a94`, opción A del usuario): `apuntarCierre` y `esperarCierre`; control en chromium; verde en chromium e iphone12** | SPEC | — | sí |
+| 190 | 1 | K-195 | `numero_mapa` del padre: quitarlo de los doce idiomas o dejarlo como guía — **se queda como guía, con el verificador (decisión del usuario, 2026-11-10)** | — | — | sí |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
