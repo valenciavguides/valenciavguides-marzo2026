@@ -501,7 +501,6 @@
     const estado = {
         retoActualId: null,
         modo: { actual: MODOS.AVENTURA }
-        ,padreIdActual: null
         ,hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
     };
 
@@ -1544,9 +1543,8 @@
                     const padreId = datos.padreId || datos.padreid || null;
                     const paradaId = datos.paradaId || datos.parada_id || null;
                     logger.info(`[hijo4][NAVEGACION.CAMBIO_PARADA] recibido: padreId=${padreId}, paradaId=${paradaId}, retoId=${datos.retoId}`);
-                    // La parada actual: es lo que compara el aviso PENDING_INICIADO. El reto de la parada no se da por
-                    // abierto aquí: `estado.retoActualId` es el reto que el usuario tiene abierto, y lo fija mostrarReto().
-                    if (paradaId) estado.padreIdActual = padreId || null;
+                    // El reto de la parada no se da por abierto aquí: `estado.retoActualId` es el reto que el usuario tiene
+                    // abierto, y lo fija mostrarReto().
                     // Send confirmation back to parent
                     await enviarMensaje({
                         destino: 'padre',
@@ -1558,46 +1556,6 @@
                 }
             });
 
-
-            // CONTROLADOR: SISTEMA.NOTIFICACION - manejar PENDING_INICIADO
-            registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.NOTIFICACION, async (mensaje) => {
-                const logPrefix = `[hijo4][NOTIFICACION][${mensaje?.origen || 'desconocido'}]`;
-                try {
-                    const evento = mensaje.datos?.evento;
-                    if (!evento) return;
-                    if (evento === 'PENDING_INICIADO') {
-                        const padreId = mensaje.datos?.padreId || mensaje.datos?.padreid || null;
-                        const motivo = mensaje.datos?.motivo || 'iniciado';
-                        logger.info(`${logPrefix} PENDING_INICIADO para ${padreId}: ${motivo}`);
-                        if (padreId && padreId === estado.padreIdActual) {
-                            // Solo se acusa recibo. NO se toca la UI del reto, y es deliberado:
-                            // este aviso significa "el padre ha empezado a seguir la complecion de
-                            // esta parada" (§13), no "el usuario ha salido del reto".
-                            //
-                            // Antes hacia `estado.retoActualId = null` + `ocultarControles()`, y eso
-                            // borraba el reto que el usuario tenia abierto:
-                            //   · btnEnviar → display:none, desaparecia
-                            //   · btnMostrarRespuesta → disabled, visible pero inerte
-                            //   · btnSaltarReto → intacto, pero su listener abre con
-                            //     `if (!estado.retoActualId) return`, asi que dejaba de hacer nada
-                            // Tres botones rotos de golpe, unos segundos despues de abrir el reto.
-                            //
-                            // Ocurre porque ensurePending() (codigo-padre.html) emite este aviso al
-                            // CREAR el pending, y eso puede pasar con el reto ya abierto. En modo
-                            // CASA es lo normal: el boton de retos se habilita nada mas cambiar de
-                            // parada (§29.8), asi que el reto se abre antes de que exista pending
-                            // alguno. En AVENTURA el reto solo se abre tras acabar el audio (§29.7)
-                            // y para entonces el pending ya esta creado — protegido por el orden,
-                            // no por diseño.
-                            //
-                            // El antiguo `estado.paradaPendiente` de este fichero se elimino con
-                            // esto: no lo leia nadie. hijo2 tiene un campo homonimo, aparte.
-                        }
-                    }
-                } catch (err) {
-                    logger.warn(`${logPrefix} Error procesando NOTIFICACION:`, err);
-                }
-            });
 
             // Un solo camino (paso 8.10 de la lavadora): el padre manda SISTEMA.NACK/ERROR
             // a este mismo hijo cuando RETO.SOLICITAR_RETO o RETO.COMPLETADO fallan

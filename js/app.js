@@ -413,10 +413,8 @@ export async function manejarCambioModo(estado, mensaje) {
         }
 
         try {
-            // Lo muerto (paso 9 de la lavadora, apuntado en el 8.5): aquí se mandaba un
-            // SISTEMA.NOTIFICACION{datos.tipo:'cambio_modo_iniciado'} a broadcast. Los únicos
-            // handlers de SISTEMA.NOTIFICACION del proyecto (hijo2, hijo4) solo miran
-            // datos.evento, nunca datos.tipo — sin consumidor posible por diseño.
+            // El cambio de modo no se anuncia a los hijos al empezar con un mensaje propio: cada uno recibe el modo por
+            // SISTEMA.CAMBIO_MODO (paso 9 de la lavadora).
 
             // 6. Al entrar en AVENTURA, esperar a los hijos antes de actualizar la interfaz
             if (modoNormalized === MODOS.AVENTURA) await _esperarHijosAlEntrarEnAventura();
@@ -433,9 +431,7 @@ export async function manejarCambioModo(estado, mensaje) {
             // de inserción en getMapaControladoresSync). Repetirlo aquí sería la misma
             // limpieza dos veces por cada cambio de modo.
 
-            // Lo muerto (paso 9 de la lavadora): mismo motivo que 'cambio_modo_iniciado' arriba
-            // — se mandaba un SISTEMA.NOTIFICACION{datos.tipo:'cambio_modo_completado'} a
-            // broadcast sin consumidor posible.
+            // Tampoco al terminar: lo mismo que al empezar (paso 9 de la lavadora).
 
             // 8. Registrar éxito
             logger.info(`${logPrefix} Cambio de modo completado exitosamente`, {
@@ -620,11 +616,8 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
         estado.modo.actual = modoAnterior;
     }
 
-    // Lo muerto (paso 9 de la lavadora): aquí se mandaba un
-    // SISTEMA.NOTIFICACION{datos.tipo:'restauracion_modo'} a broadcast. Los únicos handlers de
-    // SISTEMA.NOTIFICACION del proyecto (hijo2, hijo4) solo miran datos.evento, nunca
-    // datos.tipo — sin consumidor posible por diseño, igual que 'cambio_modo_iniciado'/
-    // 'cambio_modo_completado' (ver notas gemelas en manejarCambioModo()).
+    // La restauración del modo tampoco se anuncia a los hijos con un mensaje propio (paso 9 de la lavadora; ver las
+    // notas gemelas en manejarCambioModo()).
 
     // Actualizar la interfaz
     await actualizarInterfazModo(estado, modoAnterior);

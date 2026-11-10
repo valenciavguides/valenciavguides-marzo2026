@@ -31,7 +31,7 @@ const guia = fs.readFileSync(GUIA, 'utf8').split(/\r?\n/);
 
 // El bus (js/mensajeria.js) lo carga todo frame pero el latido (SISTEMA.HEARTBEAT) solo lo manda el padre: no se atribuye a los hijos.
 const COMPARTIDOS_HIJOS = ['js/utils.js'];
-const TRANSVERSALES = new Set(['SISTEMA.ERROR', 'SISTEMA.NACK', 'SISTEMA.HEARTBEAT', 'SISTEMA.HEARTBEAT_RESPONSE', 'SISTEMA.CAMBIO_MODO_APLICADO', 'SISTEMA.NOTIFICACION', 'SISTEMA.CONFIRMACION']);
+const TRANSVERSALES = new Set(['SISTEMA.ERROR', 'SISTEMA.NACK', 'SISTEMA.HEARTBEAT', 'SISTEMA.HEARTBEAT_RESPONSE', 'SISTEMA.CAMBIO_MODO_APLICADO', 'SISTEMA.CONFIRMACION']);
 const FRAMES = [
   { clave: 'padre', s26: /^#### 26\.12\.1 /, salientes: /^#### 26\.12\.2 /, ficheros: ['codigo-padre.html', 'js/app.js', 'js/funciones-mapa.js', 'js/controladores-padre.js', 'js/mensajeria.js', 'js/state-manager.js', 'js/utils.js'] },
   { clave: 'selección', s7: /^### 7\.1 /, s8: /^### 8\.4 /, s26: /^#### 26\.12\.3 /, ficheros: ['En-busca-del-tesoro.html', ...COMPARTIDOS_HIJOS] },

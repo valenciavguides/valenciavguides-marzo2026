@@ -2820,7 +2820,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // ser mayor que la distancia al destino, porque el propio destino es parte del camino).
         const recorridoSuficiente = !esTramoActivo || estadoMapa._distanciaRecorridaTramo >= longitudRealTramo * 0.4;
 
-        // Todo lo de aquí abajo (aviso a hijo2 de distancia real, reset de ubicacionActiva)
+        // Todo lo de aquí abajo (el aviso a hijo2 de la distancia real)
         // solo tiene sentido en AVENTURA — en CASA no hay "siguiente parada" real de la que
         // estar cerca o lejos, es selección libre. Antes se enviaba igual en los dos modos;
         // hijo2 lo ignoraba en la práctica (su propio guard de modo en
@@ -2844,11 +2844,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
 
             // 📤 Enviar actualización de distancia a hijo2 (botones) periódicamente
             // CRÍTICO: Incluir toleranciaGPS para que hijo2 ajuste lógica de botones dinámicamente
-            // Un solo camino (paso 8.3 de la lavadora): antes esta misma lectura mandaba un
-            // segundo ACTUALIZAR_ESTADO aparte solo con ubicacionActiva cuando distancia<=50m.
-            // El handler de hijo2 (_aplicarDatosEstado) fusiona cada campo por separado, así
-            // que un único mensaje con ambos produce el mismo estado final sin la segunda
-            // pasada completa de actualizarEstadoBotones()/detección de llegada.
+            // Un solo mensaje por lectura (paso 8.3 de la lavadora).
             try {
                 enviarMensaje({
                     destino: 'hijo2',
@@ -2874,10 +2870,6 @@ async function procesarPosicionGPSParaAventura(posicion) {
                         // contra CONFIG.GPS.PRECISION_MINIMA antes de fiarse de cualquier
                         // conclusión de distancia (llegada, franja de fuera de rango).
                         accuracy: typeof accuracy === 'number' ? Math.ceil(accuracy) : null,
-                        // RESET ubicacionActiva: SIEMPRE a 50m fijos (no usar tolerancia
-                        // dinámica) — usuario debe estar CERCA (50m) para desactivar
-                        // ubicación y activar botones.
-                        ...(distancia <= 50 ? { ubicacionActiva: false } : {}),
                         timestamp: Date.now()
                     }
                 });

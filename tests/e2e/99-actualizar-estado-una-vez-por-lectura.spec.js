@@ -12,8 +12,10 @@
  * podían fundirse en uno sin cambiar el estado final; lo único que costaba el segundo mensaje
  * era una segunda pasada completa de `actualizarEstadoBotones()`/detección de llegada.
  *
+ * Después el campo salió del todo: hijo2 lo guardaba y nadie lo leía (docs/estudio-caminos.md, K-80).
+ *
  * AE-1  Camino real: una lectura GPS a ≤50m del destino activo produce UN SOLO
- *       NAVEGACION.ACTUALIZAR_ESTADO en hijo2, no dos.
+ *       NAVEGACION.ACTUALIZAR_ESTADO en hijo2, no dos, con la distancia de la lectura.
  *
  * ROJO ANTES DEL ARREGLO: AE-1 fallaba (2 mensajes por la misma lectura).
  */
@@ -85,6 +87,6 @@ test.describe('AE — Un solo ACTUALIZAR_ESTADO por lectura GPS cercana', () => 
     await page.waitForTimeout(500);
     const recibidos = await frameHijo2.evaluate(() => globalThis.__actualizarEstadoRecibidos);
     expect(recibidos.length, `debe llegar un solo ACTUALIZAR_ESTADO por lectura: ${JSON.stringify(recibidos)}`).toBe(1);
-    expect(recibidos[0]?.ubicacionActiva, 'el único mensaje debe traer también ubicacionActiva').toBe(false);
+    expect(typeof recibidos[0]?.distanciaAlDestino, 'el único mensaje lleva la distancia de la lectura').toBe('number');
   });
 });

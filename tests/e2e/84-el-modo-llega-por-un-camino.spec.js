@@ -39,14 +39,14 @@ async function arrancar(page, context) {
   await context.grantPermissions(['geolocation']);
   await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
   await page.addInitScript({ path: MAPLIBRE_STUB });
-  // Cada frame hijo apunta los CAMBIO_MODO y las NOTIFICACION que le llegan, antes que la app.
+  // Cada frame hijo apunta los CAMBIO_MODO que le llegan, antes que la app.
   await page.addInitScript(() => {
     if (globalThis.top === globalThis) return;
     globalThis.__recibidosModo = [];
     globalThis.addEventListener('message', (ev) => {
       const m = ev.data;
-      if (m?.tipo === 'SISTEMA.CAMBIO_MODO' || m?.tipo === 'SISTEMA.NOTIFICACION') {
-        globalThis.__recibidosModo.push({ tipo: m.tipo, modo: m.datos?.modo, razon: m.datos?.razon, evento: m.datos?.evento });
+      if (m?.tipo === 'SISTEMA.CAMBIO_MODO') {
+        globalThis.__recibidosModo.push({ tipo: m.tipo, modo: m.datos?.modo, razon: m.datos?.razon });
       }
     }, true);
   });

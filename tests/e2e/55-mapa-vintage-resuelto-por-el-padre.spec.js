@@ -65,8 +65,8 @@ async function prepararPadreConDatos(page) {
  * al registro tampoco sirve: los handlers del padre no aparecen en el registro central del
  * state-manager (`getControladoresPorTipo()` devuelve 0), así que no hay señal que observar.
  *
- * Se reenvía hasta que `haOcurrido()` dice que sí. Es el mismo patrón que ya usan
- * 43-saltar-reto-puzzle-roto y 50-pending-iniciado-no-borra-reto para el mismo problema.
+ * Se reenvía hasta que `haOcurrido()` dice que sí. Es el mismo patrón que usa
+ * 43-saltar-reto-puzzle-roto (`mostrarReto`) para el mismo problema.
  */
 async function pedirMapaVintageHasta(page, datos, haOcurrido, descripcion) {
   const limite = Date.now() + 20000;

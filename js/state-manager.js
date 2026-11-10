@@ -52,7 +52,6 @@ const state = {
     },
     retoActivo: false,
     audioActivo: false,
-    ubicacionActiva: false,
     elementoActual: null,
     hijosQueRecibieronPadreListo: new Set()
   },

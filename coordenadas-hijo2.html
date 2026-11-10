@@ -339,7 +339,6 @@ const estadoComponente = {
     inicializado: false, // Estado de inicialización del componente
     elementosDOM: {}, // Referencias a botones
     retoActivo: false, // Flag para saber si hay un reto en progreso
-    ubicacionActiva: false, // Flag para saber si ubicación está activa
     posicionActualUsuario: null, // {lat, lng} Posición GPS recibida del padre
     timestampSalioDeRango: null, // Timestamp cuando salió del rango real (rangoMaximo: 15m parada / toleranciaGPS tramo)
     ayudaFueraDeRangoActiva: false, // Flag: true en cuanto se detecta fuera de rango real — habilita ubicación/mapas AL INSTANTE, sin esperar la gracia (ver _habilitarAyudaFueraDeRango)
@@ -899,7 +898,7 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
 
 function _aplicarDatosEstado(datos, logPrefix) {
     // El elemento (idParada, tipoParada) no se toma de aquí: lo pone CAMBIO_PARADA, y una lectura de otro elemento ni llega.
-    const { distanciaAlDestino, distanciaAlCamino, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva, lat, lng } = datos;
+    const { distanciaAlDestino, distanciaAlCamino, tipoParada, toleranciaGPS, retoActivo, lat, lng } = datos;
     if (distanciaAlDestino !== undefined) estadoComponente.distanciaAlDestino = distanciaAlDestino;
     // distanciaAlCamino: distancia al punto más cercano del camino (inicio->waypoints->fin
     // en tramos), no al destino final — solo la usa verificarDistanciaYActualizarBotones()
@@ -915,10 +914,6 @@ function _aplicarDatosEstado(datos, logPrefix) {
     if (retoActivo !== undefined) {
         estadoComponente.retoActivo = retoActivo;
         logger.info(`${logPrefix} 🎯 Estado de reto actualizado: ${retoActivo ? 'ACTIVO' : 'INACTIVO'}`);
-    }
-    if (ubicacionActiva !== undefined) {
-        estadoComponente.ubicacionActiva = ubicacionActiva;
-        logger.info(`${logPrefix} 🧭 Estado de ubicación actualizado: ${ubicacionActiva ? 'ACTIVA' : 'INACTIVA'}`);
     }
     if (lat !== undefined && lng !== undefined) {
         estadoComponente.posicionActualUsuario = { lat, lng };
@@ -1075,7 +1070,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
         if (estadoComponente.modo === MODOS.AVENTURA && estadoComponente.distanciaAlDestino !== null && estadoComponente.distanciaAlDestino !== undefined) {
             verificarDistanciaYActualizarBotones();
         }
-        logger.debug(`${logPrefix} 📍 Estado actualizado: distancia=${distanciaAlDestino}m, tolerancia=${toleranciaGPS}m, parada=${idParada}, tipo=${tipoParada}, reto=${estadoComponente.retoActivo}, ubicacion=${estadoComponente.ubicacionActiva}`);
+        logger.debug(`${logPrefix} 📍 Estado actualizado: distancia=${distanciaAlDestino}m, tolerancia=${toleranciaGPS}m, parada=${idParada}, tipo=${tipoParada}, reto=${estadoComponente.retoActivo}`);
     } catch (error) {
         logger.error(`${logPrefix} Error procesando actualización de estado:`, error);
     }
@@ -1247,7 +1242,6 @@ try {
         estadoComponente.posicionActualUsuario = null;
         estadoComponente.avanzarHabilitadoPorPadre = false;
         estadoComponente.retoActivo = false;
-        estadoComponente.ubicacionActiva = false;
         estadoComponente.gpsActivo = false;
         // Un fuera de rango (ayuda o restricción) de antes del cambio de modo no vale en el modo nuevo: sin esto, la
         // restricción de vídeo y avanzar podía reaplicarse al volver a AVENTURA, sin ninguna franja real detrás.
@@ -1520,31 +1514,6 @@ globalThis.addEventListener('pagehide', () => {
     logger.info(`[hijo2] Limpiando recursos en pagehide`);
     estadoComponente.inicializado = false;
 });
-
-    function _esPadreIdActual(padreId) {
-        return padreId && (padreId === estadoComponente.idParadaActual || padreId === (`padre-${estadoComponente.idParadaActual}`));
-    }
-
-    function _manejarPendingIniciado(datos, logPrefix) {
-        const padreId = datos?.padreId || datos?.padreid || null;
-        const ttlMs = datos?.ttlMs || null;
-        logger.info(`${logPrefix} PENDING_INICIADO para ${padreId} ttl=${ttlMs}`);
-        if (_esPadreIdActual(padreId)) {
-            if (elementosDOM.btnUbicacion) desactivarBoton(elementosDOM.btnUbicacion);
-        }
-    }
-
-    // CONTROLADOR: SISTEMA.NOTIFICACION - manejar PENDING_INICIADO
-    registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.NOTIFICACION, async (mensaje) => {
-        const logPrefix = `[hijo2][NOTIFICACION][${mensaje?.origen || 'desconocido'}]`;
-        try {
-            const evento = mensaje.datos?.evento;
-            if (!evento) return;
-            if (evento === 'PENDING_INICIADO') _manejarPendingIniciado(mensaje.datos, logPrefix);
-        } catch (err) {
-            logger.warn(`${logPrefix} Error procesando NOTIFICACION:`, err);
-        }
-    });
 
     // Un solo camino (paso 8.10 de la lavadora): el padre manda SISTEMA.ERROR a este mismo
     // hijo cuando NAVEGACION.GPS.ACTIVAR falla (_hdl_NAVEGACION_GPS_ACTIVAR en

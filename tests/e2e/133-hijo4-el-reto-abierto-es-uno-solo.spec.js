@@ -20,7 +20,7 @@ const { test, expect } = require('@playwright/test');
 const RETO = { id: 'test-reto-abierto', tipo: 'opcion', pregunta: '¿Test?', opciones: ['A', 'B', 'C'], correctas: ['B'] };
 const AVISO = 'omitiendo limpieza';
 
-/** Mismo patrón que los specs 43 y 50: los mensajes se postean a la propia página, con origen 'padre'. */
+/** hijo4 va suelto: los mensajes se postean a la propia página con origen 'padre', y lo que mide el spec sale en su consola. */
 const postear = (page, mensaje) => page.evaluate((m) => globalThis.postMessage(m, globalThis.location.origin), mensaje);
 
 async function arrancar(page) {

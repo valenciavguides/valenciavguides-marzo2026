@@ -7187,11 +7187,8 @@
                     componentesListos: Array.from(estado.hijosInicializados)
                 });
 
-                // Un solo camino (paso 8.5 de la lavadora): SISTEMA.NOTIFICACION llevaba dos
-                // eventos, y ningún hijo tiene handler para 'aplicacion_lista' — hijo2 e hijo4
-                // son los únicos con handler de SISTEMA.NOTIFICACION, y solo actúan si
-                // evento==='PENDING_INICIADO' (ensurePending()); cualquier otro valor, incluido
-                // este, se descarta sin hacer nada. Retirado el broadcast a hijosInicializados.
+                // Al terminar el arranque no se avisa a los hijos con un mensaje propio: ninguno lo necesita, cada uno sabe
+                // que está listo por su apretón de manos (paso 8.5 de la lavadora).
 
                 (globalThis.logger || console).success(`${logPrefix} ✅ Sistema completamente operativo`);
 
@@ -9028,14 +9025,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (estado.modo?.actual === MODOS.AVENTURA && _elementoCompletado(elemento)) return null;
                 const retosIds = obtenerRetosIds(elemento);
                 estado.pendingCompleciones[key] = { tipo: tipo || 'parada', llegada: false, audio: false, reto: false, retosTotal: retosIds.length, retosCompletadosCount: 0, timestamp: Date.now(), ttlMs };
-                try {
-                    // Un solo camino (paso 8.5 de la lavadora): hijo3 no registra ningún
-                    // handler para SISTEMA.NOTIFICACION — el envío no tenía consumidor. Solo
-                    // hijo2 y hijo4 actúan sobre PENDING_INICIADO.
-                    const notifyData = { evento: 'PENDING_INICIADO', padreId: key, ttlMs: estado.pendingCompleciones[key].ttlMs };
-                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo2', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo2:', e?.message)); // NOSONAR
-                    enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, destino: 'hijo4', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo4:', e?.message)); // NOSONAR
-                } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
+                // La ficha es del padre y no se anuncia a los hijos: ninguno la necesita, cada uno recibe lo que le toca por
+                // su propio mensaje. El aviso que se les mandaba no tenía efecto en ninguno (docs/estudio-caminos.md, K-80).
             }
             return estado.pendingCompleciones[key];
         }
@@ -10358,7 +10349,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     return { exito: false, error: `Error dibujando polyline: ${error.message}` };
                 }
 
-                await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, destino: 'hijo2', datos: { ubicacionActiva: true, timestamp: Date.now() } });
                 return { exito: true, ubicacionUsuario: coordenadasUsuario, destino: coordenadasDestino, elementoId };
 
             } catch (error) {
@@ -11887,11 +11877,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 updateLoadingStatus('Datos distribuidos', 'Aplicando interfaz final', 82);
 
                 _mostrarUIActivada(logPrefix);
-                // Un solo camino (paso 8.5 de la lavadora): el broadcast SISTEMA.NOTIFICACION
-                // {evento:'AVENTURA_ACTIVADA'} se retiró — ningún frame del proyecto registra
-                // handler de SISTEMA.NOTIFICACION salvo hijo2/hijo4, y ambos solo actúan sobre
-                // 'PENDING_INICIADO'. Verificado por grep en las 10 páginas del censo, no con un
-                // test dedicado (el flujo de activación real es costoso de montar aislado).
+                // La activación no se anuncia a los hijos con un mensaje propio: cada uno recibe lo que le toca (el modo, su
+                // elemento) por su mensaje (paso 8.5 de la lavadora).
 
                 if (globalThis._devModeActivo) {
                     updateLoadingStatus('Aventura lista', 'Entrando en modo CASA', 100);

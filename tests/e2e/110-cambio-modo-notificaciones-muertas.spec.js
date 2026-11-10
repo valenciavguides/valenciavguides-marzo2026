@@ -6,11 +6,11 @@
  *
  * POR QUE EXISTE
  *
- * El pipeline de `manejarCambioModo()` manda tres broadcasts de `SISTEMA.NOTIFICACION` con
+ * El pipeline de `manejarCambioModo()` mandaba tres broadcasts de `SISTEMA.NOTIFICACION` con
  * `datos.tipo` (no `datos.evento`): `'cambio_modo_iniciado'` (antes del cambio),
  * `'cambio_modo_completado'` (tras aplicarlo) y `'restauracion_modo'` (si falla y se restaura el
- * modo anterior). Los únicos handlers de `SISTEMA.NOTIFICACION` del proyecto (hijo2, hijo4) solo
- * miran `mensaje.datos?.evento` — nunca `datos.tipo` —, así que estos tres avisos no tenían
+ * modo anterior). Los dos handlers de `SISTEMA.NOTIFICACION` que había (hijo2, hijo4) solo
+ * miraban `mensaje.datos?.evento` — nunca `datos.tipo` —, así que estos tres avisos no tenían
  * consumidor posible por diseño, no por casualidad: el propio código de
  * `restaurarEstadoModoAnterior()` ya lo decía en un comentario ("Nadie escucha hoy
  * datos.tipo === 'restauracion_modo'... el payload muerto es tarea del paso 9").
