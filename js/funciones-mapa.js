@@ -58,10 +58,10 @@ function _getLatLng(obj) {
  * @param {Object} elemento - Elemento actual (parada o tramo)
  * @returns {number} Tolerancia en metros
  */
-// Radio de llegada a una parada o inicio, en metros. Gemelo de RADIO_PARADA en
-// _detectarLlegadaParada() (coordenadas-hijo2.html): los dos sensores de llegada miden lo
-// mismo, así que si uno cambia el otro cambia con él.
-const RADIO_LLEGADA_PARADA_M = 15;
+// Radio de llegada a una parada o inicio, en metros: el de CONFIG.GPS (js/config.js), la misma tabla que lee RADIO_PARADA en
+// _detectarLlegadaParada() (coordenadas-hijo2.html): los dos sensores de llegada miden con el
+// mismo número.
+const RADIO_LLEGADA_PARADA_M = CONFIG.GPS.RADIO_LLEGADA_M;
 
 /**
  * Radio con el que se decide "ha llegado", en metros. SIEMPRE 15, también en tramos.
@@ -147,7 +147,7 @@ function calcularToleranciaGPS(elemento) {
     // suelo original — ya absorbe ese mismo ruido por otra vía). Sin suelo, un tramo con
     // waypoints muy juntos podía bajar de 25-30m directamente. Este valor lo usan a la vez
     // la visibilidad del trazado, la detección de llegada y el aviso de "fuera de rango".
-    const tolerancia = Math.max(35, Math.ceil(distanciaMaxima + 20));
+    const tolerancia = Math.max(CONFIG.GPS.TOLERANCIA_TRAMO_MINIMA_M, Math.ceil(distanciaMaxima + CONFIG.GPS.TOLERANCIA_TRAMO_MARGEN_M));
     logger.debug(`📏 Tolerancia GPS para tramo "${elemento.id}": ${tolerancia}m (max waypoint: ${Math.ceil(distanciaMaxima)}m + 20m buffer, suelo 35m)`);
 
     return tolerancia;
@@ -2811,14 +2811,14 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // distancia exige este tramo para no pedir nunca un paso mayor que ella.
         const longitudRealTramo = esTramoActivo ? _calcularLongitudRealTramo(siguienteParada) : 0;
         if (esTramoActivo) {
-            _acumularDistanciaRecorrida(latitude, longitude, accuracy, longitudRealTramo * 0.4);
+            _acumularDistanciaRecorrida(latitude, longitude, accuracy, longitudRealTramo * CONFIG.GPS.RECORRIDO_MINIMO_TRAMO);
         }
         // Umbral del 40% — no exige seguir el trazado exacto (un rodeo real por obras cuenta
         // igual, ver GUIA-COMPLETA), solo haber cubierto terreno real comparable, no un atajo
         // en línea recta que la sola proximidad al destino no distinguiría (§ investigación
         // distanciaAlCamino, que resultó matemáticamente incapaz de detectar esto: nunca puede
         // ser mayor que la distancia al destino, porque el propio destino es parte del camino).
-        const recorridoSuficiente = !esTramoActivo || estadoMapa._distanciaRecorridaTramo >= longitudRealTramo * 0.4;
+        const recorridoSuficiente = !esTramoActivo || estadoMapa._distanciaRecorridaTramo >= longitudRealTramo * CONFIG.GPS.RECORRIDO_MINIMO_TRAMO;
 
         // Todo lo de aquí abajo (el aviso a hijo2 de la distancia real)
         // solo tiene sentido en AVENTURA — en CASA no hay "siguiente parada" real de la que
@@ -2839,7 +2839,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
             // desde 7dda4d6), esto SÍ mide la distancia de esta misma lectura GPS. Único consumo
             // hoy: el gate de proximidad del recordatorio "pulse play" en codigo-padre.html — no
             // reutilizar gpsVisualActivo para eso otra vez (ver GUIA-COMPLETA §25.5c).
-            if (lecturaFiable) estadoMapa.proximidadReal = distancia <= 50;
+            if (lecturaFiable) estadoMapa.proximidadReal = distancia <= CONFIG.GPS.CERCA_M;
             sincronizarEstadoGPSConPadre();
 
             // 📤 Enviar actualización de distancia a hijo2 (botones) periódicamente
@@ -2911,7 +2911,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         if (siguienteParada.tipo === 'tramo' && siguienteParada.inicio?.lat && siguienteParada.inicio?.lng) {
             _distanciaParaLimpiarManual = calcularDistancia(latitude, longitude, siguienteParada.inicio.lat, siguienteParada.inicio.lng);
         }
-        const _polylineManualCerca = lecturaFiable && _distanciaParaLimpiarManual <= 50;
+        const _polylineManualCerca = lecturaFiable && _distanciaParaLimpiarManual <= CONFIG.GPS.CERCA_M;
         // «Ha vuelto» solo tiene sentido si el usuario ya estuvo en este elemento: a 50 m o
         // menos, la misma distancia que quita la línea verde, y en AVENTURA. La primera vez que
         // llega con la línea puesta no hay a qué volver, y no sale nada (docs/estudio-caminos.md,
@@ -2988,8 +2988,8 @@ async function procesarPosicionGPSParaAventura(posicion) {
             logger.debug(`${logPrefix} Precisión ±${Math.round(accuracy)} m peor que ${CONFIG.GPS.PRECISION_MINIMA} m: la lectura no cuenta para la llegada`);
             return;
         }
-        const _VENTANA_LLEGADA = 4;
-        const _CONFIRMACION_LLEGADA = 2;
+        const _VENTANA_LLEGADA = CONFIG.GPS.VENTANA_LLEGADA;
+        const _CONFIRMACION_LLEGADA = CONFIG.GPS.CONFIRMACION_LLEGADA;
         if (estadoMapa._llegadaCandidataId !== derivedParadaId) {
             estadoMapa._llegadaCandidataId = derivedParadaId;
             estadoMapa._llegadaVentana = [];
@@ -3022,7 +3022,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                 globalThis.mensajeria.despacharLocal({ tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA, datos: _datosLlegada })
                     .catch(() => { /* el bus ya avisa: "El handler de ... se rompió" */ });
             }
-        } else if (!llegadaDetectada && estadoMapa._llegadaNotificada === derivedParadaId && distancia > toleranciaGPS * 1.5) {
+        } else if (!llegadaDetectada && estadoMapa._llegadaNotificada === derivedParadaId && distancia > toleranciaGPS * CONFIG.GPS.MARGEN_SALIDA) {
             // Usuario se alejó de nuevo del destino ya notificado — permitir renotificar
             // si vuelve a entrar en rango (mismo criterio de histéresis que hijo2).
             logger.debug(`${logPrefix} Usuario salió del rango de ${derivedParadaId}, reseteando flag de llegada`);

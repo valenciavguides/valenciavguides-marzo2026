@@ -357,12 +357,7 @@ const estadoComponente = {
 // ya no es un desvío de la ruta sino un probable abandono o error. La ayuda (btn-ubicacion/
 // mapas) NUNCA espera esta gracia — se habilita al instante en cualquier franja, ver
 // docs/GUIA-COMPLETA.md §31.4.
-const _GRACIA_FUERA_DE_RANGO_MS = {
-    fuera: 7 * 60 * 1000,      // 7 min — 15m(parada)/toleranciaGPS(tramo) a 50m
-    desviado: 15 * 60 * 1000,  // 15 min — 50m a 150m
-    lejos: 0,                  // 150m a 2000m — instantáneo
-    perdido: 0                 // >2000m — instantáneo
-};
+const _GRACIA_FUERA_DE_RANGO_MS = CONFIG.GPS.GRACIA_MS; // fuera 7 min, desviado 15 min, lejos y perdido al instante
 
 // Referencias DOM
 const elementosDOM = {
@@ -646,7 +641,7 @@ function verificarDistanciaYActualizarBotones() {
     // sigue midiendo contra distanciaAlDestino — llegar exige estar cerca del final, no
     // solo del camino.
     const distanciaParaRango = (esTramo && typeof distanciaAlCamino === 'number') ? distanciaAlCamino : distanciaAlDestino;
-    const rangoMaximo = esTramo ? toleranciaGPS : 15; // 15 m en paradas; en tramos, la tolerancia del tramo
+    const rangoMaximo = esTramo ? toleranciaGPS : CONFIG.GPS.RADIO_LLEGADA_M; // en paradas, el radio de llegada; en tramos, la tolerancia del tramo
     const dentroDeRango = distanciaParaRango <= rangoMaximo;
     const ahora = Date.now();
     const btn = elementosDOM.btnUbicacion;
@@ -680,9 +675,9 @@ function verificarDistanciaYActualizarBotones() {
     }
 
     let franja;
-    if (distanciaParaRango > 2000) franja = 'perdido';
-    else if (distanciaParaRango > 150) franja = 'lejos';
-    else if (distanciaParaRango > 50) franja = 'desviado';
+    if (distanciaParaRango > CONFIG.GPS.PERDIDO_M) franja = 'perdido';
+    else if (distanciaParaRango > CONFIG.GPS.LEJOS_M) franja = 'lejos';
+    else if (distanciaParaRango > CONFIG.GPS.CERCA_M) franja = 'desviado';
     else franja = 'fuera';
 
     // La ayuda (ubicación/mapas) se habilita al instante, en cualquier franja.
@@ -932,8 +927,8 @@ function _aplicarDatosEstado(datos, logPrefix) {
 // el sitio (reproducido con datos reales de Av1-P-1: 20 lecturas alternando 15m/25m nunca
 // confirmaban la llegada con el diseño anterior). 2 de 4 conserva la misma protección
 // contra una lectura suelta sin depender de que el azar alinee dos lecturas consecutivas.
-const _VENTANA_LLEGADA = 4;
-const _CONFIRMACION_LLEGADA = 2;
+const _VENTANA_LLEGADA = CONFIG.GPS.VENTANA_LLEGADA;
+const _CONFIRMACION_LLEGADA = CONFIG.GPS.CONFIRMACION_LLEGADA;
 function _confirmarPorVentana(ventana, dentro, idParada) {
     if (ventana.id !== idParada) {
         ventana.id = idParada;
@@ -968,14 +963,14 @@ async function _detectarLlegadaTramo(distanciaAlDestino, radioLlegada, recorrido
                 datos: { paradaId: idParada, parada_id: idParada, distancia: distanciaAlDestino, tipoParada: 'tramo', timestamp: Date.now() }
             }).catch(e => logger.warn(`${logPrefix} Error notificando llegada a tramo:`, e.message));
         }
-    } else if (!dentroDeRadio && estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > radioLlegada * 1.5) {
+    } else if (!dentroDeRadio && estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > radioLlegada * CONFIG.GPS.MARGEN_SALIDA) {
         logger.debug(`${logPrefix} 🔄 Usuario salió del rango de ${idParada}, reseteando flag de llegada`);
         estadoComponente._llegadaNotificada = null;
     }
 }
 
 async function _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix) {
-    const RADIO_PARADA = 15;
+    const RADIO_PARADA = CONFIG.GPS.RADIO_LLEGADA_M;
     const dentroDeRadio = distanciaAlDestino <= RADIO_PARADA;
     const confirmada = _confirmarPorVentana(estadoComponente._ventanaLlegada, dentroDeRadio, idParada);
     if (dentroDeRadio && confirmada) {
@@ -989,7 +984,7 @@ async function _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix) {
                 datos: { paradaId: idParada, parada_id: idParada, distancia: distanciaAlDestino, tipoParada: 'parada', timestamp: Date.now() }
             }).catch(e => logger.warn(`${logPrefix} Error notificando llegada a parada:`, e.message));
         }
-    } else if (!dentroDeRadio && estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > RADIO_PARADA * 1.5) {
+    } else if (!dentroDeRadio && estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > RADIO_PARADA * CONFIG.GPS.MARGEN_SALIDA) {
         estadoComponente._llegadaNotificada = null;
     }
 }

@@ -4921,7 +4921,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-5e49ae411a48'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-30c3f244bf91'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6525,11 +6525,11 @@ La función `calcularToleranciaGPS()` en `js/funciones-mapa.js` determina cuánt
 
 | Quién | Radio | Cómo se calcula | Efecto |
 | --- | --- | --- | --- |
-| **funciones-mapa.js** `radioLlegada()` — parada Y tramo | **15 m** (`RADIO_LLEGADA_PARADA_M`) | Mismo valor que `RADIO_PARADA` de hijo2. Es también el radio con que `actualizarMarcadorUsuario()` dibuja el círculo naranja (`_crearCirculoGeografico(…, radioLlegada(), …)`): lo que el usuario ve y lo que se mide salen de la misma constante. Enviado a hijo2 como `radioLlegada`, aparte de `toleranciaGPS` | Umbral de la detección propia de funciones-mapa (`verificarLlegadaADestino`), que notifica `LLEGADA_DETECTADA` — nunca avanza por sí sola. Hijo2 lo ignora para paradas. |
+| **funciones-mapa.js** `radioLlegada()` — parada Y tramo | **15 m** (`RADIO_LLEGADA_PARADA_M`, de `CONFIG.GPS.RADIO_LLEGADA_M`) | El mismo número que `RADIO_PARADA` de hijo2: los dos lo leen de `CONFIG.GPS`. Es también el radio con que `actualizarMarcadorUsuario()` dibuja el círculo naranja (`_crearCirculoGeografico(…, radioLlegada(), …)`): lo que el usuario ve y lo que se mide salen de la misma constante. Enviado a hijo2 como `radioLlegada`, aparte de `toleranciaGPS` | Umbral de la detección propia de funciones-mapa (`verificarLlegadaADestino`), que notifica `LLEGADA_DETECTADA` — nunca avanza por sí sola. Hijo2 lo ignora para paradas. |
 | **funciones-mapa.js** `calcularToleranciaGPS()` — tramo | **dinámica, con suelo de 35 m** | `max(35, distancia máxima entre waypoints + 20 m buffer)` | Enviado a hijo2 como `toleranciaGPS`; hijo2 lo usa como `rangoMaximo` del aviso de fuera de rango en tramos |
 | **hijo2** `rangoMaximo` — parada | **15 m** (hardcoded) | Fijo — hijo2 ignora el `toleranciaGPS` recibido para paradas | Más allá de 15 m de la parada empieza el fuera de rango (§31.4) |
 | **hijo2** `rangoMaximo` — tramo | **= toleranciaGPS** | Recibido de funciones-mapa | Más allá de `toleranciaGPS` del camino del tramo (`distanciaAlCamino`) empieza el fuera de rango (§31.4) |
-| **hijo2** `_detectarLlegadaParada()` | **15 m** (`RADIO_PARADA` local) | Fijo | ✅ Genera `LLEGADA_DETECTADA` → padre |
+| **hijo2** `_detectarLlegadaParada()` | **15 m** (`RADIO_PARADA`, de `CONFIG.GPS.RADIO_LLEGADA_M`) | Fijo | ✅ Genera `LLEGADA_DETECTADA` → padre |
 | **hijo2** `_detectarLlegadaTramo()` | **= `radioLlegada`** (15 m) | Recibido de funciones-mapa en el mismo `ACTUALIZAR_ESTADO` que `toleranciaGPS`, como campo aparte | ✅ Genera `LLEGADA_DETECTADA` → padre |
 
 > **Dos sensores, un único camino de avance (solo en modo AVENTURA)**: los dos miden lo mismo — `radioLlegada`, 15 m, en paradas y en tramos. funciones-mapa lo aplica en `verificarLlegadaADestino` y hijo2 en `_detectarLlegadaParada`/`_detectarLlegadaTramo`, sobre la distancia y el id que funciones-mapa le manda en cada `NAVEGACION.ACTUALIZAR_ESTADO`: el aviso de funciones-mapa se despacha primero, dentro del propio padre, y el de hijo2 llega unos milisegundos después. Los dos son solo sensores — **ninguno de los dos avanza la aventura por sí solo**: ambos notifican `LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento actual (`_marcarPendingPorLlegada`) y llama a `intentarCompletarElemento()`. El avance real solo ocurre cuando `intentarCompletarElemento()` ve que también se cumplen las demás condiciones (audio terminado, y retos si los hay) y llama a `marcarParadaCompletada()` — que deja el elemento listo para avanzar (`_decidirAvanzar()` enciende `btn-avanzar` si nada lo impide, §29.4) y espera la confirmación explícita del usuario (parada y tramo por igual, ver §9.8) antes de que `progresarSiguienteElemento()` llegue a ejecutarse. Cuando un tramo se completa con la primera de las dos llegadas (su audio ya terminado), la segunda no anota nada: un elemento ya completado no tiene ficha, y `ensurePending` no se la crea (§9.2.3). Ningún camino de detección de llegada envía `CAMBIO_PARADA` directamente: ambos pasan siempre por el sistema pending. En modo CASA ninguno de los dos sensores notifica nada — el guard `estadoMapa.modo !== MODOS.AVENTURA` en `procesarPosicionGPSParaAventura` lo bloquea, y hijo2 solo llama a `_detectarLlegadaParada`/`_detectarLlegadaTramo` con `estadoComponente.modo === 'aventura'`.
@@ -6792,11 +6792,20 @@ Qué número de mapa está completado lo decide el padre, con la regla del lista
 
 ### Configuración del GPS (`js/config.js` → `CONFIG.GPS`)
 
-`CONFIG.GPS` tiene un único parámetro. Los demás valores del GPS (tiempos de espera, caché de posición, radios de llegada, reintentos) son literales de `codigo-padre.html`, `coordenadas-hijo2.html` y `js/funciones-mapa.js`: §25.5 recoge los radios y §25.16, los valores técnicos de referencia.
+`CONFIG.GPS` es la única tabla de los números con los que se decide algo por la distancia o por la lectura del GPS. La leen el mapa (`js/funciones-mapa.js`), hijo2 (`coordenadas-hijo2.html`, que importa `CONFIG`) y el padre (`globalThis.__vv_config.GPS`), y ninguno escribe esos números a mano. Lo comprueba `tests/e2e/183-los-numeros-del-gps-salen-de-una-tabla.spec.js`, con las fronteras a un metro de cada lado. Los tiempos de espera, la caché de posición y los reintentos del GPS no son de esta tabla: §25.16.
 
 | Parámetro | Valor | Descripción |
 | --- | --- | --- |
 | `PRECISION_MINIMA` | 50 m | **Leída por el runtime, en los dos sensores.** `coordenadas-hijo2.html` la compara contra `accuracy` de cada lectura ANTES de calcular franja o confirmar llegada (§31.4/§25.7), y `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`, `lecturaFiable`) antes de su ventana de llegada, de `proximidadReal` y de la línea verde. Ninguno descarta la posición —sigue moviendo la flecha y viajando a hijo2—; los dos evitan sacar conclusiones de distancia con ella mientras la precisión sea peor que este valor (§25.5, «Precisión GPS: se procesa siempre, la llegada se confirma por ventana deslizante»). |
+| `RADIO_LLEGADA_M` | 15 m | El radio de llegada a una parada, al punto de salida y al final de un tramo, y el del círculo naranja: `RADIO_PARADA` de hijo2 y `RADIO_LLEGADA_PARADA_M` (`radioLlegada()`) del mapa. En una parada es también su rango para el fuera de rango (`rangoMaximo`). |
+| `TOLERANCIA_TRAMO_MINIMA_M`, `TOLERANCIA_TRAMO_MARGEN_M` | 35 m, 20 m | La tolerancia de un tramo (`calcularToleranciaGPS()`), para sus botones y su fuera de rango: la mayor distancia entre dos waypoints seguidos más 20 m, y nunca menos de 35. |
+| `CERCA_M` | 50 m | «Cerca»: la proximidad real de los recordatorios (`proximidadReal`), la distancia que quita la línea verde de ubicación y marca la visita de «Ha vuelto», y el final de la franja «fuera». |
+| `LEJOS_M`, `PERDIDO_M` | 150 m, 2000 m | Las franjas fuera del radio: hasta 50 m, «fuera»; hasta 150, «desviado»; hasta 2000, «lejos»; más allá, «perdido». Las usan hijo2 y la cascada de pantallas del padre. |
+| `GRACIA_MS` | 7 min, 15 min, 0, 0 | La gracia de «fuera», «desviado», «lejos» y «perdido» antes de restringir (§31.4). |
+| `VENTANA_LLEGADA`, `CONFIRMACION_LLEGADA` | 4, 2 | Una llegada, o una vuelta a rango, se confirma con dos lecturas dentro entre las últimas cuatro. |
+| `MARGEN_SALIDA` | 1,5 | Quien ya llegó se da por salido cuando se aleja más que el radio por este factor. |
+| `RECORRIDO_MINIMO_TRAMO` | 0,4 | La parte de la longitud real de un tramo que hay que recorrer antes de poder llegar a su final (`recorridoSuficiente`). |
+| `ZONA_M`, `ZONA_PRECISION_MAXIMA_M`, `ZONA_LECTURAS_PARA_BLOQUEAR`, `ZONA_ESPERA_MS` | 5000 m, 100 m, 3, 3 min | El bloqueo por lejanía de `_check5kmFromRoute()`: a más de 5 km de toda la ruta, con tres comprobaciones seguidas de precisión no peor que 100 m, comprobadas cada 3 minutos mientras no hay bloqueo. |
 
 ### Rendimiento del zoom (`js/funciones-mapa.js`)
 
@@ -8062,6 +8071,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `180-hijo4-se-ensena-solo-por-el-apreton-de-manos.spec.js` | 2 | Un hijo enseña su interfaz por un solo camino, el apretón de manos (§26.13). Con `retos-hijo4.html` en `helpers/marco-vacio.html`: sin la confirmación del padre, un `RETO.MOSTRAR` pinta el reto y la interfaz sigue oculta (RU-1); de control, con la confirmación, la interfaz se ve y el reto también (RU-2). Con hijo4 enseñándose al recibir un reto cae RU-1. |
 | `181-el-mapa-completo-se-acerca-hasta-sus-teselas.spec.js` | 3 | El mapa completo se acerca hasta el último nivel que tiene teselas, el 19, el mismo tope que el mapa moderno, y no tiene botones de zoom (§32.4). Con `mapa-completo.html` en `helpers/marco-vacio.html`, Leaflet de verdad y las teselas servidas con una imagen local, se acerca con la tecla «+» del teclado numérico, que Leaflet atiende con el mapa enfocado y llega igual a los cuatro navegadores, hasta que tres pulsaciones seguidas no lo cambian: en el nivel más cercano hay teselas, y es el 19 (ZM-1); de control, al abrirse, en el 15, hay teselas (ZM-2); y el mapa no tiene el control de zoom de Leaflet, ni «+» ni «−» (ZM-3). Con el mapa hasta el 21 cae ZM-1: en el 21 no hay ninguna tesela; con los botones, cae ZM-3. |
 | `182-hijo4-no-recibe-el-cambio-de-parada.spec.js` | 2 | El cambio de parada va a quien lo usa (§10.5): al activar un elemento por su camino real (`NAVEGACION.CAMBIO_PARADA` despachado en el padre, con hijo4 ya inicializado), hijo4 no recibe `NAVEGACION.CAMBIO_PARADA` (CP-1); en esa misma activación, hijo2 e hijo3 sí lo reciben (CP-2, control). |
+| `183-los-numeros-del-gps-salen-de-una-tabla.spec.js` | 2 | Los números del GPS salen de `CONFIG.GPS` (§ «Configuración del GPS»), medidos por el camino real (lecturas por el mapa que juzga hijo2) a un metro de cada frontera: la franja que hijo2 le cuenta al padre al salir de una parada es «fuera» a 49 m, «desviado» a 51 y a 149, «lejos» a 151 y a 1999, y «perdido» a 2001, cada distancia en una salida nueva (BF-1); a 16 m no hay llegada y a 14, con dos lecturas de cuatro, sí (BF-2). Mide la tabla y no una copia: con `LEJOS_M` en 160, cae BF-1. |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8592,7 +8602,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 176 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 177 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9110,7 +9120,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-5e49ae411a48';
+const CACHE_VERSION = 'v-30c3f244bf91';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9929,8 +9939,8 @@ Cuando el usuario está **dentro del radio de acción** de la parada o tramo act
 
 | Umbral | Valor | Origen | Propósito |
 |--------|-------|--------|-----------|
-| `RADIO_PARADA` (hardcoded en hijo2) | **15 m** | `_detectarLlegadaParada()` en hijo2 | Radio de llegada para paradas: hijo2 envía `LLEGADA_DETECTADA` cuando el usuario entra en este radio. Condición necesaria para completar una parada. |
-| `RADIO_LLEGADA_PARADA_M` (funciones-mapa.js) | **15 m** | `radioLlegada()`, usado por `verificarLlegadaADestino()` y enviado a hijo2 | El radio con el que se declara la llegada, **en paradas y en tramos**. Es el del círculo naranja que ve el usuario. Gemelo de `RADIO_PARADA`: si uno cambia, el otro cambia con él. |
+| `RADIO_PARADA` (hijo2, de `CONFIG.GPS.RADIO_LLEGADA_M`) | **15 m** | `_detectarLlegadaParada()` en hijo2 | Radio de llegada para paradas: hijo2 envía `LLEGADA_DETECTADA` cuando el usuario entra en este radio. Condición necesaria para completar una parada. |
+| `RADIO_LLEGADA_PARADA_M` (funciones-mapa.js) | **15 m** | `radioLlegada()`, usado por `verificarLlegadaADestino()` y enviado a hijo2 | El radio con el que se declara la llegada, **en paradas y en tramos**. Es el del círculo naranja que ve el usuario. Sale, como `RADIO_PARADA`, de `CONFIG.GPS.RADIO_LLEGADA_M`: los dos sensores miden con el mismo número. |
 | `rangoMaximo` parada (hardcoded en hijo2) | **15 m** | `verificarDistanciaYActualizarBotones()` en hijo2 | Marca el punto donde arrancan las 4 franjas de aviso por distancia del padre (§31.4). Sale del rango → aviso. Entra → se oculta. |
 | `rangoMaximo` tramo (hijo2, recibido de padre) | **dinámico, mín. 35 m** | `toleranciaGPS` de `calcularToleranciaGPS()` en funciones-mapa.js | Arranque de las franjas de aviso en tramos — **no** la llegada, que usa `radioLlegada`. Ancho a propósito: absorbe el ruido del GPS sin dar falsas alarmas. |
 | `PRECISION_MINIMA` (config.js) | **50 m** | **Leída por el runtime** (hijo2 y `funciones-mapa.js`, ver §31.4/§25.7/§25.5) | Umbral de accuracy por encima del cual ni hijo2 ni el sensor del padre calculan franja ni confirman llegada — no descarta la posición, solo desconfía de la distancia calculada con ella. |
@@ -10640,7 +10650,7 @@ El `watchPosition` principal (abierto, como el de los reintentos, con `_abrirVig
 
 | Parámetro | Valor | Variable en código |
 |-----------|-------|--------------------|
-| `RADIO_PARADA` — llegada física a parada | 15 m | Hardcodeado en `_detectarLlegadaParada()` en hijo2 — dispara `LLEGADA_DETECTADA`; condición necesaria para completar la parada |
+| `RADIO_PARADA` — llegada física a parada | 15 m | `CONFIG.GPS.RADIO_LLEGADA_M`, en `_detectarLlegadaParada()` de hijo2 — dispara `LLEGADA_DETECTADA`; condición necesaria para completar la parada |
 | `calcularToleranciaGPS()` — parada/inicio (padre) | 15 m | `RADIO_LLEGADA_PARADA_M` en `funciones-mapa.js` — radio de `verificarLlegadaADestino()`, el sensor que marca `pending.llegada`. Gemelo de `RADIO_PARADA`: los dos miden lo mismo |
 | `rangoMaximo` parada (hijo2) | 15 m | Hardcoded en `verificarDistanciaYActualizarBotones()` — punto donde arrancan las franjas de aviso por distancia (§31.4) |
 | `rangoMaximo` tramo (hijo2) | dinámico, mín. 35 m | `toleranciaGPS` recibida de `calcularToleranciaGPS()` en funciones-mapa.js |
@@ -10650,7 +10660,7 @@ El `watchPosition` principal (abierto, como el de los reintentos, con `_abrirVig
 | Frecuencia heartbeat | 5 s | valor por defecto de `iniciarHeartbeat()` en `js/mensajeria.js` |
 | Timeout watchPosition | 35 s, con `enableHighAccuracy: true` | `activarGPS()` en `codigo-padre.html`. El camino de reintento (`_gpsDoRetryWatch()`) reabre el watch con otras opciones: `enableHighAccuracy: false` y timeout de 15 s × 2^(intento-1) con techo de 60 s (literales de `_gpsDoRetrySetup()`) — es decir, tras un fallo de GPS la precisión que llega es peor, lo que sube el umbral de ruido del acumulador de distancia recorrida |
 | Habilitación de ubicación en las 4 franjas (rango real-50m / 50-150m / 150-2.000m / >2.000m) | Inmediata en las 4, sin esperar la gracia | `verificarDistanciaYActualizarBotones` en `coordenadas-hijo2.html` |
-| Gracia antes de restringir vídeo/avanzar/audio/reto (franjas "fuera"/"desviado") | 7 min / 15 min — 0 en "lejos"/"perdido"; en una parada, solo desde la llegada confirmada | `_GRACIA_FUERA_DE_RANGO_MS` y `_llegadaConfirmadaEn` en `coordenadas-hijo2.html` |
+| Gracia antes de restringir vídeo/avanzar/audio/reto (franjas "fuera"/"desviado") | 7 min / 15 min — 0 en "lejos"/"perdido"; en una parada, solo desde la llegada confirmada | `CONFIG.GPS.GRACIA_MS` (en hijo2, `_GRACIA_FUERA_DE_RANGO_MS`) y `_llegadaConfirmadaEn` en `coordenadas-hijo2.html` |
 | Latidos sin respuesta antes de dar por caído | 3 | `MAX_LATIDOS_SIN_RESPUESTA` en `js/mensajeria.js` |
 | Auto-continuación diálogo reanudación | 30 s | `mostrarDialogoReanudacion` en `codigo-padre.html` |
 | Recordatorio "pulse play" — primer aviso / chequeo / reaparición / autocierre (§25.5c) | 10 s / 2 s / 20 s / 7 s | `RECORDATORIO_AUDIO_PRIMER_AVISO_MS` / `RECORDATORIO_AUDIO_CHEQUEO_MS` / `RECORDATORIO_AUDIO_INTERVALO_MS` en `codigo-padre.html` |
@@ -11721,7 +11731,7 @@ Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y 
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
 | `NAVEGACION.GPS.ACTIVAR` | Padre | Al pulsar el botón `#btnAvanzar`: con acuse (plazo `ajustarTimeoutPorConexion(5000)`) y `{ activar, idParada, distancia }` | Solicitar al padre que active la progresión y el GPS; el padre gestiona el GPS nativo y no mira `activar` |
 | `NAVEGACION.GPS.RESTRINGIDO` | Padre | En cada posición en que el usuario está fuera del rango real del elemento activo (15 m en una parada; `toleranciaGPS` en un tramo), mientras hay elemento activo (`{ idParada, distancia, rangoMaximo, timestampSalioDeRango }`) | Que el padre elija y muestre la pantalla de aviso de distancia que corresponda |
-| `NAVEGACION.LLEGADA_DETECTADA` | Padre | Para **paradas**: distancia ≤ `RADIO_PARADA=15 m` (hardcodeado en `_detectarLlegadaParada()`). Para **tramos**: distancia ≤ `radioLlegada` = 15 m — el mismo radio que una parada **y** que el círculo naranja que el usuario ve — **y** `recorridoSuficiente`. El mensaje incluye `tipoParada: 'parada'/'tramo'`. | Marcar `pending.llegada=true` en el padre para habilitar la condición de completado de la parada/tramo (requiere llegada + audio + reto) |
+| `NAVEGACION.LLEGADA_DETECTADA` | Padre | Para **paradas**: distancia ≤ `RADIO_PARADA` = 15 m (`CONFIG.GPS.RADIO_LLEGADA_M`, en `_detectarLlegadaParada()`). Para **tramos**: distancia ≤ `radioLlegada` = 15 m — el mismo radio que una parada **y** que el círculo naranja que el usuario ve — **y** `recorridoSuficiente`. El mensaje incluye `tipoParada: 'parada'/'tramo'`. | Marcar `pending.llegada=true` en el padre para habilitar la condición de completado de la parada/tramo (requiere llegada + audio + reto) |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | Padre | Una vez, cuando agota la gracia de su franja fuera de rango (`{ distancia, franja, elementoMasCercano, timestamp }`) | Que el padre bloquee el audio, el reto y el avance mientras el usuario está fuera de rango |
 | `NAVEGACION.GPS.DENTRO_DE_RANGO` | Padre | Una vez, cuando el usuario vuelve a estar dentro de rango tras haber salido (`{ timestamp }`) | Que el padre oculte las pantallas de distancia y reaplique las reglas normales |
 | `NAVEGACION.GPS.PRECISION_INSUFICIENTE` | Padre | Una vez, cuando la precisión de la lectura supera `CONFIG.GPS.PRECISION_MINIMA` (`{ accuracy, umbral, timestamp }`); mientras dure no calcula franjas ni llegada | Que el padre muestre el aviso de precisión |
@@ -11932,7 +11942,7 @@ Usuario responde el reto correctamente y pulsa el botón verde (btnNext)
         └─ Padre anota pending.reto en la ficha; si llegada y audio ya están, enciende «avanzar» (§29.4).
            No avanza solo: el usuario pulsa «avanzar» y el padre activa el siguiente elemento
 
-Solo en AVENTURA — GPS detecta que el usuario llegó a una PARADA (distancia ≤ 15 m, RADIO_PARADA hardcodeado)
+Solo en AVENTURA — GPS detecta que el usuario llegó a una PARADA (distancia ≤ 15 m, `RADIO_PARADA`, de `CONFIG.GPS`)
   └─▶ HIJO 2 envía NAVEGACION.LLEGADA_DETECTADA (tipoParada:'parada') → PADRE
         └─ Padre marca pending.llegada = true
            (La parada completa cuando también pending.audio=true y retosOk=true)
@@ -12491,7 +12501,7 @@ Estado de botones por hijo en modo CASA:
 
 ### 29.10 Archivos con lógica de restricciones GPS
 
-1. **js/config.js**: Precisión GPS mínima (`PRECISION_MINIMA`)
+1. **js/config.js**: los números del GPS (`CONFIG.GPS`: la precisión mínima, el radio de llegada, las franjas y sus gracias, la ventana de llegada y la zona de 5 km)
 2. **codigo-padre.html**: Estado GPS, lógica de botones de avance y retos
 3. **js/constants.js**: Tipos de mensaje RETO.HABILITAR, RETO.ESTADO_CASA
 4. **js/funciones-mapa.js**: Estado GPS visual y sincronización interna
@@ -12530,7 +12540,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-5e49ae411a48';
+const CACHE_VERSION = 'v-30c3f244bf91';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12737,11 +12747,11 @@ Ese ciclo es el de las 4 pantallas de franja, que hijo2 realimenta en cada posic
 
 **Qué ocurre:** el GPS del usuario devuelve una posición a más de 5 km de cualquier punto de la ruta (parada, inicio/fin de tramo o waypoint). Esto indica que el usuario no está en Valencia y no puede realizar la aventura de forma legítima.
 
-**Cuándo se chequea:** `_check5kmFromRoute(lat, lng, accuracy)` (`codigo-padre.html`) se llama desde `_watchPositionSuccess()` en cada posición, y solo actúa si el modo actual es AVENTURA. Throttling de 3 minutos vía `globalThis.__VV_5KM_LAST_CHECK`, solo sin bloqueo: si la última comprobación fue hace menos de 3 minutos, la llamada no hace nada. Con el bloqueo puesto, cada lectura se comprueba. Una lectura con más de 100 m de margen de error (`PRECISION_MAXIMA_M`) se ignora entera: no cuenta ni a favor ni en contra. No requiere timer independiente — usa el GPS que ya está corriendo.
+**Cuándo se chequea:** `_check5kmFromRoute(lat, lng, accuracy)` (`codigo-padre.html`) se llama desde `_watchPositionSuccess()` en cada posición, y solo actúa si el modo actual es AVENTURA. Throttling de 3 minutos (`CONFIG.GPS.ZONA_ESPERA_MS`) vía `globalThis.__VV_5KM_LAST_CHECK`, solo sin bloqueo: si la última comprobación fue hace menos de 3 minutos, la llamada no hace nada. Con el bloqueo puesto, cada lectura se comprueba. Una lectura con más de 100 m de margen de error (`CONFIG.GPS.ZONA_PRECISION_MAXIMA_M`) se ignora entera: no cuenta ni a favor ni en contra. No requiere timer independiente — usa el GPS que ya está corriendo.
 
 **Cómo mide la distancia:** recorre las coordenadas de la aventura activa (`__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas`) y calcula, con `calcularDistancia()` (`js/utils.js`, fórmula Haversine), la distancia a cada punto candidato de cada elemento (`coordenadas`, `inicio`, `fin`, `waypoints`), quedándose con la mínima encontrada y cortando el recorrido en cuanto encuentra un punto a menos de 5.000m (`LIMIT_M`) — no necesita comprobar el resto de la ruta si ya hay un punto cercano.
 
-**Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true` a la tercera comprobación seguida fuera de los 5 km, `LECTURAS_PARA_BLOQUEAR`; una comprobación dentro pone la cuenta a cero):** overlay `#gps-out-of-range-overlay` (`fotogpserror.jpg`, con el `alt` «Fuera de la zona de la aventura, a más de 5 km») con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de N km", con la distancia medida al declararse el bloqueo), para que un lector de pantalla diga la causa real. El cartel sale al declarar el bloqueo y vuelve a salir en cada lectura mientras dura —`_check5kmFromRoute()` lo pide al principio de cada llamada, antes de la espera de 3 minutos entre comprobaciones—, y manda sobre las otras cinco pantallas de distancia: mientras dura el bloqueo no sale ninguna otra (`_puedeSalirPantallaDistanciaGPS()`, §31.4). El botón de cierre ✗ solo descarta el aviso en pantalla, sin desbloquear nada: durante su tiempo de espera (150 s) no sale ninguna pantalla de distancia, y pasado ese tiempo la lectura siguiente vuelve a enseñar el cartel. El cartel no tiene botón de reintento (§31.6). Al declarar el bloqueo, `_check5kmFromRoute()` llama a `globalThis._sincronizarAvanzar()` (Script 2) y «avanzar» se apaga (`razon: 'fuera_de_zona_5km'`): `_decidirAvanzar()` mira `__VV_5KM_BLOCKED` cada vez que decide (§29.4), así que nada lo vuelve a encender mientras dure el bloqueo.
+**Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true` a la tercera comprobación seguida fuera de los 5 km, `CONFIG.GPS.ZONA_LECTURAS_PARA_BLOQUEAR`; una comprobación dentro pone la cuenta a cero):** overlay `#gps-out-of-range-overlay` (`fotogpserror.jpg`, con el `alt` «Fuera de la zona de la aventura, a más de 5 km») con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de N km", con la distancia medida al declararse el bloqueo), para que un lector de pantalla diga la causa real. El cartel sale al declarar el bloqueo y vuelve a salir en cada lectura mientras dura —`_check5kmFromRoute()` lo pide al principio de cada llamada, antes de la espera de 3 minutos entre comprobaciones—, y manda sobre las otras cinco pantallas de distancia: mientras dura el bloqueo no sale ninguna otra (`_puedeSalirPantallaDistanciaGPS()`, §31.4). El botón de cierre ✗ solo descarta el aviso en pantalla, sin desbloquear nada: durante su tiempo de espera (150 s) no sale ninguna pantalla de distancia, y pasado ese tiempo la lectura siguiente vuelve a enseñar el cartel. El cartel no tiene botón de reintento (§31.6). Al declarar el bloqueo, `_check5kmFromRoute()` llama a `globalThis._sincronizarAvanzar()` (Script 2) y «avanzar» se apaga (`razon: 'fuera_de_zona_5km'`): `_decidirAvanzar()` mira `__VV_5KM_BLOCKED` cada vez que decide (§29.4), así que nada lo vuelve a encender mientras dure el bloqueo.
 
 **Recuperación:** en la primera lectura que caiga dentro de los 5 km —con el bloqueo puesto no hay espera entre comprobaciones—, `__VV_5KM_BLOCKED` vuelve a `false`, se llama `hideGpsOutOfRangeOverlay()`, sale el aviso de precisión si hijo2 lo ha pedido y la precisión no ha vuelto (§31.4), y se llama otra vez a `_sincronizarAvanzar()`: «avanzar» vuelve a encenderse solo si el elemento está completado y nada más lo impide. La pantalla de la franja en la que está el usuario sale con esa misma lectura, que `_watchPositionSuccess()` lleva a hijo2 después de esta comprobación; también con el cartel del bloqueo cerrado con su ✗, porque su descanso es solo suyo (spec 178).
 

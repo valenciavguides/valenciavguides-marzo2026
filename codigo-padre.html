@@ -5469,7 +5469,7 @@
                 if (globalThis.__VV_5KM_BLOCKED === true) showGpsOutOfRangeOverlay();
 
                 const now = Date.now();
-                const THROTTLE_MS = 3 * 60 * 1000;
+                const THROTTLE_MS = globalThis.__vv_config.GPS.ZONA_ESPERA_MS;
                 // La espera de 3 minutos es para no bloquear de más (tres lecturas fuera, espaciadas). Para levantar el
                 // bloqueo no hace falta: con él puesto se mira cada lectura, y la primera precisa dentro de los 5 km lo
                 // levanta; en esa misma lectura sale la pantalla de la zona en la que está (K-156, spec 178).
@@ -5477,9 +5477,9 @@
                 if (!conBloqueo && globalThis.__VV_5KM_LAST_CHECK && (now - globalThis.__VV_5KM_LAST_CHECK) < THROTTLE_MS) return;
                 globalThis.__VV_5KM_LAST_CHECK = now;
 
-                const LIMIT_M = 5000;
-                const PRECISION_MAXIMA_M = 100;
-                const LECTURAS_PARA_BLOQUEAR = 3;
+                const LIMIT_M = globalThis.__vv_config.GPS.ZONA_M;
+                const PRECISION_MAXIMA_M = globalThis.__vv_config.GPS.ZONA_PRECISION_MAXIMA_M;
+                const LECTURAS_PARA_BLOQUEAR = globalThis.__vv_config.GPS.ZONA_LECTURAS_PARA_BLOQUEAR;
 
                 // Una lectura imprecisa no cuenta ni a favor ni en contra: se ignora entera.
                 if (typeof accuracy === 'number' && accuracy > PRECISION_MAXIMA_M) {
@@ -10172,11 +10172,11 @@ await _comprobarReanudacionAventura(logPrefix);
                     return;
                 }
 
-                if (distancia > 2000) {
+                if (distancia > globalThis.__vv_config.GPS.PERDIDO_M) {
                     showFotoPerdidoOverlay(distancia);
-                } else if (distancia > 150) {
+                } else if (distancia > globalThis.__vv_config.GPS.LEJOS_M) {
                     showFotoLejosOverlay(distancia);
-                } else if (distancia > 50) {
+                } else if (distancia > globalThis.__vv_config.GPS.CERCA_M) {
                     showFotoDesviadoOverlay(distancia);
                 } else {
                     showFotoFueraRangoOverlay(distancia, rangoMaximo);
