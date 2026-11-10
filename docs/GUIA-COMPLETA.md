@@ -2243,6 +2243,8 @@ graph TD
 | P17 | `#pantalla17` | `.btn-mundo-verde` (→) | Logos (logo redondo + logo alargado). El botón llama a `iniciarAventura()`, que enseña `#overlay-carga-aventura` y envía la activación al padre | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados, timestamp }` |
 | P18 *(solo `?despedida=1`)* | `#pantalla18` | `#btn-siguiente-agradecimientos` | Scroll hasta el final del texto → `_ejecutarDespedida()` | — |
 
+**Los retos R-1 (P8) y R-2 (P16), al contestar.** `verificarRetoR1()` pinta el borde de la caja del reto (`#reto-r1-box`) de verde `#28a745` si la respuesta es correcta y de rojo `#dc3545` si no lo es (a los 2 s, el fallo vuelve a `#ccc` y se puede contestar otra vez), y junto a la opción elegida enseña una ✓ o una ✗ con su `style.display`; las dos marcas (`.tick` y `.x`) llevan en su regla el mismo verde y el mismo rojo que la caja. `verificarRetoR2()` pinta la caja (`#reto-r2-box`) de verde y enseña la ✓ de la opción elegida, sea cual sea. Lo comprueba el spec 177.
+
 **De dónde lee la demo gratis lo que enseña de cada aventura.** La selección es la demo gratis hasta el código de compra, y enseña además, de la aventura y el idioma elegidos, la normativa (P15), el reto R-2 (P16) y, con `?despedida=1`, los agradecimientos (P18). Todo lo que usa de las aventuras lo lee de la carpeta pública, `publico/`: copias que hace `tools/build-demo.js` de los originales, solo de las piezas que la demo enseña, con una carpeta por tipo y, dentro, una por idioma con el nombre de su fichero de párrafos (`espanol`, `ingles`…; `LANG_ARCHIVO_PARRAFOS` de `js/data-loader.js`). Los originales siguen completos en sus carpetas —son los que irán al backend— y la demo no pide ninguno: no carga nada de `PROTECTED_FILES` (§22.4), así que con `PROTECT_DATA=true` llega igual. El resto de la app pide solo los originales (§22.0, n.º 26 y 29). Las copias las rehace el hook de pre-commit (§21.1).
 
 Todo pasa por un lector, `_leerPublico(ruta)`: pide un JSON de `publico/` por su ruta entera con `pedirJson()` (`js/utils.js`: el plazo y los reintentos de todo lo que la app descarga, §16.1b), una vez por ruta (un fallo no se guarda: la siguiente llamada lo vuelve a pedir). Encima de él:
@@ -4931,7 +4933,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-5bb05a7b9706'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-fd227c344fe7'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8093,6 +8095,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `174-las-pantallas-del-dispositivo.spec.js` | 5 | Las pantallas del dispositivo (§4.7n): la de la brújula con su título, su texto y el logo en línea, y el botón, pulsado de verdad, pasa a la de los ajustes y luego cierra la ventana (AD-1); los 12 idiomas con sus cinco textos y el logo una vez en cada texto, y los del español, los del usuario (AD-2); salen al empezar la aventura por el recorrido real y otra vez al continuarla tras recargar (AD-3); por debajo de lo que se abre después y ocultas con `body.loading` (AD-4); y la ayuda de hijo6 pinta sus imágenes en línea con la misma `renderTextoConImagenes()`, sin marcas a la vista (AD-5). Con la función rota (el texto tal cual, sin imágenes) caen AD-1 y AD-5. |
 | `175-la-galeria-de-un-tramo-marca-su-llegada.spec.js` | 2 | En la galería de un tramo, la etiqueta de la primera imagen es el primer número de su cadena y la de la última, el último, que es la llegada: en `"7→4→8"`, el 7 y el 8 (GL-1); de control, `"6→9"`, el 6 y el 9 (GL-2) (§4.7f). Con la llegada en el segundo número cae GL-1 (dice 4). |
 | `176-un-numero-de-mapa-se-lee-igual-en-la-galeria-y-en-el-listado.spec.js` | 6 | Un número de mapa se lee igual en la galería y en el listado (§4.7f, §7.2). En la galería: un tramo `"-→21"` lleva 📌 sin número y 🎯 «21» (NM-1); `"17→-"`, 📌 «17» y 🎯 sin número (NM-2); dos números en un extremo van con `/`: `"21→22/23"` da «22/23» y `"v7-v8→v11"`, «v7/v8» (NM-3); una parada `"5,7"` dice «5/7», una `"-"` va sin etiqueta y, de control, `17` dice «17» (NM-4). En el listado de cuatro aventuras, con sus datos, cada pin escribe sus números con `/` y salen «📍5/7», «📍22/23», «📍v7/v8» y «📍16/17» (NM-5). El Puente de Monteolivete va con los números del Museo Príncipe Felipe (`"19/20"` en la Aventura3, `"13/14"` en la de 34 km): su galería y su fila del listado lo dicen, y el número está en verde con el Museo completado y no con todo hasta la Ópera (NM-6). Con la galería leyendo cada trozo tal cual caen NM-1 a NM-4 (pasa su control); con el pin unido por comas, NM-5; con el Museo en `20` y `14`, NM-6. |
+| `177-la-marca-de-los-retos-de-la-seleccion-con-el-color-de-su-caja.spec.js` | 3 | La ✓ y la ✗ de los retos de la selección llevan el color de su caja: en el R-1, una opción equivocada enseña la ✗ en el rojo de la caja, `#dc3545` (MR-1), y la correcta la ✓ en su verde, `#28a745` (MR-2); en el R-2, la opción elegida enseña la ✓ en el verde de la caja (MR-3). En los tres, de control, el borde de la caja tiene el color esperado. Con el color en las reglas de unas clases que nadie pone (`.tick.correcto`, `.x.incorrecto`), la ✓ y la ✗ salen en el negro del texto y caen los tres. |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8619,7 +8622,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 171 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 172 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9137,7 +9140,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-5bb05a7b9706';
+const CACHE_VERSION = 'v-fd227c344fe7';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12562,7 +12565,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-5bb05a7b9706';
+const CACHE_VERSION = 'v-fd227c344fe7';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

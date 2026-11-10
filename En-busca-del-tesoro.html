@@ -305,9 +305,11 @@
     .reto-box input[type="radio"], .reto-box input[type="checkbox"] { width: clamp(28px, 6.5vmin, 38px); height: clamp(28px, 6.5vmin, 38px); min-width: clamp(28px, 6.5vmin, 38px); flex-shrink: 0; margin-right: 0.8rem; cursor: pointer; accent-color: #0074d9; }
     .reto-box p { font-size: 1.4rem; margin: 0; }
     #reto-r1-opciones, #reto-r2-opciones { display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; gap: clamp(0.5rem, 2.5vmin, 1.5rem); width: 100%; flex: 1; min-height: 0; }
+    /* La ✓ y la ✗ de los retos R-1 y R-2, en el verde y el rojo con que verificarRetoR1() y verificarRetoR2() pintan el
+       borde de la caja del reto al acertar y al fallar; cada una se enseña con su style.display (spec 177). */
     .tick, .x { display: none; font-weight: bold; font-size: 3rem; margin-top: -0.125rem; }
-    .tick.correcto { display: inline; color: #1a5c2e; }
-    .x.incorrecto { display: inline; color: #9b1c1c; }
+    .tick { color: #28a745; }
+    .x { color: #dc3545; }
     .visual-feedback { font-size: 2rem; font-weight: bold; }
     .visual-feedback.error { color: #9b1c1c; }
     .aventuras-lista { display: flex; flex-direction: column; gap: clamp(0.15rem, 0.5vmin, 0.35rem); width: 98vw; max-width: 98vw; flex: 1; }
