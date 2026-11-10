@@ -160,7 +160,10 @@
     const tienePadre = globalThis.parent && globalThis.parent !== globalThis;
     if (tienePadre) await bus.inicializarMensajeria({ id: 'mapa-completo' });
 
-    const map = L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 21 });
+    // maxZoom 19: el último nivel de sus teselas (la capa de OpenStreetMap, abajo, llega al 19 y Leaflet no la dibuja por
+    // encima). Con más, el «+» seguía acercando y el mapa se quedaba gris, sin calles. Es el mismo tope que el mapa moderno
+    // del padre (_MAPA_MAX_ZOOM), por lo mismo (docs/estudio-caminos.md, K-196).
+    const map = L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 19 });
     let _bounds = null;
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

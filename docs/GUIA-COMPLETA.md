@@ -4933,7 +4933,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f0a679396dad'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-94f611a3eff3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8099,6 +8099,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `178-el-bloqueo-de-5-km-se-levanta-con-la-primera-lectura-dentro.spec.js` | 4 | El bloqueo de los 5 km se levanta con la primera lectura precisa dentro de la zona, sin esperar los 3 minutos entre comprobaciones, y en esa misma lectura sale la pantalla de la zona (§31.5). Contra el padre real con sus hijos: bloqueado, una lectura en la Ciudad de las Artes (a 2,5 km de la ruta de la Aventura1 y a 3,4 km de su parada) lo levanta y sale «muy lejos» (BK-1), también con el cartel cerrado con su ✗ (BK-2); de control, una lectura a 300 km no lo levanta (BK-3) y una dentro con ±150 m no cuenta (BK-4). Con el desbloqueo detrás de la espera de 3 minutos caen BK-1 y BK-2. |
 | `179-el-mapa-mide-contra-el-elemento-actual-del-padre.spec.js` | 2 | El mapa mide cada lectura del GPS contra el elemento actual del padre, no contra su copia (`estadoMapa.paradaActual`), que cambia después (§11, «Cómo decide cuál es el elemento a buscar»). Contra el padre real con sus hijos: con la copia del mapa dejada en el elemento anterior (`funcionesMapa.limpiarPorEstado`, con el modo actual), la lectura que llega a hijo2 en `NAVEGACION.ACTUALIZAR_ESTADO` lleva el elemento actual del padre (MA-1); de control, con la copia al día, también (MA-2). Midiendo contra la copia del mapa cae MA-1 (llega el elemento anterior). |
 | `180-hijo4-se-ensena-solo-por-el-apreton-de-manos.spec.js` | 2 | Un hijo enseña su interfaz por un solo camino, el apretón de manos (§26.13). Con `retos-hijo4.html` en `helpers/marco-vacio.html`: sin la confirmación del padre, un `RETO.MOSTRAR` pinta el reto y la interfaz sigue oculta (RU-1); de control, con la confirmación, la interfaz se ve y el reto también (RU-2). Con hijo4 enseñándose al recibir un reto cae RU-1. |
+| `181-el-mapa-completo-se-acerca-hasta-sus-teselas.spec.js` | 2 | El mapa completo se acerca hasta el último nivel que tiene teselas, el 19, el mismo tope que el mapa moderno (§32.4). Con `mapa-completo.html` en `helpers/marco-vacio.html`, Leaflet de verdad y las teselas servidas con una imagen local, se pulsa su «+» hasta que se desactiva, esperando en cada nivel a que Leaflet acabe de acercar: en el nivel más cercano hay teselas, y es el 19 (ZM-1); de control, al abrirse, en el 15, hay teselas (ZM-2). Con el mapa hasta el 21 cae ZM-1: en el 21 no hay ninguna tesela. |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8629,7 +8630,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 175 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 176 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9147,7 +9148,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-f0a679396dad';
+const CACHE_VERSION = 'v-94f611a3eff3';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12572,7 +12573,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-f0a679396dad';
+const CACHE_VERSION = 'v-94f611a3eff3';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13050,7 +13051,7 @@ No hace falta un wrapper dedicado ni sintetizar el mensaje con `origen`/`destino
 El módulo, al cargarse:
 
 1. Con frame contenedor, se une al bus como `mapa-completo` (`bus.inicializarMensajeria({ id: 'mapa-completo' })`); sin él no se une ni pide nada, y avisa en `#map` de que el mapa se abre desde la aventura.
-2. Crea el mapa, `L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 21 })`, y le añade en el acto la capa de teselas (`L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 })`): las primeras teselas que pide son las de esa vista por defecto.
+2. Crea el mapa, `L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 19 })` —el 19 es el último nivel de sus teselas: Leaflet no dibuja la capa por encima de su `maxZoom` y el mapa se quedaría gris; es el mismo tope que el del mapa moderno, `_MAPA_MAX_ZOOM` (spec 181)—, y le añade en el acto la capa de teselas (`L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 })`): las primeras teselas que pide son las de esa vista por defecto.
 3. Registra sus controladores de `MAPA_COMPLETO.DATOS` y `MAPA_COMPLETO.VISIBLE`, y pide los datos: `MAPA_COMPLETO.SOLICITAR_DATOS` (`{}`).
 
 Al llegar `MAPA_COMPLETO.DATOS`, `pintarRuta(coordenadas)` —solo la primera vez (`_pintado`) y solo con un array no vacío—:
@@ -13064,7 +13065,7 @@ Y el mismo controlador llama después a `marcarCompletados(numerosCompletados)`,
 La variable `_bounds` tiene scope de módulo para que el handler de `MAPA_COMPLETO.VISIBLE` pueda llamar `fitBounds` sin necesidad de parámetros.
 
 ```javascript
-const map = L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 21 });
+const map = L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 19 });
 let _bounds = null;
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
